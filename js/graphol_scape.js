@@ -390,22 +390,7 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
     // info = null se non esiste la label (è l'ultimo elemento)
     if (info != null) {
       nodo.data.label = info.textContent;
-
-
-      nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
-
-      nodo.data.labelYpos = (parseInt(info.getAttribute('y')) - nodo.position.y) + (nodo.data.height+2)/2 + parseInt(info.getAttribute('height'))/4;
-
-      // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
-      // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
-      if (nodo.data.type == 'facet') {
-        nodo.data.label = nodo.data.label.replace('^^','\n\n');
-        nodo.data.labelYpos = nodo.data.height;
-        //nodo.labelXpos = 0;
-      }
     }
-
-
 
     // Impostazione delle funzionalità dei nodi di tipo role o attribute
     //  1 -> funzionale
@@ -425,8 +410,44 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
           // funzionale.
           // -1 altrimenti
           if (nodo.data.type == 'role' && this.xmlPredicates[j].getElementsByTagName('inverseFunctional')[0].textContent == 1) {
-            if (nodo.data.functional == 1)
+            if (nodo.data.functional == 1) {
               nodo.data.functional = 2;
+              
+              //Creating nodes for the double style border effect
+              
+              var triangle_right = {
+                data : {
+                  height: nodo.data.height,
+                  width: nodo.data.width,
+                  fillColor: '#000',
+                  shape: 'polygon',
+                  shape_points: '0 -1 1 0 0 1',
+                },
+                position : {
+                  x: nodo.position.x,
+                  y: nodo.position.y,
+                }
+              };
+              
+              var triangle_left = {
+                data : {
+                  height: nodo.data.height,
+                  width: nodo.data.width+2,
+                  fillColor: '#fcfcfc',
+                  shape: 'polygon',
+                  shape_points: '0 -1 -1 0 0 1',
+                },
+                position : {
+                  x: nodo.position.x,
+                  y: nodo.position.y,
+                },
+              };
+              
+              nodo.data.height -= 8;
+              nodo.data.width -= 10;
+              this.cy.add(triangle_right);
+              this.cy.add(triangle_left);
+            }
             else
               nodo.data.functional = -1;
           }
@@ -434,7 +455,47 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
 
       }
     }
+    
+    
+    // If the node is both functional and inverse functional,
+    // we added the double style border and changed the node height and with
+    // the label position is function of node's height and width so we set it 
+    // after those change
+    if (info != null) {
+      nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
 
+      nodo.data.labelYpos = (parseInt(info.getAttribute('y')) - nodo.position.y) + (nodo.data.height+2)/2 + parseInt(info.getAttribute('height'))/4;
+
+      // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
+      // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
+      if (nodo.data.type == 'facet') {
+        nodo.data.label = nodo.data.label.replace('^^','\n\n');
+        nodo.data.labelYpos = nodo.data.height;
+                
+        // Creating the top rhomboid for the grey background
+        var top_rhomboid = {
+          data: {
+            height: nodo.data.height,
+            width: nodo.data.width,
+            fillColor: '#ddd',
+            shape: 'polygon',
+            shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',            
+          },
+          position : {
+            x: nodo.position.x,
+            y: nodo.position.y,
+          },
+        }
+        
+        // Setting the node transparent so the top_rhomboid will be visible
+        nodo.style = {
+          'background-opacity':0,
+        };
+        
+        this.cy.add(top_rhomboid);
+      }
+    }
+    
     this.cy.add(nodo);
   }  // End For
 };
