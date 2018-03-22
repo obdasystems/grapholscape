@@ -1,5 +1,6 @@
 function GrapholScape(xmlString,container) {
   var highlight_color = '#1257D9';
+  this.container = container;
   this.diagrams = [];
   this.xmlPredicates = [];
   this.predicates = '';
@@ -290,7 +291,6 @@ GrapholScape.prototype.init = function(xmlString) {
 
 };
 
-
 GrapholScape.prototype.addNodesToGraph = function(nodes) {
   var element;
   var i;
@@ -458,9 +458,9 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
     
     
     // If the node is both functional and inverse functional,
-    // we added the double style border and changed the node height and with
-    // the label position is function of node's height and width so we set it 
-    // after those change
+    // we added the double style border and changed the node height and width.
+    // The label position is function of node's height and width so we set it 
+    // now, after those changes
     if (info != null) {
       nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
 
@@ -693,16 +693,22 @@ GrapholScape.prototype.getDiagramName = function(diagram_id) {
   return this.diagrams[diagram_id].getAttribute('name');
 }
 
-GrapholScape.prototype.centerOnNode = function(node_id,zoom_level) {
+GrapholScape.prototype.centerOnNode = function(node_id, diagram, zoom) {
+  
+  // if we're not on the diagram of the node to center on, just draw it!
+  if (this.actual_diagram != this.getDiagramId(diagram)) {
+    this.drawDiagram(diagram);
+  }
+  
+  
   var node = this.cy.getElementById(node_id);
-  this.cy.zoom(zoom_level);
-  this.cy.center(node);
+ 
+  this.centerOnPosition(node.position('x'),node.position('y'),zoom);
+  
 
   node.style('border-color','#1257D9');
   node.style('border-width',5);
 
-  
-  
   setTimeout(function(){
     
     node.style('border-color','#000');
@@ -713,6 +719,25 @@ GrapholScape.prototype.centerOnNode = function(node_id,zoom_level) {
     else
       node.style('border-width',1);
   }, 1500, node);
+    
+}
+
+GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
+  this.cy.reset();
   
+  var offset_x = parseInt(window.getComputedStyle(this.cy.container()).width.replace('px','')) / 2;
+  var offset_y = parseInt(window.getComputedStyle(this.cy.container()).height.replace('px','')) / 2;
   
+  x_pos -=  offset_x;
+  y_pos -=  offset_y;
+ 
+  this.cy.pan({
+    x: -x_pos, 
+    y: -y_pos,
+  });
+  
+  this.cy.zoom({
+    level: zoom,
+    renderedPosition : { x: offset_x, y: offset_y }
+  });
 }

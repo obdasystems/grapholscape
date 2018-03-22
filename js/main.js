@@ -54,9 +54,6 @@ function goTo(graph,sub_row) {
   var diagram = sub_row.getAttribute('diagram');
   var node_id = sub_row.getAttribute('node_id');
 
-  if (graph.actual_diagram != graph.getDiagramId(diagram)) {
-    graph.drawDiagram(diagram);
-  }
-  graph.centerOnNode(node_id,1.25);
+  graph.centerOnNode(node_id,diagram,1.25);
 
 }
