@@ -15,8 +15,12 @@ HashTable.prototype.hash = function(key) {
   var index = 0;
   var i = 0;
   for (i=0; i<key.length; i++) {
-    index += key.charCodeAt(i);
+    index = ((index << 5) - index + key.charCodeAt(i)) << 0;
   }
+  
+  if (index < 0)
+    index = ~index + 1;
+  
   return index % this.size;
 };
 
