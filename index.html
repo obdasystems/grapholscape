@@ -2,7 +2,6 @@
 <html>
 <head>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.2.9/cytoscape.min.js"></script>
-  <script src="js/xml_parsing.js"></script>
   <script src="js/main.js"></script>
   <script src="js/hashtable.js"></script>
   <script src="js/graphol_scape.js"></script>
@@ -184,7 +183,7 @@
         var graph = new GrapholScape(reader.result,document.getElementById('cy'));
 
         showDiagramList(graph);
-
+        
       }
 
       reader.readAsText(files[0]);
@@ -193,7 +192,7 @@
 
       //handleFiles(files);
 
-      //graph.drawDiagram('Formalita');
+      
     }
   </script>
 </body>
