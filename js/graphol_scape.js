@@ -1,14 +1,16 @@
-function GrapholScape(xmlString,container) {
+function GrapholScape(file,container) {
   var highlight_color = '#1257D9';
   this.container = container;
   this.diagrams = [];
   this.xmlPredicates = [];
   this.predicates = '';
   this.actual_diagram = -1;
+  
+  
 
   this.cy = cytoscape({
 
-    container: container, // container to render in
+    container:container, // container to render in
 
     autoungrabify: true,
     wheelSensitivity: 0.4,
@@ -152,48 +154,53 @@ function GrapholScape(xmlString,container) {
     }
 
   });
+  
+  var reader = new FileReader();
+  var this_graph = this; 
+  reader.onloadend = function() {
+    this_graph.init(reader.result);     
+  }
 
-  this.init(xmlString);
+  reader.readAsText(file);
+  
 }
 
 
-
 GrapholScape.prototype.init = function(xmlString) {
+  // reference to this object, used when adding event listeners
+  var this_graph = this;
+  
   var parser = new DOMParser();
   var xmlDocument = parser.parseFromString(xmlString, 'text/xml');
 
   this.diagrams = xmlDocument.getElementsByTagName('diagram');
+  
+  // diagram list
+  var diagram_list = document.getElementById('diagram_list')
+  
+  var i=0;
+  for(i=0; i<this.diagrams.length; i++) {
+    var item = document.createElement('div');
+    item.setAttribute('class','diagram_item');
 
-  var diagram_list = document.getElementById('diagram_list');
+    var name = this.diagrams[i].getAttribute('name');
+    item.innerHTML = name;
 
-  if (diagram_list.innerHTML == '') {
-    var i=0;
-    for(i=0; i<this.diagrams.length; i++) {
-      var item = document.createElement('div');
-      item.setAttribute('class','diagram_item');
+    item.addEventListener('click',function () {
+      this_graph.drawDiagram(this.innerHTML);
+      toggleDiagramList();
+    });
 
-      var name = this.diagrams[i].getAttribute('name');
-      item.innerHTML = name;
-      var this_graph = this;
-      item.addEventListener('click',function () {
-        this_graph.drawDiagram(this.innerHTML);
-        toggleDiagramList();
-      });
-
-      document.getElementById('diagram_list').appendChild(item);
-    }
+    document.getElementById('diagram_list').appendChild(item);
   }
-
-
+ 
   this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
   this.predicates = new HashTable(this.xmlPredicates.length);
 
 
 
   // Retrieving informations from all the diagrams
-  var i=0;
   var k=0;
-
   // Populating the predicates HashTable
   for (i=0; i<this.diagrams.length; i++) {
     var nodes = this.diagrams[i].getElementsByTagName('node');
@@ -310,7 +317,31 @@ GrapholScape.prototype.init = function(xmlString) {
       }
     }
   }
-
+  
+  
+  // Showing UI modules
+  var modules = document.getElementsByClassName('module');
+  for(i=0; i < modules.length; i++) {
+    modules[i].style.display = 'initial';
+  }
+  
+  var zoom_in = document.getElementById('zoom_in');
+  zoom_in.addEventListener('click',function(){
+    this_graph.cy.zoom({
+      level: this_graph.cy.zoom()+0.08,
+      renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
+    });
+    
+  });
+  
+  var zoom_out = document.getElementById('zoom_out');
+  zoom_out.addEventListener('click',function(){
+    this_graph.cy.zoom({
+      level: this_graph.cy.zoom()-0.08,
+      renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
+    });
+    
+  });
 };
 
 GrapholScape.prototype.addNodesToGraph = function(nodes) {
@@ -521,7 +552,6 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
     this.cy.add(nodo);
   }  // End For
 };
-
 
 GrapholScape.prototype.addEdgesToGraph = function(edges) {
   var i;
@@ -747,9 +777,9 @@ GrapholScape.prototype.centerOnNode = function(node_id, diagram, zoom) {
 GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
   this.cy.reset();
 
-  var offset_x = parseInt(window.getComputedStyle(this.cy.container()).width.replace('px','')) / 2;
-  var offset_y = parseInt(window.getComputedStyle(this.cy.container()).height.replace('px','')) / 2;
-
+  var offset_x = this.cy.width() / 2;
+  var offset_y = this.cy.height() / 2;
+  
   x_pos -=  offset_x;
   y_pos -=  offset_y;
 
