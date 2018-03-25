@@ -163,6 +163,28 @@ GrapholScape.prototype.init = function(xmlString) {
   var xmlDocument = parser.parseFromString(xmlString, 'text/xml');
 
   this.diagrams = xmlDocument.getElementsByTagName('diagram');
+
+  var diagram_list = document.getElementById('diagram_list');
+
+  if (diagram_list.innerHTML == '') {
+    var i=0;
+    for(i=0; i<this.diagrams.length; i++) {
+      var item = document.createElement('div');
+      item.setAttribute('class','diagram_item');
+
+      var name = this.diagrams[i].getAttribute('name');
+      item.innerHTML = name;
+      var this_graph = this;
+      item.addEventListener('click',function () {
+        this_graph.drawDiagram(this.innerHTML);
+        toggleDiagramList();
+      });
+
+      document.getElementById('diagram_list').appendChild(item);
+    }
+  }
+
+
   this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
   this.predicates = new HashTable(this.xmlPredicates.length);
 
@@ -217,7 +239,7 @@ GrapholScape.prototype.init = function(xmlString) {
 
 
   // Ontology Explorer Table Population
-  var table = document.getElementById('predicates_table');
+  var table = document.getElementById('predicates_list');
 
   for (i=0; i< this.predicates.size; i++) {
 
@@ -412,9 +434,9 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
           if (nodo.data.type == 'role' && this.xmlPredicates[j].getElementsByTagName('inverseFunctional')[0].textContent == 1) {
             if (nodo.data.functional == 1) {
               nodo.data.functional = 2;
-              
+
               //Creating nodes for the double style border effect
-              
+
               var triangle_right = {
                 data : {
                   height: nodo.data.height,
@@ -428,7 +450,7 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
                   y: nodo.position.y,
                 }
               };
-              
+
               var triangle_left = {
                 data : {
                   height: nodo.data.height,
@@ -442,7 +464,7 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
                   y: nodo.position.y,
                 },
               };
-              
+
               nodo.data.height -= 8;
               nodo.data.width -= 10;
               this.cy.add(triangle_right);
@@ -455,11 +477,11 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
 
       }
     }
-    
-    
+
+
     // If the node is both functional and inverse functional,
     // we added the double style border and changed the node height and width.
-    // The label position is function of node's height and width so we set it 
+    // The label position is function of node's height and width so we set it
     // now, after those changes
     if (info != null) {
       nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
@@ -471,7 +493,7 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
       if (nodo.data.type == 'facet') {
         nodo.data.label = nodo.data.label.replace('^^','\n\n');
         nodo.data.labelYpos = nodo.data.height;
-                
+
         // Creating the top rhomboid for the grey background
         var top_rhomboid = {
           data: {
@@ -479,23 +501,23 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
             width: nodo.data.width,
             fillColor: '#ddd',
             shape: 'polygon',
-            shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',            
+            shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
           },
           position : {
             x: nodo.position.x,
             y: nodo.position.y,
           },
         }
-        
+
         // Setting the node transparent so the top_rhomboid will be visible
         nodo.style = {
           'background-opacity':0,
         };
-        
+
         this.cy.add(top_rhomboid);
       }
     }
-    
+
     this.cy.add(nodo);
   }  // End For
 };
@@ -694,48 +716,48 @@ GrapholScape.prototype.getDiagramName = function(diagram_id) {
 }
 
 GrapholScape.prototype.centerOnNode = function(node_id, diagram, zoom) {
-  
+
   // if we're not on the diagram of the node to center on, just draw it!
   if (this.actual_diagram != this.getDiagramId(diagram)) {
     this.drawDiagram(diagram);
   }
-  
-  
+
+
   var node = this.cy.getElementById(node_id);
- 
+
   this.centerOnPosition(node.position('x'),node.position('y'),zoom);
-  
+
 
   node.style('border-color','#1257D9');
   node.style('border-width',5);
 
   setTimeout(function(){
-    
+
     node.style('border-color','#000');
-    if (node.data('functional') == 1)      
+    if (node.data('functional') == 1)
       node.style('border-width',5);
-    else if (node.data('functional') == -1)  
+    else if (node.data('functional') == -1)
       node.style('border-width',4);
     else
       node.style('border-width',1);
   }, 1500, node);
-    
+
 }
 
 GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
   this.cy.reset();
-  
+
   var offset_x = parseInt(window.getComputedStyle(this.cy.container()).width.replace('px','')) / 2;
   var offset_y = parseInt(window.getComputedStyle(this.cy.container()).height.replace('px','')) / 2;
-  
+
   x_pos -=  offset_x;
   y_pos -=  offset_y;
- 
+
   this.cy.pan({
-    x: -x_pos, 
+    x: -x_pos,
     y: -y_pos,
   });
-  
+
   this.cy.zoom({
     level: zoom,
     renderedPosition : { x: offset_x, y: offset_y }

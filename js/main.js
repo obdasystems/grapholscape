@@ -1,27 +1,35 @@
-function showDiagramList(graph) {
-  var diagram_list = document.getElementById('diagram_list');
-  diagram_list.style.display = 'initial';
-
-  if (diagram_list.innerHTML == '') {
-    var i=0;
-    for(i=0; i<graph.diagrams.length; i++) {
-      var item = document.createElement('div');
-      item.setAttribute('class','diagram_item');
-
-      var name = graph.diagrams[i].getAttribute('name');
-      item.innerHTML = name;
-
-      item.addEventListener('click',function () { graph.drawDiagram(this.innerHTML); });
-
-      document.getElementById('diagram_list').appendChild(item);
-    }
+function toggleDiagramList() {
+  if (document.getElementById('diagram_list').style.display != 'block') {
+    document.getElementById('diagram_list').style.display = 'block';
+    document.getElementById('diagram-list-button').getElementsByTagName('img')[0].setAttribute('src','icons/drop_up_24dp.png');
+  }
+  else {
+    document.getElementById('diagram_list').style.display = 'none';
+        document.getElementById('diagram-list-button').getElementsByTagName('img')[0].setAttribute('src','icons/drop_down_24dp.png');
   }
 }
 
+function togglePredicatesList() {
+  if (document.getElementById('predicates_list').style.display != 'block') {
+    document.getElementById('predicates_list').style.display = 'block';
+    document.getElementById('predicates-list-button').getElementsByTagName('img')[0].setAttribute('src','icons/drop_up_24dp.png');
+  }
+  else {
+    document.getElementById('predicates_list').style.display = 'none';
+        document.getElementById('predicates-list-button').getElementsByTagName('img')[0].setAttribute('src','icons/drop_down_24dp.png');
+  }
+}
+
+
+
 function search(value) {
-  var table = document.getElementById('predicates_table');
+  var list = document.getElementById('predicates_list');
+  
+  list.style.display = 'block';
+  document.getElementById('predicates-list-button').getElementsByTagName('img')[0].setAttribute('src','icons/drop_up_24dp.png');
+  
   var val = value.toLowerCase();
-  var rows = table.getElementsByClassName('predicate');
+  var rows = list.getElementsByClassName('predicate');
 
   var i=0;
   var info;
@@ -53,9 +61,10 @@ function toggleSubRows(col_with_arrow) {
 function goTo(graph,sub_row) {
   var diagram = sub_row.getAttribute('diagram');
   var node_id = sub_row.getAttribute('node_id');
-
+  
+  togglePredicatesList();
+  
   graph.centerOnNode(node_id,diagram,1.25);
-
 }
 
 

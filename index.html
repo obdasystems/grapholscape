@@ -16,52 +16,52 @@
     }
 
     #cy {
-      width:82%;
+      width:100%;
       height:100%;
       right:0;
       position:absolute;
     }
 
-    aside {
-      position:absolute;
-      width: 18%;
-      min-width: 150px;
-      float:left;
-      display: none;
+    .module {
+      background-color: #fff;
+      width: 340px;
+      box-shadow: 0px 1px 3px #bbb;
+      border-radius:3px;
+      height:40px;
     }
 
     .module_head {
-      padding:5px;
-      text-align:center;
-      background-color:#1257D9;
-      cursor: move;
-      color:white;
+      text-align: center;
+      cursor:default;
+      width:300px;
+      height: 24px;
+      padding:8px 0;
+      float:left;
     }
-
-    .module {
-      background-color: #fafafa;
+    
+    #explorer {
+      position:absolute;
+      left:370px;
+      top:15px;
     }
-
-    .module_content {
-      color: #333;
-      overflow: auto;
-      max-height: 200px;
-    }
-
+    
     #search {
       width:100%;
-      height:40px;
-      padding:10px;
+      font-size:inherit;
       box-sizing: border-box;
+      padding:0 10px;
       border:none;
     }
-
-    #title {
-      text-align: center;
-      font-size:16px;
-      padding:10px;
+    
+    #predicates_list {
+      margin-top:40px; 
+      overflow:auto;
+      background-color:#fff; 
+      box-shadow: 0px 1px 3px #bbb;   
+      max-height: 600px;
+      display: none;
     }
-
+    
     .row{
       display: flex;
       align-items: center;
@@ -71,7 +71,8 @@
     }
 
     .row:hover{
-      background-color: #e7effd;
+      background-color: #1257D9;
+      color:white;
     }
 
     .info {
@@ -91,16 +92,42 @@
     }
 
     .sub_row:hover {
-      background-color: #e7effd;
+      background-color: #1257D9;
+      color:white;
     }
 
-    .diagram_item {
-      padding:2px 20px;
+    #diagram_list {
+      display:none;
+    }
+    
+    .module_button {
+      height:24px;
+      width:24px;
+      float: left;
+      padding:8px;
       cursor:pointer;
     }
 
+    #diagram_name {
+      position: absolute;
+      top:15px;
+      left:15px;
+      z-index: 10;
+    }
+
+    .diagram_item {
+      text-align: center;
+      width:340px;
+      cursor:pointer;
+      background-color: #fff;
+      float:left;
+      padding:6px 0;
+      box-shadow: 0px 1px 3px #bbb;
+    }
+
     .diagram_item:hover{
-      background-color:#e7effd;
+      color:white;
+      background-color:#1257D9;
     }
   </style>
 
@@ -112,35 +139,34 @@
 <body style="margin: 0">
   <div id="cy" ></div>
 
-  <aside>
+  <div class="module" id="diagram_name">
 
-    <div class="module">
-      <div class="module_head">
-        Diagram Name
-      </div>
-      <div class="module_content">
-        <div id="title"></div>
-        <div id="diagram_list"></div>
-      </div>
-
+    <div class="module_head" id="title">Selezionare un diagramma</div>
+    <div class="module_button" id="diagram-list-button" onclick="toggleDiagramList()">
+      <img src="icons/drop_down_24dp.png"/>
     </div>
 
-    <div id ="explorer" class="module">
-      <div class="module_head">Ontology Explorer</div>
-      <div><input type="text" id="search" placeholder="Search..." onkeyup="search(this.value)"/></div>
-      <div class="module_content">
-        <div id="predicates_table">
-        </div>
+    <div id="diagram_list"></div>
+  </div>
+
+  <div id="explorer" class="module">
+      <div class="module_head"><input type="text" id="search" placeholder="Search Predicates..." onkeyup="search(this.value)"/></div>
+      <div class="module_button" id="predicates-list-button" onclick="togglePredicatesList()">
+        <img src="icons/drop_down_24dp.png"/>
       </div>
+    
+      <div id="predicates_list"></div> 
+  </div>
+
+ 
+
+  <div id="tools">
+    <div id="zoom_tools">
     </div>
 
-    <div id="overview" class="module">
-      <div class="module_head">
-        Overview
-      </div>
+    <div id="nav_tools">
     </div>
-
-  </aside>
+  </div>
 
   <div id="dropbox" style="height:300px; width:600px; position:absolute; top:50%; left:50%; margin:-150px 0 0 -300px; border:solid 4px #aaa; border-radius:4px">
     <div style="position:absolute; top:50%; left:50%; margin:-15px 0 0 -150px; width:300px; height:30px; font-family:sans-serif; color:#aaa; font-size: 25px;">DROP A GRAPHOL FILE</div>
@@ -179,11 +205,9 @@
       reader.onloadend = function() {
 
         document.getElementById('dropbox').style.display = 'none';
-        document.getElementsByTagName('aside')[0].style.display = 'initial';
+
         var graph = new GrapholScape(reader.result,document.getElementById('cy'));
 
-        showDiagramList(graph);
-        
       }
 
       reader.readAsText(files[0]);
@@ -192,7 +216,7 @@
 
       //handleFiles(files);
 
-      
+
     }
   </script>
 </body>
