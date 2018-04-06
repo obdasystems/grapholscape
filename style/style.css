@@ -59,7 +59,7 @@
 }
 
 .row:hover{
-  background-color: #1257D9;
+  background-color: rgb(81,149,199);
   color:white;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .sub_row:hover {
-  background-color: #1257D9;
+  background-color: rgb(81,149,199);
   color:white;
 }
 
@@ -110,7 +110,7 @@
 
 .diagram_item:hover{
   color:white;
-  background-color:#1257D9;
+  background-color:rgb(81,149,199);
 }
 
 
@@ -131,14 +131,14 @@
 }
 
 .zoom_button:hover{
-  color:#1257D9;
+  color:rgb(81,149,199);
 }
 
 
 .tooltip .tooltiptext {
   visibility: hidden;
   width:120px;
-  background-color: #1257D9;
+  background-color: rgb(81,149,199);
   color: #fff;
   text-align: center;
   padding: 10px;
@@ -166,7 +166,7 @@
   margin-top: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent transparent #1257D9;
+  border-color: transparent transparent transparent rgb(81,149,199);
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
