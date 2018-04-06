@@ -1,19 +1,22 @@
-function GrapholScape(file,container) {
-  var highlight_color = '#1257D9';
+function GrapholScape(file,container,xmlstring) {
+  this.highlight_color = '#1257D9';
   this.container = container;
   this.diagrams = [];
   this.xmlPredicates = [];
   this.predicates = '';
   this.actual_diagram = -1;
-  
-  
 
+  //includeHTML(container,'graphol.html');
+  var cy_container = document.createElement('div');
+  cy_container.setAttribute('id','cy');
+  this.container.appendChild(cy_container);
   this.cy = cytoscape({
 
-    container:container, // container to render in
+    container:container.firstElementChild, // container to render in
 
     autoungrabify: true,
     wheelSensitivity: 0.4,
+
 
     style: [ // the stylesheet for the graph
       {
@@ -73,7 +76,7 @@ function GrapholScape(file,container) {
         style: {
           'source-arrow-color': '#000',
           'source-arrow-shape': 'data(source_arrow)',
-          'source_arrow_fill': 'data(arrow_fill)',
+          'source-arrow-fill': 'data(arrow_fill)',
         }
 
       },
@@ -116,8 +119,8 @@ function GrapholScape(file,container) {
           'label': 'data(edge_label)',
           'font-size' : 10,
           'text-rotation': 'autorotate',
-          'text-margin-y': -5,
-          'text-margin-x': -5,
+          'text-margin-y': -10,
+          //'text-margin-x': 5,
         }
       },
 
@@ -141,10 +144,18 @@ function GrapholScape(file,container) {
       {
         selector: 'edge:selected',
         style: {
-          'line-color' : highlight_color,
-          'source-arrow-color' : highlight_color,
-          'target-arrow-color' : highlight_color,
+          'line-color' : this.highlight_color,
+          'source-arrow-color' : this.highlight_color,
+          'target-arrow-color' : this.highlight_color,
           'width' : '4',
+        }
+      },
+
+      {
+        selector: 'node:selected',
+        style: {
+          'border-color' : this.highlight_color,
+          'border-width' : '4',
         }
       },
     ],
@@ -154,50 +165,82 @@ function GrapholScape(file,container) {
     }
 
   });
-  
-  var reader = new FileReader();
-  var this_graph = this; 
-  reader.onloadend = function() {
-    this_graph.init(reader.result);     
-  }
 
-  reader.readAsText(file);
-  
+  xmlstring = xmlstring || null;
+
+  if (!xmlstring) {
+    var reader = new FileReader();
+    var this_graph = this;
+    reader.onloadend = function() {
+      this_graph.init(reader.result);
+    }
+
+    reader.readAsText(file);
+  }
+  else {
+    this.init(xmlstring);
+  }
 }
 
 
 GrapholScape.prototype.init = function(xmlString) {
   // reference to this object, used when adding event listeners
   var this_graph = this;
-  
+  var i;
   var parser = new DOMParser();
   var xmlDocument = parser.parseFromString(xmlString, 'text/xml');
 
   this.diagrams = xmlDocument.getElementsByTagName('diagram');
-  
-  // diagram list
-  var diagram_list = document.getElementById('diagram_list')
-  
-  var i=0;
+
+  // module : diagram list
+  var module = document.createElement('div');
+  var child = document.createElement('div');
+  var img = document.createElement('img');
+  module.setAttribute('id','diagram_name');
+  module.setAttribute('class','module top_module');
+
+  // module head
+  child.setAttribute('id','title');
+  child.setAttribute('class','module_head');
+  child.innerHTML = 'Select a diagram';
+  module.appendChild(child);
+
+  // module button
+  child = document.createElement('div');
+  child.setAttribute('id','diagram-list-button');
+  child.setAttribute('class','module_button');
+  child.setAttribute('onclick','toggle(id)');
+  img.setAttribute('src','icons/drop_down_24dp.png');
+  child.appendChild(img);
+  module.appendChild(child);
+
+  // module dropdown div
+  child = document.createElement('div');
+  child.setAttribute('id','diagram_list');
+  child.setAttribute('class','hide');
+
+  // adding diagrams in the dropdown div
+  var item;
   for(i=0; i<this.diagrams.length; i++) {
-    var item = document.createElement('div');
+    item = document.createElement('div');
     item.setAttribute('class','diagram_item');
 
-    var name = this.diagrams[i].getAttribute('name');
-    item.innerHTML = name;
+    item.innerHTML = this.diagrams[i].getAttribute('name');
 
     item.addEventListener('click',function () {
       this_graph.drawDiagram(this.innerHTML);
-      toggleDiagramList();
+      toggle('diagram-list-button');
     });
 
-    document.getElementById('diagram_list').appendChild(item);
+    child.appendChild(item);
   }
- 
+
+  module.appendChild(child);
+  makeDraggable(module);
+  this.container.appendChild(module);
+
   this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
   this.predicates = new HashTable(this.xmlPredicates.length);
-
-
 
   // Retrieving informations from all the diagrams
   var k=0;
@@ -244,28 +287,46 @@ GrapholScape.prototype.init = function(xmlString) {
     }
   }
 
+  // module : Explorer
+  module= module.cloneNode(true);
+  module.setAttribute('id','explorer');
+  // module still have class = 'module top_module' so we don't need to addd them
+  var input = document.createElement('input');
+  input.setAttribute('autocomplete','off');
+  input.setAttribute('type','text');
+  input.setAttribute('id','search');
+  input.setAttribute('placeholder','Search Predicates...');
+  input.setAttribute('onkeyup','search(this.value)');
+
+  //module_head contains the input field
+  module.firstElementChild.innerHTML='';
+  module.firstElementChild.appendChild(input);
+  // we need to modify the id of the module_button
+  module.getElementsByClassName('module_button')[0].setAttribute('id','predicates-list-button');
+
+  // dropdown div with predicates list
+  module.removeChild(module.lastElementChild);
+  child = document.createElement('div');
+  child.setAttribute('id','predicates_list');
+  child.setAttribute('class','hide');
 
   // Ontology Explorer Table Population
-  var table = document.getElementById('predicates_list');
-
+  var j,row, wrap, col, img_type_address, sub_rows, sub_row, current_node;
   for (i=0; i< this.predicates.size; i++) {
 
     if (this.predicates.storage[i] != null) {
-      var current_node = this.predicates.storage[i];
+      current_node = this.predicates.storage[i];
 
       while(current_node) {
-        //table.innerHTML += '<tr id="'+current_node.key+'"><td class="type_img"><img src="icons/ic_treeview_'+current_node.element.data.type+'_18dp_1x.png" /></td><td>'+current_node.element.data.label+'</td></tr>';
-
-
-        var row = document.createElement('div');
+        row = document.createElement('div');
         row.setAttribute("id",  current_node.key);
         row.setAttribute('class','predicate');
 
-        var wrap = document.createElement('div');
+        wrap = document.createElement('div');
         wrap.setAttribute("class","row");
 
-        var col = document.createElement('span');
-        var img  = document.createElement('img');
+        col = document.createElement('span');
+        img  = document.createElement('img');
         img.setAttribute('src','icons/arrow_right_18dp.png');
         col.appendChild(img);
         wrap.appendChild(col);
@@ -273,7 +334,7 @@ GrapholScape.prototype.init = function(xmlString) {
         col = document.createElement('span');
         col.setAttribute('class','col type_img');
         img = document.createElement('img');
-        var img_type_address = 'icons/ic_treeview_'+current_node.element.type+'_18dp_1x.png';
+        img_type_address = 'icons/ic_treeview_'+current_node.element.type+'_18dp_1x.png';
         img.setAttribute("src",img_type_address);
         col.appendChild(img);
         wrap.appendChild(col);
@@ -286,62 +347,115 @@ GrapholScape.prototype.init = function(xmlString) {
         wrap.appendChild(col);
         row.appendChild(wrap);
 
-
         wrap.firstChild.addEventListener('click',function() {toggleSubRows(this);});
 
-        var j=0;
-        var sub_rows = document.createElement('div');
+        sub_rows = document.createElement('div');
         sub_rows.setAttribute('class','sub_row_wrapper');
         for (j=0; j < current_node.element.id.length; j++) {
-
-
-
-          var sub_row = document.createElement('div');
+          sub_row = document.createElement('div');
           sub_row.setAttribute('class','sub_row');
 
           sub_row.innerHTML = '- '+this.getDiagramName(current_node.element.diagrams[j])+' - '+current_node.element.id[j];
           sub_row.setAttribute("diagram",this.getDiagramName(current_node.element.diagrams[j]));
           sub_row.setAttribute("node_id",current_node.element.id[j]);
 
-          var graph_obj = this;
-
-          sub_row.addEventListener('click',function() {goTo(graph_obj,this);});
+          sub_row.addEventListener('click',function() {goTo(this_graph,this);});
 
           sub_rows.appendChild(sub_row);
           row.appendChild(sub_rows);
         }
 
-        table.appendChild(row);
+        child.appendChild(row);
         current_node = current_node.next;
 
       }
     }
   }
-  
-  
-  // Showing UI modules
-  var modules = document.getElementsByClassName('module');
-  for(i=0; i < modules.length; i++) {
-    modules[i].style.display = 'initial';
-  }
-  
-  var zoom_in = document.getElementById('zoom_in');
-  zoom_in.addEventListener('click',function(){
+  module.appendChild(child);
+  makeDraggable(module);
+  this.container.appendChild(module);
+
+  // tools
+  module = document.createElement('div');
+  module.setAttribute('id','tools');
+  module.setAttribute('class','module');
+
+  child = document.createElement('div');
+  child.setAttribute('id','zoom_tools');
+  child.setAttribute('class','tooltip module');
+
+  // zoom_in
+  var aux = document.createElement('div');
+  aux.setAttribute('class','zoom_button');
+  aux.setAttribute('id','zoom_in');
+  aux.innerHTML = '+';
+
+  aux.addEventListener('click',function(){
     this_graph.cy.zoom({
       level: this_graph.cy.zoom()+0.08,
       renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
     });
-    
+    var slider_value = Math.round(this_graph.cy.zoom()/this_graph.cy.maxZoom()*100);
+    document.getElementById('zoom_slider').setAttribute('value',slider_value);
   });
-  
-  var zoom_out = document.getElementById('zoom_out');
-  zoom_out.addEventListener('click',function(){
+  aux.onselectstart = function() { return false};
+  child.appendChild(aux);
+
+  // tooltip
+  aux = document.createElement('span');
+  aux.setAttribute('class','tooltiptext');
+  aux.setAttribute('onclick','showSlider()');
+  aux.innerHTML = 'Toggle slider';
+
+  child.appendChild(aux);
+
+  // slider
+  aux = document.createElement('div');
+  aux.style.textAlign = 'center';
+  input = document.createElement('input');
+  input.setAttribute('id','zoom_slider');
+  input.setAttribute('class','hide');
+  input.setAttribute('orient','vertical');
+  input.setAttribute('autocomplete','off');
+  input.setAttribute('type','range');
+  input.setAttribute('min','1');
+  input.setAttribute('max','100');
+  input.setAttribute('value','50');
+
+  input.oninput = function() {
+    var zoom_level = (this_graph.cy.maxZoom()/100) * this.value;
+    this_graph.cy.zoom({
+      level: zoom_level,
+      renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
+    });
+  };
+
+  aux.appendChild(input);
+
+  child.appendChild(aux);
+
+  // zoom_out
+  aux = document.createElement('div');
+  aux.setAttribute('class','zoom_button');
+  aux.setAttribute('id','zoom_out');
+  aux.innerHTML = '-';
+
+  aux.addEventListener('click',function(){
     this_graph.cy.zoom({
       level: this_graph.cy.zoom()-0.08,
       renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
     });
-    
+    var slider_value = Math.round(this_graph.cy.zoom()/this_graph.cy.maxZoom()*100);
+    document.getElementById('zoom_slider').setAttribute('value',slider_value);
+
   });
+  aux.onselectstart = function() { return false};
+  child.appendChild(aux);
+
+  // add zoom_tools to the tools module
+  module.appendChild(child);
+  // add tools module to the container
+  this.container.appendChild(module);
 };
 
 GrapholScape.prototype.addNodesToGraph = function(nodes) {
@@ -592,7 +706,7 @@ GrapholScape.prototype.addEdgesToGraph = function(edges) {
         edge.data.style = 'solid';
         edge.data.target_arrow = 'triangle';
         edge.data.arrow_fill = 'filled';
-        edge.data.label = 'instance Of';
+        edge.data.edge_label = 'instance Of';
         break;
 
       default:
@@ -706,7 +820,6 @@ GrapholScape.prototype.addEdgesToGraph = function(edges) {
   }
 };
 
-
 GrapholScape.prototype.drawDiagram = function(diagram_name) {
   var diagram_id = this.getDiagramId(diagram_name);
 
@@ -728,10 +841,8 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
   return true;
 };
 
-
 GrapholScape.prototype.getDiagramId = function(name) {
   var diagram_id = 0;
-
 
   for (diagram_id = 0; diagram_id < this.diagrams.length; diagram_id++) {
     if (this.diagrams[diagram_id].getAttribute('name') === name)
@@ -754,24 +865,9 @@ GrapholScape.prototype.centerOnNode = function(node_id, diagram, zoom) {
 
 
   var node = this.cy.getElementById(node_id);
-
   this.centerOnPosition(node.position('x'),node.position('y'),zoom);
-
-
-  node.style('border-color','#1257D9');
-  node.style('border-width',5);
-
-  setTimeout(function(){
-
-    node.style('border-color','#000');
-    if (node.data('functional') == 1)
-      node.style('border-width',5);
-    else if (node.data('functional') == -1)
-      node.style('border-width',4);
-    else
-      node.style('border-width',1);
-  }, 1500, node);
-
+  this.cy.collection(':selected').unselect();
+  node.select();
 }
 
 GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
@@ -779,7 +875,7 @@ GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
 
   var offset_x = this.cy.width() / 2;
   var offset_y = this.cy.height() / 2;
-  
+
   x_pos -=  offset_x;
   y_pos -=  offset_y;
 
