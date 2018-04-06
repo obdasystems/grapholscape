@@ -1,5 +1,5 @@
 function GrapholScape(file,container,xmlstring) {
-  this.highlight_color = '#1257D9';
+  this.highlight_color = 'rgb(81,149,199)';
   this.container = container;
   this.diagrams = [];
   this.xmlPredicates = [];
