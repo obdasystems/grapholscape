@@ -10,47 +10,47 @@
 
 .module {
   background-color: #fafafa;
-  box-shadow: 0px 1px 3px #bbb;
-  border-radius:3px;
-}
-
-.top_module {
-  width: 340px;
-  height:40px;
+  box-shadow: 0px 0px 2px #bbb;
+  border-radius: 3px;
+  max-width:340px;
 }
 
 .module_head {
   text-align: center;
-  width:300px;
-  height: 24px;
-  padding:8px 0;
+  width:100%;
+  padding:10px 40px 10px 10px;
+  box-sizing: border-box;
   float:left;
 }
 
 #explorer {
   position:absolute;
-  left:370px;
-  top:15px;
+  left:310px;
+  top:10px;
+  width:320px;
 }
 
 #search {
   width:100%;
-  background-color:#fafafa;
   font-size:inherit;
   box-sizing: border-box;
+  background-color: #fafafa;
   padding:0 10px;
   border:none;
 }
 
 #predicates_list {
+  width: 100%;
   margin-top:40px;
   overflow:auto;
   background-color:#fafafa;
-  box-shadow: 0px 1px 3px #bbb;
-  max-height: 500px;
+  border:solid 1px #eee;
+  border-top:0;
+  max-height: 450px;
 }
 
 .row{
+  line-height: 0;
   display: flex;
   align-items: center;
   padding:2px 0;
@@ -85,27 +85,31 @@
 }
 
 .module_button {
+  position:absolute;
+  right:0;
   height:24px;
   width:24px;
-  float: left;
   padding:8px;
   cursor:pointer;
 }
 
 #diagram_name {
   position: absolute;
-  top:15px;
-  left:15px;
+  left:10px;
+  top:10px;
+  width:280px;
+}
+
+#diagram_list {
+  max-height: 450px;
+  margin-top:40px;
+  overflow: auto;
 }
 
 .diagram_item {
-  text-align: center;
-  width:340px;
   cursor:pointer;
+  padding:5px;
   background-color: #fafafa;
-  float:left;
-  padding:6px 0;
-  box-shadow: 0px 1px 3px #bbb;
 }
 
 .diagram_item:hover{
@@ -116,8 +120,8 @@
 
 #tools {
   position:absolute;
-  bottom:15px;
-  right:15px;
+  bottom:10px;
+  right:10px;
 }
 
 .zoom_button{
@@ -179,6 +183,49 @@
   text-decoration: underline;
 }
 
-.draggable{
+.draggable {
   cursor:grab;
+}
+
+#details {
+  position:absolute;
+  right:10px;
+  top:10px;
+  width:430px;
+}
+
+#details_body {
+  font-size:14px;
+  margin-top:40px;
+  background:#fafafa;
+  max-height: 450px;
+  overflow: auto;
+}
+
+.details_table {
+  border:0;
+  margin:0;
+  padding:2px;
+  border-spacing: 0;
+}
+.details_table th{
+  background-color:rgb(81,149,199);
+  color:white;
+  text-align: left;
+}
+
+.details_table th, td {
+  padding:5px;
+}
+
+.descr {
+  padding:10px;
+}
+
+.checkmark {
+  color:rgb(81,149,199);
+  font-size:20px;
+  margin:10px;
+  position:relative;
+  top:2px;
 }

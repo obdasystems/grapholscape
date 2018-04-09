@@ -93,7 +93,7 @@ function getNextSibling(node) {
 
 
 function isPredicate(node) {
-    switch (node.type) {
+    switch (node.getAttribute('type')) {
       case 'concept':
       case 'attribute':
       case 'role':
@@ -292,7 +292,7 @@ function makeDraggable(elmnt) {
   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   elmnt.classList.add('draggable');
 
-  elmnt.onmousedown = dragMouseDown;
+  elmnt.getElementsByClassName('module_head')[0].onmousedown = dragMouseDown;
 
   function dragMouseDown(e) {
     e = e || window.event;

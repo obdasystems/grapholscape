@@ -3,10 +3,8 @@ function GrapholScape(file,container,xmlstring) {
   this.container = container;
   this.diagrams = [];
   this.xmlPredicates = [];
-  this.predicates = '';
   this.actual_diagram = -1;
 
-  //includeHTML(container,'graphol.html');
   var cy_container = document.createElement('div');
   cy_container.setAttribute('id','cy');
   this.container.appendChild(cy_container);
@@ -64,7 +62,6 @@ function GrapholScape(file,container,xmlstring) {
         selector: '[segment_distances]',
         style: {
           'curve-style': 'segments',
-
           "segment-distances": 'data(segment_distances)',
           'segment-weights' : 'data(segment_weights)',
           'edge-distances' : 'node-position',
@@ -96,7 +93,7 @@ function GrapholScape(file,container,xmlstring) {
       },
 
       {
-        selector: '[functional = 1]',
+        selector: '[?functional][!inverseFunctional]',
         style: {
           'border-width':5,
           'border-color': '#000',
@@ -105,7 +102,7 @@ function GrapholScape(file,container,xmlstring) {
       },
 
       {
-        selector: '[functional = -1]',
+        selector: '[?inverseFunctional][!functional]',
         style: {
           'border-width':4,
           'border-color': '#000',
@@ -120,7 +117,6 @@ function GrapholScape(file,container,xmlstring) {
           'font-size' : 10,
           'text-rotation': 'autorotate',
           'text-margin-y': -10,
-          //'text-margin-x': 5,
         }
       },
 
@@ -148,6 +144,7 @@ function GrapholScape(file,container,xmlstring) {
           'source-arrow-color' : this.highlight_color,
           'target-arrow-color' : this.highlight_color,
           'width' : '4',
+          'z-index' : '100',
         }
       },
 
@@ -156,6 +153,7 @@ function GrapholScape(file,container,xmlstring) {
         style: {
           'border-color' : this.highlight_color,
           'border-width' : '4',
+          'z-index' : '100',
         }
       },
     ],
@@ -167,10 +165,9 @@ function GrapholScape(file,container,xmlstring) {
   });
 
   xmlstring = xmlstring || null;
-
+  var this_graph = this;
   if (!xmlstring) {
     var reader = new FileReader();
-    var this_graph = this;
     reader.onloadend = function() {
       this_graph.init(reader.result);
     }
@@ -180,24 +177,48 @@ function GrapholScape(file,container,xmlstring) {
   else {
     this.init(xmlstring);
   }
+  
+  
+  this.cy.on('select','.predicate', function (evt) {this_graph.showDetails(evt.target);});
+  this.cy.on('tap',function(evt) {
+    if (evt.target === this_graph.cy)
+      document.getElementById('details').classList.add('hide');
+  })
 }
 
 
 GrapholScape.prototype.init = function(xmlString) {
   // reference to this object, used when adding event listeners
   var this_graph = this;
-  var i;
+  var i,k;
+  
   var parser = new DOMParser();
   var xmlDocument = parser.parseFromString(xmlString, 'text/xml');
-
   this.diagrams = xmlDocument.getElementsByTagName('diagram');
+  this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
+  
+  if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length == 0) {
+    this.default_iri = xmlDocument.getElementsByTagName('iri')[0].textContent;
+  }
+  else {
+    this.iri_prefixes = xmlDocument.getElementsByTagName('prefix');
+
+    var iri_list = xmlDocument.getElementsByTagName('iri');
+
+    for(i=0; i< iri_list.length; i++) {
+      if (iri_list[i].getElementsByTagName('prefix').length == 0) {
+        this.default_iri = iri_list[i].getAttribute('iri_value');
+        break;
+      }
+    }
+  }
 
   // module : diagram list
   var module = document.createElement('div');
   var child = document.createElement('div');
   var img = document.createElement('img');
   module.setAttribute('id','diagram_name');
-  module.setAttribute('class','module top_module');
+  module.setAttribute('class','module');
 
   // module head
   child.setAttribute('id','title');
@@ -239,58 +260,10 @@ GrapholScape.prototype.init = function(xmlString) {
   makeDraggable(module);
   this.container.appendChild(module);
 
-  this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
-  this.predicates = new HashTable(this.xmlPredicates.length);
-
-  // Retrieving informations from all the diagrams
-  var k=0;
-  // Populating the predicates HashTable
-  for (i=0; i<this.diagrams.length; i++) {
-    var nodes = this.diagrams[i].getElementsByTagName('node');
-
-    var element;
-    for (k = 0; k < nodes.length; k++) {
-      element = nodes[k];
-
-      var nodo = {
-          type : element.getAttribute('type'),
-      };
-
-
-      if (isPredicate(nodo)) {
-
-        nodo.label = element.getElementsByTagName('label')[0].textContent;
-
-        nodo.label = nodo.label.replace(/\r?\n|\r/g,""); // removing new_lines characters
-        var key = nodo.label.concat(nodo.type);
-
-        // if this predicate is already in the hashtable
-        // then we add the id and the diagram identificator of this "istance"
-        // So we will know the number of istances in the ontology for each predicate
-        // and which diagram they referes to
-        if (this.predicates.get(key) != null) {
-          // overriding the node created previously with the one that's already in the hash table
-          nodo = this.predicates.get(key);
-
-          nodo.id.push(element.getAttribute('id'));
-          nodo.diagrams.push(i);
-        }
-        else {
-          // This is a new predicate, create the id and diagrams number array
-          nodo.id = [];
-          nodo.id.push(element.getAttribute('id'));
-          nodo.diagrams = [];
-          nodo.diagrams.push(i);
-          this.predicates.insert(key,nodo);
-        }
-      }
-    }
-  }
-
   // module : Explorer
   module= module.cloneNode(true);
   module.setAttribute('id','explorer');
-  // module still have class = 'module top_module' so we don't need to addd them
+  // module still have class = 'module' so we don't need to addd them
   var input = document.createElement('input');
   input.setAttribute('autocomplete','off');
   input.setAttribute('type','text');
@@ -309,71 +282,103 @@ GrapholScape.prototype.init = function(xmlString) {
   child = document.createElement('div');
   child.setAttribute('id','predicates_list');
   child.setAttribute('class','hide');
-
-  // Ontology Explorer Table Population
-  var j,row, wrap, col, img_type_address, sub_rows, sub_row, current_node;
-  for (i=0; i< this.predicates.size; i++) {
-
-    if (this.predicates.storage[i] != null) {
-      current_node = this.predicates.storage[i];
-
-      while(current_node) {
-        row = document.createElement('div');
-        row.setAttribute("id",  current_node.key);
-        row.setAttribute('class','predicate');
-
-        wrap = document.createElement('div');
-        wrap.setAttribute("class","row");
-
-        col = document.createElement('span');
-        img  = document.createElement('img');
-        img.setAttribute('src','icons/arrow_right_18dp.png');
-        col.appendChild(img);
-        wrap.appendChild(col);
-
-        col = document.createElement('span');
-        col.setAttribute('class','col type_img');
-        img = document.createElement('img');
-        img_type_address = 'icons/ic_treeview_'+current_node.element.type+'_18dp_1x.png';
-        img.setAttribute("src",img_type_address);
-        col.appendChild(img);
-        wrap.appendChild(col);
-
-
-        col = document.createElement('div');
-        col.setAttribute('class','col info');
-        col.innerHTML = current_node.element.label;
-
-        wrap.appendChild(col);
-        row.appendChild(wrap);
-
-        wrap.firstChild.addEventListener('click',function() {toggleSubRows(this);});
-
-        sub_rows = document.createElement('div');
-        sub_rows.setAttribute('class','sub_row_wrapper');
-        for (j=0; j < current_node.element.id.length; j++) {
-          sub_row = document.createElement('div');
-          sub_row.setAttribute('class','sub_row');
-
-          sub_row.innerHTML = '- '+this.getDiagramName(current_node.element.diagrams[j])+' - '+current_node.element.id[j];
-          sub_row.setAttribute("diagram",this.getDiagramName(current_node.element.diagrams[j]));
-          sub_row.setAttribute("node_id",current_node.element.id[j]);
-
-          sub_row.addEventListener('click',function() {goTo(this_graph,this);});
-
-          sub_rows.appendChild(sub_row);
-          row.appendChild(sub_rows);
-        }
-
-        child.appendChild(row);
-        current_node = current_node.next;
-
-      }
-    }
-  }
+  
   module.appendChild(child);
   makeDraggable(module);
   this.container.appendChild(module);
+  
+  // Ontology Explorer Table Population
+  var j,row, wrap, col, img_type_address, sub_rows_wrapper, sub_row, element,nodes, key, label;
+  
+  for (i=0; i< this.diagrams.length; i++) {
+    nodes = this.diagrams[i].getElementsByTagName('node');
+    
+    for(k=0; k < nodes.length; k++) {
+      element = nodes[k];
+      
+      if (isPredicate(element)) {
+        label = element.getElementsByTagName('label')[0].textContent;
+        // Escaping new line characters
+        label = label.replace(/\r?\n|\r/g,"");
+        key = label.concat(element.getAttribute('type'));
+        
+        
+        // If we already added this predicate to the list, we add it in the sub-rows
+        if (document.getElementById(key) != null) {
+          
+          sub_rows_wrapper = document.getElementById(key).getElementsByClassName('sub_row_wrapper')[0];
+          
+          sub_row = document.createElement('div');
+          sub_row.setAttribute('class','sub_row');
+
+          sub_row.innerHTML = '- '+this.getDiagramName(i)+' - '+element.getAttribute('id');
+          sub_row.setAttribute("diagram",this.getDiagramName(i));
+          sub_row.setAttribute("node_id",element.getAttribute('id'));
+
+          sub_row.addEventListener('click',function() {goTo(this_graph,this);});
+
+          sub_rows_wrapper.appendChild(sub_row);
+        }
+        // Else: this is a new predicate, we create its row and its first sub rows
+        else {
+          // row is the container of a row and a set of sub-rows
+          row = document.createElement('div');
+          row.setAttribute("id",key);
+          row.setAttribute('class','predicate');
+          
+          // the real row
+          wrap = document.createElement('div');
+          wrap.setAttribute("class","row");
+          
+          // columns
+          col = document.createElement('span');
+          img  = document.createElement('img');
+          img.setAttribute('src','icons/arrow_right_18dp.png');
+          col.appendChild(img);
+          wrap.appendChild(col);
+
+          col = document.createElement('span');
+          col.setAttribute('class','col type_img');
+          img = document.createElement('img');
+          img_type_address = 'icons/ic_treeview_'+element.getAttribute('type')+'_18dp_1x.png';
+          
+          img.setAttribute("src",img_type_address);
+          col.appendChild(img);
+          wrap.appendChild(col);
+
+
+          col = document.createElement('div');
+          col.setAttribute('class','info');
+          col.innerHTML = label;
+
+          wrap.appendChild(col);
+          row.appendChild(wrap);
+
+          wrap.firstChild.addEventListener('click',function() {toggleSubRows(this);});
+
+          sub_rows_wrapper = document.createElement('div');
+          sub_rows_wrapper.setAttribute('class','sub_row_wrapper');
+          
+          sub_row = document.createElement('div');
+          sub_row.setAttribute('class','sub_row');
+
+          sub_row.innerHTML = '- '+this.getDiagramName(i)+' - '+element.getAttribute('id');
+          sub_row.setAttribute("diagram",this.getDiagramName(i));
+          sub_row.setAttribute("node_id",element.getAttribute('id'));
+
+          sub_row.addEventListener('click',function() {goTo(this_graph,this);});
+
+          sub_rows_wrapper.appendChild(sub_row);
+          row.appendChild(sub_rows_wrapper);
+          
+        }
+        // Child = predicates list
+        child.appendChild(row);
+      }        
+    }
+  }
+  
+  
 
   // tools
   module = document.createElement('div');
@@ -415,7 +420,6 @@ GrapholScape.prototype.init = function(xmlString) {
   input = document.createElement('input');
   input.setAttribute('id','zoom_slider');
   input.setAttribute('class','hide');
-  input.setAttribute('orient','vertical');
   input.setAttribute('autocomplete','off');
   input.setAttribute('type','range');
   input.setAttribute('min','1');
@@ -456,6 +460,39 @@ GrapholScape.prototype.init = function(xmlString) {
   module.appendChild(child);
   // add tools module to the container
   this.container.appendChild(module);
+  
+  
+  
+  // Test : selected item
+  module = document.createElement('div');
+  module.setAttribute('id','details');
+  module.setAttribute('class','module hide');
+
+  // module head
+  child = document.createElement('div');
+  child.setAttribute('id','details_head');
+  child.setAttribute('class','module_head');
+  child.innerHTML = 'Details';
+  module.appendChild(child);
+
+  // module button
+  child = document.createElement('div');
+  child.setAttribute('id','details_button');
+  child.setAttribute('class','module_button');
+  child.setAttribute('onclick','toggle(id)');
+  img = document.createElement('img');
+  img.setAttribute('src','icons/drop_down_24dp.png');
+  child.appendChild(img);
+  module.appendChild(child);
+  
+  // module body
+  child = document.createElement('div');
+  child.setAttribute('id','details_body');
+  child.setAttribute('class','hide');
+  module.appendChild(child);
+  makeDraggable(module);
+  this.container.appendChild(module);
+  
 };
 
 GrapholScape.prototype.addNodesToGraph = function(nodes) {
@@ -466,18 +503,19 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
     element = nodes[i];
 
     // Creating a JSON Object for the node to be added to the graph
-    // Cytoscape's nodes has two sub-structures: data and position
     var nodo = {
       data: {
         id : element.getAttribute('id'),
         fillColor : element.getAttribute('color'),
-        type : element.getAttribute('type'),
+        type: element.getAttribute('type'),
       },
       position: {
-     }
+      },
+      
+      classes : element.getAttribute('type'),
     };
-
-
+    
+    
     switch (nodo.data.type) {
       case 'concept' :
       case 'domain-restriction' :
@@ -528,7 +566,7 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
         break;
     }
 
-    // Parsing de <geometry> child node of node
+    // Parsing the <geometry> child node of node
     // info = <GEOMETRY>
     var info = getFirstChild(element);
 
@@ -559,78 +597,119 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
       nodo.data.label = info.textContent;
     }
 
-    // Impostazione delle funzionalità dei nodi di tipo role o attribute
-    //  1 -> funzionale
-    //  -1 -> inversamente funzionale
-    //  2 -> funzionale e inversamente funzionale
-    if (nodo.data.type == 'attribute' || nodo.data.type == 'role') {
-      var label_no_break = nodo.data.label.replace(/\n/,'');
-
-      var j;
-      for (j = 0; j < this.xmlPredicates.length; j++) {
-        if (label_no_break == this.xmlPredicates[j].getAttribute('name')) {
-          if (this.xmlPredicates[j].getElementsByTagName('functional')[0].textContent == 1) {
-            nodo.data.functional = 1;
-          }
-
-          // Se il nodo è un ruolo ed è inversamente funzionale, impostiamo 2 se è anche
-          // funzionale.
-          // -1 altrimenti
-          if (nodo.data.type == 'role' && this.xmlPredicates[j].getElementsByTagName('inverseFunctional')[0].textContent == 1) {
-            if (nodo.data.functional == 1) {
-              nodo.data.functional = 2;
-
-              //Creating nodes for the double style border effect
-
-              var triangle_right = {
-                data : {
-                  height: nodo.data.height,
-                  width: nodo.data.width,
-                  fillColor: '#000',
-                  shape: 'polygon',
-                  shape_points: '0 -1 1 0 0 1',
-                },
-                position : {
-                  x: nodo.position.x,
-                  y: nodo.position.y,
-                }
-              };
-
-              var triangle_left = {
-                data : {
-                  height: nodo.data.height,
-                  width: nodo.data.width+2,
-                  fillColor: '#fcfcfc',
-                  shape: 'polygon',
-                  shape_points: '0 -1 -1 0 0 1',
-                },
-                position : {
-                  x: nodo.position.x,
-                  y: nodo.position.y,
-                },
-              };
-
-              nodo.data.height -= 8;
-              nodo.data.width -= 10;
-              this.cy.add(triangle_right);
-              this.cy.add(triangle_left);
+    // Setting predicates properties
+    if (isPredicate(element)) {
+      
+      nodo.classes += ' predicate';
+      var label_no_break = nodo.data.label.replace(/\n/g,'');
+      
+      var node_iri,rem_chars,len_prefix
+      // setting uri        
+      if (element.getAttribute('remaining_characters') != null) {
+        rem_chars = element.getAttribute('remaining_characters').replace(/\n/g,'');
+        len_prefix = label_no_break.length - rem_chars.length;
+        node_iri = label_no_break.substring(0,len_prefix-1);
+        
+        if(!node_iri)
+          node_iri = this.default_iri;
+        else {
+          for (k=0; k < this.iri_prefixes.length; k++) {
+            if (node_iri == this.iri_prefixes[k].getAttribute('prefix_value')) {
+              node_iri = this.iri_prefixes[k].parentNode.parentNode.getAttribute('iri_value');
+              break;
             }
-            else
-              nodo.data.functional = -1;
           }
         }
+      }
+      else{
+        node_iri = this.default_iri;
+        rem_chars = label_no_break;
+      }
+      if (!node_iri.endsWith('/') && !node_iri.endsWith('#'))
+        node_iri = node_iri+'/';
 
+      nodo.data.iri = node_iri+rem_chars;
+      
+      
+      var j, predicateXml;
+      for (j = 0; j < this.xmlPredicates.length; j++) {
+        predicateXml = this.xmlPredicates[j];
+              
+        if (label_no_break == predicateXml.getAttribute('name') && nodo.data.type == predicateXml.getAttribute('type')) {
+          
+          
+          nodo.data.description = predicateXml.getElementsByTagName('description')[0].innerHTML;
+          var start_body_index = nodo.data.description.indexOf('&lt;p');
+          var end_body_index = nodo.data.description.indexOf('&lt;/body');
+          
+          nodo.data.description = nodo.data.description.substring(start_body_index,end_body_index);
+          nodo.data.description = nodo.data.description.replace(/&lt;/g,'<');
+          nodo.data.description = nodo.data.description.replace(/&gt;/g,'>');
+          nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g,'');
+          
+          
+          // Impostazione delle funzionalità dei nodi di tipo role o attribute
+          if (nodo.data.type == 'attribute' || nodo.data.type == 'role') {
+            nodo.data.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent);
+          }
+                    
+          if (nodo.data.type == 'role') {
+            nodo.data.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent);
+            nodo.data.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent);
+            nodo.data.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent);
+            nodo.data.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent);
+            nodo.data.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent);
+          }
+
+          if (nodo.data.functional == 1 && nodo.data.inverseFunctional == 1) {
+            //Creating "fake" nodes for the double style border effect
+            var triangle_right = {
+              selectable:false,
+              data : {
+                height: nodo.data.height,
+                width: nodo.data.width,
+                fillColor: '#000',
+                shape: 'polygon',
+                shape_points: '0 -1 1 0 0 1',
+              },
+              position : {
+                x: nodo.position.x,
+                y: nodo.position.y,
+              }
+            };
+
+            var triangle_left = {
+              selectable:false,
+              data : {
+                height: nodo.data.height,
+                width: nodo.data.width+2,
+                fillColor: '#fcfcfc',
+                shape: 'polygon',
+                shape_points: '0 -1 -1 0 0 1',
+              },
+              position : {
+                x: nodo.position.x,
+                y: nodo.position.y,
+              },
+            };
+
+            nodo.data.height -= 8;
+            nodo.data.width -= 10;
+            this.cy.add(triangle_right);
+            this.cy.add(triangle_left);
+          }
+          break;
+        }
       }
     }
-
 
     // If the node is both functional and inverse functional,
     // we added the double style border and changed the node height and width.
     // The label position is function of node's height and width so we set it
-    // now, after those changes
+    // now after those changes.
+    // info == null if label does not exist for this node
     if (info != null) {
       nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
-
       nodo.data.labelYpos = (parseInt(info.getAttribute('y')) - nodo.position.y) + (nodo.data.height+2)/2 + parseInt(info.getAttribute('height'))/4;
 
       // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
@@ -641,6 +720,7 @@ GrapholScape.prototype.addNodesToGraph = function(nodes) {
 
         // Creating the top rhomboid for the grey background
         var top_rhomboid = {
+          selectable:false,
           data: {
             height: nodo.data.height,
             width: nodo.data.width,
@@ -828,7 +908,7 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
   }
 
   this.cy.remove('node');
-  this.cy.remove('edge')
+  this.cy.remove('edge');
 
   this.addNodesToGraph(this.diagrams[diagram_id].getElementsByTagName('node'));
   this.addEdgesToGraph(this.diagrams[diagram_id].getElementsByTagName('edge'));
@@ -888,4 +968,47 @@ GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
     level: zoom,
     renderedPosition : { x: offset_x, y: offset_y }
   });
+}
+
+GrapholScape.prototype.showDetails = function (target) {
+  document.getElementById('details').classList.remove('hide');
+    
+  var body_details = document.getElementById('details_body');
+  
+  body_details.innerHTML = '<table class="details_table">\
+  <tr><th>Name</th><td>'+target.data('label').replace('/\n/g','')+'</td></tr>\
+  <tr><th>Type</th><td>'+target.data('type')+'</td></tr>\
+  <tr><th>URI</th><td><a style="text-decoration:underline" href="'+target.data('iri')+'">'+target.data('iri')+'</a></td></tr></table>';
+  
+  if(target.data('type') == 'role' || target.data('type') == 'attribute') {
+    
+    if (target.data('functional'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Functional</span></div>';
+    
+    if (target.data('inverseFunctional'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Inverse Functional</span></div>';
+    
+    if (target.data('asymmetric'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Asymmetric</span></div>';
+    
+    if (target.data('irreflexive'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Irreflexive</span></div>';
+    
+    if (target.data('reflexive'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Asymmetric</span></div>';
+    
+    if (target.data('symmetric'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Symmetric</span></div>';
+    
+    if (target.data('transitive'))
+      body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Transitive</span></div>';
+    
+    
+  }
+  
+  
+  if (target.data('description')) {
+    body_details.innerHTML += '<div style="text-align:center; margin:10px 2px 0 2px; padding:5px; color:white; background-color:\
+      '+this.highlight_color+'"><strong>Description</strong></div><div class="descr">'+target.data('description')+'</div>';
+  }
 }
