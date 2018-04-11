@@ -183,9 +183,6 @@
   text-decoration: underline;
 }
 
-.draggable {
-  cursor:grab;
-}
 
 #details {
   position:absolute;
@@ -228,4 +225,29 @@
   margin:10px;
   position:relative;
   top:2px;
+}
+
+#filters {
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  line-height: 0;
+  padding:3px;
+}
+
+#filters img {
+  cursor:pointer;
+}
+
+#filter_body {
+  padding:5px;
+  font-size:14px;
+}
+
+.filtr_text{
+  margin-left:8px;
+}
+
+.filtr_option {
+  padding:2px;
 }

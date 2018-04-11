@@ -1,11 +1,12 @@
-function toggle(id) {
-  document.getElementById(id).nextElementSibling.classList.toggle('hide');
+function toggle(button) {
+  var elm = button.parentNode.getElementsByClassName('collapsible')[0];
+  elm.classList.toggle('hide');
 
-  if (document.getElementById(id).nextElementSibling.classList.contains('hide')) {
-    document.getElementById(id).firstElementChild.setAttribute('src','icons/drop_down_24dp.png');
+  if (elm.classList.contains('hide') && button.classList.contains('module_button')) {
+    button.firstElementChild.setAttribute('src','icons/drop_down_24dp.png');
   }
-  else {
-    document.getElementById(id).firstElementChild.setAttribute('src','icons/drop_up_24dp.png');
+  else if (!elm.classList.contains('hide') && button.classList.contains('module_button')){
+    button.firstElementChild.setAttribute('src','icons/drop_up_24dp.png');
   }
 }
 
@@ -55,8 +56,7 @@ function goTo(graph,sub_row) {
   var diagram = sub_row.getAttribute('diagram');
   var node_id = sub_row.getAttribute('node_id');
 
-  toggle('predicates-list-button');
-
+  toggle(document.getElementById('predicates-list-button'));
   graph.centerOnNode(node_id,diagram,1.25);
 }
 
@@ -259,27 +259,29 @@ function getNewEndpoint(end_point,node,break_point) {
 
   // Se l'endpoint non è centrato nel nodo ma ha la X uguale al breakpoint successivo (o precedente)
   // Allora l'arco parte (o arriva) perpendicolarmente dall'alto o dal basso
+  //alert(endpoint['x']+' == '+breakpoint['x']);
+
   if ( endpoint['x'] == breakpoint['x'] ) {
     // Se il breakpoint si trova più in basso (Ricorda: asse Y al contrario in cytoscape!),
     // allora spostiamo sul bordo inferiore l'endpoint
     if (breakpoint['y'] > 0) {
-      endpoint['y'] = node.height() / 2;
+      endpoint['y'] = node.data('height') / 2;
       return endpoint;
     }
     // Se invece il breakpoint è più in alto del nodo, allora spostiamo l'endpoint sul bordo superiore
     else if (breakpoint['y'] < 0 ) {
-      endpoint['y'] = - node.height() / 2;
+      endpoint['y'] = - node.data('height') / 2;
       return endpoint;
     }
   }
   // Se invece ad essere uguale è la Y, l'arco arriva da destra o da sinistra, facciamo gli stessi passaggi appena fatti
   else if (endpoint['y'] == breakpoint['y'] ) {
     if (breakpoint['x'] > 0) {
-      endpoint['x'] = node.width() / 2;
+      endpoint['x'] = node.data('width') / 2;
       return endpoint;
     }
     else if (breakpoint['x'] < 0) {
-      endpoint['x'] = - node.width() / 2;
+      endpoint['x'] = - node.data('width') / 2;
       return endpoint;
     }
   }
