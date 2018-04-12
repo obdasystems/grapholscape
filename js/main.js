@@ -314,8 +314,9 @@ function makeDraggable(elmnt) {
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    elmnt.style.top = (elmnt.offsetTop - pos2) - elmnt.style.marginTop + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) - elmnt.style.marginLeft + "px";
+    
   }
 
   function closeDragElement() {

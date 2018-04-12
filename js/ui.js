@@ -28,7 +28,7 @@ GrapholScape.prototype.createUi = function () {
   // module dropdown div
   child = document.createElement('div');
   child.setAttribute('id','diagram_list');
-  child.setAttribute('class','hide collapsible');
+  child.setAttribute('class','hide collapsible module_body');
 
   // adding diagrams in the dropdown div
   var item;
@@ -71,7 +71,7 @@ GrapholScape.prototype.createUi = function () {
   module.removeChild(module.lastElementChild);
   child = document.createElement('div');
   child.setAttribute('id','predicates_list');
-  child.setAttribute('class','hide collapsible');
+  child.setAttribute('class','hide collapsible module_body');
 
   module.appendChild(child);
   makeDraggable(module);
@@ -248,8 +248,8 @@ GrapholScape.prototype.createUi = function () {
 
   // module head
   child = document.createElement('div');
-  child.setAttribute('id','details_head');
   child.setAttribute('class','module_head');
+  child.style.textAlign = 'center';
   child.innerHTML = 'Details';
   module.appendChild(child);
 
@@ -266,7 +266,7 @@ GrapholScape.prototype.createUi = function () {
   // module body
   child = document.createElement('div');
   child.setAttribute('id','details_body');
-  child.setAttribute('class','hide collapsible');
+  child.setAttribute('class','hide collapsible module_body');
   module.appendChild(child);
   makeDraggable(module);
   this.container.appendChild(module);
@@ -315,7 +315,7 @@ GrapholScape.prototype.createUi = function () {
   child.innerHTML += '<div class="filtr_option"><input id="forall_check" type="checkbox" checked /><label class="filtr_text">Universal Quantifier</label></div>';
 */
   module.appendChild(child);
-  module.innerHTML += '<div onclick="toggle(this)" style="padding:3px"><img src="icons/filter-24.png"/></div>';
+  module.innerHTML += '<div onclick="toggle(this)" class="bottom_button" title="filters"><img alt="filters" src="icons/filter-24.png"/></div>';
 
   this.container.appendChild(module);
 
@@ -329,4 +329,4 @@ GrapholScape.prototype.createUi = function () {
       this_graph.filter(this.id);
     });
   }
-}
+};

@@ -10,43 +10,45 @@
 
 .module {
   background-color: #fafafa;
-  box-shadow: 0px 0px 2px #bbb;
+  box-shadow: 0px 3px #ddd;
   border-radius: 3px;
-  max-width:340px;
+  transition: opacity 1s;
 }
 
 .module_head {
-  text-align: center;
   width:100%;
-  padding:10px 40px 10px 10px;
+  padding:6px 40px 6px 6px;
   box-sizing: border-box;
   float:left;
+  font-weight:bold;
+  cursor:grab;
+}
+
+.module_body {
+  width: 100%;
+  margin-top:30px;
+  max-height: 450px;
 }
 
 #explorer {
   position:absolute;
-  left:310px;
+  left:50%;
   top:10px;
   width:320px;
+  transform: translate(-50%, 0);
 }
 
 #search {
   width:100%;
-  font-size:inherit;
   box-sizing: border-box;
   background-color: #fafafa;
+  font-weight: bold;
   padding:0 10px;
   border:none;
 }
 
 #predicates_list {
-  width: 100%;
-  margin-top:40px;
   overflow:auto;
-  background-color:#fafafa;
-  border:solid 1px #eee;
-  border-top:0;
-  max-height: 450px;
 }
 
 .row{
@@ -89,7 +91,7 @@
   right:0;
   height:24px;
   width:24px;
-  padding:8px;
+  padding:2px;
   cursor:pointer;
 }
 
@@ -97,18 +99,17 @@
   position: absolute;
   left:10px;
   top:10px;
-  width:280px;
+  max-width:280px;
 }
 
 #diagram_list {
   max-height: 450px;
-  margin-top:40px;
-  overflow: auto;
+  margin-top:30px;
 }
 
 .diagram_item {
   cursor:pointer;
-  padding:5px;
+  padding:5px 10px;
   background-color: #fafafa;
 }
 
@@ -128,7 +129,6 @@
   padding:0 8px;
   font-size:28px;
   cursor:pointer;
-  color:#666;
   text-align: center;
   border-radius:2px;
   background-color: #fafafa;
@@ -188,14 +188,10 @@
   position:absolute;
   right:10px;
   top:10px;
-  width:430px;
+  width:400px;
 }
 
 #details_body {
-  font-size:14px;
-  margin-top:40px;
-  background:#fafafa;
-  max-height: 450px;
   overflow: auto;
 }
 
@@ -231,12 +227,17 @@
   position:absolute;
   bottom:10px;
   left:10px;
-  line-height: 0;
-  padding:3px;
 }
 
-#filters img {
+.bottom_button {
   cursor:pointer;
+  padding:4px;
+  line-height: 0;
+}
+
+.bottom_button img {
+  height:22px;
+  width:22px;
 }
 
 #filter_body {

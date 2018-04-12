@@ -3,7 +3,9 @@ function GrapholScape(file,container,xmlstring) {
   this.container = container;
   this.diagrams = [];
   this.actual_diagram = -1;
-
+  
+  this.container.style.fontSize = '14px';
+  this.container.style.color = '#747474';
   var cy_container = document.createElement('div');
   cy_container.setAttribute('id','cy');
   this.container.appendChild(cy_container);
@@ -192,8 +194,22 @@ function GrapholScape(file,container,xmlstring) {
 
   this.cy.on('select','.predicate', function (evt) {this_graph.showDetails(evt.target);});
   this.cy.on('tap',function(evt) {
-    if (evt.target === this_graph.cy)
+    if (evt.target === this_graph.cy) {
       document.getElementById('details').classList.add('hide');
+      var i,button;
+      var collapsible_elms = document.getElementsByClassName('collapsible');
+      for (i=0; i<collapsible_elms.length; i++) {
+        if (collapsible_elms[i].id == 'details_body')
+          continue;
+        
+        if (!collapsible_elms[i].classList.contains('hide')) {
+          collapsible_elms[i].classList.add('hide');
+          button = collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0];
+          if (button)
+            button.firstElementChild.setAttribute('src','icons/drop_down_24dp.png');
+        }
+      }
+    }
   })
 }
 
@@ -336,7 +352,7 @@ GrapholScape.prototype.showDetails = function (target) {
   body_details.innerHTML = '<table class="details_table">\
   <tr><th>Name</th><td>'+target.data('label').replace('/\n/g','')+'</td></tr>\
   <tr><th>Type</th><td>'+target.data('type')+'</td></tr>\
-  <tr><th>URI</th><td><a style="text-decoration:underline" href="'+target.data('iri')+'">'+target.data('iri')+'</a></td></tr></table>';
+  <tr><th>IRI</th><td><a style="text-decoration:underline" href="'+target.data('iri')+'">'+target.data('iri')+'</a></td></tr></table>';
 
   if(target.data('type') == 'role' || target.data('type') == 'attribute') {
 
