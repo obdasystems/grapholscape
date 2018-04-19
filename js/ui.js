@@ -6,7 +6,12 @@ GrapholScape.prototype.createUi = function () {
   // module : diagram list
   var module = document.createElement('div');
   var child = document.createElement('div');
-  var img = document.createElement('img');
+  var img = document.createElement('i');
+  var drop_down_icon = document.createElement('i');
+  drop_down_icon.setAttribute('class','material-icons md-24');
+  drop_down_icon.innerHTML = 'arrow_drop_down';
+
+
   module.setAttribute('id','diagram_name');
   module.setAttribute('class','module');
 
@@ -21,8 +26,8 @@ GrapholScape.prototype.createUi = function () {
   child.setAttribute('id','diagram-list-button');
   child.setAttribute('class','module_button');
   child.setAttribute('onclick','toggle(this)');
-  img.setAttribute('src','icons/drop_down_24dp.png');
-  child.appendChild(img);
+  
+  child.appendChild(drop_down_icon);
   module.appendChild(child);
 
   // module dropdown div
@@ -111,8 +116,9 @@ GrapholScape.prototype.createUi = function () {
 
       // columns
       col = document.createElement('span');
-      img  = document.createElement('img');
-      img.setAttribute('src','icons/arrow_right_18dp.png');
+      img  = document.createElement('i');
+      img.setAttribute('class','no_highlight material-icons md-18')
+      img.innerHTML = 'keyboard_arrow_right';
       col.appendChild(img);
       wrap.appendChild(col);
 
@@ -158,22 +164,21 @@ GrapholScape.prototype.createUi = function () {
     child.appendChild(row);
   },this);
 
-  // tools
+  // zoom_tools
   module = document.createElement('div');
-  module.setAttribute('id','tools');
-  module.setAttribute('class','module');
-
-  child = document.createElement('div');
-  child.setAttribute('id','zoom_tools');
-  child.setAttribute('class','tooltip module');
+  module.setAttribute('id','zoom_tools');
+  module.setAttribute('class','tooltip module');
 
   // zoom_in
-  var aux = document.createElement('div');
-  aux.setAttribute('class','zoom_button');
-  aux.setAttribute('id','zoom_in');
-  aux.innerHTML = '+';
+  child = document.createElement('div');
+  child.setAttribute('class','bottom_button');
+  child.setAttribute('id','zoom_in');
+  img = document.createElement('i');
+  img.setAttribute('class','material-icons md-24');
+  img.innerHTML = 'add';
 
-  aux.addEventListener('click',function(){
+  child.appendChild(img);
+  child.addEventListener('click',function(){
     this_graph.cy.zoom({
       level: this_graph.cy.zoom()+0.08,
       renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
@@ -181,20 +186,20 @@ GrapholScape.prototype.createUi = function () {
     var slider_value = Math.round(this_graph.cy.zoom()/this_graph.cy.maxZoom()*100);
     document.getElementById('zoom_slider').setAttribute('value',slider_value);
   });
-  aux.onselectstart = function() { return false};
-  child.appendChild(aux);
+  child.onselectstart = function() { return false};
+  module.appendChild(child);
 
   // tooltip
-  aux = document.createElement('span');
-  aux.setAttribute('class','tooltiptext');
-  aux.setAttribute('onclick','toggle(this)');
-  aux.innerHTML = 'Toggle slider';
+  child = document.createElement('span');
+  child.setAttribute('class','tooltiptext');
+  child.setAttribute('onclick','toggle(this)');
+  child.innerHTML = 'Toggle slider';
 
-  child.appendChild(aux);
+  module.appendChild(child);
 
   // slider
-  aux = document.createElement('div');
-  aux.style.textAlign = 'center';
+  child = document.createElement('div');
+  child.style.textAlign = 'center';
   input = document.createElement('input');
   input.setAttribute('id','zoom_slider');
   input.setAttribute('class','hide collapsible');
@@ -212,17 +217,21 @@ GrapholScape.prototype.createUi = function () {
     });
   };
 
-  aux.appendChild(input);
+  child.appendChild(input);
 
-  child.appendChild(aux);
+  module.appendChild(child);
 
   // zoom_out
-  aux = document.createElement('div');
-  aux.setAttribute('class','zoom_button');
-  aux.setAttribute('id','zoom_out');
-  aux.innerHTML = '-';
+  child = document.createElement('div');
+  child.setAttribute('class','bottom_button');
+  child.setAttribute('id','zoom_out');
+  img = document.createElement('i');
+  img.setAttribute('class','material-icons md-24');
+  img.innerHTML = 'remove';
 
-  aux.addEventListener('click',function(){
+  child.appendChild(img);
+
+  child.addEventListener('click',function(){
     this_graph.cy.zoom({
       level: this_graph.cy.zoom()-0.08,
       renderedPosition: {x:this_graph.cy.width()/2, y:this_graph.cy.height()/2},
@@ -231,12 +240,10 @@ GrapholScape.prototype.createUi = function () {
     document.getElementById('zoom_slider').setAttribute('value',slider_value);
 
   });
-  aux.onselectstart = function() { return false};
-  child.appendChild(aux);
-
-  // add zoom_tools to the tools module
+  child.onselectstart = function() { return false};
   module.appendChild(child);
-  // add tools module to the container
+
+  // add zoom_tools module to the container
   this.container.appendChild(module);
 
 
@@ -258,9 +265,7 @@ GrapholScape.prototype.createUi = function () {
   child.setAttribute('id','details_button');
   child.setAttribute('class','module_button');
   child.setAttribute('onclick','toggle(this)');
-  img = document.createElement('img');
-  img.setAttribute('src','icons/drop_down_24dp.png');
-  child.appendChild(img);
+  child.appendChild(drop_down_icon.cloneNode(true));
   module.appendChild(child);
 
   // module body
@@ -280,7 +285,7 @@ GrapholScape.prototype.createUi = function () {
   child.setAttribute('id','filter_body');
   child.setAttribute('class','hide collapsible');
 
-  aux = document.createElement('div');
+  var aux = document.createElement('div');
   aux.setAttribute('class','filtr_option');
   input = document.createElement('input');
   input.setAttribute('id','attr_check');
@@ -315,7 +320,7 @@ GrapholScape.prototype.createUi = function () {
   child.innerHTML += '<div class="filtr_option"><input id="forall_check" type="checkbox" checked /><label class="filtr_text">Universal Quantifier</label></div>';
 */
   module.appendChild(child);
-  module.innerHTML += '<div onclick="toggle(this)" class="bottom_button" title="filters"><img alt="filters" src="icons/filter-24.png"/></div>';
+  module.innerHTML += '<div onclick="toggle(this)" class="bottom_button" title="filters"><i alt="filters" class="material-icons md-24"/>filter_list</div>';
 
   this.container.appendChild(module);
 
@@ -329,4 +334,21 @@ GrapholScape.prototype.createUi = function () {
       this_graph.filter(this.id);
     });
   }
+
+
+  // Center Button
+  module = document.createElement('div');
+  module.setAttribute('id','center_button');
+  module.setAttribute('class','module bottom_button');
+  module.setAttribute('title','reset');
+
+  img = drop_down_icon.cloneNode(true);
+  img.innerHTML = 'filter_center_focus';
+  module.appendChild(img);
+
+  module.addEventListener('click',function () {
+    this_graph.cy.fit();
+  });
+  
+  this.container.appendChild(module);
 };
