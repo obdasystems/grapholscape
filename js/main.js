@@ -3,10 +3,10 @@ function toggle(button) {
   elm.classList.toggle('hide');
 
   if (elm.classList.contains('hide') && button.classList.contains('module_button')) {
-    button.firstElementChild.setAttribute('src','icons/drop_down_24dp.png');
+    button.firstElementChild.innerHTML = 'arrow_drop_down';
   }
   else if (!elm.classList.contains('hide') && button.classList.contains('module_button')){
-    button.firstElementChild.setAttribute('src','icons/drop_up_24dp.png');
+    button.firstElementChild.innerHTML = 'arrow_drop_up';
   }
 
   if (button.classList.contains('tooltiptext'))
@@ -18,7 +18,7 @@ function search(value) {
 
   list.classList.remove('hide');
 
-  document.getElementById('predicates-list-button').getElementsByTagName('img')[0].setAttribute('src','icons/drop_up_24dp.png');
+  document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_up';
 
   var val = value.toLowerCase();
   var rows = list.getElementsByClassName('predicate');
@@ -42,11 +42,11 @@ function toggleSubRows(col_with_arrow) {
 
   if (subrows.style.display == 'initial') {
     subrows.style.display = 'none';
-    col_with_arrow.firstChild.setAttribute('src','icons/arrow_right_18dp.png');
+    col_with_arrow.firstChild.innerHTML = 'keyboard_arrow_right';
   }
   else {
     subrows.style.display = 'initial';
-    col_with_arrow.firstChild.setAttribute('src','icons/arrow_down_18dp.png');
+    col_with_arrow.firstChild.innerHTML = 'keyboard_arrow_down';
   }
 }
 

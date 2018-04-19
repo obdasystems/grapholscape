@@ -2,10 +2,9 @@ function GrapholScape(file,container,xmlstring) {
   this.highlight_color = 'rgb(81,149,199)';
   this.container = container;
   this.diagrams = [];
-  this.actual_diagram = -1;
-  
+  this.actual_diagram = -1;  
   this.container.style.fontSize = '14px';
-  this.container.style.color = '#747474';
+  this.container.style.color = '#666';
   var cy_container = document.createElement('div');
   cy_container.setAttribute('id','cy');
   this.container.appendChild(cy_container);
