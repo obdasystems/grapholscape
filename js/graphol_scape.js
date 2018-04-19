@@ -880,7 +880,21 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     });
   }
 
+  // check if any filter is active in order to change the icon's color
+  var filter_options = document.getElementsByClassName('filtr_option');
+  var i,active = 0;
 
+  for(i=0; i < filter_options.length; i++) {
+    if (!filter_options[i].firstElementChild.checked) {
+      filter_options[i].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'rgb(81,149,199)';
+      active = 1;
+      break; 
+    }
+  }
+
+  if (!active) {
+    filter_options[0].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'inherit';
+  }
   function filterElem(element, option_id) {
     element.addClass('filtered');
     element.addClass(option_id);
