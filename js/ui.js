@@ -85,7 +85,7 @@ GrapholScape.prototype.createUi = function () {
   // Ontology Explorer Table Population
   var j,row, wrap, col, img_type_address, sub_rows_wrapper, sub_row, element,nodes, key, label;
 
-  this.collection.filter('.predicate').forEach(function(predicate){
+  this.predicates.forEach(function(predicate){
     label = predicate.data('label').replace(/\r?\n|\r/g,"");
     key = label.concat(predicate.data('type'));
     // If we already added this predicate to the list, we add it in the sub-rows
@@ -219,6 +219,7 @@ GrapholScape.prototype.createUi = function () {
 
   child.appendChild(input);
 
+  child.appendChild(document.createElement("hr"));
   module.appendChild(child);
 
   // zoom_out
@@ -230,7 +231,6 @@ GrapholScape.prototype.createUi = function () {
   img.innerHTML = 'remove';
 
   child.appendChild(img);
-
   child.addEventListener('click',function(){
     this_graph.cy.zoom({
       level: this_graph.cy.zoom()-0.08,
@@ -292,6 +292,7 @@ GrapholScape.prototype.createUi = function () {
   input.setAttribute('type','checkbox');
   input.setAttribute('checked','checked');
   aux.appendChild(input);
+  
   var label = document.createElement('label');
   label.innerHTML = 'Attributes';
   label.setAttribute('class','filtr_text');
@@ -301,16 +302,21 @@ GrapholScape.prototype.createUi = function () {
   aux = aux.cloneNode(true);
   aux.firstElementChild.setAttribute('id','val_check');
   aux.lastElementChild.innerHTML = 'Value Domain';
-
   child.appendChild(aux);
 
   aux = aux.cloneNode(true);
   aux.firstElementChild.setAttribute('id','indiv_check');
   aux.lastElementChild.innerHTML = 'Individuals';
   child.appendChild(aux);
+
   aux = aux.cloneNode(true);
   aux.firstElementChild.setAttribute('id','forall_check');
   aux.lastElementChild.innerHTML = 'Universal Quantifier';
+  child.appendChild(aux);
+
+  aux = aux.cloneNode(true);
+  aux.firstElementChild.setAttribute('id','not_check');
+  aux.lastElementChild.innerHTML = 'Not';
   child.appendChild(aux);
 
 /*

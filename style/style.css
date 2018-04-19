@@ -23,7 +23,7 @@
 
 .module {
   background-color: #fafafa;
-  box-shadow: 0px 3px #ddd;
+  box-shadow: 0px 3px #bbb;
   border-radius: 3px;
   transition: opacity 1s;
 }
@@ -138,6 +138,16 @@
   right:10px;
 }
 
+#zoom_tools hr {
+  margin: 0 auto;
+  background: #ddd;
+  height: 1px;
+  width: 70%;
+  position: relative;
+  top: 3px;
+  border: 0;
+}
+
 .zoom_button:hover{
   color:rgb(81,149,199);
 }
@@ -160,8 +170,7 @@
   right: 100%;
 
   opacity: 0;
-  transition: opacity 0.3s;
-  transition-delay: 1.5s;
+  transition: opacity 0.5s;
   cursor:pointer;
 }
 

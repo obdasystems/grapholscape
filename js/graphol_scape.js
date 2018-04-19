@@ -8,6 +8,7 @@ function GrapholScape(file,container,xmlstring) {
   var cy_container = document.createElement('div');
   cy_container.setAttribute('id','cy');
   this.container.appendChild(cy_container);
+  
   this.cy = cytoscape({
 
     container:container.firstElementChild, // container to render in
@@ -26,9 +27,7 @@ function GrapholScape(file,container,xmlstring) {
           'border-width': 1,
           'border-color': '#000',
           'border-style': 'solid',
-
-          'font-size' : 12
-
+          'font-size' : 12,
         }
       },
 
@@ -45,7 +44,6 @@ function GrapholScape(file,container,xmlstring) {
       {
         selector: 'edge',
         style: {
-
           'width': 1,
           'line-color': '#000',
           'target-arrow-color': '#000',
@@ -63,7 +61,7 @@ function GrapholScape(file,container,xmlstring) {
           'curve-style': 'segments',
           "segment-distances": 'data(segment_distances)',
           'segment-weights' : 'data(segment_weights)',
-          'edge-distances' : 'node-position',
+          'edge-distances': 'node-position',
         }
       },
 
@@ -156,17 +154,17 @@ function GrapholScape(file,container,xmlstring) {
         }
       },
       {
-        selector: 'node.facet',
-        style: {
-          'background-opacity':0,
-        }
-      },
-      {
         selector: '.filtered',
         style: {
           'display':'none',
         },
       },
+      {
+        selector: '.facet',
+        style: {
+          'background-opacity':0,
+        }
+      }
     ],
 
     layout: {
@@ -176,6 +174,8 @@ function GrapholScape(file,container,xmlstring) {
   });
 
   this.cy_aux = cytoscape();
+  this.predicates;
+
   xmlstring = xmlstring || null;
   var this_graph = this;
   if (!xmlstring) {
@@ -192,6 +192,13 @@ function GrapholScape(file,container,xmlstring) {
 
 
   this.cy.on('select','.predicate', function (evt) {this_graph.showDetails(evt.target);});
+
+  this.cy.on('select','*',function (evt) {
+    if(!evt.target.hasClass('predicate')) {
+      document.getElementById('details').classList.add('hide');
+    }
+  });
+
   this.cy.on('tap',function(evt) {
     if (evt.target === this_graph.cy) {
       document.getElementById('details').classList.add('hide');
@@ -209,7 +216,7 @@ function GrapholScape(file,container,xmlstring) {
         }
       }
     }
-  })
+  });
 }
 
 
@@ -266,9 +273,13 @@ GrapholScape.prototype.init = function(xmlString) {
 
     this.collection = this.collection.union(this.cy_aux.collection(array_json_elems));
   }
-  
+
+  this.predicates = this.collection.filter('.predicate').sort(function(a,b) {
+    return a.data('label').localeCompare(b.data('label'));
+  });
 
   this.createUi();
+  this.drawDiagram(this.getDiagramName(0));
 };
 
 GrapholScape.prototype.drawDiagram = function(diagram_name) {
@@ -286,8 +297,6 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
   var selector = '[diagram_id = '+diagram_id+']';
   
   this.cy.add(this.collection.filter(selector));
-  
-  this.cy.minZoom(0.05);
   this.cy.maxZoom(2.5);
   this.cy.fit();
   this.actual_diagram = diagram_id;
@@ -296,7 +305,7 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
 };
 
 GrapholScape.prototype.getDiagramId = function(name) {
-  var diagram_id = 0;
+  var diagram_id;
 
   for (diagram_id = 0; diagram_id < this.diagrams.length; diagram_id++) {
     if (this.diagrams[diagram_id].getAttribute('name') === name)
@@ -670,6 +679,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
       break;
   }
 
+  
   // Se ci sono almeno 3 breakpoints, allora impostiamo gli array delle distanze e dei pesi
   if (count > 1) {
     edge.data.segment_distances = segment_distances;
@@ -712,7 +722,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
 GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
 
   var nodo = array_json_elems[array_json_elems.length-1];
-  //alert(nodo.data.type);
+
   // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
   // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
   if (nodo.data.type == 'facet') {
@@ -737,10 +747,24 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
       },
     };
 
-    // Setting the node transparent so the top_rhomboid will be visible
-
+    var bottom_rhomboid = {
+      selectable:false,
+      data: {
+        height: nodo.data.height,
+        width: nodo.data.width,
+        fillColor: '#fff',
+        shape: 'polygon',
+        shape_points: '-0.95 0 0.95 0 0.9 1 -1 1',
+        diagram_id: nodo.data.diagram_id,
+      },
+      position : {
+        x: nodo.position.x,
+        y: nodo.position.y,
+      },
+    };
 
     array_json_elems[array_json_elems.length-1] = top_rhomboid;
+    array_json_elems.push(bottom_rhomboid);
     array_json_elems.push(nodo);
     return;
   }
@@ -800,72 +824,130 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
 }
 
 GrapholScape.prototype.filter = function(checkbox_id) {
-  var selector;
+  var selector,eles,eles_aux,type;
   switch(checkbox_id) {
     case 'val_check':
-      this.cy.$('node[type = "value-domain"]').toggleClass('filtered');
-      this.cy_aux.$('node[type = "value-domain"]').toggleClass('filtered');
-
-      if(document.getElementById('val_check').checked) {
-        this.cy.$('node[type = "value-domain"]').neighborhood().removeClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').neighborhood().removeClass('filtered');
-      }
-      else {
-        this.cy.$('node[type = "value-domain"]').neighborhood().addClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').neighborhood().addClass('filtered');
-      }
-
+      type = 'value-domain';
       break;
+
     case 'attr_check':
+      type = 'attribute';
+
       if (!document.getElementById('attr_check').checked) {
         document.getElementById('val_check').setAttribute('disabled','true');
       }
       else {
         document.getElementById('val_check').removeAttribute('disabled');
       }
-
-      if(!document.getElementById('attr_check').checked) {
-        this.cy.$('node[type = "value-domain"]').addClass('filtered');
-        this.cy.$('node[type = "value-domain"]').neighborhood().removeClass('filtered');
-        this.cy.$('node[type = "attribute"]').neighborhood().addClass('filtered');
-        this.cy.$('node[type = "attribute"]').addClass('filtered');
-        this.cy_aux.$('node[type = "attribute"]').addClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').addClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').neighborhood().removeClass('filtered');
-        this.cy_aux.$('node[type = "attribute"]').neighborhood().addClass('filtered');
-      }
-      else if (!document.getElementById('val_check').checked) {
-        this.cy.$('node[type = "attribute"]').neighborhood().removeClass('filtered');
-        this.cy.$('node[type = "value-domain"]').neighborhood().addClass('filtered');
-        this.cy.$('node[type = "attribute"]').removeClass('filtered');
-        this.cy_aux.$('node[type = "attribute"]').removeClass('filtered');
-        this.cy_aux.$('node[type = "attribute"]').neighborhood().removeClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').neighborhood().addClass('filtered');
-      }
-      else {
-        this.cy.$('node[type = "value-domain"]').removeClass('filtered');
-        this.cy.$('node[type = "value-domain"]').neighborhood().removeClass('filtered');
-        this.cy.$('node[type = "attribute"]').neighborhood().removeClass('filtered');
-        this.cy.$('node[type = "attribute"]').removeClass('filtered');
-      this.cy_aux.$('node[type = "attribute"]').removeClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').removeClass('filtered');
-        this.cy_aux.$('node[type = "value-domain"]').neighborhood().removeClass('filtered');
-        this.cy_aux.$('node[type = "attribute"]').neighborhood().removeClass('filtered');
-      }
-
       break;
 
     case 'indiv_check':
-      this.cy.$('node[type = "individual"]').toggleClass('filtered');
-      this.cy.$('node[type = "individual"]').neighborhood('node[type = "enumeration"]').toggleClass('filtered');
-      this.cy_aux.$('node[type = "individual"]').toggleClass('filtered');
-      this.cy_aux.$('node[type = "individual"]').neighborhood('node[type = "enumeration"]').toggleClass('filtered');
-
-      break;
+      type = 'individual';
+    break;
     
     case 'forall_check':
-      this.cy.$('node[type $= "-restriction"][label = "forall"]').toggleClass('filtered');
-      this.cy_aux.$('node[type $= "-restriction"][label = "forall"]').toggleClass('filtered');
+      type = 'forall';
+       break;
+
+    case 'not_check':
+      type = 'complement';
       break;
+  }
+
+  if (type == 'forall') {
+    eles = this.cy.$('node[type $= "-restriction"][label = "forall"], .forall_check');
+    eles_aux = this.cy_aux.$('node[type $= "-restriction"][label = "forall"], .forall_check');
+  }
+  else {
+    eles_aux = this.cy_aux.$('node[type = "'+type+'"], .'+checkbox_id);
+    eles = this.cy.$('node[type = "'+type+'"], .'+checkbox_id);
+  }
+
+  if (document.getElementById(checkbox_id).checked) {
+    eles.removeClass('filtered');
+    eles.removeClass(checkbox_id);
+
+    eles_aux.removeClass('filtered');
+    eles_aux.removeClass(checkbox_id);
+  }
+  else {
+    eles.forEach(element => {
+      filterElem(element,checkbox_id);
+    });
+
+    eles_aux.forEach(element => {
+      filterElem(element,checkbox_id);
+    });
+  }
+
+  // check if any filter is active in order to change the icon's color
+  var filter_options = document.getElementsByClassName('filtr_option');
+  var i,active = 0;
+
+  for(i=0; i < filter_options.length; i++) {
+    if (!filter_options[i].firstElementChild.checked) {
+      filter_options[i].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'rgb(81,149,199)';
+      active = 1;
+      break; 
+    }
+  }
+
+  if (!active) {
+    filter_options[0].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'inherit';
+  }
+  function filterElem(element, option_id) {
+    element.addClass('filtered');
+    element.addClass(option_id);
+
+    // ARCHI IN USCITA
+    var selector = '[source = "'+element.data('id')+'"]';
+    element.connectedEdges(selector).forEach( e => {
+      // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      var sel2 = 'edge:visible[source = "'+e.target().id()+'"]';
+      var sel3 = 'edge:visible[target = "'+e.target().id()+'"][style != "dashed"]';
+      var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size();
+      
+      if (!e.target().hasClass('filtered') && (number_edges_in_out == 0 || e.data('style') == 'dashed')) {
+        switch(e.target().data('type')) {
+          case 'union':
+          case 'disjoint-union' :
+          case 'role-inverse' :
+          case 'intersection' :
+          case 'role-chain' :
+          case 'complement' :
+          case 'enumeration' :
+          case 'datatype-restriction' :
+          case 'domain-restriction':
+          case 'range-restriction':
+          case 'value-domain':
+            filterElem(e.target(),option_id);
+        }
+      }
+    });
+    
+    // ARCHI IN ENTRATA
+    selector = '[target ="'+element.data('id')+'"]';
+    element.connectedEdges(selector).forEach( e => {
+      // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      var sel2 = 'edge:visible[source = "'+e.source().id()+'"]';
+      var sel3 = 'edge:visible[target = "'+e.source().id()+'"][style != "dashed"]';
+      var number_edges_in_out = e.source().connectedEdges(sel2).size() + e.source().connectedEdges(sel3).size();
+      if (!e.source().hasClass('filtered') && number_edges_in_out == 0) {
+        switch(e.source().data('type')) {
+          case 'union':
+          case 'disjoint-union' :
+          case 'role-inverse' :
+          case 'intersection' :
+          case 'role-chain' :
+          case 'complement' :
+          case 'enumeration' :
+          case 'datatype-restriction' :
+          case 'domain-restriction':
+          case 'range-restriction':
+          case 'value-domain':
+            filterElem(e.source(),option_id);
+        }
+      }
+    });
   }
 }

@@ -8,11 +8,9 @@ function toggle(button) {
   else if (!elm.classList.contains('hide') && button.classList.contains('module_button')){
     button.firstElementChild.innerHTML = 'arrow_drop_up';
   }
-}
 
-
-function showSlider(elem) {
-  document.getElementById('zoom_slider').classList.toggle('hide');
+  if (button.classList.contains('tooltiptext'))
+    button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide');
 }
 
 function search(value) {
@@ -93,23 +91,24 @@ function getNextSibling(node) {
 
 
 function isPredicate(node) {
-    switch (node.getAttribute('type')) {
-      case 'concept':
-      case 'attribute':
-      case 'role':
-      case 'individual':
-        return true;
-    }
-
-    return false;
+  switch (node.getAttribute('type')) {
+    case 'concept':
+    case 'attribute':
+    case 'role':
+    case 'individual':
+      return true;
   }
+
+  return false;
+}
+
 
 
 // Date le posizioni di source, target e del breakpoint,
 // la funzione calcola i due parametri peso e distanza del breakpoint e li restituisce
 function getDistanceWeight(target, source, point) {
 
-  //Esprimiamo le coordinate di point traslando l'origine sul source:
+  // Esprimiamo le coordinate di point traslando l'origine sul source:
   // point['0'] corrisponde alla coordinata x del punto, point['1'] è l'ordinata
   var breakpoint = []
   breakpoint['x'] = point['0'] - source['x'];
@@ -143,11 +142,10 @@ function getDistanceWeight(target, source, point) {
     // R: y = angolar_coeff * x
 
     // La retta che interseca perpendicolarmente R e che passa per point è data da :
-    // T: y = - x/ angolar_coeff + quote
+    // T: y = - x / angolar_coeff + quote
 
     // dobbiamo calcolare quote imponendo che point faccia parte della retta T, quindi calcoliamo:
-    // quote = point_y + (point_x/angolar_coeff)
-
+    // quote = breakpoint_y + (breakpoint_x/angolar_coeff)
 
     var quote = breakpoint['y'] + (breakpoint['x'] / angolar_coeff);
 
@@ -159,6 +157,7 @@ function getDistanceWeight(target, source, point) {
     intersectpoint['x'] = (quote * angolar_coeff) / (Math.pow(angolar_coeff, 2) + 1);
     intersectpoint['y'] = intersectpoint['x'] * angolar_coeff;
   }
+
 
   // Adesso calcoliamo la distanza tra source e target
   var dist_source_target = Math.sqrt(Math.pow(delta['x'], 2) + Math.pow(delta['y'], 2));
@@ -259,7 +258,7 @@ function getNewEndpoint(end_point,node,break_point) {
 
   // Se l'endpoint non è centrato nel nodo ma ha la X uguale al breakpoint successivo (o precedente)
   // Allora l'arco parte (o arriva) perpendicolarmente dall'alto o dal basso
-  //alert(endpoint['x']+' == '+breakpoint['x']);
+
 
   if ( endpoint['x'] == breakpoint['x'] ) {
     // Se il breakpoint si trova più in basso (Ricorda: asse Y al contrario in cytoscape!),
@@ -314,8 +313,8 @@ function makeDraggable(elmnt) {
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) - elmnt.style.marginTop + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) - elmnt.style.marginLeft + "px";
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
     
   }
 
