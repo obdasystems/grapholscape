@@ -39,7 +39,7 @@
 
 .module_body {
   width: 100%;
-  margin-top:30px;
+  margin-top:29px;
   max-height: 450px;
 }
 
@@ -274,4 +274,40 @@
   position: absolute;
   bottom:10px;
   right:10px;
+}
+
+#owl_translator {
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  transform: translate(-50%,0);
+  max-width:90%;
+}
+
+#owl_translator .module_head {
+  text-align:center;
+}
+#translator_body {
+  background-color: #303340;
+  color:#fafafa;
+  margin-top: 0;
+  max-height: 250px;
+}
+
+#owl_axiomes {
+  padding:20px 10px;
+  font-size: 15px;
+  font-family: monospace;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.axiom_predicate{
+  color:rgb(98, 190, 255);
+ 
+}
+
+.axiom_predicate_prefix{
+  color:#ffac68;
+  
 }

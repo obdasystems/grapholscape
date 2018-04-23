@@ -15,7 +15,8 @@ function GrapholScape(file,container,xmlstring) {
 
     autoungrabify: true,
     wheelSensitivity: 0.4,
-
+    maxZoom: 2.5,
+    minZoom: 0.02,
     style: [ // the stylesheet for the graph
       {
         selector: 'node',
@@ -196,16 +197,33 @@ function GrapholScape(file,container,xmlstring) {
   this.cy.on('select','*',function (evt) {
     if(!evt.target.hasClass('predicate')) {
       document.getElementById('details').classList.add('hide');
+      
+      if (evt.target.isEdge() && evt.target.data('type') == 'inclusion') {
+        document.getElementById('owl_translator').classList.remove('hide');
+        document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
+      }
+      else if (evt.target.isNode()) {
+        document.getElementById('owl_translator').classList.remove('hide');
+        document.getElementById('owl_axiomes').innerHTML = this_graph.nodeToOwlString(evt.target);
+      }
+      else {
+        document.getElementById('owl_translator').classList.add('hide');
+      }
+    }
+    else {
+      document.getElementById('owl_translator').classList.add('hide');
     }
   });
 
   this.cy.on('tap',function(evt) {
     if (evt.target === this_graph.cy) {
       document.getElementById('details').classList.add('hide');
+      document.getElementById('owl_translator').classList.add('hide');
+
       var i,button;
       var collapsible_elms = document.getElementsByClassName('collapsible');
       for (i=0; i<collapsible_elms.length; i++) {
-        if (collapsible_elms[i].id == 'details_body')
+        if (collapsible_elms[i].id == 'details_body' || collapsible_elms[i].id == 'translator_body')
           continue;
         
         if (!collapsible_elms[i].classList.contains('hide')) {
@@ -272,6 +290,19 @@ GrapholScape.prototype.init = function(xmlString) {
     }
 
     this.collection = this.collection.union(this.cy_aux.collection(array_json_elems));
+
+    // Neutral nodes takes the identity of the nodes connected
+    this.collection.filter('node[identity = "neutral"]').forEach(n =>{
+      n.data('identity', n.incomers('[type = "inclusion"],[type = "equivalence"]').sources().data('identity'));
+
+      if (n.data('identity') == 'neutral') {
+        n.data('identity', n.outgoers('[type = "inclusion"],[type = "equivalence"]').targets().data('identity'));
+      }
+
+      if (n.data('identity') == 'neutral') {
+        n.data('identity', n.incomers('[type = "input"]').sources().data('identity'));
+      }
+    })
   }
 
   this.predicates = this.collection.filter('.predicate').sort(function(a,b) {
@@ -292,12 +323,10 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
 
   this.cy.remove('*');
 
-  //this.addNodesToGraph(this.diagrams[diagram_id].getElementsByTagName('node'));
-  //this.addEdgesToGraph(this.diagrams[diagram_id].getElementsByTagName('edge'));
   var selector = '[diagram_id = '+diagram_id+']';
   
   this.cy.add(this.collection.filter(selector));
-  this.cy.maxZoom(2.5);
+  
   this.cy.fit();
   this.actual_diagram = diagram_id;
   document.getElementById('title').innerHTML = diagram_name;
@@ -398,6 +427,7 @@ GrapholScape.prototype.showDetails = function (target) {
 GrapholScape.prototype.NodeXmlToJson = function(element) {
   // Creating a JSON Object for the node to be added to the collection
   var diagram_id = this.getDiagramId(element.parentNode.getAttribute('name'));
+  var label_no_break;
 
   var nodo = {
     data: {
@@ -417,46 +447,68 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
   switch (nodo.data.type) {
     case 'concept' :
     case 'domain-restriction' :
+      nodo.data.shape = 'rectangle';
+      nodo.data.identity = 'concept';
+      break;
+    
     case 'range-restriction':
       nodo.data.shape = 'rectangle';
+      nodo.data.identity = 'neutral';
       break;
 
     case 'role' :
       nodo.data.shape = 'diamond';
+      nodo.data.identity = 'role';
       break;
 
     case 'attribute':
       nodo.data.shape = 'ellipse';
+      nodo.data.identity = 'attribute';      
       break;
 
     case 'union':
     case 'disjoint-union' :
-    case 'role-inverse' :
-    case 'intersection' :
-    case 'role-chain' :
     case 'complement' :
+    case 'intersection' :
     case 'enumeration' :
-    case 'datatype-restriction' :
       nodo.data.shape = 'hexagon';
+      nodo.data.identity = 'neutral';
+      break;
 
+    case 'role-inverse' :
+    case 'role-chain' :
+      nodo.data.shape = 'hexagon';
+      nodo.data.identity = 'role';
       if (nodo.data.type == 'role-chain') {
         nodo.data.inputs = element.getAttribute('inputs').split(",");
       }
       break;
 
+    case 'datatype-restriction' :  
+      nodo.data.shape = 'hexagon';
+      nodo.data.identity = 'value_domain';
+      break;
+
     case 'value-domain' :
+      nodo.data.shape = 'roundrectangle';
+      nodo.data.identity = 'value_domain';
+      break;
+
     case 'property-assertion' :
       nodo.data.shape = 'roundrectangle';
+      nodo.data.identity = 'neutral';
       break;
 
     case 'individual' :
       nodo.data.shape = 'octagon';
+      nodo.data.identity = 'individual';
       break;
 
     case 'facet' :
       nodo.data.shape = 'polygon';
       nodo.data.shape_points = '-0.9 -1 1 -1 0.9 1 -1 1';
       nodo.data.fillColor = '#ffffff';
+      nodo.data.identity = 'facet';
       break;
 
     default:
@@ -490,32 +542,33 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
 
   // info = <LABEL>
   info = getNextSibling(info);
-
+  
   // info = null se non esiste la label (è l'ultimo elemento)
   if (info != null) {
     nodo.data.label = info.textContent;
     nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
     nodo.data.labelYpos = (parseInt(info.getAttribute('y')) - nodo.position.y) + (nodo.data.height+2)/2 + parseInt(info.getAttribute('height'))/4;
+    label_no_break = nodo.data.label.replace(/\n/g,'');
   }
 
   // Setting predicates properties
   if (isPredicate(element)) {
 
     nodo.classes += ' predicate';
-    var label_no_break = nodo.data.label.replace(/\n/g,'');
+    
 
-    var node_iri,rem_chars,len_prefix
+    var node_iri,rem_chars,len_prefix,node_prefix_iri;
     // setting uri
     if (element.getAttribute('remaining_characters') != null) {
       rem_chars = element.getAttribute('remaining_characters').replace(/\n/g,'');
       len_prefix = label_no_break.length - rem_chars.length;
-      node_iri = label_no_break.substring(0,len_prefix-1);
+      node_prefix_iri = label_no_break.substring(0,len_prefix);
 
-      if(!node_iri)
+      if(node_prefix_iri == ':' || !node_prefix_iri)
         node_iri = this.default_iri;
       else {
         for (k=0; k < this.iri_prefixes.length; k++) {
-          if (node_iri == this.iri_prefixes[k].getAttribute('prefix_value')) {
+          if (node_prefix_iri == this.iri_prefixes[k].getAttribute('prefix_value')+':') {
             node_iri = this.iri_prefixes[k].parentNode.parentNode.getAttribute('iri_value');
             break;
           }
@@ -524,11 +577,15 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
     }
     else{
       node_iri = this.default_iri;
+      node_prefix_iri = '';
       rem_chars = label_no_break;
     }
+
     if (!node_iri.endsWith('/') && !node_iri.endsWith('#'))
       node_iri = node_iri+'/';
 
+    nodo.data.remaining_chars = rem_chars;
+    nodo.data.prefix_iri = node_prefix_iri;
     nodo.data.iri = node_iri+rem_chars;
 
 
@@ -564,7 +621,18 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       }
     }
   }
+  else {
+    // Set prefix and remaining chars for non-predicate nodes 
+    // owl.js use this informations for all nodes 
+    nodo.data.prefix_iri = '';
+    nodo.data.remaining_chars = label_no_break;
 
+    if (nodo.data.type == 'value-domain') {
+      nodo.data.prefix_iri = label_no_break.split(':')[0]+':';
+      nodo.data.remaining_chars = label_no_break.split(':')[1];
+    }
+  }
+  
   return nodo;
 };
 
@@ -579,10 +647,11 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
       id : arco.getAttribute('id')+'_'+diagram_id,
       id_xml: arco.getAttribute('id'),
       diagram_id : diagram_id,
+      type : arco.getAttribute('type'),
     }
   };
 
-  switch (arco.getAttribute('type')) {
+  switch (edge.data.type) {
     case 'inclusion':
       edge.data.style = 'solid';
       edge.data.target_arrow = 'triangle';
@@ -904,10 +973,10 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     element.connectedEdges(selector).forEach( e => {
       // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
       var sel2 = 'edge:visible[source = "'+e.target().id()+'"]';
-      var sel3 = 'edge:visible[target = "'+e.target().id()+'"][style != "dashed"]';
+      var sel3 = 'edge:visible[target = "'+e.target().id()+'"][type != "input"]';
       var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size();
       
-      if (!e.target().hasClass('filtered') && (number_edges_in_out == 0 || e.data('style') == 'dashed')) {
+      if (!e.target().hasClass('filtered') && (number_edges_in_out == 0 || e.data('type') == 'input')) {
         switch(e.target().data('type')) {
           case 'union':
           case 'disjoint-union' :
@@ -930,7 +999,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     element.connectedEdges(selector).forEach( e => {
       // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
       var sel2 = 'edge:visible[source = "'+e.source().id()+'"]';
-      var sel3 = 'edge:visible[target = "'+e.source().id()+'"][style != "dashed"]';
+      var sel3 = 'edge:visible[target = "'+e.source().id()+'"][type != "input"]';
       var number_edges_in_out = e.source().connectedEdges(sel2).size() + e.source().connectedEdges(sel3).size();
       if (!e.source().hasClass('filtered') && number_edges_in_out == 0) {
         switch(e.source().data('type')) {

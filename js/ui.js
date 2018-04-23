@@ -357,4 +357,37 @@ GrapholScape.prototype.createUi = function () {
   });
   
   this.container.appendChild(module);
+
+
+  // OWL2 TRANSLATOR
+  module = document.createElement('div');
+  module.setAttribute('id','owl_translator');
+  module.setAttribute('class','hide module');
+
+  // module body
+  child = document.createElement('div');
+  child.setAttribute('id','translator_body');
+  child.setAttribute('class','module_body collapsible');
+  aux = document.createElement('div');
+  aux.setAttribute('id','owl_axiomes');
+  child.appendChild(aux);
+  module.appendChild(child);
+
+  // module head
+  child = document.createElement('div');
+  child.setAttribute('class','module_head');
+  child.innerHTML = 'OWL 2';
+
+  module.appendChild(child);
+
+  // module button
+  child = document.createElement('div');
+  child.setAttribute('id','translator-button');
+  child.setAttribute('class','module_button');
+  child.setAttribute('onclick','toggle(this)');
+  img = drop_down_icon.cloneNode(true);
+  child.appendChild(img);
+  module.appendChild(child);
+
+  this.container.appendChild(module);
 };
