@@ -296,18 +296,23 @@
 
 #owl_axiomes {
   padding:20px 10px;
-  font-size: 15px;
-  font-family: monospace;
+  font-family: "Lucida Console", Monaco, monospace;
   overflow: auto;
   white-space: nowrap;
 }
 
 .axiom_predicate{
-  color:rgb(98, 190, 255);
- 
+  color:rgb(98, 190, 255); 
 }
 
 .axiom_predicate_prefix{
-  color:#ffac68;
-  
+  color:#ffae00;;
+}
+
+.owl_error {
+  color:rgb(255, 85, 85);
+}
+
+.axiom_predefinite_obj {
+  color: #00ffd5;
 }

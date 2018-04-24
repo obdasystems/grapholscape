@@ -265,13 +265,15 @@ GrapholScape.prototype.createUi = function () {
   child.setAttribute('id','details_button');
   child.setAttribute('class','module_button');
   child.setAttribute('onclick','toggle(this)');
-  child.appendChild(drop_down_icon.cloneNode(true));
+  img = drop_down_icon.cloneNode(true);
+  img.innerHTML = 'arrow_drop_up';
+  child.appendChild(img);
   module.appendChild(child);
 
   // module body
   child = document.createElement('div');
   child.setAttribute('id','details_body');
-  child.setAttribute('class','hide collapsible module_body');
+  child.setAttribute('class','collapsible module_body');
   module.appendChild(child);
   makeDraggable(module);
   this.container.appendChild(module);
@@ -326,7 +328,7 @@ GrapholScape.prototype.createUi = function () {
   child.innerHTML += '<div class="filtr_option"><input id="forall_check" type="checkbox" checked /><label class="filtr_text">Universal Quantifier</label></div>';
 */
   module.appendChild(child);
-  module.innerHTML += '<div onclick="toggle(this)" class="bottom_button" title="filters"><i alt="filters" class="material-icons md-24"/>filter_list</div>';
+  module.innerHTML += '<div onclick="toggle(this)" class="bottom_button" title="filters"><i alt="filters" class="material-icons md-24"/>filter_list</i></div>';
 
   this.container.appendChild(module);
 
@@ -386,6 +388,7 @@ GrapholScape.prototype.createUi = function () {
   child.setAttribute('class','module_button');
   child.setAttribute('onclick','toggle(this)');
   img = drop_down_icon.cloneNode(true);
+  img.innerHTML = 'arrow_drop_down';
   child.appendChild(img);
   module.appendChild(child);
 

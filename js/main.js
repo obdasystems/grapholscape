@@ -1,11 +1,12 @@
 function toggle(button) {
   var elm = button.parentNode.getElementsByClassName('collapsible')[0];
   elm.classList.toggle('hide');
-
-  if (elm.classList.contains('hide') && button.classList.contains('module_button')) {
+  var icon_innerHTML = button.firstElementChild.innerHTML;
+ 
+  if (button.classList.contains('module_button') && icon_innerHTML == 'arrow_drop_up') {
     button.firstElementChild.innerHTML = 'arrow_drop_down';
   }
-  else if (!elm.classList.contains('hide') && button.classList.contains('module_button')){
+  else if (button.classList.contains('module_button') && icon_innerHTML =='arrow_drop_down'){
     button.firstElementChild.innerHTML = 'arrow_drop_up';
   }
 

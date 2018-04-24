@@ -2,7 +2,9 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
   var owl_string;
   var source = edge.source();
   var target = edge.target();
-  
+  var malformed = '<span class="owl_error">Malformed Axiom</span>';
+  var missing_operand = '<span class="owl_error">Missing Operand</span>';
+
   switch(edge.data('type')) {
 
     case 'inclusion':
@@ -34,7 +36,60 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
         else  
           return subTypePropertyOf(this,edge);
       }
+      else 
+        return malformed;
+
       break;
+    
+    case 'equivalence':
+      if (source.data('identity') == 'concept' && target.data('identity') == 'concept') {
+        return equivalentClasses(this,edge);
+      }
+      else if (source.data('identity') == 'role' && target.data('identity') == 'role') {
+        if (source.data('type') == 'role-inverse' || target.data('type') == 'role-inverse') 
+          return inverseObjectProperties(this,edge);
+        else
+          return equivalentTypeProperties(this,edge);
+      }
+      else if (source.data('identity') == 'attribute' && target.data('identity') == 'attribute') {
+        return equivalentTypeProperties(this,edge);
+      }
+      else 
+        return malformed;
+
+      break;
+  }
+
+  function inverseObjectProperties(self,edge) {
+    var complement_input;
+    var input;
+    if (edge.source().data('type') == 'role-inverse') {
+      input = edge.target();
+      complement_input = edge.source().incomers('[type = "input"]').sources().first();
+    }
+    else {
+      input = edge.source();
+      complement_input = edge.target().incomers('[type = "input"]').sources().first();
+    }
+
+    if (!complement_input.length)
+      return missing_operand;
+
+    return 'InverseObjectProperties('+self.nodeToOwlString(input)+' '+self.nodeToOwlString(complement_input)+')';  
+  }
+
+  function equivalentClasses(self,edge) {
+    return 'EquivalentClasses('+self.nodeToOwlString(edge.source())+' '+self.nodeToOwlString(edge.target())+')';
+  }
+
+  function equivalentTypeProperties(self,edge) {
+    var axiom_type;
+    if (edge.source().data('idenity') == 'role')
+      axiom_type = 'Object';
+    else  
+      axiom_type = 'Data';
+    
+    return 'Equivalent'+axiom_type+'Properties('+self.nodeToOwlString(edge.source())+' '+self.nodeToOwlString(edge.target())+')';
   }
 
   function subClassOf(self,edge) {
@@ -80,7 +135,7 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
         input = input.incomers('[type = "input"]').source();
       }
       owl_string += ' '+self.nodeToOwlString(input);
-    })
+    });
 
     owl_string += ')';
     return owl_string;
@@ -111,7 +166,9 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
 
 
 GrapholScape.prototype.nodeToOwlString = function(node) {
-  var owl_string;
+  var owl_thing = '<span class="axiom_predicate_prefix">owl:</span><span class="axiom_predefinite_obj">Thing</span>';
+  var rdfs_literal = '<span class="axiom_predicate_prefix">rdfs:</span><span class="axiom_predefinite_obj">Literal</span>';
+  var missing_operand = '<span class="owl_error">Missing Operand</span>';
 
   switch(node.data('type')) {
 
@@ -122,12 +179,21 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
     case 'individual':
       return '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="axiom_predicate">'+node.data('remaining_chars')+'</span>';
       break;
+    
+    case 'facet':
+      var rem_chars = node.data('remaining_chars').replace('^^',' ');
+      return '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="axiom_predicate">'+rem_chars+'</span>';
+      break;
 
     case 'domain-restriction':
     case 'range-restriction':  
       var input_edges = node.connectedEdges('edge[target = "'+node.id()+'"][type = "input"]');
-      var input_role, input_other, input_attribute = null;
+      var input_first, input_other, input_attribute = null;
       
+      if (!input_edges.length)
+        return missing_operand;
+
+
       input_edges.forEach(e => {
         if (e.source().data('type') == 'role' || e.source().data('type') == 'attribute') {
           input_first = e.source();         
@@ -138,40 +204,66 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
         }
       });
 
-      if (input_first) {
-        if ( node.data('label') == 'exists' ) {
+      if (input_first.length > 0) {
+        if ( node.data('label') == 'exists' ) 
             return someValuesFrom(this,input_first,input_other,node.data('type'));
-        }
-        if ( node.data('label') == 'forall' )
+        
+        else if ( node.data('label') == 'forall' )
           return allValuesFrom(this,input_first,input_other,node.data('type'));
           
-        if ( node.data('label').search(/([\d+|\-],[\d+|\-])/) ) {
+        else if ( node.data('label').search(/([\d+|\-],[\d+|\-])/) ) {
           var cardinality = node.data('label').replace(/\(|\)/g,'').split(/,/);
           return minMaxExactCardinality(this,input_first,input_other,cardinality)
         }  
       }
-      else return 'Invalid restriction: missing operand';
+      else return missing_operand;
       
       case 'role-inverse':
         var input = node.incomers('[type = "input"]').sources();
-        return objectInverseOf(this,input);
         
+        if (!input.length)
+          return missing_operand;
+        
+        return objectInverseOf(this,input);
+        break;
 
       case 'role-chain':
+        if (!node.data('inputs').length)
+          return missing_operand;
+
         return objectPropertyChain(this,node.data('inputs'));
-        
+        break;
 
       case 'union':
       case 'intersection':
       case 'complement':
       case 'enumeration':
         var inputs = node.incomers('[type = "input"]').sources();
-        return logicalConstructors(this,inputs,node.data('type'));
+        if (!inputs.length)
+          return missing_operand;
+
+        var axiom_type = 'Object';
+
+        if (node.data('identity') != 'concept' && node.data('identity') != 'role')
+          axiom_type = 'Data';
+
+        return logicalConstructors(this,inputs,node.data('type'),axiom_type);
         break;
 
       case 'disjoint-union':
         var inputs = node.incomers('[type = "input"]').sources();
+        if (!inputs.length)
+          return missing_operand;
+
         return disjointClasses(this,inputs);
+        break;
+
+      case 'datatype-restriction':
+        var inputs = node.incomers('[type = "input"]').sources();
+        if(!inputs.length)
+          return missing_operand;
+        
+        return datatypeRestriction(this,inputs);
     }
 
 
@@ -192,11 +284,11 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
       owl_string += self.nodeToOwlString(first);
     
     if (!other && axiom_type == 'Object')
-      return owl_string += ' owl:Thing)';
+      return owl_string += ' '+owl_thing+')';
     
 
     if (!other && axiom_type == 'Data') 
-      return owl_string += ' rdfs:Literal)';
+      return owl_string += ' '+rdfs_literal+')';
   
     return owl_string +=' '+self.nodeToOwlString(other)+')';
   }
@@ -218,10 +310,10 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
       owl_string += self.nodeToOwlString(first);
 
     if (!other && axiom_type == 'Object')
-      return owl_string += ' owl:Thing)';
+      return owl_string += ' '+owl_thing+')';
     
     if(!other && axiom_type == 'Data') 
-      return owl_string += ' rdfs:Literal)';
+      return owl_string += ' '+rdfs_literal+')';
   
     return owl_string +=' '+self.nodeToOwlString(other)+')';
   }
@@ -278,13 +370,7 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
   }
 
   function inverseOf(self,node) {
-    var axiom_type;
-    if ( node.data('type'))
-      axiom_type = 'Object';
-    else 
-      axiom_type = 'Data';
-    
-    return axiom_type+'InverseOf('+self.nodeToOwlString(node)+')';
+    return 'ObjectInverseOf('+self.nodeToOwlString(node)+')';
   }
 
   function objectInverseOf(self,node) {
@@ -292,11 +378,11 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
   }
 
   function objectPropertyChain(self,inputs) {
-    var owl_string, input;
+    var owl_string,
 
     owl_string = 'ObjectPropertyChain(';
     inputs.forEach(input_id =>{
-      input = self.collection.filter('edge[id_xml = "'+input_id+'"]').source();
+      input = self.cy.$('edge[id_xml = "'+input_id+'"]').source();
       owl_string += ' '+self.nodeToOwlString(input);
     });
 
@@ -304,16 +390,12 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
     return owl_string;
   }
 
-  function logicalConstructors(self,inputs,constructor_name) {
-    var axiom_type, owl_string;
-    if (inputs.data('identity') == 'concept' || inputs.data('identity') == 'role')
-      axiom_type = 'Object';
-    else 
-      axiom_type = 'Data';
+  function logicalConstructors(self,inputs,constructor_name,axiom_type) {
+    var owl_string;
 
     if (constructor_name == 'enumeration')
       constructor_name = 'One';
-    else
+    else // Capitalize first char
       constructor_name = constructor_name.charAt(0).toUpperCase()+constructor_name.slice(1);
 
     owl_string = axiom_type+constructor_name+'Of(';
@@ -333,6 +415,24 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
     inputs.forEach(input => {
       owl_string += ' '+self.nodeToOwlString(input);
     })
+
+    owl_string += ')';
+    return owl_string;
+  }
+
+  function datatypeRestriction(self,inputs) {
+    var owl_string = 'DatatypeRestriction(';
+
+    var value_domain = inputs.filter('[type = "value-domain"]').first();
+
+    owl_string += self.nodeToOwlString(value_domain)+' ';
+
+    inputs.forEach(input => {
+      if (input.data('type') == 'facet') {
+        owl_string += self.nodeToOwlString(input)+'^^';
+        owl_string += self.nodeToOwlString(value_domain)+' ';
+      }
+    });
 
     owl_string += ')';
     return owl_string;

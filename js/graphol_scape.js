@@ -198,7 +198,7 @@ function GrapholScape(file,container,xmlstring) {
     if(!evt.target.hasClass('predicate')) {
       document.getElementById('details').classList.add('hide');
       
-      if (evt.target.isEdge() && evt.target.data('type') == 'inclusion') {
+      if (evt.target.isEdge() && (evt.target.data('type') == 'inclusion' || evt.target.data('type') == 'equivalence' )) {
         document.getElementById('owl_translator').classList.remove('hide');
         document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
       }
@@ -290,20 +290,11 @@ GrapholScape.prototype.init = function(xmlString) {
     }
 
     this.collection = this.collection.union(this.cy_aux.collection(array_json_elems));
-
-    // Neutral nodes takes the identity of the nodes connected
-    this.collection.filter('node[identity = "neutral"]').forEach(n =>{
-      n.data('identity', n.incomers('[type = "inclusion"],[type = "equivalence"]').sources().data('identity'));
-
-      if (n.data('identity') == 'neutral') {
-        n.data('identity', n.outgoers('[type = "inclusion"],[type = "equivalence"]').targets().data('identity'));
-      }
-
-      if (n.data('identity') == 'neutral') {
-        n.data('identity', n.incomers('[type = "input"]').sources().data('identity'));
-      }
-    })
+    
+    
   }
+  // traverse the graph and retrieve the real identity for neutral nodes
+  this.getIdentityForNeutralNodes();
 
   this.predicates = this.collection.filter('.predicate').sort(function(a,b) {
     return a.data('label').localeCompare(b.data('label'));
@@ -603,7 +594,8 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
         nodo.data.description = nodo.data.description.replace(/&lt;/g,'<');
         nodo.data.description = nodo.data.description.replace(/&gt;/g,'>');
         nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g,'');
-
+        nodo.data.description = nodo.data.description.replace(/&amp;/g,'&');
+        nodo.data.description = nodo.data.description.replace(/font-size:0pt/g,'font-size:inherit');
 
         // Impostazione delle funzionalità dei nodi di tipo role o attribute
         if (nodo.data.type == 'attribute' || nodo.data.type == 'role') {
@@ -627,7 +619,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
     nodo.data.prefix_iri = '';
     nodo.data.remaining_chars = label_no_break;
 
-    if (nodo.data.type == 'value-domain') {
+    if (nodo.data.type == 'value-domain' || nodo.data.type == 'facet') {
       nodo.data.prefix_iri = label_no_break.split(':')[0]+':';
       nodo.data.remaining_chars = label_no_break.split(':')[1];
     }
@@ -1018,5 +1010,41 @@ GrapholScape.prototype.filter = function(checkbox_id) {
         }
       }
     });
+  }
+}
+
+GrapholScape.prototype.getIdentityForNeutralNodes = function() {
+  this.collection.filter('node[identity = "neutral"]').forEach(node => {
+    node.data('identity', findIdentity(node));
+});
+
+  // Recursively traverse first input node and return his identity
+  // if he is neutral => recursive step
+  function findIdentity(node) {
+    var first_input_node = node.incomers('[type = "input"]').sources();
+    var identity = first_input_node.data('identity');
+
+    if (identity == 'neutral')
+      return findIdentity(first_input_node);
+    else {
+      switch(node.data('type')) {
+        case 'range-restriction':
+          if (identity == 'role')
+            return 'concept';
+          else if ( identity == 'attribute' )
+            return 'value_domain';
+          else  
+            return identity;  
+        
+        case 'enumeration' :
+          if (identity == 'individual')
+            return 'concept';
+          else
+            return identity;
+        
+        default:
+          return identity;
+      }
+    }
   }
 }
