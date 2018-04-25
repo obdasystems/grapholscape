@@ -9,16 +9,17 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
 
     case 'inclusion':
       if (source.data('identity') == 'concept' && target.data('identity') == 'concept') {
-        if (source.data('type') == 'domain-restriction') {
+        if (source.data('type') == 'domain-restriction' && source.data('label') != 'self' && target.data('label') != 'self') {
           return propertyDomain(this,edge);
         }
-        else if (source.data('type') == 'range-restriction') {
+        else if (source.data('type') == 'range-restriction' && source.data('label') != 'self' && target.data('label') != 'self') {
           return propertyRange(this,edge);
         }
         else if (target.data('type') == 'complement' || source.data('type') == 'complement') {
           return disjointClasses(this,edge.connectedNodes());
         }
-          return subClassOf(this,edge);
+        
+        return subClassOf(this,edge);
       }
       else if (source.data('identity') == 'role' && target.data('identity') == 'role') {
         if (target.data('type') == 'complement') {
@@ -134,9 +135,10 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
       if (input.data('type') == 'complement') {
         input = input.incomers('[type = "input"]').source();
       }
-      owl_string += ' '+self.nodeToOwlString(input);
+      owl_string += self.nodeToOwlString(input)+' ';
     });
 
+    owl_string = owl_string.slice(0,owl_string.length - 1);
     owl_string += ')';
     return owl_string;
   }
@@ -157,9 +159,10 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
       if (node.data('type') == 'complement') {
         node = node.incomers('[type = "input"]').source();
       }
-      owl_string += ' '+self.nodeToOwlString(node);
+      owl_string += self.nodeToOwlString(node)+' ';
     });
 
+    owl_string = owl_string.slice(0,owl_string.length - 1);
     return owl_string+')';
   }
 };
@@ -211,10 +214,14 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
         else if ( node.data('label') == 'forall' )
           return allValuesFrom(this,input_first,input_other,node.data('type'));
           
-        else if ( node.data('label').search(/([\d+|\-],[\d+|\-])/) ) {
+        else if ( node.data('label').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
           var cardinality = node.data('label').replace(/\(|\)/g,'').split(/,/);
           return minMaxExactCardinality(this,input_first,input_other,cardinality)
-        }  
+        }
+        
+        else if ( node.data('label') == 'self') {
+          return hasSelf(this,input_first,node.data('type'));
+        }
       }
       else return missing_operand;
       
@@ -383,9 +390,10 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
     owl_string = 'ObjectPropertyChain(';
     inputs.forEach(input_id =>{
       input = self.cy.$('edge[id_xml = "'+input_id+'"]').source();
-      owl_string += ' '+self.nodeToOwlString(input);
+      owl_string += self.nodeToOwlString(input)+' ';
     });
 
+    owl_string = owl_string.slice(0,owl_string.length - 1);
     owl_string += ')';
     return owl_string;
   }
@@ -401,9 +409,10 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
     owl_string = axiom_type+constructor_name+'Of(';
     
     inputs.forEach(input => {
-      owl_string += ' '+self.nodeToOwlString(input);
+      owl_string += self.nodeToOwlString(input)+' ';
     });
 
+    owl_string = owl_string.slice(0,owl_string.length - 1);
     owl_string += ')';
 
     return owl_string;
@@ -413,9 +422,10 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
     var owl_string = 'DisjointClasses(';
 
     inputs.forEach(input => {
-      owl_string += ' '+self.nodeToOwlString(input);
+      owl_string += self.nodeToOwlString(input)+' ';
     })
 
+    owl_string = owl_string.slice(0,owl_string.length - 1);
     owl_string += ')';
     return owl_string;
   }
@@ -433,8 +443,16 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
         owl_string += self.nodeToOwlString(value_domain)+' ';
       }
     });
-
+    owl_string = owl_string.slice(0,owl_string.length - 1);
     owl_string += ')';
     return owl_string;
+  }
+
+  function hasSelf(self,input,restr_type) {
+    // if the restriction is on the range, put the inverse of node
+    if (restr_type == 'range-restriction')
+      return 'ObjectHasSelf('+inverseOf(self,input)+')';
+
+    return 'ObjectHasSelf('+self.nodeToOwlString(input)+')';
   }
 }

@@ -1,14 +1,18 @@
 function toggle(button) {
   var elm = button.parentNode.getElementsByClassName('collapsible')[0];
   elm.classList.toggle('hide');
-  var icon_innerHTML = button.firstElementChild.innerHTML;
+
+  if (button.classList.contains('module_button')) {
+    var icon_innerHTML = button.firstElementChild.innerHTML;
  
-  if (button.classList.contains('module_button') && icon_innerHTML == 'arrow_drop_up') {
-    button.firstElementChild.innerHTML = 'arrow_drop_down';
+    if (icon_innerHTML == 'arrow_drop_up') {
+      button.firstElementChild.innerHTML = 'arrow_drop_down';
+    }
+    else if (icon_innerHTML =='arrow_drop_down'){
+      button.firstElementChild.innerHTML = 'arrow_drop_up';
+    }
   }
-  else if (button.classList.contains('module_button') && icon_innerHTML =='arrow_drop_down'){
-    button.firstElementChild.innerHTML = 'arrow_drop_up';
-  }
+  
 
   if (button.classList.contains('tooltiptext'))
     button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide');

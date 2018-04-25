@@ -202,7 +202,7 @@ function GrapholScape(file,container,xmlstring) {
         document.getElementById('owl_translator').classList.remove('hide');
         document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
       }
-      else if (evt.target.isNode()) {
+      else if (evt.target.isNode() && evt.target.data('type') != 'value-domain' && evt.target.data('type') != 'facet') {
         document.getElementById('owl_translator').classList.remove('hide');
         document.getElementById('owl_axiomes').innerHTML = this_graph.nodeToOwlString(evt.target);
       }
