@@ -17,6 +17,7 @@ function GrapholScape(file,container,xmlstring) {
     wheelSensitivity: 0.4,
     maxZoom: 2.5,
     minZoom: 0.02,
+
     style: [ // the stylesheet for the graph
       {
         selector: 'node',
@@ -228,6 +229,10 @@ function GrapholScape(file,container,xmlstring) {
         
         if (!collapsible_elms[i].classList.contains('hide')) {
           collapsible_elms[i].classList.add('hide');
+
+          if (collapsible_elms[i].id == 'zoom_slider')
+            collapsible_elms[i].parentNode.getElementsByTagName('hr')[0].classList.remove('hide');
+
           button = collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0];
           if (button)
             button.firstElementChild.setAttribute('src','icons/drop_down_24dp.png');
