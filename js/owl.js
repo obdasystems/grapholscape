@@ -113,6 +113,9 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
   function propertyDomain(self,edge) {
     var node = edge.source().incomers('[type = "input"]').sources();
 
+    if ( node.size() > 1)
+      return subClassOf(self,edge);
+
     if (node.data('type') == 'role')
       return 'ObjectPropertyDomain('+self.nodeToOwlString(node)+' '+self.nodeToOwlString(edge.target())+')';
     else if (node.data('type') == 'attribute')
@@ -121,6 +124,9 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
 
   function propertyRange(self,edge) {
     var node = edge.source().incomers('[type = "input"]').sources();
+
+    if ( node.size() > 1)
+      return subClassOf(self,edge);
 
     if (node.data('type') == 'role')
       return 'ObjectPropertyRange('+self.nodeToOwlString(node)+' '+self.nodeToOwlString(edge.target())+')';
@@ -168,10 +174,11 @@ GrapholScape.prototype.edgeToOwlString = function(edge) {
 };
 
 
-GrapholScape.prototype.nodeToOwlString = function(node) {
+GrapholScape.prototype.nodeToOwlString = function(node,disjointness) {
   var owl_thing = '<span class="axiom_predicate_prefix">owl:</span><span class="axiom_predefinite_obj">Thing</span>';
   var rdfs_literal = '<span class="axiom_predicate_prefix">rdfs:</span><span class="axiom_predefinite_obj">Literal</span>';
   var missing_operand = '<span class="owl_error">Missing Operand</span>';
+  var disjoint_classes = disjointness || null;
 
   switch(node.data('type')) {
 
@@ -245,6 +252,7 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
       case 'intersection':
       case 'complement':
       case 'enumeration':
+      case 'disjoint-union':
         var inputs = node.incomers('[type = "input"]').sources();
         if (!inputs.length)
           return missing_operand;
@@ -253,6 +261,15 @@ GrapholScape.prototype.nodeToOwlString = function(node) {
 
         if (node.data('identity') != 'concept' && node.data('identity') != 'role')
           axiom_type = 'Data';
+
+        if (node.data('type') == 'disjoint-union') {
+          if (!disjoint_classes) {
+            this.disjoint_arr.unshift(node);
+            return logicalConstructors(this,inputs,'union',axiom_type);
+          }
+          else  
+            return disjointClasses(this,inputs);
+        }
 
         return logicalConstructors(this,inputs,node.data('type'),axiom_type);
         break;

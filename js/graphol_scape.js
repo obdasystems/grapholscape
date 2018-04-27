@@ -3,6 +3,8 @@ function GrapholScape(file,container,xmlstring) {
   this.container = container;
   this.diagrams = [];
   this.actual_diagram = -1;  
+  this.disjoint_arr = [];
+
   this.container.style.fontSize = '14px';
   this.container.style.color = '#666';
   var cy_container = document.createElement('div');
@@ -202,10 +204,22 @@ function GrapholScape(file,container,xmlstring) {
       if (evt.target.isEdge() && (evt.target.data('type') == 'inclusion' || evt.target.data('type') == 'equivalence' )) {
         document.getElementById('owl_translator').classList.remove('hide');
         document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
+
+        this_graph.disjoint_arr.forEach(disj_node => {
+          document.getElementById('owl_axiomes').innerHTML += '<br />'+this_graph.nodeToOwlString(disj_node,true);
+        });
+
+        this_graph.disjoint_arr = [];
       }
       else if (evt.target.isNode() && evt.target.data('type') != 'value-domain' && evt.target.data('type') != 'facet') {
         document.getElementById('owl_translator').classList.remove('hide');
         document.getElementById('owl_axiomes').innerHTML = this_graph.nodeToOwlString(evt.target);
+
+        this_graph.disjoint_arr.forEach(disj_node => {
+          document.getElementById('owl_axiomes').innerHTML += '<br />'+this_graph.nodeToOwlString(disj_node,true);
+        });
+        
+        this_graph.disjoint_arr = [];
       }
       else {
         document.getElementById('owl_translator').classList.add('hide');
