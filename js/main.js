@@ -1,6 +1,6 @@
 function toggle(button) {
   var elm = button.parentNode.getElementsByClassName('collapsible')[0];
-  elm.classList.toggle('hide');
+  //elm.classList.toggle('hide');
 
   if (button.classList.contains('module_button')) {
     var icon_innerHTML = button.firstElementChild.innerHTML;
@@ -13,8 +13,22 @@ function toggle(button) {
     }
   }
   
+  if (elm.clientHeight == '0') {
+    elm.style.maxHeight = '450px';
+  }
+  else {
+    elm.style.maxHeight = '0';
+  }
 
-  if (button.classList.contains('tooltiptext'))
+  if (elm.id == 'diagram_list' || elm.id == 'filter_body' || elm.id == 'slider_body')
+  if (elm.clientWidth == '0') {
+    elm.style.width = 'initial';
+  }
+  else {
+    elm.style.width = '0';
+  }
+
+  if (elm.id == 'slider_body')
     button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide');
 }
 

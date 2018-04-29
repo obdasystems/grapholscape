@@ -241,15 +241,8 @@ function GrapholScape(file,container,xmlstring) {
         if (collapsible_elms[i].id == 'details_body' || collapsible_elms[i].id == 'translator_body')
           continue;
         
-        if (!collapsible_elms[i].classList.contains('hide')) {
-          collapsible_elms[i].classList.add('hide');
-
-          if (collapsible_elms[i].id == 'zoom_slider')
-            collapsible_elms[i].parentNode.getElementsByTagName('hr')[0].classList.remove('hide');
-
-          button = collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0];
-          if (button)
-            button.firstElementChild.setAttribute('src','icons/drop_down_24dp.png');
+        if (collapsible_elms[i].clientHeight != 0) {
+          toggle(collapsible_elms[i]);
         }
       }
     }
@@ -973,8 +966,9 @@ GrapholScape.prototype.filter = function(checkbox_id) {
   }
 
   if (!active) {
-    filter_options[0].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'inherit';
+    filter_options[0].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = '';
   }
+
   function filterElem(element, option_id) {
     element.addClass('filtered');
     element.addClass(option_id);

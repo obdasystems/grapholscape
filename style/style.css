@@ -5,6 +5,7 @@
 
 .material-icons:hover {
   color:rgb(81,149,199);
+  cursor:pointer;
 }
 
 .no_highlight:hover {
@@ -81,6 +82,7 @@
 .info {
   padding-left:5px;
   cursor:pointer;
+  width:100%;
 }
 
 .sub_row_wrapper {
@@ -105,7 +107,6 @@
   height:24px;
   width:24px;
   padding:2px;
-  cursor:pointer;
 }
 
 #diagram_name {
@@ -116,8 +117,7 @@
 }
 
 #diagram_list {
-  max-height: 450px;
-  margin-top:30px;
+  width:0;
 }
 
 .diagram_item {
@@ -206,6 +206,7 @@
 
 #details_body {
   overflow: auto;
+  max-height:450px;
 }
 
 .details_table {
@@ -243,7 +244,6 @@
 }
 
 .bottom_button {
-  cursor:pointer;
   padding:4px;
   line-height: 0;
   text-align:center;
@@ -258,8 +258,7 @@
 }
 
 #filter_body {
-  padding:5px;
-  font-size:14px;
+  width:0;
 }
 
 .filtr_text{
@@ -316,4 +315,15 @@
 
 .axiom_predefinite_obj {
   color: #00ffd5;
+}
+
+.collapsible {
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 200ms ease;
+}
+
+#slider_body {
+  text-align: center;
+  width:0;
 }

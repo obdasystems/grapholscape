@@ -33,7 +33,7 @@ GrapholScape.prototype.createUi = function () {
   // module dropdown div
   child = document.createElement('div');
   child.setAttribute('id','diagram_list');
-  child.setAttribute('class','hide collapsible module_body');
+  child.setAttribute('class','collapsible module_body');
 
   // adding diagrams in the dropdown div
   var item;
@@ -76,7 +76,7 @@ GrapholScape.prototype.createUi = function () {
   module.removeChild(module.lastElementChild);
   child = document.createElement('div');
   child.setAttribute('id','predicates_list');
-  child.setAttribute('class','hide collapsible module_body');
+  child.setAttribute('class','collapsible module_body');
 
   module.appendChild(child);
   makeDraggable(module);
@@ -186,23 +186,24 @@ GrapholScape.prototype.createUi = function () {
     var slider_value = Math.round(this_graph.cy.zoom()/this_graph.cy.maxZoom()*100);
     document.getElementById('zoom_slider').setAttribute('value',slider_value);
   });
-  child.onselectstart = function() { return false};
+  //child.onselectstart = function() { return false};
   module.appendChild(child);
 
   // tooltip
   child = document.createElement('span');
   child.setAttribute('class','tooltiptext');
-  child.setAttribute('onclick','toggle(this)');
+  child.onclick = function() {toggle(this)};
   child.innerHTML = 'Toggle slider';
 
   module.appendChild(child);
 
   // slider
   child = document.createElement('div');
-  child.style.textAlign = 'center';
+  child.setAttribute('class','collapsible');
+  child.setAttribute('id','slider_body');
+
   input = document.createElement('input');
   input.setAttribute('id','zoom_slider');
-  input.setAttribute('class','hide collapsible');
   input.setAttribute('autocomplete','off');
   input.setAttribute('type','range');
   input.setAttribute('min','1');
@@ -219,8 +220,8 @@ GrapholScape.prototype.createUi = function () {
 
   child.appendChild(input);
 
-  child.appendChild(document.createElement("hr"));
   module.appendChild(child);
+  module.appendChild(document.createElement("hr"));
 
   // zoom_out
   child = document.createElement('div');
@@ -240,7 +241,7 @@ GrapholScape.prototype.createUi = function () {
     document.getElementById('zoom_slider').setAttribute('value',slider_value);
 
   });
-  child.onselectstart = function() { return false};
+  //child.onselectstart = function() { return false};
   module.appendChild(child);
 
   // add zoom_tools module to the container
@@ -251,7 +252,7 @@ GrapholScape.prototype.createUi = function () {
   // Details
   module = document.createElement('div');
   module.setAttribute('id','details');
-  module.setAttribute('class','module hide collapsible');
+  module.setAttribute('class','module hide');
 
   // module head
   child = document.createElement('div');
@@ -285,7 +286,7 @@ GrapholScape.prototype.createUi = function () {
   module.setAttribute('class','module');
   child = document.createElement('div');
   child.setAttribute('id','filter_body');
-  child.setAttribute('class','hide collapsible');
+  child.setAttribute('class','collapsible');
 
   var aux = document.createElement('div');
   aux.setAttribute('class','filtr_option');
@@ -393,4 +394,9 @@ GrapholScape.prototype.createUi = function () {
   module.appendChild(child);
 
   this.container.appendChild(module);
+
+
+  for (i = 0; i < document.getElementsByClassName('material-icons').length; i++) {
+    document.getElementsByClassName('material-icons')[i].onselectstart = function() {return false;};
+  }
 };
