@@ -20,14 +20,14 @@ function toggle(button) {
     elm.style.maxHeight = '0';
   }
 
-  if (elm.id == 'diagram_list' || elm.id == 'filter_body' || elm.id == 'slider_body')
-  if (elm.clientWidth == '0') {
-    elm.style.width = 'initial';
+  if (elm.id == 'diagram_list' || elm.id == 'filter_body' || elm.id == 'slider_body') {
+    if (elm.clientWidth == '0') {
+      elm.style.width = 'initial';
+    }
+    else {
+      elm.style.width = '0';
+    }
   }
-  else {
-    elm.style.width = '0';
-  }
-
   if (elm.id == 'slider_body')
     button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide');
 }
@@ -35,10 +35,15 @@ function toggle(button) {
 function search(value) {
   var list = document.getElementById('predicates_list');
 
-  list.classList.remove('hide');
-
-  document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_up';
-
+  
+  if (value == '') {
+    list.style.maxHeight = 0;
+    document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_down';
+  }
+  else {
+    document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_up';
+    list.style.maxHeight = '450px';
+  }
   var val = value.toLowerCase();
   var rows = list.getElementsByClassName('predicate');
 

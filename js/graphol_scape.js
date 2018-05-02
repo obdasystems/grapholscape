@@ -3,7 +3,6 @@ function GrapholScape(file,container,xmlstring) {
   this.container = container;
   this.diagrams = [];
   this.actual_diagram = -1;  
-  this.disjoint_arr = [];
 
   this.container.style.fontSize = '14px';
   this.container.style.color = '#666';
@@ -200,34 +199,22 @@ function GrapholScape(file,container,xmlstring) {
   this.cy.on('select','*',function (evt) {
     if(!evt.target.hasClass('predicate')) {
       document.getElementById('details').classList.add('hide');
-      
-      if (evt.target.isEdge() && (evt.target.data('type') == 'inclusion' || evt.target.data('type') == 'equivalence' )) {
-        document.getElementById('owl_translator').classList.remove('hide');
-        document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
+    }
+    
+    if (evt.target.isEdge() && (evt.target.data('type') != 'input' )) {
+      document.getElementById('owl_translator').classList.remove('hide');
+      document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
 
-        this_graph.disjoint_arr.forEach(disj_node => {
-          document.getElementById('owl_axiomes').innerHTML += '<br />'+this_graph.nodeToOwlString(disj_node,true);
-        });
-
-        this_graph.disjoint_arr = [];
-      }
-      else if (evt.target.isNode() && evt.target.data('type') != 'value-domain' && evt.target.data('type') != 'facet') {
-        document.getElementById('owl_translator').classList.remove('hide');
-        document.getElementById('owl_axiomes').innerHTML = this_graph.nodeToOwlString(evt.target);
-
-        this_graph.disjoint_arr.forEach(disj_node => {
-          document.getElementById('owl_axiomes').innerHTML += '<br />'+this_graph.nodeToOwlString(disj_node,true);
-        });
-        
-        this_graph.disjoint_arr = [];
-      }
-      else {
-        document.getElementById('owl_translator').classList.add('hide');
-      }
+    }
+    else if (evt.target.isNode() && evt.target.data('type') != 'facet') {
+      document.getElementById('owl_translator').classList.remove('hide');
+      document.getElementById('owl_axiomes').innerHTML = this_graph.nodeToOwlString(evt.target,true);
     }
     else {
       document.getElementById('owl_translator').classList.add('hide');
     }
+
+
   });
 
   this.cy.on('tap',function(evt) {
@@ -416,8 +403,6 @@ GrapholScape.prototype.showDetails = function (target) {
 
     if (target.data('transitive'))
       body_details.innerHTML += '<div><span class="checkmark">&#9745;</span><span>Transitive</span></div>';
-
-
   }
 
 
@@ -500,6 +485,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
     case 'property-assertion' :
       nodo.data.shape = 'roundrectangle';
       nodo.data.identity = 'neutral';
+      nodo.data.inputs = element.getAttribute('inputs').split(",");
       break;
 
     case 'individual' :
@@ -561,7 +547,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
     
 
     var node_iri,rem_chars,len_prefix,node_prefix_iri;
-    // setting uri
+    // setting iri
     if (element.getAttribute('remaining_characters') != null) {
       rem_chars = element.getAttribute('remaining_characters').replace(/\n/g,'');
       len_prefix = label_no_break.length - rem_chars.length;
@@ -584,7 +570,12 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       rem_chars = label_no_break;
     }
 
-    if (!node_iri.endsWith('/') && !node_iri.endsWith('#'))
+    if ( node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1 ) {
+      rem_chars = label_no_break;
+      node_iri = '';
+      node_prefix_iri = '';
+    }
+    else if (!node_iri.endsWith('/') && !node_iri.endsWith('#'))
       node_iri = node_iri+'/';
 
     nodo.data.remaining_chars = rem_chars;
@@ -701,7 +692,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
   // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
   // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
   // la target_label in base alla posizione nella sequenza
-  if (target.data('type') == 'role-chain') {
+  if (target.data('type') == 'role-chain' || target.data('type') == 'property-assertion') {
     for (k=0; k < target.data('inputs').length; k++) {
       if (target.data('inputs')[k] == edge.data.id_xml) {
         edge.data.target_label = k+1;
