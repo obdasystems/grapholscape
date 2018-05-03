@@ -1,6 +1,5 @@
 function toggle(button) {
   var elm = button.parentNode.getElementsByClassName('collapsible')[0];
-  //elm.classList.toggle('hide');
 
   if (button.classList.contains('module_button')) {
     var icon_innerHTML = button.firstElementChild.innerHTML;

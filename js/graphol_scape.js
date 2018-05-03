@@ -229,7 +229,10 @@ function GrapholScape(file,container,xmlstring) {
           continue;
         
         if (collapsible_elms[i].clientHeight != 0) {
-          toggle(collapsible_elms[i]);
+          if (collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0])
+            toggle(collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0]);
+          else
+            toggle(collapsible_elms[i]);
         }
       }
     }
@@ -573,7 +576,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
     if ( node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1 ) {
       rem_chars = label_no_break;
       node_iri = '';
-      node_prefix_iri = '';
+      node_prefix_iri = node_prefix_iri.substring(node_prefix_iri.lastIndexOf('^')+1, node_prefix_iri.lastIndexOf(':')+1);
     }
     else if (!node_iri.endsWith('/') && !node_iri.endsWith('#'))
       node_iri = node_iri+'/';

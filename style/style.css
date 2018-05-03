@@ -287,8 +287,8 @@
   text-align:center;
 }
 #translator_body {
-  background-color: #303340;
-  color:#fafafa;
+  background-color: #002b36;
+  color:white;
   margin-top: 0;
   max-height: 250px;
 }
@@ -301,12 +301,51 @@
   line-height:1.5;
 }
 
-.axiom_predicate{
-  color:rgb(98, 190, 255); 
+/*
+  $base03:    #002b36;
+  $base02:    #073642;
+  $base01:    #586e75;
+  $base00:    #657b83;
+  $base0:     #839496;
+  $base1:     #93a1a1;
+  $base2:     #eee8d5;
+  $base3:     #fdf6e3;
+  $yellow:    #b58900;
+  $orange:    #cb4b16;
+  $red:       #dc322f;
+  $magenta:   #d33682;
+  $violet:    #6c71c4;
+  $blue:      #268bd2;
+  $cyan:      #2aa198;
+  $green:     #859900;
+*/
+
+.owl_concept{
+  color:#859900; 
+}
+
+.owl_role{
+  color:#268bd2; 
+}
+
+.owl_attribute{
+  color:#b58900; 
+}
+
+.owl_value-domain{
+  color: #2aa198;
+}
+
+.owl_individual{
+  color: #6c71c4;
+}
+
+.owl_value {
+  color: #d33682;
 }
 
 .axiom_predicate_prefix{
-  color:#ffae00;;
+  color:#cb4b16;
 }
 
 .owl_error {

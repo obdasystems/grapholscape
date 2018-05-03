@@ -220,7 +220,7 @@ GrapholScape.prototype.nodeToOwlString = function(node,from_node) {
   var from_node_flag = from_node || null;
 
   if (from_node_flag && (node.hasClass('predicate') || node.data('type') == 'value-domain')) {
-    var owl_predicate = '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="axiom_predicate">'+node.data('remaining_chars')+'</span>';
+    var owl_predicate = '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="owl_'+node.data('type')+'">'+node.data('remaining_chars')+'</span>';
     var owl_type;
 
     switch(node.data('type')) {
@@ -268,6 +268,14 @@ GrapholScape.prototype.nodeToOwlString = function(node,from_node) {
         break;
       
       case 'individual':
+        if ( node.data('remaining_chars').search(/"[\w]+"\^\^[\w]+:/) != -1 ) {
+          var value = node.data('remaining_chars').split('^^')[0];
+          var datatype = node.data('remaining_chars').split(':')[1];
+
+          owl_predicate = '<span class="owl_value">'+value+'</span>^^'+
+          '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span>'+
+          '<span class="owl_value-domain">'+datatype+'</span>'; 
+        } 
         owl_type = 'NamedIndividual';
         return 'Declaration('+owl_type+'('+owl_predicate+'))';
         break;
@@ -281,18 +289,27 @@ GrapholScape.prototype.nodeToOwlString = function(node,from_node) {
   
 
   switch(node.data('type')) {
+    case 'individual':
+      if ( node.data('remaining_chars').search(/"[\w]+"\^\^[\w]+:/) != -1 ) {
+        var value = node.data('remaining_chars').split('^^')[0];
+        var datatype = node.data('remaining_chars').split(':')[1];
+
+        return '<span class="owl_value">'+value+'</span>^^'+
+        '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span>'+
+        '<span class="owl_value-domain">'+datatype+'</span>'; 
+      } 
 
     case 'concept':
     case 'role':
     case 'value-domain':
     case 'attribute':
     case 'individual':
-      return '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="axiom_predicate">'+node.data('remaining_chars')+'</span>';
+      return '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="owl_'+node.data('type')+'">'+node.data('remaining_chars')+'</span>';
       break;
     
     case 'facet':
-      var rem_chars = node.data('remaining_chars').replace('^^',' ');
-      return '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="axiom_predicate">'+rem_chars+'</span>';
+      var rem_chars = node.data('remaining_chars').split('^^');
+      return '<span class="axiom_predicate_prefix">'+node.data('prefix_iri')+'</span><span class="owl_value-domain">'+rem_chars[0]+'</span><span class="owl_value">'+rem_chars[1]+'</span>';
       break;
 
     case 'domain-restriction':
