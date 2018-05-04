@@ -385,8 +385,9 @@ GrapholScape.prototype.nodeToOwlString = function(node,from_node) {
           if (!from_node_flag) {
             return logicalConstructors(this,inputs,'union',axiom_type);
           }
-          else  
-            return disjointClasses(this,inputs);
+          else {  
+            return logicalConstructors(this,inputs,'union',axiom_type)+'<br />'+disjointClasses(this,inputs);
+          }
         }
 
         return logicalConstructors(this,inputs,node.data('type'),axiom_type);
