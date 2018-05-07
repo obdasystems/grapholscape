@@ -2,14 +2,14 @@ function GrapholScape(file,container,xmlstring) {
   this.highlight_color = 'rgb(81,149,199)';
   this.container = container;
   this.diagrams = [];
-  this.actual_diagram = -1;  
+  this.actual_diagram = -1;
 
   this.container.style.fontSize = '14px';
   this.container.style.color = '#666';
   var cy_container = document.createElement('div');
   cy_container.setAttribute('id','cy');
   this.container.appendChild(cy_container);
-  
+
   this.cy = cytoscape({
 
     container:container.firstElementChild, // container to render in
@@ -200,7 +200,7 @@ function GrapholScape(file,container,xmlstring) {
     if(!evt.target.hasClass('predicate')) {
       document.getElementById('details').classList.add('hide');
     }
-    
+
     if (evt.target.isEdge() && (evt.target.data('type') != 'input' )) {
       document.getElementById('owl_translator').classList.remove('hide');
       document.getElementById('owl_axiomes').innerHTML = this_graph.edgeToOwlString(evt.target);
@@ -223,11 +223,16 @@ function GrapholScape(file,container,xmlstring) {
       document.getElementById('owl_translator').classList.add('hide');
 
       var i,button;
+      var bottom_windows = document.getElementsByClassName('bottom_window');
+      for (i=0; i<bottom_windows.length; i++) {
+        bottom_windows[i].classList.add('hide');
+      }
+
       var collapsible_elms = document.getElementsByClassName('collapsible');
       for (i=0; i<collapsible_elms.length; i++) {
         if (collapsible_elms[i].id == 'details_body' || collapsible_elms[i].id == 'translator_body')
           continue;
-        
+
         if (collapsible_elms[i].clientHeight != 0) {
           if (collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0])
             toggle(collapsible_elms[i].parentNode.getElementsByClassName('module_button')[0]);
@@ -246,6 +251,15 @@ GrapholScape.prototype.init = function(xmlString) {
   var parser = new DOMParser();
   var xmlDocument = parser.parseFromString(xmlString, 'text/xml');
   this.diagrams = xmlDocument.getElementsByTagName('diagram');
+
+  var xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0];
+
+  this.ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent;
+  if (xml_ontology_tag.getElementsByTagName('version')[0])
+    this.ontology_version = xml_ontology_tag.getElementsByTagName('version')[0].textContent;
+  else
+    this.ontology_version = 'Undefined';
+
   this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
 
   if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length == 0) {
@@ -263,6 +277,8 @@ GrapholScape.prototype.init = function(xmlString) {
       }
     }
   }
+
+
 
   var nodes,edges,item,array_json_elems,cnt;
   this.collection = this.cy_aux.collection();
@@ -292,8 +308,8 @@ GrapholScape.prototype.init = function(xmlString) {
     }
 
     this.collection = this.collection.union(this.cy_aux.collection(array_json_elems));
-    
-    
+
+
   }
   // traverse the graph and retrieve the real identity for neutral nodes
   this.getIdentityForNeutralNodes();
@@ -317,9 +333,9 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
   this.cy.remove('*');
 
   var selector = '[diagram_id = '+diagram_id+']';
-  
+
   this.cy.add(this.collection.filter(selector));
-  
+
   this.cy.fit();
   this.actual_diagram = diagram_id;
   document.getElementById('title').innerHTML = diagram_name;
@@ -441,7 +457,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       nodo.data.shape = 'rectangle';
       nodo.data.identity = 'concept';
       break;
-    
+
     case 'range-restriction':
       nodo.data.shape = 'rectangle';
       nodo.data.identity = 'neutral';
@@ -454,7 +470,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
 
     case 'attribute':
       nodo.data.shape = 'ellipse';
-      nodo.data.identity = 'attribute';      
+      nodo.data.identity = 'attribute';
       break;
 
     case 'union':
@@ -475,7 +491,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       }
       break;
 
-    case 'datatype-restriction' :  
+    case 'datatype-restriction' :
       nodo.data.shape = 'hexagon';
       nodo.data.identity = 'value_domain';
       break;
@@ -534,7 +550,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
 
   // info = <LABEL>
   info = getNextSibling(info);
-  
+
   // info = null se non esiste la label (è l'ultimo elemento)
   if (info != null) {
     nodo.data.label = info.textContent;
@@ -547,7 +563,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
   if (isPredicate(element)) {
 
     nodo.classes += ' predicate';
-    
+
 
     var node_iri,rem_chars,len_prefix,node_prefix_iri;
     // setting iri
@@ -620,8 +636,8 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
     }
   }
   else {
-    // Set prefix and remaining chars for non-predicate nodes 
-    // owl.js use this informations for all nodes 
+    // Set prefix and remaining chars for non-predicate nodes
+    // owl.js use this informations for all nodes
     nodo.data.prefix_iri = '';
     nodo.data.remaining_chars = label_no_break;
 
@@ -630,7 +646,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       nodo.data.remaining_chars = label_no_break.split(':')[1];
     }
   }
-  
+
   return nodo;
 };
 
@@ -735,7 +751,6 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
       // [Il primo e l'ultimo breakpoint sono gli endpoint e non hanno peso e distanza]
       if (count > 0) {
         var aux = getDistanceWeight(target.position(),source.position(),breakpoints[count]);
-
         segment_distances.push(aux[0]);
         segment_weights.push(aux[1]);
       }
@@ -746,7 +761,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
       break;
   }
 
-  
+
   // Se ci sono almeno 3 breakpoints, allora impostiamo gli array delle distanze e dei pesi
   if (count > 1) {
     edge.data.segment_distances = segment_distances;
@@ -911,7 +926,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     case 'indiv_check':
       type = 'individual';
     break;
-    
+
     case 'forall_check':
       type = 'forall';
        break;
@@ -952,10 +967,10 @@ GrapholScape.prototype.filter = function(checkbox_id) {
   var i,active = 0;
 
   for(i=0; i < filter_options.length; i++) {
-    if (!filter_options[i].firstElementChild.checked) {
+    if (!filter_options[i].firstElementChild.firstElementChild.checked) {
       filter_options[i].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'rgb(81,149,199)';
       active = 1;
-      break; 
+      break;
     }
   }
 
@@ -974,7 +989,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
       var sel2 = 'edge:visible[source = "'+e.target().id()+'"]';
       var sel3 = 'edge:visible[target = "'+e.target().id()+'"][type != "input"]';
       var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size();
-      
+
       if (!e.target().hasClass('filtered') && (number_edges_in_out == 0 || e.data('type') == 'input')) {
         switch(e.target().data('type')) {
           case 'union':
@@ -992,7 +1007,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
         }
       }
     });
-    
+
     // ARCHI IN ENTRATA
     selector = '[target ="'+element.data('id')+'"]';
     element.connectedEdges(selector).forEach( e => {
@@ -1023,7 +1038,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
 GrapholScape.prototype.getIdentityForNeutralNodes = function() {
   this.collection.filter('node[identity = "neutral"]').forEach(node => {
     node.data('identity', findIdentity(node));
-});
+  });
 
   // Recursively traverse first input node and return his identity
   // if he is neutral => recursive step
@@ -1040,15 +1055,15 @@ GrapholScape.prototype.getIdentityForNeutralNodes = function() {
             return 'concept';
           else if ( identity == 'attribute' )
             return 'value_domain';
-          else  
-            return identity;  
-        
+          else
+            return identity;
+
         case 'enumeration' :
           if (identity == 'individual')
             return 'concept';
           else
             return identity;
-        
+
         default:
           return identity;
       }

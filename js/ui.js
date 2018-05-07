@@ -26,7 +26,7 @@ GrapholScape.prototype.createUi = function () {
   child.setAttribute('id','diagram-list-button');
   child.setAttribute('class','module_button');
   child.setAttribute('onclick','toggle(this)');
-  
+
   child.appendChild(drop_down_icon);
   module.appendChild(child);
 
@@ -286,39 +286,49 @@ GrapholScape.prototype.createUi = function () {
   module.setAttribute('class','module');
   child = document.createElement('div');
   child.setAttribute('id','filter_body');
-  child.setAttribute('class','collapsible');
+  child.setAttribute('class','bottom_window hide');
+
+  child.innerHTML += ('<div style="text-align:center; margin-bottom:10px;"><strong>Filters</strong></div>');
 
   var aux = document.createElement('div');
   aux.setAttribute('class','filtr_option');
+  var check_slider_wrap = document.createElement('label');
+  check_slider_wrap.setAttribute('class','check_slider_wrap');
   input = document.createElement('input');
   input.setAttribute('id','attr_check');
   input.setAttribute('type','checkbox');
   input.setAttribute('checked','checked');
-  aux.appendChild(input);
-  
-  var label = document.createElement('label');
+  var check_slider = document.createElement('span');
+  check_slider.setAttribute('class','check_slider');
+
+  check_slider_wrap.appendChild(input);
+  check_slider_wrap.appendChild(check_slider);
+
+  aux.appendChild(check_slider_wrap);
+
+  var label = document.createElement('span');
   label.innerHTML = 'Attributes';
   label.setAttribute('class','filtr_text');
   aux.appendChild(label);
-
   child.appendChild(aux);
+
   aux = aux.cloneNode(true);
-  aux.firstElementChild.setAttribute('id','val_check');
+  aux.firstElementChild.firstElementChild.setAttribute('id','val_check');
   aux.lastElementChild.innerHTML = 'Value Domain';
   child.appendChild(aux);
 
   aux = aux.cloneNode(true);
-  aux.firstElementChild.setAttribute('id','indiv_check');
+  aux.firstElementChild.firstElementChild.setAttribute('id','indiv_check');
   aux.lastElementChild.innerHTML = 'Individuals';
   child.appendChild(aux);
 
   aux = aux.cloneNode(true);
-  aux.firstElementChild.setAttribute('id','forall_check');
+  aux.firstElementChild.firstElementChild.setAttribute('id','forall_check');
   aux.lastElementChild.innerHTML = 'Universal Quantifier';
   child.appendChild(aux);
 
   aux = aux.cloneNode(true);
-  aux.firstElementChild.setAttribute('id','not_check');
+  aux.firstElementChild.firstElementChild.setAttribute('id','not_check');
   aux.lastElementChild.innerHTML = 'Not';
   child.appendChild(aux);
 
@@ -337,7 +347,7 @@ GrapholScape.prototype.createUi = function () {
   var elm = module.getElementsByClassName('filtr_option');
 
   for(i=0; i<elm.length; i++){
-    input = elm[i].firstElementChild;
+    input = elm[i].firstElementChild.firstElementChild;
 
     input.addEventListener('click', function() {
       this_graph.filter(this.id);
@@ -358,7 +368,7 @@ GrapholScape.prototype.createUi = function () {
   module.addEventListener('click',function () {
     this_graph.cy.fit();
   });
-  
+
   this.container.appendChild(module);
 
 
@@ -396,7 +406,91 @@ GrapholScape.prototype.createUi = function () {
   this.container.appendChild(module);
 
 
-  for (i = 0; i < document.getElementsByClassName('material-icons').length; i++) {
-    document.getElementsByClassName('material-icons')[i].onselectstart = function() {return false;};
+  // ONTOLOGY INFOS
+  module = document.createElement('div');
+  module.setAttribute('id','onto_info');
+  module.setAttribute('class','module');
+  child = document.createElement('div');
+  child.setAttribute('id','onto_info_body');
+  child.setAttribute('class','bottom_window hide');
+
+  // Name + Version
+  child.innerHTML = '<div style="text-align:center; margin-bottom:10px;"><strong>Ontology Info</strong></div>\
+  <table class="details_table">\
+  <tr><th>Name</th><td>'+this.ontology_name+'</td></tr>\
+  <tr><th>Version</th><td>'+this.ontology_version+'</td></tr></table>';
+
+  // Prefixes Definiton
+  child.innerHTML += '<div style="text-align:center; margin:10px 2px 0 2px; padding:5px; color:white; background-color:\
+    '+this.highlight_color+'"><strong>IRI Prefixes Dictionary</strong></div>';
+
+  aux = document.createElement('div');
+  aux.setAttribute('id','prefixes_dict_list');
+  var table = document.createElement('table');
+  table.setAttribute('id','prefix_dict_table');
+  var properties, property_value;
+  var tr = document.createElement('tr');
+  var prefix = document.createElement('th');
+  var full_iri = document.createElement('td');
+
+  if (this.default_iri) {
+    prefix.innerHTML = '<em>Default</em>';
+    full_iri.innerHTML = this.default_iri;
+
+    tr.appendChild(prefix);
+    tr.appendChild(full_iri);
+    table.appendChild(tr);
   }
+
+  if (this.iri_prefixes) {
+    for(i=0; i<this.iri_prefixes.length; i++) {
+      tr = document.createElement('tr');
+      prefix = document.createElement('th');
+      full_iri = document.createElement('td');
+
+      var ignore_standard_iri = false;
+      properties = this.iri_prefixes[i].parentNode.parentNode.getElementsByTagName('properties')[0];
+
+      if (properties.childNodes.length > 0){
+        for (j=0; j<properties.getElementsByTagName('property').length; j++) {
+          property_value = properties.getElementsByTagName('property')[j].getAttribute('property_value');
+
+          if (property_value) {
+            switch (property_value) {
+              case 'Standard_IRI':
+                ignore_standard_iri = true;
+                break;
+
+              case 'Project_IRI':
+                full_iri.classList.add('project_iri');
+                break;
+            }
+          }
+        }
+      }
+
+      if (!ignore_standard_iri) {
+        prefix.innerHTML = this.iri_prefixes[i].getAttribute('prefix_value');
+        full_iri.innerHTML = this.iri_prefixes[i].parentNode.parentNode.getAttribute('iri_value');
+
+        tr.appendChild(prefix);
+        tr.appendChild(full_iri);
+        table.appendChild(tr);
+
+      }
+    }
+  }
+
+  child.appendChild(table);
+
+  module.appendChild(child);
+  module.innerHTML += '<div onclick="toggle(this)" class="bottom_button" title="Info"><i alt="info" class="material-icons md-24"/>info_outline</i></div>';
+  this.container.appendChild(module);
+
+  var icons = document.getElementsByClassName('material-icons');
+  for (i = 0; i < icons.length; i++) {
+    icons[i].onselectstart = function() {return false;};
+  }
+
+
 };

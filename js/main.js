@@ -1,40 +1,54 @@
 function toggle(button) {
-  var elm = button.parentNode.getElementsByClassName('collapsible')[0];
 
-  if (button.classList.contains('module_button')) {
-    var icon_innerHTML = button.firstElementChild.innerHTML;
- 
-    if (icon_innerHTML == 'arrow_drop_up') {
-      button.firstElementChild.innerHTML = 'arrow_drop_down';
+  if (button.classList.contains('bottom_button')) {
+    var i=0;
+    var windows = document.getElementsByClassName('bottom_window');
+    for (i=0; i< windows.length; i++) {
+      if (button.parentNode.getElementsByClassName('bottom_window')[0] != windows[i])
+      windows[i].classList.add('hide');
     }
-    else if (icon_innerHTML =='arrow_drop_down'){
-      button.firstElementChild.innerHTML = 'arrow_drop_up';
-    }
-  }
-  
-  if (elm.clientHeight == '0') {
-    elm.style.maxHeight = '450px';
+
+    button.parentNode.getElementsByClassName('bottom_window')[0].classList.toggle('hide');
   }
   else {
-    elm.style.maxHeight = '0';
-  }
+    var elm = button.parentNode.getElementsByClassName('collapsible')[0];
 
-  if (elm.id == 'diagram_list' || elm.id == 'filter_body' || elm.id == 'slider_body') {
-    if (elm.clientWidth == '0') {
-      elm.style.width = 'initial';
+    if (elm.clientHeight == '0') {
+      elm.style.maxHeight = '450px';
     }
     else {
-      elm.style.width = '0';
+      elm.style.maxHeight = '0';
     }
+
+    if (button.classList.contains('module_button')) {
+      var icon_innerHTML = button.firstElementChild.innerHTML;
+
+      if (icon_innerHTML == 'arrow_drop_up') {
+        button.firstElementChild.innerHTML = 'arrow_drop_down';
+      }
+      else if (icon_innerHTML =='arrow_drop_down'){
+        button.firstElementChild.innerHTML = 'arrow_drop_up';
+      }
+    }
+
+    if (elm.id == 'diagram_list' || elm.id == 'slider_body') {
+      if (elm.clientWidth == '0') {
+        elm.style.width = 'initial';
+      }
+      else {
+        elm.style.width = '0';
+      }
+    }
+    if (elm.id == 'slider_body')
+      button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide');
+
   }
-  if (elm.id == 'slider_body')
-    button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide');
 }
 
 function search(value) {
   var list = document.getElementById('predicates_list');
 
-  
+
   if (value == '') {
     list.style.maxHeight = 0;
     document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_down';
@@ -130,7 +144,6 @@ function isPredicate(node) {
 // Date le posizioni di source, target e del breakpoint,
 // la funzione calcola i due parametri peso e distanza del breakpoint e li restituisce
 function getDistanceWeight(target, source, point) {
-
   // Esprimiamo le coordinate di point traslando l'origine sul source:
   // point['0'] corrisponde alla coordinata x del punto, point['1'] è l'ordinata
   var breakpoint = []
@@ -338,7 +351,7 @@ function makeDraggable(elmnt) {
     // set the element's new position:
     elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
     elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-    
+
   }
 
   function closeDragElement() {

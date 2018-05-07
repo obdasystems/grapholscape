@@ -19,14 +19,19 @@
 }
 
 .hide {
-  display:none;
+  opacity: 0;
+  z-index:-1;
 }
 
-.module {
+.module, .bottom_window{
   background-color: #fafafa;
-  box-shadow: 0px 3px #bbb;
-  border-radius: 3px;
-  transition: opacity 1s;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+
+.module:hover{
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
 }
 
 .module_head {
@@ -113,7 +118,7 @@
   position: absolute;
   left:10px;
   top:10px;
-  max-width:280px;
+  max-width:250px;
 }
 
 #diagram_list {
@@ -223,6 +228,7 @@
 
 .details_table th, td {
   padding:5px;
+  white-space: pre;
 }
 
 .descr {
@@ -249,24 +255,72 @@
   text-align:center;
 }
 
-.bottom_button img {
-  opacity:0.5;
+.bottom_button i{
+  opacity:0.8;
 }
 
-.bottom_button:hover img {
+.bottom_button:hover i {
   opacity:1;
 }
 
-#filter_body {
-  width:0;
-}
-
 .filtr_text{
-  margin-left:8px;
+  margin-left:10px;
 }
 
 .filtr_option {
-  padding:2px;
+  padding:6px;
+  white-space: pre;
+}
+
+.check_slider_wrap {
+  width:30px;
+  height:17px;
+  display: inline-block;
+  position:relative;
+}
+
+.check_slider_wrap input {
+  display:none
+}
+
+.check_slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: 0.2s;
+  border-radius:17px;
+}
+
+.check_slider::before {
+  position: absolute;
+  content: "";
+  height: 9px;
+  width: 9px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .1s;
+  transition: .1s;
+  border-radius:18px;
+}
+
+.check_slider_wrap input:checked + .check_slider {
+  background-color: rgb(81,149,199);
+}
+
+.check_slider_wrap input:disabled + .check_slider {
+  opacity:0.25;
+}
+
+.check_slider_wrap input:checked + .check_slider::before {
+  -webkit-transform: translateX(12px);
+  -ms-transform: translateX(12px);
+  transform: translateX(12px);
 }
 
 #center_button {
@@ -287,8 +341,6 @@
   text-align:center;
 }
 #translator_body {
-  background-color: #002b36;
-  color:white;
   margin-top: 0;
   max-height: 250px;
 }
@@ -321,15 +373,15 @@
 */
 
 .owl_concept{
-  color:#859900; 
+  color:#859900;
 }
 
 .owl_role{
-  color:#268bd2; 
+  color:#268bd2;
 }
 
 .owl_attribute{
-  color:#b58900; 
+  color:#b58900;
 }
 
 .owl_value-domain{
@@ -353,16 +405,53 @@
 }
 
 .axiom_predefinite_obj {
-  color: #00ffd5;
+  color: #00c0a0;
 }
 
 .collapsible {
   max-height:0;
-  overflow:hidden;
+  overflow:auto;
   transition:max-height 200ms ease;
 }
 
 #slider_body {
   text-align: center;
   width:0;
+}
+
+.bottom_window {
+  padding:5px;
+  position:absolute;
+  bottom:40px;
+}
+
+.bottom_window::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 16px;
+  margin-left: -8px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: #ddd transparent transparent transparent;
+}
+
+#onto_info {
+  position: absolute;
+  bottom:10px;
+  left:52px;
+}
+
+.project_iri::before {
+  content: "Project IRI";
+  background-color: rgb(81,149,199);
+  border-radius: 10px;
+  color:white;
+  font-size:12px;
+  padding: 1px 4px;
+  margin-right:10px;
+}
+
+#prefix_dict_table th {
+  text-align: left;
 }
