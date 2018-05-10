@@ -167,6 +167,28 @@ function GrapholScape(file,container,xmlstring) {
         style: {
           'background-opacity':0,
         }
+      },
+
+      {
+        selector: '.hidden',
+        style: {
+          'visibility': 'hidden',
+        },
+      },
+
+      {
+        selector: '.no_border',
+        style : {
+          'border-width' : 0,
+        }
+      },
+
+      {
+        selector: '.no_overlay',
+        style : {
+          'overlay-opacity' : 0,
+          'overlay-padding' : 0,
+        }
       }
     ],
 
@@ -263,7 +285,8 @@ GrapholScape.prototype.init = function(xmlString) {
   this.xmlPredicates = xmlDocument.getElementsByTagName('predicate');
 
   if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length == 0) {
-    this.default_iri = xmlDocument.getElementsByTagName('iri')[0].textContent;
+    // for old graphol files
+    this.default_iri = xmlDocument.getElementsByTagName('iri')[0];
   }
   else {
     this.iri_prefixes = xmlDocument.getElementsByTagName('prefix');
@@ -272,7 +295,7 @@ GrapholScape.prototype.init = function(xmlString) {
 
     for(i=0; i< iri_list.length; i++) {
       if (iri_list[i].getElementsByTagName('prefix').length == 0) {
-        this.default_iri = iri_list[i].getAttribute('iri_value');
+        this.default_iri = iri_list[i];
         break;
       }
     }
@@ -293,7 +316,7 @@ GrapholScape.prototype.init = function(xmlString) {
     for (k=0; k<nodes.length; k++) {
       array_json_elems.push(this.NodeXmlToJson(nodes[k]));
 
-      if (array_json_elems[cnt].data.type === 'facet' || (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
+      if (array_json_elems[cnt].data.type === 'property-assertion' || array_json_elems[cnt].data.type === 'facet' || (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
         this.addFakeNodes(array_json_elems);
         cnt += array_json_elems.length - cnt;
       }
@@ -332,9 +355,7 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
 
   this.cy.remove('*');
 
-  var selector = '[diagram_id = '+diagram_id+']';
-
-  this.cy.add(this.collection.filter(selector));
+  this.cy.add(this.collection.filter('[diagram_id = '+diagram_id+']'));
 
   this.cy.fit();
   this.actual_diagram = diagram_id;
@@ -573,7 +594,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       node_prefix_iri = label_no_break.substring(0,len_prefix);
 
       if(node_prefix_iri == ':' || !node_prefix_iri)
-        node_iri = this.default_iri;
+        node_iri = this.default_iri.getAttribute('iri_value') || this.default_iri.textContent;
       else {
         for (k=0; k < this.iri_prefixes.length; k++) {
           if (node_prefix_iri == this.iri_prefixes[k].getAttribute('prefix_value')+':') {
@@ -584,7 +605,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       }
     }
     else{
-      node_iri = this.default_iri;
+      node_iri = this.default_iri.getAttribute('iri_value') || this.default_iri.textContent;
       node_prefix_iri = '';
       rem_chars = label_no_break;
     }
@@ -902,6 +923,78 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
     array_json_elems[array_json_elems.length-1] = triangle_left;
     array_json_elems.push(triangle_right);
     array_json_elems.push(nodo);
+  }
+
+
+  if (nodo.data.type == 'property-assertion') {
+    var circle1 = {
+      selectable:false,
+      classes : 'no_overlay',
+      data : {
+        height : nodo.data.height,
+        width : nodo.data.height,
+        shape : 'ellipse',
+        diagram_id : nodo.data.diagram_id,
+        fillColor : '#fff',
+      },
+
+      position : {
+        x : nodo.position.x - ((nodo.data.width - nodo.data.height) / 2),
+        y : nodo.position.y,
+      }
+    };
+
+    var circle2 = {
+      selectable:false,
+      classes : 'no_overlay',
+      data : {
+        height : nodo.data.height,
+        width : nodo.data.height,
+        shape : 'ellipse',
+        diagram_id : nodo.data.diagram_id,
+        fillColor : '#fff',
+      },
+
+      position : {
+        x : nodo.position.x + ((nodo.data.width - nodo.data.height) / 2),
+        y : nodo.position.y,
+      }
+    };
+   
+    var back_rectangle = {
+      data : {
+        selectable:false,
+        height : nodo.data.height,
+        width : nodo.data.width - nodo.data.height,
+        shape : 'rectangle',
+        diagram_id : nodo.data.diagram_id,
+        fillColor : '#fff',
+      },
+
+      position : nodo.position,
+    };
+
+    var front_rectangle = {
+      data : {
+        type : 'property-assertion',
+        height : nodo.data.height - 1,
+        width : nodo.data.width - nodo.data.height,
+        shape : 'rectangle',
+        diagram_id : nodo.data.diagram_id,
+        fillColor : '#fff',
+      },
+
+      position : nodo.position,
+      classes : 'property-assertion no_border',
+    };
+
+    nodo.classes += ' hidden';
+
+    array_json_elems[array_json_elems.length-1] = nodo;
+    array_json_elems.push(back_rectangle);
+    array_json_elems.push(circle1);
+    array_json_elems.push(circle2);
+    array_json_elems.push(front_rectangle);
   }
 }
 

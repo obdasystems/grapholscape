@@ -435,8 +435,18 @@ GrapholScape.prototype.createUi = function () {
 
   if (this.default_iri) {
     prefix.innerHTML = '<em>Default</em>';
-    full_iri.innerHTML = this.default_iri;
+    full_iri.innerHTML = this.default_iri.getAttribute('iri_value') || this.default_iri.textContent;
 
+    properties = this.default_iri.getElementsByTagName('properties')[0];
+    if (properties) {
+      for (i=0; i<properties.getElementsByTagName('property').length; i++) {
+        property_value = properties.getElementsByTagName('property')[i].getAttribute('property_value');
+
+        if (property_value == 'Project_IRI') {
+          full_iri.classList.add('project_iri');
+        }
+      }
+    }
     tr.appendChild(prefix);
     tr.appendChild(full_iri);
     table.appendChild(tr);
