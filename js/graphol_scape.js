@@ -316,7 +316,10 @@ GrapholScape.prototype.init = function(xmlString) {
     for (k=0; k<nodes.length; k++) {
       array_json_elems.push(this.NodeXmlToJson(nodes[k]));
 
-      if (array_json_elems[cnt].data.type === 'property-assertion' || array_json_elems[cnt].data.type === 'facet' || (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
+      if (array_json_elems[cnt].data.type === 'property-assertion' || 
+          array_json_elems[cnt].data.type === 'facet' ||
+          (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
+
         this.addFakeNodes(array_json_elems);
         cnt += array_json_elems.length - cnt;
       }
@@ -337,6 +340,7 @@ GrapholScape.prototype.init = function(xmlString) {
   // traverse the graph and retrieve the real identity for neutral nodes
   this.getIdentityForNeutralNodes();
 
+  // Sorting predicates collection
   this.predicates = this.collection.filter('.predicate').sort(function(a,b) {
     return a.data('label').localeCompare(b.data('label'));
   });
@@ -357,8 +361,19 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
 
   this.cy.add(this.collection.filter('[diagram_id = '+diagram_id+']'));
 
+  // check if any filter is active and if yes, apply them to the "actual diagram"
+  var filter_options = document.getElementsByClassName('filtr_option');
+  var i;
+
+  for(i = 0; i < filter_options.length; i++) {
+    if (!filter_options[i].firstElementChild.firstElementChild.checked) {
+      this.filter(filter_options[i].firstElementChild.firstElementChild.id);
+    }
+  }
+
   this.cy.fit();
   this.actual_diagram = diagram_id;
+
   document.getElementById('title').innerHTML = diagram_name;
   return true;
 };
@@ -417,7 +432,7 @@ GrapholScape.prototype.showDetails = function (target) {
   var body_details = document.getElementById('details_body');
 
   body_details.innerHTML = '<table class="details_table">\
-  <tr><th>Name</th><td>'+target.data('label').replace('/\n/g','')+'</td></tr>\
+  <tr><th>Name</th><td>'+target.data('label').replace(/\n/g,'')+'</td></tr>\
   <tr><th>Type</th><td>'+target.data('type')+'</td></tr>\
   <tr><th>IRI</th><td><a style="text-decoration:underline" href="'+target.data('iri')+'">'+target.data('iri')+'</a></td></tr></table>';
 
@@ -447,8 +462,7 @@ GrapholScape.prototype.showDetails = function (target) {
 
 
   if (target.data('description')) {
-    body_details.innerHTML += '<div style="text-align:center; margin:10px 2px 0 2px; padding:5px; color:white; background-color:\
-      '+this.highlight_color+'"><strong>Description</strong></div><div class="descr">'+target.data('description')+'</div>';
+    body_details.innerHTML += '<div class="table_header"><strong>Description</strong></div><div class="descr">'+target.data('description')+'</div>';
   }
 }
 
@@ -825,12 +839,11 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
 GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
 
   var nodo = array_json_elems[array_json_elems.length-1];
-
-  // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
-  // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
+  alert(nodo.data.id);
   if (nodo.data.type == 'facet') {
+    // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
+    // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
     nodo.data.label = nodo.data.label.replace('^^','\n\n');
-
     nodo.data.labelYpos = nodo.data.height;
 
     // Creating the top rhomboid for the grey background
@@ -843,6 +856,8 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         shape: 'polygon',
         shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
         diagram_id: nodo.data.diagram_id,
+        parent_node_id: nodo.data.id,
+        type: nodo.data.type,
       },
       position : {
         x: nodo.position.x,
@@ -859,6 +874,8 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         shape: 'polygon',
         shape_points: '-0.95 0 0.95 0 0.9 1 -1 1',
         diagram_id: nodo.data.diagram_id,
+        parent_node_id: nodo.data.id,
+        type: nodo.data.type,
       },
       position : {
         x: nodo.position.x,
@@ -936,6 +953,8 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         shape : 'ellipse',
         diagram_id : nodo.data.diagram_id,
         fillColor : '#fff',
+        parent_node_id: nodo.data.id,
+        type: nodo.data.type,
       },
 
       position : {
@@ -953,6 +972,8 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         shape : 'ellipse',
         diagram_id : nodo.data.diagram_id,
         fillColor : '#fff',
+        parent_node_id: nodo.data.id,
+        type: nodo.data.type,
       },
 
       position : {
@@ -969,6 +990,8 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         shape : 'rectangle',
         diagram_id : nodo.data.diagram_id,
         fillColor : '#fff',
+        parent_node_id: nodo.data.id,
+        type: nodo.data.type,
       },
 
       position : nodo.position,
@@ -982,6 +1005,8 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         shape : 'rectangle',
         diagram_id : nodo.data.diagram_id,
         fillColor : '#fff',
+        parent_node_id: nodo.data.id,
+        type: nodo.data.type,
       },
 
       position : nodo.position,
@@ -995,11 +1020,14 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
     array_json_elems.push(circle1);
     array_json_elems.push(circle2);
     array_json_elems.push(front_rectangle);
+    alert(front_rectangle.data.parent_node_id);
   }
 }
 
 GrapholScape.prototype.filter = function(checkbox_id) {
-  var selector,eles,eles_aux,type;
+  var selector,eles,eles_all,type;
+  var this_graph = this;
+
   switch(checkbox_id) {
     case 'val_check':
       type = 'value-domain';
@@ -1029,28 +1057,18 @@ GrapholScape.prototype.filter = function(checkbox_id) {
       break;
   }
 
-  if (type == 'forall') {
-    eles = this.cy.$('node[type $= "-restriction"][label = "forall"], .forall_check');
-    eles_aux = this.cy_aux.$('node[type $= "-restriction"][label = "forall"], .forall_check');
-  }
-  else {
-    eles_aux = this.cy_aux.$('node[type = "'+type+'"], .'+checkbox_id);
-    eles = this.cy.$('node[type = "'+type+'"], .'+checkbox_id);
-  }
+  if (type == 'forall') 
+    eles = this.cy.$('[type $= "-restriction"][label = "forall"], .forall_check');
+  else 
+    eles = this.cy.$('[type = "'+type+'"], .'+checkbox_id);
+
 
   if (document.getElementById(checkbox_id).checked) {
     eles.removeClass('filtered');
     eles.removeClass(checkbox_id);
-
-    eles_aux.removeClass('filtered');
-    eles_aux.removeClass(checkbox_id);
   }
   else {
     eles.forEach(element => {
-      filterElem(element,checkbox_id);
-    });
-
-    eles_aux.forEach(element => {
       filterElem(element,checkbox_id);
     });
   }
@@ -1071,32 +1089,26 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     filter_options[0].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = '';
   }
 
+  
+
   function filterElem(element, option_id) {
-    element.addClass('filtered');
-    element.addClass(option_id);
+    element.addClass('filtered '+option_id);
+
+    // Filter fake nodes!
+    this_graph.cy.nodes('[parent_node_id = "'+element.id()+'"]').addClass('filtered '+option_id);
 
     // ARCHI IN USCITA
     var selector = '[source = "'+element.data('id')+'"]';
     element.connectedEdges(selector).forEach( e => {
+
       // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
       var sel2 = 'edge:visible[source = "'+e.target().id()+'"]';
       var sel3 = 'edge:visible[target = "'+e.target().id()+'"][type != "input"]';
       var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size();
 
-      if (!e.target().hasClass('filtered') && (number_edges_in_out == 0 || e.data('type') == 'input')) {
-        switch(e.target().data('type')) {
-          case 'union':
-          case 'disjoint-union' :
-          case 'role-inverse' :
-          case 'intersection' :
-          case 'role-chain' :
-          case 'complement' :
-          case 'enumeration' :
-          case 'datatype-restriction' :
-          case 'domain-restriction':
-          case 'range-restriction':
-          case 'value-domain':
-            filterElem(e.target(),option_id);
+      if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') == 'input')) {
+        if (!e.target().hasClass('predicate')) {
+          filterElem(e.target(),option_id);
         }
       }
     });
@@ -1109,19 +1121,8 @@ GrapholScape.prototype.filter = function(checkbox_id) {
       var sel3 = 'edge:visible[target = "'+e.source().id()+'"][type != "input"]';
       var number_edges_in_out = e.source().connectedEdges(sel2).size() + e.source().connectedEdges(sel3).size();
       if (!e.source().hasClass('filtered') && number_edges_in_out == 0) {
-        switch(e.source().data('type')) {
-          case 'union':
-          case 'disjoint-union' :
-          case 'role-inverse' :
-          case 'intersection' :
-          case 'role-chain' :
-          case 'complement' :
-          case 'enumeration' :
-          case 'datatype-restriction' :
-          case 'domain-restriction':
-          case 'range-restriction':
-          case 'value-domain':
-            filterElem(e.source(),option_id);
+        if (!e.source().hasClass('predicate')) {
+          filterElem(e.source(),option_id);
         }
       }
     });

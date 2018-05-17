@@ -421,8 +421,7 @@ GrapholScape.prototype.createUi = function () {
   <tr><th>Version</th><td>'+this.ontology_version+'</td></tr></table>';
 
   // Prefixes Definiton
-  child.innerHTML += '<div style="text-align:center; margin:10px 2px 0 2px; padding:5px; color:white; background-color:\
-    '+this.highlight_color+'"><strong>IRI Prefixes Dictionary</strong></div>';
+  child.innerHTML += '<div class="table_header"><strong>IRI Prefixes Dictionary</strong></div>';
 
   aux = document.createElement('div');
   aux.setAttribute('id','prefixes_dict_list');

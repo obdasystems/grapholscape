@@ -24,9 +24,9 @@
 }
 
 .module, .bottom_window{
-  background-color: #fafafa;
+  background-color: #fff;
   box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
-  border-radius: 4px;
+  border-radius: 8px;
   transition: opacity 0.2s;
 }
 
@@ -60,7 +60,7 @@
 #search {
   width:100%;
   box-sizing: border-box;
-  background-color: #fafafa;
+  background-color: #fff;
   font-weight: bold;
   padding:0 10px;
   border:none;
@@ -95,7 +95,7 @@
   margin-bottom:5px;
 }
 
-.sub_row{
+.sub_row {
   font-size:12px;
   padding:2px 0 2px 20px;
   cursor:pointer;
@@ -219,16 +219,27 @@
   margin:0;
   padding:2px;
   border-spacing: 0;
+  border-radius:10px;
 }
-.details_table th{
-  background-color:rgb(81,149,199);
-  color:white;
-  text-align: left;
+.details_table th {
+  color:rgb(81,149,199);
+  border-right: solid 2px #ddd;
+  font-size:110%;
+  text-align:left;
 }
 
 .details_table th, td {
-  padding:5px;
-  white-space: pre;
+  padding:5px 8px;
+  white-space: nowrap;
+}
+
+.table_header {
+  text-align: center;
+  margin: 10px 2px 0 2px;
+  padding: 10px 5px;
+  font-size:110%;
+  border-bottom: solid 2px #ddd;
+  color: rgb(81,149,199);
 }
 
 .descr {
@@ -362,6 +373,7 @@
   $base1:     #93a1a1;
   $base2:     #eee8d5;
   $base3:     #fdf6e3;
+  --------
   $yellow:    #b58900;
   $orange:    #cb4b16;
   $red:       #dc322f;
