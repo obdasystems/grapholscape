@@ -125,7 +125,7 @@ GrapholScape.prototype.createUi = function () {
       col = document.createElement('span');
       col.setAttribute('class','col type_img');
       img = document.createElement('img');
-      img_type_address = 'icons/ic_treeview_'+predicate.data('type')+'_18dp_1x.png';
+      img_type_address = 'assets/icons/ic_treeview_'+predicate.data('type')+'_18dp_1x.png';
 
       img.setAttribute("src",img_type_address);
       col.appendChild(img);
