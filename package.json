@@ -1,0 +1,25 @@
+{
+  "name": "grapholscape",
+  "version": "1.0.0",
+  "description": "ontology visualization",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/picorana/GrapholScape",
+  "keywords": [
+    "Ontology",
+    "OWL",
+    "graphol"
+  ],
+  "author": "OBDA Systems",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^2.0.0",
+    "electron-packager": "^12.1.0",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-uglify-es": "^1.0.4",
+    "merge2": "^1.2.2"
+  }
+}
