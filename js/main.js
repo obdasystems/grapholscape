@@ -11,7 +11,7 @@ function toggle(button) {
     button.parentNode.getElementsByClassName('bottom_window')[0].classList.toggle('hide');
   }
   else {
-    var elm = button.parentNode.getElementsByClassName('collapsible')[0];
+    var elm = button.parentNode.getElementsByClassName('gcollapsible')[0];
 
     if (elm.clientHeight == '0') {
       elm.style.maxHeight = '450px';

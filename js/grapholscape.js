@@ -250,7 +250,7 @@ function GrapholScape(file,container,xmlstring) {
         bottom_windows[i].classList.add('hide');
       }
 
-      var collapsible_elms = document.getElementsByClassName('collapsible');
+      var collapsible_elms = document.getElementsByClassName('gcollapsible');
       for (i=0; i<collapsible_elms.length; i++) {
         if (collapsible_elms[i].id == 'details_body' || collapsible_elms[i].id == 'translator_body')
           continue;

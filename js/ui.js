@@ -33,7 +33,7 @@ GrapholScape.prototype.createUi = function () {
   // module dropdown div
   child = document.createElement('div');
   child.setAttribute('id','diagram_list');
-  child.setAttribute('class','collapsible module_body');
+  child.setAttribute('class','gcollapsible module_body');
 
   // adding diagrams in the dropdown div
   var item;
@@ -76,7 +76,7 @@ GrapholScape.prototype.createUi = function () {
   module.removeChild(module.lastElementChild);
   child = document.createElement('div');
   child.setAttribute('id','predicates_list');
-  child.setAttribute('class','collapsible module_body');
+  child.setAttribute('class','gcollapsible module_body');
 
   module.appendChild(child);
   makeDraggable(module);
@@ -112,7 +112,7 @@ GrapholScape.prototype.createUi = function () {
 
       // the "real" row
       wrap = document.createElement('div');
-      wrap.setAttribute("class","row");
+      wrap.setAttribute("class","graphol_row");
 
       // columns
       col = document.createElement('span');
@@ -199,7 +199,7 @@ GrapholScape.prototype.createUi = function () {
 
   // slider
   child = document.createElement('div');
-  child.setAttribute('class','collapsible');
+  child.setAttribute('class','gcollapsible');
   child.setAttribute('id','slider_body');
 
   input = document.createElement('input');
@@ -274,7 +274,7 @@ GrapholScape.prototype.createUi = function () {
   // module body
   child = document.createElement('div');
   child.setAttribute('id','details_body');
-  child.setAttribute('class','collapsible module_body');
+  child.setAttribute('class','gcollapsible module_body');
   module.appendChild(child);
   makeDraggable(module);
   this.container.appendChild(module);
@@ -380,7 +380,7 @@ GrapholScape.prototype.createUi = function () {
   // module body
   child = document.createElement('div');
   child.setAttribute('id','translator_body');
-  child.setAttribute('class','module_body collapsible');
+  child.setAttribute('class','module_body gcollapsible');
   aux = document.createElement('div');
   aux.setAttribute('id','owl_axiomes');
   child.appendChild(aux);

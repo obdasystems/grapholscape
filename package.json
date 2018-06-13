@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "gulp": "gulp",
-    "uglify" : "gulp uglify"
+    "uglify": "gulp uglify"
   },
   "repository": "https://github.com/picorana/GrapholScape",
   "keywords": [
