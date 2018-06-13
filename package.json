@@ -4,7 +4,9 @@
   "description": "ontology visualization",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "gulp": "gulp",
+    "uglify" : "gulp uglify"
   },
   "repository": "https://github.com/picorana/GrapholScape",
   "keywords": [
