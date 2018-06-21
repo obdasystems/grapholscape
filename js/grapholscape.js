@@ -1,4 +1,9 @@
-function GrapholScape(file,container,xmlstring) {
+utils         = require('./util.js');
+cy_stylesheet = require('./cy_stylesheet.js');
+ui            = require('./ui.js');
+
+function GrapholScape(file, container, xmlstring) {
+
   this.highlight_color = 'rgb(81,149,199)';
   this.container = container;
   this.diagrams = [];
@@ -11,191 +16,13 @@ function GrapholScape(file,container,xmlstring) {
   this.container.appendChild(cy_container);
 
   this.cy = cytoscape({
-
     container:container.firstElementChild, // container to render in
-
     autoungrabify: true,
     wheelSensitivity: 0.4,
     maxZoom: 2.5,
     minZoom: 0.02,
-
-    style: [ // the stylesheet for the graph
-      {
-        selector: 'node',
-        style: {
-          'height' : 'data(height)',
-          'width' : 'data(width)',
-          'background-color': 'data(fillColor)',
-          'shape': 'data(shape)',
-          'border-width': 1,
-          'border-color': '#000',
-          'border-style': 'solid',
-          'font-size' : 12,
-        }
-      },
-
-      {
-        selector: '[label]',
-        style: {
-          'label': 'data(label)',
-          'text-margin-x' : 'data(labelXpos)',
-          'text-margin-y' : 'data(labelYpos)',
-          'text-wrap': 'wrap',
-        }
-      },
-
-      {
-        selector: 'edge',
-        style: {
-          'width': 1,
-          'line-color': '#000',
-          'target-arrow-color': '#000',
-          'target-arrow-shape': 'data(target_arrow)',
-          'target-arrow-fill': 'data(arrow_fill)',
-          'line-style' : 'data(style)',
-          'curve-style' : 'bezier',
-          'arrow-scale' : 1.3,
-        }
-      },
-
-      {
-        selector: '[segment_distances]',
-        style: {
-          'curve-style': 'segments',
-          "segment-distances": 'data(segment_distances)',
-          'segment-weights' : 'data(segment_weights)',
-          'edge-distances': 'node-position',
-        }
-      },
-
-      {
-        selector: '[source_arrow]',
-        style: {
-          'source-arrow-color': '#000',
-          'source-arrow-shape': 'data(source_arrow)',
-          'source-arrow-fill': 'data(arrow_fill)',
-        }
-
-      },
-
-      {
-        selector: '[source_endpoint]',
-        style: {
-          'source-endpoint' : 'data(source_endpoint)',
-        }
-      },
-
-      {
-        selector: '[target_endpoint]',
-        style: {
-          'target-endpoint' : 'data(target_endpoint)',
-        }
-      },
-
-      {
-        selector: '[?functional][!inverseFunctional]',
-        style: {
-          'border-width':5,
-          'border-color': '#000',
-          'border-style': 'double',
-        }
-      },
-
-      {
-        selector: '[?inverseFunctional][!functional]',
-        style: {
-          'border-width':4,
-          'border-color': '#000',
-          'border-style': 'solid',
-        }
-      },
-
-      {
-        selector: '[edge_label]',
-        style: {
-          'label': 'data(edge_label)',
-          'font-size' : 10,
-          'text-rotation': 'autorotate',
-          'text-margin-y': -10,
-        }
-      },
-
-      {
-        selector: '[target_label]',
-        style: {
-          'target-label': 'data(target_label)',
-          'font-size' : 10,
-          'target-text-offset': 15,
-          'target-text-margin-y': -5,
-        }
-      },
-
-      {
-        selector: '[shape_points]',
-        style: {
-          'shape-polygon-points': 'data(shape_points)',
-        }
-      },
-
-      {
-        selector: 'edge:selected',
-        style: {
-          'line-color' : this.highlight_color,
-          'source-arrow-color' : this.highlight_color,
-          'target-arrow-color' : this.highlight_color,
-          'width' : '4',
-          'z-index' : '100',
-        }
-      },
-
-      {
-        selector: 'node:selected',
-        style: {
-          'border-color' : this.highlight_color,
-          'border-width' : '4',
-          'z-index' : '100',
-        }
-      },
-      {
-        selector: '.filtered',
-        style: {
-          'display':'none',
-        },
-      },
-      {
-        selector: '.facet',
-        style: {
-          'background-opacity':0,
-        }
-      },
-
-      {
-        selector: '.hidden',
-        style: {
-          'visibility': 'hidden',
-        },
-      },
-
-      {
-        selector: '.no_border',
-        style : {
-          'border-width' : 0,
-        }
-      },
-
-      {
-        selector: '.no_overlay',
-        style : {
-          'overlay-opacity' : 0,
-          'overlay-padding' : 0,
-        }
-      }
-    ],
-
-    layout: {
-      name: 'preset',
-    }
-
+    style: cy_stylesheet.create_stylesheet(),
+    layout: { name: 'preset'}
   });
 
   this.cy_aux = cytoscape();
@@ -218,7 +45,7 @@ function GrapholScape(file,container,xmlstring) {
 
   this.cy.on('select','.predicate', function (evt) {this_graph.showDetails(evt.target);});
 
-  this.cy.on('select','*',function (evt) {
+  /*this.cy.on('select','*',function (evt) {
     if(!evt.target.hasClass('predicate')) {
       document.getElementById('details').classList.add('hide');
     }
@@ -263,7 +90,7 @@ function GrapholScape(file,container,xmlstring) {
         }
       }
     }
-  });
+  });*/
 }
 
 
@@ -335,7 +162,6 @@ GrapholScape.prototype.init = function(xmlString) {
 
     this.collection = this.collection.union(this.cy_aux.collection(array_json_elems));
 
-
   }
   // traverse the graph and retrieve the real identity for neutral nodes
   this.getIdentityForNeutralNodes();
@@ -345,7 +171,7 @@ GrapholScape.prototype.init = function(xmlString) {
     return a.data('label').localeCompare(b.data('label'));
   });
 
-  this.createUi();
+  ui.createUi(this);
   this.drawDiagram(this.getDiagramName(0));
 };
 
@@ -374,7 +200,7 @@ GrapholScape.prototype.drawDiagram = function(diagram_name) {
   this.cy.fit();
   this.actual_diagram = diagram_id;
 
-  document.getElementById('title').innerHTML = diagram_name;
+  //document.getElementById('title').innerHTML = diagram_name;
   return true;
 };
 
@@ -561,7 +387,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
 
   // Parsing the <geometry> child node of node
   // info = <GEOMETRY>
-  var info = getFirstChild(element);
+  var info = utils.getFirstChild(element);
 
   nodo.data.width = parseInt(info.getAttribute('width'));
   // Gli individual hanno dimensioni negative nel file graphol
@@ -584,7 +410,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
   nodo.position.y = parseInt(info.getAttribute('y'));
 
   // info = <LABEL>
-  info = getNextSibling(info);
+  info = utils.getNextSibling(info);
 
   // info = null se non esiste la label (è l'ultimo elemento)
   if (info != null) {
@@ -595,7 +421,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
   }
 
   // Setting predicates properties
-  if (isPredicate(element)) {
+  if (utils.isPredicate(element)) {
 
     nodo.classes += ' predicate';
 
@@ -760,7 +586,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
   // info = <POINT>
   // Processiamo i breakpoints dell'arco
   // NOTA: ogni arco ha sempre almeno 2 breakpoints, cioè gli endpoints
-  var point = getFirstChild(arco);
+  var point = utils.getFirstChild(arco);
 
   var breakpoints = [];
   var segment_weights = [];
@@ -777,15 +603,15 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
     breakpoints[count].push(parseInt(point.getAttribute('x')));
     breakpoints[count].push(parseInt(point.getAttribute('y')));
 
-    if (getNextSibling(point) != null) {
-      point = getNextSibling(point);
+    if (utils.getNextSibling(point) != null) {
+      point = utils.getNextSibling(point);
 
       // Se il breakpoint in questione non è il primo
       // e non è l'ultimo, visto che ha un fratello,
       // allora calcoliamo peso e distanza per questo breakpoint
       // [Il primo e l'ultimo breakpoint sono gli endpoint e non hanno peso e distanza]
       if (count > 0) {
-        var aux = getDistanceWeight(target.position(),source.position(),breakpoints[count]);
+        var aux = utils.getDistanceWeight(target.position(),source.position(),breakpoints[count]);
         segment_distances.push(aux[0]);
         segment_weights.push(aux[1]);
       }
@@ -810,7 +636,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
   source_endpoint['x'] = breakpoints[0][0];
   source_endpoint['y'] = breakpoints[0][1];
 
-  source_endpoint = getNewEndpoint(source_endpoint,source,breakpoints[1]);
+  source_endpoint = utils.getNewEndpoint(source_endpoint,source,breakpoints[1]);
 
   // Impostiamo l'endpoint solo se è diverso da zero
   // perchè di default l'endpoint è impostato a (0,0) relativamente al nodo di riferimento
@@ -825,7 +651,7 @@ GrapholScape.prototype.EdgeXmlToJson = function(arco) {
   target_endpoint['x'] = breakpoints[breakpoints.length-1][0];
   target_endpoint['y'] = breakpoints[breakpoints.length-1][1];
 
-  target_endpoint = getNewEndpoint(target_endpoint,target,breakpoints[breakpoints.length-2]);
+  target_endpoint = utils.getNewEndpoint(target_endpoint,target,breakpoints[breakpoints.length-2]);
 
   if (target_endpoint['x'] != 0 || target_endpoint['y'] != 0) {
     edge.data.target_endpoint = [];
@@ -1162,3 +988,5 @@ GrapholScape.prototype.getIdentityForNeutralNodes = function() {
     }
   }
 }
+
+module.exports = GrapholScape;

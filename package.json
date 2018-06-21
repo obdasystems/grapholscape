@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "gulp": "gulp",
-    "uglify" : "gulp uglify"
+    "uglify": "gulp uglify",
+    "test": "mocha --recursive"
   },
   "repository": "https://github.com/picorana/GrapholScape",
   "keywords": [
@@ -17,11 +18,19 @@
   "author": "OBDA Systems",
   "license": "MIT",
   "devDependencies": {
+    "browserify": "^16.2.2",
+    "cytoscape": "^3.2.13",
     "electron": "^2.0.0",
     "electron-packager": "^12.1.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
+    "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify-es": "^1.0.4",
-    "merge2": "^1.2.2"
+    "jsdom": "11.11.0",
+    "jsdom-global": "3.0.2",
+    "merge2": "^1.2.2",
+    "mocha": "^5.2.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
   }
 }
