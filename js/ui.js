@@ -1,39 +1,6 @@
-function makeDraggable(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  elmnt.classList.add('draggable');
-
-  elmnt.getElementsByClassName('module_head')[0].onmousedown = dragMouseDown;
-
-  function dragMouseDown(e) {
-    e = e || window.event;
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e) {
-    e = e || window.event;
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-
-  }
-
-  function closeDragElement() {
-    /* stop moving when mouse button is released:*/
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
-
+explorer_module = require('./ui/explorer_module.js')
+diagram_list_module = require('./ui/diagram_list_module.js')
+ui_utils = require('./ui/ui_utils.js')
 
 function toggle(button) {
 
@@ -83,223 +50,7 @@ function toggle(button) {
 }
 
 
-var createDiagramListModule = function(this_graph) {
-  // module : diagram list
-  var module = document.createElement("div");
-  var child = document.createElement("div");
-  var img = document.createElement("i");
-  var drop_down_icon = document.createElement("i");
-  drop_down_icon.setAttribute("class", "material-icons md-24");
-  drop_down_icon.innerHTML = "arrow_drop_down";
-
-  module.setAttribute("id", "diagram_name");
-  module.setAttribute("class", "module");
-
-  // module head
-  child.setAttribute("id", "title");
-  child.setAttribute("class", "module_head");
-  child.innerHTML = "Select a diagram";
-  module.appendChild(child);
-
-  // module button
-  child = document.createElement("div");
-  child.setAttribute("id", "diagram-list-button");
-  child.setAttribute("class", "module_button");
-  child.setAttribute("onclick", "toggle(this)");
-
-  child.appendChild(drop_down_icon);
-  module.appendChild(child);
-
-  // module dropdown div
-  child = document.createElement("div");
-  child.setAttribute("id", "diagram_list");
-  child.setAttribute("class", "collapsible module_body");
-
-  // adding diagrams in the dropdown div
-  var item;
-  for (i = 0; i < this_graph.diagrams.length; i++) {
-    item = document.createElement("div");
-    item.setAttribute("class", "diagram_item");
-
-    item.innerHTML = this_graph.diagrams[i].getAttribute("name");
-
-    
-    item.addEventListener("click", function() {
-      this_graph.drawDiagram(this.innerHTML);
-      toggle(document.getElementById("diagram-list-button"));
-    });
-
-    child.appendChild(item);
-  }
-
-  module.appendChild(child);
-  makeDraggable(module);
-  this_graph.container.appendChild(module);
-}
-
-
-var createExplorerModule = function () {
-
-}
-
-
-var createUi = function(grapholscape) {
-  // reference to this object, used when adding event listeners
-  var this_graph = grapholscape;
-
-  var i;
-
-  createDiagramListModule(this_graph);
-/*
-  // module : Explorer
-  module = module.cloneNode(true);
-  module.setAttribute("id", "explorer");
-  // module still have class = 'module' so we don't need to addd them
-  var input = document.createElement("input");
-  input.setAttribute("autocomplete", "off");
-  input.setAttribute("type", "text");
-  input.setAttribute("id", "search");
-  input.setAttribute("placeholder", "Search Predicates...");
-  input.setAttribute("onkeyup", "search(this.value)");
-
-  //module_head contains the input field
-  module.firstElementChild.innerHTML = "";
-  module.firstElementChild.appendChild(input);
-  // we need to modify the id of the module_button
-  if (
-    module.getElementsByClassName("module_button") != null &&
-    module.getElementsByClassName("module_button") != undefined
-  )
-    module
-      .getElementsByClassName("module_button")[0]
-      .setAttribute("id", "predicates-list-button");
-
-  // dropdown div with predicates list
-  module.removeChild(module.lastElementChild);
-  child = document.createElement("div");
-  child.setAttribute("id", "predicates_list");
-  child.setAttribute("class", "collapsible module_body");
-
-  module.appendChild(child);
-  makeDraggable(module);
-  this.container.appendChild(module);
-
-  // Ontology Explorer Table Population
-  var j,
-    row,
-    wrap,
-    col,
-    img_type_address,
-    sub_rows_wrapper,
-    sub_row,
-    element,
-    nodes,
-    key,
-    label;
-
-  this.predicates.forEach(function(predicate) {
-    label = predicate.data("label").replace(/\r?\n|\r/g, "");
-    key = label.concat(predicate.data("type"));
-    // If we already added this predicate to the list, we add it in the sub-rows
-    if (document.getElementById(key) != null) {
-      sub_rows_wrapper = document
-        .getElementById(key)
-        .getElementsByClassName("sub_row_wrapper")[0];
-
-      sub_row = document.createElement("div");
-      sub_row.setAttribute("class", "sub_row");
-
-      sub_row.setAttribute(
-        "diagram",
-        this.getDiagramName(predicate.data("diagram_id"))
-      );
-      sub_row.setAttribute("node_id", predicate.id());
-      sub_row.innerHTML =
-        "- " +
-        sub_row.getAttribute("diagram") +
-        " - " +
-        predicate.data("id_xml");
-
-      sub_row.addEventListener("click", function() {
-        goTo(this_graph, this);
-      });
-
-      sub_rows_wrapper.appendChild(sub_row);
-    } else {
-      // Else: this is a new predicate, we create its row and its first sub rows
-      // row is the container of a row and a set of sub-rows
-      row = document.createElement("div");
-      row.setAttribute("id", key);
-      row.setAttribute("class", "predicate");
-
-      // the "real" row
-      wrap = document.createElement("div");
-      wrap.setAttribute("class", "row");
-
-      // columns
-      col = document.createElement("span");
-      img = document.createElement("i");
-      img.setAttribute("class", "no_highlight material-icons md-18");
-      img.innerHTML = "keyboard_arrow_right";
-      col.appendChild(img);
-      wrap.appendChild(col);
-
-      col = document.createElement("span");
-      col.setAttribute("class", "col type_img");
-      img = document.createElement("img");
-      img_type_address =
-        "assets/icons/ic_treeview_" + predicate.data("type") + "_18dp_1x.png";
-
-      img.setAttribute("src", img_type_address);
-      col.appendChild(img);
-      wrap.appendChild(col);
-
-      col = document.createElement("div");
-      col.setAttribute("class", "info");
-      col.innerHTML = label;
-
-      wrap.appendChild(col);
-      row.appendChild(wrap);
-
-      wrap.firstChild.addEventListener("click", function() {
-        toggleSubRows(this);
-      });
-      wrap
-        .getElementsByClassName("info")[0]
-        .addEventListener("click", function() {
-          this_graph.showDetails(predicate);
-          this_graph.cy.nodes().unselect();
-        });
-
-      sub_rows_wrapper = document.createElement("div");
-      sub_rows_wrapper.setAttribute("class", "sub_row_wrapper");
-
-      sub_row = document.createElement("div");
-      sub_row.setAttribute("class", "sub_row");
-
-      sub_row.setAttribute(
-        "diagram",
-        this.getDiagramName(predicate.data("diagram_id"))
-      );
-      sub_row.setAttribute("node_id", predicate.id());
-      sub_row.innerHTML =
-        "- " +
-        sub_row.getAttribute("diagram") +
-        " - " +
-        predicate.data("id_xml");
-
-      sub_row.addEventListener("click", function() {
-        goTo(this_graph, this);
-      });
-
-      sub_rows_wrapper.appendChild(sub_row);
-      row.appendChild(sub_rows_wrapper);
-    }
-    // Child = predicates list
-    child.appendChild(row);
-  }, this);
-
-  // zoom_tools
+var createZoomTools = function(this_graph) {
   module = document.createElement("div");
   module.setAttribute("id", "zoom_tools");
   module.setAttribute("class", "tooltip module");
@@ -394,8 +145,11 @@ var createUi = function(grapholscape) {
   module.appendChild(child);
 
   // add zoom_tools module to the container
-  this.container.appendChild(module);
+  this_graph.container.appendChild(module);
+}
 
+
+var createDetailsModule = function(this_graph) {
   // Details
   module = document.createElement("div");
   module.setAttribute("id", "details");
@@ -413,6 +167,9 @@ var createUi = function(grapholscape) {
   child.setAttribute("id", "details_button");
   child.setAttribute("class", "module_button");
   child.setAttribute("onclick", "toggle(this)");
+  var drop_down_icon = document.createElement("i");
+  drop_down_icon.setAttribute("class", "material-icons md-24");
+  drop_down_icon.innerHTML = "arrow_drop_down";
   img = drop_down_icon.cloneNode(true);
   img.innerHTML = "arrow_drop_up";
   child.appendChild(img);
@@ -423,10 +180,13 @@ var createUi = function(grapholscape) {
   child.setAttribute("id", "details_body");
   child.setAttribute("class", "collapsible module_body");
   module.appendChild(child);
-  makeDraggable(module);
-  this.container.appendChild(module);
+  ui_utils.makeDraggable(module);
+  this_graph.container.appendChild(module);
+}
 
-  // filters
+
+var createFilterModule = function(this_graph) {
+    // filters
   module = document.createElement("div");
   module.setAttribute("id", "filters");
   module.setAttribute("class", "module");
@@ -484,12 +244,12 @@ var createUi = function(grapholscape) {
   child.innerHTML += '<div class="filtr_option"><input id="val_check" type="checkbox" checked /><label class="filtr_text">Value Domain</label></div>';
   child.innerHTML += '<div class="filtr_option"><input id="indiv_check" type="checkbox" checked /><label class="filtr_text">Individuals</label></div>';
   child.innerHTML += '<div class="filtr_option"><input id="forall_check" type="checkbox" checked /><label class="filtr_text">Universal Quantifier</label></div>';
-  */ /*
+  */ 
   module.appendChild(child);
   module.innerHTML +=
     '<div onclick="toggle(this)" class="bottom_button" title="filters"><i alt="filters" class="material-icons md-24"/>filter_list</i></div>';
 
-  this.container.appendChild(module);
+  this_graph.container.appendChild(module);
 
   var input;
   var elm = module.getElementsByClassName("filtr_option");
@@ -501,12 +261,18 @@ var createUi = function(grapholscape) {
       this_graph.filter(this.id);
     });
   }
+}
 
-  // Center Button
+
+var createCenterModule = function(this_graph) {
   module = document.createElement("div");
   module.setAttribute("id", "center_button");
   module.setAttribute("class", "module bottom_button");
   module.setAttribute("title", "reset");
+
+  var drop_down_icon = document.createElement("i");
+  drop_down_icon.setAttribute("class", "material-icons md-24");
+  drop_down_icon.innerHTML = "arrow_drop_down";
 
   img = drop_down_icon.cloneNode(true);
   img.innerHTML = "filter_center_focus";
@@ -516,9 +282,11 @@ var createUi = function(grapholscape) {
     this_graph.cy.fit();
   });
 
-  this.container.appendChild(module);
+  this_graph.container.appendChild(module);
+}
 
-  // OWL2 TRANSLATOR
+
+var createOwl2TranslatorModule = function (this_graph) {
   module = document.createElement("div");
   module.setAttribute("id", "owl_translator");
   module.setAttribute("class", "hide module");
@@ -544,15 +312,22 @@ var createUi = function(grapholscape) {
   child.setAttribute("id", "translator-button");
   child.setAttribute("class", "module_button");
   child.setAttribute("onclick", "toggle(this)");
+
+  var drop_down_icon = document.createElement("i");
+  drop_down_icon.setAttribute("class", "material-icons md-24");
+  drop_down_icon.innerHTML = "arrow_drop_down";
+
   img = drop_down_icon.cloneNode(true);
   img.innerHTML = "arrow_drop_down";
   child.appendChild(img);
   module.appendChild(child);
 
-  this.container.appendChild(module);
+  this_graph.container.appendChild(module);
+}
 
-  // ONTOLOGY INFOS
-  module = document.createElement("div");
+
+var createOntologyInfo = function (this_graph) {
+   module = document.createElement("div");
   module.setAttribute("id", "onto_info");
   module.setAttribute("class", "module");
   child = document.createElement("div");
@@ -662,6 +437,24 @@ var createUi = function(grapholscape) {
   module.innerHTML +=
     '<div onclick="toggle(this)" class="bottom_button" title="Info"><i alt="info" class="material-icons md-24"/>info_outline</i></div>';
   this_graph.container.appendChild(module);
+}
+
+
+var createUi = function(grapholscape) {
+  // reference to this object, used when adding event listeners
+  var this_graph = grapholscape;
+
+  var i;
+
+  module = diagram_list_module.createDiagramListModule(this_graph);
+  explorer_module.createExplorerModule(this_graph, module);
+  createZoomTools(this_graph);
+  createDetailsModule(this_graph);
+  createFilterModule(this_graph);
+  createCenterModule(this_graph);
+  createOwl2TranslatorModule(this_graph);
+  createOntologyInfo(this_graph);
+ 
 
   var icons = document.getElementsByClassName("material-icons");
   for (i = 0; i < icons.length; i++) {
@@ -669,7 +462,7 @@ var createUi = function(grapholscape) {
       return false;
     };
   }
-  */
+  
 };
 
 module.exports = {

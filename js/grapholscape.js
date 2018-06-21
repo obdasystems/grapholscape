@@ -45,7 +45,7 @@ function GrapholScape(file, container, xmlstring) {
 
   this.cy.on('select','.predicate', function (evt) {this_graph.showDetails(evt.target);});
 
-  /*this.cy.on('select','*',function (evt) {
+  this.cy.on('select','*',function (evt) {
     if(!evt.target.hasClass('predicate')) {
       document.getElementById('details').classList.add('hide');
     }
@@ -90,7 +90,7 @@ function GrapholScape(file, container, xmlstring) {
         }
       }
     }
-  });*/
+  });
 }
 
 
