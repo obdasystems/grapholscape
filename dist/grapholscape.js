@@ -2259,11 +2259,36 @@ GrapholScape.prototype.createUi = function () {
       wrap.appendChild(col);
 
       col = document.createElement('span');
-      col.setAttribute('class','col type_img');
-      img = document.createElement('img');
-      img_type_address = 'assets/icons/ic_treeview_'+predicate.data('type')+'_18dp_1x.png';
+      //col.setAttribute('class','col type_img');
+      
+      img = document.createElement("div");
+      img.innerHTML = predicate.data("type").charAt(0).toUpperCase();
+      img.style.display = 'block';
+      img.style.width = '1.2vw'
+      img.style.height = '1.2vw'
+      img.style.textAlign = 'center'
+      img.style.verticalAlign = 'middle'
+      img.style.lineHeight = '1.2vw';
+      
+      switch (img.innerHTML) {
+        case 'C' : 
+          lightColor = '#F9F3A6'
+          darkColor = '#B08D00'
+          break;
+        case 'R' :
+          lightColor = '#AACDE1'
+          darkColor = '#065A85'
+          break;
+        case 'A' :
+          lightColor = '#C7DAAD'
+          darkColor = '#4B7900'
+          break;
+      }
 
-      img.setAttribute("src",img_type_address);
+      img.style.color = darkColor;
+      img.style.backgroundColor = lightColor;
+      img.style.border = '1px solid ' + darkColor;
+      
       col.appendChild(img);
       wrap.appendChild(col);
 
