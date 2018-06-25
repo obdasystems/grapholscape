@@ -27,6 +27,20 @@ function GrapholScape(file,container,xmlstring) {
 
   this.container.style.fontSize = '14px';
   this.container.style.color = '#666';
+
+  this.container.requestFullscreen = 
+    this.container.requestFullscreen       ||
+    this.container.mozRequestFullscreen    || // Mozilla
+    this.container.mozRequestFullScreen    || // Mozilla older API use uppercase 'S'.
+    this.container.webkitRequestFullscreen || // Webkit
+    this.container.msRequestFullscreen;       // IE
+
+  document.cancelFullscreen =
+    document.cancelFullscreen ||
+    document.mozCancelFullScreen ||
+    document.webkitCancelFullScreen ||
+    document.msExitFullscreen;
+
   var cy_container = document.createElement('div');
   cy_container.setAttribute('id','cy');
   this.container.appendChild(cy_container);
@@ -446,6 +460,41 @@ GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
     renderedPosition : { x: offset_x, y: offset_y }
   });
 }
+
+GrapholScape.prototype.isFullscreen = function() {
+  return document.fullScreenElement       || 
+         document.mozFullScreenElement    || // Mozilla
+         document.webkitFullscreenElement || // Webkit
+         document.msFullscreenElement;       // IE 
+}
+
+GrapholScape.prototype.toggleFullscreen = function(button, x, y, event) {
+  var c = this.container;
+
+  if (this.isFullscreen()) {
+    c.className = c.className.replace(/\s*grapholscape-fullscreen\b/, "");
+    document.documentElement.style.overflow = "";
+    var info = c.fullScreenRestore;
+    c.style.width = info.width;
+    c.style.height = info.height;
+    window.scrollTo(info.scrollLeft, info.scrollTop);
+    document.cancelFullscreen();
+  } else {
+    c.fullScreenRestore = {
+      scrollTop: window.pageYOffset, 
+      scrollLeft: window.pageXOffset,
+      width: c.style.width, 
+      height: c.style.height
+    };
+    c.style.width = "";
+    c.style.height = "auto";
+    c.className += " grapholscape-fullscreen";
+    document.documentElement.style.overflow = "hidden";
+    c.requestFullscreen();
+  }
+
+  this.cy.resize();
+};
 
 GrapholScape.prototype.showDetails = function (target) {
   document.getElementById('details').classList.remove('hide');
@@ -2328,7 +2377,7 @@ GrapholScape.prototype.createUi = function () {
   // zoom_tools
   module = document.createElement('div');
   module.setAttribute('id','zoom_tools');
-  module.setAttribute('class','tooltip module');
+  module.setAttribute('class','grapholscape-tooltip module');
 
   // zoom_in
   child = document.createElement('div');
@@ -2515,7 +2564,6 @@ GrapholScape.prototype.createUi = function () {
     });
   }
 
-
   // Center Button
   module = document.createElement('div');
   module.setAttribute('id','center_button');
@@ -2532,6 +2580,29 @@ GrapholScape.prototype.createUi = function () {
 
   this.container.appendChild(module);
 
+  // fullscreen control
+  module = document.createElement('div');
+  module.setAttribute('id', 'grapholscape-fullscreen-btn');
+  module.setAttribute('class', 'module bottom_button');
+  module.setAttribute('title', 'fullscreen');
+  img = document.createElement('i');
+  img.setAttribute('class', 'material-icons md-24');
+  img.innerHTML = 'fullscreen';
+  img.onclick = function() { this.toggleFullscreen() }.bind(this);
+  var fsHandler = function(event) {
+    var fullscreenToggle = document.getElementById('grapholscape-fullscreen-btn');
+    var toggleImg = fullscreenToggle.getElementsByTagName('i')[0];
+    var isFullscreen = document.fullScreenElement       || 
+                       document.mozFullScreenElement    || // Mozilla
+                       document.webkitFullscreenElement || // Webkit
+                       document.msFullscreenElement;       // IE 
+    toggleImg.innerHTML = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+  }
+  document.addEventListener('fullscreenchange', fsHandler, false);
+  document.addEventListener('mozfullscreenchange', fsHandler, false);
+  document.addEventListener('webkitfullscreenchange', fsHandler, false);
+  module.appendChild(img);
+  this.container.appendChild(module);
 
   // OWL2 TRANSLATOR
   module = document.createElement('div');

@@ -192,7 +192,7 @@ GrapholScape.prototype.createUi = function () {
   // zoom_tools
   module = document.createElement('div');
   module.setAttribute('id','zoom_tools');
-  module.setAttribute('class','tooltip module');
+  module.setAttribute('class','grapholscape-tooltip module');
 
   // zoom_in
   child = document.createElement('div');
@@ -379,7 +379,6 @@ GrapholScape.prototype.createUi = function () {
     });
   }
 
-
   // Center Button
   module = document.createElement('div');
   module.setAttribute('id','center_button');
@@ -396,6 +395,29 @@ GrapholScape.prototype.createUi = function () {
 
   this.container.appendChild(module);
 
+  // fullscreen control
+  module = document.createElement('div');
+  module.setAttribute('id', 'grapholscape-fullscreen-btn');
+  module.setAttribute('class', 'module bottom_button');
+  module.setAttribute('title', 'fullscreen');
+  img = document.createElement('i');
+  img.setAttribute('class', 'material-icons md-24');
+  img.innerHTML = 'fullscreen';
+  img.onclick = function() { this.toggleFullscreen() }.bind(this);
+  var fsHandler = function(event) {
+    var fullscreenToggle = document.getElementById('grapholscape-fullscreen-btn');
+    var toggleImg = fullscreenToggle.getElementsByTagName('i')[0];
+    var isFullscreen = document.fullScreenElement       || 
+                       document.mozFullScreenElement    || // Mozilla
+                       document.webkitFullscreenElement || // Webkit
+                       document.msFullscreenElement;       // IE 
+    toggleImg.innerHTML = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+  }
+  document.addEventListener('fullscreenchange', fsHandler, false);
+  document.addEventListener('mozfullscreenchange', fsHandler, false);
+  document.addEventListener('webkitfullscreenchange', fsHandler, false);
+  module.appendChild(img);
+  this.container.appendChild(module);
 
   // OWL2 TRANSLATOR
   module = document.createElement('div');
