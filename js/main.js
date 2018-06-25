@@ -33,7 +33,7 @@ function toggle(button) {
 
     if (elm.id == 'diagram_list' || elm.id == 'slider_body') {
       if (elm.clientWidth == '0') {
-        elm.style.width = 'initial';
+        elm.style.width = '100%';
       }
       else {
         elm.style.width = '0';

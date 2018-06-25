@@ -28,7 +28,7 @@ function GrapholScape(file,container,xmlstring) {
   this.container.style.fontSize = '14px';
   this.container.style.color = '#666';
 
-  this.container.requestFullscreen = 
+  this.container.requestFullscreen =
     this.container.requestFullscreen       ||
     this.container.mozRequestFullscreen    || // Mozilla
     this.container.mozRequestFullScreen    || // Mozilla older API use uppercase 'S'.
@@ -462,10 +462,10 @@ GrapholScape.prototype.centerOnPosition = function (x_pos, y_pos, zoom) {
 }
 
 GrapholScape.prototype.isFullscreen = function() {
-  return document.fullScreenElement       || 
+  return document.fullScreenElement       ||
          document.mozFullScreenElement    || // Mozilla
          document.webkitFullscreenElement || // Webkit
-         document.msFullscreenElement;       // IE 
+         document.msFullscreenElement;       // IE
 }
 
 GrapholScape.prototype.toggleFullscreen = function(button, x, y, event) {
@@ -481,9 +481,9 @@ GrapholScape.prototype.toggleFullscreen = function(button, x, y, event) {
     document.cancelFullscreen();
   } else {
     c.fullScreenRestore = {
-      scrollTop: window.pageYOffset, 
+      scrollTop: window.pageYOffset,
       scrollLeft: window.pageXOffset,
-      width: c.style.width, 
+      width: c.style.width,
       height: c.style.height
     };
     c.style.width = "";
@@ -1268,7 +1268,7 @@ function toggle(button) {
 
     if (elm.id == 'diagram_list' || elm.id == 'slider_body') {
       if (elm.clientWidth == '0') {
-        elm.style.width = 'initial';
+        elm.style.width = '100%';
       }
       else {
         elm.style.width = '0';
