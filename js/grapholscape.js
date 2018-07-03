@@ -451,28 +451,10 @@ GrapholScape.prototype.toggleFullscreen = function(button, x, y, event) {
   var c = this.container;
 
   if (this.isFullscreen()) {
-    c.className = c.className.replace(/\s*grapholscape-fullscreen\b/, "");
-    document.documentElement.style.overflow = "";
-    var info = c.fullScreenRestore;
-    c.style.width = info.width;
-    c.style.height = info.height;
-    window.scrollTo(info.scrollLeft, info.scrollTop);
     document.cancelFullscreen();
   } else {
-    c.fullScreenRestore = {
-      scrollTop: window.pageYOffset,
-      scrollLeft: window.pageXOffset,
-      width: c.style.width,
-      height: c.style.height
-    };
-    c.style.width = "";
-    c.style.height = "auto";
-    c.className += " grapholscape-fullscreen";
-    document.documentElement.style.overflow = "hidden";
     c.requestFullscreen();
   }
-
-  this.cy.resize();
 };
 
 GrapholScape.prototype.showDetails = function (target) {

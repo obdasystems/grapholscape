@@ -472,28 +472,10 @@ GrapholScape.prototype.toggleFullscreen = function(button, x, y, event) {
   var c = this.container;
 
   if (this.isFullscreen()) {
-    c.className = c.className.replace(/\s*grapholscape-fullscreen\b/, "");
-    document.documentElement.style.overflow = "";
-    var info = c.fullScreenRestore;
-    c.style.width = info.width;
-    c.style.height = info.height;
-    window.scrollTo(info.scrollLeft, info.scrollTop);
     document.cancelFullscreen();
   } else {
-    c.fullScreenRestore = {
-      scrollTop: window.pageYOffset,
-      scrollLeft: window.pageXOffset,
-      width: c.style.width,
-      height: c.style.height
-    };
-    c.style.width = "";
-    c.style.height = "auto";
-    c.className += " grapholscape-fullscreen";
-    document.documentElement.style.overflow = "hidden";
     c.requestFullscreen();
   }
-
-  this.cy.resize();
 };
 
 GrapholScape.prototype.showDetails = function (target) {
@@ -2589,14 +2571,38 @@ GrapholScape.prototype.createUi = function () {
   img.setAttribute('class', 'material-icons md-24');
   img.innerHTML = 'fullscreen';
   img.onclick = function() { this.toggleFullscreen() }.bind(this);
+  var grapholscape = this;
   var fsHandler = function(event) {
     var fullscreenToggle = document.getElementById('grapholscape-fullscreen-btn');
     var toggleImg = fullscreenToggle.getElementsByTagName('i')[0];
-    var isFullscreen = document.fullScreenElement       || 
-                       document.mozFullScreenElement    || // Mozilla
-                       document.webkitFullscreenElement || // Webkit
-                       document.msFullscreenElement;       // IE 
-    toggleImg.innerHTML = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+    var c = grapholscape.container;
+
+    if (grapholscape.isFullscreen()) {
+      c.fullScreenRestore = {
+        position: c.style.position,
+        scrollTop: window.pageYOffset,
+        scrollLeft: window.pageXOffset,
+        width: c.style.width,
+        height: c.style.height
+      };
+      c.style.position = undefined;
+      c.style.width = "100%";
+      c.style.height = "100%";
+      c.className += " grapholscape-fullscreen";
+      document.documentElement.style.overflow = "hidden";
+      toggleImg.innerHTML = 'fullscreen_exit';
+    } else {
+      c.className = c.className.replace(/\s*grapholscape-fullscreen\b/, "");
+      document.documentElement.style.overflow = "";
+      var info = c.fullScreenRestore;
+      c.style.position = info.position;
+      c.style.width = info.width;
+      c.style.height = info.height;
+      window.scrollTo(info.scrollLeft, info.scrollTop);
+      toggleImg.innerHTML = 'fullscreen';
+    }
+
+    grapholscape.cy.resize();
   }
   document.addEventListener('fullscreenchange', fsHandler, false);
   document.addEventListener('mozfullscreenchange', fsHandler, false);
