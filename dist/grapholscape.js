@@ -486,7 +486,7 @@ GrapholScape.prototype.showDetails = function (target) {
   body_details.innerHTML = '<table class="details_table">\
   <tr><th>Name</th><td>'+target.data('label').replace(/\n/g,'')+'</td></tr>\
   <tr><th>Type</th><td>'+target.data('type')+'</td></tr>\
-  <tr><th>IRI</th><td><a style="text-decoration:underline" href="'+target.data('iri')+'">'+target.data('iri')+'</a></td></tr></table>';
+  <tr><th>IRI</th><td><a style="text-decoration:underline" href="/documentation/predicate/'+target.data('type')+'/'+target.data('label').replace('\n', '')+'">'+target.data('iri')+'</a></td></tr></table>';
 
   if(target.data('type') == 'role' || target.data('type') == 'attribute') {
 
