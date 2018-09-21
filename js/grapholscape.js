@@ -330,7 +330,7 @@ GrapholScape.prototype.init = function(xmlString) {
     for (k=0; k<nodes.length; k++) {
       array_json_elems.push(this.NodeXmlToJson(nodes[k]));
 
-      if (array_json_elems[cnt].data.type === 'property-assertion' || 
+      if (array_json_elems[cnt].data.type === 'property-assertion' ||
           array_json_elems[cnt].data.type === 'facet' ||
           (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
 
@@ -660,7 +660,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       node_iri = '';
       node_prefix_iri = node_prefix_iri.substring(node_prefix_iri.lastIndexOf('^')+1, node_prefix_iri.lastIndexOf(':')+1);
     }
-    else if (!node_iri.endsWith('/') && !node_iri.endsWith('#'))
+    else if (!node_iri.substr(-1, 1) == '/' && !node_iri.substr(-1, 1) == '#')
       node_iri = node_iri+'/';
 
     nodo.data.remaining_chars = rem_chars;
@@ -674,7 +674,7 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
 
       if (label_no_break == predicateXml.getAttribute('name') && nodo.data.type == predicateXml.getAttribute('type')) {
 
-        nodo.data.description = predicateXml.getElementsByTagName('description')[0].innerHTML;
+        nodo.data.description = predicateXml.getElementsByTagName('description')[0].innerHTML || "";
         var start_body_index = nodo.data.description.indexOf('&lt;p');
         var end_body_index = nodo.data.description.indexOf('&lt;/body');
 
@@ -1011,7 +1011,7 @@ GrapholScape.prototype.addFakeNodes = function(array_json_elems) {
         y : nodo.position.y,
       }
     };
-   
+
     var back_rectangle = {
       data : {
         selectable:false,
@@ -1086,9 +1086,9 @@ GrapholScape.prototype.filter = function(checkbox_id) {
       break;
   }
 
-  if (type == 'forall') 
+  if (type == 'forall')
     eles = this.cy.$('[type $= "-restriction"][label = "forall"], .forall_check');
-  else 
+  else
     eles = this.cy.$('[type = "'+type+'"], .'+checkbox_id);
 
 
@@ -1097,7 +1097,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     eles.removeClass(checkbox_id);
   }
   else {
-    eles.forEach(element => {
+    eles.forEach(function (element) {
       filterElem(element,checkbox_id);
     });
   }
@@ -1118,7 +1118,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     filter_options[0].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = '';
   }
 
-  
+
 
   function filterElem(element, option_id) {
     element.addClass('filtered '+option_id);
@@ -1128,7 +1128,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
 
     // ARCHI IN USCITA
     var selector = '[source = "'+element.data('id')+'"]';
-    element.connectedEdges(selector).forEach( e => {
+    element.connectedEdges(selector).forEach( function(e) {
 
       // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
       var sel2 = 'edge:visible[source = "'+e.target().id()+'"]';
@@ -1144,7 +1144,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
 
     // ARCHI IN ENTRATA
     selector = '[target ="'+element.data('id')+'"]';
-    element.connectedEdges(selector).forEach( e => {
+    element.connectedEdges(selector).forEach( function(e) {
       // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
       var sel2 = 'edge:visible[source = "'+e.source().id()+'"]';
       var sel3 = 'edge:visible[target = "'+e.source().id()+'"][type != "input"]';
@@ -1159,7 +1159,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
 }
 
 GrapholScape.prototype.getIdentityForNeutralNodes = function() {
-  this.collection.filter('node[identity = "neutral"]').forEach(node => {
+  this.collection.filter('node[identity = "neutral"]').forEach(function (node) {
     node.data('identity', findIdentity(node));
   });
 
