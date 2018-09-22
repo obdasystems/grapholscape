@@ -306,7 +306,8 @@ GrapholScape.prototype.init = function(xmlString) {
   var i,k;
 
   var parser = new DOMParser();
-  var xmlDocument = parser.parseFromString(xmlString, 'text/xml');
+  var xmlDocument = (xmlString instanceof XMLDocument) ? xmlString : parser.parseFromString(xmlString, 'text/xml');
+  this.xmlDocument = xmlDocument;
   this.diagrams = xmlDocument.getElementsByTagName('diagram');
 
   var xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0];
@@ -694,17 +695,16 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       predicateXml = this.xmlPredicates[j];
 
       if (label_no_break == predicateXml.getAttribute('name') && nodo.data.type == predicateXml.getAttribute('type')) {
-
-        nodo.data.description = predicateXml.getElementsByTagName('description')[0].innerHTML || "";
-        var start_body_index = nodo.data.description.indexOf('&lt;p');
-        var end_body_index = nodo.data.description.indexOf('&lt;/body');
-
-        nodo.data.description = nodo.data.description.substring(start_body_index,end_body_index);
+        nodo.data.description = predicateXml.getElementsByTagName('description')[0].textContent;
         nodo.data.description = nodo.data.description.replace(/&lt;/g,'<');
         nodo.data.description = nodo.data.description.replace(/&gt;/g,'>');
         nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g,'');
         nodo.data.description = nodo.data.description.replace(/&amp;/g,'&');
         nodo.data.description = nodo.data.description.replace(/font-size:0pt/g,'font-size:inherit');
+
+        var start_body_index = nodo.data.description.indexOf('<p');
+        var end_body_index = nodo.data.description.indexOf('</body');
+        nodo.data.description = nodo.data.description.substring(start_body_index,end_body_index);
 
         // Impostazione delle funzionalità dei nodi di tipo role o attribute
         if (nodo.data.type == 'attribute' || nodo.data.type == 'role') {
@@ -1294,12 +1294,12 @@ function search(value) {
 function toggleSubRows(col_with_arrow) {
   var subrows = col_with_arrow.parentNode.parentNode.getElementsByClassName('sub_row_wrapper')[0];
 
-  if (subrows.style.display == 'initial') {
+  if (subrows.style.display == 'inherit') {
     subrows.style.display = 'none';
     col_with_arrow.firstChild.innerHTML = 'keyboard_arrow_right';
   }
   else {
-    subrows.style.display = 'initial';
+    subrows.style.display = 'inherit';
     col_with_arrow.firstChild.innerHTML = 'keyboard_arrow_down';
   }
 }

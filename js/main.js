@@ -77,12 +77,12 @@ function search(value) {
 function toggleSubRows(col_with_arrow) {
   var subrows = col_with_arrow.parentNode.parentNode.getElementsByClassName('sub_row_wrapper')[0];
 
-  if (subrows.style.display == 'initial') {
+  if (subrows.style.display == 'inherit') {
     subrows.style.display = 'none';
     col_with_arrow.firstChild.innerHTML = 'keyboard_arrow_right';
   }
   else {
-    subrows.style.display = 'initial';
+    subrows.style.display = 'inherit';
     col_with_arrow.firstChild.innerHTML = 'keyboard_arrow_down';
   }
 }
