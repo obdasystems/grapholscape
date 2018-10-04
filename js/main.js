@@ -48,7 +48,6 @@ function toggle(button) {
 function search(value) {
   var list = document.getElementById('predicates_list');
 
-
   if (value == '') {
     list.style.maxHeight = 0;
     document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_down';
@@ -57,6 +56,8 @@ function search(value) {
     document.getElementById('predicates-list-button').getElementsByTagName('i')[0].innerHTML = 'arrow_drop_up';
     list.style.maxHeight = '450px';
   }
+
+  document.getElementById('search').value = value;
   var val = value.toLowerCase();
   var rows = list.getElementsByClassName('predicate');
 
@@ -72,6 +73,8 @@ function search(value) {
       rows[i].style.display = "none";
     }
   }
+
+  document.getElementById('search').focus();
 }
 
 function toggleSubRows(col_with_arrow) {

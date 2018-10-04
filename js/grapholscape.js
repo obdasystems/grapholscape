@@ -494,8 +494,12 @@ GrapholScape.prototype.showDetails = function (target) {
 
 
   if (target.data('description')) {
-    body_details.innerHTML += '<div class="table_header"><strong>Description</strong></div><div class="descr">'+target.data('description')+'</div>';
+    body_details.innerHTML += '<div class="table_header"><strong>Description</strong></div><div class="descr">'+this.renderDescription(target.data('description'))+'</div>';
   }
+}
+
+GrapholScape.prototype.renderDescription = function(description) {
+  return description.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/');
 }
 
 GrapholScape.prototype.NodeXmlToJson = function(element) {
@@ -1192,4 +1196,34 @@ GrapholScape.prototype.getIdentityForNeutralNodes = function() {
       }
     }
   }
+}
+
+GrapholScape.prototype.getOccurrencesOfPredicate = function(predicate) {
+  var list = document.getElementById('predicates_list');
+  var rows = list.getElementsByClassName('predicate');
+  var matches = {};
+
+  for (var i = 0 ; i < rows.length ; i++) {
+    var info = rows[i].getElementsByClassName('info')[0];
+
+    if (info.innerHTML === predicate) {
+      var occurrences = rows[i].getElementsByClassName('sub_row');
+
+      for (var j = 0 ; j < occurrences.length ; j++) {
+        var occurrence = occurrences[j];
+        var diagram = occurrence.getAttribute('diagram');
+        var node = occurrence.getAttribute('node_id');
+
+        if (diagram in matches) {
+          matches[diagram].push(node);
+        } else {
+          matches[diagram] = [node];
+        }
+      }
+
+      break;
+    }
+  }
+
+  return matches;
 }
