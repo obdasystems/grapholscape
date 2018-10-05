@@ -8,7 +8,7 @@ var path = require("path");
 var module_list = [];
 
 gulp.task("build", function() {
-  var c = gulp.src("./js/*.js");
+  var c = gulp.src(["./js/*.js", "!./js/examples.js"]);
   var j = gulp.src(module_list);
 
   merge2([j, c])
@@ -17,7 +17,7 @@ gulp.task("build", function() {
 });
 
 gulp.task("uglify", function() {
-  var c = gulp.src("./js/*.js");
+  var c = gulp.src(["./js/*.js", "!./js/examples.js"]);
   var j = gulp.src(module_list);
 
   merge2([j, c])
