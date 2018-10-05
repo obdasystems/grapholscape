@@ -382,7 +382,6 @@ GrapholScape.prototype.init = function(xmlString) {
   });
 
   this.createUi();
-  this.drawDiagram(this.getDiagramName(0));
 };
 
 GrapholScape.prototype.drawDiagram = function(diagram_name) {
