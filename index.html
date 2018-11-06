@@ -125,7 +125,9 @@
 
       document.getElementById('home').style.display = 'none';
       var graph = new GrapholScape(files[0], document.getElementById('grapholscape_container'));
-
+      setTimeout(function() {
+        graph.drawDiagram(graph.getDiagramName(0));
+      }, 1000);
     }
 
 
