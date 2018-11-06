@@ -330,7 +330,7 @@ GrapholScape.prototype.nodeToOwlString = function(node,from_node) {
         }
       });
 
-      if (input_first.length > 0) {
+      if (input_first) {
         if (input_first.data('type') == 'attribute' && node.data('type') == 'range-restriction')
           return not_defined;
 
@@ -361,7 +361,7 @@ GrapholScape.prototype.nodeToOwlString = function(node,from_node) {
         break;
 
       case 'role-chain':
-        if (!node.data('inputs').length)
+        if (!node.data('inputs'))
           return missing_operand;
 
         return objectPropertyChain(this,node.data('inputs'));

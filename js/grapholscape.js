@@ -173,7 +173,7 @@ function GrapholScape(file,container,xmlstring) {
       {
         selector: '.filtered',
         style: {
-          'display':'none',
+          'display' : 'none',
         },
       },
       {
@@ -557,7 +557,8 @@ GrapholScape.prototype.NodeXmlToJson = function(element) {
       nodo.data.shape = 'hexagon';
       nodo.data.identity = 'role';
       if (nodo.data.type == 'role-chain') {
-        nodo.data.inputs = element.getAttribute('inputs').split(",");
+        if (element.getAttribute('inputs') != '')
+          nodo.data.inputs = element.getAttribute('inputs').split(",");
       }
       break;
 
@@ -1090,14 +1091,22 @@ GrapholScape.prototype.filter = function(checkbox_id) {
   }
 
   if (type == 'forall')
-    eles = this.cy.$('[type $= "-restriction"][label = "forall"], .forall_check');
+    eles = this.cy.$(':visible[type $= "-restriction"][label = "forall"], .forall_check');
   else
-    eles = this.cy.$('[type = "'+type+'"], .'+checkbox_id);
+    eles = this.cy.$(':visible[type = "'+type+'"], .'+checkbox_id);
 
 
   if (document.getElementById(checkbox_id).checked) {
-    eles.removeClass('filtered');
     eles.removeClass(checkbox_id);
+    eles.removeClass('filtered');
+
+    // Re-Apply other active filters to resolve ambiguity
+    for(i=0; i < filter_options.length; i++) {
+      var filter = filter_options[i].firstElementChild.firstElementChild;
+      if (!filter.checked) {
+        this.filter(filter.id);
+      }
+    }
   }
   else {
     eles.forEach(function (element) {
@@ -1106,9 +1115,6 @@ GrapholScape.prototype.filter = function(checkbox_id) {
   }
 
   // check if any filter is active in order to change the icon's color
-  var filter_options = document.getElementsByClassName('filtr_option');
-  var i,active = 0;
-
   for(i=0; i < filter_options.length; i++) {
     if (!filter_options[i].firstElementChild.firstElementChild.checked) {
       filter_options[i].parentNode.nextElementSibling.getElementsByTagName('i')[0].style.color = 'rgb(81,149,199)';
@@ -1132,7 +1138,6 @@ GrapholScape.prototype.filter = function(checkbox_id) {
     // ARCHI IN USCITA
     var selector = '[source = "'+element.data('id')+'"]';
     element.connectedEdges(selector).forEach( function(e) {
-
       // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
       var sel2 = 'edge:visible[source = "'+e.target().id()+'"]';
       var sel3 = 'edge:visible[target = "'+e.target().id()+'"][type != "input"]';
