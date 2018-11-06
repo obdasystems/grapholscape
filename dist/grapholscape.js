@@ -1144,9 +1144,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
       var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size();
 
       if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') == 'input')) {
-        if (!e.target().hasClass('predicate')) {
-          filterElem(e.target(),option_id);
-        }
+        filterElem(e.target(), option_id);
       }
     });
 
@@ -1158,9 +1156,7 @@ GrapholScape.prototype.filter = function(checkbox_id) {
       var sel3 = 'edge:visible[target = "'+e.source().id()+'"][type != "input"]';
       var number_edges_in_out = e.source().connectedEdges(sel2).size() + e.source().connectedEdges(sel3).size();
       if (!e.source().hasClass('filtered') && number_edges_in_out == 0) {
-        if (!e.source().hasClass('predicate')) {
-          filterElem(e.source(),option_id);
-        }
+        filterElem(e.source(), option_id);
       }
     });
   }
