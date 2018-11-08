@@ -8,23 +8,20 @@
     "gulp": "gulp",
     "uglify": "gulp uglify"
   },
-  "repository": "https://github.com/picorana/GrapholScape",
+  "repository": "https://github.com/obdasystems/grapholscape",
   "keywords": [
     "Ontology",
     "OWL",
-    "graphol"
+    "Graphol"
   ],
   "author": "OBDA Systems",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^2.0.0",
-    "electron-packager": "^12.1.0",
+    "electron": "^3.0.8",
+    "electron-packager": "^12.2.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
     "gulp-uglify-es": "^1.0.4",
     "merge2": "^1.2.2"
-  },
-  "dependencies": {
-    "standard": "^12.0.1"
   }
 }
