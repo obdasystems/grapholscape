@@ -21,7 +21,7 @@ gulp.task("uglify", function() {
   var j = gulp.src(module_list);
 
   merge2([j, c])
-    .pipe(gulpConcat("./dist/grapholscape_min.js"))
+    .pipe(gulpConcat("./dist/grapholscape.min.js"))
     .pipe(uglify())
     .pipe(gulp.dest("."));
 });

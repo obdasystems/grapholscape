@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "gulp": "gulp",
+    "build": "gulp build",
     "uglify": "gulp uglify"
   },
   "repository": "https://github.com/obdasystems/grapholscape",
