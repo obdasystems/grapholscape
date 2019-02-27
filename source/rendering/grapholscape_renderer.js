@@ -1,4 +1,4 @@
-class GrapholscapeRenderer {
+export class GrapholscapeRenderer {
   constructor(container,ontology) {
     // container chosed by the user
     this.container = container;
@@ -460,3 +460,5 @@ class GrapholscapeRenderer {
     }
   }
 }
+
+export default GrapholscapeRenderer

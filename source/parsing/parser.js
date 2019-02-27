@@ -1,3 +1,6 @@
+/**
+ * TODO: Convert to ES6 class and export an object (i.e. GrapholParser)
+ */
 GrapholScape.prototype.parseGraphol = function(xmlString) {
 	var i, k;
 	var parser = new DOMParser();

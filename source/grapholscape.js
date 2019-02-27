@@ -1,4 +1,21 @@
-class GrapholScape {
+import { html, LitElement } from 'lit-element';
+import cytoscape from 'cytoscape'
+import GrapholscapeRenderer from './rendering/grapholscape_renderer'
+/**
+ * TODO: Import the rest of the modules just like the renderer
+ */
+
+/**
+ * Example declaration of LitElement subclass to show
+ * remapping of import statements with rollup
+ */
+export class GrapholscapeWidget extends LitElement {
+    render() {
+        return html('');
+    }
+}
+
+export class GrapholScape {
 	constructor(file) {
 		var this_graph = this;
 		this.ready = false;
