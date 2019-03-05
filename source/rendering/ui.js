@@ -1,4 +1,10 @@
-GrapholscapeRenderer.prototype.createUi = function () {
+/**
+ * DRAFT - To be refactored
+ */
+
+import * as UiUtil from './ui_util'
+
+export default function createUi () {
 	// reference to this object, used when adding event listeners
 	var this_renderer = this;
 	var i;

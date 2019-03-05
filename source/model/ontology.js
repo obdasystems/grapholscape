@@ -1,4 +1,4 @@
-class Ontology {
+export class Ontology {
 
 	constructor(name, version, iriSet= new Set(), diagrams = []) {
 		this.name = name;
@@ -39,3 +39,5 @@ class Ontology {
     return return_iri;
   }
 }
+
+export default Ontology

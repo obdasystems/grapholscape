@@ -1,4 +1,8 @@
-function toggle(button) {
+/**
+ * DRAFT - To be refactored
+ */
+
+export function toggle(button) {
 
   if (button.classList.contains('bottom_button')) {
     var i=0;
@@ -45,7 +49,7 @@ function toggle(button) {
   }
 }
 
-function search(value) {
+export function search(value) {
   var list = document.getElementById('predicates_list');
 
   if (value == '') {
@@ -77,7 +81,7 @@ function search(value) {
   document.getElementById('search').focus();
 }
 
-function toggleSubRows(col_with_arrow) {
+export function toggleSubRows(col_with_arrow) {
   var subrows = col_with_arrow.parentNode.parentNode.getElementsByClassName('sub_row_wrapper')[0];
 
   if (subrows.style.display == 'inherit') {
@@ -90,7 +94,7 @@ function toggleSubRows(col_with_arrow) {
   }
 }
 
-function makeDraggable(elmnt) {
+export function makeDraggable(elmnt) {
   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   elmnt.classList.add('draggable');
 

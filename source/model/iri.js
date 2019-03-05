@@ -1,4 +1,4 @@
-class Iri {
+export class Iri {
   constructor(prefix, value, dflt=false, project=false, standard=false) {
     this.prefix = prefix;
     this.value = value;
@@ -24,3 +24,5 @@ class Iri {
   }
 
 }
+
+export default Iri

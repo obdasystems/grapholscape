@@ -1,6 +1,8 @@
 import { html, LitElement } from 'lit-element';
-import cytoscape from 'cytoscape'
-import GrapholscapeRenderer from './rendering/grapholscape_renderer'
+import cytoscape from 'cytoscape';
+import GrapholscapeRenderer from './rendering/grapholscape_renderer';
+import GrapholParser from './parsing/parser';
+
 /**
  * TODO: Import the rest of the modules just like the renderer
  */
@@ -19,13 +21,14 @@ export class GrapholScape {
 	constructor(file) {
 		var this_graph = this;
 		this.ready = false;
+		let graphol_parser = new GrapholParser();
 
 		if (typeof(file) === 'object') {
 			var reader = new FileReader();
 			var event = new Event('grapholscape_ready');
 
 			reader.onloadend = function () {
-				this_graph.ontology = this_graph.parseGraphol(reader.result);
+				this_graph.ontology = graphol_parser.parseGraphol(reader.result);
 				this.ready = true;
 				window.dispatchEvent(event);
 			};
@@ -33,7 +36,7 @@ export class GrapholScape {
 			reader.readAsText(file);
 		}
 		else if (typeof(file) === 'string') {
-			this.ontology = this.parseGraphol(file);
+			this.ontology = graphol_parser.parseGraphol(file);
 			this.ready = true;
 		}
 		else {

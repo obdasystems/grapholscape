@@ -1,4 +1,4 @@
-GrapholscapeRenderer.prototype.edgeToOwlString = function(edge) {
+export function edgeToOwlString(edge) {
   var owl_string;
   var source = edge.source();
   var target = edge.target();
@@ -209,10 +209,10 @@ GrapholscapeRenderer.prototype.edgeToOwlString = function(edge) {
     owl_string = owl_string.slice(0,owl_string.length - 1);
     return owl_string+')';
   }
-};
+}
 
 
-GrapholscapeRenderer.prototype.nodeToOwlString = function(node,from_node) {
+export function nodeToOwlString(node,from_node) {
   var owl_thing = '<span class="axiom_predicate_prefix">owl:</span><span class="axiom_predefinite_obj">Thing</span>';
   var rdfs_literal = '<span class="axiom_predicate_prefix">rdfs:</span><span class="axiom_predefinite_obj">Literal</span>';
   var missing_operand = '<span class="owl_error">Missing Operand</span>';

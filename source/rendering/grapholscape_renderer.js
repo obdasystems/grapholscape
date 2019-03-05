@@ -1,6 +1,10 @@
+import cytoscape from 'cytoscape';
+import createUi from './ui'
+import {nodeToOwlString, edgeToOwlString} from './owl'
+
 export class GrapholscapeRenderer {
   constructor(container,ontology) {
-    // container chosed by the user
+    // container chosen by the user
     this.container = container;
     this.ontology = ontology;
 
@@ -256,7 +260,7 @@ export class GrapholscapeRenderer {
     });
 
     
-    this.createUi();
+    //this.createUi();
   }
 
 /*
@@ -460,5 +464,7 @@ export class GrapholscapeRenderer {
     }
   }
 }
+
+Object.assign(GrapholscapeRenderer.prototype, {createUi, nodeToOwlString, edgeToOwlString});
 
 export default GrapholscapeRenderer
