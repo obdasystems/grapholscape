@@ -4,7 +4,7 @@
   <link href="style/style.css" rel="stylesheet" />
 
   <script src="source/examples.js"></script>
-  <script src="build/grapholscape.js"></script>
+  <script src="dist/grapholscape.js"></script>
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <meta charset="utf-8">
@@ -129,6 +129,10 @@
 
       graphol.setRenderer(grapholscape_container).then(renderer => {
         renderer.drawDiagram(graphol.ontology.diagrams[0]);
+          // Set utility functions as globals until refactoring is completed
+          window.toggle = renderer.toggle
+          window.toggleSubRows = renderer.toggleSubRows
+          window.search = renderer.search
       });
     }
 

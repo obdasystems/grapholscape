@@ -14,10 +14,10 @@ export function toggle (button) {
   } else {
     var elm = button.parentNode.getElementsByClassName('gcollapsible')[0]
 
-    if (elm.clientHeight === '0') {
+    if (elm.clientHeight === 0) {
       elm.style.maxHeight = '450px'
     } else {
-      elm.style.maxHeight = '0'
+      elm.style.maxHeight = 0
     }
 
     if (button.classList.contains('module_button')) {
@@ -31,10 +31,10 @@ export function toggle (button) {
     }
 
     if (elm.id === 'diagram_list' || elm.id === 'slider_body') {
-      if (elm.clientWidth === '0') {
+      if (elm.clientWidth === 0) {
         elm.style.width = '100%'
       } else {
-        elm.style.width = '0'
+        elm.style.width = 0
       }
     }
     if (elm.id === 'slider_body') { button.parentNode.getElementsByTagName('hr')[0].classList.toggle('hide') }
