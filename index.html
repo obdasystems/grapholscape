@@ -2,10 +2,9 @@
 <html>
 <head>
   <link href="style/style.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.2.9/cytoscape.js"></script>
 
   <script src="source/examples.js"></script>
-  <script src="dist/grapholscape.js"></script>
+  <script src="build/grapholscape.js"></script>
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <meta charset="utf-8">
@@ -126,10 +125,10 @@
 
       document.getElementById('home').style.display = 'none';
 
-      var grapholscape = new GrapholScape(files[0]);
+      var graphol = new grapholscape.GrapholScape(files[0]);
 
-      grapholScape.setRenderer(grapholscape_container).then(renderer => {
-        renderer.drawDiagram(grapholscape.ontology.diagrams[0]);
+      graphol.setRenderer(grapholscape_container).then(renderer => {
+        renderer.drawDiagram(graphol.ontology.diagrams[0]);
       });
     }
 
@@ -146,12 +145,16 @@
       li.onclick = function() {
         document.getElementById('home').style.display = 'none';
 
-        var grapholscape = new GrapholScape(examples[this.getAttribute('exmp_id')][1]);
-        
-        grapholscape.setRenderer(grapholscape_container).then(renderer => {
-          renderer.drawDiagram(grapholscape.ontology.diagrams[0]); 
-        });    
-      
+        var graphol = new grapholscape.GrapholScape(examples[this.getAttribute('exmp_id')][1]);
+
+        graphol.setRenderer(grapholscape_container).then(renderer => {
+          renderer.drawDiagram(graphol.ontology.diagrams[0]);
+          // Set utility functions as globals until refactoring is completed
+          window.toggle = renderer.toggle
+          window.toggleSubRows = renderer.toggleSubRows
+          window.search = renderer.search
+        });
+
       };
 
       examples_list.appendChild(li);
