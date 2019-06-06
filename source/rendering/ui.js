@@ -2,8 +2,18 @@
  * DRAFT - To be refactored
  */
 
-import { makeDraggable, toggleSubRows, toggle } from './ui_util'
+// import { makeDraggable, toggleSubRows, toggle } from './ui_util'
+import GrapholscapeWidget from './grapholscape_widget'
 
+export default function createUi () {
+  const widget = document.createElement('grapholscape-widget')
+  this.container.appendChild(widget)
+
+  const widget2 = new GrapholscapeWidget()
+  this.container.appendChild(widget2)
+}
+
+/*
 export default function createUi () {
   // reference to this object, used when adding event listeners
   var this_renderer = this
@@ -537,3 +547,4 @@ export default function createUi () {
     icons[i].onselectstart = function () { return false }
   }
 };
+*/

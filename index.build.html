@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="style/style.css" rel="stylesheet" />
+
+  <script src="source/examples.js"></script>
+  <script src="build/grapholscape.js"></script>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <meta charset="utf-8">
+
+  <style>
+    body, html {
+      font-family : "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+      color: #666;
+    }
+
+    #header {
+      margin-bottom:100px;
+      font-size:140px;
+      text-align: center;
+    }
+
+    a {
+      text-decoration: none;
+      color:inherit;
+    }
+
+    .section {
+      margin-bottom:100px;
+      overflow: auto;
+      text-align: center;
+      font-size:120%;
+    }
+
+    .container {
+      float:left;
+      width:50%;
+      box-sizing:border-box;
+      padding: 20px 5%;
+      text-align: center;
+    }
+
+    .container h2 {
+      margin-bottom: 50px;
+    }
+
+    #examples_list {
+      margin:0;
+      padding:0;
+    }
+
+    #examples_list li {
+      padding:8px;
+      cursor:pointer;
+      list-style-type: none;
+    }
+
+    #examples_list li:hover {
+      background-color:#fafafa;
+      color: rgb(81,149,199);
+    }
+  </style>
+
+  <title>Graphol Scape</title>
+
+</head>
+
+<body style="margin: 0">
+  <div id="grapholscape_container"></div>
+
+
+  <div id="home">
+    <div id="header">
+      <div style="height:210px"><a href="http://www.dis.uniroma1.it/~graphol/index.html"><span style="font-size:150%">G</span>RAPHOL</a></div>
+      <div style="font-size:50px; color:rgb(81,149,199);">SCAPE</div>
+    </div>
+
+
+    <div class="section" >
+      Graphol offers a completely visual representation of ontologies to users, in order to help understanding by people who are not skilled in logic.
+      <hr style="width:60%; color:#ddd;"/>
+      <div class="container">
+        <h2>Choose an example</h2>
+
+        <ul id="examples_list">
+        </ul>
+      </div>
+
+      <div class="container">
+        <h2>Select a Graphol file</h2>
+        <div id="dropbox" style="padding:60px 0; margin:auto; border:dashed 1px #555; border-radius:2px; background-color:#fafafa ">
+          <img style="height:50px; margin:0 0 30px 0" src="assets/icons/upload.png"/>
+          <div style="font-size: 18px;">Drag &amp; drop a Graphol file here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var grapholscape_container = document.getElementById('grapholscape_container');
+    var dropbox = document.getElementById('dropbox');
+
+    dropbox.addEventListener("dragenter",dragenter,false);
+    dropbox.addEventListener("dragover", dragover, false);
+
+    dropbox.addEventListener("drop", drop,false);
+
+    function dragenter(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function dragover(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var dt = e.dataTransfer;
+      var files = dt.files;
+
+      document.getElementById('home').style.display = 'none';
+
+      var graphol = new grapholscape.GrapholScape(files[0]);
+
+      graphol.setRenderer(grapholscape_container).then(renderer => {
+        renderer.drawDiagram(graphol.ontology.diagrams[0]);
+          // Set utility functions as globals until refactoring is completed
+          window.toggle = renderer.toggle
+          window.toggleSubRows = renderer.toggleSubRows
+          window.search = renderer.search
+      });
+    }
+
+    // Examples
+    var examples_list = document.getElementById('examples_list');
+    var i = 0;
+    var examples_graphs = [];
+
+    for (i=0; i<examples.length; i++) {
+      var li = document.createElement('li');
+      li.innerHTML = examples[i][0];
+      li.setAttribute('exmp_id',i);
+
+      li.onclick = function() {
+        document.getElementById('home').style.display = 'none';
+
+        var graphol = new grapholscape.GrapholScape(examples[this.getAttribute('exmp_id')][1]);
+
+        graphol.setRenderer(grapholscape_container).then(renderer => {
+          //renderer.drawDiagram(graphol.ontology.diagrams[0]);
+          // Set utility functions as globals until refactoring is completed
+          window.toggle = renderer.toggle
+          window.toggleSubRows = renderer.toggleSubRows
+          window.search = renderer.search
+        });
+
+      };
+
+      examples_list.appendChild(li);
+    }
+  </script>
+</body>
+</html>
