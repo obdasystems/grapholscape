@@ -6,9 +6,6 @@
 import GrapholscapeWidget from './grapholscape_widget'
 
 export default function createUi () {
-  const widget = document.createElement('grapholscape-widget')
-  this.container.appendChild(widget)
-
   const widget2 = new GrapholscapeWidget()
   this.container.appendChild(widget2)
 }

@@ -7,7 +7,8 @@
     "start": "watch",
     "rollup": "cross-env SOURCEMAPS=true NODE_ENV=production rollup -c",
     "watch": "run-p watch:http watch:build",
-    "watch:build": "cross-env FILE=build/grapholscape.js SOURCEMAPS=true NODE_ENV=development rollup -c -w",
+    "watch:build-old": "cross-env FILE=build/grapholscape.js SOURCEMAPS=true NODE_ENV=development rollup -c -w",
+    "watch:build": "rollup -c -w",
     "watch:http": "ws"
   },
   "repository": "https://github.com/obdasystems/grapholscape",
