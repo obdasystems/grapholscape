@@ -25,6 +25,8 @@ export class Ontology {
       predicates = predicates.union(diagram.collection.filter('.predicate'))
     })
 
+    predicates = predicates.sort((a,b) => a.data('label').localeCompare(b.data('label')))
+    
     return predicates
   }
 
