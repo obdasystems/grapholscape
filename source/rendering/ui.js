@@ -11,6 +11,12 @@ export default function createUi () {
   diagram_selector.onDiagramChange = this.drawDiagram.bind(this) 
   
   this.container.appendChild(diagram_selector)
+
+  const explorer = new GscapeExplorer(this.ontology.getPredicates(), this.ontology.diagrams)
+  //explorer.onPredicateSelect()
+  //explorer.onNodeSelect()  
+  
+  this.container.appendChild(explorer)
 }
 
 /*
