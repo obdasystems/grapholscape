@@ -3,11 +3,14 @@
  */
 
 // import { makeDraggable, toggleSubRows, toggle } from './ui_util'
-import GrapholscapeWidget from './grapholscape_widget'
+import GscapeDiagramSelector from './widgets/gscape-diagram-selector'
+import GscapeExplorer from './widgets/gscape-explorer';
 
 export default function createUi () {
-  const widget2 = new GrapholscapeWidget()
-  this.container.appendChild(widget2)
+  const diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams)
+  diagram_selector.onDiagramChange = this.drawDiagram.bind(this) 
+  
+  this.container.appendChild(diagram_selector)
 }
 
 /*

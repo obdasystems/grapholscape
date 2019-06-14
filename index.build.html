@@ -152,7 +152,7 @@
         var graphol = new grapholscape.GrapholScape(examples[this.getAttribute('exmp_id')][1]);
 
         graphol.setRenderer(grapholscape_container).then(renderer => {
-          //renderer.drawDiagram(graphol.ontology.diagrams[0]);
+          renderer.drawDiagram(graphol.ontology.diagrams[0]);
           // Set utility functions as globals until refactoring is completed
           window.toggle = renderer.toggle
           window.toggleSubRows = renderer.toggleSubRows

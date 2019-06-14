@@ -35,7 +35,6 @@ export class GrapholscapeRenderer {
     this.cy = cytoscape({
       container: cy_container,
       autoungrabify: true,
-      wheelSensitivity: 0.4,
       maxZoom: 2.5,
       minZoom: 0.02,
       style: [
@@ -355,7 +354,6 @@ export class GrapholscapeRenderer {
     }
     this.cy.fit()
     this.actual_diagram = diagram
-    document.getElementById('title').innerHTML = diagram.name
     return true
   }
 

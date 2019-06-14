@@ -35,6 +35,7 @@
     "rollup-plugin-terser": "^4.0.4"
   },
   "dependencies": {
+    "@material/mwc-icon": "^0.6.0",
     "cytoscape": "^3.6.2",
     "lit-element": "^2.1.0"
   }

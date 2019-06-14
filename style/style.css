@@ -1,3 +1,15 @@
+/* 
+--- For custom themes
+
+#grapholscape_container{
+  --theme-gscape-primary: #333;
+  --theme-gscape-secondary: #fff;
+  --theme-gscape-accent: rgb(255, 0, 140);
+  --theme-gscape-shadows: rgba(0, 0, 0, 0.2);
+}
+
+*/
+
 .material-icons.md-18 { font-size: 18px; }
 .material-icons.md-24 { font-size: 24px; }
 .material-icons.md-36 { font-size: 36px; }
