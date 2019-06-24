@@ -3,9 +3,18 @@
 
 #grapholscape_container{
   --theme-gscape-primary: #333;
-  --theme-gscape-secondary: #fff;
-  --theme-gscape-accent: rgb(255, 0, 140);
-  --theme-gscape-shadows: rgba(0, 0, 0, 0.2);
+  --theme-gscape-on-primary: #fff;
+  --theme-gscape-primary-dark: #1a1a1a;
+  --theme-gscape-on-primary-dark: #fff;
+
+  --theme-gscape-secondary: #99ddff;
+  --theme-gscape-on-secondary: #333;
+  --theme-gscape-secondary-dark: #0099e6;
+  --theme-gscape-on-secondary-dark: #fff;
+
+  --theme-gscape-shadows: rgba(255, 255, 255, 0.5);
+  --theme-gscape-error: #cc3b3b;
+  --theme-gscape-on_error: #fff;
 }
 
 */

@@ -35,6 +35,7 @@ export class GrapholscapeRenderer {
     this.cy = cytoscape({
       container: cy_container,
       autoungrabify: true,
+      wheelSensitivity: 0.4,
       maxZoom: 2.5,
       minZoom: 0.02,
       style: [
@@ -256,7 +257,8 @@ export class GrapholscapeRenderer {
         }
       }
     })
-
+    this.actual_diagram = Object()
+    console.log(this.actual_diagram)
     this.createUi()
   }
 
@@ -305,6 +307,9 @@ export class GrapholscapeRenderer {
   }
 
   showDetails (target) {
+    console.log(target)
+
+    /*
     document.getElementById('details').classList.remove('hide')
     var body_details = document.getElementById('details_body')
     body_details.innerHTML = '<table class="details_table">' +
@@ -323,6 +328,7 @@ export class GrapholscapeRenderer {
     if (target.data('description')) {
       body_details.innerHTML += '<div class="table_header"><strong>Description</strong></div><div class="descr">' + this.renderDescription(target.data('description')) + '</div>'
     }
+    */
   }
 
   toggleFullscreen (button, x, y, event) {

@@ -1,7 +1,6 @@
-import { LitElement, html, css } from 'lit-element'
+import { html, css } from 'lit-element'
 import GscapeWidget from './gscape-widget'
 import GscapeHeader from './gscape-header'
-import { theme } from './themes'
 
 export default class GscapeExplorer extends GscapeWidget{
 
@@ -15,13 +14,17 @@ export default class GscapeExplorer extends GscapeWidget{
   }
   
   static get styles() {
+    let super_styles = super.styles
+    let colors = super_styles[1]
+
     return [
-      super.styles,
+      super_styles[0],
       css`
         :host {
           left:50%;
           top:10px;
-          width:320px;
+          min-width:340px;
+          max-width:450px;
           transform: translate(-50%, 0);
         }
 
@@ -33,12 +36,12 @@ export default class GscapeExplorer extends GscapeWidget{
           line-height: 0;
           display: flex;
           align-items: center;
-          padding:2px 0;
+          padding:4px 0;
         }
 
-        .row:hover{
-          background-color: var(--theme-gscape-accent, ${theme.accent});
-          color: var(--theme-gscape-primary, ${theme.primary});
+        .row:hover, .sub-row:hover {
+          background-color: var(--theme-gscape-secondary, ${colors.secondary});
+          color: var(--theme-gscape-on-secondary, ${colors.on_secondary});
         }
 
         .row-label{
@@ -48,16 +51,15 @@ export default class GscapeExplorer extends GscapeWidget{
         }
 
         mwc-icon:hover{
-          color: var(--theme-gscape-primary, ${theme.primary});
+          color: var(--theme-gscape-primary, ${colors.primary});
           cursor:pointer;
         }
 
         .type-img{
-          display: block;
-          width: 18px;
-          height: 18px;
+          width: 20px;
+          height: 20px;
           text-align: center;
-          line-height: 18px;
+          line-height: 20px;
         }
 
         .type-img-A{
@@ -77,6 +79,49 @@ export default class GscapeExplorer extends GscapeWidget{
           color: #B08D00;
           border: solid 1px #B08D00; 
         }
+
+        .type-img-I{
+          background-color: #d3b3ef;
+          color: #9875b7;
+          border: solid 1px #9875b7; 
+        }
+
+        .sub-row{
+          background-color: var(--theme-gscape-primary-dark, ${colors.primary_dark});
+          padding: 4px 0 4px 34px;
+          cursor: pointer;
+        }
+
+        .sub-rows-wrapper{
+          padding: 2px 0;
+        }
+
+        .add-shadow{
+          box-shadow: 0 2px 2px 0 var(--theme-gscape-shadows, ${colors.shadows});
+        }
+
+        gscape-head input {
+          position:absolute;
+          left: 30%;
+          width: 50%;
+          line-height:17px;
+          box-sizing: border-box;
+          background-color: var(--theme-gscape-primary, ${colors.primary});
+          margin: auto 0;
+          padding: 2px 5px;
+          border:none;
+          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
+          float: left;
+          margin: 8px 0px;
+          transition: all .35s ease-in-out;
+        }
+
+        gscape-head input:focus {
+          border-color: var(--theme-gscape-secondary, ${colors.secondary});
+          left:0;
+          margin: 8px 10px;
+          width:80%;
+        }
       `
     ]
   }
@@ -85,13 +130,12 @@ export default class GscapeExplorer extends GscapeWidget{
     super(true, true)
     this.predicates = predicates
     this.diagrams = diagrams
+
+    this._onEntitySelect = null
+    this._onNodeSelect = null
   }
 
   render() {
-    function addSubRow(key) {
-      console.log(this.shadowRoot.querySelector('#'+key))
-    }
-
     function getTypeImg(type) {
       let letter = type.charAt(0).toUpperCase()
 
@@ -103,33 +147,53 @@ export default class GscapeExplorer extends GscapeWidget{
     let addedPredicates = []
 
     return html`
-      <gscape-head></gscape-head>
+      <gscape-head>
+        <input 
+          type="text" 
+          autocomplete="off"
+          @keyup="${this.search}"
+          placeholder="Search Entities"
+        />
+      </gscape-head>
 
       <div class="widget-body hide">
       ${this.predicates.map( predicate => {
         
         let label = predicate.data('label').replace(/\r?\n|\r/g, '')
-        let key = label.concat(predicate.data('type'))
+        let key = label.concat(predicate.data('type'))          
+        
+        if (!addedPredicates.includes(key)) {
+          addedPredicates.push(key)
+          let selector = `[label = '${predicate.data('label')}'][type = '${predicate.data('type')}']`
 
-        if (addedPredicates.includes(predicate)) {
-          console.log(key)
-        }
-        else {
-          addedPredicates.push(predicate)
-          let diagram = this.diagrams[predicate.data('diagram_id')]
-                    
           return html`
             <div>
-              <div id="${key}" class="row">
-                <span><mwc-icon>keyboard_arrow_right</mwc-icon></span>
+              <div 
+                id="${key}" 
+                class="row" 
+                type="${predicate.data('type')}"
+                label = "${predicate.data('label')}"
+              >
+                <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
                 <span>${getTypeImg(predicate.data('type'))}</span>
-                <div class="row-label">${label}</div>
+                <div class="row-label" @click='${this.handleEntitySelection}'>${label}</div>
               </div>
-              <!--
-              <div class="sub-rows-wrapper">
-                <div class="sub-row">- ${diagram.name} - ${predicate.data('id_xml')}</div>
+
+              <div class="sub-rows-wrapper hide">
+              ${this.predicates.filter(selector).map( predicate_dupli => {
+                let diagram = this.diagrams[predicate_dupli.data('diagram_id')]
+                
+                return html`
+                  <div class="sub-row" 
+                    diagram_id="${diagram.id}" 
+                    node_id="${predicate_dupli.id()}"
+                    @click="${this.handleNodeSelection}"
+                  >
+                    - ${diagram.name} - ${predicate_dupli.data('id_xml')}
+                  </div>
+                `
+              })}
               </div>
-              -->
             </div>
           `
         }
@@ -141,6 +205,65 @@ export default class GscapeExplorer extends GscapeWidget{
   firstUpdated() {
     super.firstUpdated()
     this.shadowRoot.querySelector('gscape-head').title = 'Explorer'
+  }
+
+  toggleSubRows(e) {
+    let row_wrapper = e.target.parentNode.parentNode.parentNode
+    row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('hide')
+    e.target.innerHTML = e.target.innerHTML == 'keyboard_arrow_right' ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
+
+    let row = row_wrapper.querySelector('.row')
+    row.classList.toggle('add-shadow')
+  }
+
+  search(e) {
+    let value = e.target.value.toLowerCase()
+
+    if (value === '')
+      this.collapseBody()
+    else
+      this.showBody()
+    
+    var rows = this.shadowRoot.querySelectorAll('.row')
+    
+    rows.forEach( row => {
+      if (row.id.toLowerCase().indexOf(value) > -1 ) 
+        row.style.display = ''
+      else 
+        row.style.display = 'none'
+    })
+
+    e.target.focus()
+  }
+
+  set onEntitySelect(f) {
+    this._onEntitySelect = f
+  }
+
+  set onNodeSelect(f) {
+    this._onNodeSelect = f
+  }
+
+  handleEntitySelection(e) {
+    let type = e.target.parentNode.getAttribute('type')
+    let label = e.target.parentNode.getAttribute('label')
+
+    let selector = `[label = '${label}'][type = '${type}']`
+    // get the first instance of the selected entity
+    let predicate_instance = this.predicates.filter(selector)[0]
+
+    this._onEntitySelect(predicate_instance)
+  }
+
+  handleNodeSelection(e) {
+    this.toggleBody()
+
+    let node_id = e.target.getAttribute('node_id')
+    let diagram_id = e.target.getAttribute('diagram_id')
+    let diagram = this.diagrams[diagram_id]
+
+
+    this._onNodeSelect(node_id,diagram, 1.25)
   }
 }
 

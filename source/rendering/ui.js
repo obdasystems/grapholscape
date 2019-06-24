@@ -7,15 +7,14 @@ import GscapeDiagramSelector from './widgets/gscape-diagram-selector'
 import GscapeExplorer from './widgets/gscape-explorer';
 
 export default function createUi () {
-  const diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams)
-  diagram_selector.onDiagramChange = this.drawDiagram.bind(this) 
-  
+  const diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams, this.actual_diagram)
+  diagram_selector.onDiagramChange = this.drawDiagram.bind(this)
   this.container.appendChild(diagram_selector)
 
   const explorer = new GscapeExplorer(this.ontology.getPredicates(), this.ontology.diagrams)
-  //explorer.onPredicateSelect()
-  //explorer.onNodeSelect()  
-  
+  explorer.onEntitySelect = this.showDetails.bind(this)
+  explorer.onNodeSelect = this.centerOnNode.bind(this)
+
   this.container.appendChild(explorer)
 }
 

@@ -1,38 +1,39 @@
-import { LitElement, html, css } from 'lit-element'
+import { html, css } from 'lit-element'
 import { Icon } from '@material/mwc-icon'
-import { theme } from './themes'
+import GscapeWidget from './gscape-widget';
 
-export default class GscapeHeader extends LitElement {
+export default class GscapeHeader extends GscapeWidget {
   static get properties() {
     return {
-      actual_diagram: String,
       collapsed: Boolean
     }
   }
 
   constructor() {
-    super()
+    super(false, false)
     this.title = ''
     this.collapsed = true
   }
 
   static get styles() {
+    // we don't need super.styles, just the colors from default imported theme
+    let colors = super.styles[1]
+
     return css`
       .head-btn {
         position:absolute;
-        color:var(--theme-gscape-secondary, ${theme.secondary});
+        color:var(--theme-gscape-on-primary, ${colors.on_primary});
         right:0;
         padding:6px 2px;
         cursor:pointer;
       }
 
       .head-btn:hover{
-        color:var(--theme-gscape-accent, ${theme.accent});
+        color:var(--theme-gscape-secondary, ${colors.secondary});
       }
 
-      .widget-head {
-        width:100%;
-        padding:10px 40px 10px 10px;
+      .head-title {
+        padding: 10px 40px 10px 10px ;
         box-sizing: border-box;
         float:left;
         font-weight:bold;
@@ -43,7 +44,8 @@ export default class GscapeHeader extends LitElement {
 
   render () {
     return html`
-      <div class="widget-head"> ${this.title} </div>
+      <div class="head-title"> ${this.title} </div>
+      <slot></slot>
       <mwc-icon class="head-btn" @click="${this.toggleBody}">
         ${this.collapsed?
           html`arrow_drop_down`:
