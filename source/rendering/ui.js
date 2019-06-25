@@ -8,9 +8,9 @@ import GscapeExplorer from './widgets/gscape-explorer';
 import GscapeEntityDetails from './widgets/gscape-entity-details';
 
 export default function createUi () {
-  const diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams, this.actual_diagram)
-  diagram_selector.onDiagramChange = this.drawDiagram.bind(this)
-  this.container.appendChild(diagram_selector)
+  this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams, this.actual_diagram)
+  this.diagram_selector.onDiagramChange = this.drawDiagram.bind(this)
+  this.container.appendChild(this.diagram_selector)
 
   const explorer = new GscapeExplorer(this.ontology.getPredicates(), this.ontology.diagrams)
   explorer.onEntitySelect = this.showDetails.bind(this)

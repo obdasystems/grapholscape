@@ -3,7 +3,15 @@ import GscapeHeader from './gscape-header'
 import GscapeWidget from './gscape-widget'
 
 export default class GscapeDiagramSelector extends GscapeWidget {
-   
+  static get properties() {
+    return [
+      super.properties,
+      {
+        _actual_diagram : Object,
+      }
+    ]
+  }
+
   static get styles() {
     let super_styles = super.styles
     let colors = super_styles[1]
@@ -39,16 +47,16 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     ]
   }
 
-  constructor(diagrams, actual_diagram) {
+  constructor(diagrams) {
     super(true, true)
     this.diagrams = diagrams
-    this.actual_diagram = actual_diagram
+    this._actual_diagram = null
     this._onDiagramChange = null
   }
 
   render () {
     return html`
-      <gscape-head title="Select a Diagram" collapsed="true" ></gscape-head> 
+      <gscape-head title="${this._actual_diagram? this._actual_diagram.name : html`Select a Diagram`}" collapsed="true" ></gscape-head> 
       <div class="widget-body hide">
         ${this.diagrams.map( (diagram, id) => html`
         <div 
@@ -82,6 +90,17 @@ export default class GscapeDiagramSelector extends GscapeWidget {
 
   set onDiagramChange(f) {
     this._onDiagramChange = f
+  }
+
+  set actual_diagram(diagram) {
+    let oldval = this._actual_diagram
+    this._actual_diagram = diagram
+
+    this.requestUpdate('actual_diagram', oldval)
+  }
+
+  get actual_diagram() {
+    return this._actual_diagram
   }
 }
 

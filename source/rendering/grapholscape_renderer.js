@@ -360,7 +360,10 @@ export default class GrapholscapeRenderer {
       }
     }
     this.cy.fit()
-    this.actual_diagram = diagram
+    
+    if (this.diagram_selector)
+      this.diagram_selector.actual_diagram = diagram
+
     return true
   }
 
