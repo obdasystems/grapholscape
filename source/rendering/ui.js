@@ -6,6 +6,7 @@
 import GscapeDiagramSelector from './widgets/gscape-diagram-selector'
 import GscapeExplorer from './widgets/gscape-explorer';
 import GscapeEntityDetails from './widgets/gscape-entity-details';
+import GscapeButton from './widgets/gscape-button';
 
 export default function createUi () {
   this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams, this.actual_diagram)
@@ -19,6 +20,18 @@ export default function createUi () {
 
   this.entity_details = new GscapeEntityDetails()
   this.container.appendChild(this.entity_details)
+
+  const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
+  btn_fullscreen.style.top = '10px'
+  btn_fullscreen.style.right = '10px'
+  btn_fullscreen.onClick = this.toggleFullscreen.bind(this)
+  this.container.appendChild(btn_fullscreen)
+
+  const btn_reset = new GscapeButton('filter_center_focus')
+  btn_reset.style.bottom = '10px'
+  btn_reset.style.right = '10px'
+  btn_reset.onClick = this.resetView.bind(this)
+  this.container.appendChild(btn_reset)
 }
 
 /*

@@ -348,6 +348,10 @@ export default class GrapholscapeRenderer {
       document.msFullscreenElement // IE
   }
 
+  resetView () {
+    this.cy.fit()
+  }
+
   drawDiagram (diagram) {
     this.cy.remove('*')
     this.cy.add(diagram.collection)
@@ -360,7 +364,7 @@ export default class GrapholscapeRenderer {
       }
     }
     this.cy.fit()
-    
+
     if (this.diagram_selector)
       this.diagram_selector.actual_diagram = diagram
 

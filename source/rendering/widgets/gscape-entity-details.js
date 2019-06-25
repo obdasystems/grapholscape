@@ -24,7 +24,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
       css`
         :host {
           top:10px;
-          right:10px;
+          right:62px;
           width:400px;
         }
 
