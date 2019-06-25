@@ -118,7 +118,8 @@ export class GrapholParser {
         diagram_id: diagram_id,
         id: element.getAttribute('id') + '_' + diagram_id,
         fillColor: element.getAttribute('color'),
-        type: element.getAttribute('type')
+        type: element.getAttribute('type'),
+        properties: {},
       },
       position: {},
       classes: element.getAttribute('type')
@@ -254,28 +255,29 @@ export class GrapholParser {
       var j, predicateXml
       for (j = 0; j < xmlPredicates.length; j++) {
         predicateXml = xmlPredicates[j]
-        if (label_no_break ===predicateXml.getAttribute('name') && nodo.data.type ===predicateXml.getAttribute('type')) {
+        if (label_no_break === predicateXml.getAttribute('name') && nodo.data.type ===predicateXml.getAttribute('type')) {
           nodo.data.description = predicateXml.getElementsByTagName('description')[0].textContent
-          nodo.data.description = nodo.data.description.replace(/&lt;/g, '<')
-          nodo.data.description = nodo.data.description.replace(/&gt;/g, '>')
-          nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g, '')
-          nodo.data.description = nodo.data.description.replace(/&amp;/g, '&')
-          nodo.data.description = nodo.data.description.replace(/font-size:0pt/g, 'font-size:inherit')
+          //nodo.data.description = nodo.data.description.replace(/&lt;/g, '<')
+          //nodo.data.description = nodo.data.description.replace(/&gt;/g, '>')
+          //nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g, '')
+          //nodo.data.description = nodo.data.description.replace(/&amp;/g, '&')
+          nodo.data.description = nodo.data.description.replace(/font-size:0pt/g, '')
           var start_body_index = nodo.data.description.indexOf('<p')
           var end_body_index = nodo.data.description.indexOf('</body')
+
           nodo.data.description = nodo.data.description.substring(start_body_index, end_body_index)
 
           // Impostazione delle funzionalità dei nodi di tipo role o attribute
           if (nodo.data.type ==='attribute' || nodo.data.type ==='role') {
-            nodo.data.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
+            nodo.data.properties.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
           }
 
           if (nodo.data.type ==='role') {
-            nodo.data.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
-            nodo.data.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
-            nodo.data.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
-            nodo.data.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
-            nodo.data.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
+            nodo.data.properties.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
+            nodo.data.properties.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
+            nodo.data.properties.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
+            nodo.data.properties.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
+            nodo.data.properties.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
           }
           break
         }

@@ -147,7 +147,7 @@ export default class GscapeExplorer extends GscapeWidget{
     let addedPredicates = []
 
     return html`
-      <gscape-head>
+      <gscape-head title="Explorer" collapsed="true">
         <input 
           type="text" 
           autocomplete="off"
@@ -202,11 +202,6 @@ export default class GscapeExplorer extends GscapeWidget{
     `
   }
   
-  firstUpdated() {
-    super.firstUpdated()
-    this.shadowRoot.querySelector('gscape-head').title = 'Explorer'
-  }
-
   toggleSubRows(e) {
     let row_wrapper = e.target.parentNode.parentNode.parentNode
     row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('hide')
@@ -217,6 +212,10 @@ export default class GscapeExplorer extends GscapeWidget{
   }
 
   search(e) {
+    if (e.keyCode == 27) {
+      e.target.blur()
+    }
+
     let value = e.target.value.toLowerCase()
 
     if (value === '')
@@ -261,9 +260,10 @@ export default class GscapeExplorer extends GscapeWidget{
     let node_id = e.target.getAttribute('node_id')
     let diagram_id = e.target.getAttribute('diagram_id')
     let diagram = this.diagrams[diagram_id]
-
+    let entity = diagram.collection.$id(node_id)
 
     this._onNodeSelect(node_id,diagram, 1.25)
+    this._onEntitySelect(entity)
   }
 }
 

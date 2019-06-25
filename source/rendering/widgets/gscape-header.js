@@ -5,14 +5,15 @@ import GscapeWidget from './gscape-widget';
 export default class GscapeHeader extends GscapeWidget {
   static get properties() {
     return {
-      collapsed: Boolean
+      collapsed: Boolean,
+      title: String,
     }
   }
 
   constructor() {
     super(false, false)
-    this.title = ''
-    this.collapsed = true
+    this.title = 'header'
+    this.collapsed = false
   }
 
   static get styles() {
@@ -38,6 +39,8 @@ export default class GscapeHeader extends GscapeWidget {
         float:left;
         font-weight:bold;
         cursor:grab;
+        width: var(--title-width, '');
+        text-align: var(--title-text-align, '')
       }
     `
   } 

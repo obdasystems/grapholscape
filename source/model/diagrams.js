@@ -5,11 +5,19 @@ export class Diagram {
     this.name = name
     this.id = id
     this.cy = cytoscape()
-    this.collection = this.cy.collection(elements)
+    this._collection = this.cy.collection(elements)
   }
 
   addElems (elem) {
-    this.collection = this.collection.union(this.cy.collection(elem))
+    this._collection = this.collection.union(this.cy.collection(elem))
+  }
+
+  set collection(collection) {
+    this._collection = collection
+  }
+
+  get collection() {
+    return this._collection
   }
 }
 

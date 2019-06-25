@@ -4,9 +4,7 @@ import * as theme from './themes'
 export default class GscapeWidget extends LitElement {
   static get properties() {
     if( this.collapsible ) {
-      return {
-        collapsed: Boolean,
-      }
+      return {}
     }
 
     return {}
@@ -24,6 +22,7 @@ export default class GscapeWidget extends LitElement {
         box-shadow: 0 2px 4px 0 var(--theme-gscape-shadows, ${colors.shadows});
         border-radius: 8px;
         transition: opacity 0.2s;
+        scrollbar-width: thin;
       }
 
       :host(:hover){
@@ -41,7 +40,31 @@ export default class GscapeWidget extends LitElement {
         border-top:solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         border-bottom-left-radius: inherit;
         border-bottom-right-radius: inherit;
+        overflow:auto;
+        scrollbar-width: inherit;
       }
+
+      /* width */
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+
+      /* Track */
+      ::-webkit-scrollbar-track {
+        background: #f0f0f0; 
+      }
+      
+      /* Handle */
+      ::-webkit-scrollbar-thumb {
+        background: #cdcdcd; 
+      }
+
+      /* Handle on hover */
+      ::-webkit-scrollbar-thumb:hover {
+        background: #888; 
+      }
+      
     `], colors]
   }
 
@@ -69,8 +92,10 @@ export default class GscapeWidget extends LitElement {
   }
 
   collapseBody() {
-    this.shadowRoot.querySelector('gscape-head').collapsed = true
-    this.shadowRoot.querySelector('.widget-body').classList.add('hide')
+    if (this.collapsible) {
+      this.shadowRoot.querySelector('gscape-head').collapsed = true
+      this.shadowRoot.querySelector('.widget-body').classList.add('hide')
+    }
   }
 
   showBody() {
@@ -125,6 +150,14 @@ export default class GscapeWidget extends LitElement {
       document.onmouseup = null
       document.onmousemove = null
     }
+  }
+
+  show() {
+    this.classList.remove('hide')
+  }
+
+  hide() {
+    this.classList.add('hide')
   }
 }
 

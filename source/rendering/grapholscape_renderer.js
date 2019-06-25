@@ -3,7 +3,7 @@ import createUi from './ui'
 import { toggle, search, toggleSubRows } from './ui_util'
 import { nodeToOwlString, edgeToOwlString } from './owl'
 
-export class GrapholscapeRenderer {
+export default class GrapholscapeRenderer {
   constructor (container, ontology) {
     // container chosen by the user
     this.container = container
@@ -307,8 +307,9 @@ export class GrapholscapeRenderer {
   }
 
   showDetails (target) {
-    console.log(target)
-
+    this.entity_details.entity = target.json()
+    this.entity_details.show()
+    
     /*
     document.getElementById('details').classList.remove('hide')
     var body_details = document.getElementById('details_body')
@@ -456,6 +457,4 @@ export class GrapholscapeRenderer {
   }
 }
 
-Object.assign(GrapholscapeRenderer.prototype, { createUi, nodeToOwlString, edgeToOwlString, toggle, toggleSubRows, search })
-
-export default GrapholscapeRenderer
+Object.assign(GrapholscapeRenderer.prototype, { createUi, nodeToOwlString, edgeToOwlString })

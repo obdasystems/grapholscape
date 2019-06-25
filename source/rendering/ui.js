@@ -5,6 +5,7 @@
 // import { makeDraggable, toggleSubRows, toggle } from './ui_util'
 import GscapeDiagramSelector from './widgets/gscape-diagram-selector'
 import GscapeExplorer from './widgets/gscape-explorer';
+import GscapeEntityDetails from './widgets/gscape-entity-details';
 
 export default function createUi () {
   const diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams, this.actual_diagram)
@@ -14,8 +15,10 @@ export default function createUi () {
   const explorer = new GscapeExplorer(this.ontology.getPredicates(), this.ontology.diagrams)
   explorer.onEntitySelect = this.showDetails.bind(this)
   explorer.onNodeSelect = this.centerOnNode.bind(this)
-
   this.container.appendChild(explorer)
+
+  this.entity_details = new GscapeEntityDetails()
+  this.container.appendChild(this.entity_details)
 }
 
 /*

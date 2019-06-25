@@ -48,7 +48,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
 
   render () {
     return html`
-      <gscape-head></gscape-head> 
+      <gscape-head title="Select a Diagram" collapsed="true" ></gscape-head> 
       <div class="widget-body hide">
         ${this.diagrams.map( (diagram, id) => html`
         <div 
@@ -77,7 +77,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
 
   firstUpdated() {
     super.firstUpdated()
-    this.shadowRoot.querySelector('gscape-head').title = this.actual_diagram.name || 'Select a Diagram'
+    //this.shadowRoot.querySelector('gscape-head').title = this.actual_diagram.name
   }
 
   set onDiagramChange(f) {
