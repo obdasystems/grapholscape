@@ -119,7 +119,6 @@ export class GrapholParser {
         id: element.getAttribute('id') + '_' + diagram_id,
         fillColor: element.getAttribute('color'),
         type: element.getAttribute('type'),
-        properties: {},
       },
       position: {},
       classes: element.getAttribute('type')
@@ -269,15 +268,16 @@ export class GrapholParser {
 
           // Impostazione delle funzionalità dei nodi di tipo role o attribute
           if (nodo.data.type ==='attribute' || nodo.data.type ==='role') {
-            nodo.data.properties.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
+            nodo.data.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
           }
 
           if (nodo.data.type ==='role') {
-            nodo.data.properties.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
-            nodo.data.properties.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
-            nodo.data.properties.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
-            nodo.data.properties.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
-            nodo.data.properties.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
+            nodo.data.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
+            nodo.data.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
+            nodo.data.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
+            nodo.data.reflexive = parseInt(predicateXml.getElementsByTagName('reflexive')[0].textContent)
+            nodo.data.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
+            nodo.data.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
           }
           break
         }

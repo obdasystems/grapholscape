@@ -114,6 +114,7 @@ export default class GscapeExplorer extends GscapeWidget{
           float: left;
           margin: 8px 0px;
           transition: all .35s ease-in-out;
+          color:inherit;
         }
 
         gscape-head input:focus {

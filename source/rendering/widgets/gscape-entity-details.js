@@ -28,14 +28,19 @@ export default class GscapeEntityDetails extends GscapeWidget {
           width:400px;
         }
 
-        .details_table {
-          padding:2px;
+        .widget-body div:last-of-type {
+          margin-bottom: 12px;
+        }
+
+        .details_table, .chips-wrapper {
+          padding: 12px 6px 0 6px;
           border-spacing: 0;
         }
+
         .details_table th {
-          color:rgb(81,149,199);
+          color: var(--theme-gscape-secondary, ${colors.secondary});
           border-right: solid 2px #ddd;
-          font-size:110%;
+          font-weight: bold;
           text-align:left;
         }
         
@@ -44,21 +49,14 @@ export default class GscapeEntityDetails extends GscapeWidget {
           white-space: nowrap;
         }
 
-        .checkmark {
-          color: var(--theme-gscape-secondary, ${colors.secondary});
-          font-size:20px;
-          margin:10px;
-          position:relative;
-          top:2px;
-        }
-
         .descr-header {
           text-align: center;
-          margin: 10px 2px 0 2px;
-          padding: 10px 5px;
+          padding: 12px;
           font-weight: bold;
-          border-bottom: solid 2px var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
           color: var(--theme-gscape-secondary, ${colors.secondary});
+          width: 85%;
+          margin: auto;
         }
 
         .descr-text{
@@ -69,6 +67,16 @@ export default class GscapeEntityDetails extends GscapeWidget {
           --title-text-align: center;
           --title-width: 100%;
         }
+
+        .chip {
+          display: inline-block;
+          margin: 4px;
+          padding: 3px 8px;
+          border-radius: 32px;
+          border: 1px solid var(--theme-gscape-secondary, ${colors.secondary});
+          color: var(--theme-gscape-secondary, ${colors.secondary});
+          font-size: 13px;
+        }
       `
     ]
   }
@@ -77,6 +85,15 @@ export default class GscapeEntityDetails extends GscapeWidget {
     super(true,true)
 
     this._entity = null
+    this.properties = {
+      functional : 'Functional',
+      inverseFunctional : 'Inverse Functional',
+      symmetric : 'Symmetric',
+      asymmetric: 'Asymmetric',
+      reflexive : 'Reflexive',
+      irreflexive : 'Irreflexive',
+      transitive : 'Transitive',
+    }
   }
 
   render() {
@@ -101,16 +118,13 @@ export default class GscapeEntityDetails extends GscapeWidget {
               </tr>
             </table>
 
-            ${Object.keys(this.entity.data.properties).map(property => {
-              this.entity.data.properties[property]?
-                html`
-                  <div>
-                    <span class="checkmark">&#9745;</span>
-                    <span>${property}</span>
-                  </div>
-                `
-              : html``
-            })}
+            <div class="chips-wrapper">
+              ${Object.keys(this.properties).map(property => {
+                return this.entity.data[property]?
+                  html`<span class="chip">&#10003; ${this.properties[property]}</span>`
+                : html``
+              })}
+            </div>
 
             ${this.entity.data.description? 
               html`
