@@ -471,15 +471,17 @@ export class GrapholParser {
         data: {
           height: nodo.data.height,
           width: nodo.data.width,
-          fillColor: '#000',
+          fillColor: "#000",
           shape: 'polygon',
           shape_points: '0 -1 1 0 0 1',
-          diagram_id: nodo.data.diagram_id
+          diagram_id: nodo.data.diagram_id,
+          type: nodo.data.type,
         },
         position: {
           x: nodo.position.x,
-          y: nodo.position.y
-        }
+          y: nodo.position.y,
+        },
+        classes: 'fake-triangle fake-triangle-right'
       }
       var triangle_left = {
         selectable: false,
@@ -489,12 +491,14 @@ export class GrapholParser {
           fillColor: '#fcfcfc',
           shape: 'polygon',
           shape_points: '0 -1 -1 0 0 1',
-          diagram_id: nodo.data.diagram_id
+          diagram_id: nodo.data.diagram_id,
+          type: nodo.data.type,
         },
         position: {
           x: nodo.position.x,
           y: nodo.position.y
-        }
+        },
+        classes: 'fake-triangle'
       }
       var old_labelXpos = nodo.data.labelXpos
       var old_labelYpos = nodo.data.labelYpos

@@ -2,14 +2,13 @@
  * DRAFT - To be refactored
  */
 
-// import { makeDraggable, toggleSubRows, toggle } from './ui_util'
 import GscapeDiagramSelector from './widgets/gscape-diagram-selector'
 import GscapeExplorer from './widgets/gscape-explorer';
 import GscapeEntityDetails from './widgets/gscape-entity-details';
 import GscapeButton from './widgets/gscape-button';
 
 export default function createUi () {
-  this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams, this.actual_diagram)
+  this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams)
   this.diagram_selector.onDiagramChange = this.drawDiagram.bind(this)
   this.container.appendChild(this.diagram_selector)
 

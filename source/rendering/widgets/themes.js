@@ -16,7 +16,25 @@ export const gscape = {
   // misc
   shadows: css`rgba(0,0,0,0.2)`,
   error: css`#cc3b3b`,
-  on_error: css`#fff`, 
+  on_error: css`#fff`,
+  
+  graph_background: css`#fff`,
+  graph_edge: css`#000`,
+  graph_node_light_bg: css`#fcfcfc`,
+  graph_node_dark_bg: css`#000`,
+  graph_node_border: css`#000`,
+
+  graph_role: css`#AACDE1`,
+  graph_role_dark: css`#065A85`,
+
+  graph_attribute: css`#C7DAAD`,
+  graph_attribute_dark: css`#4B7900`,
+
+  graph_concept: css`#F9F3A6`,
+  graph_concept_dark: css`#B08D00`,
+
+  graph_individual: css`#d3b3ef`,
+  graph_individual_dark: css`#9875b7`,
 }
 
 export const dark = {

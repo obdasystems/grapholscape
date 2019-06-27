@@ -63,7 +63,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
           @click="${this.changeDiagram}" 
           name="${diagram.name}" 
           diagram-id="${id}" 
-          class="diagram-item ${id == 0 ? `selected`:``}"
+          class="diagram-item ${Object.is(diagram, this._actual_diagram) ? `selected`:``}"
         >
           ${diagram.name}
         </div>
