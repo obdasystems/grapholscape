@@ -6,6 +6,7 @@ import GscapeDiagramSelector from './widgets/gscape-diagram-selector'
 import GscapeExplorer from './widgets/gscape-explorer';
 import GscapeEntityDetails from './widgets/gscape-entity-details';
 import GscapeButton from './widgets/gscape-button';
+import GscapeFilters from './widgets/gscape-filters';
 
 export default function createUi () {
   this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams)
@@ -31,6 +32,12 @@ export default function createUi () {
   btn_reset.style.right = '10px'
   btn_reset.onClick = this.resetView.bind(this)
   this.container.appendChild(btn_reset)
+
+  this.filters_widget = new GscapeFilters(this.filters)
+  this.filters_widget.onFilterOn = this.filter.bind(this)
+  this.filters_widget.onFilterOff = this.unfilter.bind(this)
+
+  this.container.appendChild(this.filters_widget)
 }
 
 /*

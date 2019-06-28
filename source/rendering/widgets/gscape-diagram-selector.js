@@ -56,7 +56,9 @@ export default class GscapeDiagramSelector extends GscapeWidget {
 
   render () {
     return html`
-      <gscape-head title="${this._actual_diagram? this._actual_diagram.name : html`Select a Diagram`}" collapsed="true" ></gscape-head> 
+      <gscape-head title="${this._actual_diagram? this._actual_diagram.name : html`Select a Diagram`}" 
+        collapsed="true" class="drag-handler"></gscape-head> 
+
       <div class="widget-body hide">
         ${this.diagrams.map( (diagram, id) => html`
         <div 

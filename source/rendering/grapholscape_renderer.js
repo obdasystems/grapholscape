@@ -10,6 +10,50 @@ export default class GrapholscapeRenderer {
     this.container = container
     this.ontology = ontology
 
+    this.filters = {
+      all: {
+        type: 'all',
+        label: 'Filter All',
+        active: false,
+        disabled: true,
+      },
+      attributes: {
+        type: 'attribute',
+        label: 'Attributes',
+        active: false,
+        disabled: false,
+        class: 'filterattributes',
+      },
+      value_domain: {
+        type: 'value-domain',
+        label: 'Value Domain',
+        active: false,
+        disabled: false,
+        class: 'valuedomains'
+      },
+      individuals: {
+        type: 'individual',
+        label: 'Individuals',
+        active: false,
+        disabled: false,
+        class: 'filterindividuals'
+      },
+      universal_quantifier: {
+        type: 'forAll',
+        label: 'Universal Quantifier',
+        active: false,
+        disabled: false,
+        class: 'filterforall'
+      },
+      not: {
+        type: 'complement',
+        label: 'Not',
+        active: false,
+        disabled: false,
+        class: 'filtercomplements'
+      },
+    }
+
     this.container = container
     this.container.style.fontSize = '14px'
     this.container.style.color = '#666'
@@ -128,10 +172,12 @@ export default class GrapholscapeRenderer {
     })
   }
 
+  /*
   renderDescription (description) {
     return description.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')
   }
-
+  */
+ 
   showDetails (target) {
     this.entity_details.entity = target.json()
     this.entity_details.show()
@@ -197,6 +243,7 @@ export default class GrapholscapeRenderer {
     return true
   }
 
+/*
   filter (checkbox_id) {
     var eles, type
     var this_graph = this
@@ -287,6 +334,70 @@ export default class GrapholscapeRenderer {
         }
       })
     }
+  }
+*/
+
+  filter(key) {
+    let selector = ``
+    let that = this
+
+    if (this.filters[key].type === 'forAll') {
+      selector = `:visible[type $= "-restriction"][label = "forall"], .${this.filters[key].class}`
+    } else {
+      selector = `:visible[type = "${this.filters[key].type}"], .${this.filters[key].class}`
+    }
+
+    this.cy.$(selector).forEach( element => {
+      filterElem(element, this.filters[key].class)
+    })
+
+    function filterElem (element, filter_class) {
+      element.addClass('filtered '+filter_class)
+      // Filter fake nodes!
+      that.cy.nodes(`[parent_node_id = "${element.id()}"]`).addClass('filtered '+filter_class)
+      // ARCHI IN USCITA
+      var selector = `[source = "${element.data('id')}"]`
+      element.connectedEdges(selector).forEach( e => {
+        // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+        var sel2 = `edge:visible[source = "${e.target().id()}"]`
+        var sel3 = `edge:visible[target = "${e.target().id()}"][type != "input"]`
+        var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size()
+        if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') === 'input')) {
+          filterElem(e.target(), filter_class)
+        }
+      })
+
+      // ARCHI IN ENTRATA
+      selector = `[target ="${element.data('id')}"]`
+      element.connectedEdges(selector).forEach(e => {
+        // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+        var sel2 = `edge:visible[source = "${e.source().id()}"]`
+        var sel3 = `edge:visible[target = "${e.source().id()}"][type != "input"]`
+        var number_edges_in_out = e.source().connectedEdges(sel2).size() + e.source().connectedEdges(sel3).size()
+        if (!e.source().hasClass('filtered') && number_edges_in_out === 0) {
+          filterElem(e.source(), filter_class)
+        }
+      })
+    }
+
+  }
+
+  unfilter(key) {
+    let filter_class = this.filters[key].class
+    let selector = `` 
+    if (this.filters[key].type === 'forAll') {
+      selector = `:visible[type $= "-restriction"][label = "forall"], .${this.filters[key].class}`
+    } else {
+      selector = `:visible[type = "${this.filters[key].type}"], .${this.filters[key].class}`
+    }
+    
+    this.cy.$(selector).removeClass('filtered')
+    this.cy.$(selector).removeClass(filter_class)
+    // Re-Apply other active filters to resolve ambiguity
+    Object.keys(this.filters).map(key => {
+      if (this.filters[key].active)
+        this.filter(key)
+    })
   }
 
   setTheme (theme) {

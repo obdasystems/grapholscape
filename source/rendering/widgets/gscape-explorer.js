@@ -63,27 +63,27 @@ export default class GscapeExplorer extends GscapeWidget{
         }
 
         .type-img-A{
-          background-color: #C7DAAD;
-          color: #4B7900;
-          border: solid 1px #4B7900;
+          background-color: var(--theme-graph-attribute, ${colors.graph_attribute});
+          color: var(--theme-graph-attribute-dark, ${colors.graph_attribute_dark});
+          border: solid 1px var(--theme-graph-attribute-dark, ${colors.graph_attribute_dark});
         }
 
         .type-img-R{
-          background-color: #AACDE1;
-          color: #065A85;
-          border: solid 1px #065A85; 
+          background-color: var(--theme-graph-role, ${colors.graph_role});
+          color: var(--theme-graph-role-dark, ${colors.graph_role_dark});
+          border: solid 1px var(--theme-graph-role-dark, ${colors.graph_role_dark}); 
         }
         
         .type-img-C{
-          background-color: #F9F3A6;
-          color: #B08D00;
-          border: solid 1px #B08D00; 
+          background-color: var(--theme-graph-concept, ${colors.graph_concept});
+          color: var(--theme-graph-concept-dark, ${colors.graph_concept_dark});
+          border: solid 1px var(--theme-graph-concept-dark, ${colors.graph_concept_dark}); 
         }
 
         .type-img-I{
-          background-color: #d3b3ef;
-          color: #9875b7;
-          border: solid 1px #9875b7; 
+          background-color: var(--theme-graph-individual, ${colors.graph_individual});
+          color: var(--theme-graph-individual-dark, ${colors.graph_individual_dark});
+          border: solid 1px var(--theme-graph-individual-dark, ${colors.graph_individual_dark}); 
         }
 
         .sub-row{
@@ -148,7 +148,7 @@ export default class GscapeExplorer extends GscapeWidget{
     let addedPredicates = []
 
     return html`
-      <gscape-head title="Explorer" collapsed="true">
+      <gscape-head title="Explorer" collapsed="true" class="drag-handler">
         <input 
           type="text" 
           autocomplete="off"

@@ -33,8 +33,8 @@ export default class GscapeButton extends GscapeWidget {
     ]
   }
 
-  constructor(icon, alt_icon, draggable=false, collapsible=false) {
-    super(draggable, collapsible)
+  constructor(icon, alt_icon, draggable=false) {
+    super(draggable, false)
 
     this._icon = icon
     this._alternate_icon = alt_icon || icon
@@ -67,11 +67,7 @@ export default class GscapeButton extends GscapeWidget {
 
   clickHandler() {
     this.toggleIcon()
-
-    if (this.collapsible)
-      this.toggleBody()
-    else
-      this._onClick()
+    this._onClick()
   }
 
   toggleIcon() {

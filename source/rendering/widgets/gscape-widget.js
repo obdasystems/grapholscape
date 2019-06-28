@@ -14,7 +14,7 @@ export default class GscapeWidget extends LitElement {
     let colors = theme.gscape
 
     return [[css`
-      :host{
+      :host, .gscape-panel{
         display: block;
         position: absolute;
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
@@ -42,6 +42,26 @@ export default class GscapeWidget extends LitElement {
         border-bottom-right-radius: inherit;
         overflow:auto;
         scrollbar-width: inherit;
+      }
+
+      .gscape-panel {
+        position: absolute;
+        bottom: 40px;
+        width: auto;
+        padding:10px;
+        overflow: unset;
+        border: none;
+      }
+
+      .gscape-panel::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 16px;
+        margin-left: -8px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: #ddd transparent transparent transparent;
       }
 
       /* width */
@@ -73,7 +93,7 @@ export default class GscapeWidget extends LitElement {
     this.draggable = draggable
     this.collapsible = collapsible
 
-    if (collapsible)
+    if (collapsible) 
       this.collapsed = true
 
     this.onselectstart = () => { false }
@@ -85,27 +105,40 @@ export default class GscapeWidget extends LitElement {
 
   toggleBody() {
     if (this.collapsible) {
-      let collapsed = this.shadowRoot.querySelector('gscape-head').collapsed
-      this.shadowRoot.querySelector('gscape-head').collapsed = !collapsed 
-      this.shadowRoot.querySelector('.widget-body').classList.toggle('hide')
+      if (this.header) {
+        let collapsed = this.header.collapsed
+        this.header.collapsed = !collapsed
+      }
+
+      if (this.body)
+        this.body.classList.toggle('hide')
     }
   }
 
   collapseBody() {
     if (this.collapsible) {
-      this.shadowRoot.querySelector('gscape-head').collapsed = true
-      this.shadowRoot.querySelector('.widget-body').classList.add('hide')
+      if (this.header)
+        this.header.collapsed = true
+      
+      if (this.body)
+        this.body.classList.add('hide')
     }
   }
 
   showBody() {
     if(this.collapsible) {
-      this.shadowRoot.querySelector('gscape-head').collapsed = false
-      this.shadowRoot.querySelector('.widget-body').classList.remove('hide')
+      if (this.header)
+        this.header.collapsed = false
+      
+      if (this.body)
+        this.body.classList.remove('hide')
     }
   }
 
   firstUpdated() {
+    this.header = this.shadowRoot.querySelector('gscape-head')
+    this.body = this.shadowRoot.querySelector('.widget-body')
+
     if (this.collapsible) {
       this.addEventListener('toggle-widget-body', this.toggleBody)
     }
@@ -120,8 +153,13 @@ export default class GscapeWidget extends LitElement {
     let pos3 = 0
     let pos4 = 0
     
-    this.shadowRoot.querySelector('gscape-head').onmousedown = dragMouseDown
     const elmnt = this
+    let drag_handler = this.shadowRoot.querySelector('.drag-handler')
+
+    if (drag_handler)
+      drag_handler.onmousedown = dragMouseDown
+    else
+      console.log(`No .drag-handler elem for a ${this.constructor.name} draggable instance`)
 
     function dragMouseDown(e) {
       e = e || window.event
