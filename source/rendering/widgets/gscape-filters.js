@@ -188,15 +188,33 @@ export default class GscapeFilters extends GscapeWidget {
     if (e.target.id == 'all') {
       Object.keys(this.filters).map(key => {
         if ( key != 'all') { 
+          let toggle = this.shadowRoot.querySelector(`#${key}`)
+
           this.filters[key].active = this.filters.all.active
-          this.filters[key].disabled = this.filters.all.active 
+
+          /**
+           * 'value_domain' filter must be disabled when we apply all filters together
+           * because we don't want the user to be able to activate it when 'attributes_filter' 
+           * is still off
+           */
+          if (key == 'value_domain')
+            this.filters[key].disabled = this.filters.all.active
+
+          // force toggle to change its visual state
+          toggle.checked = !this.filters[key].active
+
+          this.filters[key].active ? this.onFilterOn(key) : this.onFilterOff(key)
         }
       })
     } else {
       // if one filter get deactivated while the 'all' filter is active
       // then make the 'all' toggle deactivated
       if (!this.filters[e.target.id].active && this.filters.all.active) {
-        //this.filters.all.active = true
+        this.filters.all.active = false
+
+        // force toggle to change its visual state
+        let toggle = this.shadowRoot.querySelector('#all')
+        toggle.checked = false
       }
 
       this.filters[e.target.id].active ? this.onFilterOn(e.target.id) : this.onFilterOff(e.target.id)

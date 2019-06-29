@@ -99,10 +99,9 @@ export default class GscapeEntityDetails extends GscapeWidget {
   render() {
     return html`
       <gscape-head title="Entity Details" class="drag-handler"></gscape-head>
-
-      ${this.entity?
-        html`
-          <div class="widget-body">
+      <div class="widget-body">
+        ${this.entity?
+          html`
             <table class="details_table">
               <tr>
                 <th>Name</th>
@@ -136,10 +135,10 @@ export default class GscapeEntityDetails extends GscapeWidget {
               `
             : html``
             }
-          </div>
-        `
-      : html``
-      }
+          `
+        : html``
+        }
+      </div>
     `
   }
 

@@ -15,7 +15,7 @@ export default class GrapholscapeRenderer {
         type: 'all',
         label: 'Filter All',
         active: false,
-        disabled: true,
+        disabled: false,
       },
       attributes: {
         type: 'attribute',
@@ -228,13 +228,11 @@ export default class GrapholscapeRenderer {
     this.cy.remove('*')
     this.cy.add(diagram.collection)
     // check if any filter is active and if yes, apply them to the "actual diagram"
-    var filter_options = document.getElementsByClassName('filtr_option')
-    var i
-    for (i = 0; i < filter_options.length; i++) {
-      if (!filter_options[i].firstElementChild.firstElementChild.checked) {
-        this.filter(filter_options[i].firstElementChild.firstElementChild.id)
-      }
-    }
+    Object.keys(this.filters).map(key => {
+      if (this.filters[key].active)
+        this.filter(key)
+    })
+
     this.cy.fit()
 
     if (this.diagram_selector)
