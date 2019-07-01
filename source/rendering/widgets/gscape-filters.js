@@ -39,12 +39,6 @@ export default class GscapeFilters extends GscapeWidget {
           position: static;
         }
 
-        .panel-title{
-          font-weight: bold;
-          text-align: center;
-          margin-bottom: 10px;
-        }
-
         .filter-entry {
           white-space: nowrap;
           padding: 6px;
@@ -135,7 +129,7 @@ export default class GscapeFilters extends GscapeWidget {
       ${this.btn}
       
       <div class="widget-body hide gscape-panel">
-        <div class="panel-title">Filters</div>
+        <div class="gscape-panel-title">Filters</div>
 
         <div class="filters-wrapper">
           ${Object.keys(this.filters).map(key => {

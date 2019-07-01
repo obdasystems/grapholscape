@@ -32,21 +32,9 @@ export default class GscapeEntityDetails extends GscapeWidget {
           margin-bottom: 12px;
         }
 
-        .details_table, .chips-wrapper {
+        .chips-wrapper {
           padding: 12px 6px 0 6px;
           border-spacing: 0;
-        }
-
-        .details_table th {
-          color: var(--theme-gscape-secondary, ${colors.secondary});
-          border-right: solid 2px #ddd;
-          font-weight: bold;
-          text-align:left;
-        }
-        
-        .details_table th, td {
-          padding:5px 8px;
-          white-space: nowrap;
         }
 
         .descr-header {

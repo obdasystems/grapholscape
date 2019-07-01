@@ -7,6 +7,7 @@ import GscapeExplorer from './widgets/gscape-explorer';
 import GscapeEntityDetails from './widgets/gscape-entity-details';
 import GscapeButton from './widgets/gscape-button';
 import GscapeFilters from './widgets/gscape-filters';
+import GscapeOntologyInfo from './widgets/gscape-ontology-info';
 
 export default function createUi () {
   this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams)
@@ -36,8 +37,10 @@ export default function createUi () {
   this.filters_widget = new GscapeFilters(this.filters)
   this.filters_widget.onFilterOn = this.filter.bind(this)
   this.filters_widget.onFilterOff = this.unfilter.bind(this)
-
   this.container.appendChild(this.filters_widget)
+
+  const ontology_info = new GscapeOntologyInfo(this.ontology)
+  this.container.appendChild(ontology_info)
 }
 
 /*

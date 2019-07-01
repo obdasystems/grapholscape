@@ -64,6 +64,29 @@ export default class GscapeWidget extends LitElement {
         border-color: #ddd transparent transparent transparent;
       }
 
+      .gscape-panel-title{
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .details_table{
+        padding: 12px 6px 0 6px;
+        border-spacing: 0;
+      }
+
+      .details_table th {
+        color: var(--theme-gscape-secondary, ${colors.secondary});
+        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        font-weight: bold;
+        text-align:left;
+      }
+      
+      .details_table th, td {
+        padding:5px 8px;
+        white-space: nowrap;
+      }
+
       /* width */
       ::-webkit-scrollbar {
         width: 5px;
