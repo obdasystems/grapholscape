@@ -168,6 +168,10 @@ export default class GscapeEntityDetails extends GscapeWidget {
     super.firstUpdated()
     this.classList.add('hide')
   }
+
+  blur() {
+    this.hide()
+  }
 }
 
 customElements.define('gscape-entity-details', GscapeEntityDetails)

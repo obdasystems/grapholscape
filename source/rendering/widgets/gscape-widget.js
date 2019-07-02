@@ -220,6 +220,10 @@ export default class GscapeWidget extends LitElement {
   hide() {
     this.classList.add('hide')
   }
+
+  blur() {
+    this.collapseBody()
+  }
 }
 
 //customElements.define('gscape-widget', GscapeWidget)

@@ -8,39 +8,54 @@ import GscapeEntityDetails from './widgets/gscape-entity-details';
 import GscapeButton from './widgets/gscape-button';
 import GscapeFilters from './widgets/gscape-filters';
 import GscapeOntologyInfo from './widgets/gscape-ontology-info';
+import GscapeOwlTranslator from './widgets/gscape-owl-translator';
 
 export default function createUi () {
+  this.widgets = new Set()
+
   this.diagram_selector = new GscapeDiagramSelector(this.ontology.diagrams)
   this.diagram_selector.onDiagramChange = this.drawDiagram.bind(this)
   this.container.appendChild(this.diagram_selector)
+  this.widgets.add(this.diagram_selector)
 
   const explorer = new GscapeExplorer(this.ontology.getPredicates(), this.ontology.diagrams)
   explorer.onEntitySelect = this.showDetails.bind(this)
   explorer.onNodeSelect = this.centerOnNode.bind(this)
   this.container.appendChild(explorer)
+  this.widgets.add(explorer)
 
   this.entity_details = new GscapeEntityDetails()
   this.container.appendChild(this.entity_details)
+  this.widgets.add(this.entity_details)
 
   const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
   btn_fullscreen.style.top = '10px'
   btn_fullscreen.style.right = '10px'
   btn_fullscreen.onClick = this.toggleFullscreen.bind(this)
   this.container.appendChild(btn_fullscreen)
+  this.widgets.add(btn_fullscreen)
 
   const btn_reset = new GscapeButton('filter_center_focus')
   btn_reset.style.bottom = '10px'
   btn_reset.style.right = '10px'
   btn_reset.onClick = this.resetView.bind(this)
   this.container.appendChild(btn_reset)
+  this.widgets.add(btn_reset)
 
   this.filters_widget = new GscapeFilters(this.filters)
   this.filters_widget.onFilterOn = this.filter.bind(this)
   this.filters_widget.onFilterOff = this.unfilter.bind(this)
   this.container.appendChild(this.filters_widget)
+  this.widgets.add(this.filters_widget)
 
   const ontology_info = new GscapeOntologyInfo(this.ontology)
   this.container.appendChild(ontology_info)
+  this.widgets.add(ontology_info)
+
+  this.owl_translator = new GscapeOwlTranslator()
+  this.container.appendChild(this.owl_translator)
+  this.widgets.add(this.owl_translator)
+
 }
 
 /*

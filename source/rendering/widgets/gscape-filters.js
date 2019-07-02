@@ -218,10 +218,6 @@ export default class GscapeFilters extends GscapeWidget {
     this.requestUpdate()
   }
 
-  updated() {
-    //console.log(this.shadowRoot.querySelector('#all').checked)
-    //onsole.log(this.filters['all'].active) 
-  }
 }
 
 

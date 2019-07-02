@@ -266,6 +266,11 @@ export default class GscapeExplorer extends GscapeWidget{
     this._onNodeSelect(node_id,diagram, 1.25)
     this._onEntitySelect(entity)
   }
+
+  blur() {
+    super.blur()
+    this.shadowRoot.querySelector('input').blur()
+  }
 }
 
 customElements.define('gscape-explorer', GscapeExplorer)
