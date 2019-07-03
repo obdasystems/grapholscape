@@ -63,27 +63,27 @@ export default class GscapeExplorer extends GscapeWidget{
         }
 
         .type-img-A{
-          background-color: var(--theme-graph-attribute, ${colors.graph_attribute});
-          color: var(--theme-graph-attribute-dark, ${colors.graph_attribute_dark});
-          border: solid 1px var(--theme-graph-attribute-dark, ${colors.graph_attribute_dark});
+          background-color: var(--theme-graph-attribute, ${colors.attribute});
+          color: var(--theme-graph-attribute-dark, ${colors.attribute_dark});
+          border: solid 1px var(--theme-graph-attribute-dark, ${colors.attribute_dark});
         }
 
         .type-img-R{
-          background-color: var(--theme-graph-role, ${colors.graph_role});
-          color: var(--theme-graph-role-dark, ${colors.graph_role_dark});
-          border: solid 1px var(--theme-graph-role-dark, ${colors.graph_role_dark}); 
+          background-color: var(--theme-graph-role, ${colors.role});
+          color: var(--theme-graph-role-dark, ${colors.role_dark});
+          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark}); 
         }
         
         .type-img-C{
-          background-color: var(--theme-graph-concept, ${colors.graph_concept});
-          color: var(--theme-graph-concept-dark, ${colors.graph_concept_dark});
-          border: solid 1px var(--theme-graph-concept-dark, ${colors.graph_concept_dark}); 
+          background-color: var(--theme-graph-concept, ${colors.concept});
+          color: var(--theme-graph-concept-dark, ${colors.concept_dark});
+          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark}); 
         }
 
         .type-img-I{
-          background-color: var(--theme-graph-individual, ${colors.graph_individual});
-          color: var(--theme-graph-individual-dark, ${colors.graph_individual_dark});
-          border: solid 1px var(--theme-graph-individual-dark, ${colors.graph_individual_dark}); 
+          background-color: var(--theme-graph-individual, ${colors.individual});
+          color: var(--theme-graph-individual-dark, ${colors.individual_dark});
+          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark}); 
         }
 
         .sub-row{

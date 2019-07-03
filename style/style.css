@@ -16,26 +16,34 @@
   --theme-gscape-error: #cc3b3b;
   --theme-gscape-on_error: #fff;
 
-  --theme-graph-background: #fff;
-  --theme-graph-edges: #000;
-  --theme-graph-node-light-bg: #fcfcfc;
-  --theme-graph-node-dark-bg: #000;
-  --theme-graph-node-border: #000;
+  --theme-gscape-background: #fff;
+  --theme-gscape-edges: #000;
+  --theme-gscape-node-bg: #fcfcfc;
+  --theme-gscape-node-bg-contrast: #000;
+  --theme-gscape-node-border: #000;
+  --theme-gscape-label-color:  #000;
 
-  --theme-graph-role: #AACDE1;
-  --theme-graph-role-dark: #065A85;
+  --theme-gscape-role: #AACDE1;
+  --theme-gscape-role-dark: #065A85;
 
-  --theme-graph-attribute: #C7DAAD;
-  --theme-graph-attribute-dark: #4B7900;
+  --theme-gscape-attribute: #C7DAAD;
+  --theme-gscape-attribute-dark: #4B7900;
 
-  --theme-graph-concept: #F9F3A6;
-  --theme-graph-concept-dark: #B08D00;
+  --theme-gscape-concept: #F9F3A6;
+  --theme-gscape-concept-dark: #B08D00;
 
-  --theme-graph-individual: #F9F3A6;
-  --theme-graph-individual-dark: #B08D00;
+  --theme-gscape-individual: #F9F3A6;
+  --theme-gscape-individual-dark: #B08D00;
 }
 
 */
+
+#grapholscape_container #cy{
+  background:var(--theme-gscape-background, #fff);
+  width:100%;
+  height:100%;
+  position:absolute;
+}
 
 .material-icons.md-18 { font-size: 18px; }
 .material-icons.md-24 { font-size: 24px; }
@@ -49,13 +57,6 @@
 
 .no_highlight:hover {
   color:inherit;
-}
-
-#cy {
-  background-color: white;
-  width:100%;
-  height:100%;
-  position:absolute;
 }
 
 .hide {

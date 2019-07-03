@@ -2,7 +2,8 @@ import cytoscape from 'cytoscape'
 import createUi from './ui'
 import { toggle } from './ui_util'
 import { nodeToOwlString, edgeToOwlString } from './owl'
-import { graph_style }  from './graph-style'
+import { getGraphStyle }  from './graph-style'
+import * as themes from './widgets/themes'
 
 export default class GrapholscapeRenderer {
   constructor (container, ontology) {
@@ -82,7 +83,7 @@ export default class GrapholscapeRenderer {
       wheelSensitivity: 0.4,
       maxZoom: 2.5,
       minZoom: 0.02,
-      style: graph_style,
+      style: getGraphStyle(themes.gscape),
       layout: {
         name: 'preset'
       }
@@ -259,8 +260,14 @@ export default class GrapholscapeRenderer {
     })
   }
 
-  setTheme (theme) {
-    this.cy.style(theme)
+  set theme(theme) {
+    this.cy.style(getGraphStyle(theme))
+
+    let prefix = '--theme-gscape-'
+    Object.keys(theme).map(key => {
+      let css_key = prefix + key.replace(/_/g,'-')
+      this.container.style.setProperty(css_key, theme[key]) 
+    })
   }
 }
 

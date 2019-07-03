@@ -13,7 +13,7 @@ export default class GscapeOwlTranslator extends GscapeWidget {
     let colors = super_styles[1]
 
     return [
-      super.styles,
+      super.styles[0],
       css`
         :host {
           left:50%;
