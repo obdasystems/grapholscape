@@ -1,6 +1,6 @@
 import { html, css } from 'lit-element'
-import GscapeWidget from './gscape-widget'
-import GscapeHeader from './gscape-header'
+import GscapeWidget from './common/gscape-widget'
+import GscapeHeader from './common/gscape-header'
 
 export default class GscapeExplorer extends GscapeWidget{
 
@@ -252,7 +252,7 @@ export default class GscapeExplorer extends GscapeWidget{
     // get the first instance of the selected entity
     let predicate_instance = this.predicates.filter(selector)[0]
 
-    this._onEntitySelect(predicate_instance)
+    this._onEntitySelect(predicate_instance, true)
   }
 
   handleNodeSelection(e) {

@@ -1,6 +1,5 @@
 import GrapholscapeRenderer from './rendering/grapholscape_renderer'
 import GrapholParser from './parsing/parser'
-import { toggle, search } from './rendering/ui_util'
 
 export class GrapholScape {
   constructor (file) {

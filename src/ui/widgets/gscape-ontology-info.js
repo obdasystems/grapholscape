@@ -1,6 +1,6 @@
 import { html, css } from 'lit-element'
-import GscapeWidget from './gscape-widget'
-import GscapeButton from './gscape-button'
+import GscapeWidget from './common/gscape-widget'
+import GscapeButton from './common/gscape-button'
 
 export default class GscapeOntologyInfo extends GscapeWidget {
 
@@ -40,7 +40,6 @@ export default class GscapeOntologyInfo extends GscapeWidget {
 
   constructor(ontology) {
     super(false,true)
-
     this.ontology = ontology
 
     this.btn = new GscapeButton('info_outline')

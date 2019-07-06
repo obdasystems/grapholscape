@@ -1,9 +1,8 @@
 import cytoscape from 'cytoscape'
-import createUi from './ui'
-import { toggle } from './ui_util'
+import GrapholscapeUiController from '../ui/ui-controller'
 import { nodeToOwlString, edgeToOwlString } from './owl'
 import { getGraphStyle }  from './graph-style'
-import * as themes from './widgets/themes'
+import * as themes from '../style/themes'
 
 export default class GrapholscapeRenderer {
   constructor (container, ontology) {
@@ -77,6 +76,11 @@ export default class GrapholscapeRenderer {
     cy_container.setAttribute('id', 'cy')
     this.container.appendChild(cy_container)
 
+    this.actual_diagram = Object()
+    
+    this.ui_controller = new GrapholscapeUiController(this)
+    this.ui_controller.createUi()
+
     this.cy = cytoscape({
       container: cy_container,
       autoungrabify: true,
@@ -89,30 +93,28 @@ export default class GrapholscapeRenderer {
       }
     })
 
-    this.cy.on('select', '.predicate', evt => { this.showDetails(evt.target) })
+    this.cy.on('select', '.predicate', evt => { this.ui_controller.showDetails(evt.target) })
 
     this.cy.on('select', '*', evt => {
       if (!evt.target.hasClass('predicate')) {
-        this.hideDetails()
+        this.ui_controller.hideDetails()
       }
       if (evt.target.isEdge() && (evt.target.data('type') !== 'input')) {
         let owl_text = this.edgeToOwlString(evt.target)
-        this.showOwlTranslation(owl_text)
+        this.ui_controller.showOwlTranslation(owl_text)
       } else if (evt.target.isNode() && evt.target.data('type') !== 'facet') {
         let owl_text = this.nodeToOwlString(evt.target, true)
-        this.showOwlTranslation(owl_text)
+        this.ui_controller.showOwlTranslation(owl_text)
       } else {
-        this.hideOwlTranslation()
+        this.ui_controller.hideOwlTranslation()
       }
     })
 
     this.cy.on('tap', evt => {
       if (evt.target === this.cy) {
-        this.widgets.forEach(widget => widget.blur())
+        this.ui_controller.widgets.forEach(widget => widget.blur())
       }
     })
-    this.actual_diagram = Object()
-    this.createUi()
   }
 
   centerOnNode (node_id, diagram, zoom) {
@@ -141,40 +143,6 @@ export default class GrapholscapeRenderer {
       renderedPosition: { x: offset_x, y: offset_y }
     })
   }
- 
-  showDetails (target) {
-    this.entity_details.entity = target.json()
-    this.entity_details.show()
-  }
-
-  hideDetails() {
-    this.entity_details.hide()
-  }
-
-  showOwlTranslation(text) {
-    this.owl_translator.owl_text = text
-    this.owl_translator.show()
-  }
-
-  hideOwlTranslation() {
-    this.owl_translator.hide()
-  }
- 
-  toggleFullscreen (button, x, y, event) {
-    var c = this.container
-    if (this.isFullscreen()) {
-      document.cancelFullscreen()
-    } else {
-      c.requestFullscreen()
-    }
-  }
-
-  isFullscreen () {
-    return document.fullScreenElement ||
-      document.mozFullScreenElement || // Mozilla
-      document.webkitFullscreenElement || // Webkit
-      document.msFullscreenElement // IE
-  }
 
   resetView () {
     this.cy.fit()
@@ -191,8 +159,8 @@ export default class GrapholscapeRenderer {
 
     this.cy.fit()
 
-    if (this.diagram_selector)
-      this.diagram_selector.actual_diagram = diagram
+    if (this.ui_controller.diagram_selector)
+      this.ui_controller.diagram_selector.actual_diagram = diagram
 
     return true
   }
@@ -271,4 +239,4 @@ export default class GrapholscapeRenderer {
   }
 }
 
-Object.assign(GrapholscapeRenderer.prototype, { createUi, nodeToOwlString, edgeToOwlString })
+Object.assign(GrapholscapeRenderer.prototype, { nodeToOwlString, edgeToOwlString })

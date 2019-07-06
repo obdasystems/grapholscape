@@ -1,6 +1,6 @@
 import { html, css } from 'lit-element'
-import GscapeButton from './gscape-button'
-import GscapeWidget from './gscape-widget'
+import GscapeButton from './common/gscape-button'
+import GscapeWidget from './common/gscape-widget'
 
 export default class GscapeFilters extends GscapeWidget {
 

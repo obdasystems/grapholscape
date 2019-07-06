@@ -1,6 +1,6 @@
 import { html, css } from 'lit-element'
-import GscapeWidget from './gscape-widget'
-import GscapeHeader from './gscape-header';
+import GscapeWidget from './common/gscape-widget'
+import GscapeHeader from './common/gscape-header'
 
 export default class GscapeOwlTranslator extends GscapeWidget {
   static get properties() {
@@ -115,7 +115,7 @@ export default class GscapeOwlTranslator extends GscapeWidget {
 
   firstUpdated() {
     super.firstUpdated()
-    this.classList.add('hide')
+    this.hide()
 
     // invert header's dropdown icon behaviour
     this.header.collapsed = true

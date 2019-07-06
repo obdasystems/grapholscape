@@ -1,6 +1,6 @@
 import { html, css } from 'lit-element'
-import GscapeHeader from './gscape-header'
-import GscapeWidget from './gscape-widget'
+import GscapeHeader from './common/gscape-header'
+import GscapeWidget from './common/gscape-widget'
 
 export default class GscapeDiagramSelector extends GscapeWidget {
   static get properties() {

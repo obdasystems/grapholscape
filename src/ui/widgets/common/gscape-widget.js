@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit-element'
-import * as theme from './themes'
+import * as theme from '../../../style/themes'
 
 export default class GscapeWidget extends LitElement {
   static get properties() {
@@ -214,11 +214,11 @@ export default class GscapeWidget extends LitElement {
   }
 
   show() {
-    this.classList.remove('hide')
+    this.style.display = 'initial'
   }
 
   hide() {
-    this.classList.add('hide')
+    this.style.display = 'none'
   }
 
   blur() {

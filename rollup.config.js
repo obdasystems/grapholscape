@@ -14,7 +14,7 @@ const licenseHeaderOptions = {
 export default {
   // If using any exports from a symlinked project, uncomment the following:
   // preserveSymlinks: true,
-	input: ['./source/grapholscape.js'],
+	input: ['./src/grapholscape.js'],
 	output: {
 		file: 'build/grapholscape.js',
     format: 'umd',

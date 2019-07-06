@@ -1,6 +1,6 @@
 import { html, css } from 'lit-element'
-import GscapeWidget from './gscape-widget'
-import GscapeHeader from './gscape-header'
+import GscapeWidget from './common/gscape-widget'
+import GscapeHeader from './common/gscape-header'
 
 export default class GscapeEntityDetails extends GscapeWidget {
 
@@ -166,7 +166,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
   firstUpdated() {
     super.firstUpdated()
-    this.classList.add('hide')
+    this.hide()
   }
 
   blur() {
