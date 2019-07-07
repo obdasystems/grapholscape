@@ -9,6 +9,7 @@ import GscapeButton from './widgets/common/gscape-button';
 import GscapeFilters from './widgets/gscape-filters';
 import GscapeOntologyInfo from './widgets/gscape-ontology-info';
 import GscapeOwlTranslator from './widgets/gscape-owl-translator';
+import GscapeZoomTools from './widgets/gscape-zoom-tools';
 
 export default class GrapholscapeUiController {
   constructor (renderer, options) {
@@ -69,6 +70,13 @@ export default class GrapholscapeUiController {
     this.owl_translator = new GscapeOwlTranslator()
     this.renderer.container.appendChild(this.owl_translator)
     this.widgets.add(this.owl_translator)
+
+
+    const zoom_widget = new GscapeZoomTools()
+    zoom_widget.onZoomIn = this.renderer.zoomIn.bind(this.renderer)
+    zoom_widget.onZoomOut = this.renderer.zoomOut.bind(this.renderer)
+    this.renderer.container.appendChild(zoom_widget)
+    this.widgets.add(zoom_widget)
   }
 
   showDetails (target, unselect = false) {

@@ -77,10 +77,6 @@ export default class GrapholscapeRenderer {
     this.container.appendChild(cy_container)
 
     this.actual_diagram = Object()
-    
-    this.ui_controller = new GrapholscapeUiController(this)
-    this.ui_controller.createUi()
-
     this.cy = cytoscape({
       container: cy_container,
       autoungrabify: true,
@@ -92,6 +88,9 @@ export default class GrapholscapeRenderer {
         name: 'preset'
       }
     })
+
+    this.ui_controller = new GrapholscapeUiController(this)
+    this.ui_controller.createUi()
 
     this.cy.on('select', '.predicate', evt => { this.ui_controller.showDetails(evt.target) })
 
@@ -163,6 +162,21 @@ export default class GrapholscapeRenderer {
       this.ui_controller.diagram_selector.actual_diagram = diagram
 
     return true
+  }
+
+  zoomIn() {
+    console.log(this)
+    this.cy.zoom({
+      level: this.cy.zoom() + 0.08,
+      renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+    })
+  }
+
+  zoomOut() {
+    this.cy.zoom({
+      level: this.cy.zoom() - 0.08,
+      renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+    })
   }
 
   filter(key) {
