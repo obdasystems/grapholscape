@@ -29,7 +29,7 @@ export default class GrapholscapeRenderer {
         label: 'Value Domain',
         active: false,
         disabled: false,
-        class: 'valuedomains'
+        class: 'filtervaluedomains'
       },
       individuals: {
         type: 'individual',
@@ -56,7 +56,6 @@ export default class GrapholscapeRenderer {
 
     this.container = container
     this.container.style.fontSize = '14px'
-    this.container.style.color = '#666'
 
     this.container.requestFullscreen =
     this.container.requestFullscreen ||
@@ -89,9 +88,6 @@ export default class GrapholscapeRenderer {
       }
     })
 
-    this.ui_controller = new GrapholscapeUiController(this)
-    this.ui_controller.createUi()
-
     this.cy.on('select', '.predicate', evt => { this.ui_controller.showDetails(evt.target) })
 
     this.cy.on('select', '*', evt => {
@@ -114,6 +110,9 @@ export default class GrapholscapeRenderer {
         this.ui_controller.widgets.forEach(widget => widget.blur())
       }
     })
+
+    this.ui_controller = new GrapholscapeUiController(this)
+    this.ui_controller.createUi()
   }
 
   centerOnNode (node_id, diagram, zoom) {

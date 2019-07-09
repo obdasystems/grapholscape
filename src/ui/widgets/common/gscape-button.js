@@ -75,6 +75,12 @@ export default class GscapeButton extends GscapeWidget {
     this.icon = this._alternate_icon
     this.alternate_icon = aux
   }
+
+  firstUpdated() {
+    super.firstUpdated()
+
+    this.shadowRoot.querySelector('mwc-icon').onselectstart =  () => false
+  }
 }
 
 customElements.define('gscape-button', GscapeButton)

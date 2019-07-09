@@ -240,12 +240,12 @@ export class GrapholParser {
         node_prefix_iri = ''
         rem_chars = label_no_break
       }
-
+      
       if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
         rem_chars = label_no_break
         node_iri = ''
-        node_prefix_iri = node_prefix_iri.substring(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
-      } else if (!node_iri.substr(-1, 1) ==='/' && !node_iri.substr(-1, 1) ==='#') { node_iri = node_iri + '/' }
+        node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
+      } else if (node_iri.slice(-1) !=='/' && node_iri.slice(-1) !=='#') { node_iri = node_iri + '/' }
 
       nodo.data.remaining_chars = rem_chars
       nodo.data.prefix_iri = node_prefix_iri
@@ -264,7 +264,7 @@ export class GrapholParser {
           var start_body_index = nodo.data.description.indexOf('<p')
           var end_body_index = nodo.data.description.indexOf('</body')
 
-          nodo.data.description = nodo.data.description.substring(start_body_index, end_body_index)
+          nodo.data.description = nodo.data.description.slice(start_body_index, end_body_index)
 
           // Impostazione delle funzionalità dei nodi di tipo role o attribute
           if (nodo.data.type ==='attribute' || nodo.data.type ==='role') {
