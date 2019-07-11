@@ -75,7 +75,7 @@ export default class GrapholscapeRenderer {
     cy_container.setAttribute('id', 'cy')
     this.container.appendChild(cy_container)
 
-    this.actual_diagram = Object()
+    this.actual_diagram = null
     this.cy = cytoscape({
       container: cy_container,
       autoungrabify: true,
@@ -157,6 +157,7 @@ export default class GrapholscapeRenderer {
 
     this.cy.fit()
 
+    this.actual_diagram = diagram
     if (this.ui_controller.diagram_selector)
       this.ui_controller.diagram_selector.actual_diagram = diagram
 

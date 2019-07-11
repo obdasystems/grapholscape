@@ -50,13 +50,13 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   constructor(diagrams) {
     super(true, true)
     this.diagrams = diagrams
-    this._actual_diagram = null
+    this._actual_diagram = {name : 'Select a Diagram'}
     this._onDiagramChange = null
   }
 
   render () {
     return html`
-      <gscape-head title="${this._actual_diagram? this._actual_diagram.name : html`Select a Diagram`}" 
+      <gscape-head title="${this._actual_diagram.name}" 
         collapsed="true" class="drag-handler"></gscape-head> 
 
       <div class="widget-body hide">
@@ -75,7 +75,9 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   }
 
   changeDiagram(e) {
-    this.shadowRoot.querySelector('.selected').classList.remove('selected')
+    if (this.shadowRoot.querySelector('.selected'))
+      this.shadowRoot.querySelector('.selected').classList.remove('selected')
+
     e.target.classList.add('selected')
 
     let diagram_id = e.target.getAttribute('diagram-id')
