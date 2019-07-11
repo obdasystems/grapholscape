@@ -44,8 +44,8 @@ export function getDistanceWeight (target, source, point) {
   // Esprimiamo le coordinate di point traslando l'origine sul source:
   // point['0'] corrisponde alla coordinata x del punto, point['1'] è l'ordinata
   var breakpoint = []
-  breakpoint['x'] = point['0'] - source['x']
-  breakpoint['y'] = point['1'] - source['y']
+  breakpoint['x'] = point['x'] - source['x']
+  breakpoint['y'] = point['y'] - source['y']
 
   var delta = []
   delta['x'] = target['x'] - source['x']
@@ -164,10 +164,13 @@ export function getNewEndpoint (end_point, node, break_point) {
   var endpoint = []
   endpoint['x'] = end_point['x'] - node.position('x')
   endpoint['y'] = end_point['y'] - node.position('y')
+  
+  if(endpoint['x'] == 0 && endpoint['y'] == 0)
+    return endpoint
 
   var breakpoint = []
-  breakpoint['x'] = break_point[0] - node.position('x')
-  breakpoint['y'] = break_point[1] - node.position('y')
+  breakpoint['x'] = break_point['x'] - node.position('x')
+  breakpoint['y'] = break_point['y'] - node.position('y')
 
   // Se l'endpoint non è centrato nel nodo ma ha la X uguale al breakpoint successivo (o precedente)
   // Allora l'arco parte (o arriva) perpendicolarmente dall'alto o dal basso

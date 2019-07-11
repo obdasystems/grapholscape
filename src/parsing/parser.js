@@ -367,9 +367,12 @@ export class GrapholParser {
     for (j = 0; j < arco.childNodes.length; j++) {
       // Ignoriamo spazi vuoti, e altri figli di tipo diverso da 1
       if (arco.childNodes[j].nodeType != 1) { continue }
-      breakpoints[count] = []
-      breakpoints[count].push(parseInt(point.getAttribute('x')))
-      breakpoints[count].push(parseInt(point.getAttribute('y')))
+      breakpoints[count] = {
+        'x' : parseInt(point.getAttribute('x')),
+        'y' : parseInt(point.getAttribute('y')),
+      }
+      //breakpoints[count].push(parseInt(point.getAttribute('x')))
+      //breakpoints[count].push(parseInt(point.getAttribute('y')))
       if (ParserUtil.getNextSibling(point) != null) {
         point = ParserUtil.getNextSibling(point)
         // Se il breakpoint in questione non è il primo
@@ -392,8 +395,8 @@ export class GrapholParser {
     // Calcoliamo gli endpoints sul source e sul target
     // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
     var source_endpoint = []
-    source_endpoint['x'] = breakpoints[0][0]
-    source_endpoint['y'] = breakpoints[0][1]
+    source_endpoint['x'] = breakpoints[0]['x']
+    source_endpoint['y'] = breakpoints[0]['y']
     source_endpoint = ParserUtil.getNewEndpoint(source_endpoint, source, breakpoints[1])
     // Impostiamo l'endpoint solo se è diverso da zero
     // perchè di default l'endpoint è impostato a (0,0) relativamente al nodo di riferimento
@@ -404,8 +407,8 @@ export class GrapholParser {
     }
     // Facciamo la stessa cosa per il target
     var target_endpoint = []
-    target_endpoint['x'] = breakpoints[breakpoints.length - 1][0]
-    target_endpoint['y'] = breakpoints[breakpoints.length - 1][1]
+    target_endpoint['x'] = breakpoints[breakpoints.length - 1]['x']
+    target_endpoint['y'] = breakpoints[breakpoints.length - 1]['y']
     target_endpoint = ParserUtil.getNewEndpoint(target_endpoint, target, breakpoints[breakpoints.length - 2])
     if (target_endpoint['x'] != 0 || target_endpoint['y'] != 0) {
       edge.data.target_endpoint = []

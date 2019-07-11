@@ -1,5 +1,6 @@
 import GrapholscapeRenderer from './rendering/grapholscape_renderer'
 import GrapholParser from './parsing/parser'
+import EasyGscapeRenderer from './rendering/easy-gscape-renderer';
 
 export class GrapholScape {
   constructor (file) {
@@ -28,10 +29,10 @@ export class GrapholScape {
 
   setRenderer (container) {
     return new Promise((resolve, reject) => {
-      if (this.ready) { resolve(new GrapholscapeRenderer(container, this.ontology)) }
+      if (this.ready) { resolve(new EasyGscapeRenderer(container, this.ontology)) }
 
       window.addEventListener('grapholscape_ready', () => {
-        resolve(new GrapholscapeRenderer(container, this.ontology))
+        resolve(new EasyGscapeRenderer(container, this.ontology))
       }, this)
     })
   }

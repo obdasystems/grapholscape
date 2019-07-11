@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@material/mwc-icon": "^0.6.0",
-    "cytoscape": "^3.6.2",
+    "cytoscape": "3.2",
     "lit-element": "^2.1.0"
   }
 }
