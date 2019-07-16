@@ -197,7 +197,7 @@ export default class GscapeFilters extends GscapeWidget {
           // force toggle to change its visual state
           toggle.checked = !this.filters[key].active
 
-          this.filters[key].active ? this.onFilterOn(key) : this.onFilterOff(key)
+          this.filters[key].active ? this.onFilterOn(this.filters[key]) : this.onFilterOff(this.filters[key])
         }
       })
     } else {
@@ -211,7 +211,7 @@ export default class GscapeFilters extends GscapeWidget {
         toggle.checked = false
       }
 
-      this.filters[e.target.id].active ? this.onFilterOn(e.target.id) : this.onFilterOff(e.target.id)
+      this.filters[e.target.id].active ? this.onFilterOn(this.filters[e.target.id]) : this.onFilterOff(this.filters[e.target.id])
     }
     
 

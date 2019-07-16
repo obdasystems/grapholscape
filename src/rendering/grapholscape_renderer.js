@@ -12,41 +12,42 @@ export default class GrapholscapeRenderer {
 
     this.filters = {
       all: {
-        type: 'all',
+        selector: '#undefined',
         label: 'Filter All',
         active: false,
         disabled: false,
+        class: 'undefined'
       },
       attributes: {
-        type: 'attribute',
+        selector: '[type = "attribute"]',
         label: 'Attributes',
         active: false,
         disabled: false,
         class: 'filterattributes',
       },
       value_domain: {
-        type: 'value-domain',
+        selector: '[type = "value-domain"]',
         label: 'Value Domain',
         active: false,
         disabled: false,
         class: 'filtervaluedomains'
       },
       individuals: {
-        type: 'individual',
+        selector: '[type = "individual"]',
         label: 'Individuals',
         active: false,
         disabled: false,
         class: 'filterindividuals'
       },
       universal_quantifier: {
-        type: 'forAll',
+        selector: '[type $= "-restriction"][label = "forall"]',
         label: 'Universal Quantifier',
         active: false,
         disabled: false,
         class: 'filterforall'
       },
       not: {
-        type: 'complement',
+        selector: '[type = "complement"]',
         label: 'Not',
         active: false,
         disabled: false,
@@ -152,7 +153,7 @@ export default class GrapholscapeRenderer {
     // check if any filter is active and if yes, apply them to the "actual diagram"
     Object.keys(this.filters).map(key => {
       if (this.filters[key].active)
-        this.filter(key)
+        this.filter(this.filters[key])
     })
 
     this.cy.fit()
@@ -179,66 +180,75 @@ export default class GrapholscapeRenderer {
     })
   }
 
-  filter(key) {
-    let selector = ``
-    let that = this
+  filter(filter, cy_instance) {
+    let cy = cy_instance || this.cy
+    let selector = `${filter.selector}, .${filter.class}` 
 
-    if (this.filters[key].type === 'forAll') {
-      selector = `:visible[type $= "-restriction"][label = "forall"], .${this.filters[key].class}`
-    } else {
-      selector = `:visible[type = "${this.filters[key].type}"], .${this.filters[key].class}`
-    }
-
-    this.cy.$(selector).forEach( element => {
-      filterElem(element, this.filters[key].class)
+    cy.$(selector).forEach(element => {
+      this.filterElem(element, filter.class, cy)
     })
-
-    function filterElem (element, filter_class) {
-      element.addClass('filtered '+filter_class)
-      // Filter fake nodes!
-      that.cy.nodes(`[parent_node_id = "${element.id()}"]`).addClass('filtered '+filter_class)
-      // ARCHI IN USCITA
-      var selector = `[source = "${element.data('id')}"]`
-      element.connectedEdges(selector).forEach( e => {
-        // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
-        var sel2 = `edge:visible[source = "${e.target().id()}"]`
-        var sel3 = `edge:visible[target = "${e.target().id()}"][type != "input"]`
-        var number_edges_in_out = e.target().connectedEdges(sel2).size() + e.target().connectedEdges(sel3).size()
-        if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') === 'input')) {
-          filterElem(e.target(), filter_class)
-        }
-      })
-
-      // ARCHI IN ENTRATA
-      selector = `[target ="${element.data('id')}"]`
-      element.connectedEdges(selector).forEach(e => {
-        // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
-        var sel2 = `edge:visible[source = "${e.source().id()}"]`
-        var sel3 = `edge:visible[target = "${e.source().id()}"][type != "input"]`
-        var number_edges_in_out = e.source().connectedEdges(sel2).size() + e.source().connectedEdges(sel3).size()
-        if (!e.source().hasClass('filtered') && number_edges_in_out === 0) {
-          filterElem(e.source(), filter_class)
-        }
-      })
-    }
-
   }
 
-  unfilter(key) {
-    let filter_class = this.filters[key].class
-    let selector = `` 
-    if (this.filters[key].type === 'forAll') {
-      selector = `:visible[type $= "-restriction"][label = "forall"], .${this.filters[key].class}`
-    } else {
-      selector = `:visible[type = "${this.filters[key].type}"], .${this.filters[key].class}`
+  filterElem (element, filter_class, cy_instance) {
+    //console.log(element.data('label'))
+    let cy = cy_instance || this.cy
+    element.addClass('filtered '+filter_class)
+    // Filter fake nodes!
+    cy.nodes(`[parent_node_id = "${element.id()}"]`).addClass('filtered '+filter_class)
+
+    // ARCHI IN USCITA
+    //var selector = `[source = "${element.data('id')}"]`
+    element.outgoers('edge').forEach( e => {
+      let neighbour = e.target()
+      // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      let number_edges_in_out = getNumberEdgesInOut(neighbour)
+
+      if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') === 'input')) {
+        this.filterElem(e.target(), filter_class)
+      }
+    })
+
+    // ARCHI IN ENTRATA
+    element.incomers('edge').forEach(e => {
+      let neighbour = e.source()
+      // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      let number_edges_in_out = getNumberEdgesInOut(neighbour)
+
+      if (!e.source().hasClass('filtered') && number_edges_in_out === 0) {
+        this.filterElem(e.source(), filter_class)
+      }
+    })
+
+    function getNumberEdgesInOut(neighbour) {
+      let count =  neighbour.outgoers('edge').size() + neighbour.incomers('edge[type != "input"]').size()
+      
+      neighbour.outgoers().forEach( e => {
+        if(e.target().hasClass('filtered')) {
+          count--
+        } 
+      })
+
+      neighbour.incomers('[type != "input"]').forEach( e => {
+        if(e.source().hasClass('filtered')) {
+          count--
+        } 
+      })
+
+      return count
     }
+  }
+
+
+  unfilter(filter, cy_instance) {
+    let selector = `${filter.selector}, .${filter.class}` 
+    let cy = cy_instance || this.cy
     
-    this.cy.$(selector).removeClass('filtered')
-    this.cy.$(selector).removeClass(filter_class)
+    cy.$(selector).removeClass('filtered')
+    cy.$(selector).removeClass(filter.class)
     // Re-Apply other active filters to resolve ambiguity
     Object.keys(this.filters).map(key => {
       if (this.filters[key].active)
-        this.filter(key)
+        this.filter(this.filters[key])
     })
   }
 
