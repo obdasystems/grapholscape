@@ -6,7 +6,7 @@ import Iri from '../model/iri'
 import Diagram from '../model/diagrams'
 import * as ParserUtil from './parser_util'
 
-export class GrapholParser {
+export default class GrapholParser {
   parseGraphol (xmlString) {
     var i, k
     var parser = new DOMParser()
@@ -304,37 +304,13 @@ export class GrapholParser {
         id: arco.getAttribute('id') + '_' + diagram_id,
         id_xml: arco.getAttribute('id'),
         diagram_id: diagram_id,
-        type: arco.getAttribute('type')
+        type: arco.getAttribute('type'),
+        breakpoints: [],
       }
     }
 
-    switch (edge.data.type) {
-      case 'inclusion':
-        edge.data.style = 'solid'
-        edge.data.target_arrow = 'triangle'
-        edge.data.arrow_fill = 'filled'
-        break
-      case 'input':
-        edge.data.style = 'dashed'
-        edge.data.target_arrow = 'diamond'
-        edge.data.arrow_fill = 'hollow'
-        break
-      case 'equivalence':
-        edge.data.style = 'solid'
-        edge.data.source_arrow = 'triangle'
-        edge.data.target_arrow = 'triangle'
-        edge.data.arrow_fill = 'filled'
-        break
-      case 'membership':
-        edge.data.style = 'solid'
-        edge.data.target_arrow = 'triangle'
-        edge.data.arrow_fill = 'filled'
+    if (edge.data.type == 'membership') 
         edge.data.edge_label = 'instance Of'
-        break
-      default:
-        console.error('tipo di arco non implementato <' + arco.getAttribute('type') + '>')
-        break
-    }
 
     // Prendiamo i nodi source e target
     var source = ontology.diagrams[diagram_id].collection.$id(edge.data.source)
@@ -389,6 +365,7 @@ export class GrapholParser {
     }
     // Se ci sono almeno 3 breakpoints, allora impostiamo gli array delle distanze e dei pesi
     if (count > 1) {
+      edge.data.breakpoints = breakpoints.slice(1, count)
       edge.data.segment_distances = segment_distances
       edge.data.segment_weights = segment_weights
     }
@@ -617,5 +594,3 @@ export class GrapholParser {
     }
   }
 }
-
-export default GrapholParser

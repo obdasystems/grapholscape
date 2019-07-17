@@ -9,38 +9,9 @@ export class Diagram {
     container.style.display = 'none'
     document.body.appendChild(container)
 
-    this.cy = cytoscape({
-      container: container,
-      style: [
-        {
-          selector: 'edge',
-          style: {
-            'width': 1,
-            'target-arrow-shape': 'data(target_arrow)',
-            'target-arrow-fill': 'data(arrow_fill)',
-            'line-style': 'data(style)',
-            'curve-style': 'bezier',
-            'arrow-scale': 1.3
-          }
-        },
-        {
-          selector: '[segment_distances]',
-          style: {
-            'curve-style': 'segments',
-            'segment-distances': 'data(segment_distances)',
-            'segment-weights': 'data(segment_weights)',
-            'edge-distances': 'node-position'
-          }
-        }
-      ],
-      layout: {
-        name: 'preset'
-      },
-      styleEnabled: true,
-    })
+    this.cy = cytoscape()
 
     this._collection = this.cy.collection(elements)
-    //this.cy.add(this._collection)
   }
 
   addElems (elem) {

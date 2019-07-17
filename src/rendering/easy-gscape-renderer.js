@@ -46,155 +46,67 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let selector = `[type ^= "domain"],[type ^= "range"]`
     eles.filter(selector).forEach(restriction => {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
-      let target_endpoint = input_edge.data('source_endpoint')
-      let property_node = input_edge.source()
+      let new_edge = null
+
+      // delete input edges
+      //cy.remove(restriction.incomers('edge[type = "input"]'))
 
       if (restriction.data('type') == 'domain-restriction') {
-        let target = property_node
-        // delete input edges, at most 2 possible edges
-        // one from a role or an attribute and another one, keep the first one
-        // whose source will be the target of all incoming edges in the domain-restriction
-        cy.remove(restriction.incomers('[type = "input"]'))
-
-        // now there can be only inclusion and equivalence edges, for each of them we 
+        // there can be only inclusion and equivalence edges, for each of them we 
         // create a new edge that will have a concept as source and a role/attribute as target
-        restriction.connectedEdges().forEach(edge => {
-          let new_edge = edge.json()
-          let source_endpoint = undefined
-          let source = null
-          let breakpoints = edge.segmentPoints() || []
-
-          new_edge.data.segment_distances = []
-          new_edge.data.segment_weights = []
-
+        restriction.connectedEdges('[type != "input"]').forEach(edge => {
+          let edges = []
           // being a domain restriction, the simplified edge must go from a concept to the role/attribute
           // connected in input to the restriction.
           // if the actual edge has the restriction as source, the target is a concept and we consider it
-          // as the source of the new edge
+          // as the source of the new edge          
           if (restriction.id() === edge.source().id()) {
-            source = edge.target()
-            source_endpoint = edge.data('target_endpoint')
-            // we are reversing the edge, so we must reverse the breakpoints order too
-            breakpoints = breakpoints.reverse()
+            edges.push(this.reverseEdge(edge))
           }
-          else {
-            source = edge.source()
-            source_endpoint = edge.data('source_endpoint')
-          }
-          new_edge.data.source = source.id()
+          else
+            edges.push(edge.json())
 
-          /**
-           * ---- Processing breakpoints 
-           * the new edge is composed by the edge connecting the concept to the restriction
-           * and the input edge coming from a role/attribute.
-           * Its breakpoints are the union of the breakpoints from these 2 edges.
-           * The input edge is the final part of the new edge and the breakpoints must be reversed
-           * because the original direction is <role> => <concept> whereas in the simplified version the direction
-           * is always <concept> => <role> [this apply for DOMAIN restriction]
-           */
+          edges.push(this.reverseEdge(input_edge))
+          new_edge = this.createConcatenatedEdge(edges, cy)
+          // add the type of input to the restriction as a class of the new edge
+          // role or attribute, used in the stylesheet to assign a different color
+          new_edge.classes += input_edge.source().data('type')
 
-          // the restriction node position will be another breakpoint in the new edge
-          breakpoints.push(restriction.position())
-          // now add the breakpoints coming from the input edge, reversed
-          let input_edge_breakpoints = input_edge.segmentPoints() || []
-          breakpoints = breakpoints.concat(input_edge_breakpoints.reverse())
-
-          // process breakpoints array and add distances and weights to the new edge
-          breakpoints.forEach(breakpoint => {
-            let dist_weight = getDistanceWeight(target.position(), source.position(), breakpoint)
-
-            new_edge.data.segment_distances.push(dist_weight[0])
-            new_edge.data.segment_weights.push(dist_weight[1])
-          })
-
-          new_edge.data.target = target.id()
-          new_edge.data.source_endpoint = source_endpoint
-          new_edge.data.target_endpoint = target_endpoint
-          new_edge.data.type = 'inclusion'
-          new_edge.data.source_arrow = 'none'
-          new_edge.data.target_arrow = 'triangle'
-
-          cy.remove(edge)
           cy.add(new_edge)
+          cy.remove(edge)
         })
       }
 
       if (restriction.data('type') == 'range-restriction') {
-        let source = property_node
-        // delete input edges, at most 2 possible edges
-        // one from a role or an attribute and another one, keep the first one
-        // whose source will be the target of all incoming edges in the domain-restriction
-        cy.remove(restriction.incomers('[type = "input"]'))
+        // there can be only inclusion and equivalence edges, for each of them we 
+        // create a new edge that will have a role/attribute as source and a concept as target
+        restriction.connectedEdges('[type != "input"]').forEach(edge => {
+          let edges = []
 
-        // now there can be only inclusion and equivalence edges, for each of them we 
-        // create a new edge that will have a concept as source and a role/attribute as target
-        restriction.connectedEdges().forEach(edge => {
-          let new_edge = edge.json()
-          let breakpoints = input_edge.segmentPoints() || []
-          let other_breakpoints = edge.segmentPoints() || []
-          let target = null
-          let target_endpoint = undefined
-          new_edge.data.segment_distances = []
-          new_edge.data.segment_weights = []
-
-          // being a range restriction, the simplified edge must go from the role/attribute to a concept
-          // connected to the restriction.
-          // if the actual edge has the restriction as source, the target is a concept and we consider it
-          // as the source of the new edge
+          edges.push(input_edge.json())
+          // being a range restriction, the simplified edge must go from a role/attribute to the concept
+          // if the actual edge has the concept as source, the target is a role/attribute and we need to
+          // revert the edge
           if (restriction.id() === edge.source().id()) {
-            target = edge.target()
-            target_endpoint = edge.data('target_endpoint')
+            edges.push(edge.json())
           }
-          else {
-            target = edge.source()
-            target_endpoint = edge.data('source_endpoint')
-            // we are reversing the edge, so we must reverse the breakpoints order too
-            other_breakpoints = other_breakpoints.reverse()
-          }
-          
-          /**
-           * ---- Processing breakpoints 
-           * the new edge is composed by the edge connecting the concept to the restriction
-           * and the input edge coming from a role/attribute.
-           * Its breakpoints are the union of the breakpoints from these 2 edges.
-           * The input edge is the final part of the new edge and the breakpoints must be reversed
-           * because the original direction is <role> => <concept> whereas in the simplified version the direction
-           * is always <concept> => <role> [this apply for DOMAIN restriction]
-           */
+          else edges.push(this.reverseEdge(edge))
 
+          new_edge = this.createConcatenatedEdge(edges, cy)
+          // add the type of input to the restriction as a class of the new edge
+          // role or attribute, used in the stylesheet to assign a different color
+          new_edge.classes += input_edge.source().data('type')
 
-          // the restriction node position will be another breakpoint in the new edge
-          breakpoints.push(restriction.position())
-          // now add the breakpoints coming from the edge
-          breakpoints = breakpoints.concat(other_breakpoints)
-
-          //  process breakpoints array and add distances and weights to the new edge
-          breakpoints.forEach(breakpoint => {
-            //console.log(breakpoint)
-            let dist_weight = getDistanceWeight(target.position(), source.position(), breakpoint)
-
-            new_edge.data.segment_distances.push(dist_weight[0])
-            new_edge.data.segment_weights.push(dist_weight[1])
-          })
-
-          new_edge.data.source = source.id()
-          new_edge.data.target = target.id()
-          new_edge.data.source_endpoint = undefined
-          new_edge.data.target_endpoint = target_endpoint
-          new_edge.data.type = 'inclusion'
-          new_edge.data.source_arrow = 'none'
-          new_edge.data.target_arrow = 'triangle'
-
-          cy.remove(edge)
           cy.add(new_edge)
+          cy.remove(edge)
         })
       }
       
-      restriction.addClass('simplified_remove')
+      this.filterElem(restriction, cy)
     })
-
-    cy.remove('.simplified_remove')
     
+    cy.remove('.filtered')
+
     function getInputEdgeFromPropertyToRestriction(restriction_node) {
       let e = null
       restriction_node.incomers('[type = "input"]').forEach(edge => {
@@ -205,6 +117,61 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
       return e
     }
+  }
+
+  reverseEdge(edge) {
+    let new_edge = edge.json()
+    let source_aux = edge.source().id()
+    new_edge.data.source = edge.target().id()
+    new_edge.data.target = source_aux
+
+    let endpoint_aux = edge.data('source_endpoint')
+    new_edge.data.source_endpoint = edge.data('target_endpoint')
+    new_edge.data.target_endpoint = endpoint_aux
+
+    new_edge.data.breakpoints = edge.data('breakpoints').reverse()
+    return new_edge
+  }
+
+  createConcatenatedEdge(edges, cy) {
+    let source = edges[0].data.source
+    let target = edges[edges.length - 1].data.target
+    let segment_distances = []
+    let segment_weights = []
+    let breakpoints = []
+
+    edges.forEach( (edge, i, array) => {
+      breakpoints = breakpoints.concat(edge.data.breakpoints)
+      edge.data.breakpoints.forEach(breakpoint => {
+        let aux = getDistanceWeight(cy.getElementById(target).position(), cy.getElementById(source).position(), breakpoint)
+
+        segment_distances.push(aux[0])
+        segment_weights.push(aux[1])
+      })
+
+      // add target position as new breakpoint
+      if ( i < array.length - 1 ) {
+        let aux = getDistanceWeight(cy.getElementById(target).position(), 
+                                    cy.getElementById(source).position(), 
+                                    cy.getElementById(edge.data.target).position())
+        segment_distances.push(aux[0])
+        segment_weights.push(aux[1])
+      }
+    })
+
+    let new_edge = edges[0]
+    new_edge.data.id += '_simple'
+    new_edge.data.source = source
+    new_edge.data.target = target
+    new_edge.data.target_endpoint = edges[edges.length-1].data.target_endpoint
+    new_edge.data.type = 'inclusion'
+    new_edge.data.source_arrow = 'none'
+    new_edge.data.target_arrow = 'triangle'
+    new_edge.data.segment_distances = segment_distances
+    new_edge.data.segment_weights = segment_weights
+    new_edge.data.breakpoints = breakpoints
+
+    return new_edge
   }
 
   filterQualifiedExistentials(diagram) {

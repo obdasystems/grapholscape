@@ -28,14 +28,41 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge',
       style: {
-        'width': 1,
+        'width': 2,
         'line-color': theme.edge.cssText,
         'target-arrow-color': theme.edge.cssText,
-        'target-arrow-shape': 'data(target_arrow)',
-        'target-arrow-fill': 'data(arrow_fill)',
-        'line-style': 'data(style)',
+        'source-arrow-color': theme.edge.cssText,
         'curve-style': 'bezier',
         'arrow-scale': 1.3
+      }
+    },
+
+    {
+      selector: 'edge[type = "inclusion"], [type = "membership"]',
+      style: {
+        'line-style': 'solid',
+        'target-arrow-shape': 'triangle',
+        'target-arrow-fill': 'filled'
+      }
+    },
+
+    {
+      selector: 'edge[type = "input"]',
+      style: {
+        'line-style': 'dashed',
+        'target-arrow-shape': 'diamond',
+        'target-arrow-fill': 'hollow'
+      }
+    },
+
+    {
+      selector: 'edge[type = "equivalence"]',
+      style: {
+        'line-style': 'solid',
+        'source-arrow-shape': 'triangle',
+        'source-arrow-fill': 'filled',
+        'target-arrow-shape': 'triangle',
+        'target-arrow-fill': 'filled',        
       }
     },
 
@@ -46,15 +73,6 @@ export function getGraphStyle(theme) {
         'segment-distances': 'data(segment_distances)',
         'segment-weights': 'data(segment_weights)',
         'edge-distances': 'node-position'
-      }
-    },
-
-    {
-      selector: '[source_arrow]',
-      style: {
-        'source-arrow-color': theme.edge.cssText,
-        'source-arrow-shape': 'data(source_arrow)',
-        'source-arrow-fill': 'data(arrow_fill)'
       }
     },
 
@@ -170,10 +188,28 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: 'edge.role',
+      style: {
+        'line-color' : theme.role_dark.cssText,
+        'source-arrow-color': theme.role_dark.cssText,
+        'target-arrow-color': theme.role_dark.cssText,
+      } 
+    },
+
+    {
       selector: '.attribute',
       style: {
         'background-color': theme.attribute.cssText,
         'border-color': theme.attribute_dark.cssText,
+      } 
+    },
+
+    {
+      selector: 'edge.attribute',
+      style: {
+        'line-color': theme.attribute_dark.cssText,
+        'source-arrow-color': theme.attribute_dark.cssText,
+        'target-arrow-color': theme.attribute_dark.cssText,
       } 
     },
 
@@ -204,9 +240,6 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge:selected',
       style: {
-        'line-color': theme.secondary.cssText,
-        'source-arrow-color': theme.secondary.cssText,
-        'target-arrow-color': theme.secondary.cssText,
         'width': '4',
       }
     },
