@@ -5,19 +5,47 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container, ontology) {
     super(container, ontology)
     setTimeout(() => {
-      this.simplifyOntology()
+      /** Use filters to mark nodes that must be removed and then remove them
+       *  NOTE: filtering = hiding | removing = hiding + deleting
+       * 
+       *  To be removed:
+       *  - DataTypes
+       *  - ForAll
+       *  - Individuals (?)
+       *  - Qualified Existential
+       *  - role chains (?)
+       *  - not (?)
+       */
+      this.ontology.diagrams.forEach(diagram => {
+        let cy = diagram.cy
+
+        Object.keys(this.filters).map(key => {
+          if (key != 'all' &&
+              key != 'attributes') {
+            this.filter(this.filters[key] , cy)
+          }
+        })
+
+        this.filterQualifiedExistentials(diagram)
+
+        cy.remove('.filtered')
+        this.simplifyDomainAndRange(diagram)
+      })
+
+      
       this.drawDiagram(this.ontology.diagrams[0])
     },2000,this)
   }
 
-  simplifyOntology() {
-    let cy = this.ontology.diagrams[0].cy
-    let eles = this.ontology.diagrams[0].collection
+  simplifyDomainAndRange(diagram) {
+    let cy = diagram.cy
+    let eles = diagram.collection
+
     // select domain and range restrictions
     // type start with 'domain' or 'range'
     let selector = `[type ^= "domain"],[type ^= "range"]`
     eles.filter(selector).forEach(restriction => {
-      let input_edge = getInputEdgeFromPropertyNode(restriction)
+      let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
       let target_endpoint = input_edge.data('source_endpoint')
       let property_node = input_edge.source()
 
@@ -162,10 +190,12 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         })
       }
       
-      cy.remove(restriction)
+      restriction.addClass('simplified_remove')
     })
 
-    function getInputEdgeFromPropertyNode(restriction_node) {
+    cy.remove('.simplified_remove')
+    
+    function getInputEdgeFromPropertyToRestriction(restriction_node) {
       let e = null
       restriction_node.incomers('[type = "input"]').forEach(edge => {
         if (edge.source().data('type') == 'role' || edge.source().data('type') == 'attribute') {
@@ -175,57 +205,26 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
       return e
     }
+  }
 
-    function getNewEdgeRestriction(old_edge, input_edge, source, target, new_breakpoint) {
-      let new_edge = old_edge.json()
-      let breakpoints = []
-      let other_breakpoints = []
+  filterQualifiedExistentials(diagram) {
+    let eles = diagram.collection
 
-      if (source.data('identity') == 'concept') {
-        breakpoints = old_edge.segmentPoints() || []
-        // the second part is the input edge going fro role/attribute to restriction node
-        // we want to go from restriction to role/attribute => reverse breakpoints
-        other_breakpoints = input_edge.segmentPoints() || []
-        other_breakpoints = other_breakpoints.reverse()
+    // select existential restrictions
+    let selector = '[type $= "-restriction"][label = "exists"]'
+    eles.filter(selector).forEach(existential => {
+      if (isQualified(existential)) {
+        this.filterElem(existential, diagram.cy)
       }
-      else if (source.data('identity') == 'role') {
-        breakpoints = input_edge.segmentPoints() || []
-        other_breakpoints = old_edge.segmentPoints() || []
+    })
+
+    function isQualified(node) {
+      if( (node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+      && (node.data('label') == 'exists')) {
+        return node.incomers('edge[type = "input"]').size() > 1 ? true : false  
       }
 
-      new_edge.data.segment_distances = []
-      new_edge.data.segment_weights = []
-
-      /**
-       * ---- Processing breakpoints 
-       * the new edge is composed by the edge connecting the concept to the restriction
-       * and the input edge coming from a role/attribute.
-       * Its breakpoints are the union of the breakpoints from these 2 edges.
-       * The input edge is the final part of the new edge and the breakpoints must be reversed
-       * because the original direction is <role> => <concept> whereas in the simplified version the direction
-       * is always <concept> => <role> [this apply for DOMAIN restriction]
-       */
-
-
-      // the restriction node position will be another breakpoint in the new edge
-      breakpoints.push(restriction.position())
-      // now add the breakpoints coming from the second part of the edge
-      breakpoints = breakpoints.concat(other_breakpoints.reverse())
-
-      //  process breakpoints array and add distances and weights to the new edge
-      breakpoints.forEach(breakpoint => {
-        let dist_weight = getDistanceWeight(target.position(), source.position(), breakpoint)
-
-        new_edge.data.segment_distances.push(dist_weight[0])
-        new_edge.data.segment_weights.push(dist_weight[1])
-      })
-
-      new_edge.data.target = target.id()
-      new_edge.data.target_endpoint = endpoint
-      new_edge.data.type = 'inclusion'
-      new_edge.data.source_arrow = 'none'
-      new_edge.data.target_arrow = 'triangle'
+      return false
     }
-
   }
 }
