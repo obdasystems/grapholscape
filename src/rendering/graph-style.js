@@ -214,6 +214,24 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: 'edge.range',
+      style: {
+        'source-arrow-shape': 'square',
+        'source-arrow-fill': 'filled',
+        'target-arrow-shape': 'none',
+      } 
+    },
+
+    {
+      selector: 'edge.domain',
+      style: {
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'hollow',
+        'source-arrow-shape': 'none',
+      } 
+    },
+
+    {
       selector: '.individual',
       style: {
         'background-color': theme.individual.cssText,

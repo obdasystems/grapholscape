@@ -3,38 +3,39 @@ import { getDistanceWeight } from '../parsing/parser_util'
 
 export default class EasyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container, ontology) {
-    super(container, ontology)
-    setTimeout(() => {
-      /** Use filters to mark nodes that must be removed and then remove them
-       *  NOTE: filtering = hiding | removing = hiding + deleting
-       * 
-       *  To be removed:
-       *  - DataTypes
-       *  - ForAll
-       *  - Individuals (?)
-       *  - Qualified Existential
-       *  - role chains (?)
-       *  - not (?)
-       */
-      this.ontology.diagrams.forEach(diagram => {
-        let cy = diagram.cy
+    super(container, ontology)    
 
-        Object.keys(this.filters).map(key => {
-          if (key != 'all' &&
-              key != 'attributes') {
-            this.filter(this.filters[key] , cy)
-          }
-        })
+    /** Use filters to mark nodes that must be removed and then remove them
+     *  NOTE: filtering = hiding | removing = hiding + deleting
+     * 
+     *  To be removed:
+     *  - DataTypes
+     *  - ForAll
+     *  - Qualified Existential
+     *  - role chains
+     *  - not (?)
+     */
+    this.ontology.diagrams.forEach(diagram => {
+      let cy = diagram.cy
 
-        this.filterQualifiedExistentials(diagram)
-
-        cy.remove('.filtered')
-        this.simplifyDomainAndRange(diagram)
+      Object.keys(this.filters).map(key => {
+        if (key != 'all' &&
+            key != 'attributes' &&
+            key != 'individuals') {
+          this.filter(this.filters[key] , cy)
+        }
       })
 
-      
-      this.drawDiagram(this.ontology.diagrams[0])
-    },2000,this)
+      this.filterByCriterion(diagram.cy, this.isQualifiedExistential)
+      this.filterByCriterion(diagram.cy, this.isExistentialWithCardinality)
+      this.filterByCriterion(diagram.cy, this.isRoleChain)
+
+      cy.remove('.filtered')
+      this.simplifyDomainAndRange(diagram)
+    })
+
+    
+    this.drawDiagram(this.ontology.diagrams[0])
   }
 
   simplifyDomainAndRange(diagram) {
@@ -54,7 +55,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       if (restriction.data('type') == 'domain-restriction') {
         // there can be only inclusion and equivalence edges, for each of them we 
         // create a new edge that will have a concept as source and a role/attribute as target
-        restriction.connectedEdges('[type != "input"]').forEach(edge => {
+        restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
           let edges = []
           // being a domain restriction, the simplified edge must go from a concept to the role/attribute
           // connected in input to the restriction.
@@ -67,10 +68,10 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
             edges.push(edge.json())
 
           edges.push(this.reverseEdge(input_edge))
-          new_edge = this.createConcatenatedEdge(edges, cy)
+          new_edge = this.createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
           // add the type of input to the restriction as a class of the new edge
           // role or attribute, used in the stylesheet to assign a different color
-          new_edge.classes += input_edge.source().data('type')
+          new_edge.classes += `${input_edge.source().data('type')} domain`
 
           cy.add(new_edge)
           cy.remove(edge)
@@ -80,7 +81,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       if (restriction.data('type') == 'range-restriction') {
         // there can be only inclusion and equivalence edges, for each of them we 
         // create a new edge that will have a role/attribute as source and a concept as target
-        restriction.connectedEdges('[type != "input"]').forEach(edge => {
+        restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
           let edges = []
 
           edges.push(input_edge.json())
@@ -92,10 +93,10 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
           }
           else edges.push(this.reverseEdge(edge))
 
-          new_edge = this.createConcatenatedEdge(edges, cy)
+          new_edge = this.createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
           // add the type of input to the restriction as a class of the new edge
           // role or attribute, used in the stylesheet to assign a different color
-          new_edge.classes += input_edge.source().data('type')
+          new_edge.classes += `${input_edge.source().data('type')} range`
 
           cy.add(new_edge)
           cy.remove(edge)
@@ -128,12 +129,24 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let endpoint_aux = edge.data('source_endpoint')
     new_edge.data.source_endpoint = edge.data('target_endpoint')
     new_edge.data.target_endpoint = endpoint_aux
-
+    
     new_edge.data.breakpoints = edge.data('breakpoints').reverse()
+    //console.log(edge.data('segment_distances'))
+    if (edge.data('segment_distances')) {
+      new_edge.data.segment_distances = []
+      new_edge.data.segment_weights = []
+      new_edge.data.breakpoints.forEach( breakpoint => {
+        let aux = getDistanceWeight(edge.source().position(), edge.target().position(), breakpoint)
+        new_edge.data.segment_distances.push(aux[0])
+        new_edge.data.segment_weights.push(aux[1])
+      })    
+      //console.log(new_edge.data.segment_distances)
+    }
+
     return new_edge
   }
 
-  createConcatenatedEdge(edges, cy) {
+  createConcatenatedEdge(edges, cy, id) {
     let source = edges[0].data.source
     let target = edges[edges.length - 1].data.target
     let segment_distances = []
@@ -160,13 +173,11 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     })
 
     let new_edge = edges[0]
-    new_edge.data.id += '_simple'
+    new_edge.data.id = id
     new_edge.data.source = source
     new_edge.data.target = target
     new_edge.data.target_endpoint = edges[edges.length-1].data.target_endpoint
     new_edge.data.type = 'inclusion'
-    new_edge.data.source_arrow = 'none'
-    new_edge.data.target_arrow = 'triangle'
     new_edge.data.segment_distances = segment_distances
     new_edge.data.segment_weights = segment_weights
     new_edge.data.breakpoints = breakpoints
@@ -174,24 +185,39 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     return new_edge
   }
 
-  filterQualifiedExistentials(diagram) {
-    let eles = diagram.collection
-
-    // select existential restrictions
-    let selector = '[type $= "-restriction"][label = "exists"]'
-    eles.filter(selector).forEach(existential => {
-      if (isQualified(existential)) {
-        this.filterElem(existential, diagram.cy)
+  // filter nodes if the criterion function return true
+  // criterion must be a function returning a boolean value for a given a node
+  filterByCriterion(cy_instance, criterion) {
+    let cy = cy_instance || this.cy
+    cy.$('*').forEach(node => {
+      if (criterion(node)) {
+        this.filterElem(node, cy)
       }
     })
+  }
 
-    function isQualified(node) {
-      if( (node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-      && (node.data('label') == 'exists')) {
-        return node.incomers('edge[type = "input"]').size() > 1 ? true : false  
-      }
-
-      return false
+  isQualifiedExistential(node) {
+    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+        && (node.data('label') == 'exists')) {
+      return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
+
+    return false
+  }
+
+  isExistentialWithCardinality(node) {
+    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+        && node.data('label').search(/[0-9]/g) >= 0) {
+      return true
+    }
+
+    return false
+  }
+
+  isRoleChain(node) {
+    if (node.data('type') == 'role-chain')
+      return true
+    else
+      return false
   }
 }
