@@ -24,7 +24,8 @@ export const gscape = {
   node_bg: css`#fcfcfc`,
   node_bg_contrast: css`#000`,
   node_border: css`#000`,
-  label_color: css`#000`, 
+  label_color: css`#000`,
+  label_color_contrast: css`#fcfcfc`,
 
   role: css`#AACDE1`,
   role_dark: css`#065A85`,

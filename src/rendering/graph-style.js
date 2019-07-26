@@ -42,7 +42,21 @@ export function getGraphStyle(theme) {
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
-        'target-arrow-fill': 'filled'
+        'target-arrow-fill': 'hollow'
+      }
+    },
+
+    {
+      selector: 'edge.hierarchy',
+      style: {
+        'width': 6,
+      }
+    },
+
+    {
+      selector: 'edge.disjoint',
+      style: {
+        'target-arrow-fill': 'filled',        
       }
     },
 
@@ -52,6 +66,13 @@ export function getGraphStyle(theme) {
         'line-style': 'dashed',
         'target-arrow-shape': 'diamond',
         'target-arrow-fill': 'hollow'
+      }
+    },
+
+    {
+      selector: 'edge[type = "easy_input"]',
+      style: {
+        'line-style': 'solid',
       }
     },
 
@@ -122,9 +143,16 @@ export function getGraphStyle(theme) {
       selector: '[target_label]',
       style: {
         'target-label': 'data(target_label)',
+        'font-size': 15,
+        'target-text-offset': 20,
+      }
+    },
+
+    {
+      selector: '[source_label]',
+      style: {
+        'source-label': 'data(source_label)',
         'font-size': 10,
-        'target-text-offset': 15,
-        'target-text-margin-y': -5
       }
     },
 
@@ -132,6 +160,16 @@ export function getGraphStyle(theme) {
       selector: '[shape_points]',
       style: {
         'shape-polygon-points': 'data(shape_points)'
+      }
+    },
+
+    {
+      selector: '[text_background]',
+      style: {
+        'text-background-color': theme.background.cssText,
+        'text-background-opacity': 1,
+        'text-background-shape': 'roundrectangle',
+        'text-background-padding' : 2,
       }
     },
 
@@ -188,28 +226,12 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.role',
-      style: {
-        'line-color' : theme.role_dark.cssText,
-        'source-arrow-color': theme.role_dark.cssText,
-        'target-arrow-color': theme.role_dark.cssText,
-      } 
-    },
-
-    {
       selector: '.attribute',
       style: {
         'background-color': theme.attribute.cssText,
         'border-color': theme.attribute_dark.cssText,
-      } 
-    },
-
-    {
-      selector: 'edge.attribute',
-      style: {
-        'line-color': theme.attribute_dark.cssText,
-        'source-arrow-color': theme.attribute_dark.cssText,
-        'target-arrow-color': theme.attribute_dark.cssText,
+        'text-background-color': theme.background.cssText,
+        'text-background-opacity': 1,
       } 
     },
 
@@ -228,6 +250,24 @@ export function getGraphStyle(theme) {
         'target-arrow-shape': 'square',
         'target-arrow-fill': 'hollow',
         'source-arrow-shape': 'none',
+      } 
+    },
+
+    {
+      selector: 'edge.attribute',
+      style: {
+        'line-color': theme.attribute_dark.cssText,
+        'source-arrow-shape': 'none',
+        'target-arrow-shape': 'none',
+      } 
+    },
+
+    {
+      selector: 'edge.role',
+      style: {
+        'line-color' : theme.role_dark.cssText,
+        'source-arrow-color': theme.role_dark.cssText,
+        'target-arrow-color': theme.role_dark.cssText,
       } 
     },
 
@@ -255,13 +295,6 @@ export function getGraphStyle(theme) {
 
     //-----------------------------------------------------------
     // selected selector always last
-    {
-      selector: 'edge:selected',
-      style: {
-        'width': '4',
-      }
-    },
-
     {
       selector: ':selected',
       style: {
