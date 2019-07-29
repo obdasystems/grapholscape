@@ -32,19 +32,18 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       this.filterByCriterion(diagram.cy, this.isQualifiedExistential)
       this.filterByCriterion(diagram.cy, this.isExistentialWithCardinality)
       this.filterByCriterion(diagram.cy, this.isRoleChain)
-      this.filterByCriterion(diagram.cy, this.isComplexHierarchy)
       cy.remove('.filtered')
       this.simplifyDomainAndRange(diagram)
+      this.simplifyComplexHierarchies(diagram)
       this.simplifyUnions(diagram)
       this.simplifyIntersections(diagram)
-      
-      
     })
   }
 
   drawDiagram(diagram) {
     super.drawDiagram(diagram)
 
+    this.cy.autoungrabify(false)
     this.cy.nodes().lock()
     this.cy.nodes('.repositioned').unlock()
 
@@ -52,7 +51,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       name: 'cola',
       randomize:false,
       fit: false,
-      componentSpacing: 100,
+      refresh:2,
+      maxSimulationTime: 8000,
+      convergenceThreshold: 0.0000001
     })
     layout.run()
   }
@@ -304,134 +305,10 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let eles = diagram.collection
 
     eles.filter('[type $= "union"]').forEach( union => {
-      if (union.connectedEdges('edge[type !*= "input"]').size() == 1 &&
-          union.neighborhood('node[type != "concept"]').size() == 0) {
-
-        makeDummyPoint(union)
-
-        union.incomers('edge[type = "input"]').forEach(input => {
-          input.data('type','easy_input')
-        })
-
-        let label = ''
-        let complete = undefined
-        let disjoint = undefined
-
-        if (union.connectedEdges('[type = "equivalence"]').size() > 0) {
-          let eq_edge = union.connectedEdges('[type ="equivalence"]')[0]
-          eq_edge.data('type','inclusion')
-          
-          if (eq_edge.source().id() != union.id()) {
-            let reversed_eq_edge = this.reverseEdge(eq_edge)
-            cy.remove(eq_edge)
-            cy.add(reversed_eq_edge)
-          }
-          complete = 'complete'
-        }
-
-        if (union.data('type') == 'disjoint-union') {
-          disjoint = 'disjoint'
-        }
-
-        if (complete && disjoint) label = `{ ${complete}, ${disjoint} }`
-        else if (complete) label = `{ ${complete} }`
-        else if (disjoint) label = `{ ${disjoint} }`
-
-        union.data('label', label)
-        union.data('text_background', true)
-        union.data('labelXpos',0)
-        union.data('labelYpos', 0)
-      }
-
-      let input_classes = union.incomers('[type = "input"]').sources()
-      union.neighborhood('[type = "attribute"]').forEach(attribute => {
-        input_classes.forEach( (concept,i) => {
-          let new_attribute = attribute.json()
-          new_attribute.position = concept.position()
-          new_attribute.data.id += '_clone'+i
-          new_attribute.classes += ' repositioned'
-          cy.add(new_attribute)
-          
-          let edge = {
-            data: {
-              id: new_attribute.data.id + '_edge',
-              source: new_attribute.data.id,
-              target: concept.id(),
-              type: 'inclusion',
-            },
-            classes: 'attribute',
-          }
-
-          cy.add(edge)
-        })
-
-        cy.remove(attribute)
-      })
-    })
-
-
-    function makeDummyPoint(node) {
-      node.data('width', 1)
-      node.data('height', 1)
-    }
-  }
-
-  simplifyUnions2(diagram) {
-    let cy = diagram.cy
-    let eles = diagram.collection
-
-    let selector = '[type $= "union"]'
-    eles.filter(selector).forEach( union => {
-
-      if (union.connectedEdges('edge[type !*= "input"]').size() == 1 &&
-          union.neighborhood('node[type != "concept"]').size() == 0) {
-
-        //makeDummyPoint(union)
-
-        union.incomers('edge[type = "input"]').forEach(input => {
-          input.data('type','easy_input')
-        })
-
-        let label =''        
-        if (union.connectedEdges('[type = "equivalence"]').size() > 0) {
-          let eq_edge = union.connectedEdges('[type ="equivalence"]')[0]
-          eq_edge.data('type','inclusion')
-          
-          if (eq_edge.source().id() != union.id()) {
-            let reversed_eq_edge = this.reverseEdge(eq_edge)
-            cy.remove(eq_edge)
-            cy.add(reversed_eq_edge)
-          }
-          label = 'C'
-        }
-
-        //else if (complete != '') label = `{ ${complete} }`
-        //else if (disjoint != '') label = `{ ${disjoint} }`
-        //else label = ''
-
-        union.data('label', label)
-        //union.data('text_background', true)
-        union.data('labelXpos',0)
-        let label_y_offset = (union.data('height') + 12.5)/2
-        union.data('labelYpos', label_y_offset)
-      }
-    })
-
-
-    function makeDummyPoint(node) {
-      node.data('width', 1)
-      node.data('height', 1)
-    }
-  }
-
-  simplifyUnions(diagram) {
-    let cy = diagram.cy
-    let eles = diagram.collection
-
-    eles.filter('[type $= "union"]').forEach( union => {
       this.makeDummyPoint(union)
 
       union.incomers('edge[type = "input"]').data('type', 'easy_input')
+      cy.remove(union.incomers('edge[type = "inclusion"]'))
 
       // process equivalence edges
       union.connectedEdges('edge[type = "equivalence"]').forEach(edge => {
@@ -447,24 +324,19 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       })
 
       // process inclusion edges
-      union.connectedEdges('edge[type = "inclusion"]').forEach(inclusion => {
+      union.outgoers('edge[type = "inclusion"]').forEach(inclusion => {
         inclusion.addClass('hierarchy')
         if (union.data('type') == 'disjoint-union')
           inclusion.addClass('disjoint')
-
-        // only outgoing edges from 'union' node
-        if (inclusion.source().id() != union.id()) {
-          let reversed_inclusion = this.reverseEdge(inclusion)
-          cy.remove(inclusion)
-          cy.add(reversed_inclusion)
-        }
       })
 
       if (union.data('label'))
         union.data('label', '')
 
+      this.replicateAttributes(union)
 
       // replicate attributes on input classes
+      /*
       let input_classes = union.incomers('[type *= "input"]').sources()
       union.neighborhood('[type = "attribute"]').forEach(attribute => {
         
@@ -488,6 +360,8 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
         cy.remove(attribute)
       })
+      */
+
 
       // replicate role tipization on input classes
       union.connectedEdges('edge.role').forEach(role_edge => {
@@ -572,13 +446,12 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let cy = diagram.cy
   
     cy.$('node[type = "intersection"]').forEach( and => {
-      if (and.incomers('[type !*= "input"]').size() == 0 && 
-          and.connectedEdges('[type = "equivalence"]').size() == 0) {
+      this.replicateAttributes(and)
+
+      if (and.incomers('edge[type !*= "input"]').size() == 0 && 
+          and.connectedEdges('edge[type = "equivalence"]').size() == 0) {
         this.filterElem(and, cy)
       } else {
-        //this.makeDummyPoint(and)
-        //and.incomers('edge[type = "input"]').data('type', 'easy_input')
-
         // process incoming inclusion
         and.connectedEdges('edge[type !*= "input"]').forEach(edge => {
           /**
@@ -613,5 +486,64 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         cy.remove(and)
       }
     })
+  }
+
+  simplifyComplexHierarchies(diagram) {
+    let cy = diagram.cy
+
+    cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
+      if(this.isComplexHierarchy(node)) {
+        this.replicateAttributes(node)
+        this.filterElem(node)
+      }
+    })
+
+    cy.remove('.filtered')
+  }
+
+  replicateAttributes(node) {
+    let cy = node.cy()
+    let all_classes = getAllInputs(node)
+    let all_attributes = node.neighborhood('[type = "attribute"]')
+    console.log(all_attributes)
+    all_classes.forEach( (concept,i) => {
+      all_attributes.forEach((attribute, j) => {
+        addAttribute(concept, i, attribute)
+      })
+    })
+
+    cy.remove(all_attributes)
+
+    function addAttribute(concept, i, attribute) {
+      let new_attribute = attribute.json()
+      new_attribute.position = concept.position()
+      new_attribute.data.id += '_'+i+'_'+concept.id()
+      new_attribute.classes += ' repositioned'
+      cy.add(new_attribute)
+      let edge = {
+        data: {
+          id: new_attribute.data.id + '_edge',
+          target: new_attribute.data.id,
+          source: concept.id(),
+        },
+        classes: 'attribute',
+      }
+
+      cy.add(edge)
+    }
+
+    function getAllInputs(node) {
+      let all_classes = node.cy().collection()
+
+      let input_edges = node.incomers('edge[type *= "input"]')
+      all_classes = all_classes.union(input_edges.sources('[type = "concept"]'))
+
+      input_edges.sources('[type != "concept"]').forEach(constructor => {
+        all_classes = all_classes.union(getAllInputs(constructor))
+        constructor.addClass('attr_replicated')
+      })
+
+      return all_classes
+    }
   }
 }
