@@ -32,6 +32,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       this.filterByCriterion(diagram.cy, this.isQualifiedExistential)
       this.filterByCriterion(diagram.cy, this.isExistentialWithCardinality)
       this.filterByCriterion(diagram.cy, this.isRoleChain)
+      this.filterByCriterion(diagram.cy, this.isEnumeration)
       cy.remove('.filtered')
       this.simplifyDomainAndRange(diagram)
       this.simplifyComplexHierarchies(diagram)
@@ -299,6 +300,10 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     })
 
     return outcome
+  }
+
+  isEnumeration(node) {
+    return node.data('type') == 'enumeration' ? true : false
   }
 
   simplifyUnions(diagram) {
