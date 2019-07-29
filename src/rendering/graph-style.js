@@ -135,7 +135,7 @@ export function getGraphStyle(theme) {
         'label': 'data(edge_label)',
         'font-size': 10,
         'text-rotation': 'autorotate',
-        'text-margin-y': -10
+        'text-margin-y': -10,
       }
     },
 
@@ -143,8 +143,6 @@ export function getGraphStyle(theme) {
       selector: '[target_label]',
       style: {
         'target-label': 'data(target_label)',
-        'font-size': 15,
-        'target-text-offset': 20,
       }
     },
 
@@ -152,7 +150,24 @@ export function getGraphStyle(theme) {
       selector: '[source_label]',
       style: {
         'source-label': 'data(source_label)',
-        'font-size': 10,
+      }
+    },
+
+    {
+      selector: '[source_label],[target_label]',
+      style: {
+        'font-size': 15,
+        'target-text-offset': 20,
+      }
+    },
+
+    {
+      selector: '[edge_label],[source_label],[target_label],[text_background]',
+      style: {
+        'text-background-color': theme.background.cssText,
+        'text-background-opacity': 1,
+        'text-background-shape': 'roundrectangle',
+        'text-background-padding' : 2,
       }
     },
 
@@ -162,17 +177,7 @@ export function getGraphStyle(theme) {
         'shape-polygon-points': 'data(shape_points)'
       }
     },
-
-    {
-      selector: '[text_background]',
-      style: {
-        'text-background-color': theme.background.cssText,
-        'text-background-opacity': 1,
-        'text-background-shape': 'roundrectangle',
-        'text-background-padding' : 2,
-      }
-    },
-
+    
     {
       selector: '.filtered',
       style: {

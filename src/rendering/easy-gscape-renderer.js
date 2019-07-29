@@ -37,6 +37,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       this.simplifyComplexHierarchies(diagram)
       this.simplifyUnions(diagram)
       this.simplifyIntersections(diagram)
+      this.simplifyRoleInverse(diagram)
     })
   }
 
@@ -314,7 +315,6 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       union.connectedEdges('edge[type = "equivalence"]').forEach(edge => {
         edge.data('type','inclusion')
         edge.data('target_label', 'C')
-        edge.data('text_background', true)
 
         if (edge.source().id() != union.id()) {
           let reversed_edge = this.reverseEdge(edge)
@@ -545,5 +545,48 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
       return all_classes
     }
+  }
+
+  simplifyRoleInverse(diagram) {
+    let cy = diagram.cy
+
+    cy.nodes('[type = "role-inverse"]').forEach(role_inverse => {
+      let new_edges_count = 0
+      // the input role is only one
+      let input_edge = role_inverse.incomers('[type *= "input"]')
+      
+      // for each other edge connected, create a concatenated edge
+      // the edge is directed towards the input_role
+      role_inverse.connectedEdges('[type !*= "input"]').forEach((edge, i) => {
+        let edges = []
+        // if the edge is outgoing from the role-inverse node, then we need to reverse it
+        if (edge.source().id() == role_inverse.id()) {
+          edges.push(this.reverseEdge(edge))
+        } else {
+          edges.push(edge.json())
+        }
+
+        // the input edge must always be reversed 
+        edges.push(this.reverseEdge(input_edge))
+        let new_id = input_edge.id() + '_' + i
+        let new_edge = this.createConcatenatedEdge(edges, cy, new_id)
+        new_edge.data.type = 'inclusion'
+        cy.add(new_edge)
+        cy.remove(edge)
+        new_edges_count += 1
+      })
+
+      if (new_edges_count > 1) {
+        cy.remove(input_edge)
+        this.makeDummyPoint(role_inverse)
+        role_inverse.data('label', 'inverse Of')
+        role_inverse.data('labelXpos', 0)
+        role_inverse.data('labelYpos', 0)
+        role_inverse.data('text_background', true)
+      } else {
+        input_edge.source().connectedEdges('edge.inverse-of').data('edge_label','inverse Of')
+        cy.remove(role_inverse)
+      }
+    })
   }
 }
