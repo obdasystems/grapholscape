@@ -510,7 +510,6 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let cy = node.cy()
     let all_classes = getAllInputs(node)
     let all_attributes = node.neighborhood('[type = "attribute"]')
-    console.log(all_attributes)
     all_classes.forEach( (concept,i) => {
       all_attributes.forEach((attribute, j) => {
         addAttribute(concept, i, attribute)
@@ -576,6 +575,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         let new_id = input_edge.id() + '_' + i
         let new_edge = this.createConcatenatedEdge(edges, cy, new_id)
         new_edge.data.type = 'inclusion'
+        new_edge.classes = 'inverse-of'
         cy.add(new_edge)
         cy.remove(edge)
         new_edges_count += 1
