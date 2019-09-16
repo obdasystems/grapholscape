@@ -42,7 +42,7 @@ export function getGraphStyle(theme) {
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
-        'target-arrow-fill': 'hollow'
+        'target-arrow-fill': 'filled'
       }
     },
 
@@ -50,6 +50,7 @@ export function getGraphStyle(theme) {
       selector: 'edge.hierarchy',
       style: {
         'width': 6,
+        'target-arrow-fill': 'hollow',
       }
     },
 

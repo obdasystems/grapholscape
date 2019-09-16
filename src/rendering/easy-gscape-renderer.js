@@ -53,7 +53,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       name: 'cola',
       randomize:false,
       fit: false,
-      refresh:2,
+      refresh:3,
       maxSimulationTime: 8000,
       convergenceThreshold: 0.0000001
     })
@@ -76,6 +76,16 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         // create a new edge that will have a concept as source and a role/attribute as target
         restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
           let edges = []
+
+          /**
+           * if the actual edge is between two existential, remove it and filter the other existential 
+           */ 
+          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') &&
+              (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
+            cy.remove(edge)
+            return
+          }
+
           // being a domain restriction, the simplified edge must go from a concept to the role/attribute
           // connected in input to the restriction.
           // if the actual edge has the restriction as source, the target is a concept and we consider it
@@ -113,6 +123,15 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         // create a new edge that will have a role/attribute as source and a concept as target
         restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
           let edges = []
+
+          /**
+           * if the actual edge is between two existential, remove it and filter the other existential 
+           */ 
+          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') &&
+              (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
+            cy.remove(edge)
+            return
+          }
 
           edges.push(input_edge.json())
           // being a range restriction, the simplified edge must go from a role/attribute to the concept
@@ -205,7 +224,6 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
    * @param {array} edges - array of edges in json format
    * @param {cytoscape} cy
    * @param {string} id - the id to assign to the new edge
-   * @return {object} new_edge - edge in json
    */
   createConcatenatedEdge(edges, cy, id) {
     let source = edges[0].data.source
@@ -369,61 +387,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
 
       // replicate role tipization on input classes
-      union.connectedEdges('edge.role').forEach(role_edge => {
-        union.incomers('[type *= "input"]').forEach( (input,i) => {
-          let new_id = `${role_edge.id()}_${i}`
-          let new_edge = {}
-          let edges = []
-          /**
-           * if the connected non input edge is only one (the one we are processing)
-           * then the new edjes will be the concatenation of the input edges + role edge
-           * otherwise just change role edge target/source to point toward the appropriate class
-           */
-          if(union.connectedEdges('[type !*= "input"]').size() == 1) {
-            if(role_edge.hasClass('range')) {
-              edges.push(role_edge.json())
-              edges.push(this.reverseEdge(input))
-            } else{
-              edges.push(input.json())
-              edges.push(role_edge.json())
-            }
-            
-            new_edge = this.createConcatenatedEdge(edges, cy, new_id)
-            new_edge.data.type = 'default'
-            new_edge.classes = role_edge.json().classes
-          } else {
-            new_edge = role_edge.json()
-            new_edge.data.id = new_id
-            
-            let target = undefined
-            let source = undefined
-            if(role_edge.hasClass('range')) {
-              target = input.source()
-              source = role_edge.source()
-              new_edge.data.target = input.source().id() 
-            }
-            else {
-              target = role_edge.target()
-              source = input.source()
-              new_edge.data.source = input.source().id()
-            }
-
-            let segment_distances = []
-            let segment_weights = []
-            new_edge.data.breakpoints.forEach( breakpoint => {
-              let aux = getDistanceWeight(target.position(), source.position(), breakpoint)
-              segment_distances.push(aux[0])
-              segment_weights.push(aux[1])
-            })
-
-            new_edge.data.segment_distances = segment_distances
-            new_edge.data.segment_weights = segment_weights
-          }
-          cy.add(new_edge)
-        })
-
-        cy.remove(role_edge)
-      })
+      this.replicateRoleTypizations(union)
       
       // if the union has not any connected non-input edges, then remove it
       if (union.connectedEdges('[type !*= "input"]').size() == 0)
@@ -452,13 +416,16 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
   
     cy.$('node[type = "intersection"]').forEach( and => {
       this.replicateAttributes(and)
+      this.replicateRoleTypizations(and)
 
+      // if there are no incoming inclusions or equivalence and no equivalences connected,
+      // remove the intersection
       if (and.incomers('edge[type !*= "input"]').size() == 0 && 
           and.connectedEdges('edge[type = "equivalence"]').size() == 0) {
         this.filterElem(and, cy)
       } else {
         // process incoming inclusion
-        and.connectedEdges('edge[type !*= "input"]').forEach(edge => {
+        and.incomers('edge[type !*= "input"]').forEach(edge => {
           /**
            * create a new ISA edge for each input class
            * the new edge will be a concatenation:
@@ -490,6 +457,72 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         
         cy.remove(and)
       }
+    })
+  }
+
+  replicateRoleTypizations(constructor) {
+    let cy = constructor.cy()
+    // replicate role tipization on input classes
+    constructor.connectedEdges('edge.role').forEach(role_edge => {
+      constructor.incomers('[type *= "input"]').forEach( (input,i) => {
+        let new_id = `${role_edge.id()}_${i}`
+        let new_edge = {}
+        let edges = []
+        /**
+         * if the connected non input edge is only one (the one we are processing)
+         * then the new edge will be the concatenation of the input edge + role edge
+         */
+        if(constructor.connectedEdges('[type !*= "input"]').size() == 1) {
+          if(role_edge.hasClass('range')) {
+            edges.push(role_edge.json())
+            edges.push(this.reverseEdge(input))
+          } else{
+            edges.push(input.json())
+            edges.push(role_edge.json())
+          }
+          
+          new_edge = this.createConcatenatedEdge(edges, cy, new_id)
+          new_edge.data.type = 'default'
+          new_edge.classes = role_edge.json().classes
+        } else {
+          /**
+           * Otherwise the constructor node will not be deleted and the new role edges can't
+           * pass over the constructor node. We then just properly change the source/target
+           * of the role edge. In this way the resulting edges will go from the last
+           * breakpoint of the original role edge towards the input classes of the constructor  
+          */
+          new_edge = role_edge.json()
+          new_edge.data.id = new_id
+          
+          let target = undefined
+          let source = undefined
+          if(role_edge.hasClass('range')) {
+            target = input.source()
+            source = role_edge.source()
+            new_edge.data.target = input.source().id() 
+          }
+          else {
+            target = role_edge.target()
+            source = input.source()
+            new_edge.data.source = input.source().id()
+          }
+
+          // Keep the original role edge breakpoints
+          let segment_distances = []
+          let segment_weights = []
+          new_edge.data.breakpoints.forEach( breakpoint => {
+            let aux = getDistanceWeight(target.position(), source.position(), breakpoint)
+            segment_distances.push(aux[0])
+            segment_weights.push(aux[1])
+          })
+
+          new_edge.data.segment_distances = segment_distances
+          new_edge.data.segment_weights = segment_weights
+        }
+        cy.add(new_edge)
+      })
+
+      cy.remove(role_edge)
     })
   }
 
