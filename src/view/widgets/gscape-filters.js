@@ -181,7 +181,7 @@ export default class GscapeFilters extends GscapeWidget {
     // if 'all' is toggled, it affect all other filters
     if (e.target.id == 'all') {
       Object.keys(this.filters).map(key => {
-        if ( key != 'all') { 
+        if ( key != 'all' && !this.filters[key].disbaled) { 
           let toggle = this.shadowRoot.querySelector(`#${key}`)
 
           this.filters[key].active = this.filters.all.active

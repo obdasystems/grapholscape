@@ -122,12 +122,7 @@
       var files = dt.files;
 
       document.getElementById('home').style.display = 'none';
-
-      var graphol = new grapholscape.GrapholScape(files[0]);
-
-      graphol.setRenderer(grapholscape_container).then(renderer => {
-        renderer.drawDiagram(graphol.ontology.diagrams[0])
-      });
+      useGrapholscape(files[0])
     }
 
     // Examples
@@ -143,15 +138,17 @@
       li.onclick = function() {
         document.getElementById('home').style.display = 'none';
 
-        var graphol = new grapholscape.GrapholScape(examples[this.getAttribute('exmp_id')][1]);
-
-        graphol.setRenderer(grapholscape_container).then(renderer => {
-          renderer.drawDiagram(graphol.ontology.diagrams[0])
-        });
-
+        useGrapholscape(examples[this.getAttribute('exmp_id')][1])
       };
 
       examples_list.appendChild(li);
+    }
+
+    function useGrapholscape(file) {
+      let gscape = new grapholscape.GrapholScape(file)
+      gscape.init(grapholscape_container).then( () => {
+        gscape.showDiagram('0')
+      })
     }
   </script>
 </body>

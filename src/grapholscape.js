@@ -1,40 +1,78 @@
-import GrapholscapeRenderer from './rendering/grapholscape_renderer'
 import GrapholParser from './parsing/parser'
-import EasyGscapeRenderer from './rendering/easy-gscape-renderer';
+import GrapholscapeView from './view/view';
+import GrapholscapeController from './grapholscape-controller';
 
 export class GrapholScape {
-  constructor (file) {
-    var this_graph = this
+  constructor (file, container = false) {
     this.ready = false
-    let graphol_parser = new GrapholParser()
+    this.ontology = file
 
-    if (typeof (file) === 'object') {
-      var reader = new FileReader()
-      var event = new Event('grapholscape_ready')
-
-      reader.onloadend = function () {
-        this_graph.ontology = graphol_parser.parseGraphol(reader.result)
-        this.ready = true
-        window.dispatchEvent(event)
-      }
-
-      reader.readAsText(file)
-    } else if (typeof (file) === 'string') {
-      this.ontology = graphol_parser.parseGraphol(file)
-      this.ready = true
-    } else {
-      console.error('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
+    if (container) {
+      this.init(container)
     }
-  } // End Constructor
+  }
 
-  setRenderer (container) {
-    return new Promise((resolve, reject) => {
-      if (this.ready) { resolve(new EasyGscapeRenderer(container, this.ontology)) }
-
-      window.addEventListener('grapholscape_ready', () => {
-        resolve(new EasyGscapeRenderer(container, this.ontology))
-      }, this)
+  init(container) {
+    return new Promise( (resolve,reject) => {
+      this.readFilePromise
+      .then( () => {
+        this.view = new GrapholscapeView(container)
+        this.controller = new GrapholscapeController(this.ontology, this.view)
+        this.controller.init()
+        resolve(this)
+      })
+      .catch( (reason) => reject(reason))
     })
+  }
+
+  readGraphol(file) {
+    this.readFilePromise = new Promise ((resolve, reject) => {
+      let result = null
+
+      if (typeof (file) === 'object') {
+        let reader = new FileReader()
+        reader.onloadend = () => {
+          result = getResult(reader.result)
+          resolve(result)
+        }
+
+        reader.readAsText(file)
+
+        setTimeout( () => {
+          reject('Error: timeout expired')
+        }, 10000)
+
+      } else if (typeof (file) === 'string') {
+        result = getResult(file)
+        resolve(result)
+      } else {
+        reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
+      }
+    })
+
+    return this.readFilePromise
+
+    function getResult(file) {
+      let graphol_parser = new GrapholParser()
+      return graphol_parser.parseGraphol(file)
+    }
+  }
+
+  showDiagram(id) {
+    this.controller.onDiagramChange(id)
+  }
+
+  set ontology(file) {
+    this.readGraphol(file)
+    .then( result => { this._ontology = result })
+    .catch( error => {
+      console.error(error)
+      window.alert(error)
+    })
+  }
+
+  get ontology() {
+    return this._ontology
   }
 
   getOccurrencesOfPredicate (predicate) {
@@ -60,4 +98,5 @@ export class GrapholScape {
     }
     return matches
   }
+
 }

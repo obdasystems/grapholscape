@@ -1,31 +1,32 @@
 import cytoscape from 'cytoscape'
 
 export class Diagram {
-  constructor (name, id, elements = {}) {
+  constructor (name, id, elements = null) {
     this.name = name
     this.id = id
-
-    let container = document.createElement('div')
-    container.style.display = 'none'
-    document.body.appendChild(container)
-
     this.cy = cytoscape()
-
-    this._collection = this.cy.collection(elements)
+    if (elements)
+      this.addElems(elements)
   }
 
-  addElems (elem) {
-    this._collection = this.collection.union(this.cy.collection(elem))
+  addElems (elems) {
+    this.cy.add(elems)
   }
 
-  set collection(collection) {
-    this._collection = collection
+  getElems() {
+    return this.nodes.union(this.edges)
   }
 
-  get collection() {
-    let nodes = this.cy.nodes()
-    let edges = this.cy.edges()
-    return nodes.union(edges)
+  get nodes() {
+    return this.cy.nodes().jsons()
+  }
+
+  get edges() {
+    return this.cy.edges().jsons()
+  }
+
+  get elems() {
+    return this.nodes.union(this.edges)
   }
 }
 

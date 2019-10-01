@@ -1,11 +1,11 @@
 import GrapholscapeRenderer from './grapholscape_renderer'
-import { getDistanceWeight } from '../parsing/parser_util'
+import { getDistanceWeight } from '../../parsing/parser_util'
 import cola from 'cytoscape-cola'
 import cytoscape from 'cytoscape'
 
 export default class EasyGscapeRenderer extends GrapholscapeRenderer {
-  constructor(container, ontology) {
-    super(container, ontology)
+  constructor(container, ontology, ui_controller) {
+    super(container, ontology, ui_controller)
     cytoscape.use(cola)
 
     /** Use filters to mark nodes that must be removed and then remove them
@@ -26,6 +26,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
             key != 'attributes' &&
             key != 'individuals') {
           this.filter(this.filters[key] , cy)
+
+          // disable all unnecessary filters
+          this.filters[key].disabled = true
         }
       })
 
@@ -626,5 +629,27 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         cy.remove(role_inverse)
       }
     })
+  }
+
+  filter(filter, cy_instance) {
+    super.filter(filter, cy_instance)
+
+    /**
+     * force the value_domain filter to stay disabled
+     * (activating the attributes filter may able the value_domain filter
+     *  which must stay always disabled in simplified visualization)
+     */ 
+    this.filters.value_domain.disabled = true
+  }
+
+  unfilter(filter, cy_instance) {
+    super.unfilter(filter, cy_instance)
+
+    /**
+     * force the value_domain filter to stay disabled
+     * (activating the attributes filter may able the value_domain filter
+     *  which must stay always disabled in simplified visualization)
+     */ 
+    this.filters.value_domain.disabled = true
   }
 }

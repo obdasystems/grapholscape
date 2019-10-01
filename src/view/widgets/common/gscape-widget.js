@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit-element'
-import * as theme from '../../../style/themes'
+import * as theme from '../../style/themes'
 
 export default class GscapeWidget extends LitElement {
   static get properties() {

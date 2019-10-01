@@ -1,14 +1,9 @@
 import cytoscape from 'cytoscape'
-import GrapholscapeUiController from '../ui/ui-controller'
-import { nodeToOwlString, edgeToOwlString } from './owl'
-import { getGraphStyle }  from './graph-style'
-import * as themes from '../style/themes'
+import OwlTranslator from '../../owl'
+import { getGraphStyle }  from '../style/graph-style'
 
 export default class GrapholscapeRenderer {
-  constructor (container, ontology) {
-    // container chosen by the user
-    this.container = container
-    this.ontology = ontology
+  constructor (container) {
 
     this.filters = {
       all: {
@@ -55,26 +50,12 @@ export default class GrapholscapeRenderer {
       },
     }
 
-    this.container = container
-    this.container.style.fontSize = '14px'
-
-    this.container.requestFullscreen =
-    this.container.requestFullscreen ||
-    this.container.mozRequestFullscreen || // Mozilla
-    this.container.mozRequestFullScreen || // Mozilla older API use uppercase 'S'.
-    this.container.webkitRequestFullscreen || // Webkit
-    this.container.msRequestFullscreen // IE
-
-    document.cancelFullscreen =
-    document.cancelFullscreen ||
-    document.mozCancelFullScreen ||
-    document.webkitCancelFullScreen ||
-    document.msExitFullscreen
+    this.owl_translator = new OwlTranslator()
 
     // container ad-hoc for cytoscape instance
     var cy_container = document.createElement('div')
     cy_container.setAttribute('id', 'cy')
-    this.container.appendChild(cy_container)
+    container.appendChild(cy_container)
 
     this.actual_diagram = null
     this.cy = cytoscape({
@@ -83,48 +64,29 @@ export default class GrapholscapeRenderer {
       wheelSensitivity: 0.4,
       maxZoom: 2.5,
       minZoom: 0.02,
-      style: getGraphStyle(themes.gscape),
       layout: {
         name: 'preset'
       }
     })
 
-    this.cy.on('select', '.predicate', evt => { this.ui_controller.showDetails(evt.target) })
-
-    this.cy.on('select', '*', evt => {
-      if (!evt.target.hasClass('predicate')) {
-        this.ui_controller.hideDetails()
-      }
-      if (evt.target.isEdge() && (evt.target.data('type') !== 'input')) {
-        let owl_text = this.edgeToOwlString(evt.target)
-        this.ui_controller.showOwlTranslation(owl_text)
-      } else if (evt.target.isNode() && evt.target.data('type') !== 'facet') {
-        let owl_text = this.nodeToOwlString(evt.target, true)
-        this.ui_controller.showOwlTranslation(owl_text)
-      } else {
-        this.ui_controller.hideOwlTranslation()
-      }
-    })
-
+    
+    this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.id())})
+    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.id())})
     this.cy.on('tap', evt => {
       if (evt.target === this.cy) {
-        this.ui_controller.widgets.forEach(widget => widget.blur())
+        this.onBackgroundClick()
       }
     })
-
-    this.ui_controller = new GrapholscapeUiController(this)
-    this.ui_controller.createUi()
+    
   }
 
-  centerOnNode (node_id, diagram, zoom) {
-    // if we're not on the diagram of the node to center on, just draw it!
-    if (this.actual_diagram.id !== diagram.id) {
-      this.drawDiagram(diagram)
-    }
+  centerOnNode (node_id, zoom) {
     var node = this.cy.getElementById(node_id)
-    this.centerOnPosition(node.position('x'), node.position('y'), zoom)
-    this.cy.collection(':selected').unselect()
-    node.select()
+    if (node) {
+      this.centerOnPosition(node.position('x'), node.position('y'), zoom)
+      this.cy.$(':selected').unselect()
+      node.select()
+    }
   }
 
   centerOnPosition (x_pos, y_pos, zoom) {
@@ -149,7 +111,8 @@ export default class GrapholscapeRenderer {
 
   drawDiagram (diagram) {
     this.cy.remove('*')
-    this.cy.add(diagram.collection)
+    this.cy.add(diagram.nodes)
+    this.cy.add(diagram.edges)
     // check if any filter is active and if yes, apply them to the "actual diagram"
     Object.keys(this.filters).map(key => {
       if (this.filters[key].active)
@@ -158,15 +121,16 @@ export default class GrapholscapeRenderer {
 
     this.cy.fit()
 
-    this.actual_diagram = diagram
+    this.actual_diagram = diagram.id
+    /*
     if (this.ui_controller.diagram_selector)
       this.ui_controller.diagram_selector.actual_diagram = diagram
+    */
 
     return true
   }
 
   zoomIn() {
-    console.log(this)
     this.cy.zoom({
       level: this.cy.zoom() + 0.08,
       renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
@@ -190,7 +154,6 @@ export default class GrapholscapeRenderer {
   }
 
   filterElem (element, filter_class, cy_instance) {
-    //console.log(element.data('label'))
     let cy = cy_instance || this.cy
     element.addClass('filtered '+filter_class)
     // Filter fake nodes!
@@ -238,7 +201,6 @@ export default class GrapholscapeRenderer {
     }
   }
 
-
   unfilter(filter, cy_instance) {
     let selector = `${filter.selector}, .${filter.class}` 
     let cy = cy_instance || this.cy
@@ -252,15 +214,7 @@ export default class GrapholscapeRenderer {
     })
   }
 
-  set theme(theme) {
+  setTheme(theme) {
     this.cy.style(getGraphStyle(theme))
-
-    let prefix = '--theme-gscape-'
-    Object.keys(theme).map(key => {
-      let css_key = prefix + key.replace(/_/g,'-')
-      this.container.style.setProperty(css_key, theme[key]) 
-    })
   }
 }
-
-Object.assign(GrapholscapeRenderer.prototype, { nodeToOwlString, edgeToOwlString })

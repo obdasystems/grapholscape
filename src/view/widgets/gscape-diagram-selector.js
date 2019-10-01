@@ -7,7 +7,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     return [
       super.properties,
       {
-        _actual_diagram : Object,
+        actual_diagram_id : String,
       }
     ]
   }
@@ -50,13 +50,14 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   constructor(diagrams) {
     super(true, true)
     this.diagrams = diagrams
-    this._actual_diagram = {name : 'Select a Diagram'}
+    this.actual_diagram_id = null
+    this.default_title = 'Select a Diagram'
     this._onDiagramChange = null
   }
 
   render () {
     return html`
-      <gscape-head title="${this._actual_diagram.name}" 
+      <gscape-head title="${this.default_title}"
         collapsed="true" class="drag-handler"></gscape-head> 
 
       <div class="widget-body hide">
@@ -65,7 +66,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
           @click="${this.changeDiagram}" 
           name="${diagram.name}" 
           diagram-id="${id}" 
-          class="diagram-item ${Object.is(diagram, this._actual_diagram) ? `selected`:``}"
+          class="diagram-item ${id == this.actual_diagram_id ? `selected` : ``}"
         >
           ${diagram.name}
         </div>
@@ -81,10 +82,10 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     e.target.classList.add('selected')
 
     let diagram_id = e.target.getAttribute('diagram-id')
-    this.shadowRoot.querySelector('gscape-head').title = e.target.getAttribute('name')
+    
     this.toggleBody()
-    this.actual_diagram = this.diagrams[diagram_id]
-    this._onDiagramChange(this.actual_diagram)
+    this.actual_diagram_id = diagram_id
+    this._onDiagramChange(diagram_id)
   }
 
   firstUpdated() {
@@ -96,11 +97,15 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     this._onDiagramChange = f
   }
 
-  set actual_diagram(diagram) {
-    let oldval = this._actual_diagram
-    this._actual_diagram = diagram
+  set actual_diagram_id(diagram_id) {
+    this._actual_diagram_id = diagram_id
 
-    this.requestUpdate('actual_diagram', oldval)
+    if (diagram_id != null)
+      this.shadowRoot.querySelector('gscape-head').title = this.diagrams[diagram_id].name
+  }
+
+  get actual_diagram_id() {
+    return this._actual_diagram_id
   }
 
   get actual_diagram() {

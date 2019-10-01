@@ -39,7 +39,8 @@ export const gscape = {
   individual: css`#d3b3ef`,
   individual_dark: css`#9875b7`,
 }
-/*
+
+
 export const dark = {
   primary: css`#333`,
   on_primary: css`#fff`,
@@ -75,4 +76,3 @@ export const dark = {
   individual: css`#666`,
   individual_dark: css`#9875b7`,
 }
-*/

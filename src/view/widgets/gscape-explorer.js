@@ -160,39 +160,41 @@ export default class GscapeExplorer extends GscapeWidget{
       <div class="widget-body hide">
       ${this.predicates.map( predicate => {
         
-        let label = predicate.data('label').replace(/\r?\n|\r/g, '')
-        let key = label.concat(predicate.data('type'))          
+        let label = predicate.label.replace(/\r?\n|\r/g, '')
+        let key = label.concat(predicate.type)          
         
         if (!addedPredicates.includes(key)) {
           addedPredicates.push(key)
-          let selector = `[label = '${predicate.data('label')}'][type = '${predicate.data('type')}']`
-
+          
           return html`
             <div>
               <div 
-                id="${key}" 
+                id="${predicate.id}" 
                 class="row" 
-                type="${predicate.data('type')}"
-                label = "${predicate.data('label')}"
+                type="${predicate.type}"
+                label = "${predicate.label}"
               >
                 <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
-                <span>${getTypeImg(predicate.data('type'))}</span>
+                <span>${getTypeImg(predicate.type)}</span>
                 <div class="row-label" @click='${this.handleEntitySelection}'>${label}</div>
               </div>
 
               <div class="sub-rows-wrapper hide">
-              ${this.predicates.filter(selector).map( predicate_dupli => {
-                let diagram = this.diagrams[predicate_dupli.data('diagram_id')]
-                
-                return html`
-                  <div class="sub-row" 
-                    diagram_id="${diagram.id}" 
-                    node_id="${predicate_dupli.id()}"
-                    @click="${this.handleNodeSelection}"
-                  >
-                    - ${diagram.name} - ${predicate_dupli.data('id_xml')}
-                  </div>
-                `
+              ${this.predicates.map( predicate_dupli => {
+                if (predicate_dupli.label === predicate.label && predicate_dupli.type === predicate.type) {
+
+                  let diagram = this.diagrams[predicate_dupli.diagram_id]
+                  
+                  return html`
+                    <div class="sub-row" 
+                      diagram_id="${diagram.id}" 
+                      node_id="${predicate_dupli.id}"
+                      @click="${this.handleNodeSelection}"
+                    >
+                      - ${diagram.name} - ${predicate_dupli.id_xml}
+                    </div>
+                  `
+                }
               })}
               </div>
             </div>
@@ -227,7 +229,8 @@ export default class GscapeExplorer extends GscapeWidget{
     var rows = this.shadowRoot.querySelectorAll('.row')
     
     rows.forEach( row => {
-      if (row.id.toLowerCase().indexOf(value) > -1 ) 
+      if (row.getAttribute('label').toLowerCase().indexOf(value) > -1 ||
+          row.getAttribute('type').toLowerCase().indexOf(value) > -1 ) 
         row.style.display = ''
       else 
         row.style.display = 'none'
@@ -240,31 +243,26 @@ export default class GscapeExplorer extends GscapeWidget{
     this._onEntitySelect = f
   }
 
-  set onNodeSelect(f) {
+  set onNodeNavigation(f) {
     this._onNodeSelect = f
   }
 
   handleEntitySelection(e) {
-    let type = e.target.parentNode.getAttribute('type')
-    let label = e.target.parentNode.getAttribute('label')
+    let entity_id = e.target.parentNode.getAttribute('id')
 
-    let selector = `[label = '${label}'][type = '${type}']`
+    //let selector = `[label = '${label}'][type = '${type}']`
     // get the first instance of the selected entity
-    let predicate_instance = this.predicates.filter(selector)[0]
+    //let predicate_instance = this.predicates.filter(selector)[0]
 
-    this._onEntitySelect(predicate_instance, true)
+    this._onEntitySelect(entity_id, true)
   }
 
   handleNodeSelection(e) {
     this.toggleBody()
 
     let node_id = e.target.getAttribute('node_id')
-    let diagram_id = e.target.getAttribute('diagram_id')
-    let diagram = this.diagrams[diagram_id]
-    let entity = diagram.collection.$id(node_id)
 
-    this._onNodeSelect(node_id,diagram, 1.25)
-    this._onEntitySelect(entity)
+    this._onNodeSelect(node_id)
   }
 
   blur() {

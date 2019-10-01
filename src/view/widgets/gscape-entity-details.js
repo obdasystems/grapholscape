@@ -93,27 +93,27 @@ export default class GscapeEntityDetails extends GscapeWidget {
             <table class="details_table">
               <tr>
                 <th>Name</th>
-                <td>${this.entity.data.label.replace(/\r?\n|\r/g, '')}</td>
+                <td>${this.entity.label.replace(/\r?\n|\r/g, '')}</td>
               </tr>
               <tr>
                 <th>Type</th>
-                <td>${this.entity.data.type}</td>
+                <td>${this.entity.type}</td>
               </tr>
               <tr>
                 <th>IRI</th>
-                <td>${this.entity.data.iri}</td>
+                <td>${this.entity.iri}</td>
               </tr>
             </table>
 
             <div class="chips-wrapper">
               ${Object.keys(this.properties).map(property => {
-                return this.entity.data[property]?
+                return this.entity[property]?
                   html`<span class="chip">&#10003; ${this.properties[property]}</span>`
                 : html``
               })}
             </div>
 
-            ${this.entity.data.description? 
+            ${this.entity.description? 
               html`
                 <div>
                   <div class="descr-header"> Description </div>
@@ -131,22 +131,21 @@ export default class GscapeEntityDetails extends GscapeWidget {
   }
 
   set entity(entity) {
-    let oldval = this._entity
+    let oldval = this.entity
     this._entity = entity
-    switch (this._entity.data.type) {
+    switch (this._entity.type) {
       case 'concept' :
-        this._entity.data.type = 'Class'
+        this._entity.type = 'Class'
         break;
       
       case 'role' :
-        this._entity.data.type = 'Object Property'
+        this._entity.type = 'Object Property'
         break;
 
       case 'attribute':
-        this._entity.data.type = 'Data Property'
+        this._entity.type = 'Data Property'
         break;
     }
-
     this.requestUpdate('entity', oldval)
   }
 
@@ -155,8 +154,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
   }
 
   updated() {
-    if (this.entity && this.entity.data.description)
-      this.renderDescription(this.entity.data.description)
+    if (this.entity && this.entity.description)
+      this.renderDescription(this.entity.description)
   }
 
   renderDescription (description) {

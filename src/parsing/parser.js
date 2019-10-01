@@ -1,6 +1,3 @@
-/**
- * TODO: Convert to ES6 class and export an object (i.e. GrapholParser)
- */
 import Ontology from '../model/ontology'
 import Iri from '../model/iri'
 import Diagram from '../model/diagrams'
@@ -95,12 +92,13 @@ export default class GrapholParser {
         } else { cnt++ }
       }
       diagram.addElems(array_json_elems)
-
       array_json_elems = []
       for (k = 0; k < edges.length; k++) {
         array_json_elems.push(this.EdgeXmlToJson(edges[k], ontology, i))
       }
       diagram.addElems(array_json_elems)
+
+      
     }
 
     this.getIdentityForNeutralNodes(ontology)
@@ -313,8 +311,8 @@ export default class GrapholParser {
         edge.data.edge_label = 'instance Of'
 
     // Prendiamo i nodi source e target
-    var source = ontology.diagrams[diagram_id].collection.$id(edge.data.source)
-    var target = ontology.diagrams[diagram_id].collection.$id(edge.data.target)
+    var source = ontology.getDiagram(diagram_id).cy.$id(edge.data.source)
+    var target = ontology.getDiagram(diagram_id).cy.$id(edge.data.target)
     // Impostiamo le label numeriche per gli archi che entrano nei role-chain
     // I role-chain hanno un campo <input> con una lista di id di archi all'interno
     // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
@@ -571,7 +569,7 @@ export default class GrapholParser {
 
   getIdentityForNeutralNodes (ontology) {
     ontology.diagrams.forEach(diagram => {
-      diagram.collection.filter('node[identity = "neutral"]').forEach(node => {
+      diagram.cy.nodes('[identity = "neutral"]').forEach(node => {
         node.data('identity', findIdentity(node))
       })
     })
