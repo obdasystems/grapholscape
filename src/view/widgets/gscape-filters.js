@@ -1,6 +1,7 @@
 import { html, css } from 'lit-element'
 import GscapeButton from './common/gscape-button'
 import GscapeWidget from './common/gscape-widget'
+import GscapeToggle from './common/gscape-toggle'
 
 export default class GscapeFilters extends GscapeWidget {
 
@@ -39,73 +40,11 @@ export default class GscapeFilters extends GscapeWidget {
           position: static;
         }
 
-        .filter-entry {
-          white-space: nowrap;
-          padding: 6px;
-          display: flex;
-          align-items: center;
-        }
-
-        .filter-entry:first-child{
+        gscape-toggle[first]{
           justify-content: center;
           border-bottom: 1px solid #ccc;
           margin-bottom: 10px;
           padding: 10px;
-        }
-
-        .filter-toggle-wrap {
-          width: 33px;
-          height: 19px;
-          display: inline-block;
-          position: relative;
-        }
-
-        .filter-toggle {
-          position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: #ccc;
-          -webkit-transition: .4s;
-          transition: 0.2s;
-          border-radius: 19px;
-        }
-
-        .filter-toggle::before {
-          position: absolute;
-          content: "";
-          height: 11px;
-          width: 11px;
-          left: 4px;
-          bottom: 4px;
-          background-color: var(--theme-gscape-primary, ${colors.primary});
-          -webkit-transition: .1s;
-          transition: .1s;
-          border-radius: 20px;
-        }
-
-        .filter-toggle-wrap input {
-          display:none;
-        }
-
-        .filter-toggle-wrap input:checked + .filter-toggle {
-          background-color: var(--theme-gscape-secondary, ${colors.secondary});
-        }
-
-        .filter-toggle-wrap input:checked + .filter-toggle::before {
-          -webkit-transform: translateX(14px);
-          -ms-transform: translateX(14px);
-          transform: translateX(14px);      
-        }
-
-        .filter-toggle-wrap input:disabled + .filter-toggle {
-          opacity:0.25;
-        }
-
-        .filter-label {
-          margin-left: 10px;
         }
       `,
     ]
@@ -133,34 +72,26 @@ export default class GscapeFilters extends GscapeWidget {
 
         <div class="filters-wrapper">
           ${Object.keys(this.filters).map(key => {
-
-            if (key == 'all') {
-              return html`
-                <div class="filter-entry">
-                  <label class="filter-toggle-wrap">
-                    <input id="${key}" type="checkbox" 
-                      ?checked="${this.filters[key].active}"
-                      ?disabled="${this.filters[key].disabled}"
-                      @click="${this.toggleFilter}"
-                    />
-                    <span class="filter-toggle"></span>
-                  </label>
-                  <span class="filter-label">${this.filters[key].label}</span>
-                </div>
-              `
+            let filter = this.filters[key]
+            let toggle = {}
+            
+            /**
+             * filter toggles work in inverse mode
+             *  checked => filter not active
+             *  unchecked => filter active
+             * 
+             * we invert the visual behaviour of a toggle passing the last flag setted to true
+             * the active boolean will represent the filter state, not the visual state.
+             */
+            if (key == 'all') { 
+              toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, this.toggleFilter.bind(this))
+              toggle.setAttribute('first', 'true')
+            } else {
+              toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, this.toggleFilter.bind(this), true)
             }
-            else return html`
-              <div class="filter-entry">
-                <label class="filter-toggle-wrap">
-                  <input id="${key}" type="checkbox" 
-                    ?checked="${!this.filters[key].active}"
-                    ?disabled="${this.filters[key].disabled}"
-                    @click="${this.toggleFilter}"
-                  />
-                  <span class="filter-toggle"></span>
-                </label>
-                <span class="filter-label">${this.filters[key].label}</span>
-              </div>
+
+            return html`
+              ${toggle}
             `
           })}
         </div>
@@ -169,33 +100,25 @@ export default class GscapeFilters extends GscapeWidget {
   }
 
   toggleFilter(e) {
-    this.filters[e.target.id].active = !this.filters[e.target.id].active   
+    let toggle = e.target
+    this.filters[toggle.id].active = !this.filters[toggle.id].active   
 
-    if (e.target.id == 'attributes') {
-      if (!e.target.checked)
-        this.filters.value_domain.disabled = true
-      else
-        this.filters.value_domain.disabled = false
+    if (toggle.id == 'attributes') {
+      this.filters.value_domain.disabled = this.filters.attributes.active
     }
 
     // if 'all' is toggled, it affect all other filters
-    if (e.target.id == 'all') {
+    if (toggle.id == 'all') {
       Object.keys(this.filters).map(key => {
         if ( key != 'all' && !this.filters[key].disbaled) { 
-          let toggle = this.shadowRoot.querySelector(`#${key}`)
-
           this.filters[key].active = this.filters.all.active
-
-          /**
-           * 'value_domain' filter must be disabled when we apply all filters together
-           * because we don't want the user to be able to activate it when 'attributes_filter' 
-           * is still off
+          
+          /** 
+           * if the actual filter is value-domain it means it's not disabled (see previous if condition)
+           * but when filter all is active filter value-domain must be disabled, let's disable it
            */
           if (key == 'value_domain')
             this.filters[key].disabled = this.filters.all.active
-
-          // force toggle to change its visual state
-          toggle.checked = !this.filters[key].active
 
           this.filters[key].active ? this.onFilterOn(this.filters[key]) : this.onFilterOff(this.filters[key])
         }
@@ -203,21 +126,23 @@ export default class GscapeFilters extends GscapeWidget {
     } else {
       // if one filter get deactivated while the 'all' filter is active
       // then make the 'all' toggle deactivated
-      if (!this.filters[e.target.id].active && this.filters.all.active) {
+      if (!this.filters[toggle.id].active && this.filters.all.active) {
         this.filters.all.active = false
-
-        // force toggle to change its visual state
-        let toggle = this.shadowRoot.querySelector('#all')
-        toggle.checked = false
       }
 
-      this.filters[e.target.id].active ? this.onFilterOn(this.filters[e.target.id]) : this.onFilterOff(this.filters[e.target.id])
+      this.filters[toggle.id].active ? this.onFilterOn(this.filters[toggle.id]) : this.onFilterOff(this.filters[toggle.id])
     }
-    
-
-    this.requestUpdate()
+    this.updateTogglesState()
   }
 
+  updateTogglesState() {
+    let toggles = this.shadowRoot.querySelectorAll(`gscape-toggle`)
+    
+    toggles.forEach(toggle => {
+      toggle.state = this.filters[toggle.key].active
+      toggle.disabled = this.filters[toggle.key].disabled
+    })
+  }
 }
 
 
