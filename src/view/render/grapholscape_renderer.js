@@ -3,7 +3,7 @@ import OwlTranslator from '../../owl'
 import { getGraphStyle }  from '../style/graph-style'
 
 export default class GrapholscapeRenderer {
-  constructor (container) {
+  constructor (container = null) {
 
     this.filters = {
       all: {
@@ -48,18 +48,10 @@ export default class GrapholscapeRenderer {
         disabled: false,
         class: 'filtercomplements'
       },
-    }
-
-    this.owl_translator = new OwlTranslator()
-
-    // container ad-hoc for cytoscape instance
-    var cy_container = document.createElement('div')
-    cy_container.setAttribute('id', 'cy')
-    container.appendChild(cy_container)
+    } 
 
     this.actual_diagram = null
     this.cy = cytoscape({
-      container: cy_container,
       autoungrabify: true,
       wheelSensitivity: 0.4,
       maxZoom: 2.5,
@@ -68,7 +60,9 @@ export default class GrapholscapeRenderer {
         name: 'preset'
       }
     })
-
+    if (container) {
+      this.mount(container)
+    }
     
     this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.id())})
     this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.id())})
@@ -77,7 +71,21 @@ export default class GrapholscapeRenderer {
         this.onBackgroundClick()
       }
     })
-    
+    this.cy.on('mouseover', '*', e => {
+      this.cy.container().style.cursor = 'pointer'
+    })
+    this.cy.on('mouseout', '*', e => {
+      this.cy.container().style.cursor = 'inherit'
+    })
+  }
+
+  mount(container) {
+    container.setAttribute('id', 'cy')
+    this.cy.mount(container)
+  }
+
+  unmount() {
+    this.cy.unmount()
   }
 
   centerOnNode (node_id, zoom) {

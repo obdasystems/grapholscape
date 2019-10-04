@@ -17,7 +17,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
      *  - Qualified Existential
      *  - role chains
      *  - not (?)
-     */
+     
     this.ontology.diagrams.forEach(diagram => {
       let cy = diagram.cy
 
@@ -43,11 +43,45 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
       this.simplifyIntersections(diagram)
       this.simplifyRoleInverse(diagram)
     })
+    */
+  }
+
+  simplifyDiagram(diagram) {
+    let cy = cytoscape()
+    cy.add(diagram.nodes)
+    cy.add(diagram.edges)
+
+    Object.keys(this.filters).map(key => {
+      if (key != 'all' &&
+          key != 'attributes' &&
+          key != 'individuals') {
+        this.filter(this.filters[key] , cy)
+
+        // disable all unnecessary filters
+        this.filters[key].disabled = true
+      }
+    })
+
+    this.filterByCriterion(cy, this.isQualifiedExistential)
+    this.filterByCriterion(cy, this.isExistentialWithCardinality)
+    this.filterByCriterion(cy, this.isRoleChain)
+    this.filterByCriterion(cy, this.isEnumeration)
+    cy.remove('.filtered')
+    this.simplifyDomainAndRange(cy)
+    this.simplifyComplexHierarchies(cy)
+    this.simplifyUnions(cy)
+    this.simplifyIntersections(cy)
+    this.simplifyRoleInverse(cy)
+
+    return cy.$('*')
   }
 
   drawDiagram(diagram) {
-    super.drawDiagram(diagram)
+    let simplified_eles = this.simplifyDiagram(diagram)
+    diagram.nodes = simplified_eles.nodes().jsons()
+    diagram.edges = simplified_eles.edges().jsons()
 
+    super.drawDiagram(diagram)
     this.cy.autoungrabify(false)
     this.cy.nodes().lock()
     this.cy.nodes('.repositioned').unlock()
@@ -63,9 +97,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     layout.run()
   }
 
-  simplifyDomainAndRange(diagram) {
-    let cy = diagram.cy
-    let eles = diagram.collection
+  simplifyDomainAndRange(cytoscape_instance) {
+    let cy = cytoscape_instance || this.cy
+    let eles = cy.$('*')
 
     // select domain and range restrictions
     // type start with 'domain' or 'range'
@@ -173,9 +207,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     }
   }
 
-  simplifyAttributes(diagram) {
-    let cy = diagram.cy
-    let eles = diagram.collection
+  simplifyAttributes(cytoscape_instance) {
+    let cy = cytoscape_instance || this.cy
+    let eles = cy.$('*')
 
     eles.filter('[type = "attribute"]').forEach(attribute => {
       let owner = attribute.neighborhood('node')[0]
@@ -327,9 +361,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     return node.data('type') == 'enumeration' ? true : false
   }
 
-  simplifyUnions(diagram) {
-    let cy = diagram.cy
-    let eles = diagram.collection
+  simplifyUnions(cytoscape_instance) {
+    let cy = cytoscape_instance || this.cy
+    let eles = cy.$('*')
 
     eles.filter('[type $= "union"]').forEach( union => {
       this.makeDummyPoint(union)
@@ -414,9 +448,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     return new_edge
   }
 
-  simplifyIntersections(diagram) {
-    let cy = diagram.cy
-  
+  simplifyIntersections(cytoscape_instance) {
+    let cy = cytoscape_instance || this.cy
+
     cy.$('node[type = "intersection"]').forEach( and => {
       this.replicateAttributes(and)
       this.replicateRoleTypizations(and)
@@ -529,8 +563,8 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     })
   }
 
-  simplifyComplexHierarchies(diagram) {
-    let cy = diagram.cy
+  simplifyComplexHierarchies(cytoscape_instance) {
+    let cy = cytoscape_instance || this.cy
 
     cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
       if(this.isComplexHierarchy(node)) {
@@ -587,8 +621,8 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     }
   }
 
-  simplifyRoleInverse(diagram) {
-    let cy = diagram.cy
+  simplifyRoleInverse(cytoscape_instance) {
+    let cy = cytoscape_instance || this.cy
 
     cy.nodes('[type = "role-inverse"]').forEach(role_inverse => {
       let new_edges_count = 0

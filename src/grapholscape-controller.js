@@ -8,28 +8,27 @@ export default class GrapholscapeController {
   }
 
   init() {
-    
-      let diagramsModelData = this.ontology.diagrams
-      let entitiesModelData = this.ontology.getEntities()
+    let diagramsModelData = this.ontology.diagrams
+    let entitiesModelData = this.ontology.getEntities()
 
-      let diagramsViewData = diagramsModelData.map((diagram) => this.diagramModelToViewData(diagram))
-      let entitiesViewData = entitiesModelData.map((entity) => this.entityModelToViewData(entity))
-      let ontologyViewData = {
-        name : this.ontology.name,
-        version : this.ontology.version,
-        iriSet : this.ontology.iriSet
-      }
+    let diagramsViewData = diagramsModelData.map((diagram) => this.diagramModelToViewData(diagram))
+    let entitiesViewData = entitiesModelData.map((entity) => this.entityModelToViewData(entity))
+    let ontologyViewData = {
+      name : this.ontology.name,
+      version : this.ontology.version,
+      iriSet : this.ontology.iriSet
+    }
 
-      // event handlers
-      this.view.onDiagramChange = this.onDiagramChange.bind(this)
-      this.view.onNodeNavigation = this.onNodeNavigation.bind(this)
-      this.view.onEntitySelection = this.onEntitySelection.bind(this)
-      this.view.onNodeSelection = this.onNodeSelection.bind(this)
-      this.view.onBackgroundClick = this.onBackgroundClick.bind(this)
-      this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
+    // event handlers
+    this.view.onDiagramChange = this.onDiagramChange.bind(this)
+    this.view.onNodeNavigation = this.onNodeNavigation.bind(this)
+    this.view.onEntitySelection = this.onEntitySelection.bind(this)
+    this.view.onNodeSelection = this.onNodeSelection.bind(this)
+    this.view.onBackgroundClick = this.onBackgroundClick.bind(this)
+    this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
 
 
-      this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData)
+    this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData)
   }
 
   /**
@@ -98,7 +97,7 @@ export default class GrapholscapeController {
      */
     let edge_cy = this.ontology.getElem(edge_id, false)
     this.showOwlTranslation(edge_cy)
-    }
+  }
 
   /**
    * Event handler for a node selection on the graph.
@@ -108,19 +107,19 @@ export default class GrapholscapeController {
   onNodeSelection(node_id) {
     let node = this.ontology.getElem(node_id)
 
+    if(node.classes.includes('predicate')) {
+      this.showDetails(node, false)
+    } else {
+      this.view.hideDetails()
+    }
+
     /**
      * To be refactored.
      * Owl Translator uses cytoscape representation for navigating the graph.
      * We need then the node as a cytoscape object and not as plain json.
      */
     let node_cy = this.ontology.getElem(node_id, false)
-
-    if(node.classes.includes('predicate')) {
-      this.showDetails(node, false)
-      this.showOwlTranslation(node_cy)
-    } else {
-      this.view.hideDetails()
-    }
+    this.showOwlTranslation(node_cy)
   }
 
   /**

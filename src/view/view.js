@@ -9,11 +9,22 @@ import GscapeZoomTools from './widgets/gscape-zoom-tools'
 import GrapholscapeRenderer from './render/grapholscape_renderer'
 import EasyGscapeRenderer from './render/easy-gscape-renderer'
 import * as themes from './style/themes'
+import * as config from '../config.json'
 
 export default class GrapholscapeView {
   constructor (container) {
     this.container = container
-    this.renderer = new GrapholscapeRenderer(container)
+    this.graph_container = document.createElement('div')
+    this.container.appendChild(this.graph_container)
+    this.onEdgeSelection = {}
+    this.onNodeSelection = {}
+
+    this.renderers = {
+      default : new GrapholscapeRenderer(),
+      lite: new EasyGscapeRenderer()
+    }
+
+    this.setRenderer(this.renderers.default)
 
     this.container.requestFullscreen =
     this.container.requestFullscreen ||
@@ -29,11 +40,11 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
-    this.setTheme(themes.gscape)
+    this.setTheme(this.getDefaultTheme())
   }
 
-
   createUi(ontology, diagrams, predicates) {
+    console.log(this.renderers.default)
     this.widgets = new Set()
 
     this.diagram_selector = new GscapeDiagramSelector(diagrams)
@@ -61,13 +72,13 @@ export default class GrapholscapeView {
     const btn_reset = new GscapeButton('filter_center_focus')
     btn_reset.style.bottom = '10px'
     btn_reset.style.right = '10px'
-    btn_reset.onClick = this.renderer.resetView.bind(this.renderer)
+    btn_reset.onClick = this.resetView.bind(this)
     this.container.appendChild(btn_reset)
     this.widgets.add(btn_reset)
 
     this.filters_widget = new GscapeFilters(this.renderer.filters)
-    this.filters_widget.onFilterOn = this.renderer.filter.bind(this.renderer)
-    this.filters_widget.onFilterOff = this.renderer.unfilter.bind(this.renderer)
+    this.filters_widget.onFilterOn = this.filter.bind(this)
+    this.filters_widget.onFilterOff = this.unfilter.bind(this)
     this.filters_widget.btn.onClick = () => {
       this.blurAll(this.filters_widget)
       this.filters_widget.toggleBody()
@@ -89,19 +100,52 @@ export default class GrapholscapeView {
 
 
     const zoom_widget = new GscapeZoomTools()
-    zoom_widget.onZoomIn = this.renderer.zoomIn.bind(this.renderer)
-    zoom_widget.onZoomOut = this.renderer.zoomOut.bind(this.renderer)
+    zoom_widget.onZoomIn = this.zoomIn.bind(this)
+    zoom_widget.onZoomOut = this.zoomOut.bind(this)
     this.container.appendChild(zoom_widget)
     this.widgets.add(zoom_widget)
 
-    this.renderer.onEdgeSelection = this.onEdgeSelection
-    this.renderer.onNodeSelection = this.onNodeSelection
-    this.renderer.onBackgroundClick = this.blurAll.bind(this)
+    this.btn_lite_mode = new GscapeButton('flash_on', 'flash_off')
+    this.btn_lite_mode.onClick = this.toggleLiteMode.bind(this)
+    this.btn_lite_mode.highlight = true
+    this.btn_lite_mode.style.bottom = '10px'
+    this.btn_lite_mode.style.left = '94px'
+    this.container.appendChild(this.btn_lite_mode)
+    this.widgets.add(this.btn_lite_mode)
+
+    this.registerEvents(this.renderers.default)
+    this.registerEvents(this.renderers.lite)
+  }
+
+  registerEvents(renderer) {
+    renderer.onEdgeSelection = this.onEdgeSelection
+    renderer.onNodeSelection = this.onNodeSelection
+    renderer.onBackgroundClick = this.blurAll.bind(this)
   }
 
   drawDiagram(diagramViewData) {
     this.diagram_selector.actual_diagram_id = diagramViewData.id
     this.renderer.drawDiagram(diagramViewData)
+  }
+
+  filter(filter_properties) {
+    this.renderer.filter(filter_properties)
+  }
+
+  unfilter(filter_properties) {
+    this.renderer.unfilter(filter_properties)
+  }
+
+  zoomIn() {
+    this.renderer.zoomIn()
+  }
+
+  zoomOut() {
+    this.renderer.zoomOut()
+  }
+
+  resetView() {
+    this.renderer.resetView()
   }
 
   centerOnNode(nodeViewData, zoom) {
@@ -121,8 +165,10 @@ export default class GrapholscapeView {
   }
 
   showOwlTranslation(text) {
-    this.owl_translator.owl_text = text
-    this.owl_translator.show()
+    if (!this.btn_lite_mode.active) {
+      this.owl_translator.owl_text = text
+      this.owl_translator.show()
+    }
   }
 
   hideOwlTranslation() {
@@ -152,22 +198,44 @@ export default class GrapholscapeView {
     })
   }
 
-  createRenderer(type) {
-    switch(type) {
-      case 'default' :
-        return new GrapholscapeRenderer(this.container, this.gscape_instance.ontology, this)
-      case 'easy' :
-        return new EasyGscapeRenderer(this.container, this.gscape_instance.ontology, this)
+  setRenderer(renderer) {    
+    if (this.renderer)
+      this.renderer.unmount()
+
+    renderer.mount(this.graph_container)
+    this.renderer = renderer
+  }
+
+  toggleLiteMode() {
+    if (this.renderer instanceof EasyGscapeRenderer) {
+      this.setRenderer(this.renderers.default)
+    } else {
+      this.setRenderer(this.renderers.lite)
     }
+
+    this.onDiagramChange(this.diagram_selector.actual_diagram_id)
   }
   
   setTheme(theme) {
-    this.renderer.setTheme(theme)
+    // Apply theme to graph
+    Object.keys(this.renderers).map(key => {
+      this.renderers[key].setTheme(theme)
+    });
 
+    // Apply theme to UI
     let prefix = '--theme-gscape-'
     Object.keys(theme).map(key => {
       let css_key = prefix + key.replace(/_/g,'-')
       this.container.style.setProperty(css_key, theme[key]) 
     })
+  }
+
+  getDefaultTheme() {
+    Object.keys(themes).forEach(key => {
+      if (config.rendering.theme.list[key].default)
+        return themes[key]
+    })
+
+    return themes.gscape
   }
 }

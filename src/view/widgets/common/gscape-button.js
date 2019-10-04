@@ -8,7 +8,8 @@ export default class GscapeButton extends GscapeWidget {
     return [
       super.properties,
       {
-        _icon: String,
+        icon: {type : String},
+        active : {type : Boolean},
       }
     ]
   }
@@ -29,6 +30,10 @@ export default class GscapeButton extends GscapeWidget {
         .btn:hover {
           color: var(--theme-gscape-secondary, ${colors.secondary});
         }
+
+        .btn[active] {
+          color: var(--theme-gscape-secondary, ${colors.secondary});
+        }
       `
     ]
   }
@@ -36,22 +41,36 @@ export default class GscapeButton extends GscapeWidget {
   constructor(icon, alt_icon, draggable=false) {
     super(draggable, false)
 
-    this._icon = icon
-    this._alternate_icon = alt_icon || icon
-    this._onClick = null
+    this.icon = icon
+    this.alternate_icon = alt_icon || icon
+    this.onClick = null
+    this.highlight = false
+    this.active = false
   }
 
   render() {
     return html`
-      <div class="btn" @click="${this.clickHandler}" title="${this._icon}"><mwc-icon>${this._icon}</mwc-icon></div>
+      <div 
+        class="btn" 
+        ?active = "${this.active}"
+        @click="${this.clickHandler}" 
+        title="${this.icon}">
+        
+        <mwc-icon>${this.icon}</mwc-icon>
+      </div>
     `
   }
+
 
   set icon(icon) {
     let oldval = this._icon
     this._icon = icon
 
     this.requestUpdate('icon', oldval)
+  }
+
+  get icon() {
+    return this._icon
   }
 
   set alternate_icon(icon) {
@@ -66,6 +85,9 @@ export default class GscapeButton extends GscapeWidget {
   }
 
   clickHandler() {
+    if (this.highlight)
+      this.active = !this.active
+
     this.toggleIcon()
     this._onClick()
   }

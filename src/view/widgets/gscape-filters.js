@@ -62,7 +62,6 @@ export default class GscapeFilters extends GscapeWidget {
     this.onFilterOff = null
   }
 
-
   render() {
     return html`
       ${this.btn}
@@ -137,11 +136,17 @@ export default class GscapeFilters extends GscapeWidget {
 
   updateTogglesState() {
     let toggles = this.shadowRoot.querySelectorAll(`gscape-toggle`)
-    
+    let is_activated = false
+
     toggles.forEach(toggle => {
       toggle.state = this.filters[toggle.key].active
       toggle.disabled = this.filters[toggle.key].disabled
+      if (toggle.state)
+        is_activated = true
     })
+
+    this.btn.active = is_activated
+    this.btn.requestUpdate()
   }
 }
 

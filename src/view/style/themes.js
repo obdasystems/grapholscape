@@ -19,7 +19,7 @@ export const gscape = {
   on_error: css`#fff`,
   
   // graph colors
-  background: css`#fff`,
+  background: css`#fafafa`,
   edge: css`#000`,
   node_bg: css`#fcfcfc`,
   node_bg_contrast: css`#000`,
