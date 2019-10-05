@@ -18,6 +18,7 @@ export default class GrapholscapeView {
     this.container.appendChild(this.graph_container)
     this.onEdgeSelection = {}
     this.onNodeSelection = {}
+    this.filters = config.widgets.filters.filter_list
 
     this.renderers = {
       default : new GrapholscapeRenderer(),
@@ -44,7 +45,6 @@ export default class GrapholscapeView {
   }
 
   createUi(ontology, diagrams, predicates) {
-    console.log(this.renderers.default)
     this.widgets = new Set()
 
     this.diagram_selector = new GscapeDiagramSelector(diagrams)
@@ -76,7 +76,7 @@ export default class GrapholscapeView {
     this.container.appendChild(btn_reset)
     this.widgets.add(btn_reset)
 
-    this.filters_widget = new GscapeFilters(this.renderer.filters)
+    this.filters_widget = new GscapeFilters(this.filters)
     this.filters_widget.onFilterOn = this.filter.bind(this)
     this.filters_widget.onFilterOff = this.unfilter.bind(this)
     this.filters_widget.btn.onClick = () => {
@@ -126,14 +126,45 @@ export default class GrapholscapeView {
   drawDiagram(diagramViewData) {
     this.diagram_selector.actual_diagram_id = diagramViewData.id
     this.renderer.drawDiagram(diagramViewData)
+
+    // check if any filter is active and if yes, apply them
+    this.applyActiveFilters()
+  }
+
+  applyActiveFilters() {
+    Object.keys(this.filters).map(key => {
+      if (this.filters[key].active)
+        this.filter(this.filters[key])
+    })
   }
 
   filter(filter_properties) {
     this.renderer.filter(filter_properties)
+
+    /**
+     * force the value_domain filter to stay disabled
+     * (activating the attributes filter may able the value_domain filter
+     *  which must stay always disabled in simplified visualization)
+     */ 
+    if (this.btn_lite_mode.active) {
+      this.filters.value_domain.disabled = true
+    }
   }
 
   unfilter(filter_properties) {
     this.renderer.unfilter(filter_properties)
+
+    // Re-Apply other active filters to resolve ambiguity
+    this.applyActiveFilters()
+
+    /**
+     * force the value_domain filter to stay disabled
+     * (activating the attributes filter may able the value_domain filter
+     *  which must stay always disabled in simplified visualization)
+     */ 
+    if (this.btn_lite_mode.active) {
+      this.filters.value_domain.disabled = true
+    }
   }
 
   zoomIn() {
@@ -207,13 +238,40 @@ export default class GrapholscapeView {
   }
 
   toggleLiteMode() {
+    let actual_position = this.renderer.getActualPosition()
+  
     if (this.renderer instanceof EasyGscapeRenderer) {
       this.setRenderer(this.renderers.default)
+
+      Object.keys(this.filters).map(key => {
+        if (key != 'all' &&
+            key != 'attributes' &&
+            key != 'individuals') { 
+
+          // enable filters that may have been disabled by lite mode 
+          this.filters[key].disabled = false
+
+          if (key == 'value_domain' && this.filters.attributes.active)
+            this.filters.value_domain.disabled = true
+        }
+      })
+
     } else {
       this.setRenderer(this.renderers.lite)
+
+      Object.keys(this.filters).map(key => {
+        if (key != 'all' &&
+            key != 'attributes' &&
+            key != 'individuals') { 
+          // disable all unnecessary filters
+          this.filters[key].disabled = true
+        }
+      })
     }
 
+    this.filters_widget.requestUpdate()
     this.onDiagramChange(this.diagram_selector.actual_diagram_id)
+    this.renderer.centerOnRenderedPosition(actual_position.x, actual_position.y, actual_position.zoom)
   }
   
   setTheme(theme) {

@@ -1,55 +1,8 @@
 import cytoscape from 'cytoscape'
-import OwlTranslator from '../../owl'
 import { getGraphStyle }  from '../style/graph-style'
 
 export default class GrapholscapeRenderer {
   constructor (container = null) {
-
-    this.filters = {
-      all: {
-        selector: '#undefined',
-        label: 'Filter All',
-        active: false,
-        disabled: false,
-        class: 'undefined'
-      },
-      attributes: {
-        selector: '[type = "attribute"]',
-        label: 'Attributes',
-        active: false,
-        disabled: false,
-        class: 'filterattributes',
-      },
-      value_domain: {
-        selector: '[type = "value-domain"]',
-        label: 'Value Domain',
-        active: false,
-        disabled: false,
-        class: 'filtervaluedomains'
-      },
-      individuals: {
-        selector: '[type = "individual"]',
-        label: 'Individuals',
-        active: false,
-        disabled: false,
-        class: 'filterindividuals'
-      },
-      universal_quantifier: {
-        selector: '[type $= "-restriction"][label = "forall"]',
-        label: 'Universal Quantifier',
-        active: false,
-        disabled: false,
-        class: 'filterforall'
-      },
-      not: {
-        selector: '[type = "complement"]',
-        label: 'Not',
-        active: false,
-        disabled: false,
-        class: 'filtercomplements'
-      },
-    } 
-
     this.actual_diagram = null
     this.cy = cytoscape({
       autoungrabify: true,
@@ -97,10 +50,10 @@ export default class GrapholscapeRenderer {
     }
   }
 
-  centerOnPosition (x_pos, y_pos, zoom) {
+  centerOnPosition (x_pos, y_pos, zoom = this.cy.zoom()) {
     this.cy.reset()
-    var offset_x = this.cy.width() / 2
-    var offset_y = this.cy.height() / 2
+    let offset_x = this.cy.width() / 2
+    let offset_y = this.cy.height() / 2
     x_pos -= offset_x
     y_pos -= offset_y
     this.cy.pan({
@@ -113,6 +66,13 @@ export default class GrapholscapeRenderer {
     })
   }
 
+  centerOnRenderedPosition(x_pos, y_pos, zoom = this.cy.zoom()) {
+    this.cy.viewport({
+      zoom : zoom,
+      pan : {x : x_pos, y : y_pos}
+    })
+  }
+
   resetView () {
     this.cy.fit()
   }
@@ -121,21 +81,8 @@ export default class GrapholscapeRenderer {
     this.cy.remove('*')
     this.cy.add(diagram.nodes)
     this.cy.add(diagram.edges)
-    // check if any filter is active and if yes, apply them to the "actual diagram"
-    Object.keys(this.filters).map(key => {
-      if (this.filters[key].active)
-        this.filter(this.filters[key])
-    })
-
     this.cy.fit()
-
     this.actual_diagram = diagram.id
-    /*
-    if (this.ui_controller.diagram_selector)
-      this.ui_controller.diagram_selector.actual_diagram = diagram
-    */
-
-    return true
   }
 
   zoomIn() {
@@ -215,14 +162,17 @@ export default class GrapholscapeRenderer {
     
     cy.$(selector).removeClass('filtered')
     cy.$(selector).removeClass(filter.class)
-    // Re-Apply other active filters to resolve ambiguity
-    Object.keys(this.filters).map(key => {
-      if (this.filters[key].active)
-        this.filter(this.filters[key])
-    })
   }
 
   setTheme(theme) {
     this.cy.style(getGraphStyle(theme))
+  }
+
+  getActualPosition() {
+    return {
+      x : this.cy.pan().x,
+      y : this.cy.pan().y,
+      zoom : this.cy.zoom()
+    }
   }
 }

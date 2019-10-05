@@ -4,10 +4,9 @@ import cola from 'cytoscape-cola'
 import cytoscape from 'cytoscape'
 
 export default class EasyGscapeRenderer extends GrapholscapeRenderer {
-  constructor(container, ontology, ui_controller) {
-    super(container, ontology, ui_controller)
+  constructor(container) {
+    super(container)
     cytoscape.use(cola)
-
     /** Use filters to mark nodes that must be removed and then remove them
      *  NOTE: filtering = hiding | removing = hiding + deleting
      * 
@@ -50,7 +49,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let cy = cytoscape()
     cy.add(diagram.nodes)
     cy.add(diagram.edges)
-
+/* old - now filters are managed by the view object
     Object.keys(this.filters).map(key => {
       if (key != 'all' &&
           key != 'attributes' &&
@@ -61,11 +60,27 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
         this.filters[key].disabled = true
       }
     })
+*/
+
+    this.filterByCriterion(cy, (node) => {
+      switch(node.data('type')) {
+        case 'complement' :
+        case 'value-domain':
+        case 'role-chain':
+        case 'enumeration':
+          return true
+
+        case 'domain-restriction':
+        case 'range-restriction':
+          if (node.data('label') == 'forall')
+            return true
+          else 
+            return false
+      }
+    })
 
     this.filterByCriterion(cy, this.isQualifiedExistential)
     this.filterByCriterion(cy, this.isExistentialWithCardinality)
-    this.filterByCriterion(cy, this.isRoleChain)
-    this.filterByCriterion(cy, this.isEnumeration)
     cy.remove('.filtered')
     this.simplifyDomainAndRange(cy)
     this.simplifyComplexHierarchies(cy)
@@ -667,23 +682,9 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
   filter(filter, cy_instance) {
     super.filter(filter, cy_instance)
-
-    /**
-     * force the value_domain filter to stay disabled
-     * (activating the attributes filter may able the value_domain filter
-     *  which must stay always disabled in simplified visualization)
-     */ 
-    this.filters.value_domain.disabled = true
   }
 
   unfilter(filter, cy_instance) {
     super.unfilter(filter, cy_instance)
-
-    /**
-     * force the value_domain filter to stay disabled
-     * (activating the attributes filter may able the value_domain filter
-     *  which must stay always disabled in simplified visualization)
-     */ 
-    this.filters.value_domain.disabled = true
   }
 }
