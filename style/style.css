@@ -1,0 +1,46 @@
+/* 
+--- For custom themes
+
+#grapholscape_container{
+  --theme-gscape-primary: #333;
+  --theme-gscape-on-primary: #fff;
+  --theme-gscape-primary-dark: #1a1a1a;
+  --theme-gscape-on-primary-dark: #fff;
+
+  --theme-gscape-secondary: #99ddff;
+  --theme-gscape-on-secondary: #333;
+  --theme-gscape-secondary-dark: #0099e6;
+  --theme-gscape-on-secondary-dark: #fff;
+
+  --theme-gscape-shadows: rgba(255, 255, 255, 0.5);
+  --theme-gscape-error: #cc3b3b;
+  --theme-gscape-on_error: #fff;
+
+  --theme-gscape-background: #fff;
+  --theme-gscape-edges: #000;
+  --theme-gscape-node-bg: #fcfcfc;
+  --theme-gscape-node-bg-contrast: #000;
+  --theme-gscape-node-border: #000;
+  --theme-gscape-label-color:  #000;
+
+  --theme-gscape-role: #AACDE1;
+  --theme-gscape-role-dark: #065A85;
+
+  --theme-gscape-attribute: #C7DAAD;
+  --theme-gscape-attribute-dark: #4B7900;
+
+  --theme-gscape-concept: #F9F3A6;
+  --theme-gscape-concept-dark: #B08D00;
+
+  --theme-gscape-individual: #F9F3A6;
+  --theme-gscape-individual-dark: #B08D00;
+}
+
+*/
+
+#grapholscape_container #cy{
+  background:var(--theme-gscape-background, #fff);
+  width:100%;
+  height:100%;
+  position:absolute;
+}
