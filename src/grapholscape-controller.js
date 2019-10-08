@@ -158,7 +158,7 @@ export default class GrapholscapeController {
 
 
   entityModelToViewData(entityModelData) {
-    return {
+    let entityViewData = {
       id : entityModelData.data.id,
       id_xml : entityModelData.data.id_xml,
       diagram_id : entityModelData.data.diagram_id,
@@ -174,15 +174,19 @@ export default class GrapholscapeController {
       symmetric : entityModelData.data.symmetric,
       transitive : entityModelData.transitive,
     }
+
+    return JSON.parse(JSON.stringify(entityViewData))
   }
 
   diagramModelToViewData(diagramModelData) {
-    return {
+    let diagramViewData =  {
       name : diagramModelData.name,
       id : diagramModelData.id,
       nodes : diagramModelData.nodes,
       edges : diagramModelData.edges,
     }
+
+    return JSON.parse(JSON.stringify(diagramViewData))
   }
 
   set ontology(ontology) {
