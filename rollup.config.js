@@ -44,7 +44,11 @@ const getJsonOptions = () => ({
 
 const getBabelOptions = () => ({
   exclude: '**/node_modules/**',
-  externalHelpers: true
+  include: '/node_modules(?:\/|\\)lit-element|lit-html/',
+  externalHelpers: true,
+  presets : [
+    ["@babel/env", { useBuiltIns: "usage" }]
+  ]
 })
 
 // Ignore all node_modules dependencies

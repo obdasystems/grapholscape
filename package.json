@@ -22,7 +22,6 @@
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.3.4",
-    "@webcomponents/webcomponentsjs": "^2.3.0",
     "cross-env": "^5.2.0",
     "livereload": "^0.8.0",
     "local-web-server": "^2.6.1",
@@ -40,6 +39,8 @@
   },
   "dependencies": {
     "@material/mwc-icon": "^0.6.0",
+    "@babel/polyfill": "7.4.4",
+    "@webcomponents/webcomponentsjs": "^2.3.0",
     "cytoscape": "3.11",
     "cytoscape-cola": "^2.3.0",
     "lit-element": "^2.1.0"
