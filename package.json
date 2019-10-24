@@ -41,7 +41,7 @@
     "@material/mwc-icon": "^0.6.0",
     "@babel/polyfill": "7.4.4",
     "@webcomponents/webcomponentsjs": "^2.3.0",
-    "cytoscape": "3.11",
+    "cytoscape": "3.2.22",
     "cytoscape-cola": "^2.3.0",
     "lit-element": "^2.1.0"
   }

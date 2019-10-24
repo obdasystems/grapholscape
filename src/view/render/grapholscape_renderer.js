@@ -2,9 +2,19 @@ import cytoscape from 'cytoscape'
 import { getGraphStyle }  from '../style/graph-style'
 
 export default class GrapholscapeRenderer {
-  constructor (container = null) {
+  constructor (container) {
+
     this.actual_diagram = null
+    let cy_container = document.createElement('div')
+
+    cy_container.style.width = '100%'
+    cy_container.style.height = '100%'
+    cy_container.style.position = 'absolute'
+    if (container)
+      container.insertBefore(cy_container, container.firstChild)
+
     this.cy = cytoscape({
+      container: cy_container,
       autoungrabify: true,
       wheelSensitivity: 0.4,
       maxZoom: 2.5,
@@ -13,9 +23,12 @@ export default class GrapholscapeRenderer {
         name: 'preset'
       }
     })
+    /*
     if (container) {
       this.mount(container)
     }
+    */
+
     
     this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.id())})
     this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.id())})
@@ -33,12 +46,18 @@ export default class GrapholscapeRenderer {
   }
 
   mount(container) {
-    container.setAttribute('id', 'cy')
-    this.cy.mount(container)
+    //container.insertBefore(this.cy.container(), container.firstChild)
+    // force refresh
+    
+    this.cy.container().style.display = 'block'
+    //container.setAttribute('id', 'cy')
+    //this.cy.mount(container)
   }
 
   unmount() {
-    this.cy.unmount()
+    this.cy.container().style.display = 'none'
+    //this.cy.container().parentElement.removeChild(this.cy.container())
+    //this.cy.unmount()
   }
 
   centerOnNode (node_id, zoom) {

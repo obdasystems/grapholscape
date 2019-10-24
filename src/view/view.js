@@ -15,14 +15,17 @@ export default class GrapholscapeView {
   constructor (container) {
     this.container = container
     this.graph_container = document.createElement('div')
+    this.graph_container.style.width = '100%'
+    this.graph_container.style.height = '100%'
+    this.graph_container.style.position = 'absolute'
     this.container.appendChild(this.graph_container)
     this.onEdgeSelection = {}
     this.onNodeSelection = {}
     this.filters = config.widgets.filters.filter_list
 
     this.renderers = {
-      default : new GrapholscapeRenderer(),
-      lite: new EasyGscapeRenderer()
+      default : new GrapholscapeRenderer(this.graph_container),
+      lite: new EasyGscapeRenderer(this.graph_container)
     }
 
     this.setRenderer(this.renderers.default)
@@ -41,6 +44,7 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
+    this.graph_container.style.background = `var(--theme-gscape-background, ${this.getDefaultTheme().background})`
     this.setTheme(this.getDefaultTheme())
   }
 
