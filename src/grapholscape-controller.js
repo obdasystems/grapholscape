@@ -173,12 +173,12 @@ export default class GrapholscapeController {
       iri : entityModelData.data.iri,
       description : entityModelData.data.description,
       functional : entityModelData.data.functional,
-      inverse_functional : entityModelData.data.inverseFunctional,
+      inverseFunctional : entityModelData.data.inverseFunctional,
       asymmetric : entityModelData.data.asymmetric,
       irreflexive : entityModelData.data.irreflexive,
       reflexive : entityModelData.data.reflexive,
       symmetric : entityModelData.data.symmetric,
-      transitive : entityModelData.transitive,
+      transitive : entityModelData.data.transitive,
     }
 
     return JSON.parse(JSON.stringify(entityViewData))
