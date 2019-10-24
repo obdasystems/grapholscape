@@ -172,7 +172,7 @@ export default class GscapeExplorer extends GscapeWidget{
                 id="${predicate.id}" 
                 class="row" 
                 type="${predicate.type}"
-                label = "${predicate.label}"
+                label = "${label}"
               >
                 <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
                 <span>${getTypeImg(predicate.type)}</span>
@@ -229,11 +229,14 @@ export default class GscapeExplorer extends GscapeWidget{
     var rows = this.shadowRoot.querySelectorAll('.row')
     
     rows.forEach( row => {
-      if (row.getAttribute('label').toLowerCase().indexOf(value) > -1 ||
-          row.getAttribute('type').toLowerCase().indexOf(value) > -1 ) 
-        row.style.display = ''
-      else 
-        row.style.display = 'none'
+      value.split(' ').forEach(word => {
+        if (row.getAttribute('label').toLowerCase().indexOf(word) > -1 ||
+            row.getAttribute('type').toLowerCase().indexOf(word) > -1 ) {
+          row.style.display = ''
+        } else {
+          row.style.display = 'none'
+        }
+      })
     })
 
     e.target.focus()
