@@ -23,7 +23,7 @@ export class Ontology {
   }
 
   /**
-   * Get an element in the ontology by id
+   * Get an element in the ontology by id, searching in every diagram
    * @param {string} elem_id - The id of the elem to retrieve 
    * @param {boolean} json - if true return plain json, if false return cytoscape node
    */
@@ -32,6 +32,24 @@ export class Ontology {
       let node = diagram.cy.$id(elem_id)
       if (node)
         return json ? node.json() : node  
+    }
+
+    return false
+  }
+
+  /**
+   * Get an element in the ontology by its id and its diagram id
+   * @param {string} elem_id - The id of the elem to retrieve 
+   * @param {string }
+   * @param {boolean} json - if true return plain json, if false return cytoscape node
+   */
+  getElemByDiagramAndId(elem_id, diagram_id, json = true) {
+    let diagram = this.getDiagram(diagram_id)
+
+    if (diagram) {
+      let node = diagram.cy.$(`[id_xml = "${elem_id}"]`)
+      if (node)
+        return json ? node.json() : node 
     }
 
     return false

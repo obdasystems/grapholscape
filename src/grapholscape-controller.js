@@ -88,24 +88,31 @@ export default class GrapholscapeController {
     this.view.showDetails(entityViewData, unselect)
   } 
 
-  onEdgeSelection(edge_id) {
+  onEdgeSelection(edge_id, diagram_id) {
 
     /**
      * To be refactored.
      * Owl Translator uses cytoscape representation for navigating the graph.
      * We need then the node as a cytoscape object and not as plain json.
      */
-    let edge_cy = this.ontology.getElem(edge_id, false)
-    this.showOwlTranslation(edge_cy)
+    let edge_cy = this.ontology.getElemByDiagramAndId(edge_id, diagram_id, false)
+    if(edge_cy)
+      this.showOwlTranslation(edge_cy)
   }
 
   /**
    * Event handler for a node selection on the graph.
    * Show the details and owl translation if the node is an entity, hide it otherwise.
    * @param {String} node_id - The id of the node to center on
+   * @param {string} diagram_id - The id of the diagram containing the element
    */
-  onNodeSelection(node_id) {
-    let node = this.ontology.getElem(node_id)
+  onNodeSelection(node_id, diagram_id) {
+    let node = this.ontology.getElemByDiagramAndId(node_id, diagram_id)
+    
+    if (!node) {
+      console.error('Unable to find the node with {id= '+node_id+'} in the ontology')
+      return
+    }
 
     if(node.classes.includes('predicate')) {
       this.showDetails(node, false)
@@ -118,7 +125,7 @@ export default class GrapholscapeController {
      * Owl Translator uses cytoscape representation for navigating the graph.
      * We need then the node as a cytoscape object and not as plain json.
      */
-    let node_cy = this.ontology.getElem(node_id, false)
+    let node_cy = this.ontology.getElemByDiagramAndId(node_id, diagram_id, false)
     this.showOwlTranslation(node_cy)
   }
 
@@ -155,7 +162,6 @@ export default class GrapholscapeController {
       owl_text = this.owl_translator.edgeToOwlString(elem)
     this.view.showOwlTranslation(owl_text)
   }
-
 
   entityModelToViewData(entityModelData) {
     let entityViewData = {

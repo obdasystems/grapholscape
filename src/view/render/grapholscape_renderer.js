@@ -30,8 +30,10 @@ export default class GrapholscapeRenderer {
     */
 
     
-    this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.id())})
-    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.id())})
+
+
+    this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
+    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
     this.cy.on('tap', evt => {
       if (evt.target === this.cy) {
         this.onBackgroundClick()
