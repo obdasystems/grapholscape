@@ -272,6 +272,7 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
 
     return new_edge
   }
+  
   /**
    * @param {array} edges - array of edges in json format
    * @param {cytoscape} cy
@@ -595,30 +596,45 @@ export default class EasyGscapeRenderer extends GrapholscapeRenderer {
     let cy = node.cy()
     let all_classes = getAllInputs(node)
     let all_attributes = node.neighborhood('[type = "attribute"]')
+    let all_inclusion_attributes = cy.collection()
+
     all_classes.forEach( (concept,i) => {
       all_attributes.forEach((attribute, j) => {
-        addAttribute(concept, i, attribute)
+        addAttribute(concept, i, attribute, 'attribute')
       })
     })
 
     cy.remove(all_attributes)
+    this.filterElem(all_inclusion_attributes)
 
-    function addAttribute(concept, i, attribute) {
+    function addAttribute(target, i, attribute, edge_classes) {
       let new_attribute = attribute.json()
-      new_attribute.position = concept.position()
-      new_attribute.data.id += '_'+i+'_'+concept.id()
+      new_attribute.position = target.position()
+      new_attribute.data.id += '_'+i+'_'+target.id()
       new_attribute.classes += ' repositioned'
+      //attribute.addClass('repositioned')
       cy.add(new_attribute)
       let edge = {
         data: {
           id: new_attribute.data.id + '_edge',
           target: new_attribute.data.id,
-          source: concept.id(),
+          source: target.id(),
         },
-        classes: 'attribute',
+        classes: edge_classes,
       }
-
       cy.add(edge)
+
+      // recursively add new attributes connected to replicated attributes by inclusions
+      if (!target.hasClass('repositioned')) {
+        attribute.neighborhood('[type = "attribute"]').forEach( (inclusion_attribute, j) => {
+          if(all_attributes.contains(inclusion_attribute)) {
+            return
+          }
+          
+          addAttribute(cy.$id(new_attribute.data.id), j, inclusion_attribute, 'inclusion')
+          all_inclusion_attributes = all_inclusion_attributes.union(inclusion_attribute)
+        })
+      }
     }
 
     function getAllInputs(node) {

@@ -38,7 +38,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge[type = "inclusion"], [type = "membership"]',
+      selector: 'edge[type = "inclusion"], [type = "membership"], edge.inclusion',
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
