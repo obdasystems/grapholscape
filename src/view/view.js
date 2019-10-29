@@ -300,4 +300,8 @@ export default class GrapholscapeView {
 
     return themes.gscape
   }
+
+  get actual_diagram_id() {
+    return this.diagram_selector.actual_diagram_id
+  }
 }

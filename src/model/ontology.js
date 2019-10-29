@@ -30,7 +30,7 @@ export class Ontology {
   getElem(elem_id, json = true) {
     for (let diagram of this.diagrams) {
       let node = diagram.cy.$id(elem_id)
-      if (node)
+      if (node && node.length > 0)
         return json ? node.json() : node  
     }
 
