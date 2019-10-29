@@ -135,7 +135,7 @@ export default class GrapholscapeController {
    * @param {Number} zoom - The zoom level to apply
    */
   centerOnNode(nodeModelData, zoom) {
-    if (this.view.actual_diagram != nodeModelData.data.diagram_id) {
+    if (this.view.actual_diagram_id != nodeModelData.data.diagram_id) {
       let diagram = this.ontology.getDiagram(nodeModelData.data.diagram_id)
       this.showDiagram(diagram)
     }
