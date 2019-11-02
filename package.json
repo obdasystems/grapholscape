@@ -9,7 +9,8 @@
     "watch": "run-p watch:http watch:build-old",
     "watch:build-old": "cross-env FILE=build/grapholscape.js SOURCEMAPS=true NODE_ENV=development rollup -c -w",
     "watch:build": "rollup -c -w",
-    "watch:http": "ws"
+    "watch:http": "ws",
+    "electron-app": "electron ."
   },
   "repository": "https://github.com/obdasystems/grapholscape",
   "keywords": [
@@ -23,6 +24,7 @@
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.3.4",
     "cross-env": "^5.2.0",
+    "electron": "^7.0.0",
     "livereload": "^0.8.0",
     "local-web-server": "^2.6.1",
     "npm-run-all": "^4.1.5",

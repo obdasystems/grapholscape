@@ -1,0 +1,113 @@
+body, html {
+  font-family : "Montserrat", "Open Sans","Helvetica Neue",Helvetica,sans-serif;
+  color: #666;
+}
+
+#home {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
+.panel {
+  float:left;
+  height: 100%;
+}
+
+#left-panel {
+  width: 40%;
+  background-color:#fafafa;
+  font-size:85%;
+}
+
+#left-panel ul {
+  margin: 0;
+  padding: 0;
+}
+
+#left-panel li {
+  list-style: none;
+  padding: 10px 20px; 
+  border-bottom: solid 1px #eee;
+  cursor:pointer;
+  transition: all 0.2s;
+}
+
+#left-panel li span {
+  display: block;
+}
+
+#left-panel .name {
+  font-weight: bold;
+  margin-bottom:10px;
+}
+
+#left-panel .path {
+  font-size: 90%;
+  color: #888;
+}
+
+#left-panel li:hover {
+  background-color: #f0f0f0;
+}
+
+
+#right-panel {
+  width: 60%;
+}
+
+#logo {
+  text-align: center;
+  padding: 5px;
+}
+
+#dropbox {
+  padding: 20px 0;
+  margin: 30px auto 0 auto;
+  border: dashed 2px #ddd;
+  border-radius: 20px;
+  width: 80%;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fafafa;
+}
+
+#dropbox p{
+  color: #888;
+}
+#add-button {
+  border-radius: 100%;
+  color: #fff;
+  padding: 10px;
+  background-image: #36D1DC;  /* fallback for old browsers */
+  background-image: -webkit-linear-gradient(to top, #5B86E5, #36D1DC);  /* Chrome 10-25, Safari 5.1-6 */
+  background-image: linear-gradient(to top, #5B86E5 0%, #36D1DC 100%); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+  width: 38px;
+  margin: 30px auto;
+  font-size: 24pt;
+  transition: all 0.2s
+}
+
+#add-button:hover {
+  -webkit-box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.7);
+  -moz-box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.7);
+  box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.7);
+}
+
+/* ellipsis hack */
+#left-panel .path span {
+  white-space: nowrap;
+  overflow: hidden;
+  display:inline-block;
+}
+#left-panel .path span:first-child {
+  width: 100px;
+  text-overflow: ellipsis;
+}
+
+#left-panel .path span + span {
+  width: 150px;
+  direction:rtl;
+  text-align:right;
+}
