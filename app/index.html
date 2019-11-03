@@ -35,12 +35,12 @@
             </span>
           </li>
           <li>
-              <span class="name">Animals</span>
-              <span class="path">
-                <span>C:\User\Mockup-fake-address\project\Animals.graphol</span>
-                <span>C:\User\Mockup-fake-address\project\Animals.graphol</span>
-              </span>
-            </li>
+            <span class="name">Animals</span>
+            <span class="path">
+              <span>C:\User\Mockup-fake-address\project\Animals.graphol</span>
+              <span>C:\User\Mockup-fake-address\project\Animals.graphol</span>
+            </span>
+          </li>
         </ul>
       </div>
     </div>
@@ -57,5 +57,73 @@
       </div>
     </div>
   </div>
+
+
+  <script>
+    const ipcRenderer = require('electron').ipcRenderer
+
+    let grapholscape_container = document.getElementById('grapholscape_container');
+    let dropbox = document.getElementById('dropbox');
+    let recents = document.getElementById('recent-files').getElementsByTagName('li')
+    /*
+    recents.array.forEach(element => {
+      element.onclick()
+    })
+    */
+    document.getElementById('dropbox').onclick = () => ipcRenderer.invoke('select-file')
+
+    dropbox.addEventListener("dragenter",dragenter,false);
+    dropbox.addEventListener("dragover", dragover, false);
+
+    dropbox.addEventListener("drop", drop,false);
+
+    function dragenter(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function dragover(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var dt = e.dataTransfer;
+      var files = dt.files;
+
+      ipcRenderer.invoke('use-dropped-graphol', files[0].path)
+    }
+
+    // Examples
+/*
+    var examples_list = document.getElementById('examples_list');
+    var i = 0;
+    var examples_graphs = [];
+
+    for (i=0; i<examples.length; i++) {
+      var li = document.createElement('li');
+      li.innerHTML = examples[i][0];
+      li.setAttribute('exmp_id',i);
+
+      li.onclick = function() {
+        document.getElementById('home').style.display = 'none';
+
+        useGrapholscape(examples[this.getAttribute('exmp_id')][1])
+      };
+
+      examples_list.appendChild(li);
+    }
+
+    function useGrapholscape(file) {
+      let gscape = new grapholscape.GrapholScape(file)
+      gscape.init(grapholscape_container).then( () => {
+        gscape.showDiagram('0')
+      })
+    }
+  */
+  </script>
 </body>
 </html>
