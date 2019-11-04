@@ -57,19 +57,29 @@ const isExternal = id => !id.startsWith('\0') && !id.startsWith('.') && !id.star
 const licenseHeaderOptions = {
   sourcemap: true,
   banner: {
-    file: path.join(__dirname, 'LICENSE')
+    content: {
+      file : path.join(__dirname, 'LICENSE')
+    }
   }
 }
 
 const configs = [
   {
     input,
-    output: {
-      file: 'build/grapholscape.js',
-      format: 'umd',
-      name,
-      sourcemap: SOURCEMAPS ? 'inline' : false
-    },
+    output: [
+      {
+        file: 'build/grapholscape.js',
+        format: 'umd',
+        name,
+        sourcemap: SOURCEMAPS ? 'inline' : false
+      },
+      {
+        file: 'app/graphol/grapholscape.js',
+        format: 'umd',
+        name,
+        sourcemap: SOURCEMAPS ? 'inline' : false
+      },
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
@@ -83,11 +93,18 @@ const configs = [
 
   {
     input,
-    output: {
-      file: 'build/grapholscape.min.js',
-      format: 'umd',
-      name
-    },
+    output: [
+      {
+        file: 'build/grapholscape.min.js',
+        format: 'umd',
+        name
+      },
+      {
+        file: 'app/graphol/grapholscape.min.js',
+        format: 'umd',
+        name
+      },
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
@@ -103,5 +120,5 @@ const configs = [
 ]
 
 export default FILE
-  ? configs.filter(config => config.output.file.includes(FILE))
+  ? configs.filter(config => config.output[0].file.includes(FILE))
   : configs

@@ -3,3 +3,4 @@ releases/**
 build/
 .*/
 .size-snapshot.json
+app/graphol/grapholscape.js

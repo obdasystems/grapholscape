@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="../build/grapholscape.js" type="text/javascript"></script>
+  <script src="grapholscape.js" type="text/javascript"></script>
   <title>Grapholscape</title>
 
   <style>
@@ -24,6 +24,7 @@
     gscape.init(grapholscape_container).then( () => {
       gscape.showDiagram('0')
       ipcRenderer.send('gscape-ready')
+      document.title = document.title + ' - ' + gscape.ontology.name
     })
   }
 </script>

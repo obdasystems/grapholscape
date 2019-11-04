@@ -10,14 +10,16 @@ let gscapeWindow
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({ 
-    width: 800, 
-    height: 600,
+    width: 750, 
+    height: 550,
     show: false,
-    webPreferences: {nodeIntegration: true}
+    webPreferences: {nodeIntegration: true},
+    autoHideMenuBar: true,
+    resizable: false,
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('app/index.html')
+  mainWindow.loadFile('app/intro/index.html')
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
@@ -56,26 +58,28 @@ app.on('activate', function () {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-function useGrapholscape(fileString) {
+function useGrapholscape(file) {
   gscapeWindow = new BrowserWindow({
     show: false,
-    webPreferences: {nodeIntegration: true}
+    webPreferences: {nodeIntegration: true},
+    autoHideMenuBar: true,
   })
   
   gscapeWindow.maximize()
-  gscapeWindow.loadFile('app/grapholscape-window.html')
+  gscapeWindow.loadFile('app/graphol/grapholscape-window.html')
   gscapeWindow.webContents.on('did-finish-load', () => {
-    gscapeWindow.webContents.send('start', fileString)
+    gscapeWindow.webContents.send('start', file.string)
   })
 
-  gscapeWindow.on('close', () => {
+  gscapeWindow.on('closed', () => {
+    gscapeWindow = null
     mainWindow.show()
   })
+
+  app.addRecentDocument(file.path)
 }
 
-ipcMain.handle('use-dropped-graphol', (e, path) => {
+ipcMain.handle('use-graphol-path', (e, path) => {
   getFileString(path, useGrapholscape)
 })
 
@@ -89,10 +93,7 @@ ipcMain.handle('select-file', e => {
       { name: 'Graphol', extensions: ['graphol'] },
       { name: 'All Files', extensions: ['*'] }
     ],
-  }).then( result => {
-    if (!result.canceled)
-      getFileString(result.filePaths[0], useGrapholscape)
-  })
+  }).then( result => !result.canceled ? getFileString(result.filePaths[0], useGrapholscape) : null )
 })
 
 ipcMain.on('gscape-ready', () => {
@@ -101,12 +102,13 @@ ipcMain.on('gscape-ready', () => {
 }) 
 
 function getFileString(path, callback) {
-  fs.readFile(path, 'utf-8', (err, str) => {
+  fs.readFile(path, 'utf-8', (err, string) => {
     if (err) {
       alert("An error ocurred reading the file :" + err.message);
         return;
     }
     
-    callback(str)
+    let file = { string, path }
+    callback(file)
   })
 }

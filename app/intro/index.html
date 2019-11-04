@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="style.css" rel="stylesheet" />
+
+  <title>Welcome to Grapholscape</title>
+</head>
+
+<body style="margin: 0">
+  <div id="grapholscape_container"></div>
+
+  <div id="home">
+    <div class="panel" id="left-panel">
+      <div id="recent-files">
+        <ul>
+        </ul>
+      </div>
+    </div>
+
+    <div class ="panel" id="right-panel"> 
+      <div id="logo">
+        <img style="width:50%" src="../assets/logo.png" />
+      </div>
+
+      <div id="version"></div>
+
+      <div id="dropbox">
+        <h2>Select or drop a file</h2>
+        <h1 id="add-button">+</h1>
+        <p>Select your .graphol file to display it</p>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    const path = require('path')
+    const app = require('electron').remote.app
+    const ipcRenderer = require('electron').ipcRenderer
+    const fs = require('fs')
+    const examplesPath = 'app/examples'
+    const dropbox = document.getElementById('dropbox');
+    
+    // Version
+    document.getElementById('version').innerHTML = 'Version: ' + app.getVersion()
+
+    // add examples in recents list
+    fs.readdir(examplesPath, (err, files) => {
+      if (err) return
+
+      files.forEach(example => {
+        fs.readdir(path.join(examplesPath, example), (err, files) => {
+          if (err) return
+
+          files.forEach(file => {
+            let filePath = path.join(app.getAppPath(), examplesPath, example, file)
+            let name = example
+
+            addRecentFile(filePath, name)
+          })
+        })
+      })
+    })
+
+    document.getElementById('dropbox').onclick = () => ipcRenderer.invoke('select-file')
+
+    dropbox.addEventListener("dragenter",dragenter,false);
+    dropbox.addEventListener("dragover", dragover, false);
+    dropbox.addEventListener("drop", drop,false);
+
+    function dragenter(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function dragover(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var dt = e.dataTransfer;
+      var files = dt.files;
+
+      useGrapholPath(files[0].path)
+    }
+
+    function addRecentFile(filePath, name) {
+      let recentList = document.getElementById('recent-files').getElementsByTagName('ul')[0]
+
+      let li = document.createElement('li')
+      li.setAttribute('name', name)
+      li.setAttribute('path', filePath)
+      li.setAttribute('title', filePath)
+
+      let name_span = document.createElement('span')
+      name_span.classList.add('name')
+      name_span.innerHTML = name
+      let path_span = document.createElement('span')
+      path_span.classList.add('path')
+      path_span.innerHTML = filePath
+
+      li.appendChild(name_span)
+      li.appendChild(path_span)
+
+      li.onclick = () => useGrapholPath(filePath)
+
+      recentList.appendChild(li)
+    }
+
+    function useGrapholPath(filePath) {
+      ipcRenderer.invoke('use-graphol-path', filePath)
+    }
+
+  </script>
+</body>
+</html>

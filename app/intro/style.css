@@ -1,6 +1,6 @@
 body, html {
   font-family : "Montserrat", "Open Sans","Helvetica Neue",Helvetica,sans-serif;
-  color: #666;
+  color: #555;
 }
 
 #home {
@@ -15,9 +15,12 @@ body, html {
 }
 
 #left-panel {
+  box-sizing: border-box;
+  overflow: auto;
   width: 40%;
-  background-color:#fafafa;
+  background-color:#f8f8f8;
   font-size:85%;
+  border-right: solid 1px #eee;
 }
 
 #left-panel ul {
@@ -27,6 +30,8 @@ body, html {
 
 #left-panel li {
   list-style: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 10px 20px; 
   border-bottom: solid 1px #eee;
   cursor:pointer;
@@ -35,6 +40,8 @@ body, html {
 
 #left-panel li span {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #left-panel .name {
@@ -47,7 +54,7 @@ body, html {
   color: #888;
 }
 
-#left-panel li:hover {
+#left-panel li:hover, #dropbox:hover {
   background-color: #f0f0f0;
 }
 
@@ -69,6 +76,7 @@ body, html {
   width: 80%;
   text-align: center;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 #dropbox p{
@@ -94,19 +102,8 @@ body, html {
   box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.7);
 }
 
-/* ellipsis hack */
-#left-panel .path span {
-  white-space: nowrap;
-  overflow: hidden;
-  display:inline-block;
-}
-#left-panel .path span:first-child {
-  width: 100px;
-  text-overflow: ellipsis;
-}
-
-#left-panel .path span + span {
-  width: 150px;
-  direction:rtl;
-  text-align:right;
+#version {
+  font-size:80%;
+  text-align:center;
+  color:#888;
 }
