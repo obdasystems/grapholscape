@@ -2,7 +2,7 @@ import cytoscape from 'cytoscape'
 import { getGraphStyle }  from '../style/graph-style'
 
 export default class GrapholscapeRenderer {
-  constructor (container) {
+  constructor (container = null) {
 
     this.actual_diagram = null
     let cy_container = document.createElement('div')
@@ -23,14 +23,6 @@ export default class GrapholscapeRenderer {
         name: 'preset'
       }
     })
-    /*
-    if (container) {
-      this.mount(container)
-    }
-    */
-
-    
-
 
     this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
     this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
