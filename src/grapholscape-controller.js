@@ -1,18 +1,32 @@
 import OwlTranslator from "./owl"
+import computeLiteOntology from "./simplifier"
 
 export default class GrapholscapeController {
   constructor(ontology, view = null) {
+    this.ontologies = {
+      default: ontology,
+      lite: null,
+    }
     this._ontology = ontology
     this.view = view
     this.owl_translator = new OwlTranslator()
+    this.liteMode = false
+    this.liteOntologyPromise = computeLiteOntology(ontology)
+      .then( result => { 
+        this.ontologies.lite = result 
+      } )
+      .catch( reason => {
+        console.log(reason)
+      })
+
   }
 
   init() {
     let diagramsModelData = this.ontology.diagrams
     let entitiesModelData = this.ontology.getEntities()
 
-    let diagramsViewData = diagramsModelData.map((diagram) => this.diagramModelToViewData(diagram))
-    let entitiesViewData = entitiesModelData.map((entity) => this.entityModelToViewData(entity))
+    let diagramsViewData = diagramsModelData.map(diagram => this.constructor.diagramModelToViewData(diagram))
+    let entitiesViewData = entitiesModelData.map(entity => this.constructor.entityModelToViewData(entity))
     let ontologyViewData = {
       name : this.ontology.name,
       version : this.ontology.version,
@@ -26,8 +40,9 @@ export default class GrapholscapeController {
     this.view.onNodeSelection = this.onNodeSelection.bind(this)
     this.view.onBackgroundClick = this.onBackgroundClick.bind(this)
     this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
-
-
+    this.view.onLiteModeActive = this.onLiteModeActive.bind(this)
+    this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this)
+    
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData)
   }
 
@@ -64,7 +79,7 @@ export default class GrapholscapeController {
    * @param {JSON} diagramModelData The diagram retrieved from model
    */
   showDiagram(diagramModelData) {
-    let diagramViewData = this.diagramModelToViewData(diagramModelData)
+    let diagramViewData = this.constructor.diagramModelToViewData(diagramModelData)
     this.view.drawDiagram(diagramViewData)
   }
 
@@ -83,7 +98,7 @@ export default class GrapholscapeController {
    * @param {JSON} entityModelData The entity retrieved from model
    */
   showDetails(entityModelData, unselect) {
-    let entityViewData = this.entityModelToViewData(entityModelData)
+    let entityViewData = this.constructor.entityModelToViewData(entityModelData)
     this.view.showDetails(entityViewData, unselect)
   } 
 
@@ -162,7 +177,30 @@ export default class GrapholscapeController {
     this.view.showOwlTranslation(owl_text)
   }
 
-  entityModelToViewData(entityModelData) {
+  onLiteModeActive() {
+    this.liteMode = true
+    this.liteOntologyPromise.then(() => {
+      if (this.liteMode) {
+        this.ontology = this.ontologies.lite
+        this.onDiagramChange(this.view.actual_diagram_id)
+        this.updateEntitiesList()
+      }
+    })
+  }
+
+  onDefaultModeActive() {
+    this.liteMode = false
+    this.ontology = this.ontologies.default
+    this.onDiagramChange(this.view.actual_diagram_id)
+    this.updateEntitiesList()
+  }
+
+  updateEntitiesList() {
+    let entitiesViewData = this.ontology.getEntities().map( entity => this.constructor.entityModelToViewData(entity))
+    this.view.updateEntitiesList(entitiesViewData)
+  }
+
+  static entityModelToViewData(entityModelData) {
     let entityViewData = {
       id : entityModelData.data.id,
       id_xml : entityModelData.data.id_xml,
@@ -183,7 +221,7 @@ export default class GrapholscapeController {
     return JSON.parse(JSON.stringify(entityViewData))
   }
 
-  diagramModelToViewData(diagramModelData) {
+  static diagramModelToViewData(diagramModelData) {
     let diagramViewData =  {
       name : diagramModelData.name,
       id : diagramModelData.id,
