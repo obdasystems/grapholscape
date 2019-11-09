@@ -260,7 +260,7 @@ export default class GrapholscapeView {
         }
       })
 
-      this.onDefaultModeActive()
+      this.onDefaultModeActive(actual_position)
     } else {
       this.setRenderer(this.renderers.lite)
 
@@ -273,11 +273,15 @@ export default class GrapholscapeView {
         }
       })
 
-      this.onLiteModeActive()
+      this.onLiteModeActive(actual_position)
     }
 
     this.filters_widget.requestUpdate()
-    this.renderer.centerOnRenderedPosition(actual_position.x, actual_position.y, actual_position.zoom)
+    this.blurAll()
+  }
+
+  setViewPort(state) {
+    this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
   }
   
   updateEntitiesList(entitiesViewData) {

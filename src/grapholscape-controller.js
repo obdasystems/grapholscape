@@ -177,22 +177,27 @@ export default class GrapholscapeController {
     this.view.showOwlTranslation(owl_text)
   }
 
-  onLiteModeActive() {
+  onLiteModeActive(state) {
     this.liteMode = true
     this.liteOntologyPromise.then(() => {
       if (this.liteMode) {
         this.ontology = this.ontologies.lite
-        this.onDiagramChange(this.view.actual_diagram_id)
+        this.updateGraphView(state)
         this.updateEntitiesList()
       }
     })
   }
 
-  onDefaultModeActive() {
+  onDefaultModeActive(state) {
     this.liteMode = false
     this.ontology = this.ontologies.default
-    this.onDiagramChange(this.view.actual_diagram_id)
+    this.updateGraphView(state)
     this.updateEntitiesList()
+  }
+
+  updateGraphView(state) {
+    this.onDiagramChange(this.view.actual_diagram_id)
+    this.view.setViewPort(state)
   }
 
   updateEntitiesList() {
