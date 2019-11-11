@@ -76,24 +76,31 @@ function useGrapholscape(file) {
     mainWindow.show()
   })
 
-  app.addRecentDocument(file.path)
 }
 
 ipcMain.handle('use-graphol-path', (e, path) => {
   getFileString(path, useGrapholscape)
 })
 
-ipcMain.handle('select-file', e => {
+ipcMain.handle('select-file', async e => {
   const { dialog } = require('electron')
 
-  dialog.showOpenDialog({
+  const result = await dialog.showOpenDialog({
     title: 'Seleziona un File .graphol',
     properties : ['openFile'],
     filters: [
       { name: 'Graphol', extensions: ['graphol'] },
       { name: 'All Files', extensions: ['*'] }
     ],
-  }).then( result => !result.canceled ? getFileString(result.filePaths[0], useGrapholscape) : null )
+  }).then( result => {
+    if (!result.canceled) {
+      getFileString(result.filePaths[0], useGrapholscape)
+      return result.filePaths[0]
+    }
+    else return null 
+  })
+
+  return result
 })
 
 ipcMain.on('gscape-ready', () => {

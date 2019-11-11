@@ -40,29 +40,45 @@
     const fs = require('fs')
     const examplesPath = 'app/examples'
     const dropbox = document.getElementById('dropbox');
-    
+    const recentsPath = path.join(app.getPath('userData'), 'recent-files')
+    const MAX_RECENTS = 10
+    let recents = []
+
     // Version
     document.getElementById('version').innerHTML = 'Version: ' + app.getVersion()
 
-    // add examples in recents list
-    fs.readdir(examplesPath, (err, files) => {
-      if (err) return
+    updateRecentList()
 
-      files.forEach(example => {
-        fs.readdir(path.join(examplesPath, example), (err, files) => {
-          if (err) return
+    fs.readFile(recentsPath, 'utf-8', (err, data) => {
+      if (err) {
+        appendExamples()
+      }
+      data.split(/\r?\n/g).forEach( filePath => {
+        if (filePath.length > 1) {
+          recents.unshift(filePath)
+        }
+      })
+      appendExamples()
+      updateRecentList()
 
-          files.forEach(file => {
+
+      function appendExamples() {
+        // add examples in recents list
+        fs.readdirSync(examplesPath).forEach(example => {
+          fs.readdirSync(path.join(examplesPath, example)).forEach(file => {
             let filePath = path.join(app.getAppPath(), examplesPath, example, file)
-            let name = example
-
-            addRecentFile(filePath, name)
+            if (!recents.includes(filePath))
+              recents.push(filePath)
           })
         })
-      })
+      }  
     })
 
-    document.getElementById('dropbox').onclick = () => ipcRenderer.invoke('select-file')
+    document.getElementById('dropbox').onclick = () => {
+      ipcRenderer.invoke('select-file').then(selectedPath => {
+        !selectedPath ? null : logRecentFile(selectedPath)
+      })
+    }
 
     dropbox.addEventListener("dragenter",dragenter,false);
     dropbox.addEventListener("dragover", dragover, false);
@@ -88,7 +104,11 @@
       useGrapholPath(files[0].path)
     }
 
-    function addRecentFile(filePath, name) {
+    function addRecentFileEntry(filePath, fileName) {
+      let name = 
+        fileName || 
+        filePath.slice(filePath.lastIndexOf(path.sep)+1, -8) // 8 is the length of ".graphol" 
+      
       let recentList = document.getElementById('recent-files').getElementsByTagName('ul')[0]
 
       let li = document.createElement('li')
@@ -105,16 +125,43 @@
 
       li.appendChild(name_span)
       li.appendChild(path_span)
-
       li.onclick = () => useGrapholPath(filePath)
-
       recentList.appendChild(li)
     }
 
     function useGrapholPath(filePath) {
       ipcRenderer.invoke('use-graphol-path', filePath)
+      logRecentFile(filePath)
     }
 
+    function logRecentFile(filePath) {
+      let index = recents.indexOf(filePath)
+
+      if (index != -1) {
+        recents.splice(index, 1)
+      }
+      recents.unshift(filePath)
+      
+      if(recents.length > MAX_RECENTS || index != -1) {
+        index != -1 ? null : recents.pop()
+        fs.writeFile(recentsPath, recents.reverse().join('\n'), (err) => {return})
+        recents.reverse()
+      } else { 
+        fs.appendFile(recentsPath, filePath+'\n', (err) => {
+          if (err) console.log(err)
+        })
+      }
+
+      updateRecentList()
+    }
+
+    function updateRecentList() {
+      let recent_files = document.querySelector('#recent-files')
+      recent_files.getElementsByTagName('ul')[0].remove()
+      recent_files.appendChild(document.createElement('ul'))
+      
+      recents.forEach( filePath => addRecentFileEntry(filePath) )
+    }
   </script>
 </body>
 </html>
