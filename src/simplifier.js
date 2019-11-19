@@ -3,7 +3,6 @@ import Diagram from './model/diagrams'
 import GrapholscapeRenderer from './view/render/grapholscape_renderer'
 import { getDistanceWeight } from './parsing/parser_util'
 import Ontology from './model/ontology'
-import GrapholscapeController from './grapholscape-controller'
 
 export default function computeLiteOntology(ontology) { 
   let aux_renderer = new GrapholscapeRenderer(null)
@@ -13,10 +12,8 @@ export default function computeLiteOntology(ontology) {
     try {
       window.setTimeout(() => {
         ontology.diagrams.forEach( diagram => {
-          let diagramViewData = GrapholscapeController.diagramModelToViewData(diagram)
-          let lite_diagram = new Diagram(diagramViewData.name, diagramViewData.id)
-          lite_diagram.addElems(simplifyDiagram(diagramViewData))
-          
+          let lite_diagram = new Diagram(diagram.name, diagram.id)
+          lite_diagram.addElems(simplifyDiagram(diagram.nodes, diagram.edges))
           lite_ontology.addDiagram(lite_diagram)
         })
         resolve(lite_ontology)
@@ -27,11 +24,11 @@ export default function computeLiteOntology(ontology) {
 
 
 // ----------------------------------
-  function simplifyDiagram(diagram) {
+  function simplifyDiagram(nodes, edges) {
     let cy = cytoscape()
 
-    cy.add(diagram.nodes)
-    cy.add(diagram.edges)
+    cy.add(nodes)
+    cy.add(edges)
 
     filterByCriterion(cy, (node) => {
       switch(node.data('type')) {
