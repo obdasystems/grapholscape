@@ -9,8 +9,8 @@ let gscapeWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({ 
-    width: 750, 
+  mainWindow = new BrowserWindow({
+    width: 750,
     height: 550,
     show: false,
     webPreferences: {nodeIntegration: true},
@@ -19,7 +19,7 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('app/intro/index.html')
+  mainWindow.loadFile(`${__dirname}/intro/index.html`)
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
@@ -64,9 +64,9 @@ function useGrapholscape(file) {
     webPreferences: {nodeIntegration: true},
     autoHideMenuBar: true,
   })
-  
+
   gscapeWindow.maximize()
-  gscapeWindow.loadFile('app/graphol/grapholscape-window.html')
+  gscapeWindow.loadFile(`${__dirname}/graphol/grapholscape-window.html`)
   gscapeWindow.webContents.on('did-finish-load', () => {
     gscapeWindow.webContents.send('start', file.string)
   })
@@ -97,7 +97,7 @@ ipcMain.handle('select-file', async e => {
       getFileString(result.filePaths[0], useGrapholscape)
       return result.filePaths[0]
     }
-    else return null 
+    else return null
   })
 
   return result
@@ -106,7 +106,7 @@ ipcMain.handle('select-file', async e => {
 ipcMain.on('gscape-ready', () => {
   gscapeWindow.show()
   mainWindow.hide()
-}) 
+})
 
 function getFileString(path, callback) {
   fs.readFile(path, 'utf-8', (err, string) => {
@@ -114,7 +114,7 @@ function getFileString(path, callback) {
       alert("An error ocurred reading the file :" + err.message);
         return;
     }
-    
+
     let file = { string, path }
     callback(file)
   })
