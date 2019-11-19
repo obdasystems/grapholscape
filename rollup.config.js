@@ -10,9 +10,9 @@ import json from 'rollup-plugin-json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const FILE = process.env.FILE
-const SOURCEMAPS = process.env.SOURCEMAPS === 'true' // default false
+const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
 const BABEL = process.env.BABEL !== 'false' // default true
-const NODE_ENV = process.env.NODE_ENV === 'development' ? 'development' : 'production' // default prod
+const NODE_ENV = process.env.NODE_ENV === 'development' ? 'production' : 'development' // default development
 const matchSnapshot = process.env.SNAPSHOT === 'match'
 
 const input = './src/grapholscape.js'
