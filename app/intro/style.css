@@ -1,6 +1,7 @@
 body, html {
   font-family : "Montserrat", "Open Sans","Helvetica Neue",Helvetica,sans-serif;
   color: #555;
+  -webkit-user-select:none; 
 }
 
 #home {
@@ -40,6 +41,7 @@ body, html {
 
 #left-panel li span {
   display: block;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }

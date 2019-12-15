@@ -1,6 +1,7 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require('electron')
 const fs = require('fs')
+const path = require('path')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -11,7 +12,7 @@ function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 750,
-    height: 550,
+    height: 600,
     show: false,
     webPreferences: {nodeIntegration: true},
     autoHideMenuBar: true,
@@ -19,7 +20,7 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile(`${__dirname}/intro/index.html`)
+  mainWindow.loadFile(path.resolve(__dirname, 'intro', 'index.html'))
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
@@ -66,7 +67,7 @@ function useGrapholscape(file) {
   })
 
   gscapeWindow.maximize()
-  gscapeWindow.loadFile(`${__dirname}/graphol/grapholscape-window.html`)
+  gscapeWindow.loadFile(path.resolve(__dirname, 'graphol','grapholscape-window.html'))
   gscapeWindow.webContents.on('did-finish-load', () => {
     gscapeWindow.webContents.send('start', file.string)
   })
@@ -78,8 +79,8 @@ function useGrapholscape(file) {
 
 }
 
-ipcMain.handle('use-graphol-path', (e, path) => {
-  getFileString(path, useGrapholscape)
+ipcMain.handle('use-graphol-path', (e, grapholPath) => {
+  getFileString(grapholPath, useGrapholscape)
 })
 
 ipcMain.handle('select-file', async e => {
@@ -108,14 +109,14 @@ ipcMain.on('gscape-ready', () => {
   mainWindow.hide()
 })
 
-function getFileString(path, callback) {
-  fs.readFile(path, 'utf-8', (err, string) => {
+function getFileString(grapholPath, callback) {
+  fs.readFile(grapholPath, 'utf-8', (err, string) => {
     if (err) {
       alert("An error ocurred reading the file :" + err.message);
         return;
     }
 
-    let file = { string, path }
+    let file = { string, grapholPath}
     callback(file)
   })
 }

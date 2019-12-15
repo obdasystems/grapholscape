@@ -73,12 +73,6 @@ const configs = [
         name,
         sourcemap: SOURCEMAPS ? 'inline' : false
       },
-      {
-        file: 'app/graphol/grapholscape.js',
-        format: 'umd',
-        name,
-        sourcemap: SOURCEMAPS ? 'inline' : false
-      },
     ],
     plugins: [
       json(getJsonOptions()),

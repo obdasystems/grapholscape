@@ -4,14 +4,14 @@
   "description": "ontology visualization",
   "main": "app/main.js",
   "scripts": {
-    "start": "run-s watch",
-    "rollup": "rollup -c",
-    "watch": "run-p watch:http watch:build",
+    "start": "run-p serve electron:run",
+    "build": "rollup -c",
+    "watch": "run-p serve watch:build",
     "watch:build": "cross-env FILE=build/grapholscape.js rollup -c -w",
-    "watch:http": "ws",
-    "electron-app": "run-s electron:build electron:run",
-    "electron:build": "cross-env FILE=build/grapholscape.js rollup -c",
-    "electron:run": "electron ."
+    "serve": "ws",
+    "electron-app": "run-s build electron:run",
+    "electron:run": "electron ./app",
+    "electron:dist": "npx electron-packager ./app --out=./dists --platform=all --icon=./app/assets/icon --overwrite"
   },
   "repository": "https://github.com/obdasystems/grapholscape",
   "keywords": [

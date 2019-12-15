@@ -38,7 +38,7 @@
     const app = require('electron').remote.app
     const ipcRenderer = require('electron').ipcRenderer
     const fs = require('fs')
-    const examplesPath = 'app/examples'
+    const examplesPath = path.resolve(__dirname, '..', 'examples')
     const dropbox = document.getElementById('dropbox');
     const recentsPath = path.join(app.getPath('userData'), 'recent-files')
     const MAX_RECENTS = 10
@@ -51,22 +51,22 @@
 
     fs.readFile(recentsPath, 'utf-8', (err, data) => {
       if (err) {
-        appendExamples()
+        console.log(err)
+      } else {
+        data.split(/\r?\n/g).forEach( filePath => {
+          if (filePath.length > 1) {
+            recents.unshift(filePath)
+          }
+        })
       }
-      data.split(/\r?\n/g).forEach( filePath => {
-        if (filePath.length > 1) {
-          recents.unshift(filePath)
-        }
-      })
       appendExamples()
       updateRecentList()
-
 
       function appendExamples() {
         // add examples in recents list
         fs.readdirSync(examplesPath).forEach(example => {
           fs.readdirSync(path.join(examplesPath, example)).forEach(file => {
-            let filePath = path.join(app.getAppPath(), examplesPath, example, file)
+            let filePath = path.join(examplesPath, example, file)
             if (!recents.includes(filePath))
               recents.push(filePath)
           })
