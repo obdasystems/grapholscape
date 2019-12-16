@@ -1,5 +1,5 @@
-import OwlTranslator from "./owl"
-import computeLiteOntology from "./simplifier"
+import OwlTranslator from "./util/owl"
+import computeLiteOntology from "./util/simplifier"
 
 export default class GrapholscapeController {
   constructor(ontology, view = null) {

@@ -1,8 +1,8 @@
 import cytoscape from 'cytoscape'
-import Diagram from './model/diagrams'
-import GrapholscapeRenderer from './view/render/grapholscape_renderer'
-import { getDistanceWeight } from './parsing/parser_util'
-import Ontology from './model/ontology'
+import Diagram from '../model/diagrams'
+import GrapholscapeRenderer from '../view/render/grapholscape_renderer'
+import { getDistanceWeight } from '../parsing/parser_util'
+import Ontology from '../model/ontology'
 
 export default function computeLiteOntology(ontology) { 
   let aux_renderer = new GrapholscapeRenderer(null)
