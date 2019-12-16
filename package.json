@@ -10,11 +10,11 @@
     "watch": "run-p serve watch:build",
     "watch:build": "cross-env FILE=build/grapholscape.js rollup -c -w",
     "serve": "ws",
-    "dist:copy": "run-s cpy build/grapholscape.js build/grapholscape.min.js dist copy-build-in-app",
+    "dist:copy": "cpy build/grapholscape.js build/grapholscape.min.js dist",
     "dist": "cross-env NODE_ENV=production run-s build dist:*",
-    "electron": "electron ./app",
-    "electron:dist": "npx electron-packager ./app --out=./dists --platform=all --icon=./app/assets/icon --overwrite",
-    "release": "run-s dist electron:dist"
+    "app": "electron ./app",
+    "app:dist": "npx electron-packager ./app --out=./dists --platform=all --icon=./app/assets/icon --overwrite",
+    "release": "run-s dist app:dist"
   },
   "repository": "https://github.com/obdasystems/grapholscape",
   "keywords": [
