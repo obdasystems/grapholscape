@@ -104,10 +104,9 @@ export default class GscapeExplorer extends GscapeWidget{
           position:absolute;
           left: 30%;
           width: 50%;
-          line-height:17px;
+          line-height:21px;
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
-          margin: auto 0;
           padding: 2px 5px;
           border:none;
           border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
