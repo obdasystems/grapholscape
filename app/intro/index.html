@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="style.css" rel="stylesheet" />
+
+  <title>Welcome to Grapholscape</title>
+</head>
+
+<body style="margin: 0">
+  <div id="grapholscape_container"></div>
+
+  <div id="home">
+    <div class="panel" id="left-panel">
+      <div id="recent-files">
+        <ul>
+        </ul>
+      </div>
+    </div>
+
+    <div class ="panel" id="right-panel"> 
+      <div id="logo">
+        <img style="width:50%" src="../assets/logo.png" />
+      </div>
+
+      <div id="version"></div>
+
+      <div id="dropbox">
+        <h2>Select or drop a file</h2>
+        <h1 id="add-button">+</h1>
+        <p>Select your .graphol file to display it</p>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    const path = require('path')
+    const app = require('electron').remote.app
+    const ipcRenderer = require('electron').ipcRenderer
+    const fs = require('fs')
+    const examplesPath = path.resolve(__dirname, '..', 'examples')
+    const dropbox = document.getElementById('dropbox');
+    const recentsPath = path.join(app.getPath('userData'), 'recent-files')
+    const MAX_RECENTS = 10
+    let recents = []
+
+    // Version
+    document.getElementById('version').innerHTML = 'Version: ' + app.getVersion()
+
+    updateRecentList()
+
+    fs.readFile(recentsPath, 'utf-8', (err, data) => {
+      if (err) {
+        console.log(err)
+      } else {
+        data.split(/\r?\n/g).forEach( filePath => {
+          if (filePath.length > 1) {
+            recents.unshift(filePath)
+          }
+        })
+      }
+      appendExamples()
+      updateRecentList()
+
+      function appendExamples() {
+        // add examples in recents list
+        fs.readdirSync(examplesPath).forEach(example => {
+          fs.readdirSync(path.join(examplesPath, example)).forEach(file => {
+            let filePath = path.join(examplesPath, example, file)
+            if (!recents.includes(filePath))
+              recents.push(filePath)
+          })
+        })
+      }  
+    })
+
+    document.getElementById('dropbox').onclick = () => {
+      ipcRenderer.invoke('select-file').then(selectedPath => {
+        !selectedPath ? null : logRecentFile(selectedPath)
+      })
+    }
+
+    dropbox.addEventListener("dragenter",dragenter,false);
+    dropbox.addEventListener("dragover", dragover, false);
+    dropbox.addEventListener("drop", drop,false);
+
+    function dragenter(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function dragover(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var dt = e.dataTransfer;
+      var files = dt.files;
+
+      useGrapholPath(files[0].path)
+    }
+
+    function addRecentFileEntry(filePath, fileName) {
+      let name = 
+        fileName || 
+        filePath.slice(filePath.lastIndexOf(path.sep)+1, -8) // 8 is the length of ".graphol" 
+      
+      let recentList = document.getElementById('recent-files').getElementsByTagName('ul')[0]
+
+      let li = document.createElement('li')
+      li.setAttribute('name', name)
+      li.setAttribute('path', filePath)
+      li.setAttribute('title', filePath)
+
+      let name_span = document.createElement('span')
+      name_span.classList.add('name')
+      name_span.innerHTML = name
+      let path_span = document.createElement('span')
+      path_span.classList.add('path')
+      path_span.innerHTML = filePath
+
+      li.appendChild(name_span)
+      li.appendChild(path_span)
+      li.onclick = () => useGrapholPath(filePath)
+      recentList.appendChild(li)
+    }
+
+    function useGrapholPath(filePath) {
+      ipcRenderer.invoke('use-graphol-path', filePath)
+      logRecentFile(filePath)
+    }
+
+    function logRecentFile(filePath) {
+      let index = recents.indexOf(filePath)
+
+      if (index != -1) {
+        recents.splice(index, 1)
+      }
+      recents.unshift(filePath)
+      
+      if(recents.length > MAX_RECENTS || index != -1) {
+        index != -1 ? null : recents.pop()
+        fs.writeFile(recentsPath, recents.reverse().join('\n'), (err) => {return})
+        recents.reverse()
+      } else { 
+        fs.appendFile(recentsPath, filePath+'\n', (err) => {
+          if (err) console.log(err)
+        })
+      }
+
+      updateRecentList()
+    }
+
+    function updateRecentList() {
+      let recent_files = document.querySelector('#recent-files')
+      recent_files.getElementsByTagName('ul')[0].remove()
+      recent_files.appendChild(document.createElement('ul'))
+      
+      recents.forEach( filePath => addRecentFileEntry(filePath) )
+    }
+  </script>
+</body>
+</html>

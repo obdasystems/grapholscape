@@ -56,11 +56,11 @@ export default class GrapholscapeView {
     this.container.appendChild(this.diagram_selector)
     this.widgets.add(this.diagram_selector)
 
-    const explorer = new GscapeExplorer(predicates, diagrams)
-    explorer.onEntitySelect = this.onEntitySelection
-    explorer.onNodeNavigation = this.onNodeNavigation
-    this.container.appendChild(explorer)
-    this.widgets.add(explorer)
+    this.explorer = new GscapeExplorer(predicates, diagrams)
+    this.explorer.onEntitySelect = this.onEntitySelection
+    this.explorer.onNodeNavigation = this.onNodeNavigation
+    this.container.appendChild(this.explorer)
+    this.widgets.add(this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
     this.container.appendChild(this.entity_details)
@@ -260,6 +260,7 @@ export default class GrapholscapeView {
         }
       })
 
+      this.onDefaultModeActive(actual_position)
     } else {
       this.setRenderer(this.renderers.lite)
 
@@ -271,11 +272,21 @@ export default class GrapholscapeView {
           this.filters[key].disabled = true
         }
       })
+
+      this.onLiteModeActive(actual_position)
     }
 
     this.filters_widget.requestUpdate()
-    this.onDiagramChange(this.diagram_selector.actual_diagram_id)
-    this.renderer.centerOnRenderedPosition(actual_position.x, actual_position.y, actual_position.zoom)
+    this.blurAll()
+  }
+
+  setViewPort(state) {
+    this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
+  }
+  
+  updateEntitiesList(entitiesViewData) {
+    this.explorer.predicates = entitiesViewData
+    this.explorer.requestUpdate()
   }
   
   setTheme(theme) {

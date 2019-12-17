@@ -10,9 +10,9 @@ import json from 'rollup-plugin-json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const FILE = process.env.FILE
-const SOURCEMAPS = process.env.SOURCEMAPS === 'true' // default false
+const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
 const BABEL = process.env.BABEL !== 'false' // default true
-const NODE_ENV = process.env.NODE_ENV === 'development' ? 'development' : 'production' // default prod
+const NODE_ENV = process.env.NODE_ENV === 'development' ? 'production' : 'development' // default development
 const matchSnapshot = process.env.SNAPSHOT === 'match'
 
 const input = './src/grapholscape.js'
@@ -57,19 +57,23 @@ const isExternal = id => !id.startsWith('\0') && !id.startsWith('.') && !id.star
 const licenseHeaderOptions = {
   sourcemap: true,
   banner: {
-    file: path.join(__dirname, 'LICENSE')
+    content: {
+      file : path.join(__dirname, 'LICENSE')
+    }
   }
 }
 
 const configs = [
   {
     input,
-    output: {
-      file: 'build/grapholscape.js',
-      format: 'umd',
-      name,
-      sourcemap: SOURCEMAPS ? 'inline' : false
-    },
+    output: [
+      {
+        file: 'build/grapholscape.js',
+        format: 'umd',
+        name,
+        sourcemap: SOURCEMAPS ? 'inline' : false
+      },
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
@@ -83,11 +87,18 @@ const configs = [
 
   {
     input,
-    output: {
-      file: 'build/grapholscape.min.js',
-      format: 'umd',
-      name
-    },
+    output: [
+      {
+        file: 'build/grapholscape.min.js',
+        format: 'umd',
+        name
+      },
+      {
+        file: 'app/graphol/grapholscape.min.js',
+        format: 'umd',
+        name
+      },
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
@@ -103,5 +114,5 @@ const configs = [
 ]
 
 export default FILE
-  ? configs.filter(config => config.output.file.includes(FILE))
+  ? configs.filter(config => config.output[0].file.includes(FILE))
   : configs

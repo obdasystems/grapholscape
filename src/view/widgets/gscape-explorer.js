@@ -104,10 +104,9 @@ export default class GscapeExplorer extends GscapeWidget{
           position:absolute;
           left: 30%;
           width: 50%;
-          line-height:17px;
+          line-height:21px;
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
-          margin: auto 0;
           padding: 2px 5px;
           border:none;
           border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
@@ -129,8 +128,8 @@ export default class GscapeExplorer extends GscapeWidget{
 
   constructor(predicates, diagrams) {
     super(true, true)
-    this.predicates = predicates
     this.diagrams = diagrams
+    this.predicates = predicates
 
     this._onEntitySelect = null
     this._onNodeSelect = null
@@ -145,7 +144,6 @@ export default class GscapeExplorer extends GscapeWidget{
       `
     }
 
-    let addedPredicates = []
 
     return html`
       <gscape-head title="Explorer" collapsed="true" class="drag-handler">
@@ -158,48 +156,36 @@ export default class GscapeExplorer extends GscapeWidget{
       </gscape-head>
 
       <div class="widget-body hide">
-      ${this.predicates.map( predicate => {
-        
-        let label = predicate.label.replace(/\r?\n|\r/g, '')
-        let key = label.concat(predicate.type)          
-        
-        if (!addedPredicates.includes(key)) {
-          addedPredicates.push(key)
-          
-          return html`
-            <div>
-              <div 
-                id="${predicate.id}" 
-                class="row" 
-                type="${predicate.type}"
-                label = "${label}"
-              >
-                <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
-                <span>${getTypeImg(predicate.type)}</span>
-                <div class="row-label" @click='${this.handleEntitySelection}'>${label}</div>
-              </div>
-
-              <div class="sub-rows-wrapper hide">
-              ${this.predicates.map( predicate_dupli => {
-                if (predicate_dupli.label === predicate.label && predicate_dupli.type === predicate.type) {
-
-                  let diagram = this.diagrams[predicate_dupli.diagram_id]
-                  
-                  return html`
-                    <div class="sub-row" 
-                      diagram_id="${diagram.id}" 
-                      node_id="${predicate_dupli.id}"
-                      @click="${this.handleNodeSelection}"
-                    >
-                      - ${diagram.name} - ${predicate_dupli.id_xml}
-                    </div>
-                  `
-                }
-              })}
-              </div>
+      ${Object.keys(this.predicates).map( key => {
+        let predicate = this.predicates[key]
+        return html`
+          <div>
+            <div 
+              id="${predicate.subrows[0].id}" 
+              class="row" 
+              type="${predicate.type}"
+              label = "${predicate.label}"
+            >
+              <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
+              <span>${getTypeImg(predicate.type)}</span>
+              <div class="row-label" @click='${this.handleEntitySelection}'>${predicate.label}</div>
             </div>
-          `
-        }
+
+            <div class="sub-rows-wrapper hide">
+            ${predicate.subrows.map( predicate_instance => {
+              return html`
+                <div class="sub-row" 
+                  diagram_id="${predicate_instance.diagram.id}" 
+                  node_id="${predicate_instance.id}"
+                  @click="${this.handleNodeSelection}"
+                >
+                  - ${predicate_instance.diagram.name} - ${predicate_instance.id_xml}
+                </div>
+              `
+            })}
+            </div>
+          </div>
+        `
       })}
       </div>
     `
@@ -248,6 +234,43 @@ export default class GscapeExplorer extends GscapeWidget{
 
   set onNodeNavigation(f) {
     this._onNodeSelect = f
+  }
+
+  get predicates() {
+    return this._predicates
+  }
+
+  set predicates(predicates) {
+    function getSubRowsObject(predicate) {
+      return {
+        id : predicate.id,
+        id_xml : predicate.id_xml,
+        diagram : {
+          id : predicate.diagram_id,
+          name : this.diagrams[predicate.diagram_id].name,
+        }
+      }
+    }
+
+    let getSubRowsObjectBound = getSubRowsObject.bind(this)
+    let dictionary = []
+
+    predicates.forEach(predicate => {
+      let label = predicate.label.replace(/\r?\n|\r/g, '')
+      let key = label.concat(predicate.type)    
+      
+      if (!(key in dictionary)) {
+        dictionary[key] = {
+          type : predicate.type,
+          label : label,
+          subrows : []          
+        }
+      }
+
+      dictionary[key].subrows.push(getSubRowsObjectBound(predicate))
+    })
+
+    this._predicates = dictionary
   }
 
   handleEntitySelection(e) {
