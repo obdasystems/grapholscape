@@ -66,17 +66,6 @@ export class Ontology {
     
     return predicates.jsons()
   }
-
-  getDefaultIri () {
-    let return_iri = null
-    this.iriSet.forEach(iri => {
-      if (iri.isDefault()) {
-        return_iri = iri
-      }
-    })
-
-    return return_iri
-  }
 }
 
 export default Ontology

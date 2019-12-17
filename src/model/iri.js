@@ -1,24 +1,14 @@
 export class Iri {
-  constructor (prefix, value, dflt = false, project = false, standard = false) {
-    this.prefix = prefix
+  constructor (prefixes, value, standard = false) {
+    this.prefixes = prefixes
     this.value = value
-    this.default = dflt
-    this.project = project
     this.standard = standard
   }
 
   getFullIri () {
-    return this.prefix + ':' + this.value
+    return this.prefixes[0] + ':' + this.value
   }
-
-  isDefault () {
-    return this.default
-  }
-
-  isProject () {
-    return this.project
-  }
-
+  
   isStandard () {
     return this.standard
   }

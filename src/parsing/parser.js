@@ -23,10 +23,10 @@ export default class GrapholParser {
     // Creating an Ontology Object
     let ontology = new Ontology(ontology_name, ontology_version)
 
-    if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length ===0) {
+    if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length === 0) {
       // for old graphol files
-      let default_iri_value = xmlDocument.getElementsByTagName('iri')[0].textContent
-      ontology.addIri(new Iri('', default_iri_value, is_default = true))
+      let iri_value = xmlDocument.getElementsByTagName('iri')[0].textContent
+      ontology.addIri(new Iri([''], iri_value))
     } else {
       // Create iri and add them to ontology.iriSet
       let iri_list = xmlDocument.getElementsByTagName('iri')
@@ -37,16 +37,13 @@ export default class GrapholParser {
 
         var iri_value = iri.getAttribute('iri_value')
 
-        var is_default = false
-        var is_project = false
         var is_standard = false
-        var iri_prefix = ''
+        var iri_prefixes = []
 
-        if (iri.getElementsByTagName('prefix').length === 0) {
-          is_default = true
-        } else {
-          iri_prefix = iri.getElementsByTagName('prefix')[0].getAttribute('prefix_value')
-        }
+        if (true) {
+        [...iri.getElementsByTagName('prefix')].forEach(iri_prefix => {
+          iri_prefixes.push(iri_prefix.getAttribute('prefix_value'))
+        }) }
 
         for (k = 0; k < iri.getElementsByTagName('property').length; k++) {
           let iri_property = iri.getElementsByTagName('property')[k]
@@ -55,14 +52,10 @@ export default class GrapholParser {
             case 'Standard_IRI':
               is_standard = true
               break
-
-            case 'Project_IRI':
-              is_project = true
-              break
           }
         };
 
-        ontology.addIri(new Iri(iri_prefix, iri_value, is_default, is_project, is_standard))
+        ontology.addIri(new Iri(iri_prefixes, iri_value, is_standard))
       }
     }
 
@@ -99,6 +92,10 @@ export default class GrapholParser {
       diagram.addElems(array_json_elems)
 
       
+    }
+
+    if(i==0) {
+      throw("The selected .graphol file has no defined diagram")
     }
 
     this.getIdentityForNeutralNodes(ontology)
@@ -218,25 +215,27 @@ export default class GrapholParser {
     if (ParserUtil.isPredicate(element)) {
       nodo.classes += ' predicate'
       var node_iri, rem_chars, len_prefix, node_prefix_iri
-      var x = ontology.getDefaultIri()
 
       // setting iri
       if (element.getAttribute('remaining_characters') != null) {
         rem_chars = element.getAttribute('remaining_characters').replace(/\n/g, '')
-        len_prefix = label_no_break.length - rem_chars.length
-        node_prefix_iri = label_no_break.substring(0, len_prefix)
-
-        if (node_prefix_iri ===':' || !node_prefix_iri) { node_iri = ontology.getDefaultIri().value } else {
-          ontology.iriSet.forEach(iri => {
-            if (node_prefix_iri ===iri.prefix + ':') {
-              node_iri = iri.value
-            }
-          })
-        }
       } else {
-        node_iri = ontology.getDefaultIri().value
-        node_prefix_iri = ''
         rem_chars = label_no_break
+      }
+
+      len_prefix = label_no_break.length - rem_chars.length
+      node_prefix_iri = label_no_break.substring(0, len_prefix)
+
+      ontology.iriSet.forEach(iri => {
+        iri.prefixes.forEach(prefix => {
+          if (node_prefix_iri == prefix+':' || node_prefix_iri == prefix) {
+            node_iri = iri.value
+          }
+        })
+      })
+
+      if(!node_iri) {
+        throw(`Err: the iri prefix "${node_prefix_iri}" is not associated to any iri`)
       }
       
       if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {

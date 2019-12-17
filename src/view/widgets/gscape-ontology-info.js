@@ -72,7 +72,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
             if (!iri.isStandard()) {
               return html`
                 <tr>
-                  <th>${iri.isDefault() ? html`<em>Default</em>` : iri.prefix}</th>
+                  <th>${iri.prefixes[0]}</th>
                   <td>${iri.value}</td>
                 </tr> 
               `
