@@ -2,13 +2,12 @@ import GrapholParser from './parsing/parser'
 import GrapholscapeView from './view/view';
 import GrapholscapeController from './grapholscape-controller';
 
-export class GrapholScape {
+export default class GrapholScape {
   constructor (file, container = false) {
-    this.ready = false
     this.ontology = file
 
     if (container) {
-      this.init(container)
+      return this.init(container)
     }
   }
 

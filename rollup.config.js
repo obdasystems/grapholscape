@@ -16,7 +16,7 @@ const NODE_ENV = process.env.NODE_ENV === 'development' ? 'production' : 'develo
 const matchSnapshot = process.env.SNAPSHOT === 'match'
 
 const input = './src/grapholscape.js'
-const name = 'grapholscape'
+const name = 'GrapholScape'
 
 const envVariables = {
   'process.env.VERSION': JSON.stringify(VERSION),

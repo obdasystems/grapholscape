@@ -146,9 +146,9 @@
     }
 
     function useGrapholscape(file) {
-      let gscape = new grapholscape.GrapholScape(file)
-      gscape.init(grapholscape_container).then( () => {
-        gscape.showDiagram('0')
+      const grapholscape = new GrapholScape(file)
+      grapholscape.init(grapholscape_container).then(() => {
+        grapholscape.showDiagram(0)
       })
     }
   </script>
