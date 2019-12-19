@@ -4,9 +4,10 @@
   "description": "ontology visualization",
   "main": "dist/grapholscape.js",
   "scripts": {
-    "start": "run-p serve electron",
-    "build": "rollup -c && run-s copy-build-in-app",
-    "copy-build-in-app" : "cpy build/grapholscape.min.js ./app/graphol",
+    "start": "run-p serve app",
+    "build": "rollup -c && run-s copy-build-in:app",
+    "copy-build-in:app": "cpy build/grapholscape.min.js ./app/graphol",
+    "copy-build-in:demo": "cpy build/grapholscape.min.js ./demo/js",
     "watch": "run-p serve watch:build",
     "watch:build": "cross-env FILE=build/grapholscape.js rollup -c -w",
     "serve": "ws",
@@ -14,7 +15,8 @@
     "dist": "cross-env NODE_ENV=production run-s build dist:*",
     "app": "electron ./app",
     "app:dist": "npx electron-packager ./app --out=./dists --platform=all --icon=./app/assets/icon --overwrite",
-    "release": "run-s dist app:dist"
+    "deploy": "run-s copy-build-in:demo && gh-pages -d demo && rimraf ./demo/js/grapholscape.min.js",
+    "release": "run-s dist app:dist deploy"
   },
   "repository": "https://github.com/obdasystems/grapholscape",
   "keywords": [
@@ -31,9 +33,11 @@
     "cross-env": "^5.2.0",
     "electron": "^7.0.0",
     "electron-packager": "^14.1.0",
+    "gh-pages": "^2.1.1",
     "livereload": "^0.8.0",
     "local-web-server": "^2.6.1",
     "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.0",
     "rollup": "^1.12.3",
     "rollup-plugin-babel": "^4.3.0",
     "rollup-plugin-commonjs": "^9.3.4",
@@ -46,8 +50,8 @@
     "standard": "^12.0.1"
   },
   "dependencies": {
-    "@material/mwc-icon": "^0.6.0",
     "@babel/polyfill": "7.4.4",
+    "@material/mwc-icon": "^0.6.0",
     "@webcomponents/webcomponentsjs": "^2.3.0",
     "cytoscape": "3.2.22",
     "cytoscape-cola": "^2.3.0",
