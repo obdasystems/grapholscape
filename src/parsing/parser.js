@@ -41,9 +41,14 @@ export default class GrapholParser {
         var iri_prefixes = []
 
         if (true) {
-        [...iri.getElementsByTagName('prefix')].forEach(iri_prefix => {
-          iri_prefixes.push(iri_prefix.getAttribute('prefix_value'))
-        }) }
+          [...iri.getElementsByTagName('prefix')].forEach(iri_prefix => {
+            iri_prefixes.push(iri_prefix.getAttribute('prefix_value'))
+          }) 
+        }
+
+        if (iri_prefixes.length == 0) {
+          iri_prefixes.push('');
+        }
 
         for (k = 0; k < iri.getElementsByTagName('property').length; k++) {
           let iri_property = iri.getElementsByTagName('property')[k]
