@@ -20,11 +20,11 @@
   ipcRenderer.on('start', start)
 
   function start(e, fileString) {
-    let gscape = new grapholscape.GrapholScape(fileString)
+    const gscape = new GrapholScape(fileString)
     gscape.init(grapholscape_container).then( () => {
+      document.title = document.title + ' - ' + gscape.ontology.name
       gscape.showDiagram('0')
       ipcRenderer.send('gscape-ready')
-      document.title = document.title + ' - ' + gscape.ontology.name
     })
   }
 </script>
