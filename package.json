@@ -50,11 +50,12 @@
     "standard": "^12.0.1"
   },
   "dependencies": {
-    "@babel/polyfill": "7.4.4",
     "@material/mwc-icon": "^0.6.0",
     "@webcomponents/webcomponentsjs": "^2.3.0",
+    "core-js": "^3.6.0",
     "cytoscape": "3.2.22",
     "cytoscape-cola": "^2.3.0",
-    "lit-element": "^2.1.0"
+    "lit-element": "^2.1.0",
+    "regenerator-runtime": "^0.13.3"
   }
 }

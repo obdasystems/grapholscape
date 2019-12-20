@@ -43,11 +43,22 @@ const getJsonOptions = () => ({
 })
 
 const getBabelOptions = () => ({
-  exclude: '**/node_modules/**',
-  include: '/node_modules(?:\/|\\)lit-element|lit-html/',
+  include: [
+    'src/**',
+    'node_modules/lit-html/**',
+    'node_modules/lit-element/**',
+    'node_modules/@material/**'
+  ],
+  babelrc: false,
   externalHelpers: true,
   presets : [
-    ["@babel/env", { useBuiltIns: "usage" }]
+    [
+      "@babel/preset-env",
+      {
+        useBuiltIns : "usage",
+        corejs: 3
+      }
+    ]
   ]
 })
 
@@ -90,11 +101,6 @@ const configs = [
     output: [
       {
         file: 'build/grapholscape.min.js',
-        format: 'umd',
-        name
-      },
-      {
-        file: 'app/graphol/grapholscape.min.js',
         format: 'umd',
         name
       },

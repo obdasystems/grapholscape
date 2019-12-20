@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
   <link href="style/style.css" rel="stylesheet" />
 
   <script src="js/examples.js" type="text/javascript"></script>
@@ -44,9 +43,9 @@
     var grapholscape_container = document.getElementById('grapholscape_container');
     var dropbox = document.getElementById('dropbox');
 
+    dropbox.addEventListener('click', selectGraphol)
     dropbox.addEventListener("dragenter",dragenter,false);
     dropbox.addEventListener("dragover", dragover, false);
-
     dropbox.addEventListener("drop", drop,false);
 
     function dragenter(e) {
@@ -71,15 +70,13 @@
     }
 
     // Handle  dialog for file selection
-    const add_button = document.getElementById('add-button')
-    add_button.addEventListener('click', selectGraphol)
     const hidden_input = document.getElementById('file-input')
 
     function selectGraphol() {
       hidden_input.click()
     }
 
-    hidden_input.onchange = e => {
+    hidden_input.onchange = function(e) {
       useGrapholscape(e.target.files[0])
     }
 
@@ -104,7 +101,7 @@
 
     function useGrapholscape(file) {
       const grapholscape = new GrapholScape(file)
-      grapholscape.init(grapholscape_container).then(() => {
+      grapholscape.init(grapholscape_container).then( function() {
         grapholscape.showDiagram(0)
       })
     }

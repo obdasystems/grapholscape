@@ -1,6 +1,9 @@
+import "core-js/stable"
+import "regenerator-runtime/runtime"
+import "@webcomponents/webcomponentsjs"
 import GrapholParser from './parsing/parser'
-import GrapholscapeView from './view/view';
-import GrapholscapeController from './grapholscape-controller';
+import GrapholscapeView from './view/view'
+import GrapholscapeController from './grapholscape-controller'
 
 export default class GrapholScape {
   constructor (file, container = false) {
