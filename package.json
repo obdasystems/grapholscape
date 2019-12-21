@@ -9,7 +9,7 @@
     "copy-build-in:app": "cpy build/grapholscape.min.js ./app/graphol",
     "copy-build-in:demo": "cpy build/grapholscape.min.js ./demo/js",
     "watch": "run-p serve watch:build",
-    "watch:build": "cross-env FILE=build/grapholscape.js BABEL=false rollup -c -w",
+    "watch:build": "cross-env FILE=grapholscape BABEL=false rollup -c -w",
     "serve": "ws",
     "dist:copy": "cpy build/grapholscape.js build/grapholscape.min.js dist",
     "dist": "cross-env NODE_ENV=production run-s build dist:*",
@@ -18,7 +18,10 @@
     "deploy": "run-s copy-build-in:demo && gh-pages -d demo && rimraf ./demo/js/grapholscape.min.js",
     "release": "run-s dist app:dist deploy"
   },
-  "repository": "https://github.com/obdasystems/grapholscape",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/obdasystems/grapholscape.git"
+  },
   "keywords": [
     "Ontology",
     "OWL",

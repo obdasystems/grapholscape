@@ -55,6 +55,7 @@ const getBabelOptions = () => ({
     [
       "@babel/preset-env",
       {
+        modules: "false",
         useBuiltIns : "usage",
         corejs: 3
       }
@@ -63,7 +64,11 @@ const getBabelOptions = () => ({
 })
 
 // Ignore all node_modules dependencies
-const isExternal = id => !id.startsWith('\0') && !id.startsWith('.') && !id.startsWith('/')
+const isExternal = id => {
+  console.log(id)
+  console.log(!id.startsWith('\0') && !id.startsWith('.') && !id.startsWith('/'))
+  return !id.startsWith('\0') && !id.startsWith('.') && !id.startsWith('/')
+}
 
 const licenseHeaderOptions = {
   sourcemap: true,
@@ -77,14 +82,12 @@ const licenseHeaderOptions = {
 const configs = [
   {
     input,
-    output: [
-      {
-        file: 'build/grapholscape.js',
-        format: 'umd',
-        name,
-        sourcemap: SOURCEMAPS ? 'inline' : false
-      },
-    ],
+    output: {
+      file: 'build/grapholscape.js',
+      format: 'umd',
+      name,
+      sourcemap: SOURCEMAPS ? 'inline' : false
+    },
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
@@ -98,13 +101,11 @@ const configs = [
 
   {
     input,
-    output: [
-      {
-        file: 'build/grapholscape.min.js',
-        format: 'umd',
-        name
-      },
-    ],
+    output: {
+      file: 'build/grapholscape.min.js',
+      format: 'umd',
+      name
+    },
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
@@ -116,9 +117,23 @@ const configs = [
       }),
       license(licenseHeaderOptions)
     ]
+  },
+
+  {
+    input,
+    output: {
+      file: 'build/grapholscape.umd.js',
+      format: 'umd',
+      name,
+    },
+    external: isExternal,
+    plugins: [
+      json(getJsonOptions()),
+      nodeResolve(),
+    ]
   }
 ]
 
 export default FILE
-  ? configs.filter(config => config.output[0].file.includes(FILE))
+  ? configs.filter(config => config.output.file.endsWith(FILE + '.js'))
   : configs
