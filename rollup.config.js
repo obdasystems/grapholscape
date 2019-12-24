@@ -5,7 +5,6 @@ import replace from 'rollup-plugin-replace'
 import { terser } from 'rollup-plugin-terser'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
-import autoExternal from 'rollup-plugin-auto-external'
 import path from 'path'
 import json from 'rollup-plugin-json'
 
@@ -15,6 +14,9 @@ const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
 const BABEL = process.env.BABEL !== 'false' // default true
 const NODE_ENV = process.env.NODE_ENV === 'development' ? 'production' : 'development' // default development
 const matchSnapshot = process.env.SNAPSHOT === 'match'
+const dependencies = Object.keys(require('./package.json').dependencies)
+dependencies.splice(dependencies.indexOf('lit-html'), 1 );
+dependencies.splice(dependencies.indexOf('lit-element'), 1 );
 
 const input = './src/grapholscape.js'
 const name = 'GrapholScape'
@@ -56,7 +58,6 @@ const getBabelOptions = () => ({
     [
       "@babel/preset-env",
       {
-        modules: "false",
         useBuiltIns : "usage",
         corejs: 3
       }
@@ -123,11 +124,29 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
-      autoExternal(),
+      commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
       replace(envVariables),
       license(licenseHeaderOptions)
-    ]
+    ],
+    external: dependencies
+  },
+  {
+    input,
+    output: {
+      file: 'build/grapholscape.esm.js',
+      format: 'es',
+      name,
+    },
+    plugins: [
+      json(getJsonOptions()),
+      nodeResolve(),
+      commonjs({ include: '**/node_modules/**' }),
+      BABEL ? babel(getBabelOptions()) : {},
+      replace(envVariables),
+      license(licenseHeaderOptions)
+    ],
+    external: dependencies
   }
 ]
 

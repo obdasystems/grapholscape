@@ -23,6 +23,21 @@ Further information [here](http://www.dis.uniroma1.it/~graphol/).
 ## Usage | [Demo](https://obdasystems.github.io/grapholscape/)
 You can try it [here](https://obdasystems.github.io/grapholscape/) or just clone the repository `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
 
+### Embed in your project
+Import GrapholScape
+```html
+<script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
+```
+
+Create an instance of grapholscape providing a `.graphol` ontology file. Then `init` the visualization in an **empty** container
+```js
+const grapholscape = new Grapholscape(file)
+grapholscape.init(container).then( () => {
+  grapholscape.showDiagram(0)
+})
+```
+> **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
+
 ### Build it locally
 Install `Node` and `npm`.
 
@@ -44,21 +59,6 @@ npm run start
 
 This will launch the electron app and serve a web demo on `http://localhost:8000/demo`.
 
-### Embed in your project
-Import GrapholScape
-```html
-<script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
-```
-
-Create an instance of grapholscape providing a `.graphol` ontology file. Then `init` the visualization in an **empty** container
-```js
-const grapholscape = new Grapholscape(file)
-grapholscape.init(container).then( () => {
-  grapholscape.showDiagram(0)
-})
-```
-> **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
-
 ### Build Instructions
 Install `npm` and `Node.js` and run `npm install` before using `npm run`.
 
@@ -72,7 +72,20 @@ Run `npm run <target>` in the console. The main targets are:
 - `app:dist` : create electron app packages for all platforms (win32, darwin, linux)
 - `dist` : update distribution js for npm etc.
 - `deploy` : copy `./build/grapholscape.min.js` to demo folder, publish it to gh-pages and remove it so demo in dev mode keep on using `./build/grapholscape.js`
-- `release` : run only after testing. Do builds in production, distribute builds, package electron app for all platforms and deploy web version to gh-pages
+- `release` : Do builds in production, distribute builds and package electron app for all platforms
 
+### Release Instructions
+1. Update `VERSION` environment variable, e.g. `export VERSION=1.1.1` (unix) `set VERSION=1.1.1` (windows)
+2. Test (To be defined)
+3. Prepare all artifacts for a release: `npm run release`\
+    *Please review built files and try out demo and electron app before proceeding*
+4. Commit release to git: `git add . && git commit -m "Build $VERSION"`
+5. Update package version: `npm version $VERSION`
+6. Push the release: `git push && git push --tags`
+7. Deploy web version on gh-pages: `npm run deploy`
+8. Publish to npm (To be defined)
+9. Create a release on Github from the latest tag adding zipped electron packages produced in `./dists`
+
+> **Note** : On windows replace `$VERSION` with `%VERSION%`.
 ## Disclaimer
 Based on [cytoscape.js](http://js.cytoscape.org).
