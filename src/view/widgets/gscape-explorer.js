@@ -48,6 +48,7 @@ export default class GscapeExplorer extends GscapeWidget{
           padding-left:5px;
           cursor:pointer;
           width:100%;
+          white-space: nowrap;
         }
 
         mwc-icon:hover{
