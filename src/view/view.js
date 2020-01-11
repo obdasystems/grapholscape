@@ -290,17 +290,25 @@ export default class GrapholscapeView {
   }
   
   setTheme(theme) {
-    // Apply theme to graph
-    Object.keys(this.renderers).map(key => {
-      this.renderers[key].setTheme(theme)
-    });
+    // update theme with custom variables "--theme-gscape-[var]" values
+    let container_style = window.getComputedStyle(this.container)
+    let theme_aux = {}
 
-    // Apply theme to UI
     let prefix = '--theme-gscape-'
     Object.keys(theme).map(key => {
       let css_key = prefix + key.replace(/_/g,'-')
-      this.container.style.setProperty(css_key, theme[key]) 
+      if (container_style.getPropertyValue(css_key)) {
+        // update color in the theme from custom variable
+        theme_aux[key] = container_style.getPropertyValue(css_key)
+      } else {
+        // normalize theme using plain strings
+        theme_aux[key] = theme[key].cssText
+      }
     })
+    // Apply theme to graph
+    Object.keys(this.renderers).map(key => {
+      this.renderers[key].setTheme(theme_aux)
+    });
   }
 
   getDefaultTheme() {

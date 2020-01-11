@@ -5,13 +5,13 @@ export function getGraphStyle(theme) {
       style: {
         'height': 'data(height)',
         'width': 'data(width)',
-        'background-color': theme.node_bg.cssText,
+        'background-color': theme.node_bg,
         'shape': 'data(shape)',
         'border-width': 1,
-        'border-color': theme.node_border.cssText,
+        'border-color': theme.node_border,
         'border-style': 'solid',
         'font-size': 12,
-        'color': theme.label_color.cssText,
+        'color': theme.label_color,
       }
     },
 
@@ -29,9 +29,9 @@ export function getGraphStyle(theme) {
       selector: 'edge',
       style: {
         'width': 2,
-        'line-color': theme.edge.cssText,
-        'target-arrow-color': theme.edge.cssText,
-        'source-arrow-color': theme.edge.cssText,
+        'line-color': theme.edge,
+        'target-arrow-color': theme.edge,
+        'source-arrow-color': theme.edge,
         'curve-style': 'bezier',
         'arrow-scale': 1.3
       }
@@ -116,7 +116,7 @@ export function getGraphStyle(theme) {
       selector: '[?functional][!inverseFunctional]',
       style: {
         'border-width': 5,
-        'border-color': theme.node_border.cssText,
+        'border-color': theme.node_border,
         'border-style': 'double'
       }
     },
@@ -125,7 +125,7 @@ export function getGraphStyle(theme) {
       selector: '[?inverseFunctional][!functional]',
       style: {
         'border-width': 4,
-        'border-color': theme.node_border.cssText,
+        'border-color': theme.node_border,
         'border-style': 'solid'
       }
     },
@@ -165,7 +165,7 @@ export function getGraphStyle(theme) {
     {
       selector: '[edge_label],[source_label],[target_label],[text_background]',
       style: {
-        'text-background-color': theme.background.cssText,
+        'text-background-color': theme.background,
         'text-background-opacity': 1,
         'text-background-shape': 'roundrectangle',
         'text-background-padding' : 2,
@@ -218,25 +218,25 @@ export function getGraphStyle(theme) {
     {
       selector: '.concept',
       style: {
-        'background-color': theme.concept.cssText,
-        'border-color': theme.concept_dark.cssText,
+        'background-color': theme.concept,
+        'border-color': theme.concept_dark,
       } 
     },
 
     {
       selector: '.role, .fake-triangle',
       style: {
-        'background-color': theme.role.cssText,
-        'border-color': theme.role_dark.cssText,
+        'background-color': theme.role,
+        'border-color': theme.role_dark,
       } 
     },
 
     {
       selector: '.attribute',
       style: {
-        'background-color': theme.attribute.cssText,
-        'border-color': theme.attribute_dark.cssText,
-        'text-background-color': theme.background.cssText,
+        'background-color': theme.attribute,
+        'border-color': theme.attribute_dark,
+        'text-background-color': theme.background,
         'text-background-opacity': 1,
       } 
     },
@@ -262,7 +262,7 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge.attribute',
       style: {
-        'line-color': theme.attribute_dark.cssText,
+        'line-color': theme.attribute_dark,
         'source-arrow-shape': 'none',
         'target-arrow-shape': 'none',
       } 
@@ -271,31 +271,31 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge.role',
       style: {
-        'line-color' : theme.role_dark.cssText,
-        'source-arrow-color': theme.role_dark.cssText,
-        'target-arrow-color': theme.role_dark.cssText,
+        'line-color' : theme.role_dark,
+        'source-arrow-color': theme.role_dark,
+        'target-arrow-color': theme.role_dark,
       } 
     },
 
     {
       selector: '.individual',
       style: {
-        'background-color': theme.individual.cssText,
-        'border-color': theme.individual_dark.cssText,
+        'background-color': theme.individual,
+        'border-color': theme.individual_dark,
       } 
     },
 
     {
       selector: '[type = "range-restriction"], [type = "disjoint-union"]',
       style: {
-        'background-color': theme.node_bg_contrast.cssText,
+        'background-color': theme.node_bg_contrast,
       }
     },
 
     { // the right border part of functional && inverseFunctional roles
       selector: '.fake-triangle-right',
       style: {
-        'background-color': theme.role_dark.cssText,
+        'background-color': theme.role_dark,
       }
     },
 
@@ -304,7 +304,7 @@ export function getGraphStyle(theme) {
     {
       selector: ':selected',
       style: {
-        'overlay-color': theme.secondary.cssText,
+        'overlay-color': theme.secondary,
         'overlay-opacity': 0.2,
         'z-index': '100'
       }
