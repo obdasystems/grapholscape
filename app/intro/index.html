@@ -122,9 +122,17 @@
       let path_span = document.createElement('span')
       path_span.classList.add('path')
       path_span.innerHTML = filePath
+      let delete_icon = document.createElement('div')
+      delete_icon.classList.add('delete-icon')
+      delete_icon.onclick = (e) => {
+        e.stopPropagation()
+        deleteRecentFile(filePath)
+      }
+      delete_icon.setAttribute('title', 'Remove from list')
 
       li.appendChild(name_span)
       li.appendChild(path_span)
+      li.appendChild(delete_icon)
       li.onclick = () => useGrapholPath(filePath)
       recentList.appendChild(li)
     }
@@ -134,6 +142,18 @@
       logRecentFile(filePath)
     }
 
+    function deleteRecentFile(filePath) {
+      let index = recents.indexOf(filePath)
+
+      if (index == -1)
+        return
+
+      recents.splice(index, 1)
+
+      updateRecentFile()
+      updateRecentList()
+    }
+
     function logRecentFile(filePath) {
       let index = recents.indexOf(filePath)
 
@@ -141,18 +161,39 @@
         recents.splice(index, 1)
       }
       recents.unshift(filePath)
-      
+      /* 
+      if we exceed the max number of recent files, then the file to log is not already in the 
+      list so we need to delete the last element in the array and reflect this on the file.
+      The array is written in reverse in "[userData]/recent-file", this means that we should 
+      delete only the first row of the file => much easier to rewrite the whole array
+
+      If the file is not new, then we removed from a given position in array and added back
+      in 1st position. We need to reflect it on the file, 
+      again much easier to rewrite the whole array in the file
+      */
       if(recents.length > MAX_RECENTS || index != -1) {
         index != -1 ? null : recents.pop()
-        fs.writeFile(recentsPath, recents.reverse().join('\n'), (err) => {return})
-        recents.reverse()
+        updateRecentFile()
       } else { 
+        /* 
+        If the file to log is new and we have space in the array, then in the file we just need to
+        append the path of the new file to log.
+        */
         fs.appendFile(recentsPath, filePath+'\n', (err) => {
           if (err) console.log(err)
         })
       }
-
       updateRecentList()
+    }
+
+    /**
+     * Update the file with array of recent selected files
+     * write the array in reverse so when we read the file the first row will be the oldest path
+     * and last one will be the last path used in grapholscape. (easy to create the list in the ui)
+    **/
+    function updateRecentFile() {
+      fs.writeFile(recentsPath, recents.reverse().join('\n'), (err) => {return})
+      recents.reverse()
     }
 
     function updateRecentList() {

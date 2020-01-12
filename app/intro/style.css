@@ -11,6 +11,7 @@ body, html {
 }
 
 .panel {
+  position: absolute;
   float:left;
   height: 100%;
 }
@@ -33,10 +34,12 @@ body, html {
   list-style: none;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 10px 20px; 
+  padding: 10px 20px;
   border-bottom: solid 1px #eee;
   cursor:pointer;
   transition: all 0.2s;
+  display: block;
+  position: relative;
 }
 
 #left-panel li span {
@@ -60,9 +63,9 @@ body, html {
   background-color: #f0f0f0;
 }
 
-
 #right-panel {
   width: 60%;
+  right: 0;
 }
 
 #logo {
@@ -108,6 +111,47 @@ body, html {
   font-size:80%;
   text-align:center;
   color:#888;
+}
+
+.delete-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+}
+
+#left-panel li:hover .delete-icon{
+  opacity: 0.3;
+}
+
+#left-panel li:hover .delete-icon:hover {
+  opacity:1;
+}
+
+#left-panel li:hover .delete-icon:hover:before{
+  background-color:#cc3b3b;
+}
+
+#left-panel li:hover .delete-icon:hover:after {
+  background-color: #cc3b3b;
+}
+
+.delete-icon:before, .delete-icon:after {
+  position: absolute;
+  left: 6px;
+  content: ' ';
+  height: 14px;
+  width: 2px;
+  background-color: #333;
+}
+
+.delete-icon:before {
+  transform: rotate(45deg);
+}
+.delete-icon:after {
+  transform: rotate(-45deg);
 }
 
 /* Scrollbar */
