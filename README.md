@@ -40,11 +40,11 @@ grapholscape.init(container).then( () => {
 
 #### Disabling widgets at initialisation
 It is possible to pass a json config object to the init function disabling one of the following widgets:
-- Owl Translator
-- Graphol-lite Mode Button
-- Entity Details
-- Ontology Explorer
-- Filters button
+- Owl Translator : `owl_translator`
+- Graphol-lite Mode Button : `lite_mode`
+- Entity Details : `details`
+- Ontology Explorer : `explorer`
+- Filters button : `filters`
 
 **example**: Grapholscape without lite-mode and owl translator:
 ```js
