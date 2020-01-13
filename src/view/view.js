@@ -43,7 +43,7 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
-    this.graph_container.style.background = "inherit"
+    this.graph_container.style.background = themes.gscape.background
     this.setTheme(themes.gscape)
   }
 
