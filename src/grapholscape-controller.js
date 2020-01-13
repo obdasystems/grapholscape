@@ -1,8 +1,12 @@
 import OwlTranslator from "./util/owl"
 import computeLiteOntology from "./util/simplifier"
+import * as default_config from "./config.json"
 
 export default class GrapholscapeController {
-  constructor(ontology, view = null) {
+  constructor(ontology, view = null, config = null) {
+    this.config = default_config
+    if(config) this.setConfig(config)
+
     this.ontologies = {
       default: ontology,
       lite: null,
@@ -43,7 +47,7 @@ export default class GrapholscapeController {
     this.view.onLiteModeActive = this.onLiteModeActive.bind(this)
     this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this)
     
-    this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData)
+    this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config.widgets)
   }
 
   /**
@@ -98,8 +102,10 @@ export default class GrapholscapeController {
    * @param {JSON} entityModelData The entity retrieved from model
    */
   showDetails(entityModelData, unselect) {
-    let entityViewData = this.constructor.entityModelToViewData(entityModelData)
-    this.view.showDetails(entityViewData, unselect)
+    if (this.config.widgets.details.enabled) {
+      let entityViewData = this.constructor.entityModelToViewData(entityModelData)
+      this.view.showDetails(entityViewData, unselect)
+    }
   } 
 
   onEdgeSelection(edge_id, diagram_id) {
@@ -169,12 +175,14 @@ export default class GrapholscapeController {
    * @param {object} node - cytoscape representation of a node
    */
   showOwlTranslation(elem) {
-    let owl_text = null
-    if (elem.isNode())
-      owl_text = this.owl_translator.nodeToOwlString(elem, true)
-    else if (elem.isEdge())
-      owl_text = this.owl_translator.edgeToOwlString(elem)
-    this.view.showOwlTranslation(owl_text)
+    if (this.config.widgets.owl_translator.enabled) {
+      let owl_text = null
+      if (elem.isNode())
+        owl_text = this.owl_translator.nodeToOwlString(elem, true)
+      else if (elem.isEdge())
+        owl_text = this.owl_translator.edgeToOwlString(elem)
+      this.view.showOwlTranslation(owl_text)
+    }
   }
 
   onLiteModeActive(state) {
@@ -203,6 +211,16 @@ export default class GrapholscapeController {
   updateEntitiesList() {
     let entitiesViewData = this.ontology.getEntities().map( entity => this.constructor.entityModelToViewData(entity))
     this.view.updateEntitiesList(entitiesViewData)
+  }
+
+  setConfig(new_config) {
+    Object.keys(new_config).forEach( entry => {
+      if (typeof(new_config[entry]) !== "boolean") 
+        return
+      try {
+        this.config.widgets[entry].enabled = new_config[entry]
+      } catch (e) {return}
+    })
   }
 
   static entityModelToViewData(entityModelData) {

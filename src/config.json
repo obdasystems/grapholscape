@@ -1,10 +1,5 @@
 {
   "rendering" : {
-    "easy-mode" : {
-      "type" : "boolean",
-      "default_value" : false,
-      "label" : "Enable easy mode visualization"
-    },
     "theme" : {
       "type" : "list",
       "label" : "Select a theme",
@@ -23,22 +18,22 @@
   "widgets" : {
     "explorer" : {
       "type" : "boolean",
-      "default_value" : true,
+      "enabled" : true,
       "label" : "Enable Ontology Explorer widget"
     },
     "details" : {
       "type" : "boolean",
-      "default_value" : true,
+      "enabled" : true,
       "label" : "Enable Entity Details widget"
     },
     "owl_translator" : {
       "type" : "boolean",
-      "default_value" : true,
+      "enabled" : true,
       "label" : "Enable Owl Translation widget"
     },
     "filters" : {
       "type" : "boolean",
-      "default_value" : true,
+      "enabled" : true,
       "label" : "Enable Filters widget",
       "filter_list": {
         "all": {
@@ -84,6 +79,11 @@
           "class": "filtercomplements"
         }
       }
+    },
+    "lite_mode" : {
+      "type" : "boolean",
+      "enabled" : true,
+      "label" : "Allow lite mode switching"
     }
   }
 }

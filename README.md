@@ -3,7 +3,7 @@
 </p>
 
 # 
-Advanced web viewer for ontologies written in [GRAPHOL](http://www.dis.uniroma1.it/~graphol/).
+Advanced web viewer for ontologies written in [GRAPHOL](http://www.obdasystems.com/it/node/107). [**Try me**](https://obdasystems.github.io/grapholscape/)
 
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
@@ -14,7 +14,7 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 * Filter elements that are not necessary for your analysis
 * Multi-diagrammatic inspection that allows you to navigate through all diagrams that builds up the ontology
 
-<img src="https://obdasystems.github.io/grapholscape/resources/demo.gif" />
+<img src="https://github.com/obdasystems/grapholscape/raw/master/resources/demo.gif" />
 
 ## What is Graphol?
 GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.\
@@ -37,6 +37,26 @@ grapholscape.init(container).then( () => {
 })
 ```
 > **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
+
+#### Disabling widgets at initialisation
+It is possible to pass a json config object to the init function disabling one of the following widgets:
+- Owl Translator
+- Graphol-lite Mode Button
+- Entity Details
+- Ontology Explorer
+- Filters button
+
+**example**: Grapholscape without lite-mode and owl translator:
+```js
+const config = {
+  "owl_translator" : false,
+  "lite_mode" : false,
+}
+const grapholscape = new Grapholscape(file)
+grapholscape.init(container, config).then( () => {
+  grapholscape.showDiagram(0)
+})
+```
 
 ### Build it locally
 Install `Node` and `npm`.

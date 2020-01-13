@@ -14,12 +14,11 @@ export default class GrapholScape {
     }
   }
 
-  init(container) {
+  init(container, config = null) {
     return new Promise( (resolve,reject) => {
-      this.readFilePromise
-      .then( () => {
+      this.readFilePromise.then( () => {
         this.view = new GrapholscapeView(container)
-        this.controller = new GrapholscapeController(this.ontology, this.view)
+        this.controller = new GrapholscapeController(this.ontology, this.view, config)
         this.controller.init()
         resolve(this)
       })
