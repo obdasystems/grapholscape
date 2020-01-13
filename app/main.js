@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain , dialog} = require('electron')
 const fs = require('fs')
 const path = require('path')
 
@@ -84,8 +84,6 @@ ipcMain.handle('use-graphol-path', (e, grapholPath) => {
 })
 
 ipcMain.handle('select-file', async e => {
-  const { dialog } = require('electron')
-
   const result = await dialog.showOpenDialog({
     title: 'Seleziona un File .graphol',
     properties : ['openFile'],
@@ -112,7 +110,16 @@ ipcMain.on('gscape-ready', () => {
 function getFileString(grapholPath, callback) {
   fs.readFile(grapholPath, 'utf-8', (err, string) => {
     if (err) {
-      alert("An error ocurred reading the file :" + err.message);
+      if(err.code === 'ENOENT') {
+        dialog.showMessageBox({
+          type: 'warning',
+          title: 'Warning',
+          message: 'Selected file does not exist, it will be removed from the list.'
+        }).then( () => {
+          mainWindow.webContents.send('remove-recent', grapholPath)
+        })
+      }
+      console.log("An error ocurred reading the file :" + err.message);
         return;
     }
 

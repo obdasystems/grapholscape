@@ -46,7 +46,9 @@
 
     // Version
     document.getElementById('version').innerHTML = 'Version: ' + app.getVersion()
-
+    ipcRenderer.on('remove-recent', (e, filePath) =>{
+      deleteRecentFile(filePath)
+    })
     updateRecentList()
 
     fs.readFile(recentsPath, 'utf-8', (err, data) => {
