@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="grapholscape.min.js" type="text/javascript"></script>
+  <title>Grapholscape</title>
+
+  <style>
+    
+  </style>
+</head>
+
+<body style="margin: 0">
+  <div id="grapholscape_container"></div>
+</body>
+
+<script>
+  const ipcRenderer = require('electron').ipcRenderer
+  const grapholscape_container = document.getElementById('grapholscape_container')
+
+  ipcRenderer.on('start', start)
+
+  function start(e, fileString) {
+    const gscape = new GrapholScape(fileString)
+    gscape.init(grapholscape_container).then( () => {
+      document.title = document.title + ' - ' + gscape.ontology.name
+      gscape.showDiagram('0')
+      ipcRenderer.send('gscape-ready')
+    })
+  }
+</script>
+</html>

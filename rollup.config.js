@@ -6,34 +6,71 @@ import { terser } from 'rollup-plugin-terser'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
 import path from 'path'
+import json from 'rollup-plugin-json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const FILE = process.env.FILE
-const SOURCEMAPS = process.env.SOURCEMAPS === 'true' // default false
+const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
 const BABEL = process.env.BABEL !== 'false' // default true
-const NODE_ENV = process.env.NODE_ENV === 'development' ? 'development' : 'production' // default prod
+const NODE_ENV = process.env.NODE_ENV === 'development' ? 'production' : 'development' // default development
 const matchSnapshot = process.env.SNAPSHOT === 'match'
+const dependencies = Object.keys(require('./package.json').dependencies)
+dependencies.splice(dependencies.indexOf('lit-html'), 1 );
+dependencies.splice(dependencies.indexOf('lit-element'), 1 );
 
-const input = './source/grapholscape.js'
-const name = 'grapholscape'
+const input = './src/grapholscape.js'
+const name = 'GrapholScape'
 
 const envVariables = {
   'process.env.VERSION': JSON.stringify(VERSION),
   'process.env.NODE_ENV': JSON.stringify(NODE_ENV)
 }
 
-const getBabelOptions = () => ({
-  exclude: '**/node_modules/**',
-  externalHelpers: true
+const getJsonOptions = () => ({
+  include: 'src/**',
+  exclude: [ '**./**' ],
+
+  // for tree-shaking, properties will be declared as
+  // variables, using either `var` or `const`
+  preferConst: true, // Default: false
+
+  // specify indentation for the generated default export —
+  // defaults to '\t'
+  indent: '  ',
+
+  // ignores indent and generates the smallest code
+  compact: true, // Default: false
+
+  // generate a named export for every property of the JSON object
+  namedExports: true // Default: true
 })
 
-// Ignore all node_modules dependencies
-const isExternal = id => !id.startsWith('\0') && !id.startsWith('.') && !id.startsWith('/')
+const getBabelOptions = () => ({
+  include: [
+    'src/**',
+    'node_modules/lit-html/**',
+    'node_modules/lit-element/**',
+    'node_modules/@material/**'
+  ],
+  babelrc: false,
+  externalHelpers: true,
+  presets : [
+    [
+      "@babel/preset-env",
+      {
+        useBuiltIns : "usage",
+        corejs: 3
+      }
+    ]
+  ]
+})
 
 const licenseHeaderOptions = {
   sourcemap: true,
   banner: {
-    file: path.join(__dirname, 'LICENSE')
+    content: {
+      file : path.join(__dirname, 'LICENSE')
+    }
   }
 }
 
@@ -47,6 +84,7 @@ const configs = [
       sourcemap: SOURCEMAPS ? 'inline' : false
     },
     plugins: [
+      json(getJsonOptions()),
       nodeResolve(),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
@@ -64,6 +102,7 @@ const configs = [
       name
     },
     plugins: [
+      json(getJsonOptions()),
       nodeResolve(),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
@@ -73,9 +112,44 @@ const configs = [
       }),
       license(licenseHeaderOptions)
     ]
+  },
+
+  {
+    input,
+    output: {
+      file: 'build/grapholscape.umd.js',
+      format: 'umd',
+      name,
+    },
+    plugins: [
+      json(getJsonOptions()),
+      nodeResolve(),
+      commonjs({ include: '**/node_modules/**' }),
+      BABEL ? babel(getBabelOptions()) : {},
+      replace(envVariables),
+      license(licenseHeaderOptions)
+    ],
+    external: dependencies
+  },
+  {
+    input,
+    output: {
+      file: 'build/grapholscape.esm.js',
+      format: 'es',
+      name,
+    },
+    plugins: [
+      json(getJsonOptions()),
+      nodeResolve(),
+      commonjs({ include: '**/node_modules/**' }),
+      BABEL ? babel(getBabelOptions()) : {},
+      replace(envVariables),
+      license(licenseHeaderOptions)
+    ],
+    external: dependencies
   }
 ]
 
 export default FILE
-  ? configs.filter(config => config.output.file.includes(FILE))
+  ? configs.filter(config => config.output.file.endsWith(FILE + '.js'))
   : configs
