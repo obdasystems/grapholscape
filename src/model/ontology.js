@@ -39,8 +39,8 @@ export class Ontology {
 
   /**
    * Get an element in the ontology by its id and its diagram id
-   * @param {string} elem_id - The id of the elem to retrieve 
-   * @param {string }
+   * @param {string} elem_id - The id of the element to retrieve 
+   * @param {string } diagram_id - the id of the diagram containing the element
    * @param {boolean} json - if true return plain json, if false return cytoscape node
    */
   getElemByDiagramAndId(elem_id, diagram_id, json = true) {
