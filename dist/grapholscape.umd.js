@@ -9922,8 +9922,8 @@
 	    }
 	    /**
 	     * Get an element in the ontology by its id and its diagram id
-	     * @param {string} elem_id - The id of the elem to retrieve 
-	     * @param {string }
+	     * @param {string} elem_id - The id of the element to retrieve 
+	     * @param {string } diagram_id - the id of the diagram containing the element
 	     * @param {boolean} json - if true return plain json, if false return cytoscape node
 	     */
 
@@ -14499,11 +14499,6 @@
 	  individual_dark: css(_templateObject51())
 	};
 
-	var themes = /*#__PURE__*/Object.freeze({
-		gscape: gscape,
-		dark: dark
-	});
-
 	function _typeof$3(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$3 = function _typeof(obj) { return typeof obj; }; } else { _typeof$3 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$3(obj); }
 
 	function _templateObject2$1() {
@@ -16176,13 +16171,13 @@
 	    style: {
 	      'height': 'data(height)',
 	      'width': 'data(width)',
-	      'background-color': theme.node_bg.cssText,
+	      'background-color': theme.node_bg,
 	      'shape': 'data(shape)',
 	      'border-width': 1,
-	      'border-color': theme.node_border.cssText,
+	      'border-color': theme.node_border,
 	      'border-style': 'solid',
 	      'font-size': 12,
-	      'color': theme.label_color.cssText
+	      'color': theme.label_color
 	    }
 	  }, {
 	    selector: '[label]',
@@ -16196,9 +16191,9 @@
 	    selector: 'edge',
 	    style: {
 	      'width': 2,
-	      'line-color': theme.edge.cssText,
-	      'target-arrow-color': theme.edge.cssText,
-	      'source-arrow-color': theme.edge.cssText,
+	      'line-color': theme.edge,
+	      'target-arrow-color': theme.edge,
+	      'source-arrow-color': theme.edge,
 	      'curve-style': 'bezier',
 	      'arrow-scale': 1.3
 	    }
@@ -16263,14 +16258,14 @@
 	    selector: '[?functional][!inverseFunctional]',
 	    style: {
 	      'border-width': 5,
-	      'border-color': theme.node_border.cssText,
+	      'border-color': theme.node_border,
 	      'border-style': 'double'
 	    }
 	  }, {
 	    selector: '[?inverseFunctional][!functional]',
 	    style: {
 	      'border-width': 4,
-	      'border-color': theme.node_border.cssText,
+	      'border-color': theme.node_border,
 	      'border-style': 'solid'
 	    }
 	  }, {
@@ -16300,7 +16295,7 @@
 	  }, {
 	    selector: '[edge_label],[source_label],[target_label],[text_background]',
 	    style: {
-	      'text-background-color': theme.background.cssText,
+	      'text-background-color': theme.background,
 	      'text-background-opacity': 1,
 	      'text-background-shape': 'roundrectangle',
 	      'text-background-padding': 2
@@ -16339,21 +16334,21 @@
 	  }, {
 	    selector: '.concept',
 	    style: {
-	      'background-color': theme.concept.cssText,
-	      'border-color': theme.concept_dark.cssText
+	      'background-color': theme.concept,
+	      'border-color': theme.concept_dark
 	    }
 	  }, {
 	    selector: '.role, .fake-triangle',
 	    style: {
-	      'background-color': theme.role.cssText,
-	      'border-color': theme.role_dark.cssText
+	      'background-color': theme.role,
+	      'border-color': theme.role_dark
 	    }
 	  }, {
 	    selector: '.attribute',
 	    style: {
-	      'background-color': theme.attribute.cssText,
-	      'border-color': theme.attribute_dark.cssText,
-	      'text-background-color': theme.background.cssText,
+	      'background-color': theme.attribute,
+	      'border-color': theme.attribute_dark,
+	      'text-background-color': theme.background,
 	      'text-background-opacity': 1
 	    }
 	  }, {
@@ -16373,40 +16368,40 @@
 	  }, {
 	    selector: 'edge.attribute',
 	    style: {
-	      'line-color': theme.attribute_dark.cssText,
+	      'line-color': theme.attribute_dark,
 	      'source-arrow-shape': 'none',
 	      'target-arrow-shape': 'none'
 	    }
 	  }, {
 	    selector: 'edge.role',
 	    style: {
-	      'line-color': theme.role_dark.cssText,
-	      'source-arrow-color': theme.role_dark.cssText,
-	      'target-arrow-color': theme.role_dark.cssText
+	      'line-color': theme.role_dark,
+	      'source-arrow-color': theme.role_dark,
+	      'target-arrow-color': theme.role_dark
 	    }
 	  }, {
 	    selector: '.individual',
 	    style: {
-	      'background-color': theme.individual.cssText,
-	      'border-color': theme.individual_dark.cssText
+	      'background-color': theme.individual,
+	      'border-color': theme.individual_dark
 	    }
 	  }, {
 	    selector: '[type = "range-restriction"], [type = "disjoint-union"]',
 	    style: {
-	      'background-color': theme.node_bg_contrast.cssText
+	      'background-color': theme.node_bg_contrast
 	    }
 	  }, {
 	    // the right border part of functional && inverseFunctional roles
 	    selector: '.fake-triangle-right',
 	    style: {
-	      'background-color': theme.role_dark.cssText
+	      'background-color': theme.role_dark
 	    }
 	  }, //-----------------------------------------------------------
 	  // selected selector always last
 	  {
 	    selector: ':selected',
 	    style: {
-	      'overlay-color': theme.secondary.cssText,
+	      'overlay-color': theme.secondary,
 	      'overlay-opacity': 0.2,
 	      'z-index': '100'
 	    }
@@ -16702,8 +16697,6 @@
 	  return EasyGscapeRenderer;
 	}(GrapholscapeRenderer);
 
-	const rendering={"easy-mode":{type:"boolean",default_value:false,label:"Enable easy mode visualization"},theme:{type:"list",label:"Select a theme",list:{gscape:{label:"Grapholscape White","default":true},dark:{label:"Grapholscape Dark","default":false}}}};const widgets={explorer:{type:"boolean",default_value:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",default_value:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",default_value:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",default_value:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][label = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"}}}};
-
 	function _classCallCheck$p(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	function _defineProperties$o(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -16723,8 +16716,8 @@
 	    this.graph_container.style.position = 'absolute';
 	    this.container.appendChild(this.graph_container);
 	    this.onEdgeSelection = {};
-	    this.onNodeSelection = {};
-	    this.filters = widgets.filters.filter_list;
+	    this.onNodeSelection = {}; // this.filters = config.widgets.filters.filter_list
+
 	    this.renderers = {
 	      "default": new GrapholscapeRenderer(this.graph_container),
 	      lite: new EasyGscapeRenderer(this.graph_container)
@@ -16736,15 +16729,16 @@
 	    this.container.msRequestFullscreen; // IE
 
 	    document.cancelFullscreen = document.exitFullscreen || document.cancelFullscreen || document.mozCancelFullScreen || document.webkitCancelFullScreen || document.msExitFullscreen;
-	    this.graph_container.style.background = "var(--theme-gscape-background, ".concat(this.getDefaultTheme().background, ")");
-	    this.setTheme(this.getDefaultTheme());
+	    this.graph_container.style.background = gscape.background;
+	    this.setTheme(gscape);
 	  }
 
 	  _createClass$o(GrapholscapeView, [{
 	    key: "createUi",
-	    value: function createUi(ontology, diagrams, predicates) {
+	    value: function createUi(ontology, diagrams, predicates, settings) {
 	      var _this = this;
 
+	      this.filters = settings.filters.filter_list;
 	      this.widgets = new Set();
 	      this.diagram_selector = new GscapeDiagramSelector(diagrams);
 	      this.diagram_selector.onDiagramChange = this.onDiagramChange;
@@ -16753,9 +16747,11 @@
 	      this.explorer = new GscapeExplorer(predicates, diagrams);
 	      this.explorer.onEntitySelect = this.onEntitySelection;
 	      this.explorer.onNodeNavigation = this.onNodeNavigation;
+	      !settings.explorer.enabled ? this.explorer.hide() : null;
 	      this.container.appendChild(this.explorer);
 	      this.widgets.add(this.explorer);
 	      this.entity_details = new GscapeEntityDetails();
+	      !settings.details.enabled ? this.entity_details.hide() : null;
 	      this.container.appendChild(this.entity_details);
 	      this.widgets.add(this.entity_details);
 	      var btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit');
@@ -16780,6 +16776,7 @@
 	        _this.filters_widget.toggleBody();
 	      };
 
+	      !settings.filters.enabled ? this.filters_widget.hide() : null;
 	      this.container.appendChild(this.filters_widget);
 	      this.widgets.add(this.filters_widget);
 	      this.ontology_info = new GscapeOntologyInfo(ontology);
@@ -16793,6 +16790,7 @@
 	      this.container.appendChild(this.ontology_info);
 	      this.widgets.add(this.ontology_info);
 	      this.owl_translator = new GscapeOwlTranslator();
+	      !settings.owl_translator.enabled ? this.owl_translator.hide() : null;
 	      this.container.appendChild(this.owl_translator);
 	      this.widgets.add(this.owl_translator);
 	      var zoom_widget = new GscapeZoomTools();
@@ -16805,6 +16803,7 @@
 	      this.btn_lite_mode.highlight = true;
 	      this.btn_lite_mode.style.bottom = '10px';
 	      this.btn_lite_mode.style.left = '94px';
+	      !settings.lite_mode.enabled ? this.btn_lite_mode.hide() : null;
 	      this.container.appendChild(this.btn_lite_mode);
 	      this.widgets.add(this.btn_lite_mode);
 	      this.registerEvents(this.renderers["default"]);
@@ -16989,26 +16988,36 @@
 	    value: function setTheme(theme) {
 	      var _this4 = this;
 
-	      // Apply theme to graph
-	      Object.keys(this.renderers).map(function (key) {
-	        _this4.renderers[key].setTheme(theme);
-	      }); // Apply theme to UI
-
+	      // update theme with custom variables "--theme-gscape-[var]" values
+	      var container_style = window.getComputedStyle(this.container);
+	      var theme_aux = {};
 	      var prefix = '--theme-gscape-';
 	      Object.keys(theme).map(function (key) {
 	        var css_key = prefix + key.replace(/_/g, '-');
 
-	        _this4.container.style.setProperty(css_key, theme[key]);
+	        if (container_style.getPropertyValue(css_key)) {
+	          // update color in the theme from custom variable
+	          theme_aux[key] = container_style.getPropertyValue(css_key);
+	        } else {
+	          // normalize theme using plain strings
+	          theme_aux[key] = theme[key].cssText;
+	        }
+	      }); // Apply theme to graph
+
+	      Object.keys(this.renderers).map(function (key) {
+	        _this4.renderers[key].setTheme(theme_aux);
 	      });
 	    }
-	  }, {
-	    key: "getDefaultTheme",
-	    value: function getDefaultTheme() {
-	      Object.keys(themes).forEach(function (key) {
-	        if (rendering.theme.list[key]["default"]) return themes[key];
-	      });
-	      return gscape;
+	    /*
+	    getDefaultTheme() {
+	      Object.keys(themes).forEach(key => {
+	        if (config.rendering.theme.list[key].default)
+	          return themes[key]
+	      })
+	        return themes.gscape
 	    }
+	    */
+
 	  }, {
 	    key: "actual_diagram_id",
 	    get: function get() {
@@ -18162,6 +18171,14 @@
 	  }
 	}
 
+	const rendering={theme:{type:"list",label:"Select a theme",list:{gscape:{label:"Grapholscape White","default":true},dark:{label:"Grapholscape Dark","default":false}}}};const widgets={explorer:{type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][label = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"}}},lite_mode:{type:"boolean",enabled:true,label:"Allow lite mode switching"}};var config = {rendering:rendering,widgets:widgets};
+
+	var default_config = /*#__PURE__*/Object.freeze({
+		rendering: rendering,
+		widgets: widgets,
+		'default': config
+	});
+
 	function _classCallCheck$r(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	function _defineProperties$q(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -18175,9 +18192,12 @@
 	    var _this = this;
 
 	    var view = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+	    var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
 	    _classCallCheck$r(this, GrapholscapeController);
 
+	    this.config = default_config;
+	    if (config) this.setConfig(config);
 	    this.ontologies = {
 	      "default": ontology,
 	      lite: null
@@ -18220,7 +18240,7 @@
 	      this.view.onEdgeSelection = this.onEdgeSelection.bind(this);
 	      this.view.onLiteModeActive = this.onLiteModeActive.bind(this);
 	      this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this);
-	      this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData);
+	      this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config.widgets);
 	    }
 	    /**
 	     * Event handler for clicks on empty area of the graph.
@@ -18287,8 +18307,10 @@
 	  }, {
 	    key: "showDetails",
 	    value: function showDetails(entityModelData, unselect) {
-	      var entityViewData = this.constructor.entityModelToViewData(entityModelData);
-	      this.view.showDetails(entityViewData, unselect);
+	      if (this.config.widgets.details.enabled) {
+	        var entityViewData = this.constructor.entityModelToViewData(entityModelData);
+	        this.view.showDetails(entityViewData, unselect);
+	      }
 	    }
 	  }, {
 	    key: "onEdgeSelection",
@@ -18363,9 +18385,11 @@
 	  }, {
 	    key: "showOwlTranslation",
 	    value: function showOwlTranslation(elem) {
-	      var owl_text = null;
-	      if (elem.isNode()) owl_text = this.owl_translator.nodeToOwlString(elem, true);else if (elem.isEdge()) owl_text = this.owl_translator.edgeToOwlString(elem);
-	      this.view.showOwlTranslation(owl_text);
+	      if (this.config.widgets.owl_translator.enabled) {
+	        var owl_text = null;
+	        if (elem.isNode()) owl_text = this.owl_translator.nodeToOwlString(elem, true);else if (elem.isEdge()) owl_text = this.owl_translator.edgeToOwlString(elem);
+	        this.view.showOwlTranslation(owl_text);
+	      }
 	    }
 	  }, {
 	    key: "onLiteModeActive",
@@ -18406,6 +18430,21 @@
 	        return _this4.constructor.entityModelToViewData(entity);
 	      });
 	      this.view.updateEntitiesList(entitiesViewData);
+	    }
+	  }, {
+	    key: "setConfig",
+	    value: function setConfig(new_config) {
+	      var _this5 = this;
+
+	      Object.keys(new_config).forEach(function (entry) {
+	        if (typeof new_config[entry] !== "boolean") return;
+
+	        try {
+	          _this5.config.widgets[entry].enabled = new_config[entry];
+	        } catch (e) {
+	          return;
+	        }
+	      });
 	    }
 	  }, {
 	    key: "ontology",
@@ -18480,10 +18519,11 @@
 	    value: function init(container) {
 	      var _this = this;
 
+	      var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 	      return new Promise(function (resolve, reject) {
 	        _this.readFilePromise.then(function () {
 	          _this.view = new GrapholscapeView(container);
-	          _this.controller = new GrapholscapeController(_this.ontology, _this.view);
+	          _this.controller = new GrapholscapeController(_this.ontology, _this.view, config);
 
 	          _this.controller.init();
 
@@ -18529,37 +18569,6 @@
 	    key: "showDiagram",
 	    value: function showDiagram(id) {
 	      this.controller.onDiagramChange(id);
-	    }
-	  }, {
-	    key: "getOccurrencesOfPredicate",
-	    value: function getOccurrencesOfPredicate(predicate) {
-	      var list = document.getElementById('predicates_list');
-	      var rows = list.getElementsByClassName('predicate');
-	      var matches = {};
-
-	      for (var i = 0; i < rows.length; i++) {
-	        var info = rows[i].getElementsByClassName('info')[0];
-
-	        if (info.innerHTML === predicate) {
-	          var occurrences = rows[i].getElementsByClassName('sub_row');
-
-	          for (var j = 0; j < occurrences.length; j++) {
-	            var occurrence = occurrences[j];
-	            var diagram = occurrence.getAttribute('diagram');
-	            var node = occurrence.getAttribute('node_id');
-
-	            if (diagram in matches) {
-	              matches[diagram].push(node);
-	            } else {
-	              matches[diagram] = [node];
-	            }
-	          }
-
-	          break;
-	        }
-	      }
-
-	      return matches;
 	    }
 	  }, {
 	    key: "ontology",
