@@ -65,6 +65,16 @@ export default class GscapeEntityDetails extends GscapeWidget {
           color: var(--theme-gscape-secondary, ${colors.secondary});
           font-size: 13px;
         }
+
+        .clickable {
+          font-weight:bold;
+          text-decoration: underline;
+        }
+
+        .clickable:hover {
+          cursor:pointer;
+          color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});        
+        }
       `
     ]
   }
@@ -93,7 +103,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
             <table class="details_table">
               <tr>
                 <th>Name</th>
-                <td>${this.entity.label.replace(/\r?\n|\r/g, '')}</td>
+                <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.label.replace(/\r?\n|\r/g, '')}</td>
               </tr>
               <tr>
                 <th>Type</th>
@@ -133,6 +143,15 @@ export default class GscapeEntityDetails extends GscapeWidget {
     `
   }
 
+  wikiClickHandler(e) {
+    if (this._onWikiClick)
+      this._onWikiClick(this.entity.iri)
+  }
+
+  set onWikiClick(foo) {
+    this._onWikiClick = foo
+  }
+
   set entity(entity) {
     let oldval = this.entity
     this._entity = entity
@@ -159,6 +178,12 @@ export default class GscapeEntityDetails extends GscapeWidget {
   updated() {
     if (this.entity && this.entity.description)
       this.renderDescription(this.entity.description)
+
+    if (this._onWikiClick) {
+      this.shadowRoot.querySelectorAll('.wiki').forEach(el => {
+        el.classList.add('clickable')
+      })
+    }
   }
 
   renderDescription (description) {

@@ -19,6 +19,7 @@ export default class GrapholScape {
       this.readFilePromise.then( () => {
         this.view = new GrapholscapeView(container)
         this.controller = new GrapholscapeController(this.ontology, this.view, config)
+        this.controller.setOnWikiClickCallback(this._onWikiClick)
         this.controller.init()
         resolve(this)
       })
@@ -61,6 +62,14 @@ export default class GrapholScape {
 
   showDiagram(id) {
     this.controller.onDiagramChange(id)
+  }
+
+  /**
+   * Set the callback function for wiki redirection given an IRI
+   * @param {Function} callback - the function to call when redirecting to a wiki page
+   */
+  set onWikiClick(callback) {
+    this._onWikiClick = callback
   }
 
   set ontology(file) {

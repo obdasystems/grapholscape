@@ -64,6 +64,7 @@ export default class GrapholscapeView {
 
     this.entity_details = new GscapeEntityDetails()
     !settings.details.enabled ? this.entity_details.hide() : null
+    this.entity_details.onWikiClick = this.onWikiClick
     this.container.appendChild(this.entity_details)
     this.widgets.add(this.entity_details)
 

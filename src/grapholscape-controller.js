@@ -46,7 +46,9 @@ export default class GrapholscapeController {
     this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
     this.view.onLiteModeActive = this.onLiteModeActive.bind(this)
     this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this)
-    
+    if (this.onWikiClickCallback) {
+      this.view.onWikiClick = this.onWikiClick.bind(this)
+    }
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config.widgets)
   }
 
@@ -221,6 +223,14 @@ export default class GrapholscapeController {
         this.config.widgets[entry].enabled = new_config[entry]
       } catch (e) {return}
     })
+  }
+
+  onWikiClick(iri) {
+    this.onWikiClickCallback(iri)
+  }
+
+  setOnWikiClickCallback(callback) {
+    this.onWikiClickCallback = callback
   }
 
   static entityModelToViewData(entityModelData) {
