@@ -25,7 +25,7 @@ export default class GscapeHeader extends GscapeWidget {
         position:absolute;
         color:var(--theme-gscape-on-primary, ${colors.on_primary});
         right:0;
-        padding:6px 2px;
+        padding:9px 2px;
         cursor:pointer;
       }
 
