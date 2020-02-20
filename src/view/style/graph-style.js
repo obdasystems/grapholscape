@@ -244,9 +244,9 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge.range',
       style: {
-        'source-arrow-shape': 'square',
-        'source-arrow-fill': 'filled',
-        'target-arrow-shape': 'none',
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'filled',
+        'source-arrow-shape': 'none',
       } 
     },
 
@@ -275,6 +275,26 @@ export function getGraphStyle(theme) {
         'source-arrow-color': theme.role_dark,
         'target-arrow-color': theme.role_dark,
       } 
+    },
+
+    {
+      selector: 'edge.qualification-exists',
+      style: {
+        'line-color': '#0099ff',
+        'target-arrow-shape': 'circle',
+        'source-arrow-color': '#0099ff',
+        'target-arrow-color': '#0099ff',
+      }
+    },
+
+    {
+      selector: 'edge.qualification-forall',
+      style: {
+        'line-color': '#0052cc',
+        'target-arrow-shape': 'circle',
+        'source-arrow-color': '#0052cc',
+        'target-arrow-color': '#0052cc',
+      }
     },
 
     {

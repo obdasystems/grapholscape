@@ -17,7 +17,7 @@ export default function computeLiteOntology(ontology) {
           lite_ontology.addDiagram(lite_diagram)
         })
         resolve(lite_ontology)
-      }, 100)
+      }, 1)
     } catch (e) {reject(e)}
   })
   
@@ -37,18 +37,14 @@ export default function computeLiteOntology(ontology) {
         case 'role-chain':
         case 'enumeration':
           return true
-
-        case 'domain-restriction':
-        case 'range-restriction':
-          if (node.data('label') == 'forall')
-            return true
-          else 
-            return false
       }
+
+      return false
     })
 
-    filterByCriterion(cy, isQualifiedExistential)
-    filterByCriterion(cy, isExistentialWithCardinality)
+    //filterByCriterion(cy, isQualifiedExistential)
+    //filterByCriterion(cy, isExistentialWithCardinality)
+    filterByCriterion(cy,inputEdgesBetweenRestrictions)
     cy.remove('.filtered')
     simplifyDomainAndRange(cy)
     simplifyComplexHierarchies(cy)
@@ -68,90 +64,48 @@ export default function computeLiteOntology(ontology) {
     eles.filter(selector).forEach(restriction => {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
       let new_edge = null
+      let type = restriction.data('type') == 'domain-restriction' ? 'domain' : 'range'
+      let opposite_type = type == 'domain' ? 'range' : 'domain'
+      let inclusion_count = restriction.connectedEdges('[type != "input"]').length
+      let deleted_inclusion_count = 0
 
-      if (restriction.data('type') == 'domain-restriction') {
-        // there can be only inclusion and equivalence edges, for each of them we 
-        // create a new edge that will have a concept as source and a role/attribute as target
-        restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
-          let edges = []
-
-          /**
-           * if the actual edge is between two existential, remove it and filter the other existential 
-           */ 
-          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') &&
-              (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
-            cy.remove(edge)
-            return
-          }
-
-          // being a domain restriction, the simplified edge must go from a concept to the role/attribute
-          // connected in input to the restriction.
-          // if the actual edge has the restriction as source, the target is a concept and we consider it
-          // as the source of the new edge          
-          if (restriction.id() === edge.source().id()) {
-            edges.push( reverseEdge(edge))
-          }
-          else
-            edges.push(edge.json())
-
-          // move attribute on restriction node position
-          if (input_edge.source().data('type') == "attribute") {
-            input_edge.source().position(restriction.position())
-            new_edge = edges[0]
-            new_edge.data.target = input_edge.source().id()
-            new_edge.data.id += '_'+i
-          } else {
-            // concatenation only if the input is not an attribute
-            edges.push( reverseEdge(input_edge))
-            new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
-          }
-          
-          // add the type of input to the restriction as a class of the new edge
-          // role or attribute, used in the stylesheet to assign different colors
-          new_edge.classes += `${input_edge.source().data('type')} domain`
-          new_edge.data.type = 'default' 
-
+      restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
+        new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i)
+        if(new_edge) {
           cy.add(new_edge)
-          cy.remove(edge)
-        })
-      }
-
-      if (restriction.data('type') == 'range-restriction') {
-        // there can be only inclusion and equivalence edges, for each of them we 
-        // create a new edge that will have a role/attribute as source and a concept as target
-        restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
-          let edges = []
-
-          /**
-           * if the actual edge is between two existential, remove it and filter the other existential 
-           */ 
-          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') &&
-              (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
-            cy.remove(edge)
-            return
-          }
-
-          edges.push(input_edge.json())
-          // being a range restriction, the simplified edge must go from a role/attribute to the concept
-          // if the actual edge has the concept as source, the target is a role/attribute and we need to
-          // revert the edge
-          if (restriction.id() === edge.source().id()) {
-            edges.push(edge.json())
-          }
-          else edges.push( reverseEdge(edge))
-
-          new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
-          // add the type of input to the restriction as a class of the new edge
-          // role or attribute, used in the stylesheet to assign a different color
-          new_edge.classes += `${input_edge.source().data('type')} range`
-          new_edge.data.type = 'default' 
-
-          cy.add(new_edge)
-          cy.remove(edge)
-        })
-      }
+          cy.remove(edgeToRestriction)
+        } else { deleted_inclusion_count++ }
+      })
       
-      aux_renderer.filterElem(restriction, cy)
+      if(inclusion_count == deleted_inclusion_count) {
+        aux_renderer.filterElem(restriction, cy)
+        cy.remove('.filtered')
+        return
+      }
+
+      if(isQualifiedRestriction(restriction)) {
+        let quantifier_type = restriction.data('label')
+        makeDummyPoint(restriction)
+        restriction.incomers('[type = "input"]').forEach(edgeToRestriction =>{
+
+          /*
+          if(edgeToRestriction.source().data('identity') == 'concept') {
+            new_edge = createRoleEdge(edgeToRestriction, input_edge, opposite_type, i)
+            new_edge.classes += ' qualification'
+            cy.add(new_edge)
+            cy.remove(edgeToRestriction)
+          }
+          */
+          if (edgeToRestriction.source().data('identity') === 'role')
+            cy.remove(edgeToRestriction)
+          else {
+            edgeToRestriction.removeData('type')
+            edgeToRestriction.classes(`role qualification-${quantifier_type} ${opposite_type}`)
+          }
+        })
+      } else {
+        aux_renderer.filterElem(restriction, cy)
+      }
     })
     
     cy.remove('.filtered')
@@ -165,6 +119,48 @@ export default function computeLiteOntology(ontology) {
       })
 
       return e
+    }
+    
+    function createRoleEdge(edgeToRestriction, edgeFromProperty, type, i) {
+      let edges = []
+      let new_edge = null
+
+      /**
+       * if the actual edge is between two existential, remove it and filter the other existential 
+       */ 
+      if ((edgeToRestriction.source().data('type') == 'domain-restriction' || 
+           edgeToRestriction.source().data('type') == 'range-restriction') &&
+          (edgeToRestriction.target().data('type') == 'domain-restriction' || 
+           edgeToRestriction.target().data('type') == 'range-restriction')) {
+        console.log('ahah')
+        cy.remove(edgeToRestriction)
+        return new_edge
+      }
+
+      if (edgeToRestriction.target().data('id') !== edgeFromProperty.target().data('id')) {
+        edges.push(reverseEdge(edgeToRestriction))
+      } else {
+        edges.push(edgeToRestriction.json())
+      }
+
+      // move attribute on restriction node position
+      if (edgeFromProperty.source().data('type') == "attribute") {
+        edgeFromProperty.source().position(edgeFromProperty.target().position())
+        new_edge = edges[0]
+        new_edge.data.target = edgeFromProperty.source().id()
+        new_edge.data.id += '_'+i
+      } else {
+        // concatenation only if the input is not an attribute
+        edges.push(reverseEdge(edgeFromProperty))
+        new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
+      }
+
+      // add the type of input to the restriction as a class of the new edge
+      // role or attribute, used in the stylesheet to assign different colors
+      new_edge.classes += `${edgeFromProperty.source().data('type')} ${type}`
+      new_edge.data.type = 'default' 
+
+      return new_edge
     }
   }
 
@@ -251,13 +247,25 @@ export default function computeLiteOntology(ontology) {
     })
   }
 
-  function isQualifiedExistential(node) {
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-        && (node.data('label') == 'exists')) {
+  function isQualifiedRestriction(node) {
+    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
 
     return false
+  }
+
+  function inputEdgesBetweenRestrictions(node) {
+    let outcome = false
+    
+    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
+      node.incomers('edge[type = "input"]').forEach(edge => {
+        if (edge.source().data('type').endsWith('restriction')){
+          outcome = true
+        }
+      })
+    }
+    return outcome
   }
 
   function isExistentialWithCardinality(node) {
@@ -356,6 +364,7 @@ export default function computeLiteOntology(ontology) {
   }
 
   function makeDummyPoint(node) {
+    node.removeData('label')
     node.data('width', 0.1)
     node.data('height', 0.1)
   }
@@ -421,15 +430,9 @@ export default function computeLiteOntology(ontology) {
          * if the connected non input edge is only one (the one we are processing)
          * then the new edge will be the concatenation of the input edge + role edge
          */
-        if(constructor.connectedEdges('[type !*= "input"]').size() == 1) {
-          if(role_edge.hasClass('range')) {
-            edges.push(role_edge.json())
-            edges.push( reverseEdge(input))
-          } else{
-            edges.push(input.json())
-            edges.push(role_edge.json())
-          }
-          
+        if(constructor.connectedEdges('[type !*= "input"]').size() <= 1) {
+          edges.push(input.json())
+          edges.push(role_edge.json())          
           new_edge = createConcatenatedEdge(edges, cy, new_id)
           new_edge.data.type = 'default'
           new_edge.classes = role_edge.json().classes
@@ -445,16 +448,9 @@ export default function computeLiteOntology(ontology) {
           
           let target = undefined
           let source = undefined
-          if(role_edge.hasClass('range')) {
-            target = input.source()
-            source = role_edge.source()
-            new_edge.data.target = input.source().id() 
-          }
-          else {
-            target = role_edge.target()
-            source = input.source()
-            new_edge.data.source = input.source().id()
-          }
+          target = role_edge.target()
+          source = input.source()
+          new_edge.data.source = input.source().id()
 
           // Keep the original role edge breakpoints
           let segment_distances = []
@@ -481,7 +477,7 @@ export default function computeLiteOntology(ontology) {
     cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
       if(isComplexHierarchy(node)) {
         replicateAttributes(node)
-         aux_renderer.filterElem(node, cy)
+        aux_renderer.filterElem(node, cy)
       }
     })
 
