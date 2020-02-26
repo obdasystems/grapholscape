@@ -25,7 +25,7 @@ export default class GscapeHeader extends GscapeWidget {
         position:absolute;
         color:var(--theme-gscape-on-primary, ${colors.on_primary});
         right:0;
-        padding:9px 2px;
+        padding: var(--btn-padding, 9px 2px);
         cursor:pointer;
       }
 
@@ -34,7 +34,7 @@ export default class GscapeHeader extends GscapeWidget {
       }
 
       .head-title {
-        padding: 10px 40px 10px 10px ;
+        padding: var(--title-padding, 10px 40px 10px 10px);
         box-sizing: border-box;
         float:left;
         font-weight:bold;

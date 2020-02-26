@@ -24,6 +24,8 @@ export default class GscapeOwlTranslator extends GscapeWidget {
         gscape-head {
           --title-text-align: center;
           --title-width: 100%;
+          --title-padding: 5px 40px 5px 10px;
+          --btn-padding: 4px 2px;
         }
 
         .widget-body {
@@ -89,7 +91,7 @@ export default class GscapeOwlTranslator extends GscapeWidget {
 
   render() {
     return html`
-      <div class="widget-body" hide>
+      <div class="widget-body">
         <div class="owl-text"></div>
       </div>
       <gscape-head title="Owl Translation"></gscape-head>

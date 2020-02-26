@@ -1,22 +1,29 @@
 import cytoscape from 'cytoscape'
 import Diagram from '../model/diagrams'
-import GrapholscapeRenderer from '../view/render/grapholscape_renderer'
+import GrapholscapeRenderer from '../view/render/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
 
-export default function computeLiteOntology(ontology) { 
+export default function computeSimplifiedOntologies(ontology) { 
   let aux_renderer = new GrapholscapeRenderer(null)
   let lite_ontology = new Ontology(ontology.name, ontology.version)
-  
+  let float_ontology = new Ontology(ontology.name, ontology.version)
+  let new_ontologies = {
+    lite : lite_ontology,
+    float : float_ontology,
+  }
+
   return new Promise( (resolve, reject) => {
     try {
       window.setTimeout(() => {
         ontology.diagrams.forEach( diagram => {
           let lite_diagram = new Diagram(diagram.name, diagram.id)
-          lite_diagram.addElems(simplifyDiagram(diagram.nodes, diagram.edges))
+          lite_diagram.addElems(simplifyDiagramLite(diagram.nodes, diagram.edges))
           lite_ontology.addDiagram(lite_diagram)
+          //float_diagram.addElems(simplifyDiagramFloat(lite_diagram.nodes, lite_diagram.edges))
+          //float_ontology.addDiagram(float_diagram)
         })
-        resolve(lite_ontology)
+        resolve(new_ontologies)
       }, 1)
     } catch (e) {reject(e)}
   })
@@ -24,7 +31,7 @@ export default function computeLiteOntology(ontology) {
 
 
 // ----------------------------------
-  function simplifyDiagram(nodes, edges) {
+  function simplifyDiagramLite(nodes, edges) {
     let cy = cytoscape()
 
     cy.add(nodes)

@@ -6,9 +6,11 @@ import GscapeFilters from './widgets/gscape-filters'
 import GscapeOntologyInfo from './widgets/gscape-ontology-info'
 import GscapeOwlTranslator from './widgets/gscape-owl-translator'
 import GscapeZoomTools from './widgets/gscape-zoom-tools'
-import GrapholscapeRenderer from './render/grapholscape_renderer'
-import EasyGscapeRenderer from './render/easy-gscape-renderer'
+import GrapholscapeRenderer from './render/default-renderer'
+import LiteGscapeRenderer from './render/lite-renderer'
 import * as themes from './style/themes'
+import FloatingGscapeRenderer from './render/float-renderer'
+import GscapeRenderSelector from './widgets/gscape-render-selector'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -24,7 +26,8 @@ export default class GrapholscapeView {
 
     this.renderers = {
       default : new GrapholscapeRenderer(this.graph_container),
-      lite: new EasyGscapeRenderer(this.graph_container)
+      lite: new LiteGscapeRenderer(this.graph_container),
+      float: new FloatingGscapeRenderer(this.graph_container)
     }
 
     this.setRenderer(this.renderers.default)
@@ -113,14 +116,35 @@ export default class GrapholscapeView {
     this.container.appendChild(zoom_widget)
     this.widgets.add(zoom_widget)
 
+    /*
     this.btn_lite_mode = new GscapeButton('flash_on', 'flash_off')
     this.btn_lite_mode.onClick = this.toggleLiteMode.bind(this)
     this.btn_lite_mode.highlight = true
     this.btn_lite_mode.style.bottom = '10px'
     this.btn_lite_mode.style.left = '94px'
+    this.btn_lite_mode.style.display = 'none'
     !settings.lite_mode.enabled ? this.btn_lite_mode.hide() : null
     this.container.appendChild(this.btn_lite_mode)
     this.widgets.add(this.btn_lite_mode)
+    */
+
+    this.renderer_selector = new GscapeRenderSelector(this.renderers)
+    this.renderer_selector.style.bottom = '10px'
+    this.renderer_selector.style.left = '94px'
+    this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this)
+    let that = this
+    this.renderer_selector.header.toggleBody = function () {
+      const e = new CustomEvent('toggle-widget-body', {
+        bubbles: true,
+        composed: true
+      })
+      this.dispatchEvent(e)
+      that.blurAll(that.renderer_selector)
+    }.bind(this.renderer_selector.header)
+
+    // !settings.simplify.enabled ? this.render_selector.hide() : nullthis
+    this.container.appendChild(this.renderer_selector)
+    this.widgets.add(this.renderer_selector)
 
     this.registerEvents(this.renderers.default)
     this.registerEvents(this.renderers.lite)
@@ -155,7 +179,7 @@ export default class GrapholscapeView {
      * (activating the attributes filter may able the value_domain filter
      *  which must stay always disabled in simplified visualization)
      */ 
-    if (this.btn_lite_mode.active) {
+    if (this.renderer_selector.actual_mode !== 'default') {
       this.filters.value_domain.disabled = true
     }
   }
@@ -171,7 +195,7 @@ export default class GrapholscapeView {
      * (activating the attributes filter may able the value_domain filter
      *  which must stay always disabled in simplified visualization)
      */ 
-    if (this.btn_lite_mode.active) {
+    if (this.renderer_selector.actual_mode !== 'default') {
       this.filters.value_domain.disabled = true
     }
   }
@@ -205,7 +229,7 @@ export default class GrapholscapeView {
   }
 
   showOwlTranslation(text) {
-    if (!this.btn_lite_mode.active) {
+    if (this.renderer_selector.actual_mode == 'default') {
       this.owl_translator.owl_text = text
       this.owl_translator.show()
     }
@@ -246,10 +270,53 @@ export default class GrapholscapeView {
     this.renderer = renderer
   }
 
+  changeRenderingMode(mode) {
+    let actual_position = this.renderer.getActualPosition()
+    this.setRenderer(this.renderers[mode])
+
+    switch (mode) {
+      case 'lite': {
+        Object.keys(this.filters).map(key => {
+          if (key != 'all' &&
+              key != 'attributes' &&
+              key != 'individuals') { 
+            // disable all unnecessary filters
+            this.filters[key].disabled = true
+          }
+        })
+        break
+      }
+      case 'float': {
+        // To do
+        break
+      }
+      case 'default': {
+        Object.keys(this.filters).map(key => {
+          if (key != 'all' &&
+              key != 'attributes' &&
+              key != 'individuals') { 
+  
+            // enable filters that may have been disabled by lite mode 
+            this.filters[key].disabled = false
+  
+            if (key == 'value_domain' && this.filters.attributes.active)
+              this.filters.value_domain.disabled = true
+          }
+        })
+        break
+      }
+    }
+    
+    this.onRenderingModeChange(actual_position, mode)
+    this.filters_widget.requestUpdate()
+    this.blurAll()
+    
+  }
+
   toggleLiteMode() {
     let actual_position = this.renderer.getActualPosition()
   
-    if (this.renderer instanceof EasyGscapeRenderer) {
+    if (this.renderer instanceof LiteGscapeRenderer) {
       this.setRenderer(this.renderers.default)
 
       Object.keys(this.filters).map(key => {

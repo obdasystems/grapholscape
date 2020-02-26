@@ -1,5 +1,5 @@
 import OwlTranslator from "./util/owl"
-import computeLiteOntology from "./util/simplifier"
+import computeSimplifiedOntologies from "./util/simplifier"
 import * as default_config from "./config.json"
 
 export default class GrapholscapeController {
@@ -10,14 +10,16 @@ export default class GrapholscapeController {
     this.ontologies = {
       default: ontology,
       lite: null,
+      float: null
     }
     this._ontology = ontology
     this.view = view
     this.owl_translator = new OwlTranslator()
-    this.liteMode = false
-    this.liteOntologyPromise = computeLiteOntology(ontology)
+    this.actualMode = 'default'
+    this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology)
       .then( result => { 
-        this.ontologies.lite = result 
+        this.ontologies.lite = result.lite
+        this.ontologies.float = result.float 
       } )
       .catch( reason => {
         console.log(reason)
@@ -46,6 +48,7 @@ export default class GrapholscapeController {
     this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
     this.view.onLiteModeActive = this.onLiteModeActive.bind(this)
     this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this)
+    this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this)
     if (this.onWikiClickCallback) {
       this.view.onWikiClick = this.onWikiClick.bind(this)
     }
@@ -184,6 +187,29 @@ export default class GrapholscapeController {
       else if (elem.isEdge())
         owl_text = this.owl_translator.edgeToOwlString(elem)
       this.view.showOwlTranslation(owl_text)
+    }
+  }
+
+  onRenderingModeChange(state, mode) {
+    this.actualMode = mode
+    switch(mode) {
+      case 'lite':
+      case 'float': {
+        this.SimplifiedOntologyPromise.then(() => {
+          if (this.actualMode === mode) {
+            this.ontology = this.ontologies[mode]
+            this.updateGraphView(state)
+            this.updateEntitiesList()
+          }
+        })
+        break
+      }
+      case 'default': {
+        this.ontology = this.ontologies.default
+        this.updateGraphView(state)
+        this.updateEntitiesList()
+        break
+      }
     }
   }
 
