@@ -14,12 +14,15 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
     let layout = this.cy.$('*').layout({
       name: 'cola',
-      randomize:false,
-      fit: false,
-      refresh:3,
-      maxSimulationTime: 8000,
-      convergenceThreshold: 0.0000001
+      avoidOverlap: false,
+      edgeLength: function(edge) {
+        return edge.hasClass('role') ? 300 : 150
+      },
+      infinite: true,
     })
+
+    
+
     layout.run()
   }
 }
