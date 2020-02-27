@@ -18,10 +18,11 @@ export default function computeSimplifiedOntologies(ontology) {
       window.setTimeout(() => {
         ontology.diagrams.forEach( diagram => {
           let lite_diagram = new Diagram(diagram.name, diagram.id)
+          let float_diagram = new Diagram(diagram.name, diagram.id)
           lite_diagram.addElems(simplifyDiagramLite(diagram.nodes, diagram.edges))
           lite_ontology.addDiagram(lite_diagram)
-          //float_diagram.addElems(simplifyDiagramFloat(lite_diagram.nodes, lite_diagram.edges))
-          //float_ontology.addDiagram(float_diagram)
+          float_diagram.addElems(simplifyDiagramFloat(lite_diagram.nodes, lite_diagram.edges))
+          float_ontology.addDiagram(float_diagram)
         })
         resolve(new_ontologies)
       }, 1)
@@ -592,6 +593,50 @@ export default function computeSimplifiedOntologies(ontology) {
         input_edge.source().connectedEdges('edge.inverse-of').data('edge_label','inverse Of')
         cy.remove(role_inverse)
       }
+    })
+  }
+
+  // -------- FLOAT ----------
+  function simplifyDiagramFloat(nodes, edges) {
+    let cy = cytoscape()
+    cy.add(nodes)
+    cy.add(edges)
+
+    simplifyRolesFloat(cy)
+    cy.edges().removeData('segment_distances')
+    cy.edges().removeData('segment_weights')
+    cy.remove('.qualification-forall')
+    cy.remove('.qualification-exists')
+    cy.edges().removeData('target_endpoint')
+    cy.edges().removeData('source_endpoint')
+    cy.nodes().position({ x: 0, y: 0})
+    return cy.$('*')
+  }
+
+  function simplifyRolesFloat(cy) {
+    let eles = cy.$('[type = "role"]')
+
+    eles.forEach(role => {
+      let edges = role.incomers('edge.role')
+      let domains = edges.filter('.domain')
+      let range_nodes = edges.filter('.range').sources()
+
+      domains.forEach(domain => {
+        range_nodes.forEach((target,i) => {
+          let new_edge = {
+            data : {
+              id : domain.id() + '-' + i,
+              source : domain.source().id(),
+              target : target.id(),
+              edge_label : domain.target().data('label')
+            },
+            classes : 'role'
+          }
+
+          cy.add(new_edge)
+        })
+      })
+      cy.remove(role)
     })
   }
 }
