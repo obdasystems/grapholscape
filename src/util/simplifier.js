@@ -45,13 +45,18 @@ export default function computeSimplifiedOntologies(ontology) {
         case 'role-chain':
         case 'enumeration':
           return true
-      }
 
-      return false
+        case 'domain-restriction':
+        case 'range-restriction':
+          if (node.data('label') == 'forall')
+            return true
+          else 
+            return false
+      }
     })
 
-    //filterByCriterion(cy, isQualifiedExistential)
-    //filterByCriterion(cy, isExistentialWithCardinality)
+    filterByCriterion(cy, isQualifiedRestriction)
+    filterByCriterion(cy, isExistentialWithCardinality)
     filterByCriterion(cy,inputEdgesBetweenRestrictions)
     cy.remove('.filtered')
     simplifyDomainAndRange(cy)
@@ -73,47 +78,16 @@ export default function computeSimplifiedOntologies(ontology) {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
       let new_edge = null
       let type = restriction.data('type') == 'domain-restriction' ? 'domain' : 'range'
-      let opposite_type = type == 'domain' ? 'range' : 'domain'
-      let inclusion_count = restriction.connectedEdges('[type != "input"]').length
-      let deleted_inclusion_count = 0
 
       restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
         new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i)
         if(new_edge) {
           cy.add(new_edge)
           cy.remove(edgeToRestriction)
-        } else { deleted_inclusion_count++ }
+        }
       })
-      
-      if(inclusion_count == deleted_inclusion_count) {
-        aux_renderer.filterElem(restriction, cy)
-        cy.remove('.filtered')
-        return
-      }
-
-      if(isQualifiedRestriction(restriction)) {
-        let quantifier_type = restriction.data('label')
-        makeDummyPoint(restriction)
-        restriction.incomers('[type = "input"]').forEach(edgeToRestriction =>{
-
-          /*
-          if(edgeToRestriction.source().data('identity') == 'concept') {
-            new_edge = createRoleEdge(edgeToRestriction, input_edge, opposite_type, i)
-            new_edge.classes += ' qualification'
-            cy.add(new_edge)
-            cy.remove(edgeToRestriction)
-          }
-          */
-          if (edgeToRestriction.source().data('identity') === 'role')
-            cy.remove(edgeToRestriction)
-          else {
-            edgeToRestriction.removeData('type')
-            edgeToRestriction.classes(`role qualification-${quantifier_type} ${opposite_type}`)
-          }
-        })
-      } else {
-        aux_renderer.filterElem(restriction, cy)
-      }
+      aux_renderer.filterElem(restriction, cy)
+      cy.remove('.filtered')
     })
     
     cy.remove('.filtered')

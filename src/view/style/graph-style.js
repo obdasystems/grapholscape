@@ -278,26 +278,6 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.qualification-exists',
-      style: {
-        'line-color': '#0099ff',
-        'target-arrow-shape': 'circle',
-        'source-arrow-color': '#0099ff',
-        'target-arrow-color': '#0099ff',
-      }
-    },
-
-    {
-      selector: 'edge.qualification-forall',
-      style: {
-        'line-color': '#0052cc',
-        'target-arrow-shape': 'circle',
-        'source-arrow-color': '#0052cc',
-        'target-arrow-color': '#0052cc',
-      }
-    },
-
-    {
       selector: '.individual',
       style: {
         'background-color': theme.individual,
