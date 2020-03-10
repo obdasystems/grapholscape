@@ -632,6 +632,8 @@ export default function computeSimplifiedOntologies(ontology) {
       dummy.neighborhood('node').forEach(neighbor => {
         neighbor.position(dummy.position())
       })
+      dummy.data('width', 35)
+      dummy.addClass('bubble')
     })
   }
 
