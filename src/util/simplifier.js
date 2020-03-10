@@ -583,6 +583,7 @@ export default function computeSimplifiedOntologies(ontology) {
     cy.edges().removeData('segment_weights')
     cy.edges().removeData('target_endpoint')
     cy.edges().removeData('source_endpoint')
+    cy.$('[type = "concept"]').addClass('bubble')
     return cy.$('*')
   }
 

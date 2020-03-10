@@ -282,6 +282,18 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: '.bubble',
+      style: {
+        'text-margin-x': 0,
+        'text-margin-y': 0,
+        'text-valign' : 'center',
+        'text-halign' : 'center',
+        'shape': 'ellipse',
+        'height': 'data(width)'
+      }
+    },
+
+    {
       selector: '.individual',
       style: {
         'background-color': theme.individual,
