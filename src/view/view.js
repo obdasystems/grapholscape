@@ -146,8 +146,9 @@ export default class GrapholscapeView {
     this.container.appendChild(this.renderer_selector)
     this.widgets.add(this.renderer_selector)
 
-    this.registerEvents(this.renderers.default)
-    this.registerEvents(this.renderers.lite)
+    Object.keys(this.renderers).forEach(renderer => 
+      this.registerEvents(this.renderers[renderer])
+    )
   }
 
   registerEvents(renderer) {
@@ -262,10 +263,12 @@ export default class GrapholscapeView {
     })
   }
 
-  setRenderer(renderer) {    
-    if (this.renderer)
-      this.renderer.unmount()
-
+  setRenderer(renderer) {  
+    for (name in this.renderers) {
+      if (this.renderers[name])
+        this.renderers[name].unmount()
+    }  
+  
     renderer.mount(this.graph_container)
     this.renderer = renderer
   }
@@ -275,6 +278,7 @@ export default class GrapholscapeView {
     this.setRenderer(this.renderers[mode])
 
     switch (mode) {
+      case 'float':
       case 'lite': {
         Object.keys(this.filters).map(key => {
           if (key != 'all' &&
@@ -284,10 +288,6 @@ export default class GrapholscapeView {
             this.filters[key].disabled = true
           }
         })
-        break
-      }
-      case 'float': {
-        // To do
         break
       }
       case 'default': {
@@ -308,46 +308,6 @@ export default class GrapholscapeView {
     }
     
     this.onRenderingModeChange(actual_position, mode)
-    this.filters_widget.requestUpdate()
-    this.blurAll()
-    
-  }
-
-  toggleLiteMode() {
-    let actual_position = this.renderer.getActualPosition()
-  
-    if (this.renderer instanceof LiteGscapeRenderer) {
-      this.setRenderer(this.renderers.default)
-
-      Object.keys(this.filters).map(key => {
-        if (key != 'all' &&
-            key != 'attributes' &&
-            key != 'individuals') { 
-
-          // enable filters that may have been disabled by lite mode 
-          this.filters[key].disabled = false
-
-          if (key == 'value_domain' && this.filters.attributes.active)
-            this.filters.value_domain.disabled = true
-        }
-      })
-
-      this.onDefaultModeActive(actual_position)
-    } else {
-      this.setRenderer(this.renderers.lite)
-
-      Object.keys(this.filters).map(key => {
-        if (key != 'all' &&
-            key != 'attributes' &&
-            key != 'individuals') { 
-          // disable all unnecessary filters
-          this.filters[key].disabled = true
-        }
-      })
-
-      this.onLiteModeActive(actual_position)
-    }
-
     this.filters_widget.requestUpdate()
     this.blurAll()
   }
