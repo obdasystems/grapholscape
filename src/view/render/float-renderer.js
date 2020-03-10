@@ -16,13 +16,17 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
       name: 'cola',
       avoidOverlap: false,
       edgeLength: function(edge) {
-        return edge.hasClass('role') ? 300 : 150
+        if (edge.hasClass('role')) 
+          return 300 
+        else if (edge.target().data('type') == 'attribute' ||
+                 edge.source().data('type') == 'attribute' )
+          return 150
+        else 
+          return 250
       },
-      infinite: true,
+      fit: true,
     })
-
     
-
     layout.run()
   }
 }
