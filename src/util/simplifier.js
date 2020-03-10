@@ -114,7 +114,6 @@ export default function computeSimplifiedOntologies(ontology) {
            edgeToRestriction.source().data('type') == 'range-restriction') &&
           (edgeToRestriction.target().data('type') == 'domain-restriction' || 
            edgeToRestriction.target().data('type') == 'range-restriction')) {
-        console.log('ahah')
         cy.remove(edgeToRestriction)
         return new_edge
       }
@@ -349,6 +348,7 @@ export default function computeSimplifiedOntologies(ontology) {
     node.removeData('label')
     node.data('width', 0.1)
     node.data('height', 0.1)
+    node.addClass('dummy')
   }
 
   function simplifyIntersections(cytoscape_instance) {
@@ -577,13 +577,12 @@ export default function computeSimplifiedOntologies(ontology) {
     cy.add(edges)
 
     simplifyRolesFloat(cy)
+    simplifyHierarchiesFloat(cy)
+    simplifyAttributesFloat(cy)
     cy.edges().removeData('segment_distances')
     cy.edges().removeData('segment_weights')
-    cy.remove('.qualification-forall')
-    cy.remove('.qualification-exists')
     cy.edges().removeData('target_endpoint')
     cy.edges().removeData('source_endpoint')
-    cy.nodes().position({ x: 0, y: 0})
     return cy.$('*')
   }
 
@@ -600,17 +599,46 @@ export default function computeSimplifiedOntologies(ontology) {
           let new_edge = {
             data : {
               id : domain.id() + '-' + i,
+              id_xml : domain.target().data('id_xml'),
+              diagram_id : domain.target().data('diagram_id'),
               source : domain.source().id(),
               target : target.id(),
-              edge_label : domain.target().data('label')
+              type : domain.target().data('type'),
+              iri : domain.target().data('iri'),
+              edge_label : domain.target().data('label'),
+              label : domain.target().data('label'),
+              description : domain.target().data('description'),
+              functional : domain.target().data('functional'),
+              inverseFunctional : domain.target().data('inverseFunctional'),
+              asymmetric : domain.target().data('asymmetric'),
+              irreflexive : domain.target().data('irreflexive'),
+              reflexive : domain.target().data('reflexive'),
+              symmetric : domain.target().data('symmetric'),
+              transitive : domain.target().data('transitive')
             },
-            classes : 'role'
+            classes : 'role predicate'
           }
 
           cy.add(new_edge)
         })
       })
       cy.remove(role)
+    })
+  }
+
+  function simplifyHierarchiesFloat(cy) {
+    cy.$('.dummy').forEach(dummy => {
+      dummy.neighborhood('node').forEach(neighbor => {
+        neighbor.position(dummy.position())
+      })
+    })
+  }
+
+  function simplifyAttributesFloat(cy) {
+    cy.$('[type = "attribute"]').forEach(attribute => {
+      attribute.neighborhood('node').forEach(neighbor => {
+        attribute.position(neighbor.position())
+      })
     })
   }
 }

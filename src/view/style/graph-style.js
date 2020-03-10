@@ -16,7 +16,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[label]',
+      selector: 'node[label]',
       style: {
         'label': 'data(label)',
         'text-margin-x': 'data(labelXpos)',
@@ -131,7 +131,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[edge_label]',
+      selector: 'edge[label]',
       style: {
         'label': 'data(edge_label)',
         'font-size': 10,
@@ -274,6 +274,10 @@ export function getGraphStyle(theme) {
         'line-color' : theme.role_dark,
         'source-arrow-color': theme.role_dark,
         'target-arrow-color': theme.role_dark,
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'filled',
+        'source-arrow-shape': 'square',
+        'source-arrow-fill': 'hollow',
       } 
     },
 

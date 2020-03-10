@@ -46,8 +46,6 @@ export default class GrapholscapeController {
     this.view.onNodeSelection = this.onNodeSelection.bind(this)
     this.view.onBackgroundClick = this.onBackgroundClick.bind(this)
     this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
-    this.view.onLiteModeActive = this.onLiteModeActive.bind(this)
-    this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this)
     this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this)
     if (this.onWikiClickCallback) {
       this.view.onWikiClick = this.onWikiClick.bind(this)
@@ -114,7 +112,6 @@ export default class GrapholscapeController {
   } 
 
   onEdgeSelection(edge_id, diagram_id) {
-
     /**
      * To be refactored.
      * Owl Translator uses cytoscape representation for navigating the graph.
@@ -123,6 +120,17 @@ export default class GrapholscapeController {
     let edge_cy = this.ontology.getElemByDiagramAndId(edge_id, diagram_id, false)
     if(edge_cy)
       this.showOwlTranslation(edge_cy)
+    
+    // show details on roles in float mode
+    if (this.actualMode == 'float') {
+      let edge = this.ontology.getElemByDiagramAndId(edge_id, diagram_id)
+      
+      if(edge.classes.includes('predicate')) {
+        this.showDetails(edge, false)
+      } else {
+        this.view.hideDetails()
+      }
+    }
   }
 
   /**
@@ -133,7 +141,7 @@ export default class GrapholscapeController {
    */
   onNodeSelection(node_id, diagram_id) {
     let node = this.ontology.getElemByDiagramAndId(node_id, diagram_id)
-    
+
     if (!node) {
       console.error('Unable to find the node with {id= '+node_id+'} in the ontology')
       return
@@ -211,24 +219,6 @@ export default class GrapholscapeController {
         break
       }
     }
-  }
-
-  onLiteModeActive(state) {
-    this.liteMode = true
-    this.liteOntologyPromise.then(() => {
-      if (this.liteMode) {
-        this.ontology = this.ontologies.lite
-        this.updateGraphView(state)
-        this.updateEntitiesList()
-      }
-    })
-  }
-
-  onDefaultModeActive(state) {
-    this.liteMode = false
-    this.ontology = this.ontologies.default
-    this.updateGraphView(state)
-    this.updateEntitiesList()
   }
 
   updateGraphView(state) {

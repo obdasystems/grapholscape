@@ -27,6 +27,26 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
       fit: true,
     })
     
+    this.layoutReady = layout.pon('layoutstop')
     layout.run()
+  }
+
+  centerOnNode (node_id, zoom) {
+    this.layoutReady.then(() => {
+      let node = this.cy.$id(node_id)
+      if (node) {
+        this.cy.$(':selected').unselect()
+
+        if ( node.data('type') == 'role') {
+          let elems = node.connectedNodes()
+          this.cy.fit(elems)
+          node.select();
+          elems.select();
+        } else {
+          this.centerOnPosition(node.position('x'), node.position('y'), zoom)
+          node.select()
+        }
+      }
+    })
   }
 }

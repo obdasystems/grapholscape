@@ -59,7 +59,7 @@ export class Ontology {
   getEntities () {
     let predicates = cytoscape().collection()
     this.diagrams.forEach(diagram => {
-      predicates = predicates.union(diagram.cy.nodes('.predicate'))
+      predicates = predicates.union(diagram.cy.$('.predicate'))
     })
 
     predicates = predicates.sort((a,b) => a.data('label').localeCompare(b.data('label')))
