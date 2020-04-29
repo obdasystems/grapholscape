@@ -1,7 +1,7 @@
 import cytoscape from 'cytoscape'
 
 export class Ontology {
-  constructor (name, version, iriSet = new Set(), diagrams = []) {
+  constructor (name, version, iriSet = [], diagrams = []) {
     this.name = name
     this.version = version
     this.iriSet = iriSet
@@ -9,12 +9,13 @@ export class Ontology {
   }
 
   // @param {Iri} iri
-  addIri (iri) {
-    this.iriSet.add(iri)
+  addIri(iri) {
+    this.iriSet.push(iri)
+  }
   }
 
   // @param {Diagram} diagram
-  addDiagram (diagram) {
+  addDiagram(diagram) {
     this.diagrams.push(diagram)
   }
 

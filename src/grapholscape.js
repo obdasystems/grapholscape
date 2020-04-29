@@ -55,8 +55,8 @@ export default class GrapholScape {
     return this.readFilePromise
 
     function getResult(file) {
-      let graphol_parser = new GrapholParser()
-      return graphol_parser.parseGraphol(file)
+      let graphol_parser = new GrapholParser(file)
+      return graphol_parser.parseGraphol()
     }
   }
 
