@@ -15,15 +15,26 @@ export default class GrapholParser {
       this.parseGraphol = this.parseGraphol3.bind(this)
     else
       throw new Error('Error: Graphol version not supported or not defined.')
+
+
+    this.constructors_labels = {
+      'union' : 'or',
+      'intersection' : 'and',
+      'role-chain' : 'chain',
+      'role-inverse' : 'inv',
+      'complement' : 'not',
+      'datatype-restriction' : 'data',
+      'enumeration' : 'oneOf'
+    }
   }
 
   parseGraphol2() {
-    var i, k
+    let i, k
 
-    var xml_ontology_tag = this.xmlDocument.getElementsByTagName('ontology')[0]
+    let xml_ontology_tag = this.xmlDocument.getElementsByTagName('ontology')[0]
 
-    var ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent
-    var ontology_version = ''
+    let ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent
+    let ontology_version = ''
 
     if (xml_ontology_tag.getElementsByTagName('version')[0]) {
       ontology_version = xml_ontology_tag.getElementsByTagName('version')[0].textContent
@@ -117,7 +128,71 @@ export default class GrapholParser {
     return this.ontology
   }
 
-    return ontology
+  parseGraphol3() {
+    let i, k
+    let project = this.xmlDocument.getElementsByTagName('project')[0]
+    let ontology_name = project.getAttribute('name')
+    let ontology_version = project.getAttribute('version')
+
+    // Creating an Ontology Object
+    this.ontology = new Ontology(ontology_name, ontology_version)
+
+    let prefixes = this.xmlDocument.getElementsByTagName('prefixes')[0]
+
+    let values, namespace
+    prefixes.children.forEach( prefix => {
+      /**
+       * values = prefixes value (many?)
+       * namespace = iri value (single)
+       */
+      values = prefix.getElementsByTagName('value')
+      values = Array.from(values, v => v.textContent)
+
+      namespace = prefix.getElementsByTagName('namespace')[0].textContent
+
+      this.ontology.addIri(new Iri(values, namespace))
+    })
+    
+    this.iris = this.xmlDocument.getElementsByTagName('iris')[0].children
+
+    var diagrams = this.xmlDocument.getElementsByTagName('diagram')
+    for (i = 0; i < diagrams.length; i++) {
+      let diagram_name = diagrams[i].getAttribute('name')
+      let diagram = new Diagram(diagram_name, i)
+      this.ontology.addDiagram(diagram)
+
+      var array_json_elems = []
+      var nodes = diagrams[i].getElementsByTagName('node')
+      var edges = diagrams[i].getElementsByTagName('edge')
+      var cnt = 0
+      // Create JSON for each node to be added to the collection
+      for (k = 0; k < nodes.length; k++) {
+        this.actual_iri = this.getIriElem(nodes[k]) // aux for v3
+        array_json_elems.push(this.NodeXmlToJson(nodes[k], i))
+
+        if (array_json_elems[cnt].data.type === 'property-assertion' ||
+          array_json_elems[cnt].data.type === 'facet' ||
+          (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
+          this.addFakeNodes(array_json_elems)
+          cnt += array_json_elems.length - cnt
+        } else { cnt++ }
+      }
+      diagram.addElems(array_json_elems)
+      array_json_elems = []
+      for (k = 0; k < edges.length; k++) {
+        array_json_elems.push(this.EdgeXmlToJson(edges[k], i))
+      }
+      diagram.addElems(array_json_elems)
+
+      
+    }
+
+    if(i==0) {
+      throw("The selected .graphol file has no defined diagram")
+    }
+
+    this.getIdentityForNeutralNodes()
+    return this.ontology
   }
 
   NodeXmlToJson(element, diagram_id) {
@@ -556,7 +631,47 @@ export default class GrapholParser {
 
   getLabel(element) {
     switch(this.graphol_ver) {
-      case 3:
+      case '3':
+        let label = element.getElementsByTagName('label')[0].textContent
+        if (label) return label
+
+        // constructors node do not have any iri
+        if (!element.getElementsByTagName('iri')[0]) {
+          return this.constructors_labels[element.getAttribute('type')]
+        }
+
+        // build prefixed iri to be used in some cases
+        let iri = element.getElementsByTagName('iri')[0].textContent
+        
+        let name = iri.slice(iri.lastIndexOf('#') + 1)
+        let base = iri.slice(0, iri.lastIndexOf('#') + 1)
+        // if base is empty then use '/' as separator
+        if (!base) {
+          name = iri.slice(iri.lastIndexOf('/') + 1)
+          base = iri.slice(0, iri.lastIndexOf('/') + 1)
+        }
+        let prefix = this.ontology.getIriFromValue(base).prefixes[0]
+
+        // datatypes always have prefixed iri as label
+        if (element.getAttribute('type') == 'value-domain') {
+          return prefix + name
+        }
+
+        if (!this.actual_iri) return ''
+
+        let label_property_iri = this.ontology.getIriFromPrefix('rdfs').value + 'label'
+        let annotations = this.actual_iri.getElementsByTagName('annotations')[0]
+        if (annotations) {      
+          annotations = annotations.children
+          for (let annotation of annotations) {
+            if (annotation.getElementsByTagName('property')[0].textContent == label_property_iri) {
+              return annotation.getElementsByTagName('lexicalForm')[0].textContent
+            }
+          }
+        }
+        
+        // No label annotation, then use prefixed label
+        return prefix + name
         break
       
       default:
@@ -566,73 +681,132 @@ export default class GrapholParser {
   }
 
   getIri(element, label_no_break) {
-    let node_iri, rem_chars, len_prefix, node_prefix_iri
     let iri_infos = {}
+    let node_iri, rem_chars
+    switch (this.graphol_ver) {
+      case '3':
+        if(!element.getElementsByTagName('iri')[0])
+          break
+        
+        node_iri = element.getElementsByTagName('iri')[0].textContent
 
-    // setting iri
-    if (element.getAttribute('remaining_characters') != null) {
-      rem_chars = element.getAttribute('remaining_characters').replace(/\n/g, '')
-    } else {
-      rem_chars = label_no_break
-    }
-    
-    len_prefix = label_no_break.length - rem_chars.length
-    node_prefix_iri = label_no_break.substring(0, len_prefix)
-    for(let iri of this.ontology.iriSet) {
-      iri.prefixes.forEach(prefix => {
-        if (node_prefix_iri == prefix+':' || node_prefix_iri == prefix) {
-          node_iri = iri.value
+        let iri = this.ontology.getIriFromValue(node_iri.slice(0, node_iri.lastIndexOf('/') + 1))
+        iri_infos.iri = node_iri
+        iri_infos.prefix_iri = iri.prefixes[0]
+        iri_infos.remaining_chars = node_iri.split('/').pop()
+        break
+      
+      default:
+        let len_prefix, node_prefix_iri
+
+        // setting iri
+        if (element.getAttribute('remaining_characters') != null) {
+          rem_chars = element.getAttribute('remaining_characters').replace(/\n/g, '')
+        } else {
+          rem_chars = label_no_break
         }
-      })
-    }
+        len_prefix = label_no_break.length - rem_chars.length
+        node_prefix_iri = label_no_break.substring(0, len_prefix)
+        for (let iri of this.ontology.iriSet) {
+          iri.prefixes.forEach(prefix => {
+            if (node_prefix_iri == prefix+':' || node_prefix_iri == prefix) {
+              node_iri = iri.value
+            }
+          })
+        }
 
-    if(!node_iri) {
-      throw(`Err: the iri prefix "${node_prefix_iri}" is not associated to any iri`)
+        if (!node_iri) {
+          throw(`Err: the iri prefix "${node_prefix_iri}" is not associated to any iri`)
+        }
+        
+        if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+          rem_chars = label_no_break
+          node_iri = ''
+          node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
+        } else if (node_iri.slice(-1) !=='/' && node_iri.slice(-1) !=='#') { node_iri = node_iri + '/' }
+
+        iri_infos.remaining_chars = rem_chars
+        iri_infos.prefix_iri = node_prefix_iri
+        iri_infos.iri = node_iri + rem_chars
+        break
     }
     
-    if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
-      rem_chars = label_no_break
-      node_iri = ''
-      node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
-    } else if (node_iri.slice(-1) !=='/' && node_iri.slice(-1) !=='#') { node_iri = node_iri + '/' }
-
-    iri_infos.remaining_chars = rem_chars
-    iri_infos.prefix_iri = node_prefix_iri
-    iri_infos.iri = node_iri + rem_chars
-
     return iri_infos
   }
 
   getPredicateInfos(nodo, label_no_break){
-    let j, predicateXml, description
     let result = {}
-    for (j = 0; j < this.xmlPredicates.length; j++) {
-      predicateXml = this.xmlPredicates[j]
-      if (label_no_break === predicateXml.getAttribute('name') && nodo.data.type === predicateXml.getAttribute('type')) {
-        description = predicateXml.getElementsByTagName('description')[0].textContent
-        description = description.replace(/font-size:0pt/g, '')
-        let start_body_index = description.indexOf('<p')
-        let end_body_index = description.indexOf('</body')
+    let description
+    switch(this.graphol_ver) {
+      case '3':
+        let description_iri = this.ontology.getIriFromPrefix('rdfs').value + 'comment'
 
-        result.description = description.slice(start_body_index, end_body_index)
-
-        // Impostazione delle funzionalità dei nodi di tipo role o attribute
-        if (nodo.data.type === 'attribute' || nodo.data.type === 'role') {
-          result.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
+        let annotations = this.actual_iri.getElementsByTagName('annotations')[0]
+        if (annotations) {
+          annotations = annotations.children
+          for(let annotation of annotations) {
+            if (annotation.getElementsByTagName('property')[0].textContent == description_iri) {
+              result.description = annotation.getElementsByTagName('lexicalForm')[0].textContent
+              break
+            }
+          }
         }
 
-        if (nodo.data.type === 'role') {
-          result.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
-          result.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
-          result.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
-          result.reflexive = parseInt(predicateXml.getElementsByTagName('reflexive')[0].textContent)
-          result.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
-          result.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
+        for(let property of this.actual_iri.children) {
+          if (property.tagName != 'value' && property.tagName != 'annotations') {
+            result[property.tagName] = parseInt(property.textContent) || 0
+          }
+        }
+
+        break
+
+      default:
+        let j, predicateXml
+        
+        for (j = 0; j < this.xmlPredicates.length; j++) {
+          predicateXml = this.xmlPredicates[j]
+          if (label_no_break === predicateXml.getAttribute('name') && nodo.data.type === predicateXml.getAttribute('type')) {
+            description = predicateXml.getElementsByTagName('description')[0].textContent
+            description = description.replace(/font-size:0pt/g, '')
+            let start_body_index = description.indexOf('<p')
+            let end_body_index = description.indexOf('</body')
+
+            result.description = description.slice(start_body_index, end_body_index)
+
+            // Impostazione delle funzionalità dei nodi di tipo role o attribute
+            if (nodo.data.type === 'attribute' || nodo.data.type === 'role') {
+              result.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
+            }
+
+            if (nodo.data.type === 'role') {
+              result.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
+              result.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
+              result.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
+              result.reflexive = parseInt(predicateXml.getElementsByTagName('reflexive')[0].textContent)
+              result.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
+              result.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
+            }
+            break
+          }
         }
         break
-      }
     }
 
     return result
+  }
+
+  getIriElem(node) {
+    // search label in iris
+    let node_iri = node.getElementsByTagName('iri')[0]
+    if (!node_iri) return null
+
+    node_iri = node_iri.textContent
+    for (let iri of this.iris) {
+      if(node_iri == iri.getElementsByTagName('value')[0].textContent) {
+        return iri
+      }
+    }
+
+    return null
   }
 }

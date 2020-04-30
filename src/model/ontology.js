@@ -12,6 +12,19 @@ export class Ontology {
   addIri(iri) {
     this.iriSet.push(iri)
   }
+
+  getIriFromValue(value) {
+    for(let iri of this.iriSet) {
+      if (iri.value == value)
+        return iri
+    }
+  }
+
+  getIriFromPrefix(prefix) {
+    for(let iri of this.iriSet) {
+      if (iri.prefixes.includes(prefix))
+        return iri
+    }
   }
 
   // @param {Diagram} diagram
