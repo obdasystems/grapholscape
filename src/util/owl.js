@@ -177,7 +177,7 @@ export default class OwlTranslator {
     var from_node_flag = from_node || null
 
     if (from_node_flag && (node.hasClass('predicate') || node.data('type') == 'value-domain')) {
-      var owl_predicate = '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span><span class="owl_' + node.data('type') + '">' + node.data('remaining_chars') + '</span>'
+      var owl_predicate = '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_' + node.data('type') + '">' + node.data('iri').remaining_chars + '</span>'
       var owl_type
 
       switch (node.data('type')) {
@@ -217,12 +217,12 @@ export default class OwlTranslator {
           break
 
         case 'individual':
-          if (node.data('remaining_chars').search(/"[\w]+"\^\^[\w]+:/) != -1) {
-            var value = node.data('remaining_chars').split('^^')[0]
-            var datatype = node.data('remaining_chars').split(':')[1]
+          if (node.data('iri').remaining_chars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+            var value = node.data('iri').remaining_chars.split('^^')[0]
+            var datatype = node.data('iri').remaining_chars.split(':')[1]
 
             owl_predicate = '<span class="owl_value">' + value + '</span>^^' +
-            '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span>' +
+            '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span>' +
             '<span class="owl_value-domain">' + datatype + '</span>'
           }
           owl_type = 'NamedIndividual'
@@ -238,12 +238,12 @@ export default class OwlTranslator {
 
     switch (node.data('type')) {
       case 'individual':
-        if (node.data('remaining_chars').search(/"[\w]+"\^\^[\w]+:/) != -1) {
-          var value = node.data('remaining_chars').split('^^')[0]
-          var datatype = node.data('remaining_chars').split(':')[1]
+        if (node.data('iri').remaining_chars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+          var value = node.data('iri').remaining_chars.split('^^')[0]
+          var datatype = node.data('iri').remaining_chars.split(':')[1]
 
           return '<span class="owl_value">' + value + '</span>^^' +
-          '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span>' +
+          '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span>' +
           '<span class="owl_value-domain">' + datatype + '</span>'
         }
 
@@ -252,12 +252,12 @@ export default class OwlTranslator {
       case 'value-domain':
       case 'attribute':
       case 'individual':
-        return '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span><span class="owl_' + node.data('type') + '">' + node.data('remaining_chars') + '</span>'
+        return '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_' + node.data('type') + '">' + node.data('iri').remaining_chars + '</span>'
         break
 
       case 'facet':
-        var rem_chars = node.data('remaining_chars').split('^^')
-        return '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>'
+        var rem_chars = node.data('iri').remaining_chars.split('^^')
+        return '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>'
         break
 
       case 'domain-restriction':
