@@ -49,7 +49,8 @@ export default class GrapholscapeController {
     if (this.onWikiClickCallback) {
       this.view.onWikiClick = this.onWikiClick.bind(this)
     }
-    this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config.widgets)
+    
+    this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
 
   /**

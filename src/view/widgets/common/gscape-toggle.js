@@ -106,7 +106,7 @@ export default class GscapeToggle extends GscapeWidget {
         />
         <span class="toggle"></span>
       </label>
-      <span class="toggle-label">${this.label}</span>
+      ${this.label ? html`<span class="toggle-label">${this.label}</span>` : html``}
     </div>
     `
   }

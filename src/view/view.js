@@ -9,6 +9,7 @@ import GscapeZoomTools from './widgets/gscape-zoom-tools'
 import GrapholscapeRenderer from './render/grapholscape_renderer'
 import EasyGscapeRenderer from './render/easy-gscape-renderer'
 import * as themes from './style/themes'
+import GscapeSettings from './widgets/gscape-settings'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -48,7 +49,8 @@ export default class GrapholscapeView {
   }
 
   createUi(ontology, diagrams, predicates, settings) {
-    this.filters = settings.filters.filter_list
+    this.settings = settings
+    this.filters = this.settings.widgets.filters.filter_list
     this.widgets = new Set()
     this.diagram_selector = new GscapeDiagramSelector(diagrams)
     this.diagram_selector.onDiagramChange = this.onDiagramChange
@@ -58,12 +60,12 @@ export default class GrapholscapeView {
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    !settings.explorer.enabled ? this.explorer.hide() : null  
+    !settings.widgets.explorer.enabled ? this.explorer.hide() : null  
     this.container.appendChild(this.explorer)
     this.widgets.add(this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
-    !settings.details.enabled ? this.entity_details.hide() : null
+    !settings.widgets.details.enabled ? this.entity_details.hide() : null
     this.entity_details.onWikiClick = this.onWikiClick
     this.container.appendChild(this.entity_details)
     this.widgets.add(this.entity_details)
@@ -89,7 +91,7 @@ export default class GrapholscapeView {
       this.blurAll(this.filters_widget)
       this.filters_widget.toggleBody()
     }
-    !settings.filters.enabled ? this.filters_widget.hide() : null
+    !settings.widgets.filters.enabled ? this.filters_widget.hide() : null
     this.container.appendChild(this.filters_widget)
     this.widgets.add(this.filters_widget)
 
@@ -102,7 +104,7 @@ export default class GrapholscapeView {
     this.widgets.add(this.ontology_info)
 
     this.owl_translator = new GscapeOwlTranslator()
-    !settings.owl_translator.enabled ? this.owl_translator.hide() : null
+    !settings.widgets.owl_translator.enabled ? this.owl_translator.hide() : null
     this.container.appendChild(this.owl_translator)
     this.widgets.add(this.owl_translator)
 
@@ -118,9 +120,14 @@ export default class GrapholscapeView {
     this.btn_lite_mode.highlight = true
     this.btn_lite_mode.style.bottom = '10px'
     this.btn_lite_mode.style.left = '94px'
-    !settings.lite_mode.enabled ? this.btn_lite_mode.hide() : null
+    !settings.widgets.lite_mode.enabled ? this.btn_lite_mode.hide() : null
     this.container.appendChild(this.btn_lite_mode)
     this.widgets.add(this.btn_lite_mode)
+
+    // settings
+    this.settings_widget = new GscapeSettings(this.settings)
+    this.container.appendChild(this.settings_widget)
+    this.widgets.add(this.settings_widget)
 
     this.registerEvents(this.renderers.default)
     this.registerEvents(this.renderers.lite)
