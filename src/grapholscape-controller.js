@@ -347,6 +347,6 @@ export default class GrapholscapeController {
   }
 
   get languagesList() {
-    return this.config.preferences.language.list
+    return this.config.preferences.language.list.map(lang => lang.value)
   }
 }
