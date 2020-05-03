@@ -12,7 +12,7 @@ export default class GrapholscapeController {
         "value" : lang,
       }
     })
-    this.config.preferences.language.selected = ontology.default_language
+    this.config.preferences.language.selected = this.default_language = ontology.default_language
     this.ontologies = {
       default: ontology,
       lite: null,
@@ -224,6 +224,11 @@ export default class GrapholscapeController {
     this.view.updateEntitiesList(entitiesViewData)
   }
 
+  /**
+   * Set the kind of displayed name for entities.
+   * Then refresh diagram and entities list
+   * @param {string} type - [label | full | prefixed]
+   */
   onEntityNameTypeChange(type) {
     Object.keys(this.ontologies).forEach(key => {
       let entities = this.ontologies[key].getEntities(false) // get cytoscape nodes
@@ -232,6 +237,8 @@ export default class GrapholscapeController {
           entities.forEach(entity => {
             if (entity.data('label')[this.language])
               entity.data('displayed_name', entity.data('label')[this.language])
+            else if (entity.data('label')[this.default_language])
+              entity.data('displayed_name', entity.data('label')[this.default_language])
             else {
               for (let lang of this.languagesList) {
                 if (entity.data('label')[lang]) {
@@ -261,6 +268,11 @@ export default class GrapholscapeController {
     this.updateEntitiesList()
   }
 
+  /**
+   * Update selected language in config and set displayed names accordingly
+   * Then refresh diagram and entities list
+   * @param {string} language 
+   */
   onLanguageChange(language) {
     this.config.preferences.language.selected = language
     // update displayed names (if label is selected then update the label language)
@@ -291,7 +303,9 @@ export default class GrapholscapeController {
       if (entityModelData.data[property]) {
         if (entityModelData.data[property][this.language])
           language_variant_properties[property] = entityModelData.data[property][this.language]
-        else {
+        else if (entityModelData.data[property][this.default_language]) {
+          language_variant_properties[property] = entityModelData.data[property][this.default_language]
+        } else {
           for (let lang of this.languagesList) {
             if (entityModelData.data[property][lang]) {
               language_variant_properties[property] = entityModelData.data[property][lang]
@@ -344,6 +358,10 @@ export default class GrapholscapeController {
 
   get language() {
     return this.config.preferences.language.selected
+  }
+
+  get defaultLanguage() {
+    return this.ontology
   }
 
   get languagesList() {

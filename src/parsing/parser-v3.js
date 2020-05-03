@@ -113,12 +113,12 @@ export function getPredicateInfo(element, xmlDocument, ontology) {
   let actual_iri_elem = getIriElem(element, xmlDocument)
   let annotations = actual_iri_elem.getElementsByTagName('annotations')[0]
   let language
+  result.description = {}
   if (annotations) {
     annotations = annotations.children
     for(let annotation of annotations) {
       if (annotation.getElementsByTagName('property')[0].textContent == description_iri) {
         language = annotation.getElementsByTagName('language')[0].textContent
-        result.description = {}
         result.description[language] = annotation.getElementsByTagName('lexicalForm')[0].textContent
       }
     }
