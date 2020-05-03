@@ -295,7 +295,7 @@ export function getGraphStyle(theme) {
     { // the right border part of functional && inverseFunctional roles
       selector: '.fake-triangle-right',
       style: {
-        'background-color': theme.role_dark,
+        'background-color': theme.role_dark || 'black',
       }
     },
 

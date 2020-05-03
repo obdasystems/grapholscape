@@ -152,6 +152,10 @@ export default class GscapeSettings extends GscapeWidget {
   set onLanguageSelection(foo) {
     this.callbacks.language = foo
   }
+
+  set onThemeSelection(foo) {
+    this.callbacks.theme = foo
+  }
 }
 
 customElements.define('gscape-settings', GscapeSettings)

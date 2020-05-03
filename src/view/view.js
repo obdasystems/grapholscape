@@ -44,7 +44,6 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
-    this.graph_container.style.background = themes.gscape.background
     this.setTheme(themes.gscape)
   }
 
@@ -128,6 +127,7 @@ export default class GrapholscapeView {
     this.settings_widget = new GscapeSettings(this.settings)
     this.settings_widget.onEntityNameSelection = this.onEntityNameTypeChange.bind(this)
     this.settings_widget.onLanguageSelection = this.onLanguageChange.bind(this)
+    this.settings_widget.onThemeSelection = this.onThemeSelection.bind(this)
     this.container.appendChild(this.settings_widget)
     this.widgets.add(this.settings_widget)
 
@@ -302,6 +302,10 @@ export default class GrapholscapeView {
     this.explorer.predicates = entitiesViewData
     this.explorer.requestUpdate()
   }
+
+  onThemeSelection(theme_name) {
+    this.setTheme(themes[theme_name])
+  }
   
   setTheme(theme) {
     // update theme with custom variables "--theme-gscape-[var]" values
@@ -311,14 +315,12 @@ export default class GrapholscapeView {
     let prefix = '--theme-gscape-'
     Object.keys(theme).map(key => {
       let css_key = prefix + key.replace(/_/g,'-')
-      if (container_style.getPropertyValue(css_key)) {
-        // update color in the theme from custom variable
-        theme_aux[key] = container_style.getPropertyValue(css_key)
-      } else {
-        // normalize theme using plain strings
-        theme_aux[key] = theme[key].cssText
-      }
+      this.container.style.setProperty(css_key, theme[key].cssText)
+      // normalize theme using plain strings
+      theme_aux[key] = theme[key].cssText
     })
+
+    this.graph_container.style.background = theme.background
     // Apply theme to graph
     Object.keys(this.renderers).map(key => {
       this.renderers[key].setTheme(theme_aux)
