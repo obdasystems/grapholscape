@@ -119,7 +119,7 @@
         }
       }
     },
-    "lite_mode" : {
+    "simplifications" : {
       "type" : "boolean",
       "title" : "Simplifications",
       "enabled" : true,

@@ -142,7 +142,14 @@ export default class GscapeSettings extends GscapeWidget {
     this.callbacks[selection.id](selection.value)
   }
 
-  onToggleChange(e) {}
+  onToggleChange(e) {
+    let toggle = e.target
+    this.settings.widgets[toggle.id].enabled = toggle.checked
+
+    toggle.checked ?
+      this.callbacks.widgetEnable(toggle.id) :
+      this.callbacks.widgetDisable(toggle.id)
+  }
 
 
   set onEntityNameSelection(foo) {
@@ -155,6 +162,14 @@ export default class GscapeSettings extends GscapeWidget {
 
   set onThemeSelection(foo) {
     this.callbacks.theme = foo
+  }
+
+  set onWidgetEnabled(foo) {
+    this.callbacks.widgetEnable = foo
+  }
+  
+  set onWidgetDisabled(foo) {
+    this.callbacks.widgetDisable = foo
   }
 }
 
