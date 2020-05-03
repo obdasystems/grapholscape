@@ -6,7 +6,13 @@ export default class GrapholscapeController {
   constructor(ontology, view = null, config = null) {
     this.config = default_config
     if(config) this.setConfig(config)
-
+    this.config.preferences.language.list = ontology.languages.map(lang => {
+      return {
+        "label" : lang,
+        "value" : lang,
+      }
+    })
+    this.config.preferences.language.selected = ontology.default_language
     this.ontologies = {
       default: ontology,
       lite: null,
@@ -29,8 +35,8 @@ export default class GrapholscapeController {
     let diagramsModelData = this.ontology.diagrams
     let entitiesModelData = this.ontology.getEntities()
 
-    let diagramsViewData = diagramsModelData.map(diagram => this.constructor.diagramModelToViewData(diagram))
-    let entitiesViewData = entitiesModelData.map(entity => this.constructor.entityModelToViewData(entity))
+    let diagramsViewData = diagramsModelData.map(diagram => this.diagramModelToViewData(diagram))
+    let entitiesViewData = entitiesModelData.map(entity => this.entityModelToViewData(entity))
     let ontologyViewData = {
       name : this.ontology.name,
       version : this.ontology.version,
@@ -50,6 +56,7 @@ export default class GrapholscapeController {
       this.view.onWikiClick = this.onWikiClick.bind(this)
     }
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
+    this.view.onLanguageChange = this.onLanguageChange.bind(this)
     
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
@@ -87,7 +94,7 @@ export default class GrapholscapeController {
    * @param {JSON} diagramModelData The diagram retrieved from model
    */
   showDiagram(diagramModelData) {
-    let diagramViewData = this.constructor.diagramModelToViewData(diagramModelData)
+    let diagramViewData = this.diagramModelToViewData(diagramModelData)
     this.view.drawDiagram(diagramViewData)
   }
 
@@ -107,7 +114,7 @@ export default class GrapholscapeController {
    */
   showDetails(entityModelData, unselect) {
     if (this.config.widgets.details.enabled) {
-      let entityViewData = this.constructor.entityModelToViewData(entityModelData)
+      let entityViewData = this.entityModelToViewData(entityModelData)
       this.view.showDetails(entityViewData, unselect)
     }
   } 
@@ -213,7 +220,7 @@ export default class GrapholscapeController {
   }
 
   updateEntitiesList() {
-    let entitiesViewData = this.ontology.getEntities().map( entity => this.constructor.entityModelToViewData(entity))
+    let entitiesViewData = this.ontology.getEntities().map( entity => this.entityModelToViewData(entity))
     this.view.updateEntitiesList(entitiesViewData)
   }
 
@@ -223,7 +230,16 @@ export default class GrapholscapeController {
       switch(type) {
         case 'label':
           entities.forEach(entity => {
-            entity.data('displayed_name', entity.data('label'))
+            if (entity.data('label')[this.language])
+              entity.data('displayed_name', entity.data('label')[this.language])
+            else {
+              for (let lang of this.languagesList) {
+                if (entity.data('label')[lang]) {
+                  entity.data('displayed_name', entity.data('label')[lang])
+                  break
+                }
+              }
+            }
           })
           break
         
@@ -245,6 +261,12 @@ export default class GrapholscapeController {
     this.updateEntitiesList()
   }
 
+  onLanguageChange(language) {
+    this.config.preferences.language.selected = language
+    // update displayed names (if label is selected then update the label language)
+    this.onEntityNameTypeChange(this.config.preferences.entity_name.selected)
+  }
+
   setConfig(new_config) {
     Object.keys(new_config).forEach( entry => {
       if (typeof(new_config[entry]) !== "boolean") 
@@ -263,16 +285,32 @@ export default class GrapholscapeController {
     this.onWikiClickCallback = callback
   }
 
-  static entityModelToViewData(entityModelData) {
+  entityModelToViewData(entityModelData) {
+    let language_variant_properties = ["label", "description"]
+    for (let property of language_variant_properties) {
+      if (entityModelData.data[property]) {
+        if (entityModelData.data[property][this.language])
+          language_variant_properties[property] = entityModelData.data[property][this.language]
+        else {
+          for (let lang of this.languagesList) {
+            if (entityModelData.data[property][lang]) {
+              language_variant_properties[property] = entityModelData.data[property][lang]
+              break
+            }
+          }
+        }
+      }
+    }
+
     let entityViewData = {
       id : entityModelData.data.id,
       id_xml : entityModelData.data.id_xml,
       diagram_id : entityModelData.data.diagram_id,
-      label : entityModelData.data.label,
+      label : language_variant_properties.label,
       displayed_name : entityModelData.data.displayed_name,
       type : entityModelData.data.type,
       iri : entityModelData.data.iri,
-      description : entityModelData.data.description,
+      description : language_variant_properties.description,
       functional : entityModelData.data.functional,
       inverseFunctional : entityModelData.data.inverseFunctional,
       asymmetric : entityModelData.data.asymmetric,
@@ -285,7 +323,7 @@ export default class GrapholscapeController {
     return JSON.parse(JSON.stringify(entityViewData))
   }
 
-  static diagramModelToViewData(diagramModelData) {
+  diagramModelToViewData(diagramModelData) {
     let diagramViewData =  {
       name : diagramModelData.name,
       id : diagramModelData.id,
@@ -302,5 +340,13 @@ export default class GrapholscapeController {
 
   get ontology() {
     return this._ontology
+  }
+
+  get language() {
+    return this.config.preferences.language.selected
+  }
+
+  get languagesList() {
+    return this.config.preferences.language.list
   }
 }

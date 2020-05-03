@@ -4,10 +4,13 @@ export function getOntologyInfo(xmlDocument) {
   let project = xmlDocument.getElementsByTagName('project')[0]
   let ontology_name = project.getAttribute('name')
   let ontology_version = project.getAttribute('version')
+  let ontology_languages = xmlDocument.getElementsByTagName('languages')[0].children
 
   return {
     name : ontology_name,
-    version : ontology_version
+    version : ontology_version,
+    languages : [...ontology_languages].map(lang => lang.textContent),
+    default_language : xmlDocument.getElementsByTagName('ontology')[0].getAttribute('lang')
   }
 }
 
@@ -73,17 +76,20 @@ export function getLabel(element, ontology, xmlDocument) {
 
   let label_property_iri = ontology.getIriFromPrefix('rdfs').value + 'label'
   let annotations = iri_elem.getElementsByTagName('annotations')[0]
-  if (annotations) {      
+  let labels = {}
+  let language
+  if (annotations) {
     annotations = annotations.children
     for (let annotation of annotations) {
       if (annotation.getElementsByTagName('property')[0].textContent == label_property_iri) {
-        return annotation.getElementsByTagName('lexicalForm')[0].textContent
+        language = annotation.getElementsByTagName('language')[0].textContent
+        labels[language] = annotation.getElementsByTagName('lexicalForm')[0].textContent
       }
     }
   }
   
-  // No label annotation, then use prefixed label
-  return prefix + ':' + name
+  // if no label annotation, then use prefixed label
+  return Object.keys(labels).length ? labels : prefix + ':' + name
 }
 
 function getIriElem(node, xmlDocument) {
@@ -106,12 +112,14 @@ export function getPredicateInfo(element, xmlDocument, ontology) {
   let description_iri = ontology.getIriFromPrefix('rdfs').value + 'comment'
   let actual_iri_elem = getIriElem(element, xmlDocument)
   let annotations = actual_iri_elem.getElementsByTagName('annotations')[0]
+  let language
   if (annotations) {
     annotations = annotations.children
     for(let annotation of annotations) {
       if (annotation.getElementsByTagName('property')[0].textContent == description_iri) {
-        result.description = annotation.getElementsByTagName('lexicalForm')[0].textContent
-        break
+        language = annotation.getElementsByTagName('language')[0].textContent
+        result.description = {}
+        result.description[language] = annotation.getElementsByTagName('lexicalForm')[0].textContent
       }
     }
   }

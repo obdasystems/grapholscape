@@ -10,9 +10,9 @@ export default class OwlTranslator {
     switch (edge.data('type')) {
       case 'inclusion':
         if (source.data('identity') == 'concept' && target.data('identity') == 'concept') {
-          if (source.data('type') == 'domain-restriction' && source.data('label') != 'self' && target.data('label') != 'self') {
+          if (source.data('type') == 'domain-restriction' && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
             return propertyDomain(this, edge)
-          } else if (source.data('type') == 'range-restriction' && source.data('label') != 'self' && target.data('label') != 'self') {
+          } else if (source.data('type') == 'range-restriction' && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
             return propertyRange(this, edge)
           } else if (target.data('type') == 'complement' || source.data('type') == 'complement') {
             return disjointClasses(this, edge.connectedNodes())
@@ -280,10 +280,10 @@ export default class OwlTranslator {
         if (input_first) {
           if (input_first.data('type') == 'attribute' && node.data('type') == 'range-restriction') { return not_defined }
 
-          if (node.data('label') == 'exists') { return someValuesFrom(this, input_first, input_other, node.data('type')) } else if (node.data('label') == 'forall') { return allValuesFrom(this, input_first, input_other, node.data('type')) } else if (node.data('label').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
-            var cardinality = node.data('label').replace(/\(|\)/g, '').split(/,/)
+          if (node.data('displayed_name') == 'exists') { return someValuesFrom(this, input_first, input_other, node.data('type')) } else if (node.data('displayed_name') == 'forall') { return allValuesFrom(this, input_first, input_other, node.data('type')) } else if (node.data('displayed_name').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
+            var cardinality = node.data('displayed_name').replace(/\(|\)/g, '').split(/,/)
             return minMaxExactCardinality(this, input_first, input_other, cardinality, node.data('type'))
-          } else if (node.data('label') == 'self') {
+          } else if (node.data('displayed_name') == 'self') {
             return hasSelf(this, input_first, node.data('type'))
           }
         } else return missing_operand

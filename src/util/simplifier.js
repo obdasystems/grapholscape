@@ -40,7 +40,7 @@ export default function computeLiteOntology(ontology) {
 
         case 'domain-restriction':
         case 'range-restriction':
-          if (node.data('label') == 'forall')
+          if (node.data('displayed_name') == 'forall')
             return true
           else 
             return false
@@ -253,7 +253,7 @@ export default function computeLiteOntology(ontology) {
 
   function isQualifiedExistential(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-        && (node.data('label') == 'exists')) {
+        && (node.data('displayed_name') == 'exists')) {
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
 
@@ -262,7 +262,7 @@ export default function computeLiteOntology(ontology) {
 
   function isExistentialWithCardinality(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-        && node.data('label').search(/[0-9]/g) >= 0) {
+        && node.data('displayed_name').search(/[0-9]/g) >= 0) {
       return true
     }
 

@@ -14,6 +14,7 @@ export function getOntologyInfo(xmlDocument) {
   return {
     name : ontology_name,
     version: ontology_version,
+    languages: [''],
   }
 }
 
@@ -93,7 +94,8 @@ export function getIri(element, ontology) {
 
 export function getLabel(element) {
   if (element.getElementsByTagName('label')[0])
-    return element.getElementsByTagName('label')[0].textContent
+    // language undefined for v2 = ''
+    return { '' : element.getElementsByTagName('label')[0].textContent }
   else return undefined
 }
 
@@ -112,7 +114,7 @@ export function getPredicateInfo(element, xmlDocument) {
       start_body_index = description.indexOf('<p')
       end_body_index = description.indexOf('</body')
 
-      result.description = description.slice(start_body_index, end_body_index)
+      result.description = { '' : description.slice(start_body_index, end_body_index) }
 
       // Impostazione delle funzionalità dei nodi di tipo role o attribute
       if (type === 'attribute' || type === 'role') {

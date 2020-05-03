@@ -76,7 +76,9 @@ export class Ontology {
       predicates = predicates.union(diagram.cy.nodes('.predicate'))
     })
 
-    predicates = predicates.sort((a,b) => a.data('label').localeCompare(b.data('label')))
+    predicates = predicates.sort((a,b) => {
+      return a.data('displayed_name').localeCompare(b.data('displayed_name'))
+    })
     
     return json ? predicates.jsons() : predicates
   }

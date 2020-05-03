@@ -22,7 +22,9 @@ export default class GrapholParser {
   parseGraphol() {
     let ontology_info = this.graphol.getOntologyInfo(this.xmlDocument)
     this.ontology = new Ontology(ontology_info.name, ontology_info.version)
-    
+    this.ontology.languages = ontology_info.languages || []
+    this.ontology.default_language = ontology_info.default_language || ontology_info.languages[0]
+
     // Create iri and add them to ontology.iriSet
     //let iri_list = this.xmlDocument.getElementsByTagName('iri')
     let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
@@ -46,7 +48,29 @@ export default class GrapholParser {
         node = this.getBasicNodeInfos(nodes[k], i)
         node.data.iri = this.graphol.getIri(nodes[k], this.ontology)
         node.data.label = this.graphol.getLabel(nodes[k], this.ontology, this.xmlDocument)
-        node.data.displayed_name = node.data.label
+        
+        // label should be an object { language : label }, 
+        // if it's a string then it has no language, assign default language
+        if (typeof node.data.label === "string") {
+          let aux_label = node.data.label
+          node.data.label = {}
+          node.data.label[this.ontology.default_language] = aux_label
+        }
+
+        if (node.data.label) {
+          // try to apply default language as displayed name
+          if (node.data.label[this.ontology.default_language])
+            node.data.displayed_name = node.data.label[this.ontology.default_language]
+          else {
+            // otherwise pick the first language available
+            for (let lang of this.ontology.languages) {
+              if (node.data.label[lang]) {
+                node.data.displayed_name = node.data.label[lang]
+                break
+              }
+            }
+          }
+        }
 
         if (ParserUtil.isPredicate(nodes[k])) {
           let predicate_infos = this.graphol.getPredicateInfo(nodes[k], this.xmlDocument, this.ontology)
