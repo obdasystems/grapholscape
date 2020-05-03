@@ -126,6 +126,7 @@ export default class GrapholscapeView {
 
     // settings
     this.settings_widget = new GscapeSettings(this.settings)
+    this.settings_widget.onEntityNameSelection = this.onEntityNameTypeChange.bind(this)
     this.container.appendChild(this.settings_widget)
     this.widgets.add(this.settings_widget)
 

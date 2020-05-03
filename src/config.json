@@ -4,6 +4,7 @@
       "type" : "list",
       "title" : "Entities Name",
       "label" : "Select the type of name to display on entities",
+      "selected" : "label",
       "list" : [
         {
           "value" : "label",
@@ -23,6 +24,7 @@
       "type" : "list",
       "title" : "Language",
       "label" : "Select the preferred language",
+      "selected" : "",
       "list" : []
     }
   },
@@ -31,6 +33,7 @@
       "type" : "list",
       "title" : "Themes",
       "label" : "Select a theme",
+      "selected" : "gscape",
       "list" : [
         {
           "value" : "gscape",

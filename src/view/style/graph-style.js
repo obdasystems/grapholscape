@@ -16,9 +16,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[label]',
+      selector: '[displayed_name]',
       style: {
-        'label': 'data(label)',
+        'label': 'data(displayed_name)',
         'text-margin-x': 'data(labelXpos)',
         'text-margin-y': 'data(labelYpos)',
         'text-wrap': 'wrap'

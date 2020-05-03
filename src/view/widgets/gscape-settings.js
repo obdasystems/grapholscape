@@ -73,6 +73,7 @@ export default class GscapeSettings extends GscapeWidget {
     this.settings = settings
     this.btn = new GscapeButton('settings')
     this.btn.onClick = this.toggleBody.bind(this)
+    this.callbacks = {}
   }
 
   render() {
@@ -104,9 +105,10 @@ export default class GscapeSettings extends GscapeWidget {
             ${setting.type == 'list' ?
               html`
                 <div class="setting_obj">
-                  <select id="${setting_entry}" @change="${this.onListChange}">
+                  <select area="${area_entry}" id="${setting_entry}" @change="${this.onListChange}">
                     ${setting.list.map(option => {
-                      return html`<option value="${option.value}">${option.label}</option>`
+                      let selected = option.value == setting.selected
+                      return html`<option value="${option.value}" ?selected=${selected}>${option.label}</option>`
                     })}
                   </select>
                 </div>
@@ -133,9 +135,23 @@ export default class GscapeSettings extends GscapeWidget {
     }
   }
 
-  onListChange(e) {}
+  onListChange(e) {
+    let selection = e.target
+    let area = selection.getAttribute('area')
+    this.settings[area][selection.id].selected = selection.value
+    this.callbacks[selection.id](selection.value)
+  }
 
   onToggleChange(e) {}
+
+
+  set onEntityNameSelection(foo) {
+    this.callbacks.entity_name = foo
+  }
+
+  set onLanguageSelection(foo) {
+    this.callbacks.language = foo
+  }
 }
 
 customElements.define('gscape-settings', GscapeSettings)

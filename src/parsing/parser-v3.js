@@ -33,7 +33,7 @@ export function getIri(element, ontology) {
 
   let iri = ontology.getIriFromValue(Iri.getNamespace(node_iri))
   iri_infos.full_iri = node_iri
-  iri_infos.prefix = iri.prefixes[0]+':'
+  iri_infos.prefix = iri.prefixes[0].length > 0 ? iri.prefixes[0]+':' : iri.prefixes[0]
   iri_infos.remaining_chars = Iri.getRemainingChars(node_iri)
   return iri_infos
 }

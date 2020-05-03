@@ -46,6 +46,7 @@ export default class GrapholParser {
         node = this.getBasicNodeInfos(nodes[k], i)
         node.data.iri = this.graphol.getIri(nodes[k], this.ontology)
         node.data.label = this.graphol.getLabel(nodes[k], this.ontology, this.xmlDocument)
+        node.data.displayed_name = node.data.label
 
         if (ParserUtil.isPredicate(nodes[k])) {
           let predicate_infos = this.graphol.getPredicateInfo(nodes[k], this.xmlDocument, this.ontology)

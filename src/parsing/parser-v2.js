@@ -67,7 +67,7 @@ export function getIri(element, ontology) {
   label = label.textContent.replace(/\n/g, '')
   let splitted_label = label.split(':')
   // if no ':' in label, then use empty prefix
-  let node_prefix_iri = splitted_label.length > 1 ? splitted_label[0]+':' : ''
+  let node_prefix_iri = splitted_label.length > 1 ? splitted_label[0] : ''
   let namespace, rem_chars
   // facets
   if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
@@ -86,7 +86,7 @@ export function getIri(element, ontology) {
   }
 
   iri_infos.remaining_chars = rem_chars
-  iri_infos.prefix = node_prefix_iri
+  iri_infos.prefix = node_prefix_iri.length > 0 ? node_prefix_iri + ':' : node_prefix_iri
   iri_infos.full_iri = namespace + rem_chars
   return iri_infos
 }

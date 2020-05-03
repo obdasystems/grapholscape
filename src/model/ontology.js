@@ -70,7 +70,7 @@ export class Ontology {
   }
 
   // return a collection with all the predicates in the ontology
-  getEntities () {
+  getEntities (json = true) {
     let predicates = cytoscape().collection()
     this.diagrams.forEach(diagram => {
       predicates = predicates.union(diagram.cy.nodes('.predicate'))
@@ -78,7 +78,7 @@ export class Ontology {
 
     predicates = predicates.sort((a,b) => a.data('label').localeCompare(b.data('label')))
     
-    return predicates.jsons()
+    return json ? predicates.jsons() : predicates
   }
 }
 

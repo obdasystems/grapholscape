@@ -49,6 +49,7 @@ export default class GrapholscapeController {
     if (this.onWikiClickCallback) {
       this.view.onWikiClick = this.onWikiClick.bind(this)
     }
+    this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
@@ -216,6 +217,34 @@ export default class GrapholscapeController {
     this.view.updateEntitiesList(entitiesViewData)
   }
 
+  onEntityNameTypeChange(type) {
+    Object.keys(this.ontologies).forEach(key => {
+      let entities = this.ontologies[key].getEntities(false) // get cytoscape nodes
+      switch(type) {
+        case 'label':
+          entities.forEach(entity => {
+            entity.data('displayed_name', entity.data('label'))
+          })
+          break
+        
+        case 'full':
+          entities.forEach(entity => {
+            entity.data('displayed_name', entity.data('iri').full_iri)
+          })
+          break
+
+        case 'prefixed':
+          entities.forEach(entity => {
+            let prefixed_iri = entity.data('iri').prefix + entity.data('iri').remaining_chars
+            entity.data('displayed_name', prefixed_iri)
+          })
+          break
+      }
+    })
+    this.updateGraphView(this.view.renderer.getActualPosition())
+    this.updateEntitiesList()
+  }
+
   setConfig(new_config) {
     Object.keys(new_config).forEach( entry => {
       if (typeof(new_config[entry]) !== "boolean") 
@@ -240,6 +269,7 @@ export default class GrapholscapeController {
       id_xml : entityModelData.data.id_xml,
       diagram_id : entityModelData.data.diagram_id,
       label : entityModelData.data.label,
+      displayed_name : entityModelData.data.displayed_name,
       type : entityModelData.data.type,
       iri : entityModelData.data.iri,
       description : entityModelData.data.description,
