@@ -69,7 +69,8 @@ export default class GscapeSettings extends GscapeWidget {
   }
 
   constructor(settings) {
-    super(false,true)
+    super()
+    this.collapsible = true
     this.settings = settings
     this.btn = new GscapeButton('settings')
     this.btn.onClick = this.toggleBody.bind(this)
