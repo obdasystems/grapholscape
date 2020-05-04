@@ -51,8 +51,8 @@ export default class GscapeFilters extends GscapeWidget {
   }
 
   constructor(filters) {
-    super(false, true) 
-
+    super()
+    this.collapsible = true
     this.filters = filters
 
     this.btn = new GscapeButton('filter_list')

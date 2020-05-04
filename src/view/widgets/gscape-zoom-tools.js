@@ -33,7 +33,7 @@ export default class GscapeZoomTools extends GscapeWidget {
     ]
   }
   constructor() {
-    super(false, true) 
+    super()
 
     this.btn_plus = new GscapeButton('add')
     this.btn_minus = new GscapeButton('remove')

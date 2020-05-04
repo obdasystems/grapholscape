@@ -39,7 +39,8 @@ export default class GscapeOntologyInfo extends GscapeWidget {
   }
 
   constructor(ontology) {
-    super(false,true)
+    super()
+    this.collapsible = true
     this.ontology = ontology
 
     this.btn = new GscapeButton('info_outline')

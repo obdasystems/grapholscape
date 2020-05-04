@@ -80,7 +80,9 @@ export default class GscapeEntityDetails extends GscapeWidget {
   }
 
   constructor() {
-    super(true,true)
+    super()
+    this.draggable = true
+    this.collapsible = true
 
     this._entity = null
     this.properties = {
