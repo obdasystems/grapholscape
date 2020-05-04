@@ -132,6 +132,10 @@ export default class GrapholscapeView {
     this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this)
     this.container.appendChild(this.settings_widget)
     this.widgets.set('settings_widget', this.settings_widget)
+    this.settings_widget.btn.onClick = () => {
+      this.blurAll(this.settings_widget)
+      this.settings_widget.toggleBody()
+    }
 
     this.registerEvents(this.renderers.default)
     this.registerEvents(this.renderers.lite)
