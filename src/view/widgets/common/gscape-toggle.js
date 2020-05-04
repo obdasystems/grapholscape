@@ -84,7 +84,7 @@ export default class GscapeToggle extends GscapeWidget {
   }
 
   constructor(key, state, disabled, label, onToggle, inverse_mode = false) {
-    super(false,false)
+    super()
     this.key = key || ''
     // always set inverse before state
     this.inverse = inverse_mode

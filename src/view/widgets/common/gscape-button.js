@@ -39,7 +39,8 @@ export default class GscapeButton extends GscapeWidget {
   }
 
   constructor(icon, alt_icon, draggable=false) {
-    super(draggable, false)
+    super()
+    this.draggable = draggable
 
     this.icon = icon
     this.alternate_icon = alt_icon || icon

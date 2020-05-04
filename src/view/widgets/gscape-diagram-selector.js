@@ -48,7 +48,9 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   }
 
   constructor(diagrams) {
-    super(true, true)
+    super()
+    this.draggable = true
+    this.collapsible = true
     this.diagrams = diagrams
     this.actual_diagram_id = null
     this.default_title = 'Select a Diagram'

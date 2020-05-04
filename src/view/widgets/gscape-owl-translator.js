@@ -83,7 +83,8 @@ export default class GscapeOwlTranslator extends GscapeWidget {
   }
 
   constructor() {
-    super(false, true)
+    super()
+    this.collapsible = true
     this._owl_text = ''
   }
 
