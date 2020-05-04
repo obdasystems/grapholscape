@@ -104,7 +104,7 @@
           "class": "filterindividuals"
         },
         "universal_quantifier": {
-          "selector": "[type $= \"-restriction\"][label = \"forall\"]",
+          "selector": "[type $= \"-restriction\"][displayed_name = \"forall\"]",
           "label": "Universal Quantifier",
           "active": false,
           "disabled": false,
