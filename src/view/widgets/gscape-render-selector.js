@@ -71,7 +71,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
   }
 
   constructor(renderers) {
-    super(false, true) 
+    super()
+    this.collapsible = true
 
     this.renderers = renderers
     this.dict = {
