@@ -11,7 +11,7 @@ export default class GscapeHeader extends GscapeWidget {
   }
 
   constructor() {
-    super(false, false)
+    super()
     this.title = 'header'
     this.collapsed = false
   }

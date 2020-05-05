@@ -112,13 +112,10 @@ export default class GscapeWidget extends LitElement {
     `], colors]
   }
 
-  constructor(draggable, collapsible) {
+  constructor() {
     super();
-    this.draggable = draggable
-    this.collapsible = collapsible
-
-    if (collapsible) 
-      this.collapsed = true
+    this.draggable = false
+    this.collapsible = false
 
     this.onselectstart = () => { false }
   }
