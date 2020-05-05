@@ -9,7 +9,7 @@ export default class GscapeWidget extends LitElement {
 
     return {}
   }
-  
+
   static get styles() {
     let colors = theme.gscape
 
@@ -36,7 +36,6 @@ export default class GscapeWidget extends LitElement {
 
       .widget-body {
         width: 100%;
-        margin-top:35px;
         max-height:450px;
         border-top:solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         border-bottom-left-radius: inherit;
@@ -82,7 +81,7 @@ export default class GscapeWidget extends LitElement {
         font-weight: bold;
         text-align:left;
       }
-      
+
       .details_table th, td {
         padding:5px 8px;
         white-space: nowrap;
@@ -96,19 +95,19 @@ export default class GscapeWidget extends LitElement {
 
       /* Track */
       ::-webkit-scrollbar-track {
-        background: #f0f0f0; 
+        background: #f0f0f0;
       }
-      
+
       /* Handle */
       ::-webkit-scrollbar-thumb {
-        background: #cdcdcd; 
+        background: #cdcdcd;
       }
 
       /* Handle on hover */
       ::-webkit-scrollbar-thumb:hover {
-        background: #888; 
+        background: #888;
       }
-      
+
     `], colors]
   }
 
@@ -140,7 +139,7 @@ export default class GscapeWidget extends LitElement {
     if (this.collapsible) {
       if (this.header)
         this.header.collapsed = true
-      
+
       if (this.body)
         this.body.classList.add('hide')
     }
@@ -150,7 +149,7 @@ export default class GscapeWidget extends LitElement {
     if(this.collapsible) {
       if (this.header)
         this.header.collapsed = false
-      
+
       if (this.body)
         this.body.classList.remove('hide')
     }
@@ -164,7 +163,7 @@ export default class GscapeWidget extends LitElement {
       this.addEventListener('toggle-widget-body', this.toggleBody)
     }
 
-    if (this.draggable) 
+    if (this.draggable)
       this.makeDraggable()
   }
 
@@ -173,7 +172,7 @@ export default class GscapeWidget extends LitElement {
     let pos2 = 0
     let pos3 = 0
     let pos4 = 0
-    
+
     const elmnt = this
     let drag_handler = this.shadowRoot.querySelector('.drag-handler')
 
@@ -191,7 +190,7 @@ export default class GscapeWidget extends LitElement {
       // call a function whenever the cursor moves:
       document.onmousemove = elementDrag
     }
-  
+
     function elementDrag(e) {
       e = e || window.event
       // calculate the new cursor position:
@@ -203,7 +202,7 @@ export default class GscapeWidget extends LitElement {
       elmnt.style.top = (elmnt.offsetTop - pos2) + 'px'
       elmnt.style.left = (elmnt.offsetLeft - pos1) + 'px'
     }
-  
+
     function closeDragElement() {
       /* stop moving when mouse button is released: */
       document.onmouseup = null

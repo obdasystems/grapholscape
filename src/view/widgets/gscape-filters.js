@@ -13,7 +13,7 @@ export default class GscapeFilters extends GscapeWidget {
           if(!oldVal) return true
 
           Object.keys(newVal).map(key => {
-            if ( (newVal[key].active != oldVal[key].active) || 
+            if ( (newVal[key].active != oldVal[key].active) ||
               (newVal[key].disabled != oldVal[key].disabled) )
               return true
           })
@@ -38,6 +38,10 @@ export default class GscapeFilters extends GscapeWidget {
 
         gscape-button{
           position: static;
+        }
+
+        gscape-toggle {
+          padding: 8px;
         }
 
         gscape-toggle[first]{
@@ -65,7 +69,7 @@ export default class GscapeFilters extends GscapeWidget {
   render() {
     return html`
       ${this.btn}
-      
+
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Filters</div>
 
@@ -73,16 +77,16 @@ export default class GscapeFilters extends GscapeWidget {
           ${Object.keys(this.filters).map(key => {
             let filter = this.filters[key]
             let toggle = {}
-            
+
             /**
              * filter toggles work in inverse mode
              *  checked => filter not active
              *  unchecked => filter active
-             * 
+             *
              * we invert the visual behaviour of a toggle passing the last flag setted to true
              * the active boolean will represent the filter state, not the visual state.
              */
-            if (key == 'all') { 
+            if (key == 'all') {
               toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, this.toggleFilter.bind(this))
               toggle.setAttribute('first', 'true')
             } else {
@@ -100,7 +104,7 @@ export default class GscapeFilters extends GscapeWidget {
 
   toggleFilter(e) {
     let toggle = e.target
-    this.filters[toggle.id].active = !this.filters[toggle.id].active   
+    this.filters[toggle.id].active = !this.filters[toggle.id].active
 
     if (toggle.id == 'attributes') {
       this.filters.value_domain.disabled = this.filters.attributes.active
@@ -109,10 +113,10 @@ export default class GscapeFilters extends GscapeWidget {
     // if 'all' is toggled, it affect all other filters
     if (toggle.id == 'all') {
       Object.keys(this.filters).map(key => {
-        if ( key != 'all' && !this.filters[key].disbaled) { 
+        if ( key != 'all' && !this.filters[key].disbaled) {
           this.filters[key].active = this.filters.all.active
-          
-          /** 
+
+          /**
            * if the actual filter is value-domain it means it's not disabled (see previous if condition)
            * but when filter all is active filter value-domain must be disabled, let's disable it
            */

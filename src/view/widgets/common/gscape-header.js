@@ -21,11 +21,18 @@ export default class GscapeHeader extends GscapeWidget {
     let colors = super.styles[1]
 
     return css`
+      :host {
+        display:flex;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--header-padding, 8px);
+      }
+
       .head-btn {
-        position:absolute;
         color:var(--theme-gscape-on-primary, ${colors.on_primary});
         right:0;
-        padding: var(--btn-padding, 9px 2px);
+        padding: var(--btn-padding, 0 0 0 5px);
         cursor:pointer;
       }
 
@@ -34,16 +41,15 @@ export default class GscapeHeader extends GscapeWidget {
       }
 
       .head-title {
-        padding: var(--title-padding, 10px 40px 10px 10px);
+        padding: var(--title-padding, 0 5px 0 0);
         box-sizing: border-box;
-        float:left;
         font-weight:bold;
         cursor:grab;
         width: var(--title-width, '');
         text-align: var(--title-text-align, '')
       }
     `
-  } 
+  }
 
   render () {
     return html`
@@ -54,7 +60,7 @@ export default class GscapeHeader extends GscapeWidget {
           html`arrow_drop_down`:
           html`arrow_drop_up`
         }
-      </mwc-icon> 
+      </mwc-icon>
     `
   }
 

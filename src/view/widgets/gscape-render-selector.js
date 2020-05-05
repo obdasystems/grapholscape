@@ -54,13 +54,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
           border-bottom-right-radius:0;
         }
 
-        .head-btn {
-          padding: 4px 2px;
-        }
-
         gscape-head {
-          --title-padding: 5px 40px 5px 10px;
-          --btn-padding: 4px 2px;
+          --header-padding: 5px 8px;
         }
 
         mwc-icon {
@@ -89,7 +84,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
         icon: "bubble_chart",
       }
     }
-    
+
     this.actual_mode = 'default'
     this.header = new GscapeHeader()
     this.header.title = this.dict["default"].name
@@ -100,8 +95,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
     return html`
       <div class="widget-body hide">
         ${Object.keys(this.renderers).map( mode => html`
-        <div 
-          @click="${this.changeRenderer}" 
+        <div
+          @click="${this.changeRenderer}"
           mode="${mode}"
           class="renderer-item ${mode == 'default' ? `selected` : ``}"
         >
@@ -123,14 +118,14 @@ export default class GscapeRenderSelector extends GscapeWidget {
     let mode = e.target.getAttribute('mode')
     this.header.title = this.dict[mode].name
     this.toggleBody()
-    this._onRendererChange(mode)
     this.actual_mode = mode
+    this._onRendererChange(mode)
   }
 
   firstUpdated() {
     super.firstUpdated()
     // invert header's dropdown icon behaviour
-    this.header.collapsed = false
+    this.header.collapsed = true
   }
 
   set onRendererChange(f) {

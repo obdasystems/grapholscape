@@ -24,8 +24,6 @@ export default class GscapeOwlTranslator extends GscapeWidget {
         gscape-head {
           --title-text-align: center;
           --title-width: 100%;
-          --title-padding: 5px 40px 5px 10px;
-          --btn-padding: 4px 2px;
         }
 
         .widget-body {
@@ -47,41 +45,41 @@ export default class GscapeOwlTranslator extends GscapeWidget {
         .owl_concept{
           color:#859900;
         }
-        
+
         .owl_role{
           color:#268bd2;
         }
-        
+
         .owl_attribute{
           color:#b58900;
         }
-        
+
         .owl_value-domain{
           color: #2aa198;
         }
-        
+
         .owl_individual{
           color: #6c71c4;
         }
-        
+
         .owl_value {
           color: #d33682;
         }
-        
+
         .axiom_predicate_prefix{
           color:#cb4b16;
         }
-        
+
         .owl_error {
           color: var(--theme-gscape-error, ${colors.error});
         }
-        
+
         .axiom_predefinite_obj {
           color: #00c0a0;
         }
-        
+
       `,
-    ]    
+    ]
   }
 
   constructor() {

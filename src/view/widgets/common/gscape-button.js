@@ -22,7 +22,7 @@ export default class GscapeButton extends GscapeWidget {
       super_styles[0],
       css`
         .btn {
-          padding:4px;
+          padding:5px;
           line-height:0;
           cursor: pointer;
         }
@@ -51,12 +51,12 @@ export default class GscapeButton extends GscapeWidget {
 
   render() {
     return html`
-      <div 
-        class="btn" 
+      <div
+        class="btn"
         ?active = "${this.active}"
-        @click="${this.clickHandler}" 
+        @click="${this.clickHandler}"
         title="${this.icon}">
-        
+
         <mwc-icon>${this.icon}</mwc-icon>
       </div>
     `

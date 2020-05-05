@@ -12,7 +12,7 @@ export default class GscapeExplorer extends GscapeWidget{
       }
     ]
   }
-  
+
   static get styles() {
     let super_styles = super.styles
     let colors = super_styles[1]
@@ -72,19 +72,19 @@ export default class GscapeExplorer extends GscapeWidget{
         .type-img-R{
           background-color: var(--theme-graph-role, ${colors.role});
           color: var(--theme-graph-role-dark, ${colors.role_dark});
-          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark}); 
+          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark});
         }
-        
+
         .type-img-C{
           background-color: var(--theme-graph-concept, ${colors.concept});
           color: var(--theme-graph-concept-dark, ${colors.concept_dark});
-          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark}); 
+          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark});
         }
 
         .type-img-I{
           background-color: var(--theme-graph-individual, ${colors.individual});
           color: var(--theme-graph-individual-dark, ${colors.individual_dark});
-          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark}); 
+          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark});
         }
 
         .sub-row{
@@ -105,14 +105,12 @@ export default class GscapeExplorer extends GscapeWidget{
           position:absolute;
           left: 30%;
           width: 50%;
-          line-height:21px;
+          padding: 0;
+          line-height:22px;
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
-          padding: 2px 5px;
           border:none;
           border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
-          float: left;
-          margin: 8px 0px;
           transition: all .35s ease-in-out;
           color:inherit;
         }
@@ -120,7 +118,7 @@ export default class GscapeExplorer extends GscapeWidget{
         gscape-head input:focus {
           border-color: var(--theme-gscape-secondary, ${colors.secondary});
           left:0;
-          margin: 8px 10px;
+          margin: 0px 8px;
           width:80%;
         }
       `
@@ -150,8 +148,8 @@ export default class GscapeExplorer extends GscapeWidget{
 
     return html`
       <gscape-head title="Explorer" collapsed="true" class="drag-handler">
-        <input 
-          type="text" 
+        <input
+          type="text"
           autocomplete="off"
           @keyup="${this.search}"
           placeholder="Search Entities"
@@ -163,9 +161,9 @@ export default class GscapeExplorer extends GscapeWidget{
         let predicate = this.predicates[key]
         return html`
           <div>
-            <div 
-              id="${predicate.subrows[0].id}" 
-              class="row" 
+            <div
+              id="${predicate.subrows[0].id}"
+              class="row"
               type="${predicate.type}"
               label = "${predicate.label}"
             >
@@ -177,8 +175,8 @@ export default class GscapeExplorer extends GscapeWidget{
             <div class="sub-rows-wrapper hide">
             ${predicate.subrows.map( predicate_instance => {
               return html`
-                <div class="sub-row" 
-                  diagram_id="${predicate_instance.diagram.id}" 
+                <div class="sub-row"
+                  diagram_id="${predicate_instance.diagram.id}"
                   node_id="${predicate_instance.id}"
                   @click="${this.handleNodeSelection}"
                 >
@@ -193,7 +191,7 @@ export default class GscapeExplorer extends GscapeWidget{
       </div>
     `
   }
-  
+
   toggleSubRows(e) {
     let row_wrapper = e.target.parentNode.parentNode.parentNode
     row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('hide')
@@ -214,9 +212,9 @@ export default class GscapeExplorer extends GscapeWidget{
       this.collapseBody()
     else
       this.showBody()
-    
+
     var rows = this.shadowRoot.querySelectorAll('.row')
-    
+
     rows.forEach( row => {
       value.split(' ').forEach(word => {
         if (row.getAttribute('label').toLowerCase().indexOf(word) > -1 ||
@@ -260,13 +258,13 @@ export default class GscapeExplorer extends GscapeWidget{
 
     predicates.forEach(predicate => {
       let label = predicate.label.replace(/\r?\n|\r/g, '')
-      let key = label.concat(predicate.type)    
-      
+      let key = label.concat(predicate.type)
+
       if (!(key in dictionary)) {
         dictionary[key] = {
           type : predicate.type,
           label : label,
-          subrows : []          
+          subrows : []
         }
       }
 
