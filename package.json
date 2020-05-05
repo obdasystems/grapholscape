@@ -36,7 +36,7 @@
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.3.4",
-    "cpy-cli": "^3.0.0",
+    "cpy-cli": "^3.1.1",
     "cross-env": "^5.2.0",
     "electron": "^7.0.0",
     "electron-packager": "^14.1.1",
@@ -59,7 +59,7 @@
     "@material/mwc-icon": "^0.6.0",
     "@webcomponents/webcomponentsjs": "^2.3.0",
     "core-js": "^3.6.0",
-    "cytoscape": "3.2.22",
+    "cytoscape": "^3.2.22",
     "cytoscape-cola": "^2.3.0",
     "lit-element": "^2.1.0",
     "regenerator-runtime": "^0.13.3"

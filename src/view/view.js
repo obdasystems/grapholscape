@@ -11,6 +11,7 @@ import LiteGscapeRenderer from './render/lite-renderer'
 import * as themes from './style/themes'
 import FloatingGscapeRenderer from './render/float-renderer'
 import GscapeRenderSelector from './widgets/gscape-render-selector'
+import GscapeLayoutSettings from './widgets/gscape-layout-settings'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -61,7 +62,7 @@ export default class GrapholscapeView {
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    !settings.explorer.enabled ? this.explorer.hide() : null  
+    !settings.explorer.enabled ? this.explorer.hide() : null
     this.container.appendChild(this.explorer)
     this.widgets.add(this.explorer)
 
@@ -77,7 +78,7 @@ export default class GrapholscapeView {
     btn_fullscreen.onClick = this.toggleFullscreen.bind(this)
     this.container.appendChild(btn_fullscreen)
     this.widgets.add(btn_fullscreen)
-    
+
     const btn_reset = new GscapeButton('filter_center_focus')
     btn_reset.style.bottom = '10px'
     btn_reset.style.right = '10px'
@@ -146,7 +147,16 @@ export default class GrapholscapeView {
     this.container.appendChild(this.renderer_selector)
     this.widgets.add(this.renderer_selector)
 
-    Object.keys(this.renderers).forEach(renderer => 
+    this.layout_settings = new GscapeLayoutSettings()
+    this.layout_settings.onLayoutRunToggle =
+      () => this.renderer.layoutStopped = !this.renderer.layoutStopped
+
+    this.layout_settings.onDragAndPinToggle =
+      () => this.renderer.dragAndPin = !this.renderer.dragAndPin
+    this.layout_settings.hide()
+    this.container.appendChild(this.layout_settings)
+
+    Object.keys(this.renderers).forEach(renderer =>
       this.registerEvents(this.renderers[renderer])
     )
   }
@@ -179,7 +189,7 @@ export default class GrapholscapeView {
      * force the value_domain filter to stay disabled
      * (activating the attributes filter may able the value_domain filter
      *  which must stay always disabled in simplified visualization)
-     */ 
+     */
     if (this.renderer_selector.actual_mode !== 'default') {
       this.filters.value_domain.disabled = true
     }
@@ -195,7 +205,7 @@ export default class GrapholscapeView {
      * force the value_domain filter to stay disabled
      * (activating the attributes filter may able the value_domain filter
      *  which must stay always disabled in simplified visualization)
-     */ 
+     */
     if (this.renderer_selector.actual_mode !== 'default') {
       this.filters.value_domain.disabled = true
     }
@@ -220,7 +230,7 @@ export default class GrapholscapeView {
   showDetails(entityViewData, unselect = false) {
     this.entity_details.entity = entityViewData
     this.entity_details.show()
-  
+
     if (unselect)
       this.renderer.cy.$(':selected').unselect()
   }
@@ -263,18 +273,19 @@ export default class GrapholscapeView {
     })
   }
 
-  setRenderer(renderer) {  
+  setRenderer(renderer) {
     for (name in this.renderers) {
       if (this.renderers[name])
         this.renderers[name].unmount()
-    }  
-  
+    }
+
     renderer.mount(this.graph_container)
     this.renderer = renderer
   }
 
   changeRenderingMode(mode) {
     let actual_position = this.renderer.getActualPosition()
+    let old_renderer = this.renderer
     this.setRenderer(this.renderers[mode])
 
     switch (mode) {
@@ -283,7 +294,7 @@ export default class GrapholscapeView {
         Object.keys(this.filters).map(key => {
           if (key != 'all' &&
               key != 'attributes' &&
-              key != 'individuals') { 
+              key != 'individuals') {
             // disable all unnecessary filters
             this.filters[key].disabled = true
           }
@@ -294,11 +305,11 @@ export default class GrapholscapeView {
         Object.keys(this.filters).map(key => {
           if (key != 'all' &&
               key != 'attributes' &&
-              key != 'individuals') { 
-  
-            // enable filters that may have been disabled by lite mode 
+              key != 'individuals') {
+
+            // enable filters that may have been disabled by lite mode
             this.filters[key].disabled = false
-  
+
             if (key == 'value_domain' && this.filters.attributes.active)
               this.filters.value_domain.disabled = true
           }
@@ -306,8 +317,29 @@ export default class GrapholscapeView {
         break
       }
     }
-    
-    this.onRenderingModeChange(actual_position, mode)
+
+    this.onRenderingModeChange(mode, actual_position)
+
+    if (mode == 'float') {
+      this.layout_settings.show()
+    } else {
+      if (old_renderer == this.renderers.float) {
+        /**when coming from float mode, always ignore actual position
+         * ---
+         * WHY TIMEOUT?
+         * versions >3.2.22 of cytoscape.js apparently have glitches
+         * in large graphs in floaty mode.
+         * In cytoscape 3.2.22 mount and unmount are not available so the
+         * mount and unmount for grapholscape renderers are based on style.display.
+         * This means that at this time, cytoscape inner container has zero
+         * for width and height and this prevent it to perform the fit().
+         * After awhile dimensions get a value and the fit() works again.
+         * */
+        setTimeout(() => this.resetView(), 200)
+        //this.resetView()
+      }
+      this.layout_settings.hide()
+    }
     this.filters_widget.requestUpdate()
     this.blurAll()
   }
@@ -315,12 +347,12 @@ export default class GrapholscapeView {
   setViewPort(state) {
     this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
   }
-  
+
   updateEntitiesList(entitiesViewData) {
     this.explorer.predicates = entitiesViewData
     this.explorer.requestUpdate()
   }
-  
+
   setTheme(theme) {
     // update theme with custom variables "--theme-gscape-[var]" values
     let container_style = window.getComputedStyle(this.container)

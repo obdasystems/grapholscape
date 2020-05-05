@@ -17,9 +17,9 @@ export default class GrapholscapeController {
     this.owl_translator = new OwlTranslator()
     this.actualMode = 'default'
     this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology)
-      .then( result => { 
+      .then( result => {
         this.ontologies.lite = result.lite
-        this.ontologies.float = result.float 
+        this.ontologies.float = result.float
       } )
       .catch( reason => {
         console.log(reason)
@@ -92,7 +92,7 @@ export default class GrapholscapeController {
 
   /**
    * Event Handler for an entity selection.
-   * @param {String} entity_id - The Id of the selected entity 
+   * @param {String} entity_id - The Id of the selected entity
    * @param {Boolean} unselect - Flag for unselecting elements on graph
    */
   onEntitySelection(entity_id, unselect) {
@@ -109,7 +109,7 @@ export default class GrapholscapeController {
       let entityViewData = this.constructor.entityModelToViewData(entityModelData)
       this.view.showDetails(entityViewData, unselect)
     }
-  } 
+  }
 
   onEdgeSelection(edge_id, diagram_id) {
     /**
@@ -120,11 +120,11 @@ export default class GrapholscapeController {
     let edge_cy = this.ontology.getElemByDiagramAndId(edge_id, diagram_id, false)
     if(edge_cy)
       this.showOwlTranslation(edge_cy)
-    
+
     // show details on roles in float mode
     if (this.actualMode == 'float') {
       let edge = this.ontology.getElemByDiagramAndId(edge_id, diagram_id)
-      
+
       if(edge.classes.includes('predicate')) {
         this.showDetails(edge, false)
       } else {
@@ -163,7 +163,7 @@ export default class GrapholscapeController {
   }
 
   /**
-   * Focus on a single node and zoom on it. 
+   * Focus on a single node and zoom on it.
    * If necessary it also display the diagram containing the node.
    * @param {JSON} nodeModelData - The node retrieved from model
    * @param {Number} zoom - The zoom level to apply
@@ -173,7 +173,7 @@ export default class GrapholscapeController {
       let diagram = this.ontology.getDiagram(nodeModelData.data.diagram_id)
       this.showDiagram(diagram)
     }
-    
+
     let nodeViewData = {
       id : nodeModelData.data.id,
       position : nodeModelData.position,
@@ -198,7 +198,7 @@ export default class GrapholscapeController {
     }
   }
 
-  onRenderingModeChange(state, mode) {
+  onRenderingModeChange(mode, state) {
     this.actualMode = mode
     switch(mode) {
       case 'lite':
@@ -223,7 +223,7 @@ export default class GrapholscapeController {
 
   updateGraphView(state) {
     this.onDiagramChange(this.view.actual_diagram_id)
-    this.view.setViewPort(state)
+    if (state) this.view.setViewPort(state)
   }
 
   updateEntitiesList() {
@@ -233,7 +233,7 @@ export default class GrapholscapeController {
 
   setConfig(new_config) {
     Object.keys(new_config).forEach( entry => {
-      if (typeof(new_config[entry]) !== "boolean") 
+      if (typeof(new_config[entry]) !== "boolean")
         return
       try {
         this.config.widgets[entry].enabled = new_config[entry]

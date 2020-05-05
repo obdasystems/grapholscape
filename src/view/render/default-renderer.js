@@ -33,6 +33,7 @@ export default class GrapholscapeRenderer {
           e.target.neighborhood().select()
           break
       }
+      e.target.select();
       this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))
     })
     this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
@@ -52,7 +53,7 @@ export default class GrapholscapeRenderer {
   mount(container) {
     //container.insertBefore(this.cy.container(), container.firstChild)
     // force refresh
-    
+
     this.cy.container().style.display = 'block'
     //container.setAttribute('id', 'cy')
     //this.cy.mount(container)
@@ -124,7 +125,7 @@ export default class GrapholscapeRenderer {
 
   filter(filter, cy_instance) {
     let cy = cy_instance || this.cy
-    let selector = `${filter.selector}, .${filter.class}` 
+    let selector = `${filter.selector}, .${filter.class}`
 
     cy.$(selector).forEach(element => {
       this.filterElem(element, filter.class, cy)
@@ -162,17 +163,17 @@ export default class GrapholscapeRenderer {
 
     function getNumberEdgesInOut(neighbour) {
       let count =  neighbour.outgoers('edge').size() + neighbour.incomers('edge[type != "input"]').size()
-      
+
       neighbour.outgoers().forEach( e => {
         if(e.target().hasClass('filtered')) {
           count--
-        } 
+        }
       })
 
       neighbour.incomers('[type != "input"]').forEach( e => {
         if(e.source().hasClass('filtered')) {
           count--
-        } 
+        }
       })
 
       return count
@@ -180,9 +181,9 @@ export default class GrapholscapeRenderer {
   }
 
   unfilter(filter, cy_instance) {
-    let selector = `${filter.selector}, .${filter.class}` 
+    let selector = `${filter.selector}, .${filter.class}`
     let cy = cy_instance || this.cy
-    
+
     cy.$(selector).removeClass('filtered')
     cy.$(selector).removeClass(filter.class)
   }
