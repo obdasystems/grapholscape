@@ -1,11 +1,15 @@
 import GrapholscapeRenderer from './default-renderer'
 import cola from 'cytoscape-cola'
+import popper from 'cytoscape-popper'
 import cytoscape from 'cytoscape'
 
 export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
     super(container)
     cytoscape.use(cola)
+    cytoscape.use(popper)
+
+    this.cy.style.textureOnViewport = true
 
     this.cy.autoungrabify(false)
 
@@ -13,12 +17,16 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.dragAndPin = false
 
     this.cy.on('free', (e) => {
-      if (this.dragAndPin) e.target.lock()
+      if (this.dragAndPin) {
+        this.lockNode(e.target)
+      }
     })
   }
 
   drawDiagram(diagram) {
+    this.clearPoppers()
     super.drawDiagram(diagram)
+    this.cy.nodes().addClass('float')
     this.main_layout = this.layout() // apply layout on those not locked
     this.main_layout.run()
   }
@@ -42,6 +50,80 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
   layout(selector = ':unlocked') {
     return this.cy.$(selector).layout(this.layout_settings)
+  }
+
+  unlockNode(node) {
+    node.unlockButton.destroy()
+    node.unlock()
+  }
+
+  lockNode(node) {
+    node.lock()
+
+    let unlockButton = node.popper({
+      content: () => {
+        let dimension =  node.data('width') / 9 * this.cy.zoom()
+        let div = document.createElement('div')
+        div.style.background = node.style('border-color')
+        div.style.borderRadius = '100%'
+        div.style.padding = '5px'
+        div.style.color = 'white'
+        div.style.cursor = 'pointer'
+        div.style.display = 'flex'
+        div.style.width = dimension + 'px'
+        div.style.height = dimension + 'px'
+        div.setAttribute('title', 'Unlock Node')
+
+        div.innerHTML = `
+          <mwc-icon ${dimension < 8 ? 'style="display: none"' : ''}>
+            lock_open
+          </mwc_icon>`
+
+
+        div.onclick = () => this.unlockNode(node)
+        this.cy.container().appendChild(div)
+
+        return div
+      },
+      //popper: {} // my popper options here
+    })
+
+    node.unlockButton = unlockButton
+
+    let update = () => {
+      let dimension =  node.data('width') / 9 * this.cy.zoom()
+      let icon = unlockButton.popper.querySelector('mwc-icon')
+      if (dimension > 2) {
+        if (dimension < 8) {
+          icon.style.display = 'none'
+        } else {
+          icon.style.display = 'inline'
+          icon.style.fontSize = dimension + 'px'
+        }
+        unlockButton.popper.style.width = dimension + 'px'
+        unlockButton.popper.style.height = dimension + 'px'
+        unlockButton.popper.style.display = 'flex'
+      } else {
+        icon.style.display = 'none'
+        unlockButton.popper.style.display = 'none'
+      }
+      unlockButton.scheduleUpdate()
+    }
+
+    node.on('position', update)
+    this.cy.on('pan zoom resize', update)
+  }
+
+  clearPoppers() {
+    this.cy.nodes().each(node => {
+      if (node.unlockButton) node.unlockButton.destroy()
+    })
+  }
+
+  unmount() {
+    super.unmount()
+
+    this.clearPoppers()
   }
 
   get layout_settings() {
@@ -78,7 +160,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
   set dragAndPin(active) {
     this._dragAndPin = active
-    if (!active) this.cy.$(':locked').unlock()
+    if (!active) this.cy.$(':locked').each(node => this.unlockNode(node))
   }
 
   get dragAndPin() { return this._dragAndPin }

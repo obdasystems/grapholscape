@@ -61,6 +61,7 @@
     "core-js": "^3.6.0",
     "cytoscape": "^3.2.22",
     "cytoscape-cola": "^2.3.0",
+    "cytoscape-popper": "^1.0.7",
     "lit-element": "^2.1.0",
     "regenerator-runtime": "^0.13.3"
   }

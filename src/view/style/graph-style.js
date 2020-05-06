@@ -21,7 +21,8 @@ export function getGraphStyle(theme) {
         'label': 'data(label)',
         'text-margin-x': 'data(labelXpos)',
         'text-margin-y': 'data(labelYpos)',
-        'text-wrap': 'wrap'
+        'text-wrap': 'wrap',
+        'min-zoomed-font-size' : '5px',
       }
     },
 
@@ -57,7 +58,7 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge.disjoint',
       style: {
-        'target-arrow-fill': 'filled',        
+        'target-arrow-fill': 'filled',
       }
     },
 
@@ -84,7 +85,7 @@ export function getGraphStyle(theme) {
         'source-arrow-shape': 'triangle',
         'source-arrow-fill': 'filled',
         'target-arrow-shape': 'triangle',
-        'target-arrow-fill': 'filled',        
+        'target-arrow-fill': 'filled',
       }
     },
 
@@ -178,7 +179,7 @@ export function getGraphStyle(theme) {
         'shape-polygon-points': 'data(shape_points)'
       }
     },
-    
+
     {
       selector: '.filtered',
       style: {
@@ -220,7 +221,7 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.concept,
         'border-color': theme.concept_dark,
-      } 
+      }
     },
 
     {
@@ -228,7 +229,7 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.role,
         'border-color': theme.role_dark,
-      } 
+      }
     },
 
     {
@@ -238,7 +239,7 @@ export function getGraphStyle(theme) {
         'border-color': theme.attribute_dark,
         'text-background-color': theme.background,
         'text-background-opacity': 1,
-      } 
+      }
     },
 
     {
@@ -247,7 +248,7 @@ export function getGraphStyle(theme) {
         'target-arrow-shape': 'square',
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'none',
-      } 
+      }
     },
 
     {
@@ -256,7 +257,7 @@ export function getGraphStyle(theme) {
         'target-arrow-shape': 'square',
         'target-arrow-fill': 'hollow',
         'source-arrow-shape': 'none',
-      } 
+      }
     },
 
     {
@@ -265,7 +266,7 @@ export function getGraphStyle(theme) {
         'line-color': theme.attribute_dark,
         'source-arrow-shape': 'none',
         'target-arrow-shape': 'none',
-      } 
+      }
     },
 
     {
@@ -278,7 +279,7 @@ export function getGraphStyle(theme) {
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'square',
         'source-arrow-fill': 'hollow',
-      } 
+      }
     },
 
     {
@@ -298,13 +299,21 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.individual,
         'border-color': theme.individual_dark,
-      } 
+      }
     },
 
     {
       selector: '[type = "range-restriction"], [type = "disjoint-union"]',
       style: {
         'background-color': theme.node_bg_contrast,
+      }
+    },
+
+    {
+      selector: '.float:locked',
+      style: {
+        'border-color' : theme.secondary,
+        'border-width' : '4px',
       }
     },
 

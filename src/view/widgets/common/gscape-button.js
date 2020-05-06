@@ -21,6 +21,11 @@ export default class GscapeButton extends GscapeWidget {
     return [
       super_styles[0],
       css`
+
+        mwc-icon {
+          font-size: var(--gscape-button-font-size, 24px)
+        }
+
         .btn {
           padding:5px;
           line-height:0;

@@ -117,18 +117,6 @@ export default class GrapholscapeView {
     this.container.appendChild(zoom_widget)
     this.widgets.add(zoom_widget)
 
-    /*
-    this.btn_lite_mode = new GscapeButton('flash_on', 'flash_off')
-    this.btn_lite_mode.onClick = this.toggleLiteMode.bind(this)
-    this.btn_lite_mode.highlight = true
-    this.btn_lite_mode.style.bottom = '10px'
-    this.btn_lite_mode.style.left = '94px'
-    this.btn_lite_mode.style.display = 'none'
-    !settings.lite_mode.enabled ? this.btn_lite_mode.hide() : null
-    this.container.appendChild(this.btn_lite_mode)
-    this.widgets.add(this.btn_lite_mode)
-    */
-
     this.renderer_selector = new GscapeRenderSelector(this.renderers)
     this.renderer_selector.style.bottom = '10px'
     this.renderer_selector.style.left = '94px'
