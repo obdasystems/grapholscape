@@ -2,6 +2,7 @@ import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
 import { Icon } from '@material/mwc-icon'
+import {graphol as graphol_logo} from './assets/graphol-icon'
 
 export default class GscapeRenderSelector extends GscapeWidget {
 
@@ -61,6 +62,13 @@ export default class GscapeRenderSelector extends GscapeWidget {
         mwc-icon {
           padding-right:8px;
         }
+
+        svg {
+          height: 20px;
+          width: auto;
+          padding: 2px;
+          margin-right:8px;
+        }
       `,
     ]
   }
@@ -100,8 +108,11 @@ export default class GscapeRenderSelector extends GscapeWidget {
           mode="${mode}"
           class="renderer-item ${mode == 'default' ? `selected` : ``}"
         >
-          <mwc-icon>${this.dict[mode].icon}</mwc-icon>
-          ${this.dict[mode].name}
+        ${mode == 'default' ?
+          graphol_logo() :
+          html`<mwc-icon>${this.dict[mode].icon}</mwc-icon>`
+        }
+        <span>${this.dict[mode].name}</span>
         </div>
         `)}
       </div>
@@ -114,8 +125,9 @@ export default class GscapeRenderSelector extends GscapeWidget {
     if (this.shadowRoot.querySelector('.selected'))
       this.shadowRoot.querySelector('.selected').classList.remove('selected')
 
-    e.target.classList.add('selected')
-    let mode = e.target.getAttribute('mode')
+    let target = e.currentTarget
+    target.classList.add('selected')
+    let mode = target.getAttribute('mode')
     this.header.title = this.dict[mode].name
     this.toggleBody()
     this.actual_mode = mode
