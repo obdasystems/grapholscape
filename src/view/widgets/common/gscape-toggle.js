@@ -77,7 +77,7 @@ export default class GscapeToggle extends GscapeWidget {
         }
 
         .toggle-label {
-          margin-left: 15px;
+          margin: 0 15px;
         }
       `
   }
@@ -90,13 +90,15 @@ export default class GscapeToggle extends GscapeWidget {
     this.state = state || false
 
     this.disabled = disabled || false
-    this.onToggle = onToggle || { }
+    this.onToggle = onToggle || {}
     this.label = label || ''
+    this.label_pos = 'left'
   }
 
   render() {
     return html`
     <div class="toggle-container">
+      ${this.label_pos == 'left' ? this.label_span : html``}
       <label class="toggle-wrap">
         <input id="${this.key}" type="checkbox"
           ?checked="${this.checked}"
@@ -105,7 +107,7 @@ export default class GscapeToggle extends GscapeWidget {
         />
         <span class="toggle"></span>
       </label>
-      <span class="toggle-label">${this.label}</span>
+      ${this.label_pos == 'right' ? this.label_span : html``}
     </div>
     `
   }
@@ -120,6 +122,10 @@ export default class GscapeToggle extends GscapeWidget {
 
   get state() {
     return this._state
+  }
+
+  get label_span() {
+    return html`<span class="toggle-label">${this.label}</span>`
   }
 
   clickHandler(e) {

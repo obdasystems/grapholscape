@@ -70,8 +70,8 @@ export default class GscapeLayoutSettings extends GscapeWidget {
     super()
     this.collapsible = false
 
-    this.onDragAndPinChange = {}
-    this.onLayoutRunChange = {}
+    this.onLayoutRunToggle = {}
+    this.onDragAndPinToggle = {}
   }
 
   render() {

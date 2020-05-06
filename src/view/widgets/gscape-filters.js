@@ -92,7 +92,7 @@ export default class GscapeFilters extends GscapeWidget {
             } else {
               toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, this.toggleFilter.bind(this), true)
             }
-
+            toggle.label_pos = 'right'
             return html`
               ${toggle}
             `
