@@ -81,7 +81,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
 
         div.onclick = () => this.unlockNode(node)
-        this.cy.container().appendChild(div)
+        document.body.appendChild(div)
 
         return div
       },
@@ -132,7 +132,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
       avoidOverlap: true,
       edgeLength: function(edge) {
         if (edge.hasClass('role')) {
-          return 300 + edge.data('label').length * 4
+          return 300 + edge.data('displayed_name').length * 4
         }
         else if (edge.target().data('type') == 'attribute' ||
                  edge.source().data('type') == 'attribute' )

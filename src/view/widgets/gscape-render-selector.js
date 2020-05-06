@@ -20,7 +20,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
       css`
         :host {
           bottom:10px;
-          left:10px;
+          left: 136px;
         }
 
         .renderer-item {

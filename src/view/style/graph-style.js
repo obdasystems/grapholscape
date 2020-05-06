@@ -16,7 +16,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[displayed_name]',
+      selector: 'node[displayed_name]',
       style: {
         'label': 'data(displayed_name)',
         'text-margin-x': 'data(labelXpos)',
@@ -34,7 +34,8 @@ export function getGraphStyle(theme) {
         'target-arrow-color': theme.edge,
         'source-arrow-color': theme.edge,
         'curve-style': 'bezier',
-        'arrow-scale': 1.3
+        'arrow-scale': 1.3,
+        'color': theme.label_color,
       }
     },
 
@@ -132,9 +133,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge[label]',
+      selector: 'edge[displayed_name]',
       style: {
-        'label': 'data(edge_label)',
+        'label': 'data(displayed_name)',
         'font-size': 10,
         'text-rotation': 'autorotate',
         'text-margin-y': -10,
@@ -164,7 +165,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[edge_label],[source_label],[target_label],[text_background]',
+      selector: 'edge[displayed_name],[source_label],[target_label],[text_background]',
       style: {
         'text-background-color': theme.background,
         'text-background-opacity': 1,

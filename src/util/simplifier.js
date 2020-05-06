@@ -4,7 +4,7 @@ import GrapholscapeRenderer from '../view/render/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
 
-export default function computeSimplifiedOntologies(ontology) { 
+export default function computeSimplifiedOntologies(ontology) {
   let aux_renderer = new GrapholscapeRenderer(null)
   let lite_ontology = new Ontology(ontology.name, ontology.version)
   let float_ontology = new Ontology(ontology.name, ontology.version)
@@ -28,7 +28,7 @@ export default function computeSimplifiedOntologies(ontology) {
       }, 1)
     } catch (e) {reject(e)}
   })
-  
+
 
 
 // ----------------------------------
@@ -50,7 +50,7 @@ export default function computeSimplifiedOntologies(ontology) {
         case 'range-restriction':
           if (node.data('displayed_name') == 'forall')
             return true
-          else 
+          else
             return false
       }
     })
@@ -89,7 +89,7 @@ export default function computeSimplifiedOntologies(ontology) {
       aux_renderer.filterElem(restriction, cy)
       cy.remove('.filtered')
     })
-    
+
     cy.remove('.filtered')
 
     function getInputEdgeFromPropertyToRestriction(restriction_node) {
@@ -102,17 +102,17 @@ export default function computeSimplifiedOntologies(ontology) {
 
       return e
     }
-    
+
     function createRoleEdge(edgeToRestriction, edgeFromProperty, type, i) {
       let edges = []
       let new_edge = null
 
       /**
-       * if the actual edge is between two existential, remove it and filter the other existential 
-       */ 
-      if ((edgeToRestriction.source().data('type') == 'domain-restriction' || 
+       * if the actual edge is between two existential, remove it and filter the other existential
+       */
+      if ((edgeToRestriction.source().data('type') == 'domain-restriction' ||
            edgeToRestriction.source().data('type') == 'range-restriction') &&
-          (edgeToRestriction.target().data('type') == 'domain-restriction' || 
+          (edgeToRestriction.target().data('type') == 'domain-restriction' ||
            edgeToRestriction.target().data('type') == 'range-restriction')) {
         cy.remove(edgeToRestriction)
         return new_edge
@@ -139,7 +139,7 @@ export default function computeSimplifiedOntologies(ontology) {
       // add the type of input to the restriction as a class of the new edge
       // role or attribute, used in the stylesheet to assign different colors
       new_edge.classes += `${edgeFromProperty.source().data('type')} ${type}`
-      new_edge.data.type = 'default' 
+      new_edge.data.type = 'default'
 
       return new_edge
     }
@@ -154,7 +154,7 @@ export default function computeSimplifiedOntologies(ontology) {
     let endpoint_aux = edge.data('source_endpoint')
     new_edge.data.source_endpoint = edge.data('target_endpoint')
     new_edge.data.target_endpoint = endpoint_aux
-    
+
     new_edge.data.breakpoints = edge.data('breakpoints').reverse()
     if (edge.data('segment_distances')) {
       new_edge.data.segment_distances = []
@@ -163,12 +163,12 @@ export default function computeSimplifiedOntologies(ontology) {
         let aux = getDistanceWeight(edge.source().position(), edge.target().position(), breakpoint)
         new_edge.data.segment_distances.push(aux[0])
         new_edge.data.segment_weights.push(aux[1])
-      })    
+      })
     }
 
     return new_edge
   }
-  
+
   /**
    * @param {array} edges - array of edges in json format
    * @param {cytoscape} cy
@@ -195,8 +195,8 @@ export default function computeSimplifiedOntologies(ontology) {
 
       // add target position as new breakpoint
       if ( i < array.length - 1 ) {
-        aux = getDistanceWeight(cy.getElementById(target).position(), 
-                                    cy.getElementById(source).position(), 
+        aux = getDistanceWeight(cy.getElementById(target).position(),
+                                    cy.getElementById(source).position(),
                                     cy.getElementById(edge.data.target).position())
         segment_distances.push(aux[0])
         segment_weights.push(aux[1])
@@ -220,7 +220,7 @@ export default function computeSimplifiedOntologies(ontology) {
   // filter nodes if the criterion function return true
   // criterion must be a function returning a boolean value for a given a node
   function filterByCriterion(cy_instance, criterion) {
-    let cy = cy_instance  
+    let cy = cy_instance
     cy.$('*').forEach(node => {
       if (criterion(node)) {
          aux_renderer.filterElem(node, cy)
@@ -228,14 +228,9 @@ export default function computeSimplifiedOntologies(ontology) {
     })
   }
 
-<<<<<<< HEAD
   function isQualifiedRestriction(node) {
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
-=======
-  function isQualifiedExistential(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
         && (node.data('displayed_name') == 'exists')) {
->>>>>>> parser-v3
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
 
@@ -244,7 +239,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
   function inputEdgesBetweenRestrictions(node) {
     let outcome = false
-    
+
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
       node.incomers('edge[type = "input"]').forEach(edge => {
         if (edge.source().data('type').endsWith('restriction')){
@@ -313,37 +308,9 @@ export default function computeSimplifiedOntologies(ontology) {
 
       replicateAttributes(union)
 
-      // replicate attributes on input classes
-      /*
-      let input_classes = union.incomers('[type *= "input"]').sources()
-      union.neighborhood('[type = "attribute"]').forEach(attribute => {
-        
-        input_classes.forEach( (concept,i) => {
-          let new_attribute = attribute.json()
-          new_attribute.position = concept.position()
-          new_attribute.data.id += '_clone'+i
-          new_attribute.classes += ' repositioned'
-          cy.add(new_attribute)
-          let edge = {
-            data: {
-              id: new_attribute.data.id + '_edge',
-              source: new_attribute.data.id,
-              target: concept.id(),
-            },
-            classes: 'attribute',
-          }
-
-          cy.add(edge)
-        })
-
-        cy.remove(attribute)
-      })
-      */
-
-
       // replicate role tipization on input classes
       replicateRoleTypizations(union)
-      
+
       // if the union has not any connected non-input edges, then remove it
       if (union.connectedEdges('[type !*= "input"]').size() == 0)
         cy.remove(union)
@@ -351,14 +318,13 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function makeDummyPoint(node) {
-    node.removeData('label')
     node.data('width', 0.1)
     node.data('height', 0.1)
     node.addClass('dummy')
   }
 
   function simplifyIntersections(cytoscape_instance) {
-    let cy = cytoscape_instance  
+    let cy = cytoscape_instance
 
     cy.$('node[type = "intersection"]').forEach( and => {
       replicateAttributes(and)
@@ -366,7 +332,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
       // if there are no incoming inclusions or equivalence and no equivalences connected,
       // remove the intersection
-      if (and.incomers('edge[type !*= "input"]').size() == 0 && 
+      if (and.incomers('edge[type !*= "input"]').size() == 0 &&
           and.connectedEdges('edge[type = "equivalence"]').size() == 0) {
          aux_renderer.filterElem(and, cy)
       } else {
@@ -376,11 +342,11 @@ export default function computeSimplifiedOntologies(ontology) {
            * create a new ISA edge for each input class
            * the new edge will be a concatenation:
            *  - ISA towards the 'and' node + input edge
-           * 
+           *
            * the input edge must be reversed
            * In case of equivalence edge, we only consider the
            * isa towards the 'and' node and discard the other direction
-           */        
+           */
           and.incomers('edge[type = "input"]').forEach( (input, i) => {
             /**
              * if the edge is an equivalence, we must consider it as an
@@ -400,7 +366,7 @@ export default function computeSimplifiedOntologies(ontology) {
             cy.add(new_isa)
           })
         })
-        
+
         cy.remove(and)
       }
     })
@@ -420,7 +386,7 @@ export default function computeSimplifiedOntologies(ontology) {
          */
         if(constructor.connectedEdges('[type !*= "input"]').size() <= 1) {
           edges.push(input.json())
-          edges.push(role_edge.json())          
+          edges.push(role_edge.json())
           new_edge = createConcatenatedEdge(edges, cy, new_id)
           new_edge.data.type = 'default'
           new_edge.classes = role_edge.json().classes
@@ -429,11 +395,11 @@ export default function computeSimplifiedOntologies(ontology) {
            * Otherwise the constructor node will not be deleted and the new role edges can't
            * pass over the constructor node. We then just properly change the source/target
            * of the role edge. In this way the resulting edges will go from the last
-           * breakpoint of the original role edge towards the input classes of the constructor  
+           * breakpoint of the original role edge towards the input classes of the constructor
           */
           new_edge = role_edge.json()
           new_edge.data.id = new_id
-          
+
           let target = undefined
           let source = undefined
           target = role_edge.target()
@@ -460,7 +426,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function simplifyComplexHierarchies(cytoscape_instance) {
-    let cy = cytoscape_instance  
+    let cy = cytoscape_instance
 
     cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
       if(isComplexHierarchy(node)) {
@@ -510,7 +476,7 @@ export default function computeSimplifiedOntologies(ontology) {
           if(all_attributes.contains(inclusion_attribute)) {
             return
           }
-          
+
           addAttribute(cy.$id(new_attribute.data.id), j, inclusion_attribute, 'inclusion')
           all_inclusion_attributes = all_inclusion_attributes.union(inclusion_attribute)
         })
@@ -533,13 +499,13 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function simplifyRoleInverse(cytoscape_instance) {
-    let cy = cytoscape_instance  
+    let cy = cytoscape_instance
 
     cy.nodes('[type = "role-inverse"]').forEach(role_inverse => {
       let new_edges_count = 0
       // the input role is only one
       let input_edge = role_inverse.incomers('[type *= "input"]')
-      
+
       // for each other edge connected, create a concatenated edge
       // the edge is directed towards the input_role
       role_inverse.connectedEdges('[type !*= "input"]').forEach((edge, i) => {
@@ -551,7 +517,7 @@ export default function computeSimplifiedOntologies(ontology) {
           edges.push(edge.json())
         }
 
-        // the input edge must always be reversed 
+        // the input edge must always be reversed
         edges.push( reverseEdge(input_edge))
         let new_id = input_edge.id() + '_' + i
         let new_edge = createConcatenatedEdge(edges, cy, new_id)
@@ -570,7 +536,7 @@ export default function computeSimplifiedOntologies(ontology) {
         role_inverse.data('labelYpos', 0)
         role_inverse.data('text_background', true)
       } else {
-        input_edge.source().connectedEdges('edge.inverse-of').data('edge_label','inverse Of')
+        input_edge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
         cy.remove(role_inverse)
       }
     })
@@ -603,6 +569,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
       domains.forEach(domain => {
         range_nodes.forEach((target,i) => {
+
           let new_edge = {
             data : {
               id : domain.id() + '-' + i,
@@ -612,7 +579,7 @@ export default function computeSimplifiedOntologies(ontology) {
               target : target.id(),
               type : domain.target().data('type'),
               iri : domain.target().data('iri'),
-              edge_label : domain.target().data('label'),
+              displayed_name : domain.target().data('displayed_name'),
               label : domain.target().data('label'),
               description : domain.target().data('description'),
               functional : domain.target().data('functional'),

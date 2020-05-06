@@ -14,7 +14,7 @@ export default class GscapeSettings extends GscapeWidget {
       css`
         :host {
           bottom:10px;
-          left:136px;
+          left: 94px;
           padding-right:0;
         }
 
@@ -83,25 +83,25 @@ export default class GscapeSettings extends GscapeWidget {
 
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Settings</div>
-        
+
         <div class="settings-wrapper">
 
       ${Object.keys(this.settings).map( area_entry => {
         if (area_entry == 'default')
           return html``
-        
+
         let area = this.settings[area_entry]
         return html`
           <div class="area">
-            <div class="area-title">${capitalizeFirstLetter(area_entry)}</div>     
-        
+            <div class="area-title">${capitalizeFirstLetter(area_entry)}</div>
+
         ${Object.keys(area).map( setting_entry => {
           let setting = area[setting_entry]
           return html`
             <div class="setting">
               <div class="title-wrap">
                 <div class="setting-title">${setting.title}</div>
-                <div class="setting-label">${setting.label}</div> 
+                <div class="setting-label">${setting.label}</div>
               </div>
             ${setting.type == 'list' ?
               html`
@@ -168,7 +168,7 @@ export default class GscapeSettings extends GscapeWidget {
   set onWidgetEnabled(foo) {
     this.callbacks.widgetEnable = foo
   }
-  
+
   set onWidgetDisabled(foo) {
     this.callbacks.widgetDisable = foo
   }

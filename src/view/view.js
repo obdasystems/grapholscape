@@ -63,12 +63,12 @@ export default class GrapholscapeView {
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    !settings.widgets.explorer.enabled ? this.explorer.hide() : null
+    if (!settings.widgets.explorer.enabled) this.explorer.hide()
     this.container.appendChild(this.explorer)
     this.widgets.set('explorer', this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
-    !settings.widgets.details.enabled ? this.entity_details.hide() : null
+    if (!settings.widgets.details.enabled) this.entity_details.hide()
     this.entity_details.onWikiClick = this.onWikiClick
     this.container.appendChild(this.entity_details)
     this.widgets.set('details', this.entity_details)
@@ -94,7 +94,7 @@ export default class GrapholscapeView {
       this.blurAll(this.filters_widget)
       this.filters_widget.toggleBody()
     }
-    !settings.widgets.filters.enabled ? this.filters_widget.hide() : null
+    if (!settings.widgets.filters.enabled) this.filters_widget.hide()
     this.container.appendChild(this.filters_widget)
     this.widgets.set('filters', this.filters_widget)
 
@@ -107,7 +107,7 @@ export default class GrapholscapeView {
     this.widgets.set('ontology_info', this.ontology_info)
 
     this.owl_translator = new GscapeOwlTranslator()
-    !settings.widgets.owl_translator.enabled ? this.owl_translator.hide() : null
+    if (!settings.widgets.owl_translator.enabled) this.owl_translator.hide()
     this.container.appendChild(this.owl_translator)
     this.widgets.set('owl_translator', this.owl_translator)
 
@@ -119,8 +119,6 @@ export default class GrapholscapeView {
     this.widgets.set('zoom_widget', zoom_widget)
 
     this.renderer_selector = new GscapeRenderSelector(this.renderers)
-    this.renderer_selector.style.bottom = '10px'
-    this.renderer_selector.style.left = '94px'
     this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this)
     let that = this
     this.renderer_selector.header.toggleBody = function () {
@@ -132,7 +130,7 @@ export default class GrapholscapeView {
       that.blurAll(that.renderer_selector)
     }.bind(this.renderer_selector.header)
 
-    // !settings.simplify.enabled ? this.render_selector.hide() : nullthis
+    if (!settings.widgets.simplifications.enabled) this.render_selector.hide()
     this.container.appendChild(this.renderer_selector)
     this.widgets.set('simplifications', this.renderer_selector)
 
