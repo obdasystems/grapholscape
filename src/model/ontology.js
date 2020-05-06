@@ -1,7 +1,7 @@
 import cytoscape from 'cytoscape'
 
 export class Ontology {
-  constructor (name, version, iriSet = new Set(), diagrams = []) {
+  constructor (name, version, iriSet = [], diagrams = []) {
     this.name = name
     this.version = version
     this.iriSet = iriSet
@@ -9,12 +9,26 @@ export class Ontology {
   }
 
   // @param {Iri} iri
-  addIri (iri) {
-    this.iriSet.add(iri)
+  addIri(iri) {
+    this.iriSet.push(iri)
+  }
+
+  getIriFromValue(value) {
+    for(let iri of this.iriSet) {
+      if (iri.value == value)
+        return iri
+    }
+  }
+
+  getIriFromPrefix(prefix) {
+    for(let iri of this.iriSet) {
+      if (iri.prefixes.includes(prefix))
+        return iri
+    }
   }
 
   // @param {Diagram} diagram
-  addDiagram (diagram) {
+  addDiagram(diagram) {
     this.diagrams.push(diagram)
   }
 
@@ -56,15 +70,17 @@ export class Ontology {
   }
 
   // return a collection with all the predicates in the ontology
-  getEntities () {
+  getEntities (json = true) {
     let predicates = cytoscape().collection()
     this.diagrams.forEach(diagram => {
       predicates = predicates.union(diagram.cy.$('.predicate'))
     })
 
-    predicates = predicates.sort((a,b) => a.data('label').localeCompare(b.data('label')))
+    predicates = predicates.sort((a,b) => {
+      return a.data('displayed_name').localeCompare(b.data('displayed_name'))
+    })
     
-    return predicates.jsons()
+    return json ? predicates.jsons() : predicates
   }
 }
 

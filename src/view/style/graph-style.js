@@ -16,9 +16,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'node[label]',
+      selector: '[displayed_name]',
       style: {
-        'label': 'data(label)',
+        'label': 'data(displayed_name)',
         'text-margin-x': 'data(labelXpos)',
         'text-margin-y': 'data(labelYpos)',
         'text-wrap': 'wrap',
@@ -320,7 +320,7 @@ export function getGraphStyle(theme) {
     { // the right border part of functional && inverseFunctional roles
       selector: '.fake-triangle-right',
       style: {
-        'background-color': theme.role_dark,
+        'background-color': theme.role_dark || 'black',
       }
     },
 

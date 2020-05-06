@@ -48,7 +48,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
         case 'domain-restriction':
         case 'range-restriction':
-          if (node.data('label') == 'forall')
+          if (node.data('displayed_name') == 'forall')
             return true
           else 
             return false
@@ -228,8 +228,14 @@ export default function computeSimplifiedOntologies(ontology) {
     })
   }
 
+<<<<<<< HEAD
   function isQualifiedRestriction(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
+=======
+  function isQualifiedExistential(node) {
+    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+        && (node.data('displayed_name') == 'exists')) {
+>>>>>>> parser-v3
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
 
@@ -251,7 +257,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
   function isExistentialWithCardinality(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-        && node.data('label').search(/[0-9]/g) >= 0) {
+        && node.data('displayed_name').search(/[0-9]/g) >= 0) {
       return true
     }
 

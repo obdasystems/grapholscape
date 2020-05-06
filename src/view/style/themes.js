@@ -40,6 +40,32 @@ export const gscape = {
   individual_dark: css`#9875b7`,
 }
 
+export const classic = {
+  // primary colors
+  primary: css`#fff`,
+  on_primary: css`#666`,
+  primary_dark: css`#e6e6e6`,
+  on_primary_dark: css`#888`,
+
+  // secondary colors
+  secondary: css`rgb(81,149,199)`,
+  on_secondary: css`#fff`,
+  secondary_dark: css`#2c6187`,
+  on_secondary_dark: css`#fff`,
+
+  // misc
+  shadows: css`rgba(0,0,0,0.2)`,
+  error: css`#cc3b3b`,
+  on_error: css`#fff`,
+
+  background: css`#fafafa`,
+  edge: css`#000`,
+  node_bg: css`#fcfcfc`,
+  node_bg_contrast: css`#000`,
+  node_border: css`#000`,
+  label_color: css`#000`,
+  label_color_contrast: css`#fcfcfc`,
+}
 
 export const dark = {
   primary: css`#333`,

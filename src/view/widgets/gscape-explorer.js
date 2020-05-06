@@ -257,7 +257,7 @@ export default class GscapeExplorer extends GscapeWidget{
     let dictionary = []
 
     predicates.forEach(predicate => {
-      let label = predicate.label.replace(/\r?\n|\r/g, '')
+      let label = predicate.displayed_name.replace(/\r?\n|\r/g, '')
       let key = label.concat(predicate.type)
 
       if (!(key in dictionary)) {

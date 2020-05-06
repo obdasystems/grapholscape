@@ -2,86 +2,90 @@ import Ontology from '../model/ontology'
 import Iri from '../model/iri'
 import Diagram from '../model/diagrams'
 import * as ParserUtil from './parser_util'
+import * as Graphol2 from './parser-v2'
+import * as Graphol3 from './parser-v3'
 
 export default class GrapholParser {
-  parseGraphol (xmlString) {
-    var i, k
-    var parser = new DOMParser()
-    var xmlDocument = (xmlString instanceof XMLDocument) ? xmlString : parser.parseFromString(xmlString, 'text/xml')
+  constructor(xmlString) {
+    this.xmlDocument = (xmlString instanceof XMLDocument) ? xmlString : new DOMParser().parseFromString(xmlString, 'text/xml')
 
-    var xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0]
+    this.graphol_ver = this.xmlDocument.getElementsByTagName('graphol')[0].getAttribute('version') || -1
 
-    var ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent
-    var ontology_version = ''
+    if(this.graphol_ver == 2 || this.graphol_ver == -1)
+      this.graphol = Graphol2
+    else if(this.graphol_ver == 3)
+      this.graphol = Graphol3
+    else
+      throw new Error('Error: Graphol version not supported or not defined.')
+  }
 
-    if (xml_ontology_tag.getElementsByTagName('version')[0]) {
-      ontology_version = xml_ontology_tag.getElementsByTagName('version')[0].textContent
-    } else {
-      ontology_version = 'Undefined'
-    }
+  parseGraphol() {
+    let ontology_info = this.graphol.getOntologyInfo(this.xmlDocument)
+    this.ontology = new Ontology(ontology_info.name, ontology_info.version)
+    this.ontology.languages = ontology_info.languages || []
+    this.ontology.default_language = ontology_info.default_language || ontology_info.languages[0]
 
-    // Creating an Ontology Object
-    let ontology = new Ontology(ontology_name, ontology_version)
+    // Create iri and add them to ontology.iriSet
+    //let iri_list = this.xmlDocument.getElementsByTagName('iri')
+    let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
 
-    if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length === 0) {
-      // for old graphol files
-      let iri_value = xmlDocument.getElementsByTagName('iri')[0].textContent
-      ontology.addIri(new Iri([''], iri_value))
-    } else {
-      // Create iri and add them to ontology.iriSet
-      let iri_list = xmlDocument.getElementsByTagName('iri')
-      // Foreach iri create a Iri object
-
-      for (i = 0; i < iri_list.length; i++) {
-        let iri = iri_list[i]
-
-        var iri_value = iri.getAttribute('iri_value')
-
-        var is_standard = false
-        var iri_prefixes = []
-
-        if (true) {
-          [...iri.getElementsByTagName('prefix')].forEach(iri_prefix => {
-            iri_prefixes.push(iri_prefix.getAttribute('prefix_value'))
-          }) 
-        }
-
-        if (iri_prefixes.length == 0) {
-          iri_prefixes.push('');
-        }
-
-        for (k = 0; k < iri.getElementsByTagName('property').length; k++) {
-          let iri_property = iri.getElementsByTagName('property')[k]
-
-          switch (iri_property.getAttribute('property_value')) {
-            case 'Standard_IRI':
-              is_standard = true
-              break
-          }
-        };
-
-        ontology.addIri(new Iri(iri_prefixes, iri_value, is_standard))
-      }
-    }
-
-    // for searching predicates' description
-    var xmlPredicates = xmlDocument.getElementsByTagName('predicate')
-
-    var diagrams = xmlDocument.getElementsByTagName('diagram')
+    dictionary.forEach(iri => {
+      this.ontology.addIri(new Iri(iri.prefixes, iri.value, iri.standard))
+    })
+    
+    let i, k, nodes, edges, cnt, array_json_elems, diagram, node
+    let diagrams = this.xmlDocument.getElementsByTagName('diagram')
     for (i = 0; i < diagrams.length; i++) {
-      let diagram_name = diagrams[i].getAttribute('name')
-      let diagram = new Diagram(diagram_name, i)
-      ontology.addDiagram(diagram)
+      diagram = new Diagram(diagrams[i].getAttribute('name'), i)
+      this.ontology.addDiagram(diagram)
 
-      var array_json_elems = []
-      var array_json_edges = []
-      var nodes = diagrams[i].getElementsByTagName('node')
-      var edges = diagrams[i].getElementsByTagName('edge')
-      var cnt = 0
+      array_json_elems = []
+      nodes = diagrams[i].getElementsByTagName('node')
+      edges = diagrams[i].getElementsByTagName('edge')
+      cnt = 0
       // Create JSON for each node to be added to the collection
       for (k = 0; k < nodes.length; k++) {
-        array_json_elems.push(this.NodeXmlToJson(nodes[k], ontology, xmlPredicates, i))
+        node = this.getBasicNodeInfos(nodes[k], i)
+        node.data.iri = this.graphol.getIri(nodes[k], this.ontology)
+        node.data.label = this.graphol.getLabel(nodes[k], this.ontology, this.xmlDocument)
+        
+        // label should be an object { language : label }, 
+        // if it's a string then it has no language, assign default language
+        if (typeof node.data.label === "string") {
+          let aux_label = node.data.label
+          node.data.label = {}
+          node.data.label[this.ontology.default_language] = aux_label
+        }
 
+        if (node.data.label) {
+          // try to apply default language as displayed name
+          if (node.data.label[this.ontology.default_language])
+            node.data.displayed_name = node.data.label[this.ontology.default_language]
+          else {
+            // otherwise pick the first language available
+            for (let lang of this.ontology.languages) {
+              if (node.data.label[lang]) {
+                node.data.displayed_name = node.data.label[lang]
+                break
+              }
+            }
+          }
+        }
+
+        if (ParserUtil.isPredicate(nodes[k])) {
+          let predicate_infos = this.graphol.getPredicateInfo(nodes[k], this.xmlDocument, this.ontology)
+          if (predicate_infos) {
+            Object.keys(predicate_infos).forEach(info => {
+              node.data[info] = predicate_infos[info]
+            })
+          }
+        }
+
+        array_json_elems.push(node)
+
+        // add fake nodes when necessary
+        // for property assertion, facets or for 
+        // both functional and inverseFunctional ObjectProperties
         if (array_json_elems[cnt].data.type === 'property-assertion' ||
           array_json_elems[cnt].data.type === 'facet' ||
           (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
@@ -92,7 +96,7 @@ export default class GrapholParser {
       diagram.addElems(array_json_elems)
       array_json_elems = []
       for (k = 0; k < edges.length; k++) {
-        array_json_elems.push(this.EdgeXmlToJson(edges[k], ontology, i))
+        array_json_elems.push(this.EdgeXmlToJson(edges[k], i))
       }
       diagram.addElems(array_json_elems)
 
@@ -103,16 +107,12 @@ export default class GrapholParser {
       throw("The selected .graphol file has no defined diagram")
     }
 
-    this.getIdentityForNeutralNodes(ontology)
-
-    return ontology
+    this.getIdentityForNeutralNodes()
+    return this.ontology
   }
 
-  NodeXmlToJson (element, ontology, xmlPredicates, diagram_id) {
-    // Creating a JSON Object for the node to be added to the collection
-
-    var label_no_break
-    var nodo = {
+  getBasicNodeInfos(element, diagram_id) {
+    let nodo = {
       data: {
         id_xml: element.getAttribute('id'),
         diagram_id: diagram_id,
@@ -123,6 +123,23 @@ export default class GrapholParser {
       position: {},
       classes: element.getAttribute('type')
     }
+
+    // Parsing the <geometry> child node of node
+    var geometry = element.getElementsByTagName('geometry')[0]
+    nodo.data.width = parseInt(geometry.getAttribute('width'))
+    nodo.data.height = parseInt(geometry.getAttribute('height'))
+
+    // Gli individual hanno dimensioni negative nel file graphol
+    if (nodo.data.width < 0) { nodo.data.width = -nodo.data.width }
+    // Gli individual hanno dimensioni negative nel file graphol
+    if (nodo.data.height < 0) { nodo.data.height = -nodo.data.height }
+    // L'altezza dei facet è nulla nel file graphol, la impostiamo a 40
+    if (nodo.data.type === 'facet') {
+      nodo.data.height = 40
+    }
+
+    nodo.position.x = parseInt(geometry.getAttribute('x'))
+    nodo.position.y = parseInt(geometry.getAttribute('y'))
 
     switch (nodo.data.type) {
       case 'concept':
@@ -186,118 +203,19 @@ export default class GrapholParser {
         break
     }
 
-    // Parsing the <geometry> child node of node
-    // info = <GEOMETRY>
-    var info = ParserUtil.getFirstChild(element)
-    nodo.data.width = parseInt(info.getAttribute('width'))
-
-    // Gli individual hanno dimensioni negative nel file graphol
-    if (nodo.data.width < 0) { nodo.data.width = -nodo.data.width }
-
-    nodo.data.height = parseInt(info.getAttribute('height'))
-    // Gli individual hanno dimensioni negative nel file graphol
-    if (nodo.data.height < 0) { nodo.data.height = -nodo.data.height }
-
-    // L'altezza dei facet è nulla nel file graphol, la impostiamo a 40
-    if (nodo.data.type === 'facet') {
-      nodo.data.height = 40
+    let label = element.getElementsByTagName('label')[0]
+    // apply label position
+    if (label != null) {
+      nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1
+      nodo.data.labelYpos = (parseInt(label.getAttribute('y')) - nodo.position.y) + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4
     }
 
-    nodo.position.x = parseInt(info.getAttribute('x'))
-    nodo.position.y = parseInt(info.getAttribute('y'))
-
-    // info = <LABEL>
-    info = ParserUtil.getNextSibling(info)
-    // info = null se non esiste la label (è l'ultimo elemento)
-    if (info != null) {
-      nodo.data.label = info.textContent
-      nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1
-      nodo.data.labelYpos = (parseInt(info.getAttribute('y')) - nodo.position.y) + (nodo.data.height + 2) / 2 + parseInt(info.getAttribute('height')) / 4
-      label_no_break = nodo.data.label.replace(/\n/g, '')
-    }
-
-    // Setting predicates properties
-    if (ParserUtil.isPredicate(element)) {
+    if(ParserUtil.isPredicate(element))
       nodo.classes += ' predicate'
-      var node_iri, rem_chars, len_prefix, node_prefix_iri
-
-      // setting iri
-      if (element.getAttribute('remaining_characters') != null) {
-        rem_chars = element.getAttribute('remaining_characters').replace(/\n/g, '')
-      } else {
-        rem_chars = label_no_break
-      }
-
-      len_prefix = label_no_break.length - rem_chars.length
-      node_prefix_iri = label_no_break.substring(0, len_prefix)
-
-      ontology.iriSet.forEach(iri => {
-        iri.prefixes.forEach(prefix => {
-          if (node_prefix_iri == prefix+':' || node_prefix_iri == prefix) {
-            node_iri = iri.value
-          }
-        })
-      })
-
-      if(!node_iri) {
-        throw(`Err: the iri prefix "${node_prefix_iri}" is not associated to any iri`)
-      }
-      
-      if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
-        rem_chars = label_no_break
-        node_iri = ''
-        node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
-      } else if (node_iri.slice(-1) !=='/' && node_iri.slice(-1) !=='#') { node_iri = node_iri + '/' }
-
-      nodo.data.remaining_chars = rem_chars
-      nodo.data.prefix_iri = node_prefix_iri
-      nodo.data.iri = node_iri + rem_chars
-
-      var j, predicateXml
-      for (j = 0; j < xmlPredicates.length; j++) {
-        predicateXml = xmlPredicates[j]
-        if (label_no_break === predicateXml.getAttribute('name') && nodo.data.type ===predicateXml.getAttribute('type')) {
-          nodo.data.description = predicateXml.getElementsByTagName('description')[0].textContent
-          //nodo.data.description = nodo.data.description.replace(/&lt;/g, '<')
-          //nodo.data.description = nodo.data.description.replace(/&gt;/g, '>')
-          //nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g, '')
-          //nodo.data.description = nodo.data.description.replace(/&amp;/g, '&')
-          nodo.data.description = nodo.data.description.replace(/font-size:0pt/g, '')
-          var start_body_index = nodo.data.description.indexOf('<p')
-          var end_body_index = nodo.data.description.indexOf('</body')
-
-          nodo.data.description = nodo.data.description.slice(start_body_index, end_body_index)
-
-          // Impostazione delle funzionalità dei nodi di tipo role o attribute
-          if (nodo.data.type ==='attribute' || nodo.data.type ==='role') {
-            nodo.data.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
-          }
-
-          if (nodo.data.type ==='role') {
-            nodo.data.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
-            nodo.data.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
-            nodo.data.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)
-            nodo.data.reflexive = parseInt(predicateXml.getElementsByTagName('reflexive')[0].textContent)
-            nodo.data.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent)
-            nodo.data.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent)
-          }
-          break
-        }
-      }
-    } else {
-      // Set prefix and remaining chars for non-predicate nodes
-      // owl.js use this informations for all nodes
-      nodo.data.prefix_iri = ''
-      nodo.data.remaining_chars = label_no_break
-      if (nodo.data.type ==='value-domain' || nodo.data.type ==='facet') {
-        nodo.data.prefix_iri = label_no_break.split(':')[0] + ':'
-        nodo.data.remaining_chars = label_no_break.split(':')[1]
-      }
-    }
     return nodo
   }
 
-  EdgeXmlToJson (arco, ontology, diagram_id) {
+  EdgeXmlToJson (arco, diagram_id) {
     var k
     var edge = {
       data: {
@@ -315,8 +233,8 @@ export default class GrapholParser {
         edge.data.edge_label = 'instance Of'
 
     // Prendiamo i nodi source e target
-    var source = ontology.getDiagram(diagram_id).cy.$id(edge.data.source)
-    var target = ontology.getDiagram(diagram_id).cy.$id(edge.data.target)
+    var source = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.source)
+    var target = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.target)
     // Impostiamo le label numeriche per gli archi che entrano nei role-chain
     // I role-chain hanno un campo <input> con una lista di id di archi all'interno
     // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
@@ -397,7 +315,7 @@ export default class GrapholParser {
     return edge
   }
 
-  addFakeNodes (array_json_nodes) {
+  addFakeNodes(array_json_nodes) {
     var nodo = array_json_nodes[array_json_nodes.length - 1]
     if (nodo.data.type ==='facet') {
       // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
@@ -482,8 +400,8 @@ export default class GrapholParser {
         },
         classes: 'fake-triangle'
       }
-      var old_labelXpos = nodo.data.labelXpos
-      var old_labelYpos = nodo.data.labelYpos
+      //var old_labelXpos = nodo.data.labelXpos
+      //var old_labelYpos = nodo.data.labelYpos
       nodo.data.height -= 8
       nodo.data.width -= 10
       // If the node is both functional and inverse functional,
@@ -571,8 +489,8 @@ export default class GrapholParser {
     }
   }
 
-  getIdentityForNeutralNodes (ontology) {
-    ontology.diagrams.forEach(diagram => {
+  getIdentityForNeutralNodes() {
+    this.ontology.diagrams.forEach(diagram => {
       diagram.cy.nodes('[identity = "neutral"]').forEach(node => {
         node.data('identity', findIdentity(node))
       })

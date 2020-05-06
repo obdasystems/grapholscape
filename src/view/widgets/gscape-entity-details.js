@@ -114,7 +114,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
               ${this.entity.type != 'individual' ? html`
               <tr>
                 <th>IRI</th>
-                <td>${this.entity.iri}</td>
+                <td>${this.entity.iri.full_iri}</td>
               </tr>
               ` : html``
               } 

@@ -12,6 +12,7 @@ import * as themes from './style/themes'
 import FloatingGscapeRenderer from './render/float-renderer'
 import GscapeRenderSelector from './widgets/gscape-render-selector'
 import GscapeLayoutSettings from './widgets/gscape-layout-settings'
+import GscapeSettings from './widgets/gscape-settings'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -47,44 +48,44 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
-    this.graph_container.style.background = themes.gscape.background
     this.setTheme(themes.gscape)
   }
 
   createUi(ontology, diagrams, predicates, settings) {
-    this.filters = settings.filters.filter_list
-    this.widgets = new Set()
+    this.settings = settings
+    this.filters = this.settings.widgets.filters.filter_list
+    this.widgets = new Map()
     this.diagram_selector = new GscapeDiagramSelector(diagrams)
     this.diagram_selector.onDiagramChange = this.onDiagramChange
     this.container.appendChild(this.diagram_selector)
-    this.widgets.add(this.diagram_selector)
+    this.widgets.set('diagram_selector', this.diagram_selector)
 
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    !settings.explorer.enabled ? this.explorer.hide() : null
+    !settings.widgets.explorer.enabled ? this.explorer.hide() : null
     this.container.appendChild(this.explorer)
-    this.widgets.add(this.explorer)
+    this.widgets.set('explorer', this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
-    !settings.details.enabled ? this.entity_details.hide() : null
+    !settings.widgets.details.enabled ? this.entity_details.hide() : null
     this.entity_details.onWikiClick = this.onWikiClick
     this.container.appendChild(this.entity_details)
-    this.widgets.add(this.entity_details)
+    this.widgets.set('details', this.entity_details)
 
     const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
     btn_fullscreen.style.top = '10px'
     btn_fullscreen.style.right = '10px'
     btn_fullscreen.onClick = this.toggleFullscreen.bind(this)
     this.container.appendChild(btn_fullscreen)
-    this.widgets.add(btn_fullscreen)
+    this.widgets.set('btn_fullscreen', btn_fullscreen)
 
     const btn_reset = new GscapeButton('filter_center_focus')
     btn_reset.style.bottom = '10px'
     btn_reset.style.right = '10px'
     btn_reset.onClick = this.resetView.bind(this)
     this.container.appendChild(btn_reset)
-    this.widgets.add(btn_reset)
+    this.widgets.set('btn_reset', btn_reset)
 
     this.filters_widget = new GscapeFilters(this.filters)
     this.filters_widget.onFilterOn = this.filter.bind(this)
@@ -93,9 +94,9 @@ export default class GrapholscapeView {
       this.blurAll(this.filters_widget)
       this.filters_widget.toggleBody()
     }
-    !settings.filters.enabled ? this.filters_widget.hide() : null
+    !settings.widgets.filters.enabled ? this.filters_widget.hide() : null
     this.container.appendChild(this.filters_widget)
-    this.widgets.add(this.filters_widget)
+    this.widgets.set('filters', this.filters_widget)
 
     this.ontology_info = new GscapeOntologyInfo(ontology)
     this.ontology_info.btn.onClick = () => {
@@ -103,19 +104,19 @@ export default class GrapholscapeView {
       this.ontology_info.toggleBody()
     }
     this.container.appendChild(this.ontology_info)
-    this.widgets.add(this.ontology_info)
+    this.widgets.set('ontology_info', this.ontology_info)
 
     this.owl_translator = new GscapeOwlTranslator()
-    !settings.owl_translator.enabled ? this.owl_translator.hide() : null
+    !settings.widgets.owl_translator.enabled ? this.owl_translator.hide() : null
     this.container.appendChild(this.owl_translator)
-    this.widgets.add(this.owl_translator)
+    this.widgets.set('owl_translator', this.owl_translator)
 
 
     const zoom_widget = new GscapeZoomTools()
     zoom_widget.onZoomIn = this.zoomIn.bind(this)
     zoom_widget.onZoomOut = this.zoomOut.bind(this)
     this.container.appendChild(zoom_widget)
-    this.widgets.add(zoom_widget)
+    this.widgets.set('zoom_widget', zoom_widget)
 
     this.renderer_selector = new GscapeRenderSelector(this.renderers)
     this.renderer_selector.style.bottom = '10px'
@@ -133,7 +134,7 @@ export default class GrapholscapeView {
 
     // !settings.simplify.enabled ? this.render_selector.hide() : nullthis
     this.container.appendChild(this.renderer_selector)
-    this.widgets.add(this.renderer_selector)
+    this.widgets.set('simplifications', this.renderer_selector)
 
     this.layout_settings = new GscapeLayoutSettings()
     this.layout_settings.onLayoutRunToggle =
@@ -143,6 +144,20 @@ export default class GrapholscapeView {
       () => this.renderer.dragAndPin = !this.renderer.dragAndPin
     this.layout_settings.hide()
     this.container.appendChild(this.layout_settings)
+
+    // settings
+    this.settings_widget = new GscapeSettings(this.settings)
+    this.settings_widget.onEntityNameSelection = this.onEntityNameTypeChange.bind(this)
+    this.settings_widget.onLanguageSelection = this.onLanguageChange.bind(this)
+    this.settings_widget.onThemeSelection = this.onThemeSelection.bind(this)
+    this.settings_widget.onWidgetEnabled = this.onWidgetEnabled.bind(this)
+    this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this)
+    this.container.appendChild(this.settings_widget)
+    this.widgets.set('settings_widget', this.settings_widget)
+    this.settings_widget.btn.onClick = () => {
+      this.blurAll(this.settings_widget)
+      this.settings_widget.toggleBody()
+    }
 
     Object.keys(this.renderers).forEach(renderer =>
       this.registerEvents(this.renderers[renderer])
@@ -341,6 +356,10 @@ export default class GrapholscapeView {
     this.explorer.requestUpdate()
   }
 
+  onThemeSelection(theme_name) {
+    this.setTheme(themes[theme_name])
+  }
+
   setTheme(theme) {
     // update theme with custom variables "--theme-gscape-[var]" values
     let container_style = window.getComputedStyle(this.container)
@@ -349,29 +368,26 @@ export default class GrapholscapeView {
     let prefix = '--theme-gscape-'
     Object.keys(theme).map(key => {
       let css_key = prefix + key.replace(/_/g,'-')
-      if (container_style.getPropertyValue(css_key)) {
-        // update color in the theme from custom variable
-        theme_aux[key] = container_style.getPropertyValue(css_key)
-      } else {
-        // normalize theme using plain strings
-        theme_aux[key] = theme[key].cssText
-      }
+      this.container.style.setProperty(css_key, theme[key].cssText)
+      // normalize theme using plain strings
+      theme_aux[key] = theme[key].cssText
     })
+
+    this.graph_container.style.background = theme.background
     // Apply theme to graph
     Object.keys(this.renderers).map(key => {
       this.renderers[key].setTheme(theme_aux)
     });
   }
-  /*
-  getDefaultTheme() {
-    Object.keys(themes).forEach(key => {
-      if (config.rendering.theme.list[key].default)
-        return themes[key]
-    })
 
-    return themes.gscape
+  onWidgetEnabled(widget_name) {
+    this.widgets.get(widget_name).show()
   }
-  */
+
+  onWidgetDisabled(widget_name) {
+    this.widgets.get(widget_name).hide()
+  }
+
   get actual_diagram_id() {
     return this.diagram_selector.actual_diagram_id
   }

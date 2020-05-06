@@ -1,38 +1,77 @@
 {
+  "preferences" : {
+    "entity_name" : {
+      "type" : "list",
+      "title" : "Entities Name",
+      "label" : "Select the type of name to display on entities",
+      "selected" : "label",
+      "list" : [
+        {
+          "value" : "label",
+          "label" : "Label"
+        },
+        {
+          "value" : "prefixed",
+          "label" : "Prefixed IRI"
+        },
+        {
+          "value" : "full",
+          "label": "Full IRI"
+        }
+      ]
+    },
+    "language" : {
+      "type" : "list",
+      "title" : "Language",
+      "label" : "Select the preferred language",
+      "selected" : "",
+      "list" : []
+    }
+  },
   "rendering" : {
     "theme" : {
       "type" : "list",
+      "title" : "Themes",
       "label" : "Select a theme",
-      "list" : {
-        "gscape" : {
-          "label" : "Grapholscape White",
-          "default" : true
+      "selected" : "gscape",
+      "list" : [
+        {
+          "value" : "gscape",
+          "label" : "Light"
         },
-        "dark" : {
-          "label" : "Grapholscape Dark",
-          "default" : false
+        {
+          "value" : "dark",
+          "label" : "Dark"
+        },
+        {
+          "value" : "classic",
+          "label" : "Graphol"
         }
-      }
+      ]
     }
   },
   "widgets" : {
     "explorer" : {
+      "title" : "Ontology Explorer",
       "type" : "boolean",
       "enabled" : true,
       "label" : "Enable Ontology Explorer widget"
     },
     "details" : {
       "type" : "boolean",
+      "title" : "Entity Details",
       "enabled" : true,
       "label" : "Enable Entity Details widget"
     },
     "owl_translator" : {
       "type" : "boolean",
+      "title" : "OWL Translator",
       "enabled" : true,
       "label" : "Enable Owl Translation widget"
     },
     "filters" : {
       "type" : "boolean",
+      "title" : "Filters",
       "enabled" : true,
       "label" : "Enable Filters widget",
       "filter_list": {
@@ -65,7 +104,7 @@
           "class": "filterindividuals"
         },
         "universal_quantifier": {
-          "selector": "[type $= \"-restriction\"][label = \"forall\"]",
+          "selector": "[type $= \"-restriction\"][displayed_name = \"forall\"]",
           "label": "Universal Quantifier",
           "active": false,
           "disabled": false,
@@ -80,10 +119,11 @@
         }
       }
     },
-    "lite_mode" : {
+    "simplifications" : {
       "type" : "boolean",
+      "title" : "Simplifications",
       "enabled" : true,
-      "label" : "Allow lite mode switching"
+      "label" : "Allow ontology simplification widget"
     }
   }
 }
