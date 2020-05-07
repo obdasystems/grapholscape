@@ -244,6 +244,19 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: 'edge.role',
+      style: {
+        'line-color' : theme.role_dark,
+        'source-arrow-color': theme.role_dark,
+        'target-arrow-color': theme.role_dark,
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'filled',
+        'source-arrow-shape': 'square',
+        'source-arrow-fill': 'hollow',
+      }
+    },
+
+    {
       selector: 'edge.range',
       style: {
         'target-arrow-shape': 'square',
@@ -267,19 +280,6 @@ export function getGraphStyle(theme) {
         'line-color': theme.attribute_dark,
         'source-arrow-shape': 'none',
         'target-arrow-shape': 'none',
-      }
-    },
-
-    {
-      selector: 'edge.role',
-      style: {
-        'line-color' : theme.role_dark,
-        'source-arrow-color': theme.role_dark,
-        'target-arrow-color': theme.role_dark,
-        'target-arrow-shape': 'square',
-        'target-arrow-fill': 'filled',
-        'source-arrow-shape': 'square',
-        'source-arrow-fill': 'hollow',
       }
     },
 
