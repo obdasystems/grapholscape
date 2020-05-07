@@ -109,7 +109,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
           class="renderer-item ${mode == 'default' ? `selected` : ``}"
         >
         ${mode == 'default' ?
-          graphol_logo() :
+          graphol_logo :
           html`<mwc-icon>${this.dict[mode].icon}</mwc-icon>`
         }
         <span>${this.dict[mode].name}</span>

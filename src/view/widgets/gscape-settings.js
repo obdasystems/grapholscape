@@ -2,6 +2,8 @@ import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeButton from './common/gscape-button'
 import GscapeToggle from './common/gscape-toggle'
+import { grapholscape as logo} from './assets/gscape-logo'
+import { version } from '../../../package.json'
 
 export default class GscapeSettings extends GscapeWidget {
 
@@ -63,6 +65,21 @@ export default class GscapeSettings extends GscapeWidget {
         .setting-label {
           font-size : 12px;
           opacity: 0.7;
+        }
+
+        #logo {
+          text-align:center;
+        }
+
+        #logo svg {
+          width: 40%;
+          height: auto;
+          margin: 20px 0;
+        }
+
+        #version {
+          text-align: center;
+          font-size: 14px;
         }
       `,
     ]
@@ -128,6 +145,17 @@ export default class GscapeSettings extends GscapeWidget {
         </div>
         `
       })}
+
+        <div class="area">
+          <div class="area-title">About</div>
+          <div id="logo">
+            ${logo}
+          </div>
+
+          <div id="version">
+            <span>Version: </span>
+            <span>${version}</span>
+          </div>
         </div>
       </div>
     `

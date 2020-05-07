@@ -77,7 +77,6 @@ export default class GrapholScape {
     .then( result => { this._ontology = result })
     .catch( error => {
       console.error(error)
-      window.alert(error)
     })
   }
 

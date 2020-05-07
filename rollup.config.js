@@ -27,8 +27,8 @@ const envVariables = {
 }
 
 const getJsonOptions = () => ({
-  include: 'src/**',
-  exclude: [ '**./**' ],
+  //include: 'src/**',
+  //exclude: [ '**./**' ],
 
   // for tree-shaking, properties will be declared as
   // variables, using either `var` or `const`
