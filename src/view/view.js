@@ -63,12 +63,10 @@ export default class GrapholscapeView {
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    if (!settings.widgets.explorer.enabled) this.explorer.hide()
     this.container.appendChild(this.explorer)
     this.widgets.set('explorer', this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
-    if (!settings.widgets.details.enabled) this.entity_details.hide()
     this.entity_details.onWikiClick = this.onWikiClick
     this.container.appendChild(this.entity_details)
     this.widgets.set('details', this.entity_details)
@@ -94,7 +92,6 @@ export default class GrapholscapeView {
       this.blurAll(this.filters_widget)
       this.filters_widget.toggleBody()
     }
-    if (!settings.widgets.filters.enabled) this.filters_widget.hide()
     this.container.appendChild(this.filters_widget)
     this.widgets.set('filters', this.filters_widget)
 
@@ -107,7 +104,6 @@ export default class GrapholscapeView {
     this.widgets.set('ontology_info', this.ontology_info)
 
     this.owl_translator = new GscapeOwlTranslator()
-    if (!settings.widgets.owl_translator.enabled) this.owl_translator.hide()
     this.container.appendChild(this.owl_translator)
     this.widgets.set('owl_translator', this.owl_translator)
 
@@ -130,7 +126,6 @@ export default class GrapholscapeView {
       that.blurAll(that.renderer_selector)
     }.bind(this.renderer_selector.header)
 
-    if (!settings.widgets.simplifications.enabled) this.render_selector.hide()
     this.container.appendChild(this.renderer_selector)
     this.widgets.set('simplifications', this.renderer_selector)
 
@@ -160,6 +155,12 @@ export default class GrapholscapeView {
     Object.keys(this.renderers).forEach(renderer =>
       this.registerEvents(this.renderers[renderer])
     )
+
+    for (let widget_name in this.settings.widgets) {
+      if (!this.settings.widgets[widget_name].enabled)
+        this.onWidgetDisabled(widget_name)
+    }
+
   }
 
   registerEvents(renderer) {
@@ -379,11 +380,11 @@ export default class GrapholscapeView {
   }
 
   onWidgetEnabled(widget_name) {
-    this.widgets.get(widget_name).show()
+    this.widgets.get(widget_name).enable()
   }
 
   onWidgetDisabled(widget_name) {
-    this.widgets.get(widget_name).hide()
+    this.widgets.get(widget_name).disable()
   }
 
   get actual_diagram_id() {

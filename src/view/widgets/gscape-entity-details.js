@@ -73,7 +73,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
         .clickable:hover {
           cursor:pointer;
-          color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});        
+          color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});
         }
       `
     ]
@@ -84,6 +84,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
     this.draggable = true
     this.collapsible = true
 
+    this.hiddenDefault = true
     this._entity = null
     this.properties = {
       functional : 'Functional',
@@ -117,7 +118,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
                 <td>${this.entity.iri.full_iri}</td>
               </tr>
               ` : html``
-              } 
+              }
             </table>
 
             <div class="chips-wrapper">
@@ -128,7 +129,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
               })}
             </div>
 
-            ${this.entity.description? 
+            ${this.entity.description?
               html`
                 <div>
                   <div class="descr-header"> Description </div>
@@ -161,7 +162,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
       case 'concept' :
         this._entity.type = 'Class'
         break;
-      
+
       case 'role' :
         this._entity.type = 'Object Property'
         break;

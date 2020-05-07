@@ -3,11 +3,9 @@ import * as theme from '../../style/themes'
 
 export default class GscapeWidget extends LitElement {
   static get properties() {
-    if( this.collapsible ) {
-      return {}
+    return {
+      isEnabled : {type : Boolean}
     }
-
-    return {}
   }
 
   static get styles() {
@@ -115,6 +113,8 @@ export default class GscapeWidget extends LitElement {
     super();
     this.draggable = false
     this.collapsible = false
+    this.isEnabled = true
+    this.hiddenDefault = false
 
     this.onselectstart = () => { false }
   }
@@ -211,15 +211,29 @@ export default class GscapeWidget extends LitElement {
   }
 
   show() {
-    this.style.display = 'initial'
+    if (this.isEnabled) this.style.display = 'initial'
   }
 
   hide() {
     this.style.display = 'none'
   }
 
+  enable() {
+    this.isEnabled = true
+    if (!this.hiddenDefault) this.show()
+  }
+
+  disable() {
+    this.isEnabled = false
+    this.hide()
+  }
+
   blur() {
     this.collapseBody()
+  }
+
+  get isVisible() {
+    return this.style.display !== 'none' ? true : false
   }
 }
 
