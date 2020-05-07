@@ -4,15 +4,30 @@ import * as default_config from "./config.json"
 
 export default class GrapholscapeController {
   constructor(ontology, view = null, config = null) {
-    this.config = default_config
+    this.config = JSON.parse(JSON.stringify(default_config)) //create copy
     if(config) this.setConfig(config)
+    // set language
     this.config.preferences.language.list = ontology.languages.map(lang => {
       return {
         "label" : lang,
         "value" : lang,
       }
     })
-    this.config.preferences.language.selected = this.default_language = ontology.default_language
+    this.default_language = ontology.default_language
+    // if not selected in config, select default
+    let selected_language = this.config.preferences.language.selected
+    if ( selected_language == '')
+      this.config.preferences.language.selected = this.default_language
+    else {
+      // if language is not supported by ontology, add it in the list
+      // only for consistency : user defined it so he wants to see it
+      if (!ontology.languages.includes(selected_language))
+        this.config.preferences.language.list.push({
+          "label" : selected_language + ' - unsupported' ,
+          "value" : selected_language
+        })
+    }
+
     this.ontologies = {
       default: ontology,
       lite: null,
@@ -31,6 +46,13 @@ export default class GrapholscapeController {
         console.log(reason)
       })
 
+   if ( this.config.preferences.entity_name.selected !=
+      default_config.preferences.entity_name.selected )
+      this.onEntityNameTypeChange(this.config.preferences.entity_name.selected)
+
+    if ( this.config.preferences.language.selected !=
+      default_config.preferences.language.selected)
+      this.onLanguageChange(this.config.preferences.language.selected)
   }
 
   init() {
@@ -58,7 +80,7 @@ export default class GrapholscapeController {
     }
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     this.view.onLanguageChange = this.onLanguageChange.bind(this)
-    
+
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
 
@@ -243,51 +265,53 @@ export default class GrapholscapeController {
   /**
    * Set the kind of displayed name for entities.
    * Then refresh diagram and entities list
-   * @param {string} type - [label | full | prefixed]
+   * @param {string} type accepted values: 'label' | 'full' | 'prefixed'
    */
   onEntityNameTypeChange(type) {
-    Object.keys(this.ontologies).forEach(key => {
-      let entities = this.ontologies[key].getEntities(false) // get cytoscape nodes
-      switch(type) {
-        case 'label':
-          entities.forEach(entity => {
-            if (entity.data('label')[this.language])
-              entity.data('displayed_name', entity.data('label')[this.language])
-            else if (entity.data('label')[this.default_language])
-              entity.data('displayed_name', entity.data('label')[this.default_language])
-            else {
-              for (let lang of this.languagesList) {
-                if (entity.data('label')[lang]) {
-                  entity.data('displayed_name', entity.data('label')[lang])
-                  break
+    this.SimplifiedOntologyPromise.then(() => {
+      Object.keys(this.ontologies).forEach(key => {
+        let entities = this.ontologies[key].getEntities(false) // get cytoscape nodes
+        switch(type) {
+          case 'label':
+            entities.forEach(entity => {
+              if (entity.data('label')[this.language])
+                entity.data('displayed_name', entity.data('label')[this.language])
+              else if (entity.data('label')[this.default_language])
+                entity.data('displayed_name', entity.data('label')[this.default_language])
+              else {
+                for (let lang of this.languagesList) {
+                  if (entity.data('label')[lang]) {
+                    entity.data('displayed_name', entity.data('label')[lang])
+                    break
+                  }
                 }
               }
-            }
-          })
-          break
-        
-        case 'full':
-          entities.forEach(entity => {
-            entity.data('displayed_name', entity.data('iri').full_iri)
-          })
-          break
+            })
+            break
 
-        case 'prefixed':
-          entities.forEach(entity => {
-            let prefixed_iri = entity.data('iri').prefix + entity.data('iri').remaining_chars
-            entity.data('displayed_name', prefixed_iri)
-          })
-          break
-      }
+          case 'full':
+            entities.forEach(entity => {
+              entity.data('displayed_name', entity.data('iri').full_iri)
+            })
+            break
+
+          case 'prefixed':
+            entities.forEach(entity => {
+              let prefixed_iri = entity.data('iri').prefix + entity.data('iri').remaining_chars
+              entity.data('displayed_name', prefixed_iri)
+            })
+            break
+        }
+      })
+      this.updateGraphView(this.view.renderer.getActualPosition())
+      this.updateEntitiesList()
     })
-    this.updateGraphView(this.view.renderer.getActualPosition())
-    this.updateEntitiesList()
   }
 
   /**
    * Update selected language in config and set displayed names accordingly
    * Then refresh diagram and entities list
-   * @param {string} language 
+   * @param {string} language
    */
   onLanguageChange(language) {
     this.config.preferences.language.selected = language
@@ -297,11 +321,17 @@ export default class GrapholscapeController {
 
   setConfig(new_config) {
     Object.keys(new_config).forEach( entry => {
-      if (typeof(new_config[entry]) !== "boolean")
-        return
-      try {
-        this.config.widgets[entry].enabled = new_config[entry]
-      } catch (e) {return}
+      for (let area in this.config) {
+        try {
+          let setting = this.config[area][entry]
+          if (setting) {
+            if (setting.type == 'boolean')
+              this.config[area][entry].enabled = new_config[entry]
+            else
+              this.config[area][entry].selected = new_config[entry]
+          }
+        } catch (e) {}
+      }
     })
   }
 
@@ -374,10 +404,6 @@ export default class GrapholscapeController {
 
   get language() {
     return this.config.preferences.language.selected
-  }
-
-  get defaultLanguage() {
-    return this.ontology
   }
 
   get languagesList() {

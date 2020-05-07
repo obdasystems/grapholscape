@@ -161,6 +161,7 @@ export default class GrapholscapeView {
         this.onWidgetDisabled(widget_name)
     }
 
+    this.setTheme(themes[this.settings.rendering.theme.selected])
   }
 
   registerEvents(renderer) {

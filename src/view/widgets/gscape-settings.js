@@ -108,6 +108,7 @@ export default class GscapeSettings extends GscapeWidget {
                 <div class="setting_obj">
                   <select area="${area_entry}" id="${setting_entry}" @change="${this.onListChange}">
                     ${setting.list.map(option => {
+                      if (option.value == '') return
                       let selected = option.value == setting.selected
                       return html`<option value="${option.value}" ?selected=${selected}>${option.label}</option>`
                     })}
