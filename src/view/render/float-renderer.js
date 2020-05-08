@@ -69,16 +69,10 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
         div.style.padding = '5px'
         div.style.color = 'white'
         div.style.cursor = 'pointer'
-        div.style.display = 'flex'
-        div.style.width = dimension + 'px'
-        div.style.height = dimension + 'px'
         div.setAttribute('title', 'Unlock Node')
 
-        div.innerHTML = `
-          <mwc-icon ${dimension < 8 ? 'style="display: none"' : ''}>
-            lock_open
-          </mwc_icon>`
-
+        div.innerHTML = `<mwc-icon>lock_open</mwc_icon>`
+        setStyle(dimension, div)
 
         div.onclick = () => this.unlockNode(node)
         document.body.appendChild(div)
@@ -92,26 +86,30 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
     let update = () => {
       let dimension =  node.data('width') / 9 * this.cy.zoom()
-      let icon = unlockButton.popper.querySelector('mwc-icon')
-      if (dimension > 2) {
-        if (dimension < 8) {
-          icon.style.display = 'none'
-        } else {
-          icon.style.display = 'inline'
-          icon.style.fontSize = dimension + 'px'
-        }
-        unlockButton.popper.style.width = dimension + 'px'
-        unlockButton.popper.style.height = dimension + 'px'
-        unlockButton.popper.style.display = 'flex'
-      } else {
-        icon.style.display = 'none'
-        unlockButton.popper.style.display = 'none'
-      }
+      setStyle(dimension, unlockButton.popper)
       unlockButton.scheduleUpdate()
     }
 
     node.on('position', update)
     this.cy.on('pan zoom resize', update)
+
+    function setStyle(dim, div) {
+      let icon = div.querySelector('mwc-icon')
+      if (dim > 2) {
+        if (dim < 8) {
+          icon.style.display = 'none'
+        } else {
+          icon.style.display = 'inline'
+          icon.style.fontSize = dim + 'px'
+        }
+        div.style.width = dim + 'px'
+        div.style.height = dim + 'px'
+        div.style.display = 'flex'
+      } else {
+        icon.style.display = 'none'
+        div.style.display = 'none'
+      }
+    }
   }
 
   clearPoppers() {
