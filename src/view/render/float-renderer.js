@@ -16,10 +16,17 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.layoutStopped = false
     this.dragAndPin = false
 
+    this.cy.on('grab', (e) => {
+      e.target.data('old_pos', JSON.stringify(e.target.position()))
+    })
+
     this.cy.on('free', (e) => {
-      if (this.dragAndPin) {
+      let actual_pos = JSON.stringify(e.target.position())
+      if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
         this.lockNode(e.target)
       }
+
+      e.target.removeData('old_pos')
     })
   }
 
