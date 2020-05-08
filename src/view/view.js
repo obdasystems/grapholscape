@@ -116,16 +116,6 @@ export default class GrapholscapeView {
 
     this.renderer_selector = new GscapeRenderSelector(this.renderers)
     this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this)
-    let that = this
-    this.renderer_selector.header.toggleBody = function () {
-      const e = new CustomEvent('toggle-widget-body', {
-        bubbles: true,
-        composed: true
-      })
-      this.dispatchEvent(e)
-      that.blurAll(that.renderer_selector)
-    }.bind(this.renderer_selector.header)
-
     this.container.appendChild(this.renderer_selector)
     this.widgets.set('simplifications', this.renderer_selector)
 

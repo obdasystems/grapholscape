@@ -94,8 +94,6 @@ export default class GscapeRenderSelector extends GscapeWidget {
     }
 
     this.actual_mode = 'default'
-    this.header = new GscapeHeader()
-    this.header.title = this.dict["default"].name
     this._onRendererChange = {}
   }
 
@@ -117,7 +115,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
         `)}
       </div>
 
-      ${this.header}
+      <gscape-head></gscape-head>
     `
   }
 
@@ -129,7 +127,6 @@ export default class GscapeRenderSelector extends GscapeWidget {
     target.classList.add('selected')
     let mode = target.getAttribute('mode')
     this.header.title = this.dict[mode].name
-    this.toggleBody()
     this.actual_mode = mode
     this._onRendererChange(mode)
   }
@@ -137,7 +134,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
   firstUpdated() {
     super.firstUpdated()
     // invert header's dropdown icon behaviour
-    this.header.collapsed = true
+    this.header.invertIcons()
+    this.header.title = this.dict["default"].name
   }
 
   set onRendererChange(f) {

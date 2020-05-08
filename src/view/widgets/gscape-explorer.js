@@ -132,8 +132,8 @@ export default class GscapeExplorer extends GscapeWidget{
     this.diagrams = diagrams
     this.predicates = predicates
 
-    this._onEntitySelect = null
-    this._onNodeSelect = null
+    this.onEntitySelect = {}
+    this.onNodeNavigation = {}
   }
 
   render() {
@@ -147,7 +147,7 @@ export default class GscapeExplorer extends GscapeWidget{
 
 
     return html`
-      <gscape-head title="Explorer" collapsed="true" class="drag-handler">
+      <gscape-head title="Explorer" class="drag-handler">
         <input
           type="text"
           autocomplete="off"
@@ -229,14 +229,6 @@ export default class GscapeExplorer extends GscapeWidget{
     e.target.focus()
   }
 
-  set onEntitySelect(f) {
-    this._onEntitySelect = f
-  }
-
-  set onNodeNavigation(f) {
-    this._onNodeSelect = f
-  }
-
   get predicates() {
     return this._predicates
   }
@@ -276,22 +268,16 @@ export default class GscapeExplorer extends GscapeWidget{
 
   handleEntitySelection(e) {
     let entity_id = e.target.parentNode.getAttribute('id')
-
-    //let selector = `[label = '${label}'][type = '${type}']`
-    // get the first instance of the selected entity
-    //let predicate_instance = this.predicates.filter(selector)[0]
-
-    this._onEntitySelect(entity_id, true)
+    this.onEntitySelect(entity_id, true)
   }
 
   handleNodeSelection(e) {
-    this.toggleBody()
-
+    this.collapseBody()
     let node_id = e.target.getAttribute('node_id')
-
-    this._onNodeSelect(node_id)
+    this.onNodeNavigation(node_id)
   }
 
+  // override
   blur() {
     super.blur()
     this.shadowRoot.querySelector('input').blur()

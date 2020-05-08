@@ -60,14 +60,14 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   render () {
     return html`
       <gscape-head title="${this.default_title}"
-        collapsed="true" class="drag-handler"></gscape-head> 
+        class="drag-handler"></gscape-head>
 
       <div class="widget-body hide">
         ${this.diagrams.map( (diagram, id) => html`
-        <div 
-          @click="${this.changeDiagram}" 
-          name="${diagram.name}" 
-          diagram-id="${id}" 
+        <div
+          @click="${this.changeDiagram}"
+          name="${diagram.name}"
+          diagram-id="${id}"
           class="diagram-item ${id == this.actual_diagram_id ? `selected` : ``}"
         >
           ${diagram.name}
@@ -84,15 +84,10 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     e.target.classList.add('selected')
 
     let diagram_id = e.target.getAttribute('diagram-id')
-    
+
     this.toggleBody()
     this.actual_diagram_id = diagram_id
     this._onDiagramChange(diagram_id)
-  }
-
-  firstUpdated() {
-    super.firstUpdated()
-    //this.shadowRoot.querySelector('gscape-head').title = this.actual_diagram.name
   }
 
   set onDiagramChange(f) {
@@ -103,7 +98,9 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     this._actual_diagram_id = diagram_id
 
     if (diagram_id != null)
-      this.shadowRoot.querySelector('gscape-head').title = this.diagrams[diagram_id].name
+      this.header.title = this.diagrams[diagram_id].name
+
+    this.requestUpdate()
   }
 
   get actual_diagram_id() {

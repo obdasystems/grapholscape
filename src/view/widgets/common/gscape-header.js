@@ -5,15 +5,19 @@ import GscapeWidget from './gscape-widget';
 export default class GscapeHeader extends GscapeWidget {
   static get properties() {
     return {
-      collapsed: Boolean,
-      title: String,
+      title: { type : String },
+      initial_icon: { type : String },
+      secondary_icon: { type : String },
+      icon : { type : String }
     }
   }
 
   constructor() {
     super()
     this.title = 'header'
-    this.collapsed = false
+    this.initial_icon = 'arrow_drop_down'
+    this.secondary_icon = 'arrow_drop_up'
+    this.icon = this.initial_icon
   }
 
   static get styles() {
@@ -56,10 +60,7 @@ export default class GscapeHeader extends GscapeWidget {
       <div class="head-title"> ${this.title} </div>
       <slot></slot>
       <mwc-icon class="head-btn" @click="${this.toggleBody}">
-        ${this.collapsed?
-          html`arrow_drop_down`:
-          html`arrow_drop_up`
-        }
+        ${this.icon}
       </mwc-icon>
     `
   }
@@ -70,6 +71,15 @@ export default class GscapeHeader extends GscapeWidget {
       composed: true
     })
     this.dispatchEvent(e)
+  }
+
+  invertIcons() {
+    [this.initial_icon, this.secondary_icon] = [this.secondary_icon, this.initial_icon]
+    this.toggleIcon()
+  }
+
+  toggleIcon() {
+    this.icon = this.icon == this.initial_icon ? this.secondary_icon : this.initial_icon
   }
 }
 

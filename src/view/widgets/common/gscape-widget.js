@@ -4,7 +4,8 @@ import * as theme from '../../style/themes'
 export default class GscapeWidget extends LitElement {
   static get properties() {
     return {
-      isEnabled : {type : Boolean}
+      isEnabled : {type : Boolean},
+      hiddenDefault : { type : Boolean }
     }
   }
 
@@ -114,7 +115,7 @@ export default class GscapeWidget extends LitElement {
     this.draggable = false
     this.collapsible = false
     this.isEnabled = true
-    this.hiddenDefault = false
+    this._hiddenDefault = false
 
     this.onselectstart = () => { false }
   }
@@ -126,8 +127,7 @@ export default class GscapeWidget extends LitElement {
   toggleBody() {
     if (this.collapsible) {
       if (this.header) {
-        let collapsed = this.header.collapsed
-        this.header.collapsed = !collapsed
+        this.header.toggleIcon()
       }
 
       if (this.body)
@@ -137,8 +137,8 @@ export default class GscapeWidget extends LitElement {
 
   collapseBody() {
     if (this.collapsible) {
-      if (this.header)
-        this.header.collapsed = true
+      if (this.header && !this.isCollapsed)
+        this.header.toggleIcon()
 
       if (this.body)
         this.body.classList.add('hide')
@@ -147,8 +147,8 @@ export default class GscapeWidget extends LitElement {
 
   showBody() {
     if(this.collapsible) {
-      if (this.header)
-        this.header.collapsed = false
+      if (this.header && this.isCollapsed)
+        this.header.toggleIcon()
 
       if (this.body)
         this.body.classList.remove('hide')
@@ -234,6 +234,23 @@ export default class GscapeWidget extends LitElement {
 
   get isVisible() {
     return this.style.display !== 'none' ? true : false
+  }
+
+  set hiddenDefault(value) {
+    this._hiddenDefault = value
+    value ? this.hide() : this.show()
+    this.requestUpdate()
+  }
+
+  get hiddenDefault() {
+    return this._hiddenDefault
+  }
+
+  get isCollapsed() {
+    if (this.body)
+      return this.body.classList.contains('hide')
+    else
+      return true
   }
 }
 

@@ -5,7 +5,7 @@ import GscapeHeader from './common/gscape-header'
 export default class GscapeOwlTranslator extends GscapeWidget {
   static get properties() {
     return {
-      _owl_text: String,
+      owl_text: String,
     }
   }
   static get styles() {
@@ -86,7 +86,7 @@ export default class GscapeOwlTranslator extends GscapeWidget {
     super()
     this.collapsible = true
     this.hiddenDefault = true
-    this._owl_text = ''
+    this.owl_text = ''
   }
 
   render() {
@@ -98,30 +98,15 @@ export default class GscapeOwlTranslator extends GscapeWidget {
     `
   }
 
-  set owl_text(text) {
-    this._owl_text = text
-  }
-
-  get owl_text() {
-    return this._owl_text
-  }
-
   updated() {
     this.shadowRoot.querySelector('.owl-text').innerHTML = this.owl_text
-    this.shadowRoot.querySelector('.owl-text').classList.remove('hide')
   }
 
+  // override
   blur() {
     this.hide()
   }
 
-  firstUpdated() {
-    super.firstUpdated()
-    this.hide()
-
-    // invert header's dropdown icon behaviour
-    this.header.collapsed = true
-  }
 }
 
 customElements.define('gscape-owl-translator', GscapeOwlTranslator)

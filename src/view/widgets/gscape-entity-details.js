@@ -8,9 +8,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
     return [
       super.properties,
       {
-        _entity: {
-          type: Object
-        }
+        entity: { type: Object }
       }
     ]
   }
@@ -196,9 +194,10 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
   firstUpdated() {
     super.firstUpdated()
-    this.hide()
+    this.header.invertIcons()
   }
 
+  // override
   blur() {
     this.hide()
   }
