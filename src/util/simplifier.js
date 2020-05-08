@@ -594,6 +594,10 @@ export default function computeSimplifiedOntologies(ontology) {
           }
 
           cy.add(new_edge)
+          if(cy.getElementById(new_edge.data.id).isLoop()) {
+            let loop_edge = cy.getElementById(new_edge.data.id)
+            loop_edge.data('control_point_step_size', target.data('width'))
+          }
         })
       })
       cy.remove(role)

@@ -101,6 +101,14 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: ':loop',
+      style: {
+        'control-point-step-size': 'data(control_point_step_size)',
+        'control-point-weight': 0.5,
+      }
+    },
+
+    {
       selector: '[source_endpoint]',
       style: {
         'source-endpoint': 'data(source_endpoint)'
