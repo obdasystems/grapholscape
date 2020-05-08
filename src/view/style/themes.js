@@ -105,14 +105,14 @@ export const dark = {
 
 export const dark2 = {
   primary: css`#222831`,
-  on_primary: css`#c6c6c6`,
+  on_primary: css`#a0a0a0`,
   primary_dark: css`#1a1a1a`,
-  on_primary_dark: css`#c6c6c6`,
+  on_primary_dark: css`#a0a0a0`,
 
   secondary: css`#72c1f5`,
   on_secondary: css`#222831`,
   secondary_dark: css`#0099e6`,
-  on_secondary_dark: css`#c6c6c6`,
+  on_secondary_dark: css`#a0a0a0`,
 
   shadows: css`rgba(255, 255, 255, 0.25)`,
   error: css`#cc3b3b`,
@@ -120,11 +120,11 @@ export const dark2 = {
 
   // graph colors
   background: css`#181c22`,
-  edge: css`#c6c6c6`,
+  edge: css`#a0a0a0`,
   node_bg: css`#181c22`,
   node_bg_contrast: css`#010101`,
-  node_border: css`#c6c6c6`,
-  label_color: css`#c6c6c6`,
+  node_border: css`#a0a0a0`,
+  label_color: css`#a0a0a0`,
 
   role: css`#043954`,
   role_dark: css`#7fb3d2`,
