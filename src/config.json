@@ -44,6 +44,10 @@
           "label" : "Dark"
         },
         {
+          "value" : "dark2",
+          "label" : "Dark-V2"
+        },
+        {
           "value" : "classic",
           "label" : "Graphol"
         }
