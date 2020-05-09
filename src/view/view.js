@@ -57,66 +57,48 @@ export default class GrapholscapeView {
     this.widgets = new Map()
     this.diagram_selector = new GscapeDiagramSelector(diagrams)
     this.diagram_selector.onDiagramChange = this.onDiagramChange
-    this.container.appendChild(this.diagram_selector)
     this.widgets.set('diagram_selector', this.diagram_selector)
 
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    this.container.appendChild(this.explorer)
     this.widgets.set('explorer', this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
     this.entity_details.onWikiClick = this.onWikiClick
-    this.container.appendChild(this.entity_details)
     this.widgets.set('details', this.entity_details)
 
     const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
     btn_fullscreen.style.top = '10px'
     btn_fullscreen.style.right = '10px'
     btn_fullscreen.onClick = this.toggleFullscreen.bind(this)
-    this.container.appendChild(btn_fullscreen)
     this.widgets.set('btn_fullscreen', btn_fullscreen)
 
     const btn_reset = new GscapeButton('filter_center_focus')
     btn_reset.style.bottom = '10px'
     btn_reset.style.right = '10px'
     btn_reset.onClick = this.resetView.bind(this)
-    this.container.appendChild(btn_reset)
     this.widgets.set('btn_reset', btn_reset)
 
     this.filters_widget = new GscapeFilters(this.filters)
     this.filters_widget.onFilterOn = this.filter.bind(this)
     this.filters_widget.onFilterOff = this.unfilter.bind(this)
-    this.filters_widget.btn.onClick = () => {
-      this.blurAll(this.filters_widget)
-      this.filters_widget.toggleBody()
-    }
-    this.container.appendChild(this.filters_widget)
     this.widgets.set('filters', this.filters_widget)
 
     this.ontology_info = new GscapeOntologyInfo(ontology)
-    this.ontology_info.btn.onClick = () => {
-      this.blurAll(this.ontology_info)
-      this.ontology_info.toggleBody()
-    }
-    this.container.appendChild(this.ontology_info)
     this.widgets.set('ontology_info', this.ontology_info)
 
     this.owl_translator = new GscapeOwlTranslator()
-    this.container.appendChild(this.owl_translator)
     this.widgets.set('owl_translator', this.owl_translator)
 
 
     const zoom_widget = new GscapeZoomTools()
     zoom_widget.onZoomIn = this.zoomIn.bind(this)
     zoom_widget.onZoomOut = this.zoomOut.bind(this)
-    this.container.appendChild(zoom_widget)
     this.widgets.set('zoom_widget', zoom_widget)
 
     this.renderer_selector = new GscapeRenderSelector(this.renderers)
     this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this)
-    this.container.appendChild(this.renderer_selector)
     this.widgets.set('simplifications', this.renderer_selector)
 
     this.layout_settings = new GscapeLayoutSettings()
@@ -126,7 +108,7 @@ export default class GrapholscapeView {
     this.layout_settings.onDragAndPinToggle =
       () => this.renderer.dragAndPin = !this.renderer.dragAndPin
     this.layout_settings.hide()
-    this.container.appendChild(this.layout_settings)
+    this.widgets.set('layout_settings', this.layout_settings)
 
     // settings
     this.settings_widget = new GscapeSettings(this.settings)
@@ -135,21 +117,32 @@ export default class GrapholscapeView {
     this.settings_widget.onThemeSelection = this.onThemeSelection.bind(this)
     this.settings_widget.onWidgetEnabled = this.onWidgetEnabled.bind(this)
     this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this)
-    this.container.appendChild(this.settings_widget)
     this.widgets.set('settings_widget', this.settings_widget)
-    this.settings_widget.btn.onClick = () => {
-      this.blurAll(this.settings_widget)
-      this.settings_widget.toggleBody()
-    }
 
     Object.keys(this.renderers).forEach(renderer =>
       this.registerEvents(this.renderers[renderer])
     )
 
+    // disable widget that are disabled in settings
     for (let widget_name in this.settings.widgets) {
       if (!this.settings.widgets[widget_name].enabled)
         this.onWidgetDisabled(widget_name)
     }
+
+    this.widgets.forEach( (widget, key) => {
+      this.container.appendChild(widget)
+      switch (key) {
+        case 'filters':
+        case 'ontology_info':
+        case 'settings_widget':
+        case 'simplifications':
+          widget.onToggleBody = () => this.blurAll(widget)
+          break
+
+        case 'default':
+          break
+      }
+    })
 
     this.setTheme(themes[this.settings.rendering.theme.selected])
   }

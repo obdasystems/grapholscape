@@ -118,6 +118,7 @@ export default class GscapeWidget extends LitElement {
     this._hiddenDefault = false
 
     this.onselectstart = () => { false }
+    this.onToggleBody = () => {}
   }
 
   render () {
@@ -132,6 +133,8 @@ export default class GscapeWidget extends LitElement {
 
       if (this.body)
         this.body.classList.toggle('hide')
+
+      this.onToggleBody()
     }
   }
 
