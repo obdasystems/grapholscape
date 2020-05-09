@@ -26,6 +26,7 @@ export default class GrapholScape {
         this.controller.setOnWikiClickCallback(this._onWikiClick)
         this.controller.init()
         resolve(this.controller)
+        this.view.spinner.style.display = 'none'
       })
       .catch( (reason) => reject(reason))
     })

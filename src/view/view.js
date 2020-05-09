@@ -13,6 +13,7 @@ import FloatingGscapeRenderer from './render/float-renderer'
 import GscapeRenderSelector from './widgets/gscape-render-selector'
 import GscapeLayoutSettings from './widgets/gscape-layout-settings'
 import GscapeSettings from './widgets/gscape-settings'
+import GscapeSpinner from  './widgets/common/spinner'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -40,7 +41,6 @@ export default class GrapholscapeView {
     this.container.mozRequestFullScreen || // Mozilla older API use uppercase 'S'.
     this.container.webkitRequestFullscreen || // Webkit
     this.container.msRequestFullscreen // IE
-
     document.cancelFullscreen =
     document.exitFullscreen ||
     document.cancelFullscreen ||
@@ -48,7 +48,8 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
-    this.setTheme(themes.gscape)
+    this.spinner = new GscapeSpinner()
+    this.container.appendChild(this.spinner)
   }
 
   createUi(ontology, diagrams, predicates, settings) {
