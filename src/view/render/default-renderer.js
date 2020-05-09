@@ -189,6 +189,7 @@ export default class GrapholscapeRenderer {
   }
 
   setTheme(theme) {
+    this.theme = theme
     this.cy.style(getGraphStyle(theme))
   }
 

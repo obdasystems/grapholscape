@@ -43,15 +43,15 @@ export default class GscapeOwlTranslator extends GscapeWidget {
         }
 
         .owl_concept{
-          color:#859900;
+          color: #b58900;
         }
 
         .owl_role{
-          color:#268bd2;
+          color: #268bd2;
         }
 
         .owl_attribute{
-          color:#b58900;
+          color: #859900;
         }
 
         .owl_value-domain{

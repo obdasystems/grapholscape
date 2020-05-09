@@ -333,6 +333,13 @@ export function getGraphStyle(theme) {
       }
     },
 
+    {
+      selector: '[shape = "hexagon"],[type = "value-domain"]',
+      style: {
+        color: theme.node_bg_contrast,
+      }
+    },
+
     //-----------------------------------------------------------
     // selected selector always last
     {

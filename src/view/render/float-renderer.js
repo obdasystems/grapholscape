@@ -74,7 +74,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
         div.style.background = node.style('border-color')
         div.style.borderRadius = '100%'
         div.style.padding = '5px'
-        div.style.color = 'white'
+        div.style.color = this.theme.on_secondary
         div.style.cursor = 'pointer'
         div.setAttribute('title', 'Unlock Node')
 

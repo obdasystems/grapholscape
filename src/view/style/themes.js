@@ -121,7 +121,7 @@ export const dark2 = {
   // graph colors
   background: css`#181c22`,
   edge: css`#a0a0a0`,
-  node_bg: css`#181c22`,
+  node_bg: css`#a0a0a0`,
   node_bg_contrast: css`#010101`,
   node_border: css`#a0a0a0`,
   label_color: css`#a0a0a0`,
