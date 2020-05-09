@@ -5,7 +5,7 @@ import * as default_config from "./config.json"
 export default class GrapholscapeController {
   constructor(ontology, view = null, config = null) {
     this.config = JSON.parse(JSON.stringify(default_config)) //create copy
-    if(config) this.setConfig(config)
+    if(config) this.setConfig(config) // update default config, if passed
     // set language
     this.config.preferences.language.list = ontology.languages.map(lang => {
       return {
@@ -400,6 +400,14 @@ export default class GrapholscapeController {
 
   get ontology() {
     return this._ontology
+  }
+
+  /**
+   * Set the callback function for wiki redirection given an IRI
+   * @param {Function} callback - the function to call when redirecting to a wiki page
+   */
+  set onWikiClick(callback) {
+    this._onWikiClick = callback
   }
 
   get language() {
