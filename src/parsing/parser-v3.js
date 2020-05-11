@@ -2,15 +2,17 @@ import Iri from '../model/iri'
 
 export function getOntologyInfo(xmlDocument) {
   let project = xmlDocument.getElementsByTagName('project')[0]
-  let ontology_name = project.getAttribute('name')
-  let ontology_version = project.getAttribute('version')
   let ontology_languages = xmlDocument.getElementsByTagName('languages')[0].children
+  let iri = getTag(xmlDocument, 'ontology').getAttribute('iri')
+  let iri_elem = getIriElem(iri, xmlDocument)
 
   return {
-    name : ontology_name,
-    version : ontology_version,
+    name : project.getAttribute('name'),
+    version : project.getAttribute('version'),
+    iri : iri,
     languages : [...ontology_languages].map(lang => lang.textContent),
-    default_language : xmlDocument.getElementsByTagName('ontology')[0].getAttribute('lang')
+    default_language : getTag(xmlDocument, 'ontology').getAttribute('lang'),
+    other_infos : getIriAnnotations(iri_elem)
   }
 }
 
@@ -31,7 +33,7 @@ export function getIri(element, ontology) {
   let iri_infos = {}
   if(!element.getElementsByTagName('iri')[0])
     return iri_infos
-  
+
   let node_iri = element.getElementsByTagName('iri')[0].textContent
 
   let iri = ontology.getIriFromValue(Iri.getNamespace(node_iri))
@@ -66,7 +68,7 @@ export function getLabel(element, ontology, xmlDocument) {
   let namespace = Iri.getNamespace(iri)
   let name = iri.slice(namespace.length)
   let prefix = ontology.getIriFromValue(namespace).prefixes[0]
-  
+
   // datatypes always have prefixed iri as label
   if (element.getAttribute('type') == 'value-domain') {
     return prefix + ':' + name
@@ -87,42 +89,15 @@ export function getLabel(element, ontology, xmlDocument) {
       }
     }
   }
-  
+
   // if no label annotation, then use prefixed label
   return Object.keys(labels).length ? labels : prefix + ':' + name
 }
 
-function getIriElem(node, xmlDocument) {
-  // search label in iris
-  let node_iri = node.getElementsByTagName('iri')[0]
-  if (!node_iri) return null
-  let iris = xmlDocument.getElementsByTagName('iris')[0].children
-  node_iri = node_iri.textContent
-  for (let iri of iris) {
-    if(node_iri == iri.getElementsByTagName('value')[0].textContent) {
-      return iri
-    }
-  }
-
-  return null
-}
-
 export function getPredicateInfo(element, xmlDocument, ontology) {
   let result = {}
-  let description_iri = ontology.getIriFromPrefix('rdfs').value + 'comment'
   let actual_iri_elem = getIriElem(element, xmlDocument)
-  let annotations = actual_iri_elem.getElementsByTagName('annotations')[0]
-  let language
-  result.description = {}
-  if (annotations) {
-    annotations = annotations.children
-    for(let annotation of annotations) {
-      if (annotation.getElementsByTagName('property')[0].textContent == description_iri) {
-        language = annotation.getElementsByTagName('language')[0].textContent
-        result.description[language] = annotation.getElementsByTagName('lexicalForm')[0].textContent
-      }
-    }
-  }
+  result = getIriAnnotations(actual_iri_elem)
 
   for(let property of actual_iri_elem.children) {
     if (property.tagName != 'value' && property.tagName != 'annotations') {
@@ -131,4 +106,64 @@ export function getPredicateInfo(element, xmlDocument, ontology) {
   }
 
   return result
+}
+
+function getIriAnnotations(iri) {
+  let result = {}
+  result.description = {}
+  result.annotations = {}
+
+  let annotations = getTag(iri, 'annotations')
+  let language, annotation_kind, lexicalForm
+  if (annotations) {
+    for(let annotation of annotations.children) {
+      annotation_kind = Iri.getRemainingChars(getTagText(annotation,'property'))
+      language = getTagText(annotation, 'language')
+      lexicalForm = getTagText(annotation, 'lexicalForm')
+      if (annotation_kind == 'comment') {
+        if (!result.description[language])
+          result.description[language] = []
+
+        // for comments allow multiple comments for same language
+        result.description[language].push(lexicalForm)
+      } else {
+        if (!result.annotations[annotation_kind])
+          result.annotations[annotation_kind] = {}
+
+        // take only one annotation for language
+        if (!result.annotations[annotation_kind][language])
+          result.annotations[annotation_kind][language] = lexicalForm
+      }
+    }
+  }
+
+  return result
+}
+
+function getTag(root, tagName, n = 0) {
+  return root.getElementsByTagName(tagName)[n]
+}
+
+function getTagText(root, tagName, n = 0) {
+  if (root.getElementsByTagName(tagName)[n])
+    return root.getElementsByTagName(tagName)[n].textContent
+}
+
+function getIriElem(node, xmlDocument) {
+  let node_iri = null
+
+  if (typeof(node) === 'string')
+    node_iri = node
+  else
+    node_iri = getTagText(node, 'iri')
+
+  if (!node_iri) return null
+  let iris = xmlDocument.getElementsByTagName('iris')[0].children
+  for (let iri of iris) {
+    if(node_iri == getTagText(iri, 'value')) {
+      return iri
+    }
+  }
+
+  return null
 }

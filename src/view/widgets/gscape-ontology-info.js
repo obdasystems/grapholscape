@@ -1,6 +1,7 @@
 import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeButton from './common/gscape-button'
+import annotationsTemplate from './common/annotations-template'
 
 export default class GscapeOntologyInfo extends GscapeWidget {
 
@@ -16,16 +17,20 @@ export default class GscapeOntologyInfo extends GscapeWidget {
           left:52px;
         }
 
+        .gscape-panel {
+          padding-right: 0;
+        }
+
         gscape-button {
           position: static;
         }
 
         .iri-dict th.table-header{
-          text-align: center;          
+          text-align: center;
           padding: 12px;
           font-weight: bold;
           border-right: 0;
-          color: var(--theme-gscape-on-primary, ${colors.on_primary});    
+          color: var(--theme-gscape-on-primary, ${colors.on_primary});
         }
 
         .iri-dict th {
@@ -33,6 +38,19 @@ export default class GscapeOntologyInfo extends GscapeWidget {
           border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
           text-align: left;
           font-weight: normal;
+        }
+
+        .wrapper {
+          overflow-y: auto;
+          scrollbar-width: inherit;
+          max-height: 420px;
+          overflow-x: hidden;
+          padding-right: 10px;
+        }
+
+        .section {
+          padding-left: 0;
+          padding-right: 0;
         }
       `,
     ]
@@ -54,34 +72,58 @@ export default class GscapeOntologyInfo extends GscapeWidget {
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Ontology Info</div>
 
-        <table class="details_table">
-          <tr>
-            <th>Name</th>
-            <td>${this.ontology.name}</td>
-          </tr>
-          <tr>
-            <th>Version</th>
-            <td>${this.ontology.version}</td>
-          </tr>
-        </table>
+        <div class="wrapper">
 
-        
-        <table class="iri-dict details_table">
-          <tr><th colspan="2" class="table-header">IRI Prefixes Dictionary</th></tr>
+          <div class="section">
+            <table class="details_table">
+              <tr>
+                <th>Name</th>
+                <td>${this.ontology.name}</td>
+              </tr>
+              <tr>
+                <th>Version</th>
+                <td>${this.ontology.version}</td>
+              </tr>
+            </table>
+          </div>
 
-          ${[...this.ontology.iriSet].map(iri => {
-            if (!iri.isStandard()) {
-              return html`
-                <tr>
-                  <th>${iri.prefixes[0]}</th>
-                  <td>${iri.value}</td>
-                </tr> 
-              `
-            }
-          })}
-        </table> 
+          ${annotationsTemplate(this.ontology)}
+
+          <div class="section">
+            <div class="section-header">IRI Prefixes Dictionary</div>
+            <table class="iri-dict details_table">
+              ${[...this.ontology.iriSet].map(iri => {
+                if (!iri.isStandard()) {
+                  return html`
+                    <tr>
+                      <th>${iri.prefixes[0]}</th>
+                      <td>${iri.value}</td>
+                    </tr>
+                  `
+                }
+              })}
+            </table>
+          </div>
+        </div>
       </div>
     `
+  }
+
+  updated() {
+    if (this.ontology.description) {
+      let descr_container
+      let text
+      Object.keys(this.ontology.description).forEach( language => {
+        text = ''
+        descr_container = this.shadowRoot.querySelector(`[lang = "${language}"] > .descr-text`)
+        this.ontology.description[language].forEach((comment, i) => {
+          i > 0 ?
+            text += '<p>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</p>' :
+            text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')
+        })
+        descr_container.innerHTML = text
+      })
+    }
   }
 }
 

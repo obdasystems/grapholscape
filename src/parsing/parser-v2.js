@@ -41,7 +41,7 @@ export function getIriPrefixesDictionary(xmlDocument) {
       for (let prefix of prefixes) {
         iri_prefixes.push(prefix ? prefix.getAttribute('prefix_value') : '')
       }
-      
+
       // check if it's a standard iri
       properties = iri.getElementsByTagName('property')
       for (let property of properties) {
@@ -75,14 +75,14 @@ export function getIri(element, ontology) {
     rem_chars = label
     namespace = ''
     node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
-  } else { 
+  } else {
     rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':')+1) : label
     namespace = ontology.getIriFromPrefix(node_prefix_iri)
-    
+
     if (!namespace && ParserUtil.isPredicate(element)) {
       console.warn(`Err: the prefix "${node_prefix_iri}" is not associated to any iri`)
     }
-    
+
     namespace = namespace ? namespace.value : ''
   }
 
@@ -114,7 +114,8 @@ export function getPredicateInfo(element, xmlDocument) {
       start_body_index = description.indexOf('<p')
       end_body_index = description.indexOf('</body')
 
-      result.description = { '' : description.slice(start_body_index, end_body_index) }
+      if (description)
+        result.description = { '' : [description.slice(start_body_index, end_body_index)] }
 
       // Impostazione delle funzionalità dei nodi di tipo role o attribute
       if (type === 'attribute' || type === 'role') {

@@ -24,15 +24,18 @@ export default class GrapholParser {
     this.ontology = new Ontology(ontology_info.name, ontology_info.version)
     this.ontology.languages = ontology_info.languages || []
     this.ontology.default_language = ontology_info.default_language || ontology_info.languages[0]
-
-    // Create iri and add them to ontology.iriSet
+    if (ontology_info.other_infos) {
+      this.ontology.annotations = ontology_info.other_infos.annotations
+      this.ontology.description = ontology_info.other_infos.description
+    }
+      // Create iri and add them to ontology.iriSet
     //let iri_list = this.xmlDocument.getElementsByTagName('iri')
     let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
 
     dictionary.forEach(iri => {
       this.ontology.addIri(new Iri(iri.prefixes, iri.value, iri.standard))
     })
-    
+
     let i, k, nodes, edges, cnt, array_json_elems, diagram, node
     let diagrams = this.xmlDocument.getElementsByTagName('diagram')
     for (i = 0; i < diagrams.length; i++) {
@@ -48,8 +51,8 @@ export default class GrapholParser {
         node = this.getBasicNodeInfos(nodes[k], i)
         node.data.iri = this.graphol.getIri(nodes[k], this.ontology)
         node.data.label = this.graphol.getLabel(nodes[k], this.ontology, this.xmlDocument)
-        
-        // label should be an object { language : label }, 
+
+        // label should be an object { language : label },
         // if it's a string then it has no language, assign default language
         if (typeof node.data.label === "string") {
           let aux_label = node.data.label
@@ -84,7 +87,7 @@ export default class GrapholParser {
         array_json_elems.push(node)
 
         // add fake nodes when necessary
-        // for property assertion, facets or for 
+        // for property assertion, facets or for
         // both functional and inverseFunctional ObjectProperties
         if (array_json_elems[cnt].data.type === 'property-assertion' ||
           array_json_elems[cnt].data.type === 'facet' ||
@@ -100,7 +103,7 @@ export default class GrapholParser {
       }
       diagram.addElems(array_json_elems)
 
-      
+
     }
 
     if(i==0) {
@@ -229,7 +232,7 @@ export default class GrapholParser {
       }
     }
 
-    if (edge.data.type == 'membership') 
+    if (edge.data.type == 'membership')
         edge.data.edge_label = 'instance Of'
 
     // Prendiamo i nodi source e target

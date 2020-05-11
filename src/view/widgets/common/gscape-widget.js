@@ -69,8 +69,40 @@ export default class GscapeWidget extends LitElement {
         margin-bottom: 10px;
       }
 
+      .widget-body .section:last-of-type {
+        margin-bottom: 12px;
+      }
+
+      .widget-body .section-header {
+        text-align: center;
+        font-weight: bold;
+        border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        color: var(--theme-gscape-secondary, ${colors.secondary});
+        width: 85%;
+        margin: auto;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+      }
+
+      .description {
+        margin-bottom: 20px;
+      }
+
+      .description:last-of-type {
+        margin-bottom: 0;
+      }
+
+      .description .language {
+        min-width: 50px;
+        display: inline-block;
+        font-weight: bold;
+        color: var(--theme-gscape-secondary, ${colors.secondary});
+        margin: 5px;
+      }
+
+      .section { padding: 10px; }
+
       .details_table{
-        padding: 12px 6px 0 6px;
         border-spacing: 0;
       }
 
@@ -79,6 +111,7 @@ export default class GscapeWidget extends LitElement {
         border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         font-weight: bold;
         text-align:left;
+        min-width: 50px;
       }
 
       .details_table th, td {

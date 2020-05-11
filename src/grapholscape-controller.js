@@ -64,7 +64,9 @@ export default class GrapholscapeController {
     let ontologyViewData = {
       name : this.ontology.name,
       version : this.ontology.version,
-      iriSet : this.ontology.iriSet
+      iriSet : this.ontology.iriSet,
+      annotations : this.ontology.annotations,
+      description : this.ontology.description
     }
 
     // event handlers
@@ -344,7 +346,7 @@ export default class GrapholscapeController {
   }
 
   entityModelToViewData(entityModelData) {
-    let language_variant_properties = ["label", "description"]
+    let language_variant_properties = ["label"]
     for (let property of language_variant_properties) {
       if (entityModelData.data[property]) {
         if (entityModelData.data[property][this.language])
@@ -370,7 +372,8 @@ export default class GrapholscapeController {
       displayed_name : entityModelData.data.displayed_name,
       type : entityModelData.data.type,
       iri : entityModelData.data.iri,
-      description : language_variant_properties.description,
+      description : entityModelData.data.description,
+      annotations : entityModelData.data.annotations,
       functional : entityModelData.data.functional,
       inverseFunctional : entityModelData.data.inverseFunctional,
       asymmetric : entityModelData.data.asymmetric,
