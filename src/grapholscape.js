@@ -19,9 +19,9 @@ export default class GrapholScape {
   }
 
   init(container, config = null) {
+    this.view = new GrapholscapeView(container)
     return new Promise( (resolve,reject) => {
       this.readFilePromise.then( () => {
-        this.view = new GrapholscapeView(container)
         this.controller = new GrapholscapeController(this._ontology, this.view, config)
         this.controller.setOnWikiClickCallback(this._onWikiClick)
         this.controller.init()
