@@ -67,7 +67,7 @@ export const classic = {
   label_color_contrast: css`#fcfcfc`,
 }
 
-export const dark = {
+export const dark_old = {
   primary: css`#333`,
   on_primary: css`#fff`,
   primary_dark: css`#1a1a1a`,
@@ -103,7 +103,7 @@ export const dark = {
   individual_dark: css`#9875b7`,
 }
 
-export const dark2 = {
+export const dark = {
   primary: css`#222831`,
   on_primary: css`#a0a0a0`,
   primary_dark: css`#1a1a1a`,
