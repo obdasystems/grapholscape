@@ -145,7 +145,8 @@ export default class GrapholscapeView {
       }
     })
 
-    this.setTheme(themes[this.settings.rendering.theme.selected])
+    if(this.settings.rendering.theme.selected != 'custom')
+      this.setTheme(themes[this.settings.rendering.theme.selected])
   }
 
   registerEvents(renderer) {
@@ -341,20 +342,20 @@ export default class GrapholscapeView {
   }
 
   onThemeSelection(theme_name) {
-    this.setTheme(themes[theme_name])
+    theme_name == 'custom' ? this.setTheme(this.custom_theme) : this.setTheme(themes[theme_name])
   }
 
   setTheme(theme) {
     // update theme with custom variables "--theme-gscape-[var]" values
-    let container_style = window.getComputedStyle(this.container)
     let theme_aux = {}
 
     let prefix = '--theme-gscape-'
     Object.keys(theme).map(key => {
       let css_key = prefix + key.replace(/_/g,'-')
-      this.container.style.setProperty(css_key, theme[key].cssText)
       // normalize theme using plain strings
-      theme_aux[key] = theme[key].cssText
+      let color = typeof theme[key] == 'string' ? theme[key] : theme[key].cssText
+      this.container.style.setProperty(css_key, color)
+      theme_aux[key] = color
     })
 
     this.graph_container.style.background = theme.background
@@ -362,6 +363,16 @@ export default class GrapholscapeView {
     Object.keys(this.renderers).map(key => {
       this.renderers[key].setTheme(theme_aux)
     });
+  }
+
+  setCustomTheme(new_theme) {
+    this.custom_theme = JSON.parse(JSON.stringify(themes.gscape))
+    Object.keys(new_theme).forEach( color => {
+      if (this.custom_theme[color]) {
+        this.custom_theme[color] = new_theme[color]
+      }
+    })
+    this.setTheme(this.custom_theme)
   }
 
   onWidgetEnabled(widget_name) {

@@ -3,9 +3,12 @@ import computeSimplifiedOntologies from "./util/simplifier"
 import * as default_config from "./config.json"
 
 export default class GrapholscapeController {
-  constructor(ontology, view = null, config = null) {
+  constructor(ontology, view = null, custom_config = null) {
+    this.view = view
+    this._ontology = ontology
+
     this.config = JSON.parse(JSON.stringify(default_config)) //create copy
-    if(config) this.setConfig(config) // update default config, if passed
+    if(custom_config) this.setConfig(custom_config) // update default config, if passed
     // set language
     this.config.preferences.language.list = ontology.languages.map(lang => {
       return {
@@ -33,8 +36,7 @@ export default class GrapholscapeController {
       lite: null,
       float: null
     }
-    this._ontology = ontology
-    this.view = view
+
     this.owl_translator = new OwlTranslator()
     this.actualMode = 'default'
     this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology)
@@ -323,13 +325,25 @@ export default class GrapholscapeController {
 
   setConfig(new_config) {
     Object.keys(new_config).forEach( entry => {
+
+      // if custom theme
+      if (entry == 'theme' && typeof(new_config[entry]) == 'object') {
+        this.view.setCustomTheme((new_config[entry]))
+        this.config.rendering.theme.list.push({
+          value : 'custom',
+          label : 'Custom'
+        })
+        this.config.rendering.theme.selected = 'custom'
+        return // continue to next entry and skip next for
+      }
       for (let area in this.config) {
         try {
           let setting = this.config[area][entry]
           if (setting) {
-            if (setting.type == 'boolean')
+            // apply custom settings only if they match type and are defined in lists
+            if (setting.type == 'boolean' && typeof(new_config[entry]) == 'boolean')
               this.config[area][entry].enabled = new_config[entry]
-            else
+            else if( this.config[area][entry].list.map( elm => elm.value).includes(new_config[entry]))
               this.config[area][entry].selected = new_config[entry]
           }
         } catch (e) {}
