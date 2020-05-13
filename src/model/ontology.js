@@ -45,7 +45,6 @@ export class Ontology {
         result.namespace = namespace.value
         result.prefix = namespace.prefixes[0]
         result.rem_chars = iri.slice(namespace.value.length - 1)
-        result.separatorMiss = true
         break;
       }
     }

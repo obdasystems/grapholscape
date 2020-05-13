@@ -45,10 +45,6 @@ export function getIri(element, ontology) {
       iri_infos.prefix = 'undefined:'
       iri_infos.remaining_chars = node_iri
     }
-
-    if (destructured_iri.separatorMiss) {
-      this.warnings.add(`Namespace separator missing for [${node_iri}]. Please check .graphol file. Namespace Assigned: ${destructured_iri.namespace}`)
-    }
   }
   return iri_infos
 }

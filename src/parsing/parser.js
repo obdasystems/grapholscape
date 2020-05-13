@@ -117,7 +117,7 @@ export default class GrapholParser {
       this.warnings = this.warnings.slice(0, 9)
       this.warnings.push(`...${length - 10} warnings not shown`)
     }
-
+    this.warnings.forEach( w => console.warn(w) )
     return this.ontology
   }
 
