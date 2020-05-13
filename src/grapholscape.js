@@ -26,12 +26,12 @@ export default class GrapholScape {
         this.controller.setOnWikiClickCallback(this._onWikiClick)
         this.controller.init()
         resolve(this.controller)
-        this.view.spinner.style.display = 'none'
       })
       .catch( (reason) => {
         this.view.showDialog(reason.name, reason.message)
         reject(reason)
       })
+      .finally( () => this.view.spinner.hide())
     })
   }
 

@@ -41,6 +41,14 @@ export default class GscapeSpinner extends LitElement {
   render() {
     return html`<div class="loader"></div>`
   }
+
+  hide() {
+    this.style.display = 'none'
+  }
+
+  show() {
+    this.style.display = 'initial'
+  }
 }
 
 customElements.define('gscape-spinner', GscapeSpinner)
