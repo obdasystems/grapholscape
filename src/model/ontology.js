@@ -27,6 +27,32 @@ export class Ontology {
     }
   }
 
+  destructureIri(iri) {
+    let result = {
+      namespace : '',
+      prefix : '',
+      rem_chars : ''
+    }
+    for (let namespace of this.iriSet) {
+      // if iri contains namespace or namespace without last separator
+      if (iri.search(namespace.value) != -1) {
+        result.namespace = namespace.value
+        result.prefix = namespace.prefixes[0]
+
+        result.rem_chars = iri.slice(namespace.value.length)
+        break;
+      } else if (iri.search(namespace.value.slice(0, -1)) != -1) {
+        result.namespace = namespace.value
+        result.prefix = namespace.prefixes[0]
+        result.rem_chars = iri.slice(namespace.value.length - 1)
+        result.separatorMiss = true
+        break;
+      }
+    }
+
+    return result
+  }
+
   // @param {Diagram} diagram
   addDiagram(diagram) {
     this.diagrams.push(diagram)
@@ -38,14 +64,14 @@ export class Ontology {
 
   /**
    * Get an element in the ontology by id, searching in every diagram
-   * @param {string} elem_id - The id of the elem to retrieve 
+   * @param {string} elem_id - The id of the elem to retrieve
    * @param {boolean} json - if true return plain json, if false return cytoscape node
    */
   getElem(elem_id, json = true) {
     for (let diagram of this.diagrams) {
       let node = diagram.cy.$id(elem_id)
       if (node && node.length > 0)
-        return json ? node.json() : node  
+        return json ? node.json() : node
     }
 
     return false
@@ -53,7 +79,7 @@ export class Ontology {
 
   /**
    * Get an element in the ontology by its id and its diagram id
-   * @param {string} elem_id - The id of the element to retrieve 
+   * @param {string} elem_id - The id of the element to retrieve
    * @param {string } diagram_id - the id of the diagram containing the element
    * @param {boolean} json - if true return plain json, if false return cytoscape node
    */
@@ -63,7 +89,7 @@ export class Ontology {
     if (diagram) {
       let node = diagram.cy.$(`[id_xml = "${elem_id}"]`)
       if (node)
-        return json ? node.json() : node 
+        return json ? node.json() : node
     }
 
     return false
@@ -79,7 +105,7 @@ export class Ontology {
     predicates = predicates.sort((a,b) => {
       return a.data('displayed_name').localeCompare(b.data('displayed_name'))
     })
-    
+
     return json ? predicates.jsons() : predicates
   }
 }

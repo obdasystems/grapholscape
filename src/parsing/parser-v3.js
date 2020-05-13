@@ -1,4 +1,4 @@
-import Iri from '../model/iri'
+export let warnings = new Set()
 
 export function getOntologyInfo(xmlDocument) {
   let project = xmlDocument.getElementsByTagName('project')[0]
@@ -18,11 +18,11 @@ export function getOntologyInfo(xmlDocument) {
 
 export function getIriPrefixesDictionary(xmlDocument) {
   let result = []
-  let prefixes = xmlDocument.getElementsByTagName('prefixes')[0].children
+  let prefixes = getTag(xmlDocument, 'prefixes').children
   prefixes.forEach( p => {
     result.push({
-      prefixes : [p.getElementsByTagName('value')[0].textContent],
-      value : p.getElementsByTagName('namespace')[0].textContent,
+      prefixes : [getTagText(p, 'value')],
+      value : getTagText(p, 'namespace'),
       standard : false,
     })
   })
@@ -31,15 +31,25 @@ export function getIriPrefixesDictionary(xmlDocument) {
 
 export function getIri(element, ontology) {
   let iri_infos = {}
-  if(!element.getElementsByTagName('iri')[0])
-    return iri_infos
 
-  let node_iri = element.getElementsByTagName('iri')[0].textContent
+  let node_iri = getTagText(element, 'iri') || ''
+  if (node_iri) {
+    iri_infos.full_iri = node_iri
+    // prefix
+    let destructured_iri = ontology.destructureIri(node_iri)
+    if (destructured_iri.namespace) {
+      iri_infos.prefix = destructured_iri.prefix.length > 0 ? destructured_iri.prefix+':' : destructured_iri.prefix
+      iri_infos.remaining_chars = destructured_iri.rem_chars
+    } else {
+      this.warnings.add(`Namespace not found for [${node_iri}]. The prefix "undefined" has been assigned`)
+      iri_infos.prefix = 'undefined:'
+      iri_infos.remaining_chars = node_iri
+    }
 
-  let iri = ontology.getIriFromValue(Iri.getNamespace(node_iri))
-  iri_infos.full_iri = node_iri
-  iri_infos.prefix = iri.prefixes[0].length > 0 ? iri.prefixes[0]+':' : iri.prefixes[0]
-  iri_infos.remaining_chars = Iri.getRemainingChars(node_iri)
+    if (destructured_iri.separatorMiss) {
+      this.warnings.add(`Namespace separator missing for [${node_iri}]. Please check .graphol file. Namespace Assigned: ${destructured_iri.namespace}`)
+    }
+  }
   return iri_infos
 }
 
@@ -54,54 +64,55 @@ export function getLabel(element, ontology, xmlDocument) {
     'enumeration' : 'oneOf'
   }
 
-  let label = element.getElementsByTagName('label')[0]
-  if (!label) return undefined
-  if (label.textContent) return label.textContent
+  let label = getTagText(element, 'label')
+  if (label) return label
 
+  let iri = getTagText(element, 'iri')
   // constructors node do not have any iri
-  if (!element.getElementsByTagName('iri')[0]) {
+  if (!iri) {
     return constructors_labels[element.getAttribute('type')]
   }
 
   // build prefixed iri to be used in some cases
-  let iri = element.getElementsByTagName('iri')[0].textContent
-  let namespace = Iri.getNamespace(iri)
-  let name = iri.slice(namespace.length)
-  let prefix = ontology.getIriFromValue(namespace).prefixes[0]
-
+  let destructured_iri = ontology.destructureIri(iri)
+  let name = destructured_iri.rem_chars || iri
+  let prefix = destructured_iri.prefix || 'undefined'
+  let prefixed_iri = prefix + ':' + name
   // datatypes always have prefixed iri as label
   if (element.getAttribute('type') == 'value-domain') {
-    return prefix + ':' + name
+    return prefixed_iri
   }
-  let iri_elem = getIriElem(element, xmlDocument)
-  if (!iri_elem) return undefined
+  let iri_xml_elem = getIriElem(element, xmlDocument)
+  if (!iri_xml_elem) {
+    return iri == name ? iri : prefixed_iri
+  }
 
   let label_property_iri = ontology.getIriFromPrefix('rdfs').value + 'label'
-  let annotations = iri_elem.getElementsByTagName('annotations')[0]
+  let annotations = getTag(iri_xml_elem, 'annotations')
   let labels = {}
-  let language
   if (annotations) {
     annotations = annotations.children
     for (let annotation of annotations) {
-      if (annotation.getElementsByTagName('property')[0].textContent == label_property_iri) {
-        language = annotation.getElementsByTagName('language')[0].textContent
-        labels[language] = annotation.getElementsByTagName('lexicalForm')[0].textContent
+      if (getTagText(annotation, 'property') == label_property_iri) {
+        labels[getTagText(annotation, 'language')] = getTagText(annotation, 'lexicalForm')
       }
     }
   }
 
   // if no label annotation, then use prefixed label
-  return Object.keys(labels).length ? labels : prefix + ':' + name
+  return Object.keys(labels).length ? labels : prefixed_iri
 }
 
-export function getPredicateInfo(element, xmlDocument, ontology) {
+export function getPredicateInfo(element, xmlDocument) {
   let result = {}
   let actual_iri_elem = getIriElem(element, xmlDocument)
   result = getIriAnnotations(actual_iri_elem)
 
-  for(let property of actual_iri_elem.children) {
-    if (property.tagName != 'value' && property.tagName != 'annotations') {
-      result[property.tagName] = parseInt(property.textContent) || 0
+  if (actual_iri_elem && actual_iri_elem.children) {
+    for(let property of actual_iri_elem.children) {
+      if (property.tagName != 'value' && property.tagName != 'annotations') {
+        result[property.tagName] = parseInt(property.textContent) || 0
+      }
     }
   }
 
@@ -117,7 +128,7 @@ function getIriAnnotations(iri) {
   let language, annotation_kind, lexicalForm
   if (annotations) {
     for(let annotation of annotations.children) {
-      annotation_kind = Iri.getRemainingChars(getTagText(annotation,'property'))
+      annotation_kind = getRemainingChars(getTagText(annotation,'property'))
       language = getTagText(annotation, 'language')
       lexicalForm = getTagText(annotation, 'lexicalForm')
       if (annotation_kind == 'comment') {
@@ -141,11 +152,12 @@ function getIriAnnotations(iri) {
 }
 
 function getTag(root, tagName, n = 0) {
-  return root.getElementsByTagName(tagName)[n]
+  if (root && root.getElementsByTagName(tagName[n]))
+    return root.getElementsByTagName(tagName)[n]
 }
 
 function getTagText(root, tagName, n = 0) {
-  if (root.getElementsByTagName(tagName)[n])
+  if (root && root.getElementsByTagName(tagName)[n])
     return root.getElementsByTagName(tagName)[n].textContent
 }
 
@@ -166,4 +178,14 @@ function getIriElem(node, xmlDocument) {
   }
 
   return null
+}
+
+function getRemainingChars(iri) {
+  let rem_chars = iri.slice(iri.lastIndexOf('#') + 1)
+  // if rem_chars has no '#' then use '/' as separator
+  if (rem_chars.length == iri.length) {
+    rem_chars = iri.slice(iri.lastIndexOf('/') + 1)
+  }
+
+  return rem_chars
 }

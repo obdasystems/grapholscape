@@ -18,6 +18,7 @@ export default class GscapeHeader extends GscapeWidget {
     this.initial_icon = 'arrow_drop_down'
     this.secondary_icon = 'arrow_drop_up'
     this.icon = this.initial_icon
+    this.onClick = () => {}
   }
 
   static get styles() {
@@ -59,10 +60,15 @@ export default class GscapeHeader extends GscapeWidget {
     return html`
       <div class="head-title"> ${this.title} </div>
       <slot></slot>
-      <mwc-icon class="head-btn" @click="${this.toggleBody}">
+      <mwc-icon class="head-btn" @click="${this.iconClickHandler}">
         ${this.icon}
       </mwc-icon>
     `
+  }
+
+  iconClickHandler() {
+    this.onClick()
+    this.toggleBody()
   }
 
   toggleBody() {

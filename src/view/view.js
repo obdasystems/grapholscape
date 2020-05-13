@@ -14,6 +14,7 @@ import GscapeRenderSelector from './widgets/gscape-render-selector'
 import GscapeLayoutSettings from './widgets/gscape-layout-settings'
 import GscapeSettings from './widgets/gscape-settings'
 import GscapeSpinner from  './widgets/common/spinner'
+import GscapeDialog from './widgets/common/dialog'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -50,6 +51,9 @@ export default class GrapholscapeView {
 
     this.spinner = new GscapeSpinner()
     this.container.appendChild(this.spinner)
+
+    this.dialog = new GscapeDialog()
+    this.container.appendChild(this.dialog)
   }
 
   createUi(ontology, diagrams, predicates, settings) {
@@ -385,5 +389,9 @@ export default class GrapholscapeView {
 
   get actual_diagram_id() {
     return this.diagram_selector.actual_diagram_id
+  }
+
+  showDialog(type, message) {
+    this.dialog.show(type, message)
   }
 }

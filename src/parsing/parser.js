@@ -16,7 +16,7 @@ export default class GrapholParser {
     else if(this.graphol_ver == 3)
       this.graphol = Graphol3
     else
-      throw new Error('Error: Graphol version not supported or not defined.')
+      throw new Error(`Graphol version [${this.graphol_ver}] not supported`)
   }
 
   parseGraphol() {
@@ -107,10 +107,17 @@ export default class GrapholParser {
     }
 
     if(i==0) {
-      throw("The selected .graphol file has no defined diagram")
+      throw new Error("The selected .graphol file has no defined diagram")
     }
 
     this.getIdentityForNeutralNodes()
+    this.warnings = [...this.graphol.warnings];
+    if (this.warnings.length > 10) {
+      let length = this.warnings.length
+      this.warnings = this.warnings.slice(0, 9)
+      this.warnings.push(`...${length - 10} warnings not shown`)
+    }
+
     return this.ontology
   }
 

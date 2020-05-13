@@ -1,5 +1,7 @@
 import * as ParserUtil from './parser_util'
 
+export let warnings = new Set()
+
 export function getOntologyInfo(xmlDocument) {
   let xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0]
   let ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent
@@ -39,8 +41,11 @@ export function getIriPrefixesDictionary(xmlDocument) {
       prefixes = iri.getElementsByTagName('prefix')
       iri_prefixes = []
       for (let prefix of prefixes) {
-        iri_prefixes.push(prefix ? prefix.getAttribute('prefix_value') : '')
+        iri_prefixes.push(prefix.getAttribute('prefix_value'))
       }
+
+      if(iri_prefixes.length == 0)
+        iri_prefixes.push('')
 
       // check if it's a standard iri
       properties = iri.getElementsByTagName('property')
@@ -80,7 +85,7 @@ export function getIri(element, ontology) {
     namespace = ontology.getIriFromPrefix(node_prefix_iri)
 
     if (!namespace && ParserUtil.isPredicate(element)) {
-      console.warn(`Err: the prefix "${node_prefix_iri}" is not associated to any iri`)
+      this.warnings.add(`The prefix "${node_prefix_iri}" is not associated to any namespace`)
     }
 
     namespace = namespace ? namespace.value : ''

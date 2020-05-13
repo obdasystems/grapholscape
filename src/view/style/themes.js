@@ -17,6 +17,8 @@ export const gscape = {
   shadows: css`rgba(0,0,0,0.2)`,
   error: css`#cc3b3b`,
   on_error: css`#fff`,
+  warning: css`#D39F0A`,
+  on_warning: css`#fff`,
 
   // graph colors
   background: css`#fafafa`,
