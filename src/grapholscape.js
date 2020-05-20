@@ -23,7 +23,6 @@ export default class GrapholScape {
     return new Promise( (resolve,reject) => {
       this.readFilePromise.then( () => {
         this.controller = new GrapholscapeController(this._ontology, this.view, config)
-        this.controller.setOnWikiClickCallback(this._onWikiClick)
         this.controller.init()
         resolve(this.controller)
       })

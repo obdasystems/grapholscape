@@ -142,7 +142,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
   wikiClickHandler(e) {
     if (this._onWikiClick)
-      this._onWikiClick(this.entity.iri)
+      this._onWikiClick(this.entity.iri.full_iri)
   }
 
   set onWikiClick(foo) {

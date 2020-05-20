@@ -92,9 +92,6 @@ export default class GrapholscapeController {
     this.view.onBackgroundClick = this.onBackgroundClick.bind(this)
     this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
     this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this)
-    if (this.onWikiClickCallback) {
-      this.view.onWikiClick = this.onWikiClick.bind(this)
-    }
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     this.view.onLanguageChange = this.onLanguageChange.bind(this)
 
@@ -403,14 +400,6 @@ export default class GrapholscapeController {
     })
   }
 
-  onWikiClick(iri) {
-    this.onWikiClickCallback(iri)
-  }
-
-  setOnWikiClickCallback(callback) {
-    this.onWikiClickCallback = callback
-  }
-
   entityModelToViewData(entityModelData) {
     let language_variant_properties = ["label"]
     for (let property of language_variant_properties) {
@@ -479,6 +468,11 @@ export default class GrapholscapeController {
    */
   set onWikiClick(callback) {
     this._onWikiClick = callback
+    this.view.onWikiClick = callback
+  }
+
+  get onWikiClick() {
+    return this._onWikiClick
   }
 
   /**
