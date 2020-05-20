@@ -1,6 +1,6 @@
 import Ontology from '../model/ontology'
-import Iri from '../model/iri'
-import Diagram from '../model/diagrams'
+import Namespace from '../model/namespace'
+import Diagram from '../model/diagram'
 import * as ParserUtil from './parser_util'
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
@@ -28,12 +28,12 @@ export default class GrapholParser {
       this.ontology.annotations = ontology_info.other_infos.annotations
       this.ontology.description = ontology_info.other_infos.description
     }
-      // Create iri and add them to ontology.iriSet
+      // Create iri and add them to ontology.namespaces
     //let iri_list = this.xmlDocument.getElementsByTagName('iri')
     let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
 
     dictionary.forEach(iri => {
-      this.ontology.addIri(new Iri(iri.prefixes, iri.value, iri.standard))
+      this.ontology.addIri(new Namespace(iri.prefixes, iri.value, iri.standard))
     })
 
     let i, k, nodes, edges, cnt, array_json_elems, diagram, node

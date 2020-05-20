@@ -1,27 +1,44 @@
-import cytoscape from 'cytoscape'
+/**
+ * # Ontology
+ * Class used as the Model of the whole app.
+  * @property {string} name
+  * @property {string} version
+  * @property {Namespace[]} namespaces
+  * @property {Diagram[]} diagrams
+ */
 
+import cytoscape from 'cytoscape'
+import Diagram from './diagram'
+import Namespace from './namespace'
 export class Ontology {
-  constructor (name, version, iriSet = [], diagrams = []) {
+  /**
+   *
+   * @param {string} name
+   * @param {string} version
+   * @param {Namespace[]} namespaces
+   * @param {Diagram[]} diagrams
+   */
+  constructor (name, version, namespaces = [], diagrams = []) {
     this.name = name
     this.version = version
-    this.iriSet = iriSet
+    this.namespaces = namespaces
     this.diagrams = diagrams
   }
 
   // @param {Iri} iri
   addIri(iri) {
-    this.iriSet.push(iri)
+    this.namespaces.push(iri)
   }
 
   getIriFromValue(value) {
-    for(let iri of this.iriSet) {
+    for(let iri of this.namespaces) {
       if (iri.value == value)
         return iri
     }
   }
 
   getIriFromPrefix(prefix) {
-    for(let iri of this.iriSet) {
+    for(let iri of this.namespaces) {
       if (iri.prefixes.includes(prefix))
         return iri
     }
@@ -33,7 +50,7 @@ export class Ontology {
       prefix : '',
       rem_chars : ''
     }
-    for (let namespace of this.iriSet) {
+    for (let namespace of this.namespaces) {
       // if iri contains namespace or namespace without last separator
       if (iri.search(namespace.value) != -1) {
         result.namespace = namespace.value
@@ -57,14 +74,24 @@ export class Ontology {
     this.diagrams.push(diagram)
   }
 
+  /**
+   * @param {string|number} index the id or the name of the diagram
+   * @returns {Diagram} The diagram object
+   */
   getDiagram(index) {
-    return this.diagrams[index]
+    if (index < 0 || index > this.diagrams.length) return
+    if (this.diagrams[index]) return this.diagrams[index]
+
+    for ( let diagram of this.diagrams ) {
+      if (diagram.name.toLowerCase() === index.toLowerCase()) return diagram
+    }
   }
 
   /**
    * Get an element in the ontology by id, searching in every diagram
-   * @param {string} elem_id - The id of the elem to retrieve
-   * @param {boolean} json - if true return plain json, if false return cytoscape node
+   * @param {string} elem_id - The `id` of the elem to retrieve
+   * @param {boolean} json - if `true` return plain json, if `false` return cytoscape node. Default `true`
+   * @returns {any} The cytoscape object or the plain json representation depending on `json` parameter.
    */
   getElem(elem_id, json = true) {
     for (let diagram of this.diagrams) {
@@ -77,10 +104,25 @@ export class Ontology {
   }
 
   /**
+   * Retrieve an entity by its IRI.
+   * @param {string} iri - The IRI in full or prefixed form.
+   * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+   * @param {boolean} json - If `true` return plain json, if `false` return cytoscape node. Default `true`
+   * @returns {any} The cytoscape object or the plain json representation depending on `json` parameter.
+   */
+  getEntity(iri, json = true) {
+    for (let entity of this.getEntities()) {
+      if (entity.iri.full === iri ||
+          entity.iri.prefix + entity.iri.rem_chars === iri)
+        return json ? entity.json() : entity
+    }
+  }
+
+  /**
    * Get an element in the ontology by its id and its diagram id
    * @param {string} elem_id - The id of the element to retrieve
    * @param {string } diagram_id - the id of the diagram containing the element
-   * @param {boolean} json - if true return plain json, if false return cytoscape node
+   * @param {boolean} json - if true return plain json, if false return cytoscape node. Default true.
    */
   getElemByDiagramAndId(elem_id, diagram_id, json = true) {
     let diagram = this.getDiagram(diagram_id)
@@ -94,7 +136,13 @@ export class Ontology {
     return false
   }
 
-  // return a collection with all the predicates in the ontology
+  /**
+   * Get the entities in the ontology
+   * @param {boolean} json  - if true return plain json, if false return cytoscape collection. Default true.
+   * @returns {JSON | any}
+   *    - if `json` = `true` : array of JSONs with entities
+   *    - if `json` = `false` : [cytoscape collection](https://js.cytoscape.org/#collection)
+   */
   getEntities (json = true) {
     let predicates = cytoscape().collection()
     this.diagrams.forEach(diagram => {

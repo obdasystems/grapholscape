@@ -92,7 +92,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
           <div class="section">
             <div class="section-header">IRI Prefixes Dictionary</div>
             <table class="iri-dict details_table">
-              ${[...this.ontology.iriSet].map(iri => {
+              ${[...this.ontology.namespaces].map(iri => {
                 if (!iri.isStandard()) {
                   return html`
                     <tr>

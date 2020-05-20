@@ -61,9 +61,10 @@ export default class GscapeFilters extends GscapeWidget {
 
     this.btn = new GscapeButton('filter_list')
     this.btn.onClick = this.toggleBody.bind(this)
+    this.btn.active = false
 
-    this.onFilterOn = null
-    this.onFilterOff = null
+    this.onFilterOn = () => {}
+    this.onFilterOff = () => {}
   }
 
   render() {
@@ -104,38 +105,10 @@ export default class GscapeFilters extends GscapeWidget {
 
   toggleFilter(e) {
     let toggle = e.target
-    this.filters[toggle.id].active = !this.filters[toggle.id].active
-
-    if (toggle.id == 'attributes') {
-      this.filters.value_domain.disabled = this.filters.attributes.active
-    }
-
-    // if 'all' is toggled, it affect all other filters
-    if (toggle.id == 'all') {
-      Object.keys(this.filters).map(key => {
-        if ( key != 'all' && !this.filters[key].disbaled) {
-          this.filters[key].active = this.filters.all.active
-
-          /**
-           * if the actual filter is value-domain it means it's not disabled (see previous if condition)
-           * but when filter all is active filter value-domain must be disabled, let's disable it
-           */
-          if (key == 'value_domain')
-            this.filters[key].disabled = this.filters.all.active
-
-          this.filters[key].active ? this.onFilterOn(this.filters[key]) : this.onFilterOff(this.filters[key])
-        }
-      })
-    } else {
-      // if one filter get deactivated while the 'all' filter is active
-      // then make the 'all' toggle deactivated
-      if (!this.filters[toggle.id].active && this.filters.all.active) {
-        this.filters.all.active = false
-      }
-
-      this.filters[toggle.id].active ? this.onFilterOn(this.filters[toggle.id]) : this.onFilterOff(this.filters[toggle.id])
-    }
-    this.updateTogglesState()
+    if (toggle.id == 'all')
+      toggle.checked ? this.onFilterOn(toggle.id) : this.onFilterOff(toggle.id)
+    else
+      !toggle.checked ? this.onFilterOn(toggle.id) : this.onFilterOff(toggle.id)
   }
 
   updateTogglesState() {

@@ -164,18 +164,56 @@ export default class GrapholscapeView {
     this.renderer.drawDiagram(diagramViewData)
 
     // check if any filter is active and if yes, apply them
-    this.applyActiveFilters()
+    if ( this.filters.all.active ) {
+      this.filter('all')
+    } else {
+      this.applyActiveFilters()
+    }
   }
 
   applyActiveFilters() {
     Object.keys(this.filters).map(key => {
       if (this.filters[key].active)
-        this.filter(this.filters[key])
+        this.renderer.filter(this.filters[key])
     })
   }
 
-  filter(filter_properties) {
-    this.renderer.filter(filter_properties)
+  filter(type) {
+    this.filters[type].active = true
+    this.onFilterToggle(type)
+  }
+
+  unfilter(type) {
+    this.filters[type].active = false
+    this.onFilterToggle(type)
+  }
+
+  onFilterToggle(type) {
+    if (type == 'attributes') {
+      this.filters.value_domain.disabled = this.filters.attributes.active
+    }
+
+    // if 'all' is toggled, it affect all other filters
+    if (type == 'all') {
+      Object.keys(this.filters).map(key => {
+        if ( key != 'all' && !this.filters[key].disbaled) {
+          this.filters[key].active = this.filters.all.active
+
+          /**
+           * if the actual filter is value-domain it means it's not disabled (see previous if condition)
+           * but when filter all is active, filter value-domain must be disabled, let's disable it
+           */
+          if (key == 'value_domain')
+            this.filters[key].disabled = this.filters.all.active
+
+          this.executeFilter(key)
+        }
+      })
+    } else if (!this.filters[type].active && this.filters.all.active) {
+      // if one filter get deactivated while the 'all' filter is active
+      // then make the 'all' toggle deactivated
+      this.filters.all.active = false
+    }
 
     /**
      * force the value_domain filter to stay disabled
@@ -185,21 +223,18 @@ export default class GrapholscapeView {
     if (this.renderer_selector.actual_mode !== 'default') {
       this.filters.value_domain.disabled = true
     }
+
+    this.executeFilter(type)
+    this.widgets.get('filters').updateTogglesState()
   }
 
-  unfilter(filter_properties) {
-    this.renderer.unfilter(filter_properties)
-
-    // Re-Apply other active filters to resolve ambiguity
-    this.applyActiveFilters()
-
-    /**
-     * force the value_domain filter to stay disabled
-     * (activating the attributes filter may able the value_domain filter
-     *  which must stay always disabled in simplified visualization)
-     */
-    if (this.renderer_selector.actual_mode !== 'default') {
-      this.filters.value_domain.disabled = true
+  executeFilter(type) {
+    if (this.filters[type].active) {
+      this.renderer.filter(this.filters[type])
+    } else {
+      this.renderer.unfilter(this.filters[type])
+      // Re-Apply other active filters to resolve ambiguity
+      this.applyActiveFilters()
     }
   }
 
@@ -275,7 +310,8 @@ export default class GrapholscapeView {
     this.renderer = renderer
   }
 
-  changeRenderingMode(mode) {
+  changeRenderingMode(mode, remember_position = true) {
+
     let actual_position = this.renderer.getActualPosition()
     let old_renderer = this.renderer
     this.setRenderer(this.renderers[mode])

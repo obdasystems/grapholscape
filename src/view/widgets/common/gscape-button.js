@@ -5,14 +5,11 @@ import { Icon } from '@material/mwc-icon'
 export default class GscapeButton extends GscapeWidget {
 
   static get properties() {
-    return [
-      super.properties,
-      {
+    return {
         icon: {type : String},
-        active : {type : Boolean},
+        active : { type : Boolean },
       }
-    ]
-  }
+    }
 
   static get styles() {
     let super_styles = super.styles

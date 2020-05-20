@@ -8,6 +8,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
 
   static get properties() {
     return {
+      actual_mode : { type : String }
     }
   }
 
@@ -104,7 +105,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
         <div
           @click="${this.changeRenderer}"
           mode="${mode}"
-          class="renderer-item ${mode == 'default' ? `selected` : ``}"
+          class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
         >
         ${mode == 'default' ?
           graphol_logo :
@@ -115,7 +116,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
         `)}
       </div>
 
-      <gscape-head></gscape-head>
+      <gscape-head title=${this.dict[this.actual_mode].name}></gscape-head>
     `
   }
 
@@ -135,7 +136,6 @@ export default class GscapeRenderSelector extends GscapeWidget {
     super.firstUpdated()
     // invert header's dropdown icon behaviour
     this.header.invertIcons()
-    this.header.title = this.dict["default"].name
   }
 
   set onRendererChange(f) {

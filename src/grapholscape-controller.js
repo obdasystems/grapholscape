@@ -1,3 +1,11 @@
+/**
+ * # GrapholscapeController - API
+ * an object of this class is returned to the promise when reading a graphol file.
+ * It expose a set of methods to set filters, change viewport state etc.
+ *
+ * @version 1.0.0
+ */
+
 import OwlTranslator from "./util/owl"
 import computeSimplifiedOntologies from "./util/simplifier"
 import * as default_config from "./config.json"
@@ -57,6 +65,11 @@ export default class GrapholscapeController {
       this.onLanguageChange(this.config.preferences.language.selected)
   }
 
+  /**
+   * Initialize controller
+   *  - bind all event listener for the view
+   *  - create all widgets with actual config and ontology infos
+   */
   init() {
     let diagramsModelData = this.ontology.diagrams
     let entitiesModelData = this.ontology.getEntities()
@@ -66,7 +79,7 @@ export default class GrapholscapeController {
     let ontologyViewData = {
       name : this.ontology.name,
       version : this.ontology.version,
-      iriSet : this.ontology.iriSet,
+      namespaces : this.ontology.namespaces,
       annotations : this.ontology.annotations,
       description : this.ontology.description
     }
@@ -97,6 +110,14 @@ export default class GrapholscapeController {
   }
 
   /**
+   * Activate one of the defined filters.
+   * @param {String} type - one of `all`, `attributes`, `value-domain`, `individuals`, `universal`, `not`
+   */
+  filter(type) {
+    this.view.filter(type)
+  }
+
+  /*
    * Event handler for the click on a node in the explorer widget.
    * Focus on the node and show its details
    * @param {String} node_id - the id of the node to navigate to
@@ -107,7 +128,7 @@ export default class GrapholscapeController {
     this.showDetails(node)
   }
 
-  /**
+  /*
    * Event handler for a digram change.
    * @param {string} diagram_index The index of the diagram to display
    */
@@ -118,14 +139,20 @@ export default class GrapholscapeController {
 
   /**
    * Display a diagram on the screen.
-   * @param {JSON} diagramModelData The diagram retrieved from model
+   * @param {JSON | string | number} diagramModelData The diagram retrieved from model, its name or it's id
    */
   showDiagram(diagramModelData) {
+    if( typeof diagramModelData == 'string' || typeof diagramModelData == 'number') {
+      diagramModelData = this.ontology.getDiagram(diagramModelData)
+    }
+    if (!diagramModelData)
+      this.view.showDialog('error', `Diagram not existing`)
+
     let diagramViewData = this.diagramModelToViewData(diagramModelData)
     this.view.drawDiagram(diagramViewData)
   }
 
-  /**
+  /*
    * Event Handler for an entity selection.
    * @param {String} entity_id - The Id of the selected entity
    * @param {Boolean} unselect - Flag for unselecting elements on graph
@@ -137,9 +164,10 @@ export default class GrapholscapeController {
 
   /**
    * Show to the user the details of an entity.
-   * @param {JSON} entityModelData The entity retrieved from model
+   * @param {JSON} entityModelData The entity retrieved from model.
+   * @param {Boolean} unselect - Flag for unselecting elements on graph. Default `false`.
    */
-  showDetails(entityModelData, unselect) {
+  showDetails(entityModelData, unselect = false) {
     if (this.config.widgets.details.enabled) {
       let entityViewData = this.entityModelToViewData(entityModelData)
       this.view.showDetails(entityViewData, unselect)
@@ -147,7 +175,7 @@ export default class GrapholscapeController {
   }
 
   onEdgeSelection(edge_id, diagram_id) {
-    /**
+    /*
      * To be refactored.
      * Owl Translator uses cytoscape representation for navigating the graph.
      * We need then the node as a cytoscape object and not as plain json.
@@ -168,7 +196,7 @@ export default class GrapholscapeController {
     }
   }
 
-  /**
+  /*
    * Event handler for a node selection on the graph.
    * Show the details and owl translation if the node is an entity, hide it otherwise.
    * @param {String} node_id - The id of the node to center on
@@ -188,7 +216,7 @@ export default class GrapholscapeController {
       this.view.hideDetails()
     }
 
-    /**
+    /*
      * To be refactored.
      * Owl Translator uses cytoscape representation for navigating the graph.
      * We need then the node as a cytoscape object and not as plain json.
@@ -220,7 +248,7 @@ export default class GrapholscapeController {
   /**
    * Get OWL translation from a node and give the result to the view.
    * To be refactored.
-   * @param {object} node - cytoscape representation of a node
+   * @param {object} elem - Cytoscape representation of a node or a edge
    */
   showOwlTranslation(elem) {
     if (this.config.widgets.owl_translator.enabled) {
@@ -256,20 +284,44 @@ export default class GrapholscapeController {
     }
   }
 
+  /**
+   * Change the rendering mode.
+   * @param {string} mode - the rendering/simplifation mode to activate: `graphol`, `lite`, or `float`
+   * @param {boolean} keep_viewport_state - if `false`, viewport will fit on diagram.
+   * Set it `true` if you don't want the viewport state to change.
+   * In case of no diagram displayed yet, it will be forced to `false`.
+   * Default: `true`.
+   *
+   * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
+   */
+  changeRenderingMode(mode, keep_viewport_state = true) {
+    this.view.changeRenderingMode(mode, keep_viewport_state)
+    this.view.widgets.get('simplifications').actual_mode = mode
+  }
+
+  /**
+   * Redraw actual diagram and set viewport state. If state is not passed, viewport is not changed.
+   * @param {object} state - object representation of **rendered position** in [cytoscape format](https://js.cytoscape.org/#notation/position).
+   *
+   * > Example: { x: 0, y: 0, zoom: 1} - initial state
+   */
   updateGraphView(state) {
     this.onDiagramChange(this.view.actual_diagram_id)
     if (state) this.view.setViewPort(state)
   }
 
+  /**
+   * Update the entities list in the ontology explorer widget
+   */
   updateEntitiesList() {
     let entitiesViewData = this.ontology.getEntities().map( entity => this.entityModelToViewData(entity))
     this.view.updateEntitiesList(entitiesViewData)
   }
 
-  /**
+  /*
    * Set the kind of displayed name for entities.
    * Then refresh diagram and entities list
-   * @param {string} type accepted values: 'label' | 'full' | 'prefixed'
+   * @param {string} - type accepted values: `label` | `full` | `prefixed`
    */
   onEntityNameTypeChange(type) {
     this.SimplifiedOntologyPromise.then(() => {
@@ -312,10 +364,10 @@ export default class GrapholscapeController {
     })
   }
 
-  /**
+  /*
    * Update selected language in config and set displayed names accordingly
    * Then refresh diagram and entities list
-   * @param {string} language
+   * @param {string} - language
    */
   onLanguageChange(language) {
     this.config.preferences.language.selected = language
@@ -420,18 +472,36 @@ export default class GrapholscapeController {
   }
 
   /**
+   * Setter.
    * Set the callback function for wiki redirection given an IRI
-   * @param {Function} callback - the function to call when redirecting to a wiki page
+   * @param {Function} callback - the function to call when redirecting to a wiki page.
+   * The callback will receive the IRI.
    */
   set onWikiClick(callback) {
     this._onWikiClick = callback
   }
 
+  /**
+   * Getter
+   * @returns {string} - selected language
+   */
   get language() {
     return this.config.preferences.language.selected
   }
 
+  /**
+   * Getter
+   * @returns {Array} - languages defined in the ontology
+   */
   get languagesList() {
     return this.config.preferences.language.list.map(lang => lang.value)
+  }
+
+  /**
+   * Getter
+   * @returns {Diagram} - the diagram displayed
+   */
+  get actual_diagram() {
+    return this.ontology.getDiagram(this.view.actual_diagram_id)
   }
 }
