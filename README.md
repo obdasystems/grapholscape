@@ -2,7 +2,7 @@
   <img width="50%" src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
 </p>
 
-# 
+#
 Advanced web viewer for ontologies written in [GRAPHOL](http://www.obdasystems.com/it/node/107). [**Try me**](https://obdasystems.github.io/grapholscape/)
 
 ## Features
@@ -29,34 +29,21 @@ Import GrapholScape
 <script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
 ```
 
-Create an instance of grapholscape providing a `.graphol` ontology file. Then `init` the visualization in an **empty** container
+Create an instance of grapholscape providing a `.graphol` ontology file and an empty container.
 ```js
-const grapholscape = new Grapholscape(file)
-grapholscape.init(container).then( () => {
-  grapholscape.showDiagram(0)
+const grapholscape = new Grapholscape(file, container)
+grapholscape.then( gscape_controller => {
+  gscape_controller.showDiagram(0)
 })
 ```
 > **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
 
-#### Disabling widgets at initialisation
-It is possible to pass a json config object to the init function disabling one of the following widgets:
-- Owl Translator : `owl_translator`
-- Graphol-lite Mode Button : `lite_mode`
-- Entity Details : `details`
-- Ontology Explorer : `explorer`
-- Filters button : `filters`
+Once the initialization phase is done, `gscape_controller` will be returned and can be used to perform actions on the tool.
+In the example we saw the method `showDiagram(0)`, for the complete API please read [`doc/api.md`](doc/api.md).
 
-**example**: Grapholscape without lite-mode and owl translator:
-```js
-const config = {
-  "owl_translator" : false,
-  "lite_mode" : false,
-}
-const grapholscape = new Grapholscape(file)
-grapholscape.init(container, config).then( () => {
-  grapholscape.showDiagram(0)
-})
-```
+Information about entities, namesapaces and diagrams are stored in `gscape_controller.ontology`. Read More in [`doc/ontology.md`](doc/ontology.md).
+
+It is possible to pass also a json config object to define custom default settings. Read more: [default settings customization](https://github.com/obdasystems/grapholscape/wiki/Settings#default-settings-customization).
 
 ### Build it locally
 Install `Node` and `npm`.
