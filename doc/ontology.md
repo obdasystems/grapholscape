@@ -44,18 +44,17 @@ Get an element in the ontology by id, searching in every diagram
 
 * **any** The cytoscape object or the plain json representation depending on `json` parameter.
 
-## getEntity(iri, json)
+## getEntity(iri)
 
 Retrieve an entity by its IRI.
 
 ### Params:
 
 * **string** *iri* - The IRI in full or prefixed form. i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-* **boolean** *json* - If `true` return plain json, if `false` return cytoscape node. Default `true`
 
 ### Return:
 
-* **any** The cytoscape object or the plain json representation depending on `json` parameter.
+* **JSON** The plain json representation of the entity.
 
 ## getElemByDiagramAndId(elem_id, diagram_id, json)
 

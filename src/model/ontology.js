@@ -107,15 +107,13 @@ export class Ontology {
    * Retrieve an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-   * @param {boolean} json - If `true` return plain json, if `false` return cytoscape node. Default `true`
-   * @returns {any} The cytoscape object or the plain json representation depending on `json` parameter.
+   * @returns {JSON} The plain json representation of the entity.
    */
-  getEntity(iri, json = true) {
-    for (let entity of this.getEntities()) {
-      if (entity.iri.full === iri ||
-          entity.iri.prefix + entity.iri.rem_chars === iri)
-        return json ? entity.json() : entity
-    }
+  getEntity(iri) {
+    return this.getEntities().find(i => {
+      return i.data.iri.full_iri === iri ||
+        i.data.iri.prefix + i.data.iri.rem_chars === iri
+    })
   }
 
   /**
