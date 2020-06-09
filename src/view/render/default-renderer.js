@@ -146,7 +146,7 @@ export default class GrapholscapeRenderer {
       let number_edges_in_out = getNumberEdgesInOut(neighbour)
 
       if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') === 'input')) {
-        this.filterElem(e.target(), filter_class)
+        this.filterElem(e.target(), filter_class, cy)
       }
     })
 
@@ -157,7 +157,7 @@ export default class GrapholscapeRenderer {
       let number_edges_in_out = getNumberEdgesInOut(neighbour)
 
       if (!e.source().hasClass('filtered') && number_edges_in_out === 0) {
-        this.filterElem(e.source(), filter_class)
+        this.filterElem(e.source(), filter_class, cy)
       }
     })
 

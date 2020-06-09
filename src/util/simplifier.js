@@ -57,7 +57,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
     filterByCriterion(cy, isQualifiedRestriction)
     filterByCriterion(cy, isExistentialWithCardinality)
-    filterByCriterion(cy,inputEdgesBetweenRestrictions)
+    filterByCriterion(cy, inputEdgesBetweenRestrictions)
     cy.remove('.filtered')
     simplifyDomainAndRange(cy)
     simplifyComplexHierarchies(cy)
@@ -86,7 +86,7 @@ export default function computeSimplifiedOntologies(ontology) {
           cy.remove(edgeToRestriction)
         }
       })
-      aux_renderer.filterElem(restriction, cy)
+      aux_renderer.filterElem(restriction, '', cy)
       cy.remove('.filtered')
     })
 
@@ -223,7 +223,7 @@ export default function computeSimplifiedOntologies(ontology) {
     let cy = cy_instance
     cy.$('*').forEach(node => {
       if (criterion(node)) {
-         aux_renderer.filterElem(node, cy)
+        aux_renderer.filterElem(node, '', cy)
       }
     })
   }
@@ -334,7 +334,7 @@ export default function computeSimplifiedOntologies(ontology) {
       // remove the intersection
       if (and.incomers('edge[type !*= "input"]').size() == 0 &&
           and.connectedEdges('edge[type = "equivalence"]').size() == 0) {
-         aux_renderer.filterElem(and, cy)
+         aux_renderer.filterElem(and, '', cy)
       } else {
         // process incoming inclusion
         and.incomers('edge[type !*= "input"]').forEach(edge => {
@@ -431,7 +431,7 @@ export default function computeSimplifiedOntologies(ontology) {
     cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
       if(isComplexHierarchy(node)) {
         replicateAttributes(node)
-        aux_renderer.filterElem(node, cy)
+        aux_renderer.filterElem(node, '', cy)
       }
     })
 
@@ -451,7 +451,7 @@ export default function computeSimplifiedOntologies(ontology) {
     })
 
     cy.remove(all_attributes)
-    aux_renderer.filterElem(all_inclusion_attributes, cy)
+    aux_renderer.filterElem(all_inclusion_attributes, '', cy)
 
     function addAttribute(target, i, attribute, edge_classes) {
       let new_attribute = attribute.json()
