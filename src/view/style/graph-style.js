@@ -334,9 +334,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[shape = "hexagon"],[type = "value-domain"]',
+      selector: '[shape = "hexagon"],[type = "value-domain"], .facet',
       style: {
-        color: theme.node_bg_contrast,
+        'color': theme.node_bg_contrast,
       }
     },
 

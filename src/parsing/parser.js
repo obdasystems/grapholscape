@@ -338,7 +338,6 @@ export default class GrapholParser {
         data: {
           height: nodo.data.height,
           width: nodo.data.width,
-          fillColor: '#ddd',
           shape: 'polygon',
           shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
           diagram_id: nodo.data.diagram_id,
@@ -348,7 +347,8 @@ export default class GrapholParser {
         position: {
           x: nodo.position.x,
           y: nodo.position.y
-        }
+        },
+        classes: 'fake-top-rhomboid' 
       }
 
       var bottom_rhomboid = {
@@ -356,7 +356,6 @@ export default class GrapholParser {
         data: {
           height: nodo.data.height,
           width: nodo.data.width,
-          fillColor: '#fff',
           shape: 'polygon',
           shape_points: '-0.95 0 0.95 0 0.9 1 -1 1',
           diagram_id: nodo.data.diagram_id,
