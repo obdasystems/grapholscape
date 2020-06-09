@@ -330,7 +330,7 @@ export default class GrapholParser {
     if (nodo.data.type ==='facet') {
       // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
       // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
-      nodo.data.label = nodo.data.label.replace('^^', '\n\n')
+      nodo.data.displayed_name = nodo.data.displayed_name.replace('^^', '\n\n')
       nodo.data.labelYpos = nodo.data.height
       // Creating the top rhomboid for the grey background
       var top_rhomboid = {
@@ -418,7 +418,7 @@ export default class GrapholParser {
       // we added the double style border and changed the node height and width.
       // The label position is function of node's height and width so we adjust it
       // now after those changes.
-      if (nodo.data.label != null) {
+      if (nodo.data.displayed_name != null) {
         nodo.data.labelYpos -= 4
       }
       array_json_nodes[array_json_nodes.length - 1] = triangle_left
