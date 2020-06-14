@@ -536,7 +536,8 @@ export default function computeSimplifiedOntologies(ontology) {
         role_inverse.data('labelYpos', 0)
         role_inverse.data('text_background', true)
       } else {
-        input_edge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
+        if (input_edge.source())
+          input_edge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
         cy.remove(role_inverse)
       }
     })

@@ -63,8 +63,7 @@ export default class OwlTranslator {
       if (edge.source().data('type') == 'property-assertion') {
         var property_node = edge.source()
 
-        property_node.data('inputs').forEach(function (input_id) {
-          input = self.cy.$('edge[id_xml = "' + input_id + '"]').source()
+        property_node.incomers('[type = "input"]').sources().forEach( input => {
           owl_string += self.nodeToOwlString(input) + ' '
         })
 
@@ -300,7 +299,7 @@ export default class OwlTranslator {
       case 'role-chain':
         if (!node.data('inputs')) { return missing_operand }
 
-        return objectPropertyChain(this, node.data('inputs'))
+        return objectPropertyChain(this, node.incomers('[type = "input"]').sources())
         break
 
       case 'union':
@@ -416,8 +415,7 @@ export default class OwlTranslator {
       var owl_string
 
       var owl_string = 'ObjectPropertyChain('
-      inputs.forEach(function (input_id) {
-        input = self.cy.$('edge[id_xml = "' + input_id + '"]').source()
+      inputs.forEach( input => {
         owl_string += self.nodeToOwlString(input) + ' '
       })
 
