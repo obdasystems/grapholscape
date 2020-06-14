@@ -108,7 +108,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
               <table class="details_table">
                 <tr>
                   <th>Name</th>
-                  <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.label.replace(/\r?\n|\r/g, '')}</td>
+                  <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.iri.remaining_chars}</td>
                 </tr>
                 <tr>
                   <th>Type</th>
