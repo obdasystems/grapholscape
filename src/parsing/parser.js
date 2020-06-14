@@ -239,8 +239,10 @@ export default class GrapholParser {
       }
     }
 
-    if (edge.data.type == 'membership')
-        edge.data.edge_label = 'instance Of'
+    if (edge.data.type.toLowerCase() == 'membership')
+      edge.data.displayed_name = 'instance Of'
+    else if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different')
+      edge.data.displayed_name = edge.data.type.toLowerCase()
 
     // Prendiamo i nodi source e target
     var source = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.source)
