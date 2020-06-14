@@ -60,6 +60,19 @@ export function getLabel(element, ontology, xmlDocument) {
     'enumeration' : 'oneOf'
   }
 
+  // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
+  if (element.getAttribute('type') === 'facet' ) {
+    let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
+    constraining_facet = constraining_facet.prefix + ':' + constraining_facet.rem_chars
+
+    let value = getTagText(element, 'lexicalForm')
+
+    let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
+    datatype = datatype.prefix + ':' + datatype.rem_chars
+
+    return constraining_facet + '^^"' + value +'"'
+  }
+
   let label = getTagText(element, 'label')
   if (label) return label
 

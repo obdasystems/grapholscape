@@ -256,8 +256,9 @@ export default class OwlTranslator {
         break
 
       case 'facet':
-        var rem_chars = node.data('iri').remaining_chars.split('^^')
-        return '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>'
+        var rem_chars = node.data('displayed_name').replace(/\n/g, '^').split('^^')
+        rem_chars[0] = rem_chars[0].slice(4)
+        return '<span class="axiom_predicate_prefix">xsd:</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>'
         break
 
       case 'domain-restriction':
