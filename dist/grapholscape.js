@@ -1,18 +1,18 @@
 /**
  * MIT License
- * 
+ *
  * Copyright (c) 2018-2019 OBDA Systems
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -1397,6 +1397,28 @@
 	addToUnscopables('values');
 	addToUnscopables('entries');
 
+	var defineProperty$3 = objectDefineProperty.f;
+
+	var FunctionPrototype = Function.prototype;
+	var FunctionPrototypeToString = FunctionPrototype.toString;
+	var nameRE = /^\s*function ([^ (]*)/;
+	var NAME = 'name';
+
+	// Function instances `.name` property
+	// https://tc39.github.io/ecma262/#sec-function-instances-name
+	if (descriptors && !(NAME in FunctionPrototype)) {
+	  defineProperty$3(FunctionPrototype, NAME, {
+	    configurable: true,
+	    get: function () {
+	      try {
+	        return FunctionPrototypeToString.call(this).match(nameRE)[1];
+	      } catch (error) {
+	        return '';
+	      }
+	    }
+	  });
+	}
+
 	// `Object.defineProperty` method
 	// https://tc39.github.io/ecma262/#sec-object.defineproperty
 	_export({ target: 'Object', stat: true, forced: !descriptors, sham: !descriptors }, {
@@ -2182,6 +2204,33 @@
 	  }
 	});
 
+	// Safari bug https://bugs.webkit.org/show_bug.cgi?id=200829
+	var NON_GENERIC = !!nativePromiseConstructor && fails(function () {
+	  nativePromiseConstructor.prototype['finally'].call({ then: function () { /* empty */ } }, function () { /* empty */ });
+	});
+
+	// `Promise.prototype.finally` method
+	// https://tc39.github.io/ecma262/#sec-promise.prototype.finally
+	_export({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
+	  'finally': function (onFinally) {
+	    var C = speciesConstructor(this, getBuiltIn('Promise'));
+	    var isFunction = typeof onFinally == 'function';
+	    return this.then(
+	      isFunction ? function (x) {
+	        return promiseResolve(C, onFinally()).then(function () { return x; });
+	      } : onFinally,
+	      isFunction ? function (e) {
+	        return promiseResolve(C, onFinally()).then(function () { throw e; });
+	      } : onFinally
+	    );
+	  }
+	});
+
+	// patch native Promise.prototype for native async functions
+	if (typeof nativePromiseConstructor == 'function' && !nativePromiseConstructor.prototype['finally']) {
+	  redefine(nativePromiseConstructor.prototype, 'finally', getBuiltIn('Promise').prototype['finally']);
+	}
+
 	// `String.prototype.{ codePointAt, at }` methods implementation
 	var createMethod$2 = function (CONVERT_TO_STRING) {
 	  return function ($this, pos) {
@@ -2373,16 +2422,16 @@
 	defineWellKnownSymbol('unscopables');
 
 	var nativeAssign = Object.assign;
-	var defineProperty$3 = Object.defineProperty;
+	var defineProperty$4 = Object.defineProperty;
 
 	// `Object.assign` method
 	// https://tc39.github.io/ecma262/#sec-object.assign
 	var objectAssign = !nativeAssign || fails(function () {
 	  // should have correct order of operations (Edge bug)
-	  if (descriptors && nativeAssign({ b: 1 }, nativeAssign(defineProperty$3({}, 'a', {
+	  if (descriptors && nativeAssign({ b: 1 }, nativeAssign(defineProperty$4({}, 'a', {
 	    enumerable: true,
 	    get: function () {
-	      defineProperty$3(this, 'b', {
+	      defineProperty$4(this, 'b', {
 	        value: 3,
 	        enumerable: false
 	      });
@@ -2820,28 +2869,6 @@
 	_export({ target: 'Function', proto: true }, {
 	  bind: functionBind
 	});
-
-	var defineProperty$4 = objectDefineProperty.f;
-
-	var FunctionPrototype = Function.prototype;
-	var FunctionPrototypeToString = FunctionPrototype.toString;
-	var nameRE = /^\s*function ([^ (]*)/;
-	var NAME = 'name';
-
-	// Function instances `.name` property
-	// https://tc39.github.io/ecma262/#sec-function-instances-name
-	if (descriptors && !(NAME in FunctionPrototype)) {
-	  defineProperty$4(FunctionPrototype, NAME, {
-	    configurable: true,
-	    get: function () {
-	      try {
-	        return FunctionPrototypeToString.call(this).match(nameRE)[1];
-	      } catch (error) {
-	        return '';
-	      }
-	    }
-	  });
-	}
 
 	var HAS_INSTANCE = wellKnownSymbol('hasInstance');
 	var FunctionPrototype$1 = Function.prototype;
@@ -5539,33 +5566,6 @@
 	    return capability.promise;
 	  }
 	});
-
-	// Safari bug https://bugs.webkit.org/show_bug.cgi?id=200829
-	var NON_GENERIC = !!nativePromiseConstructor && fails(function () {
-	  nativePromiseConstructor.prototype['finally'].call({ then: function () { /* empty */ } }, function () { /* empty */ });
-	});
-
-	// `Promise.prototype.finally` method
-	// https://tc39.github.io/ecma262/#sec-promise.prototype.finally
-	_export({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
-	  'finally': function (onFinally) {
-	    var C = speciesConstructor(this, getBuiltIn('Promise'));
-	    var isFunction = typeof onFinally == 'function';
-	    return this.then(
-	      isFunction ? function (x) {
-	        return promiseResolve(C, onFinally()).then(function () { return x; });
-	      } : onFinally,
-	      isFunction ? function (e) {
-	        return promiseResolve(C, onFinally()).then(function () { throw e; });
-	      } : onFinally
-	    );
-	  }
-	});
-
-	// patch native Promise.prototype for native async functions
-	if (typeof nativePromiseConstructor == 'function' && !nativePromiseConstructor.prototype['finally']) {
-	  redefine(nativePromiseConstructor.prototype, 'finally', getBuiltIn('Promise').prototype['finally']);
-	}
 
 	var collection = function (CONSTRUCTOR_NAME, wrapper, common) {
 	  var IS_MAP = CONSTRUCTOR_NAME.indexOf('Map') !== -1;
@@ -39780,57 +39780,195 @@
 	function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 	function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+	/**
+	 * @property {string} name - diagram's name
+	 * @property {string | number} id - diagram's identifier
+	 * @property {cytoscape} cy - cytoscape headless instance for managing elements
+	 */
+
+	var Diagram =
+	/*#__PURE__*/
+	function () {
+	  /**
+	   * @param {string} name
+	   * @param {string | number} id
+	   * @param {JSON} elements - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
+	   */
+	  function Diagram(name, id) {
+	    var elements = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+	    _classCallCheck(this, Diagram);
+
+	    this.name = name;
+	    this.id = id;
+	    this.cy = cytoscape$1();
+	    if (elements) this.addElems(elements);
+	  }
+	  /**
+	   * Add a collection of nodes and edges to the diagram
+	   * @param {JSON} elems - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
+	   */
+
+
+	  _createClass(Diagram, [{
+	    key: "addElems",
+	    value: function addElems(elems) {
+	      this.cy.add(elems);
+	    }
+	    /**
+	     * @returns {any} - A cytoscape collection with nodes and edges
+	     */
+
+	  }, {
+	    key: "getElems",
+	    value: function getElems() {
+	      return this.nodes.union(this.edges);
+	    }
+	    /**
+	     * Getter
+	     * @returns {JSON} - nodes in JSON
+	     */
+
+	  }, {
+	    key: "nodes",
+	    get: function get() {
+	      return this.cy.nodes().jsons();
+	    }
+	    /**
+	     * Getter
+	     * @returns {JSON} - edges in JSON
+	     */
+
+	  }, {
+	    key: "edges",
+	    get: function get() {
+	      return this.cy.edges().jsons();
+	    }
+	    /**
+	     * Getter
+	     * @returns {any} - nodes and edges in JSON
+	     */
+
+	  }, {
+	    key: "elems",
+	    get: function get() {
+	      return this.nodes.union(this.edges);
+	    }
+	  }]);
+
+	  return Diagram;
+	}();
+
+	function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _defineProperties$1(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$1(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$1(Constructor.prototype, protoProps); if (staticProps) _defineProperties$1(Constructor, staticProps); return Constructor; }
+
+	/**
+	 * Class representing a namespace
+	 * @property {string[]} prefixes - array of prefixes
+	 * @property {string} value - namespace lexical form
+	 * @property {boolean} standard - bool saying if the namespace is standard or user defined
+	 */
+	var Namespace =
+	/*#__PURE__*/
+	function () {
+	  /**
+	   * @param {string[]} prefixes - array of prefixes
+	   * @param {string} value - namespace lexical form
+	   * @param {boolean} standard - bool saying if the namespace is standard or user defined
+	   */
+	  function Namespace() {
+	    var prefixes = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+	    var value = arguments.length > 1 ? arguments[1] : undefined;
+	    var standard = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+	    _classCallCheck$1(this, Namespace);
+
+	    this.prefixes = prefixes;
+	    this.value = value;
+	    this.standard = standard;
+	  }
+	  /**
+	   * Getter
+	   */
+
+
+	  _createClass$1(Namespace, [{
+	    key: "isStandard",
+
+	    /**
+	     * Wether the namespace is standard (`true`) or user defined (`false`)
+	     * @returns {boolean}
+	     */
+	    value: function isStandard() {
+	      return this.standard;
+	    }
+	  }, {
+	    key: "value",
+	    get: function get() {
+	      return this._value;
+	    }
+	    /**
+	     * Setter.
+	     * Auto adding final terminator if not present
+	     * @param {string} value - the string to set as value
+	     */
+	    ,
+	    set: function set(value) {
+	      if (!value.endsWith('/') && !value.endsWith('#')) value += '/';
+	      this._value = value;
+	    }
+	  }]);
+
+	  return Namespace;
+	}();
+
+	function _classCallCheck$2(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _defineProperties$2(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$2(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$2(Constructor.prototype, protoProps); if (staticProps) _defineProperties$2(Constructor, staticProps); return Constructor; }
 	var Ontology =
 	/*#__PURE__*/
 	function () {
+	  /**
+	   *
+	   * @param {string} name
+	   * @param {string} version
+	   * @param {Namespace[]} namespaces
+	   * @param {Diagram[]} diagrams
+	   */
 	  function Ontology(name, version) {
-	    var iriSet = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new Set();
+	    var namespaces = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 	    var diagrams = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
 
-	    _classCallCheck(this, Ontology);
+	    _classCallCheck$2(this, Ontology);
 
 	    this.name = name;
 	    this.version = version;
-	    this.iriSet = iriSet;
+	    this.namespaces = namespaces;
 	    this.diagrams = diagrams;
 	  } // @param {Iri} iri
 
 
-	  _createClass(Ontology, [{
+	  _createClass$2(Ontology, [{
 	    key: "addIri",
 	    value: function addIri(iri) {
-	      this.iriSet.add(iri);
-	    } // @param {Diagram} diagram
-
-	  }, {
-	    key: "addDiagram",
-	    value: function addDiagram(diagram) {
-	      this.diagrams.push(diagram);
+	      this.namespaces.push(iri);
 	    }
 	  }, {
-	    key: "getDiagram",
-	    value: function getDiagram(index) {
-	      return this.diagrams[index];
-	    }
-	    /**
-	     * Get an element in the ontology by id, searching in every diagram
-	     * @param {string} elem_id - The id of the elem to retrieve 
-	     * @param {boolean} json - if true return plain json, if false return cytoscape node
-	     */
-
-	  }, {
-	    key: "getElem",
-	    value: function getElem(elem_id) {
-	      var json = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+	    key: "getIriFromValue",
+	    value: function getIriFromValue(value) {
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
 	      var _iteratorError = undefined;
 
 	      try {
-	        for (var _iterator = this.diagrams[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var diagram = _step.value;
-	          var node = diagram.cy.$id(elem_id);
-	          if (node && node.length > 0) return json ? node.json() : node;
+	        for (var _iterator = this.namespaces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var iri = _step.value;
+	          if (iri.value == value) return iri;
 	        }
 	      } catch (err) {
 	        _didIteratorError = true;
@@ -39846,14 +39984,177 @@
 	          }
 	        }
 	      }
+	    }
+	  }, {
+	    key: "getIriFromPrefix",
+	    value: function getIriFromPrefix(prefix) {
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+
+	      try {
+	        for (var _iterator2 = this.namespaces[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var iri = _step2.value;
+	          if (iri.prefixes.includes(prefix)) return iri;
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+	            _iterator2["return"]();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: "destructureIri",
+	    value: function destructureIri(iri) {
+	      var result = {
+	        namespace: '',
+	        prefix: '',
+	        rem_chars: ''
+	      };
+	      var _iteratorNormalCompletion3 = true;
+	      var _didIteratorError3 = false;
+	      var _iteratorError3 = undefined;
+
+	      try {
+	        for (var _iterator3 = this.namespaces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var namespace = _step3.value;
+
+	          // if iri contains namespace or namespace without last separator
+	          if (iri.search(namespace.value) != -1) {
+	            result.namespace = namespace.value;
+	            result.prefix = namespace.prefixes[0];
+	            result.rem_chars = iri.slice(namespace.value.length);
+	            break;
+	          } else if (iri.search(namespace.value.slice(0, -1)) != -1) {
+	            result.namespace = namespace.value;
+	            result.prefix = namespace.prefixes[0];
+	            result.rem_chars = iri.slice(namespace.value.length - 1);
+	            break;
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError3 = true;
+	        _iteratorError3 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion3 && _iterator3["return"] != null) {
+	            _iterator3["return"]();
+	          }
+	        } finally {
+	          if (_didIteratorError3) {
+	            throw _iteratorError3;
+	          }
+	        }
+	      }
+
+	      return result;
+	    } // @param {Diagram} diagram
+
+	  }, {
+	    key: "addDiagram",
+	    value: function addDiagram(diagram) {
+	      this.diagrams.push(diagram);
+	    }
+	    /**
+	     * @param {string|number} index the id or the name of the diagram
+	     * @returns {Diagram} The diagram object
+	     */
+
+	  }, {
+	    key: "getDiagram",
+	    value: function getDiagram(index) {
+	      if (index < 0 || index > this.diagrams.length) return;
+	      if (this.diagrams[index]) return this.diagrams[index];
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
+
+	      try {
+	        for (var _iterator4 = this.diagrams[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var diagram = _step4.value;
+	          if (diagram.name.toLowerCase() === index.toLowerCase()) return diagram;
+	        }
+	      } catch (err) {
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion4 && _iterator4["return"] != null) {
+	            _iterator4["return"]();
+	          }
+	        } finally {
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
+	          }
+	        }
+	      }
+	    }
+	    /**
+	     * Get an element in the ontology by id, searching in every diagram
+	     * @param {string} elem_id - The `id` of the elem to retrieve
+	     * @param {boolean} json - if `true` return plain json, if `false` return cytoscape node. Default `true`
+	     * @returns {any} The cytoscape object or the plain json representation depending on `json` parameter.
+	     */
+
+	  }, {
+	    key: "getElem",
+	    value: function getElem(elem_id) {
+	      var json = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
+
+	      try {
+	        for (var _iterator5 = this.diagrams[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var diagram = _step5.value;
+	          var node = diagram.cy.$id(elem_id);
+	          if (node && node.length > 0) return json ? node.json() : node;
+	        }
+	      } catch (err) {
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion5 && _iterator5["return"] != null) {
+	            _iterator5["return"]();
+	          }
+	        } finally {
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
+	          }
+	        }
+	      }
 
 	      return false;
 	    }
 	    /**
+	     * Retrieve an entity by its IRI.
+	     * @param {string} iri - The IRI in full or prefixed form.
+	     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+	     * @returns {JSON} The plain json representation of the entity.
+	     */
+
+	  }, {
+	    key: "getEntity",
+	    value: function getEntity(iri) {
+	      return this.getEntities().find(function (i) {
+	        return i.data.iri.full_iri === iri || i.data.iri.prefix + i.data.iri.rem_chars === iri;
+	      });
+	    }
+	    /**
 	     * Get an element in the ontology by its id and its diagram id
-	     * @param {string} elem_id - The id of the element to retrieve 
+	     * @param {string} elem_id - The id of the element to retrieve
 	     * @param {string } diagram_id - the id of the diagram containing the element
-	     * @param {boolean} json - if true return plain json, if false return cytoscape node
+	     * @param {boolean} json - if true return plain json, if false return cytoscape node. Default true.
 	     */
 
 	  }, {
@@ -39868,106 +40169,31 @@
 	      }
 
 	      return false;
-	    } // return a collection with all the predicates in the ontology
+	    }
+	    /**
+	     * Get the entities in the ontology
+	     * @param {boolean} json  - if true return plain json, if false return cytoscape collection. Default true.
+	     * @returns {JSON | any}
+	     *    - if `json` = `true` : array of JSONs with entities
+	     *    - if `json` = `false` : [cytoscape collection](https://js.cytoscape.org/#collection)
+	     */
 
 	  }, {
 	    key: "getEntities",
 	    value: function getEntities() {
+	      var json = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 	      var predicates = cytoscape$1().collection();
 	      this.diagrams.forEach(function (diagram) {
-	        predicates = predicates.union(diagram.cy.nodes('.predicate'));
+	        predicates = predicates.union(diagram.cy.$('.predicate'));
 	      });
 	      predicates = predicates.sort(function (a, b) {
-	        return a.data('label').localeCompare(b.data('label'));
+	        return a.data('displayed_name').localeCompare(b.data('displayed_name'));
 	      });
-	      return predicates.jsons();
+	      return json ? predicates.jsons() : predicates;
 	    }
 	  }]);
 
 	  return Ontology;
-	}();
-
-	function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _defineProperties$1(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-	function _createClass$1(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$1(Constructor.prototype, protoProps); if (staticProps) _defineProperties$1(Constructor, staticProps); return Constructor; }
-
-	var Iri =
-	/*#__PURE__*/
-	function () {
-	  function Iri(prefixes, value) {
-	    var standard = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-	    _classCallCheck$1(this, Iri);
-
-	    this.prefixes = prefixes;
-	    this.value = value;
-	    this.standard = standard;
-	  }
-
-	  _createClass$1(Iri, [{
-	    key: "getFullIri",
-	    value: function getFullIri() {
-	      return this.prefixes[0] + ':' + this.value;
-	    }
-	  }, {
-	    key: "isStandard",
-	    value: function isStandard() {
-	      return this.standard;
-	    }
-	  }]);
-
-	  return Iri;
-	}();
-
-	function _classCallCheck$2(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _defineProperties$2(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-	function _createClass$2(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$2(Constructor.prototype, protoProps); if (staticProps) _defineProperties$2(Constructor, staticProps); return Constructor; }
-	var Diagram =
-	/*#__PURE__*/
-	function () {
-	  function Diagram(name, id) {
-	    var elements = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-
-	    _classCallCheck$2(this, Diagram);
-
-	    this.name = name;
-	    this.id = id;
-	    this.cy = cytoscape$1();
-	    if (elements) this.addElems(elements);
-	  }
-
-	  _createClass$2(Diagram, [{
-	    key: "addElems",
-	    value: function addElems(elems) {
-	      this.cy.add(elems);
-	    }
-	  }, {
-	    key: "getElems",
-	    value: function getElems() {
-	      return this.nodes.union(this.edges);
-	    }
-	  }, {
-	    key: "nodes",
-	    get: function get() {
-	      return this.cy.nodes().jsons();
-	    }
-	  }, {
-	    key: "edges",
-	    get: function get() {
-	      return this.cy.edges().jsons();
-	    }
-	  }, {
-	    key: "elems",
-	    get: function get() {
-	      return this.nodes.union(this.edges);
-	    }
-	  }]);
-
-	  return Diagram;
 	}();
 
 	// TO DO: export everything and import in parser.js
@@ -40164,7 +40390,228 @@
 	  return endpoint;
 	}
 
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	var warnings = new Set();
+	function getOntologyInfo(xmlDocument) {
+	  var xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0];
+	  var ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent;
+	  var ontology_version = '';
+
+	  if (xml_ontology_tag.getElementsByTagName('version')[0]) {
+	    ontology_version = xml_ontology_tag.getElementsByTagName('version')[0].textContent;
+	  } else {
+	    ontology_version = 'Undefined';
+	  }
+
+	  return {
+	    name: ontology_name,
+	    version: ontology_version,
+	    languages: ['']
+	  };
+	}
+	function getIriPrefixesDictionary(xmlDocument) {
+	  var result = [];
+
+	  if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length === 0) {
+	    // for old graphol files
+	    result.push({
+	      prefix: '',
+	      value: xmlDocument.getElementsByTagName('iri')[0].textContent,
+	      standard: false
+	    });
+	  } else {
+	    var iri_prefixes;
+	    var iri_value, is_standard, prefixes, properties;
+	    var iris = xmlDocument.getElementsByTagName('iri'); // Foreach iri create a Iri object
+
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+
+	    try {
+	      for (var _iterator = iris[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var iri = _step.value;
+	        iri_value = iri.getAttribute('iri_value');
+	        is_standard = false;
+	        prefixes = iri.getElementsByTagName('prefix');
+	        iri_prefixes = [];
+	        var _iteratorNormalCompletion2 = true;
+	        var _didIteratorError2 = false;
+	        var _iteratorError2 = undefined;
+
+	        try {
+	          for (var _iterator2 = prefixes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	            var prefix = _step2.value;
+	            iri_prefixes.push(prefix.getAttribute('prefix_value'));
+	          }
+	        } catch (err) {
+	          _didIteratorError2 = true;
+	          _iteratorError2 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+	              _iterator2["return"]();
+	            }
+	          } finally {
+	            if (_didIteratorError2) {
+	              throw _iteratorError2;
+	            }
+	          }
+	        }
+
+	        if (iri_prefixes.length == 0) iri_prefixes.push(''); // check if it's a standard iri
+
+	        properties = iri.getElementsByTagName('property');
+	        var _iteratorNormalCompletion3 = true;
+	        var _didIteratorError3 = false;
+	        var _iteratorError3 = undefined;
+
+	        try {
+	          for (var _iterator3 = properties[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	            var property = _step3.value;
+	            is_standard = property.getAttribute('property_value') == 'Standard_IRI';
+	          }
+	        } catch (err) {
+	          _didIteratorError3 = true;
+	          _iteratorError3 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion3 && _iterator3["return"] != null) {
+	              _iterator3["return"]();
+	            }
+	          } finally {
+	            if (_didIteratorError3) {
+	              throw _iteratorError3;
+	            }
+	          }
+	        }
+
+	        result.push({
+	          prefixes: iri_prefixes,
+	          value: iri_value,
+	          standard: is_standard
+	        });
+	      }
+	    } catch (err) {
+	      _didIteratorError = true;
+	      _iteratorError = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+	          _iterator["return"]();
+	        }
+	      } finally {
+	        if (_didIteratorError) {
+	          throw _iteratorError;
+	        }
+	      }
+	    }
+	  }
+
+	  return result;
+	}
+	function getIri(element, ontology) {
+	  var iri_infos = {};
+	  var label = element.getElementsByTagName('label')[0];
+	  if (!label) return undefined;
+	  label = label.textContent.replace(/\n/g, '');
+	  var splitted_label = label.split(':'); // if no ':' in label, then use empty prefix
+
+	  var node_prefix_iri = splitted_label.length > 1 ? splitted_label[0] : '';
+	  var namespace, rem_chars; // facets
+
+	  if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+	    rem_chars = label;
+	    namespace = '';
+	    node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1);
+	  } else {
+	    rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':') + 1) : label;
+	    namespace = ontology.getIriFromPrefix(node_prefix_iri);
+
+	    if (!namespace && isPredicate(element)) {
+	      this.warnings.add("The prefix \"".concat(node_prefix_iri, "\" is not associated to any namespace"));
+	    }
+
+	    namespace = namespace ? namespace.value : '';
+	  }
+
+	  iri_infos.remaining_chars = rem_chars;
+	  iri_infos.prefix = node_prefix_iri.length > 0 ? node_prefix_iri + ':' : node_prefix_iri;
+	  iri_infos.full_iri = namespace + rem_chars;
+	  return iri_infos;
+	}
+	function getLabel(element) {
+	  if (element.getElementsByTagName('label')[0]) // language undefined for v2 = ''
+	    return {
+	      '': element.getElementsByTagName('label')[0].textContent
+	    };else return undefined;
+	}
+	function getPredicateInfo(element, xmlDocument) {
+	  var result = {};
+	  var label_no_break = element.getElementsByTagName('label')[0].textContent.replace(/\n/g, '');
+	  var type = element.getAttribute('type');
+	  var description, start_body_index, end_body_index; // for searching predicates' description in graphol v2
+
+	  var xmlPredicates = xmlDocument.getElementsByTagName('predicate');
+	  var _iteratorNormalCompletion4 = true;
+	  var _didIteratorError4 = false;
+	  var _iteratorError4 = undefined;
+
+	  try {
+	    for (var _iterator4 = xmlPredicates[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	      var predicateXml = _step4.value;
+
+	      if (label_no_break === predicateXml.getAttribute('name') && type === predicateXml.getAttribute('type')) {
+	        description = predicateXml.getElementsByTagName('description')[0].textContent;
+	        description = description.replace(/font-size:0pt/g, '');
+	        start_body_index = description.indexOf('<p');
+	        end_body_index = description.indexOf('</body');
+	        if (description) result.description = {
+	          '': [description.slice(start_body_index, end_body_index)] // Impostazione delle funzionalità dei nodi di tipo role o attribute
+
+	        };
+
+	        if (type === 'attribute' || type === 'role') {
+	          result.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent);
+	        }
+
+	        if (type === 'role') {
+	          result.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent);
+	          result.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent);
+	          result.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent);
+	          result.reflexive = parseInt(predicateXml.getElementsByTagName('reflexive')[0].textContent);
+	          result.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent);
+	          result.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent);
+	        }
+
+	        break;
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError4 = true;
+	    _iteratorError4 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion4 && _iterator4["return"] != null) {
+	        _iterator4["return"]();
+	      }
+	    } finally {
+	      if (_didIteratorError4) {
+	        throw _iteratorError4;
+	      }
+	    }
+	  }
+
+	  return result;
+	}
+
+	var Graphol2 = /*#__PURE__*/Object.freeze({
+		warnings: warnings,
+		getOntologyInfo: getOntologyInfo,
+		getIriPrefixesDictionary: getIriPrefixesDictionary,
+		getIri: getIri,
+		getLabel: getLabel,
+		getPredicateInfo: getPredicateInfo
+	});
 
 	function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
@@ -40173,6 +40620,297 @@
 	function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
 
 	function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+	var warnings$1 = new Set();
+	function getOntologyInfo$1(xmlDocument) {
+	  var project = xmlDocument.getElementsByTagName('project')[0];
+	  var ontology_languages = xmlDocument.getElementsByTagName('languages')[0].children;
+	  var iri = getTag(xmlDocument, 'ontology').getAttribute('iri');
+	  var iri_elem = getIriElem(iri, xmlDocument);
+	  return {
+	    name: project.getAttribute('name'),
+	    version: project.getAttribute('version'),
+	    iri: iri,
+	    languages: _toConsumableArray(ontology_languages).map(function (lang) {
+	      return lang.textContent;
+	    }),
+	    default_language: getTag(xmlDocument, 'ontology').getAttribute('lang'),
+	    other_infos: getIriAnnotations(iri_elem)
+	  };
+	}
+	function getIriPrefixesDictionary$1(xmlDocument) {
+	  var result = [];
+	  var prefixes = getTag(xmlDocument, 'prefixes').children;
+	  prefixes.forEach(function (p) {
+	    result.push({
+	      prefixes: [getTagText(p, 'value')],
+	      value: getTagText(p, 'namespace'),
+	      standard: false
+	    });
+	  });
+	  return result;
+	}
+	function getIri$1(element, ontology) {
+	  var iri_infos = {};
+	  var node_iri = getTagText(element, 'iri') || '';
+
+	  if (node_iri) {
+	    iri_infos.full_iri = node_iri; // prefix
+
+	    var destructured_iri = ontology.destructureIri(node_iri);
+
+	    if (destructured_iri.namespace) {
+	      iri_infos.prefix = destructured_iri.prefix.length > 0 ? destructured_iri.prefix + ':' : destructured_iri.prefix;
+	      iri_infos.remaining_chars = destructured_iri.rem_chars;
+	    } else {
+	      this.warnings.add("Namespace not found for [".concat(node_iri, "]. The prefix \"undefined\" has been assigned"));
+	      iri_infos.prefix = 'undefined:';
+	      iri_infos.remaining_chars = node_iri;
+	    }
+	  }
+
+	  return iri_infos;
+	}
+	function getLabel$1(element, ontology, xmlDocument) {
+	  var constructors_labels = {
+	    'union': 'or',
+	    'intersection': 'and',
+	    'role-chain': 'chain',
+	    'role-inverse': 'inv',
+	    'complement': 'not',
+	    'datatype-restriction': 'data',
+	    'enumeration': 'oneOf' // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
+
+	  };
+
+	  if (element.getAttribute('type') === 'facet') {
+	    var constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'));
+	    constraining_facet = constraining_facet.prefix + ':' + constraining_facet.rem_chars;
+	    var value = getTagText(element, 'lexicalForm');
+	    var datatype = ontology.destructureIri(getTagText(element, 'datatype'));
+	    datatype = datatype.prefix + ':' + datatype.rem_chars;
+	    return constraining_facet + '^^"' + value + '"';
+	  }
+
+	  var label = getTagText(element, 'label');
+	  if (label) return label;
+	  var iri = getTagText(element, 'iri'); // constructors node do not have any iri
+
+	  if (!iri) {
+	    return constructors_labels[element.getAttribute('type')];
+	  } // build prefixed iri to be used in some cases
+
+
+	  var destructured_iri = ontology.destructureIri(iri);
+	  var name = destructured_iri.rem_chars || iri;
+	  var prefix = destructured_iri.prefix || 'undefined';
+	  var prefixed_iri = prefix + ':' + name; // datatypes always have prefixed iri as label
+
+	  if (element.getAttribute('type') == 'value-domain') {
+	    return prefixed_iri;
+	  }
+
+	  var iri_xml_elem = getIriElem(element, xmlDocument);
+
+	  if (!iri_xml_elem) {
+	    return iri == name ? iri : prefixed_iri;
+	  }
+
+	  var label_property_iri = ontology.getIriFromPrefix('rdfs').value + 'label';
+	  var annotations = getTag(iri_xml_elem, 'annotations');
+	  var labels = {};
+
+	  if (annotations) {
+	    annotations = annotations.children;
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+
+	    try {
+	      for (var _iterator = annotations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var annotation = _step.value;
+
+	        if (getTagText(annotation, 'property') == label_property_iri) {
+	          labels[getTagText(annotation, 'language')] = getTagText(annotation, 'lexicalForm');
+	        }
+	      }
+	    } catch (err) {
+	      _didIteratorError = true;
+	      _iteratorError = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+	          _iterator["return"]();
+	        }
+	      } finally {
+	        if (_didIteratorError) {
+	          throw _iteratorError;
+	        }
+	      }
+	    }
+	  } // if no label annotation, then use prefixed label
+
+
+	  return Object.keys(labels).length ? labels : prefixed_iri;
+	}
+	function getPredicateInfo$1(element, xmlDocument) {
+	  var result = {};
+	  var actual_iri_elem = getIriElem(element, xmlDocument);
+	  result = getIriAnnotations(actual_iri_elem);
+
+	  if (actual_iri_elem && actual_iri_elem.children) {
+	    var _iteratorNormalCompletion2 = true;
+	    var _didIteratorError2 = false;
+	    var _iteratorError2 = undefined;
+
+	    try {
+	      for (var _iterator2 = actual_iri_elem.children[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	        var property = _step2.value;
+
+	        if (property.tagName != 'value' && property.tagName != 'annotations') {
+	          result[property.tagName] = parseInt(property.textContent) || 0;
+	        }
+	      }
+	    } catch (err) {
+	      _didIteratorError2 = true;
+	      _iteratorError2 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+	          _iterator2["return"]();
+	        }
+	      } finally {
+	        if (_didIteratorError2) {
+	          throw _iteratorError2;
+	        }
+	      }
+	    }
+	  }
+
+	  return result;
+	}
+
+	function getIriAnnotations(iri) {
+	  var result = {};
+	  result.description = {};
+	  result.annotations = {};
+	  var annotations = getTag(iri, 'annotations');
+	  var language, annotation_kind, lexicalForm;
+
+	  if (annotations) {
+	    var _iteratorNormalCompletion3 = true;
+	    var _didIteratorError3 = false;
+	    var _iteratorError3 = undefined;
+
+	    try {
+	      for (var _iterator3 = annotations.children[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	        var annotation = _step3.value;
+	        annotation_kind = getRemainingChars(getTagText(annotation, 'property'));
+	        language = getTagText(annotation, 'language');
+	        lexicalForm = getTagText(annotation, 'lexicalForm');
+
+	        if (annotation_kind == 'comment') {
+	          if (!result.description[language]) result.description[language] = []; // for comments allow multiple comments for same language
+
+	          result.description[language].push(lexicalForm);
+	        } else {
+	          if (!result.annotations[annotation_kind]) result.annotations[annotation_kind] = {}; // take only one annotation for language
+
+	          if (!result.annotations[annotation_kind][language]) result.annotations[annotation_kind][language] = lexicalForm;
+	        }
+	      }
+	    } catch (err) {
+	      _didIteratorError3 = true;
+	      _iteratorError3 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion3 && _iterator3["return"] != null) {
+	          _iterator3["return"]();
+	        }
+	      } finally {
+	        if (_didIteratorError3) {
+	          throw _iteratorError3;
+	        }
+	      }
+	    }
+	  }
+
+	  return result;
+	}
+
+	function getTag(root, tagName) {
+	  var n = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	  if (root && root.getElementsByTagName(tagName[n])) return root.getElementsByTagName(tagName)[n];
+	}
+
+	function getTagText(root, tagName) {
+	  var n = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	  if (root && root.getElementsByTagName(tagName)[n]) return root.getElementsByTagName(tagName)[n].textContent;
+	}
+
+	function getIriElem(node, xmlDocument) {
+	  var node_iri = null;
+	  if (typeof node === 'string') node_iri = node;else node_iri = getTagText(node, 'iri');
+	  if (!node_iri) return null;
+	  var iris = xmlDocument.getElementsByTagName('iris')[0].children;
+	  var _iteratorNormalCompletion4 = true;
+	  var _didIteratorError4 = false;
+	  var _iteratorError4 = undefined;
+
+	  try {
+	    for (var _iterator4 = iris[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	      var iri = _step4.value;
+
+	      if (node_iri == getTagText(iri, 'value')) {
+	        return iri;
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError4 = true;
+	    _iteratorError4 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion4 && _iterator4["return"] != null) {
+	        _iterator4["return"]();
+	      }
+	    } finally {
+	      if (_didIteratorError4) {
+	        throw _iteratorError4;
+	      }
+	    }
+	  }
+
+	  return null;
+	}
+
+	function getRemainingChars(iri) {
+	  var rem_chars = iri.slice(iri.lastIndexOf('#') + 1); // if rem_chars has no '#' then use '/' as separator
+
+	  if (rem_chars.length == iri.length) {
+	    rem_chars = iri.slice(iri.lastIndexOf('/') + 1);
+	  }
+
+	  return rem_chars;
+	}
+
+	var Graphol3 = /*#__PURE__*/Object.freeze({
+		warnings: warnings$1,
+		getOntologyInfo: getOntologyInfo$1,
+		getIriPrefixesDictionary: getIriPrefixesDictionary$1,
+		getIri: getIri$1,
+		getLabel: getLabel$1,
+		getPredicateInfo: getPredicateInfo$1
+	});
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	function _toConsumableArray$1(arr) { return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _nonIterableSpread$1(); }
+
+	function _nonIterableSpread$1() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+	function _iterableToArray$1(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+	function _arrayWithoutHoles$1(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 	function _classCallCheck$3(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -40183,81 +40921,107 @@
 	var GrapholParser =
 	/*#__PURE__*/
 	function () {
-	  function GrapholParser() {
+	  function GrapholParser(xmlString) {
 	    _classCallCheck$3(this, GrapholParser);
+
+	    this.xmlDocument = xmlString instanceof XMLDocument ? xmlString : new DOMParser().parseFromString(xmlString, 'text/xml');
+	    this.graphol_ver = this.xmlDocument.getElementsByTagName('graphol')[0].getAttribute('version') || -1;
+	    if (this.graphol_ver == 2 || this.graphol_ver == -1) this.graphol = Graphol2;else if (this.graphol_ver == 3) this.graphol = Graphol3;else throw new Error("Graphol version [".concat(this.graphol_ver, "] not supported"));
 	  }
 
 	  _createClass$3(GrapholParser, [{
 	    key: "parseGraphol",
-	    value: function parseGraphol(xmlString) {
-	      var i, k;
-	      var parser = new DOMParser();
-	      var xmlDocument = xmlString instanceof XMLDocument ? xmlString : parser.parseFromString(xmlString, 'text/xml');
-	      var xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0];
-	      var ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent;
-	      var ontology_version = '';
+	    value: function parseGraphol() {
+	      var _this = this;
 
-	      if (xml_ontology_tag.getElementsByTagName('version')[0]) {
-	        ontology_version = xml_ontology_tag.getElementsByTagName('version')[0].textContent;
-	      } else {
-	        ontology_version = 'Undefined';
-	      } // Creating an Ontology Object
+	      var ontology_info = this.graphol.getOntologyInfo(this.xmlDocument);
+	      this.ontology = new Ontology(ontology_info.name, ontology_info.version);
+	      this.ontology.languages = ontology_info.languages || [];
+	      this.ontology.default_language = ontology_info.default_language || ontology_info.languages[0];
 
-
-	      var ontology = new Ontology(ontology_name, ontology_version);
-
-	      if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length === 0) {
-	        // for old graphol files
-	        var _iri_value = xmlDocument.getElementsByTagName('iri')[0].textContent;
-	        ontology.addIri(new Iri([''], _iri_value));
-	      } else {
-	        // Create iri and add them to ontology.iriSet
-	        var iri_list = xmlDocument.getElementsByTagName('iri'); // Foreach iri create a Iri object
-
-	        for (i = 0; i < iri_list.length; i++) {
-	          var iri = iri_list[i];
-	          var iri_value = iri.getAttribute('iri_value');
-	          var is_standard = false;
-	          var iri_prefixes = [];
-
-	          {
-	            _toConsumableArray(iri.getElementsByTagName('prefix')).forEach(function (iri_prefix) {
-	              iri_prefixes.push(iri_prefix.getAttribute('prefix_value'));
-	            });
-	          }
-
-	          if (iri_prefixes.length == 0) {
-	            iri_prefixes.push('');
-	          }
-
-	          for (k = 0; k < iri.getElementsByTagName('property').length; k++) {
-	            var iri_property = iri.getElementsByTagName('property')[k];
-
-	            switch (iri_property.getAttribute('property_value')) {
-	              case 'Standard_IRI':
-	                is_standard = true;
-	                break;
-	            }
-	          }
-	          ontology.addIri(new Iri(iri_prefixes, iri_value, is_standard));
-	        }
-	      } // for searching predicates' description
+	      if (ontology_info.other_infos) {
+	        this.ontology.annotations = ontology_info.other_infos.annotations;
+	        this.ontology.description = ontology_info.other_infos.description;
+	      } // Create iri and add them to ontology.namespaces
+	      //let iri_list = this.xmlDocument.getElementsByTagName('iri')
 
 
-	      var xmlPredicates = xmlDocument.getElementsByTagName('predicate');
-	      var diagrams = xmlDocument.getElementsByTagName('diagram');
+	      var dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument);
+	      dictionary.forEach(function (iri) {
+	        _this.ontology.addIri(new Namespace(iri.prefixes, iri.value, iri.standard));
+	      });
+	      var i, k, nodes, edges, cnt, array_json_elems, diagram, node;
+	      var diagrams = this.xmlDocument.getElementsByTagName('diagram');
 
 	      for (i = 0; i < diagrams.length; i++) {
-	        var diagram_name = diagrams[i].getAttribute('name');
-	        var diagram = new Diagram(diagram_name, i);
-	        ontology.addDiagram(diagram);
-	        var array_json_elems = [];
-	        var nodes = diagrams[i].getElementsByTagName('node');
-	        var edges = diagrams[i].getElementsByTagName('edge');
-	        var cnt = 0; // Create JSON for each node to be added to the collection
+	        diagram = new Diagram(diagrams[i].getAttribute('name'), i);
+	        this.ontology.addDiagram(diagram);
+	        array_json_elems = [];
+	        nodes = diagrams[i].getElementsByTagName('node');
+	        edges = diagrams[i].getElementsByTagName('edge');
+	        cnt = 0; // Create JSON for each node to be added to the collection
 
 	        for (k = 0; k < nodes.length; k++) {
-	          array_json_elems.push(this.NodeXmlToJson(nodes[k], ontology, xmlPredicates, i));
+	          node = this.getBasicNodeInfos(nodes[k], i);
+	          node.data.iri = this.graphol.getIri(nodes[k], this.ontology);
+	          node.data.label = this.graphol.getLabel(nodes[k], this.ontology, this.xmlDocument); // label should be an object { language : label },
+	          // if it's a string then it has no language, assign default language
+
+	          if (typeof node.data.label === "string") {
+	            var aux_label = node.data.label;
+	            node.data.label = {};
+	            node.data.label[this.ontology.default_language] = aux_label;
+	          }
+
+	          if (node.data.label) {
+	            // try to apply default language as displayed name
+	            if (node.data.label[this.ontology.default_language]) node.data.displayed_name = node.data.label[this.ontology.default_language];else {
+	              // otherwise pick the first language available
+	              var _iteratorNormalCompletion = true;
+	              var _didIteratorError = false;
+	              var _iteratorError = undefined;
+
+	              try {
+	                for (var _iterator = this.ontology.languages[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                  var lang = _step.value;
+
+	                  if (node.data.label[lang]) {
+	                    node.data.displayed_name = node.data.label[lang];
+	                    break;
+	                  }
+	                }
+	              } catch (err) {
+	                _didIteratorError = true;
+	                _iteratorError = err;
+	              } finally {
+	                try {
+	                  if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+	                    _iterator["return"]();
+	                  }
+	                } finally {
+	                  if (_didIteratorError) {
+	                    throw _iteratorError;
+	                  }
+	                }
+	              }
+	            }
+	          }
+
+	          if (isPredicate(nodes[k])) {
+	            (function () {
+	              var predicate_infos = _this.graphol.getPredicateInfo(nodes[k], _this.xmlDocument, _this.ontology);
+
+	              if (predicate_infos) {
+	                Object.keys(predicate_infos).forEach(function (info) {
+	                  node.data[info] = predicate_infos[info];
+	                });
+	              }
+	            })();
+	          }
+
+	          array_json_elems.push(node); // add fake nodes when necessary
+	          // for property assertion, facets or for
+	          // both functional and inverseFunctional ObjectProperties
 
 	          if (array_json_elems[cnt].data.type === 'property-assertion' || array_json_elems[cnt].data.type === 'facet' || array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional) {
 	            this.addFakeNodes(array_json_elems);
@@ -40271,24 +41035,33 @@
 	        array_json_elems = [];
 
 	        for (k = 0; k < edges.length; k++) {
-	          array_json_elems.push(this.EdgeXmlToJson(edges[k], ontology, i));
+	          array_json_elems.push(this.EdgeXmlToJson(edges[k], i));
 	        }
 
 	        diagram.addElems(array_json_elems);
 	      }
 
 	      if (i == 0) {
-	        throw "The selected .graphol file has no defined diagram";
+	        throw new Error("The selected .graphol file has no defined diagram");
 	      }
 
-	      this.getIdentityForNeutralNodes(ontology);
-	      return ontology;
+	      this.getIdentityForNeutralNodes();
+	      this.warnings = _toConsumableArray$1(this.graphol.warnings);
+
+	      if (this.warnings.length > 10) {
+	        var length = this.warnings.length;
+	        this.warnings = this.warnings.slice(0, 9);
+	        this.warnings.push("...".concat(length - 10, " warnings not shown"));
+	      }
+
+	      this.warnings.forEach(function (w) {
+	        return console.warn(w);
+	      });
+	      return this.ontology;
 	    }
 	  }, {
-	    key: "NodeXmlToJson",
-	    value: function NodeXmlToJson(element, ontology, xmlPredicates, diagram_id) {
-	      // Creating a JSON Object for the node to be added to the collection
-	      var label_no_break;
+	    key: "getBasicNodeInfos",
+	    value: function getBasicNodeInfos(element, diagram_id) {
 	      var nodo = {
 	        data: {
 	          id_xml: element.getAttribute('id'),
@@ -40298,8 +41071,29 @@
 	          type: element.getAttribute('type')
 	        },
 	        position: {},
-	        classes: element.getAttribute('type')
+	        classes: element.getAttribute('type') // Parsing the <geometry> child node of node
+
 	      };
+	      var geometry = element.getElementsByTagName('geometry')[0];
+	      nodo.data.width = parseInt(geometry.getAttribute('width'));
+	      nodo.data.height = parseInt(geometry.getAttribute('height')); // Gli individual hanno dimensioni negative nel file graphol
+
+	      if (nodo.data.width < 0) {
+	        nodo.data.width = -nodo.data.width;
+	      } // Gli individual hanno dimensioni negative nel file graphol
+
+
+	      if (nodo.data.height < 0) {
+	        nodo.data.height = -nodo.data.height;
+	      } // L'altezza dei facet è nulla nel file graphol, la impostiamo a 40
+
+
+	      if (nodo.data.type === 'facet') {
+	        nodo.data.height = 40;
+	      }
+
+	      nodo.position.x = parseInt(geometry.getAttribute('x'));
+	      nodo.position.y = parseInt(geometry.getAttribute('y'));
 
 	      switch (nodo.data.type) {
 	        case 'concept':
@@ -40376,125 +41170,21 @@
 	        default:
 	          console.error('tipo di nodo sconosciuto');
 	          break;
-	      } // Parsing the <geometry> child node of node
-	      // info = <GEOMETRY>
-
-
-	      var info = getFirstChild(element);
-	      nodo.data.width = parseInt(info.getAttribute('width')); // Gli individual hanno dimensioni negative nel file graphol
-
-	      if (nodo.data.width < 0) {
-	        nodo.data.width = -nodo.data.width;
 	      }
 
-	      nodo.data.height = parseInt(info.getAttribute('height')); // Gli individual hanno dimensioni negative nel file graphol
+	      var label = element.getElementsByTagName('label')[0]; // apply label position
 
-	      if (nodo.data.height < 0) {
-	        nodo.data.height = -nodo.data.height;
-	      } // L'altezza dei facet è nulla nel file graphol, la impostiamo a 40
-
-
-	      if (nodo.data.type === 'facet') {
-	        nodo.data.height = 40;
+	      if (label != null) {
+	        nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1;
+	        nodo.data.labelYpos = parseInt(label.getAttribute('y')) - nodo.position.y + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4;
 	      }
 
-	      nodo.position.x = parseInt(info.getAttribute('x'));
-	      nodo.position.y = parseInt(info.getAttribute('y')); // info = <LABEL>
-
-	      info = getNextSibling(info); // info = null se non esiste la label (è l'ultimo elemento)
-
-	      if (info != null) {
-	        nodo.data.label = info.textContent;
-	        nodo.data.labelXpos = parseInt(info.getAttribute('x')) - nodo.position.x + 1;
-	        nodo.data.labelYpos = parseInt(info.getAttribute('y')) - nodo.position.y + (nodo.data.height + 2) / 2 + parseInt(info.getAttribute('height')) / 4;
-	        label_no_break = nodo.data.label.replace(/\n/g, '');
-	      } // Setting predicates properties
-
-
-	      if (isPredicate(element)) {
-	        nodo.classes += ' predicate';
-	        var node_iri, rem_chars, len_prefix, node_prefix_iri; // setting iri
-
-	        if (element.getAttribute('remaining_characters') != null) {
-	          rem_chars = element.getAttribute('remaining_characters').replace(/\n/g, '');
-	        } else {
-	          rem_chars = label_no_break;
-	        }
-
-	        len_prefix = label_no_break.length - rem_chars.length;
-	        node_prefix_iri = label_no_break.substring(0, len_prefix);
-	        ontology.iriSet.forEach(function (iri) {
-	          iri.prefixes.forEach(function (prefix) {
-	            if (node_prefix_iri == prefix + ':' || node_prefix_iri == prefix) {
-	              node_iri = iri.value;
-	            }
-	          });
-	        });
-
-	        if (!node_iri) {
-	          throw "Err: the iri prefix \"".concat(node_prefix_iri, "\" is not associated to any iri");
-	        }
-
-	        if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
-	          rem_chars = label_no_break;
-	          node_iri = '';
-	          node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1);
-	        } else if (node_iri.slice(-1) !== '/' && node_iri.slice(-1) !== '#') {
-	          node_iri = node_iri + '/';
-	        }
-
-	        nodo.data.remaining_chars = rem_chars;
-	        nodo.data.prefix_iri = node_prefix_iri;
-	        nodo.data.iri = node_iri + rem_chars;
-	        var j, predicateXml;
-
-	        for (j = 0; j < xmlPredicates.length; j++) {
-	          predicateXml = xmlPredicates[j];
-
-	          if (label_no_break === predicateXml.getAttribute('name') && nodo.data.type === predicateXml.getAttribute('type')) {
-	            nodo.data.description = predicateXml.getElementsByTagName('description')[0].textContent; //nodo.data.description = nodo.data.description.replace(/&lt;/g, '<')
-	            //nodo.data.description = nodo.data.description.replace(/&gt;/g, '>')
-	            //nodo.data.description = nodo.data.description.replace(/font-family:'monospace'/g, '')
-	            //nodo.data.description = nodo.data.description.replace(/&amp;/g, '&')
-
-	            nodo.data.description = nodo.data.description.replace(/font-size:0pt/g, '');
-	            var start_body_index = nodo.data.description.indexOf('<p');
-	            var end_body_index = nodo.data.description.indexOf('</body');
-	            nodo.data.description = nodo.data.description.slice(start_body_index, end_body_index); // Impostazione delle funzionalità dei nodi di tipo role o attribute
-
-	            if (nodo.data.type === 'attribute' || nodo.data.type === 'role') {
-	              nodo.data.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent);
-	            }
-
-	            if (nodo.data.type === 'role') {
-	              nodo.data.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent);
-	              nodo.data.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent);
-	              nodo.data.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent);
-	              nodo.data.reflexive = parseInt(predicateXml.getElementsByTagName('reflexive')[0].textContent);
-	              nodo.data.symmetric = parseInt(predicateXml.getElementsByTagName('symmetric')[0].textContent);
-	              nodo.data.transitive = parseInt(predicateXml.getElementsByTagName('transitive')[0].textContent);
-	            }
-
-	            break;
-	          }
-	        }
-	      } else {
-	        // Set prefix and remaining chars for non-predicate nodes
-	        // owl.js use this informations for all nodes
-	        nodo.data.prefix_iri = '';
-	        nodo.data.remaining_chars = label_no_break;
-
-	        if (nodo.data.type === 'value-domain' || nodo.data.type === 'facet') {
-	          nodo.data.prefix_iri = label_no_break.split(':')[0] + ':';
-	          nodo.data.remaining_chars = label_no_break.split(':')[1];
-	        }
-	      }
-
+	      if (isPredicate(element)) nodo.classes += ' predicate';
 	      return nodo;
 	    }
 	  }, {
 	    key: "EdgeXmlToJson",
-	    value: function EdgeXmlToJson(arco, ontology, diagram_id) {
+	    value: function EdgeXmlToJson(arco, diagram_id) {
 	      var k;
 	      var edge = {
 	        data: {
@@ -40507,10 +41197,10 @@
 	          breakpoints: []
 	        }
 	      };
-	      if (edge.data.type == 'membership') edge.data.edge_label = 'instance Of'; // Prendiamo i nodi source e target
+	      if (edge.data.type.toLowerCase() == 'membership') edge.data.displayed_name = 'instance Of';else if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different') edge.data.displayed_name = edge.data.type.toLowerCase(); // Prendiamo i nodi source e target
 
-	      var source = ontology.getDiagram(diagram_id).cy.$id(edge.data.source);
-	      var target = ontology.getDiagram(diagram_id).cy.$id(edge.data.target); // Impostiamo le label numeriche per gli archi che entrano nei role-chain
+	      var source = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.source);
+	      var target = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.target); // Impostiamo le label numeriche per gli archi che entrano nei role-chain
 	      // I role-chain hanno un campo <input> con una lista di id di archi all'interno
 	      // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
 	      // numerica che deve avere l'arco
@@ -40611,7 +41301,7 @@
 	      if (nodo.data.type === 'facet') {
 	        // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
 	        // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
-	        nodo.data.label = nodo.data.label.replace('^^', '\n\n');
+	        nodo.data.displayed_name = nodo.data.displayed_name.replace('^^', '\n\n');
 	        nodo.data.labelYpos = nodo.data.height; // Creating the top rhomboid for the grey background
 
 	        var top_rhomboid = {
@@ -40619,7 +41309,6 @@
 	          data: {
 	            height: nodo.data.height,
 	            width: nodo.data.width,
-	            fillColor: '#ddd',
 	            shape: 'polygon',
 	            shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
 	            diagram_id: nodo.data.diagram_id,
@@ -40629,14 +41318,14 @@
 	          position: {
 	            x: nodo.position.x,
 	            y: nodo.position.y
-	          }
+	          },
+	          classes: 'fake-top-rhomboid'
 	        };
 	        var bottom_rhomboid = {
 	          selectable: false,
 	          data: {
 	            height: nodo.data.height,
 	            width: nodo.data.width,
-	            fillColor: '#fff',
 	            shape: 'polygon',
 	            shape_points: '-0.95 0 0.95 0 0.9 1 -1 1',
 	            diagram_id: nodo.data.diagram_id,
@@ -40688,17 +41377,17 @@
 	            x: nodo.position.x,
 	            y: nodo.position.y
 	          },
-	          classes: 'fake-triangle'
+	          classes: 'fake-triangle' //var old_labelXpos = nodo.data.labelXpos
+	          //var old_labelYpos = nodo.data.labelYpos
+
 	        };
-	        var old_labelXpos = nodo.data.labelXpos;
-	        var old_labelYpos = nodo.data.labelYpos;
 	        nodo.data.height -= 8;
 	        nodo.data.width -= 10; // If the node is both functional and inverse functional,
 	        // we added the double style border and changed the node height and width.
 	        // The label position is function of node's height and width so we adjust it
 	        // now after those changes.
 
-	        if (nodo.data.label != null) {
+	        if (nodo.data.displayed_name != null) {
 	          nodo.data.labelYpos -= 4;
 	        }
 
@@ -40778,8 +41467,8 @@
 	    }
 	  }, {
 	    key: "getIdentityForNeutralNodes",
-	    value: function getIdentityForNeutralNodes(ontology) {
-	      ontology.diagrams.forEach(function (diagram) {
+	    value: function getIdentityForNeutralNodes() {
+	      this.ontology.diagrams.forEach(function (diagram) {
 	        diagram.cy.nodes('[identity = "neutral"]').forEach(function (node) {
 	          node.data('identity', findIdentity(node));
 	        });
@@ -41161,13 +41850,13 @@
 
 	var lastAttributeNameRegex = /([ \x09\x0a\x0c\x0d])([^\0-\x1F\x7F-\x9F "'>=/]+)([ \x09\x0a\x0c\x0d]*=[ \x09\x0a\x0c\x0d]*(?:[^ \x09\x0a\x0c\x0d"'`<>=]*|"[^"]*|'[^']*))$/;
 
-	function _toConsumableArray$1(arr) { return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _nonIterableSpread$1(); }
+	function _toConsumableArray$2(arr) { return _arrayWithoutHoles$2(arr) || _iterableToArray$2(arr) || _nonIterableSpread$2(); }
 
-	function _nonIterableSpread$1() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+	function _nonIterableSpread$2() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
 
-	function _iterableToArray$1(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+	function _iterableToArray$2(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
 
-	function _arrayWithoutHoles$1(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+	function _arrayWithoutHoles$2(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 	function _classCallCheck$5(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -41344,7 +42033,7 @@
 	        } else {
 	          var _this$__parts;
 
-	          (_this$__parts = this.__parts).push.apply(_this$__parts, _toConsumableArray$1(this.processor.handleAttributeExpressions(node, part.name, part.strings, this.options)));
+	          (_this$__parts = this.__parts).push.apply(_this$__parts, _toConsumableArray$2(this.processor.handleAttributeExpressions(node, part.name, part.strings, this.options)));
 	        }
 
 	        partIndex++;
@@ -42661,13 +43350,13 @@
 	  }
 	};
 
-	function _toConsumableArray$2(arr) { return _arrayWithoutHoles$2(arr) || _iterableToArray$2(arr) || _nonIterableSpread$2(); }
+	function _toConsumableArray$3(arr) { return _arrayWithoutHoles$3(arr) || _iterableToArray$3(arr) || _nonIterableSpread$3(); }
 
-	function _nonIterableSpread$2() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+	function _nonIterableSpread$3() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
 
-	function _iterableToArray$2(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+	function _iterableToArray$3(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
 
-	function _arrayWithoutHoles$2(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+	function _arrayWithoutHoles$3(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 	function _typeof$1(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$1 = function _typeof(obj) { return typeof obj; }; } else { _typeof$1 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$1(obj); }
 
@@ -43387,7 +44076,7 @@
 	      if (this.hasOwnProperty(JSCompiler_renameProperty('properties', this))) {
 	        var props = this.properties; // support symbols in properties (IE11 does not support this)
 
-	        var propKeys = [].concat(_toConsumableArray$2(Object.getOwnPropertyNames(props)), _toConsumableArray$2(typeof Object.getOwnPropertySymbols === 'function' ? Object.getOwnPropertySymbols(props) : [])); // This for/of is ok because propKeys is an array
+	        var propKeys = [].concat(_toConsumableArray$3(Object.getOwnPropertyNames(props)), _toConsumableArray$3(typeof Object.getOwnPropertySymbols === 'function' ? Object.getOwnPropertySymbols(props) : [])); // This for/of is ok because propKeys is an array
 
 	        var _iteratorNormalCompletion = true;
 	        var _didIteratorError = false;
@@ -44005,8 +44694,458 @@
 	Icon.styles = style;
 	Icon = __decorate([customElement('mwc-icon')], Icon);
 
-	function _templateObject51() {
+	function _templateObject96() {
+	  var data = _taggedTemplateLiteral$2(["#422D53"]);
+
+	  _templateObject96 = function _templateObject96() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject95() {
 	  var data = _taggedTemplateLiteral$2(["#9875b7"]);
+
+	  _templateObject95 = function _templateObject95() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject94() {
+	  var data = _taggedTemplateLiteral$2(["#423500"]);
+
+	  _templateObject94 = function _templateObject94() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject93() {
+	  var data = _taggedTemplateLiteral$2(["#b28f00"]);
+
+	  _templateObject93 = function _templateObject93() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject92() {
+	  var data = _taggedTemplateLiteral$2(["#4B7900"]);
+
+	  _templateObject92 = function _templateObject92() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject91() {
+	  var data = _taggedTemplateLiteral$2(["#C7DAAD"]);
+
+	  _templateObject91 = function _templateObject91() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject90() {
+	  var data = _taggedTemplateLiteral$2(["#7fb3d2"]);
+
+	  _templateObject90 = function _templateObject90() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject89() {
+	  var data = _taggedTemplateLiteral$2(["#043954"]);
+
+	  _templateObject89 = function _templateObject89() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject88() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject88 = function _templateObject88() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject87() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject87 = function _templateObject87() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject86() {
+	  var data = _taggedTemplateLiteral$2(["#010101"]);
+
+	  _templateObject86 = function _templateObject86() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject85() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject85 = function _templateObject85() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject84() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject84 = function _templateObject84() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject83() {
+	  var data = _taggedTemplateLiteral$2(["#181c22"]);
+
+	  _templateObject83 = function _templateObject83() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject82() {
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
+
+	  _templateObject82 = function _templateObject82() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject81() {
+	  var data = _taggedTemplateLiteral$2(["#cc3b3b"]);
+
+	  _templateObject81 = function _templateObject81() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject80() {
+	  var data = _taggedTemplateLiteral$2(["rgba(255, 255, 255, 0.25)"]);
+
+	  _templateObject80 = function _templateObject80() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject79() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject79 = function _templateObject79() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject78() {
+	  var data = _taggedTemplateLiteral$2(["#0099e6"]);
+
+	  _templateObject78 = function _templateObject78() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject77() {
+	  var data = _taggedTemplateLiteral$2(["#222831"]);
+
+	  _templateObject77 = function _templateObject77() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject76() {
+	  var data = _taggedTemplateLiteral$2(["#72c1f5"]);
+
+	  _templateObject76 = function _templateObject76() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject75() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject75 = function _templateObject75() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject74() {
+	  var data = _taggedTemplateLiteral$2(["#1a1a1a"]);
+
+	  _templateObject74 = function _templateObject74() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject73() {
+	  var data = _taggedTemplateLiteral$2(["#a0a0a0"]);
+
+	  _templateObject73 = function _templateObject73() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject72() {
+	  var data = _taggedTemplateLiteral$2(["#222831"]);
+
+	  _templateObject72 = function _templateObject72() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject71() {
+	  var data = _taggedTemplateLiteral$2(["#9875b7"]);
+
+	  _templateObject71 = function _templateObject71() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject70() {
+	  var data = _taggedTemplateLiteral$2(["#666"]);
+
+	  _templateObject70 = function _templateObject70() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject69() {
+	  var data = _taggedTemplateLiteral$2(["#B08D00"]);
+
+	  _templateObject69 = function _templateObject69() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject68() {
+	  var data = _taggedTemplateLiteral$2(["#666"]);
+
+	  _templateObject68 = function _templateObject68() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject67() {
+	  var data = _taggedTemplateLiteral$2(["#4B7900"]);
+
+	  _templateObject67 = function _templateObject67() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject66() {
+	  var data = _taggedTemplateLiteral$2(["#666"]);
+
+	  _templateObject66 = function _templateObject66() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject65() {
+	  var data = _taggedTemplateLiteral$2(["#065A85"]);
+
+	  _templateObject65 = function _templateObject65() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject64() {
+	  var data = _taggedTemplateLiteral$2(["#666"]);
+
+	  _templateObject64 = function _templateObject64() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject63() {
+	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
+
+	  _templateObject63 = function _templateObject63() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject62() {
+	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
+
+	  _templateObject62 = function _templateObject62() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject61() {
+	  var data = _taggedTemplateLiteral$2(["#000"]);
+
+	  _templateObject61 = function _templateObject61() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject60() {
+	  var data = _taggedTemplateLiteral$2(["#333"]);
+
+	  _templateObject60 = function _templateObject60() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject59() {
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
+
+	  _templateObject59 = function _templateObject59() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject58() {
+	  var data = _taggedTemplateLiteral$2(["#333"]);
+
+	  _templateObject58 = function _templateObject58() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject57() {
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
+
+	  _templateObject57 = function _templateObject57() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject56() {
+	  var data = _taggedTemplateLiteral$2(["#cc3b3b"]);
+
+	  _templateObject56 = function _templateObject56() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject55() {
+	  var data = _taggedTemplateLiteral$2(["rgba(255, 255, 255, 0.5)"]);
+
+	  _templateObject55 = function _templateObject55() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject54() {
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
+
+	  _templateObject54 = function _templateObject54() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject53() {
+	  var data = _taggedTemplateLiteral$2(["#0099e6"]);
+
+	  _templateObject53 = function _templateObject53() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject52() {
+	  var data = _taggedTemplateLiteral$2(["#333"]);
+
+	  _templateObject52 = function _templateObject52() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject51() {
+	  var data = _taggedTemplateLiteral$2(["#99ddff"]);
 
 	  _templateObject51 = function _templateObject51() {
 	    return data;
@@ -44016,7 +45155,7 @@
 	}
 
 	function _templateObject50() {
-	  var data = _taggedTemplateLiteral$2(["#666"]);
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
 
 	  _templateObject50 = function _templateObject50() {
 	    return data;
@@ -44026,7 +45165,7 @@
 	}
 
 	function _templateObject49() {
-	  var data = _taggedTemplateLiteral$2(["#B08D00"]);
+	  var data = _taggedTemplateLiteral$2(["#1a1a1a"]);
 
 	  _templateObject49 = function _templateObject49() {
 	    return data;
@@ -44036,7 +45175,7 @@
 	}
 
 	function _templateObject48() {
-	  var data = _taggedTemplateLiteral$2(["#666"]);
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
 
 	  _templateObject48 = function _templateObject48() {
 	    return data;
@@ -44046,7 +45185,7 @@
 	}
 
 	function _templateObject47() {
-	  var data = _taggedTemplateLiteral$2(["#4B7900"]);
+	  var data = _taggedTemplateLiteral$2(["#333"]);
 
 	  _templateObject47 = function _templateObject47() {
 	    return data;
@@ -44056,7 +45195,7 @@
 	}
 
 	function _templateObject46() {
-	  var data = _taggedTemplateLiteral$2(["#666"]);
+	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
 
 	  _templateObject46 = function _templateObject46() {
 	    return data;
@@ -44066,7 +45205,7 @@
 	}
 
 	function _templateObject45() {
-	  var data = _taggedTemplateLiteral$2(["#065A85"]);
+	  var data = _taggedTemplateLiteral$2(["#000"]);
 
 	  _templateObject45 = function _templateObject45() {
 	    return data;
@@ -44076,7 +45215,7 @@
 	}
 
 	function _templateObject44() {
-	  var data = _taggedTemplateLiteral$2(["#666"]);
+	  var data = _taggedTemplateLiteral$2(["#000"]);
 
 	  _templateObject44 = function _templateObject44() {
 	    return data;
@@ -44086,7 +45225,7 @@
 	}
 
 	function _templateObject43() {
-	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
+	  var data = _taggedTemplateLiteral$2(["#000"]);
 
 	  _templateObject43 = function _templateObject43() {
 	    return data;
@@ -44116,7 +45255,7 @@
 	}
 
 	function _templateObject40() {
-	  var data = _taggedTemplateLiteral$2(["#333"]);
+	  var data = _taggedTemplateLiteral$2(["#fafafa"]);
 
 	  _templateObject40 = function _templateObject40() {
 	    return data;
@@ -44136,7 +45275,7 @@
 	}
 
 	function _templateObject38() {
-	  var data = _taggedTemplateLiteral$2(["#333"]);
+	  var data = _taggedTemplateLiteral$2(["#cc3b3b"]);
 
 	  _templateObject38 = function _templateObject38() {
 	    return data;
@@ -44146,7 +45285,7 @@
 	}
 
 	function _templateObject37() {
-	  var data = _taggedTemplateLiteral$2(["#fff"]);
+	  var data = _taggedTemplateLiteral$2(["rgba(0,0,0,0.2)"]);
 
 	  _templateObject37 = function _templateObject37() {
 	    return data;
@@ -44156,7 +45295,7 @@
 	}
 
 	function _templateObject36() {
-	  var data = _taggedTemplateLiteral$2(["#cc3b3b"]);
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
 
 	  _templateObject36 = function _templateObject36() {
 	    return data;
@@ -44166,7 +45305,7 @@
 	}
 
 	function _templateObject35() {
-	  var data = _taggedTemplateLiteral$2(["rgba(255, 255, 255, 0.5)"]);
+	  var data = _taggedTemplateLiteral$2(["#2c6187"]);
 
 	  _templateObject35 = function _templateObject35() {
 	    return data;
@@ -44186,7 +45325,7 @@
 	}
 
 	function _templateObject33() {
-	  var data = _taggedTemplateLiteral$2(["#0099e6"]);
+	  var data = _taggedTemplateLiteral$2(["rgb(81,149,199)"]);
 
 	  _templateObject33 = function _templateObject33() {
 	    return data;
@@ -44196,7 +45335,7 @@
 	}
 
 	function _templateObject32() {
-	  var data = _taggedTemplateLiteral$2(["#333"]);
+	  var data = _taggedTemplateLiteral$2(["#888"]);
 
 	  _templateObject32 = function _templateObject32() {
 	    return data;
@@ -44206,7 +45345,7 @@
 	}
 
 	function _templateObject31() {
-	  var data = _taggedTemplateLiteral$2(["#99ddff"]);
+	  var data = _taggedTemplateLiteral$2(["#e6e6e6"]);
 
 	  _templateObject31 = function _templateObject31() {
 	    return data;
@@ -44216,7 +45355,7 @@
 	}
 
 	function _templateObject30() {
-	  var data = _taggedTemplateLiteral$2(["#fff"]);
+	  var data = _taggedTemplateLiteral$2(["#666"]);
 
 	  _templateObject30 = function _templateObject30() {
 	    return data;
@@ -44226,7 +45365,7 @@
 	}
 
 	function _templateObject29() {
-	  var data = _taggedTemplateLiteral$2(["#1a1a1a"]);
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
 
 	  _templateObject29 = function _templateObject29() {
 	    return data;
@@ -44236,7 +45375,7 @@
 	}
 
 	function _templateObject28() {
-	  var data = _taggedTemplateLiteral$2(["#fff"]);
+	  var data = _taggedTemplateLiteral$2(["#9875b7"]);
 
 	  _templateObject28 = function _templateObject28() {
 	    return data;
@@ -44246,7 +45385,7 @@
 	}
 
 	function _templateObject27() {
-	  var data = _taggedTemplateLiteral$2(["#333"]);
+	  var data = _taggedTemplateLiteral$2(["#d3b3ef"]);
 
 	  _templateObject27 = function _templateObject27() {
 	    return data;
@@ -44256,7 +45395,7 @@
 	}
 
 	function _templateObject26() {
-	  var data = _taggedTemplateLiteral$2(["#9875b7"]);
+	  var data = _taggedTemplateLiteral$2(["#B08D00"]);
 
 	  _templateObject26 = function _templateObject26() {
 	    return data;
@@ -44266,7 +45405,7 @@
 	}
 
 	function _templateObject25() {
-	  var data = _taggedTemplateLiteral$2(["#d3b3ef"]);
+	  var data = _taggedTemplateLiteral$2(["#F9F3A6"]);
 
 	  _templateObject25 = function _templateObject25() {
 	    return data;
@@ -44276,7 +45415,7 @@
 	}
 
 	function _templateObject24() {
-	  var data = _taggedTemplateLiteral$2(["#B08D00"]);
+	  var data = _taggedTemplateLiteral$2(["#4B7900"]);
 
 	  _templateObject24 = function _templateObject24() {
 	    return data;
@@ -44286,7 +45425,7 @@
 	}
 
 	function _templateObject23() {
-	  var data = _taggedTemplateLiteral$2(["#F9F3A6"]);
+	  var data = _taggedTemplateLiteral$2(["#C7DAAD"]);
 
 	  _templateObject23 = function _templateObject23() {
 	    return data;
@@ -44296,7 +45435,7 @@
 	}
 
 	function _templateObject22() {
-	  var data = _taggedTemplateLiteral$2(["#4B7900"]);
+	  var data = _taggedTemplateLiteral$2(["#065A85"]);
 
 	  _templateObject22 = function _templateObject22() {
 	    return data;
@@ -44306,7 +45445,7 @@
 	}
 
 	function _templateObject21() {
-	  var data = _taggedTemplateLiteral$2(["#C7DAAD"]);
+	  var data = _taggedTemplateLiteral$2(["#AACDE1"]);
 
 	  _templateObject21 = function _templateObject21() {
 	    return data;
@@ -44316,7 +45455,7 @@
 	}
 
 	function _templateObject20() {
-	  var data = _taggedTemplateLiteral$2(["#065A85"]);
+	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
 
 	  _templateObject20 = function _templateObject20() {
 	    return data;
@@ -44326,7 +45465,7 @@
 	}
 
 	function _templateObject19() {
-	  var data = _taggedTemplateLiteral$2(["#AACDE1"]);
+	  var data = _taggedTemplateLiteral$2(["#000"]);
 
 	  _templateObject19 = function _templateObject19() {
 	    return data;
@@ -44336,7 +45475,7 @@
 	}
 
 	function _templateObject18() {
-	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
+	  var data = _taggedTemplateLiteral$2(["#000"]);
 
 	  _templateObject18 = function _templateObject18() {
 	    return data;
@@ -44356,7 +45495,7 @@
 	}
 
 	function _templateObject16() {
-	  var data = _taggedTemplateLiteral$2(["#000"]);
+	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
 
 	  _templateObject16 = function _templateObject16() {
 	    return data;
@@ -44376,7 +45515,7 @@
 	}
 
 	function _templateObject14() {
-	  var data = _taggedTemplateLiteral$2(["#fcfcfc"]);
+	  var data = _taggedTemplateLiteral$2(["#fafafa"]);
 
 	  _templateObject14 = function _templateObject14() {
 	    return data;
@@ -44386,7 +45525,7 @@
 	}
 
 	function _templateObject13() {
-	  var data = _taggedTemplateLiteral$2(["#000"]);
+	  var data = _taggedTemplateLiteral$2(["#fff"]);
 
 	  _templateObject13 = function _templateObject13() {
 	    return data;
@@ -44396,7 +45535,7 @@
 	}
 
 	function _templateObject12() {
-	  var data = _taggedTemplateLiteral$2(["#fafafa"]);
+	  var data = _taggedTemplateLiteral$2(["#D39F0A"]);
 
 	  _templateObject12 = function _templateObject12() {
 	    return data;
@@ -44531,51 +45670,111 @@
 	  shadows: css(_templateObject9()),
 	  error: css(_templateObject10()),
 	  on_error: css(_templateObject11()),
+	  warning: css(_templateObject12()),
+	  on_warning: css(_templateObject13()),
 	  // graph colors
-	  background: css(_templateObject12()),
-	  edge: css(_templateObject13()),
-	  node_bg: css(_templateObject14()),
-	  node_bg_contrast: css(_templateObject15()),
-	  node_border: css(_templateObject16()),
-	  label_color: css(_templateObject17()),
-	  label_color_contrast: css(_templateObject18()),
-	  role: css(_templateObject19()),
-	  role_dark: css(_templateObject20()),
-	  attribute: css(_templateObject21()),
-	  attribute_dark: css(_templateObject22()),
-	  concept: css(_templateObject23()),
-	  concept_dark: css(_templateObject24()),
-	  individual: css(_templateObject25()),
-	  individual_dark: css(_templateObject26())
+	  background: css(_templateObject14()),
+	  edge: css(_templateObject15()),
+	  node_bg: css(_templateObject16()),
+	  node_bg_contrast: css(_templateObject17()),
+	  node_border: css(_templateObject18()),
+	  label_color: css(_templateObject19()),
+	  label_color_contrast: css(_templateObject20()),
+	  role: css(_templateObject21()),
+	  role_dark: css(_templateObject22()),
+	  attribute: css(_templateObject23()),
+	  attribute_dark: css(_templateObject24()),
+	  concept: css(_templateObject25()),
+	  concept_dark: css(_templateObject26()),
+	  individual: css(_templateObject27()),
+	  individual_dark: css(_templateObject28())
+	};
+	var classic = {
+	  // primary colors
+	  primary: css(_templateObject29()),
+	  on_primary: css(_templateObject30()),
+	  primary_dark: css(_templateObject31()),
+	  on_primary_dark: css(_templateObject32()),
+	  // secondary colors
+	  secondary: css(_templateObject33()),
+	  on_secondary: css(_templateObject34()),
+	  secondary_dark: css(_templateObject35()),
+	  on_secondary_dark: css(_templateObject36()),
+	  // misc
+	  shadows: css(_templateObject37()),
+	  error: css(_templateObject38()),
+	  on_error: css(_templateObject39()),
+	  background: css(_templateObject40()),
+	  edge: css(_templateObject41()),
+	  node_bg: css(_templateObject42()),
+	  node_bg_contrast: css(_templateObject43()),
+	  node_border: css(_templateObject44()),
+	  label_color: css(_templateObject45()),
+	  label_color_contrast: css(_templateObject46())
+	};
+	var dark_old = {
+	  primary: css(_templateObject47()),
+	  on_primary: css(_templateObject48()),
+	  primary_dark: css(_templateObject49()),
+	  on_primary_dark: css(_templateObject50()),
+	  secondary: css(_templateObject51()),
+	  on_secondary: css(_templateObject52()),
+	  secondary_dark: css(_templateObject53()),
+	  on_secondary_dark: css(_templateObject54()),
+	  shadows: css(_templateObject55()),
+	  error: css(_templateObject56()),
+	  on_error: css(_templateObject57()),
+	  // graph colors
+	  background: css(_templateObject58()),
+	  edge: css(_templateObject59()),
+	  node_bg: css(_templateObject60()),
+	  node_bg_contrast: css(_templateObject61()),
+	  node_border: css(_templateObject62()),
+	  label_color: css(_templateObject63()),
+	  role: css(_templateObject64()),
+	  role_dark: css(_templateObject65()),
+	  attribute: css(_templateObject66()),
+	  attribute_dark: css(_templateObject67()),
+	  concept: css(_templateObject68()),
+	  concept_dark: css(_templateObject69()),
+	  individual: css(_templateObject70()),
+	  individual_dark: css(_templateObject71())
 	};
 	var dark = {
-	  primary: css(_templateObject27()),
-	  on_primary: css(_templateObject28()),
-	  primary_dark: css(_templateObject29()),
-	  on_primary_dark: css(_templateObject30()),
-	  secondary: css(_templateObject31()),
-	  on_secondary: css(_templateObject32()),
-	  secondary_dark: css(_templateObject33()),
-	  on_secondary_dark: css(_templateObject34()),
-	  shadows: css(_templateObject35()),
-	  error: css(_templateObject36()),
-	  on_error: css(_templateObject37()),
+	  primary: css(_templateObject72()),
+	  on_primary: css(_templateObject73()),
+	  primary_dark: css(_templateObject74()),
+	  on_primary_dark: css(_templateObject75()),
+	  secondary: css(_templateObject76()),
+	  on_secondary: css(_templateObject77()),
+	  secondary_dark: css(_templateObject78()),
+	  on_secondary_dark: css(_templateObject79()),
+	  shadows: css(_templateObject80()),
+	  error: css(_templateObject81()),
+	  on_error: css(_templateObject82()),
 	  // graph colors
-	  background: css(_templateObject38()),
-	  edge: css(_templateObject39()),
-	  node_bg: css(_templateObject40()),
-	  node_bg_contrast: css(_templateObject41()),
-	  node_border: css(_templateObject42()),
-	  label_color: css(_templateObject43()),
-	  role: css(_templateObject44()),
-	  role_dark: css(_templateObject45()),
-	  attribute: css(_templateObject46()),
-	  attribute_dark: css(_templateObject47()),
-	  concept: css(_templateObject48()),
-	  concept_dark: css(_templateObject49()),
-	  individual: css(_templateObject50()),
-	  individual_dark: css(_templateObject51())
+	  background: css(_templateObject83()),
+	  edge: css(_templateObject84()),
+	  node_bg: css(_templateObject85()),
+	  node_bg_contrast: css(_templateObject86()),
+	  node_border: css(_templateObject87()),
+	  label_color: css(_templateObject88()),
+	  role: css(_templateObject89()),
+	  role_dark: css(_templateObject90()),
+	  attribute_dark: css(_templateObject91()),
+	  attribute: css(_templateObject92()),
+	  concept_dark: css(_templateObject93()),
+	  concept: css(_templateObject94()),
+	  individual_dark: css(_templateObject95()),
+	  individual: css(_templateObject96())
 	};
+
+	var themes = /*#__PURE__*/Object.freeze({
+		gscape: gscape,
+		classic: classic,
+		dark_old: dark_old,
+		dark: dark
+	});
 
 	function _typeof$4(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$4 = function _typeof(obj) { return typeof obj; }; } else { _typeof$4 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$4(obj); }
 
@@ -44590,7 +45789,7 @@
 	}
 
 	function _templateObject$3() {
-	  var data = _taggedTemplateLiteral$3(["\n      :host, .gscape-panel{\n        font-family : \"Open Sans\",\"Helvetica Neue\",Helvetica,sans-serif;\n        display: block;\n        position: absolute;\n        color: var(--theme-gscape-on-primary, ", ");\n        background-color:var(--theme-gscape-primary, ", ");\n        box-shadow: 0 2px 4px 0 var(--theme-gscape-shadows, ", ");\n        border-radius: 8px;\n        transition: opacity 0.2s;\n        scrollbar-width: thin;\n      }\n\n      :host(:hover){\n        box-shadow: 0 4px 8px 0 var(--theme-gscape-shadows, ", ");\n      }\n\n      .hide {\n        display:none;\n      }\n\n      .widget-body {\n        width: 100%;\n        margin-top:35px;\n        max-height:450px;\n        border-top:solid 1px var(--theme-gscape-shadows, ", ");\n        border-bottom-left-radius: inherit;\n        border-bottom-right-radius: inherit;\n        overflow:auto;\n        scrollbar-width: inherit;\n      }\n\n      .gscape-panel {\n        position: absolute;\n        bottom: 40px;\n        width: auto;\n        padding:10px;\n        overflow: unset;\n        border: none;\n      }\n\n      .gscape-panel::after {\n        content: \"\";\n        position: absolute;\n        top: 100%;\n        left: 16px;\n        margin-left: -8px;\n        border-width: 8px;\n        border-style: solid;\n        border-color: #ddd transparent transparent transparent;\n      }\n\n      .gscape-panel-title{\n        font-weight: bold;\n        text-align: center;\n        margin-bottom: 10px;\n      }\n\n      .details_table{\n        padding: 12px 6px 0 6px;\n        border-spacing: 0;\n      }\n\n      .details_table th {\n        color: var(--theme-gscape-secondary, ", ");\n        border-right: solid 1px var(--theme-gscape-shadows, ", ");\n        font-weight: bold;\n        text-align:left;\n      }\n      \n      .details_table th, td {\n        padding:5px 8px;\n        white-space: nowrap;\n      }\n\n      /* width */\n      ::-webkit-scrollbar {\n        width: 5px;\n        height: 5px;\n      }\n\n      /* Track */\n      ::-webkit-scrollbar-track {\n        background: #f0f0f0; \n      }\n      \n      /* Handle */\n      ::-webkit-scrollbar-thumb {\n        background: #cdcdcd; \n      }\n\n      /* Handle on hover */\n      ::-webkit-scrollbar-thumb:hover {\n        background: #888; \n      }\n      \n    "]);
+	  var data = _taggedTemplateLiteral$3(["\n      :host, .gscape-panel{\n        font-family : \"Open Sans\",\"Helvetica Neue\",Helvetica,sans-serif;\n        display: block;\n        position: absolute;\n        color: var(--theme-gscape-on-primary, ", ");\n        background-color:var(--theme-gscape-primary, ", ");\n        box-shadow: 0 2px 4px 0 var(--theme-gscape-shadows, ", ");\n        border-radius: 8px;\n        transition: opacity 0.2s;\n        scrollbar-width: thin;\n      }\n\n      :host(:hover){\n        box-shadow: 0 4px 8px 0 var(--theme-gscape-shadows, ", ");\n      }\n\n      .hide {\n        display:none;\n      }\n\n      .widget-body {\n        width: 100%;\n        max-height:450px;\n        border-top:solid 1px var(--theme-gscape-shadows, ", ");\n        border-bottom-left-radius: inherit;\n        border-bottom-right-radius: inherit;\n        overflow:auto;\n        scrollbar-width: inherit;\n      }\n\n      .gscape-panel {\n        position: absolute;\n        bottom: 40px;\n        width: auto;\n        padding:10px;\n        overflow: unset;\n        border: none;\n      }\n\n      .gscape-panel::after {\n        content: \"\";\n        position: absolute;\n        top: 100%;\n        left: 16px;\n        margin-left: -8px;\n        border-width: 8px;\n        border-style: solid;\n        border-color: #ddd transparent transparent transparent;\n      }\n\n      .gscape-panel-title{\n        font-weight: bold;\n        text-align: center;\n        margin-bottom: 10px;\n      }\n\n      .widget-body .section:last-of-type {\n        margin-bottom: 12px;\n      }\n\n      .widget-body .section-header {\n        text-align: center;\n        font-weight: bold;\n        border-bottom: solid 1px var(--theme-gscape-shadows, ", ");\n        color: var(--theme-gscape-secondary, ", ");\n        width: 85%;\n        margin: auto;\n        margin-bottom: 10px;\n        padding-bottom: 5px;\n      }\n\n      .description {\n        margin-bottom: 20px;\n      }\n\n      .description:last-of-type {\n        margin-bottom: 0;\n      }\n\n      .description .language {\n        min-width: 50px;\n        display: inline-block;\n        font-weight: bold;\n        color: var(--theme-gscape-secondary, ", ");\n        margin: 5px;\n      }\n\n      .section { padding: 10px; }\n\n      .details_table{\n        border-spacing: 0;\n      }\n\n      .details_table th {\n        color: var(--theme-gscape-secondary, ", ");\n        border-right: solid 1px var(--theme-gscape-shadows, ", ");\n        font-weight: bold;\n        text-align:left;\n        min-width: 50px;\n      }\n\n      .details_table th, td {\n        padding:5px 8px;\n        white-space: nowrap;\n      }\n\n      /* width */\n      ::-webkit-scrollbar {\n        width: 5px;\n        height: 5px;\n      }\n\n      /* Track */\n      ::-webkit-scrollbar-track {\n        background: #f0f0f0;\n      }\n\n      /* Handle */\n      ::-webkit-scrollbar-thumb {\n        background: #cdcdcd;\n      }\n\n      /* Handle on hover */\n      ::-webkit-scrollbar-thumb:hover {\n        background: #888;\n      }\n\n    "]);
 
 	  _templateObject$3 = function _templateObject() {
 	    return data;
@@ -44625,32 +45824,38 @@
 	  _createClass$c(GscapeWidget, null, [{
 	    key: "properties",
 	    get: function get() {
-	      if (this.collapsible) {
-	        return {};
-	      }
-
-	      return {};
+	      return {
+	        isEnabled: {
+	          type: Boolean
+	        },
+	        hiddenDefault: {
+	          type: Boolean
+	        }
+	      };
 	    }
 	  }, {
 	    key: "styles",
 	    get: function get() {
 	      var colors = gscape;
-	      return [[css(_templateObject$3(), colors.on_primary, colors.primary, colors.shadows, colors.shadows, colors.shadows, colors.secondary, colors.shadows)], colors];
+	      return [[css(_templateObject$3(), colors.on_primary, colors.primary, colors.shadows, colors.shadows, colors.shadows, colors.shadows, colors.secondary, colors.secondary, colors.secondary, colors.shadows)], colors];
 	    }
 	  }]);
 
-	  function GscapeWidget(draggable, collapsible) {
+	  function GscapeWidget() {
 	    var _this;
 
 	    _classCallCheck$d(this, GscapeWidget);
 
 	    _this = _possibleConstructorReturn$4(this, _getPrototypeOf$4(GscapeWidget).call(this));
-	    _this.draggable = draggable;
-	    _this.collapsible = collapsible;
-	    if (collapsible) _this.collapsed = true;
+	    _this.draggable = false;
+	    _this.collapsible = false;
+	    _this.isEnabled = true;
+	    _this._hiddenDefault = false;
 
 	    _this.onselectstart = function () {
 	    };
+
+	    _this.onToggleBody = function () {};
 
 	    return _this;
 	  }
@@ -44665,18 +45870,18 @@
 	    value: function toggleBody() {
 	      if (this.collapsible) {
 	        if (this.header) {
-	          var collapsed = this.header.collapsed;
-	          this.header.collapsed = !collapsed;
+	          this.header.toggleIcon();
 	        }
 
 	        if (this.body) this.body.classList.toggle('hide');
+	        this.onToggleBody();
 	      }
 	    }
 	  }, {
 	    key: "collapseBody",
 	    value: function collapseBody() {
 	      if (this.collapsible) {
-	        if (this.header) this.header.collapsed = true;
+	        if (this.header && !this.isCollapsed) this.header.toggleIcon();
 	        if (this.body) this.body.classList.add('hide');
 	      }
 	    }
@@ -44684,7 +45889,7 @@
 	    key: "showBody",
 	    value: function showBody() {
 	      if (this.collapsible) {
-	        if (this.header) this.header.collapsed = false;
+	        if (this.header && this.isCollapsed) this.header.toggleIcon();
 	        if (this.body) this.body.classList.remove('hide');
 	      }
 	    }
@@ -44742,7 +45947,7 @@
 	  }, {
 	    key: "show",
 	    value: function show() {
-	      this.style.display = 'initial';
+	      if (this.isEnabled) this.style.display = 'initial';
 	    }
 	  }, {
 	    key: "hide",
@@ -44750,9 +45955,41 @@
 	      this.style.display = 'none';
 	    }
 	  }, {
+	    key: "enable",
+	    value: function enable() {
+	      this.isEnabled = true;
+	      if (!this.hiddenDefault) this.show();
+	    }
+	  }, {
+	    key: "disable",
+	    value: function disable() {
+	      this.isEnabled = false;
+	      this.hide();
+	    }
+	  }, {
 	    key: "blur",
 	    value: function blur() {
 	      this.collapseBody();
+	    }
+	  }, {
+	    key: "isVisible",
+	    get: function get() {
+	      return this.style.display !== 'none' ? true : false;
+	    }
+	  }, {
+	    key: "hiddenDefault",
+	    set: function set(value) {
+	      this._hiddenDefault = value;
+	      value ? this.hide() : this.show();
+	      this.requestUpdate();
+	    },
+	    get: function get() {
+	      return this._hiddenDefault;
+	    }
+	  }, {
+	    key: "isCollapsed",
+	    get: function get() {
+	      if (this.body) return this.body.classList.contains('hide');else return true;
 	    }
 	  }]);
 
@@ -44761,28 +45998,8 @@
 
 	function _typeof$5(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$5 = function _typeof(obj) { return typeof obj; }; } else { _typeof$5 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$5(obj); }
 
-	function _templateObject4$1() {
-	  var data = _taggedTemplateLiteral$4(["\n      .head-btn {\n        position:absolute;\n        color:var(--theme-gscape-on-primary, ", ");\n        right:0;\n        padding:6px 2px;\n        cursor:pointer;\n      }\n\n      .head-btn:hover{\n        color:var(--theme-gscape-secondary, ", ");\n      }\n\n      .head-title {\n        padding: 10px 40px 10px 10px ;\n        box-sizing: border-box;\n        float:left;\n        font-weight:bold;\n        cursor:grab;\n        width: var(--title-width, '');\n        text-align: var(--title-text-align, '')\n      }\n    "]);
-
-	  _templateObject4$1 = function _templateObject4() {
-	    return data;
-	  };
-
-	  return data;
-	}
-
-	function _templateObject3$1() {
-	  var data = _taggedTemplateLiteral$4(["arrow_drop_up"]);
-
-	  _templateObject3$1 = function _templateObject3() {
-	    return data;
-	  };
-
-	  return data;
-	}
-
 	function _templateObject2$2() {
-	  var data = _taggedTemplateLiteral$4(["arrow_drop_down"]);
+	  var data = _taggedTemplateLiteral$4(["\n      :host {\n        display:flex;\n        display: flex;\n        align-items: center;\n        justify-content: space-between;\n        padding: var(--header-padding, 8px);\n      }\n\n      .head-btn {\n        color:var(--theme-gscape-on-primary, ", ");\n        right:0;\n        padding: var(--btn-padding, 0 0 0 5px);\n        cursor:pointer;\n      }\n\n      .head-btn:hover{\n        color:var(--theme-gscape-secondary, ", ");\n      }\n\n      .head-title {\n        padding: var(--title-padding, 0 5px 0 0);\n        box-sizing: border-box;\n        font-weight:bold;\n        cursor:grab;\n        width: var(--title-width, '');\n        text-align: var(--title-text-align, '')\n      }\n    "]);
 
 	  _templateObject2$2 = function _templateObject2() {
 	    return data;
@@ -44792,7 +46009,7 @@
 	}
 
 	function _templateObject$4() {
-	  var data = _taggedTemplateLiteral$4(["\n      <div class=\"head-title\"> ", " </div>\n      <slot></slot>\n      <mwc-icon class=\"head-btn\" @click=\"", "\">\n        ", "\n      </mwc-icon> \n    "]);
+	  var data = _taggedTemplateLiteral$4(["\n      <div class=\"head-title\"> ", " </div>\n      <slot></slot>\n      <mwc-icon class=\"head-btn\" @click=\"", "\">\n        ", "\n      </mwc-icon>\n    "]);
 
 	  _templateObject$4 = function _templateObject() {
 	    return data;
@@ -44832,8 +46049,18 @@
 	    key: "properties",
 	    get: function get() {
 	      return {
-	        collapsed: Boolean,
-	        title: String
+	        title: {
+	          type: String
+	        },
+	        initial_icon: {
+	          type: String
+	        },
+	        secondary_icon: {
+	          type: String
+	        },
+	        icon: {
+	          type: String
+	        }
 	      };
 	    }
 	  }]);
@@ -44843,16 +46070,27 @@
 
 	    _classCallCheck$e(this, GscapeHeader);
 
-	    _this = _possibleConstructorReturn$5(this, _getPrototypeOf$5(GscapeHeader).call(this, false, false));
+	    _this = _possibleConstructorReturn$5(this, _getPrototypeOf$5(GscapeHeader).call(this));
 	    _this.title = 'header';
-	    _this.collapsed = false;
+	    _this.initial_icon = 'arrow_drop_down';
+	    _this.secondary_icon = 'arrow_drop_up';
+	    _this.icon = _this.initial_icon;
+
+	    _this.onClick = function () {};
+
 	    return _this;
 	  }
 
 	  _createClass$d(GscapeHeader, [{
 	    key: "render",
 	    value: function render() {
-	      return html$1(_templateObject$4(), this.title, this.toggleBody, this.collapsed ? html$1(_templateObject2$2()) : html$1(_templateObject3$1()));
+	      return html$1(_templateObject$4(), this.title, this.iconClickHandler, this.icon);
+	    }
+	  }, {
+	    key: "iconClickHandler",
+	    value: function iconClickHandler() {
+	      this.onClick();
+	      this.toggleBody();
 	    }
 	  }, {
 	    key: "toggleBody",
@@ -44863,13 +46101,26 @@
 	      });
 	      this.dispatchEvent(e);
 	    }
+	  }, {
+	    key: "invertIcons",
+	    value: function invertIcons() {
+	      var _ref = [this.secondary_icon, this.initial_icon];
+	      this.initial_icon = _ref[0];
+	      this.secondary_icon = _ref[1];
+	      this.toggleIcon();
+	    }
+	  }, {
+	    key: "toggleIcon",
+	    value: function toggleIcon() {
+	      this.icon = this.icon == this.initial_icon ? this.secondary_icon : this.initial_icon;
+	    }
 	  }], [{
 	    key: "styles",
 	    get: function get() {
 	      // we don't need super.styles, just the colors from default imported theme
 	      var colors = _get$2(_getPrototypeOf$5(GscapeHeader), "styles", this)[1];
 
-	      return css(_templateObject4$1(), colors.on_primary, colors.secondary);
+	      return css(_templateObject2$2(), colors.on_primary, colors.secondary);
 	    }
 	  }]);
 
@@ -44879,10 +46130,10 @@
 
 	function _typeof$6(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$6 = function _typeof(obj) { return typeof obj; }; } else { _typeof$6 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$6(obj); }
 
-	function _templateObject3$2() {
-	  var data = _taggedTemplateLiteral$5(["\n        <div \n          @click=\"", "\" \n          name=\"", "\" \n          diagram-id=\"", "\" \n          class=\"diagram-item ", "\"\n        >\n          ", "\n        </div>\n        "]);
+	function _templateObject3$1() {
+	  var data = _taggedTemplateLiteral$5(["\n        <div\n          @click=\"", "\"\n          name=\"", "\"\n          diagram-id=\"", "\"\n          class=\"diagram-item ", "\"\n        >\n          ", "\n        </div>\n        "]);
 
-	  _templateObject3$2 = function _templateObject3() {
+	  _templateObject3$1 = function _templateObject3() {
 	    return data;
 	  };
 
@@ -44890,7 +46141,7 @@
 	}
 
 	function _templateObject2$3() {
-	  var data = _taggedTemplateLiteral$5(["\n      <gscape-head title=\"", "\"\n        collapsed=\"true\" class=\"drag-handler\"></gscape-head> \n\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n    "]);
+	  var data = _taggedTemplateLiteral$5(["\n      <gscape-head title=\"", "\"\n        class=\"drag-handler\"></gscape-head>\n\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n    "]);
 
 	  _templateObject2$3 = function _templateObject2() {
 	    return data;
@@ -44958,7 +46209,9 @@
 
 	    _classCallCheck$f(this, GscapeDiagramSelector);
 
-	    _this = _possibleConstructorReturn$6(this, _getPrototypeOf$6(GscapeDiagramSelector).call(this, true, true));
+	    _this = _possibleConstructorReturn$6(this, _getPrototypeOf$6(GscapeDiagramSelector).call(this));
+	    _this.draggable = true;
+	    _this.collapsible = true;
 	    _this.diagrams = diagrams;
 	    _this.actual_diagram_id = null;
 	    _this.default_title = 'Select a Diagram';
@@ -44972,7 +46225,7 @@
 	      var _this2 = this;
 
 	      return html$1(_templateObject2$3(), this.default_title, this.diagrams.map(function (diagram, id) {
-	        return html$1(_templateObject3$2(), _this2.changeDiagram, diagram.name, id, id == _this2.actual_diagram_id ? "selected" : "", diagram.name);
+	        return html$1(_templateObject3$1(), _this2.changeDiagram, diagram.name, id, id == _this2.actual_diagram_id ? "selected" : "", diagram.name);
 	      }));
 	    }
 	  }, {
@@ -44987,12 +46240,6 @@
 	      this._onDiagramChange(diagram_id);
 	    }
 	  }, {
-	    key: "firstUpdated",
-	    value: function firstUpdated() {
-	      _get$3(_getPrototypeOf$6(GscapeDiagramSelector.prototype), "firstUpdated", this).call(this); //this.shadowRoot.querySelector('gscape-head').title = this.actual_diagram.name
-
-	    }
-	  }, {
 	    key: "onDiagramChange",
 	    set: function set(f) {
 	      this._onDiagramChange = f;
@@ -45001,7 +46248,8 @@
 	    key: "actual_diagram_id",
 	    set: function set(diagram_id) {
 	      this._actual_diagram_id = diagram_id;
-	      if (diagram_id != null) this.shadowRoot.querySelector('gscape-head').title = this.diagrams[diagram_id].name;
+	      if (diagram_id != null) this.header.title = this.diagrams[diagram_id].name;
+	      this.requestUpdate();
 	    },
 	    get: function get() {
 	      return this._actual_diagram_id;
@@ -45020,7 +46268,7 @@
 	function _typeof$7(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$7 = function _typeof(obj) { return typeof obj; }; } else { _typeof$7 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$7(obj); }
 
 	function _templateObject5$1() {
-	  var data = _taggedTemplateLiteral$6(["\n                <div class=\"sub-row\" \n                  diagram_id=\"", "\" \n                  node_id=\"", "\"\n                  @click=\"", "\"\n                >\n                  - ", " - ", "\n                </div>\n              "]);
+	  var data = _taggedTemplateLiteral$6(["\n                <div class=\"sub-row\"\n                  diagram_id=\"", "\"\n                  node_id=\"", "\"\n                  @click=\"", "\"\n                >\n                  - ", " - ", "\n                </div>\n              "]);
 
 	  _templateObject5$1 = function _templateObject5() {
 	    return data;
@@ -45029,20 +46277,20 @@
 	  return data;
 	}
 
-	function _templateObject4$2() {
-	  var data = _taggedTemplateLiteral$6(["\n          <div>\n            <div \n              id=\"", "\" \n              class=\"row\" \n              type=\"", "\"\n              label = \"", "\"\n            >\n              <span><mwc-icon @click='", "'>keyboard_arrow_right</mwc-icon></span>\n              <span>", "</span>\n              <div class=\"row-label\" @click='", "'>", "</div>\n            </div>\n\n            <div class=\"sub-rows-wrapper hide\">\n            ", "\n            </div>\n          </div>\n        "]);
+	function _templateObject4$1() {
+	  var data = _taggedTemplateLiteral$6(["\n          <div>\n            <div\n              id=\"", "\"\n              class=\"row\"\n              type=\"", "\"\n              label = \"", "\"\n            >\n              <span><mwc-icon @click='", "'>keyboard_arrow_right</mwc-icon></span>\n              <span>", "</span>\n              <div class=\"row-label\" @click='", "'>", "</div>\n            </div>\n\n            <div class=\"sub-rows-wrapper hide\">\n            ", "\n            </div>\n          </div>\n        "]);
 
-	  _templateObject4$2 = function _templateObject4() {
+	  _templateObject4$1 = function _templateObject4() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject3$3() {
-	  var data = _taggedTemplateLiteral$6(["\n      <gscape-head title=\"Explorer\" collapsed=\"true\" class=\"drag-handler\">\n        <input \n          type=\"text\" \n          autocomplete=\"off\"\n          @keyup=\"", "\"\n          placeholder=\"Search Entities\"\n        />\n      </gscape-head>\n\n      <div class=\"widget-body hide\">\n      ", "\n      </div>\n    "]);
+	function _templateObject3$2() {
+	  var data = _taggedTemplateLiteral$6(["\n      <gscape-head title=\"Explorer\" class=\"drag-handler\">\n        <input\n          type=\"text\"\n          autocomplete=\"off\"\n          @keyup=\"", "\"\n          placeholder=\"Search Entities\"\n        />\n      </gscape-head>\n\n      <div class=\"widget-body hide\">\n      ", "\n      </div>\n    "]);
 
-	  _templateObject3$3 = function _templateObject3() {
+	  _templateObject3$2 = function _templateObject3() {
 	    return data;
 	  };
 
@@ -45060,7 +46308,7 @@
 	}
 
 	function _templateObject$6() {
-	  var data = _taggedTemplateLiteral$6(["\n        :host {\n          left:50%;\n          top:10px;\n          min-width:340px;\n          max-width:450px;\n          transform: translate(-50%, 0);\n        }\n\n        .widget-body {\n          overflow:auto;\n        }\n\n        .row{\n          line-height: 0;\n          display: flex;\n          align-items: center;\n          padding:4px 0;\n        }\n\n        .row:hover, .sub-row:hover {\n          background-color: var(--theme-gscape-secondary, ", ");\n          color: var(--theme-gscape-on-secondary, ", ");\n        }\n\n        .row-label{\n          padding-left:5px;\n          cursor:pointer;\n          width:100%;\n          white-space: nowrap;\n        }\n\n        mwc-icon:hover{\n          color: var(--theme-gscape-primary, ", ");\n          cursor:pointer;\n        }\n\n        .type-img{\n          width: 20px;\n          height: 20px;\n          text-align: center;\n          line-height: 20px;\n        }\n\n        .type-img-A{\n          background-color: var(--theme-graph-attribute, ", ");\n          color: var(--theme-graph-attribute-dark, ", ");\n          border: solid 1px var(--theme-graph-attribute-dark, ", ");\n        }\n\n        .type-img-R{\n          background-color: var(--theme-graph-role, ", ");\n          color: var(--theme-graph-role-dark, ", ");\n          border: solid 1px var(--theme-graph-role-dark, ", "); \n        }\n        \n        .type-img-C{\n          background-color: var(--theme-graph-concept, ", ");\n          color: var(--theme-graph-concept-dark, ", ");\n          border: solid 1px var(--theme-graph-concept-dark, ", "); \n        }\n\n        .type-img-I{\n          background-color: var(--theme-graph-individual, ", ");\n          color: var(--theme-graph-individual-dark, ", ");\n          border: solid 1px var(--theme-graph-individual-dark, ", "); \n        }\n\n        .sub-row{\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          padding: 4px 0 4px 34px;\n          cursor: pointer;\n        }\n\n        .sub-rows-wrapper{\n          padding: 2px 0;\n        }\n\n        .add-shadow{\n          box-shadow: 0 2px 2px 0 var(--theme-gscape-shadows, ", ");\n        }\n\n        gscape-head input {\n          position:absolute;\n          left: 30%;\n          width: 50%;\n          line-height:21px;\n          box-sizing: border-box;\n          background-color: var(--theme-gscape-primary, ", ");\n          padding: 2px 5px;\n          border:none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          float: left;\n          margin: 8px 0px;\n          transition: all .35s ease-in-out;\n          color:inherit;\n        }\n\n        gscape-head input:focus {\n          border-color: var(--theme-gscape-secondary, ", ");\n          left:0;\n          margin: 8px 10px;\n          width:80%;\n        }\n      "]);
+	  var data = _taggedTemplateLiteral$6(["\n        :host {\n          left:50%;\n          top:10px;\n          min-width:340px;\n          max-width:450px;\n          transform: translate(-50%, 0);\n        }\n\n        .widget-body {\n          overflow:auto;\n        }\n\n        .row{\n          line-height: 0;\n          display: flex;\n          align-items: center;\n          padding:4px 0;\n        }\n\n        .row:hover, .sub-row:hover {\n          background-color: var(--theme-gscape-secondary, ", ");\n          color: var(--theme-gscape-on-secondary, ", ");\n        }\n\n        .row-label{\n          padding-left:5px;\n          cursor:pointer;\n          width:100%;\n          white-space: nowrap;\n        }\n\n        mwc-icon:hover{\n          color: var(--theme-gscape-primary, ", ");\n          cursor:pointer;\n        }\n\n        .type-img{\n          width: 20px;\n          height: 20px;\n          text-align: center;\n          line-height: 20px;\n        }\n\n        .type-img-A{\n          background-color: var(--theme-graph-attribute, ", ");\n          color: var(--theme-graph-attribute-dark, ", ");\n          border: solid 1px var(--theme-graph-attribute-dark, ", ");\n        }\n\n        .type-img-R{\n          background-color: var(--theme-graph-role, ", ");\n          color: var(--theme-graph-role-dark, ", ");\n          border: solid 1px var(--theme-graph-role-dark, ", ");\n        }\n\n        .type-img-C{\n          background-color: var(--theme-graph-concept, ", ");\n          color: var(--theme-graph-concept-dark, ", ");\n          border: solid 1px var(--theme-graph-concept-dark, ", ");\n        }\n\n        .type-img-I{\n          background-color: var(--theme-graph-individual, ", ");\n          color: var(--theme-graph-individual-dark, ", ");\n          border: solid 1px var(--theme-graph-individual-dark, ", ");\n        }\n\n        .sub-row{\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          padding: 4px 0 4px 34px;\n          cursor: pointer;\n        }\n\n        .sub-rows-wrapper{\n          padding: 2px 0;\n        }\n\n        .add-shadow{\n          box-shadow: 0 2px 2px 0 var(--theme-gscape-shadows, ", ");\n        }\n\n        gscape-head input {\n          position:absolute;\n          left: 30%;\n          width: 50%;\n          padding: 0;\n          line-height:22px;\n          box-sizing: border-box;\n          background-color: var(--theme-gscape-primary, ", ");\n          border:none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          transition: all .35s ease-in-out;\n          color:inherit;\n        }\n\n        gscape-head input:focus {\n          border-color: var(--theme-gscape-secondary, ", ");\n          left:0;\n          margin: 0px 8px;\n          width:80%;\n        }\n      "]);
 
 	  _templateObject$6 = function _templateObject() {
 	    return data;
@@ -45118,11 +46366,13 @@
 
 	    _classCallCheck$g(this, GscapeExplorer);
 
-	    _this = _possibleConstructorReturn$7(this, _getPrototypeOf$7(GscapeExplorer).call(this, true, true));
+	    _this = _possibleConstructorReturn$7(this, _getPrototypeOf$7(GscapeExplorer).call(this));
+	    _this.draggable = true;
+	    _this.collapsible = true;
 	    _this.diagrams = diagrams;
 	    _this.predicates = predicates;
-	    _this._onEntitySelect = null;
-	    _this._onNodeSelect = null;
+	    _this.onEntitySelect = {};
+	    _this.onNodeNavigation = {};
 	    return _this;
 	  }
 
@@ -45136,9 +46386,9 @@
 	        return html$1(_templateObject2$4(), letter, letter);
 	      }
 
-	      return html$1(_templateObject3$3(), this.search, Object.keys(this.predicates).map(function (key) {
+	      return html$1(_templateObject3$2(), this.search, Object.keys(this.predicates).map(function (key) {
 	        var predicate = _this2.predicates[key];
-	        return html$1(_templateObject4$2(), predicate.subrows[0].id, predicate.type, predicate.label, _this2.toggleSubRows, getTypeImg(predicate.type), _this2.handleEntitySelection, predicate.label, predicate.subrows.map(function (predicate_instance) {
+	        return html$1(_templateObject4$1(), predicate.subrows[0].id, predicate.type, predicate.label, _this2.toggleSubRows, getTypeImg(predicate.type), _this2.handleEntitySelection, predicate.label, predicate.subrows.map(function (predicate_instance) {
 	          return html$1(_templateObject5$1(), predicate_instance.diagram.id, predicate_instance.id, _this2.handleNodeSelection, predicate_instance.diagram.name, predicate_instance.id_xml);
 	        }));
 	      }));
@@ -45176,36 +46426,23 @@
 	  }, {
 	    key: "handleEntitySelection",
 	    value: function handleEntitySelection(e) {
-	      var entity_id = e.target.parentNode.getAttribute('id'); //let selector = `[label = '${label}'][type = '${type}']`
-	      // get the first instance of the selected entity
-	      //let predicate_instance = this.predicates.filter(selector)[0]
-
-	      this._onEntitySelect(entity_id, true);
+	      var entity_id = e.target.parentNode.getAttribute('id');
+	      this.onEntitySelect(entity_id, true);
 	    }
 	  }, {
 	    key: "handleNodeSelection",
 	    value: function handleNodeSelection(e) {
-	      this.toggleBody();
+	      this.collapseBody();
 	      var node_id = e.target.getAttribute('node_id');
+	      this.onNodeNavigation(node_id);
+	    } // override
 
-	      this._onNodeSelect(node_id);
-	    }
 	  }, {
 	    key: "blur",
 	    value: function blur() {
 	      _get$4(_getPrototypeOf$7(GscapeExplorer.prototype), "blur", this).call(this);
 
 	      this.shadowRoot.querySelector('input').blur();
-	    }
-	  }, {
-	    key: "onEntitySelect",
-	    set: function set(f) {
-	      this._onEntitySelect = f;
-	    }
-	  }, {
-	    key: "onNodeNavigation",
-	    set: function set(f) {
-	      this._onNodeSelect = f;
 	    }
 	  }, {
 	    key: "predicates",
@@ -45227,7 +46464,7 @@
 	      var getSubRowsObjectBound = getSubRowsObject.bind(this);
 	      var dictionary = [];
 	      predicates.forEach(function (predicate) {
-	        var label = predicate.label.replace(/\r?\n|\r/g, '');
+	        var label = predicate.displayed_name.replace(/\r?\n|\r/g, '');
 	        var key = label.concat(predicate.type);
 
 	        if (!(key in dictionary)) {
@@ -45248,18 +46485,6 @@
 	}(GscapeWidget);
 	customElements.define('gscape-explorer', GscapeExplorer);
 
-	function _typeof$8(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$8 = function _typeof(obj) { return typeof obj; }; } else { _typeof$8 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$8(obj); }
-
-	function _templateObject10$1() {
-	  var data = _taggedTemplateLiteral$7([""]);
-
-	  _templateObject10$1 = function _templateObject10() {
-	    return data;
-	  };
-
-	  return data;
-	}
-
 	function _templateObject9$1() {
 	  var data = _taggedTemplateLiteral$7([""]);
 
@@ -45271,7 +46496,7 @@
 	}
 
 	function _templateObject8$1() {
-	  var data = _taggedTemplateLiteral$7(["\n                <div>\n                  <div class=\"descr-header\"> Description </div>\n                  <div class=\"descr-text\">\n                  </div>\n                </div>\n              "]);
+	  var data = _taggedTemplateLiteral$7(["<span class=\"language\">", "</span>"]);
 
 	  _templateObject8$1 = function _templateObject8() {
 	    return data;
@@ -45281,7 +46506,7 @@
 	}
 
 	function _templateObject7$1() {
-	  var data = _taggedTemplateLiteral$7([""]);
+	  var data = _taggedTemplateLiteral$7(["\n            <div class=\"description\" lang=\"", "\">\n              ", "\n              <span class=\"descr-text\"></span>\n            </div>\n          "]);
 
 	  _templateObject7$1 = function _templateObject7() {
 	    return data;
@@ -45291,7 +46516,7 @@
 	}
 
 	function _templateObject6$1() {
-	  var data = _taggedTemplateLiteral$7(["<span class=\"chip\">&#10003; ", "</span>"]);
+	  var data = _taggedTemplateLiteral$7(["\n      <div class=\"section\">\n        <div class=\"section-header\"> Description </div>\n        ", "\n      </div>\n    "]);
 
 	  _templateObject6$1 = function _templateObject6() {
 	    return data;
@@ -45301,7 +46526,7 @@
 	}
 
 	function _templateObject5$2() {
-	  var data = _taggedTemplateLiteral$7([""]);
+	  var data = _taggedTemplateLiteral$7(["<th rowspan=\"3\">", "</th>"]);
 
 	  _templateObject5$2 = function _templateObject5() {
 	    return data;
@@ -45310,20 +46535,20 @@
 	  return data;
 	}
 
-	function _templateObject4$3() {
-	  var data = _taggedTemplateLiteral$7(["\n              <tr>\n                <th>IRI</th>\n                <td>", "</td>\n              </tr>\n              "]);
+	function _templateObject4$2() {
+	  var data = _taggedTemplateLiteral$7(["\n                  <tr>\n                    ", "\n                    <td class=\"language\">", "</td>\n                    <td>", "</td>\n                  </tr>\n                "]);
 
-	  _templateObject4$3 = function _templateObject4() {
+	  _templateObject4$2 = function _templateObject4() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject3$4() {
-	  var data = _taggedTemplateLiteral$7(["\n            <table class=\"details_table\">\n              <tr>\n                <th>Name</th>\n                <td>", "</td>\n              </tr>\n              <tr>\n                <th>Type</th>\n                <td>", "</td>\n              </tr>\n              ", " \n            </table>\n\n            <div class=\"chips-wrapper\">\n              ", "\n            </div>\n\n            ", "\n          "]);
+	function _templateObject3$3() {
+	  var data = _taggedTemplateLiteral$7(["\n            <tbody class=\"annotation-row\">\n              ", "\n            </tbody\n          "]);
 
-	  _templateObject3$4 = function _templateObject3() {
+	  _templateObject3$3 = function _templateObject3() {
 	    return data;
 	  };
 
@@ -45331,7 +46556,7 @@
 	}
 
 	function _templateObject2$5() {
-	  var data = _taggedTemplateLiteral$7(["\n      <gscape-head title=\"Entity Details\" class=\"drag-handler\"></gscape-head>\n      <div class=\"widget-body\">\n        ", "\n      </div>\n    "]);
+	  var data = _taggedTemplateLiteral$7(["\n      <div class=\"section\">\n        <div class=\"section-header\">Annotations</div>\n        <table class=\"details_table annotations\">\n        ", "\n        </table>\n      </div>\n    "]);
 
 	  _templateObject2$5 = function _templateObject2() {
 	    return data;
@@ -45341,7 +46566,7 @@
 	}
 
 	function _templateObject$7() {
-	  var data = _taggedTemplateLiteral$7(["\n        :host {\n          top:10px;\n          right:62px;\n          width:400px;\n        }\n\n        .widget-body div:last-of-type {\n          margin-bottom: 12px;\n        }\n\n        .chips-wrapper {\n          padding: 12px 6px 0 6px;\n          border-spacing: 0;\n        }\n\n        .descr-header {\n          text-align: center;\n          padding: 12px;\n          font-weight: bold;\n          border-bottom: solid 1px var(--theme-gscape-shadows, ", ");\n          color: var(--theme-gscape-secondary, ", ");\n          width: 85%;\n          margin: auto;\n        }\n\n        .descr-text{\n          padding:10px;\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .chip {\n          display: inline-block;\n          margin: 4px;\n          padding: 3px 8px;\n          border-radius: 32px;\n          border: 1px solid var(--theme-gscape-secondary, ", ");\n          color: var(--theme-gscape-secondary, ", ");\n          font-size: 13px;\n        }\n      "]);
+	  var data = _taggedTemplateLiteral$7(["\n    ", "\n\n  ", "\n  "]);
 
 	  _templateObject$7 = function _templateObject() {
 	    return data;
@@ -45351,6 +46576,100 @@
 	}
 
 	function _taggedTemplateLiteral$7(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	var annotationsTemplate = (function (entity) {
+	  return html$1(_templateObject$7(), entity.annotations && Object.keys(entity.annotations).length > 0 ? html$1(_templateObject2$5(), Object.keys(entity.annotations).map(function (kind) {
+	    var annotation = entity.annotations[kind];
+	    return html$1(_templateObject3$3(), Object.keys(annotation).map(function (language, count) {
+	      return html$1(_templateObject4$2(), count == 0 ? html$1(_templateObject5$2(), kind.charAt(0).toUpperCase() + kind.slice(1)) : '', language, annotation[language]);
+	    }));
+	  })) : '', entity.description && Object.keys(entity.description).length > 0 ? html$1(_templateObject6$1(), Object.keys(entity.description).map(function (language) {
+	    return html$1(_templateObject7$1(), language, language != '' ? html$1(_templateObject8$1(), language) : '');
+	  })) : html$1(_templateObject9$1()));
+	});
+
+	function _typeof$8(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$8 = function _typeof(obj) { return typeof obj; }; } else { _typeof$8 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$8(obj); }
+
+	function _templateObject8$2() {
+	  var data = _taggedTemplateLiteral$8([""]);
+
+	  _templateObject8$2 = function _templateObject8() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject7$2() {
+	  var data = _taggedTemplateLiteral$8([""]);
+
+	  _templateObject7$2 = function _templateObject7() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject6$2() {
+	  var data = _taggedTemplateLiteral$8(["<span class=\"chip\">&#10003; ", "</span>"]);
+
+	  _templateObject6$2 = function _templateObject6() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject5$3() {
+	  var data = _taggedTemplateLiteral$8([""]);
+
+	  _templateObject5$3 = function _templateObject5() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject4$3() {
+	  var data = _taggedTemplateLiteral$8(["\n                <tr>\n                  <th>IRI</th>\n                  <td>", "</td>\n                </tr>\n                "]);
+
+	  _templateObject4$3 = function _templateObject4() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject3$4() {
+	  var data = _taggedTemplateLiteral$8(["\n            <div class=\"section\">\n              <table class=\"details_table\">\n                <tr>\n                  <th>Name</th>\n                  <td class=\"wiki\" @click=\"", "\">", "</td>\n                </tr>\n                <tr>\n                  <th>Type</th>\n                  <td>", "</td>\n                </tr>\n                ", "\n              </table>\n            </div>\n\n            <div class=\"chips-wrapper\">\n              ", "\n            </div>\n\n            ", "\n          "]);
+
+	  _templateObject3$4 = function _templateObject3() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject2$6() {
+	  var data = _taggedTemplateLiteral$8(["\n      <gscape-head title=\"Entity Details\" class=\"drag-handler\"></gscape-head>\n      <div class=\"widget-body\">\n        ", "\n      </div>\n    "]);
+
+	  _templateObject2$6 = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$8() {
+	  var data = _taggedTemplateLiteral$8(["\n        :host {\n          top:10px;\n          right:62px;\n          width:400px;\n        }\n\n        .chips-wrapper {\n          padding: 0 10px;\n        }\n\n        .descr-header {\n          text-align: center;\n          padding: 12px;\n          font-weight: bold;\n          border-bottom: solid 1px var(--theme-gscape-shadows, ", ");\n          color: var(--theme-gscape-secondary, ", ");\n          width: 85%;\n          margin: auto;\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .chip {\n          display: inline-block;\n          margin: 4px;\n          padding: 3px 8px;\n          border-radius: 32px;\n          border: 1px solid var(--theme-gscape-secondary, ", ");\n          color: var(--theme-gscape-secondary, ", ");\n          font-size: 13px;\n        }\n\n        .clickable {\n          font-weight:bold;\n          text-decoration: underline;\n        }\n\n        .clickable:hover {\n          cursor:pointer;\n          color: var(--theme-gscape-secondary-dark, ", ");\n        }\n\n        .language {\n          text-align: center;\n          font-size: 14px;\n        }\n\n        tbody:nth-child(n+2)::before {\n          content: '';\n          display: table-row;\n          height: 20px;\n        }\n      "]);
+
+	  _templateObject$8 = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$8(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$h(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -45381,7 +46700,7 @@
 	    key: "properties",
 	    get: function get() {
 	      return [_get$5(_getPrototypeOf$8(GscapeEntityDetails), "properties", this), {
-	        _entity: {
+	        entity: {
 	          type: Object
 	        }
 	      }];
@@ -45392,7 +46711,7 @@
 	      var super_styles = _get$5(_getPrototypeOf$8(GscapeEntityDetails), "styles", this);
 
 	      var colors = super_styles[1];
-	      return [super_styles[0], css(_templateObject$7(), colors.shadows, colors.secondary, colors.secondary, colors.secondary)];
+	      return [super_styles[0], css(_templateObject$8(), colors.shadows, colors.secondary, colors.secondary, colors.secondary, colors.secondary_dark)];
 	    }
 	  }]);
 
@@ -45401,7 +46720,10 @@
 
 	    _classCallCheck$h(this, GscapeEntityDetails);
 
-	    _this = _possibleConstructorReturn$8(this, _getPrototypeOf$8(GscapeEntityDetails).call(this, true, true));
+	    _this = _possibleConstructorReturn$8(this, _getPrototypeOf$8(GscapeEntityDetails).call(this));
+	    _this.draggable = true;
+	    _this.collapsible = true;
+	    _this.hiddenDefault = true;
 	    _this._entity = null;
 	    _this.properties = {
 	      functional: 'Functional',
@@ -45420,32 +46742,59 @@
 	    value: function render() {
 	      var _this2 = this;
 
-	      return html$1(_templateObject2$5(), this.entity ? html$1(_templateObject3$4(), this.entity.label.replace(/\r?\n|\r/g, ''), this.entity.type, this.entity.type != 'individual' ? html$1(_templateObject4$3(), this.entity.iri) : html$1(_templateObject5$2()), Object.keys(this.properties).map(function (property) {
-	        return _this2.entity[property] ? html$1(_templateObject6$1(), _this2.properties[property]) : html$1(_templateObject7$1());
-	      }), this.entity.description ? html$1(_templateObject8$1()) : html$1(_templateObject9$1())) : html$1(_templateObject10$1()));
+	      return html$1(_templateObject2$6(), this.entity ? html$1(_templateObject3$4(), this.wikiClickHandler, this.entity.iri.remaining_chars, this.entity.type, this.entity.type != 'individual' ? html$1(_templateObject4$3(), this.entity.iri.full_iri) : html$1(_templateObject5$3()), Object.keys(this.properties).map(function (property) {
+	        return _this2.entity[property] ? html$1(_templateObject6$2(), _this2.properties[property]) : html$1(_templateObject7$2());
+	      }), annotationsTemplate(this.entity)) : html$1(_templateObject8$2()));
+	    }
+	  }, {
+	    key: "wikiClickHandler",
+	    value: function wikiClickHandler(e) {
+	      if (this._onWikiClick) this._onWikiClick(this.entity.iri.full_iri);
 	    }
 	  }, {
 	    key: "updated",
 	    value: function updated() {
 	      if (this.entity && this.entity.description) this.renderDescription(this.entity.description);
+
+	      if (this._onWikiClick) {
+	        this.shadowRoot.querySelectorAll('.wiki').forEach(function (el) {
+	          el.classList.add('clickable');
+	        });
+	      }
 	    }
 	  }, {
 	    key: "renderDescription",
 	    value: function renderDescription(description) {
-	      var descr_container = this.shadowRoot.querySelector('.descr-text');
-	      descr_container.innerHTML = description.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/');
+	      var _this3 = this;
+
+	      var descr_container;
+	      var text;
+	      Object.keys(description).forEach(function (language) {
+	        text = '';
+	        descr_container = _this3.shadowRoot.querySelector("[lang = \"".concat(language, "\"] > .descr-text"));
+	        description[language].forEach(function (comment, i) {
+	          i > 0 ? text += '<p>' + comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/') + '</p>' : text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/');
+	        });
+	        descr_container.innerHTML = text;
+	      });
 	    }
 	  }, {
 	    key: "firstUpdated",
 	    value: function firstUpdated() {
 	      _get$5(_getPrototypeOf$8(GscapeEntityDetails.prototype), "firstUpdated", this).call(this);
 
-	      this.hide();
-	    }
+	      this.header.invertIcons();
+	    } // override
+
 	  }, {
 	    key: "blur",
 	    value: function blur() {
 	      this.hide();
+	    }
+	  }, {
+	    key: "onWikiClick",
+	    set: function set(foo) {
+	      this._onWikiClick = foo;
 	    }
 	  }, {
 	    key: "entity",
@@ -45480,27 +46829,27 @@
 
 	function _typeof$9(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$9 = function _typeof(obj) { return typeof obj; }; } else { _typeof$9 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$9(obj); }
 
-	function _templateObject2$6() {
-	  var data = _taggedTemplateLiteral$8(["\n      <div \n        class=\"btn\" \n        ?active = \"", "\"\n        @click=\"", "\" \n        title=\"", "\">\n        \n        <mwc-icon>", "</mwc-icon>\n      </div>\n    "]);
+	function _templateObject2$7() {
+	  var data = _taggedTemplateLiteral$9(["\n      <div\n        class=\"btn\"\n        ?active = \"", "\"\n        @click=\"", "\"\n        title=\"", "\">\n\n        <mwc-icon>", "</mwc-icon>\n      </div>\n    "]);
 
-	  _templateObject2$6 = function _templateObject2() {
+	  _templateObject2$7 = function _templateObject2() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject$8() {
-	  var data = _taggedTemplateLiteral$8(["\n        .btn {\n          padding:4px;\n          line-height:0;\n          cursor: pointer;\n        }\n\n        .btn:hover {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n\n        .btn[active] {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n      "]);
+	function _templateObject$9() {
+	  var data = _taggedTemplateLiteral$9(["\n\n        mwc-icon {\n          font-size: var(--gscape-button-font-size, 24px)\n        }\n\n        .btn {\n          padding:5px;\n          line-height:0;\n          cursor: pointer;\n        }\n\n        .btn:hover {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n\n        .btn[active] {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n      "]);
 
-	  _templateObject$8 = function _templateObject() {
+	  _templateObject$9 = function _templateObject() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _taggedTemplateLiteral$8(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	function _taggedTemplateLiteral$9(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$i(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -45530,14 +46879,14 @@
 	  _createClass$h(GscapeButton, null, [{
 	    key: "properties",
 	    get: function get() {
-	      return [_get$6(_getPrototypeOf$9(GscapeButton), "properties", this), {
+	      return {
 	        icon: {
 	          type: String
 	        },
 	        active: {
 	          type: Boolean
 	        }
-	      }];
+	      };
 	    }
 	  }, {
 	    key: "styles",
@@ -45545,7 +46894,7 @@
 	      var super_styles = _get$6(_getPrototypeOf$9(GscapeButton), "styles", this);
 
 	      var colors = super_styles[1];
-	      return [super_styles[0], css(_templateObject$8(), colors.secondary, colors.secondary)];
+	      return [super_styles[0], css(_templateObject$9(), colors.secondary, colors.secondary)];
 	    }
 	  }]);
 
@@ -45556,7 +46905,8 @@
 
 	    _classCallCheck$i(this, GscapeButton);
 
-	    _this = _possibleConstructorReturn$9(this, _getPrototypeOf$9(GscapeButton).call(this, draggable, false));
+	    _this = _possibleConstructorReturn$9(this, _getPrototypeOf$9(GscapeButton).call(this));
+	    _this.draggable = draggable;
 	    _this.icon = icon;
 	    _this.alternate_icon = alt_icon || icon;
 	    _this.onClick = null;
@@ -45568,7 +46918,7 @@
 	  _createClass$h(GscapeButton, [{
 	    key: "render",
 	    value: function render() {
-	      return html$1(_templateObject2$6(), this.active, this.clickHandler, this.icon, this.icon);
+	      return html$1(_templateObject2$7(), this.active, this.clickHandler, this.icon, this.icon);
 	    }
 	  }, {
 	    key: "clickHandler",
@@ -45624,27 +46974,57 @@
 
 	function _typeof$a(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$a = function _typeof(obj) { return typeof obj; }; } else { _typeof$a = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$a(obj); }
 
-	function _templateObject2$7() {
-	  var data = _taggedTemplateLiteral$9(["\n    <div class=\"toggle-container\">\n      <label class=\"toggle-wrap\">\n        <input id=\"", "\" type=\"checkbox\" \n          ?checked=\"", "\"\n          ?disabled=\"", "\"\n          @click=\"", "\"\n        />\n        <span class=\"toggle\"></span>\n      </label>\n      <span class=\"toggle-label\">", "</span>\n    </div>\n    "]);
+	function _templateObject5$4() {
+	  var data = _taggedTemplateLiteral$a(["<span class=\"toggle-label\">", "</span>"]);
 
-	  _templateObject2$7 = function _templateObject2() {
+	  _templateObject5$4 = function _templateObject5() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject$9() {
-	  var data = _taggedTemplateLiteral$9(["\n        :host {\n          display: flex;\n        }\n        \n        .toggle-container {\n          white-space: nowrap;\n          padding: 6px;\n          display: flex;\n          align-items: center;\n        }\n\n        .toggle-wrap {\n          width: 33px;\n          height: 19px;\n          display: inline-block;\n          position: relative;\n        }\n\n        .toggle {\n          position: absolute;\n          cursor: pointer;\n          top: 0;\n          left: 0;\n          right: 0;\n          bottom: 0;\n          background-color: #ccc;\n          transition: checked 0.2s;\n          border-radius: 19px;\n        }\n\n        .toggle::before {\n          position: absolute;\n          content: \"\";\n          height: 11px;\n          width: 11px;\n          left: 4px;\n          bottom: 4px;\n          background-color: var(--theme-gscape-primary, ", ");\n          transition: .1s;\n          border-radius: 20px;\n        }\n\n        .toggle-wrap input {\n          display:none;\n        }\n\n        .toggle-wrap input:checked + .toggle {\n          background-color: var(--theme-gscape-secondary, ", ");\n        }\n\n        .toggle-wrap input:checked + .toggle::before {\n          -webkit-transform: translateX(14px);\n          -ms-transform: translateX(14px);\n          transform: translateX(14px);      \n        }\n\n        .toggle-wrap input:disabled + .toggle {\n          opacity:0.25;\n        }\n\n        .toggle-label {\n          margin-left: 15px;\n        }\n      "]);
+	function _templateObject4$4() {
+	  var data = _taggedTemplateLiteral$a([""]);
 
-	  _templateObject$9 = function _templateObject() {
+	  _templateObject4$4 = function _templateObject4() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _taggedTemplateLiteral$9(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	function _templateObject3$5() {
+	  var data = _taggedTemplateLiteral$a([""]);
+
+	  _templateObject3$5 = function _templateObject3() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject2$8() {
+	  var data = _taggedTemplateLiteral$a(["\n    <div class=\"toggle-container\">\n      ", "\n      <label class=\"toggle-wrap\">\n        <input id=\"", "\" type=\"checkbox\"\n          ?checked=\"", "\"\n          ?disabled=\"", "\"\n          @click=\"", "\"\n        />\n        <span class=\"toggle\"></span>\n      </label>\n      ", "\n    </div>\n    "]);
+
+	  _templateObject2$8 = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$a() {
+	  var data = _taggedTemplateLiteral$a(["\n        :host {\n          display: flex;\n        }\n\n        .toggle-container {\n          white-space: nowrap;\n          display: flex;\n          align-items: center;\n        }\n\n        .toggle-wrap {\n          width: 33px;\n          height: 19px;\n          display: inline-block;\n          position: relative;\n        }\n\n        .toggle {\n          position: absolute;\n          cursor: pointer;\n          top: 0;\n          left: 0;\n          right: 0;\n          bottom: 0;\n          background-color: #ccc;\n          transition: checked 0.2s;\n          border-radius: 19px;\n        }\n\n        .toggle::before {\n          position: absolute;\n          content: \"\";\n          height: 11px;\n          width: 11px;\n          left: 4px;\n          bottom: 4px;\n          background-color: var(--theme-gscape-primary, ", ");\n          transition: .1s;\n          border-radius: 20px;\n        }\n\n        .toggle-wrap input {\n          display:none;\n        }\n\n        .toggle-wrap input:checked + .toggle {\n          background-color: var(--theme-gscape-secondary, ", ");\n        }\n\n        .toggle-wrap input:checked + .toggle::before {\n          -webkit-transform: translateX(14px);\n          -ms-transform: translateX(14px);\n          transform: translateX(14px);\n        }\n\n        .toggle-wrap input:disabled + .toggle {\n          opacity:0.25;\n        }\n\n        .toggle-label {\n          margin: 0 15px;\n        }\n      "]);
+
+	  _templateObject$a = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$a(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$j(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -45675,11 +47055,21 @@
 	    key: "properties",
 	    get: function get() {
 	      return {
-	        state: Boolean,
-	        disabled: Boolean,
-	        label: String,
-	        key: String,
-	        checked: Boolean
+	        state: {
+	          type: Boolean
+	        },
+	        disabled: {
+	          type: Boolean
+	        },
+	        label: {
+	          type: String
+	        },
+	        key: {
+	          type: String
+	        },
+	        checked: {
+	          type: Boolean
+	        }
 	      };
 	    }
 	  }, {
@@ -45688,7 +47078,7 @@
 	      var super_styles = _get$7(_getPrototypeOf$a(GscapeToggle), "styles", this);
 
 	      var colors = super_styles[1];
-	      return css(_templateObject$9(), colors.primary, colors.secondary);
+	      return css(_templateObject$a(), colors.primary, colors.secondary);
 	    }
 	  }]);
 
@@ -45699,7 +47089,7 @@
 
 	    _classCallCheck$j(this, GscapeToggle);
 
-	    _this = _possibleConstructorReturn$a(this, _getPrototypeOf$a(GscapeToggle).call(this, false, false));
+	    _this = _possibleConstructorReturn$a(this, _getPrototypeOf$a(GscapeToggle).call(this));
 	    _this.key = key || ''; // always set inverse before state
 
 	    _this.inverse = inverse_mode;
@@ -45707,36 +47097,42 @@
 	    _this.disabled = disabled || false;
 	    _this.onToggle = onToggle || {};
 	    _this.label = label || '';
+	    _this.label_pos = 'left';
 	    return _this;
 	  }
 
 	  _createClass$i(GscapeToggle, [{
 	    key: "render",
 	    value: function render() {
-	      return html$1(_templateObject2$7(), this.key, this.checked, this.disabled, this.clickHandler, this.label);
+	      return html$1(_templateObject2$8(), this.label_pos == 'left' ? this.label_span : html$1(_templateObject3$5()), this.key, this.checked, this.disabled, this.clickHandler, this.label_pos == 'right' ? this.label_span : html$1(_templateObject4$4()));
 	    }
 	  }, {
 	    key: "clickHandler",
 	    value: function clickHandler(e) {
+	      this.state = !this.state;
 	      this.onToggle(e);
 	    }
 	  }, {
 	    key: "updated",
 	    value: function updated(a) {
 	      // force toggle to change its visual state
-	      // this should be unnecessary: see issue 
+	      // this should be unnecessary: see issue
 	      this.shadowRoot.querySelector("#".concat(this.key)).checked = this.checked;
 	    }
 	  }, {
 	    key: "state",
 	    set: function set(state) {
 	      this._state = state;
-	      var old_checked_val = this.checked;
 	      this.checked = this.inverse ? !state : state; // trying to force an update, doesn't work
 	      //this.requestUpdate('checked', old_checked_val)
 	    },
 	    get: function get() {
 	      return this._state;
+	    }
+	  }, {
+	    key: "label_span",
+	    get: function get() {
+	      return html$1(_templateObject5$4(), this.label);
 	    }
 	  }]);
 
@@ -45746,37 +47142,37 @@
 
 	function _typeof$b(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$b = function _typeof(obj) { return typeof obj; }; } else { _typeof$b = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$b(obj); }
 
-	function _templateObject3$5() {
-	  var data = _taggedTemplateLiteral$a(["\n              ", "\n            "]);
+	function _templateObject3$6() {
+	  var data = _taggedTemplateLiteral$b(["\n              ", "\n            "]);
 
-	  _templateObject3$5 = function _templateObject3() {
+	  _templateObject3$6 = function _templateObject3() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject2$8() {
-	  var data = _taggedTemplateLiteral$a(["\n      ", "\n      \n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Filters</div>\n\n        <div class=\"filters-wrapper\">\n          ", "\n        </div>\n      </div>\n    "]);
+	function _templateObject2$9() {
+	  var data = _taggedTemplateLiteral$b(["\n      ", "\n\n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Filters</div>\n\n        <div class=\"filters-wrapper\">\n          ", "\n        </div>\n      </div>\n    "]);
 
-	  _templateObject2$8 = function _templateObject2() {
+	  _templateObject2$9 = function _templateObject2() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject$a() {
-	  var data = _taggedTemplateLiteral$a(["\n        :host {\n          bottom:10px;\n          left:10px;\n        }\n\n        gscape-button{\n          position: static;\n        }\n\n        gscape-toggle[first]{\n          justify-content: center;\n          border-bottom: 1px solid #ccc;\n          margin-bottom: 10px;\n          padding: 10px;\n        }\n      "]);
+	function _templateObject$b() {
+	  var data = _taggedTemplateLiteral$b(["\n        :host {\n          bottom:10px;\n          left:10px;\n        }\n\n        gscape-button{\n          position: static;\n        }\n\n        gscape-toggle {\n          padding: 8px;\n        }\n\n        gscape-toggle[first]{\n          justify-content: center;\n          border-bottom: 1px solid #ccc;\n          margin-bottom: 10px;\n          padding: 10px;\n        }\n      "]);
 
-	  _templateObject$a = function _templateObject() {
+	  _templateObject$b = function _templateObject() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _taggedTemplateLiteral$a(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	function _taggedTemplateLiteral$b(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$k(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -45825,7 +47221,7 @@
 	      var super_styles = _get$8(_getPrototypeOf$b(GscapeFilters), "styles", this);
 
 	      var colors = super_styles[1];
-	      return [super_styles[0], css(_templateObject$a())];
+	      return [super_styles[0], css(_templateObject$b())];
 	    }
 	  }]);
 
@@ -45834,12 +47230,17 @@
 
 	    _classCallCheck$k(this, GscapeFilters);
 
-	    _this = _possibleConstructorReturn$b(this, _getPrototypeOf$b(GscapeFilters).call(this, false, true));
+	    _this = _possibleConstructorReturn$b(this, _getPrototypeOf$b(GscapeFilters).call(this));
+	    _this.collapsible = true;
 	    _this.filters = filters;
 	    _this.btn = new GscapeButton('filter_list');
 	    _this.btn.onClick = _this.toggleBody.bind(_assertThisInitialized$b(_this));
-	    _this.onFilterOn = null;
-	    _this.onFilterOff = null;
+	    _this.btn.active = false;
+
+	    _this.onFilterOn = function () {};
+
+	    _this.onFilterOff = function () {};
+
 	    return _this;
 	  }
 
@@ -45848,14 +47249,14 @@
 	    value: function render() {
 	      var _this2 = this;
 
-	      return html$1(_templateObject2$8(), this.btn, Object.keys(this.filters).map(function (key) {
+	      return html$1(_templateObject2$9(), this.btn, Object.keys(this.filters).map(function (key) {
 	        var filter = _this2.filters[key];
 	        var toggle = {};
 	        /**
 	         * filter toggles work in inverse mode
 	         *  checked => filter not active
 	         *  unchecked => filter active
-	         * 
+	         *
 	         * we invert the visual behaviour of a toggle passing the last flag setted to true
 	         * the active boolean will represent the filter state, not the visual state.
 	         */
@@ -45867,57 +47268,26 @@
 	          toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, _this2.toggleFilter.bind(_this2), true);
 	        }
 
-	        return html$1(_templateObject3$5(), toggle);
+	        toggle.label_pos = 'right';
+	        return html$1(_templateObject3$6(), toggle);
 	      }));
 	    }
 	  }, {
 	    key: "toggleFilter",
 	    value: function toggleFilter(e) {
-	      var _this3 = this;
-
 	      var toggle = e.target;
-	      this.filters[toggle.id].active = !this.filters[toggle.id].active;
-
-	      if (toggle.id == 'attributes') {
-	        this.filters.value_domain.disabled = this.filters.attributes.active;
-	      } // if 'all' is toggled, it affect all other filters
-
-
-	      if (toggle.id == 'all') {
-	        Object.keys(this.filters).map(function (key) {
-	          if (key != 'all' && !_this3.filters[key].disbaled) {
-	            _this3.filters[key].active = _this3.filters.all.active;
-	            /** 
-	             * if the actual filter is value-domain it means it's not disabled (see previous if condition)
-	             * but when filter all is active filter value-domain must be disabled, let's disable it
-	             */
-
-	            if (key == 'value_domain') _this3.filters[key].disabled = _this3.filters.all.active;
-	            _this3.filters[key].active ? _this3.onFilterOn(_this3.filters[key]) : _this3.onFilterOff(_this3.filters[key]);
-	          }
-	        });
-	      } else {
-	        // if one filter get deactivated while the 'all' filter is active
-	        // then make the 'all' toggle deactivated
-	        if (!this.filters[toggle.id].active && this.filters.all.active) {
-	          this.filters.all.active = false;
-	        }
-
-	        this.filters[toggle.id].active ? this.onFilterOn(this.filters[toggle.id]) : this.onFilterOff(this.filters[toggle.id]);
-	      }
-
-	      this.updateTogglesState();
+	      if (toggle.id == 'all') toggle.checked ? this.onFilterOn(toggle.id) : this.onFilterOff(toggle.id);else !toggle.checked ? this.onFilterOn(toggle.id) : this.onFilterOff(toggle.id);
 	    }
 	  }, {
 	    key: "updateTogglesState",
 	    value: function updateTogglesState() {
-	      var _this4 = this;
+	      var _this3 = this;
 
 	      var toggles = this.shadowRoot.querySelectorAll("gscape-toggle");
 	      var is_activated = false;
 	      toggles.forEach(function (toggle) {
-	        toggle.state = _this4.filters[toggle.key].active;
-	        toggle.disabled = _this4.filters[toggle.key].disabled;
+	        toggle.state = _this3.filters[toggle.key].active;
+	        toggle.disabled = _this3.filters[toggle.key].disabled;
 	        if (toggle.state) is_activated = true;
 	      });
 	      this.btn.active = is_activated;
@@ -45931,45 +47301,45 @@
 
 	function _typeof$c(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$c = function _typeof(obj) { return typeof obj; }; } else { _typeof$c = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$c(obj); }
 
-	function _templateObject3$6() {
-	  var data = _taggedTemplateLiteral$b(["\n                <tr>\n                  <th>", "</th>\n                  <td>", "</td>\n                </tr> \n              "]);
+	function _templateObject3$7() {
+	  var data = _taggedTemplateLiteral$c(["\n                    <tr>\n                      <th>", "</th>\n                      <td>", "</td>\n                    </tr>\n                  "]);
 
-	  _templateObject3$6 = function _templateObject3() {
+	  _templateObject3$7 = function _templateObject3() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _toConsumableArray$3(arr) { return _arrayWithoutHoles$3(arr) || _iterableToArray$3(arr) || _nonIterableSpread$3(); }
+	function _toConsumableArray$4(arr) { return _arrayWithoutHoles$4(arr) || _iterableToArray$4(arr) || _nonIterableSpread$4(); }
 
-	function _nonIterableSpread$3() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+	function _nonIterableSpread$4() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
 
-	function _iterableToArray$3(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+	function _iterableToArray$4(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
 
-	function _arrayWithoutHoles$3(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+	function _arrayWithoutHoles$4(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
-	function _templateObject2$9() {
-	  var data = _taggedTemplateLiteral$b(["\n      ", "\n\n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Ontology Info</div>\n\n        <table class=\"details_table\">\n          <tr>\n            <th>Name</th>\n            <td>", "</td>\n          </tr>\n          <tr>\n            <th>Version</th>\n            <td>", "</td>\n          </tr>\n        </table>\n\n        \n        <table class=\"iri-dict details_table\">\n          <tr><th colspan=\"2\" class=\"table-header\">IRI Prefixes Dictionary</th></tr>\n\n          ", "\n        </table> \n      </div>\n    "]);
+	function _templateObject2$a() {
+	  var data = _taggedTemplateLiteral$c(["\n      ", "\n\n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Ontology Info</div>\n\n        <div class=\"wrapper\">\n\n          <div class=\"section\">\n            <table class=\"details_table\">\n              <tr>\n                <th>Name</th>\n                <td>", "</td>\n              </tr>\n              <tr>\n                <th>Version</th>\n                <td>", "</td>\n              </tr>\n            </table>\n          </div>\n\n          ", "\n\n          <div class=\"section\">\n            <div class=\"section-header\">IRI Prefixes Dictionary</div>\n            <table class=\"iri-dict details_table\">\n              ", "\n            </table>\n          </div>\n        </div>\n      </div>\n    "]);
 
-	  _templateObject2$9 = function _templateObject2() {
+	  _templateObject2$a = function _templateObject2() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject$b() {
-	  var data = _taggedTemplateLiteral$b(["\n        :host {\n          bottom:10px;\n          left:52px;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .iri-dict th.table-header{\n          text-align: center;          \n          padding: 12px;\n          font-weight: bold;\n          border-right: 0;\n          color: var(--theme-gscape-on-primary, ", ");    \n        }\n\n        .iri-dict th {\n          color: var(--theme-gscape-on-primary, ", ");\n          border-right: solid 1px var(--theme-gscape-shadows, ", ");\n          text-align: left;\n          font-weight: normal;\n        }\n      "]);
+	function _templateObject$c() {
+	  var data = _taggedTemplateLiteral$c(["\n        :host {\n          bottom:10px;\n          left:52px;\n        }\n\n        .gscape-panel {\n          padding-right: 0;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .iri-dict th.table-header{\n          text-align: center;\n          padding: 12px;\n          font-weight: bold;\n          border-right: 0;\n          color: var(--theme-gscape-on-primary, ", ");\n        }\n\n        .iri-dict th {\n          color: var(--theme-gscape-on-primary, ", ");\n          border-right: solid 1px var(--theme-gscape-shadows, ", ");\n          text-align: left;\n          font-weight: normal;\n        }\n\n        .wrapper {\n          overflow-y: auto;\n          scrollbar-width: inherit;\n          max-height: 420px;\n          overflow-x: hidden;\n          padding-right: 10px;\n        }\n\n        .section {\n          padding-left: 0;\n          padding-right: 0;\n        }\n      "]);
 
-	  _templateObject$b = function _templateObject() {
+	  _templateObject$c = function _templateObject() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _taggedTemplateLiteral$b(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	function _taggedTemplateLiteral$c(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -46002,7 +47372,7 @@
 	      var super_styles = _get$9(_getPrototypeOf$c(GscapeOntologyInfo), "styles", this);
 
 	      var colors = super_styles[1];
-	      return [super_styles[0], css(_templateObject$b(), colors.on_primary, colors.on_primary, colors.shadows)];
+	      return [super_styles[0], css(_templateObject$c(), colors.on_primary, colors.on_primary, colors.shadows)];
 	    }
 	  }]);
 
@@ -46011,7 +47381,8 @@
 
 	    _classCallCheck$l(this, GscapeOntologyInfo);
 
-	    _this = _possibleConstructorReturn$c(this, _getPrototypeOf$c(GscapeOntologyInfo).call(this, false, true));
+	    _this = _possibleConstructorReturn$c(this, _getPrototypeOf$c(GscapeOntologyInfo).call(this));
+	    _this.collapsible = true;
 	    _this.ontology = ontology;
 	    _this.btn = new GscapeButton('info_outline');
 	    _this.btn.onClick = _this.toggleBody.bind(_assertThisInitialized$c(_this));
@@ -46021,11 +47392,31 @@
 	  _createClass$k(GscapeOntologyInfo, [{
 	    key: "render",
 	    value: function render() {
-	      return html$1(_templateObject2$9(), this.btn, this.ontology.name, this.ontology.version, _toConsumableArray$3(this.ontology.iriSet).map(function (iri) {
+	      return html$1(_templateObject2$a(), this.btn, this.ontology.name, this.ontology.version, annotationsTemplate(this.ontology), _toConsumableArray$4(this.ontology.namespaces).map(function (iri) {
 	        if (!iri.isStandard()) {
-	          return html$1(_templateObject3$6(), iri.prefixes[0], iri.value);
+	          return html$1(_templateObject3$7(), iri.prefixes[0], iri.value);
 	        }
 	      }));
+	    }
+	  }, {
+	    key: "updated",
+	    value: function updated() {
+	      var _this2 = this;
+
+	      if (this.ontology.description) {
+	        var descr_container;
+	        var text;
+	        Object.keys(this.ontology.description).forEach(function (language) {
+	          text = '';
+	          descr_container = _this2.shadowRoot.querySelector("[lang = \"".concat(language, "\"] > .descr-text"));
+
+	          _this2.ontology.description[language].forEach(function (comment, i) {
+	            i > 0 ? text += '<p>' + comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/') + '</p>' : text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/');
+	          });
+
+	          descr_container.innerHTML = text;
+	        });
+	      }
 	    }
 	  }]);
 
@@ -46035,27 +47426,27 @@
 
 	function _typeof$d(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$d = function _typeof(obj) { return typeof obj; }; } else { _typeof$d = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$d(obj); }
 
-	function _templateObject2$a() {
-	  var data = _taggedTemplateLiteral$c(["\n      <div class=\"widget-body\" hide>\n        <div class=\"owl-text\"></div>\n      </div>\n      <gscape-head title=\"Owl Translation\"></gscape-head>\n    "]);
+	function _templateObject2$b() {
+	  var data = _taggedTemplateLiteral$d(["\n      <div class=\"widget-body\">\n        <div class=\"owl-text\"></div>\n      </div>\n      <gscape-head title=\"Owl Translation\"></gscape-head>\n    "]);
 
-	  _templateObject2$a = function _templateObject2() {
+	  _templateObject2$b = function _templateObject2() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject$c() {
-	  var data = _taggedTemplateLiteral$c(["\n        :host {\n          left:50%;\n          bottom:10px;\n          transform: translate(-50%, 0);\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        .owl-text {\n          padding: 15px 10px;\n          font-family: \"Lucida Console\", Monaco, monospace;\n          overflow: auto;\n          white-space: nowrap;\n          line-height: 1.5;\n        }\n\n        .owl_concept{\n          color:#859900;\n        }\n        \n        .owl_role{\n          color:#268bd2;\n        }\n        \n        .owl_attribute{\n          color:#b58900;\n        }\n        \n        .owl_value-domain{\n          color: #2aa198;\n        }\n        \n        .owl_individual{\n          color: #6c71c4;\n        }\n        \n        .owl_value {\n          color: #d33682;\n        }\n        \n        .axiom_predicate_prefix{\n          color:#cb4b16;\n        }\n        \n        .owl_error {\n          color: var(--theme-gscape-error, ", ");\n        }\n        \n        .axiom_predefinite_obj {\n          color: #00c0a0;\n        }\n        \n      "]);
+	function _templateObject$d() {
+	  var data = _taggedTemplateLiteral$d(["\n        :host {\n          left:50%;\n          bottom:10px;\n          transform: translate(-50%, 0);\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        .owl-text {\n          padding: 15px 10px;\n          font-family: \"Lucida Console\", Monaco, monospace;\n          overflow: auto;\n          white-space: nowrap;\n          line-height: 1.5;\n        }\n\n        .owl_concept{\n          color: #b58900;\n        }\n\n        .owl_role{\n          color: #268bd2;\n        }\n\n        .owl_attribute{\n          color: #859900;\n        }\n\n        .owl_value-domain{\n          color: #2aa198;\n        }\n\n        .owl_individual{\n          color: #6c71c4;\n        }\n\n        .owl_value {\n          color: #d33682;\n        }\n\n        .axiom_predicate_prefix{\n          color:#cb4b16;\n        }\n\n        .owl_error {\n          color: var(--theme-gscape-error, ", ");\n        }\n\n        .axiom_predefinite_obj {\n          color: #00c0a0;\n        }\n\n      "]);
 
-	  _templateObject$c = function _templateObject() {
+	  _templateObject$d = function _templateObject() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _taggedTemplateLiteral$c(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	function _taggedTemplateLiteral$d(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -46086,7 +47477,7 @@
 	    key: "properties",
 	    get: function get() {
 	      return {
-	        _owl_text: String
+	        owl_text: String
 	      };
 	    }
 	  }, {
@@ -46095,7 +47486,7 @@
 	      var super_styles = _get$a(_getPrototypeOf$d(GscapeOwlTranslator), "styles", this);
 
 	      var colors = super_styles[1];
-	      return [_get$a(_getPrototypeOf$d(GscapeOwlTranslator), "styles", this)[0], css(_templateObject$c(), colors.shadows, colors.error)];
+	      return [_get$a(_getPrototypeOf$d(GscapeOwlTranslator), "styles", this)[0], css(_templateObject$d(), colors.shadows, colors.error)];
 	    }
 	  }]);
 
@@ -46104,43 +47495,28 @@
 
 	    _classCallCheck$m(this, GscapeOwlTranslator);
 
-	    _this = _possibleConstructorReturn$d(this, _getPrototypeOf$d(GscapeOwlTranslator).call(this, false, true));
-	    _this._owl_text = '';
+	    _this = _possibleConstructorReturn$d(this, _getPrototypeOf$d(GscapeOwlTranslator).call(this));
+	    _this.collapsible = true;
+	    _this.hiddenDefault = true;
+	    _this.owl_text = '';
 	    return _this;
 	  }
 
 	  _createClass$l(GscapeOwlTranslator, [{
 	    key: "render",
 	    value: function render() {
-	      return html$1(_templateObject2$a());
+	      return html$1(_templateObject2$b());
 	    }
 	  }, {
 	    key: "updated",
 	    value: function updated() {
 	      this.shadowRoot.querySelector('.owl-text').innerHTML = this.owl_text;
-	      this.shadowRoot.querySelector('.owl-text').classList.remove('hide');
-	    }
+	    } // override
+
 	  }, {
 	    key: "blur",
 	    value: function blur() {
 	      this.hide();
-	    }
-	  }, {
-	    key: "firstUpdated",
-	    value: function firstUpdated() {
-	      _get$a(_getPrototypeOf$d(GscapeOwlTranslator.prototype), "firstUpdated", this).call(this);
-
-	      this.hide(); // invert header's dropdown icon behaviour
-
-	      this.header.collapsed = true;
-	    }
-	  }, {
-	    key: "owl_text",
-	    set: function set(text) {
-	      this._owl_text = text;
-	    },
-	    get: function get() {
-	      return this._owl_text;
 	    }
 	  }]);
 
@@ -46150,27 +47526,27 @@
 
 	function _typeof$e(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$e = function _typeof(obj) { return typeof obj; }; } else { _typeof$e = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$e(obj); }
 
-	function _templateObject2$b() {
-	  var data = _taggedTemplateLiteral$d(["\n      ", "\n      <div id=\"hr\"></div>\n      ", "\n    "]);
+	function _templateObject2$c() {
+	  var data = _taggedTemplateLiteral$e(["\n      ", "\n      <div id=\"hr\"></div>\n      ", "\n    "]);
 
-	  _templateObject2$b = function _templateObject2() {
+	  _templateObject2$c = function _templateObject2() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _templateObject$d() {
-	  var data = _taggedTemplateLiteral$d(["\n        :host {\n          position: absolute;\n          bottom:52px;\n          right:10px;\n        }\n\n        gscape-button{\n          position: static;\n          box-shadow: initial;\n        }\n\n        #hr {\n          height:1px;\n          width:90%;\n          margin: 2px auto 0 auto;\n          background-color: var(--theme-gscape-shadows, ", ")\n        }\n\n      "]);
+	function _templateObject$e() {
+	  var data = _taggedTemplateLiteral$e(["\n        :host {\n          position: absolute;\n          bottom:52px;\n          right:10px;\n        }\n\n        gscape-button{\n          position: static;\n          box-shadow: initial;\n        }\n\n        #hr {\n          height:1px;\n          width:90%;\n          margin: 2px auto 0 auto;\n          background-color: var(--theme-gscape-shadows, ", ")\n        }\n\n      "]);
 
-	  _templateObject$d = function _templateObject() {
+	  _templateObject$e = function _templateObject() {
 	    return data;
 	  };
 
 	  return data;
 	}
 
-	function _taggedTemplateLiteral$d(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	function _taggedTemplateLiteral$e(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 	function _classCallCheck$n(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -46203,7 +47579,7 @@
 	      var super_styles = _get$b(_getPrototypeOf$e(GscapeZoomTools), "styles", this);
 
 	      var colors = super_styles[1];
-	      return [super_styles[0], css(_templateObject$d(), colors.shadows)];
+	      return [super_styles[0], css(_templateObject$e(), colors.shadows)];
 	    }
 	  }]);
 
@@ -46212,7 +47588,7 @@
 
 	    _classCallCheck$n(this, GscapeZoomTools);
 
-	    _this = _possibleConstructorReturn$e(this, _getPrototypeOf$e(GscapeZoomTools).call(this, false, true));
+	    _this = _possibleConstructorReturn$e(this, _getPrototypeOf$e(GscapeZoomTools).call(this));
 	    _this.btn_plus = new GscapeButton('add');
 	    _this.btn_minus = new GscapeButton('remove');
 	    _this._onZoomIn = null;
@@ -46223,7 +47599,7 @@
 	  _createClass$m(GscapeZoomTools, [{
 	    key: "render",
 	    value: function render() {
-	      return html$1(_templateObject2$b(), this.btn_plus, this.btn_minus);
+	      return html$1(_templateObject2$c(), this.btn_plus, this.btn_minus);
 	    }
 	  }, {
 	    key: "onZoomIn",
@@ -46258,12 +47634,13 @@
 	      'color': theme.label_color
 	    }
 	  }, {
-	    selector: '[label]',
+	    selector: 'node[displayed_name]',
 	    style: {
-	      'label': 'data(label)',
+	      'label': 'data(displayed_name)',
 	      'text-margin-x': 'data(labelXpos)',
 	      'text-margin-y': 'data(labelYpos)',
-	      'text-wrap': 'wrap'
+	      'text-wrap': 'wrap',
+	      'min-zoomed-font-size': '5px'
 	    }
 	  }, {
 	    selector: 'edge',
@@ -46273,7 +47650,8 @@
 	      'target-arrow-color': theme.edge,
 	      'source-arrow-color': theme.edge,
 	      'curve-style': 'bezier',
-	      'arrow-scale': 1.3
+	      'arrow-scale': 1.3,
+	      'color': theme.label_color
 	    }
 	  }, {
 	    selector: 'edge[type = "inclusion"], [type = "membership"], edge.inclusion',
@@ -46323,6 +47701,12 @@
 	      'edge-distances': 'node-position'
 	    }
 	  }, {
+	    selector: ':loop',
+	    style: {
+	      'control-point-step-size': 'data(control_point_step_size)',
+	      'control-point-weight': 0.5
+	    }
+	  }, {
 	    selector: '[source_endpoint]',
 	    style: {
 	      'source-endpoint': 'data(source_endpoint)'
@@ -46347,9 +47731,9 @@
 	      'border-style': 'solid'
 	    }
 	  }, {
-	    selector: '[edge_label]',
+	    selector: 'edge[displayed_name]',
 	    style: {
-	      'label': 'data(edge_label)',
+	      'label': 'data(displayed_name)',
 	      'font-size': 10,
 	      'text-rotation': 'autorotate',
 	      'text-margin-y': -10
@@ -46371,7 +47755,7 @@
 	      'target-text-offset': 20
 	    }
 	  }, {
-	    selector: '[edge_label],[source_label],[target_label],[text_background]',
+	    selector: 'edge[displayed_name],[source_label],[target_label],[text_background]',
 	    style: {
 	      'text-background-color': theme.background,
 	      'text-background-opacity': 1,
@@ -46430,11 +47814,22 @@
 	      'text-background-opacity': 1
 	    }
 	  }, {
+	    selector: 'edge.role',
+	    style: {
+	      'line-color': theme.role_dark,
+	      'source-arrow-color': theme.role_dark,
+	      'target-arrow-color': theme.role_dark,
+	      'target-arrow-shape': 'square',
+	      'target-arrow-fill': 'filled',
+	      'source-arrow-shape': 'square',
+	      'source-arrow-fill': 'hollow'
+	    }
+	  }, {
 	    selector: 'edge.range',
 	    style: {
-	      'source-arrow-shape': 'square',
-	      'source-arrow-fill': 'filled',
-	      'target-arrow-shape': 'none'
+	      'target-arrow-shape': 'square',
+	      'target-arrow-fill': 'filled',
+	      'source-arrow-shape': 'none'
 	    }
 	  }, {
 	    selector: 'edge.domain',
@@ -46451,11 +47846,14 @@
 	      'target-arrow-shape': 'none'
 	    }
 	  }, {
-	    selector: 'edge.role',
+	    selector: '.bubble',
 	    style: {
-	      'line-color': theme.role_dark,
-	      'source-arrow-color': theme.role_dark,
-	      'target-arrow-color': theme.role_dark
+	      'text-margin-x': 0,
+	      'text-margin-y': 0,
+	      'text-valign': 'center',
+	      'text-halign': 'center',
+	      'shape': 'ellipse',
+	      'height': 'data(width)'
 	    }
 	  }, {
 	    selector: '.individual',
@@ -46469,10 +47867,21 @@
 	      'background-color': theme.node_bg_contrast
 	    }
 	  }, {
+	    selector: '.float:locked',
+	    style: {
+	      'border-color': theme.secondary,
+	      'border-width': '4px'
+	    }
+	  }, {
 	    // the right border part of functional && inverseFunctional roles
 	    selector: '.fake-triangle-right',
 	    style: {
-	      'background-color': theme.role_dark
+	      'background-color': theme.role_dark || 'black'
+	    }
+	  }, {
+	    selector: '[shape = "hexagon"],[type = "value-domain"], .facet',
+	    style: {
+	      'color': theme.node_bg_contrast
 	    }
 	  }, //-----------------------------------------------------------
 	  // selected selector always last
@@ -46519,6 +47928,18 @@
 	      }
 	    });
 	    this.cy.on('select', 'node', function (e) {
+	      var type = e.target.data('type');
+
+	      switch (type) {
+	        case 'intersection':
+	        case 'union':
+	        case 'disjoint-union':
+	          e.target.neighborhood().select();
+	          break;
+	      }
+
+	      e.target.select();
+
 	      _this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'));
 	    });
 	    this.cy.on('select', 'edge', function (e) {
@@ -46659,7 +48080,7 @@
 	        var number_edges_in_out = getNumberEdgesInOut(neighbour);
 
 	        if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') === 'input')) {
-	          _this3.filterElem(e.target(), filter_class);
+	          _this3.filterElem(e.target(), filter_class, cy);
 	        }
 	      }); // ARCHI IN ENTRATA
 
@@ -46669,7 +48090,7 @@
 	        var number_edges_in_out = getNumberEdgesInOut(neighbour);
 
 	        if (!e.source().hasClass('filtered') && number_edges_in_out === 0) {
-	          _this3.filterElem(e.source(), filter_class);
+	          _this3.filterElem(e.source(), filter_class, cy);
 	        }
 	      });
 
@@ -46699,6 +48120,7 @@
 	  }, {
 	    key: "setTheme",
 	    value: function setTheme(theme) {
+	      this.theme = theme;
 	      this.cy.style(getGraphStyle(theme));
 	    }
 	  }, {
@@ -52037,25 +53459,25 @@
 
 	function _setPrototypeOf$f(o, p) { _setPrototypeOf$f = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$f(o, p); }
 
-	var EasyGscapeRenderer =
+	var LiteGscapeRenderer =
 	/*#__PURE__*/
 	function (_GrapholscapeRenderer) {
-	  _inherits$f(EasyGscapeRenderer, _GrapholscapeRenderer);
+	  _inherits$f(LiteGscapeRenderer, _GrapholscapeRenderer);
 
-	  function EasyGscapeRenderer(container) {
+	  function LiteGscapeRenderer(container) {
 	    var _this;
 
-	    _classCallCheck$p(this, EasyGscapeRenderer);
+	    _classCallCheck$p(this, LiteGscapeRenderer);
 
-	    _this = _possibleConstructorReturn$f(this, _getPrototypeOf$f(EasyGscapeRenderer).call(this, container));
+	    _this = _possibleConstructorReturn$f(this, _getPrototypeOf$f(LiteGscapeRenderer).call(this, container));
 	    cytoscape$1.use(cola);
 	    return _this;
 	  }
 
-	  _createClass$o(EasyGscapeRenderer, [{
+	  _createClass$o(LiteGscapeRenderer, [{
 	    key: "drawDiagram",
 	    value: function drawDiagram(diagram) {
-	      _get$c(_getPrototypeOf$f(EasyGscapeRenderer.prototype), "drawDiagram", this).call(this, diagram);
+	      _get$c(_getPrototypeOf$f(LiteGscapeRenderer.prototype), "drawDiagram", this).call(this, diagram);
 
 	      this.cy.autoungrabify(false);
 	      this.cy.nodes().lock();
@@ -52072,8 +53494,3012 @@
 	    }
 	  }]);
 
-	  return EasyGscapeRenderer;
+	  return LiteGscapeRenderer;
 	}(GrapholscapeRenderer);
+
+	/**!
+	 * @fileOverview Kickass library to create and place poppers near their reference elements.
+	 * @version 1.16.1
+	 * @license
+	 * Copyright (c) 2016 Federico Zivolo and contributors
+	 *
+	 * Permission is hereby granted, free of charge, to any person obtaining a copy
+	 * of this software and associated documentation files (the "Software"), to deal
+	 * in the Software without restriction, including without limitation the rights
+	 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	 * copies of the Software, and to permit persons to whom the Software is
+	 * furnished to do so, subject to the following conditions:
+	 *
+	 * The above copyright notice and this permission notice shall be included in all
+	 * copies or substantial portions of the Software.
+	 *
+	 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	 * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	 * SOFTWARE.
+	 */
+	var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined' && typeof navigator !== 'undefined';
+
+	var timeoutDuration = function () {
+	  var longerTimeoutBrowsers = ['Edge', 'Trident', 'Firefox'];
+	  for (var i = 0; i < longerTimeoutBrowsers.length; i += 1) {
+	    if (isBrowser && navigator.userAgent.indexOf(longerTimeoutBrowsers[i]) >= 0) {
+	      return 1;
+	    }
+	  }
+	  return 0;
+	}();
+
+	function microtaskDebounce(fn) {
+	  var called = false;
+	  return function () {
+	    if (called) {
+	      return;
+	    }
+	    called = true;
+	    window.Promise.resolve().then(function () {
+	      called = false;
+	      fn();
+	    });
+	  };
+	}
+
+	function taskDebounce(fn) {
+	  var scheduled = false;
+	  return function () {
+	    if (!scheduled) {
+	      scheduled = true;
+	      setTimeout(function () {
+	        scheduled = false;
+	        fn();
+	      }, timeoutDuration);
+	    }
+	  };
+	}
+
+	var supportsMicroTasks = isBrowser && window.Promise;
+
+	/**
+	* Create a debounced version of a method, that's asynchronously deferred
+	* but called in the minimum time possible.
+	*
+	* @method
+	* @memberof Popper.Utils
+	* @argument {Function} fn
+	* @returns {Function}
+	*/
+	var debounce$1 = supportsMicroTasks ? microtaskDebounce : taskDebounce;
+
+	/**
+	 * Check if the given variable is a function
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Any} functionToCheck - variable to check
+	 * @returns {Boolean} answer to: is a function?
+	 */
+	function isFunction(functionToCheck) {
+	  var getType = {};
+	  return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+	}
+
+	/**
+	 * Get CSS computed property of the given element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Eement} element
+	 * @argument {String} property
+	 */
+	function getStyleComputedProperty(element, property) {
+	  if (element.nodeType !== 1) {
+	    return [];
+	  }
+	  // NOTE: 1 DOM access here
+	  var window = element.ownerDocument.defaultView;
+	  var css = window.getComputedStyle(element, null);
+	  return property ? css[property] : css;
+	}
+
+	/**
+	 * Returns the parentNode or the host of the element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @returns {Element} parent
+	 */
+	function getParentNode(element) {
+	  if (element.nodeName === 'HTML') {
+	    return element;
+	  }
+	  return element.parentNode || element.host;
+	}
+
+	/**
+	 * Returns the scrolling parent of the given element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @returns {Element} scroll parent
+	 */
+	function getScrollParent(element) {
+	  // Return body, `getScroll` will take care to get the correct `scrollTop` from it
+	  if (!element) {
+	    return document.body;
+	  }
+
+	  switch (element.nodeName) {
+	    case 'HTML':
+	    case 'BODY':
+	      return element.ownerDocument.body;
+	    case '#document':
+	      return element.body;
+	  }
+
+	  // Firefox want us to check `-x` and `-y` variations as well
+
+	  var _getStyleComputedProp = getStyleComputedProperty(element),
+	      overflow = _getStyleComputedProp.overflow,
+	      overflowX = _getStyleComputedProp.overflowX,
+	      overflowY = _getStyleComputedProp.overflowY;
+
+	  if (/(auto|scroll|overlay)/.test(overflow + overflowY + overflowX)) {
+	    return element;
+	  }
+
+	  return getScrollParent(getParentNode(element));
+	}
+
+	/**
+	 * Returns the reference node of the reference object, or the reference object itself.
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {Element|Object} reference - the reference element (the popper will be relative to this)
+	 * @returns {Element} parent
+	 */
+	function getReferenceNode(reference) {
+	  return reference && reference.referenceNode ? reference.referenceNode : reference;
+	}
+
+	var isIE11 = isBrowser && !!(window.MSInputMethodContext && document.documentMode);
+	var isIE10 = isBrowser && /MSIE 10/.test(navigator.userAgent);
+
+	/**
+	 * Determines if the browser is Internet Explorer
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {Number} version to check
+	 * @returns {Boolean} isIE
+	 */
+	function isIE(version) {
+	  if (version === 11) {
+	    return isIE11;
+	  }
+	  if (version === 10) {
+	    return isIE10;
+	  }
+	  return isIE11 || isIE10;
+	}
+
+	/**
+	 * Returns the offset parent of the given element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @returns {Element} offset parent
+	 */
+	function getOffsetParent(element) {
+	  if (!element) {
+	    return document.documentElement;
+	  }
+
+	  var noOffsetParent = isIE(10) ? document.body : null;
+
+	  // NOTE: 1 DOM access here
+	  var offsetParent = element.offsetParent || null;
+	  // Skip hidden elements which don't have an offsetParent
+	  while (offsetParent === noOffsetParent && element.nextElementSibling) {
+	    offsetParent = (element = element.nextElementSibling).offsetParent;
+	  }
+
+	  var nodeName = offsetParent && offsetParent.nodeName;
+
+	  if (!nodeName || nodeName === 'BODY' || nodeName === 'HTML') {
+	    return element ? element.ownerDocument.documentElement : document.documentElement;
+	  }
+
+	  // .offsetParent will return the closest TH, TD or TABLE in case
+	  // no offsetParent is present, I hate this job...
+	  if (['TH', 'TD', 'TABLE'].indexOf(offsetParent.nodeName) !== -1 && getStyleComputedProperty(offsetParent, 'position') === 'static') {
+	    return getOffsetParent(offsetParent);
+	  }
+
+	  return offsetParent;
+	}
+
+	function isOffsetContainer(element) {
+	  var nodeName = element.nodeName;
+
+	  if (nodeName === 'BODY') {
+	    return false;
+	  }
+	  return nodeName === 'HTML' || getOffsetParent(element.firstElementChild) === element;
+	}
+
+	/**
+	 * Finds the root node (document, shadowDOM root) of the given element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} node
+	 * @returns {Element} root node
+	 */
+	function getRoot(node) {
+	  if (node.parentNode !== null) {
+	    return getRoot(node.parentNode);
+	  }
+
+	  return node;
+	}
+
+	/**
+	 * Finds the offset parent common to the two provided nodes
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element1
+	 * @argument {Element} element2
+	 * @returns {Element} common offset parent
+	 */
+	function findCommonOffsetParent(element1, element2) {
+	  // This check is needed to avoid errors in case one of the elements isn't defined for any reason
+	  if (!element1 || !element1.nodeType || !element2 || !element2.nodeType) {
+	    return document.documentElement;
+	  }
+
+	  // Here we make sure to give as "start" the element that comes first in the DOM
+	  var order = element1.compareDocumentPosition(element2) & Node.DOCUMENT_POSITION_FOLLOWING;
+	  var start = order ? element1 : element2;
+	  var end = order ? element2 : element1;
+
+	  // Get common ancestor container
+	  var range = document.createRange();
+	  range.setStart(start, 0);
+	  range.setEnd(end, 0);
+	  var commonAncestorContainer = range.commonAncestorContainer;
+
+	  // Both nodes are inside #document
+
+	  if (element1 !== commonAncestorContainer && element2 !== commonAncestorContainer || start.contains(end)) {
+	    if (isOffsetContainer(commonAncestorContainer)) {
+	      return commonAncestorContainer;
+	    }
+
+	    return getOffsetParent(commonAncestorContainer);
+	  }
+
+	  // one of the nodes is inside shadowDOM, find which one
+	  var element1root = getRoot(element1);
+	  if (element1root.host) {
+	    return findCommonOffsetParent(element1root.host, element2);
+	  } else {
+	    return findCommonOffsetParent(element1, getRoot(element2).host);
+	  }
+	}
+
+	/**
+	 * Gets the scroll value of the given element in the given side (top and left)
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @argument {String} side `top` or `left`
+	 * @returns {number} amount of scrolled pixels
+	 */
+	function getScroll(element) {
+	  var side = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'top';
+
+	  var upperSide = side === 'top' ? 'scrollTop' : 'scrollLeft';
+	  var nodeName = element.nodeName;
+
+	  if (nodeName === 'BODY' || nodeName === 'HTML') {
+	    var html = element.ownerDocument.documentElement;
+	    var scrollingElement = element.ownerDocument.scrollingElement || html;
+	    return scrollingElement[upperSide];
+	  }
+
+	  return element[upperSide];
+	}
+
+	/*
+	 * Sum or subtract the element scroll values (left and top) from a given rect object
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {Object} rect - Rect object you want to change
+	 * @param {HTMLElement} element - The element from the function reads the scroll values
+	 * @param {Boolean} subtract - set to true if you want to subtract the scroll values
+	 * @return {Object} rect - The modifier rect object
+	 */
+	function includeScroll(rect, element) {
+	  var subtract = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+	  var scrollTop = getScroll(element, 'top');
+	  var scrollLeft = getScroll(element, 'left');
+	  var modifier = subtract ? -1 : 1;
+	  rect.top += scrollTop * modifier;
+	  rect.bottom += scrollTop * modifier;
+	  rect.left += scrollLeft * modifier;
+	  rect.right += scrollLeft * modifier;
+	  return rect;
+	}
+
+	/*
+	 * Helper to detect borders of a given element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {CSSStyleDeclaration} styles
+	 * Result of `getStyleComputedProperty` on the given element
+	 * @param {String} axis - `x` or `y`
+	 * @return {number} borders - The borders size of the given axis
+	 */
+
+	function getBordersSize(styles, axis) {
+	  var sideA = axis === 'x' ? 'Left' : 'Top';
+	  var sideB = sideA === 'Left' ? 'Right' : 'Bottom';
+
+	  return parseFloat(styles['border' + sideA + 'Width']) + parseFloat(styles['border' + sideB + 'Width']);
+	}
+
+	function getSize(axis, body, html, computedStyle) {
+	  return Math.max(body['offset' + axis], body['scroll' + axis], html['client' + axis], html['offset' + axis], html['scroll' + axis], isIE(10) ? parseInt(html['offset' + axis]) + parseInt(computedStyle['margin' + (axis === 'Height' ? 'Top' : 'Left')]) + parseInt(computedStyle['margin' + (axis === 'Height' ? 'Bottom' : 'Right')]) : 0);
+	}
+
+	function getWindowSizes(document) {
+	  var body = document.body;
+	  var html = document.documentElement;
+	  var computedStyle = isIE(10) && getComputedStyle(html);
+
+	  return {
+	    height: getSize('Height', body, html, computedStyle),
+	    width: getSize('Width', body, html, computedStyle)
+	  };
+	}
+
+	var classCallCheck = function (instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError("Cannot call a class as a function");
+	  }
+	};
+
+	var createClass = function () {
+	  function defineProperties(target, props) {
+	    for (var i = 0; i < props.length; i++) {
+	      var descriptor = props[i];
+	      descriptor.enumerable = descriptor.enumerable || false;
+	      descriptor.configurable = true;
+	      if ("value" in descriptor) descriptor.writable = true;
+	      Object.defineProperty(target, descriptor.key, descriptor);
+	    }
+	  }
+
+	  return function (Constructor, protoProps, staticProps) {
+	    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+	    if (staticProps) defineProperties(Constructor, staticProps);
+	    return Constructor;
+	  };
+	}();
+
+
+
+
+
+	var defineProperty$b = function (obj, key, value) {
+	  if (key in obj) {
+	    Object.defineProperty(obj, key, {
+	      value: value,
+	      enumerable: true,
+	      configurable: true,
+	      writable: true
+	    });
+	  } else {
+	    obj[key] = value;
+	  }
+
+	  return obj;
+	};
+
+	var _extends = Object.assign || function (target) {
+	  for (var i = 1; i < arguments.length; i++) {
+	    var source = arguments[i];
+
+	    for (var key in source) {
+	      if (Object.prototype.hasOwnProperty.call(source, key)) {
+	        target[key] = source[key];
+	      }
+	    }
+	  }
+
+	  return target;
+	};
+
+	/**
+	 * Given element offsets, generate an output similar to getBoundingClientRect
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Object} offsets
+	 * @returns {Object} ClientRect like output
+	 */
+	function getClientRect(offsets) {
+	  return _extends({}, offsets, {
+	    right: offsets.left + offsets.width,
+	    bottom: offsets.top + offsets.height
+	  });
+	}
+
+	/**
+	 * Get bounding client rect of given element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {HTMLElement} element
+	 * @return {Object} client rect
+	 */
+	function getBoundingClientRect(element) {
+	  var rect = {};
+
+	  // IE10 10 FIX: Please, don't ask, the element isn't
+	  // considered in DOM in some circumstances...
+	  // This isn't reproducible in IE10 compatibility mode of IE11
+	  try {
+	    if (isIE(10)) {
+	      rect = element.getBoundingClientRect();
+	      var scrollTop = getScroll(element, 'top');
+	      var scrollLeft = getScroll(element, 'left');
+	      rect.top += scrollTop;
+	      rect.left += scrollLeft;
+	      rect.bottom += scrollTop;
+	      rect.right += scrollLeft;
+	    } else {
+	      rect = element.getBoundingClientRect();
+	    }
+	  } catch (e) {}
+
+	  var result = {
+	    left: rect.left,
+	    top: rect.top,
+	    width: rect.right - rect.left,
+	    height: rect.bottom - rect.top
+	  };
+
+	  // subtract scrollbar size from sizes
+	  var sizes = element.nodeName === 'HTML' ? getWindowSizes(element.ownerDocument) : {};
+	  var width = sizes.width || element.clientWidth || result.width;
+	  var height = sizes.height || element.clientHeight || result.height;
+
+	  var horizScrollbar = element.offsetWidth - width;
+	  var vertScrollbar = element.offsetHeight - height;
+
+	  // if an hypothetical scrollbar is detected, we must be sure it's not a `border`
+	  // we make this check conditional for performance reasons
+	  if (horizScrollbar || vertScrollbar) {
+	    var styles = getStyleComputedProperty(element);
+	    horizScrollbar -= getBordersSize(styles, 'x');
+	    vertScrollbar -= getBordersSize(styles, 'y');
+
+	    result.width -= horizScrollbar;
+	    result.height -= vertScrollbar;
+	  }
+
+	  return getClientRect(result);
+	}
+
+	function getOffsetRectRelativeToArbitraryNode(children, parent) {
+	  var fixedPosition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+	  var isIE10 = isIE(10);
+	  var isHTML = parent.nodeName === 'HTML';
+	  var childrenRect = getBoundingClientRect(children);
+	  var parentRect = getBoundingClientRect(parent);
+	  var scrollParent = getScrollParent(children);
+
+	  var styles = getStyleComputedProperty(parent);
+	  var borderTopWidth = parseFloat(styles.borderTopWidth);
+	  var borderLeftWidth = parseFloat(styles.borderLeftWidth);
+
+	  // In cases where the parent is fixed, we must ignore negative scroll in offset calc
+	  if (fixedPosition && isHTML) {
+	    parentRect.top = Math.max(parentRect.top, 0);
+	    parentRect.left = Math.max(parentRect.left, 0);
+	  }
+	  var offsets = getClientRect({
+	    top: childrenRect.top - parentRect.top - borderTopWidth,
+	    left: childrenRect.left - parentRect.left - borderLeftWidth,
+	    width: childrenRect.width,
+	    height: childrenRect.height
+	  });
+	  offsets.marginTop = 0;
+	  offsets.marginLeft = 0;
+
+	  // Subtract margins of documentElement in case it's being used as parent
+	  // we do this only on HTML because it's the only element that behaves
+	  // differently when margins are applied to it. The margins are included in
+	  // the box of the documentElement, in the other cases not.
+	  if (!isIE10 && isHTML) {
+	    var marginTop = parseFloat(styles.marginTop);
+	    var marginLeft = parseFloat(styles.marginLeft);
+
+	    offsets.top -= borderTopWidth - marginTop;
+	    offsets.bottom -= borderTopWidth - marginTop;
+	    offsets.left -= borderLeftWidth - marginLeft;
+	    offsets.right -= borderLeftWidth - marginLeft;
+
+	    // Attach marginTop and marginLeft because in some circumstances we may need them
+	    offsets.marginTop = marginTop;
+	    offsets.marginLeft = marginLeft;
+	  }
+
+	  if (isIE10 && !fixedPosition ? parent.contains(scrollParent) : parent === scrollParent && scrollParent.nodeName !== 'BODY') {
+	    offsets = includeScroll(offsets, parent);
+	  }
+
+	  return offsets;
+	}
+
+	function getViewportOffsetRectRelativeToArtbitraryNode(element) {
+	  var excludeScroll = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+	  var html = element.ownerDocument.documentElement;
+	  var relativeOffset = getOffsetRectRelativeToArbitraryNode(element, html);
+	  var width = Math.max(html.clientWidth, window.innerWidth || 0);
+	  var height = Math.max(html.clientHeight, window.innerHeight || 0);
+
+	  var scrollTop = !excludeScroll ? getScroll(html) : 0;
+	  var scrollLeft = !excludeScroll ? getScroll(html, 'left') : 0;
+
+	  var offset = {
+	    top: scrollTop - relativeOffset.top + relativeOffset.marginTop,
+	    left: scrollLeft - relativeOffset.left + relativeOffset.marginLeft,
+	    width: width,
+	    height: height
+	  };
+
+	  return getClientRect(offset);
+	}
+
+	/**
+	 * Check if the given element is fixed or is inside a fixed parent
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @argument {Element} customContainer
+	 * @returns {Boolean} answer to "isFixed?"
+	 */
+	function isFixed(element) {
+	  var nodeName = element.nodeName;
+	  if (nodeName === 'BODY' || nodeName === 'HTML') {
+	    return false;
+	  }
+	  if (getStyleComputedProperty(element, 'position') === 'fixed') {
+	    return true;
+	  }
+	  var parentNode = getParentNode(element);
+	  if (!parentNode) {
+	    return false;
+	  }
+	  return isFixed(parentNode);
+	}
+
+	/**
+	 * Finds the first parent of an element that has a transformed property defined
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @returns {Element} first transformed parent or documentElement
+	 */
+
+	function getFixedPositionOffsetParent(element) {
+	  // This check is needed to avoid errors in case one of the elements isn't defined for any reason
+	  if (!element || !element.parentElement || isIE()) {
+	    return document.documentElement;
+	  }
+	  var el = element.parentElement;
+	  while (el && getStyleComputedProperty(el, 'transform') === 'none') {
+	    el = el.parentElement;
+	  }
+	  return el || document.documentElement;
+	}
+
+	/**
+	 * Computed the boundaries limits and return them
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {HTMLElement} popper
+	 * @param {HTMLElement} reference
+	 * @param {number} padding
+	 * @param {HTMLElement} boundariesElement - Element used to define the boundaries
+	 * @param {Boolean} fixedPosition - Is in fixed position mode
+	 * @returns {Object} Coordinates of the boundaries
+	 */
+	function getBoundaries(popper, reference, padding, boundariesElement) {
+	  var fixedPosition = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+
+	  // NOTE: 1 DOM access here
+
+	  var boundaries = { top: 0, left: 0 };
+	  var offsetParent = fixedPosition ? getFixedPositionOffsetParent(popper) : findCommonOffsetParent(popper, getReferenceNode(reference));
+
+	  // Handle viewport case
+	  if (boundariesElement === 'viewport') {
+	    boundaries = getViewportOffsetRectRelativeToArtbitraryNode(offsetParent, fixedPosition);
+	  } else {
+	    // Handle other cases based on DOM element used as boundaries
+	    var boundariesNode = void 0;
+	    if (boundariesElement === 'scrollParent') {
+	      boundariesNode = getScrollParent(getParentNode(reference));
+	      if (boundariesNode.nodeName === 'BODY') {
+	        boundariesNode = popper.ownerDocument.documentElement;
+	      }
+	    } else if (boundariesElement === 'window') {
+	      boundariesNode = popper.ownerDocument.documentElement;
+	    } else {
+	      boundariesNode = boundariesElement;
+	    }
+
+	    var offsets = getOffsetRectRelativeToArbitraryNode(boundariesNode, offsetParent, fixedPosition);
+
+	    // In case of HTML, we need a different computation
+	    if (boundariesNode.nodeName === 'HTML' && !isFixed(offsetParent)) {
+	      var _getWindowSizes = getWindowSizes(popper.ownerDocument),
+	          height = _getWindowSizes.height,
+	          width = _getWindowSizes.width;
+
+	      boundaries.top += offsets.top - offsets.marginTop;
+	      boundaries.bottom = height + offsets.top;
+	      boundaries.left += offsets.left - offsets.marginLeft;
+	      boundaries.right = width + offsets.left;
+	    } else {
+	      // for all the other DOM elements, this one is good
+	      boundaries = offsets;
+	    }
+	  }
+
+	  // Add paddings
+	  padding = padding || 0;
+	  var isPaddingNumber = typeof padding === 'number';
+	  boundaries.left += isPaddingNumber ? padding : padding.left || 0;
+	  boundaries.top += isPaddingNumber ? padding : padding.top || 0;
+	  boundaries.right -= isPaddingNumber ? padding : padding.right || 0;
+	  boundaries.bottom -= isPaddingNumber ? padding : padding.bottom || 0;
+
+	  return boundaries;
+	}
+
+	function getArea(_ref) {
+	  var width = _ref.width,
+	      height = _ref.height;
+
+	  return width * height;
+	}
+
+	/**
+	 * Utility used to transform the `auto` placement to the placement with more
+	 * available space.
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Object} data - The data object generated by update method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function computeAutoPlacement(placement, refRect, popper, reference, boundariesElement) {
+	  var padding = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
+
+	  if (placement.indexOf('auto') === -1) {
+	    return placement;
+	  }
+
+	  var boundaries = getBoundaries(popper, reference, padding, boundariesElement);
+
+	  var rects = {
+	    top: {
+	      width: boundaries.width,
+	      height: refRect.top - boundaries.top
+	    },
+	    right: {
+	      width: boundaries.right - refRect.right,
+	      height: boundaries.height
+	    },
+	    bottom: {
+	      width: boundaries.width,
+	      height: boundaries.bottom - refRect.bottom
+	    },
+	    left: {
+	      width: refRect.left - boundaries.left,
+	      height: boundaries.height
+	    }
+	  };
+
+	  var sortedAreas = Object.keys(rects).map(function (key) {
+	    return _extends({
+	      key: key
+	    }, rects[key], {
+	      area: getArea(rects[key])
+	    });
+	  }).sort(function (a, b) {
+	    return b.area - a.area;
+	  });
+
+	  var filteredAreas = sortedAreas.filter(function (_ref2) {
+	    var width = _ref2.width,
+	        height = _ref2.height;
+	    return width >= popper.clientWidth && height >= popper.clientHeight;
+	  });
+
+	  var computedPlacement = filteredAreas.length > 0 ? filteredAreas[0].key : sortedAreas[0].key;
+
+	  var variation = placement.split('-')[1];
+
+	  return computedPlacement + (variation ? '-' + variation : '');
+	}
+
+	/**
+	 * Get offsets to the reference element
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {Object} state
+	 * @param {Element} popper - the popper element
+	 * @param {Element} reference - the reference element (the popper will be relative to this)
+	 * @param {Element} fixedPosition - is in fixed position mode
+	 * @returns {Object} An object containing the offsets which will be applied to the popper
+	 */
+	function getReferenceOffsets(state, popper, reference) {
+	  var fixedPosition = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
+	  var commonOffsetParent = fixedPosition ? getFixedPositionOffsetParent(popper) : findCommonOffsetParent(popper, getReferenceNode(reference));
+	  return getOffsetRectRelativeToArbitraryNode(reference, commonOffsetParent, fixedPosition);
+	}
+
+	/**
+	 * Get the outer sizes of the given element (offset size + margins)
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element
+	 * @returns {Object} object containing width and height properties
+	 */
+	function getOuterSizes(element) {
+	  var window = element.ownerDocument.defaultView;
+	  var styles = window.getComputedStyle(element);
+	  var x = parseFloat(styles.marginTop || 0) + parseFloat(styles.marginBottom || 0);
+	  var y = parseFloat(styles.marginLeft || 0) + parseFloat(styles.marginRight || 0);
+	  var result = {
+	    width: element.offsetWidth + y,
+	    height: element.offsetHeight + x
+	  };
+	  return result;
+	}
+
+	/**
+	 * Get the opposite placement of the given one
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {String} placement
+	 * @returns {String} flipped placement
+	 */
+	function getOppositePlacement(placement) {
+	  var hash = { left: 'right', right: 'left', bottom: 'top', top: 'bottom' };
+	  return placement.replace(/left|right|bottom|top/g, function (matched) {
+	    return hash[matched];
+	  });
+	}
+
+	/**
+	 * Get offsets to the popper
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {Object} position - CSS position the Popper will get applied
+	 * @param {HTMLElement} popper - the popper element
+	 * @param {Object} referenceOffsets - the reference offsets (the popper will be relative to this)
+	 * @param {String} placement - one of the valid placement options
+	 * @returns {Object} popperOffsets - An object containing the offsets which will be applied to the popper
+	 */
+	function getPopperOffsets(popper, referenceOffsets, placement) {
+	  placement = placement.split('-')[0];
+
+	  // Get popper node sizes
+	  var popperRect = getOuterSizes(popper);
+
+	  // Add position, width and height to our offsets object
+	  var popperOffsets = {
+	    width: popperRect.width,
+	    height: popperRect.height
+	  };
+
+	  // depending by the popper placement we have to compute its offsets slightly differently
+	  var isHoriz = ['right', 'left'].indexOf(placement) !== -1;
+	  var mainSide = isHoriz ? 'top' : 'left';
+	  var secondarySide = isHoriz ? 'left' : 'top';
+	  var measurement = isHoriz ? 'height' : 'width';
+	  var secondaryMeasurement = !isHoriz ? 'height' : 'width';
+
+	  popperOffsets[mainSide] = referenceOffsets[mainSide] + referenceOffsets[measurement] / 2 - popperRect[measurement] / 2;
+	  if (placement === secondarySide) {
+	    popperOffsets[secondarySide] = referenceOffsets[secondarySide] - popperRect[secondaryMeasurement];
+	  } else {
+	    popperOffsets[secondarySide] = referenceOffsets[getOppositePlacement(secondarySide)];
+	  }
+
+	  return popperOffsets;
+	}
+
+	/**
+	 * Mimics the `find` method of Array
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Array} arr
+	 * @argument prop
+	 * @argument value
+	 * @returns index or -1
+	 */
+	function find$2(arr, check) {
+	  // use native find if supported
+	  if (Array.prototype.find) {
+	    return arr.find(check);
+	  }
+
+	  // use `filter` to obtain the same behavior of `find`
+	  return arr.filter(check)[0];
+	}
+
+	/**
+	 * Return the index of the matching object
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Array} arr
+	 * @argument prop
+	 * @argument value
+	 * @returns index or -1
+	 */
+	function findIndex$1(arr, prop, value) {
+	  // use native findIndex if supported
+	  if (Array.prototype.findIndex) {
+	    return arr.findIndex(function (cur) {
+	      return cur[prop] === value;
+	    });
+	  }
+
+	  // use `find` + `indexOf` if `findIndex` isn't supported
+	  var match = find$2(arr, function (obj) {
+	    return obj[prop] === value;
+	  });
+	  return arr.indexOf(match);
+	}
+
+	/**
+	 * Loop trough the list of modifiers and run them in order,
+	 * each of them will then edit the data object.
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {dataObject} data
+	 * @param {Array} modifiers
+	 * @param {String} ends - Optional modifier name used as stopper
+	 * @returns {dataObject}
+	 */
+	function runModifiers(modifiers, data, ends) {
+	  var modifiersToRun = ends === undefined ? modifiers : modifiers.slice(0, findIndex$1(modifiers, 'name', ends));
+
+	  modifiersToRun.forEach(function (modifier) {
+	    if (modifier['function']) {
+	      // eslint-disable-line dot-notation
+	      console.warn('`modifier.function` is deprecated, use `modifier.fn`!');
+	    }
+	    var fn = modifier['function'] || modifier.fn; // eslint-disable-line dot-notation
+	    if (modifier.enabled && isFunction(fn)) {
+	      // Add properties to offsets to make them a complete clientRect object
+	      // we do this before each modifier to make sure the previous one doesn't
+	      // mess with these values
+	      data.offsets.popper = getClientRect(data.offsets.popper);
+	      data.offsets.reference = getClientRect(data.offsets.reference);
+
+	      data = fn(data, modifier);
+	    }
+	  });
+
+	  return data;
+	}
+
+	/**
+	 * Updates the position of the popper, computing the new offsets and applying
+	 * the new style.<br />
+	 * Prefer `scheduleUpdate` over `update` because of performance reasons.
+	 * @method
+	 * @memberof Popper
+	 */
+	function update() {
+	  // if popper is destroyed, don't perform any further update
+	  if (this.state.isDestroyed) {
+	    return;
+	  }
+
+	  var data = {
+	    instance: this,
+	    styles: {},
+	    arrowStyles: {},
+	    attributes: {},
+	    flipped: false,
+	    offsets: {}
+	  };
+
+	  // compute reference element offsets
+	  data.offsets.reference = getReferenceOffsets(this.state, this.popper, this.reference, this.options.positionFixed);
+
+	  // compute auto placement, store placement inside the data object,
+	  // modifiers will be able to edit `placement` if needed
+	  // and refer to originalPlacement to know the original value
+	  data.placement = computeAutoPlacement(this.options.placement, data.offsets.reference, this.popper, this.reference, this.options.modifiers.flip.boundariesElement, this.options.modifiers.flip.padding);
+
+	  // store the computed placement inside `originalPlacement`
+	  data.originalPlacement = data.placement;
+
+	  data.positionFixed = this.options.positionFixed;
+
+	  // compute the popper offsets
+	  data.offsets.popper = getPopperOffsets(this.popper, data.offsets.reference, data.placement);
+
+	  data.offsets.popper.position = this.options.positionFixed ? 'fixed' : 'absolute';
+
+	  // run the modifiers
+	  data = runModifiers(this.modifiers, data);
+
+	  // the first `update` will call `onCreate` callback
+	  // the other ones will call `onUpdate` callback
+	  if (!this.state.isCreated) {
+	    this.state.isCreated = true;
+	    this.options.onCreate(data);
+	  } else {
+	    this.options.onUpdate(data);
+	  }
+	}
+
+	/**
+	 * Helper used to know if the given modifier is enabled.
+	 * @method
+	 * @memberof Popper.Utils
+	 * @returns {Boolean}
+	 */
+	function isModifierEnabled(modifiers, modifierName) {
+	  return modifiers.some(function (_ref) {
+	    var name = _ref.name,
+	        enabled = _ref.enabled;
+	    return enabled && name === modifierName;
+	  });
+	}
+
+	/**
+	 * Get the prefixed supported property name
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {String} property (camelCase)
+	 * @returns {String} prefixed property (camelCase or PascalCase, depending on the vendor prefix)
+	 */
+	function getSupportedPropertyName(property) {
+	  var prefixes = [false, 'ms', 'Webkit', 'Moz', 'O'];
+	  var upperProp = property.charAt(0).toUpperCase() + property.slice(1);
+
+	  for (var i = 0; i < prefixes.length; i++) {
+	    var prefix = prefixes[i];
+	    var toCheck = prefix ? '' + prefix + upperProp : property;
+	    if (typeof document.body.style[toCheck] !== 'undefined') {
+	      return toCheck;
+	    }
+	  }
+	  return null;
+	}
+
+	/**
+	 * Destroys the popper.
+	 * @method
+	 * @memberof Popper
+	 */
+	function destroy() {
+	  this.state.isDestroyed = true;
+
+	  // touch DOM only if `applyStyle` modifier is enabled
+	  if (isModifierEnabled(this.modifiers, 'applyStyle')) {
+	    this.popper.removeAttribute('x-placement');
+	    this.popper.style.position = '';
+	    this.popper.style.top = '';
+	    this.popper.style.left = '';
+	    this.popper.style.right = '';
+	    this.popper.style.bottom = '';
+	    this.popper.style.willChange = '';
+	    this.popper.style[getSupportedPropertyName('transform')] = '';
+	  }
+
+	  this.disableEventListeners();
+
+	  // remove the popper if user explicitly asked for the deletion on destroy
+	  // do not use `remove` because IE11 doesn't support it
+	  if (this.options.removeOnDestroy) {
+	    this.popper.parentNode.removeChild(this.popper);
+	  }
+	  return this;
+	}
+
+	/**
+	 * Get the window associated with the element
+	 * @argument {Element} element
+	 * @returns {Window}
+	 */
+	function getWindow(element) {
+	  var ownerDocument = element.ownerDocument;
+	  return ownerDocument ? ownerDocument.defaultView : window;
+	}
+
+	function attachToScrollParents(scrollParent, event, callback, scrollParents) {
+	  var isBody = scrollParent.nodeName === 'BODY';
+	  var target = isBody ? scrollParent.ownerDocument.defaultView : scrollParent;
+	  target.addEventListener(event, callback, { passive: true });
+
+	  if (!isBody) {
+	    attachToScrollParents(getScrollParent(target.parentNode), event, callback, scrollParents);
+	  }
+	  scrollParents.push(target);
+	}
+
+	/**
+	 * Setup needed event listeners used to update the popper position
+	 * @method
+	 * @memberof Popper.Utils
+	 * @private
+	 */
+	function setupEventListeners(reference, options, state, updateBound) {
+	  // Resize event listener on window
+	  state.updateBound = updateBound;
+	  getWindow(reference).addEventListener('resize', state.updateBound, { passive: true });
+
+	  // Scroll event listener on scroll parents
+	  var scrollElement = getScrollParent(reference);
+	  attachToScrollParents(scrollElement, 'scroll', state.updateBound, state.scrollParents);
+	  state.scrollElement = scrollElement;
+	  state.eventsEnabled = true;
+
+	  return state;
+	}
+
+	/**
+	 * It will add resize/scroll events and start recalculating
+	 * position of the popper element when they are triggered.
+	 * @method
+	 * @memberof Popper
+	 */
+	function enableEventListeners() {
+	  if (!this.state.eventsEnabled) {
+	    this.state = setupEventListeners(this.reference, this.options, this.state, this.scheduleUpdate);
+	  }
+	}
+
+	/**
+	 * Remove event listeners used to update the popper position
+	 * @method
+	 * @memberof Popper.Utils
+	 * @private
+	 */
+	function removeEventListeners(reference, state) {
+	  // Remove resize event listener on window
+	  getWindow(reference).removeEventListener('resize', state.updateBound);
+
+	  // Remove scroll event listener on scroll parents
+	  state.scrollParents.forEach(function (target) {
+	    target.removeEventListener('scroll', state.updateBound);
+	  });
+
+	  // Reset state
+	  state.updateBound = null;
+	  state.scrollParents = [];
+	  state.scrollElement = null;
+	  state.eventsEnabled = false;
+	  return state;
+	}
+
+	/**
+	 * It will remove resize/scroll events and won't recalculate popper position
+	 * when they are triggered. It also won't trigger `onUpdate` callback anymore,
+	 * unless you call `update` method manually.
+	 * @method
+	 * @memberof Popper
+	 */
+	function disableEventListeners() {
+	  if (this.state.eventsEnabled) {
+	    cancelAnimationFrame(this.scheduleUpdate);
+	    this.state = removeEventListeners(this.reference, this.state);
+	  }
+	}
+
+	/**
+	 * Tells if a given input is a number
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {*} input to check
+	 * @return {Boolean}
+	 */
+	function isNumeric(n) {
+	  return n !== '' && !isNaN(parseFloat(n)) && isFinite(n);
+	}
+
+	/**
+	 * Set the style to the given popper
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element - Element to apply the style to
+	 * @argument {Object} styles
+	 * Object with a list of properties and values which will be applied to the element
+	 */
+	function setStyles(element, styles) {
+	  Object.keys(styles).forEach(function (prop) {
+	    var unit = '';
+	    // add unit if the value is numeric and is one of the following
+	    if (['width', 'height', 'top', 'right', 'bottom', 'left'].indexOf(prop) !== -1 && isNumeric(styles[prop])) {
+	      unit = 'px';
+	    }
+	    element.style[prop] = styles[prop] + unit;
+	  });
+	}
+
+	/**
+	 * Set the attributes to the given popper
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {Element} element - Element to apply the attributes to
+	 * @argument {Object} styles
+	 * Object with a list of properties and values which will be applied to the element
+	 */
+	function setAttributes(element, attributes) {
+	  Object.keys(attributes).forEach(function (prop) {
+	    var value = attributes[prop];
+	    if (value !== false) {
+	      element.setAttribute(prop, attributes[prop]);
+	    } else {
+	      element.removeAttribute(prop);
+	    }
+	  });
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by `update` method
+	 * @argument {Object} data.styles - List of style properties - values to apply to popper element
+	 * @argument {Object} data.attributes - List of attribute properties - values to apply to popper element
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The same data object
+	 */
+	function applyStyle(data) {
+	  // any property present in `data.styles` will be applied to the popper,
+	  // in this way we can make the 3rd party modifiers add custom styles to it
+	  // Be aware, modifiers could override the properties defined in the previous
+	  // lines of this modifier!
+	  setStyles(data.instance.popper, data.styles);
+
+	  // any property present in `data.attributes` will be applied to the popper,
+	  // they will be set as HTML attributes of the element
+	  setAttributes(data.instance.popper, data.attributes);
+
+	  // if arrowElement is defined and arrowStyles has some properties
+	  if (data.arrowElement && Object.keys(data.arrowStyles).length) {
+	    setStyles(data.arrowElement, data.arrowStyles);
+	  }
+
+	  return data;
+	}
+
+	/**
+	 * Set the x-placement attribute before everything else because it could be used
+	 * to add margins to the popper margins needs to be calculated to get the
+	 * correct popper offsets.
+	 * @method
+	 * @memberof Popper.modifiers
+	 * @param {HTMLElement} reference - The reference element used to position the popper
+	 * @param {HTMLElement} popper - The HTML element used as popper
+	 * @param {Object} options - Popper.js options
+	 */
+	function applyStyleOnLoad(reference, popper, options, modifierOptions, state) {
+	  // compute reference element offsets
+	  var referenceOffsets = getReferenceOffsets(state, popper, reference, options.positionFixed);
+
+	  // compute auto placement, store placement inside the data object,
+	  // modifiers will be able to edit `placement` if needed
+	  // and refer to originalPlacement to know the original value
+	  var placement = computeAutoPlacement(options.placement, referenceOffsets, popper, reference, options.modifiers.flip.boundariesElement, options.modifiers.flip.padding);
+
+	  popper.setAttribute('x-placement', placement);
+
+	  // Apply `position` to popper before anything else because
+	  // without the position applied we can't guarantee correct computations
+	  setStyles(popper, { position: options.positionFixed ? 'fixed' : 'absolute' });
+
+	  return options;
+	}
+
+	/**
+	 * @function
+	 * @memberof Popper.Utils
+	 * @argument {Object} data - The data object generated by `update` method
+	 * @argument {Boolean} shouldRound - If the offsets should be rounded at all
+	 * @returns {Object} The popper's position offsets rounded
+	 *
+	 * The tale of pixel-perfect positioning. It's still not 100% perfect, but as
+	 * good as it can be within reason.
+	 * Discussion here: https://github.com/FezVrasta/popper.js/pull/715
+	 *
+	 * Low DPI screens cause a popper to be blurry if not using full pixels (Safari
+	 * as well on High DPI screens).
+	 *
+	 * Firefox prefers no rounding for positioning and does not have blurriness on
+	 * high DPI screens.
+	 *
+	 * Only horizontal placement and left/right values need to be considered.
+	 */
+	function getRoundedOffsets(data, shouldRound) {
+	  var _data$offsets = data.offsets,
+	      popper = _data$offsets.popper,
+	      reference = _data$offsets.reference;
+	  var round = Math.round,
+	      floor = Math.floor;
+
+	  var noRound = function noRound(v) {
+	    return v;
+	  };
+
+	  var referenceWidth = round(reference.width);
+	  var popperWidth = round(popper.width);
+
+	  var isVertical = ['left', 'right'].indexOf(data.placement) !== -1;
+	  var isVariation = data.placement.indexOf('-') !== -1;
+	  var sameWidthParity = referenceWidth % 2 === popperWidth % 2;
+	  var bothOddWidth = referenceWidth % 2 === 1 && popperWidth % 2 === 1;
+
+	  var horizontalToInteger = !shouldRound ? noRound : isVertical || isVariation || sameWidthParity ? round : floor;
+	  var verticalToInteger = !shouldRound ? noRound : round;
+
+	  return {
+	    left: horizontalToInteger(bothOddWidth && !isVariation && shouldRound ? popper.left - 1 : popper.left),
+	    top: verticalToInteger(popper.top),
+	    bottom: verticalToInteger(popper.bottom),
+	    right: horizontalToInteger(popper.right)
+	  };
+	}
+
+	var isFirefox = isBrowser && /Firefox/i.test(navigator.userAgent);
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by `update` method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function computeStyle(data, options) {
+	  var x = options.x,
+	      y = options.y;
+	  var popper = data.offsets.popper;
+
+	  // Remove this legacy support in Popper.js v2
+
+	  var legacyGpuAccelerationOption = find$2(data.instance.modifiers, function (modifier) {
+	    return modifier.name === 'applyStyle';
+	  }).gpuAcceleration;
+	  if (legacyGpuAccelerationOption !== undefined) {
+	    console.warn('WARNING: `gpuAcceleration` option moved to `computeStyle` modifier and will not be supported in future versions of Popper.js!');
+	  }
+	  var gpuAcceleration = legacyGpuAccelerationOption !== undefined ? legacyGpuAccelerationOption : options.gpuAcceleration;
+
+	  var offsetParent = getOffsetParent(data.instance.popper);
+	  var offsetParentRect = getBoundingClientRect(offsetParent);
+
+	  // Styles
+	  var styles = {
+	    position: popper.position
+	  };
+
+	  var offsets = getRoundedOffsets(data, window.devicePixelRatio < 2 || !isFirefox);
+
+	  var sideA = x === 'bottom' ? 'top' : 'bottom';
+	  var sideB = y === 'right' ? 'left' : 'right';
+
+	  // if gpuAcceleration is set to `true` and transform is supported,
+	  //  we use `translate3d` to apply the position to the popper we
+	  // automatically use the supported prefixed version if needed
+	  var prefixedProperty = getSupportedPropertyName('transform');
+
+	  // now, let's make a step back and look at this code closely (wtf?)
+	  // If the content of the popper grows once it's been positioned, it
+	  // may happen that the popper gets misplaced because of the new content
+	  // overflowing its reference element
+	  // To avoid this problem, we provide two options (x and y), which allow
+	  // the consumer to define the offset origin.
+	  // If we position a popper on top of a reference element, we can set
+	  // `x` to `top` to make the popper grow towards its top instead of
+	  // its bottom.
+	  var left = void 0,
+	      top = void 0;
+	  if (sideA === 'bottom') {
+	    // when offsetParent is <html> the positioning is relative to the bottom of the screen (excluding the scrollbar)
+	    // and not the bottom of the html element
+	    if (offsetParent.nodeName === 'HTML') {
+	      top = -offsetParent.clientHeight + offsets.bottom;
+	    } else {
+	      top = -offsetParentRect.height + offsets.bottom;
+	    }
+	  } else {
+	    top = offsets.top;
+	  }
+	  if (sideB === 'right') {
+	    if (offsetParent.nodeName === 'HTML') {
+	      left = -offsetParent.clientWidth + offsets.right;
+	    } else {
+	      left = -offsetParentRect.width + offsets.right;
+	    }
+	  } else {
+	    left = offsets.left;
+	  }
+	  if (gpuAcceleration && prefixedProperty) {
+	    styles[prefixedProperty] = 'translate3d(' + left + 'px, ' + top + 'px, 0)';
+	    styles[sideA] = 0;
+	    styles[sideB] = 0;
+	    styles.willChange = 'transform';
+	  } else {
+	    // othwerise, we use the standard `top`, `left`, `bottom` and `right` properties
+	    var invertTop = sideA === 'bottom' ? -1 : 1;
+	    var invertLeft = sideB === 'right' ? -1 : 1;
+	    styles[sideA] = top * invertTop;
+	    styles[sideB] = left * invertLeft;
+	    styles.willChange = sideA + ', ' + sideB;
+	  }
+
+	  // Attributes
+	  var attributes = {
+	    'x-placement': data.placement
+	  };
+
+	  // Update `data` attributes, styles and arrowStyles
+	  data.attributes = _extends({}, attributes, data.attributes);
+	  data.styles = _extends({}, styles, data.styles);
+	  data.arrowStyles = _extends({}, data.offsets.arrow, data.arrowStyles);
+
+	  return data;
+	}
+
+	/**
+	 * Helper used to know if the given modifier depends from another one.<br />
+	 * It checks if the needed modifier is listed and enabled.
+	 * @method
+	 * @memberof Popper.Utils
+	 * @param {Array} modifiers - list of modifiers
+	 * @param {String} requestingName - name of requesting modifier
+	 * @param {String} requestedName - name of requested modifier
+	 * @returns {Boolean}
+	 */
+	function isModifierRequired(modifiers, requestingName, requestedName) {
+	  var requesting = find$2(modifiers, function (_ref) {
+	    var name = _ref.name;
+	    return name === requestingName;
+	  });
+
+	  var isRequired = !!requesting && modifiers.some(function (modifier) {
+	    return modifier.name === requestedName && modifier.enabled && modifier.order < requesting.order;
+	  });
+
+	  if (!isRequired) {
+	    var _requesting = '`' + requestingName + '`';
+	    var requested = '`' + requestedName + '`';
+	    console.warn(requested + ' modifier is required by ' + _requesting + ' modifier in order to work, be sure to include it before ' + _requesting + '!');
+	  }
+	  return isRequired;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by update method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function arrow(data, options) {
+	  var _data$offsets$arrow;
+
+	  // arrow depends on keepTogether in order to work
+	  if (!isModifierRequired(data.instance.modifiers, 'arrow', 'keepTogether')) {
+	    return data;
+	  }
+
+	  var arrowElement = options.element;
+
+	  // if arrowElement is a string, suppose it's a CSS selector
+	  if (typeof arrowElement === 'string') {
+	    arrowElement = data.instance.popper.querySelector(arrowElement);
+
+	    // if arrowElement is not found, don't run the modifier
+	    if (!arrowElement) {
+	      return data;
+	    }
+	  } else {
+	    // if the arrowElement isn't a query selector we must check that the
+	    // provided DOM node is child of its popper node
+	    if (!data.instance.popper.contains(arrowElement)) {
+	      console.warn('WARNING: `arrow.element` must be child of its popper element!');
+	      return data;
+	    }
+	  }
+
+	  var placement = data.placement.split('-')[0];
+	  var _data$offsets = data.offsets,
+	      popper = _data$offsets.popper,
+	      reference = _data$offsets.reference;
+
+	  var isVertical = ['left', 'right'].indexOf(placement) !== -1;
+
+	  var len = isVertical ? 'height' : 'width';
+	  var sideCapitalized = isVertical ? 'Top' : 'Left';
+	  var side = sideCapitalized.toLowerCase();
+	  var altSide = isVertical ? 'left' : 'top';
+	  var opSide = isVertical ? 'bottom' : 'right';
+	  var arrowElementSize = getOuterSizes(arrowElement)[len];
+
+	  //
+	  // extends keepTogether behavior making sure the popper and its
+	  // reference have enough pixels in conjunction
+	  //
+
+	  // top/left side
+	  if (reference[opSide] - arrowElementSize < popper[side]) {
+	    data.offsets.popper[side] -= popper[side] - (reference[opSide] - arrowElementSize);
+	  }
+	  // bottom/right side
+	  if (reference[side] + arrowElementSize > popper[opSide]) {
+	    data.offsets.popper[side] += reference[side] + arrowElementSize - popper[opSide];
+	  }
+	  data.offsets.popper = getClientRect(data.offsets.popper);
+
+	  // compute center of the popper
+	  var center = reference[side] + reference[len] / 2 - arrowElementSize / 2;
+
+	  // Compute the sideValue using the updated popper offsets
+	  // take popper margin in account because we don't have this info available
+	  var css = getStyleComputedProperty(data.instance.popper);
+	  var popperMarginSide = parseFloat(css['margin' + sideCapitalized]);
+	  var popperBorderSide = parseFloat(css['border' + sideCapitalized + 'Width']);
+	  var sideValue = center - data.offsets.popper[side] - popperMarginSide - popperBorderSide;
+
+	  // prevent arrowElement from being placed not contiguously to its popper
+	  sideValue = Math.max(Math.min(popper[len] - arrowElementSize, sideValue), 0);
+
+	  data.arrowElement = arrowElement;
+	  data.offsets.arrow = (_data$offsets$arrow = {}, defineProperty$b(_data$offsets$arrow, side, Math.round(sideValue)), defineProperty$b(_data$offsets$arrow, altSide, ''), _data$offsets$arrow);
+
+	  return data;
+	}
+
+	/**
+	 * Get the opposite placement variation of the given one
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {String} placement variation
+	 * @returns {String} flipped placement variation
+	 */
+	function getOppositeVariation(variation) {
+	  if (variation === 'end') {
+	    return 'start';
+	  } else if (variation === 'start') {
+	    return 'end';
+	  }
+	  return variation;
+	}
+
+	/**
+	 * List of accepted placements to use as values of the `placement` option.<br />
+	 * Valid placements are:
+	 * - `auto`
+	 * - `top`
+	 * - `right`
+	 * - `bottom`
+	 * - `left`
+	 *
+	 * Each placement can have a variation from this list:
+	 * - `-start`
+	 * - `-end`
+	 *
+	 * Variations are interpreted easily if you think of them as the left to right
+	 * written languages. Horizontally (`top` and `bottom`), `start` is left and `end`
+	 * is right.<br />
+	 * Vertically (`left` and `right`), `start` is top and `end` is bottom.
+	 *
+	 * Some valid examples are:
+	 * - `top-end` (on top of reference, right aligned)
+	 * - `right-start` (on right of reference, top aligned)
+	 * - `bottom` (on bottom, centered)
+	 * - `auto-end` (on the side with more space available, alignment depends by placement)
+	 *
+	 * @static
+	 * @type {Array}
+	 * @enum {String}
+	 * @readonly
+	 * @method placements
+	 * @memberof Popper
+	 */
+	var placements = ['auto-start', 'auto', 'auto-end', 'top-start', 'top', 'top-end', 'right-start', 'right', 'right-end', 'bottom-end', 'bottom', 'bottom-start', 'left-end', 'left', 'left-start'];
+
+	// Get rid of `auto` `auto-start` and `auto-end`
+	var validPlacements = placements.slice(3);
+
+	/**
+	 * Given an initial placement, returns all the subsequent placements
+	 * clockwise (or counter-clockwise).
+	 *
+	 * @method
+	 * @memberof Popper.Utils
+	 * @argument {String} placement - A valid placement (it accepts variations)
+	 * @argument {Boolean} counter - Set to true to walk the placements counterclockwise
+	 * @returns {Array} placements including their variations
+	 */
+	function clockwise(placement) {
+	  var counter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+	  var index = validPlacements.indexOf(placement);
+	  var arr = validPlacements.slice(index + 1).concat(validPlacements.slice(0, index));
+	  return counter ? arr.reverse() : arr;
+	}
+
+	var BEHAVIORS = {
+	  FLIP: 'flip',
+	  CLOCKWISE: 'clockwise',
+	  COUNTERCLOCKWISE: 'counterclockwise'
+	};
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by update method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function flip(data, options) {
+	  // if `inner` modifier is enabled, we can't use the `flip` modifier
+	  if (isModifierEnabled(data.instance.modifiers, 'inner')) {
+	    return data;
+	  }
+
+	  if (data.flipped && data.placement === data.originalPlacement) {
+	    // seems like flip is trying to loop, probably there's not enough space on any of the flippable sides
+	    return data;
+	  }
+
+	  var boundaries = getBoundaries(data.instance.popper, data.instance.reference, options.padding, options.boundariesElement, data.positionFixed);
+
+	  var placement = data.placement.split('-')[0];
+	  var placementOpposite = getOppositePlacement(placement);
+	  var variation = data.placement.split('-')[1] || '';
+
+	  var flipOrder = [];
+
+	  switch (options.behavior) {
+	    case BEHAVIORS.FLIP:
+	      flipOrder = [placement, placementOpposite];
+	      break;
+	    case BEHAVIORS.CLOCKWISE:
+	      flipOrder = clockwise(placement);
+	      break;
+	    case BEHAVIORS.COUNTERCLOCKWISE:
+	      flipOrder = clockwise(placement, true);
+	      break;
+	    default:
+	      flipOrder = options.behavior;
+	  }
+
+	  flipOrder.forEach(function (step, index) {
+	    if (placement !== step || flipOrder.length === index + 1) {
+	      return data;
+	    }
+
+	    placement = data.placement.split('-')[0];
+	    placementOpposite = getOppositePlacement(placement);
+
+	    var popperOffsets = data.offsets.popper;
+	    var refOffsets = data.offsets.reference;
+
+	    // using floor because the reference offsets may contain decimals we are not going to consider here
+	    var floor = Math.floor;
+	    var overlapsRef = placement === 'left' && floor(popperOffsets.right) > floor(refOffsets.left) || placement === 'right' && floor(popperOffsets.left) < floor(refOffsets.right) || placement === 'top' && floor(popperOffsets.bottom) > floor(refOffsets.top) || placement === 'bottom' && floor(popperOffsets.top) < floor(refOffsets.bottom);
+
+	    var overflowsLeft = floor(popperOffsets.left) < floor(boundaries.left);
+	    var overflowsRight = floor(popperOffsets.right) > floor(boundaries.right);
+	    var overflowsTop = floor(popperOffsets.top) < floor(boundaries.top);
+	    var overflowsBottom = floor(popperOffsets.bottom) > floor(boundaries.bottom);
+
+	    var overflowsBoundaries = placement === 'left' && overflowsLeft || placement === 'right' && overflowsRight || placement === 'top' && overflowsTop || placement === 'bottom' && overflowsBottom;
+
+	    // flip the variation if required
+	    var isVertical = ['top', 'bottom'].indexOf(placement) !== -1;
+
+	    // flips variation if reference element overflows boundaries
+	    var flippedVariationByRef = !!options.flipVariations && (isVertical && variation === 'start' && overflowsLeft || isVertical && variation === 'end' && overflowsRight || !isVertical && variation === 'start' && overflowsTop || !isVertical && variation === 'end' && overflowsBottom);
+
+	    // flips variation if popper content overflows boundaries
+	    var flippedVariationByContent = !!options.flipVariationsByContent && (isVertical && variation === 'start' && overflowsRight || isVertical && variation === 'end' && overflowsLeft || !isVertical && variation === 'start' && overflowsBottom || !isVertical && variation === 'end' && overflowsTop);
+
+	    var flippedVariation = flippedVariationByRef || flippedVariationByContent;
+
+	    if (overlapsRef || overflowsBoundaries || flippedVariation) {
+	      // this boolean to detect any flip loop
+	      data.flipped = true;
+
+	      if (overlapsRef || overflowsBoundaries) {
+	        placement = flipOrder[index + 1];
+	      }
+
+	      if (flippedVariation) {
+	        variation = getOppositeVariation(variation);
+	      }
+
+	      data.placement = placement + (variation ? '-' + variation : '');
+
+	      // this object contains `position`, we want to preserve it along with
+	      // any additional property we may add in the future
+	      data.offsets.popper = _extends({}, data.offsets.popper, getPopperOffsets(data.instance.popper, data.offsets.reference, data.placement));
+
+	      data = runModifiers(data.instance.modifiers, data, 'flip');
+	    }
+	  });
+	  return data;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by update method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function keepTogether(data) {
+	  var _data$offsets = data.offsets,
+	      popper = _data$offsets.popper,
+	      reference = _data$offsets.reference;
+
+	  var placement = data.placement.split('-')[0];
+	  var floor = Math.floor;
+	  var isVertical = ['top', 'bottom'].indexOf(placement) !== -1;
+	  var side = isVertical ? 'right' : 'bottom';
+	  var opSide = isVertical ? 'left' : 'top';
+	  var measurement = isVertical ? 'width' : 'height';
+
+	  if (popper[side] < floor(reference[opSide])) {
+	    data.offsets.popper[opSide] = floor(reference[opSide]) - popper[measurement];
+	  }
+	  if (popper[opSide] > floor(reference[side])) {
+	    data.offsets.popper[opSide] = floor(reference[side]);
+	  }
+
+	  return data;
+	}
+
+	/**
+	 * Converts a string containing value + unit into a px value number
+	 * @function
+	 * @memberof {modifiers~offset}
+	 * @private
+	 * @argument {String} str - Value + unit string
+	 * @argument {String} measurement - `height` or `width`
+	 * @argument {Object} popperOffsets
+	 * @argument {Object} referenceOffsets
+	 * @returns {Number|String}
+	 * Value in pixels, or original string if no values were extracted
+	 */
+	function toValue(str, measurement, popperOffsets, referenceOffsets) {
+	  // separate value from unit
+	  var split = str.match(/((?:\-|\+)?\d*\.?\d*)(.*)/);
+	  var value = +split[1];
+	  var unit = split[2];
+
+	  // If it's not a number it's an operator, I guess
+	  if (!value) {
+	    return str;
+	  }
+
+	  if (unit.indexOf('%') === 0) {
+	    var element = void 0;
+	    switch (unit) {
+	      case '%p':
+	        element = popperOffsets;
+	        break;
+	      case '%':
+	      case '%r':
+	      default:
+	        element = referenceOffsets;
+	    }
+
+	    var rect = getClientRect(element);
+	    return rect[measurement] / 100 * value;
+	  } else if (unit === 'vh' || unit === 'vw') {
+	    // if is a vh or vw, we calculate the size based on the viewport
+	    var size = void 0;
+	    if (unit === 'vh') {
+	      size = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+	    } else {
+	      size = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+	    }
+	    return size / 100 * value;
+	  } else {
+	    // if is an explicit pixel unit, we get rid of the unit and keep the value
+	    // if is an implicit unit, it's px, and we return just the value
+	    return value;
+	  }
+	}
+
+	/**
+	 * Parse an `offset` string to extrapolate `x` and `y` numeric offsets.
+	 * @function
+	 * @memberof {modifiers~offset}
+	 * @private
+	 * @argument {String} offset
+	 * @argument {Object} popperOffsets
+	 * @argument {Object} referenceOffsets
+	 * @argument {String} basePlacement
+	 * @returns {Array} a two cells array with x and y offsets in numbers
+	 */
+	function parseOffset(offset, popperOffsets, referenceOffsets, basePlacement) {
+	  var offsets = [0, 0];
+
+	  // Use height if placement is left or right and index is 0 otherwise use width
+	  // in this way the first offset will use an axis and the second one
+	  // will use the other one
+	  var useHeight = ['right', 'left'].indexOf(basePlacement) !== -1;
+
+	  // Split the offset string to obtain a list of values and operands
+	  // The regex addresses values with the plus or minus sign in front (+10, -20, etc)
+	  var fragments = offset.split(/(\+|\-)/).map(function (frag) {
+	    return frag.trim();
+	  });
+
+	  // Detect if the offset string contains a pair of values or a single one
+	  // they could be separated by comma or space
+	  var divider = fragments.indexOf(find$2(fragments, function (frag) {
+	    return frag.search(/,|\s/) !== -1;
+	  }));
+
+	  if (fragments[divider] && fragments[divider].indexOf(',') === -1) {
+	    console.warn('Offsets separated by white space(s) are deprecated, use a comma (,) instead.');
+	  }
+
+	  // If divider is found, we divide the list of values and operands to divide
+	  // them by ofset X and Y.
+	  var splitRegex = /\s*,\s*|\s+/;
+	  var ops = divider !== -1 ? [fragments.slice(0, divider).concat([fragments[divider].split(splitRegex)[0]]), [fragments[divider].split(splitRegex)[1]].concat(fragments.slice(divider + 1))] : [fragments];
+
+	  // Convert the values with units to absolute pixels to allow our computations
+	  ops = ops.map(function (op, index) {
+	    // Most of the units rely on the orientation of the popper
+	    var measurement = (index === 1 ? !useHeight : useHeight) ? 'height' : 'width';
+	    var mergeWithPrevious = false;
+	    return op
+	    // This aggregates any `+` or `-` sign that aren't considered operators
+	    // e.g.: 10 + +5 => [10, +, +5]
+	    .reduce(function (a, b) {
+	      if (a[a.length - 1] === '' && ['+', '-'].indexOf(b) !== -1) {
+	        a[a.length - 1] = b;
+	        mergeWithPrevious = true;
+	        return a;
+	      } else if (mergeWithPrevious) {
+	        a[a.length - 1] += b;
+	        mergeWithPrevious = false;
+	        return a;
+	      } else {
+	        return a.concat(b);
+	      }
+	    }, [])
+	    // Here we convert the string values into number values (in px)
+	    .map(function (str) {
+	      return toValue(str, measurement, popperOffsets, referenceOffsets);
+	    });
+	  });
+
+	  // Loop trough the offsets arrays and execute the operations
+	  ops.forEach(function (op, index) {
+	    op.forEach(function (frag, index2) {
+	      if (isNumeric(frag)) {
+	        offsets[index] += frag * (op[index2 - 1] === '-' ? -1 : 1);
+	      }
+	    });
+	  });
+	  return offsets;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by update method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @argument {Number|String} options.offset=0
+	 * The offset value as described in the modifier description
+	 * @returns {Object} The data object, properly modified
+	 */
+	function offset(data, _ref) {
+	  var offset = _ref.offset;
+	  var placement = data.placement,
+	      _data$offsets = data.offsets,
+	      popper = _data$offsets.popper,
+	      reference = _data$offsets.reference;
+
+	  var basePlacement = placement.split('-')[0];
+
+	  var offsets = void 0;
+	  if (isNumeric(+offset)) {
+	    offsets = [+offset, 0];
+	  } else {
+	    offsets = parseOffset(offset, popper, reference, basePlacement);
+	  }
+
+	  if (basePlacement === 'left') {
+	    popper.top += offsets[0];
+	    popper.left -= offsets[1];
+	  } else if (basePlacement === 'right') {
+	    popper.top += offsets[0];
+	    popper.left += offsets[1];
+	  } else if (basePlacement === 'top') {
+	    popper.left += offsets[0];
+	    popper.top -= offsets[1];
+	  } else if (basePlacement === 'bottom') {
+	    popper.left += offsets[0];
+	    popper.top += offsets[1];
+	  }
+
+	  data.popper = popper;
+	  return data;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by `update` method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function preventOverflow(data, options) {
+	  var boundariesElement = options.boundariesElement || getOffsetParent(data.instance.popper);
+
+	  // If offsetParent is the reference element, we really want to
+	  // go one step up and use the next offsetParent as reference to
+	  // avoid to make this modifier completely useless and look like broken
+	  if (data.instance.reference === boundariesElement) {
+	    boundariesElement = getOffsetParent(boundariesElement);
+	  }
+
+	  // NOTE: DOM access here
+	  // resets the popper's position so that the document size can be calculated excluding
+	  // the size of the popper element itself
+	  var transformProp = getSupportedPropertyName('transform');
+	  var popperStyles = data.instance.popper.style; // assignment to help minification
+	  var top = popperStyles.top,
+	      left = popperStyles.left,
+	      transform = popperStyles[transformProp];
+
+	  popperStyles.top = '';
+	  popperStyles.left = '';
+	  popperStyles[transformProp] = '';
+
+	  var boundaries = getBoundaries(data.instance.popper, data.instance.reference, options.padding, boundariesElement, data.positionFixed);
+
+	  // NOTE: DOM access here
+	  // restores the original style properties after the offsets have been computed
+	  popperStyles.top = top;
+	  popperStyles.left = left;
+	  popperStyles[transformProp] = transform;
+
+	  options.boundaries = boundaries;
+
+	  var order = options.priority;
+	  var popper = data.offsets.popper;
+
+	  var check = {
+	    primary: function primary(placement) {
+	      var value = popper[placement];
+	      if (popper[placement] < boundaries[placement] && !options.escapeWithReference) {
+	        value = Math.max(popper[placement], boundaries[placement]);
+	      }
+	      return defineProperty$b({}, placement, value);
+	    },
+	    secondary: function secondary(placement) {
+	      var mainSide = placement === 'right' ? 'left' : 'top';
+	      var value = popper[mainSide];
+	      if (popper[placement] > boundaries[placement] && !options.escapeWithReference) {
+	        value = Math.min(popper[mainSide], boundaries[placement] - (placement === 'right' ? popper.width : popper.height));
+	      }
+	      return defineProperty$b({}, mainSide, value);
+	    }
+	  };
+
+	  order.forEach(function (placement) {
+	    var side = ['left', 'top'].indexOf(placement) !== -1 ? 'primary' : 'secondary';
+	    popper = _extends({}, popper, check[side](placement));
+	  });
+
+	  data.offsets.popper = popper;
+
+	  return data;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by `update` method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function shift(data) {
+	  var placement = data.placement;
+	  var basePlacement = placement.split('-')[0];
+	  var shiftvariation = placement.split('-')[1];
+
+	  // if shift shiftvariation is specified, run the modifier
+	  if (shiftvariation) {
+	    var _data$offsets = data.offsets,
+	        reference = _data$offsets.reference,
+	        popper = _data$offsets.popper;
+
+	    var isVertical = ['bottom', 'top'].indexOf(basePlacement) !== -1;
+	    var side = isVertical ? 'left' : 'top';
+	    var measurement = isVertical ? 'width' : 'height';
+
+	    var shiftOffsets = {
+	      start: defineProperty$b({}, side, reference[side]),
+	      end: defineProperty$b({}, side, reference[side] + reference[measurement] - popper[measurement])
+	    };
+
+	    data.offsets.popper = _extends({}, popper, shiftOffsets[shiftvariation]);
+	  }
+
+	  return data;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by update method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function hide(data) {
+	  if (!isModifierRequired(data.instance.modifiers, 'hide', 'preventOverflow')) {
+	    return data;
+	  }
+
+	  var refRect = data.offsets.reference;
+	  var bound = find$2(data.instance.modifiers, function (modifier) {
+	    return modifier.name === 'preventOverflow';
+	  }).boundaries;
+
+	  if (refRect.bottom < bound.top || refRect.left > bound.right || refRect.top > bound.bottom || refRect.right < bound.left) {
+	    // Avoid unnecessary DOM access if visibility hasn't changed
+	    if (data.hide === true) {
+	      return data;
+	    }
+
+	    data.hide = true;
+	    data.attributes['x-out-of-boundaries'] = '';
+	  } else {
+	    // Avoid unnecessary DOM access if visibility hasn't changed
+	    if (data.hide === false) {
+	      return data;
+	    }
+
+	    data.hide = false;
+	    data.attributes['x-out-of-boundaries'] = false;
+	  }
+
+	  return data;
+	}
+
+	/**
+	 * @function
+	 * @memberof Modifiers
+	 * @argument {Object} data - The data object generated by `update` method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {Object} The data object, properly modified
+	 */
+	function inner(data) {
+	  var placement = data.placement;
+	  var basePlacement = placement.split('-')[0];
+	  var _data$offsets = data.offsets,
+	      popper = _data$offsets.popper,
+	      reference = _data$offsets.reference;
+
+	  var isHoriz = ['left', 'right'].indexOf(basePlacement) !== -1;
+
+	  var subtractLength = ['top', 'left'].indexOf(basePlacement) === -1;
+
+	  popper[isHoriz ? 'left' : 'top'] = reference[basePlacement] - (subtractLength ? popper[isHoriz ? 'width' : 'height'] : 0);
+
+	  data.placement = getOppositePlacement(placement);
+	  data.offsets.popper = getClientRect(popper);
+
+	  return data;
+	}
+
+	/**
+	 * Modifier function, each modifier can have a function of this type assigned
+	 * to its `fn` property.<br />
+	 * These functions will be called on each update, this means that you must
+	 * make sure they are performant enough to avoid performance bottlenecks.
+	 *
+	 * @function ModifierFn
+	 * @argument {dataObject} data - The data object generated by `update` method
+	 * @argument {Object} options - Modifiers configuration and options
+	 * @returns {dataObject} The data object, properly modified
+	 */
+
+	/**
+	 * Modifiers are plugins used to alter the behavior of your poppers.<br />
+	 * Popper.js uses a set of 9 modifiers to provide all the basic functionalities
+	 * needed by the library.
+	 *
+	 * Usually you don't want to override the `order`, `fn` and `onLoad` props.
+	 * All the other properties are configurations that could be tweaked.
+	 * @namespace modifiers
+	 */
+	var modifiers = {
+	  /**
+	   * Modifier used to shift the popper on the start or end of its reference
+	   * element.<br />
+	   * It will read the variation of the `placement` property.<br />
+	   * It can be one either `-end` or `-start`.
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  shift: {
+	    /** @prop {number} order=100 - Index used to define the order of execution */
+	    order: 100,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: shift
+	  },
+
+	  /**
+	   * The `offset` modifier can shift your popper on both its axis.
+	   *
+	   * It accepts the following units:
+	   * - `px` or unit-less, interpreted as pixels
+	   * - `%` or `%r`, percentage relative to the length of the reference element
+	   * - `%p`, percentage relative to the length of the popper element
+	   * - `vw`, CSS viewport width unit
+	   * - `vh`, CSS viewport height unit
+	   *
+	   * For length is intended the main axis relative to the placement of the popper.<br />
+	   * This means that if the placement is `top` or `bottom`, the length will be the
+	   * `width`. In case of `left` or `right`, it will be the `height`.
+	   *
+	   * You can provide a single value (as `Number` or `String`), or a pair of values
+	   * as `String` divided by a comma or one (or more) white spaces.<br />
+	   * The latter is a deprecated method because it leads to confusion and will be
+	   * removed in v2.<br />
+	   * Additionally, it accepts additions and subtractions between different units.
+	   * Note that multiplications and divisions aren't supported.
+	   *
+	   * Valid examples are:
+	   * ```
+	   * 10
+	   * '10%'
+	   * '10, 10'
+	   * '10%, 10'
+	   * '10 + 10%'
+	   * '10 - 5vh + 3%'
+	   * '-10px + 5vh, 5px - 6%'
+	   * ```
+	   * > **NB**: If you desire to apply offsets to your poppers in a way that may make them overlap
+	   * > with their reference element, unfortunately, you will have to disable the `flip` modifier.
+	   * > You can read more on this at this [issue](https://github.com/FezVrasta/popper.js/issues/373).
+	   *
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  offset: {
+	    /** @prop {number} order=200 - Index used to define the order of execution */
+	    order: 200,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: offset,
+	    /** @prop {Number|String} offset=0
+	     * The offset value as described in the modifier description
+	     */
+	    offset: 0
+	  },
+
+	  /**
+	   * Modifier used to prevent the popper from being positioned outside the boundary.
+	   *
+	   * A scenario exists where the reference itself is not within the boundaries.<br />
+	   * We can say it has "escaped the boundaries" — or just "escaped".<br />
+	   * In this case we need to decide whether the popper should either:
+	   *
+	   * - detach from the reference and remain "trapped" in the boundaries, or
+	   * - if it should ignore the boundary and "escape with its reference"
+	   *
+	   * When `escapeWithReference` is set to`true` and reference is completely
+	   * outside its boundaries, the popper will overflow (or completely leave)
+	   * the boundaries in order to remain attached to the edge of the reference.
+	   *
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  preventOverflow: {
+	    /** @prop {number} order=300 - Index used to define the order of execution */
+	    order: 300,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: preventOverflow,
+	    /**
+	     * @prop {Array} [priority=['left','right','top','bottom']]
+	     * Popper will try to prevent overflow following these priorities by default,
+	     * then, it could overflow on the left and on top of the `boundariesElement`
+	     */
+	    priority: ['left', 'right', 'top', 'bottom'],
+	    /**
+	     * @prop {number} padding=5
+	     * Amount of pixel used to define a minimum distance between the boundaries
+	     * and the popper. This makes sure the popper always has a little padding
+	     * between the edges of its container
+	     */
+	    padding: 5,
+	    /**
+	     * @prop {String|HTMLElement} boundariesElement='scrollParent'
+	     * Boundaries used by the modifier. Can be `scrollParent`, `window`,
+	     * `viewport` or any DOM element.
+	     */
+	    boundariesElement: 'scrollParent'
+	  },
+
+	  /**
+	   * Modifier used to make sure the reference and its popper stay near each other
+	   * without leaving any gap between the two. Especially useful when the arrow is
+	   * enabled and you want to ensure that it points to its reference element.
+	   * It cares only about the first axis. You can still have poppers with margin
+	   * between the popper and its reference element.
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  keepTogether: {
+	    /** @prop {number} order=400 - Index used to define the order of execution */
+	    order: 400,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: keepTogether
+	  },
+
+	  /**
+	   * This modifier is used to move the `arrowElement` of the popper to make
+	   * sure it is positioned between the reference element and its popper element.
+	   * It will read the outer size of the `arrowElement` node to detect how many
+	   * pixels of conjunction are needed.
+	   *
+	   * It has no effect if no `arrowElement` is provided.
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  arrow: {
+	    /** @prop {number} order=500 - Index used to define the order of execution */
+	    order: 500,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: arrow,
+	    /** @prop {String|HTMLElement} element='[x-arrow]' - Selector or node used as arrow */
+	    element: '[x-arrow]'
+	  },
+
+	  /**
+	   * Modifier used to flip the popper's placement when it starts to overlap its
+	   * reference element.
+	   *
+	   * Requires the `preventOverflow` modifier before it in order to work.
+	   *
+	   * **NOTE:** this modifier will interrupt the current update cycle and will
+	   * restart it if it detects the need to flip the placement.
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  flip: {
+	    /** @prop {number} order=600 - Index used to define the order of execution */
+	    order: 600,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: flip,
+	    /**
+	     * @prop {String|Array} behavior='flip'
+	     * The behavior used to change the popper's placement. It can be one of
+	     * `flip`, `clockwise`, `counterclockwise` or an array with a list of valid
+	     * placements (with optional variations)
+	     */
+	    behavior: 'flip',
+	    /**
+	     * @prop {number} padding=5
+	     * The popper will flip if it hits the edges of the `boundariesElement`
+	     */
+	    padding: 5,
+	    /**
+	     * @prop {String|HTMLElement} boundariesElement='viewport'
+	     * The element which will define the boundaries of the popper position.
+	     * The popper will never be placed outside of the defined boundaries
+	     * (except if `keepTogether` is enabled)
+	     */
+	    boundariesElement: 'viewport',
+	    /**
+	     * @prop {Boolean} flipVariations=false
+	     * The popper will switch placement variation between `-start` and `-end` when
+	     * the reference element overlaps its boundaries.
+	     *
+	     * The original placement should have a set variation.
+	     */
+	    flipVariations: false,
+	    /**
+	     * @prop {Boolean} flipVariationsByContent=false
+	     * The popper will switch placement variation between `-start` and `-end` when
+	     * the popper element overlaps its reference boundaries.
+	     *
+	     * The original placement should have a set variation.
+	     */
+	    flipVariationsByContent: false
+	  },
+
+	  /**
+	   * Modifier used to make the popper flow toward the inner of the reference element.
+	   * By default, when this modifier is disabled, the popper will be placed outside
+	   * the reference element.
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  inner: {
+	    /** @prop {number} order=700 - Index used to define the order of execution */
+	    order: 700,
+	    /** @prop {Boolean} enabled=false - Whether the modifier is enabled or not */
+	    enabled: false,
+	    /** @prop {ModifierFn} */
+	    fn: inner
+	  },
+
+	  /**
+	   * Modifier used to hide the popper when its reference element is outside of the
+	   * popper boundaries. It will set a `x-out-of-boundaries` attribute which can
+	   * be used to hide with a CSS selector the popper when its reference is
+	   * out of boundaries.
+	   *
+	   * Requires the `preventOverflow` modifier before it in order to work.
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  hide: {
+	    /** @prop {number} order=800 - Index used to define the order of execution */
+	    order: 800,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: hide
+	  },
+
+	  /**
+	   * Computes the style that will be applied to the popper element to gets
+	   * properly positioned.
+	   *
+	   * Note that this modifier will not touch the DOM, it just prepares the styles
+	   * so that `applyStyle` modifier can apply it. This separation is useful
+	   * in case you need to replace `applyStyle` with a custom implementation.
+	   *
+	   * This modifier has `850` as `order` value to maintain backward compatibility
+	   * with previous versions of Popper.js. Expect the modifiers ordering method
+	   * to change in future major versions of the library.
+	   *
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  computeStyle: {
+	    /** @prop {number} order=850 - Index used to define the order of execution */
+	    order: 850,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: computeStyle,
+	    /**
+	     * @prop {Boolean} gpuAcceleration=true
+	     * If true, it uses the CSS 3D transformation to position the popper.
+	     * Otherwise, it will use the `top` and `left` properties
+	     */
+	    gpuAcceleration: true,
+	    /**
+	     * @prop {string} [x='bottom']
+	     * Where to anchor the X axis (`bottom` or `top`). AKA X offset origin.
+	     * Change this if your popper should grow in a direction different from `bottom`
+	     */
+	    x: 'bottom',
+	    /**
+	     * @prop {string} [x='left']
+	     * Where to anchor the Y axis (`left` or `right`). AKA Y offset origin.
+	     * Change this if your popper should grow in a direction different from `right`
+	     */
+	    y: 'right'
+	  },
+
+	  /**
+	   * Applies the computed styles to the popper element.
+	   *
+	   * All the DOM manipulations are limited to this modifier. This is useful in case
+	   * you want to integrate Popper.js inside a framework or view library and you
+	   * want to delegate all the DOM manipulations to it.
+	   *
+	   * Note that if you disable this modifier, you must make sure the popper element
+	   * has its position set to `absolute` before Popper.js can do its work!
+	   *
+	   * Just disable this modifier and define your own to achieve the desired effect.
+	   *
+	   * @memberof modifiers
+	   * @inner
+	   */
+	  applyStyle: {
+	    /** @prop {number} order=900 - Index used to define the order of execution */
+	    order: 900,
+	    /** @prop {Boolean} enabled=true - Whether the modifier is enabled or not */
+	    enabled: true,
+	    /** @prop {ModifierFn} */
+	    fn: applyStyle,
+	    /** @prop {Function} */
+	    onLoad: applyStyleOnLoad,
+	    /**
+	     * @deprecated since version 1.10.0, the property moved to `computeStyle` modifier
+	     * @prop {Boolean} gpuAcceleration=true
+	     * If true, it uses the CSS 3D transformation to position the popper.
+	     * Otherwise, it will use the `top` and `left` properties
+	     */
+	    gpuAcceleration: undefined
+	  }
+	};
+
+	/**
+	 * The `dataObject` is an object containing all the information used by Popper.js.
+	 * This object is passed to modifiers and to the `onCreate` and `onUpdate` callbacks.
+	 * @name dataObject
+	 * @property {Object} data.instance The Popper.js instance
+	 * @property {String} data.placement Placement applied to popper
+	 * @property {String} data.originalPlacement Placement originally defined on init
+	 * @property {Boolean} data.flipped True if popper has been flipped by flip modifier
+	 * @property {Boolean} data.hide True if the reference element is out of boundaries, useful to know when to hide the popper
+	 * @property {HTMLElement} data.arrowElement Node used as arrow by arrow modifier
+	 * @property {Object} data.styles Any CSS property defined here will be applied to the popper. It expects the JavaScript nomenclature (eg. `marginBottom`)
+	 * @property {Object} data.arrowStyles Any CSS property defined here will be applied to the popper arrow. It expects the JavaScript nomenclature (eg. `marginBottom`)
+	 * @property {Object} data.boundaries Offsets of the popper boundaries
+	 * @property {Object} data.offsets The measurements of popper, reference and arrow elements
+	 * @property {Object} data.offsets.popper `top`, `left`, `width`, `height` values
+	 * @property {Object} data.offsets.reference `top`, `left`, `width`, `height` values
+	 * @property {Object} data.offsets.arrow] `top` and `left` offsets, only one of them will be different from 0
+	 */
+
+	/**
+	 * Default options provided to Popper.js constructor.<br />
+	 * These can be overridden using the `options` argument of Popper.js.<br />
+	 * To override an option, simply pass an object with the same
+	 * structure of the `options` object, as the 3rd argument. For example:
+	 * ```
+	 * new Popper(ref, pop, {
+	 *   modifiers: {
+	 *     preventOverflow: { enabled: false }
+	 *   }
+	 * })
+	 * ```
+	 * @type {Object}
+	 * @static
+	 * @memberof Popper
+	 */
+	var Defaults = {
+	  /**
+	   * Popper's placement.
+	   * @prop {Popper.placements} placement='bottom'
+	   */
+	  placement: 'bottom',
+
+	  /**
+	   * Set this to true if you want popper to position it self in 'fixed' mode
+	   * @prop {Boolean} positionFixed=false
+	   */
+	  positionFixed: false,
+
+	  /**
+	   * Whether events (resize, scroll) are initially enabled.
+	   * @prop {Boolean} eventsEnabled=true
+	   */
+	  eventsEnabled: true,
+
+	  /**
+	   * Set to true if you want to automatically remove the popper when
+	   * you call the `destroy` method.
+	   * @prop {Boolean} removeOnDestroy=false
+	   */
+	  removeOnDestroy: false,
+
+	  /**
+	   * Callback called when the popper is created.<br />
+	   * By default, it is set to no-op.<br />
+	   * Access Popper.js instance with `data.instance`.
+	   * @prop {onCreate}
+	   */
+	  onCreate: function onCreate() {},
+
+	  /**
+	   * Callback called when the popper is updated. This callback is not called
+	   * on the initialization/creation of the popper, but only on subsequent
+	   * updates.<br />
+	   * By default, it is set to no-op.<br />
+	   * Access Popper.js instance with `data.instance`.
+	   * @prop {onUpdate}
+	   */
+	  onUpdate: function onUpdate() {},
+
+	  /**
+	   * List of modifiers used to modify the offsets before they are applied to the popper.
+	   * They provide most of the functionalities of Popper.js.
+	   * @prop {modifiers}
+	   */
+	  modifiers: modifiers
+	};
+
+	/**
+	 * @callback onCreate
+	 * @param {dataObject} data
+	 */
+
+	/**
+	 * @callback onUpdate
+	 * @param {dataObject} data
+	 */
+
+	// Utils
+	// Methods
+	var Popper = function () {
+	  /**
+	   * Creates a new Popper.js instance.
+	   * @class Popper
+	   * @param {Element|referenceObject} reference - The reference element used to position the popper
+	   * @param {Element} popper - The HTML / XML element used as the popper
+	   * @param {Object} options - Your custom options to override the ones defined in [Defaults](#defaults)
+	   * @return {Object} instance - The generated Popper.js instance
+	   */
+	  function Popper(reference, popper) {
+	    var _this = this;
+
+	    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+	    classCallCheck(this, Popper);
+
+	    this.scheduleUpdate = function () {
+	      return requestAnimationFrame(_this.update);
+	    };
+
+	    // make update() debounced, so that it only runs at most once-per-tick
+	    this.update = debounce$1(this.update.bind(this));
+
+	    // with {} we create a new object with the options inside it
+	    this.options = _extends({}, Popper.Defaults, options);
+
+	    // init state
+	    this.state = {
+	      isDestroyed: false,
+	      isCreated: false,
+	      scrollParents: []
+	    };
+
+	    // get reference and popper elements (allow jQuery wrappers)
+	    this.reference = reference && reference.jquery ? reference[0] : reference;
+	    this.popper = popper && popper.jquery ? popper[0] : popper;
+
+	    // Deep merge modifiers options
+	    this.options.modifiers = {};
+	    Object.keys(_extends({}, Popper.Defaults.modifiers, options.modifiers)).forEach(function (name) {
+	      _this.options.modifiers[name] = _extends({}, Popper.Defaults.modifiers[name] || {}, options.modifiers ? options.modifiers[name] : {});
+	    });
+
+	    // Refactoring modifiers' list (Object => Array)
+	    this.modifiers = Object.keys(this.options.modifiers).map(function (name) {
+	      return _extends({
+	        name: name
+	      }, _this.options.modifiers[name]);
+	    })
+	    // sort the modifiers by order
+	    .sort(function (a, b) {
+	      return a.order - b.order;
+	    });
+
+	    // modifiers have the ability to execute arbitrary code when Popper.js get inited
+	    // such code is executed in the same order of its modifier
+	    // they could add new properties to their options configuration
+	    // BE AWARE: don't add options to `options.modifiers.name` but to `modifierOptions`!
+	    this.modifiers.forEach(function (modifierOptions) {
+	      if (modifierOptions.enabled && isFunction(modifierOptions.onLoad)) {
+	        modifierOptions.onLoad(_this.reference, _this.popper, _this.options, modifierOptions, _this.state);
+	      }
+	    });
+
+	    // fire the first update to position the popper in the right place
+	    this.update();
+
+	    var eventsEnabled = this.options.eventsEnabled;
+	    if (eventsEnabled) {
+	      // setup event listeners, they will take care of update the position in specific situations
+	      this.enableEventListeners();
+	    }
+
+	    this.state.eventsEnabled = eventsEnabled;
+	  }
+
+	  // We can't use class properties because they don't get listed in the
+	  // class prototype and break stuff like Sinon stubs
+
+
+	  createClass(Popper, [{
+	    key: 'update',
+	    value: function update$$1() {
+	      return update.call(this);
+	    }
+	  }, {
+	    key: 'destroy',
+	    value: function destroy$$1() {
+	      return destroy.call(this);
+	    }
+	  }, {
+	    key: 'enableEventListeners',
+	    value: function enableEventListeners$$1() {
+	      return enableEventListeners.call(this);
+	    }
+	  }, {
+	    key: 'disableEventListeners',
+	    value: function disableEventListeners$$1() {
+	      return disableEventListeners.call(this);
+	    }
+
+	    /**
+	     * Schedules an update. It will run on the next UI update available.
+	     * @method scheduleUpdate
+	     * @memberof Popper
+	     */
+
+
+	    /**
+	     * Collection of utilities useful when writing custom modifiers.
+	     * Starting from version 1.7, this method is available only if you
+	     * include `popper-utils.js` before `popper.js`.
+	     *
+	     * **DEPRECATION**: This way to access PopperUtils is deprecated
+	     * and will be removed in v2! Use the PopperUtils module directly instead.
+	     * Due to the high instability of the methods contained in Utils, we can't
+	     * guarantee them to follow semver. Use them at your own risk!
+	     * @static
+	     * @private
+	     * @type {Object}
+	     * @deprecated since version 1.8
+	     * @member Utils
+	     * @memberof Popper
+	     */
+
+	  }]);
+	  return Popper;
+	}();
+
+	/**
+	 * The `referenceObject` is an object that provides an interface compatible with Popper.js
+	 * and lets you use it as replacement of a real DOM node.<br />
+	 * You can use this method to position a popper relatively to a set of coordinates
+	 * in case you don't have a DOM node to use as reference.
+	 *
+	 * ```
+	 * new Popper(referenceObject, popperNode);
+	 * ```
+	 *
+	 * NB: This feature isn't supported in Internet Explorer 10.
+	 * @name referenceObject
+	 * @property {Function} data.getBoundingClientRect
+	 * A function that returns a set of coordinates compatible with the native `getBoundingClientRect` method.
+	 * @property {number} data.clientWidth
+	 * An ES6 getter that will return the width of the virtual reference element.
+	 * @property {number} data.clientHeight
+	 * An ES6 getter that will return the height of the virtual reference element.
+	 */
+
+
+	Popper.Utils = (typeof window !== 'undefined' ? window : global).PopperUtils;
+	Popper.placements = placements;
+	Popper.Defaults = Defaults;
+
+	var cytoscapePopper = createCommonjsModule(function (module, exports) {
+	(function webpackUniversalModuleDefinition(root, factory) {
+		module.exports = factory(Popper);
+	})(commonjsGlobal, function(__WEBPACK_EXTERNAL_MODULE_8__) {
+	return /******/ (function(modules) { // webpackBootstrap
+	/******/ 	// The module cache
+	/******/ 	var installedModules = {};
+	/******/
+	/******/ 	// The require function
+	/******/ 	function __webpack_require__(moduleId) {
+	/******/
+	/******/ 		// Check if module is in cache
+	/******/ 		if(installedModules[moduleId]) {
+	/******/ 			return installedModules[moduleId].exports;
+	/******/ 		}
+	/******/ 		// Create a new module (and put it into the cache)
+	/******/ 		var module = installedModules[moduleId] = {
+	/******/ 			i: moduleId,
+	/******/ 			l: false,
+	/******/ 			exports: {}
+	/******/ 		};
+	/******/
+	/******/ 		// Execute the module function
+	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	/******/
+	/******/ 		// Flag the module as loaded
+	/******/ 		module.l = true;
+	/******/
+	/******/ 		// Return the exports of the module
+	/******/ 		return module.exports;
+	/******/ 	}
+	/******/
+	/******/
+	/******/ 	// expose the modules object (__webpack_modules__)
+	/******/ 	__webpack_require__.m = modules;
+	/******/
+	/******/ 	// expose the module cache
+	/******/ 	__webpack_require__.c = installedModules;
+	/******/
+	/******/ 	// identity function for calling harmony imports with the correct context
+	/******/ 	__webpack_require__.i = function(value) { return value; };
+	/******/
+	/******/ 	// define getter function for harmony exports
+	/******/ 	__webpack_require__.d = function(exports, name, getter) {
+	/******/ 		if(!__webpack_require__.o(exports, name)) {
+	/******/ 			Object.defineProperty(exports, name, {
+	/******/ 				configurable: false,
+	/******/ 				enumerable: true,
+	/******/ 				get: getter
+	/******/ 			});
+	/******/ 		}
+	/******/ 	};
+	/******/
+	/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+	/******/ 	__webpack_require__.n = function(module) {
+	/******/ 		var getter = module && module.__esModule ?
+	/******/ 			function getDefault() { return module['default']; } :
+	/******/ 			function getModuleExports() { return module; };
+	/******/ 		__webpack_require__.d(getter, 'a', getter);
+	/******/ 		return getter;
+	/******/ 	};
+	/******/
+	/******/ 	// Object.prototype.hasOwnProperty.call
+	/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+	/******/
+	/******/ 	// __webpack_public_path__
+	/******/ 	__webpack_require__.p = "";
+	/******/
+	/******/ 	// Load entry module and return exports
+	/******/ 	return __webpack_require__(__webpack_require__.s = 7);
+	/******/ })
+	/************************************************************************/
+	/******/ ([
+	/* 0 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	// Simple, internal Object.assign() polyfill for options objects etc.
+
+	module.exports = Object.assign != null ? Object.assign.bind(Object) : function (tgt) {
+	  for (var _len = arguments.length, srcs = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    srcs[_key - 1] = arguments[_key];
+	  }
+
+	  srcs.forEach(function (src) {
+	    if (src !== null && src !== undefined) {
+	      Object.keys(src).forEach(function (k) {
+	        return tgt[k] = src[k];
+	      });
+	    }
+	  });
+
+	  return tgt;
+	};
+
+	/***/ }),
+	/* 1 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	var _require = __webpack_require__(5),
+	    getBoundingBox = _require.getBoundingBox;
+
+	// Create a popper reference object
+	// https://popper.js.org/popper-documentation.html#referenceObject
+
+
+	function getRef(target, opts) {
+	  var renderedDimensions = opts.renderedDimensions;
+
+	  //Define popper reference object and cy reference  object
+
+	  var refObject = {
+	    getBoundingClientRect: function getBoundingClientRect() {
+	      return getBoundingBox(target, opts);
+	    },
+
+	    get clientWidth() {
+	      return renderedDimensions(target).w;
+	    },
+
+	    get clientHeight() {
+	      return renderedDimensions(target).h;
+	    }
+	  };
+
+	  return refObject;
+	}
+
+	module.exports = { getRef: getRef };
+
+	/***/ }),
+	/* 2 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	var assign = __webpack_require__(0);
+
+	var _require = __webpack_require__(1),
+	    getRef = _require.getRef;
+
+	var _require2 = __webpack_require__(6),
+	    getContent = _require2.getContent;
+
+	var popperDefaults = {};
+
+	//Fix Popper.js webpack import conflict (Use .default if using webpack)
+	var Popper = __webpack_require__(8);
+	var EsmWebpackPopper = Popper.default;
+	if (EsmWebpackPopper != null && EsmWebpackPopper.Defaults != null) {
+	  Popper = Popper.default;
+	}
+
+	// Create a new popper object for a core or element target
+	function getPopper(target, opts) {
+	  var refObject = getRef(target, opts);
+	  var content = getContent(target, opts.content);
+	  var popperOpts = assign({}, popperDefaults, opts.popper);
+
+	  return new Popper(refObject, content, popperOpts);
+	}
+
+	module.exports = { getPopper: getPopper };
+
+	/***/ }),
+	/* 3 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	var assign = __webpack_require__(0);
+
+	var _require = __webpack_require__(2),
+	    getPopper = _require.getPopper;
+
+	var _require2 = __webpack_require__(1),
+	    getRef = _require2.getRef;
+
+	function popper(opts) {
+	  checkForWarning(this);
+
+	  return getPopper(this[0], createOptionsObject(this[0], opts));
+	}
+
+	function popperRef(opts) {
+	  checkForWarning(this);
+
+	  return getRef(this[0], createOptionsObject(this[0], opts));
+	}
+
+	function createOptionsObject(target, opts) {
+	  var renderedDimensions = function renderedDimensions(el) {
+	    return el.isNode() ? { w: el.renderedWidth(), h: el.renderedHeight() } : { w: 3, h: 3 };
+	  };
+	  var renderedPosition = function renderedPosition(el) {
+	    return el.isNode() ? getRenderedCenter(el, renderedDimensions) : getRenderedMidpoint(el);
+	  };
+	  var popper = {};
+	  var cy = target.cy();
+
+	  var defaults = { renderedDimensions: renderedDimensions, renderedPosition: renderedPosition, popper: popper, cy: cy };
+
+	  return assign({}, defaults, opts);
+	}
+
+	//Get the rendered center
+	function getRenderedCenter(target, renderedDimensions) {
+	  var pos = target.renderedPosition();
+	  var dimensions = renderedDimensions(target);
+	  var offsetX = dimensions.w / 2;
+	  var offsetY = dimensions.h / 2;
+
+	  return {
+	    x: pos.x - offsetX,
+	    y: pos.y - offsetY
+	  };
+	}
+
+	//Get the rendered position of the midpoint
+	function getRenderedMidpoint(target) {
+	  var p = target.midpoint();
+	  var pan = target.cy().pan();
+	  var zoom = target.cy().zoom();
+
+	  return {
+	    x: p.x * zoom + pan.x,
+	    y: p.y * zoom + pan.y
+	  };
+	}
+
+	//Warn user about misuse of the plugin
+	function checkForWarning(elements) {
+	  /* eslint-disable no-console */
+
+	  //Popper.js Should only be used on 1 element
+	  if (elements.length > 1) {
+	    console.warn("Popper.js Extension should only be used on one element.");
+	    console.warn("Ignoring all subsequent elements");
+	  }
+
+	  /* eslint-enable */
+	}
+
+	module.exports = { popper: popper, popperRef: popperRef };
+
+	/***/ }),
+	/* 4 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	var assign = __webpack_require__(0);
+
+	var _require = __webpack_require__(2),
+	    getPopper = _require.getPopper;
+
+	var _require2 = __webpack_require__(1),
+	    getRef = _require2.getRef;
+
+	function popper(opts) {
+	  return getPopper(this, createOptionsObject(this, opts));
+	}
+
+	function popperRef(opts) {
+	  return getRef(this, createOptionsObject(this, opts));
+	}
+
+	//Create a options object with required default values
+	function createOptionsObject(target, opts) {
+	  var defaults = {
+	    boundingBox: {
+	      top: 0,
+	      left: 0,
+	      right: 0,
+	      bottom: 0,
+	      w: 3,
+	      h: 3
+	    },
+	    renderedDimensions: function renderedDimensions() {
+	      return { w: 3, h: 3 };
+	    },
+	    redneredPosition: function redneredPosition() {
+	      return { x: 0, y: 0 };
+	    },
+	    popper: {},
+	    cy: target
+	  };
+
+	  return assign({}, defaults, opts);
+	}
+
+	module.exports = { popper: popper, popperRef: popperRef };
+
+	/***/ }),
+	/* 5 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	function getBoundingBox(target, opts) {
+	  var renderedPosition = opts.renderedPosition,
+	      cy = opts.cy,
+	      renderedDimensions = opts.renderedDimensions;
+
+	  var offset = cy.container().getBoundingClientRect();
+	  var dims = renderedDimensions(target);
+	  var pos = renderedPosition(target);
+
+	  return {
+	    top: pos.y + offset.top,
+	    left: pos.x + offset.left,
+	    right: pos.x + dims.w + offset.left,
+	    bottom: pos.y + dims.h + offset.top,
+	    width: dims.w,
+	    height: dims.h
+	  };
+	}
+
+	module.exports = { getBoundingBox: getBoundingBox };
+
+	/***/ }),
+	/* 6 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	function getContent(target, content) {
+	  var contentObject = null;
+
+	  if (typeof content === "function") {
+	    //Execute function if user opted for a dyanamic target
+	    contentObject = content(target);
+	  } else if (content instanceof HTMLElement) {
+	    //Target option is an HTML element
+	    return content;
+	  } else {
+	    throw new Error("Can not create popper from 'target' with unknown type");
+	  }
+
+	  // Check validity of parsed target
+	  if (contentObject === null) {
+	    throw new Error("No 'target' specified to create popper");
+	  } else {
+	    return contentObject;
+	  }
+	}
+
+	module.exports = { getContent: getContent };
+
+	/***/ }),
+	/* 7 */
+	/***/ (function(module, exports, __webpack_require__) {
+
+
+	/* global cytoscape */
+
+	var coreImpl = __webpack_require__(4);
+	var collectionImpl = __webpack_require__(3);
+
+	// registers the extension on a cytoscape lib ref
+	var register = function register(cytoscape) {
+	  if (!cytoscape) {
+	    return;
+	  } // can't register if cytoscape unspecified
+
+	  // register with cytoscape.js
+	  cytoscape('core', 'popper', coreImpl.popper); //Cytoscape Core
+	  cytoscape('collection', 'popper', collectionImpl.popper); //Cytoscape Collections
+	  cytoscape('core', 'popperRef', coreImpl.popperRef); //Cytoscape Core for References
+	  cytoscape('collection', 'popperRef', collectionImpl.popperRef); //Cytoscape Collections for References
+	};
+
+	if (typeof cytoscape !== 'undefined') {
+	  // expose to global cytoscape (i.e. window.cytoscape)
+	  register(cytoscape);
+	}
+
+	module.exports = register;
+
+	/***/ }),
+	/* 8 */
+	/***/ (function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
+
+	/***/ })
+	/******/ ]);
+	});
+	});
+
+	var popper = unwrapExports(cytoscapePopper);
+
+	function _typeof$g(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$g = function _typeof(obj) { return typeof obj; }; } else { _typeof$g = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$g(obj); }
 
 	function _classCallCheck$q(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -52081,11 +56507,941 @@
 
 	function _createClass$p(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$p(Constructor.prototype, protoProps); if (staticProps) _defineProperties$p(Constructor, staticProps); return Constructor; }
 
+	function _possibleConstructorReturn$g(self, call) { if (call && (_typeof$g(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized$g(self); }
+
+	function _assertThisInitialized$g(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	function _get$d(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get$d = Reflect.get; } else { _get$d = function _get(target, property, receiver) { var base = _superPropBase$d(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get$d(target, property, receiver || target); }
+
+	function _superPropBase$d(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf$g(object); if (object === null) break; } return object; }
+
+	function _getPrototypeOf$g(o) { _getPrototypeOf$g = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf$g(o); }
+
+	function _inherits$g(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf$g(subClass, superClass); }
+
+	function _setPrototypeOf$g(o, p) { _setPrototypeOf$g = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$g(o, p); }
+
+	var FloatingGscapeRenderer =
+	/*#__PURE__*/
+	function (_GrapholscapeRenderer) {
+	  _inherits$g(FloatingGscapeRenderer, _GrapholscapeRenderer);
+
+	  function FloatingGscapeRenderer(container) {
+	    var _this;
+
+	    _classCallCheck$q(this, FloatingGscapeRenderer);
+
+	    _this = _possibleConstructorReturn$g(this, _getPrototypeOf$g(FloatingGscapeRenderer).call(this, container));
+	    cytoscape$1.use(cola);
+	    cytoscape$1.use(popper);
+	    _this.cy.style.textureOnViewport = true;
+
+	    _this.cy.autoungrabify(false);
+
+	    _this.layoutStopped = false;
+	    _this.dragAndPin = false;
+
+	    _this.cy.on('grab', function (e) {
+	      e.target.data('old_pos', JSON.stringify(e.target.position()));
+	    });
+
+	    _this.cy.on('free', function (e) {
+	      var actual_pos = JSON.stringify(e.target.position());
+
+	      if (_this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
+	        _this.lockNode(e.target);
+	      }
+
+	      e.target.removeData('old_pos');
+	    });
+
+	    return _this;
+	  }
+
+	  _createClass$p(FloatingGscapeRenderer, [{
+	    key: "drawDiagram",
+	    value: function drawDiagram(diagram) {
+	      this.clearPoppers();
+
+	      _get$d(_getPrototypeOf$g(FloatingGscapeRenderer.prototype), "drawDiagram", this).call(this, diagram);
+
+	      this.cy.nodes().addClass('float');
+	      this.main_layout = this.layout(); // apply layout on those not locked
+
+	      this.main_layout.run();
+	    }
+	  }, {
+	    key: "centerOnNode",
+	    value: function centerOnNode(node_id, zoom) {
+	      var _this2 = this;
+
+	      var node = this.cy.$id(node_id);
+
+	      if (node) {
+	        this.cy.$(':selected').unselect();
+
+	        if (node.data('type') == 'role') {
+	          var elems = node.connectedNodes();
+	          setTimeout(function () {
+	            return _this2.cy.fit(elems);
+	          }, 300);
+	          node.select();
+	          elems.select();
+	        } else {
+	          setTimeout(function () {
+	            return _this2.centerOnPosition(node.position('x'), node.position('y'), zoom);
+	          }, 300);
+	          node.select();
+	        }
+	      }
+	    }
+	  }, {
+	    key: "layout",
+	    value: function layout() {
+	      var selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : ':unlocked';
+	      return this.cy.$(selector).layout(this.layout_settings);
+	    }
+	  }, {
+	    key: "unlockNode",
+	    value: function unlockNode(node) {
+	      node.unlockButton.destroy();
+	      node.unlock();
+	    }
+	  }, {
+	    key: "lockNode",
+	    value: function lockNode(node) {
+	      var _this3 = this;
+
+	      node.lock();
+	      var unlockButton = node.popper({
+	        content: function content() {
+	          var dimension = node.data('width') / 9 * _this3.cy.zoom();
+
+	          var div = document.createElement('div');
+	          div.style.background = node.style('border-color');
+	          div.style.borderRadius = '100%';
+	          div.style.padding = '5px';
+	          div.style.color = _this3.theme.on_secondary;
+	          div.style.cursor = 'pointer';
+	          div.setAttribute('title', 'Unlock Node');
+	          div.innerHTML = "<mwc-icon>lock_open</mwc_icon>";
+	          setStyle(dimension, div);
+
+	          div.onclick = function () {
+	            return _this3.unlockNode(node);
+	          };
+
+	          document.body.appendChild(div);
+	          return div;
+	        } //popper: {} // my popper options here
+
+	      });
+	      node.unlockButton = unlockButton;
+
+	      var update = function update() {
+	        var dimension = node.data('width') / 9 * _this3.cy.zoom();
+
+	        setStyle(dimension, unlockButton.popper);
+	        unlockButton.scheduleUpdate();
+	      };
+
+	      node.on('position', update);
+	      this.cy.on('pan zoom resize', update);
+
+	      function setStyle(dim, div) {
+	        var icon = div.querySelector('mwc-icon');
+
+	        if (dim > 2) {
+	          if (dim < 8) {
+	            icon.style.display = 'none';
+	          } else {
+	            icon.style.display = 'inline';
+	            icon.style.fontSize = dim + 'px';
+	          }
+
+	          div.style.width = dim + 'px';
+	          div.style.height = dim + 'px';
+	          div.style.display = 'flex';
+	        } else {
+	          icon.style.display = 'none';
+	          div.style.display = 'none';
+	        }
+	      }
+	    }
+	  }, {
+	    key: "clearPoppers",
+	    value: function clearPoppers() {
+	      this.cy.nodes().each(function (node) {
+	        if (node.unlockButton) node.unlockButton.destroy();
+	      });
+	    }
+	  }, {
+	    key: "unmount",
+	    value: function unmount() {
+	      _get$d(_getPrototypeOf$g(FloatingGscapeRenderer.prototype), "unmount", this).call(this);
+
+	      this.clearPoppers();
+	    }
+	  }, {
+	    key: "layout_settings",
+	    get: function get() {
+	      return {
+	        name: 'cola',
+	        avoidOverlap: true,
+	        edgeLength: function edgeLength(edge) {
+	          if (edge.hasClass('role')) {
+	            return 300 + edge.data('displayed_name').length * 4;
+	          } else if (edge.target().data('type') == 'attribute' || edge.source().data('type') == 'attribute') return 150;else return 250;
+	        },
+	        fit: false,
+	        infinite: !this.layoutStopped,
+	        handleDisconnected: true,
+	        // if true, avoids disconnected components from overlapping
+	        convergenceThreshold: 0.000000001
+	      };
+	    }
+	  }, {
+	    key: "layoutStopped",
+	    set: function set(isStopped) {
+	      this._layoutStopped = isStopped;
+
+	      if (this.main_layout) {
+	        this.main_layout.options.infinite = !isStopped;
+	        isStopped ? this.main_layout.stop() : this.main_layout.run();
+	      }
+	    },
+	    get: function get() {
+	      return this._layoutStopped;
+	    }
+	  }, {
+	    key: "dragAndPin",
+	    set: function set(active) {
+	      var _this4 = this;
+
+	      this._dragAndPin = active;
+	      if (!active) this.cy.$(':locked').each(function (node) {
+	        return _this4.unlockNode(node);
+	      });
+	    },
+	    get: function get() {
+	      return this._dragAndPin;
+	    }
+	  }]);
+
+	  return FloatingGscapeRenderer;
+	}(GrapholscapeRenderer);
+
+	function _templateObject$f() {
+	  var data = _taggedTemplateLiteral$f(["<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n  viewBox=\"0 0 12 12\" fill=\"currentColor\" xml:space=\"preserve\">\n<path id=\"path847\" d=\"M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1\n c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7\n C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5\n c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6\n L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2\n c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z\"/>\n</svg>"]);
+
+	  _templateObject$f = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$f(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	var graphol = html$1(_templateObject$f());
+
+	function _typeof$h(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$h = function _typeof(obj) { return typeof obj; }; } else { _typeof$h = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$h(obj); }
+
+	function _templateObject4$5() {
+	  var data = _taggedTemplateLiteral$g(["<mwc-icon>", "</mwc-icon>"]);
+
+	  _templateObject4$5 = function _templateObject4() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject3$8() {
+	  var data = _taggedTemplateLiteral$g(["\n        <div\n          @click=\"", "\"\n          mode=\"", "\"\n          class=\"renderer-item ", "\"\n        >\n        ", "\n        <span>", "</span>\n        </div>\n        "]);
+
+	  _templateObject3$8 = function _templateObject3() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject2$d() {
+	  var data = _taggedTemplateLiteral$g(["\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n\n      <gscape-head title=", "></gscape-head>\n    "]);
+
+	  _templateObject2$d = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$g() {
+	  var data = _taggedTemplateLiteral$g(["\n        :host {\n          bottom:10px;\n          left: 136px;\n        }\n\n        .renderer-item {\n          cursor:pointer;\n          padding:5px 10px;\n          display: flex;\n          align-items: center;\n        }\n\n        .renderer-item:hover {\n          color: var(--theme-gscape-on-secondary, ", ");\n          background-color:var(--theme-gscape-secondary, ", ");\n        }\n\n        .renderer-item:first-of-type {\n          border-top-left-radius: inherit;\n          border-top-right-radius: inherit;\n        }\n\n        .selected {\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          color: var(--theme-gscape-on-primary-dark, ", ");\n          font-weight: bold;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-radius: inherit;\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        gscape-head {\n          --header-padding: 5px 8px;\n        }\n\n        mwc-icon {\n          padding-right:8px;\n        }\n\n        svg {\n          height: 20px;\n          width: auto;\n          padding: 2px;\n          margin-right:8px;\n        }\n      "]);
+
+	  _templateObject$g = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$g(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+	function _classCallCheck$r(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$h(self, call) { if (call && (_typeof$h(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized$h(self); }
+
+	function _assertThisInitialized$h(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	function _defineProperties$q(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$q(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$q(Constructor.prototype, protoProps); if (staticProps) _defineProperties$q(Constructor, staticProps); return Constructor; }
+
+	function _inherits$h(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf$h(subClass, superClass); }
+
+	function _setPrototypeOf$h(o, p) { _setPrototypeOf$h = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$h(o, p); }
+
+	function _get$e(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get$e = Reflect.get; } else { _get$e = function _get(target, property, receiver) { var base = _superPropBase$e(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get$e(target, property, receiver || target); }
+
+	function _superPropBase$e(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf$h(object); if (object === null) break; } return object; }
+
+	function _getPrototypeOf$h(o) { _getPrototypeOf$h = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf$h(o); }
+
+	var GscapeRenderSelector =
+	/*#__PURE__*/
+	function (_GscapeWidget) {
+	  _inherits$h(GscapeRenderSelector, _GscapeWidget);
+
+	  _createClass$q(GscapeRenderSelector, null, [{
+	    key: "properties",
+	    get: function get() {
+	      return {
+	        actual_mode: {
+	          type: String
+	        }
+	      };
+	    }
+	  }, {
+	    key: "styles",
+	    get: function get() {
+	      var super_styles = _get$e(_getPrototypeOf$h(GscapeRenderSelector), "styles", this);
+
+	      var colors = super_styles[1];
+	      return [super_styles[0], css(_templateObject$g(), colors.on_secondary, colors.secondary, colors.primary_dark, colors.on_primary_dark, colors.shadows)];
+	    }
+	  }]);
+
+	  function GscapeRenderSelector(renderers) {
+	    var _this;
+
+	    _classCallCheck$r(this, GscapeRenderSelector);
+
+	    _this = _possibleConstructorReturn$h(this, _getPrototypeOf$h(GscapeRenderSelector).call(this));
+	    _this.collapsible = true;
+	    _this.renderers = renderers;
+	    _this.dict = {
+	      "default": {
+	        name: "Graphol",
+	        icon: ""
+	      },
+	      lite: {
+	        name: "Graphol-Lite",
+	        icon: 'flash_on'
+	      },
+	      "float": {
+	        name: "Floaty",
+	        icon: "bubble_chart"
+	      }
+	    };
+	    _this.actual_mode = 'default';
+	    _this._onRendererChange = {};
+	    return _this;
+	  }
+
+	  _createClass$q(GscapeRenderSelector, [{
+	    key: "render",
+	    value: function render() {
+	      var _this2 = this;
+
+	      return html$1(_templateObject2$d(), Object.keys(this.renderers).map(function (mode) {
+	        return html$1(_templateObject3$8(), _this2.changeRenderer, mode, mode == _this2.actual_mode ? "selected" : "", mode == 'default' ? graphol : html$1(_templateObject4$5(), _this2.dict[mode].icon), _this2.dict[mode].name);
+	      }), this.dict[this.actual_mode].name);
+	    }
+	  }, {
+	    key: "changeRenderer",
+	    value: function changeRenderer(e) {
+	      if (this.shadowRoot.querySelector('.selected')) this.shadowRoot.querySelector('.selected').classList.remove('selected');
+	      var target = e.currentTarget;
+	      target.classList.add('selected');
+	      var mode = target.getAttribute('mode');
+	      this.header.title = this.dict[mode].name;
+	      this.actual_mode = mode;
+
+	      this._onRendererChange(mode);
+	    }
+	  }, {
+	    key: "firstUpdated",
+	    value: function firstUpdated() {
+	      _get$e(_getPrototypeOf$h(GscapeRenderSelector.prototype), "firstUpdated", this).call(this); // invert header's dropdown icon behaviour
+
+
+	      this.header.invertIcons();
+	    }
+	  }, {
+	    key: "onRendererChange",
+	    set: function set(f) {
+	      this._onRendererChange = f;
+	    }
+	  }]);
+
+	  return GscapeRenderSelector;
+	}(GscapeWidget);
+	customElements.define('gscape-render-selection', GscapeRenderSelector);
+
+	function _typeof$i(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$i = function _typeof(obj) { return typeof obj; }; } else { _typeof$i = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$i(obj); }
+
+	function _templateObject2$e() {
+	  var data = _taggedTemplateLiteral$h(["\n      <!-- in case of body\n      <div class=\"widget-body hide\">\n      </div>\n      <gscape-head title=\"Layout Settings\" collapsed=\"true\" class=\"drag-handler\">\n        <span>\n          ", "\n          ", "\n        </span>\n      </gscape-head>\n      -->\n\n      <div class=\"wrapper\">\n        <span class=\"title\">Layout Settings</span>\n        <span class=\"toggles-wrapper\">\n          ", "\n          ", "\n        </span>\n      </div>\n\n    "]);
+
+	  _templateObject2$e = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$h() {
+	  var data = _taggedTemplateLiteral$h(["\n        :host {\n          left: 50%;\n          bottom: 10px;\n          transform: translate(-50%, 0);\n        }\n\n        gscape-head span {\n          display: flex;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-radius: inherit;\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        gscape-head {\n          --header-padding: 5px 8px;\n          --title-padding: 0 30px 0 0;\n          --btn-padding: 0 0 0 10px;\n        }\n\n        gscape-toggle {\n          margin-left: 50px;\n        }\n\n        .wrapper {\n          display:flex;\n          align-items: center;\n          justify-content: space-between;\n          padding: 8px;\n        }\n\n        .title {\n          padding: 0 5px 0 0;\n          font-weight:bold;\n        }\n\n        .toggles-wrapper {\n          display: flex;\n        }\n      "]);
+
+	  _templateObject$h = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$h(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+	function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$i(self, call) { if (call && (_typeof$i(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized$i(self); }
+
+	function _assertThisInitialized$i(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	function _defineProperties$r(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$r(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$r(Constructor.prototype, protoProps); if (staticProps) _defineProperties$r(Constructor, staticProps); return Constructor; }
+
+	function _inherits$i(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf$i(subClass, superClass); }
+
+	function _setPrototypeOf$i(o, p) { _setPrototypeOf$i = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$i(o, p); }
+
+	function _get$f(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get$f = Reflect.get; } else { _get$f = function _get(target, property, receiver) { var base = _superPropBase$f(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get$f(target, property, receiver || target); }
+
+	function _superPropBase$f(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf$i(object); if (object === null) break; } return object; }
+
+	function _getPrototypeOf$i(o) { _getPrototypeOf$i = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf$i(o); }
+
+	var GscapeLayoutSettings =
+	/*#__PURE__*/
+	function (_GscapeWidget) {
+	  _inherits$i(GscapeLayoutSettings, _GscapeWidget);
+
+	  _createClass$r(GscapeLayoutSettings, null, [{
+	    key: "properties",
+	    get: function get() {
+	      return {};
+	    }
+	  }, {
+	    key: "styles",
+	    get: function get() {
+	      var super_styles = _get$f(_getPrototypeOf$i(GscapeLayoutSettings), "styles", this);
+
+	      var colors = super_styles[1];
+	      return [super_styles[0], css(_templateObject$h(), colors.shadows)];
+	    }
+	  }]);
+
+	  function GscapeLayoutSettings() {
+	    var _this;
+
+	    _classCallCheck$s(this, GscapeLayoutSettings);
+
+	    _this = _possibleConstructorReturn$i(this, _getPrototypeOf$i(GscapeLayoutSettings).call(this));
+	    _this.collapsible = false;
+	    _this.onLayoutRunToggle = {};
+	    _this.onDragAndPinToggle = {};
+	    return _this;
+	  }
+
+	  _createClass$r(GscapeLayoutSettings, [{
+	    key: "render",
+	    value: function render() {
+	      return html$1(_templateObject2$e(), new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle), new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle), new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle), new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle));
+	    }
+	  }]);
+
+	  return GscapeLayoutSettings;
+	}(GscapeWidget);
+	customElements.define('gscape-layout-settings', GscapeLayoutSettings);
+
+	function _templateObject$i() {
+	  var data = _taggedTemplateLiteral$i(["<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" id=\"Livello_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n\t viewBox=\"0 0 1024 792.6\" style=\"enable-background:new 0 0 1024 792.6;\" xml:space=\"preserve\">\n<style type=\"text/css\">\n\t.st0{fill:url(#SVGID_1_);}\n\t.st1{fill:#FFFFFF;}\n\t.st2{enable-background:new    ;}\n\t.st3{fill:url(#SVGID_2_);}\n</style>\n<g>\n\t<g id=\"Logo\">\n\n\t\t\t<radialGradient id=\"SVGID_1_\" cx=\"502.1\" cy=\"894.61\" r=\"662.91\" gradientTransform=\"matrix(1 0 0 1 12.76 -283.3)\" gradientUnits=\"userSpaceOnUse\">\n\t\t\t<stop  offset=\"0\" style=\"stop-color:#5B86E5\"/>\n\t\t\t<stop  offset=\"0.34\" style=\"stop-color:#509CE2\"/>\n\t\t\t<stop  offset=\"1\" style=\"stop-color:#36D1DC\"/>\n\t\t</radialGradient>\n\t\t<path class=\"st0\" d=\"M512,506c-138.1,0-250-111.9-250-250c0-66.3,26.3-129.9,73.2-176.8c97.6-97.6,256-97.6,353.6,0\n\t\t\ts97.6,256,0,353.6C642,479.8,578.3,506.2,512,506z\"/>\n\t\t<path class=\"st1\" d=\"M512,11.9c134.8,0,244.1,109.3,244.1,244.2c0,98.1-58.7,186.6-149.1,224.8c-124.2,52.5-267.4-5.7-319.9-129.9\n\t\t\tS292.8,83.6,417,31.1C447.1,18.4,479.4,11.9,512,11.9 M512,0C370.6,0,256,114.6,256,256s114.6,256,256,256s256-114.6,256-256\n\t\t\tS653.4,0,512,0z\"/>\n\t\t<path class=\"st1\" d=\"M513.6,432c-12.4,0-24.4-4.9-33.1-13.7L344.1,282c-18.3-18.3-18.3-48,0-66.3L513.6,46.2l40.3,40.3\n\t\t\tL391.6,248.8l122,122l122-122L594.7,208l-81.2,81.1l-40.3-40.3l88.3-88.3c18.3-18.3,48-18.3,66.3,0l55.2,55.2\n\t\t\tc18.3,18.3,18.3,48,0,66.3L546.7,418.3C537.9,427.1,526,432,513.6,432z\"/>\n\t\t<g class=\"st2\">\n\t\t\t<path d=\"M83,594.8c5.3,0,10.2,0.3,14.7,0.8s8.9,1.3,13.1,2.2c4.2,1,8.2,2.1,12.1,3.5s7.9,2.9,11.9,4.5v12.6\n\t\t\t\tc-3.2-2-6.5-3.9-10.1-5.7s-7.4-3.3-11.6-4.7c-4.1-1.3-8.6-2.4-13.3-3.2c-4.7-0.8-9.8-1.2-15.3-1.2c-11.1,0-20.8,1.2-29.1,3.5\n\t\t\t\ts-15.2,5.7-20.6,10c-5.5,4.3-9.6,9.6-12.4,15.8c-2.7,6.2-4.1,13.2-4.1,21c0,7.3,1.3,14,4,20.1s6.8,11.4,12.2,15.8\n\t\t\t\tc5.5,4.4,12.3,7.9,20.5,10.4s17.8,3.7,28.9,3.7c4.3,0,8.6-0.2,12.9-0.5c4.2-0.3,8.3-0.8,12-1.3c3.8-0.5,7.2-1.1,10.3-1.7\n\t\t\t\tc3.1-0.6,5.7-1.3,7.9-2V664H80.7v-9.7h56.9v50.3c-4.1,1.4-8.3,2.7-12.4,3.8c-4.2,1.1-8.5,2-13,2.8c-4.5,0.7-9.1,1.3-13.9,1.7\n\t\t\t\ts-9.8,0.6-15.1,0.6c-10.8,0-20.7-1.2-30-3.6c-9.2-2.4-17.2-6.1-23.9-11s-12-11.1-15.9-18.5c-3.8-7.4-5.7-16.2-5.7-26.2\n\t\t\t\tc0-6.7,0.9-12.8,2.7-18.3s4.3-10.5,7.5-14.9s7.2-8.3,11.7-11.5c4.6-3.3,9.7-6,15.2-8.1c5.6-2.1,11.6-3.7,18-4.8\n\t\t\t\tC69.3,595.3,76,594.8,83,594.8z\"/>\n\t\t\t<path d=\"M181.2,662.2v48.9h-10.4V596.8h56.9c8.7,0,16.2,0.7,22.4,2c6.2,1.4,11.3,3.4,15.3,6.2c4,2.7,6.9,6.2,8.7,10.3\n\t\t\t\tc1.8,4.1,2.7,8.9,2.7,14.4c0,8.5-2.2,15.4-6.7,20.5s-11.7,8.6-21.7,10.5l39,50.4h-13.1l-36.9-49.3c-1.6,0.1-3.1,0.2-4.7,0.2\n\t\t\t\tc-1.6,0.1-3.3,0.1-5,0.1L181.2,662.2L181.2,662.2z M266.1,629.7c0-4.9-0.9-8.8-2.6-11.9c-1.7-3-4.5-5.4-8.4-7s-9-2.8-15.3-3.4\n\t\t\t\tc-6.3-0.6-14-0.9-23.2-0.9h-35.5v45.9h35.1c9.2,0,16.9-0.3,23.2-0.8s11.5-1.6,15.4-3.2c3.9-1.6,6.8-3.9,8.5-6.9\n\t\t\t\tC265.3,638.6,266.1,634.6,266.1,629.7z\"/>\n\t\t\t<path d=\"M417.4,711.2L401.7,681h-77.6l-15.7,30.2H297l59.8-114.3H369l59.8,114.3H417.4z M362.9,606.9l-33.8,64.6h67.5\n\t\t\t\tL362.9,606.9z\"/>\n\t\t\t<path d=\"M562.8,632c0,5.7-0.9,10.8-2.8,15.1c-1.9,4.4-4.8,8.1-8.8,11.1s-9.1,5.3-15.4,6.8c-6.3,1.5-13.9,2.3-22.8,2.3h-51.3v43.9\n\t\t\t\th-10.4V596.8H513c8.9,0,16.5,0.8,22.8,2.3s11.4,3.8,15.4,6.7s6.9,6.6,8.8,11C561.8,621.2,562.8,626.2,562.8,632z M552.1,632\n\t\t\t\tc0-5.4-0.9-9.8-2.7-13.1s-4.6-5.9-8.3-7.7s-8.5-3-14.2-3.6s-12.6-0.9-20.4-0.9h-44.7v50.9h44.7c3.1,0,6.3,0,9.8,0\n\t\t\t\ts6.9-0.1,10.3-0.5c3.4-0.4,6.6-1,9.7-1.9s5.8-2.3,8.2-4.2s4.2-4.4,5.7-7.4C551.4,640.5,552.1,636.6,552.1,632z\"/>\n\t\t\t<path d=\"M703.6,711.2v-55.6H601.2v55.6h-10.4V596.8h10.4v49.3h102.4v-49.3H714v114.3h-10.4V711.2z\"/>\n\t\t\t<path d=\"M889.7,654.1c0,10.3-1.9,19.1-5.6,26.6c-3.7,7.5-8.8,13.6-15.3,18.5s-14.1,8.4-23,10.8s-18.3,3.5-28.5,3.5\n\t\t\t\tc-10.3,0-19.8-1.2-28.7-3.5s-16.6-5.9-23.1-10.8c-6.5-4.9-11.7-11-15.4-18.5s-5.6-16.3-5.6-26.6c0-6.8,0.9-13,2.6-18.6\n\t\t\t\tc1.7-5.6,4.1-10.6,7.2-15c3.1-4.4,6.9-8.2,11.3-11.4c4.4-3.2,9.3-5.9,14.7-8s11.2-3.7,17.4-4.7s12.7-1.5,19.5-1.5\n\t\t\t\tc10.2,0,19.7,1.2,28.5,3.5s16.5,5.9,23,10.8c6.5,4.9,11.6,11,15.3,18.5C887.8,635,889.7,643.8,889.7,654.1z M879,654.1\n\t\t\t\tc0-8.1-1.3-15.3-4-21.5c-2.6-6.2-6.5-11.4-11.7-15.7c-5.2-4.2-11.6-7.5-19.3-9.7s-16.6-3.3-26.8-3.3s-19.1,1.1-26.9,3.3\n\t\t\t\tc-7.7,2.2-14.2,5.5-19.4,9.7s-9.2,9.5-11.8,15.7s-4,13.4-4,21.3c0,8.1,1.3,15.3,4,21.5s6.6,11.4,11.8,15.7\n\t\t\t\tc5.2,4.2,11.7,7.5,19.4,9.7s16.7,3.3,26.9,3.3s19.1-1.1,26.8-3.3s14.1-5.4,19.3-9.7c5.2-4.2,9.1-9.5,11.7-15.7\n\t\t\t\tC877.7,669.3,879,662.2,879,654.1z\"/>\n\t\t\t<path d=\"M920.2,711.2V596.8h10.4v104.6h83.5v9.7h-93.9V711.2z\"/>\n\t\t</g>\n\n\t\t\t<radialGradient id=\"SVGID_2_\" cx=\"513.05\" cy=\"1101.48\" r=\"466.86\" gradientTransform=\"matrix(1 0 0 1 0 -286)\" gradientUnits=\"userSpaceOnUse\">\n\t\t\t<stop  offset=\"0\" style=\"stop-color:#5B86E5\"/>\n\t\t\t<stop  offset=\"0.34\" style=\"stop-color:#509CE2\"/>\n\t\t\t<stop  offset=\"1\" style=\"stop-color:#36D1DC\"/>\n\t\t</radialGradient>\n\t\t<path class=\"st3\" d=\"M389.9,700.8h244.3c16.8,0,30.4,13.6,30.4,30.4v27.4c0,16.8-13.6,30.4-30.4,30.4H389.9\n\t\t\tc-16.8,0-30.4-13.6-30.4-30.4v-27.4C359.4,714.4,373,700.8,389.9,700.8L389.9,700.8L389.9,700.8z\"/>\n\t\t<path class=\"st1\" d=\"M634.2,704.3c14.8,0,26.8,12,26.8,26.9v27.4c0,14.8-12,26.9-26.9,26.9l0,0H389.9c-14.8,0-26.9-12-26.9-26.9\n\t\t\tv-27.4c0-14.8,12-26.9,26.9-26.9l0,0H634.2 M634.2,697.2H389.9c-18.8,0-34,15.2-34,34v27.4c0,18.8,15.2,34,34,34h244.3\n\t\t\tc18.8,0,34-15.2,34-34v-27.4C668.2,712.4,652.9,697.2,634.2,697.2L634.2,697.2z\"/>\n\t\t<g class=\"st2\">\n\t\t\t<path class=\"st1\" d=\"M385,764.8c-3.7-0.9-6.6-2-8.6-3.3l3-4c2.1,1.2,4.7,2.2,7.8,3c3.1,0.8,6.4,1.2,9.8,1.2\n\t\t\t\tc4.5,0,7.9-0.5,10.1-1.6c2.2-1.1,3.3-2.6,3.3-4.5c0-1.4-0.6-2.4-1.8-3.2c-1.2-0.8-2.7-1.4-4.5-1.8c-1.8-0.4-4.2-0.8-7.3-1.2\n\t\t\t\tc-4-0.6-7.3-1.1-9.7-1.7c-2.5-0.6-4.5-1.6-6.3-3c-1.7-1.4-2.6-3.4-2.6-5.9c0-3.1,1.7-5.7,5.2-7.7c3.5-2,8.3-3,14.4-3\n\t\t\t\tc3.2,0,6.4,0.3,9.6,1c3.2,0.6,5.9,1.5,7.9,2.5l-2.9,4c-4.1-2.1-9-3.2-14.6-3.2c-4.3,0-7.5,0.6-9.7,1.7c-2.2,1.1-3.3,2.6-3.3,4.5\n\t\t\t\tc0,1.4,0.6,2.6,1.8,3.4c1.2,0.9,2.8,1.5,4.6,1.9c1.8,0.4,4.3,0.8,7.6,1.2c4,0.6,7.1,1.1,9.5,1.7c2.4,0.6,4.4,1.5,6.1,2.9\n\t\t\t\ts2.5,3.3,2.5,5.7c0,3.3-1.8,5.9-5.4,7.8c-3.6,1.9-8.6,2.9-15.1,2.9C392.6,766.1,388.7,765.7,385,764.8z\"/>\n\t\t\t<path class=\"st1\" d=\"M436.9,763.7c-3.9-1.6-6.9-3.9-9.1-6.8c-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.3-9.8\n\t\t\t\tc2.2-2.9,5.2-5.1,9.1-6.7c3.9-1.6,8.3-2.4,13.2-2.4c4.3,0,8.1,0.6,11.5,1.9c3.4,1.3,6,3.1,8,5.5l-5,2.6c-1.6-1.8-3.7-3.2-6.2-4.2\n\t\t\t\tc-2.5-0.9-5.3-1.4-8.2-1.4c-3.6,0-6.8,0.6-9.7,1.8c-2.9,1.2-5.1,2.9-6.7,5.1s-2.4,4.8-2.4,7.6c0,2.9,0.8,5.4,2.4,7.6\n\t\t\t\tc1.6,2.2,3.8,3.9,6.7,5.1c2.9,1.2,6.1,1.8,9.7,1.8c3,0,5.7-0.4,8.2-1.3c2.5-0.9,4.6-2.3,6.2-4.1l5,2.6c-2,2.4-4.6,4.2-8,5.5\n\t\t\t\tc-3.4,1.3-7.2,1.9-11.4,1.9C445.1,766.1,440.7,765.3,436.9,763.7z\"/>\n\t\t\t<path class=\"st1\" d=\"M514.9,731.8c3.5,2.4,5.2,6,5.2,10.8v23.1h-6.4v-5.8c-1.5,1.9-3.7,3.5-6.7,4.5c-2.9,1.1-6.4,1.6-10.4,1.6\n\t\t\t\tc-5.5,0-9.9-1-13.2-3c-3.3-2-4.9-4.6-4.9-7.9c0-3.2,1.5-5.7,4.6-7.7c3.1-1.9,7.9-2.9,14.6-2.9h15.8v-2.3c0-3.2-1.2-5.7-3.6-7.3\n\t\t\t\tc-2.4-1.7-5.9-2.5-10.5-2.5c-3.1,0-6.2,0.4-9.1,1.2c-2.9,0.8-5.4,1.9-7.5,3.2l-3-3.8c2.5-1.6,5.5-2.9,9.1-3.7\n\t\t\t\tc3.5-0.9,7.2-1.3,11.1-1.3C506.5,728.1,511.5,729.3,514.9,731.8z M507.4,760.2c2.7-1.3,4.7-3.2,6-5.6v-6.1h-15.6\n\t\t\t\tc-8.5,0-12.7,2.2-12.7,6.7c0,2.2,1.1,3.9,3.3,5.1c2.2,1.3,5.3,1.9,9.3,1.9C501.4,762.1,504.7,761.5,507.4,760.2z\"/>\n\t\t\t<path class=\"st1\" d=\"M576.6,730.5c3.8,1.6,6.7,3.8,8.9,6.7c2.1,2.9,3.2,6.2,3.2,9.9c0,3.7-1.1,7.1-3.2,9.9\n\t\t\t\tc-2.1,2.9-5.1,5.1-8.8,6.7c-3.7,1.6-8,2.4-12.7,2.4c-4,0-7.7-0.6-10.9-1.9c-3.2-1.3-5.9-3.1-8-5.5v20.8h-6.7v-51.1h6.4v7.4\n\t\t\t\tc2-2.5,4.7-4.4,8-5.7s7-2,11.2-2C568.6,728.1,572.8,728.9,576.6,730.5z M572.9,759.8c2.8-1.2,5.1-2.9,6.7-5.1\n\t\t\t\tc1.6-2.2,2.4-4.8,2.4-7.6s-0.8-5.4-2.4-7.6c-1.6-2.2-3.8-3.9-6.7-5.1c-2.8-1.2-6-1.8-9.4-1.8c-3.5,0-6.7,0.6-9.5,1.8\n\t\t\t\tc-2.8,1.2-5,2.9-6.6,5.1s-2.4,4.7-2.4,7.6s0.8,5.4,2.4,7.6c1.6,2.2,3.8,3.9,6.6,5.1s6,1.8,9.5,1.8\n\t\t\t\tC566.9,761.6,570.1,761,572.9,759.8z\"/>\n\t\t\t<path class=\"st1\" d=\"M645.6,748.6h-41.5c0.4,3.9,2.4,7,5.9,9.4c3.6,2.4,8.1,3.6,13.6,3.6c3.1,0,5.9-0.4,8.5-1.2\n\t\t\t\tc2.6-0.8,4.8-2,6.7-3.7l3.8,3.3c-2.2,2-5,3.5-8.3,4.5c-3.3,1-6.9,1.6-10.9,1.6c-5.1,0-9.6-0.8-13.6-2.5c-3.9-1.6-7-3.9-9.2-6.8\n\t\t\t\tc-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.2-9.8c2.1-2.9,5-5.1,8.7-6.7c3.7-1.6,7.8-2.4,12.4-2.4c4.6,0,8.7,0.8,12.4,2.4\n\t\t\t\tc3.7,1.6,6.5,3.8,8.6,6.7c2.1,2.9,3.1,6.1,3.1,9.8L645.6,748.6z M609.6,735.9c-3.2,2.3-5.1,5.3-5.5,9h35.2\n\t\t\t\tc-0.4-3.7-2.3-6.7-5.5-9c-3.2-2.3-7.3-3.4-12.1-3.4C616.8,732.5,612.8,733.6,609.6,735.9z\"/>\n\t\t</g>\n\t</g>\n</g>\n</svg>"]);
+
+	  _templateObject$i = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$i(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+	var grapholscape = html$1(_templateObject$i());
+
+	const version$1="1.0.0";
+
+	function _typeof$j(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$j = function _typeof(obj) { return typeof obj; }; } else { _typeof$j = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$j(obj); }
+
+	function _templateObject10$1() {
+	  var data = _taggedTemplateLiteral$j([""]);
+
+	  _templateObject10$1 = function _templateObject10() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject9$2() {
+	  var data = _taggedTemplateLiteral$j(["\n                ", "\n              "]);
+
+	  _templateObject9$2 = function _templateObject9() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject8$3() {
+	  var data = _taggedTemplateLiteral$j([""]);
+
+	  _templateObject8$3 = function _templateObject8() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject7$3() {
+	  var data = _taggedTemplateLiteral$j(["<option value=\"", "\" ?selected=", ">", "</option>"]);
+
+	  _templateObject7$3 = function _templateObject7() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject6$3() {
+	  var data = _taggedTemplateLiteral$j(["\n                <div class=\"setting_obj\">\n                  <select area=\"", "\" id=\"", "\" @change=\"", "\">\n                    ", "\n                  </select>\n                </div>\n              "]);
+
+	  _templateObject6$3 = function _templateObject6() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject5$5() {
+	  var data = _taggedTemplateLiteral$j(["\n            <div class=\"setting\">\n              <div class=\"title-wrap\">\n                <div class=\"setting-title\">", "</div>\n                <div class=\"setting-label\">", "</div>\n              </div>\n            ", "\n\n            ", "\n            </div>\n          "]);
+
+	  _templateObject5$5 = function _templateObject5() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject4$6() {
+	  var data = _taggedTemplateLiteral$j(["\n          <div class=\"area\">\n            <div class=\"area-title\">", "</div>\n\n        ", "\n        </div>\n        "]);
+
+	  _templateObject4$6 = function _templateObject4() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject3$9() {
+	  var data = _taggedTemplateLiteral$j([""]);
+
+	  _templateObject3$9 = function _templateObject3() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject2$f() {
+	  var data = _taggedTemplateLiteral$j(["\n      ", "\n\n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Settings</div>\n\n        <div class=\"settings-wrapper\">\n\n      ", "\n\n        <div class=\"area\">\n          <div class=\"area-title\">About</div>\n          <div id=\"logo\">\n            ", "\n          </div>\n\n          <div id=\"version\">\n            <span>Version: </span>\n            <span>", "</span>\n          </div>\n        </div>\n      </div>\n    "]);
+
+	  _templateObject2$f = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$j() {
+	  var data = _taggedTemplateLiteral$j(["\n        :host {\n          bottom:10px;\n          left: 94px;\n          padding-right:0;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .gscape-panel {\n          padding-right: 0;\n        }\n\n        .settings-wrapper {\n          overflow-y: auto;\n          scrollbar-width: inherit;\n          max-height: 420px;\n          overflow-x: hidden;\n          white-space: nowrap;\n          padding-right: 20px;\n        }\n\n        .area {\n          margin-bottom: 30px;\n        }\n\n        .area:last-of-type {\n          margin-bottom: 0;\n        }\n\n        .area-title {\n          font-weight: bold;\n          margin-bottom: 5px;\n          font-size: 105%;\n        }\n\n        .setting {\n          padding: 10px;\n          display: flex;\n          justify-content: space-between;\n          align-items: center;\n        }\n\n        .title-wrap {\n          margin-right: 50px;\n        }\n\n        .setting-label {\n          font-size : 12px;\n          opacity: 0.7;\n        }\n\n        #logo {\n          text-align:center;\n        }\n\n        #logo svg {\n          width: 40%;\n          height: auto;\n          margin: 20px 0;\n        }\n\n        #version {\n          text-align: center;\n          font-size: 14px;\n        }\n      "]);
+
+	  _templateObject$j = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$j(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+	function _classCallCheck$t(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$j(self, call) { if (call && (_typeof$j(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized$j(self); }
+
+	function _assertThisInitialized$j(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	function _defineProperties$s(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$s(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$s(Constructor.prototype, protoProps); if (staticProps) _defineProperties$s(Constructor, staticProps); return Constructor; }
+
+	function _inherits$j(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf$j(subClass, superClass); }
+
+	function _setPrototypeOf$j(o, p) { _setPrototypeOf$j = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$j(o, p); }
+
+	function _get$g(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get$g = Reflect.get; } else { _get$g = function _get(target, property, receiver) { var base = _superPropBase$g(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get$g(target, property, receiver || target); }
+
+	function _superPropBase$g(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf$j(object); if (object === null) break; } return object; }
+
+	function _getPrototypeOf$j(o) { _getPrototypeOf$j = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf$j(o); }
+
+	var GscapeSettings =
+	/*#__PURE__*/
+	function (_GscapeWidget) {
+	  _inherits$j(GscapeSettings, _GscapeWidget);
+
+	  _createClass$s(GscapeSettings, null, [{
+	    key: "styles",
+	    get: function get() {
+	      var super_styles = _get$g(_getPrototypeOf$j(GscapeSettings), "styles", this);
+
+	      var colors = super_styles[1];
+	      return [super_styles[0], css(_templateObject$j())];
+	    }
+	  }]);
+
+	  function GscapeSettings(settings) {
+	    var _this;
+
+	    _classCallCheck$t(this, GscapeSettings);
+
+	    _this = _possibleConstructorReturn$j(this, _getPrototypeOf$j(GscapeSettings).call(this));
+	    _this.collapsible = true;
+	    _this.settings = settings;
+	    _this.btn = new GscapeButton('settings');
+	    _this.btn.onClick = _this.toggleBody.bind(_assertThisInitialized$j(_this));
+	    _this.callbacks = {};
+	    return _this;
+	  }
+
+	  _createClass$s(GscapeSettings, [{
+	    key: "render",
+	    value: function render() {
+	      var _this2 = this;
+
+	      return html$1(_templateObject2$f(), this.btn, Object.keys(this.settings).map(function (area_entry) {
+	        if (area_entry == 'default') return html$1(_templateObject3$9());
+	        var area = _this2.settings[area_entry];
+	        return html$1(_templateObject4$6(), capitalizeFirstLetter(area_entry), Object.keys(area).map(function (setting_entry) {
+	          var setting = area[setting_entry];
+	          return html$1(_templateObject5$5(), setting.title, setting.label, setting.type == 'list' ? html$1(_templateObject6$3(), area_entry, setting_entry, _this2.onListChange, setting.list.map(function (option) {
+	            if (option.value == '') return;
+	            var selected = option.value == setting.selected;
+	            return html$1(_templateObject7$3(), option.value, selected, option.label);
+	          })) : html$1(_templateObject8$3()), setting.type == 'boolean' ? html$1(_templateObject9$2(), new GscapeToggle(setting_entry, setting.enabled, false, '', _this2.onToggleChange.bind(_this2))) : html$1(_templateObject10$1()));
+	        }));
+	      }), grapholscape, version$1);
+
+	      function capitalizeFirstLetter(string) {
+	        return string.charAt(0).toUpperCase() + string.slice(1);
+	      }
+	    }
+	  }, {
+	    key: "onListChange",
+	    value: function onListChange(e) {
+	      var selection = e.target;
+	      var area = selection.getAttribute('area');
+	      this.settings[area][selection.id].selected = selection.value;
+	      this.callbacks[selection.id](selection.value);
+	    }
+	  }, {
+	    key: "onToggleChange",
+	    value: function onToggleChange(e) {
+	      var toggle = e.target;
+	      this.settings.widgets[toggle.id].enabled = toggle.checked;
+	      toggle.checked ? this.callbacks.widgetEnable(toggle.id) : this.callbacks.widgetDisable(toggle.id);
+	    }
+	  }, {
+	    key: "onEntityNameSelection",
+	    set: function set(foo) {
+	      this.callbacks.entity_name = foo;
+	    }
+	  }, {
+	    key: "onLanguageSelection",
+	    set: function set(foo) {
+	      this.callbacks.language = foo;
+	    }
+	  }, {
+	    key: "onThemeSelection",
+	    set: function set(foo) {
+	      this.callbacks.theme = foo;
+	    }
+	  }, {
+	    key: "onWidgetEnabled",
+	    set: function set(foo) {
+	      this.callbacks.widgetEnable = foo;
+	    }
+	  }, {
+	    key: "onWidgetDisabled",
+	    set: function set(foo) {
+	      this.callbacks.widgetDisable = foo;
+	    }
+	  }]);
+
+	  return GscapeSettings;
+	}(GscapeWidget);
+	customElements.define('gscape-settings', GscapeSettings);
+
+	function _typeof$k(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$k = function _typeof(obj) { return typeof obj; }; } else { _typeof$k = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$k(obj); }
+
+	function _templateObject2$g() {
+	  var data = _taggedTemplateLiteral$k(["<div class=\"loader\"></div>"]);
+
+	  _templateObject2$g = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$k() {
+	  var data = _taggedTemplateLiteral$k(["\n      .loader {\n        border: 3px solid ", ";\n        border-radius: 50%;\n        border-top: 3px solid ", ";\n        width: 30px;\n        height: 30px;\n        -webkit-animation: spin 1s linear infinite; /* Safari */\n        animation: spin 1s linear infinite;\n        box-sizing: border-box;\n        position:absolute;\n        top:50%;\n        left: 50%;\n        margin-top: -15px;\n        margin-left: -15px;\n      }\n\n      /* Safari */\n      @-webkit-keyframes spin {\n        0% { -webkit-transform: rotate(0deg); }\n        100% { -webkit-transform: rotate(360deg); }\n      }\n\n      @keyframes spin {\n        0% { transform: rotate(0deg); }\n        100% { transform: rotate(360deg); }\n      }\n    "]);
+
+	  _templateObject$k = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$k(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+	function _classCallCheck$u(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$k(self, call) { if (call && (_typeof$k(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized$k(self); }
+
+	function _assertThisInitialized$k(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	function _getPrototypeOf$k(o) { _getPrototypeOf$k = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf$k(o); }
+
+	function _defineProperties$t(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$t(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$t(Constructor.prototype, protoProps); if (staticProps) _defineProperties$t(Constructor, staticProps); return Constructor; }
+
+	function _inherits$k(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf$k(subClass, superClass); }
+
+	function _setPrototypeOf$k(o, p) { _setPrototypeOf$k = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$k(o, p); }
+
+	var GscapeSpinner =
+	/*#__PURE__*/
+	function (_LitElement) {
+	  _inherits$k(GscapeSpinner, _LitElement);
+
+	  _createClass$t(GscapeSpinner, null, [{
+	    key: "styles",
+	    get: function get() {
+	      return css(_templateObject$k(), gscape.shadows, gscape.secondary);
+	    }
+	  }]);
+
+	  function GscapeSpinner() {
+	    _classCallCheck$u(this, GscapeSpinner);
+
+	    return _possibleConstructorReturn$k(this, _getPrototypeOf$k(GscapeSpinner).call(this));
+	  }
+
+	  _createClass$t(GscapeSpinner, [{
+	    key: "render",
+	    value: function render() {
+	      return html$1(_templateObject2$g());
+	    }
+	  }, {
+	    key: "hide",
+	    value: function hide() {
+	      this.style.display = 'none';
+	    }
+	  }, {
+	    key: "show",
+	    value: function show() {
+	      this.style.display = 'initial';
+	    }
+	  }]);
+
+	  return GscapeSpinner;
+	}(LitElement);
+	customElements.define('gscape-spinner', GscapeSpinner);
+
+	function _typeof$l(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$l = function _typeof(obj) { return typeof obj; }; } else { _typeof$l = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$l(obj); }
+
+	function _templateObject3$a() {
+	  var data = _taggedTemplateLiteral$l(["<p>", "</p>"]);
+
+	  _templateObject3$a = function _templateObject3() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject2$h() {
+	  var data = _taggedTemplateLiteral$l(["\n    <gscape-head\n      title=\"", "\"\n      icon=\"close\"\n      class=\"", " drag-handler\">\n    </gscape-head>\n    <div class=\"widget-body ", "\">\n      ", "\n    </div>\n    "]);
+
+	  _templateObject2$h = function _templateObject2() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _templateObject$l() {
+	  var data = _taggedTemplateLiteral$l(["\n        :host {\n          top: 30%;\n          left: 50%;\n          max-width: 500px;\n          transform: translate(-50%, 0);\n        }\n\n        .widget-body {\n          padding : 10px;\n          width: initial;\n        }\n\n        .widget-body.error {\n          background : var(--theme-gscape-error, ", ");\n          color : var(--theme-gscape-on-error, ", ");\n        }\n\n        gscape-head {\n          --title-text-align : center;\n          --title-width : 100%;\n        }\n\n        gscape-head.error {\n          color : var(--theme-gscape-error, ", ");\n        }\n\n        gscape-head.warning {\n          color : var(--theme-gscape-warning, ", ");\n        }\n      "]);
+
+	  _templateObject$l = function _templateObject() {
+	    return data;
+	  };
+
+	  return data;
+	}
+
+	function _taggedTemplateLiteral$l(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+	function _classCallCheck$v(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$l(self, call) { if (call && (_typeof$l(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized$l(self); }
+
+	function _assertThisInitialized$l(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	function _defineProperties$u(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$u(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$u(Constructor.prototype, protoProps); if (staticProps) _defineProperties$u(Constructor, staticProps); return Constructor; }
+
+	function _inherits$l(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf$l(subClass, superClass); }
+
+	function _setPrototypeOf$l(o, p) { _setPrototypeOf$l = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf$l(o, p); }
+
+	function _get$h(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get$h = Reflect.get; } else { _get$h = function _get(target, property, receiver) { var base = _superPropBase$h(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get$h(target, property, receiver || target); }
+
+	function _superPropBase$h(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf$l(object); if (object === null) break; } return object; }
+
+	function _getPrototypeOf$l(o) { _getPrototypeOf$l = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf$l(o); }
+
+	var GscapeDialog =
+	/*#__PURE__*/
+	function (_GscapeWidget) {
+	  _inherits$l(GscapeDialog, _GscapeWidget);
+
+	  _createClass$u(GscapeDialog, null, [{
+	    key: "properties",
+	    get: function get() {
+	      return {
+	        text: {
+	          type: Array
+	        },
+	        type: {
+	          type: String
+	        }
+	      };
+	    }
+	  }, {
+	    key: "styles",
+	    get: function get() {
+	      var super_styles = _get$h(_getPrototypeOf$l(GscapeDialog), "styles", this);
+
+	      var colors = super_styles[1];
+	      return [super_styles[0], css(_templateObject$l(), colors.error, colors.on_error, colors.error, colors.warning)];
+	    }
+	  }]);
+
+	  function GscapeDialog() {
+	    var _this;
+
+	    _classCallCheck$v(this, GscapeDialog);
+
+	    _this = _possibleConstructorReturn$l(this, _getPrototypeOf$l(GscapeDialog).call(this));
+	    _this.draggable = true;
+	    _this.text = [];
+	    _this.type = 'error';
+	    return _this;
+	  }
+
+	  _createClass$u(GscapeDialog, [{
+	    key: "render",
+	    value: function render() {
+	      return html$1(_templateObject2$h(), this.type, this.type.toLowerCase(), this.type.toLowerCase(), this.text.map(function (text) {
+	        return html$1(_templateObject3$a(), text);
+	      }));
+	    } // override
+
+	  }, {
+	    key: "show",
+	    value: function show(type, message) {
+	      _get$h(_getPrototypeOf$l(GscapeDialog.prototype), "show", this).call(this);
+
+	      this.type = type;
+	      if (typeof message == 'string') this.text = [message];else this.text = message;
+	    }
+	  }, {
+	    key: "clickHandler",
+	    value: function clickHandler() {
+	      this.hide();
+
+	      this._onClick();
+	    }
+	  }, {
+	    key: "firstUpdated",
+	    value: function firstUpdated() {
+	      _get$h(_getPrototypeOf$l(GscapeDialog.prototype), "firstUpdated", this).call(this);
+
+	      this.hide();
+	      this.header.onClick = this.hide.bind(this);
+	    }
+	  }]);
+
+	  return GscapeDialog;
+	}(GscapeWidget);
+	customElements.define('gscape-dialog', GscapeDialog);
+
+	function _classCallCheck$w(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _defineProperties$v(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$v(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$v(Constructor.prototype, protoProps); if (staticProps) _defineProperties$v(Constructor, staticProps); return Constructor; }
+
 	var GrapholscapeView =
 	/*#__PURE__*/
 	function () {
 	  function GrapholscapeView(container) {
-	    _classCallCheck$q(this, GrapholscapeView);
+	    _classCallCheck$w(this, GrapholscapeView);
 
 	    this.container = container;
 	    this.graph_container = document.createElement('div');
@@ -52098,7 +57454,8 @@
 
 	    this.renderers = {
 	      "default": new GrapholscapeRenderer(this.graph_container),
-	      lite: new EasyGscapeRenderer(this.graph_container)
+	      lite: new LiteGscapeRenderer(this.graph_container),
+	      "float": new FloatingGscapeRenderer(this.graph_container)
 	    };
 	    this.setRenderer(this.renderers["default"]);
 	    this.container.requestFullscreen = this.container.requestFullscreen || this.container.mozRequestFullscreen || // Mozilla
@@ -52107,85 +57464,101 @@
 	    this.container.msRequestFullscreen; // IE
 
 	    document.cancelFullscreen = document.exitFullscreen || document.cancelFullscreen || document.mozCancelFullScreen || document.webkitCancelFullScreen || document.msExitFullscreen;
-	    this.graph_container.style.background = gscape.background;
-	    this.setTheme(gscape);
+	    this.spinner = new GscapeSpinner();
+	    this.container.appendChild(this.spinner);
+	    this.dialog = new GscapeDialog();
+	    this.container.appendChild(this.dialog);
 	  }
 
-	  _createClass$p(GrapholscapeView, [{
+	  _createClass$v(GrapholscapeView, [{
 	    key: "createUi",
 	    value: function createUi(ontology, diagrams, predicates, settings) {
 	      var _this = this;
 
-	      this.filters = settings.filters.filter_list;
-	      this.widgets = new Set();
+	      this.settings = settings;
+	      this.filters = this.settings.widgets.filters.filter_list;
+	      this.widgets = new Map();
 	      this.diagram_selector = new GscapeDiagramSelector(diagrams);
 	      this.diagram_selector.onDiagramChange = this.onDiagramChange;
-	      this.container.appendChild(this.diagram_selector);
-	      this.widgets.add(this.diagram_selector);
+	      this.widgets.set('diagram_selector', this.diagram_selector);
 	      this.explorer = new GscapeExplorer(predicates, diagrams);
 	      this.explorer.onEntitySelect = this.onEntitySelection;
 	      this.explorer.onNodeNavigation = this.onNodeNavigation;
-	      !settings.explorer.enabled ? this.explorer.hide() : null;
-	      this.container.appendChild(this.explorer);
-	      this.widgets.add(this.explorer);
+	      this.widgets.set('explorer', this.explorer);
 	      this.entity_details = new GscapeEntityDetails();
-	      !settings.details.enabled ? this.entity_details.hide() : null;
-	      this.container.appendChild(this.entity_details);
-	      this.widgets.add(this.entity_details);
+	      this.widgets.set('details', this.entity_details);
 	      var btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit');
 	      btn_fullscreen.style.top = '10px';
 	      btn_fullscreen.style.right = '10px';
 	      btn_fullscreen.onClick = this.toggleFullscreen.bind(this);
-	      this.container.appendChild(btn_fullscreen);
-	      this.widgets.add(btn_fullscreen);
+	      this.widgets.set('btn_fullscreen', btn_fullscreen);
 	      var btn_reset = new GscapeButton('filter_center_focus');
 	      btn_reset.style.bottom = '10px';
 	      btn_reset.style.right = '10px';
 	      btn_reset.onClick = this.resetView.bind(this);
-	      this.container.appendChild(btn_reset);
-	      this.widgets.add(btn_reset);
+	      this.widgets.set('btn_reset', btn_reset);
 	      this.filters_widget = new GscapeFilters(this.filters);
 	      this.filters_widget.onFilterOn = this.filter.bind(this);
 	      this.filters_widget.onFilterOff = this.unfilter.bind(this);
-
-	      this.filters_widget.btn.onClick = function () {
-	        _this.blurAll(_this.filters_widget);
-
-	        _this.filters_widget.toggleBody();
-	      };
-
-	      !settings.filters.enabled ? this.filters_widget.hide() : null;
-	      this.container.appendChild(this.filters_widget);
-	      this.widgets.add(this.filters_widget);
+	      this.widgets.set('filters', this.filters_widget);
 	      this.ontology_info = new GscapeOntologyInfo(ontology);
-
-	      this.ontology_info.btn.onClick = function () {
-	        _this.blurAll(_this.ontology_info);
-
-	        _this.ontology_info.toggleBody();
-	      };
-
-	      this.container.appendChild(this.ontology_info);
-	      this.widgets.add(this.ontology_info);
+	      this.widgets.set('ontology_info', this.ontology_info);
 	      this.owl_translator = new GscapeOwlTranslator();
-	      !settings.owl_translator.enabled ? this.owl_translator.hide() : null;
-	      this.container.appendChild(this.owl_translator);
-	      this.widgets.add(this.owl_translator);
+	      this.widgets.set('owl_translator', this.owl_translator);
 	      var zoom_widget = new GscapeZoomTools();
 	      zoom_widget.onZoomIn = this.zoomIn.bind(this);
 	      zoom_widget.onZoomOut = this.zoomOut.bind(this);
-	      this.container.appendChild(zoom_widget);
-	      this.widgets.add(zoom_widget);
-	      this.btn_lite_mode = new GscapeButton('flash_on', 'flash_off');
-	      this.btn_lite_mode.onClick = this.toggleLiteMode.bind(this);
-	      this.btn_lite_mode.highlight = true;
-	      this.btn_lite_mode.style.bottom = '10px';
-	      this.btn_lite_mode.style.left = '94px';
-	      !settings.lite_mode.enabled ? this.btn_lite_mode.hide() : null;
-	      this.container.appendChild(this.btn_lite_mode);
-	      this.widgets.add(this.btn_lite_mode);
-	      this.registerEvents(this.renderers["default"]);
-	      this.registerEvents(this.renderers.lite);
+	      this.widgets.set('zoom_widget', zoom_widget);
+	      this.renderer_selector = new GscapeRenderSelector(this.renderers);
+	      this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this);
+	      this.widgets.set('simplifications', this.renderer_selector);
+	      this.layout_settings = new GscapeLayoutSettings();
+
+	      this.layout_settings.onLayoutRunToggle = function () {
+	        return _this.renderer.layoutStopped = !_this.renderer.layoutStopped;
+	      };
+
+	      this.layout_settings.onDragAndPinToggle = function () {
+	        return _this.renderer.dragAndPin = !_this.renderer.dragAndPin;
+	      };
+
+	      this.layout_settings.hide();
+	      this.widgets.set('layout_settings', this.layout_settings); // settings
+
+	      this.settings_widget = new GscapeSettings(this.settings);
+	      this.settings_widget.onEntityNameSelection = this.onEntityNameTypeChange.bind(this);
+	      this.settings_widget.onLanguageSelection = this.onLanguageChange.bind(this);
+	      this.settings_widget.onThemeSelection = this.onThemeSelection.bind(this);
+	      this.settings_widget.onWidgetEnabled = this.onWidgetEnabled.bind(this);
+	      this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this);
+	      this.widgets.set('settings_widget', this.settings_widget);
+	      Object.keys(this.renderers).forEach(function (renderer) {
+	        return _this.registerEvents(_this.renderers[renderer]);
+	      }); // disable widget that are disabled in settings
+
+	      for (var widget_name in this.settings.widgets) {
+	        if (!this.settings.widgets[widget_name].enabled) this.onWidgetDisabled(widget_name);
+	      }
+
+	      this.widgets.forEach(function (widget, key) {
+	        _this.container.appendChild(widget);
+
+	        switch (key) {
+	          case 'filters':
+	          case 'ontology_info':
+	          case 'settings_widget':
+	          case 'simplifications':
+	            widget.onToggleBody = function () {
+	              return _this.blurAll(widget);
+	            };
+
+	            break;
+
+	          case 'default':
+	            break;
+	        }
+	      });
+	      if (this.settings.rendering.theme.selected != 'custom') this.setTheme(themes[this.settings.rendering.theme.selected]);
 	    }
 	  }, {
 	    key: "registerEvents",
@@ -52200,7 +57573,11 @@
 	      this.diagram_selector.actual_diagram_id = diagramViewData.id;
 	      this.renderer.drawDiagram(diagramViewData); // check if any filter is active and if yes, apply them
 
-	      this.applyActiveFilters();
+	      if (this.filters.all.active) {
+	        this.filter('all');
+	      } else {
+	        this.applyActiveFilters();
+	      }
 	    }
 	  }, {
 	    key: "applyActiveFilters",
@@ -52208,37 +57585,73 @@
 	      var _this2 = this;
 
 	      Object.keys(this.filters).map(function (key) {
-	        if (_this2.filters[key].active) _this2.filter(_this2.filters[key]);
+	        if (_this2.filters[key].active) _this2.renderer.filter(_this2.filters[key]);
 	      });
 	    }
 	  }, {
 	    key: "filter",
-	    value: function filter(filter_properties) {
-	      this.renderer.filter(filter_properties);
-	      /**
-	       * force the value_domain filter to stay disabled
-	       * (activating the attributes filter may able the value_domain filter
-	       *  which must stay always disabled in simplified visualization)
-	       */
-
-	      if (this.btn_lite_mode.active) {
-	        this.filters.value_domain.disabled = true;
-	      }
+	    value: function filter(type) {
+	      this.filters[type].active = true;
+	      this.onFilterToggle(type);
 	    }
 	  }, {
 	    key: "unfilter",
-	    value: function unfilter(filter_properties) {
-	      this.renderer.unfilter(filter_properties); // Re-Apply other active filters to resolve ambiguity
+	    value: function unfilter(type) {
+	      this.filters[type].active = false;
+	      this.onFilterToggle(type);
+	    }
+	  }, {
+	    key: "onFilterToggle",
+	    value: function onFilterToggle(type) {
+	      var _this3 = this;
 
-	      this.applyActiveFilters();
+	      if (type == 'attributes') {
+	        this.filters.value_domain.disabled = this.filters.attributes.active;
+	      } // if 'all' is toggled, it affect all other filters
+
+
+	      if (type == 'all') {
+	        Object.keys(this.filters).map(function (key) {
+	          if (key != 'all' && !_this3.filters[key].disbaled) {
+	            _this3.filters[key].active = _this3.filters.all.active;
+	            /**
+	             * if the actual filter is value-domain it means it's not disabled (see previous if condition)
+	             * but when filter all is active, filter value-domain must be disabled, let's disable it
+	             */
+
+	            if (key == 'value_domain') _this3.filters[key].disabled = _this3.filters.all.active;
+
+	            _this3.executeFilter(key);
+	          }
+	        });
+	      } else if (!this.filters[type].active && this.filters.all.active) {
+	        // if one filter get deactivated while the 'all' filter is active
+	        // then make the 'all' toggle deactivated
+	        this.filters.all.active = false;
+	      }
 	      /**
 	       * force the value_domain filter to stay disabled
 	       * (activating the attributes filter may able the value_domain filter
 	       *  which must stay always disabled in simplified visualization)
 	       */
 
-	      if (this.btn_lite_mode.active) {
+
+	      if (this.renderer_selector.actual_mode !== 'default') {
 	        this.filters.value_domain.disabled = true;
+	      }
+
+	      this.executeFilter(type);
+	      this.widgets.get('filters').updateTogglesState();
+	    }
+	  }, {
+	    key: "executeFilter",
+	    value: function executeFilter(type) {
+	      if (this.filters[type].active) {
+	        this.renderer.filter(this.filters[type]);
+	      } else {
+	        this.renderer.unfilter(this.filters[type]); // Re-Apply other active filters to resolve ambiguity
+
+	        this.applyActiveFilters();
 	      }
 	    }
 	  }, {
@@ -52277,7 +57690,7 @@
 	  }, {
 	    key: "showOwlTranslation",
 	    value: function showOwlTranslation(text) {
-	      if (!this.btn_lite_mode.active) {
+	      if (this.renderer_selector.actual_mode == 'default') {
 	        this.owl_translator.owl_text = text;
 	        this.owl_translator.show();
 	      }
@@ -52315,36 +57728,70 @@
 	  }, {
 	    key: "setRenderer",
 	    value: function setRenderer(renderer) {
-	      if (this.renderer) this.renderer.unmount();
+	      for (name in this.renderers) {
+	        if (this.renderers[name]) this.renderers[name].unmount();
+	      }
+
 	      renderer.mount(this.graph_container);
 	      this.renderer = renderer;
 	    }
 	  }, {
-	    key: "toggleLiteMode",
-	    value: function toggleLiteMode() {
-	      var _this3 = this;
-
+	    key: "changeRenderingMode",
+	    value: function changeRenderingMode(mode) {
+	      var _this4 = this;
 	      var actual_position = this.renderer.getActualPosition();
+	      var old_renderer = this.renderer;
+	      this.setRenderer(this.renderers[mode]);
 
-	      if (this.renderer instanceof EasyGscapeRenderer) {
-	        this.setRenderer(this.renderers["default"]);
-	        Object.keys(this.filters).map(function (key) {
-	          if (key != 'all' && key != 'attributes' && key != 'individuals') {
-	            // enable filters that may have been disabled by lite mode 
-	            _this3.filters[key].disabled = false;
-	            if (key == 'value_domain' && _this3.filters.attributes.active) _this3.filters.value_domain.disabled = true;
+	      switch (mode) {
+	        case 'float':
+	        case 'lite':
+	          {
+	            Object.keys(this.filters).map(function (key) {
+	              if (key != 'all' && key != 'attributes' && key != 'individuals') {
+	                // disable all unnecessary filters
+	                _this4.filters[key].disabled = true;
+	              }
+	            });
+	            break;
 	          }
-	        });
-	        this.onDefaultModeActive(actual_position);
+
+	        case 'default':
+	          {
+	            Object.keys(this.filters).map(function (key) {
+	              if (key != 'all' && key != 'attributes' && key != 'individuals') {
+	                // enable filters that may have been disabled by lite mode
+	                _this4.filters[key].disabled = false;
+	                if (key == 'value_domain' && _this4.filters.attributes.active) _this4.filters.value_domain.disabled = true;
+	              }
+	            });
+	            break;
+	          }
+	      }
+
+	      this.onRenderingModeChange(mode, actual_position);
+
+	      if (mode == 'float') {
+	        this.layout_settings.show();
 	      } else {
-	        this.setRenderer(this.renderers.lite);
-	        Object.keys(this.filters).map(function (key) {
-	          if (key != 'all' && key != 'attributes' && key != 'individuals') {
-	            // disable all unnecessary filters
-	            _this3.filters[key].disabled = true;
-	          }
-	        });
-	        this.onLiteModeActive(actual_position);
+	        if (old_renderer == this.renderers["float"]) {
+	          /**when coming from float mode, always ignore actual position
+	           * ---
+	           * WHY TIMEOUT?
+	           * versions >3.2.22 of cytoscape.js apparently have glitches
+	           * in large graphs in floaty mode.
+	           * In cytoscape 3.2.22 mount and unmount are not available so the
+	           * mount and unmount for grapholscape renderers are based on style.display.
+	           * This means that at this time, cytoscape inner container has zero
+	           * for width and height and this prevent it to perform the fit().
+	           * After awhile dimensions get a value and the fit() works again.
+	           * */
+	          setTimeout(function () {
+	            return _this4.resetView();
+	          }, 200); //this.resetView()
+	        }
+
+	        this.layout_settings.hide();
 	      }
 
 	      this.filters_widget.requestUpdate();
@@ -52362,64 +57809,90 @@
 	      this.explorer.requestUpdate();
 	    }
 	  }, {
+	    key: "onThemeSelection",
+	    value: function onThemeSelection(theme_name) {
+	      theme_name == 'custom' ? this.setTheme(this.custom_theme) : this.setTheme(themes[theme_name]);
+	    }
+	  }, {
 	    key: "setTheme",
 	    value: function setTheme(theme) {
-	      var _this4 = this;
+	      var _this5 = this;
 
 	      // update theme with custom variables "--theme-gscape-[var]" values
-	      var container_style = window.getComputedStyle(this.container);
 	      var theme_aux = {};
 	      var prefix = '--theme-gscape-';
 	      Object.keys(theme).map(function (key) {
-	        var css_key = prefix + key.replace(/_/g, '-');
+	        var css_key = prefix + key.replace(/_/g, '-'); // normalize theme using plain strings
 
-	        if (container_style.getPropertyValue(css_key)) {
-	          // update color in the theme from custom variable
-	          theme_aux[key] = container_style.getPropertyValue(css_key);
-	        } else {
-	          // normalize theme using plain strings
-	          theme_aux[key] = theme[key].cssText;
-	        }
-	      }); // Apply theme to graph
+	        var color = typeof theme[key] == 'string' ? theme[key] : theme[key].cssText;
+
+	        _this5.container.style.setProperty(css_key, color);
+
+	        theme_aux[key] = color;
+	      });
+	      this.graph_container.style.background = theme.background; // Apply theme to graph
 
 	      Object.keys(this.renderers).map(function (key) {
-	        _this4.renderers[key].setTheme(theme_aux);
+	        _this5.renderers[key].setTheme(theme_aux);
 	      });
 	    }
-	    /*
-	    getDefaultTheme() {
-	      Object.keys(themes).forEach(key => {
-	        if (config.rendering.theme.list[key].default)
-	          return themes[key]
-	      })
-	        return themes.gscape
-	    }
-	    */
+	  }, {
+	    key: "setCustomTheme",
+	    value: function setCustomTheme(new_theme) {
+	      var _this6 = this;
 
+	      this.custom_theme = JSON.parse(JSON.stringify(gscape));
+	      Object.keys(new_theme).forEach(function (color) {
+	        if (_this6.custom_theme[color]) {
+	          _this6.custom_theme[color] = new_theme[color];
+	        }
+	      });
+	      this.setTheme(this.custom_theme);
+	    }
+	  }, {
+	    key: "onWidgetEnabled",
+	    value: function onWidgetEnabled(widget_name) {
+	      this.widgets.get(widget_name).enable();
+	    }
+	  }, {
+	    key: "onWidgetDisabled",
+	    value: function onWidgetDisabled(widget_name) {
+	      this.widgets.get(widget_name).disable();
+	    }
+	  }, {
+	    key: "showDialog",
+	    value: function showDialog(type, message) {
+	      this.dialog.show(type, message);
+	    }
 	  }, {
 	    key: "actual_diagram_id",
 	    get: function get() {
 	      return this.diagram_selector.actual_diagram_id;
+	    }
+	  }, {
+	    key: "onWikiClick",
+	    set: function set(callback) {
+	      this.entity_details.onWikiClick = callback;
 	    }
 	  }]);
 
 	  return GrapholscapeView;
 	}();
 
-	function _classCallCheck$r(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$x(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _defineProperties$q(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+	function _defineProperties$w(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-	function _createClass$q(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$q(Constructor.prototype, protoProps); if (staticProps) _defineProperties$q(Constructor, staticProps); return Constructor; }
+	function _createClass$w(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$w(Constructor.prototype, protoProps); if (staticProps) _defineProperties$w(Constructor, staticProps); return Constructor; }
 
 	var OwlTranslator =
 	/*#__PURE__*/
 	function () {
 	  function OwlTranslator() {
-	    _classCallCheck$r(this, OwlTranslator);
+	    _classCallCheck$x(this, OwlTranslator);
 	  }
 
-	  _createClass$q(OwlTranslator, [{
+	  _createClass$w(OwlTranslator, [{
 	    key: "edgeToOwlString",
 	    value: function edgeToOwlString(edge) {
 	      var source = edge.source();
@@ -52430,9 +57903,9 @@
 	      switch (edge.data('type')) {
 	        case 'inclusion':
 	          if (source.data('identity') == 'concept' && target.data('identity') == 'concept') {
-	            if (source.data('type') == 'domain-restriction' && source.data('label') != 'self' && target.data('label') != 'self') {
+	            if (source.data('type') == 'domain-restriction' && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
 	              return propertyDomain(this, edge);
-	            } else if (source.data('type') == 'range-restriction' && source.data('label') != 'self' && target.data('label') != 'self') {
+	            } else if (source.data('type') == 'range-restriction' && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
 	              return propertyRange(this, edge);
 	            } else if (target.data('type') == 'complement' || source.data('type') == 'complement') {
 	              return disjointClasses(this, edge.connectedNodes());
@@ -52498,8 +57971,7 @@
 
 	        if (edge.source().data('type') == 'property-assertion') {
 	          var property_node = edge.source();
-	          property_node.data('inputs').forEach(function (input_id) {
-	            input = self.cy.$('edge[id_xml = "' + input_id + '"]').source();
+	          property_node.incomers('[type = "input"]').sources().forEach(function (input) {
 	            owl_string += self.nodeToOwlString(input) + ' ';
 	          });
 	          owl_string = owl_string.slice(0, owl_string.length - 1);
@@ -52642,7 +58114,7 @@
 	      var from_node_flag = from_node || null;
 
 	      if (from_node_flag && (node.hasClass('predicate') || node.data('type') == 'value-domain')) {
-	        var owl_predicate = '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span><span class="owl_' + node.data('type') + '">' + node.data('remaining_chars') + '</span>';
+	        var owl_predicate = '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_' + node.data('type') + '">' + node.data('iri').remaining_chars + '</span>';
 	        var owl_type;
 
 	        switch (node.data('type')) {
@@ -52698,10 +58170,10 @@
 	            break;
 
 	          case 'individual':
-	            if (node.data('remaining_chars').search(/"[\w]+"\^\^[\w]+:/) != -1) {
-	              var value = node.data('remaining_chars').split('^^')[0];
-	              var datatype = node.data('remaining_chars').split(':')[1];
-	              owl_predicate = '<span class="owl_value">' + value + '</span>^^' + '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span>' + '<span class="owl_value-domain">' + datatype + '</span>';
+	            if (node.data('iri').remaining_chars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+	              var value = node.data('iri').remaining_chars.split('^^')[0];
+	              var datatype = node.data('iri').remaining_chars.split(':')[1];
+	              owl_predicate = '<span class="owl_value">' + value + '</span>^^' + '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span>' + '<span class="owl_value-domain">' + datatype + '</span>';
 	            }
 
 	            owl_type = 'NamedIndividual';
@@ -52717,10 +58189,10 @@
 
 	      switch (node.data('type')) {
 	        case 'individual':
-	          if (node.data('remaining_chars').search(/"[\w]+"\^\^[\w]+:/) != -1) {
-	            var value = node.data('remaining_chars').split('^^')[0];
-	            var datatype = node.data('remaining_chars').split(':')[1];
-	            return '<span class="owl_value">' + value + '</span>^^' + '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span>' + '<span class="owl_value-domain">' + datatype + '</span>';
+	          if (node.data('iri').remaining_chars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+	            var value = node.data('iri').remaining_chars.split('^^')[0];
+	            var datatype = node.data('iri').remaining_chars.split(':')[1];
+	            return '<span class="owl_value">' + value + '</span>^^' + '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span>' + '<span class="owl_value-domain">' + datatype + '</span>';
 	          }
 
 	        case 'concept':
@@ -52728,12 +58200,13 @@
 	        case 'value-domain':
 	        case 'attribute':
 	        case 'individual':
-	          return '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span><span class="owl_' + node.data('type') + '">' + node.data('remaining_chars') + '</span>';
+	          return '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_' + node.data('type') + '">' + node.data('iri').remaining_chars + '</span>';
 	          break;
 
 	        case 'facet':
-	          var rem_chars = node.data('remaining_chars').split('^^');
-	          return '<span class="axiom_predicate_prefix">' + node.data('prefix_iri') + '</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>';
+	          var rem_chars = node.data('displayed_name').replace(/\n/g, '^').split('^^');
+	          rem_chars[0] = rem_chars[0].slice(4);
+	          return '<span class="axiom_predicate_prefix">xsd:</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>';
 	          break;
 
 	        case 'domain-restriction':
@@ -52761,14 +58234,14 @@
 	              return not_defined;
 	            }
 
-	            if (node.data('label') == 'exists') {
+	            if (node.data('displayed_name') == 'exists') {
 	              return someValuesFrom(this, input_first, input_other, node.data('type'));
-	            } else if (node.data('label') == 'forall') {
+	            } else if (node.data('displayed_name') == 'forall') {
 	              return allValuesFrom(this, input_first, input_other, node.data('type'));
-	            } else if (node.data('label').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
-	              var cardinality = node.data('label').replace(/\(|\)/g, '').split(/,/);
+	            } else if (node.data('displayed_name').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
+	              var cardinality = node.data('displayed_name').replace(/\(|\)/g, '').split(/,/);
 	              return minMaxExactCardinality(this, input_first, input_other, cardinality, node.data('type'));
-	            } else if (node.data('label') == 'self') {
+	            } else if (node.data('displayed_name') == 'self') {
 	              return hasSelf(this, input_first, node.data('type'));
 	            }
 	          } else return missing_operand;
@@ -52788,7 +58261,7 @@
 	            return missing_operand;
 	          }
 
-	          return objectPropertyChain(this, node.data('inputs'));
+	          return objectPropertyChain(this, node.incomers('[type = "input"]').sources());
 	          break;
 
 	        case 'union':
@@ -52954,8 +58427,7 @@
 	      function objectPropertyChain(self, inputs) {
 	        var owl_string;
 	        var owl_string = 'ObjectPropertyChain(';
-	        inputs.forEach(function (input_id) {
-	          input = self.cy.$('edge[id_xml = "' + input_id + '"]').source();
+	        inputs.forEach(function (input) {
 	          owl_string += self.nodeToOwlString(input) + ' ';
 	        });
 	        owl_string = owl_string.slice(0, owl_string.length - 1);
@@ -53021,25 +58493,33 @@
 	  return OwlTranslator;
 	}();
 
-	function computeLiteOntology(ontology) {
+	function computeSimplifiedOntologies(ontology) {
 	  var aux_renderer = new GrapholscapeRenderer(null);
 	  var lite_ontology = new Ontology(ontology.name, ontology.version);
+	  var float_ontology = new Ontology(ontology.name, ontology.version);
+	  var new_ontologies = {
+	    lite: lite_ontology,
+	    "float": float_ontology
+	  };
 	  return new Promise(function (resolve, reject) {
 	    try {
 	      window.setTimeout(function () {
 	        ontology.diagrams.forEach(function (diagram) {
 	          var lite_diagram = new Diagram(diagram.name, diagram.id);
-	          lite_diagram.addElems(simplifyDiagram(diagram.nodes, diagram.edges));
+	          var float_diagram = new Diagram(diagram.name, diagram.id);
+	          lite_diagram.addElems(simplifyDiagramLite(diagram.nodes, diagram.edges));
 	          lite_ontology.addDiagram(lite_diagram);
+	          float_diagram.addElems(simplifyDiagramFloat(lite_diagram.nodes, lite_diagram.edges));
+	          float_ontology.addDiagram(float_diagram);
 	        });
-	        resolve(lite_ontology);
-	      }, 100);
+	        resolve(new_ontologies);
+	      }, 1);
 	    } catch (e) {
 	      reject(e);
 	    }
 	  }); // ----------------------------------
 
-	  function simplifyDiagram(nodes, edges) {
+	  function simplifyDiagramLite(nodes, edges) {
 	    var cy = cytoscape$1();
 	    cy.add(nodes);
 	    cy.add(edges);
@@ -53053,11 +58533,12 @@
 
 	        case 'domain-restriction':
 	        case 'range-restriction':
-	          if (node.data('label') == 'forall') return true;else return false;
+	          if (node.data('displayed_name') == 'forall') return true;else return false;
 	      }
 	    });
-	    filterByCriterion(cy, isQualifiedExistential);
+	    filterByCriterion(cy, isQualifiedRestriction);
 	    filterByCriterion(cy, isExistentialWithCardinality);
+	    filterByCriterion(cy, inputEdgesBetweenRestrictions);
 	    cy.remove('.filtered');
 	    simplifyDomainAndRange(cy);
 	    simplifyComplexHierarchies(cy);
@@ -53075,83 +58556,17 @@
 	    eles.filter(selector).forEach(function (restriction) {
 	      var input_edge = getInputEdgeFromPropertyToRestriction(restriction);
 	      var new_edge = null;
+	      var type = restriction.data('type') == 'domain-restriction' ? 'domain' : 'range';
+	      restriction.connectedEdges('[type != "input"]').forEach(function (edgeToRestriction, i) {
+	        new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i);
 
-	      if (restriction.data('type') == 'domain-restriction') {
-	        // there can be only inclusion and equivalence edges, for each of them we 
-	        // create a new edge that will have a concept as source and a role/attribute as target
-	        restriction.connectedEdges('[type != "input"]').forEach(function (edge, i) {
-	          var edges = [];
-	          /**
-	           * if the actual edge is between two existential, remove it and filter the other existential 
-	           */
-
-	          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') && (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
-	            cy.remove(edge);
-	            return;
-	          } // being a domain restriction, the simplified edge must go from a concept to the role/attribute
-	          // connected in input to the restriction.
-	          // if the actual edge has the restriction as source, the target is a concept and we consider it
-	          // as the source of the new edge          
-
-
-	          if (restriction.id() === edge.source().id()) {
-	            edges.push(reverseEdge(edge));
-	          } else edges.push(edge.json()); // move attribute on restriction node position
-
-
-	          if (input_edge.source().data('type') == "attribute") {
-	            input_edge.source().position(restriction.position());
-	            new_edge = edges[0];
-	            new_edge.data.target = input_edge.source().id();
-	            new_edge.data.id += '_' + i;
-	          } else {
-	            // concatenation only if the input is not an attribute
-	            edges.push(reverseEdge(input_edge));
-	            new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id + '_' + i);
-	          } // add the type of input to the restriction as a class of the new edge
-	          // role or attribute, used in the stylesheet to assign different colors
-
-
-	          new_edge.classes += "".concat(input_edge.source().data('type'), " domain");
-	          new_edge.data.type = 'default';
+	        if (new_edge) {
 	          cy.add(new_edge);
-	          cy.remove(edge);
-	        });
-	      }
-
-	      if (restriction.data('type') == 'range-restriction') {
-	        // there can be only inclusion and equivalence edges, for each of them we 
-	        // create a new edge that will have a role/attribute as source and a concept as target
-	        restriction.connectedEdges('[type != "input"]').forEach(function (edge, i) {
-	          var edges = [];
-	          /**
-	           * if the actual edge is between two existential, remove it and filter the other existential 
-	           */
-
-	          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') && (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
-	            cy.remove(edge);
-	            return;
-	          }
-
-	          edges.push(input_edge.json()); // being a range restriction, the simplified edge must go from a role/attribute to the concept
-	          // if the actual edge has the concept as source, the target is a role/attribute and we need to
-	          // revert the edge
-
-	          if (restriction.id() === edge.source().id()) {
-	            edges.push(edge.json());
-	          } else edges.push(reverseEdge(edge));
-
-	          new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id + '_' + i); // add the type of input to the restriction as a class of the new edge
-	          // role or attribute, used in the stylesheet to assign a different color
-
-	          new_edge.classes += "".concat(input_edge.source().data('type'), " range");
-	          new_edge.data.type = 'default';
-	          cy.add(new_edge);
-	          cy.remove(edge);
-	        });
-	      }
-
-	      aux_renderer.filterElem(restriction, cy);
+	          cy.remove(edgeToRestriction);
+	        }
+	      });
+	      aux_renderer.filterElem(restriction, '', cy);
+	      cy.remove('.filtered');
 	    });
 	    cy.remove('.filtered');
 
@@ -53163,6 +58578,43 @@
 	        }
 	      });
 	      return e;
+	    }
+
+	    function createRoleEdge(edgeToRestriction, edgeFromProperty, type, i) {
+	      var edges = [];
+	      var new_edge = null;
+	      /**
+	       * if the actual edge is between two existential, remove it and filter the other existential
+	       */
+
+	      if ((edgeToRestriction.source().data('type') == 'domain-restriction' || edgeToRestriction.source().data('type') == 'range-restriction') && (edgeToRestriction.target().data('type') == 'domain-restriction' || edgeToRestriction.target().data('type') == 'range-restriction')) {
+	        cy.remove(edgeToRestriction);
+	        return new_edge;
+	      }
+
+	      if (edgeToRestriction.target().data('id') !== edgeFromProperty.target().data('id')) {
+	        edges.push(reverseEdge(edgeToRestriction));
+	      } else {
+	        edges.push(edgeToRestriction.json());
+	      } // move attribute on restriction node position
+
+
+	      if (edgeFromProperty.source().data('type') == "attribute") {
+	        edgeFromProperty.source().position(edgeFromProperty.target().position());
+	        new_edge = edges[0];
+	        new_edge.data.target = edgeFromProperty.source().id();
+	        new_edge.data.id += '_' + i;
+	      } else {
+	        // concatenation only if the input is not an attribute
+	        edges.push(reverseEdge(edgeFromProperty));
+	        new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id + '_' + i);
+	      } // add the type of input to the restriction as a class of the new edge
+	      // role or attribute, used in the stylesheet to assign different colors
+
+
+	      new_edge.classes += "".concat(edgeFromProperty.source().data('type'), " ").concat(type);
+	      new_edge.data.type = 'default';
+	      return new_edge;
 	    }
 	  }
 
@@ -53238,21 +58690,35 @@
 	    var cy = cy_instance;
 	    cy.$('*').forEach(function (node) {
 	      if (criterion(node)) {
-	        aux_renderer.filterElem(node, cy);
+	        aux_renderer.filterElem(node, '', cy);
 	      }
 	    });
 	  }
 
-	  function isQualifiedExistential(node) {
-	    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction') && node.data('label') == 'exists') {
+	  function isQualifiedRestriction(node) {
+	    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction') && node.data('displayed_name') == 'exists') {
 	      return node.incomers('edge[type = "input"]').size() > 1 ? true : false;
 	    }
 
 	    return false;
 	  }
 
+	  function inputEdgesBetweenRestrictions(node) {
+	    var outcome = false;
+
+	    if (node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction') {
+	      node.incomers('edge[type = "input"]').forEach(function (edge) {
+	        if (edge.source().data('type').endsWith('restriction')) {
+	          outcome = true;
+	        }
+	      });
+	    }
+
+	    return outcome;
+	  }
+
 	  function isExistentialWithCardinality(node) {
-	    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction') && node.data('label').search(/[0-9]/g) >= 0) {
+	    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction') && node.data('displayed_name').search(/[0-9]/g) >= 0) {
 	      return true;
 	    }
 
@@ -53293,32 +58759,7 @@
 	        if (union.data('type') == 'disjoint-union') inclusion.addClass('disjoint');
 	      });
 	      if (union.data('label')) union.data('label', '');
-	      replicateAttributes(union); // replicate attributes on input classes
-
-	      /*
-	      let input_classes = union.incomers('[type *= "input"]').sources()
-	      union.neighborhood('[type = "attribute"]').forEach(attribute => {
-	        
-	        input_classes.forEach( (concept,i) => {
-	          let new_attribute = attribute.json()
-	          new_attribute.position = concept.position()
-	          new_attribute.data.id += '_clone'+i
-	          new_attribute.classes += ' repositioned'
-	          cy.add(new_attribute)
-	          let edge = {
-	            data: {
-	              id: new_attribute.data.id + '_edge',
-	              source: new_attribute.data.id,
-	              target: concept.id(),
-	            },
-	            classes: 'attribute',
-	          }
-	            cy.add(edge)
-	        })
-	          cy.remove(attribute)
-	      })
-	      */
-	      // replicate role tipization on input classes
+	      replicateAttributes(union); // replicate role tipization on input classes
 
 	      replicateRoleTypizations(union); // if the union has not any connected non-input edges, then remove it
 
@@ -53329,6 +58770,7 @@
 	  function makeDummyPoint(node) {
 	    node.data('width', 0.1);
 	    node.data('height', 0.1);
+	    node.addClass('dummy');
 	  }
 
 	  function simplifyIntersections(cytoscape_instance) {
@@ -53339,7 +58781,7 @@
 	      // remove the intersection
 
 	      if (and.incomers('edge[type !*= "input"]').size() == 0 && and.connectedEdges('edge[type = "equivalence"]').size() == 0) {
-	        aux_renderer.filterElem(and, cy);
+	        aux_renderer.filterElem(and, '', cy);
 	      } else {
 	        // process incoming inclusion
 	        and.incomers('edge[type !*= "input"]').forEach(function (edge) {
@@ -53347,7 +58789,7 @@
 	           * create a new ISA edge for each input class
 	           * the new edge will be a concatenation:
 	           *  - ISA towards the 'and' node + input edge
-	           * 
+	           *
 	           * the input edge must be reversed
 	           * In case of equivalence edge, we only consider the
 	           * isa towards the 'and' node and discard the other direction
@@ -53389,15 +58831,9 @@
 	         * then the new edge will be the concatenation of the input edge + role edge
 	         */
 
-	        if (constructor.connectedEdges('[type !*= "input"]').size() == 1) {
-	          if (role_edge.hasClass('range')) {
-	            edges.push(role_edge.json());
-	            edges.push(reverseEdge(input));
-	          } else {
-	            edges.push(input.json());
-	            edges.push(role_edge.json());
-	          }
-
+	        if (constructor.connectedEdges('[type !*= "input"]').size() <= 1) {
+	          edges.push(input.json());
+	          edges.push(role_edge.json());
 	          new_edge = createConcatenatedEdge(edges, cy, new_id);
 	          new_edge.data.type = 'default';
 	          new_edge.classes = role_edge.json().classes;
@@ -53406,23 +58842,15 @@
 	           * Otherwise the constructor node will not be deleted and the new role edges can't
 	           * pass over the constructor node. We then just properly change the source/target
 	           * of the role edge. In this way the resulting edges will go from the last
-	           * breakpoint of the original role edge towards the input classes of the constructor  
+	           * breakpoint of the original role edge towards the input classes of the constructor
 	          */
 	          new_edge = role_edge.json();
 	          new_edge.data.id = new_id;
 	          var target = undefined;
 	          var source = undefined;
-
-	          if (role_edge.hasClass('range')) {
-	            target = input.source();
-	            source = role_edge.source();
-	            new_edge.data.target = input.source().id();
-	          } else {
-	            target = role_edge.target();
-	            source = input.source();
-	            new_edge.data.source = input.source().id();
-	          } // Keep the original role edge breakpoints
-
+	          target = role_edge.target();
+	          source = input.source();
+	          new_edge.data.source = input.source().id(); // Keep the original role edge breakpoints
 
 	          var segment_distances = [];
 	          var segment_weights = [];
@@ -53446,7 +58874,7 @@
 	    cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(function (node) {
 	      if (isComplexHierarchy(node)) {
 	        replicateAttributes(node);
-	        aux_renderer.filterElem(node, cy);
+	        aux_renderer.filterElem(node, '', cy);
 	      }
 	    });
 	    cy.remove('.filtered');
@@ -53463,7 +58891,7 @@
 	      });
 	    });
 	    cy.remove(all_attributes);
-	    aux_renderer.filterElem(all_inclusion_attributes, cy);
+	    aux_renderer.filterElem(all_inclusion_attributes, '', cy);
 
 	    function addAttribute(target, i, attribute, edge_classes) {
 	      var new_attribute = attribute.json();
@@ -53521,7 +58949,7 @@
 	          edges.push(reverseEdge(edge));
 	        } else {
 	          edges.push(edge.json());
-	        } // the input edge must always be reversed 
+	        } // the input edge must always be reversed
 
 
 	        edges.push(reverseEdge(input_edge));
@@ -53542,26 +58970,105 @@
 	        role_inverse.data('labelYpos', 0);
 	        role_inverse.data('text_background', true);
 	      } else {
-	        input_edge.source().connectedEdges('edge.inverse-of').data('edge_label', 'inverse Of');
+	        if (input_edge.source()) input_edge.source().connectedEdges('edge.inverse-of').data('displayed_name', 'inverse Of');
 	        cy.remove(role_inverse);
 	      }
+	    });
+	  } // -------- FLOAT ----------
+
+
+	  function simplifyDiagramFloat(nodes, edges) {
+	    var cy = cytoscape$1();
+	    cy.add(nodes);
+	    cy.add(edges);
+	    simplifyRolesFloat(cy);
+	    simplifyHierarchiesFloat(cy);
+	    simplifyAttributesFloat(cy);
+	    cy.edges().removeData('segment_distances');
+	    cy.edges().removeData('segment_weights');
+	    cy.edges().removeData('target_endpoint');
+	    cy.edges().removeData('source_endpoint');
+	    cy.$('[type = "concept"]').addClass('bubble');
+	    return cy.$('*');
+	  }
+
+	  function simplifyRolesFloat(cy) {
+	    var eles = cy.$('[type = "role"]');
+	    eles.forEach(function (role) {
+	      var edges = role.incomers('edge.role');
+	      var domains = edges.filter('.domain');
+	      var range_nodes = edges.filter('.range').sources();
+	      domains.forEach(function (domain) {
+	        range_nodes.forEach(function (target, i) {
+	          var new_edge = {
+	            data: {
+	              id: domain.id() + '-' + i,
+	              id_xml: domain.target().data('id_xml'),
+	              diagram_id: domain.target().data('diagram_id'),
+	              source: domain.source().id(),
+	              target: target.id(),
+	              type: domain.target().data('type'),
+	              iri: domain.target().data('iri'),
+	              displayed_name: domain.target().data('displayed_name'),
+	              label: domain.target().data('label'),
+	              description: domain.target().data('description'),
+	              functional: domain.target().data('functional'),
+	              inverseFunctional: domain.target().data('inverseFunctional'),
+	              asymmetric: domain.target().data('asymmetric'),
+	              irreflexive: domain.target().data('irreflexive'),
+	              reflexive: domain.target().data('reflexive'),
+	              symmetric: domain.target().data('symmetric'),
+	              transitive: domain.target().data('transitive')
+	            },
+	            classes: 'role predicate'
+	          };
+	          cy.add(new_edge);
+
+	          if (cy.getElementById(new_edge.data.id).isLoop()) {
+	            var loop_edge = cy.getElementById(new_edge.data.id);
+	            loop_edge.data('control_point_step_size', target.data('width'));
+	          }
+	        });
+	      });
+	      cy.remove(role);
+	    });
+	  }
+
+	  function simplifyHierarchiesFloat(cy) {
+	    cy.$('.dummy').forEach(function (dummy) {
+	      dummy.neighborhood('node').forEach(function (neighbor) {
+	        neighbor.position(dummy.position());
+	      });
+	      dummy.data('width', 35);
+	      dummy.addClass('bubble');
+	    });
+	  }
+
+	  function simplifyAttributesFloat(cy) {
+	    cy.$('[type = "attribute"]').forEach(function (attribute) {
+	      attribute.neighborhood('node').forEach(function (neighbor) {
+	        attribute.position(neighbor.position());
+	      });
 	    });
 	  }
 	}
 
-	const rendering={theme:{type:"list",label:"Select a theme",list:{gscape:{label:"Grapholscape White","default":true},dark:{label:"Grapholscape Dark","default":false}}}};const widgets={explorer:{type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][label = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"}}},lite_mode:{type:"boolean",enabled:true,label:"Allow lite mode switching"}};var config = {rendering:rendering,widgets:widgets};
+	const preferences={entity_name:{type:"list",title:"Entities Name",label:"Select the type of name to display on entities",selected:"label",list:[{value:"label",label:"Label"},{value:"prefixed",label:"Prefixed IRI"},{value:"full",label:"Full IRI"}]},language:{type:"list",title:"Language",label:"Select the preferred language",selected:"",list:[]}};const rendering={theme:{type:"list",title:"Themes",label:"Select a theme",selected:"gscape",list:[{value:"gscape",label:"Light"},{value:"dark",label:"Dark"},{value:"classic",label:"Graphol"}]}};const widgets={explorer:{title:"Ontology Explorer",type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",title:"Entity Details",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",title:"OWL Translator",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",title:"Filters",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][displayed_name = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"}}},simplifications:{type:"boolean",title:"Simplifications",enabled:true,label:"Allow ontology simplification widget"}};var config = {preferences:preferences,rendering:rendering,widgets:widgets};
 
 	var default_config = /*#__PURE__*/Object.freeze({
+		preferences: preferences,
 		rendering: rendering,
 		widgets: widgets,
 		'default': config
 	});
 
-	function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _typeof$m(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$m = function _typeof(obj) { return typeof obj; }; } else { _typeof$m = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$m(obj); }
 
-	function _defineProperties$r(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+	function _classCallCheck$y(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _createClass$r(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$r(Constructor.prototype, protoProps); if (staticProps) _defineProperties$r(Constructor, staticProps); return Constructor; }
+	function _defineProperties$x(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+	function _createClass$x(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$x(Constructor.prototype, protoProps); if (staticProps) _defineProperties$x(Constructor, staticProps); return Constructor; }
 
 	var GrapholscapeController =
 	/*#__PURE__*/
@@ -53570,28 +59077,58 @@
 	    var _this = this;
 
 	    var view = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-	    var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+	    var custom_config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
-	    _classCallCheck$s(this, GrapholscapeController);
+	    _classCallCheck$y(this, GrapholscapeController);
 
-	    this.config = default_config;
-	    if (config) this.setConfig(config);
+	    this.view = view;
+	    this._ontology = ontology;
+	    this.config = JSON.parse(JSON.stringify(default_config)); //create copy
+
+	    if (custom_config) this.setConfig(custom_config); // update default config, if passed
+	    // set language
+
+	    this.config.preferences.language.list = ontology.languages.map(function (lang) {
+	      return {
+	        "label": lang,
+	        "value": lang
+	      };
+	    });
+	    this.default_language = ontology.default_language; // if not selected in config, select default
+
+	    var selected_language = this.config.preferences.language.selected;
+	    if (selected_language == '') this.config.preferences.language.selected = this.default_language;else {
+	      // if language is not supported by ontology, add it in the list
+	      // only for consistency : user defined it so he wants to see it
+	      if (!ontology.languages.includes(selected_language)) this.config.preferences.language.list.push({
+	        "label": selected_language + ' - unsupported',
+	        "value": selected_language
+	      });
+	    }
 	    this.ontologies = {
 	      "default": ontology,
-	      lite: null
+	      lite: null,
+	      "float": null
 	    };
-	    this._ontology = ontology;
-	    this.view = view;
 	    this.owl_translator = new OwlTranslator();
-	    this.liteMode = false;
-	    this.liteOntologyPromise = computeLiteOntology(ontology).then(function (result) {
-	      _this.ontologies.lite = result;
+	    this.actualMode = 'default';
+	    this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology).then(function (result) {
+	      _this.ontologies.lite = result.lite;
+	      _this.ontologies["float"] = result["float"];
 	    })["catch"](function (reason) {
 	      console.log(reason);
 	    });
+	    if (this.config.preferences.entity_name.selected != preferences.entity_name.selected) this.onEntityNameTypeChange(this.config.preferences.entity_name.selected);
+	    if (this.config.preferences.language.selected != preferences.language.selected) this.onLanguageChange(this.config.preferences.language.selected);
 	  }
+	  /**
+	   * Initialize controller
+	   *  - bind all event listener for the view
+	   *  - create all widgets with actual config and ontology infos
+	   */
 
-	  _createClass$r(GrapholscapeController, [{
+
+	  _createClass$x(GrapholscapeController, [{
 	    key: "init",
 	    value: function init() {
 	      var _this2 = this;
@@ -53599,15 +59136,17 @@
 	      var diagramsModelData = this.ontology.diagrams;
 	      var entitiesModelData = this.ontology.getEntities();
 	      var diagramsViewData = diagramsModelData.map(function (diagram) {
-	        return _this2.constructor.diagramModelToViewData(diagram);
+	        return _this2.diagramModelToViewData(diagram);
 	      });
 	      var entitiesViewData = entitiesModelData.map(function (entity) {
-	        return _this2.constructor.entityModelToViewData(entity);
+	        return _this2.entityModelToViewData(entity);
 	      });
 	      var ontologyViewData = {
 	        name: this.ontology.name,
 	        version: this.ontology.version,
-	        iriSet: this.ontology.iriSet // event handlers
+	        namespaces: this.ontology.namespaces,
+	        annotations: this.ontology.annotations,
+	        description: this.ontology.description // event handlers
 
 	      };
 	      this.view.onDiagramChange = this.onDiagramChange.bind(this);
@@ -53616,9 +59155,10 @@
 	      this.view.onNodeSelection = this.onNodeSelection.bind(this);
 	      this.view.onBackgroundClick = this.onBackgroundClick.bind(this);
 	      this.view.onEdgeSelection = this.onEdgeSelection.bind(this);
-	      this.view.onLiteModeActive = this.onLiteModeActive.bind(this);
-	      this.view.onDefaultModeActive = this.onDefaultModeActive.bind(this);
-	      this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config.widgets);
+	      this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this);
+	      this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this);
+	      this.view.onLanguageChange = this.onLanguageChange.bind(this);
+	      this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config);
 	    }
 	    /**
 	     * Event handler for clicks on empty area of the graph.
@@ -53631,6 +59171,16 @@
 	      this.view.blurAll();
 	    }
 	    /**
+	     * Activate one of the defined filters.
+	     * @param {String} type - one of `all`, `attributes`, `value-domain`, `individuals`, `universal`, `not`
+	     */
+
+	  }, {
+	    key: "filter",
+	    value: function filter(type) {
+	      this.view.filter(type);
+	    }
+	    /*
 	     * Event handler for the click on a node in the explorer widget.
 	     * Focus on the node and show its details
 	     * @param {String} node_id - the id of the node to navigate to
@@ -53643,7 +59193,7 @@
 	      this.centerOnNode(node, 1.5);
 	      this.showDetails(node);
 	    }
-	    /**
+	    /*
 	     * Event handler for a digram change.
 	     * @param {string} diagram_index The index of the diagram to display
 	     */
@@ -53656,18 +59206,23 @@
 	    }
 	    /**
 	     * Display a diagram on the screen.
-	     * @param {JSON} diagramModelData The diagram retrieved from model
+	     * @param {JSON | string | number} diagramModelData The diagram retrieved from model, its name or it's id
 	     */
 
 	  }, {
 	    key: "showDiagram",
 	    value: function showDiagram(diagramModelData) {
-	      var diagramViewData = this.constructor.diagramModelToViewData(diagramModelData);
+	      if (typeof diagramModelData == 'string' || typeof diagramModelData == 'number') {
+	        diagramModelData = this.ontology.getDiagram(diagramModelData);
+	      }
+
+	      if (!diagramModelData) this.view.showDialog('error', "Diagram not existing");
+	      var diagramViewData = this.diagramModelToViewData(diagramModelData);
 	      this.view.drawDiagram(diagramViewData);
 	    }
-	    /**
+	    /*
 	     * Event Handler for an entity selection.
-	     * @param {String} entity_id - The Id of the selected entity 
+	     * @param {String} entity_id - The Id of the selected entity
 	     * @param {Boolean} unselect - Flag for unselecting elements on graph
 	     */
 
@@ -53679,29 +59234,42 @@
 	    }
 	    /**
 	     * Show to the user the details of an entity.
-	     * @param {JSON} entityModelData The entity retrieved from model
+	     * @param {JSON} entityModelData The entity retrieved from model.
+	     * @param {Boolean} unselect - Flag for unselecting elements on graph. Default `false`.
 	     */
 
 	  }, {
 	    key: "showDetails",
-	    value: function showDetails(entityModelData, unselect) {
+	    value: function showDetails(entityModelData) {
+	      var unselect = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
 	      if (this.config.widgets.details.enabled) {
-	        var entityViewData = this.constructor.entityModelToViewData(entityModelData);
+	        var entityViewData = this.entityModelToViewData(entityModelData);
 	        this.view.showDetails(entityViewData, unselect);
 	      }
 	    }
 	  }, {
 	    key: "onEdgeSelection",
 	    value: function onEdgeSelection(edge_id, diagram_id) {
-	      /**
+	      /*
 	       * To be refactored.
 	       * Owl Translator uses cytoscape representation for navigating the graph.
 	       * We need then the node as a cytoscape object and not as plain json.
 	       */
 	      var edge_cy = this.ontology.getElemByDiagramAndId(edge_id, diagram_id, false);
-	      if (edge_cy) this.showOwlTranslation(edge_cy);
+	      if (edge_cy) this.showOwlTranslation(edge_cy); // show details on roles in float mode
+
+	      if (this.actualMode == 'float') {
+	        var edge = this.ontology.getElemByDiagramAndId(edge_id, diagram_id);
+
+	        if (edge.classes.includes('predicate')) {
+	          this.showDetails(edge, false);
+	        } else {
+	          this.view.hideDetails();
+	        }
+	      }
 	    }
-	    /**
+	    /*
 	     * Event handler for a node selection on the graph.
 	     * Show the details and owl translation if the node is an entity, hide it otherwise.
 	     * @param {String} node_id - The id of the node to center on
@@ -53723,7 +59291,7 @@
 	      } else {
 	        this.view.hideDetails();
 	      }
-	      /**
+	      /*
 	       * To be refactored.
 	       * Owl Translator uses cytoscape representation for navigating the graph.
 	       * We need then the node as a cytoscape object and not as plain json.
@@ -53734,7 +59302,7 @@
 	      this.showOwlTranslation(node_cy);
 	    }
 	    /**
-	     * Focus on a single node and zoom on it. 
+	     * Focus on a single node and zoom on it.
 	     * If necessary it also display the diagram containing the node.
 	     * @param {JSON} nodeModelData - The node retrieved from model
 	     * @param {Number} zoom - The zoom level to apply
@@ -53757,7 +59325,7 @@
 	    /**
 	     * Get OWL translation from a node and give the result to the view.
 	     * To be refactored.
-	     * @param {object} node - cytoscape representation of a node
+	     * @param {object} elem - Cytoscape representation of a node or a edge
 	     */
 
 	  }, {
@@ -53770,79 +59338,252 @@
 	      }
 	    }
 	  }, {
-	    key: "onLiteModeActive",
-	    value: function onLiteModeActive(state) {
+	    key: "onRenderingModeChange",
+	    value: function onRenderingModeChange(mode, state) {
 	      var _this3 = this;
 
-	      this.liteMode = true;
-	      this.liteOntologyPromise.then(function () {
-	        if (_this3.liteMode) {
-	          _this3.ontology = _this3.ontologies.lite;
+	      this.actualMode = mode;
 
-	          _this3.updateGraphView(state);
+	      switch (mode) {
+	        case 'lite':
+	        case 'float':
+	          {
+	            this.SimplifiedOntologyPromise.then(function () {
+	              if (_this3.actualMode === mode) {
+	                _this3.ontology = _this3.ontologies[mode];
 
-	          _this3.updateEntitiesList();
-	        }
-	      });
+	                _this3.updateGraphView(state);
+
+	                _this3.updateEntitiesList();
+	              }
+	            });
+	            break;
+	          }
+
+	        case 'default':
+	          {
+	            this.ontology = this.ontologies["default"];
+	            this.updateGraphView(state);
+	            this.updateEntitiesList();
+	            break;
+	          }
+	      }
 	    }
+	    /**
+	     * Change the rendering mode.
+	     * @param {string} mode - the rendering/simplifation mode to activate: `graphol`, `lite`, or `float`
+	     * @param {boolean} keep_viewport_state - if `false`, viewport will fit on diagram.
+	     * Set it `true` if you don't want the viewport state to change.
+	     * In case of no diagram displayed yet, it will be forced to `false`.
+	     * Default: `true`.
+	     *
+	     * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
+	     */
+
 	  }, {
-	    key: "onDefaultModeActive",
-	    value: function onDefaultModeActive(state) {
-	      this.liteMode = false;
-	      this.ontology = this.ontologies["default"];
-	      this.updateGraphView(state);
-	      this.updateEntitiesList();
+	    key: "changeRenderingMode",
+	    value: function changeRenderingMode(mode) {
+	      var keep_viewport_state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+	      this.view.changeRenderingMode(mode, keep_viewport_state);
+	      this.view.widgets.get('simplifications').actual_mode = mode;
 	    }
+	    /**
+	     * Redraw actual diagram and set viewport state. If state is not passed, viewport is not changed.
+	     * @param {object} state - object representation of **rendered position** in [cytoscape format](https://js.cytoscape.org/#notation/position).
+	     *
+	     * > Example: { x: 0, y: 0, zoom: 1} - initial state
+	     */
+
 	  }, {
 	    key: "updateGraphView",
 	    value: function updateGraphView(state) {
 	      this.onDiagramChange(this.view.actual_diagram_id);
-	      this.view.setViewPort(state);
+	      if (state) this.view.setViewPort(state);
 	    }
+	    /**
+	     * Update the entities list in the ontology explorer widget
+	     */
+
 	  }, {
 	    key: "updateEntitiesList",
 	    value: function updateEntitiesList() {
 	      var _this4 = this;
 
 	      var entitiesViewData = this.ontology.getEntities().map(function (entity) {
-	        return _this4.constructor.entityModelToViewData(entity);
+	        return _this4.entityModelToViewData(entity);
 	      });
 	      this.view.updateEntitiesList(entitiesViewData);
+	    }
+	    /*
+	     * Set the kind of displayed name for entities.
+	     * Then refresh diagram and entities list
+	     * @param {string} - type accepted values: `label` | `full` | `prefixed`
+	     */
+
+	  }, {
+	    key: "onEntityNameTypeChange",
+	    value: function onEntityNameTypeChange(type) {
+	      var _this5 = this;
+
+	      this.SimplifiedOntologyPromise.then(function () {
+	        Object.keys(_this5.ontologies).forEach(function (key) {
+	          var entities = _this5.ontologies[key].getEntities(false); // get cytoscape nodes
+
+
+	          switch (type) {
+	            case 'label':
+	              entities.forEach(function (entity) {
+	                if (entity.data('label')[_this5.language]) entity.data('displayed_name', entity.data('label')[_this5.language]);else if (entity.data('label')[_this5.default_language]) entity.data('displayed_name', entity.data('label')[_this5.default_language]);else {
+	                  var _iteratorNormalCompletion = true;
+	                  var _didIteratorError = false;
+	                  var _iteratorError = undefined;
+
+	                  try {
+	                    for (var _iterator = _this5.languagesList[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                      var lang = _step.value;
+
+	                      if (entity.data('label')[lang]) {
+	                        entity.data('displayed_name', entity.data('label')[lang]);
+	                        break;
+	                      }
+	                    }
+	                  } catch (err) {
+	                    _didIteratorError = true;
+	                    _iteratorError = err;
+	                  } finally {
+	                    try {
+	                      if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+	                        _iterator["return"]();
+	                      }
+	                    } finally {
+	                      if (_didIteratorError) {
+	                        throw _iteratorError;
+	                      }
+	                    }
+	                  }
+	                }
+	              });
+	              break;
+
+	            case 'full':
+	              entities.forEach(function (entity) {
+	                entity.data('displayed_name', entity.data('iri').full_iri);
+	              });
+	              break;
+
+	            case 'prefixed':
+	              entities.forEach(function (entity) {
+	                var prefixed_iri = entity.data('iri').prefix + entity.data('iri').remaining_chars;
+	                entity.data('displayed_name', prefixed_iri);
+	              });
+	              break;
+	          }
+	        });
+
+	        _this5.updateGraphView(_this5.view.renderer.getActualPosition());
+
+	        _this5.updateEntitiesList();
+	      });
+	    }
+	    /*
+	     * Update selected language in config and set displayed names accordingly
+	     * Then refresh diagram and entities list
+	     * @param {string} - language
+	     */
+
+	  }, {
+	    key: "onLanguageChange",
+	    value: function onLanguageChange(language) {
+	      this.config.preferences.language.selected = language; // update displayed names (if label is selected then update the label language)
+
+	      this.onEntityNameTypeChange(this.config.preferences.entity_name.selected);
 	    }
 	  }, {
 	    key: "setConfig",
 	    value: function setConfig(new_config) {
-	      var _this5 = this;
+	      var _this6 = this;
 
 	      Object.keys(new_config).forEach(function (entry) {
-	        if (typeof new_config[entry] !== "boolean") return;
+	        // if custom theme
+	        if (entry == 'theme' && _typeof$m(new_config[entry]) == 'object') {
+	          _this6.view.setCustomTheme(new_config[entry]);
 
-	        try {
-	          _this5.config.widgets[entry].enabled = new_config[entry];
-	        } catch (e) {
-	          return;
+	          _this6.config.rendering.theme.list.push({
+	            value: 'custom',
+	            label: 'Custom'
+	          });
+
+	          _this6.config.rendering.theme.selected = 'custom';
+	          return; // continue to next entry and skip next for
+	        }
+
+	        for (var area in _this6.config) {
+	          try {
+	            var setting = _this6.config[area][entry];
+
+	            if (setting) {
+	              // apply custom settings only if they match type and are defined in lists
+	              if (setting.type == 'boolean' && typeof new_config[entry] == 'boolean') _this6.config[area][entry].enabled = new_config[entry];else if (_this6.config[area][entry].list.map(function (elm) {
+	                return elm.value;
+	              }).includes(new_config[entry])) _this6.config[area][entry].selected = new_config[entry];
+	            }
+	          } catch (e) {}
 	        }
 	      });
 	    }
 	  }, {
-	    key: "ontology",
-	    set: function set(ontology) {
-	      this._ontology = ontology;
-	    },
-	    get: function get() {
-	      return this._ontology;
-	    }
-	  }], [{
 	    key: "entityModelToViewData",
 	    value: function entityModelToViewData(entityModelData) {
+	      var language_variant_properties = ["label"];
+
+	      for (var _i = 0, _language_variant_pro = language_variant_properties; _i < _language_variant_pro.length; _i++) {
+	        var property = _language_variant_pro[_i];
+
+	        if (entityModelData.data[property]) {
+	          if (entityModelData.data[property][this.language]) language_variant_properties[property] = entityModelData.data[property][this.language];else if (entityModelData.data[property][this.default_language]) {
+	            language_variant_properties[property] = entityModelData.data[property][this.default_language];
+	          } else {
+	            var _iteratorNormalCompletion2 = true;
+	            var _didIteratorError2 = false;
+	            var _iteratorError2 = undefined;
+
+	            try {
+	              for (var _iterator2 = this.languagesList[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	                var lang = _step2.value;
+
+	                if (entityModelData.data[property][lang]) {
+	                  language_variant_properties[property] = entityModelData.data[property][lang];
+	                  break;
+	                }
+	              }
+	            } catch (err) {
+	              _didIteratorError2 = true;
+	              _iteratorError2 = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+	                  _iterator2["return"]();
+	                }
+	              } finally {
+	                if (_didIteratorError2) {
+	                  throw _iteratorError2;
+	                }
+	              }
+	            }
+	          }
+	        }
+	      }
+
 	      var entityViewData = {
 	        id: entityModelData.data.id,
 	        id_xml: entityModelData.data.id_xml,
 	        diagram_id: entityModelData.data.diagram_id,
-	        label: entityModelData.data.label,
+	        label: language_variant_properties.label,
+	        displayed_name: entityModelData.data.displayed_name,
 	        type: entityModelData.data.type,
 	        iri: entityModelData.data.iri,
 	        description: entityModelData.data.description,
+	        annotations: entityModelData.data.annotations,
 	        functional: entityModelData.data.functional,
 	        inverseFunctional: entityModelData.data.inverseFunctional,
 	        asymmetric: entityModelData.data.asymmetric,
@@ -53864,50 +59605,117 @@
 	      };
 	      return JSON.parse(JSON.stringify(diagramViewData));
 	    }
+	  }, {
+	    key: "ontology",
+	    set: function set(ontology) {
+	      this._ontology = ontology;
+	    },
+	    get: function get() {
+	      return this._ontology;
+	    }
+	    /**
+	     * Setter.
+	     * Set the callback function for wiki redirection given an IRI
+	     * @param {Function} callback - the function to call when redirecting to a wiki page.
+	     * The callback will receive the IRI.
+	     */
+
+	  }, {
+	    key: "onWikiClick",
+	    set: function set(callback) {
+	      this._onWikiClick = callback;
+	      this.view.onWikiClick = callback;
+	    },
+	    get: function get() {
+	      return this._onWikiClick;
+	    }
+	    /**
+	     * Getter
+	     * @returns {string} - selected language
+	     */
+
+	  }, {
+	    key: "language",
+	    get: function get() {
+	      return this.config.preferences.language.selected;
+	    }
+	    /**
+	     * Getter
+	     * @returns {Array} - languages defined in the ontology
+	     */
+
+	  }, {
+	    key: "languagesList",
+	    get: function get() {
+	      return this.config.preferences.language.list.map(function (lang) {
+	        return lang.value;
+	      });
+	    }
+	    /**
+	     * Getter
+	     * @returns {Diagram} - the diagram displayed
+	     */
+
+	  }, {
+	    key: "actual_diagram",
+	    get: function get() {
+	      return this.ontology.getDiagram(this.view.actual_diagram_id);
+	    }
 	  }]);
 
 	  return GrapholscapeController;
 	}();
 
-	function _typeof$g(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$g = function _typeof(obj) { return typeof obj; }; } else { _typeof$g = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$g(obj); }
+	function _typeof$n(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$n = function _typeof(obj) { return typeof obj; }; } else { _typeof$n = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$n(obj); }
 
-	function _classCallCheck$t(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$z(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _defineProperties$s(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+	function _defineProperties$y(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-	function _createClass$s(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$s(Constructor.prototype, protoProps); if (staticProps) _defineProperties$s(Constructor, staticProps); return Constructor; }
+	function _createClass$y(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$y(Constructor.prototype, protoProps); if (staticProps) _defineProperties$y(Constructor, staticProps); return Constructor; }
 
 	var GrapholScape =
 	/*#__PURE__*/
 	function () {
 	  function GrapholScape(file) {
+	    var _this = this;
+
 	    var container = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+	    var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
-	    _classCallCheck$t(this, GrapholScape);
+	    _classCallCheck$z(this, GrapholScape);
 
-	    this.ontology = file;
+	    this.readGraphol(file).then(function (result) {
+	      _this._ontology = result;
+	    })["catch"](function (error) {
+	      console.error(error);
+	    });
 
 	    if (container) {
-	      return this.init(container);
+	      return this.init(container, config);
 	    }
 	  }
 
-	  _createClass$s(GrapholScape, [{
+	  _createClass$y(GrapholScape, [{
 	    key: "init",
 	    value: function init(container) {
-	      var _this = this;
+	      var _this2 = this;
 
 	      var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+	      this.view = new GrapholscapeView(container);
 	      return new Promise(function (resolve, reject) {
-	        _this.readFilePromise.then(function () {
-	          _this.view = new GrapholscapeView(container);
-	          _this.controller = new GrapholscapeController(_this.ontology, _this.view, config);
+	        _this2.readFilePromise.then(function () {
+	          _this2.controller = new GrapholscapeController(_this2._ontology, _this2.view, config);
 
-	          _this.controller.init();
+	          _this2.controller.init();
 
-	          resolve(_this);
+	          resolve(_this2.controller);
 	        })["catch"](function (reason) {
-	          return reject(reason);
+	          _this2.view.showDialog(reason.name, reason.message);
+
+	          reject(reason);
+	        })["finally"](function () {
+	          return _this2.view.spinner.hide();
 	        });
 	      });
 	    }
@@ -53917,11 +59725,16 @@
 	      this.readFilePromise = new Promise(function (resolve, reject) {
 	        var result = null;
 
-	        if (_typeof$g(file) === 'object') {
+	        if (_typeof$n(file) === 'object') {
 	          var reader = new FileReader();
 
 	          reader.onloadend = function () {
-	            result = getResult(reader.result);
+	            try {
+	              result = getResult(reader.result);
+	            } catch (error) {
+	              reject(error);
+	            }
+
 	            resolve(result);
 	          };
 
@@ -53939,29 +59752,9 @@
 	      return this.readFilePromise;
 
 	      function getResult(file) {
-	        var graphol_parser = new GrapholParser();
-	        return graphol_parser.parseGraphol(file);
+	        var graphol_parser = new GrapholParser(file);
+	        return graphol_parser.parseGraphol();
 	      }
-	    }
-	  }, {
-	    key: "showDiagram",
-	    value: function showDiagram(id) {
-	      this.controller.onDiagramChange(id);
-	    }
-	  }, {
-	    key: "ontology",
-	    set: function set(file) {
-	      var _this2 = this;
-
-	      this.readGraphol(file).then(function (result) {
-	        _this2._ontology = result;
-	      })["catch"](function (error) {
-	        console.error(error);
-	        window.alert(error);
-	      });
-	    },
-	    get: function get() {
-	      return this._ontology;
 	    }
 	  }]);
 
