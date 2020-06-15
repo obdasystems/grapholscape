@@ -21,7 +21,7 @@
     "app:dist": "electron-packager ./app --out=./dists --icon=./app/assets/icon --overwrite",
     "deploy": "run-s copy-build-in:demo && cross-env-shell gh-pages -d demo -m \"$VERSION\" && rimraf ./demo/js/grapholscape.min.js",
     "release": "run-s dist app:dist",
-    "doc" : "node doc/doc.js"
+    "doc": "node doc/doc.js"
   },
   "repository": {
     "type": "git",
