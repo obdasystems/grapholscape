@@ -1,13 +1,8 @@
 import GrapholscapeRenderer from './default-renderer'
-import cola from 'cytoscape-cola'
-import popper from 'cytoscape-popper'
-import cytoscape from 'cytoscape'
 
 export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
     super(container)
-    cytoscape.use(cola)
-    cytoscape.use(popper)
 
     this.cy.style.textureOnViewport = true
 

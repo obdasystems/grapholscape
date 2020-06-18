@@ -4,6 +4,12 @@ import "@webcomponents/webcomponentsjs"
 import GrapholParser from './parsing/parser'
 import GrapholscapeView from './view/view'
 import GrapholscapeController from './grapholscape-controller'
+import cytoscape from 'cytoscape'
+import popper from 'cytoscape-popper'
+import cola from 'cytoscape-cola'
+
+cytoscape.use(popper)
+cytoscape.use(cola)
 
 export default class GrapholScape {
   constructor (file, container = false, config = null) {
