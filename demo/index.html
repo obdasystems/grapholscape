@@ -100,6 +100,7 @@
 
     function useGrapholscape(file) {
       document.getElementById('home').style.display = 'none';
+      grapholscape_container.style.display = 'block';
 
       const grapholscape = new GrapholScape(file, grapholscape_container)
       grapholscape.then( function(grapholscape) {

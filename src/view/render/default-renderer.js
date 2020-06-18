@@ -9,7 +9,7 @@ export default class GrapholscapeRenderer {
 
     cy_container.style.width = '100%'
     cy_container.style.height = '100%'
-    cy_container.style.position = 'absolute'
+    cy_container.style.position = 'relative'
     if (container)
       container.insertBefore(cy_container, container.firstChild)
 

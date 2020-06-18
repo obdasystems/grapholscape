@@ -38,10 +38,17 @@
 
 */
 
+#grapholscape_container {
+  height: 100%;
+  position: relative;
+  display: none;
+}
+
 body, html {
   font-family : "Montserrat", "Open Sans","Helvetica Neue",Helvetica,sans-serif;
   color: #555;
   -webkit-user-select:none; 
+  height: 100%;
 }
 
 #home {

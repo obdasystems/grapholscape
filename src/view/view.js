@@ -22,7 +22,7 @@ export default class GrapholscapeView {
     this.graph_container = document.createElement('div')
     this.graph_container.style.width = '100%'
     this.graph_container.style.height = '100%'
-    this.graph_container.style.position = 'absolute'
+    this.graph_container.style.position = 'relative'
     this.container.appendChild(this.graph_container)
     this.onEdgeSelection = {}
     this.onNodeSelection = {}
