@@ -72,6 +72,11 @@ export default class GrapholParser {
                 break
               }
             }
+
+            // in case of no languages defined for labels
+            if (!node.data.displayed_name) {
+              node.data.displayed_name = node.data.label[Object.keys(node.data.label)[0]]
+            }
           }
         }
 

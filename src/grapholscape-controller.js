@@ -332,12 +332,8 @@ export default class GrapholscapeController {
               else if (entity.data('label')[this.default_language])
                 entity.data('displayed_name', entity.data('label')[this.default_language])
               else {
-                for (let lang of this.languagesList) {
-                  if (entity.data('label')[lang]) {
-                    entity.data('displayed_name', entity.data('label')[lang])
-                    break
-                  }
-                }
+                let first_label_key = Object.keys(entity.data('label'))[0]
+                entity.data('displayed_name', entity.data('label')[first_label_key])
               }
             })
             break
