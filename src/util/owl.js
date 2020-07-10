@@ -326,7 +326,7 @@ export default class OwlTranslator {
         break
 
       case 'datatype-restriction':
-        var inputs = node.incomers('[type = "input"]').sources()
+        inputs = node.incomers('[type = "input"]').sources()
         if (!inputs.length) { return missing_operand }
 
         return datatypeRestriction(this, inputs)
@@ -334,7 +334,17 @@ export default class OwlTranslator {
 
       case 'property-assertion':
         return not_defined
+
+      case 'has-key':
+        inputs = node.incomers('[type = "input"]')
+        if (!inputs.length || inputs.length < 2)
+          return missing_operand
+
+        return hasKey(this, inputs.sources())
+        break
     }
+
+
 
     function someValuesFrom (self, first, other, restr_type) {
       var axiom_type, owl_string
@@ -412,8 +422,6 @@ export default class OwlTranslator {
     }
 
     function objectPropertyChain (self, inputs) {
-      var owl_string
-
       var owl_string = 'ObjectPropertyChain('
       inputs.forEach( input => {
         owl_string += self.nodeToOwlString(input) + ' '
@@ -421,6 +429,21 @@ export default class OwlTranslator {
 
       owl_string = owl_string.slice(0, owl_string.length - 1)
       owl_string += ')'
+      return owl_string
+    }
+
+    function hasKey(self, inputs) {
+      
+      let class_node = inputs.filter('[identity = "concept"]')
+      let owl_string = 'HasKey(' + self.nodeToOwlString(class_node) + ' '
+      
+      inputs.forEach(input => {
+        if (input.id() != class_node.id()) {
+          owl_string += self.nodeToOwlString(input) + ' '
+        }
+      })
+      
+      owl_string = owl_string.slice(0, owl_string.length - 1) + ')'
       return owl_string
     }
 

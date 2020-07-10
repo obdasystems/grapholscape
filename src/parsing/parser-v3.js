@@ -57,7 +57,8 @@ export function getLabel(element, ontology, xmlDocument) {
     'role-inverse' : 'inv',
     'complement' : 'not',
     'datatype-restriction' : 'data',
-    'enumeration' : 'oneOf'
+    'enumeration' : 'oneOf',
+    'has-key' : 'key',
   }
 
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2

@@ -179,6 +179,7 @@ export default class GrapholParser {
       case 'complement':
       case 'intersection':
       case 'enumeration':
+      case 'has-key':
         nodo.data.shape = 'hexagon'
         nodo.data.identity = 'neutral'
         break
@@ -203,9 +204,10 @@ export default class GrapholParser {
         nodo.data.identity = 'neutral'
         nodo.data.inputs = element.getAttribute('inputs').split(',')
         break
+      case 'literal':
       case 'individual':
         nodo.data.shape = 'octagon'
-        nodo.data.identity = 'individual'
+        nodo.data.identity = nodo.data.type == 'individual' ? 'individual' : 'value'
         break
       case 'facet':
         nodo.data.shape = 'polygon'
@@ -215,6 +217,7 @@ export default class GrapholParser {
         break
       default:
         console.error('tipo di nodo sconosciuto')
+        console.log(nodo)
         break
     }
 
