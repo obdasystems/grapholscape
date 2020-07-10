@@ -484,27 +484,15 @@ export default class GrapholParser {
         position: nodo.position
       }
 
-      var front_rectangle = {
-        data: {
-          type: 'property-assertion',
-          height: nodo.data.height - 1,
-          width: nodo.data.width - nodo.data.height,
-          shape: 'rectangle',
-          diagram_id: nodo.data.diagram_id,
-          fillColor: '#fff',
-          parent_node_id: nodo.data.id,
-          type: nodo.data.type
-        },
-        position: nodo.position,
-        classes: 'property-assertion no_border'
-      }
-
-      nodo.classes += ' hidden'
-      array_json_nodes[array_json_nodes.length - 1] = nodo
-      array_json_nodes.push(back_rectangle)
+      nodo.data.height -= 1
+      nodo.data.width = nodo.data.width - nodo.data.height
+      nodo.data.shape = 'rectangle'
+      nodo.classes = 'property-assertion no_border'
+      
+      array_json_nodes[array_json_nodes.length - 1] = back_rectangle
       array_json_nodes.push(circle1)
       array_json_nodes.push(circle2)
-      array_json_nodes.push(front_rectangle)
+      array_json_nodes.push(nodo)
     }
   }
 
