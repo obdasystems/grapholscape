@@ -16,6 +16,13 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: '[fontSize]',
+      style: {
+        'font-size' : 'data(fontSize)',
+      }
+    },
+
+    {
       selector: 'node[displayed_name]',
       style: {
         'label': 'data(displayed_name)',

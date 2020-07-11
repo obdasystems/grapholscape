@@ -101,8 +101,7 @@ export function getLabel(element, ontology, xmlDocument) {
   let annotations = getTag(iri_xml_elem, 'annotations')
   let labels = {}
   if (annotations) {
-    annotations = annotations.children
-    for (let annotation of annotations) {
+    for (let annotation of annotations.children) {
       if (getTagText(annotation, 'property') == label_property_iri) {
         labels[getTagText(annotation, 'language')] = getTagText(annotation, 'lexicalForm')
       }
@@ -151,7 +150,7 @@ function getIriAnnotations(iri) {
         if (!result.annotations[annotation_kind])
           result.annotations[annotation_kind] = {}
 
-        // take only one annotation for language
+        // take only one annotation for each language
         if (!result.annotations[annotation_kind][language])
           result.annotations[annotation_kind][language] = lexicalForm
       }
@@ -161,12 +160,24 @@ function getIriAnnotations(iri) {
   return result
 }
 
-function getTag(root, tagName, n = 0) {
+/**
+ * Retrieve the xml tag element in a xml root element
+ * @param {*} root root element to search the tag in
+ * @param {string} tagName the name of the tag to search
+ * @param {*} n in case of more instances, retrieve the n-th. Default: 0 (the first one)
+ */
+export function getTag(root, tagName, n = 0) {
   if (root && root.getElementsByTagName(tagName[n]))
     return root.getElementsByTagName(tagName)[n]
 }
 
-function getTagText(root, tagName, n = 0) {
+/**
+ * Retrieve the text inside a given tag in a xml root element
+ * @param {*} root root element to search the tag in
+ * @param {string} tagName the name of the tag to search
+ * @param {*} n in case of more instances, retrieve the n-th. Default: 0 (the first one)
+ */
+export function getTagText(root, tagName, n = 0) {
   if (root && root.getElementsByTagName(tagName)[n])
     return root.getElementsByTagName(tagName)[n].textContent
 }

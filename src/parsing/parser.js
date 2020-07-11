@@ -222,10 +222,12 @@ export default class GrapholParser {
     }
 
     let label = element.getElementsByTagName('label')[0]
-    // apply label position
+    // apply label position and font size
     if (label != null) {
       nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1
       nodo.data.labelYpos = (parseInt(label.getAttribute('y')) - nodo.position.y) + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4
+
+      nodo.data.fontSize = parseInt(label.getAttribute('size')) || 12
     }
 
     if(ParserUtil.isPredicate(element))
