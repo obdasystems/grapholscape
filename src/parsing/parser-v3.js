@@ -19,13 +19,13 @@ export function getOntologyInfo(xmlDocument) {
 export function getIriPrefixesDictionary(xmlDocument) {
   let result = []
   let prefixes = getTag(xmlDocument, 'prefixes').children
-  prefixes.forEach( p => {
+  for (const p of prefixes) {
     result.push({
       prefixes : [getTagText(p, 'value')],
       value : getTagText(p, 'namespace'),
       standard : false,
     })
-  })
+  }
   return result
 }
 
@@ -68,8 +68,9 @@ export function getLabel(element, ontology, xmlDocument) {
 
     let value = getTagText(element, 'lexicalForm')
 
-    let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
-    datatype = datatype.prefix + ':' + datatype.rem_chars
+    // unused to be compliant to Graphol-V2
+    //let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
+    //datatype = datatype.prefix + ':' + datatype.rem_chars
 
     return constraining_facet + '^^"' + value +'"'
   }
@@ -103,7 +104,9 @@ export function getLabel(element, ontology, xmlDocument) {
   if (annotations) {
     for (let annotation of annotations.children) {
       if (getTagText(annotation, 'property') == label_property_iri) {
-        labels[getTagText(annotation, 'language')] = getTagText(annotation, 'lexicalForm')
+        // add label for a given language only if it doesn't already exist
+        labels[getTagText(annotation, 'language')] = 
+          labels[getTagText(annotation, 'language')] || getTagText(annotation, 'lexicalForm')
       }
     }
   }

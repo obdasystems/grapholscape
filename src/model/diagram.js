@@ -4,7 +4,7 @@ import cytoscape from 'cytoscape'
  * @property {string | number} id - diagram's identifier
  * @property {cytoscape} cy - cytoscape headless instance for managing elements
  */
-export class Diagram {
+export default class Diagram {
   /**
    * @param {string} name
    * @param {string | number} id
@@ -27,13 +27,6 @@ export class Diagram {
   }
 
   /**
-   * @returns {any} - A cytoscape collection with nodes and edges
-   */
-  getElems() {
-    return this.nodes.union(this.edges)
-  }
-
-  /**
    * Getter
    * @returns {JSON} - nodes in JSON
    */
@@ -48,14 +41,5 @@ export class Diagram {
   get edges() {
     return this.cy.edges().jsons()
   }
-
-  /**
-   * Getter
-   * @returns {any} - nodes and edges in JSON
-   */
-  get elems() {
-    return this.nodes.union(this.edges)
-  }
 }
 
-export default Diagram

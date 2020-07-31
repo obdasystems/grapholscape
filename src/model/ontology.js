@@ -10,7 +10,8 @@
 import cytoscape from 'cytoscape'
 import Diagram from './diagram'
 import Namespace from './namespace'
-export class Ontology {
+
+export default class Ontology {
   /**
    *
    * @param {string} name
@@ -39,7 +40,7 @@ export class Ontology {
 
   getIriFromPrefix(prefix) {
     for(let iri of this.namespaces) {
-      if (iri.prefixes.includes(prefix))
+      if (iri.prefixes && iri.prefixes.includes(prefix))
         return iri
     }
   }
@@ -58,12 +59,13 @@ export class Ontology {
 
         result.rem_chars = iri.slice(namespace.value.length)
         break;
-      } else if (iri.search(namespace.value.slice(0, -1)) != -1) {
-        result.namespace = namespace.value
-        result.prefix = namespace.prefixes[0]
-        result.rem_chars = iri.slice(namespace.value.length - 1)
-        break;
-      }
+      } 
+      //else if (iri.search(namespace.value.slice(0, -1)) != -1) {
+        //result.namespace = namespace.value
+        //result.prefix = namespace.prefixes[0]
+        //result.rem_chars = iri.slice(namespace.value.length - 1)
+        //break;
+      //}
     }
 
     return result
@@ -127,7 +129,7 @@ export class Ontology {
 
     if (diagram) {
       let node = diagram.cy.$(`[id_xml = "${elem_id}"]`)
-      if (node)
+      if (node.length > 0)
         return json ? node.json() : node
     }
 
@@ -154,5 +156,3 @@ export class Ontology {
     return json ? predicates.jsons() : predicates
   }
 }
-
-export default Ontology

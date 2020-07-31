@@ -26,7 +26,7 @@ export function getIriPrefixesDictionary(xmlDocument) {
   if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length === 0) {
     // for old graphol files
     result.push({
-      prefix : '',
+      prefix : [''],
       value : xmlDocument.getElementsByTagName('iri')[0].textContent,
       standard: false
     })

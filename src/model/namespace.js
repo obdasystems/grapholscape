@@ -10,28 +10,10 @@ export default class Namespace {
    * @param {string} value - namespace lexical form
    * @param {boolean} standard - bool saying if the namespace is standard or user defined
    */
-  constructor (prefixes = '', value, standard = false) {
-    this.prefixes = prefixes
+  constructor (prefixes, value, standard = false) {
+    this.prefixes = prefixes || ['']
     this.value = value
     this.standard = standard
-  }
-
-  /**
-   * Getter
-   */
-  get value() {
-    return this._value
-  }
-
-  /**
-   * Setter.
-   * Auto adding final terminator if not present
-   * @param {string} value - the string to set as value
-   */
-  set value(value) {
-    if (!value.endsWith('/') && !value.endsWith('#'))
-      value += '/'
-    this._value = value
   }
 
   /**
