@@ -1,6 +1,6 @@
 
 
-<!-- Start src\model\ontology.js -->
+<!-- Start src/model/ontology.js -->
 
 # Ontology
 Class used as the Model of the whole app.
@@ -79,5 +79,5 @@ Get the entities in the ontology
 * **JSON|any**    - if `json` = `true` : array of JSONs with entities
    - if `json` = `false` : [cytoscape collection](https://js.cytoscape.org/#collection)
 
-<!-- End src\model\ontology.js -->
+<!-- End src/model/ontology.js -->
 

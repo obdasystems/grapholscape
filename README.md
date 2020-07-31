@@ -7,6 +7,10 @@ Advanced web viewer for ontologies written in [GRAPHOL](http://www.obdasystems.c
 
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
+
+* Simplify your ontology:
+  * **Graphol-lite**: get to the point with a summarized view avoiding too complex expression
+  * **Floaty Mode**: simplify further obtaining an extremely easy representation of the ontology
 * Search for predicates and their instances through all diagrams contained in the ontology
 * Re-arrange GUI's modules floating above the diagram
 * Get detailed information about selected element
@@ -80,10 +84,10 @@ Run `npm run <target>` in the console. The main targets are:
 - `dist` : update distribution js for npm etc.
 - `deploy` : copy `./build/grapholscape.min.js` to demo folder, publish it to gh-pages and remove it so demo in dev mode keep on using `./build/grapholscape.js`
 - `release` : Do builds in production, distribute builds and package electron app for all platforms
+- `test`: run all test suites
 
 ### Release Instructions
 1. Update `VERSION` environment variable, e.g. `export VERSION=1.1.1` (unix) `set VERSION=1.1.1` (windows)
-2. Test (To be defined)
 3. Prepare all artifacts for a release: `npm run release`\
     *Please review built files and try out demo and electron app before proceeding*
 4. Commit release to git: `git add . && git commit -m "Build $VERSION"`

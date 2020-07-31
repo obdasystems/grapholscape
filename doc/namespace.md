@@ -1,6 +1,6 @@
 
 
-<!-- Start src\model\namespace.js -->
+<!-- Start src/model/namespace.js -->
 
 ## Namespace
 
@@ -20,19 +20,6 @@ Class representing a namespace
 * **string** *value* - namespace lexical form
 * **boolean** *standard* - bool saying if the namespace is standard or user defined
 
-## value
-
-Getter
-
-## value
-
-Setter.
-Auto adding final terminator if not present
-
-### Params:
-
-* **string** *value* - the string to set as value
-
 ## isStandard()
 
 Wether the namespace is standard (`true`) or user defined (`false`)
@@ -41,5 +28,5 @@ Wether the namespace is standard (`true`) or user defined (`false`)
 
 * **boolean** 
 
-<!-- End src\model\namespace.js -->
+<!-- End src/model/namespace.js -->
 

@@ -122,5 +122,5 @@ Getter
 
 * **Diagram** - the diagram displayed
 
-<!-- End src\grapholscape-controller.js -->
+<!-- End src/grapholscape-controller.js -->
 

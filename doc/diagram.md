@@ -1,6 +1,6 @@
 
 
-<!-- Start src\model\diagram.js -->
+<!-- Start src/model/diagram.js -->
 
 ## Diagram
 
@@ -26,12 +26,6 @@ Add a collection of nodes and edges to the diagram
 
 * **JSON** *elems* - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
 
-## getElems()
-
-### Return:
-
-* **any** - A cytoscape collection with nodes and edges
-
 ## nodes
 
 Getter
@@ -48,13 +42,5 @@ Getter
 
 * **JSON** - edges in JSON
 
-## elems
-
-Getter
-
-### Return:
-
-* **any** - nodes and edges in JSON
-
-<!-- End src\model\diagram.js -->
+<!-- End src/model/diagram.js -->
 
