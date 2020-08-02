@@ -1,12 +1,13 @@
 import nodeResolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import babel from '@rollup/plugin-babel'
-import replace from 'rollup-plugin-replace'
+import replace from '@rollup/plugin-replace'
 import { terser } from 'rollup-plugin-terser'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
 import path from 'path'
 import json from '@rollup/plugin-json'
+import pkg from './package.json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const FILE = process.env.FILE
@@ -86,9 +87,9 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       license(licenseHeaderOptions),
       !FILE ? sizeSnapshot({ matchSnapshot }) : {}
     ]
@@ -104,9 +105,9 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       terser({
         sourcemap: false
       }),
@@ -130,9 +131,9 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       license(licenseHeaderOptions)
     ],
     external: dependencies
@@ -147,9 +148,9 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       license(licenseHeaderOptions)
     ],
     external: dependencies

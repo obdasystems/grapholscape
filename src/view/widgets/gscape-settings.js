@@ -3,7 +3,6 @@ import GscapeWidget from './common/gscape-widget'
 import GscapeButton from './common/gscape-button'
 import GscapeToggle from './common/gscape-toggle'
 import { grapholscape as logo} from './assets/gscape-logo'
-import { version } from '../../../package.json'
 
 export default class GscapeSettings extends GscapeWidget {
 
@@ -154,7 +153,7 @@ export default class GscapeSettings extends GscapeWidget {
 
           <div id="version">
             <span>Version: </span>
-            <span>${version}</span>
+            <span>${process.env.VERSION}</span>
           </div>
         </div>
       </div>
