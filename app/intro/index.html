@@ -45,7 +45,7 @@
     let recents = []
 
     // Version
-    document.getElementById('version').innerHTML = 'Version: ' + app.getVersion()
+    document.getElementById('version').innerHTML = 'App Version: ' + app.getVersion()
     ipcRenderer.on('remove-recent', (e, filePath) =>{
       deleteRecentFile(filePath)
     })
