@@ -39,11 +39,6 @@ export default class GscapeExplorer extends GscapeWidget{
           padding:4px 0;
         }
 
-        .row:hover, .sub-row:hover {
-          background-color: var(--theme-gscape-secondary, ${colors.secondary});
-          color: var(--theme-gscape-on-secondary, ${colors.on_secondary});
-        }
-
         .row-label{
           padding-left:5px;
           cursor:pointer;
@@ -163,7 +158,7 @@ export default class GscapeExplorer extends GscapeWidget{
           <div>
             <div
               id="${predicate.subrows[0].id}"
-              class="row"
+              class="row highlight"
               type="${predicate.type}"
               label = "${predicate.label}"
             >
@@ -175,7 +170,7 @@ export default class GscapeExplorer extends GscapeWidget{
             <div class="sub-rows-wrapper hide">
             ${predicate.subrows.map( predicate_instance => {
               return html`
-                <div class="sub-row"
+                <div class="sub-row highlight"
                   diagram_id="${predicate_instance.diagram.id}"
                   node_id="${predicate_instance.id}"
                   @click="${this.handleNodeSelection}"

@@ -29,11 +29,6 @@ export default class GscapeDiagramSelector extends GscapeWidget {
           padding:5px 10px;
         }
 
-        .diagram-item:hover {
-          color: var(--theme-gscape-on-secondary, ${colors.on_secondary});
-          background-color:var(--theme-gscape-secondary, ${colors.secondary});
-        }
-
         .diagram-item:last-of-type {
           border-radius: inherit;
         }
@@ -68,7 +63,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
           @click="${this.changeDiagram}"
           name="${diagram.name}"
           diagram-id="${id}"
-          class="diagram-item ${id == this.actual_diagram_id ? `selected` : ``}"
+          class="diagram-item highlight ${id == this.actual_diagram_id ? `selected` : ``}"
         >
           ${diagram.name}
         </div>

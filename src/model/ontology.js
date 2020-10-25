@@ -119,6 +119,19 @@ export default class Ontology {
   }
 
   /**
+   * Retrieve all occurrences of an entity by its IRI.
+   * @param {string} iri - The IRI in full or prefixed form.
+   * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+   * @returns {JSON} The plain json representation of the entity.
+   */
+  getOccurrences(iri) {
+    return this.getEntities().filter(i => {
+      return i.data.iri.full_iri === iri ||
+        i.data.iri.prefix + i.data.iri.remaining_chars === iri
+    })
+  }
+
+  /**
    * Get an element in the ontology by its id and its diagram id
    * @param {string} elem_id - The id of the element to retrieve
    * @param {string } diagram_id - the id of the diagram containing the element

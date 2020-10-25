@@ -119,6 +119,11 @@ export default class GscapeWidget extends LitElement {
         white-space: nowrap;
       }
 
+      .highlight:hover {
+        color: var(--theme-gscape-on-secondary, ${colors.on_secondary});
+        background-color:var(--theme-gscape-secondary, ${colors.secondary});
+      }
+
       /* width */
       ::-webkit-scrollbar {
         width: 5px;

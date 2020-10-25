@@ -167,6 +167,15 @@ export default class GrapholscapeController {
   showDetails(entityModelData, unselect = false) {
     if (this.config.widgets.details.enabled) {
       let entityViewData = this.entityModelToViewData(entityModelData)
+
+      // retrieve all occurrences and construct a list of pairs { elem_id , diagram_id }
+      entityViewData.occurrences = this.ontology.getOccurrences(entityViewData.iri.full_iri).map( elem => {
+        return { 
+          id: elem.data.id,
+          id_xml: elem.data.id_xml,
+          diagram_id: elem.data.diagram_id,
+          diagram_name: this.ontology.getDiagram(elem.data.diagram_id).name }
+      })
       this.view.showDetails(entityViewData, unselect)
     }
   }

@@ -2,6 +2,7 @@ import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
 import annotationsTemplate from './common/annotations-template'
+import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 export default class GscapeEntityDetails extends GscapeWidget {
 
@@ -96,6 +97,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
       irreflexive : 'Irreflexive',
       transitive : 'Transitive',
     }
+
+    this.onNodeNavigation = {}
   }
 
   render() {
@@ -130,6 +133,12 @@ export default class GscapeEntityDetails extends GscapeWidget {
                   html`<span class="chip">&#10003; ${this.properties[property]}</span>`
                 : html``
               })}
+            </div>
+            
+            <div class="section">
+              <div class="section-header">Occurrences</div>
+                ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
+              </div>
             </div>
 
             ${annotationsTemplate(this.entity)}
@@ -196,6 +205,11 @@ export default class GscapeEntityDetails extends GscapeWidget {
       })
       descr_container.innerHTML = text
     })
+  }
+
+  handleNodeSelection(e) {
+    let node_id = e.target.getAttribute('node_id')
+    this.onNodeNavigation(node_id)
   }
 
   firstUpdated() {

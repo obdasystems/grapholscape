@@ -70,6 +70,7 @@ export default class GrapholscapeView {
     this.widgets.set('explorer', this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
+    this.entity_details.onNodeNavigation = this.onNodeNavigation
     this.widgets.set('details', this.entity_details)
 
     const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
