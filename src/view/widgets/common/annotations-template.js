@@ -20,7 +20,7 @@ export default (entity) => {
                   </tr>
                 `
               })}
-            </tbody
+            </tbody>
           `
         })}
         </table>

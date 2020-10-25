@@ -114,7 +114,7 @@ export default class Ontology {
   getEntity(iri) {
     return this.getEntities().find(i => {
       return i.data.iri.full_iri === iri ||
-        i.data.iri.prefix + i.data.iri.rem_chars === iri
+        i.data.iri.prefix + i.data.iri.remaining_chars === iri
     })
   }
 
@@ -128,7 +128,7 @@ export default class Ontology {
     let diagram = this.getDiagram(diagram_id)
 
     if (diagram) {
-      let node = diagram.cy.$(`[id_xml = "${elem_id}"]`)
+      let node = diagram.cy.$(`[id_xml = "${elem_id}"]`) || diagram.cy.$id(elem_id)
       if (node.length > 0)
         return json ? node.json() : node
     }
