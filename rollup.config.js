@@ -7,7 +7,6 @@ import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
 import path from 'path'
 import json from '@rollup/plugin-json'
-import pkg from './package.json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const FILE = process.env.FILE

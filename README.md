@@ -81,22 +81,17 @@ Run `npm run <target>` in the console. The main targets are:
 - `watch:build` : do only unminified untranspiled build and watch for changes
 - `app` : run electron app
 - `app:dist` : create electron app packages for all platforms (win32, darwin, linux)
-- `dist` : update distribution js for npm etc.
-- `deploy` : copy `./build/grapholscape.min.js` to demo folder, publish it to gh-pages and remove it so demo in dev mode keep on using `./build/grapholscape.js`
-- `release` : Do builds in production, distribute builds and package electron app for all platforms
+- `dist` : do builds in production, distribute builds and package electron app for all platforms
+- `deploy` : copy `./build/grapholscape.min.js` to demo folder, publish whole `demo` folder to gh-pages and remove the build so demo in dev mode will keep on using `./build/grapholscape.js`
 - `test`: run all test suites
 
 ### Release Instructions
-1. Update `VERSION` environment variable, e.g. `export VERSION=1.1.1` (unix) `set VERSION=1.1.1` (windows)
-3. Prepare all artifacts for a release: `npm run release`\
+1. Use `npm version [ver]`
     *Please review built files and try out demo and electron app before proceeding*
-4. Commit release to git: `git add . && git commit -m "Build $VERSION"`
-5. Update package version: `npm version $VERSION`
-6. Push the release: `git push && git push --tags`
-7. Deploy web version on gh-pages: `npm run deploy`
-8. Publish to npm (To be defined)
-9. Create a release on Github from the latest tag adding zipped electron packages produced in `./dists`
+2. Push the release: `git push && git push --tags`
+3. Deploy web version on gh-pages: `npm run deploy`
+4. Publish to npm (To be defined)
+5. Create a release on Github from the latest tag adding zipped electron packages produced in `./dists`
 
-> **Note** : On windows replace `$VERSION` with `%VERSION%`.
 ## Disclaimer
 Based on [cytoscape.js](http://js.cytoscape.org).

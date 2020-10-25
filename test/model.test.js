@@ -14,7 +14,7 @@ const elems_input = [
     id:'n1_2',
     iri : {
       full_iri: 'http://www.test.com/entity1',
-      rem_chars: 'entity1',
+      remaining_chars: 'entity1',
       prefix: 'test:'
     },
     displayed_name: 'entity1',
@@ -34,7 +34,7 @@ const elems_input = [
       id:'n3_2',
       iri : {
         full_iri: 'http://www.test.com/entity2',
-        rem_chars: 'entity2',
+        remaining_chars: 'entity2',
         prefix: 'test:'
       },
       displayed_name: 'entity2',
