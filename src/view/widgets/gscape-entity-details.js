@@ -57,16 +57,6 @@ export default class GscapeEntityDetails extends GscapeWidget {
           font-size: 13px;
         }
 
-        .clickable {
-          font-weight:bold;
-          text-decoration: underline;
-        }
-
-        .clickable:hover {
-          cursor:pointer;
-          color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});
-        }
-
         .language {
           text-align: center;
           font-size: 14px;
@@ -133,12 +123,6 @@ export default class GscapeEntityDetails extends GscapeWidget {
                   html`<span class="chip">&#10003; ${this.properties[property]}</span>`
                 : html``
               })}
-            </div>
-            
-            <div class="section">
-              <div class="section-header">Occurrences</div>
-                ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
-              </div>
             </div>
 
             ${annotationsTemplate(this.entity)}

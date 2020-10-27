@@ -165,18 +165,23 @@ export default class GrapholscapeController {
    * @param {Boolean} unselect - Flag for unselecting elements on graph. Default `false`.
    */
   showDetails(entityModelData, unselect = false) {
-    if (this.config.widgets.details.enabled) {
+    if (this.config.widgets.details.enabled || this.config.widgets.occurrences_list.enabled) {
       let entityViewData = this.entityModelToViewData(entityModelData)
 
       // retrieve all occurrences and construct a list of pairs { elem_id , diagram_id }
       entityViewData.occurrences = this.ontology.getOccurrences(entityViewData.iri.full_iri).map( elem => {
-        return { 
+        return {
           id: elem.data.id,
           id_xml: elem.data.id_xml,
           diagram_id: elem.data.diagram_id,
           diagram_name: this.ontology.getDiagram(elem.data.diagram_id).name }
       })
-      this.view.showDetails(entityViewData, unselect)
+
+      if (this.config.widgets.details.enabled)
+        this.view.showDetails(entityViewData, unselect)
+
+      if (this.config.widgets.occurrences_list.enabled)
+      this.view.showOccurrences(entityViewData.occurrences, unselect)
     }
   }
 
@@ -190,14 +195,15 @@ export default class GrapholscapeController {
     if(edge_cy)
       this.showOwlTranslation(edge_cy)
 
+    this.view.hideWidget('details')
+    this.view.hideWidget('occurrences_list')
+
     // show details on roles in float mode
     if (this.actualMode == 'float') {
       let edge = this.ontology.getElemByDiagramAndId(edge_id, diagram_id)
 
       if(edge.classes.includes('predicate')) {
         this.showDetails(edge, false)
-      } else {
-        this.view.hideDetails()
       }
     }
   }
@@ -219,7 +225,8 @@ export default class GrapholscapeController {
     if(node.classes.includes('predicate')) {
       this.showDetails(node, false)
     } else {
-      this.view.hideDetails()
+      this.view.hideWidget('details')
+      this.view.hideWidget('occurrences_list')
     }
 
     /*

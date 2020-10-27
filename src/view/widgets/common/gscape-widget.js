@@ -145,6 +145,16 @@ export default class GscapeWidget extends LitElement {
         background: #888;
       }
 
+      .clickable {
+        font-weight:bold;
+        text-decoration: underline;
+      }
+
+      .clickable:hover {
+        cursor:pointer;
+        color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});
+      }
+
     `], colors]
   }
 

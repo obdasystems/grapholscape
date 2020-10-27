@@ -15,6 +15,7 @@ import GscapeLayoutSettings from './widgets/gscape-layout-settings'
 import GscapeSettings from './widgets/gscape-settings'
 import GscapeSpinner from  './widgets/common/spinner'
 import GscapeDialog from './widgets/common/dialog'
+import GscapeEntityOccurrences from './widgets/gscape-entity-occurrences'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -72,6 +73,10 @@ export default class GrapholscapeView {
     this.entity_details = new GscapeEntityDetails()
     this.entity_details.onNodeNavigation = this.onNodeNavigation
     this.widgets.set('details', this.entity_details)
+
+    this.occurrences_list = new GscapeEntityOccurrences()
+    this.occurrences_list.onNodeNavigation = this.onNodeNavigation
+    this.widgets.set('occurrences_list', this.occurrences_list)
 
     const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
     btn_fullscreen.style.top = '10px'
@@ -256,25 +261,25 @@ export default class GrapholscapeView {
 
   showDetails(entityViewData, unselect = false) {
     this.entity_details.entity = entityViewData
-    this.entity_details.show()
+    this.showWidget('details')
 
     if (unselect)
       this.renderer.cy.$(':selected').unselect()
   }
 
-  hideDetails() {
-    this.entity_details.hide()
+  showOccurrences(occurrences, unselect = false) {
+    this.occurrences_list.occurrences = occurrences
+    this.showWidget('occurrences_list')
+
+    if (unselect)
+      this.renderer.cy.$(':selected').unselect()
   }
 
   showOwlTranslation(text) {
     if (this.renderer_selector.actual_mode == 'default') {
       this.owl_translator.owl_text = text
-      this.owl_translator.show()
+      this.showWidget('owl_translator')
     }
-  }
-
-  hideOwlTranslation() {
-    this.owl_translator.hide()
   }
 
   toggleFullscreen () {
@@ -351,7 +356,7 @@ export default class GrapholscapeView {
     this.onRenderingModeChange(mode, actual_position)
 
     if (mode == 'float') {
-      this.layout_settings.show()
+      this.showWidget('layout_settings')
     } else {
       if (old_renderer == this.renderers.float) {
         /**when coming from float mode, always ignore actual position
@@ -368,7 +373,7 @@ export default class GrapholscapeView {
         setTimeout(() => this.resetView(), 250)
         //this.resetView()
       }
-      this.layout_settings.hide()
+      this.hideWidget('layout_settings')
     }
     this.filters_widget.requestUpdate()
     this.blurAll()
@@ -415,6 +420,14 @@ export default class GrapholscapeView {
       }
     })
     this.setTheme(this.custom_theme)
+  }
+
+  showWidget(widget_name) {
+    this.widgets.get(widget_name).show()
+  }
+
+  hideWidget(widget_name) {
+    this.widgets.get(widget_name).hide()
   }
 
   onWidgetEnabled(widget_name) {
