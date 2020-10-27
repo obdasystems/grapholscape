@@ -1,11 +1,8 @@
-import GrapholscapeRenderer from './grapholscape_renderer'
-import cola from 'cytoscape-cola'
-import cytoscape from 'cytoscape'
+import GrapholscapeRenderer from './default-renderer'
 
-export default class EasyGscapeRenderer extends GrapholscapeRenderer {
+export default class LiteGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
     super(container)
-    cytoscape.use(cola)
   }
 
   drawDiagram(diagram) {

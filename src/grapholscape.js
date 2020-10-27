@@ -4,25 +4,39 @@ import "@webcomponents/webcomponentsjs"
 import GrapholParser from './parsing/parser'
 import GrapholscapeView from './view/view'
 import GrapholscapeController from './grapholscape-controller'
+import cytoscape from 'cytoscape'
+import popper from 'cytoscape-popper'
+import cola from 'cytoscape-cola'
+
+cytoscape.use(popper)
+cytoscape.use(cola)
 
 export default class GrapholScape {
-  constructor (file, container = false) {
-    this.ontology = file
+  constructor (file, container = false, config = null) {
+    this.readGraphol(file)
+    .then( result => { this._ontology = result })
+    .catch( error => {
+      console.error(error)
+    })
 
     if (container) {
-      return this.init(container)
+      return this.init(container, config)
     }
   }
 
   init(container, config = null) {
+    this.view = new GrapholscapeView(container)
     return new Promise( (resolve,reject) => {
       this.readFilePromise.then( () => {
-        this.view = new GrapholscapeView(container)
-        this.controller = new GrapholscapeController(this.ontology, this.view, config)
+        this.controller = new GrapholscapeController(this._ontology, this.view, config)
         this.controller.init()
-        resolve(this)
+        resolve(this.controller)
       })
-      .catch( (reason) => reject(reason))
+      .catch( (reason) => {
+        this.view.showDialog(reason.name, reason.message)
+        reject(reason)
+      })
+      .finally( () => this.view.spinner.hide())
     })
   }
 
@@ -33,7 +47,9 @@ export default class GrapholScape {
       if (typeof (file) === 'object') {
         let reader = new FileReader()
         reader.onloadend = () => {
-          result = getResult(reader.result)
+          try {
+            result = getResult(reader.result)
+          } catch (error) { reject(error) }
           resolve(result)
         }
 
@@ -50,29 +66,11 @@ export default class GrapholScape {
         reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
       }
     })
-
     return this.readFilePromise
 
     function getResult(file) {
-      let graphol_parser = new GrapholParser()
-      return graphol_parser.parseGraphol(file)
+      let graphol_parser = new GrapholParser(file)
+      return graphol_parser.parseGraphol()
     }
-  }
-
-  showDiagram(id) {
-    this.controller.onDiagramChange(id)
-  }
-
-  set ontology(file) {
-    this.readGraphol(file)
-    .then( result => { this._ontology = result })
-    .catch( error => {
-      console.error(error)
-      window.alert(error)
-    })
-  }
-
-  get ontology() {
-    return this._ontology
   }
 }

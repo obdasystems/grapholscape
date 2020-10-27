@@ -6,9 +6,16 @@ import GscapeFilters from './widgets/gscape-filters'
 import GscapeOntologyInfo from './widgets/gscape-ontology-info'
 import GscapeOwlTranslator from './widgets/gscape-owl-translator'
 import GscapeZoomTools from './widgets/gscape-zoom-tools'
-import GrapholscapeRenderer from './render/grapholscape_renderer'
-import EasyGscapeRenderer from './render/easy-gscape-renderer'
+import GrapholscapeRenderer from './render/default-renderer'
+import LiteGscapeRenderer from './render/lite-renderer'
 import * as themes from './style/themes'
+import FloatingGscapeRenderer from './render/float-renderer'
+import GscapeRenderSelector from './widgets/gscape-render-selector'
+import GscapeLayoutSettings from './widgets/gscape-layout-settings'
+import GscapeSettings from './widgets/gscape-settings'
+import GscapeSpinner from  './widgets/common/spinner'
+import GscapeDialog from './widgets/common/dialog'
+import GscapeEntityOccurrences from './widgets/gscape-entity-occurrences'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -16,7 +23,7 @@ export default class GrapholscapeView {
     this.graph_container = document.createElement('div')
     this.graph_container.style.width = '100%'
     this.graph_container.style.height = '100%'
-    this.graph_container.style.position = 'absolute'
+    this.graph_container.style.position = 'relative'
     this.container.appendChild(this.graph_container)
     this.onEdgeSelection = {}
     this.onNodeSelection = {}
@@ -24,7 +31,8 @@ export default class GrapholscapeView {
 
     this.renderers = {
       default : new GrapholscapeRenderer(this.graph_container),
-      lite: new EasyGscapeRenderer(this.graph_container)
+      lite: new LiteGscapeRenderer(this.graph_container),
+      float: new FloatingGscapeRenderer(this.graph_container)
     }
 
     this.setRenderer(this.renderers.default)
@@ -35,7 +43,6 @@ export default class GrapholscapeView {
     this.container.mozRequestFullScreen || // Mozilla older API use uppercase 'S'.
     this.container.webkitRequestFullscreen || // Webkit
     this.container.msRequestFullscreen // IE
-
     document.cancelFullscreen =
     document.exitFullscreen ||
     document.cancelFullscreen ||
@@ -43,86 +50,112 @@ export default class GrapholscapeView {
     document.webkitCancelFullScreen ||
     document.msExitFullscreen
 
-    this.graph_container.style.background = themes.gscape.background
-    this.setTheme(themes.gscape)
+    this.spinner = new GscapeSpinner()
+    this.container.appendChild(this.spinner)
+
+    this.dialog = new GscapeDialog()
+    this.container.appendChild(this.dialog)
   }
 
   createUi(ontology, diagrams, predicates, settings) {
-    this.filters = settings.filters.filter_list
-    this.widgets = new Set()
+    this.settings = settings
+    this.filters = this.settings.widgets.filters.filter_list
+    this.widgets = new Map()
     this.diagram_selector = new GscapeDiagramSelector(diagrams)
     this.diagram_selector.onDiagramChange = this.onDiagramChange
-    this.container.appendChild(this.diagram_selector)
-    this.widgets.add(this.diagram_selector)
+    this.widgets.set('diagram_selector', this.diagram_selector)
 
     this.explorer = new GscapeExplorer(predicates, diagrams)
     this.explorer.onEntitySelect = this.onEntitySelection
     this.explorer.onNodeNavigation = this.onNodeNavigation
-    !settings.explorer.enabled ? this.explorer.hide() : null  
-    this.container.appendChild(this.explorer)
-    this.widgets.add(this.explorer)
+    this.widgets.set('explorer', this.explorer)
 
     this.entity_details = new GscapeEntityDetails()
-    !settings.details.enabled ? this.entity_details.hide() : null
-    this.container.appendChild(this.entity_details)
-    this.widgets.add(this.entity_details)
+    this.entity_details.onNodeNavigation = this.onNodeNavigation
+    this.widgets.set('details', this.entity_details)
+
+    this.occurrences_list = new GscapeEntityOccurrences()
+    this.occurrences_list.onNodeNavigation = this.onNodeNavigation
+    this.widgets.set('occurrences_list', this.occurrences_list)
 
     const btn_fullscreen = new GscapeButton('fullscreen', 'fullscreen_exit')
     btn_fullscreen.style.top = '10px'
     btn_fullscreen.style.right = '10px'
     btn_fullscreen.onClick = this.toggleFullscreen.bind(this)
-    this.container.appendChild(btn_fullscreen)
-    this.widgets.add(btn_fullscreen)
-    
+    this.widgets.set('btn_fullscreen', btn_fullscreen)
+
     const btn_reset = new GscapeButton('filter_center_focus')
     btn_reset.style.bottom = '10px'
     btn_reset.style.right = '10px'
     btn_reset.onClick = this.resetView.bind(this)
-    this.container.appendChild(btn_reset)
-    this.widgets.add(btn_reset)
+    this.widgets.set('btn_reset', btn_reset)
 
     this.filters_widget = new GscapeFilters(this.filters)
     this.filters_widget.onFilterOn = this.filter.bind(this)
     this.filters_widget.onFilterOff = this.unfilter.bind(this)
-    this.filters_widget.btn.onClick = () => {
-      this.blurAll(this.filters_widget)
-      this.filters_widget.toggleBody()
-    }
-    !settings.filters.enabled ? this.filters_widget.hide() : null
-    this.container.appendChild(this.filters_widget)
-    this.widgets.add(this.filters_widget)
+    this.widgets.set('filters', this.filters_widget)
 
     this.ontology_info = new GscapeOntologyInfo(ontology)
-    this.ontology_info.btn.onClick = () => {
-      this.blurAll(this.ontology_info)
-      this.ontology_info.toggleBody()
-    }
-    this.container.appendChild(this.ontology_info)
-    this.widgets.add(this.ontology_info)
+    this.widgets.set('ontology_info', this.ontology_info)
 
     this.owl_translator = new GscapeOwlTranslator()
-    !settings.owl_translator.enabled ? this.owl_translator.hide() : null
-    this.container.appendChild(this.owl_translator)
-    this.widgets.add(this.owl_translator)
+    this.widgets.set('owl_translator', this.owl_translator)
 
 
     const zoom_widget = new GscapeZoomTools()
     zoom_widget.onZoomIn = this.zoomIn.bind(this)
     zoom_widget.onZoomOut = this.zoomOut.bind(this)
-    this.container.appendChild(zoom_widget)
-    this.widgets.add(zoom_widget)
+    this.widgets.set('zoom_widget', zoom_widget)
 
-    this.btn_lite_mode = new GscapeButton('flash_on', 'flash_off')
-    this.btn_lite_mode.onClick = this.toggleLiteMode.bind(this)
-    this.btn_lite_mode.highlight = true
-    this.btn_lite_mode.style.bottom = '10px'
-    this.btn_lite_mode.style.left = '94px'
-    !settings.lite_mode.enabled ? this.btn_lite_mode.hide() : null
-    this.container.appendChild(this.btn_lite_mode)
-    this.widgets.add(this.btn_lite_mode)
+    this.renderer_selector = new GscapeRenderSelector(this.renderers)
+    this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this)
+    this.widgets.set('simplifications', this.renderer_selector)
 
-    this.registerEvents(this.renderers.default)
-    this.registerEvents(this.renderers.lite)
+    this.layout_settings = new GscapeLayoutSettings()
+    this.layout_settings.onLayoutRunToggle =
+      () => this.renderer.layoutStopped = !this.renderer.layoutStopped
+
+    this.layout_settings.onDragAndPinToggle =
+      () => this.renderer.dragAndPin = !this.renderer.dragAndPin
+    this.layout_settings.hide()
+    this.widgets.set('layout_settings', this.layout_settings)
+
+    // settings
+    this.settings_widget = new GscapeSettings(this.settings)
+    this.settings_widget.onEntityNameSelection = this.onEntityNameTypeChange.bind(this)
+    this.settings_widget.onLanguageSelection = this.onLanguageChange.bind(this)
+    this.settings_widget.onThemeSelection = this.onThemeSelection.bind(this)
+    this.settings_widget.onWidgetEnabled = this.onWidgetEnabled.bind(this)
+    this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this)
+    this.widgets.set('settings_widget', this.settings_widget)
+
+    Object.keys(this.renderers).forEach(renderer =>
+      this.registerEvents(this.renderers[renderer])
+    )
+
+    // disable widget that are disabled in settings
+    for (let widget_name in this.settings.widgets) {
+      if (!this.settings.widgets[widget_name].enabled)
+        this.onWidgetDisabled(widget_name)
+    }
+
+    this.widgets.forEach( (widget, key) => {
+      this.container.appendChild(widget)
+      switch (key) {
+        case 'filters':
+        case 'ontology_info':
+        case 'settings_widget':
+        case 'simplifications':
+          widget.onToggleBody = () => this.blurAll(widget)
+          break
+
+        case 'default':
+          break
+      }
+    })
+
+    if(this.settings.rendering.theme.selected != 'custom')
+      this.setTheme(themes[this.settings.rendering.theme.selected])
   }
 
   registerEvents(renderer) {
@@ -136,42 +169,77 @@ export default class GrapholscapeView {
     this.renderer.drawDiagram(diagramViewData)
 
     // check if any filter is active and if yes, apply them
-    this.applyActiveFilters()
+    if ( this.filters.all.active ) {
+      this.filter('all')
+    } else {
+      this.applyActiveFilters()
+    }
   }
 
   applyActiveFilters() {
     Object.keys(this.filters).map(key => {
       if (this.filters[key].active)
-        this.filter(this.filters[key])
+        this.renderer.filter(this.filters[key])
     })
   }
 
-  filter(filter_properties) {
-    this.renderer.filter(filter_properties)
-
-    /**
-     * force the value_domain filter to stay disabled
-     * (activating the attributes filter may able the value_domain filter
-     *  which must stay always disabled in simplified visualization)
-     */ 
-    if (this.btn_lite_mode.active) {
-      this.filters.value_domain.disabled = true
-    }
+  filter(type) {
+    this.filters[type].active = true
+    this.onFilterToggle(type)
   }
 
-  unfilter(filter_properties) {
-    this.renderer.unfilter(filter_properties)
+  unfilter(type) {
+    this.filters[type].active = false
+    this.onFilterToggle(type)
+  }
 
-    // Re-Apply other active filters to resolve ambiguity
-    this.applyActiveFilters()
+  onFilterToggle(type) {
+    if (type == 'attributes') {
+      this.filters.value_domain.disabled = this.filters.attributes.active
+    }
+
+    // if 'all' is toggled, it affect all other filters
+    if (type == 'all') {
+      Object.keys(this.filters).map(key => {
+        if ( key != 'all' && !this.filters[key].disbaled) {
+          this.filters[key].active = this.filters.all.active
+
+          /**
+           * if the actual filter is value-domain it means it's not disabled (see previous if condition)
+           * but when filter all is active, filter value-domain must be disabled, let's disable it
+           */
+          if (key == 'value_domain')
+            this.filters[key].disabled = this.filters.all.active
+
+          this.executeFilter(key)
+        }
+      })
+    } else if (!this.filters[type].active && this.filters.all.active) {
+      // if one filter get deactivated while the 'all' filter is active
+      // then make the 'all' toggle deactivated
+      this.filters.all.active = false
+    }
 
     /**
      * force the value_domain filter to stay disabled
      * (activating the attributes filter may able the value_domain filter
      *  which must stay always disabled in simplified visualization)
-     */ 
-    if (this.btn_lite_mode.active) {
+     */
+    if (this.renderer_selector.actual_mode !== 'default') {
       this.filters.value_domain.disabled = true
+    }
+
+    this.executeFilter(type)
+    this.widgets.get('filters').updateTogglesState()
+  }
+
+  executeFilter(type) {
+    if (this.filters[type].active) {
+      this.renderer.filter(this.filters[type])
+    } else {
+      this.renderer.unfilter(this.filters[type])
+      // Re-Apply other active filters to resolve ambiguity
+      this.applyActiveFilters()
     }
   }
 
@@ -193,25 +261,25 @@ export default class GrapholscapeView {
 
   showDetails(entityViewData, unselect = false) {
     this.entity_details.entity = entityViewData
-    this.entity_details.show()
-  
+    this.showWidget('details')
+
     if (unselect)
       this.renderer.cy.$(':selected').unselect()
   }
 
-  hideDetails() {
-    this.entity_details.hide()
+  showOccurrences(occurrences, unselect = false) {
+    this.occurrences_list.occurrences = occurrences
+    this.showWidget('occurrences_list')
+
+    if (unselect)
+      this.renderer.cy.$(':selected').unselect()
   }
 
   showOwlTranslation(text) {
-    if (!this.btn_lite_mode.active) {
+    if (this.renderer_selector.actual_mode == 'default') {
       this.owl_translator.owl_text = text
-      this.owl_translator.show()
+      this.showWidget('owl_translator')
     }
-  }
-
-  hideOwlTranslation() {
-    this.owl_translator.hide()
   }
 
   toggleFullscreen () {
@@ -237,49 +305,76 @@ export default class GrapholscapeView {
     })
   }
 
-  setRenderer(renderer) {    
-    if (this.renderer)
-      this.renderer.unmount()
+  setRenderer(renderer) {
+    for (name in this.renderers) {
+      if (this.renderers[name])
+        this.renderers[name].unmount()
+    }
 
     renderer.mount(this.graph_container)
     this.renderer = renderer
   }
 
-  toggleLiteMode() {
+  changeRenderingMode(mode, remember_position = true) {
+    if (!remember_position)
+      this.resetView()
+
     let actual_position = this.renderer.getActualPosition()
-  
-    if (this.renderer instanceof EasyGscapeRenderer) {
-      this.setRenderer(this.renderers.default)
+    let old_renderer = this.renderer
+    this.setRenderer(this.renderers[mode])
 
-      Object.keys(this.filters).map(key => {
-        if (key != 'all' &&
-            key != 'attributes' &&
-            key != 'individuals') { 
+    switch (mode) {
+      case 'float':
+      case 'lite': {
+        Object.keys(this.filters).map(key => {
+          if (key != 'all' &&
+              key != 'attributes' &&
+              key != 'individuals') {
+            // disable all unnecessary filters
+            this.filters[key].disabled = true
+          }
+        })
+        break
+      }
+      case 'default': {
+        Object.keys(this.filters).map(key => {
+          if (key != 'all' &&
+              key != 'attributes' &&
+              key != 'individuals') {
 
-          // enable filters that may have been disabled by lite mode 
-          this.filters[key].disabled = false
+            // enable filters that may have been disabled by lite mode
+            this.filters[key].disabled = false
 
-          if (key == 'value_domain' && this.filters.attributes.active)
-            this.filters.value_domain.disabled = true
-        }
-      })
-
-      this.onDefaultModeActive(actual_position)
-    } else {
-      this.setRenderer(this.renderers.lite)
-
-      Object.keys(this.filters).map(key => {
-        if (key != 'all' &&
-            key != 'attributes' &&
-            key != 'individuals') { 
-          // disable all unnecessary filters
-          this.filters[key].disabled = true
-        }
-      })
-
-      this.onLiteModeActive(actual_position)
+            if (key == 'value_domain' && this.filters.attributes.active)
+              this.filters.value_domain.disabled = true
+          }
+        })
+        break
+      }
     }
 
+    this.onRenderingModeChange(mode, actual_position)
+
+    if (mode == 'float') {
+      this.showWidget('layout_settings')
+    } else {
+      if (old_renderer == this.renderers.float) {
+        /**when coming from float mode, always ignore actual position
+         * ---
+         * WHY TIMEOUT?
+         * versions >3.2.22 of cytoscape.js apparently have glitches
+         * in large graphs in floaty mode.
+         * In cytoscape 3.2.22 mount and unmount are not available so the
+         * mount and unmount for grapholscape renderers are based on style.display.
+         * This means that at this time, cytoscape inner container has zero
+         * for width and height and this prevent it to perform the fit().
+         * After awhile dimensions get a value and the fit() works again.
+         * */
+        setTimeout(() => this.resetView(), 250)
+        //this.resetView()
+      }
+      this.hideWidget('layout_settings')
+    }
     this.filters_widget.requestUpdate()
     this.blurAll()
   }
@@ -287,44 +382,71 @@ export default class GrapholscapeView {
   setViewPort(state) {
     this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
   }
-  
+
   updateEntitiesList(entitiesViewData) {
     this.explorer.predicates = entitiesViewData
     this.explorer.requestUpdate()
   }
-  
+
+  onThemeSelection(theme_name) {
+    theme_name == 'custom' ? this.setTheme(this.custom_theme) : this.setTheme(themes[theme_name])
+  }
+
   setTheme(theme) {
     // update theme with custom variables "--theme-gscape-[var]" values
-    let container_style = window.getComputedStyle(this.container)
     let theme_aux = {}
 
     let prefix = '--theme-gscape-'
     Object.keys(theme).map(key => {
       let css_key = prefix + key.replace(/_/g,'-')
-      if (container_style.getPropertyValue(css_key)) {
-        // update color in the theme from custom variable
-        theme_aux[key] = container_style.getPropertyValue(css_key)
-      } else {
-        // normalize theme using plain strings
-        theme_aux[key] = theme[key].cssText
-      }
+      // normalize theme using plain strings
+      let color = typeof theme[key] == 'string' ? theme[key] : theme[key].cssText
+      this.container.style.setProperty(css_key, color)
+      theme_aux[key] = color
     })
+
+    this.graph_container.style.background = theme.background
     // Apply theme to graph
     Object.keys(this.renderers).map(key => {
       this.renderers[key].setTheme(theme_aux)
     });
   }
-  /*
-  getDefaultTheme() {
-    Object.keys(themes).forEach(key => {
-      if (config.rendering.theme.list[key].default)
-        return themes[key]
-    })
 
-    return themes.gscape
+  setCustomTheme(new_theme) {
+    this.custom_theme = JSON.parse(JSON.stringify(themes.gscape))
+    Object.keys(new_theme).forEach( color => {
+      if (this.custom_theme[color]) {
+        this.custom_theme[color] = new_theme[color]
+      }
+    })
+    this.setTheme(this.custom_theme)
   }
-  */
+
+  showWidget(widget_name) {
+    this.widgets.get(widget_name).show()
+  }
+
+  hideWidget(widget_name) {
+    this.widgets.get(widget_name).hide()
+  }
+
+  onWidgetEnabled(widget_name) {
+    this.widgets.get(widget_name).enable()
+  }
+
+  onWidgetDisabled(widget_name) {
+    this.widgets.get(widget_name).disable()
+  }
+
   get actual_diagram_id() {
     return this.diagram_selector.actual_diagram_id
+  }
+
+  showDialog(type, message) {
+    this.dialog.show(type, message)
+  }
+
+  set onWikiClick(callback) {
+    this.entity_details.onWikiClick = callback
   }
 }

@@ -5,15 +5,20 @@ import GscapeWidget from './gscape-widget';
 export default class GscapeHeader extends GscapeWidget {
   static get properties() {
     return {
-      collapsed: Boolean,
-      title: String,
+      title: { type : String },
+      initial_icon: { type : String },
+      secondary_icon: { type : String },
+      icon : { type : String }
     }
   }
 
   constructor() {
-    super(false, false)
+    super()
     this.title = 'header'
-    this.collapsed = false
+    this.initial_icon = 'arrow_drop_down'
+    this.secondary_icon = 'arrow_drop_up'
+    this.icon = this.initial_icon
+    this.onClick = () => {}
   }
 
   static get styles() {
@@ -21,11 +26,18 @@ export default class GscapeHeader extends GscapeWidget {
     let colors = super.styles[1]
 
     return css`
+      :host {
+        display:flex;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--header-padding, 8px);
+      }
+
       .head-btn {
-        position:absolute;
         color:var(--theme-gscape-on-primary, ${colors.on_primary});
         right:0;
-        padding:6px 2px;
+        padding: var(--btn-padding, 0 0 0 5px);
         cursor:pointer;
       }
 
@@ -34,28 +46,29 @@ export default class GscapeHeader extends GscapeWidget {
       }
 
       .head-title {
-        padding: 10px 40px 10px 10px ;
+        padding: var(--title-padding, 0 5px 0 0);
         box-sizing: border-box;
-        float:left;
         font-weight:bold;
         cursor:grab;
         width: var(--title-width, '');
         text-align: var(--title-text-align, '')
       }
     `
-  } 
+  }
 
   render () {
     return html`
       <div class="head-title"> ${this.title} </div>
       <slot></slot>
-      <mwc-icon class="head-btn" @click="${this.toggleBody}">
-        ${this.collapsed?
-          html`arrow_drop_down`:
-          html`arrow_drop_up`
-        }
-      </mwc-icon> 
+      <mwc-icon class="head-btn" @click="${this.iconClickHandler}">
+        ${this.icon}
+      </mwc-icon>
     `
+  }
+
+  iconClickHandler() {
+    this.onClick()
+    this.toggleBody()
   }
 
   toggleBody() {
@@ -64,6 +77,15 @@ export default class GscapeHeader extends GscapeWidget {
       composed: true
     })
     this.dispatchEvent(e)
+  }
+
+  invertIcons() {
+    [this.initial_icon, this.secondary_icon] = [this.secondary_icon, this.initial_icon]
+    this.toggleIcon()
+  }
+
+  toggleIcon() {
+    this.icon = this.icon == this.initial_icon ? this.secondary_icon : this.initial_icon
   }
 }
 

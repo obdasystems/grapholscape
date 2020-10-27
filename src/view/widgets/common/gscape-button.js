@@ -5,14 +5,11 @@ import { Icon } from '@material/mwc-icon'
 export default class GscapeButton extends GscapeWidget {
 
   static get properties() {
-    return [
-      super.properties,
-      {
+    return {
         icon: {type : String},
-        active : {type : Boolean},
+        active : { type : Boolean },
       }
-    ]
-  }
+    }
 
   static get styles() {
     let super_styles = super.styles
@@ -21,8 +18,13 @@ export default class GscapeButton extends GscapeWidget {
     return [
       super_styles[0],
       css`
+
+        mwc-icon {
+          font-size: var(--gscape-button-font-size, 24px)
+        }
+
         .btn {
-          padding:4px;
+          padding:5px;
           line-height:0;
           cursor: pointer;
         }
@@ -39,7 +41,8 @@ export default class GscapeButton extends GscapeWidget {
   }
 
   constructor(icon, alt_icon, draggable=false) {
-    super(draggable, false)
+    super()
+    this.draggable = draggable
 
     this.icon = icon
     this.alternate_icon = alt_icon || icon
@@ -50,12 +53,12 @@ export default class GscapeButton extends GscapeWidget {
 
   render() {
     return html`
-      <div 
-        class="btn" 
+      <div
+        class="btn"
         ?active = "${this.active}"
-        @click="${this.clickHandler}" 
+        @click="${this.clickHandler}"
         title="${this.icon}">
-        
+
         <mwc-icon>${this.icon}</mwc-icon>
       </div>
     `

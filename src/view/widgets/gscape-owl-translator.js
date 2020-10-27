@@ -5,7 +5,7 @@ import GscapeHeader from './common/gscape-header'
 export default class GscapeOwlTranslator extends GscapeWidget {
   static get properties() {
     return {
-      _owl_text: String,
+      owl_text: String,
     }
   }
   static get styles() {
@@ -43,83 +43,70 @@ export default class GscapeOwlTranslator extends GscapeWidget {
         }
 
         .owl_concept{
-          color:#859900;
+          color: #b58900;
         }
-        
+
         .owl_role{
-          color:#268bd2;
+          color: #268bd2;
         }
-        
+
         .owl_attribute{
-          color:#b58900;
+          color: #859900;
         }
-        
+
         .owl_value-domain{
           color: #2aa198;
         }
-        
+
         .owl_individual{
           color: #6c71c4;
         }
-        
+
         .owl_value {
           color: #d33682;
         }
-        
+
         .axiom_predicate_prefix{
           color:#cb4b16;
         }
-        
+
         .owl_error {
           color: var(--theme-gscape-error, ${colors.error});
         }
-        
+
         .axiom_predefinite_obj {
           color: #00c0a0;
         }
-        
+
       `,
-    ]    
+    ]
   }
 
   constructor() {
-    super(false, true)
-    this._owl_text = ''
+    super()
+    this.collapsible = true
+    this.hiddenDefault = true
+    this.owl_text = ''
   }
 
   render() {
     return html`
-      <div class="widget-body" hide>
+      <div class="widget-body">
         <div class="owl-text"></div>
       </div>
       <gscape-head title="Owl Translation"></gscape-head>
     `
   }
 
-  set owl_text(text) {
-    this._owl_text = text
-  }
-
-  get owl_text() {
-    return this._owl_text
-  }
-
   updated() {
     this.shadowRoot.querySelector('.owl-text').innerHTML = this.owl_text
-    this.shadowRoot.querySelector('.owl-text').classList.remove('hide')
   }
 
+  // override
   blur() {
     this.hide()
   }
 
-  firstUpdated() {
-    super.firstUpdated()
-    this.hide()
-
-    // invert header's dropdown icon behaviour
-    this.header.collapsed = true
-  }
 }
 
 customElements.define('gscape-owl-translator', GscapeOwlTranslator)

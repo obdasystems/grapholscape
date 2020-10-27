@@ -1,30 +1,38 @@
 import cytoscape from 'cytoscape'
-import Diagram from '../model/diagrams'
-import GrapholscapeRenderer from '../view/render/grapholscape_renderer'
+import Diagram from '../model/diagram'
+import GrapholscapeRenderer from '../view/render/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
 
-export default function computeLiteOntology(ontology) { 
+export default function computeSimplifiedOntologies(ontology) {
   let aux_renderer = new GrapholscapeRenderer(null)
   let lite_ontology = new Ontology(ontology.name, ontology.version)
-  
+  let float_ontology = new Ontology(ontology.name, ontology.version)
+  let new_ontologies = {
+    lite : lite_ontology,
+    float : float_ontology,
+  }
+
   return new Promise( (resolve, reject) => {
     try {
       window.setTimeout(() => {
         ontology.diagrams.forEach( diagram => {
           let lite_diagram = new Diagram(diagram.name, diagram.id)
-          lite_diagram.addElems(simplifyDiagram(diagram.nodes, diagram.edges))
+          let float_diagram = new Diagram(diagram.name, diagram.id)
+          lite_diagram.addElems(simplifyDiagramLite(diagram.nodes, diagram.edges))
           lite_ontology.addDiagram(lite_diagram)
+          float_diagram.addElems(simplifyDiagramFloat(lite_diagram.nodes, lite_diagram.edges))
+          float_ontology.addDiagram(float_diagram)
         })
-        resolve(lite_ontology)
-      }, 100)
+        resolve(new_ontologies)
+      }, 1)
     } catch (e) {reject(e)}
   })
-  
+
 
 
 // ----------------------------------
-  function simplifyDiagram(nodes, edges) {
+  function simplifyDiagramLite(nodes, edges) {
     let cy = cytoscape()
 
     cy.add(nodes)
@@ -40,15 +48,16 @@ export default function computeLiteOntology(ontology) {
 
         case 'domain-restriction':
         case 'range-restriction':
-          if (node.data('label') == 'forall')
+          if (node.data('displayed_name') == 'forall')
             return true
-          else 
+          else
             return false
       }
     })
 
-    filterByCriterion(cy, isQualifiedExistential)
+    filterByCriterion(cy, isQualifiedRestriction)
     filterByCriterion(cy, isExistentialWithCardinality)
+    filterByCriterion(cy, inputEdgesBetweenRestrictions)
     cy.remove('.filtered')
     simplifyDomainAndRange(cy)
     simplifyComplexHierarchies(cy)
@@ -68,92 +77,19 @@ export default function computeLiteOntology(ontology) {
     eles.filter(selector).forEach(restriction => {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
       let new_edge = null
+      let type = restriction.data('type') == 'domain-restriction' ? 'domain' : 'range'
 
-      if (restriction.data('type') == 'domain-restriction') {
-        // there can be only inclusion and equivalence edges, for each of them we 
-        // create a new edge that will have a concept as source and a role/attribute as target
-        restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
-          let edges = []
-
-          /**
-           * if the actual edge is between two existential, remove it and filter the other existential 
-           */ 
-          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') &&
-              (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
-            cy.remove(edge)
-            return
-          }
-
-          // being a domain restriction, the simplified edge must go from a concept to the role/attribute
-          // connected in input to the restriction.
-          // if the actual edge has the restriction as source, the target is a concept and we consider it
-          // as the source of the new edge          
-          if (restriction.id() === edge.source().id()) {
-            edges.push( reverseEdge(edge))
-          }
-          else
-            edges.push(edge.json())
-
-          // move attribute on restriction node position
-          if (input_edge.source().data('type') == "attribute") {
-            input_edge.source().position(restriction.position())
-            new_edge = edges[0]
-            new_edge.data.target = input_edge.source().id()
-            new_edge.data.id += '_'+i
-          } else {
-            // concatenation only if the input is not an attribute
-            edges.push( reverseEdge(input_edge))
-            new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
-          }
-          
-          // add the type of input to the restriction as a class of the new edge
-          // role or attribute, used in the stylesheet to assign different colors
-          new_edge.classes += `${input_edge.source().data('type')} domain`
-          new_edge.data.type = 'default' 
-
+      restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
+        new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i)
+        if(new_edge) {
           cy.add(new_edge)
-          cy.remove(edge)
-        })
-      }
-
-      if (restriction.data('type') == 'range-restriction') {
-        // there can be only inclusion and equivalence edges, for each of them we 
-        // create a new edge that will have a role/attribute as source and a concept as target
-        restriction.connectedEdges('[type != "input"]').forEach((edge, i) => {
-          let edges = []
-
-          /**
-           * if the actual edge is between two existential, remove it and filter the other existential 
-           */ 
-          if ((edge.source().data('type') == 'domain-restriction' || edge.source().data('type') == 'range-restriction') &&
-              (edge.target().data('type') == 'domain-restriction' || edge.target().data('type') == 'range-restriction')) {
-            cy.remove(edge)
-            return
-          }
-
-          edges.push(input_edge.json())
-          // being a range restriction, the simplified edge must go from a role/attribute to the concept
-          // if the actual edge has the concept as source, the target is a role/attribute and we need to
-          // revert the edge
-          if (restriction.id() === edge.source().id()) {
-            edges.push(edge.json())
-          }
-          else edges.push( reverseEdge(edge))
-
-          new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
-          // add the type of input to the restriction as a class of the new edge
-          // role or attribute, used in the stylesheet to assign a different color
-          new_edge.classes += `${input_edge.source().data('type')} range`
-          new_edge.data.type = 'default' 
-
-          cy.add(new_edge)
-          cy.remove(edge)
-        })
-      }
-      
-      aux_renderer.filterElem(restriction, cy)
+          cy.remove(edgeToRestriction)
+        }
+      })
+      aux_renderer.filterElem(restriction, '', cy)
+      cy.remove('.filtered')
     })
-    
+
     cy.remove('.filtered')
 
     function getInputEdgeFromPropertyToRestriction(restriction_node) {
@@ -166,6 +102,47 @@ export default function computeLiteOntology(ontology) {
 
       return e
     }
+
+    function createRoleEdge(edgeToRestriction, edgeFromProperty, type, i) {
+      let edges = []
+      let new_edge = null
+
+      /**
+       * if the actual edge is between two existential, remove it and filter the other existential
+       */
+      if ((edgeToRestriction.source().data('type') == 'domain-restriction' ||
+           edgeToRestriction.source().data('type') == 'range-restriction') &&
+          (edgeToRestriction.target().data('type') == 'domain-restriction' ||
+           edgeToRestriction.target().data('type') == 'range-restriction')) {
+        cy.remove(edgeToRestriction)
+        return new_edge
+      }
+
+      if (edgeToRestriction.target().data('id') !== edgeFromProperty.target().data('id')) {
+        edges.push(reverseEdge(edgeToRestriction))
+      } else {
+        edges.push(edgeToRestriction.json())
+      }
+
+      // move attribute on restriction node position
+      if (edgeFromProperty.source().data('type') == "attribute") {
+        edgeFromProperty.source().position(edgeFromProperty.target().position())
+        new_edge = edges[0]
+        new_edge.data.target = edgeFromProperty.source().id()
+        new_edge.data.id += '_'+i
+      } else {
+        // concatenation only if the input is not an attribute
+        edges.push(reverseEdge(edgeFromProperty))
+        new_edge = createConcatenatedEdge(edges, cy, edges[0].data.id+'_'+i)
+      }
+
+      // add the type of input to the restriction as a class of the new edge
+      // role or attribute, used in the stylesheet to assign different colors
+      new_edge.classes += `${edgeFromProperty.source().data('type')} ${type}`
+      new_edge.data.type = 'default'
+
+      return new_edge
+    }
   }
 
   function reverseEdge(edge) {
@@ -177,7 +154,7 @@ export default function computeLiteOntology(ontology) {
     let endpoint_aux = edge.data('source_endpoint')
     new_edge.data.source_endpoint = edge.data('target_endpoint')
     new_edge.data.target_endpoint = endpoint_aux
-    
+
     new_edge.data.breakpoints = edge.data('breakpoints').reverse()
     if (edge.data('segment_distances')) {
       new_edge.data.segment_distances = []
@@ -186,12 +163,12 @@ export default function computeLiteOntology(ontology) {
         let aux = getDistanceWeight(edge.source().position(), edge.target().position(), breakpoint)
         new_edge.data.segment_distances.push(aux[0])
         new_edge.data.segment_weights.push(aux[1])
-      })    
+      })
     }
 
     return new_edge
   }
-  
+
   /**
    * @param {array} edges - array of edges in json format
    * @param {cytoscape} cy
@@ -218,8 +195,8 @@ export default function computeLiteOntology(ontology) {
 
       // add target position as new breakpoint
       if ( i < array.length - 1 ) {
-        aux = getDistanceWeight(cy.getElementById(target).position(), 
-                                    cy.getElementById(source).position(), 
+        aux = getDistanceWeight(cy.getElementById(target).position(),
+                                    cy.getElementById(source).position(),
                                     cy.getElementById(edge.data.target).position())
         segment_distances.push(aux[0])
         segment_weights.push(aux[1])
@@ -243,26 +220,39 @@ export default function computeLiteOntology(ontology) {
   // filter nodes if the criterion function return true
   // criterion must be a function returning a boolean value for a given a node
   function filterByCriterion(cy_instance, criterion) {
-    let cy = cy_instance  
+    let cy = cy_instance
     cy.$('*').forEach(node => {
       if (criterion(node)) {
-         aux_renderer.filterElem(node, cy)
+        aux_renderer.filterElem(node, '', cy)
       }
     })
   }
 
-  function isQualifiedExistential(node) {
+  function isQualifiedRestriction(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-        && (node.data('label') == 'exists')) {
+        && (node.data('displayed_name') == 'exists')) {
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
 
     return false
   }
 
+  function inputEdgesBetweenRestrictions(node) {
+    let outcome = false
+
+    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
+      node.incomers('edge[type = "input"]').forEach(edge => {
+        if (edge.source().data('type').endsWith('restriction')){
+          outcome = true
+        }
+      })
+    }
+    return outcome
+  }
+
   function isExistentialWithCardinality(node) {
     if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
-        && node.data('label').search(/[0-9]/g) >= 0) {
+        && node.data('displayed_name').search(/[0-9]/g) >= 0) {
       return true
     }
 
@@ -318,37 +308,9 @@ export default function computeLiteOntology(ontology) {
 
       replicateAttributes(union)
 
-      // replicate attributes on input classes
-      /*
-      let input_classes = union.incomers('[type *= "input"]').sources()
-      union.neighborhood('[type = "attribute"]').forEach(attribute => {
-        
-        input_classes.forEach( (concept,i) => {
-          let new_attribute = attribute.json()
-          new_attribute.position = concept.position()
-          new_attribute.data.id += '_clone'+i
-          new_attribute.classes += ' repositioned'
-          cy.add(new_attribute)
-          let edge = {
-            data: {
-              id: new_attribute.data.id + '_edge',
-              source: new_attribute.data.id,
-              target: concept.id(),
-            },
-            classes: 'attribute',
-          }
-
-          cy.add(edge)
-        })
-
-        cy.remove(attribute)
-      })
-      */
-
-
       // replicate role tipization on input classes
       replicateRoleTypizations(union)
-      
+
       // if the union has not any connected non-input edges, then remove it
       if (union.connectedEdges('[type !*= "input"]').size() == 0)
         cy.remove(union)
@@ -358,10 +320,11 @@ export default function computeLiteOntology(ontology) {
   function makeDummyPoint(node) {
     node.data('width', 0.1)
     node.data('height', 0.1)
+    node.addClass('dummy')
   }
 
   function simplifyIntersections(cytoscape_instance) {
-    let cy = cytoscape_instance  
+    let cy = cytoscape_instance
 
     cy.$('node[type = "intersection"]').forEach( and => {
       replicateAttributes(and)
@@ -369,9 +332,9 @@ export default function computeLiteOntology(ontology) {
 
       // if there are no incoming inclusions or equivalence and no equivalences connected,
       // remove the intersection
-      if (and.incomers('edge[type !*= "input"]').size() == 0 && 
+      if (and.incomers('edge[type !*= "input"]').size() == 0 &&
           and.connectedEdges('edge[type = "equivalence"]').size() == 0) {
-         aux_renderer.filterElem(and, cy)
+         aux_renderer.filterElem(and, '', cy)
       } else {
         // process incoming inclusion
         and.incomers('edge[type !*= "input"]').forEach(edge => {
@@ -379,11 +342,11 @@ export default function computeLiteOntology(ontology) {
            * create a new ISA edge for each input class
            * the new edge will be a concatenation:
            *  - ISA towards the 'and' node + input edge
-           * 
+           *
            * the input edge must be reversed
            * In case of equivalence edge, we only consider the
            * isa towards the 'and' node and discard the other direction
-           */        
+           */
           and.incomers('edge[type = "input"]').forEach( (input, i) => {
             /**
              * if the edge is an equivalence, we must consider it as an
@@ -403,7 +366,7 @@ export default function computeLiteOntology(ontology) {
             cy.add(new_isa)
           })
         })
-        
+
         cy.remove(and)
       }
     })
@@ -421,15 +384,9 @@ export default function computeLiteOntology(ontology) {
          * if the connected non input edge is only one (the one we are processing)
          * then the new edge will be the concatenation of the input edge + role edge
          */
-        if(constructor.connectedEdges('[type !*= "input"]').size() == 1) {
-          if(role_edge.hasClass('range')) {
-            edges.push(role_edge.json())
-            edges.push( reverseEdge(input))
-          } else{
-            edges.push(input.json())
-            edges.push(role_edge.json())
-          }
-          
+        if(constructor.connectedEdges('[type !*= "input"]').size() <= 1) {
+          edges.push(input.json())
+          edges.push(role_edge.json())
           new_edge = createConcatenatedEdge(edges, cy, new_id)
           new_edge.data.type = 'default'
           new_edge.classes = role_edge.json().classes
@@ -438,23 +395,16 @@ export default function computeLiteOntology(ontology) {
            * Otherwise the constructor node will not be deleted and the new role edges can't
            * pass over the constructor node. We then just properly change the source/target
            * of the role edge. In this way the resulting edges will go from the last
-           * breakpoint of the original role edge towards the input classes of the constructor  
+           * breakpoint of the original role edge towards the input classes of the constructor
           */
           new_edge = role_edge.json()
           new_edge.data.id = new_id
-          
+
           let target = undefined
           let source = undefined
-          if(role_edge.hasClass('range')) {
-            target = input.source()
-            source = role_edge.source()
-            new_edge.data.target = input.source().id() 
-          }
-          else {
-            target = role_edge.target()
-            source = input.source()
-            new_edge.data.source = input.source().id()
-          }
+          target = role_edge.target()
+          source = input.source()
+          new_edge.data.source = input.source().id()
 
           // Keep the original role edge breakpoints
           let segment_distances = []
@@ -476,12 +426,12 @@ export default function computeLiteOntology(ontology) {
   }
 
   function simplifyComplexHierarchies(cytoscape_instance) {
-    let cy = cytoscape_instance  
+    let cy = cytoscape_instance
 
     cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
       if(isComplexHierarchy(node)) {
         replicateAttributes(node)
-         aux_renderer.filterElem(node, cy)
+        aux_renderer.filterElem(node, '', cy)
       }
     })
 
@@ -501,7 +451,7 @@ export default function computeLiteOntology(ontology) {
     })
 
     cy.remove(all_attributes)
-    aux_renderer.filterElem(all_inclusion_attributes, cy)
+    aux_renderer.filterElem(all_inclusion_attributes, '', cy)
 
     function addAttribute(target, i, attribute, edge_classes) {
       let new_attribute = attribute.json()
@@ -526,7 +476,7 @@ export default function computeLiteOntology(ontology) {
           if(all_attributes.contains(inclusion_attribute)) {
             return
           }
-          
+
           addAttribute(cy.$id(new_attribute.data.id), j, inclusion_attribute, 'inclusion')
           all_inclusion_attributes = all_inclusion_attributes.union(inclusion_attribute)
         })
@@ -549,13 +499,13 @@ export default function computeLiteOntology(ontology) {
   }
 
   function simplifyRoleInverse(cytoscape_instance) {
-    let cy = cytoscape_instance  
+    let cy = cytoscape_instance
 
     cy.nodes('[type = "role-inverse"]').forEach(role_inverse => {
       let new_edges_count = 0
       // the input role is only one
       let input_edge = role_inverse.incomers('[type *= "input"]')
-      
+
       // for each other edge connected, create a concatenated edge
       // the edge is directed towards the input_role
       role_inverse.connectedEdges('[type !*= "input"]').forEach((edge, i) => {
@@ -567,7 +517,7 @@ export default function computeLiteOntology(ontology) {
           edges.push(edge.json())
         }
 
-        // the input edge must always be reversed 
+        // the input edge must always be reversed
         edges.push( reverseEdge(input_edge))
         let new_id = input_edge.id() + '_' + i
         let new_edge = createConcatenatedEdge(edges, cy, new_id)
@@ -586,9 +536,90 @@ export default function computeLiteOntology(ontology) {
         role_inverse.data('labelYpos', 0)
         role_inverse.data('text_background', true)
       } else {
-        input_edge.source().connectedEdges('edge.inverse-of').data('edge_label','inverse Of')
+        if (input_edge.source())
+          input_edge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
         cy.remove(role_inverse)
       }
+    })
+  }
+
+  // -------- FLOAT ----------
+  function simplifyDiagramFloat(nodes, edges) {
+    let cy = cytoscape()
+    cy.add(nodes)
+    cy.add(edges)
+
+    simplifyRolesFloat(cy)
+    simplifyHierarchiesFloat(cy)
+    simplifyAttributesFloat(cy)
+    cy.edges().removeData('segment_distances')
+    cy.edges().removeData('segment_weights')
+    cy.edges().removeData('target_endpoint')
+    cy.edges().removeData('source_endpoint')
+    cy.$('[type = "concept"]').addClass('bubble')
+    return cy.$('*')
+  }
+
+  function simplifyRolesFloat(cy) {
+    let eles = cy.$('[type = "role"]')
+
+    eles.forEach(role => {
+      let edges = role.incomers('edge.role')
+      let domains = edges.filter('.domain')
+      let range_nodes = edges.filter('.range').sources()
+
+      domains.forEach(domain => {
+        range_nodes.forEach((target,i) => {
+
+          let new_edge = {
+            data : {
+              id : domain.id() + '-' + i,
+              id_xml : domain.target().data('id_xml'),
+              diagram_id : domain.target().data('diagram_id'),
+              source : domain.source().id(),
+              target : target.id(),
+              type : domain.target().data('type'),
+              iri : domain.target().data('iri'),
+              displayed_name : domain.target().data('displayed_name'),
+              label : domain.target().data('label'),
+              description : domain.target().data('description'),
+              functional : domain.target().data('functional'),
+              inverseFunctional : domain.target().data('inverseFunctional'),
+              asymmetric : domain.target().data('asymmetric'),
+              irreflexive : domain.target().data('irreflexive'),
+              reflexive : domain.target().data('reflexive'),
+              symmetric : domain.target().data('symmetric'),
+              transitive : domain.target().data('transitive')
+            },
+            classes : 'role predicate'
+          }
+
+          cy.add(new_edge)
+          if(cy.getElementById(new_edge.data.id).isLoop()) {
+            let loop_edge = cy.getElementById(new_edge.data.id)
+            loop_edge.data('control_point_step_size', target.data('width'))
+          }
+        })
+      })
+      cy.remove(role)
+    })
+  }
+
+  function simplifyHierarchiesFloat(cy) {
+    cy.$('.dummy').forEach(dummy => {
+      dummy.neighborhood('node').forEach(neighbor => {
+        neighbor.position(dummy.position())
+      })
+      dummy.data('width', 35)
+      dummy.addClass('bubble')
+    })
+  }
+
+  function simplifyAttributesFloat(cy) {
+    cy.$('[type = "attribute"]').forEach(attribute => {
+      attribute.neighborhood('node').forEach(neighbor => {
+        attribute.position(neighbor.position())
+      })
     })
   }
 }

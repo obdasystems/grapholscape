@@ -1,22 +1,22 @@
-import nodeResolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
-import babel from 'rollup-plugin-babel'
-import replace from 'rollup-plugin-replace'
+import nodeResolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import babel from '@rollup/plugin-babel'
+import replace from '@rollup/plugin-replace'
 import { terser } from 'rollup-plugin-terser'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
 import path from 'path'
-import json from 'rollup-plugin-json'
+import json from '@rollup/plugin-json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const FILE = process.env.FILE
 const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
 const BABEL = process.env.BABEL !== 'false' // default true
-const NODE_ENV = process.env.NODE_ENV === 'development' ? 'production' : 'development' // default development
+const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
 const matchSnapshot = process.env.SNAPSHOT === 'match'
 const dependencies = Object.keys(require('./package.json').dependencies)
-dependencies.splice(dependencies.indexOf('lit-html'), 1 );
-dependencies.splice(dependencies.indexOf('lit-element'), 1 );
+dependencies.splice(dependencies.indexOf('lit-html'), 1)
+dependencies.splice(dependencies.indexOf('lit-element'), 1)
 
 const input = './src/grapholscape.js'
 const name = 'GrapholScape'
@@ -27,8 +27,8 @@ const envVariables = {
 }
 
 const getJsonOptions = () => ({
-  include: 'src/**',
-  exclude: [ '**./**' ],
+  // include: 'src/**',
+  // exclude: [ '**./**' ],
 
   // for tree-shaking, properties will be declared as
   // variables, using either `var` or `const`
@@ -53,12 +53,12 @@ const getBabelOptions = () => ({
     'node_modules/@material/**'
   ],
   babelrc: false,
-  externalHelpers: true,
-  presets : [
+  babelHelpers: 'bundled',
+  presets: [
     [
-      "@babel/preset-env",
+      '@babel/preset-env',
       {
-        useBuiltIns : "usage",
+        useBuiltIns: 'usage',
         corejs: 3
       }
     ]
@@ -69,7 +69,7 @@ const licenseHeaderOptions = {
   sourcemap: true,
   banner: {
     content: {
-      file : path.join(__dirname, 'LICENSE')
+      file: path.join(__dirname, 'LICENSE')
     }
   }
 }
@@ -86,9 +86,9 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       license(licenseHeaderOptions),
       !FILE ? sizeSnapshot({ matchSnapshot }) : {}
     ]
@@ -104,9 +104,9 @@ const configs = [
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       terser({
         sourcemap: false
       }),
@@ -120,13 +120,19 @@ const configs = [
       file: 'build/grapholscape.umd.js',
       format: 'umd',
       name,
+      globals: {
+        'cytoscape': 'cytoscape',
+        '@material/mwc-icon': 'mwcIcon',
+        'cytoscape-popper': 'popper',
+        'cytoscape-cola': 'cola'
+      }
     },
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       license(licenseHeaderOptions)
     ],
     external: dependencies
@@ -136,14 +142,14 @@ const configs = [
     output: {
       file: 'build/grapholscape.esm.js',
       format: 'es',
-      name,
+      name
     },
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
+      replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      replace(envVariables),
       license(licenseHeaderOptions)
     ],
     external: dependencies

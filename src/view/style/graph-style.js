@@ -16,12 +16,20 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[label]',
+      selector: '[fontSize]',
       style: {
-        'label': 'data(label)',
+        'font-size' : 'data(fontSize)',
+      }
+    },
+
+    {
+      selector: 'node[displayed_name]',
+      style: {
+        'label': 'data(displayed_name)',
         'text-margin-x': 'data(labelXpos)',
         'text-margin-y': 'data(labelYpos)',
-        'text-wrap': 'wrap'
+        'text-wrap': 'wrap',
+        'min-zoomed-font-size' : '5px',
       }
     },
 
@@ -33,7 +41,8 @@ export function getGraphStyle(theme) {
         'target-arrow-color': theme.edge,
         'source-arrow-color': theme.edge,
         'curve-style': 'bezier',
-        'arrow-scale': 1.3
+        'arrow-scale': 1.3,
+        'color': theme.label_color,
       }
     },
 
@@ -57,7 +66,7 @@ export function getGraphStyle(theme) {
     {
       selector: 'edge.disjoint',
       style: {
-        'target-arrow-fill': 'filled',        
+        'target-arrow-fill': 'filled',
       }
     },
 
@@ -84,7 +93,7 @@ export function getGraphStyle(theme) {
         'source-arrow-shape': 'triangle',
         'source-arrow-fill': 'filled',
         'target-arrow-shape': 'triangle',
-        'target-arrow-fill': 'filled',        
+        'target-arrow-fill': 'filled',
       }
     },
 
@@ -95,6 +104,14 @@ export function getGraphStyle(theme) {
         'segment-distances': 'data(segment_distances)',
         'segment-weights': 'data(segment_weights)',
         'edge-distances': 'node-position'
+      }
+    },
+
+    {
+      selector: ':loop',
+      style: {
+        'control-point-step-size': 'data(control_point_step_size)',
+        'control-point-weight': 0.5,
       }
     },
 
@@ -131,9 +148,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[edge_label]',
+      selector: 'edge[displayed_name]',
       style: {
-        'label': 'data(edge_label)',
+        'label': 'data(displayed_name)',
         'font-size': 10,
         'text-rotation': 'autorotate',
         'text-margin-y': -10,
@@ -163,7 +180,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[edge_label],[source_label],[target_label],[text_background]',
+      selector: 'edge[displayed_name],[source_label],[target_label],[text_background]',
       style: {
         'text-background-color': theme.background,
         'text-background-opacity': 1,
@@ -178,7 +195,7 @@ export function getGraphStyle(theme) {
         'shape-polygon-points': 'data(shape_points)'
       }
     },
-    
+
     {
       selector: '.filtered',
       style: {
@@ -220,7 +237,7 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.concept,
         'border-color': theme.concept_dark,
-      } 
+      }
     },
 
     {
@@ -228,7 +245,7 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.role,
         'border-color': theme.role_dark,
-      } 
+      }
     },
 
     {
@@ -238,34 +255,7 @@ export function getGraphStyle(theme) {
         'border-color': theme.attribute_dark,
         'text-background-color': theme.background,
         'text-background-opacity': 1,
-      } 
-    },
-
-    {
-      selector: 'edge.range',
-      style: {
-        'source-arrow-shape': 'square',
-        'source-arrow-fill': 'filled',
-        'target-arrow-shape': 'none',
-      } 
-    },
-
-    {
-      selector: 'edge.domain',
-      style: {
-        'target-arrow-shape': 'square',
-        'target-arrow-fill': 'hollow',
-        'source-arrow-shape': 'none',
-      } 
-    },
-
-    {
-      selector: 'edge.attribute',
-      style: {
-        'line-color': theme.attribute_dark,
-        'source-arrow-shape': 'none',
-        'target-arrow-shape': 'none',
-      } 
+      }
     },
 
     {
@@ -274,7 +264,50 @@ export function getGraphStyle(theme) {
         'line-color' : theme.role_dark,
         'source-arrow-color': theme.role_dark,
         'target-arrow-color': theme.role_dark,
-      } 
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'filled',
+        'source-arrow-shape': 'square',
+        'source-arrow-fill': 'hollow',
+      }
+    },
+
+    {
+      selector: 'edge.range',
+      style: {
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'filled',
+        'source-arrow-shape': 'none',
+      }
+    },
+
+    {
+      selector: 'edge.domain',
+      style: {
+        'target-arrow-shape': 'square',
+        'target-arrow-fill': 'hollow',
+        'source-arrow-shape': 'none',
+      }
+    },
+
+    {
+      selector: 'edge.attribute',
+      style: {
+        'line-color': theme.attribute_dark,
+        'source-arrow-shape': 'none',
+        'target-arrow-shape': 'none',
+      }
+    },
+
+    {
+      selector: '.bubble',
+      style: {
+        'text-margin-x': 0,
+        'text-margin-y': 0,
+        'text-valign' : 'center',
+        'text-halign' : 'center',
+        'shape': 'ellipse',
+        'height': 'data(width)'
+      }
     },
 
     {
@@ -282,7 +315,7 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.individual,
         'border-color': theme.individual_dark,
-      } 
+      }
     },
 
     {
@@ -292,10 +325,25 @@ export function getGraphStyle(theme) {
       }
     },
 
+    {
+      selector: '.float:locked',
+      style: {
+        'border-color' : theme.secondary,
+        'border-width' : '4px',
+      }
+    },
+
     { // the right border part of functional && inverseFunctional roles
       selector: '.fake-triangle-right',
       style: {
-        'background-color': theme.role_dark,
+        'background-color': theme.role_dark || 'black',
+      }
+    },
+
+    {
+      selector: '[shape = "hexagon"],[type = "value-domain"], .facet',
+      style: {
+        'color': theme.node_bg_contrast,
       }
     },
 

@@ -3,13 +3,12 @@ import * as theme from '../../style/themes'
 
 export default class GscapeWidget extends LitElement {
   static get properties() {
-    if( this.collapsible ) {
-      return {}
+    return {
+      isEnabled : {type : Boolean},
+      hiddenDefault : { type : Boolean }
     }
-
-    return {}
   }
-  
+
   static get styles() {
     let colors = theme.gscape
 
@@ -36,7 +35,6 @@ export default class GscapeWidget extends LitElement {
 
       .widget-body {
         width: 100%;
-        margin-top:35px;
         max-height:450px;
         border-top:solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         border-bottom-left-radius: inherit;
@@ -71,8 +69,40 @@ export default class GscapeWidget extends LitElement {
         margin-bottom: 10px;
       }
 
+      .widget-body .section:last-of-type {
+        margin-bottom: 12px;
+      }
+
+      .widget-body .section-header {
+        text-align: center;
+        font-weight: bold;
+        border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        color: var(--theme-gscape-secondary, ${colors.secondary});
+        width: 85%;
+        margin: auto;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+      }
+
+      .description {
+        margin-bottom: 20px;
+      }
+
+      .description:last-of-type {
+        margin-bottom: 0;
+      }
+
+      .description .language {
+        min-width: 50px;
+        display: inline-block;
+        font-weight: bold;
+        color: var(--theme-gscape-secondary, ${colors.secondary});
+        margin: 5px;
+      }
+
+      .section { padding: 10px; }
+
       .details_table{
-        padding: 12px 6px 0 6px;
         border-spacing: 0;
       }
 
@@ -81,11 +111,17 @@ export default class GscapeWidget extends LitElement {
         border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         font-weight: bold;
         text-align:left;
+        min-width: 50px;
       }
-      
+
       .details_table th, td {
         padding:5px 8px;
         white-space: nowrap;
+      }
+
+      .highlight:hover {
+        color: var(--theme-gscape-on-secondary, ${colors.on_secondary});
+        background-color:var(--theme-gscape-secondary, ${colors.secondary});
       }
 
       /* width */
@@ -96,31 +132,41 @@ export default class GscapeWidget extends LitElement {
 
       /* Track */
       ::-webkit-scrollbar-track {
-        background: #f0f0f0; 
+        background: #f0f0f0;
       }
-      
+
       /* Handle */
       ::-webkit-scrollbar-thumb {
-        background: #cdcdcd; 
+        background: #cdcdcd;
       }
 
       /* Handle on hover */
       ::-webkit-scrollbar-thumb:hover {
-        background: #888; 
+        background: #888;
       }
-      
+
+      .clickable {
+        font-weight:bold;
+        text-decoration: underline;
+      }
+
+      .clickable:hover {
+        cursor:pointer;
+        color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});
+      }
+
     `], colors]
   }
 
-  constructor(draggable, collapsible) {
+  constructor() {
     super();
-    this.draggable = draggable
-    this.collapsible = collapsible
-
-    if (collapsible) 
-      this.collapsed = true
+    this.draggable = false
+    this.collapsible = false
+    this.isEnabled = true
+    this._hiddenDefault = false
 
     this.onselectstart = () => { false }
+    this.onToggleBody = () => {}
   }
 
   render () {
@@ -130,20 +176,21 @@ export default class GscapeWidget extends LitElement {
   toggleBody() {
     if (this.collapsible) {
       if (this.header) {
-        let collapsed = this.header.collapsed
-        this.header.collapsed = !collapsed
+        this.header.toggleIcon()
       }
 
       if (this.body)
         this.body.classList.toggle('hide')
+
+      this.onToggleBody()
     }
   }
 
   collapseBody() {
     if (this.collapsible) {
-      if (this.header)
-        this.header.collapsed = true
-      
+      if (this.header && !this.isCollapsed)
+        this.header.toggleIcon()
+
       if (this.body)
         this.body.classList.add('hide')
     }
@@ -151,9 +198,9 @@ export default class GscapeWidget extends LitElement {
 
   showBody() {
     if(this.collapsible) {
-      if (this.header)
-        this.header.collapsed = false
-      
+      if (this.header && this.isCollapsed)
+        this.header.toggleIcon()
+
       if (this.body)
         this.body.classList.remove('hide')
     }
@@ -167,7 +214,7 @@ export default class GscapeWidget extends LitElement {
       this.addEventListener('toggle-widget-body', this.toggleBody)
     }
 
-    if (this.draggable) 
+    if (this.draggable)
       this.makeDraggable()
   }
 
@@ -176,7 +223,7 @@ export default class GscapeWidget extends LitElement {
     let pos2 = 0
     let pos3 = 0
     let pos4 = 0
-    
+
     const elmnt = this
     let drag_handler = this.shadowRoot.querySelector('.drag-handler')
 
@@ -194,7 +241,7 @@ export default class GscapeWidget extends LitElement {
       // call a function whenever the cursor moves:
       document.onmousemove = elementDrag
     }
-  
+
     function elementDrag(e) {
       e = e || window.event
       // calculate the new cursor position:
@@ -206,7 +253,7 @@ export default class GscapeWidget extends LitElement {
       elmnt.style.top = (elmnt.offsetTop - pos2) + 'px'
       elmnt.style.left = (elmnt.offsetLeft - pos1) + 'px'
     }
-  
+
     function closeDragElement() {
       /* stop moving when mouse button is released: */
       document.onmouseup = null
@@ -215,15 +262,46 @@ export default class GscapeWidget extends LitElement {
   }
 
   show() {
-    this.style.display = 'initial'
+    if (this.isEnabled) this.style.display = 'initial'
   }
 
   hide() {
     this.style.display = 'none'
   }
 
+  enable() {
+    this.isEnabled = true
+    if (!this.hiddenDefault) this.show()
+  }
+
+  disable() {
+    this.isEnabled = false
+    this.hide()
+  }
+
   blur() {
     this.collapseBody()
+  }
+
+  get isVisible() {
+    return this.style.display !== 'none' ? true : false
+  }
+
+  set hiddenDefault(value) {
+    this._hiddenDefault = value
+    value ? this.hide() : this.show()
+    this.requestUpdate()
+  }
+
+  get hiddenDefault() {
+    return this._hiddenDefault
+  }
+
+  get isCollapsed() {
+    if (this.body)
+      return this.body.classList.contains('hide')
+    else
+      return true
   }
 }
 

@@ -1,6 +1,8 @@
 import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
+import annotationsTemplate from './common/annotations-template'
+import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 export default class GscapeEntityDetails extends GscapeWidget {
 
@@ -8,9 +10,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
     return [
       super.properties,
       {
-        _entity: {
-          type: Object
-        }
+        entity: { type: Object }
       }
     ]
   }
@@ -28,13 +28,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
           width:400px;
         }
 
-        .widget-body div:last-of-type {
-          margin-bottom: 12px;
-        }
-
         .chips-wrapper {
-          padding: 12px 6px 0 6px;
-          border-spacing: 0;
+          padding: 0 10px;
         }
 
         .descr-header {
@@ -45,10 +40,6 @@ export default class GscapeEntityDetails extends GscapeWidget {
           color: var(--theme-gscape-secondary, ${colors.secondary});
           width: 85%;
           margin: auto;
-        }
-
-        .descr-text{
-          padding:10px;
         }
 
         gscape-head {
@@ -65,13 +56,27 @@ export default class GscapeEntityDetails extends GscapeWidget {
           color: var(--theme-gscape-secondary, ${colors.secondary});
           font-size: 13px;
         }
+
+        .language {
+          text-align: center;
+          font-size: 14px;
+        }
+
+        tbody:nth-child(n+2)::before {
+          content: '';
+          display: table-row;
+          height: 20px;
+        }
       `
     ]
   }
 
   constructor() {
-    super(true,true)
+    super()
+    this.draggable = true
+    this.collapsible = true
 
+    this.hiddenDefault = true
     this._entity = null
     this.properties = {
       functional : 'Functional',
@@ -82,6 +87,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
       irreflexive : 'Irreflexive',
       transitive : 'Transitive',
     }
+
+    this.onNodeNavigation = {}
   }
 
   render() {
@@ -90,23 +97,25 @@ export default class GscapeEntityDetails extends GscapeWidget {
       <div class="widget-body">
         ${this.entity?
           html`
-            <table class="details_table">
-              <tr>
-                <th>Name</th>
-                <td>${this.entity.label.replace(/\r?\n|\r/g, '')}</td>
-              </tr>
-              <tr>
-                <th>Type</th>
-                <td>${this.entity.type}</td>
-              </tr>
-              ${this.entity.type != 'individual' ? html`
-              <tr>
-                <th>IRI</th>
-                <td>${this.entity.iri}</td>
-              </tr>
-              ` : html``
-              } 
-            </table>
+            <div class="section">
+              <table class="details_table">
+                <tr>
+                  <th>Name</th>
+                  <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.iri.remaining_chars}</td>
+                </tr>
+                <tr>
+                  <th>Type</th>
+                  <td>${this.entity.type}</td>
+                </tr>
+                ${this.entity.type != 'individual' ? html`
+                <tr>
+                  <th>IRI</th>
+                  <td>${this.entity.iri.full_iri}</td>
+                </tr>
+                ` : html``
+                }
+              </table>
+            </div>
 
             <div class="chips-wrapper">
               ${Object.keys(this.properties).map(property => {
@@ -116,21 +125,21 @@ export default class GscapeEntityDetails extends GscapeWidget {
               })}
             </div>
 
-            ${this.entity.description? 
-              html`
-                <div>
-                  <div class="descr-header"> Description </div>
-                  <div class="descr-text">
-                  </div>
-                </div>
-              `
-            : html``
-            }
+            ${annotationsTemplate(this.entity)}
           `
         : html``
         }
       </div>
     `
+  }
+
+  wikiClickHandler(e) {
+    if (this._onWikiClick)
+      this._onWikiClick(this.entity.iri.full_iri)
+  }
+
+  set onWikiClick(foo) {
+    this._onWikiClick = foo
   }
 
   set entity(entity) {
@@ -140,7 +149,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
       case 'concept' :
         this._entity.type = 'Class'
         break;
-      
+
       case 'role' :
         this._entity.type = 'Object Property'
         break;
@@ -159,18 +168,40 @@ export default class GscapeEntityDetails extends GscapeWidget {
   updated() {
     if (this.entity && this.entity.description)
       this.renderDescription(this.entity.description)
+
+    if (this._onWikiClick) {
+      this.shadowRoot.querySelectorAll('.wiki').forEach(el => {
+        el.classList.add('clickable')
+      })
+    }
   }
 
   renderDescription (description) {
-    let descr_container = this.shadowRoot.querySelector('.descr-text')
-    descr_container.innerHTML = description.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')
+    let descr_container
+    let text
+    Object.keys(description).forEach( language => {
+      text = ''
+      descr_container = this.shadowRoot.querySelector(`[lang = "${language}"] > .descr-text`)
+      description[language].forEach((comment, i) => {
+        i > 0 ?
+          text += '<p>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</p>' :
+          text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')
+      })
+      descr_container.innerHTML = text
+    })
+  }
+
+  handleNodeSelection(e) {
+    let node_id = e.target.getAttribute('node_id')
+    this.onNodeNavigation(node_id)
   }
 
   firstUpdated() {
     super.firstUpdated()
-    this.hide()
+    this.header.invertIcons()
   }
 
+  // override
   blur() {
     this.hide()
   }

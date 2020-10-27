@@ -12,7 +12,7 @@ export default class GscapeExplorer extends GscapeWidget{
       }
     ]
   }
-  
+
   static get styles() {
     let super_styles = super.styles
     let colors = super_styles[1]
@@ -37,11 +37,6 @@ export default class GscapeExplorer extends GscapeWidget{
           display: flex;
           align-items: center;
           padding:4px 0;
-        }
-
-        .row:hover, .sub-row:hover {
-          background-color: var(--theme-gscape-secondary, ${colors.secondary});
-          color: var(--theme-gscape-on-secondary, ${colors.on_secondary});
         }
 
         .row-label{
@@ -72,19 +67,19 @@ export default class GscapeExplorer extends GscapeWidget{
         .type-img-R{
           background-color: var(--theme-graph-role, ${colors.role});
           color: var(--theme-graph-role-dark, ${colors.role_dark});
-          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark}); 
+          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark});
         }
-        
+
         .type-img-C{
           background-color: var(--theme-graph-concept, ${colors.concept});
           color: var(--theme-graph-concept-dark, ${colors.concept_dark});
-          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark}); 
+          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark});
         }
 
         .type-img-I{
           background-color: var(--theme-graph-individual, ${colors.individual});
           color: var(--theme-graph-individual-dark, ${colors.individual_dark});
-          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark}); 
+          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark});
         }
 
         .sub-row{
@@ -105,14 +100,12 @@ export default class GscapeExplorer extends GscapeWidget{
           position:absolute;
           left: 30%;
           width: 50%;
-          line-height:21px;
+          padding: 0;
+          line-height:22px;
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
-          padding: 2px 5px;
           border:none;
           border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
-          float: left;
-          margin: 8px 0px;
           transition: all .35s ease-in-out;
           color:inherit;
         }
@@ -120,7 +113,7 @@ export default class GscapeExplorer extends GscapeWidget{
         gscape-head input:focus {
           border-color: var(--theme-gscape-secondary, ${colors.secondary});
           left:0;
-          margin: 8px 10px;
+          margin: 0px 8px;
           width:80%;
         }
       `
@@ -128,12 +121,14 @@ export default class GscapeExplorer extends GscapeWidget{
   }
 
   constructor(predicates, diagrams) {
-    super(true, true)
+    super()
+    this.draggable = true
+    this.collapsible = true
     this.diagrams = diagrams
     this.predicates = predicates
 
-    this._onEntitySelect = null
-    this._onNodeSelect = null
+    this.onEntitySelect = {}
+    this.onNodeNavigation = {}
   }
 
   render() {
@@ -147,9 +142,9 @@ export default class GscapeExplorer extends GscapeWidget{
 
 
     return html`
-      <gscape-head title="Explorer" collapsed="true" class="drag-handler">
-        <input 
-          type="text" 
+      <gscape-head title="Explorer" class="drag-handler">
+        <input
+          type="text"
           autocomplete="off"
           @keyup="${this.search}"
           placeholder="Search Entities"
@@ -161,9 +156,9 @@ export default class GscapeExplorer extends GscapeWidget{
         let predicate = this.predicates[key]
         return html`
           <div>
-            <div 
-              id="${predicate.subrows[0].id}" 
-              class="row" 
+            <div
+              id="${predicate.subrows[0].id}"
+              class="row highlight"
               type="${predicate.type}"
               label = "${predicate.label}"
             >
@@ -175,8 +170,8 @@ export default class GscapeExplorer extends GscapeWidget{
             <div class="sub-rows-wrapper hide">
             ${predicate.subrows.map( predicate_instance => {
               return html`
-                <div class="sub-row" 
-                  diagram_id="${predicate_instance.diagram.id}" 
+                <div class="sub-row highlight"
+                  diagram_id="${predicate_instance.diagram.id}"
                   node_id="${predicate_instance.id}"
                   @click="${this.handleNodeSelection}"
                 >
@@ -191,7 +186,7 @@ export default class GscapeExplorer extends GscapeWidget{
       </div>
     `
   }
-  
+
   toggleSubRows(e) {
     let row_wrapper = e.target.parentNode.parentNode.parentNode
     row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('hide')
@@ -212,9 +207,9 @@ export default class GscapeExplorer extends GscapeWidget{
       this.collapseBody()
     else
       this.showBody()
-    
+
     var rows = this.shadowRoot.querySelectorAll('.row')
-    
+
     rows.forEach( row => {
       value.split(' ').forEach(word => {
         if (row.getAttribute('label').toLowerCase().indexOf(word) > -1 ||
@@ -227,14 +222,6 @@ export default class GscapeExplorer extends GscapeWidget{
     })
 
     e.target.focus()
-  }
-
-  set onEntitySelect(f) {
-    this._onEntitySelect = f
-  }
-
-  set onNodeNavigation(f) {
-    this._onNodeSelect = f
   }
 
   get predicates() {
@@ -257,14 +244,14 @@ export default class GscapeExplorer extends GscapeWidget{
     let dictionary = []
 
     predicates.forEach(predicate => {
-      let label = predicate.label.replace(/\r?\n|\r/g, '')
-      let key = label.concat(predicate.type)    
-      
+      let label = predicate.displayed_name.replace(/\r?\n|\r/g, '')
+      let key = label.concat(predicate.type)
+
       if (!(key in dictionary)) {
         dictionary[key] = {
           type : predicate.type,
           label : label,
-          subrows : []          
+          subrows : []
         }
       }
 
@@ -276,22 +263,16 @@ export default class GscapeExplorer extends GscapeWidget{
 
   handleEntitySelection(e) {
     let entity_id = e.target.parentNode.getAttribute('id')
-
-    //let selector = `[label = '${label}'][type = '${type}']`
-    // get the first instance of the selected entity
-    //let predicate_instance = this.predicates.filter(selector)[0]
-
-    this._onEntitySelect(entity_id, true)
+    this.onEntitySelect(entity_id, true)
   }
 
   handleNodeSelection(e) {
-    this.toggleBody()
-
+    this.collapseBody()
     let node_id = e.target.getAttribute('node_id')
-
-    this._onNodeSelect(node_id)
+    this.onNodeNavigation(node_id)
   }
 
+  // override
   blur() {
     super.blur()
     this.shadowRoot.querySelector('input').blur()

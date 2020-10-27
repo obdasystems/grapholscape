@@ -9,7 +9,7 @@ export default class GrapholscapeRenderer {
 
     cy_container.style.width = '100%'
     cy_container.style.height = '100%'
-    cy_container.style.position = 'absolute'
+    cy_container.style.position = 'relative'
     if (container)
       container.insertBefore(cy_container, container.firstChild)
 
@@ -24,7 +24,18 @@ export default class GrapholscapeRenderer {
       }
     })
 
-    this.cy.on('select', 'node', e => {this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
+    this.cy.on('select', 'node', e => {
+      let type = e.target.data('type')
+      switch(type) {
+        case 'intersection':
+        case 'union':
+        case 'disjoint-union':
+          e.target.neighborhood().select()
+          break
+      }
+      e.target.select();
+      this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))
+    })
     this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
     this.cy.on('tap', evt => {
       if (evt.target === this.cy) {
@@ -42,7 +53,7 @@ export default class GrapholscapeRenderer {
   mount(container) {
     //container.insertBefore(this.cy.container(), container.firstChild)
     // force refresh
-    
+
     this.cy.container().style.display = 'block'
     //container.setAttribute('id', 'cy')
     //this.cy.mount(container)
@@ -114,7 +125,7 @@ export default class GrapholscapeRenderer {
 
   filter(filter, cy_instance) {
     let cy = cy_instance || this.cy
-    let selector = `${filter.selector}, .${filter.class}` 
+    let selector = `${filter.selector}, .${filter.class}`
 
     cy.$(selector).forEach(element => {
       this.filterElem(element, filter.class, cy)
@@ -135,7 +146,7 @@ export default class GrapholscapeRenderer {
       let number_edges_in_out = getNumberEdgesInOut(neighbour)
 
       if (!e.target().hasClass('filtered') && (number_edges_in_out <= 0 || e.data('type') === 'input')) {
-        this.filterElem(e.target(), filter_class)
+        this.filterElem(e.target(), filter_class, cy)
       }
     })
 
@@ -146,23 +157,23 @@ export default class GrapholscapeRenderer {
       let number_edges_in_out = getNumberEdgesInOut(neighbour)
 
       if (!e.source().hasClass('filtered') && number_edges_in_out === 0) {
-        this.filterElem(e.source(), filter_class)
+        this.filterElem(e.source(), filter_class, cy)
       }
     })
 
     function getNumberEdgesInOut(neighbour) {
       let count =  neighbour.outgoers('edge').size() + neighbour.incomers('edge[type != "input"]').size()
-      
+
       neighbour.outgoers().forEach( e => {
         if(e.target().hasClass('filtered')) {
           count--
-        } 
+        }
       })
 
       neighbour.incomers('[type != "input"]').forEach( e => {
         if(e.source().hasClass('filtered')) {
           count--
-        } 
+        }
       })
 
       return count
@@ -170,14 +181,15 @@ export default class GrapholscapeRenderer {
   }
 
   unfilter(filter, cy_instance) {
-    let selector = `${filter.selector}, .${filter.class}` 
+    let selector = `${filter.selector}, .${filter.class}`
     let cy = cy_instance || this.cy
-    
+
     cy.$(selector).removeClass('filtered')
     cy.$(selector).removeClass(filter.class)
   }
 
   setTheme(theme) {
+    this.theme = theme
     this.cy.style(getGraphStyle(theme))
   }
 
