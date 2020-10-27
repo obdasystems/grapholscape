@@ -311,6 +311,8 @@ export default class GrapholscapeView {
   }
 
   changeRenderingMode(mode, remember_position = true) {
+    if (!remember_position)
+      this.resetView()
 
     let actual_position = this.renderer.getActualPosition()
     let old_renderer = this.renderer
@@ -363,7 +365,7 @@ export default class GrapholscapeView {
          * for width and height and this prevent it to perform the fit().
          * After awhile dimensions get a value and the fit() works again.
          * */
-        setTimeout(() => this.resetView(), 200)
+        setTimeout(() => this.resetView(), 250)
         //this.resetView()
       }
       this.layout_settings.hide()
