@@ -56,6 +56,18 @@ Retrieve an entity by its IRI.
 
 * **JSON** The plain json representation of the entity.
 
+## getOccurrences(iri)
+
+Retrieve all occurrences of an entity by its IRI.
+
+### Params:
+
+* **string** *iri* - The IRI in full or prefixed form. i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+
+### Return:
+
+* **JSON** The plain json representation of the entity.
+
 ## getElemByDiagramAndId(elem_id, diagram_id, json)
 
 Get an element in the ontology by its id and its diagram id

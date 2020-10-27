@@ -1,6 +1,6 @@
 
 
-<!-- Start src\grapholscape-controller.js -->
+<!-- Start src/grapholscape-controller.js -->
 
 # GrapholscapeController - API
 an object of this class is returned to the promise when reading a graphol file.
