@@ -45,7 +45,7 @@ describe("Test parsing ontology metadata", () => {
 })
 
 describe("Test namespaces dictionary parsing", () => {
-  
+
   const output = [
     {
       prefixes : ['xsd'],
@@ -112,7 +112,7 @@ describe('Test retrieving IRI of a node', () => {
     prefix: 'undefined:',
     remaining_chars: 'http://www.unkwown.com/testNode2'
   }
- 
+
   test('it should parse and destructure a node\'s IRI in { full_iri, prefix, remaining_chars } ', () => {
     const retrieved_iri = parserV3.getIri(node1_mock_input, ontology)
     expect(retrieved_iri).toEqual(output1)
@@ -249,12 +249,12 @@ describe('Test predicate\'s info parsing', () => {
   const retrieved_infos = parserV3.getPredicateInfo(node_mock_input, xmlDoc)
 
   test('it should parse missing properties as falsy value', () => {
-    expect(retrieved_infos.reflexive).toBeFalsy()
     expect(retrieved_infos.functional).toBeFalsy()
   })
 
   test('it should parse correctly truthy properties', () => {
     expect(retrieved_infos.symmetric).toBeTruthy()
+    expect(retrieved_infos.reflexive).toBeTruthy()
   })
 })
 

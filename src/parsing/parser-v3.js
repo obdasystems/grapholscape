@@ -105,7 +105,7 @@ export function getLabel(element, ontology, xmlDocument) {
     for (let annotation of annotations.children) {
       if (getTagText(annotation, 'property') == label_property_iri) {
         // add label for a given language only if it doesn't already exist
-        labels[getTagText(annotation, 'language')] = 
+        labels[getTagText(annotation, 'language')] =
           labels[getTagText(annotation, 'language')] || getTagText(annotation, 'lexicalForm')
       }
     }
@@ -122,8 +122,9 @@ export function getPredicateInfo(element, xmlDocument) {
 
   if (actual_iri_elem && actual_iri_elem.children) {
     for(let property of actual_iri_elem.children) {
-      if (property.tagName != 'value' && property.tagName != 'annotations') {
-        result[property.tagName] = parseInt(property.textContent) || 0
+      if (property.tagName != 'value' && property.tagName != 'annotations' &&
+          property.textContent != '0') {
+        result[property.tagName] =  1
       }
     }
   }

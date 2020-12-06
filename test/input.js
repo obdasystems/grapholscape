@@ -74,7 +74,6 @@ a capo senza lingua</lexicalForm>
               </object>
             </annotation>
           </annotations>
-          <functional>0</functional>
           <inverseFunctional/>
           <symmetric>1</symmetric>
           <asymmetric/>
