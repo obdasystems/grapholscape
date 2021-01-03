@@ -405,7 +405,9 @@ export default class GrapholscapeView {
       theme_aux[key] = color
     })
 
-    this.graph_container.style.background = theme.background
+    this.graph_container.style.background =
+      typeof theme.background == 'string' ? theme.background : theme.background.cssText
+
     // Apply theme to graph
     Object.keys(this.renderers).map(key => {
       this.renderers[key].setTheme(theme_aux)
