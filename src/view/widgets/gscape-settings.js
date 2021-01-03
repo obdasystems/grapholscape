@@ -164,6 +164,27 @@ export default class GscapeSettings extends GscapeWidget {
     }
   }
 
+  updated(changedProperties) {
+    /**
+     * when controller change a property in this.settings, lit element doesn't see it
+     * (this.settings should be assigned to a completely new object (new reference)
+     * for lit element to notice it).
+     * So controller forces the update and in that case litElement will update even if
+     * no property has changed.
+     * So if it has been updated forcefully from controller, then react to each change
+     */
+    if( changedProperties.size == 0) {
+      this.shadowRoot.querySelectorAll('select').forEach( list => {
+        this.onListChange({target: list})
+      })
+      this.shadowRoot.querySelectorAll('gscape-toggle').forEach( toggle => {
+        // onToggleChange uses toggle.id because it gets the <input> elem
+        toggle.id = toggle.key
+        this.onToggleChange({ target: toggle })
+      })
+    }
+  }
+
   onListChange(e) {
     let selection = e.target
     let area = selection.getAttribute('area')

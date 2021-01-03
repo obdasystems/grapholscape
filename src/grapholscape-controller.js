@@ -3,7 +3,7 @@
  * an object of this class is returned to the promise when reading a graphol file.
  * It expose a set of methods to set filters, change viewport state etc.
  *
- * @version 1.0.0
+ * @version 1.1.1
  */
 
 import OwlTranslator from "./util/owl"
@@ -56,7 +56,7 @@ export default class GrapholscapeController {
         console.log(reason)
       })
 
-   if ( this.config.preferences.entity_name.selected !=
+    if ( this.config.preferences.entity_name.selected !=
       default_config.preferences.entity_name.selected )
       this.onEntityNameTypeChange(this.config.preferences.entity_name.selected)
 
@@ -384,32 +384,55 @@ export default class GrapholscapeController {
     this.onEntityNameTypeChange(this.config.preferences.entity_name.selected)
   }
 
+  /**
+   * Update the actual configuration and apply changes.
+   * @param {Object} new_config - a configuration object. Please read [wiki/settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+   */
   setConfig(new_config) {
     Object.keys(new_config).forEach( entry => {
 
       // if custom theme
       if (entry == 'theme' && typeof(new_config[entry]) == 'object') {
-        this.view.setCustomTheme((new_config[entry]))
+        let custom_theme_value = `custom`
+
         this.config.rendering.theme.list.push({
-          value : 'custom',
-          label : 'Custom'
+          value : custom_theme_value,
+          label : new_config[entry].name || 'Custom'
         })
-        this.config.rendering.theme.selected = 'custom'
-        return // continue to next entry and skip next for
-      }
-      for (let area in this.config) {
-        try {
-          let setting = this.config[area][entry]
-          if (setting) {
-            // apply custom settings only if they match type and are defined in lists
-            if (setting.type == 'boolean' && typeof(new_config[entry]) == 'boolean')
-              this.config[area][entry].enabled = new_config[entry]
-            else if( this.config[area][entry].list.map( elm => elm.value).includes(new_config[entry]))
-              this.config[area][entry].selected = new_config[entry]
+
+        // if marked with selected, update the 'selected' field in config
+        if ( new_config[entry].selected )
+          this.config.rendering.theme.selected = custom_theme_value
+
+        // remove metadata from theme in order to get only colours
+        delete new_config[entry].name
+        delete new_config[entry].selected
+
+        this.view.registerCustomTheme(new_config[entry], custom_theme_value)
+      } else {
+        for (let area in this.config) {
+          try {
+            let setting = this.config[area][entry]
+            if (setting) {
+              // apply custom settings only if they match type and are defined in lists
+              if (setting.type == 'boolean' && typeof(new_config[entry]) == 'boolean')
+                this.config[area][entry].enabled = new_config[entry]
+              else if( this.config[area][entry].list.map( elm => elm.value).includes(new_config[entry]))
+                this.config[area][entry].selected = new_config[entry]
+            }
+          } catch (e) {
+            console.warn(`Custom default setting [${entry}] not recognized`)
           }
-        } catch (e) {}
+        }
       }
     })
+
+    /*
+     * setting widget observes this.config object reference, not internal properties.
+     * Forcing the update it will render using the new config internal properties
+     * reacting to each change.
+     */
+    this.view.settings_widget.requestUpdate()
   }
 
   entityModelToViewData(entityModelData) {

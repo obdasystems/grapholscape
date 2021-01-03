@@ -55,6 +55,8 @@ export default class GrapholscapeView {
 
     this.dialog = new GscapeDialog()
     this.container.appendChild(this.dialog)
+    this.themes = {}
+    Object.assign(this.themes, themes)
   }
 
   createUi(ontology, diagrams, predicates, settings) {
@@ -155,7 +157,7 @@ export default class GrapholscapeView {
     })
 
     if(this.settings.rendering.theme.selected != 'custom')
-      this.setTheme(themes[this.settings.rendering.theme.selected])
+      this.setTheme(this.themes[this.settings.rendering.theme.selected])
   }
 
   registerEvents(renderer) {
@@ -306,7 +308,7 @@ export default class GrapholscapeView {
   }
 
   setRenderer(renderer) {
-    for (name in this.renderers) {
+    for (let name in this.renderers) {
       if (this.renderers[name])
         this.renderers[name].unmount()
     }
@@ -389,7 +391,7 @@ export default class GrapholscapeView {
   }
 
   onThemeSelection(theme_name) {
-    theme_name == 'custom' ? this.setTheme(this.custom_theme) : this.setTheme(themes[theme_name])
+    this.setTheme(this.themes[theme_name])
   }
 
   setTheme(theme) {
@@ -414,14 +416,16 @@ export default class GrapholscapeView {
     });
   }
 
-  setCustomTheme(new_theme) {
-    this.custom_theme = JSON.parse(JSON.stringify(themes.gscape))
+  registerCustomTheme(new_theme, key_value) {
+    // new custom theme will be based on gscape default theme
+    this.themes[key_value] = JSON.parse(JSON.stringify(themes.gscape))
+
+    // each new custom colour will overwrite the default one
     Object.keys(new_theme).forEach( color => {
-      if (this.custom_theme[color]) {
-        this.custom_theme[color] = new_theme[color]
+      if (this.themes[key_value][color]) {
+        this.themes[key_value][color] = new_theme[color]
       }
     })
-    this.setTheme(this.custom_theme)
   }
 
   showWidget(widget_name) {
