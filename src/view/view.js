@@ -16,6 +16,7 @@ import GscapeSettings from './widgets/gscape-settings'
 import GscapeSpinner from  './widgets/common/spinner'
 import GscapeDialog from './widgets/common/dialog'
 import GscapeEntityOccurrences from './widgets/gscape-entity-occurrences'
+import bottom_left_container from './util/bottom-left-container'
 
 export default class GrapholscapeView {
   constructor (container) {
@@ -141,20 +142,25 @@ export default class GrapholscapeView {
         this.onWidgetDisabled(widget_name)
     }
 
+    let widget_container = bottom_left_container()
+
     this.widgets.forEach( (widget, key) => {
-      this.container.appendChild(widget)
       switch (key) {
         case 'filters':
         case 'ontology_info':
         case 'settings_widget':
         case 'simplifications':
+          widget_container.appendChild(widget)
           widget.onToggleBody = () => this.blurAll(widget)
           break
 
-        case 'default':
+        default:
+          this.container.appendChild(widget)
           break
       }
     })
+
+    this.container.appendChild(widget_container)
 
     if(this.settings.rendering.theme.selected != 'custom')
       this.setTheme(this.themes[this.settings.rendering.theme.selected])

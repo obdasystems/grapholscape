@@ -20,8 +20,9 @@ export default class GscapeRenderSelector extends GscapeWidget {
       super_styles[0],
       css`
         :host {
-          bottom:10px;
-          left: 136px;
+          display:inline-block;
+          position:initial;
+          order: 4;
         }
 
         .renderer-item {
@@ -141,8 +142,10 @@ export default class GscapeRenderSelector extends GscapeWidget {
   set onRendererChange(f) {
     this._onRendererChange = f
   }
+
+  show() {
+    if (this.isEnabled) this.style.display = 'inline-block'
+  }
 }
-
-
 
 customElements.define('gscape-render-selection', GscapeRenderSelector)

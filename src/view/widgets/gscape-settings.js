@@ -14,9 +14,9 @@ export default class GscapeSettings extends GscapeWidget {
       super_styles[0],
       css`
         :host {
-          bottom:10px;
-          left: 94px;
-          padding-right:0;
+          display:inline-block;
+          position: initial;
+          margin-right:10px;
         }
 
         gscape-button {
@@ -220,6 +220,10 @@ export default class GscapeSettings extends GscapeWidget {
 
   set onWidgetDisabled(foo) {
     this.callbacks.widgetDisable = foo
+  }
+
+  show() {
+    if (this.isEnabled) this.style.display = 'inline-block'
   }
 }
 

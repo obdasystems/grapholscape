@@ -13,8 +13,9 @@ export default class GscapeOntologyInfo extends GscapeWidget {
       super_styles[0],
       css`
         :host {
-          bottom:10px;
-          left:52px;
+          display:inline-block;
+          position: initial;
+          margin-right:10px;
         }
 
         .gscape-panel {
@@ -124,6 +125,10 @@ export default class GscapeOntologyInfo extends GscapeWidget {
         descr_container.innerHTML = text
       })
     }
+  }
+
+  show() {
+    if (this.isEnabled) this.style.display = 'inline-block'
   }
 }
 

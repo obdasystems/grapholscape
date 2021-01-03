@@ -32,8 +32,9 @@ export default class GscapeFilters extends GscapeWidget {
       super_styles[0],
       css`
         :host {
-          bottom:10px;
-          left:10px;
+          display:inline-block;
+          position: initial;
+          margin-right:10px;
         }
 
         gscape-button{
@@ -124,6 +125,10 @@ export default class GscapeFilters extends GscapeWidget {
 
     this.btn.active = is_activated
     this.btn.requestUpdate()
+  }
+
+  show() {
+    if (this.isEnabled) this.style.display = 'inline-block'
   }
 }
 
