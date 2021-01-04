@@ -9,6 +9,7 @@
 import OwlTranslator from "./util/owl"
 import computeSimplifiedOntologies from "./util/simplifier"
 import * as default_config from "./config.json"
+import downloadBlob from "./util/download_blob"
 
 export default class GrapholscapeController {
   constructor(ontology, view = null, custom_config = null) {
@@ -94,6 +95,7 @@ export default class GrapholscapeController {
     this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this)
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     this.view.onLanguageChange = this.onLanguageChange.bind(this)
+    this.view.onExportToPNG = this.exportToPNG.bind(this)
 
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
@@ -433,6 +435,30 @@ export default class GrapholscapeController {
      * reacting to each change.
      */
     this.view.settings_widget.requestUpdate()
+  }
+
+  /**
+   * Export the current diagram in to a PNG image and save it on user's disk
+   * @param {String} fileName - the name to assign to the file
+   * (Default: [ontology name]-[diagram name]-v[ontology version])
+   */
+  exportToPNG(fileName = null) {
+    fileName = fileName || `${this.ontology.name}-${this.actual_diagram.name}-v${this.ontology.version}.png`
+
+    this.view.renderer.cy.png({
+      output: 'blob-promise',
+      full: true,
+      bg: this.view.themes[this.config.rendering.theme.selected].background
+    }).then(blob => downloadBlob(blob, fileName))
+  }
+
+  /**
+   * Export the current diagram in to a PDF file and save it on user's disk
+   * @param {String} fileName - the name to assign to the file
+   * (Default: [ontology name]-[diagram name]-v[ontology version])
+   */
+  exportToPDF(fileName = null) {
+    // TODO
   }
 
   entityModelToViewData(entityModelData) {

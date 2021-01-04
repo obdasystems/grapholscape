@@ -46,7 +46,7 @@ export default class GscapeButton extends GscapeWidget {
 
     this.icon = icon
     this.alternate_icon = alt_icon || icon
-    this.onClick = null
+    this.onClick = () => {}
     this.highlight = false
     this.active = false
   }
