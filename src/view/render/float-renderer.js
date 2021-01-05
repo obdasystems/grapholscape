@@ -77,11 +77,11 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
         setStyle(dimension, div)
 
         div.onclick = () => this.unlockNode(node)
-        document.body.appendChild(div)
+        this.cy.container().appendChild(div)
 
         return div
       },
-      //popper: {} // my popper options here
+      popper: {removeOnDestroy: true}
     })
 
     node.unlockButton = unlockButton
