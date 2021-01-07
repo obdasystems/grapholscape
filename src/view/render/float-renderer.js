@@ -31,6 +31,13 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.cy.nodes().addClass('float')
     this.main_layout = this.layout() // apply layout on those not locked
     this.main_layout.run()
+
+    /**
+     * hack: let layout run a bit and fit to it.
+     * Prevent some diagrams to disappear from screen due to
+     * automatic layout.
+     */
+    setTimeout(() => this.cy.fit(), 100)
   }
 
   centerOnNode(node_id, zoom) {
@@ -121,9 +128,8 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
   }
 
   unmount() {
-    super.unmount()
-
     this.clearPoppers()
+    super.unmount()
   }
 
   get layout_settings() {

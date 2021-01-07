@@ -50,18 +50,29 @@ export default class GrapholscapeRenderer {
     })
   }
 
+  /**
+   * WHY NOT USING cy.mount(container)??
+   * because it causes a problem with float renderer.
+   * In particular at the second time this.mount() will be
+   * called, the layout will stop working, something happens internally
+   * breaking the layout.
+   *
+   * WHY SWITCHING FROM display:none TO position:absolute??
+   * display:none will cause the container having clientHeight(Width) = 0
+   * and cytoscpae uses those values to perform the fit().
+   * This will cause problems when switching renderers cause in some
+   * cases fit() will be automatically called on the container having
+   *  zero asdimensions
+   */
   mount(container) {
-    //container.insertBefore(this.cy.container(), container.firstChild)
-    // force refresh
-
-    this.cy.container().style.display = 'block'
-    //container.setAttribute('id', 'cy')
+    this.cy.container().style.position = 'relative'
+    this.cy.container().style.left = 0
     //this.cy.mount(container)
   }
 
   unmount() {
-    this.cy.container().style.display = 'none'
-    //this.cy.container().parentElement.removeChild(this.cy.container())
+    this.cy.container().style.position = 'absolute'
+    this.cy.container().style.left = '-999em'
     //this.cy.unmount()
   }
 

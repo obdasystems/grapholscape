@@ -111,7 +111,7 @@ export default class GrapholscapeView {
     this.widgets.set('zoom_widget', zoom_widget)
 
     this.renderer_selector = new GscapeRenderSelector(this.renderers)
-    this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this)
+    this.renderer_selector.onRendererChange = this.onRenderingModeChange
     this.widgets.set('simplifications', this.renderer_selector)
 
     this.layout_settings = new GscapeLayoutSettings()

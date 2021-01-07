@@ -91,7 +91,7 @@ export default class GrapholscapeController {
     this.view.onNodeSelection = this.onNodeSelection.bind(this)
     this.view.onBackgroundClick = this.onBackgroundClick.bind(this)
     this.view.onEdgeSelection = this.onEdgeSelection.bind(this)
-    this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this)
+    this.view.onRenderingModeChange = this.changeRenderingMode.bind(this)
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     this.view.onLanguageChange = this.onLanguageChange.bind(this)
 
@@ -274,32 +274,9 @@ export default class GrapholscapeController {
     }
   }
 
-  onRenderingModeChange(mode, state) {
-    this.actualMode = mode
-    switch(mode) {
-      case 'lite':
-      case 'float': {
-        this.SimplifiedOntologyPromise.then(() => {
-          if (this.actualMode === mode) {
-            this.ontology = this.ontologies[mode]
-            this.updateGraphView(state)
-            this.updateEntitiesList()
-          }
-        })
-        break
-      }
-      case 'default': {
-        this.ontology = this.ontologies.default
-        this.updateGraphView(state)
-        this.updateEntitiesList()
-        break
-      }
-    }
-  }
-
   /**
    * Change the rendering mode.
-   * @param {string} mode - the rendering/simplifation mode to activate: `graphol`, `lite`, or `float`
+   * @param {string} mode - the rendering/simplifation mode to activate: `default`, `lite`, or `float`
    * @param {boolean} keep_viewport_state - if `false`, viewport will fit on diagram.
    * Set it `true` if you don't want the viewport state to change.
    * In case of no diagram displayed yet, it will be forced to `false`.
@@ -308,8 +285,75 @@ export default class GrapholscapeController {
    * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
    */
   changeRenderingMode(mode, keep_viewport_state = true) {
-    this.view.changeRenderingMode(mode, keep_viewport_state)
+    let old_mode = this.actualMode
+    // if we change to lite or default mode, coming from float mode,
+    // and we didn't define a new viewport state, then reset viewport
+    // to fit the diagram because there's no equivalence in float graph
+    // and other graphs, unlike lite and default mode which have fixed
+    // positions for nodes.
+    let shouldHardResetViewport = (mode != 'float' && old_mode == 'float')
+    let new_viewport_state =
+      keep_viewport_state && !shouldHardResetViewport ?
+        this.view.renderer.getActualPosition()
+        : null
+    this.actualMode = mode
     this.view.widgets.get('simplifications').actual_mode = mode
+
+    mode == 'float' ?
+      this.view.showWidget('layout_settings')
+      : this.view.hideWidget('layout_settings')
+
+    switch(mode) {
+      case 'lite':
+      case 'float': {
+        this.SimplifiedOntologyPromise.then(() => {
+          // async code, actualMode may be changed
+          if (this.actualMode === mode) {
+            this.ontology = this.ontologies[mode]
+
+            this.view.setRenderer(this.view.renderers[mode])
+            Object.keys(this.view.filters).map(key => {
+              if (key != 'all' &&
+                  key != 'attributes' &&
+                  key != 'individuals') {
+                // disable all unnecessary filters
+                this.view.filters[key].disabled = true
+              }
+            })
+            this.view.widgets.get('filters').requestUpdate()
+            this.view.blurAll()
+
+            this.updateEntitiesList()
+            this.updateGraphView(new_viewport_state)
+            if (shouldHardResetViewport) this.view.resetView()
+          }
+        })
+        break
+      }
+      case 'default': {
+        this.ontology = this.ontologies.default
+        this.view.setRenderer(this.view.renderers[mode])
+        Object.keys(this.view.filters).map(key => {
+          if (key != 'all' &&
+              key != 'attributes' &&
+              key != 'individuals') {
+
+            // enable filters that may have been disabled by lite mode
+            this.view.filters[key].disabled = false
+
+            if (key == 'value_domain' && this.view.filters.attributes.active)
+              this.view.filters.value_domain.disabled = true
+          }
+        })
+
+
+        this.updateGraphView(new_viewport_state)
+        this.updateEntitiesList()
+        if (shouldHardResetViewport) this.view.resetView()
+        this.view.blurAll()
+        break
+      }
+    }
   }
 
   /**
