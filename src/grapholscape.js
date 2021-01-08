@@ -7,9 +7,11 @@ import GrapholscapeController from './grapholscape-controller'
 import cytoscape from 'cytoscape'
 import popper from 'cytoscape-popper'
 import cola from 'cytoscape-cola'
+import cy_svg from 'cytoscape-svg'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
+cytoscape.use(cy_svg)
 
 export default class GrapholScape {
   constructor (file, container = false, config = null) {

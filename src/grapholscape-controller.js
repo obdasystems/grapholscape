@@ -9,6 +9,7 @@
 import OwlTranslator from "./util/owl"
 import computeSimplifiedOntologies from "./util/simplifier"
 import * as default_config from "./config.json"
+import downloadBlob from "./util/download_blob"
 
 export default class GrapholscapeController {
   constructor(ontology, view = null, custom_config = null) {
@@ -94,6 +95,8 @@ export default class GrapholscapeController {
     this.view.onRenderingModeChange = this.changeRenderingMode.bind(this)
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     this.view.onLanguageChange = this.onLanguageChange.bind(this)
+    this.view.onExportToPNG = this.exportToPNG.bind(this)
+    this.view.onExportToSVG = this.exportToSVG.bind(this)
 
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
@@ -477,6 +480,50 @@ export default class GrapholscapeController {
      * reacting to each change.
      */
     this.view.settings_widget.requestUpdate()
+  }
+
+  /**
+   * Export the current diagram in to a PNG image and save it on user's disk
+   * @param {String} fileName - the name to assign to the file
+   * (Default: [ontology name]-[diagram name]-v[ontology version])
+   */
+  exportToPNG(fileName = null) {
+    fileName = fileName || this.export_file_name+'.png'
+    this.view.renderer.cy.png(this.export_options).then(blob => downloadBlob(blob, fileName))
+  }
+
+  /**
+   * Export the current diagram in to a SVG file and save it on user's disk
+   * @param {String} fileName - the name to assign to the file
+   * (Default: [ontology name]-[diagram name]-v[ontology version])
+   */
+  exportToSVG(fileName = null) {
+    console.log(this.export_options.bg)
+    fileName = fileName || this.export_file_name+'.svg'
+    let svg_content = this.view.renderer.cy.svg(this.export_options)
+    let blob = new Blob([svg_content], {type:"image/svg+xml;charset=utf-8"});
+    downloadBlob(blob, fileName)
+  }
+
+  /*
+   * Options for exports, blob-promise
+   */
+  get export_options() {
+
+    let bg = this.view.themes[this.config.rendering.theme.selected].background.cssText ||
+      this.view.themes[this.config.rendering.theme.selected].background
+    return {
+      output: 'blob-promise',
+      full: true,
+      bg: bg
+    }
+  }
+
+  /*
+   ** Filename for exports: [ontology name]-[diagram name]-v[ontology version])
+   */
+  get export_file_name() {
+    return `${this.ontology.name}-${this.actual_diagram.name}-v${this.ontology.version}`
   }
 
   entityModelToViewData(entityModelData) {

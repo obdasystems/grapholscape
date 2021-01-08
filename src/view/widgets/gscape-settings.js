@@ -91,6 +91,11 @@ export default class GscapeSettings extends GscapeWidget {
     this.btn = new GscapeButton('settings')
     this.btn.onClick = this.toggleBody.bind(this)
     this.callbacks = {}
+
+    this.savePNGButton = new GscapeButton('save')
+    this.savePNGButton.label = 'PNG'
+    this.saveSVGButton = new GscapeButton('save')
+    this.saveSVGButton.label = 'SVG'
   }
 
   render() {
@@ -144,6 +149,31 @@ export default class GscapeSettings extends GscapeWidget {
         </div>
         `
       })}
+
+        <div class="area">
+          <div class="area-title">Export Ontology Image</div>
+          <div class="setting">
+            <div class="title-wrap">
+              <div class="setting-title">Image</div>
+              <div class="setting-label">Save a PNG image of the current diagram on your disk</div>
+            </div>
+
+            <div class="setting-obj">
+              ${this.savePNGButton}
+            </div>
+          </div>
+
+          <div class="setting">
+          <div class="title-wrap">
+            <div class="setting-title">Vectorial</div>
+            <div class="setting-label">Save an SVG of the current diagram on your disk</div>
+          </div>
+
+          <div class="setting-obj">
+            ${this.saveSVGButton}
+          </div>
+        </div>
+        </div>
 
         <div class="area">
           <div class="area-title">About</div>
@@ -220,6 +250,14 @@ export default class GscapeSettings extends GscapeWidget {
 
   set onWidgetDisabled(foo) {
     this.callbacks.widgetDisable = foo
+  }
+
+  set onPNGSaveButtonClick(foo) {
+    this.savePNGButton.onClick = foo
+  }
+
+  set onSVGSaveButtonClick(foo) {
+    this.saveSVGButton.onClick = foo
   }
 
   show() {
