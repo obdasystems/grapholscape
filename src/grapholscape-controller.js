@@ -3,7 +3,7 @@
  * an object of this class is returned to the promise when reading a graphol file.
  * It expose a set of methods to set filters, change viewport state etc.
  *
- * @version 1.1.1
+ * @version [!!version!!]  <!-- don't touch, automatic version injection, see src/doc/doc.js -->
  */
 
 import OwlTranslator from "./util/owl"

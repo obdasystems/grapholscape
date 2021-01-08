@@ -20,10 +20,10 @@
     "app": "electron ./app",
     "app:dist": "electron-packager ./app --out=./dists --icon=./app/assets/icon --overwrite",
     "deploy": "run-s copy-build-in:demo && cross-env-shell gh-pages -d demo -m \"$npm_package_version\" && rimraf ./demo/js/grapholscape.min.js",
-    "doc": "node doc/doc.js",
+    "doc": "cross-env VERSION=$npm_package_version node doc/doc.js",
     "test": "jest",
-    "preversion": "run-s test doc",
-    "version": "run-s dist app:dist && git add -A"
+    "preversion": "run-s test",
+    "version": "run-s doc dist app:dist && git add -A"
   },
   "repository": {
     "type": "git",
