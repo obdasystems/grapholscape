@@ -52,7 +52,7 @@ export default class GscapeEntityOccurrences extends GscapeWidget {
 
   render() {
     return html`
-      <gscape-head title="Entity Occurrences" class="drag-handler"></gscape-head>
+      <gscape-head title="Entity Occurrences" left_icon="visibility" class="drag-handler"></gscape-head>
       <div class="widget-body">
         ${entityOccurrencesTemplate(this.occurrences, this.handleNodeSelection)}
       </div>

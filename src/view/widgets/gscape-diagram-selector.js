@@ -54,7 +54,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
 
   render () {
     return html`
-      <gscape-head title="${this.default_title}"
+      <gscape-head title="${this.default_title}" left_icon="dns"
         class="drag-handler"></gscape-head>
 
       <div class="widget-body hide">

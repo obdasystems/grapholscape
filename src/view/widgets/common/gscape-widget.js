@@ -23,6 +23,7 @@ export default class GscapeWidget extends LitElement {
         border-radius: 8px;
         transition: opacity 0.2s;
         scrollbar-width: thin;
+        --mdc-icon-button-size: 24px;
       }
 
       :host(:hover){
@@ -283,8 +284,12 @@ export default class GscapeWidget extends LitElement {
     this.collapseBody()
   }
 
+  isCustomIcon(icon) {
+    return typeof(icon) !== 'string'
+  }
+
   get isVisible() {
-    return this.style.display !== 'none' ? true : false
+    return this.style.display !== 'none'
   }
 
   set hiddenDefault(value) {

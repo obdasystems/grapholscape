@@ -93,7 +93,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
   render() {
     return html`
-      <gscape-head title="Entity Details" class="drag-handler"></gscape-head>
+      <gscape-head title="Entity Details" left_icon="info" class="drag-handler"></gscape-head>
       <div class="widget-body">
         ${this.entity?
           html`

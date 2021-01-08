@@ -97,7 +97,7 @@ export default class GscapeExplorer extends GscapeWidget{
         }
 
         gscape-head input {
-          position:absolute;
+          position:initial;
           left: 30%;
           width: 50%;
           padding: 0;
@@ -106,15 +106,16 @@ export default class GscapeExplorer extends GscapeWidget{
           background-color: var(--theme-gscape-primary, ${colors.primary});
           border:none;
           border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
-          transition: all .35s ease-in-out;
+          transition: width .35s ease-in-out;
           color:inherit;
         }
 
         gscape-head input:focus {
+          position:absolute;
           border-color: var(--theme-gscape-secondary, ${colors.secondary});
-          left:0;
+          left: 34px;
           margin: 0px 8px;
-          width:80%;
+          width:75%;
         }
       `
     ]
@@ -142,7 +143,7 @@ export default class GscapeExplorer extends GscapeWidget{
 
 
     return html`
-      <gscape-head title="Explorer" class="drag-handler">
+      <gscape-head title="Explorer" left_icon="explore" class="drag-handler">
         <input
           type="text"
           autocomplete="off"

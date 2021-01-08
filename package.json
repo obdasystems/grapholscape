@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "@material/mwc-icon": "^0.6.0",
+    "@material/mwc-icon-button": "^0.20.0",
     "@webcomponents/webcomponentsjs": "^2.4.3",
     "core-js": "^3.6.5",
     "cytoscape": "^3.15.2",

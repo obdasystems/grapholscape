@@ -123,6 +123,7 @@ const configs = [
       globals: {
         'cytoscape': 'cytoscape',
         '@material/mwc-icon': 'mwcIcon',
+        '@material/mwc-icon-button': 'mwcIconButton',
         'cytoscape-popper': 'popper',
         'cytoscape-cola': 'cola'
       }

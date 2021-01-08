@@ -1,5 +1,5 @@
 import { html, css } from 'lit-element'
-import { Icon } from '@material/mwc-icon'
+import { IconButton } from '@material/mwc-icon-button'
 import GscapeWidget from './gscape-widget';
 
 export default class GscapeHeader extends GscapeWidget {
@@ -8,7 +8,8 @@ export default class GscapeHeader extends GscapeWidget {
       title: { type : String },
       initial_icon: { type : String },
       secondary_icon: { type : String },
-      icon : { type : String }
+      icon : { type : String },
+      left_icon: { type: String }
     }
   }
 
@@ -18,6 +19,7 @@ export default class GscapeHeader extends GscapeWidget {
     this.initial_icon = 'arrow_drop_down'
     this.secondary_icon = 'arrow_drop_up'
     this.icon = this.initial_icon
+    this.left_icon = ''
     this.onClick = () => {}
   }
 
@@ -37,7 +39,6 @@ export default class GscapeHeader extends GscapeWidget {
       .head-btn {
         color:var(--theme-gscape-on-primary, ${colors.on_primary});
         right:0;
-        padding: var(--btn-padding, 0 0 0 5px);
         cursor:pointer;
       }
 
@@ -46,19 +47,32 @@ export default class GscapeHeader extends GscapeWidget {
       }
 
       .head-title {
-        padding: var(--title-padding, 0 5px 0 0);
+        padding: var(--title-padding, 0 10px);
         box-sizing: border-box;
         font-weight:bold;
         cursor:grab;
         width: var(--title-width, '');
-        text-align: var(--title-text-align, '')
+        text-align: var(--title-text-align, 'left');
+        justify-self: flex-start;
       }
+
     `
   }
 
   render () {
     return html`
-      <div class="head-title"> ${this.title} </div>
+    ${this.isCustomIcon(this.left_icon) ?
+      html`
+        <mwc-icon-button class="left-icon">
+          ${this.isCustomIcon(this.left_icon) ? html`${this.left_icon}` :''}
+        </mwc-icon-button>
+      ` : html`
+        <mwc-icon-button class="left-icon" icon="${this.left_icon}"></mwc-icon-button>
+      `}
+
+      <div class="head-title">
+        ${this.title}
+      </div>
       <slot></slot>
       <mwc-icon class="head-btn" @click="${this.iconClickHandler}">
         ${this.icon}

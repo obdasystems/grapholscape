@@ -6,8 +6,9 @@ export default class GscapeButton extends GscapeWidget {
 
   static get properties() {
     return {
-        icon: {type : String},
-        active : { type : Boolean },
+        icon: { type : String },
+        active: { type : Boolean },
+        label: { type : String }
       }
     }
 
@@ -27,6 +28,13 @@ export default class GscapeButton extends GscapeWidget {
           padding:5px;
           line-height:0;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+        }
+
+        .btn-label {
+          font-weight: var(--gscape-button-font-weight, 600);
+          padding: 0 5px 0 8px;
         }
 
         .btn:hover {
@@ -49,6 +57,7 @@ export default class GscapeButton extends GscapeWidget {
     this.onClick = null
     this.highlight = false
     this.active = false
+    this.label = ''
   }
 
   render() {
@@ -60,6 +69,7 @@ export default class GscapeButton extends GscapeWidget {
         title="${this.icon}">
 
         <mwc-icon>${this.icon}</mwc-icon>
+        ${this.label ? html`<span class="btn-label">${this.label}<span>` : ``}
       </div>
     `
   }

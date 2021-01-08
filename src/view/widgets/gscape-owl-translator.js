@@ -1,6 +1,7 @@
 import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
+import owl_icon from './assets/owl-icon'
 
 export default class GscapeOwlTranslator extends GscapeWidget {
   static get properties() {
@@ -87,6 +88,10 @@ export default class GscapeOwlTranslator extends GscapeWidget {
     this.collapsible = true
     this.hiddenDefault = true
     this.owl_text = ''
+    this.header = new GscapeHeader()
+    this.header.title = 'Owl Translation'
+    console.log(owl_icon)
+    this.header.left_icon = owl_icon
   }
 
   render() {
@@ -94,7 +99,7 @@ export default class GscapeOwlTranslator extends GscapeWidget {
       <div class="widget-body">
         <div class="owl-text"></div>
       </div>
-      <gscape-head title="Owl Translation"></gscape-head>
+      ${this.header}
     `
   }
 

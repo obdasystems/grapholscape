@@ -1,8 +1,7 @@
 import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
-import { Icon } from '@material/mwc-icon'
-import {graphol as graphol_logo} from './assets/graphol-icon'
+import graphol_logo from './assets/graphol-icon'
 
 export default class GscapeRenderSelector extends GscapeWidget {
 
@@ -42,6 +41,10 @@ export default class GscapeRenderSelector extends GscapeWidget {
           border-top-right-radius: inherit;
         }
 
+        .renderer-item > .name {
+          padding:0 10px;
+        }
+
         .selected {
           background-color: var(--theme-gscape-primary-dark, ${colors.primary_dark});
           color: var(--theme-gscape-on-primary-dark, ${colors.on_primary_dark});
@@ -61,14 +64,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
           --header-padding: 5px 8px;
         }
 
-        mwc-icon {
-          padding-right:8px;
-        }
-
         svg {
-          height: 20px;
-          width: auto;
-          padding: 2px;
           margin-right:8px;
         }
       `,
@@ -83,7 +79,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this.dict = {
       default : {
         name : "Graphol",
-        icon : "",
+        icon : graphol_logo,
       },
       lite :{
         name: "Graphol-Lite",
@@ -97,6 +93,10 @@ export default class GscapeRenderSelector extends GscapeWidget {
 
     this.actual_mode = 'default'
     this._onRendererChange = {}
+
+    this.header = new GscapeHeader()
+    this.header.title = this.dict[this.actual_mode].name
+    this.header.left_icon = this.dict[this.actual_mode].icon
   }
 
   render() {
@@ -108,16 +108,17 @@ export default class GscapeRenderSelector extends GscapeWidget {
           mode="${mode}"
           class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
         >
-        ${mode == 'default' ?
-          graphol_logo :
-          html`<mwc-icon>${this.dict[mode].icon}</mwc-icon>`
-        }
-        <span>${this.dict[mode].name}</span>
+        ${this.isCustomIcon(this.dict[mode].icon) ? html`
+          <mwc-icon-button>${this.dict[mode].icon}</mwc-icon-button>`
+        : html`
+          <mwc-icon-button icon="${this.dict[mode].icon}"></mwc-icon-button>
+        `}
+        <span class="name">${this.dict[mode].name}</span>
         </div>
         `)}
       </div>
 
-      <gscape-head title=${this.dict[this.actual_mode].name}></gscape-head>
+     ${this.header}
     `
   }
 
@@ -129,6 +130,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
     target.classList.add('selected')
     let mode = target.getAttribute('mode')
     this.header.title = this.dict[mode].name
+    this.header.left_icon = this.dict[mode].icon
     this.actual_mode = mode
     this._onRendererChange(mode)
   }
