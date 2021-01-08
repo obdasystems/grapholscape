@@ -62,7 +62,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
   }
 
   unlockNode(node) {
-    node.unlockButton.destroy()
+    this.removeUnlockButton(node)
     node.unlock()
   }
 
@@ -122,14 +122,19 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
   }
 
   clearPoppers() {
-    this.cy.nodes().each(node => {
-      if (node.unlockButton) node.unlockButton.destroy()
-    })
+    this.cy.nodes().each(node => this.removeUnlockButton(node))
   }
 
   unmount() {
     this.clearPoppers()
     super.unmount()
+  }
+
+  removeUnlockButton(node) {
+    if (node.unlockButton) {
+      node.unlockButton.destroy()
+      node.unlockButton = null
+    }
   }
 
   get layout_settings() {
