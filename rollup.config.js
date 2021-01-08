@@ -125,7 +125,8 @@ const configs = [
         '@material/mwc-icon': 'mwcIcon',
         '@material/mwc-icon-button': 'mwcIconButton',
         'cytoscape-popper': 'popper',
-        'cytoscape-cola': 'cola'
+        'cytoscape-cola': 'cola',
+        'cytoscape-svg': 'svg',
       }
     },
     plugins: [
