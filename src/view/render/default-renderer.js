@@ -65,14 +65,17 @@ export default class GrapholscapeRenderer {
    *  zero asdimensions
    */
   mount(container) {
-    this.cy.container().style.position = 'relative'
-    this.cy.container().style.left = 0
+    //container.insertBefore(this.cy.container(), container.firstChild)
+    // force refresh
+
+    this.cy.container().style.display = 'block'
+    //container.setAttribute('id', 'cy')
     //this.cy.mount(container)
   }
 
   unmount() {
-    this.cy.container().style.position = 'absolute'
-    this.cy.container().style.left = '-999em'
+    this.cy.container().style.display = 'none'
+    //this.cy.container().parentElement.removeChild(this.cy.container())
     //this.cy.unmount()
   }
 

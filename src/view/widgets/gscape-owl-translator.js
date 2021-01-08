@@ -91,7 +91,6 @@ export default class GscapeOwlTranslator extends GscapeWidget {
     this.owl_text = ''
     this.header = new GscapeHeader()
     this.header.title = 'Owl Translation'
-    console.log(owl_icon)
     this.header.left_icon = owl_icon
   }
 

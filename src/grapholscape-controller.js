@@ -288,13 +288,15 @@ export default class GrapholscapeController {
    * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
    */
   changeRenderingMode(mode, keep_viewport_state = true) {
+    this.view.blurAll()
+    if (mode === this.actualMode) return
     let old_mode = this.actualMode
     // if we change to lite or default mode, coming from float mode,
     // and we didn't define a new viewport state, then reset viewport
     // to fit the diagram because there's no equivalence in float graph
     // and other graphs, unlike lite and default mode which have fixed
     // positions for nodes.
-    let shouldHardResetViewport = (mode != 'float' && old_mode == 'float')
+    let shouldHardResetViewport = (mode != 'float' && old_mode == 'float') || mode == 'float'
     let new_viewport_state =
       keep_viewport_state && !shouldHardResetViewport ?
         this.view.renderer.getActualPosition()
@@ -312,50 +314,59 @@ export default class GrapholscapeController {
         this.SimplifiedOntologyPromise.then(() => {
           // async code, actualMode may be changed
           if (this.actualMode === mode) {
-            this.ontology = this.ontologies[mode]
-
-            this.view.setRenderer(this.view.renderers[mode])
-            Object.keys(this.view.filters).map(key => {
-              if (key != 'all' &&
-                  key != 'attributes' &&
-                  key != 'individuals') {
-                // disable all unnecessary filters
-                this.view.filters[key].disabled = true
-              }
-            })
-            this.view.widgets.get('filters').requestUpdate()
-            this.view.blurAll()
-
-            this.updateEntitiesList()
-            this.updateGraphView(new_viewport_state)
-            if (shouldHardResetViewport) this.view.resetView()
+            try {
+            performChange.bind(this)()
+            } catch (e) {console.log(e)}
           }
         })
         break
       }
       case 'default': {
-        this.ontology = this.ontologies.default
-        this.view.setRenderer(this.view.renderers[mode])
-        Object.keys(this.view.filters).map(key => {
-          if (key != 'all' &&
-              key != 'attributes' &&
-              key != 'individuals') {
+        performChange.bind(this)()
+        break
+      }
+    }
 
+    function performChange() {
+      this.ontology = this.ontologies[mode]
+      this.view.setRenderer(this.view.renderers[mode])
+      Object.keys(this.view.filters).map(key => {
+        if (key != 'all' &&
+            key != 'attributes' &&
+            key != 'individuals') {
+
+          if (mode == 'float' || mode == 'lite') {
+            // disable all unnecessary filters
+            this.view.filters[key].disabled = true
+          }
+
+          if (mode == 'default') {
             // enable filters that may have been disabled by lite mode
             this.view.filters[key].disabled = false
 
             if (key == 'value_domain' && this.view.filters.attributes.active)
               this.view.filters.value_domain.disabled = true
           }
-        })
+        }
+      })
 
 
-        this.updateGraphView(new_viewport_state)
-        this.updateEntitiesList()
-        if (shouldHardResetViewport) this.view.resetView()
-        this.view.widgets.get('filters').requestUpdate()
-        this.view.blurAll()
-        break
+      this.updateGraphView(new_viewport_state)
+      this.updateEntitiesList()
+      this.view.widgets.get('filters').requestUpdate()
+
+      if (shouldHardResetViewport) {
+        /*
+         * HACKY
+         * WHY TIMEOUT?
+         * mount() and unmount() from cytoscape create issues with labels
+         * in float mode. to avoid that grapholscape mount and unmount
+         * renderers using display:none. this somehow causes container to get
+         * zero as both dimensions inside cytoscape even after setting display:block
+         * and it fails to perform the fit() operation.
+         * waiting a little bit assure those dimensions to have correct values.
+         */
+        setTimeout(() => this.view.resetView(), 250)
       }
     }
   }
