@@ -353,6 +353,7 @@ export default class GrapholscapeController {
         this.updateGraphView(new_viewport_state)
         this.updateEntitiesList()
         if (shouldHardResetViewport) this.view.resetView()
+        this.view.widgets.get('filters').requestUpdate()
         this.view.blurAll()
         break
       }
