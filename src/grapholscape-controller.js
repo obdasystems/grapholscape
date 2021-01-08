@@ -96,6 +96,7 @@ export default class GrapholscapeController {
     this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this)
     this.view.onLanguageChange = this.onLanguageChange.bind(this)
     this.view.onExportToPNG = this.exportToPNG.bind(this)
+    this.view.onExportToSVG = this.exportToSVG.bind(this)
 
     this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
@@ -443,22 +444,42 @@ export default class GrapholscapeController {
    * (Default: [ontology name]-[diagram name]-v[ontology version])
    */
   exportToPNG(fileName = null) {
-    fileName = fileName || `${this.ontology.name}-${this.actual_diagram.name}-v${this.ontology.version}.png`
-
-    this.view.renderer.cy.png({
-      output: 'blob-promise',
-      full: true,
-      bg: this.view.themes[this.config.rendering.theme.selected].background
-    }).then(blob => downloadBlob(blob, fileName))
+    fileName = fileName || this.export_file_name+'.png'
+    this.view.renderer.cy.png(this.export_options).then(blob => downloadBlob(blob, fileName))
   }
 
   /**
-   * Export the current diagram in to a PDF file and save it on user's disk
+   * Export the current diagram in to a SVG file and save it on user's disk
    * @param {String} fileName - the name to assign to the file
    * (Default: [ontology name]-[diagram name]-v[ontology version])
    */
-  exportToPDF(fileName = null) {
-    // TODO
+  exportToSVG(fileName = null) {
+    console.log(this.export_options.bg)
+    fileName = fileName || this.export_file_name+'.svg'
+    let svg_content = this.view.renderer.cy.svg(this.export_options)
+    let blob = new Blob([svg_content], {type:"image/svg+xml;charset=utf-8"});
+    downloadBlob(blob, fileName)
+  }
+
+  /*
+   * Options for exports, blob-promise
+   */
+  get export_options() {
+
+    let bg = this.view.themes[this.config.rendering.theme.selected].background.cssText ||
+      this.view.themes[this.config.rendering.theme.selected].background
+    return {
+      output: 'blob-promise',
+      full: true,
+      bg: bg
+    }
+  }
+
+  /*
+   ** Filename for exports: [ontology name]-[diagram name]-v[ontology version])
+   */
+  get export_file_name() {
+    return `${this.ontology.name}-${this.actual_diagram.name}-v${this.ontology.version}`
   }
 
   entityModelToViewData(entityModelData) {

@@ -131,6 +131,7 @@ export default class GrapholscapeView {
     this.settings_widget.onWidgetEnabled = this.onWidgetEnabled.bind(this)
     this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this)
     this.settings_widget.onPNGSaveButtonClick = this.onExportToPNG
+    this.settings_widget.onSVGSaveButtonClick = this.onExportToSVG
     this.widgets.set('settings_widget', this.settings_widget)
 
     Object.keys(this.renderers).forEach(renderer =>

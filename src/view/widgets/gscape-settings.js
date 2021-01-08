@@ -92,7 +92,10 @@ export default class GscapeSettings extends GscapeWidget {
     this.btn.onClick = this.toggleBody.bind(this)
     this.callbacks = {}
 
-    this.savePNGButton = new GscapeButton('collections')
+    this.savePNGButton = new GscapeButton('save')
+    this.savePNGButton.label = 'PNG'
+    this.saveSVGButton = new GscapeButton('save')
+    this.saveSVGButton.label = 'SVG'
   }
 
   render() {
@@ -159,6 +162,17 @@ export default class GscapeSettings extends GscapeWidget {
               ${this.savePNGButton}
             </div>
           </div>
+
+          <div class="setting">
+          <div class="title-wrap">
+            <div class="setting-title">Vectorial</div>
+            <div class="setting-label">Save an SVG of the current diagram on your disk</div>
+          </div>
+
+          <div class="setting-obj">
+            ${this.saveSVGButton}
+          </div>
+        </div>
         </div>
 
         <div class="area">
@@ -241,6 +255,11 @@ export default class GscapeSettings extends GscapeWidget {
   set onPNGSaveButtonClick(foo) {
     this.savePNGButton.onClick = foo
   }
+
+  set onSVGSaveButtonClick(foo) {
+    this.saveSVGButton.onClick = foo
+  }
+
   show() {
     if (this.isEnabled) this.style.display = 'inline-block'
   }
