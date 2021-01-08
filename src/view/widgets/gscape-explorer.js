@@ -23,7 +23,7 @@ export default class GscapeExplorer extends GscapeWidget{
         :host {
           left:50%;
           top:10px;
-          min-width:340px;
+          min-width:370px;
           max-width:450px;
           transform: translate(-50%, 0);
         }
@@ -100,14 +100,16 @@ export default class GscapeExplorer extends GscapeWidget{
           position:initial;
           left: 30%;
           width: 50%;
-          padding: 0;
-          line-height:22px;
+          padding: 0 10px;
+          line-height:23px;
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
           border:none;
           border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
           transition: width .35s ease-in-out;
           color:inherit;
+          flex-grow:2;
+          font-size:inherit;
         }
 
         gscape-head input:focus {

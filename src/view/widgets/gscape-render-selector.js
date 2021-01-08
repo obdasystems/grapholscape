@@ -21,7 +21,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
         :host {
           display:inline-block;
           position:initial;
-          order: 4;
+          margin-right:10px;
         }
 
         .renderer-item {

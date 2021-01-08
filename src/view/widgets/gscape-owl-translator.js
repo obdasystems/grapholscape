@@ -20,6 +20,7 @@ export default class GscapeOwlTranslator extends GscapeWidget {
           left:50%;
           bottom:10px;
           transform: translate(-50%, 0);
+          max-width:60%;
         }
 
         gscape-head {
