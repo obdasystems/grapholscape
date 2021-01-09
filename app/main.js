@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain , dialog} = require('electron')
+const { app, BrowserWindow, ipcMain , dialog, nativeImage} = require('electron')
 const fs = require('fs')
 const path = require('path')
 
@@ -7,6 +7,7 @@ const path = require('path')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 let gscapeWindow
+const appIcon = nativeImage.createFromPath(path.resolve(__dirname, 'assets', 'icon-128.png'))
 
 function createWindow () {
   // Create the browser window.
@@ -17,6 +18,7 @@ function createWindow () {
     webPreferences: {nodeIntegration: true},
     autoHideMenuBar: true,
     resizable: false,
+    icon: appIcon
   })
 
   // and load the index.html of the app.
@@ -64,6 +66,7 @@ function useGrapholscape(file) {
     show: false,
     webPreferences: {nodeIntegration: true},
     autoHideMenuBar: true,
+    icon: appIcon
   })
 
   gscapeWindow.maximize()
@@ -114,7 +117,8 @@ function getFileString(grapholPath, callback) {
         dialog.showMessageBox({
           type: 'warning',
           title: 'Warning',
-          message: 'Selected file does not exist, it will be removed from the list.'
+          message: 'Selected file does not exist, it will be removed from the list.',
+          buttons: ['OK'],
         }).then( () => {
           mainWindow.webContents.send('remove-recent', grapholPath)
         })
