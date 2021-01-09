@@ -24,9 +24,11 @@
 
 import '@webcomponents/webcomponentsjs';
 import cytoscape from 'cytoscape';
+import '@material/mwc-icon-button';
 import '@material/mwc-icon';
 import popper from 'cytoscape-popper';
 import cola from 'cytoscape-cola';
+import cy_svg from 'cytoscape-svg';
 
 var fails = function (exec) {
   try {
@@ -36,7 +38,7 @@ var fails = function (exec) {
   }
 };
 
-// Thank's IE8 for his funny defineProperty
+// Detect IE8's incomplete defineProperty implementation
 var descriptors = !fails(function () {
   return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] != 7;
 });
@@ -69,7 +71,7 @@ var global_1 =
   check(typeof self == 'object' && self) ||
   check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
   // eslint-disable-next-line no-new-func
-  Function('return this')();
+  (function () { return this; })() || Function('return this')();
 
 var isObject = function (it) {
   return typeof it === 'object' ? it !== null : typeof it === 'function';
@@ -97,7 +99,7 @@ var anObject = function (it) {
 };
 
 // `ToPrimitive` abstract operation
-// https://tc39.github.io/ecma262/#sec-toprimitive
+// https://tc39.es/ecma262/#sec-toprimitive
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
 // and the second argument - flag - preferred type is a string
 var toPrimitive = function (input, PREFERRED_STRING) {
@@ -112,7 +114,7 @@ var toPrimitive = function (input, PREFERRED_STRING) {
 var nativeDefineProperty = Object.defineProperty;
 
 // `Object.defineProperty` method
-// https://tc39.github.io/ecma262/#sec-object.defineproperty
+// https://tc39.es/ecma262/#sec-object.defineproperty
 var f = descriptors ? nativeDefineProperty : function defineProperty(O, P, Attributes) {
   anObject(O);
   P = toPrimitive(P, true);
@@ -137,7 +139,7 @@ var nameRE = /^\s*function ([^ (]*)/;
 var NAME = 'name';
 
 // Function instances `.name` property
-// https://tc39.github.io/ecma262/#sec-function-instances-name
+// https://tc39.es/ecma262/#sec-function-instances-name
 if (descriptors && !(NAME in FunctionPrototype)) {
   defineProperty(FunctionPrototype, NAME, {
     configurable: true,
@@ -186,9 +188,9 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.6.5',
+  version: '3.8.2',
   mode:  'global',
-  copyright: '© 2020 Denis Pushkarev (zloirock.ru)'
+  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 });
 });
 
@@ -275,11 +277,12 @@ var getterFor = function (TYPE) {
 };
 
 if (nativeWeakMap) {
-  var store$1 = new WeakMap$2();
+  var store$1 = sharedStore.state || (sharedStore.state = new WeakMap$2());
   var wmget = store$1.get;
   var wmhas = store$1.has;
   var wmset = store$1.set;
   set = function (it, metadata) {
+    metadata.facade = it;
     wmset.call(store$1, it, metadata);
     return metadata;
   };
@@ -293,6 +296,7 @@ if (nativeWeakMap) {
   var STATE = sharedKey('state');
   hiddenKeys[STATE] = true;
   set = function (it, metadata) {
+    metadata.facade = it;
     createNonEnumerableProperty(it, STATE, metadata);
     return metadata;
   };
@@ -321,9 +325,15 @@ var TEMPLATE = String(String).split('String');
   var unsafe = options ? !!options.unsafe : false;
   var simple = options ? !!options.enumerable : false;
   var noTargetGet = options ? !!options.noTargetGet : false;
+  var state;
   if (typeof value == 'function') {
-    if (typeof key == 'string' && !has(value, 'name')) createNonEnumerableProperty(value, 'name', key);
-    enforceInternalState(value).source = TEMPLATE.join(typeof key == 'string' ? key : '');
+    if (typeof key == 'string' && !has(value, 'name')) {
+      createNonEnumerableProperty(value, 'name', key);
+    }
+    state = enforceInternalState(value);
+    if (!state.source) {
+      state.source = TEMPLATE.join(typeof key == 'string' ? key : '');
+    }
   }
   if (O === global_1) {
     if (simple) O[key] = value;
@@ -372,13 +382,13 @@ var classof = toStringTagSupport ? classofRaw : function (it) {
 };
 
 // `Object.prototype.toString` method implementation
-// https://tc39.github.io/ecma262/#sec-object.prototype.tostring
+// https://tc39.es/ecma262/#sec-object.prototype.tostring
 var objectToString = toStringTagSupport ? {}.toString : function toString() {
   return '[object ' + classof(this) + ']';
 };
 
 // `Object.prototype.toString` method
-// https://tc39.github.io/ecma262/#sec-object.prototype.tostring
+// https://tc39.es/ecma262/#sec-object.prototype.tostring
 if (!toStringTagSupport) {
   redefine(Object.prototype, 'toString', objectToString, { unsafe: true });
 }
@@ -390,7 +400,7 @@ var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 var NASHORN_BUG = getOwnPropertyDescriptor && !nativePropertyIsEnumerable.call({ 1: 2 }, 1);
 
 // `Object.prototype.propertyIsEnumerable` method implementation
-// https://tc39.github.io/ecma262/#sec-object.prototype.propertyisenumerable
+// https://tc39.es/ecma262/#sec-object.prototype.propertyisenumerable
 var f$1 = NASHORN_BUG ? function propertyIsEnumerable(V) {
   var descriptor = getOwnPropertyDescriptor(this, V);
   return !!descriptor && descriptor.enumerable;
@@ -412,7 +422,7 @@ var indexedObject = fails(function () {
 } : Object;
 
 // `RequireObjectCoercible` abstract operation
-// https://tc39.github.io/ecma262/#sec-requireobjectcoercible
+// https://tc39.es/ecma262/#sec-requireobjectcoercible
 var requireObjectCoercible = function (it) {
   if (it == undefined) throw TypeError("Can't call method on " + it);
   return it;
@@ -429,7 +439,7 @@ var toIndexedObject = function (it) {
 var nativeGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 // `Object.getOwnPropertyDescriptor` method
-// https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptor
+// https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
 var f$2 = descriptors ? nativeGetOwnPropertyDescriptor : function getOwnPropertyDescriptor(O, P) {
   O = toIndexedObject(O);
   P = toPrimitive(P, true);
@@ -458,7 +468,7 @@ var ceil = Math.ceil;
 var floor = Math.floor;
 
 // `ToInteger` abstract operation
-// https://tc39.github.io/ecma262/#sec-tointeger
+// https://tc39.es/ecma262/#sec-tointeger
 var toInteger = function (argument) {
   return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor : ceil)(argument);
 };
@@ -466,7 +476,7 @@ var toInteger = function (argument) {
 var min = Math.min;
 
 // `ToLength` abstract operation
-// https://tc39.github.io/ecma262/#sec-tolength
+// https://tc39.es/ecma262/#sec-tolength
 var toLength = function (argument) {
   return argument > 0 ? min(toInteger(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
 };
@@ -504,10 +514,10 @@ var createMethod = function (IS_INCLUDES) {
 
 var arrayIncludes = {
   // `Array.prototype.includes` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.includes
+  // https://tc39.es/ecma262/#sec-array.prototype.includes
   includes: createMethod(true),
   // `Array.prototype.indexOf` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.indexof
+  // https://tc39.es/ecma262/#sec-array.prototype.indexof
   indexOf: createMethod(false)
 };
 
@@ -541,7 +551,7 @@ var enumBugKeys = [
 var hiddenKeys$1 = enumBugKeys.concat('length', 'prototype');
 
 // `Object.getOwnPropertyNames` method
-// https://tc39.github.io/ecma262/#sec-object.getownpropertynames
+// https://tc39.es/ecma262/#sec-object.getownpropertynames
 var f$3 = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return objectKeysInternal(O, hiddenKeys$1);
 };
@@ -733,27 +743,37 @@ var getIteratorMethod = function (it) {
     || iterators[classof(it)];
 };
 
-// call something on iterator step with safe closing on error
-var callWithSafeIterationClosing = function (iterator, fn, value, ENTRIES) {
-  try {
-    return ENTRIES ? fn(anObject(value)[0], value[1]) : fn(value);
-  // 7.4.6 IteratorClose(iterator, completion)
-  } catch (error) {
-    var returnMethod = iterator['return'];
-    if (returnMethod !== undefined) anObject(returnMethod.call(iterator));
-    throw error;
+var iteratorClose = function (iterator) {
+  var returnMethod = iterator['return'];
+  if (returnMethod !== undefined) {
+    return anObject(returnMethod.call(iterator)).value;
   }
 };
 
-var iterate_1 = createCommonjsModule(function (module) {
 var Result = function (stopped, result) {
   this.stopped = stopped;
   this.result = result;
 };
 
-var iterate = module.exports = function (iterable, fn, that, AS_ENTRIES, IS_ITERATOR) {
-  var boundFunction = functionBindContext(fn, that, AS_ENTRIES ? 2 : 1);
+var iterate = function (iterable, unboundFunction, options) {
+  var that = options && options.that;
+  var AS_ENTRIES = !!(options && options.AS_ENTRIES);
+  var IS_ITERATOR = !!(options && options.IS_ITERATOR);
+  var INTERRUPTED = !!(options && options.INTERRUPTED);
+  var fn = functionBindContext(unboundFunction, that, 1 + AS_ENTRIES + INTERRUPTED);
   var iterator, iterFn, index, length, result, next, step;
+
+  var stop = function (condition) {
+    if (iterator) iteratorClose(iterator);
+    return new Result(true, condition);
+  };
+
+  var callFn = function (value) {
+    if (AS_ENTRIES) {
+      anObject(value);
+      return INTERRUPTED ? fn(value[0], value[1], stop) : fn(value[0], value[1]);
+    } return INTERRUPTED ? fn(value, stop) : fn(value);
+  };
 
   if (IS_ITERATOR) {
     iterator = iterable;
@@ -763,9 +783,7 @@ var iterate = module.exports = function (iterable, fn, that, AS_ENTRIES, IS_ITER
     // optimisation for array iterators
     if (isArrayIteratorMethod(iterFn)) {
       for (index = 0, length = toLength(iterable.length); length > index; index++) {
-        result = AS_ENTRIES
-          ? boundFunction(anObject(step = iterable[index])[0], step[1])
-          : boundFunction(iterable[index]);
+        result = callFn(iterable[index]);
         if (result && result instanceof Result) return result;
       } return new Result(false);
     }
@@ -774,15 +792,15 @@ var iterate = module.exports = function (iterable, fn, that, AS_ENTRIES, IS_ITER
 
   next = iterator.next;
   while (!(step = next.call(iterator)).done) {
-    result = callWithSafeIterationClosing(iterator, boundFunction, step.value, AS_ENTRIES);
+    try {
+      result = callFn(step.value);
+    } catch (error) {
+      iteratorClose(iterator);
+      throw error;
+    }
     if (typeof result == 'object' && result && result instanceof Result) return result;
   } return new Result(false);
 };
-
-iterate.stop = function (result) {
-  return new Result(true, result);
-};
-});
 
 var ITERATOR$2 = wellKnownSymbol('iterator');
 var SAFE_CLOSING = false;
@@ -824,7 +842,7 @@ var checkCorrectnessOfIteration = function (exec, SKIP_CLOSING) {
 var SPECIES$1 = wellKnownSymbol('species');
 
 // `SpeciesConstructor` abstract operation
-// https://tc39.github.io/ecma262/#sec-speciesconstructor
+// https://tc39.es/ecma262/#sec-speciesconstructor
 var speciesConstructor = function (O, defaultConstructor) {
   var C = anObject(O).constructor;
   var S;
@@ -836,6 +854,8 @@ var html = getBuiltIn('document', 'documentElement');
 var engineUserAgent = getBuiltIn('navigator', 'userAgent') || '';
 
 var engineIsIos = /(iphone|ipod|ipad).*applewebkit/i.test(engineUserAgent);
+
+var engineIsNode = classofRaw(global_1.process) == 'process';
 
 var location = global_1.location;
 var set$1 = global_1.setImmediate;
@@ -889,7 +909,7 @@ if (!set$1 || !clear) {
     delete queue[id];
   };
   // Node.js 0.8-
-  if (classofRaw(process) == 'process') {
+  if (engineIsNode) {
     defer = function (id) {
       process.nextTick(runner(id));
     };
@@ -911,8 +931,8 @@ if (!set$1 || !clear) {
     global_1.addEventListener &&
     typeof postMessage == 'function' &&
     !global_1.importScripts &&
-    !fails(post) &&
-    location.protocol !== 'file:'
+    location && location.protocol !== 'file:' &&
+    !fails(post)
   ) {
     defer = post;
     global_1.addEventListener('message', listener, false);
@@ -937,15 +957,18 @@ var task = {
   clear: clear
 };
 
-var getOwnPropertyDescriptor$2 = objectGetOwnPropertyDescriptor.f;
+var engineIsWebosWebkit = /web0s(?!.*chrome)/i.test(engineUserAgent);
 
+var getOwnPropertyDescriptor$2 = objectGetOwnPropertyDescriptor.f;
 var macrotask = task.set;
 
 
+
+
 var MutationObserver = global_1.MutationObserver || global_1.WebKitMutationObserver;
+var document$2 = global_1.document;
 var process$1 = global_1.process;
 var Promise$1 = global_1.Promise;
-var IS_NODE = classofRaw(process$1) == 'process';
 // Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
 var queueMicrotaskDescriptor = getOwnPropertyDescriptor$2(global_1, 'queueMicrotask');
 var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
@@ -956,7 +979,7 @@ var flush, head, last, notify, toggle, node, promise, then;
 if (!queueMicrotask) {
   flush = function () {
     var parent, fn;
-    if (IS_NODE && (parent = process$1.domain)) parent.exit();
+    if (engineIsNode && (parent = process$1.domain)) parent.exit();
     while (head) {
       fn = head.fn;
       head = head.next;
@@ -971,15 +994,11 @@ if (!queueMicrotask) {
     if (parent) parent.enter();
   };
 
-  // Node.js
-  if (IS_NODE) {
-    notify = function () {
-      process$1.nextTick(flush);
-    };
   // browsers with MutationObserver, except iOS - https://github.com/zloirock/core-js/issues/339
-  } else if (MutationObserver && !engineIsIos) {
+  // also except WebOS Webkit https://github.com/zloirock/core-js/issues/898
+  if (!engineIsIos && !engineIsNode && !engineIsWebosWebkit && MutationObserver && document$2) {
     toggle = true;
-    node = document.createTextNode('');
+    node = document$2.createTextNode('');
     new MutationObserver(flush).observe(node, { characterData: true });
     notify = function () {
       node.data = toggle = !toggle;
@@ -991,6 +1010,11 @@ if (!queueMicrotask) {
     then = promise.then;
     notify = function () {
       then.call(promise, flush);
+    };
+  // Node.js without promises
+  } else if (engineIsNode) {
+    notify = function () {
+      process$1.nextTick(flush);
     };
   // for other environments - macrotask based on:
   // - setImmediate
@@ -1088,6 +1112,7 @@ var task$1 = task.set;
 
 
 
+
 var SPECIES$2 = wellKnownSymbol('species');
 var PROMISE = 'Promise';
 var getInternalState = internalState.get;
@@ -1095,13 +1120,13 @@ var setInternalState = internalState.set;
 var getInternalPromiseState = internalState.getterFor(PROMISE);
 var PromiseConstructor = nativePromiseConstructor;
 var TypeError$1 = global_1.TypeError;
-var document$2 = global_1.document;
+var document$3 = global_1.document;
 var process$3 = global_1.process;
 var $fetch = getBuiltIn('fetch');
 var newPromiseCapability$1 = newPromiseCapability.f;
 var newGenericPromiseCapability = newPromiseCapability$1;
-var IS_NODE$1 = classofRaw(process$3) == 'process';
-var DISPATCH_EVENT = !!(document$2 && document$2.createEvent && global_1.dispatchEvent);
+var DISPATCH_EVENT = !!(document$3 && document$3.createEvent && global_1.dispatchEvent);
+var NATIVE_REJECTION_EVENT = typeof PromiseRejectionEvent == 'function';
 var UNHANDLED_REJECTION = 'unhandledrejection';
 var REJECTION_HANDLED = 'rejectionhandled';
 var PENDING = 0;
@@ -1119,7 +1144,7 @@ var FORCED = isForced_1(PROMISE, function () {
     // We can't detect it synchronously, so just check versions
     if (engineV8Version === 66) return true;
     // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-    if (!IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
+    if (!engineIsNode && !NATIVE_REJECTION_EVENT) return true;
   }
   // We can't use @@species feature detection in V8 since it causes
   // deoptimization and performance degradation
@@ -1145,7 +1170,7 @@ var isThenable = function (it) {
   return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
 };
 
-var notify$1 = function (promise, state, isReject) {
+var notify$1 = function (state, isReject) {
   if (state.notified) return;
   state.notified = true;
   var chain = state.reactions;
@@ -1164,7 +1189,7 @@ var notify$1 = function (promise, state, isReject) {
       try {
         if (handler) {
           if (!ok) {
-            if (state.rejection === UNHANDLED) onHandleUnhandled(promise, state);
+            if (state.rejection === UNHANDLED) onHandleUnhandled(state);
             state.rejection = HANDLED;
           }
           if (handler === true) result = value;
@@ -1189,36 +1214,37 @@ var notify$1 = function (promise, state, isReject) {
     }
     state.reactions = [];
     state.notified = false;
-    if (isReject && !state.rejection) onUnhandled(promise, state);
+    if (isReject && !state.rejection) onUnhandled(state);
   });
 };
 
 var dispatchEvent = function (name, promise, reason) {
   var event, handler;
   if (DISPATCH_EVENT) {
-    event = document$2.createEvent('Event');
+    event = document$3.createEvent('Event');
     event.promise = promise;
     event.reason = reason;
     event.initEvent(name, false, true);
     global_1.dispatchEvent(event);
   } else event = { promise: promise, reason: reason };
-  if (handler = global_1['on' + name]) handler(event);
+  if (!NATIVE_REJECTION_EVENT && (handler = global_1['on' + name])) handler(event);
   else if (name === UNHANDLED_REJECTION) hostReportErrors('Unhandled promise rejection', reason);
 };
 
-var onUnhandled = function (promise, state) {
+var onUnhandled = function (state) {
   task$1.call(global_1, function () {
+    var promise = state.facade;
     var value = state.value;
     var IS_UNHANDLED = isUnhandled(state);
     var result;
     if (IS_UNHANDLED) {
       result = perform(function () {
-        if (IS_NODE$1) {
+        if (engineIsNode) {
           process$3.emit('unhandledRejection', value, promise);
         } else dispatchEvent(UNHANDLED_REJECTION, promise, value);
       });
       // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
-      state.rejection = IS_NODE$1 || isUnhandled(state) ? UNHANDLED : HANDLED;
+      state.rejection = engineIsNode || isUnhandled(state) ? UNHANDLED : HANDLED;
       if (result.error) throw result.value;
     }
   });
@@ -1228,55 +1254,56 @@ var isUnhandled = function (state) {
   return state.rejection !== HANDLED && !state.parent;
 };
 
-var onHandleUnhandled = function (promise, state) {
+var onHandleUnhandled = function (state) {
   task$1.call(global_1, function () {
-    if (IS_NODE$1) {
+    var promise = state.facade;
+    if (engineIsNode) {
       process$3.emit('rejectionHandled', promise);
     } else dispatchEvent(REJECTION_HANDLED, promise, state.value);
   });
 };
 
-var bind = function (fn, promise, state, unwrap) {
+var bind = function (fn, state, unwrap) {
   return function (value) {
-    fn(promise, state, value, unwrap);
+    fn(state, value, unwrap);
   };
 };
 
-var internalReject = function (promise, state, value, unwrap) {
+var internalReject = function (state, value, unwrap) {
   if (state.done) return;
   state.done = true;
   if (unwrap) state = unwrap;
   state.value = value;
   state.state = REJECTED;
-  notify$1(promise, state, true);
+  notify$1(state, true);
 };
 
-var internalResolve = function (promise, state, value, unwrap) {
+var internalResolve = function (state, value, unwrap) {
   if (state.done) return;
   state.done = true;
   if (unwrap) state = unwrap;
   try {
-    if (promise === value) throw TypeError$1("Promise can't be resolved itself");
+    if (state.facade === value) throw TypeError$1("Promise can't be resolved itself");
     var then = isThenable(value);
     if (then) {
       microtask(function () {
         var wrapper = { done: false };
         try {
           then.call(value,
-            bind(internalResolve, promise, wrapper, state),
-            bind(internalReject, promise, wrapper, state)
+            bind(internalResolve, wrapper, state),
+            bind(internalReject, wrapper, state)
           );
         } catch (error) {
-          internalReject(promise, wrapper, error, state);
+          internalReject(wrapper, error, state);
         }
       });
     } else {
       state.value = value;
       state.state = FULFILLED;
-      notify$1(promise, state, false);
+      notify$1(state, false);
     }
   } catch (error) {
-    internalReject(promise, { done: false }, error, state);
+    internalReject({ done: false }, error, state);
   }
 };
 
@@ -1289,9 +1316,9 @@ if (FORCED) {
     Internal.call(this);
     var state = getInternalState(this);
     try {
-      executor(bind(internalResolve, this, state), bind(internalReject, this, state));
+      executor(bind(internalResolve, state), bind(internalReject, state));
     } catch (error) {
-      internalReject(this, state, error);
+      internalReject(state, error);
     }
   };
   // eslint-disable-next-line no-unused-vars
@@ -1309,20 +1336,20 @@ if (FORCED) {
   };
   Internal.prototype = redefineAll(PromiseConstructor.prototype, {
     // `Promise.prototype.then` method
-    // https://tc39.github.io/ecma262/#sec-promise.prototype.then
+    // https://tc39.es/ecma262/#sec-promise.prototype.then
     then: function then(onFulfilled, onRejected) {
       var state = getInternalPromiseState(this);
       var reaction = newPromiseCapability$1(speciesConstructor(this, PromiseConstructor));
       reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
       reaction.fail = typeof onRejected == 'function' && onRejected;
-      reaction.domain = IS_NODE$1 ? process$3.domain : undefined;
+      reaction.domain = engineIsNode ? process$3.domain : undefined;
       state.parent = true;
       state.reactions.push(reaction);
-      if (state.state != PENDING) notify$1(this, state, false);
+      if (state.state != PENDING) notify$1(state, false);
       return reaction.promise;
     },
     // `Promise.prototype.catch` method
-    // https://tc39.github.io/ecma262/#sec-promise.prototype.catch
+    // https://tc39.es/ecma262/#sec-promise.prototype.catch
     'catch': function (onRejected) {
       return this.then(undefined, onRejected);
     }
@@ -1331,8 +1358,8 @@ if (FORCED) {
     var promise = new Internal();
     var state = getInternalState(promise);
     this.promise = promise;
-    this.resolve = bind(internalResolve, promise, state);
-    this.reject = bind(internalReject, promise, state);
+    this.resolve = bind(internalResolve, state);
+    this.reject = bind(internalReject, state);
   };
   newPromiseCapability.f = newPromiseCapability$1 = function (C) {
     return C === PromiseConstructor || C === PromiseWrapper
@@ -1374,7 +1401,7 @@ PromiseWrapper = getBuiltIn(PROMISE);
 // statics
 _export({ target: PROMISE, stat: true, forced: FORCED }, {
   // `Promise.reject` method
-  // https://tc39.github.io/ecma262/#sec-promise.reject
+  // https://tc39.es/ecma262/#sec-promise.reject
   reject: function reject(r) {
     var capability = newPromiseCapability$1(this);
     capability.reject.call(undefined, r);
@@ -1384,7 +1411,7 @@ _export({ target: PROMISE, stat: true, forced: FORCED }, {
 
 _export({ target: PROMISE, stat: true, forced:  FORCED }, {
   // `Promise.resolve` method
-  // https://tc39.github.io/ecma262/#sec-promise.resolve
+  // https://tc39.es/ecma262/#sec-promise.resolve
   resolve: function resolve(x) {
     return promiseResolve( this, x);
   }
@@ -1392,7 +1419,7 @@ _export({ target: PROMISE, stat: true, forced:  FORCED }, {
 
 _export({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
   // `Promise.all` method
-  // https://tc39.github.io/ecma262/#sec-promise.all
+  // https://tc39.es/ecma262/#sec-promise.all
   all: function all(iterable) {
     var C = this;
     var capability = newPromiseCapability$1(C);
@@ -1403,7 +1430,7 @@ _export({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
       var values = [];
       var counter = 0;
       var remaining = 1;
-      iterate_1(iterable, function (promise) {
+      iterate(iterable, function (promise) {
         var index = counter++;
         var alreadyCalled = false;
         values.push(undefined);
@@ -1421,14 +1448,14 @@ _export({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
     return capability.promise;
   },
   // `Promise.race` method
-  // https://tc39.github.io/ecma262/#sec-promise.race
+  // https://tc39.es/ecma262/#sec-promise.race
   race: function race(iterable) {
     var C = this;
     var capability = newPromiseCapability$1(C);
     var reject = capability.reject;
     var result = perform(function () {
       var $promiseResolve = aFunction$1(C.resolve);
-      iterate_1(iterable, function (promise) {
+      iterate(iterable, function (promise) {
         $promiseResolve.call(C, promise).then(capability.resolve, reject);
       });
     });
@@ -1443,7 +1470,7 @@ var NON_GENERIC = !!nativePromiseConstructor && fails(function () {
 });
 
 // `Promise.prototype.finally` method
-// https://tc39.github.io/ecma262/#sec-promise.prototype.finally
+// https://tc39.es/ecma262/#sec-promise.prototype.finally
 _export({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
   'finally': function (onFinally) {
     var C = speciesConstructor(this, getBuiltIn('Promise'));
@@ -1830,25 +1857,25 @@ function _createForOfIteratorHelper(o, allowArrayLike) {
 }
 
 // `IsArray` abstract operation
-// https://tc39.github.io/ecma262/#sec-isarray
+// https://tc39.es/ecma262/#sec-isarray
 var isArray = Array.isArray || function isArray(arg) {
   return classofRaw(arg) == 'Array';
 };
 
 // `ToObject` abstract operation
-// https://tc39.github.io/ecma262/#sec-toobject
+// https://tc39.es/ecma262/#sec-toobject
 var toObject = function (argument) {
   return Object(requireObjectCoercible(argument));
 };
 
 // `Object.keys` method
-// https://tc39.github.io/ecma262/#sec-object.keys
+// https://tc39.es/ecma262/#sec-object.keys
 var objectKeys = Object.keys || function keys(O) {
   return objectKeysInternal(O, enumBugKeys);
 };
 
 // `Object.defineProperties` method
-// https://tc39.github.io/ecma262/#sec-object.defineproperties
+// https://tc39.es/ecma262/#sec-object.defineproperties
 var objectDefineProperties = descriptors ? Object.defineProperties : function defineProperties(O, Properties) {
   anObject(O);
   var keys = objectKeys(Properties);
@@ -1917,7 +1944,7 @@ var NullProtoObject = function () {
 hiddenKeys[IE_PROTO] = true;
 
 // `Object.create` method
-// https://tc39.github.io/ecma262/#sec-object.create
+// https://tc39.es/ecma262/#sec-object.create
 var objectCreate = Object.create || function create(O, Properties) {
   var result;
   if (O !== null) {
@@ -1974,7 +2001,7 @@ var defineWellKnownSymbol = function (NAME) {
 var SPECIES$3 = wellKnownSymbol('species');
 
 // `ArraySpeciesCreate` abstract operation
-// https://tc39.github.io/ecma262/#sec-arrayspeciescreate
+// https://tc39.es/ecma262/#sec-arrayspeciescreate
 var arraySpeciesCreate = function (originalArray, length) {
   var C;
   if (isArray(originalArray)) {
@@ -1990,13 +2017,14 @@ var arraySpeciesCreate = function (originalArray, length) {
 
 var push = [].push;
 
-// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex }` methods implementation
+// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex, filterOut }` methods implementation
 var createMethod$1 = function (TYPE) {
   var IS_MAP = TYPE == 1;
   var IS_FILTER = TYPE == 2;
   var IS_SOME = TYPE == 3;
   var IS_EVERY = TYPE == 4;
   var IS_FIND_INDEX = TYPE == 6;
+  var IS_FILTER_OUT = TYPE == 7;
   var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
   return function ($this, callbackfn, that, specificCreate) {
     var O = toObject($this);
@@ -2005,7 +2033,7 @@ var createMethod$1 = function (TYPE) {
     var length = toLength(self.length);
     var index = 0;
     var create = specificCreate || arraySpeciesCreate;
-    var target = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
+    var target = IS_MAP ? create($this, length) : IS_FILTER || IS_FILTER_OUT ? create($this, 0) : undefined;
     var value, result;
     for (;length > index; index++) if (NO_HOLES || index in self) {
       value = self[index];
@@ -2017,7 +2045,10 @@ var createMethod$1 = function (TYPE) {
           case 5: return value;             // find
           case 6: return index;             // findIndex
           case 2: push.call(target, value); // filter
-        } else if (IS_EVERY) return false;  // every
+        } else switch (TYPE) {
+          case 4: return false;             // every
+          case 7: push.call(target, value); // filterOut
+        }
       }
     }
     return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : target;
@@ -2026,26 +2057,29 @@ var createMethod$1 = function (TYPE) {
 
 var arrayIteration = {
   // `Array.prototype.forEach` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.foreach
+  // https://tc39.es/ecma262/#sec-array.prototype.foreach
   forEach: createMethod$1(0),
   // `Array.prototype.map` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.map
+  // https://tc39.es/ecma262/#sec-array.prototype.map
   map: createMethod$1(1),
   // `Array.prototype.filter` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.filter
+  // https://tc39.es/ecma262/#sec-array.prototype.filter
   filter: createMethod$1(2),
   // `Array.prototype.some` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.some
+  // https://tc39.es/ecma262/#sec-array.prototype.some
   some: createMethod$1(3),
   // `Array.prototype.every` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.every
+  // https://tc39.es/ecma262/#sec-array.prototype.every
   every: createMethod$1(4),
   // `Array.prototype.find` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.find
+  // https://tc39.es/ecma262/#sec-array.prototype.find
   find: createMethod$1(5),
   // `Array.prototype.findIndex` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.findIndex
-  findIndex: createMethod$1(6)
+  // https://tc39.es/ecma262/#sec-array.prototype.findIndex
+  findIndex: createMethod$1(6),
+  // `Array.prototype.filterOut` method
+  // https://github.com/tc39/proposal-array-filtering
+  filterOut: createMethod$1(7)
 };
 
 var $forEach = arrayIteration.forEach;
@@ -2173,7 +2207,7 @@ var $getOwnPropertySymbols = function getOwnPropertySymbols(O) {
 };
 
 // `Symbol` constructor
-// https://tc39.github.io/ecma262/#sec-symbol-constructor
+// https://tc39.es/ecma262/#sec-symbol-constructor
 if (!nativeSymbol) {
   $Symbol = function Symbol() {
     if (this instanceof $Symbol) throw TypeError('Symbol is not a constructor');
@@ -2230,7 +2264,7 @@ $forEach(objectKeys(WellKnownSymbolsStore$1), function (name) {
 
 _export({ target: SYMBOL, stat: true, forced: !nativeSymbol }, {
   // `Symbol.for` method
-  // https://tc39.github.io/ecma262/#sec-symbol.for
+  // https://tc39.es/ecma262/#sec-symbol.for
   'for': function (key) {
     var string = String(key);
     if (has(StringToSymbolRegistry, string)) return StringToSymbolRegistry[string];
@@ -2240,7 +2274,7 @@ _export({ target: SYMBOL, stat: true, forced: !nativeSymbol }, {
     return symbol;
   },
   // `Symbol.keyFor` method
-  // https://tc39.github.io/ecma262/#sec-symbol.keyfor
+  // https://tc39.es/ecma262/#sec-symbol.keyfor
   keyFor: function keyFor(sym) {
     if (!isSymbol(sym)) throw TypeError(sym + ' is not a symbol');
     if (has(SymbolToStringRegistry, sym)) return SymbolToStringRegistry[sym];
@@ -2251,25 +2285,25 @@ _export({ target: SYMBOL, stat: true, forced: !nativeSymbol }, {
 
 _export({ target: 'Object', stat: true, forced: !nativeSymbol, sham: !descriptors }, {
   // `Object.create` method
-  // https://tc39.github.io/ecma262/#sec-object.create
+  // https://tc39.es/ecma262/#sec-object.create
   create: $create,
   // `Object.defineProperty` method
-  // https://tc39.github.io/ecma262/#sec-object.defineproperty
+  // https://tc39.es/ecma262/#sec-object.defineproperty
   defineProperty: $defineProperty,
   // `Object.defineProperties` method
-  // https://tc39.github.io/ecma262/#sec-object.defineproperties
+  // https://tc39.es/ecma262/#sec-object.defineproperties
   defineProperties: $defineProperties,
   // `Object.getOwnPropertyDescriptor` method
-  // https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptors
+  // https://tc39.es/ecma262/#sec-object.getownpropertydescriptors
   getOwnPropertyDescriptor: $getOwnPropertyDescriptor
 });
 
 _export({ target: 'Object', stat: true, forced: !nativeSymbol }, {
   // `Object.getOwnPropertyNames` method
-  // https://tc39.github.io/ecma262/#sec-object.getownpropertynames
+  // https://tc39.es/ecma262/#sec-object.getownpropertynames
   getOwnPropertyNames: $getOwnPropertyNames,
   // `Object.getOwnPropertySymbols` method
-  // https://tc39.github.io/ecma262/#sec-object.getownpropertysymbols
+  // https://tc39.es/ecma262/#sec-object.getownpropertysymbols
   getOwnPropertySymbols: $getOwnPropertySymbols
 });
 
@@ -2282,7 +2316,7 @@ _export({ target: 'Object', stat: true, forced: fails(function () { objectGetOwn
 });
 
 // `JSON.stringify` method behavior with symbols
-// https://tc39.github.io/ecma262/#sec-json.stringify
+// https://tc39.es/ecma262/#sec-json.stringify
 if ($stringify) {
   var FORCED_JSON_STRINGIFY = !nativeSymbol || fails(function () {
     var symbol = $Symbol();
@@ -2314,18 +2348,18 @@ if ($stringify) {
 }
 
 // `Symbol.prototype[@@toPrimitive]` method
-// https://tc39.github.io/ecma262/#sec-symbol.prototype-@@toprimitive
+// https://tc39.es/ecma262/#sec-symbol.prototype-@@toprimitive
 if (!$Symbol[PROTOTYPE$1][TO_PRIMITIVE]) {
   createNonEnumerableProperty($Symbol[PROTOTYPE$1], TO_PRIMITIVE, $Symbol[PROTOTYPE$1].valueOf);
 }
 // `Symbol.prototype[@@toStringTag]` property
-// https://tc39.github.io/ecma262/#sec-symbol.prototype-@@tostringtag
+// https://tc39.es/ecma262/#sec-symbol.prototype-@@tostringtag
 setToStringTag($Symbol, SYMBOL);
 
 hiddenKeys[HIDDEN] = true;
 
 // `Symbol.asyncIterator` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.asynciterator
+// https://tc39.es/ecma262/#sec-symbol.asynciterator
 defineWellKnownSymbol('asyncIterator');
 
 var defineProperty$3 = objectDefineProperty.f;
@@ -2372,297 +2406,52 @@ if (descriptors && typeof NativeSymbol == 'function' && (!('description' in Nati
 }
 
 // `Symbol.hasInstance` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.hasinstance
+// https://tc39.es/ecma262/#sec-symbol.hasinstance
 defineWellKnownSymbol('hasInstance');
 
 // `Symbol.isConcatSpreadable` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.isconcatspreadable
+// https://tc39.es/ecma262/#sec-symbol.isconcatspreadable
 defineWellKnownSymbol('isConcatSpreadable');
 
 // `Symbol.iterator` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.iterator
+// https://tc39.es/ecma262/#sec-symbol.iterator
 defineWellKnownSymbol('iterator');
 
 // `Symbol.match` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.match
+// https://tc39.es/ecma262/#sec-symbol.match
 defineWellKnownSymbol('match');
 
 // `Symbol.matchAll` well-known symbol
+// https://tc39.es/ecma262/#sec-symbol.matchall
 defineWellKnownSymbol('matchAll');
 
 // `Symbol.replace` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.replace
+// https://tc39.es/ecma262/#sec-symbol.replace
 defineWellKnownSymbol('replace');
 
 // `Symbol.search` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.search
+// https://tc39.es/ecma262/#sec-symbol.search
 defineWellKnownSymbol('search');
 
 // `Symbol.species` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.species
+// https://tc39.es/ecma262/#sec-symbol.species
 defineWellKnownSymbol('species');
 
 // `Symbol.split` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.split
+// https://tc39.es/ecma262/#sec-symbol.split
 defineWellKnownSymbol('split');
 
 // `Symbol.toPrimitive` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.toprimitive
+// https://tc39.es/ecma262/#sec-symbol.toprimitive
 defineWellKnownSymbol('toPrimitive');
 
 // `Symbol.toStringTag` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.tostringtag
+// https://tc39.es/ecma262/#sec-symbol.tostringtag
 defineWellKnownSymbol('toStringTag');
 
 // `Symbol.unscopables` well-known symbol
-// https://tc39.github.io/ecma262/#sec-symbol.unscopables
+// https://tc39.es/ecma262/#sec-symbol.unscopables
 defineWellKnownSymbol('unscopables');
-
-var nativeAssign = Object.assign;
-var defineProperty$4 = Object.defineProperty;
-
-// `Object.assign` method
-// https://tc39.github.io/ecma262/#sec-object.assign
-var objectAssign = !nativeAssign || fails(function () {
-  // should have correct order of operations (Edge bug)
-  if (descriptors && nativeAssign({ b: 1 }, nativeAssign(defineProperty$4({}, 'a', {
-    enumerable: true,
-    get: function () {
-      defineProperty$4(this, 'b', {
-        value: 3,
-        enumerable: false
-      });
-    }
-  }), { b: 2 })).b !== 1) return true;
-  // should work with symbols and should have deterministic property order (V8 bug)
-  var A = {};
-  var B = {};
-  // eslint-disable-next-line no-undef
-  var symbol = Symbol();
-  var alphabet = 'abcdefghijklmnopqrst';
-  A[symbol] = 7;
-  alphabet.split('').forEach(function (chr) { B[chr] = chr; });
-  return nativeAssign({}, A)[symbol] != 7 || objectKeys(nativeAssign({}, B)).join('') != alphabet;
-}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
-  var T = toObject(target);
-  var argumentsLength = arguments.length;
-  var index = 1;
-  var getOwnPropertySymbols = objectGetOwnPropertySymbols.f;
-  var propertyIsEnumerable = objectPropertyIsEnumerable.f;
-  while (argumentsLength > index) {
-    var S = indexedObject(arguments[index++]);
-    var keys = getOwnPropertySymbols ? objectKeys(S).concat(getOwnPropertySymbols(S)) : objectKeys(S);
-    var length = keys.length;
-    var j = 0;
-    var key;
-    while (length > j) {
-      key = keys[j++];
-      if (!descriptors || propertyIsEnumerable.call(S, key)) T[key] = S[key];
-    }
-  } return T;
-} : nativeAssign;
-
-// `Object.assign` method
-// https://tc39.github.io/ecma262/#sec-object.assign
-_export({ target: 'Object', stat: true, forced: Object.assign !== objectAssign }, {
-  assign: objectAssign
-});
-
-// `Object.create` method
-// https://tc39.github.io/ecma262/#sec-object.create
-_export({ target: 'Object', stat: true, sham: !descriptors }, {
-  create: objectCreate
-});
-
-// `Object.defineProperty` method
-// https://tc39.github.io/ecma262/#sec-object.defineproperty
-_export({ target: 'Object', stat: true, forced: !descriptors, sham: !descriptors }, {
-  defineProperty: objectDefineProperty.f
-});
-
-// `Object.defineProperties` method
-// https://tc39.github.io/ecma262/#sec-object.defineproperties
-_export({ target: 'Object', stat: true, forced: !descriptors, sham: !descriptors }, {
-  defineProperties: objectDefineProperties
-});
-
-var propertyIsEnumerable = objectPropertyIsEnumerable.f;
-
-// `Object.{ entries, values }` methods implementation
-var createMethod$2 = function (TO_ENTRIES) {
-  return function (it) {
-    var O = toIndexedObject(it);
-    var keys = objectKeys(O);
-    var length = keys.length;
-    var i = 0;
-    var result = [];
-    var key;
-    while (length > i) {
-      key = keys[i++];
-      if (!descriptors || propertyIsEnumerable.call(O, key)) {
-        result.push(TO_ENTRIES ? [key, O[key]] : O[key]);
-      }
-    }
-    return result;
-  };
-};
-
-var objectToArray = {
-  // `Object.entries` method
-  // https://tc39.github.io/ecma262/#sec-object.entries
-  entries: createMethod$2(true),
-  // `Object.values` method
-  // https://tc39.github.io/ecma262/#sec-object.values
-  values: createMethod$2(false)
-};
-
-var $entries = objectToArray.entries;
-
-// `Object.entries` method
-// https://tc39.github.io/ecma262/#sec-object.entries
-_export({ target: 'Object', stat: true }, {
-  entries: function entries(O) {
-    return $entries(O);
-  }
-});
-
-var freezing = !fails(function () {
-  return Object.isExtensible(Object.preventExtensions({}));
-});
-
-var internalMetadata = createCommonjsModule(function (module) {
-var defineProperty = objectDefineProperty.f;
-
-
-
-var METADATA = uid('meta');
-var id = 0;
-
-var isExtensible = Object.isExtensible || function () {
-  return true;
-};
-
-var setMetadata = function (it) {
-  defineProperty(it, METADATA, { value: {
-    objectID: 'O' + ++id, // object ID
-    weakData: {}          // weak collections IDs
-  } });
-};
-
-var fastKey = function (it, create) {
-  // return a primitive with prefix
-  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if (!has(it, METADATA)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return 'F';
-    // not necessary to add metadata
-    if (!create) return 'E';
-    // add missing metadata
-    setMetadata(it);
-  // return object ID
-  } return it[METADATA].objectID;
-};
-
-var getWeakData = function (it, create) {
-  if (!has(it, METADATA)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return true;
-    // not necessary to add metadata
-    if (!create) return false;
-    // add missing metadata
-    setMetadata(it);
-  // return the store of weak collections IDs
-  } return it[METADATA].weakData;
-};
-
-// add metadata on freeze-family methods calling
-var onFreeze = function (it) {
-  if (freezing && meta.REQUIRED && isExtensible(it) && !has(it, METADATA)) setMetadata(it);
-  return it;
-};
-
-var meta = module.exports = {
-  REQUIRED: false,
-  fastKey: fastKey,
-  getWeakData: getWeakData,
-  onFreeze: onFreeze
-};
-
-hiddenKeys[METADATA] = true;
-});
-
-var onFreeze = internalMetadata.onFreeze;
-
-var nativeFreeze = Object.freeze;
-var FAILS_ON_PRIMITIVES = fails(function () { nativeFreeze(1); });
-
-// `Object.freeze` method
-// https://tc39.github.io/ecma262/#sec-object.freeze
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES, sham: !freezing }, {
-  freeze: function freeze(it) {
-    return nativeFreeze && isObject(it) ? nativeFreeze(onFreeze(it)) : it;
-  }
-});
-
-var createProperty = function (object, key, value) {
-  var propertyKey = toPrimitive(key);
-  if (propertyKey in object) objectDefineProperty.f(object, propertyKey, createPropertyDescriptor(0, value));
-  else object[propertyKey] = value;
-};
-
-// `Object.fromEntries` method
-// https://github.com/tc39/proposal-object-from-entries
-_export({ target: 'Object', stat: true }, {
-  fromEntries: function fromEntries(iterable) {
-    var obj = {};
-    iterate_1(iterable, function (k, v) {
-      createProperty(obj, k, v);
-    }, undefined, true);
-    return obj;
-  }
-});
-
-var nativeGetOwnPropertyDescriptor$2 = objectGetOwnPropertyDescriptor.f;
-
-
-var FAILS_ON_PRIMITIVES$1 = fails(function () { nativeGetOwnPropertyDescriptor$2(1); });
-var FORCED$1 = !descriptors || FAILS_ON_PRIMITIVES$1;
-
-// `Object.getOwnPropertyDescriptor` method
-// https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptor
-_export({ target: 'Object', stat: true, forced: FORCED$1, sham: !descriptors }, {
-  getOwnPropertyDescriptor: function getOwnPropertyDescriptor(it, key) {
-    return nativeGetOwnPropertyDescriptor$2(toIndexedObject(it), key);
-  }
-});
-
-// `Object.getOwnPropertyDescriptors` method
-// https://tc39.github.io/ecma262/#sec-object.getownpropertydescriptors
-_export({ target: 'Object', stat: true, sham: !descriptors }, {
-  getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
-    var O = toIndexedObject(object);
-    var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor.f;
-    var keys = ownKeys(O);
-    var result = {};
-    var index = 0;
-    var key, descriptor;
-    while (keys.length > index) {
-      descriptor = getOwnPropertyDescriptor(O, key = keys[index++]);
-      if (descriptor !== undefined) createProperty(result, key, descriptor);
-    }
-    return result;
-  }
-});
-
-var nativeGetOwnPropertyNames$2 = objectGetOwnPropertyNamesExternal.f;
-
-var FAILS_ON_PRIMITIVES$2 = fails(function () { return !Object.getOwnPropertyNames(1); });
-
-// `Object.getOwnPropertyNames` method
-// https://tc39.github.io/ecma262/#sec-object.getownpropertynames
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$2 }, {
-  getOwnPropertyNames: nativeGetOwnPropertyNames$2
-});
 
 var correctPrototypeGetter = !fails(function () {
   function F() { /* empty */ }
@@ -2674,7 +2463,7 @@ var IE_PROTO$1 = sharedKey('IE_PROTO');
 var ObjectPrototype$1 = Object.prototype;
 
 // `Object.getPrototypeOf` method
-// https://tc39.github.io/ecma262/#sec-object.getprototypeof
+// https://tc39.es/ecma262/#sec-object.getprototypeof
 var objectGetPrototypeOf = correctPrototypeGetter ? Object.getPrototypeOf : function (O) {
   O = toObject(O);
   if (has(O, IE_PROTO$1)) return O[IE_PROTO$1];
@@ -2683,102 +2472,6 @@ var objectGetPrototypeOf = correctPrototypeGetter ? Object.getPrototypeOf : func
   } return O instanceof Object ? ObjectPrototype$1 : null;
 };
 
-var FAILS_ON_PRIMITIVES$3 = fails(function () { objectGetPrototypeOf(1); });
-
-// `Object.getPrototypeOf` method
-// https://tc39.github.io/ecma262/#sec-object.getprototypeof
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$3, sham: !correctPrototypeGetter }, {
-  getPrototypeOf: function getPrototypeOf(it) {
-    return objectGetPrototypeOf(toObject(it));
-  }
-});
-
-// `SameValue` abstract operation
-// https://tc39.github.io/ecma262/#sec-samevalue
-var sameValue = Object.is || function is(x, y) {
-  // eslint-disable-next-line no-self-compare
-  return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
-};
-
-// `Object.is` method
-// https://tc39.github.io/ecma262/#sec-object.is
-_export({ target: 'Object', stat: true }, {
-  is: sameValue
-});
-
-var nativeIsExtensible = Object.isExtensible;
-var FAILS_ON_PRIMITIVES$4 = fails(function () { nativeIsExtensible(1); });
-
-// `Object.isExtensible` method
-// https://tc39.github.io/ecma262/#sec-object.isextensible
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$4 }, {
-  isExtensible: function isExtensible(it) {
-    return isObject(it) ? nativeIsExtensible ? nativeIsExtensible(it) : true : false;
-  }
-});
-
-var nativeIsFrozen = Object.isFrozen;
-var FAILS_ON_PRIMITIVES$5 = fails(function () { nativeIsFrozen(1); });
-
-// `Object.isFrozen` method
-// https://tc39.github.io/ecma262/#sec-object.isfrozen
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$5 }, {
-  isFrozen: function isFrozen(it) {
-    return isObject(it) ? nativeIsFrozen ? nativeIsFrozen(it) : false : true;
-  }
-});
-
-var nativeIsSealed = Object.isSealed;
-var FAILS_ON_PRIMITIVES$6 = fails(function () { nativeIsSealed(1); });
-
-// `Object.isSealed` method
-// https://tc39.github.io/ecma262/#sec-object.issealed
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$6 }, {
-  isSealed: function isSealed(it) {
-    return isObject(it) ? nativeIsSealed ? nativeIsSealed(it) : false : true;
-  }
-});
-
-var FAILS_ON_PRIMITIVES$7 = fails(function () { objectKeys(1); });
-
-// `Object.keys` method
-// https://tc39.github.io/ecma262/#sec-object.keys
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$7 }, {
-  keys: function keys(it) {
-    return objectKeys(toObject(it));
-  }
-});
-
-var onFreeze$1 = internalMetadata.onFreeze;
-
-
-
-var nativePreventExtensions = Object.preventExtensions;
-var FAILS_ON_PRIMITIVES$8 = fails(function () { nativePreventExtensions(1); });
-
-// `Object.preventExtensions` method
-// https://tc39.github.io/ecma262/#sec-object.preventextensions
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$8, sham: !freezing }, {
-  preventExtensions: function preventExtensions(it) {
-    return nativePreventExtensions && isObject(it) ? nativePreventExtensions(onFreeze$1(it)) : it;
-  }
-});
-
-var onFreeze$2 = internalMetadata.onFreeze;
-
-
-
-var nativeSeal = Object.seal;
-var FAILS_ON_PRIMITIVES$9 = fails(function () { nativeSeal(1); });
-
-// `Object.seal` method
-// https://tc39.github.io/ecma262/#sec-object.seal
-_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$9, sham: !freezing }, {
-  seal: function seal(it) {
-    return nativeSeal && isObject(it) ? nativeSeal(onFreeze$2(it)) : it;
-  }
-});
-
 var aPossiblePrototype = function (it) {
   if (!isObject(it) && it !== null) {
     throw TypeError("Can't set " + String(it) + ' as a prototype');
@@ -2786,7 +2479,7 @@ var aPossiblePrototype = function (it) {
 };
 
 // `Object.setPrototypeOf` method
-// https://tc39.github.io/ecma262/#sec-object.setprototypeof
+// https://tc39.es/ecma262/#sec-object.setprototypeof
 // Works with __proto__ only. Old v8 can't work with null proto objects.
 /* eslint-disable no-proto */
 var objectSetPrototypeOf = Object.setPrototypeOf || ('__proto__' in {} ? function () {
@@ -2807,138 +2500,51 @@ var objectSetPrototypeOf = Object.setPrototypeOf || ('__proto__' in {} ? functio
   };
 }() : undefined);
 
-// `Object.setPrototypeOf` method
-// https://tc39.github.io/ecma262/#sec-object.setprototypeof
-_export({ target: 'Object', stat: true }, {
-  setPrototypeOf: objectSetPrototypeOf
-});
-
-var $values = objectToArray.values;
-
-// `Object.values` method
-// https://tc39.github.io/ecma262/#sec-object.values
-_export({ target: 'Object', stat: true }, {
-  values: function values(O) {
-    return $values(O);
+var $AggregateError = function AggregateError(errors, message) {
+  var that = this;
+  if (!(that instanceof $AggregateError)) return new $AggregateError(errors, message);
+  if (objectSetPrototypeOf) {
+    // eslint-disable-next-line unicorn/error-message
+    that = objectSetPrototypeOf(new Error(undefined), objectGetPrototypeOf(that));
   }
-});
-
-// Forced replacement object prototype accessors methods
-var objectPrototypeAccessorsForced =  !fails(function () {
-  var key = Math.random();
-  // In FF throws only define methods
-  // eslint-disable-next-line no-undef, no-useless-call
-  __defineSetter__.call(null, key, function () { /* empty */ });
-  delete global_1[key];
-});
-
-// `Object.prototype.__defineGetter__` method
-// https://tc39.github.io/ecma262/#sec-object.prototype.__defineGetter__
-if (descriptors) {
-  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
-    __defineGetter__: function __defineGetter__(P, getter) {
-      objectDefineProperty.f(toObject(this), P, { get: aFunction$1(getter), enumerable: true, configurable: true });
-    }
-  });
-}
-
-// `Object.prototype.__defineSetter__` method
-// https://tc39.github.io/ecma262/#sec-object.prototype.__defineSetter__
-if (descriptors) {
-  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
-    __defineSetter__: function __defineSetter__(P, setter) {
-      objectDefineProperty.f(toObject(this), P, { set: aFunction$1(setter), enumerable: true, configurable: true });
-    }
-  });
-}
-
-var getOwnPropertyDescriptor$3 = objectGetOwnPropertyDescriptor.f;
-
-// `Object.prototype.__lookupGetter__` method
-// https://tc39.github.io/ecma262/#sec-object.prototype.__lookupGetter__
-if (descriptors) {
-  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
-    __lookupGetter__: function __lookupGetter__(P) {
-      var O = toObject(this);
-      var key = toPrimitive(P, true);
-      var desc;
-      do {
-        if (desc = getOwnPropertyDescriptor$3(O, key)) return desc.get;
-      } while (O = objectGetPrototypeOf(O));
-    }
-  });
-}
-
-var getOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor.f;
-
-// `Object.prototype.__lookupSetter__` method
-// https://tc39.github.io/ecma262/#sec-object.prototype.__lookupSetter__
-if (descriptors) {
-  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
-    __lookupSetter__: function __lookupSetter__(P) {
-      var O = toObject(this);
-      var key = toPrimitive(P, true);
-      var desc;
-      do {
-        if (desc = getOwnPropertyDescriptor$4(O, key)) return desc.set;
-      } while (O = objectGetPrototypeOf(O));
-    }
-  });
-}
-
-var slice$1 = [].slice;
-var factories = {};
-
-var construct = function (C, argsLength, args) {
-  if (!(argsLength in factories)) {
-    for (var list = [], i = 0; i < argsLength; i++) list[i] = 'a[' + i + ']';
-    // eslint-disable-next-line no-new-func
-    factories[argsLength] = Function('C,a', 'return new C(' + list.join(',') + ')');
-  } return factories[argsLength](C, args);
+  if (message !== undefined) createNonEnumerableProperty(that, 'message', String(message));
+  var errorsArray = [];
+  iterate(errors, errorsArray.push, { that: errorsArray });
+  createNonEnumerableProperty(that, 'errors', errorsArray);
+  return that;
 };
 
-// `Function.prototype.bind` method implementation
-// https://tc39.github.io/ecma262/#sec-function.prototype.bind
-var functionBind = Function.bind || function bind(that /* , ...args */) {
-  var fn = aFunction$1(this);
-  var partArgs = slice$1.call(arguments, 1);
-  var boundFunction = function bound(/* args... */) {
-    var args = partArgs.concat(slice$1.call(arguments));
-    return this instanceof boundFunction ? construct(fn, args.length, args) : fn.apply(that, args);
-  };
-  if (isObject(fn.prototype)) boundFunction.prototype = fn.prototype;
-  return boundFunction;
-};
-
-// `Function.prototype.bind` method
-// https://tc39.github.io/ecma262/#sec-function.prototype.bind
-_export({ target: 'Function', proto: true }, {
-  bind: functionBind
+$AggregateError.prototype = objectCreate(Error.prototype, {
+  constructor: createPropertyDescriptor(5, $AggregateError),
+  message: createPropertyDescriptor(5, ''),
+  name: createPropertyDescriptor(5, 'AggregateError')
 });
 
-var HAS_INSTANCE = wellKnownSymbol('hasInstance');
-var FunctionPrototype$1 = Function.prototype;
-
-// `Function.prototype[@@hasInstance]` method
-// https://tc39.github.io/ecma262/#sec-function.prototype-@@hasinstance
-if (!(HAS_INSTANCE in FunctionPrototype$1)) {
-  objectDefineProperty.f(FunctionPrototype$1, HAS_INSTANCE, { value: function (O) {
-    if (typeof this != 'function' || !isObject(O)) return false;
-    if (!isObject(this.prototype)) return O instanceof this;
-    // for environment w/o native `@@hasInstance` logic enough `instanceof`, but add this:
-    while (O = objectGetPrototypeOf(O)) if (this.prototype === O) return true;
-    return false;
-  } });
-}
-
-// `globalThis` object
-// https://github.com/tc39/proposal-global
+// `AggregateError` constructor
+// https://tc39.es/ecma262/#sec-aggregate-error-constructor
 _export({ global: true }, {
-  globalThis: global_1
+  AggregateError: $AggregateError
 });
+
+// call something on iterator step with safe closing on error
+var callWithSafeIterationClosing = function (iterator, fn, value, ENTRIES) {
+  try {
+    return ENTRIES ? fn(anObject(value)[0], value[1]) : fn(value);
+  // 7.4.6 IteratorClose(iterator, completion)
+  } catch (error) {
+    iteratorClose(iterator);
+    throw error;
+  }
+};
+
+var createProperty = function (object, key, value) {
+  var propertyKey = toPrimitive(key);
+  if (propertyKey in object) objectDefineProperty.f(object, propertyKey, createPropertyDescriptor(0, value));
+  else object[propertyKey] = value;
+};
 
 // `Array.from` method implementation
-// https://tc39.github.io/ecma262/#sec-array.from
+// https://tc39.es/ecma262/#sec-array.from
 var arrayFrom = function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
   var O = toObject(arrayLike);
   var C = typeof this == 'function' ? this : Array;
@@ -2975,13 +2581,13 @@ var INCORRECT_ITERATION$1 = !checkCorrectnessOfIteration(function (iterable) {
 });
 
 // `Array.from` method
-// https://tc39.github.io/ecma262/#sec-array.from
+// https://tc39.es/ecma262/#sec-array.from
 _export({ target: 'Array', stat: true, forced: INCORRECT_ITERATION$1 }, {
   from: arrayFrom
 });
 
 // `Array.isArray` method
-// https://tc39.github.io/ecma262/#sec-array.isarray
+// https://tc39.es/ecma262/#sec-array.isarray
 _export({ target: 'Array', stat: true }, {
   isArray: isArray
 });
@@ -2992,7 +2598,7 @@ var ISNT_GENERIC = fails(function () {
 });
 
 // `Array.of` method
-// https://tc39.github.io/ecma262/#sec-array.of
+// https://tc39.es/ecma262/#sec-array.of
 // WebKit Array.of isn't generic
 _export({ target: 'Array', stat: true, forced: ISNT_GENERIC }, {
   of: function of(/* ...args */) {
@@ -3042,12 +2648,12 @@ var isConcatSpreadable = function (O) {
   return spreadable !== undefined ? !!spreadable : isArray(O);
 };
 
-var FORCED$2 = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
+var FORCED$1 = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
 
 // `Array.prototype.concat` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.concat
+// https://tc39.es/ecma262/#sec-array.prototype.concat
 // with adding support of @@isConcatSpreadable and @@species
-_export({ target: 'Array', proto: true, forced: FORCED$2 }, {
+_export({ target: 'Array', proto: true, forced: FORCED$1 }, {
   concat: function concat(arg) { // eslint-disable-line no-unused-vars
     var O = toObject(this);
     var A = arraySpeciesCreate(O, 0);
@@ -3072,7 +2678,7 @@ _export({ target: 'Array', proto: true, forced: FORCED$2 }, {
 var min$2 = Math.min;
 
 // `Array.prototype.copyWithin` method implementation
-// https://tc39.github.io/ecma262/#sec-array.prototype.copywithin
+// https://tc39.es/ecma262/#sec-array.prototype.copywithin
 var arrayCopyWithin = [].copyWithin || function copyWithin(target /* = 0 */, start /* = 0, end = @length */) {
   var O = toObject(this);
   var len = toLength(O.length);
@@ -3098,7 +2704,7 @@ var UNSCOPABLES = wellKnownSymbol('unscopables');
 var ArrayPrototype$1 = Array.prototype;
 
 // Array.prototype[@@unscopables]
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 if (ArrayPrototype$1[UNSCOPABLES] == undefined) {
   objectDefineProperty.f(ArrayPrototype$1, UNSCOPABLES, {
     configurable: true,
@@ -3112,12 +2718,12 @@ var addToUnscopables = function (key) {
 };
 
 // `Array.prototype.copyWithin` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.copywithin
+// https://tc39.es/ecma262/#sec-array.prototype.copywithin
 _export({ target: 'Array', proto: true }, {
   copyWithin: arrayCopyWithin
 });
 
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables('copyWithin');
 
 var arrayMethodIsStrict = function (METHOD_NAME, argument) {
@@ -3128,7 +2734,7 @@ var arrayMethodIsStrict = function (METHOD_NAME, argument) {
   });
 };
 
-var defineProperty$5 = Object.defineProperty;
+var defineProperty$4 = Object.defineProperty;
 var cache = {};
 
 var thrower = function (it) { throw it; };
@@ -3145,7 +2751,7 @@ var arrayMethodUsesToLength = function (METHOD_NAME, options) {
     if (ACCESSORS && !descriptors) return true;
     var O = { length: -1 };
 
-    if (ACCESSORS) defineProperty$5(O, 1, { enumerable: true, get: thrower });
+    if (ACCESSORS) defineProperty$4(O, 1, { enumerable: true, get: thrower });
     else O[1] = 1;
 
     method.call(O, argument0, argument1);
@@ -3160,7 +2766,7 @@ var STRICT_METHOD = arrayMethodIsStrict('every');
 var USES_TO_LENGTH = arrayMethodUsesToLength('every');
 
 // `Array.prototype.every` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.every
+// https://tc39.es/ecma262/#sec-array.prototype.every
 _export({ target: 'Array', proto: true, forced: !STRICT_METHOD || !USES_TO_LENGTH }, {
   every: function every(callbackfn /* , thisArg */) {
     return $every(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
@@ -3168,7 +2774,7 @@ _export({ target: 'Array', proto: true, forced: !STRICT_METHOD || !USES_TO_LENGT
 });
 
 // `Array.prototype.fill` method implementation
-// https://tc39.github.io/ecma262/#sec-array.prototype.fill
+// https://tc39.es/ecma262/#sec-array.prototype.fill
 var arrayFill = function fill(value /* , start = 0, end = @length */) {
   var O = toObject(this);
   var length = toLength(O.length);
@@ -3181,12 +2787,12 @@ var arrayFill = function fill(value /* , start = 0, end = @length */) {
 };
 
 // `Array.prototype.fill` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.fill
+// https://tc39.es/ecma262/#sec-array.prototype.fill
 _export({ target: 'Array', proto: true }, {
   fill: arrayFill
 });
 
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables('fill');
 
 var $filter = arrayIteration.filter;
@@ -3198,7 +2804,7 @@ var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('filter');
 var USES_TO_LENGTH$1 = arrayMethodUsesToLength('filter');
 
 // `Array.prototype.filter` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.filter
+// https://tc39.es/ecma262/#sec-array.prototype.filter
 // with adding support of @@species
 _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGTH$1 }, {
   filter: function filter(callbackfn /* , thisArg */) {
@@ -3219,14 +2825,14 @@ var USES_TO_LENGTH$2 = arrayMethodUsesToLength(FIND);
 if (FIND in []) Array(1)[FIND](function () { SKIPS_HOLES = false; });
 
 // `Array.prototype.find` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.find
+// https://tc39.es/ecma262/#sec-array.prototype.find
 _export({ target: 'Array', proto: true, forced: SKIPS_HOLES || !USES_TO_LENGTH$2 }, {
   find: function find(callbackfn /* , that = undefined */) {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
 
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables(FIND);
 
 var $findIndex = arrayIteration.findIndex;
@@ -3242,14 +2848,14 @@ var USES_TO_LENGTH$3 = arrayMethodUsesToLength(FIND_INDEX);
 if (FIND_INDEX in []) Array(1)[FIND_INDEX](function () { SKIPS_HOLES$1 = false; });
 
 // `Array.prototype.findIndex` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.findindex
+// https://tc39.es/ecma262/#sec-array.prototype.findindex
 _export({ target: 'Array', proto: true, forced: SKIPS_HOLES$1 || !USES_TO_LENGTH$3 }, {
   findIndex: function findIndex(callbackfn /* , that = undefined */) {
     return $findIndex(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
 
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables(FIND_INDEX);
 
 // `FlattenIntoArray` abstract operation
@@ -3281,7 +2887,7 @@ var flattenIntoArray = function (target, original, source, sourceLen, start, dep
 var flattenIntoArray_1 = flattenIntoArray;
 
 // `Array.prototype.flat` method
-// https://github.com/tc39/proposal-flatMap
+// https://tc39.es/ecma262/#sec-array.prototype.flat
 _export({ target: 'Array', proto: true }, {
   flat: function flat(/* depthArg = 1 */) {
     var depthArg = arguments.length ? arguments[0] : undefined;
@@ -3294,7 +2900,7 @@ _export({ target: 'Array', proto: true }, {
 });
 
 // `Array.prototype.flatMap` method
-// https://github.com/tc39/proposal-flatMap
+// https://tc39.es/ecma262/#sec-array.prototype.flatmap
 _export({ target: 'Array', proto: true }, {
   flatMap: function flatMap(callbackfn /* , thisArg */) {
     var O = toObject(this);
@@ -3315,13 +2921,13 @@ var STRICT_METHOD$1 = arrayMethodIsStrict('forEach');
 var USES_TO_LENGTH$4 = arrayMethodUsesToLength('forEach');
 
 // `Array.prototype.forEach` method implementation
-// https://tc39.github.io/ecma262/#sec-array.prototype.foreach
+// https://tc39.es/ecma262/#sec-array.prototype.foreach
 var arrayForEach = (!STRICT_METHOD$1 || !USES_TO_LENGTH$4) ? function forEach(callbackfn /* , thisArg */) {
   return $forEach$1(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 } : [].forEach;
 
 // `Array.prototype.forEach` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.foreach
+// https://tc39.es/ecma262/#sec-array.prototype.foreach
 _export({ target: 'Array', proto: true, forced: [].forEach != arrayForEach }, {
   forEach: arrayForEach
 });
@@ -3333,14 +2939,14 @@ var $includes = arrayIncludes.includes;
 var USES_TO_LENGTH$5 = arrayMethodUsesToLength('indexOf', { ACCESSORS: true, 1: 0 });
 
 // `Array.prototype.includes` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.includes
+// https://tc39.es/ecma262/#sec-array.prototype.includes
 _export({ target: 'Array', proto: true, forced: !USES_TO_LENGTH$5 }, {
   includes: function includes(el /* , fromIndex = 0 */) {
     return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
 
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables('includes');
 
 var $indexOf = arrayIncludes.indexOf;
@@ -3354,7 +2960,7 @@ var STRICT_METHOD$2 = arrayMethodIsStrict('indexOf');
 var USES_TO_LENGTH$6 = arrayMethodUsesToLength('indexOf', { ACCESSORS: true, 1: 0 });
 
 // `Array.prototype.indexOf` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.indexof
+// https://tc39.es/ecma262/#sec-array.prototype.indexof
 _export({ target: 'Array', proto: true, forced: NEGATIVE_ZERO || !STRICT_METHOD$2 || !USES_TO_LENGTH$6 }, {
   indexOf: function indexOf(searchElement /* , fromIndex = 0 */) {
     return NEGATIVE_ZERO
@@ -3370,7 +2976,7 @@ var ES3_STRINGS = indexedObject != Object;
 var STRICT_METHOD$3 = arrayMethodIsStrict('join', ',');
 
 // `Array.prototype.join` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.join
+// https://tc39.es/ecma262/#sec-array.prototype.join
 _export({ target: 'Array', proto: true, forced: ES3_STRINGS || !STRICT_METHOD$3 }, {
   join: function join(separator) {
     return nativeJoin.call(toIndexedObject(this), separator === undefined ? ',' : separator);
@@ -3383,11 +2989,11 @@ var NEGATIVE_ZERO$1 = !!nativeLastIndexOf && 1 / [1].lastIndexOf(1, -0) < 0;
 var STRICT_METHOD$4 = arrayMethodIsStrict('lastIndexOf');
 // For preventing possible almost infinite loop in non-standard implementations, test the forward version of the method
 var USES_TO_LENGTH$7 = arrayMethodUsesToLength('indexOf', { ACCESSORS: true, 1: 0 });
-var FORCED$3 = NEGATIVE_ZERO$1 || !STRICT_METHOD$4 || !USES_TO_LENGTH$7;
+var FORCED$2 = NEGATIVE_ZERO$1 || !STRICT_METHOD$4 || !USES_TO_LENGTH$7;
 
 // `Array.prototype.lastIndexOf` method implementation
-// https://tc39.github.io/ecma262/#sec-array.prototype.lastindexof
-var arrayLastIndexOf = FORCED$3 ? function lastIndexOf(searchElement /* , fromIndex = @[*-1] */) {
+// https://tc39.es/ecma262/#sec-array.prototype.lastindexof
+var arrayLastIndexOf = FORCED$2 ? function lastIndexOf(searchElement /* , fromIndex = @[*-1] */) {
   // convert -0 to +0
   if (NEGATIVE_ZERO$1) return nativeLastIndexOf.apply(this, arguments) || 0;
   var O = toIndexedObject(this);
@@ -3400,7 +3006,7 @@ var arrayLastIndexOf = FORCED$3 ? function lastIndexOf(searchElement /* , fromIn
 } : nativeLastIndexOf;
 
 // `Array.prototype.lastIndexOf` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.lastindexof
+// https://tc39.es/ecma262/#sec-array.prototype.lastindexof
 _export({ target: 'Array', proto: true, forced: arrayLastIndexOf !== [].lastIndexOf }, {
   lastIndexOf: arrayLastIndexOf
 });
@@ -3414,7 +3020,7 @@ var HAS_SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport('map');
 var USES_TO_LENGTH$8 = arrayMethodUsesToLength('map');
 
 // `Array.prototype.map` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.map
+// https://tc39.es/ecma262/#sec-array.prototype.map
 // with adding support of @@species
 _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$1 || !USES_TO_LENGTH$8 }, {
   map: function map(callbackfn /* , thisArg */) {
@@ -3423,7 +3029,7 @@ _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$1 || !USES_
 });
 
 // `Array.prototype.{ reduce, reduceRight }` methods implementation
-var createMethod$3 = function (IS_RIGHT) {
+var createMethod$2 = function (IS_RIGHT) {
   return function (that, callbackfn, argumentsLength, memo) {
     aFunction$1(callbackfn);
     var O = toObject(that);
@@ -3451,23 +3057,28 @@ var createMethod$3 = function (IS_RIGHT) {
 
 var arrayReduce = {
   // `Array.prototype.reduce` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.reduce
-  left: createMethod$3(false),
+  // https://tc39.es/ecma262/#sec-array.prototype.reduce
+  left: createMethod$2(false),
   // `Array.prototype.reduceRight` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.reduceright
-  right: createMethod$3(true)
+  // https://tc39.es/ecma262/#sec-array.prototype.reduceright
+  right: createMethod$2(true)
 };
 
 var $reduce = arrayReduce.left;
 
 
 
+
+
 var STRICT_METHOD$5 = arrayMethodIsStrict('reduce');
 var USES_TO_LENGTH$9 = arrayMethodUsesToLength('reduce', { 1: 0 });
+// Chrome 80-82 has a critical bug
+// https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
+var CHROME_BUG = !engineIsNode && engineV8Version > 79 && engineV8Version < 83;
 
 // `Array.prototype.reduce` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
-_export({ target: 'Array', proto: true, forced: !STRICT_METHOD$5 || !USES_TO_LENGTH$9 }, {
+// https://tc39.es/ecma262/#sec-array.prototype.reduce
+_export({ target: 'Array', proto: true, forced: !STRICT_METHOD$5 || !USES_TO_LENGTH$9 || CHROME_BUG }, {
   reduce: function reduce(callbackfn /* , initialValue */) {
     return $reduce(this, callbackfn, arguments.length, arguments.length > 1 ? arguments[1] : undefined);
   }
@@ -3477,13 +3088,18 @@ var $reduceRight = arrayReduce.right;
 
 
 
+
+
 var STRICT_METHOD$6 = arrayMethodIsStrict('reduceRight');
 // For preventing possible almost infinite loop in non-standard implementations, test the forward version of the method
 var USES_TO_LENGTH$a = arrayMethodUsesToLength('reduce', { 1: 0 });
+// Chrome 80-82 has a critical bug
+// https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
+var CHROME_BUG$1 = !engineIsNode && engineV8Version > 79 && engineV8Version < 83;
 
 // `Array.prototype.reduceRight` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.reduceright
-_export({ target: 'Array', proto: true, forced: !STRICT_METHOD$6 || !USES_TO_LENGTH$a }, {
+// https://tc39.es/ecma262/#sec-array.prototype.reduceright
+_export({ target: 'Array', proto: true, forced: !STRICT_METHOD$6 || !USES_TO_LENGTH$a || CHROME_BUG$1 }, {
   reduceRight: function reduceRight(callbackfn /* , initialValue */) {
     return $reduceRight(this, callbackfn, arguments.length, arguments.length > 1 ? arguments[1] : undefined);
   }
@@ -3493,7 +3109,7 @@ var nativeReverse = [].reverse;
 var test$1 = [1, 2];
 
 // `Array.prototype.reverse` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.reverse
+// https://tc39.es/ecma262/#sec-array.prototype.reverse
 // fix for Safari 12.0 bug
 // https://bugs.webkit.org/show_bug.cgi?id=188794
 _export({ target: 'Array', proto: true, forced: String(test$1) === String(test$1.reverse()) }, {
@@ -3512,7 +3128,7 @@ var nativeSlice = [].slice;
 var max$1 = Math.max;
 
 // `Array.prototype.slice` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.slice
+// https://tc39.es/ecma262/#sec-array.prototype.slice
 // fallback for not array-like ES3 strings and DOM objects
 _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$2 || !USES_TO_LENGTH$b }, {
   slice: function slice(start, end) {
@@ -3550,7 +3166,7 @@ var STRICT_METHOD$7 = arrayMethodIsStrict('some');
 var USES_TO_LENGTH$c = arrayMethodUsesToLength('some');
 
 // `Array.prototype.some` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.some
+// https://tc39.es/ecma262/#sec-array.prototype.some
 _export({ target: 'Array', proto: true, forced: !STRICT_METHOD$7 || !USES_TO_LENGTH$c }, {
   some: function some(callbackfn /* , thisArg */) {
     return $some(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
@@ -3571,11 +3187,11 @@ var FAILS_ON_NULL = fails(function () {
 // Old WebKit
 var STRICT_METHOD$8 = arrayMethodIsStrict('sort');
 
-var FORCED$4 = FAILS_ON_UNDEFINED || !FAILS_ON_NULL || !STRICT_METHOD$8;
+var FORCED$3 = FAILS_ON_UNDEFINED || !FAILS_ON_NULL || !STRICT_METHOD$8;
 
 // `Array.prototype.sort` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.sort
-_export({ target: 'Array', proto: true, forced: FORCED$4 }, {
+// https://tc39.es/ecma262/#sec-array.prototype.sort
+_export({ target: 'Array', proto: true, forced: FORCED$3 }, {
   sort: function sort(comparefn) {
     return comparefn === undefined
       ? nativeSort.call(toObject(this))
@@ -3592,7 +3208,7 @@ var MAX_SAFE_INTEGER$1 = 0x1FFFFFFFFFFFFF;
 var MAXIMUM_ALLOWED_LENGTH_EXCEEDED = 'Maximum allowed length exceeded';
 
 // `Array.prototype.splice` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.splice
+// https://tc39.es/ecma262/#sec-array.prototype.splice
 // with adding support of @@species
 _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$3 || !USES_TO_LENGTH$d }, {
   splice: function splice(start, deleteCount /* , ...items */) {
@@ -3644,19 +3260,21 @@ _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$3 || !USES_
 });
 
 // `Array[@@species]` getter
-// https://tc39.github.io/ecma262/#sec-get-array-@@species
+// https://tc39.es/ecma262/#sec-get-array-@@species
 setSpecies('Array');
 
 // this method was added to unscopables after implementation
 // in popular engines, so it's moved to a separate module
 
 
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables('flat');
 
 // this method was added to unscopables after implementation
 // in popular engines, so it's moved to a separate module
 
 
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables('flatMap');
 
 var ITERATOR$3 = wellKnownSymbol('iterator');
@@ -3665,7 +3283,7 @@ var BUGGY_SAFARI_ITERATORS = false;
 var returnThis = function () { return this; };
 
 // `%IteratorPrototype%` object
-// https://tc39.github.io/ecma262/#sec-%iteratorprototype%-object
+// https://tc39.es/ecma262/#sec-%iteratorprototype%-object
 var IteratorPrototype, PrototypeOfArrayIteratorPrototype, arrayIterator;
 
 if ([].keys) {
@@ -3788,15 +3406,15 @@ var setInternalState$2 = internalState.set;
 var getInternalState$2 = internalState.getterFor(ARRAY_ITERATOR);
 
 // `Array.prototype.entries` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.entries
+// https://tc39.es/ecma262/#sec-array.prototype.entries
 // `Array.prototype.keys` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.keys
+// https://tc39.es/ecma262/#sec-array.prototype.keys
 // `Array.prototype.values` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.values
+// https://tc39.es/ecma262/#sec-array.prototype.values
 // `Array.prototype[@@iterator]` method
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@iterator
+// https://tc39.es/ecma262/#sec-array.prototype-@@iterator
 // `CreateArrayIterator` internal method
-// https://tc39.github.io/ecma262/#sec-createarrayiterator
+// https://tc39.es/ecma262/#sec-createarrayiterator
 var es_array_iterator = defineIterator(Array, 'Array', function (iterated, kind) {
   setInternalState$2(this, {
     type: ARRAY_ITERATOR,
@@ -3805,7 +3423,7 @@ var es_array_iterator = defineIterator(Array, 'Array', function (iterated, kind)
     kind: kind                         // kind
   });
 // `%ArrayIteratorPrototype%.next` method
-// https://tc39.github.io/ecma262/#sec-%arrayiteratorprototype%.next
+// https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
 }, function () {
   var state = getInternalState$2(this);
   var target = state.target;
@@ -3821,14 +3439,480 @@ var es_array_iterator = defineIterator(Array, 'Array', function (iterated, kind)
 }, 'values');
 
 // argumentsList[@@iterator] is %ArrayProto_values%
-// https://tc39.github.io/ecma262/#sec-createunmappedargumentsobject
-// https://tc39.github.io/ecma262/#sec-createmappedargumentsobject
+// https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+// https://tc39.es/ecma262/#sec-createmappedargumentsobject
 iterators.Arguments = iterators.Array;
 
-// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
 addToUnscopables('keys');
 addToUnscopables('values');
 addToUnscopables('entries');
+
+var slice$1 = [].slice;
+var factories = {};
+
+var construct = function (C, argsLength, args) {
+  if (!(argsLength in factories)) {
+    for (var list = [], i = 0; i < argsLength; i++) list[i] = 'a[' + i + ']';
+    // eslint-disable-next-line no-new-func
+    factories[argsLength] = Function('C,a', 'return new C(' + list.join(',') + ')');
+  } return factories[argsLength](C, args);
+};
+
+// `Function.prototype.bind` method implementation
+// https://tc39.es/ecma262/#sec-function.prototype.bind
+var functionBind = Function.bind || function bind(that /* , ...args */) {
+  var fn = aFunction$1(this);
+  var partArgs = slice$1.call(arguments, 1);
+  var boundFunction = function bound(/* args... */) {
+    var args = partArgs.concat(slice$1.call(arguments));
+    return this instanceof boundFunction ? construct(fn, args.length, args) : fn.apply(that, args);
+  };
+  if (isObject(fn.prototype)) boundFunction.prototype = fn.prototype;
+  return boundFunction;
+};
+
+// `Function.prototype.bind` method
+// https://tc39.es/ecma262/#sec-function.prototype.bind
+_export({ target: 'Function', proto: true }, {
+  bind: functionBind
+});
+
+var HAS_INSTANCE = wellKnownSymbol('hasInstance');
+var FunctionPrototype$1 = Function.prototype;
+
+// `Function.prototype[@@hasInstance]` method
+// https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
+if (!(HAS_INSTANCE in FunctionPrototype$1)) {
+  objectDefineProperty.f(FunctionPrototype$1, HAS_INSTANCE, { value: function (O) {
+    if (typeof this != 'function' || !isObject(O)) return false;
+    if (!isObject(this.prototype)) return O instanceof this;
+    // for environment w/o native `@@hasInstance` logic enough `instanceof`, but add this:
+    while (O = objectGetPrototypeOf(O)) if (this.prototype === O) return true;
+    return false;
+  } });
+}
+
+// `globalThis` object
+// https://tc39.es/ecma262/#sec-globalthis
+_export({ global: true }, {
+  globalThis: global_1
+});
+
+var nativeAssign = Object.assign;
+var defineProperty$5 = Object.defineProperty;
+
+// `Object.assign` method
+// https://tc39.es/ecma262/#sec-object.assign
+var objectAssign = !nativeAssign || fails(function () {
+  // should have correct order of operations (Edge bug)
+  if (descriptors && nativeAssign({ b: 1 }, nativeAssign(defineProperty$5({}, 'a', {
+    enumerable: true,
+    get: function () {
+      defineProperty$5(this, 'b', {
+        value: 3,
+        enumerable: false
+      });
+    }
+  }), { b: 2 })).b !== 1) return true;
+  // should work with symbols and should have deterministic property order (V8 bug)
+  var A = {};
+  var B = {};
+  // eslint-disable-next-line no-undef
+  var symbol = Symbol();
+  var alphabet = 'abcdefghijklmnopqrst';
+  A[symbol] = 7;
+  alphabet.split('').forEach(function (chr) { B[chr] = chr; });
+  return nativeAssign({}, A)[symbol] != 7 || objectKeys(nativeAssign({}, B)).join('') != alphabet;
+}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
+  var T = toObject(target);
+  var argumentsLength = arguments.length;
+  var index = 1;
+  var getOwnPropertySymbols = objectGetOwnPropertySymbols.f;
+  var propertyIsEnumerable = objectPropertyIsEnumerable.f;
+  while (argumentsLength > index) {
+    var S = indexedObject(arguments[index++]);
+    var keys = getOwnPropertySymbols ? objectKeys(S).concat(getOwnPropertySymbols(S)) : objectKeys(S);
+    var length = keys.length;
+    var j = 0;
+    var key;
+    while (length > j) {
+      key = keys[j++];
+      if (!descriptors || propertyIsEnumerable.call(S, key)) T[key] = S[key];
+    }
+  } return T;
+} : nativeAssign;
+
+// `Object.assign` method
+// https://tc39.es/ecma262/#sec-object.assign
+_export({ target: 'Object', stat: true, forced: Object.assign !== objectAssign }, {
+  assign: objectAssign
+});
+
+// `Object.create` method
+// https://tc39.es/ecma262/#sec-object.create
+_export({ target: 'Object', stat: true, sham: !descriptors }, {
+  create: objectCreate
+});
+
+// `Object.defineProperty` method
+// https://tc39.es/ecma262/#sec-object.defineproperty
+_export({ target: 'Object', stat: true, forced: !descriptors, sham: !descriptors }, {
+  defineProperty: objectDefineProperty.f
+});
+
+// `Object.defineProperties` method
+// https://tc39.es/ecma262/#sec-object.defineproperties
+_export({ target: 'Object', stat: true, forced: !descriptors, sham: !descriptors }, {
+  defineProperties: objectDefineProperties
+});
+
+var propertyIsEnumerable = objectPropertyIsEnumerable.f;
+
+// `Object.{ entries, values }` methods implementation
+var createMethod$3 = function (TO_ENTRIES) {
+  return function (it) {
+    var O = toIndexedObject(it);
+    var keys = objectKeys(O);
+    var length = keys.length;
+    var i = 0;
+    var result = [];
+    var key;
+    while (length > i) {
+      key = keys[i++];
+      if (!descriptors || propertyIsEnumerable.call(O, key)) {
+        result.push(TO_ENTRIES ? [key, O[key]] : O[key]);
+      }
+    }
+    return result;
+  };
+};
+
+var objectToArray = {
+  // `Object.entries` method
+  // https://tc39.es/ecma262/#sec-object.entries
+  entries: createMethod$3(true),
+  // `Object.values` method
+  // https://tc39.es/ecma262/#sec-object.values
+  values: createMethod$3(false)
+};
+
+var $entries = objectToArray.entries;
+
+// `Object.entries` method
+// https://tc39.es/ecma262/#sec-object.entries
+_export({ target: 'Object', stat: true }, {
+  entries: function entries(O) {
+    return $entries(O);
+  }
+});
+
+var freezing = !fails(function () {
+  return Object.isExtensible(Object.preventExtensions({}));
+});
+
+var internalMetadata = createCommonjsModule(function (module) {
+var defineProperty = objectDefineProperty.f;
+
+
+
+var METADATA = uid('meta');
+var id = 0;
+
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+
+var setMetadata = function (it) {
+  defineProperty(it, METADATA, { value: {
+    objectID: 'O' + ++id, // object ID
+    weakData: {}          // weak collections IDs
+  } });
+};
+
+var fastKey = function (it, create) {
+  // return a primitive with prefix
+  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if (!has(it, METADATA)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F';
+    // not necessary to add metadata
+    if (!create) return 'E';
+    // add missing metadata
+    setMetadata(it);
+  // return object ID
+  } return it[METADATA].objectID;
+};
+
+var getWeakData = function (it, create) {
+  if (!has(it, METADATA)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true;
+    // not necessary to add metadata
+    if (!create) return false;
+    // add missing metadata
+    setMetadata(it);
+  // return the store of weak collections IDs
+  } return it[METADATA].weakData;
+};
+
+// add metadata on freeze-family methods calling
+var onFreeze = function (it) {
+  if (freezing && meta.REQUIRED && isExtensible(it) && !has(it, METADATA)) setMetadata(it);
+  return it;
+};
+
+var meta = module.exports = {
+  REQUIRED: false,
+  fastKey: fastKey,
+  getWeakData: getWeakData,
+  onFreeze: onFreeze
+};
+
+hiddenKeys[METADATA] = true;
+});
+
+var onFreeze = internalMetadata.onFreeze;
+
+var nativeFreeze = Object.freeze;
+var FAILS_ON_PRIMITIVES = fails(function () { nativeFreeze(1); });
+
+// `Object.freeze` method
+// https://tc39.es/ecma262/#sec-object.freeze
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES, sham: !freezing }, {
+  freeze: function freeze(it) {
+    return nativeFreeze && isObject(it) ? nativeFreeze(onFreeze(it)) : it;
+  }
+});
+
+// `Object.fromEntries` method
+// https://github.com/tc39/proposal-object-from-entries
+_export({ target: 'Object', stat: true }, {
+  fromEntries: function fromEntries(iterable) {
+    var obj = {};
+    iterate(iterable, function (k, v) {
+      createProperty(obj, k, v);
+    }, { AS_ENTRIES: true });
+    return obj;
+  }
+});
+
+var nativeGetOwnPropertyDescriptor$2 = objectGetOwnPropertyDescriptor.f;
+
+
+var FAILS_ON_PRIMITIVES$1 = fails(function () { nativeGetOwnPropertyDescriptor$2(1); });
+var FORCED$4 = !descriptors || FAILS_ON_PRIMITIVES$1;
+
+// `Object.getOwnPropertyDescriptor` method
+// https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
+_export({ target: 'Object', stat: true, forced: FORCED$4, sham: !descriptors }, {
+  getOwnPropertyDescriptor: function getOwnPropertyDescriptor(it, key) {
+    return nativeGetOwnPropertyDescriptor$2(toIndexedObject(it), key);
+  }
+});
+
+// `Object.getOwnPropertyDescriptors` method
+// https://tc39.es/ecma262/#sec-object.getownpropertydescriptors
+_export({ target: 'Object', stat: true, sham: !descriptors }, {
+  getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
+    var O = toIndexedObject(object);
+    var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor.f;
+    var keys = ownKeys(O);
+    var result = {};
+    var index = 0;
+    var key, descriptor;
+    while (keys.length > index) {
+      descriptor = getOwnPropertyDescriptor(O, key = keys[index++]);
+      if (descriptor !== undefined) createProperty(result, key, descriptor);
+    }
+    return result;
+  }
+});
+
+var nativeGetOwnPropertyNames$2 = objectGetOwnPropertyNamesExternal.f;
+
+var FAILS_ON_PRIMITIVES$2 = fails(function () { return !Object.getOwnPropertyNames(1); });
+
+// `Object.getOwnPropertyNames` method
+// https://tc39.es/ecma262/#sec-object.getownpropertynames
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$2 }, {
+  getOwnPropertyNames: nativeGetOwnPropertyNames$2
+});
+
+var FAILS_ON_PRIMITIVES$3 = fails(function () { objectGetPrototypeOf(1); });
+
+// `Object.getPrototypeOf` method
+// https://tc39.es/ecma262/#sec-object.getprototypeof
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$3, sham: !correctPrototypeGetter }, {
+  getPrototypeOf: function getPrototypeOf(it) {
+    return objectGetPrototypeOf(toObject(it));
+  }
+});
+
+// `SameValue` abstract operation
+// https://tc39.es/ecma262/#sec-samevalue
+var sameValue = Object.is || function is(x, y) {
+  // eslint-disable-next-line no-self-compare
+  return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
+};
+
+// `Object.is` method
+// https://tc39.es/ecma262/#sec-object.is
+_export({ target: 'Object', stat: true }, {
+  is: sameValue
+});
+
+var nativeIsExtensible = Object.isExtensible;
+var FAILS_ON_PRIMITIVES$4 = fails(function () { nativeIsExtensible(1); });
+
+// `Object.isExtensible` method
+// https://tc39.es/ecma262/#sec-object.isextensible
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$4 }, {
+  isExtensible: function isExtensible(it) {
+    return isObject(it) ? nativeIsExtensible ? nativeIsExtensible(it) : true : false;
+  }
+});
+
+var nativeIsFrozen = Object.isFrozen;
+var FAILS_ON_PRIMITIVES$5 = fails(function () { nativeIsFrozen(1); });
+
+// `Object.isFrozen` method
+// https://tc39.es/ecma262/#sec-object.isfrozen
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$5 }, {
+  isFrozen: function isFrozen(it) {
+    return isObject(it) ? nativeIsFrozen ? nativeIsFrozen(it) : false : true;
+  }
+});
+
+var nativeIsSealed = Object.isSealed;
+var FAILS_ON_PRIMITIVES$6 = fails(function () { nativeIsSealed(1); });
+
+// `Object.isSealed` method
+// https://tc39.es/ecma262/#sec-object.issealed
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$6 }, {
+  isSealed: function isSealed(it) {
+    return isObject(it) ? nativeIsSealed ? nativeIsSealed(it) : false : true;
+  }
+});
+
+var FAILS_ON_PRIMITIVES$7 = fails(function () { objectKeys(1); });
+
+// `Object.keys` method
+// https://tc39.es/ecma262/#sec-object.keys
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$7 }, {
+  keys: function keys(it) {
+    return objectKeys(toObject(it));
+  }
+});
+
+var onFreeze$1 = internalMetadata.onFreeze;
+
+
+
+var nativePreventExtensions = Object.preventExtensions;
+var FAILS_ON_PRIMITIVES$8 = fails(function () { nativePreventExtensions(1); });
+
+// `Object.preventExtensions` method
+// https://tc39.es/ecma262/#sec-object.preventextensions
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$8, sham: !freezing }, {
+  preventExtensions: function preventExtensions(it) {
+    return nativePreventExtensions && isObject(it) ? nativePreventExtensions(onFreeze$1(it)) : it;
+  }
+});
+
+var onFreeze$2 = internalMetadata.onFreeze;
+
+
+
+var nativeSeal = Object.seal;
+var FAILS_ON_PRIMITIVES$9 = fails(function () { nativeSeal(1); });
+
+// `Object.seal` method
+// https://tc39.es/ecma262/#sec-object.seal
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$9, sham: !freezing }, {
+  seal: function seal(it) {
+    return nativeSeal && isObject(it) ? nativeSeal(onFreeze$2(it)) : it;
+  }
+});
+
+// `Object.setPrototypeOf` method
+// https://tc39.es/ecma262/#sec-object.setprototypeof
+_export({ target: 'Object', stat: true }, {
+  setPrototypeOf: objectSetPrototypeOf
+});
+
+var $values = objectToArray.values;
+
+// `Object.values` method
+// https://tc39.es/ecma262/#sec-object.values
+_export({ target: 'Object', stat: true }, {
+  values: function values(O) {
+    return $values(O);
+  }
+});
+
+// Forced replacement object prototype accessors methods
+var objectPrototypeAccessorsForced =  !fails(function () {
+  var key = Math.random();
+  // In FF throws only define methods
+  // eslint-disable-next-line no-undef, no-useless-call
+  __defineSetter__.call(null, key, function () { /* empty */ });
+  delete global_1[key];
+});
+
+// `Object.prototype.__defineGetter__` method
+// https://tc39.es/ecma262/#sec-object.prototype.__defineGetter__
+if (descriptors) {
+  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
+    __defineGetter__: function __defineGetter__(P, getter) {
+      objectDefineProperty.f(toObject(this), P, { get: aFunction$1(getter), enumerable: true, configurable: true });
+    }
+  });
+}
+
+// `Object.prototype.__defineSetter__` method
+// https://tc39.es/ecma262/#sec-object.prototype.__defineSetter__
+if (descriptors) {
+  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
+    __defineSetter__: function __defineSetter__(P, setter) {
+      objectDefineProperty.f(toObject(this), P, { set: aFunction$1(setter), enumerable: true, configurable: true });
+    }
+  });
+}
+
+var getOwnPropertyDescriptor$3 = objectGetOwnPropertyDescriptor.f;
+
+// `Object.prototype.__lookupGetter__` method
+// https://tc39.es/ecma262/#sec-object.prototype.__lookupGetter__
+if (descriptors) {
+  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
+    __lookupGetter__: function __lookupGetter__(P) {
+      var O = toObject(this);
+      var key = toPrimitive(P, true);
+      var desc;
+      do {
+        if (desc = getOwnPropertyDescriptor$3(O, key)) return desc.get;
+      } while (O = objectGetPrototypeOf(O));
+    }
+  });
+}
+
+var getOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor.f;
+
+// `Object.prototype.__lookupSetter__` method
+// https://tc39.es/ecma262/#sec-object.prototype.__lookupSetter__
+if (descriptors) {
+  _export({ target: 'Object', proto: true, forced: objectPrototypeAccessorsForced }, {
+    __lookupSetter__: function __lookupSetter__(P) {
+      var O = toObject(this);
+      var key = toPrimitive(P, true);
+      var desc;
+      do {
+        if (desc = getOwnPropertyDescriptor$4(O, key)) return desc.set;
+      } while (O = objectGetPrototypeOf(O));
+    }
+  });
+}
 
 var fromCharCode = String.fromCharCode;
 var nativeFromCodePoint = String.fromCodePoint;
@@ -3837,7 +3921,7 @@ var nativeFromCodePoint = String.fromCodePoint;
 var INCORRECT_LENGTH = !!nativeFromCodePoint && nativeFromCodePoint.length != 1;
 
 // `String.fromCodePoint` method
-// https://tc39.github.io/ecma262/#sec-string.fromcodepoint
+// https://tc39.es/ecma262/#sec-string.fromcodepoint
 _export({ target: 'String', stat: true, forced: INCORRECT_LENGTH }, {
   fromCodePoint: function fromCodePoint(x) { // eslint-disable-line no-unused-vars
     var elements = [];
@@ -3856,7 +3940,7 @@ _export({ target: 'String', stat: true, forced: INCORRECT_LENGTH }, {
 });
 
 // `String.raw` method
-// https://tc39.github.io/ecma262/#sec-string.raw
+// https://tc39.es/ecma262/#sec-string.raw
 _export({ target: 'String', stat: true }, {
   raw: function raw(template) {
     var rawTemplate = toIndexedObject(template.raw);
@@ -3889,7 +3973,7 @@ var createMethod$4 = function (CONVERT_TO_STRING) {
 
 var stringMultibyte = {
   // `String.prototype.codePointAt` method
-  // https://tc39.github.io/ecma262/#sec-string.prototype.codepointat
+  // https://tc39.es/ecma262/#sec-string.prototype.codepointat
   codeAt: createMethod$4(false),
   // `String.prototype.at` method
   // https://github.com/mathiasbynens/String.prototype.at
@@ -3899,7 +3983,7 @@ var stringMultibyte = {
 var codeAt = stringMultibyte.codeAt;
 
 // `String.prototype.codePointAt` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.codepointat
+// https://tc39.es/ecma262/#sec-string.prototype.codepointat
 _export({ target: 'String', proto: true }, {
   codePointAt: function codePointAt(pos) {
     return codeAt(this, pos);
@@ -3909,7 +3993,7 @@ _export({ target: 'String', proto: true }, {
 var MATCH = wellKnownSymbol('match');
 
 // `IsRegExp` abstract operation
-// https://tc39.github.io/ecma262/#sec-isregexp
+// https://tc39.es/ecma262/#sec-isregexp
 var isRegexp = function (it) {
   var isRegExp;
   return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : classofRaw(it) == 'RegExp');
@@ -3927,11 +4011,11 @@ var correctIsRegexpLogic = function (METHOD_NAME) {
   var regexp = /./;
   try {
     '/./'[METHOD_NAME](regexp);
-  } catch (e) {
+  } catch (error1) {
     try {
       regexp[MATCH$1] = false;
       return '/./'[METHOD_NAME](regexp);
-    } catch (f) { /* empty */ }
+    } catch (error2) { /* empty */ }
   } return false;
 };
 
@@ -3953,7 +4037,7 @@ var MDN_POLYFILL_BUG =  !CORRECT_IS_REGEXP_LOGIC && !!function () {
 }();
 
 // `String.prototype.endsWith` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.endswith
+// https://tc39.es/ecma262/#sec-string.prototype.endswith
 _export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG && !CORRECT_IS_REGEXP_LOGIC }, {
   endsWith: function endsWith(searchString /* , endPosition = @length */) {
     var that = String(requireObjectCoercible(this));
@@ -3969,7 +4053,7 @@ _export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG && !CORRECT_I
 });
 
 // `String.prototype.includes` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.includes
+// https://tc39.es/ecma262/#sec-string.prototype.includes
 _export({ target: 'String', proto: true, forced: !correctIsRegexpLogic('includes') }, {
   includes: function includes(searchString /* , position = 0 */) {
     return !!~String(requireObjectCoercible(this))
@@ -3978,7 +4062,7 @@ _export({ target: 'String', proto: true, forced: !correctIsRegexpLogic('includes
 });
 
 // `RegExp.prototype.flags` getter implementation
-// https://tc39.github.io/ecma262/#sec-get-regexp.prototype.flags
+// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
 var regexpFlags = function () {
   var that = anObject(this);
   var result = '';
@@ -4100,6 +4184,8 @@ if (PATCH) {
 
 var regexpExec = patchedExec;
 
+// `RegExp.prototype.exec` method
+// https://tc39.es/ecma262/#sec-regexp.prototype.exec
 _export({ target: 'RegExp', proto: true, forced: /./.exec !== regexpExec }, {
   exec: regexpExec
 });
@@ -4232,13 +4318,13 @@ var fixRegexpWellKnownSymbolLogic = function (KEY, length, exec, sham) {
 var charAt = stringMultibyte.charAt;
 
 // `AdvanceStringIndex` abstract operation
-// https://tc39.github.io/ecma262/#sec-advancestringindex
+// https://tc39.es/ecma262/#sec-advancestringindex
 var advanceStringIndex = function (S, index, unicode) {
   return index + (unicode ? charAt(S, index).length : 1);
 };
 
 // `RegExpExec` abstract operation
-// https://tc39.github.io/ecma262/#sec-regexpexec
+// https://tc39.es/ecma262/#sec-regexpexec
 var regexpExecAbstract = function (R, S) {
   var exec = R.exec;
   if (typeof exec === 'function') {
@@ -4260,14 +4346,14 @@ var regexpExecAbstract = function (R, S) {
 fixRegexpWellKnownSymbolLogic('match', 1, function (MATCH, nativeMatch, maybeCallNative) {
   return [
     // `String.prototype.match` method
-    // https://tc39.github.io/ecma262/#sec-string.prototype.match
+    // https://tc39.es/ecma262/#sec-string.prototype.match
     function match(regexp) {
       var O = requireObjectCoercible(this);
       var matcher = regexp == undefined ? undefined : regexp[MATCH];
       return matcher !== undefined ? matcher.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
     },
     // `RegExp.prototype[@@match]` method
-    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@match
+    // https://tc39.es/ecma262/#sec-regexp.prototype-@@match
     function (regexp) {
       var res = maybeCallNative(nativeMatch, regexp, this);
       if (res.done) return res.value;
@@ -4359,7 +4445,7 @@ var $matchAll = function (string) {
 };
 
 // `String.prototype.matchAll` method
-// https://github.com/tc39/proposal-string-matchall
+// https://tc39.es/ecma262/#sec-string.prototype.matchall
 _export({ target: 'String', proto: true, forced: WORKS_WITH_NON_GLOBAL_REGEX }, {
   matchAll: function matchAll(regexp) {
     var O = requireObjectCoercible(this);
@@ -4386,7 +4472,7 @@ _export({ target: 'String', proto: true, forced: WORKS_WITH_NON_GLOBAL_REGEX }, 
  MATCH_ALL in RegExpPrototype || createNonEnumerableProperty(RegExpPrototype, MATCH_ALL, $matchAll);
 
 // `String.prototype.repeat` method implementation
-// https://tc39.github.io/ecma262/#sec-string.prototype.repeat
+// https://tc39.es/ecma262/#sec-string.prototype.repeat
 var stringRepeat = ''.repeat || function repeat(count) {
   var str = String(requireObjectCoercible(this));
   var result = '';
@@ -4421,10 +4507,10 @@ var createMethod$5 = function (IS_END) {
 
 var stringPad = {
   // `String.prototype.padStart` method
-  // https://tc39.github.io/ecma262/#sec-string.prototype.padstart
+  // https://tc39.es/ecma262/#sec-string.prototype.padstart
   start: createMethod$5(false),
   // `String.prototype.padEnd` method
-  // https://tc39.github.io/ecma262/#sec-string.prototype.padend
+  // https://tc39.es/ecma262/#sec-string.prototype.padend
   end: createMethod$5(true)
 };
 
@@ -4438,7 +4524,7 @@ var $padEnd = stringPad.end;
 
 
 // `String.prototype.padEnd` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.padend
+// https://tc39.es/ecma262/#sec-string.prototype.padend
 _export({ target: 'String', proto: true, forced: stringPadWebkitBug }, {
   padEnd: function padEnd(maxLength /* , fillString = ' ' */) {
     return $padEnd(this, maxLength, arguments.length > 1 ? arguments[1] : undefined);
@@ -4449,7 +4535,7 @@ var $padStart = stringPad.start;
 
 
 // `String.prototype.padStart` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.padstart
+// https://tc39.es/ecma262/#sec-string.prototype.padstart
 _export({ target: 'String', proto: true, forced: stringPadWebkitBug }, {
   padStart: function padStart(maxLength /* , fillString = ' ' */) {
     return $padStart(this, maxLength, arguments.length > 1 ? arguments[1] : undefined);
@@ -4457,16 +4543,52 @@ _export({ target: 'String', proto: true, forced: stringPadWebkitBug }, {
 });
 
 // `String.prototype.repeat` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.repeat
+// https://tc39.es/ecma262/#sec-string.prototype.repeat
 _export({ target: 'String', proto: true }, {
   repeat: stringRepeat
 });
 
-var max$3 = Math.max;
-var min$6 = Math.min;
 var floor$1 = Math.floor;
+var replace = ''.replace;
 var SUBSTITUTION_SYMBOLS = /\$([$&'`]|\d\d?|<[^>]*>)/g;
 var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&'`]|\d\d?)/g;
+
+// https://tc39.es/ecma262/#sec-getsubstitution
+var getSubstitution = function (matched, str, position, captures, namedCaptures, replacement) {
+  var tailPos = position + matched.length;
+  var m = captures.length;
+  var symbols = SUBSTITUTION_SYMBOLS_NO_NAMED;
+  if (namedCaptures !== undefined) {
+    namedCaptures = toObject(namedCaptures);
+    symbols = SUBSTITUTION_SYMBOLS;
+  }
+  return replace.call(replacement, symbols, function (match, ch) {
+    var capture;
+    switch (ch.charAt(0)) {
+      case '$': return '$';
+      case '&': return matched;
+      case '`': return str.slice(0, position);
+      case "'": return str.slice(tailPos);
+      case '<':
+        capture = namedCaptures[ch.slice(1, -1)];
+        break;
+      default: // \d\d?
+        var n = +ch;
+        if (n === 0) return match;
+        if (n > m) {
+          var f = floor$1(n / 10);
+          if (f === 0) return match;
+          if (f <= m) return captures[f - 1] === undefined ? ch.charAt(1) : captures[f - 1] + ch.charAt(1);
+          return match;
+        }
+        capture = captures[n - 1];
+    }
+    return capture === undefined ? '' : capture;
+  });
+};
+
+var max$3 = Math.max;
+var min$6 = Math.min;
 
 var maybeToString = function (it) {
   return it === undefined ? it : String(it);
@@ -4480,7 +4602,7 @@ fixRegexpWellKnownSymbolLogic('replace', 2, function (REPLACE, nativeReplace, ma
 
   return [
     // `String.prototype.replace` method
-    // https://tc39.github.io/ecma262/#sec-string.prototype.replace
+    // https://tc39.es/ecma262/#sec-string.prototype.replace
     function replace(searchValue, replaceValue) {
       var O = requireObjectCoercible(this);
       var replacer = searchValue == undefined ? undefined : searchValue[REPLACE];
@@ -4489,7 +4611,7 @@ fixRegexpWellKnownSymbolLogic('replace', 2, function (REPLACE, nativeReplace, ma
         : nativeReplace.call(String(O), searchValue, replaceValue);
     },
     // `RegExp.prototype[@@replace]` method
-    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@replace
+    // https://tc39.es/ecma262/#sec-regexp.prototype-@@replace
     function (regexp, replaceValue) {
       if (
         (!REGEXP_REPLACE_SUBSTITUTES_UNDEFINED_CAPTURE && REPLACE_KEEPS_$0) ||
@@ -4552,54 +4674,20 @@ fixRegexpWellKnownSymbolLogic('replace', 2, function (REPLACE, nativeReplace, ma
       return accumulatedResult + S.slice(nextSourcePosition);
     }
   ];
-
-  // https://tc39.github.io/ecma262/#sec-getsubstitution
-  function getSubstitution(matched, str, position, captures, namedCaptures, replacement) {
-    var tailPos = position + matched.length;
-    var m = captures.length;
-    var symbols = SUBSTITUTION_SYMBOLS_NO_NAMED;
-    if (namedCaptures !== undefined) {
-      namedCaptures = toObject(namedCaptures);
-      symbols = SUBSTITUTION_SYMBOLS;
-    }
-    return nativeReplace.call(replacement, symbols, function (match, ch) {
-      var capture;
-      switch (ch.charAt(0)) {
-        case '$': return '$';
-        case '&': return matched;
-        case '`': return str.slice(0, position);
-        case "'": return str.slice(tailPos);
-        case '<':
-          capture = namedCaptures[ch.slice(1, -1)];
-          break;
-        default: // \d\d?
-          var n = +ch;
-          if (n === 0) return match;
-          if (n > m) {
-            var f = floor$1(n / 10);
-            if (f === 0) return match;
-            if (f <= m) return captures[f - 1] === undefined ? ch.charAt(1) : captures[f - 1] + ch.charAt(1);
-            return match;
-          }
-          capture = captures[n - 1];
-      }
-      return capture === undefined ? '' : capture;
-    });
-  }
 });
 
 // @@search logic
 fixRegexpWellKnownSymbolLogic('search', 1, function (SEARCH, nativeSearch, maybeCallNative) {
   return [
     // `String.prototype.search` method
-    // https://tc39.github.io/ecma262/#sec-string.prototype.search
+    // https://tc39.es/ecma262/#sec-string.prototype.search
     function search(regexp) {
       var O = requireObjectCoercible(this);
       var searcher = regexp == undefined ? undefined : regexp[SEARCH];
       return searcher !== undefined ? searcher.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
     },
     // `RegExp.prototype[@@search]` method
-    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@search
+    // https://tc39.es/ecma262/#sec-regexp.prototype-@@search
     function (regexp) {
       var res = maybeCallNative(nativeSearch, regexp, this);
       if (res.done) return res.value;
@@ -4678,7 +4766,7 @@ fixRegexpWellKnownSymbolLogic('split', 2, function (SPLIT, nativeSplit, maybeCal
 
   return [
     // `String.prototype.split` method
-    // https://tc39.github.io/ecma262/#sec-string.prototype.split
+    // https://tc39.es/ecma262/#sec-string.prototype.split
     function split(separator, limit) {
       var O = requireObjectCoercible(this);
       var splitter = separator == undefined ? undefined : separator[SPLIT];
@@ -4687,7 +4775,7 @@ fixRegexpWellKnownSymbolLogic('split', 2, function (SPLIT, nativeSplit, maybeCal
         : internalSplit.call(String(O), separator, limit);
     },
     // `RegExp.prototype[@@split]` method
-    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@split
+    // https://tc39.es/ecma262/#sec-regexp.prototype-@@split
     //
     // NOTE: This cannot be properly polyfilled in engines that don't support
     // the 'y' flag.
@@ -4757,7 +4845,7 @@ var MDN_POLYFILL_BUG$1 =  !CORRECT_IS_REGEXP_LOGIC$1 && !!function () {
 }();
 
 // `String.prototype.startsWith` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.startswith
+// https://tc39.es/ecma262/#sec-string.prototype.startswith
 _export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG$1 && !CORRECT_IS_REGEXP_LOGIC$1 }, {
   startsWith: function startsWith(searchString /* , position = 0 */) {
     var that = String(requireObjectCoercible(this));
@@ -4790,13 +4878,13 @@ var createMethod$6 = function (TYPE) {
 
 var stringTrim = {
   // `String.prototype.{ trimLeft, trimStart }` methods
-  // https://tc39.github.io/ecma262/#sec-string.prototype.trimstart
+  // https://tc39.es/ecma262/#sec-string.prototype.trimstart
   start: createMethod$6(1),
   // `String.prototype.{ trimRight, trimEnd }` methods
-  // https://tc39.github.io/ecma262/#sec-string.prototype.trimend
+  // https://tc39.es/ecma262/#sec-string.prototype.trimend
   end: createMethod$6(2),
   // `String.prototype.trim` method
-  // https://tc39.github.io/ecma262/#sec-string.prototype.trim
+  // https://tc39.es/ecma262/#sec-string.prototype.trim
   trim: createMethod$6(3)
 };
 
@@ -4814,7 +4902,7 @@ var $trim = stringTrim.trim;
 
 
 // `String.prototype.trim` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.trim
+// https://tc39.es/ecma262/#sec-string.prototype.trim
 _export({ target: 'String', proto: true, forced: stringTrimForced('trim') }, {
   trim: function trim() {
     return $trim(this);
@@ -4831,7 +4919,8 @@ var trimStart = FORCED$5 ? function trimStart() {
 } : ''.trimStart;
 
 // `String.prototype.{ trimStart, trimLeft }` methods
-// https://github.com/tc39/ecmascript-string-left-right-trim
+// https://tc39.es/ecma262/#sec-string.prototype.trimstart
+// https://tc39.es/ecma262/#String.prototype.trimleft
 _export({ target: 'String', proto: true, forced: FORCED$5 }, {
   trimStart: trimStart,
   trimLeft: trimStart
@@ -4847,7 +4936,8 @@ var trimEnd = FORCED$6 ? function trimEnd() {
 } : ''.trimEnd;
 
 // `String.prototype.{ trimEnd, trimRight }` methods
-// https://github.com/tc39/ecmascript-string-left-right-trim
+// https://tc39.es/ecma262/#sec-string.prototype.trimend
+// https://tc39.es/ecma262/#String.prototype.trimright
 _export({ target: 'String', proto: true, forced: FORCED$6 }, {
   trimEnd: trimEnd,
   trimRight: trimEnd
@@ -4862,7 +4952,7 @@ var setInternalState$4 = internalState.set;
 var getInternalState$4 = internalState.getterFor(STRING_ITERATOR);
 
 // `String.prototype[@@iterator]` method
-// https://tc39.github.io/ecma262/#sec-string.prototype-@@iterator
+// https://tc39.es/ecma262/#sec-string.prototype-@@iterator
 defineIterator(String, 'String', function (iterated) {
   setInternalState$4(this, {
     type: STRING_ITERATOR,
@@ -4870,7 +4960,7 @@ defineIterator(String, 'String', function (iterated) {
     index: 0
   });
 // `%StringIteratorPrototype%.next` method
-// https://tc39.github.io/ecma262/#sec-%stringiteratorprototype%.next
+// https://tc39.es/ecma262/#sec-%stringiteratorprototype%.next
 }, function next() {
   var state = getInternalState$4(this);
   var string = state.string;
@@ -4885,7 +4975,7 @@ defineIterator(String, 'String', function (iterated) {
 var quot = /"/g;
 
 // B.2.3.2.1 CreateHTML(string, tag, attribute, value)
-// https://tc39.github.io/ecma262/#sec-createhtml
+// https://tc39.es/ecma262/#sec-createhtml
 var createHtml = function (string, tag, attribute, value) {
   var S = String(requireObjectCoercible(string));
   var p1 = '<' + tag;
@@ -4903,7 +4993,7 @@ var stringHtmlForced = function (METHOD_NAME) {
 };
 
 // `String.prototype.anchor` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.anchor
+// https://tc39.es/ecma262/#sec-string.prototype.anchor
 _export({ target: 'String', proto: true, forced: stringHtmlForced('anchor') }, {
   anchor: function anchor(name) {
     return createHtml(this, 'a', 'name', name);
@@ -4911,7 +5001,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('anchor') }, {
 });
 
 // `String.prototype.big` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.big
+// https://tc39.es/ecma262/#sec-string.prototype.big
 _export({ target: 'String', proto: true, forced: stringHtmlForced('big') }, {
   big: function big() {
     return createHtml(this, 'big', '', '');
@@ -4919,7 +5009,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('big') }, {
 });
 
 // `String.prototype.blink` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.blink
+// https://tc39.es/ecma262/#sec-string.prototype.blink
 _export({ target: 'String', proto: true, forced: stringHtmlForced('blink') }, {
   blink: function blink() {
     return createHtml(this, 'blink', '', '');
@@ -4927,7 +5017,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('blink') }, {
 });
 
 // `String.prototype.bold` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.bold
+// https://tc39.es/ecma262/#sec-string.prototype.bold
 _export({ target: 'String', proto: true, forced: stringHtmlForced('bold') }, {
   bold: function bold() {
     return createHtml(this, 'b', '', '');
@@ -4935,7 +5025,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('bold') }, {
 });
 
 // `String.prototype.fixed` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.fixed
+// https://tc39.es/ecma262/#sec-string.prototype.fixed
 _export({ target: 'String', proto: true, forced: stringHtmlForced('fixed') }, {
   fixed: function fixed() {
     return createHtml(this, 'tt', '', '');
@@ -4943,7 +5033,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('fixed') }, {
 });
 
 // `String.prototype.fontcolor` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.fontcolor
+// https://tc39.es/ecma262/#sec-string.prototype.fontcolor
 _export({ target: 'String', proto: true, forced: stringHtmlForced('fontcolor') }, {
   fontcolor: function fontcolor(color) {
     return createHtml(this, 'font', 'color', color);
@@ -4951,7 +5041,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('fontcolor') }
 });
 
 // `String.prototype.fontsize` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.fontsize
+// https://tc39.es/ecma262/#sec-string.prototype.fontsize
 _export({ target: 'String', proto: true, forced: stringHtmlForced('fontsize') }, {
   fontsize: function fontsize(size) {
     return createHtml(this, 'font', 'size', size);
@@ -4959,7 +5049,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('fontsize') },
 });
 
 // `String.prototype.italics` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.italics
+// https://tc39.es/ecma262/#sec-string.prototype.italics
 _export({ target: 'String', proto: true, forced: stringHtmlForced('italics') }, {
   italics: function italics() {
     return createHtml(this, 'i', '', '');
@@ -4967,7 +5057,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('italics') }, 
 });
 
 // `String.prototype.link` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.link
+// https://tc39.es/ecma262/#sec-string.prototype.link
 _export({ target: 'String', proto: true, forced: stringHtmlForced('link') }, {
   link: function link(url) {
     return createHtml(this, 'a', 'href', url);
@@ -4975,7 +5065,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('link') }, {
 });
 
 // `String.prototype.small` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.small
+// https://tc39.es/ecma262/#sec-string.prototype.small
 _export({ target: 'String', proto: true, forced: stringHtmlForced('small') }, {
   small: function small() {
     return createHtml(this, 'small', '', '');
@@ -4983,7 +5073,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('small') }, {
 });
 
 // `String.prototype.strike` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.strike
+// https://tc39.es/ecma262/#sec-string.prototype.strike
 _export({ target: 'String', proto: true, forced: stringHtmlForced('strike') }, {
   strike: function strike() {
     return createHtml(this, 'strike', '', '');
@@ -4991,7 +5081,7 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('strike') }, {
 });
 
 // `String.prototype.sub` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.sub
+// https://tc39.es/ecma262/#sec-string.prototype.sub
 _export({ target: 'String', proto: true, forced: stringHtmlForced('sub') }, {
   sub: function sub() {
     return createHtml(this, 'sub', '', '');
@@ -4999,10 +5089,67 @@ _export({ target: 'String', proto: true, forced: stringHtmlForced('sub') }, {
 });
 
 // `String.prototype.sup` method
-// https://tc39.github.io/ecma262/#sec-string.prototype.sup
+// https://tc39.es/ecma262/#sec-string.prototype.sup
 _export({ target: 'String', proto: true, forced: stringHtmlForced('sup') }, {
   sup: function sup() {
     return createHtml(this, 'sup', '', '');
+  }
+});
+
+var REPLACE$1 = wellKnownSymbol('replace');
+var RegExpPrototype$1 = RegExp.prototype;
+var max$4 = Math.max;
+
+var stringIndexOf = function (string, searchValue, fromIndex) {
+  if (fromIndex > string.length) return -1;
+  if (searchValue === '') return fromIndex;
+  return string.indexOf(searchValue, fromIndex);
+};
+
+// `String.prototype.replaceAll` method
+// https://tc39.es/ecma262/#sec-string.prototype.replaceall
+_export({ target: 'String', proto: true }, {
+  replaceAll: function replaceAll(searchValue, replaceValue) {
+    var O = requireObjectCoercible(this);
+    var IS_REG_EXP, flags, replacer, string, searchString, functionalReplace, searchLength, advanceBy, replacement;
+    var position = 0;
+    var endOfLastMatch = 0;
+    var result = '';
+    if (searchValue != null) {
+      IS_REG_EXP = isRegexp(searchValue);
+      if (IS_REG_EXP) {
+        flags = String(requireObjectCoercible('flags' in RegExpPrototype$1
+          ? searchValue.flags
+          : regexpFlags.call(searchValue)
+        ));
+        if (!~flags.indexOf('g')) throw TypeError('`.replaceAll` does not allow non-global regexes');
+      }
+      replacer = searchValue[REPLACE$1];
+      if (replacer !== undefined) {
+        return replacer.call(searchValue, O, replaceValue);
+      }
+    }
+    string = String(O);
+    searchString = String(searchValue);
+    functionalReplace = typeof replaceValue === 'function';
+    if (!functionalReplace) replaceValue = String(replaceValue);
+    searchLength = searchString.length;
+    advanceBy = max$4(1, searchLength);
+    position = stringIndexOf(string, searchString, 0);
+    while (position !== -1) {
+      if (functionalReplace) {
+        replacement = String(replaceValue(searchString, position, string));
+      } else {
+        replacement = getSubstitution(searchString, string, position, [], undefined, replaceValue);
+      }
+      result += string.slice(endOfLastMatch, position) + replacement;
+      endOfLastMatch = position + searchLength;
+      position = stringIndexOf(string, searchString, position + advanceBy);
+    }
+    if (endOfLastMatch < string.length) {
+      result += string.slice(endOfLastMatch);
+    }
+    return result;
   }
 });
 
@@ -5034,7 +5181,7 @@ var setInternalState$5 = internalState.set;
 
 var MATCH$2 = wellKnownSymbol('match');
 var NativeRegExp = global_1.RegExp;
-var RegExpPrototype$1 = NativeRegExp.prototype;
+var RegExpPrototype$2 = NativeRegExp.prototype;
 var re1 = /a/g;
 var re2 = /a/g;
 
@@ -5050,7 +5197,7 @@ var FORCED$7 = descriptors && isForced_1('RegExp', (!CORRECT_NEW || UNSUPPORTED_
 })));
 
 // `RegExp` constructor
-// https://tc39.github.io/ecma262/#sec-regexp-constructor
+// https://tc39.es/ecma262/#sec-regexp-constructor
 if (FORCED$7) {
   var RegExpWrapper = function RegExp(pattern, flags) {
     var thisIsRegExp = this instanceof RegExpWrapper;
@@ -5076,7 +5223,7 @@ if (FORCED$7) {
 
     var result = inheritIfRequired(
       CORRECT_NEW ? new NativeRegExp(pattern, flags) : NativeRegExp(pattern, flags),
-      thisIsRegExp ? this : RegExpPrototype$1,
+      thisIsRegExp ? this : RegExpPrototype$2,
       RegExpWrapper
     );
 
@@ -5094,18 +5241,18 @@ if (FORCED$7) {
   var keys$1 = getOwnPropertyNames(NativeRegExp);
   var index = 0;
   while (keys$1.length > index) proxy(keys$1[index++]);
-  RegExpPrototype$1.constructor = RegExpWrapper;
-  RegExpWrapper.prototype = RegExpPrototype$1;
+  RegExpPrototype$2.constructor = RegExpWrapper;
+  RegExpWrapper.prototype = RegExpPrototype$2;
   redefine(global_1, 'RegExp', RegExpWrapper);
 }
 
-// https://tc39.github.io/ecma262/#sec-get-regexp-@@species
+// https://tc39.es/ecma262/#sec-get-regexp-@@species
 setSpecies('RegExp');
 
 var UNSUPPORTED_Y$3 = regexpStickyHelpers.UNSUPPORTED_Y;
 
 // `RegExp.prototype.flags` getter
-// https://tc39.github.io/ecma262/#sec-get-regexp.prototype.flags
+// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
 if (descriptors && (/./g.flags != 'g' || UNSUPPORTED_Y$3)) {
   objectDefineProperty.f(RegExp.prototype, 'flags', {
     configurable: true,
@@ -5116,14 +5263,15 @@ if (descriptors && (/./g.flags != 'g' || UNSUPPORTED_Y$3)) {
 var UNSUPPORTED_Y$4 = regexpStickyHelpers.UNSUPPORTED_Y;
 var defineProperty$7 = objectDefineProperty.f;
 var getInternalState$5 = internalState.get;
-var RegExpPrototype$2 = RegExp.prototype;
+var RegExpPrototype$3 = RegExp.prototype;
 
 // `RegExp.prototype.sticky` getter
+// https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
 if (descriptors && UNSUPPORTED_Y$4) {
   defineProperty$7(RegExp.prototype, 'sticky', {
     configurable: true,
     get: function () {
-      if (this === RegExpPrototype$2) return undefined;
+      if (this === RegExpPrototype$3) return undefined;
       // We can't use InternalStateModule.getterFor because
       // we don't add metadata for regexps created by a literal.
       if (this instanceof RegExp) {
@@ -5151,6 +5299,8 @@ var DELEGATES_TO_EXEC = function () {
 
 var nativeTest = /./.test;
 
+// `RegExp.prototype.test` method
+// https://tc39.es/ecma262/#sec-regexp.prototype.test
 _export({ target: 'RegExp', proto: true, forced: !DELEGATES_TO_EXEC }, {
   test: function (str) {
     if (typeof this.exec !== 'function') {
@@ -5165,21 +5315,21 @@ _export({ target: 'RegExp', proto: true, forced: !DELEGATES_TO_EXEC }, {
 });
 
 var TO_STRING = 'toString';
-var RegExpPrototype$3 = RegExp.prototype;
-var nativeToString = RegExpPrototype$3[TO_STRING];
+var RegExpPrototype$4 = RegExp.prototype;
+var nativeToString = RegExpPrototype$4[TO_STRING];
 
 var NOT_GENERIC = fails(function () { return nativeToString.call({ source: 'a', flags: 'b' }) != '/a/b'; });
 // FF44- RegExp#toString has a wrong name
 var INCORRECT_NAME = nativeToString.name != TO_STRING;
 
 // `RegExp.prototype.toString` method
-// https://tc39.github.io/ecma262/#sec-regexp.prototype.tostring
+// https://tc39.es/ecma262/#sec-regexp.prototype.tostring
 if (NOT_GENERIC || INCORRECT_NAME) {
   redefine(RegExp.prototype, TO_STRING, function toString() {
     var R = anObject(this);
     var p = String(R.source);
     var rf = R.flags;
-    var f = String(rf === undefined && R instanceof RegExp && !('flags' in RegExpPrototype$3) ? regexpFlags.call(R) : rf);
+    var f = String(rf === undefined && R instanceof RegExp && !('flags' in RegExpPrototype$4) ? regexpFlags.call(R) : rf);
     return '/' + p + '/' + f;
   }, { unsafe: true });
 }
@@ -5192,14 +5342,14 @@ var hex = /^[+-]?0[Xx]/;
 var FORCED$8 = $parseInt(whitespaces + '08') !== 8 || $parseInt(whitespaces + '0x16') !== 22;
 
 // `parseInt` method
-// https://tc39.github.io/ecma262/#sec-parseint-string-radix
+// https://tc39.es/ecma262/#sec-parseint-string-radix
 var numberParseInt = FORCED$8 ? function parseInt(string, radix) {
   var S = trim(String(string));
   return $parseInt(S, (radix >>> 0) || (hex.test(S) ? 16 : 10));
 } : $parseInt;
 
 // `parseInt` method
-// https://tc39.github.io/ecma262/#sec-parseint-string-radix
+// https://tc39.es/ecma262/#sec-parseint-string-radix
 _export({ global: true, forced: parseInt != numberParseInt }, {
   parseInt: numberParseInt
 });
@@ -5211,7 +5361,7 @@ var $parseFloat = global_1.parseFloat;
 var FORCED$9 = 1 / $parseFloat(whitespaces + '-0') !== -Infinity;
 
 // `parseFloat` method
-// https://tc39.github.io/ecma262/#sec-parsefloat-string
+// https://tc39.es/ecma262/#sec-parsefloat-string
 var numberParseFloat = FORCED$9 ? function parseFloat(string) {
   var trimmedString = trim$1(String(string));
   var result = $parseFloat(trimmedString);
@@ -5219,7 +5369,7 @@ var numberParseFloat = FORCED$9 ? function parseFloat(string) {
 } : $parseFloat;
 
 // `parseFloat` method
-// https://tc39.github.io/ecma262/#sec-parsefloat-string
+// https://tc39.es/ecma262/#sec-parsefloat-string
 _export({ global: true, forced: parseFloat != numberParseFloat }, {
   parseFloat: numberParseFloat
 });
@@ -5237,7 +5387,7 @@ var NumberPrototype = NativeNumber.prototype;
 var BROKEN_CLASSOF = classofRaw(objectCreate(NumberPrototype)) == NUMBER;
 
 // `ToNumber` abstract operation
-// https://tc39.github.io/ecma262/#sec-tonumber
+// https://tc39.es/ecma262/#sec-tonumber
 var toNumber = function (argument) {
   var it = toPrimitive(argument, false);
   var first, third, radix, maxCode, digits, length, index, code;
@@ -5266,7 +5416,7 @@ var toNumber = function (argument) {
 };
 
 // `Number` constructor
-// https://tc39.github.io/ecma262/#sec-number-constructor
+// https://tc39.es/ecma262/#sec-number-constructor
 if (isForced_1(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumber('+0x1'))) {
   var NumberWrapper = function Number(value) {
     var it = arguments.length < 1 ? 0 : value;
@@ -5281,7 +5431,9 @@ if (isForced_1(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNu
     'MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY,' +
     // ES2015 (in case, if modules with ES2015 Number statics required before):
     'EPSILON,isFinite,isInteger,isNaN,isSafeInteger,MAX_SAFE_INTEGER,' +
-    'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger'
+    'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger,' +
+    // ESNext
+    'fromString,range'
   ).split(','), j = 0, key; keys$2.length > j; j++) {
     if (has(NativeNumber, key = keys$2[j]) && !has(NumberWrapper, key)) {
       defineProperty$8(NumberWrapper, key, getOwnPropertyDescriptor$7(NativeNumber, key));
@@ -5293,7 +5445,7 @@ if (isForced_1(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNu
 }
 
 // `Number.EPSILON` constant
-// https://tc39.github.io/ecma262/#sec-number.epsilon
+// https://tc39.es/ecma262/#sec-number.epsilon
 _export({ target: 'Number', stat: true }, {
   EPSILON: Math.pow(2, -52)
 });
@@ -5301,31 +5453,31 @@ _export({ target: 'Number', stat: true }, {
 var globalIsFinite = global_1.isFinite;
 
 // `Number.isFinite` method
-// https://tc39.github.io/ecma262/#sec-number.isfinite
+// https://tc39.es/ecma262/#sec-number.isfinite
 var numberIsFinite = Number.isFinite || function isFinite(it) {
   return typeof it == 'number' && globalIsFinite(it);
 };
 
 // `Number.isFinite` method
-// https://tc39.github.io/ecma262/#sec-number.isfinite
+// https://tc39.es/ecma262/#sec-number.isfinite
 _export({ target: 'Number', stat: true }, { isFinite: numberIsFinite });
 
 var floor$2 = Math.floor;
 
 // `Number.isInteger` method implementation
-// https://tc39.github.io/ecma262/#sec-number.isinteger
+// https://tc39.es/ecma262/#sec-number.isinteger
 var isInteger = function isInteger(it) {
   return !isObject(it) && isFinite(it) && floor$2(it) === it;
 };
 
 // `Number.isInteger` method
-// https://tc39.github.io/ecma262/#sec-number.isinteger
+// https://tc39.es/ecma262/#sec-number.isinteger
 _export({ target: 'Number', stat: true }, {
   isInteger: isInteger
 });
 
 // `Number.isNaN` method
-// https://tc39.github.io/ecma262/#sec-number.isnan
+// https://tc39.es/ecma262/#sec-number.isnan
 _export({ target: 'Number', stat: true }, {
   isNaN: function isNaN(number) {
     // eslint-disable-next-line no-self-compare
@@ -5336,7 +5488,7 @@ _export({ target: 'Number', stat: true }, {
 var abs = Math.abs;
 
 // `Number.isSafeInteger` method
-// https://tc39.github.io/ecma262/#sec-number.issafeinteger
+// https://tc39.es/ecma262/#sec-number.issafeinteger
 _export({ target: 'Number', stat: true }, {
   isSafeInteger: function isSafeInteger(number) {
     return isInteger(number) && abs(number) <= 0x1FFFFFFFFFFFFF;
@@ -5344,31 +5496,31 @@ _export({ target: 'Number', stat: true }, {
 });
 
 // `Number.MAX_SAFE_INTEGER` constant
-// https://tc39.github.io/ecma262/#sec-number.max_safe_integer
+// https://tc39.es/ecma262/#sec-number.max_safe_integer
 _export({ target: 'Number', stat: true }, {
   MAX_SAFE_INTEGER: 0x1FFFFFFFFFFFFF
 });
 
 // `Number.MIN_SAFE_INTEGER` constant
-// https://tc39.github.io/ecma262/#sec-number.min_safe_integer
+// https://tc39.es/ecma262/#sec-number.min_safe_integer
 _export({ target: 'Number', stat: true }, {
   MIN_SAFE_INTEGER: -0x1FFFFFFFFFFFFF
 });
 
 // `Number.parseFloat` method
-// https://tc39.github.io/ecma262/#sec-number.parseFloat
+// https://tc39.es/ecma262/#sec-number.parseFloat
 _export({ target: 'Number', stat: true, forced: Number.parseFloat != numberParseFloat }, {
   parseFloat: numberParseFloat
 });
 
 // `Number.parseInt` method
-// https://tc39.github.io/ecma262/#sec-number.parseint
+// https://tc39.es/ecma262/#sec-number.parseint
 _export({ target: 'Number', stat: true, forced: Number.parseInt != numberParseInt }, {
   parseInt: numberParseInt
 });
 
 // `thisNumberValue` abstract operation
-// https://tc39.github.io/ecma262/#sec-thisnumbervalue
+// https://tc39.es/ecma262/#sec-thisnumbervalue
 var thisNumberValue = function (value) {
   if (typeof value != 'number' && classofRaw(value) != 'Number') {
     throw TypeError('Incorrect invocation');
@@ -5407,7 +5559,7 @@ var FORCED$a = nativeToFixed && (
 });
 
 // `Number.prototype.toFixed` method
-// https://tc39.github.io/ecma262/#sec-number.prototype.tofixed
+// https://tc39.es/ecma262/#sec-number.prototype.tofixed
 _export({ target: 'Number', proto: true, forced: FORCED$a }, {
   // eslint-disable-next-line max-statements
   toFixed: function toFixed(fractionDigits) {
@@ -5507,7 +5659,7 @@ var FORCED$b = fails(function () {
 });
 
 // `Number.prototype.toPrecision` method
-// https://tc39.github.io/ecma262/#sec-number.prototype.toprecision
+// https://tc39.es/ecma262/#sec-number.prototype.toprecision
 _export({ target: 'Number', proto: true, forced: FORCED$b }, {
   toPrecision: function toPrecision(precision) {
     return precision === undefined
@@ -5519,7 +5671,7 @@ _export({ target: 'Number', proto: true, forced: FORCED$b }, {
 var log$1 = Math.log;
 
 // `Math.log1p` method implementation
-// https://tc39.github.io/ecma262/#sec-math.log1p
+// https://tc39.es/ecma262/#sec-math.log1p
 var mathLog1p = Math.log1p || function log1p(x) {
   return (x = +x) > -1e-8 && x < 1e-8 ? x - x * x / 2 : log$1(1 + x);
 };
@@ -5536,7 +5688,7 @@ var FORCED$c = !nativeAcosh
   || nativeAcosh(Infinity) != Infinity;
 
 // `Math.acosh` method
-// https://tc39.github.io/ecma262/#sec-math.acosh
+// https://tc39.es/ecma262/#sec-math.acosh
 _export({ target: 'Math', stat: true, forced: FORCED$c }, {
   acosh: function acosh(x) {
     return (x = +x) < 1 ? NaN : x > 94906265.62425156
@@ -5554,7 +5706,7 @@ function asinh(x) {
 }
 
 // `Math.asinh` method
-// https://tc39.github.io/ecma262/#sec-math.asinh
+// https://tc39.es/ecma262/#sec-math.asinh
 // Tor Browser bug: Math.asinh(0) -> -0
 _export({ target: 'Math', stat: true, forced: !(nativeAsinh && 1 / nativeAsinh(0) > 0) }, {
   asinh: asinh
@@ -5564,7 +5716,7 @@ var nativeAtanh = Math.atanh;
 var log$4 = Math.log;
 
 // `Math.atanh` method
-// https://tc39.github.io/ecma262/#sec-math.atanh
+// https://tc39.es/ecma262/#sec-math.atanh
 // Tor Browser bug: Math.atanh(-0) -> 0
 _export({ target: 'Math', stat: true, forced: !(nativeAtanh && 1 / nativeAtanh(-0) < 0) }, {
   atanh: function atanh(x) {
@@ -5573,7 +5725,7 @@ _export({ target: 'Math', stat: true, forced: !(nativeAtanh && 1 / nativeAtanh(-
 });
 
 // `Math.sign` method implementation
-// https://tc39.github.io/ecma262/#sec-math.sign
+// https://tc39.es/ecma262/#sec-math.sign
 var mathSign = Math.sign || function sign(x) {
   // eslint-disable-next-line no-self-compare
   return (x = +x) == 0 || x != x ? x : x < 0 ? -1 : 1;
@@ -5583,7 +5735,7 @@ var abs$1 = Math.abs;
 var pow$1 = Math.pow;
 
 // `Math.cbrt` method
-// https://tc39.github.io/ecma262/#sec-math.cbrt
+// https://tc39.es/ecma262/#sec-math.cbrt
 _export({ target: 'Math', stat: true }, {
   cbrt: function cbrt(x) {
     return mathSign(x = +x) * pow$1(abs$1(x), 1 / 3);
@@ -5595,7 +5747,7 @@ var log$5 = Math.log;
 var LOG2E = Math.LOG2E;
 
 // `Math.clz32` method
-// https://tc39.github.io/ecma262/#sec-math.clz32
+// https://tc39.es/ecma262/#sec-math.clz32
 _export({ target: 'Math', stat: true }, {
   clz32: function clz32(x) {
     return (x >>>= 0) ? 31 - floor$4(log$5(x + 0.5) * LOG2E) : 32;
@@ -5606,7 +5758,7 @@ var nativeExpm1 = Math.expm1;
 var exp = Math.exp;
 
 // `Math.expm1` method implementation
-// https://tc39.github.io/ecma262/#sec-math.expm1
+// https://tc39.es/ecma262/#sec-math.expm1
 var mathExpm1 = (!nativeExpm1
   // Old FF bug
   || nativeExpm1(10) > 22025.465794806719 || nativeExpm1(10) < 22025.4657948067165168
@@ -5621,7 +5773,7 @@ var abs$2 = Math.abs;
 var E = Math.E;
 
 // `Math.cosh` method
-// https://tc39.github.io/ecma262/#sec-math.cosh
+// https://tc39.es/ecma262/#sec-math.cosh
 _export({ target: 'Math', stat: true, forced: !nativeCosh || nativeCosh(710) === Infinity }, {
   cosh: function cosh(x) {
     var t = mathExpm1(abs$2(x) - 1) + 1;
@@ -5630,7 +5782,7 @@ _export({ target: 'Math', stat: true, forced: !nativeCosh || nativeCosh(710) ===
 });
 
 // `Math.expm1` method
-// https://tc39.github.io/ecma262/#sec-math.expm1
+// https://tc39.es/ecma262/#sec-math.expm1
 _export({ target: 'Math', stat: true, forced: mathExpm1 != Math.expm1 }, { expm1: mathExpm1 });
 
 var abs$3 = Math.abs;
@@ -5645,7 +5797,7 @@ var roundTiesToEven = function (n) {
 };
 
 // `Math.fround` method implementation
-// https://tc39.github.io/ecma262/#sec-math.fround
+// https://tc39.es/ecma262/#sec-math.fround
 var mathFround = Math.fround || function fround(x) {
   var $abs = abs$3(x);
   var $sign = mathSign(x);
@@ -5659,7 +5811,7 @@ var mathFround = Math.fround || function fround(x) {
 };
 
 // `Math.fround` method
-// https://tc39.github.io/ecma262/#sec-math.fround
+// https://tc39.es/ecma262/#sec-math.fround
 _export({ target: 'Math', stat: true }, { fround: mathFround });
 
 var $hypot = Math.hypot;
@@ -5671,7 +5823,7 @@ var sqrt$2 = Math.sqrt;
 var BUGGY = !!$hypot && $hypot(Infinity, NaN) !== Infinity;
 
 // `Math.hypot` method
-// https://tc39.github.io/ecma262/#sec-math.hypot
+// https://tc39.es/ecma262/#sec-math.hypot
 _export({ target: 'Math', stat: true, forced: BUGGY }, {
   hypot: function hypot(value1, value2) { // eslint-disable-line no-unused-vars
     var sum = 0;
@@ -5701,7 +5853,7 @@ var FORCED$d = fails(function () {
 });
 
 // `Math.imul` method
-// https://tc39.github.io/ecma262/#sec-math.imul
+// https://tc39.es/ecma262/#sec-math.imul
 // some WebKit versions fails with big numbers, some has wrong arity
 _export({ target: 'Math', stat: true, forced: FORCED$d }, {
   imul: function imul(x, y) {
@@ -5718,7 +5870,7 @@ var log$6 = Math.log;
 var LOG10E = Math.LOG10E;
 
 // `Math.log10` method
-// https://tc39.github.io/ecma262/#sec-math.log10
+// https://tc39.es/ecma262/#sec-math.log10
 _export({ target: 'Math', stat: true }, {
   log10: function log10(x) {
     return log$6(x) * LOG10E;
@@ -5726,14 +5878,14 @@ _export({ target: 'Math', stat: true }, {
 });
 
 // `Math.log1p` method
-// https://tc39.github.io/ecma262/#sec-math.log1p
+// https://tc39.es/ecma262/#sec-math.log1p
 _export({ target: 'Math', stat: true }, { log1p: mathLog1p });
 
 var log$7 = Math.log;
 var LN2$1 = Math.LN2;
 
 // `Math.log2` method
-// https://tc39.github.io/ecma262/#sec-math.log2
+// https://tc39.es/ecma262/#sec-math.log2
 _export({ target: 'Math', stat: true }, {
   log2: function log2(x) {
     return log$7(x) / LN2$1;
@@ -5741,7 +5893,7 @@ _export({ target: 'Math', stat: true }, {
 });
 
 // `Math.sign` method
-// https://tc39.github.io/ecma262/#sec-math.sign
+// https://tc39.es/ecma262/#sec-math.sign
 _export({ target: 'Math', stat: true }, {
   sign: mathSign
 });
@@ -5755,7 +5907,7 @@ var FORCED$e = fails(function () {
 });
 
 // `Math.sinh` method
-// https://tc39.github.io/ecma262/#sec-math.sinh
+// https://tc39.es/ecma262/#sec-math.sinh
 // V8 near Chromium 38 has a problem with very small numbers
 _export({ target: 'Math', stat: true, forced: FORCED$e }, {
   sinh: function sinh(x) {
@@ -5766,7 +5918,7 @@ _export({ target: 'Math', stat: true, forced: FORCED$e }, {
 var exp$2 = Math.exp;
 
 // `Math.tanh` method
-// https://tc39.github.io/ecma262/#sec-math.tanh
+// https://tc39.es/ecma262/#sec-math.tanh
 _export({ target: 'Math', stat: true }, {
   tanh: function tanh(x) {
     var a = mathExpm1(x = +x);
@@ -5776,14 +5928,14 @@ _export({ target: 'Math', stat: true }, {
 });
 
 // Math[@@toStringTag] property
-// https://tc39.github.io/ecma262/#sec-math-@@tostringtag
+// https://tc39.es/ecma262/#sec-math-@@tostringtag
 setToStringTag(Math, 'Math', true);
 
 var ceil$2 = Math.ceil;
 var floor$5 = Math.floor;
 
 // `Math.trunc` method
-// https://tc39.github.io/ecma262/#sec-math.trunc
+// https://tc39.es/ecma262/#sec-math.trunc
 _export({ target: 'Math', stat: true }, {
   trunc: function trunc(it) {
     return (it > 0 ? floor$5 : ceil$2)(it);
@@ -5791,7 +5943,7 @@ _export({ target: 'Math', stat: true }, {
 });
 
 // `Date.now` method
-// https://tc39.github.io/ecma262/#sec-date.now
+// https://tc39.es/ecma262/#sec-date.now
 _export({ target: 'Date', stat: true }, {
   now: function now() {
     return new Date().getTime();
@@ -5804,7 +5956,7 @@ var FORCED$f = fails(function () {
 });
 
 // `Date.prototype.toJSON` method
-// https://tc39.github.io/ecma262/#sec-date.prototype.tojson
+// https://tc39.es/ecma262/#sec-date.prototype.tojson
 _export({ target: 'Date', proto: true, forced: FORCED$f }, {
   // eslint-disable-next-line no-unused-vars
   toJSON: function toJSON(key) {
@@ -5822,7 +5974,7 @@ var getTime = DatePrototype.getTime;
 var nativeDateToISOString = DatePrototype.toISOString;
 
 // `Date.prototype.toISOString` method implementation
-// https://tc39.github.io/ecma262/#sec-date.prototype.toisostring
+// https://tc39.es/ecma262/#sec-date.prototype.toisostring
 // PhantomJS / old WebKit fails here:
 var dateToIsoString = (fails(function () {
   return nativeDateToISOString.call(new Date(-5e13 - 1)) != '0385-07-25T07:06:39.999Z';
@@ -5845,7 +5997,7 @@ var dateToIsoString = (fails(function () {
 } : nativeDateToISOString;
 
 // `Date.prototype.toISOString` method
-// https://tc39.github.io/ecma262/#sec-date.prototype.toisostring
+// https://tc39.es/ecma262/#sec-date.prototype.toisostring
 // PhantomJS / old WebKit has a broken implementations
 _export({ target: 'Date', proto: true, forced: Date.prototype.toISOString !== dateToIsoString }, {
   toISOString: dateToIsoString
@@ -5858,7 +6010,7 @@ var nativeDateToString = DatePrototype$1[TO_STRING$1];
 var getTime$1 = DatePrototype$1.getTime;
 
 // `Date.prototype.toString` method
-// https://tc39.github.io/ecma262/#sec-date.prototype.tostring
+// https://tc39.es/ecma262/#sec-date.prototype.tostring
 if (new Date(NaN) + '' != INVALID_DATE) {
   redefine(DatePrototype$1, TO_STRING$1, function toString() {
     var value = getTime$1.call(this);
@@ -5877,7 +6029,7 @@ var TO_PRIMITIVE$1 = wellKnownSymbol('toPrimitive');
 var DatePrototype$2 = Date.prototype;
 
 // `Date.prototype[@@toPrimitive]` method
-// https://tc39.github.io/ecma262/#sec-date.prototype-@@toprimitive
+// https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
 if (!(TO_PRIMITIVE$1 in DatePrototype$2)) {
   createNonEnumerableProperty(DatePrototype$2, TO_PRIMITIVE$1, dateToPrimitive);
 }
@@ -5901,6 +6053,8 @@ var FORCED$g = fails(function () {
 });
 
 if ($stringify$1) {
+  // `JSON.stringify` method
+  // https://tc39.es/ecma262/#sec-json.stringify
   // https://github.com/tc39/proposal-well-formed-stringify
   _export({ target: 'JSON', stat: true, forced: FORCED$g }, {
     // eslint-disable-next-line no-unused-vars
@@ -5912,11 +6066,11 @@ if ($stringify$1) {
 }
 
 // JSON[@@toStringTag] property
-// https://tc39.github.io/ecma262/#sec-json-@@tostringtag
+// https://tc39.es/ecma262/#sec-json-@@tostringtag
 setToStringTag(global_1.JSON, 'JSON', true);
 
 // `Promise.allSettled` method
-// https://github.com/tc39/proposal-promise-allSettled
+// https://tc39.es/ecma262/#sec-promise.allsettled
 _export({ target: 'Promise', stat: true }, {
   allSettled: function allSettled(iterable) {
     var C = this;
@@ -5928,7 +6082,7 @@ _export({ target: 'Promise', stat: true }, {
       var values = [];
       var counter = 0;
       var remaining = 1;
-      iterate_1(iterable, function (promise) {
+      iterate(iterable, function (promise) {
         var index = counter++;
         var alreadyCalled = false;
         values.push(undefined);
@@ -5938,14 +6092,53 @@ _export({ target: 'Promise', stat: true }, {
           alreadyCalled = true;
           values[index] = { status: 'fulfilled', value: value };
           --remaining || resolve(values);
-        }, function (e) {
+        }, function (error) {
           if (alreadyCalled) return;
           alreadyCalled = true;
-          values[index] = { status: 'rejected', reason: e };
+          values[index] = { status: 'rejected', reason: error };
           --remaining || resolve(values);
         });
       });
       --remaining || resolve(values);
+    });
+    if (result.error) reject(result.value);
+    return capability.promise;
+  }
+});
+
+var PROMISE_ANY_ERROR = 'No one promise resolved';
+
+// `Promise.any` method
+// https://tc39.es/ecma262/#sec-promise.any
+_export({ target: 'Promise', stat: true }, {
+  any: function any(iterable) {
+    var C = this;
+    var capability = newPromiseCapability.f(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var promiseResolve = aFunction$1(C.resolve);
+      var errors = [];
+      var counter = 0;
+      var remaining = 1;
+      var alreadyResolved = false;
+      iterate(iterable, function (promise) {
+        var index = counter++;
+        var alreadyRejected = false;
+        errors.push(undefined);
+        remaining++;
+        promiseResolve.call(C, promise).then(function (value) {
+          if (alreadyRejected || alreadyResolved) return;
+          alreadyResolved = true;
+          resolve(value);
+        }, function (error) {
+          if (alreadyRejected || alreadyResolved) return;
+          alreadyRejected = true;
+          errors[index] = error;
+          --remaining || reject(new (getBuiltIn('AggregateError'))(errors, PROMISE_ANY_ERROR));
+        });
+      });
+      --remaining || reject(new (getBuiltIn('AggregateError'))(errors, PROMISE_ANY_ERROR));
     });
     if (result.error) reject(result.value);
     return capability.promise;
@@ -6009,7 +6202,7 @@ var collection = function (CONSTRUCTOR_NAME, wrapper, common) {
       Constructor = wrapper(function (dummy, iterable) {
         anInstance(dummy, Constructor, CONSTRUCTOR_NAME);
         var that = inheritIfRequired(new NativeConstructor(), dummy, Constructor);
-        if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
+        if (iterable != undefined) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
         return that;
       });
       Constructor.prototype = NativePrototype;
@@ -6065,7 +6258,7 @@ var collectionStrong = {
         size: 0
       });
       if (!descriptors) that.size = 0;
-      if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
+      if (iterable != undefined) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
     });
 
     var getInternalState = internalStateGetterFor(CONSTRUCTOR_NAME);
@@ -6225,13 +6418,13 @@ var collectionStrong = {
 };
 
 // `Map` constructor
-// https://tc39.github.io/ecma262/#sec-map-objects
+// https://tc39.es/ecma262/#sec-map-objects
 var es_map = collection('Map', function (init) {
   return function Map() { return init(this, arguments.length ? arguments[0] : undefined); };
 }, collectionStrong);
 
 // `Set` constructor
-// https://tc39.github.io/ecma262/#sec-set-objects
+// https://tc39.es/ecma262/#sec-set-objects
 var es_set = collection('Set', function (init) {
   return function Set() { return init(this, arguments.length ? arguments[0] : undefined); };
 }, collectionStrong);
@@ -6297,7 +6490,7 @@ var collectionWeak = {
         id: id$1++,
         frozen: undefined
       });
-      if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
+      if (iterable != undefined) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
     });
 
     var getInternalState = internalStateGetterFor$1(CONSTRUCTOR_NAME);
@@ -6377,7 +6570,7 @@ var wrapper = function (init) {
 };
 
 // `WeakMap` constructor
-// https://tc39.github.io/ecma262/#sec-weakmap-constructor
+// https://tc39.es/ecma262/#sec-weakmap-constructor
 var $WeakMap = module.exports = collection('WeakMap', wrapper, collectionWeak);
 
 // IE11 WeakMap frozen keys fix
@@ -6426,7 +6619,7 @@ if (nativeWeakMap && IS_IE11) {
 });
 
 // `WeakSet` constructor
-// https://tc39.github.io/ecma262/#sec-weakset-constructor
+// https://tc39.es/ecma262/#sec-weakset-constructor
 collection('WeakSet', function (init) {
   return function WeakSet() { return init(this, arguments.length ? arguments[0] : undefined); };
 }, collectionWeak);
@@ -6434,7 +6627,7 @@ collection('WeakSet', function (init) {
 var arrayBufferNative = typeof ArrayBuffer !== 'undefined' && typeof DataView !== 'undefined';
 
 // `ToIndex` abstract operation
-// https://tc39.github.io/ecma262/#sec-toindex
+// https://tc39.es/ecma262/#sec-toindex
 var toIndex = function (it) {
   if (it === undefined) return 0;
   var number = toInteger(it);
@@ -6750,7 +6943,7 @@ var ArrayBuffer$1 = arrayBuffer[ARRAY_BUFFER$1];
 var NativeArrayBuffer$1 = global_1[ARRAY_BUFFER$1];
 
 // `ArrayBuffer` constructor
-// https://tc39.github.io/ecma262/#sec-arraybuffer-constructor
+// https://tc39.es/ecma262/#sec-arraybuffer-constructor
 _export({ global: true, forced: NativeArrayBuffer$1 !== ArrayBuffer$1 }, {
   ArrayBuffer: ArrayBuffer$1
 });
@@ -6791,13 +6984,24 @@ var TypedArrayConstructorsList = {
   Float64Array: 8
 };
 
+var BigIntArrayConstructorsList = {
+  BigInt64Array: 8,
+  BigUint64Array: 8
+};
+
 var isView = function isView(it) {
+  if (!isObject(it)) return false;
   var klass = classof(it);
-  return klass === 'DataView' || has(TypedArrayConstructorsList, klass);
+  return klass === 'DataView'
+    || has(TypedArrayConstructorsList, klass)
+    || has(BigIntArrayConstructorsList, klass);
 };
 
 var isTypedArray = function (it) {
-  return isObject(it) && has(TypedArrayConstructorsList, classof(it));
+  if (!isObject(it)) return false;
+  var klass = classof(it);
+  return has(TypedArrayConstructorsList, klass)
+    || has(BigIntArrayConstructorsList, klass);
 };
 
 var aTypedArray = function (it) {
@@ -6908,7 +7112,7 @@ var arrayBufferViewCore = {
 var NATIVE_ARRAY_BUFFER_VIEWS$1 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER_VIEWS;
 
 // `ArrayBuffer.isView` method
-// https://tc39.github.io/ecma262/#sec-arraybuffer.isview
+// https://tc39.es/ecma262/#sec-arraybuffer.isview
 _export({ target: 'ArrayBuffer', stat: true, forced: !NATIVE_ARRAY_BUFFER_VIEWS$1 }, {
   isView: arrayBufferViewCore.isView
 });
@@ -6922,7 +7126,7 @@ var INCORRECT_SLICE = fails(function () {
 });
 
 // `ArrayBuffer.prototype.slice` method
-// https://tc39.github.io/ecma262/#sec-arraybuffer.prototype.slice
+// https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice
 _export({ target: 'ArrayBuffer', proto: true, unsafe: true, forced: INCORRECT_SLICE }, {
   slice: function slice(start, end) {
     if (nativeArrayBufferSlice !== undefined && end === undefined) {
@@ -6942,7 +7146,7 @@ _export({ target: 'ArrayBuffer', proto: true, unsafe: true, forced: INCORRECT_SL
 });
 
 // `DataView` constructor
-// https://tc39.github.io/ecma262/#sec-dataview-constructor
+// https://tc39.es/ecma262/#sec-dataview-constructor
 _export({ global: true, forced: !arrayBufferNative }, {
   DataView: arrayBuffer.DataView
 });
@@ -7243,7 +7447,7 @@ if (descriptors) {
 });
 
 // `Int8Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Int8', function (init) {
   return function Int8Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7251,7 +7455,7 @@ typedArrayConstructor('Int8', function (init) {
 });
 
 // `Uint8Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Uint8', function (init) {
   return function Uint8Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7259,7 +7463,7 @@ typedArrayConstructor('Uint8', function (init) {
 });
 
 // `Uint8ClampedArray` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Uint8', function (init) {
   return function Uint8ClampedArray(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7267,7 +7471,7 @@ typedArrayConstructor('Uint8', function (init) {
 }, true);
 
 // `Int16Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Int16', function (init) {
   return function Int16Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7275,7 +7479,7 @@ typedArrayConstructor('Int16', function (init) {
 });
 
 // `Uint16Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Uint16', function (init) {
   return function Uint16Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7283,7 +7487,7 @@ typedArrayConstructor('Uint16', function (init) {
 });
 
 // `Int32Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Int32', function (init) {
   return function Int32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7291,7 +7495,7 @@ typedArrayConstructor('Int32', function (init) {
 });
 
 // `Uint32Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Uint32', function (init) {
   return function Uint32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7299,7 +7503,7 @@ typedArrayConstructor('Uint32', function (init) {
 });
 
 // `Float32Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Float32', function (init) {
   return function Float32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7307,7 +7511,7 @@ typedArrayConstructor('Float32', function (init) {
 });
 
 // `Float64Array` constructor
-// https://tc39.github.io/ecma262/#sec-typedarray-objects
+// https://tc39.es/ecma262/#sec-typedarray-objects
 typedArrayConstructor('Float64', function (init) {
   return function Float64Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
@@ -7318,14 +7522,14 @@ var exportTypedArrayStaticMethod$1 = arrayBufferViewCore.exportTypedArrayStaticM
 
 
 // `%TypedArray%.from` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.from
+// https://tc39.es/ecma262/#sec-%typedarray%.from
 exportTypedArrayStaticMethod$1('from', typedArrayFrom, typedArrayConstructorsRequireWrappers);
 
 var aTypedArrayConstructor$2 = arrayBufferViewCore.aTypedArrayConstructor;
 var exportTypedArrayStaticMethod$2 = arrayBufferViewCore.exportTypedArrayStaticMethod;
 
 // `%TypedArray%.of` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.of
+// https://tc39.es/ecma262/#sec-%typedarray%.of
 exportTypedArrayStaticMethod$2('of', function of(/* ...items */) {
   var index = 0;
   var length = arguments.length;
@@ -7338,7 +7542,7 @@ var aTypedArray$1 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$1 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.copyWithin` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.copywithin
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin
 exportTypedArrayMethod$1('copyWithin', function copyWithin(target, start /* , end */) {
   return arrayCopyWithin.call(aTypedArray$1(this), target, start, arguments.length > 2 ? arguments[2] : undefined);
 });
@@ -7349,7 +7553,7 @@ var aTypedArray$2 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$2 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.every` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.every
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.every
 exportTypedArrayMethod$2('every', function every(callbackfn /* , thisArg */) {
   return $every$1(aTypedArray$2(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7358,7 +7562,7 @@ var aTypedArray$3 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$3 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.fill` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.fill
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.fill
 // eslint-disable-next-line no-unused-vars
 exportTypedArrayMethod$3('fill', function fill(value /* , start, end */) {
   return arrayFill.apply(aTypedArray$3(this), arguments);
@@ -7372,7 +7576,7 @@ var aTypedArrayConstructor$3 = arrayBufferViewCore.aTypedArrayConstructor;
 var exportTypedArrayMethod$4 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.filter` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.filter
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.filter
 exportTypedArrayMethod$4('filter', function filter(callbackfn /* , thisArg */) {
   var list = $filter$1(aTypedArray$4(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   var C = speciesConstructor(this, this.constructor);
@@ -7389,7 +7593,7 @@ var aTypedArray$5 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$5 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.find` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.find
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.find
 exportTypedArrayMethod$5('find', function find(predicate /* , thisArg */) {
   return $find$1(aTypedArray$5(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7400,7 +7604,7 @@ var aTypedArray$6 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$6 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.findIndex` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.findindex
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.findindex
 exportTypedArrayMethod$6('findIndex', function findIndex(predicate /* , thisArg */) {
   return $findIndex$1(aTypedArray$6(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7411,7 +7615,7 @@ var aTypedArray$7 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$7 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.forEach` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.foreach
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.foreach
 exportTypedArrayMethod$7('forEach', function forEach(callbackfn /* , thisArg */) {
   $forEach$2(aTypedArray$7(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7422,7 +7626,7 @@ var aTypedArray$8 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$8 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.includes` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.includes
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.includes
 exportTypedArrayMethod$8('includes', function includes(searchElement /* , fromIndex */) {
   return $includes$1(aTypedArray$8(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7433,7 +7637,7 @@ var aTypedArray$9 = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$9 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.indexOf` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.indexof
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.indexof
 exportTypedArrayMethod$9('indexOf', function indexOf(searchElement /* , fromIndex */) {
   return $indexOf$1(aTypedArray$9(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7455,20 +7659,20 @@ var typedArrayValues = function values() {
 };
 
 // `%TypedArray%.prototype.entries` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.entries
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries
 exportTypedArrayMethod$a('entries', function entries() {
   return arrayEntries.call(aTypedArray$a(this));
 });
 // `%TypedArray%.prototype.keys` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.keys
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys
 exportTypedArrayMethod$a('keys', function keys() {
   return arrayKeys.call(aTypedArray$a(this));
 });
 // `%TypedArray%.prototype.values` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.values
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.values
 exportTypedArrayMethod$a('values', typedArrayValues, !CORRECT_ITER_NAME);
 // `%TypedArray%.prototype[@@iterator]` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype-@@iterator
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype-@@iterator
 exportTypedArrayMethod$a(ITERATOR$5, typedArrayValues, !CORRECT_ITER_NAME);
 
 var aTypedArray$b = arrayBufferViewCore.aTypedArray;
@@ -7476,7 +7680,7 @@ var exportTypedArrayMethod$b = arrayBufferViewCore.exportTypedArrayMethod;
 var $join = [].join;
 
 // `%TypedArray%.prototype.join` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.join
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.join
 // eslint-disable-next-line no-unused-vars
 exportTypedArrayMethod$b('join', function join(separator) {
   return $join.apply(aTypedArray$b(this), arguments);
@@ -7486,7 +7690,7 @@ var aTypedArray$c = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$c = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.lastIndexOf` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.lastindexof
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.lastindexof
 // eslint-disable-next-line no-unused-vars
 exportTypedArrayMethod$c('lastIndexOf', function lastIndexOf(searchElement /* , fromIndex */) {
   return arrayLastIndexOf.apply(aTypedArray$c(this), arguments);
@@ -7500,7 +7704,7 @@ var aTypedArrayConstructor$4 = arrayBufferViewCore.aTypedArrayConstructor;
 var exportTypedArrayMethod$d = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.map` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.map
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.map
 exportTypedArrayMethod$d('map', function map(mapfn /* , thisArg */) {
   return $map$1(aTypedArray$d(this), mapfn, arguments.length > 1 ? arguments[1] : undefined, function (O, length) {
     return new (aTypedArrayConstructor$4(speciesConstructor(O, O.constructor)))(length);
@@ -7513,7 +7717,7 @@ var aTypedArray$e = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$e = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.reduce` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.reduce
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduce
 exportTypedArrayMethod$e('reduce', function reduce(callbackfn /* , initialValue */) {
   return $reduce$1(aTypedArray$e(this), callbackfn, arguments.length, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7524,7 +7728,7 @@ var aTypedArray$f = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$f = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.reduceRicht` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.reduceright
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduceright
 exportTypedArrayMethod$f('reduceRight', function reduceRight(callbackfn /* , initialValue */) {
   return $reduceRight$1(aTypedArray$f(this), callbackfn, arguments.length, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7534,7 +7738,7 @@ var exportTypedArrayMethod$g = arrayBufferViewCore.exportTypedArrayMethod;
 var floor$7 = Math.floor;
 
 // `%TypedArray%.prototype.reverse` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.reverse
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.reverse
 exportTypedArrayMethod$g('reverse', function reverse() {
   var that = this;
   var length = aTypedArray$g(that).length;
@@ -7557,7 +7761,7 @@ var FORCED$h = fails(function () {
 });
 
 // `%TypedArray%.prototype.set` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.set
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.set
 exportTypedArrayMethod$h('set', function set(arrayLike /* , offset */) {
   aTypedArray$h(this);
   var offset = toOffset(arguments.length > 1 ? arguments[1] : undefined, 1);
@@ -7580,7 +7784,7 @@ var FORCED$i = fails(function () {
 });
 
 // `%TypedArray%.prototype.slice` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.slice
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.slice
 exportTypedArrayMethod$i('slice', function slice(start, end) {
   var list = $slice.call(aTypedArray$i(this), start, end);
   var C = speciesConstructor(this, this.constructor);
@@ -7597,7 +7801,7 @@ var aTypedArray$j = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$j = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.some` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.some
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.some
 exportTypedArrayMethod$j('some', function some(callbackfn /* , thisArg */) {
   return $some$1(aTypedArray$j(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 });
@@ -7607,7 +7811,7 @@ var exportTypedArrayMethod$k = arrayBufferViewCore.exportTypedArrayMethod;
 var $sort = [].sort;
 
 // `%TypedArray%.prototype.sort` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.sort
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.sort
 exportTypedArrayMethod$k('sort', function sort(comparefn) {
   return $sort.call(aTypedArray$k(this), comparefn);
 });
@@ -7616,7 +7820,7 @@ var aTypedArray$l = arrayBufferViewCore.aTypedArray;
 var exportTypedArrayMethod$l = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.subarray` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.subarray
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.subarray
 exportTypedArrayMethod$l('subarray', function subarray(begin, end) {
   var O = aTypedArray$l(this);
   var length = O.length;
@@ -7646,7 +7850,7 @@ var FORCED$j = fails(function () {
 });
 
 // `%TypedArray%.prototype.toLocaleString` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.tolocalestring
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.tolocalestring
 exportTypedArrayMethod$m('toLocaleString', function toLocaleString() {
   return $toLocaleString.apply(TO_LOCALE_STRING_BUG ? $slice$1.call(aTypedArray$m(this)) : aTypedArray$m(this), arguments);
 }, FORCED$j);
@@ -7669,7 +7873,7 @@ if (fails(function () { arrayToString.call({}); })) {
 var IS_NOT_ARRAY_METHOD = Uint8ArrayPrototype.toString != arrayToString;
 
 // `%TypedArray%.prototype.toString` method
-// https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.tostring
+// https://tc39.es/ecma262/#sec-%typedarray%.prototype.tostring
 exportTypedArrayMethod$n('toString', arrayToString, IS_NOT_ARRAY_METHOD);
 
 var nativeApply = getBuiltIn('Reflect', 'apply');
@@ -7681,7 +7885,7 @@ var OPTIONAL_ARGUMENTS_LIST = !fails(function () {
 });
 
 // `Reflect.apply` method
-// https://tc39.github.io/ecma262/#sec-reflect.apply
+// https://tc39.es/ecma262/#sec-reflect.apply
 _export({ target: 'Reflect', stat: true, forced: OPTIONAL_ARGUMENTS_LIST }, {
   apply: function apply(target, thisArgument, argumentsList) {
     aFunction$1(target);
@@ -7695,7 +7899,7 @@ _export({ target: 'Reflect', stat: true, forced: OPTIONAL_ARGUMENTS_LIST }, {
 var nativeConstruct = getBuiltIn('Reflect', 'construct');
 
 // `Reflect.construct` method
-// https://tc39.github.io/ecma262/#sec-reflect.construct
+// https://tc39.es/ecma262/#sec-reflect.construct
 // MS Edge supports only 2 arguments and argumentsList argument is optional
 // FF Nightly sets third argument as `new.target`, but does not create `this` from it
 var NEW_TARGET_BUG = fails(function () {
@@ -7742,7 +7946,7 @@ var ERROR_INSTEAD_OF_FALSE = fails(function () {
 });
 
 // `Reflect.defineProperty` method
-// https://tc39.github.io/ecma262/#sec-reflect.defineproperty
+// https://tc39.es/ecma262/#sec-reflect.defineproperty
 _export({ target: 'Reflect', stat: true, forced: ERROR_INSTEAD_OF_FALSE, sham: !descriptors }, {
   defineProperty: function defineProperty(target, propertyKey, attributes) {
     anObject(target);
@@ -7760,7 +7964,7 @@ _export({ target: 'Reflect', stat: true, forced: ERROR_INSTEAD_OF_FALSE, sham: !
 var getOwnPropertyDescriptor$8 = objectGetOwnPropertyDescriptor.f;
 
 // `Reflect.deleteProperty` method
-// https://tc39.github.io/ecma262/#sec-reflect.deleteproperty
+// https://tc39.es/ecma262/#sec-reflect.deleteproperty
 _export({ target: 'Reflect', stat: true }, {
   deleteProperty: function deleteProperty(target, propertyKey) {
     var descriptor = getOwnPropertyDescriptor$8(anObject(target), propertyKey);
@@ -7769,7 +7973,7 @@ _export({ target: 'Reflect', stat: true }, {
 });
 
 // `Reflect.get` method
-// https://tc39.github.io/ecma262/#sec-reflect.get
+// https://tc39.es/ecma262/#sec-reflect.get
 function get$2(target, propertyKey /* , receiver */) {
   var receiver = arguments.length < 3 ? target : arguments[2];
   var descriptor, prototype;
@@ -7787,7 +7991,7 @@ _export({ target: 'Reflect', stat: true }, {
 });
 
 // `Reflect.getOwnPropertyDescriptor` method
-// https://tc39.github.io/ecma262/#sec-reflect.getownpropertydescriptor
+// https://tc39.es/ecma262/#sec-reflect.getownpropertydescriptor
 _export({ target: 'Reflect', stat: true, sham: !descriptors }, {
   getOwnPropertyDescriptor: function getOwnPropertyDescriptor(target, propertyKey) {
     return objectGetOwnPropertyDescriptor.f(anObject(target), propertyKey);
@@ -7795,7 +7999,7 @@ _export({ target: 'Reflect', stat: true, sham: !descriptors }, {
 });
 
 // `Reflect.getPrototypeOf` method
-// https://tc39.github.io/ecma262/#sec-reflect.getprototypeof
+// https://tc39.es/ecma262/#sec-reflect.getprototypeof
 _export({ target: 'Reflect', stat: true, sham: !correctPrototypeGetter }, {
   getPrototypeOf: function getPrototypeOf(target) {
     return objectGetPrototypeOf(anObject(target));
@@ -7803,7 +8007,7 @@ _export({ target: 'Reflect', stat: true, sham: !correctPrototypeGetter }, {
 });
 
 // `Reflect.has` method
-// https://tc39.github.io/ecma262/#sec-reflect.has
+// https://tc39.es/ecma262/#sec-reflect.has
 _export({ target: 'Reflect', stat: true }, {
   has: function has(target, propertyKey) {
     return propertyKey in target;
@@ -7813,7 +8017,7 @@ _export({ target: 'Reflect', stat: true }, {
 var objectIsExtensible = Object.isExtensible;
 
 // `Reflect.isExtensible` method
-// https://tc39.github.io/ecma262/#sec-reflect.isextensible
+// https://tc39.es/ecma262/#sec-reflect.isextensible
 _export({ target: 'Reflect', stat: true }, {
   isExtensible: function isExtensible(target) {
     anObject(target);
@@ -7822,13 +8026,13 @@ _export({ target: 'Reflect', stat: true }, {
 });
 
 // `Reflect.ownKeys` method
-// https://tc39.github.io/ecma262/#sec-reflect.ownkeys
+// https://tc39.es/ecma262/#sec-reflect.ownkeys
 _export({ target: 'Reflect', stat: true }, {
   ownKeys: ownKeys
 });
 
 // `Reflect.preventExtensions` method
-// https://tc39.github.io/ecma262/#sec-reflect.preventextensions
+// https://tc39.es/ecma262/#sec-reflect.preventextensions
 _export({ target: 'Reflect', stat: true, sham: !freezing }, {
   preventExtensions: function preventExtensions(target) {
     anObject(target);
@@ -7843,7 +8047,7 @@ _export({ target: 'Reflect', stat: true, sham: !freezing }, {
 });
 
 // `Reflect.set` method
-// https://tc39.github.io/ecma262/#sec-reflect.set
+// https://tc39.es/ecma262/#sec-reflect.set
 function set$3(target, propertyKey, V /* , receiver */) {
   var receiver = arguments.length < 4 ? target : arguments[3];
   var ownDescriptor = objectGetOwnPropertyDescriptor.f(anObject(target), propertyKey);
@@ -7869,9 +8073,10 @@ function set$3(target, propertyKey, V /* , receiver */) {
 // MS Edge 17-18 Reflect.set allows setting the property to object
 // with non-writable property on the prototype
 var MS_EDGE_BUG = fails(function () {
-  var object = objectDefineProperty.f({}, 'a', { configurable: true });
+  var Constructor = function () { /* empty */ };
+  var object = objectDefineProperty.f(new Constructor(), 'a', { configurable: true });
   // eslint-disable-next-line no-undef
-  return Reflect.set(objectGetPrototypeOf(object), 'a', 1, object) !== false;
+  return Reflect.set(Constructor.prototype, 'a', 1, object) !== false;
 });
 
 _export({ target: 'Reflect', stat: true, forced: MS_EDGE_BUG }, {
@@ -7879,7 +8084,7 @@ _export({ target: 'Reflect', stat: true, forced: MS_EDGE_BUG }, {
 });
 
 // `Reflect.setPrototypeOf` method
-// https://tc39.github.io/ecma262/#sec-reflect.setprototypeof
+// https://tc39.es/ecma262/#sec-reflect.setprototypeof
 if (objectSetPrototypeOf) _export({ target: 'Reflect', stat: true }, {
   setPrototypeOf: function setPrototypeOf(target, proto) {
     anObject(target);
@@ -7892,6 +8097,12 @@ if (objectSetPrototypeOf) _export({ target: 'Reflect', stat: true }, {
     }
   }
 });
+
+_export({ global: true }, { Reflect: {} });
+
+// Reflect[@@toStringTag] property
+// https://tc39.es/ecma262/#sec-reflect-@@tostringtag
+setToStringTag(global_1.Reflect, 'Reflect', true);
 
 // iterable DOM collections
 // flag - `iterable` interface - 'entries', 'keys', 'values', 'forEach' methods
@@ -7981,13 +8192,12 @@ _export({ global: true, bind: true, enumerable: true, forced: FORCED$l }, {
 });
 
 var process$4 = global_1.process;
-var isNode = classofRaw(process$4) == 'process';
 
 // `queueMicrotask` method
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-queuemicrotask
 _export({ global: true, enumerable: true, noTargetGet: true }, {
   queueMicrotask: function queueMicrotask(fn) {
-    var domain = isNode && process$4.domain;
+    var domain = engineIsNode && process$4.domain;
     microtask(domain ? domain.bind(fn) : fn);
   }
 });
@@ -8258,7 +8468,7 @@ var deserialize = function (it) {
 
 var find$1 = /[!'()~]|%20/g;
 
-var replace = {
+var replace$1 = {
   '!': '%21',
   "'": '%27',
   '(': '%28',
@@ -8268,7 +8478,7 @@ var replace = {
 };
 
 var replacer = function (match) {
-  return replace[match];
+  return replace$1[match];
 };
 
 var serialize = function (it) {
@@ -8360,7 +8570,7 @@ var URLSearchParamsConstructor = function URLSearchParams(/* init */) {
 var URLSearchParamsPrototype = URLSearchParamsConstructor.prototype;
 
 redefineAll(URLSearchParamsPrototype, {
-  // `URLSearchParams.prototype.appent` method
+  // `URLSearchParams.prototype.append` method
   // https://url.spec.whatwg.org/#dom-urlsearchparams-append
   append: function append(name, value) {
     validateArgumentsLength(arguments.length, 2);
@@ -11145,8 +11355,8 @@ function getPredicateInfo$1(element, xmlDocument) {
       for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
         var property = _step3.value;
 
-        if (property.tagName != 'value' && property.tagName != 'annotations') {
-          result[property.tagName] = parseInt(property.textContent) || 0;
+        if (property.tagName != 'value' && property.tagName != 'annotations' && property.textContent != '0') {
+          result[property.tagName] = 1;
         }
       }
     } catch (err) {
@@ -12493,6 +12703,20 @@ var TemplateInstance = /*#__PURE__*/function () {
   return TemplateInstance;
 }();
 
+/**
+ * Our TrustedTypePolicy for HTML which is declared using the html template
+ * tag function.
+ *
+ * That HTML is a developer-authored constant, and is parsed with innerHTML
+ * before any untrusted expressions have been mixed in. Therefor it is
+ * considered safe by construction.
+ */
+
+var policy = window.trustedTypes && trustedTypes.createPolicy('lit-html', {
+  createHTML: function createHTML(s) {
+    return s;
+  }
+});
 var commentMarker = " ".concat(marker, " ");
 /**
  * The return type of `html`, which holds a Template and the values from
@@ -12571,7 +12795,17 @@ var TemplateResult = /*#__PURE__*/function () {
     key: "getTemplateElement",
     value: function getTemplateElement() {
       var template = document.createElement('template');
-      template.innerHTML = this.getHTML();
+      var value = this.getHTML();
+
+      if (policy !== undefined) {
+        // this is secure because `this.strings` is a TemplateStringsArray.
+        // TODO: validate this when
+        // https://github.com/tc39/proposal-array-is-template-object is
+        // implemented.
+        value = policy.createHTML(value);
+      }
+
+      template.innerHTML = value;
       return template;
     }
   }]);
@@ -12621,19 +12855,45 @@ var AttributeCommitter = /*#__PURE__*/function () {
     value: function _getValue() {
       var strings = this.strings;
       var l = strings.length - 1;
+      var parts = this.parts; // If we're assigning an attribute via syntax like:
+      //    attr="${foo}"  or  attr=${foo}
+      // but not
+      //    attr="${foo} ${bar}" or attr="${foo} baz"
+      // then we don't want to coerce the attribute value into one long
+      // string. Instead we want to just return the value itself directly,
+      // so that sanitizeDOMValue can get the actual value rather than
+      // String(value)
+      // The exception is if v is an array, in which case we do want to smash
+      // it together into a string without calling String() on the array.
+      //
+      // This also allows trusted values (when using TrustedTypes) being
+      // assigned to DOM sinks without being stringified in the process.
+
+      if (l === 1 && strings[0] === '' && strings[1] === '') {
+        var v = parts[0].value;
+
+        if (_typeof(v) === 'symbol') {
+          return String(v);
+        }
+
+        if (typeof v === 'string' || !isIterable(v)) {
+          return v;
+        }
+      }
+
       var text = '';
 
       for (var i = 0; i < l; i++) {
         text += strings[i];
-        var part = this.parts[i];
+        var part = parts[i];
 
         if (part !== undefined) {
-          var v = part.value;
+          var _v = part.value;
 
-          if (isPrimitive(v) || !isIterable(v)) {
-            text += typeof v === 'string' ? v : String(v);
+          if (isPrimitive(_v) || !isIterable(_v)) {
+            text += typeof _v === 'string' ? _v : String(_v);
           } else {
-            var _iterator = _createForOfIteratorHelper(v),
+            var _iterator = _createForOfIteratorHelper(_v),
                 _step;
 
             try {
@@ -13326,7 +13586,7 @@ var defaultTemplateProcessor = new DefaultTemplateProcessor();
 // TODO(justinfagnani): inject version number at build time
 
 if (typeof window !== 'undefined') {
-  (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.2.1');
+  (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.3.0');
 }
 /**
  * Interprets a template literal as an HTML template that can efficiently
@@ -13397,7 +13657,6 @@ var shadyTemplateFactory = function shadyTemplateFactory(scopeName) {
     return template;
   };
 };
-
 var TEMPLATE_TYPES = ['html', 'svg'];
 /**
  * Removes all style elements from Templates for the given scopeName.
@@ -13639,6 +13898,12 @@ var render$1 = function render$1(result, container, options) {
  */
 var _a;
 /**
+ * Use this module if you want to create your own base class extending
+ * [[UpdatingElement]].
+ * @packageDocumentation
+ */
+
+/*
  * When using Closure Compiler, JSCompiler_renameProperty(property, object) is
  * replaced at compile time by the munged name for object[property]. We cannot
  * alias this function, so we have to use a small shim that has the same
@@ -13713,6 +13978,7 @@ var finalized = 'finalized';
  * Base element class which manages element properties and attributes. When
  * properties change, the `update` method is asynchronously called. This method
  * should be supplied by subclassers to render updates as desired.
+ * @noInheritDoc
  */
 
 var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
@@ -13726,24 +13992,6 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
     _classCallCheck(this, UpdatingElement);
 
     _this = _super.call(this);
-    _this._updateState = 0;
-    _this._instanceProperties = undefined; // Initialize to an unresolved Promise so we can make sure the element has
-    // connected before first update.
-
-    _this._updatePromise = new Promise(function (res) {
-      return _this._enableUpdatingResolver = res;
-    });
-    /**
-     * Map with keys for any properties that have changed since the last
-     * update cycle with previous values.
-     */
-
-    _this._changedProperties = new Map();
-    /**
-     * Map with keys of properties that should be reflected when updated.
-     */
-
-    _this._reflectingProperties = undefined;
 
     _this.initialize();
 
@@ -13763,11 +14011,19 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
      * registered properties.
      */
     value: function initialize() {
+      var _this2 = this;
+
+      this._updateState = 0;
+      this._updatePromise = new Promise(function (res) {
+        return _this2._enableUpdatingResolver = res;
+      });
+      this._changedProperties = new Map();
+
       this._saveInstanceProperties(); // ensures first update will be caught by an early access of
       // `updateComplete`
 
 
-      this._requestUpdate();
+      this.requestUpdateInternal();
     }
     /**
      * Fixes any properties set on the instance before upgrade time.
@@ -13785,20 +14041,20 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
   }, {
     key: "_saveInstanceProperties",
     value: function _saveInstanceProperties() {
-      var _this2 = this;
+      var _this3 = this;
 
       // Use forEach so this works even if for/of loops are compiled to for loops
       // expecting arrays
       this.constructor._classProperties.forEach(function (_v, p) {
-        if (_this2.hasOwnProperty(p)) {
-          var value = _this2[p];
-          delete _this2[p];
+        if (_this3.hasOwnProperty(p)) {
+          var value = _this3[p];
+          delete _this3[p];
 
-          if (!_this2._instanceProperties) {
-            _this2._instanceProperties = new Map();
+          if (!_this3._instanceProperties) {
+            _this3._instanceProperties = new Map();
           }
 
-          _this2._instanceProperties.set(p, value);
+          _this3._instanceProperties.set(p, value);
         }
       });
     }
@@ -13809,13 +14065,13 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
   }, {
     key: "_applyInstanceProperties",
     value: function _applyInstanceProperties() {
-      var _this3 = this;
+      var _this4 = this;
 
       // Use forEach so this works even if for/of loops are compiled to for loops
       // expecting arrays
       // tslint:disable-next-line:no-any
       this._instanceProperties.forEach(function (v, p) {
-        return _this3[p] = v;
+        return _this4[p] = v;
       });
 
       this._instanceProperties = undefined;
@@ -13918,19 +14174,19 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
       }
     }
     /**
-     * This private version of `requestUpdate` does not access or return the
+     * This protected version of `requestUpdate` does not access or return the
      * `updateComplete` promise. This promise can be overridden and is therefore
      * not free to access.
      */
 
   }, {
-    key: "_requestUpdate",
-    value: function _requestUpdate(name, oldValue) {
+    key: "requestUpdateInternal",
+    value: function requestUpdateInternal(name, oldValue, options) {
       var shouldRequestUpdate = true; // If we have a property key, perform property update steps.
 
       if (name !== undefined) {
         var ctor = this.constructor;
-        var options = ctor.getPropertyOptions(name);
+        options = options || ctor.getPropertyOptions(name);
 
         if (ctor._valueHasChanged(this[name], oldValue, options.hasChanged)) {
           if (!this._changedProperties.has(name)) {
@@ -13975,8 +14231,7 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
   }, {
     key: "requestUpdate",
     value: function requestUpdate(name, oldValue) {
-      this._requestUpdate(name, oldValue);
-
+      this.requestUpdateInternal(name, oldValue);
       return this.updateComplete;
     }
     /**
@@ -14055,7 +14310,14 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
      * ```
      */
     value: function performUpdate() {
-      // Mixin instance properties once, if they exist.
+      // Abort any update if one is not pending when this is called.
+      // This can happen if `performUpdate` is called early to "flush"
+      // the update.
+      if (!this._hasRequestedUpdate) {
+        return;
+      } // Mixin instance properties once, if they exist.
+
+
       if (this._instanceProperties) {
         this._applyInstanceProperties();
       }
@@ -14159,13 +14421,13 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
   }, {
     key: "update",
     value: function update(_changedProperties) {
-      var _this4 = this;
+      var _this5 = this;
 
       if (this._reflectingProperties !== undefined && this._reflectingProperties.size > 0) {
         // Use forEach so this works even if for/of loops are compiled to for
         // loops expecting arrays
         this._reflectingProperties.forEach(function (v, k) {
-          return _this4._propertyToAttribute(k, _this4[k], v);
+          return _this5._propertyToAttribute(k, _this5[k], v);
         });
 
         this._reflectingProperties = undefined;
@@ -14225,7 +14487,7 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
 
     /** @nocollapse */
     value: function _ensureClassProperties() {
-      var _this5 = this;
+      var _this6 = this;
 
       // ensure private storage for property declarations.
       if (!this.hasOwnProperty(JSCompiler_renameProperty('_classProperties', this))) {
@@ -14235,7 +14497,7 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
 
         if (superProperties !== undefined) {
           superProperties.forEach(function (v, k) {
-            return _this5._classProperties.set(k, v);
+            return _this6._classProperties.set(k, v);
           });
         }
       }
@@ -14318,7 +14580,7 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
 
   }, {
     key: "getPropertyDescriptor",
-    value: function getPropertyDescriptor(name, key, _options) {
+    value: function getPropertyDescriptor(name, key, options) {
       return {
         // tslint:disable-next-line:no-any no symbol in index
         get: function get() {
@@ -14327,8 +14589,7 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
         set: function set(value) {
           var oldValue = this[name];
           this[key] = value;
-
-          this._requestUpdate(name, oldValue);
+          this.requestUpdateInternal(name, oldValue, options);
         },
         configurable: true,
         enumerable: true
@@ -14464,7 +14725,7 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
   }, {
     key: "observedAttributes",
     get: function get() {
-      var _this6 = this;
+      var _this7 = this;
 
       // note: piggy backing on this to ensure we're finalized.
       this.finalize();
@@ -14472,10 +14733,10 @@ var UpdatingElement = /*#__PURE__*/function (_HTMLElement) {
       // expecting arrays
 
       this._classProperties.forEach(function (v, p) {
-        var attr = _this6._attributeNameForProperty(p, v);
+        var attr = _this7._attributeNameForProperty(p, v);
 
         if (attr !== undefined) {
-          _this6._attributeToPropertyMap.set(attr, p);
+          _this7._attributeToPropertyMap.set(attr, p);
 
           attributes.push(attr);
         }
@@ -14504,7 +14765,11 @@ found at http://polymer.github.io/CONTRIBUTORS.txt Code distributed by Google as
 part of the polymer project is also subject to an additional IP rights grant
 found at http://polymer.github.io/PATENTS.txt
 */
-var supportsAdoptingStyleSheets = 'adoptedStyleSheets' in Document.prototype && 'replace' in CSSStyleSheet.prototype;
+
+/**
+ * Whether the current browser supports `adoptedStyleSheets`.
+ */
+var supportsAdoptingStyleSheets = window.ShadowRoot && (window.ShadyCSS === undefined || window.ShadyCSS.nativeShadow) && 'adoptedStyleSheets' in Document.prototype && 'replace' in CSSStyleSheet.prototype;
 var constructionToken = Symbol();
 var CSSResult = /*#__PURE__*/function () {
   function CSSResult(cssText, safeToken) {
@@ -14528,8 +14793,8 @@ var CSSResult = /*#__PURE__*/function () {
     key: "styleSheet",
     get: function get() {
       if (this._styleSheet === undefined) {
-        // Note, if `adoptedStyleSheets` is supported then we assume CSSStyleSheet
-        // is constructable.
+        // Note, if `supportsAdoptingStyleSheets` is true then we assume
+        // CSSStyleSheet is constructable.
         if (supportsAdoptingStyleSheets) {
           this._styleSheet = new CSSStyleSheet();
 
@@ -14545,6 +14810,17 @@ var CSSResult = /*#__PURE__*/function () {
 
   return CSSResult;
 }();
+/**
+ * Wrap a value for interpolation in a [[`css`]] tagged template literal.
+ *
+ * This is unsafe because untrusted CSS text can be used to phone home
+ * or exfiltrate data to an attacker controlled site. Take care to only use
+ * this with trusted input.
+ */
+
+var unsafeCSS = function unsafeCSS(value) {
+  return new CSSResult(String(value), constructionToken);
+};
 
 var textFromCSSResult = function textFromCSSResult(value) {
   if (value instanceof CSSResult) {
@@ -14556,10 +14832,10 @@ var textFromCSSResult = function textFromCSSResult(value) {
   }
 };
 /**
- * Template tag which which can be used with LitElement's `style` property to
- * set element styles. For security reasons, only literal string values may be
- * used. To incorporate non-literal values `unsafeCSS` may be used inside a
- * template string part.
+ * Template tag which which can be used with LitElement's [[LitElement.styles |
+ * `styles`]] property to set element styles. For security reasons, only literal
+ * string values may be used. To incorporate non-literal values [[`unsafeCSS`]]
+ * may be used inside a template string part.
  */
 
 
@@ -14577,13 +14853,22 @@ var css = function css(strings) {
 // This line will be used in regexes to search for LitElement usage.
 // TODO(justinfagnani): inject version number at build time
 
-(window['litElementVersions'] || (window['litElementVersions'] = [])).push('2.3.1');
+(window['litElementVersions'] || (window['litElementVersions'] = [])).push('2.4.0');
 /**
  * Sentinal value used to avoid calling lit-html's render function when
  * subclasses do not implement `render`
  */
 
 var renderNotImplemented = {};
+/**
+ * Base element class that manages element properties and attributes, and
+ * renders a lit-html template.
+ *
+ * To define a component, subclass `LitElement` and implement a
+ * `render` method to provide the component's template. Define properties
+ * using the [[`properties`]] property or the [[`property`]] decorator.
+ */
+
 var LitElement = /*#__PURE__*/function (_UpdatingElement) {
   _inherits(LitElement, _UpdatingElement);
 
@@ -14599,9 +14884,9 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
     key: "initialize",
 
     /**
-     * Performs element initialization. By default this calls `createRenderRoot`
-     * to create the element `renderRoot` node and captures any pre-set values for
-     * registered properties.
+     * Performs element initialization. By default this calls
+     * [[`createRenderRoot`]] to create the element [[`renderRoot`]] node and
+     * captures any pre-set values for registered properties.
      */
     value: function initialize() {
       _get(_getPrototypeOf(LitElement.prototype), "initialize", this).call(this);
@@ -14632,7 +14917,7 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
       });
     }
     /**
-     * Applies styling to the element shadowRoot using the `static get styles`
+     * Applies styling to the element shadowRoot using the [[`styles`]]
      * property. Styling will apply using `shadowRoot.adoptedStyleSheets` where
      * available and will fallback otherwise. When Shadow DOM is polyfilled,
      * ShadyCSS scopes styles and adds them to the document. When Shadow DOM
@@ -14650,7 +14935,7 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
         return;
       } // There are three separate cases here based on Shadow DOM support.
       // (1) shadowRoot polyfilled: use ShadyCSS
-      // (2) shadowRoot.adoptedStyleSheets available: use it.
+      // (2) shadowRoot.adoptedStyleSheets available: use it
       // (3) shadowRoot.adoptedStyleSheets polyfilled: append styles after
       // rendering
 
@@ -14661,7 +14946,7 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
         }), this.localName);
       } else if (supportsAdoptingStyleSheets) {
         this.renderRoot.adoptedStyleSheets = styles.map(function (s) {
-          return s.styleSheet;
+          return s instanceof CSSStyleSheet ? s : s.styleSheet;
         });
       } else {
         // This must be done after rendering so the actual style insertion is done
@@ -14723,9 +15008,9 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
     }
     /**
      * Invoked on each update to perform rendering tasks. This method may return
-     * any value renderable by lit-html's NodePart - typically a TemplateResult.
-     * Setting properties inside this method will *not* trigger the element to
-     * update.
+     * any value renderable by lit-html's `NodePart` - typically a
+     * `TemplateResult`. Setting properties inside this method will *not* trigger
+     * the element to update.
      */
 
   }, {
@@ -14763,9 +15048,7 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
 
       var userStyles = this.getStyles();
 
-      if (userStyles === undefined) {
-        this._styles = [];
-      } else if (Array.isArray(userStyles)) {
+      if (Array.isArray(userStyles)) {
         // De-duplicate styles preserving the _last_ instance in the set.
         // This is a performance optimization to avoid duplicated styles that can
         // occur especially when composing via subclassing.
@@ -14789,8 +15072,29 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
         });
         this._styles = styles;
       } else {
-        this._styles = [userStyles];
-      }
+        this._styles = userStyles === undefined ? [] : [userStyles];
+      } // Ensure that there are no invalid CSSStyleSheet instances here. They are
+      // invalid in two conditions.
+      // (1) the sheet is non-constructible (`sheet` of a HTMLStyleElement), but
+      //     this is impossible to check except via .replaceSync or use
+      // (2) the ShadyCSS polyfill is enabled (:. supportsAdoptingStyleSheets is
+      //     false)
+
+
+      this._styles = this._styles.map(function (s) {
+        if (s instanceof CSSStyleSheet && !supportsAdoptingStyleSheets) {
+          // Flatten the cssText from the passed constructible stylesheet (or
+          // undetectable non-constructible stylesheet). The user might have
+          // expected to update their stylesheets over time, but the alternative
+          // is a crash.
+          var cssText = Array.prototype.slice.call(s.cssRules).reduce(function (css, rule) {
+            return css + rule.cssText;
+          }, '');
+          return unsafeCSS(cssText);
+        }
+
+        return s;
+      });
     }
   }]);
 
@@ -14806,10 +15110,20 @@ var LitElement = /*#__PURE__*/function (_UpdatingElement) {
 
 LitElement['finalized'] = true;
 /**
- * Render method used to render the value to the element's DOM.
- * @param result The value to render.
- * @param container Node into which to render.
- * @param options Element name.
+ * Reference to the underlying library method used to render the element's
+ * DOM. By default, points to the `render` method from lit-html's shady-render
+ * module.
+ *
+ * **Most users will never need to touch this property.**
+ *
+ * This  property should not be confused with the `render` instance method,
+ * which should be overridden to define a template for the element.
+ *
+ * Advanced users creating a new base class based on LitElement can override
+ * this property to point to a custom render method with a signature that
+ * matches [shady-render's `render`
+ * method](https://lit-html.polymer-project.org/api/modules/shady_render.html#render).
+ *
  * @nocollapse
  */
 
@@ -15907,7 +16221,7 @@ function _templateObject2$1() {
 }
 
 function _templateObject$1() {
-  var data = _taggedTemplateLiteral(["\n      :host, .gscape-panel{\n        font-family : \"Open Sans\",\"Helvetica Neue\",Helvetica,sans-serif;\n        display: block;\n        position: absolute;\n        color: var(--theme-gscape-on-primary, ", ");\n        background-color:var(--theme-gscape-primary, ", ");\n        box-shadow: 0 2px 4px 0 var(--theme-gscape-shadows, ", ");\n        border-radius: 8px;\n        transition: opacity 0.2s;\n        scrollbar-width: thin;\n      }\n\n      :host(:hover){\n        box-shadow: 0 4px 8px 0 var(--theme-gscape-shadows, ", ");\n      }\n\n      .hide {\n        display:none;\n      }\n\n      .widget-body {\n        width: 100%;\n        max-height:450px;\n        border-top:solid 1px var(--theme-gscape-shadows, ", ");\n        border-bottom-left-radius: inherit;\n        border-bottom-right-radius: inherit;\n        overflow:auto;\n        scrollbar-width: inherit;\n      }\n\n      .gscape-panel {\n        position: absolute;\n        bottom: 40px;\n        width: auto;\n        padding:10px;\n        overflow: unset;\n        border: none;\n      }\n\n      .gscape-panel::after {\n        content: \"\";\n        position: absolute;\n        top: 100%;\n        left: 16px;\n        margin-left: -8px;\n        border-width: 8px;\n        border-style: solid;\n        border-color: #ddd transparent transparent transparent;\n      }\n\n      .gscape-panel-title{\n        font-weight: bold;\n        text-align: center;\n        margin-bottom: 10px;\n      }\n\n      .widget-body .section:last-of-type {\n        margin-bottom: 12px;\n      }\n\n      .widget-body .section-header {\n        text-align: center;\n        font-weight: bold;\n        border-bottom: solid 1px var(--theme-gscape-shadows, ", ");\n        color: var(--theme-gscape-secondary, ", ");\n        width: 85%;\n        margin: auto;\n        margin-bottom: 10px;\n        padding-bottom: 5px;\n      }\n\n      .description {\n        margin-bottom: 20px;\n      }\n\n      .description:last-of-type {\n        margin-bottom: 0;\n      }\n\n      .description .language {\n        min-width: 50px;\n        display: inline-block;\n        font-weight: bold;\n        color: var(--theme-gscape-secondary, ", ");\n        margin: 5px;\n      }\n\n      .section { padding: 10px; }\n\n      .details_table{\n        border-spacing: 0;\n      }\n\n      .details_table th {\n        color: var(--theme-gscape-secondary, ", ");\n        border-right: solid 1px var(--theme-gscape-shadows, ", ");\n        font-weight: bold;\n        text-align:left;\n        min-width: 50px;\n      }\n\n      .details_table th, td {\n        padding:5px 8px;\n        white-space: nowrap;\n      }\n\n      .highlight:hover {\n        color: var(--theme-gscape-on-secondary, ", ");\n        background-color:var(--theme-gscape-secondary, ", ");\n      }\n\n      /* width */\n      ::-webkit-scrollbar {\n        width: 5px;\n        height: 5px;\n      }\n\n      /* Track */\n      ::-webkit-scrollbar-track {\n        background: #f0f0f0;\n      }\n\n      /* Handle */\n      ::-webkit-scrollbar-thumb {\n        background: #cdcdcd;\n      }\n\n      /* Handle on hover */\n      ::-webkit-scrollbar-thumb:hover {\n        background: #888;\n      }\n\n      .clickable {\n        font-weight:bold;\n        text-decoration: underline;\n      }\n\n      .clickable:hover {\n        cursor:pointer;\n        color: var(--theme-gscape-secondary-dark, ", ");\n      }\n\n    "]);
+  var data = _taggedTemplateLiteral(["\n      :host, .gscape-panel{\n        font-family : \"Open Sans\",\"Helvetica Neue\",Helvetica,sans-serif;\n        display: block;\n        position: absolute;\n        color: var(--theme-gscape-on-primary, ", ");\n        background-color:var(--theme-gscape-primary, ", ");\n        box-shadow: 0 2px 4px 0 var(--theme-gscape-shadows, ", ");\n        border-radius: 8px;\n        transition: opacity 0.2s;\n        scrollbar-width: thin;\n        --mdc-icon-button-size: 24px;\n      }\n\n      :host(:hover){\n        box-shadow: 0 4px 8px 0 var(--theme-gscape-shadows, ", ");\n      }\n\n      .hide {\n        display:none;\n      }\n\n      .widget-body {\n        width: 100%;\n        max-height:450px;\n        border-top:solid 1px var(--theme-gscape-shadows, ", ");\n        border-bottom-left-radius: inherit;\n        border-bottom-right-radius: inherit;\n        overflow:auto;\n        scrollbar-width: inherit;\n      }\n\n      .gscape-panel {\n        position: absolute;\n        bottom: 40px;\n        width: auto;\n        padding:10px;\n        overflow: unset;\n        border: none;\n      }\n\n      .gscape-panel::after {\n        content: \"\";\n        position: absolute;\n        top: 100%;\n        left: 16px;\n        margin-left: -8px;\n        border-width: 8px;\n        border-style: solid;\n        border-color: #ddd transparent transparent transparent;\n      }\n\n      .gscape-panel-title{\n        font-weight: bold;\n        text-align: center;\n        margin-bottom: 10px;\n      }\n\n      .widget-body .section:last-of-type {\n        margin-bottom: 12px;\n      }\n\n      .widget-body .section-header {\n        text-align: center;\n        font-weight: bold;\n        border-bottom: solid 1px var(--theme-gscape-shadows, ", ");\n        color: var(--theme-gscape-secondary, ", ");\n        width: 85%;\n        margin: auto;\n        margin-bottom: 10px;\n        padding-bottom: 5px;\n      }\n\n      .description {\n        margin-bottom: 20px;\n      }\n\n      .description:last-of-type {\n        margin-bottom: 0;\n      }\n\n      .description .language {\n        min-width: 50px;\n        display: inline-block;\n        font-weight: bold;\n        color: var(--theme-gscape-secondary, ", ");\n        margin: 5px;\n      }\n\n      .section { padding: 10px; }\n\n      .details_table{\n        border-spacing: 0;\n      }\n\n      .details_table th {\n        color: var(--theme-gscape-secondary, ", ");\n        border-right: solid 1px var(--theme-gscape-shadows, ", ");\n        font-weight: bold;\n        text-align:left;\n        min-width: 50px;\n      }\n\n      .details_table th, td {\n        padding:5px 8px;\n        white-space: nowrap;\n      }\n\n      .highlight:hover {\n        color: var(--theme-gscape-on-secondary, ", ");\n        background-color:var(--theme-gscape-secondary, ", ");\n      }\n\n      /* width */\n      ::-webkit-scrollbar {\n        width: 5px;\n        height: 5px;\n      }\n\n      /* Track */\n      ::-webkit-scrollbar-track {\n        background: #f0f0f0;\n      }\n\n      /* Handle */\n      ::-webkit-scrollbar-thumb {\n        background: #cdcdcd;\n      }\n\n      /* Handle on hover */\n      ::-webkit-scrollbar-thumb:hover {\n        background: #888;\n      }\n\n      .clickable {\n        font-weight:bold;\n        text-decoration: underline;\n      }\n\n      .clickable:hover {\n        cursor:pointer;\n        color: var(--theme-gscape-secondary-dark, ", ");\n      }\n\n    "]);
 
   _templateObject$1 = function _templateObject() {
     return data;
@@ -16072,9 +16386,14 @@ var GscapeWidget = /*#__PURE__*/function (_LitElement) {
       this.collapseBody();
     }
   }, {
+    key: "isCustomIcon",
+    value: function isCustomIcon(icon) {
+      return typeof icon !== 'string';
+    }
+  }, {
     key: "isVisible",
     get: function get() {
-      return this.style.display !== 'none' ? true : false;
+      return this.style.display !== 'none';
     }
   }, {
     key: "hiddenDefault",
@@ -16096,8 +16415,38 @@ var GscapeWidget = /*#__PURE__*/function (_LitElement) {
   return GscapeWidget;
 }(LitElement); //customElements.define('gscape-widget', GscapeWidget)
 
+function _templateObject5$1() {
+  var data = _taggedTemplateLiteral(["\n      :host {\n        display:flex;\n        display: flex;\n        align-items: center;\n        justify-content: space-between;\n        padding: var(--header-padding, 8px);\n      }\n\n      .head-btn {\n        color:var(--theme-gscape-on-primary, ", ");\n        right:0;\n        cursor:pointer;\n      }\n\n      .head-btn:hover{\n        color:var(--theme-gscape-secondary, ", ");\n      }\n\n      .head-title {\n        padding: var(--title-padding, 0 10px);\n        box-sizing: border-box;\n        font-weight:bold;\n        cursor:grab;\n        width: var(--title-width, '');\n        text-align: var(--title-text-align, 'left');\n        justify-self: flex-start;\n      }\n\n    "]);
+
+  _templateObject5$1 = function _templateObject5() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject4$1() {
+  var data = _taggedTemplateLiteral(["\n        <mwc-icon-button class=\"left-icon\" icon=\"", "\"></mwc-icon-button>\n      "]);
+
+  _templateObject4$1 = function _templateObject4() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject3$1() {
+  var data = _taggedTemplateLiteral(["", ""]);
+
+  _templateObject3$1 = function _templateObject3() {
+    return data;
+  };
+
+  return data;
+}
+
 function _templateObject2$2() {
-  var data = _taggedTemplateLiteral(["\n      :host {\n        display:flex;\n        display: flex;\n        align-items: center;\n        justify-content: space-between;\n        padding: var(--header-padding, 8px);\n      }\n\n      .head-btn {\n        color:var(--theme-gscape-on-primary, ", ");\n        right:0;\n        padding: var(--btn-padding, 0 0 0 5px);\n        cursor:pointer;\n      }\n\n      .head-btn:hover{\n        color:var(--theme-gscape-secondary, ", ");\n      }\n\n      .head-title {\n        padding: var(--title-padding, 0 5px 0 0);\n        box-sizing: border-box;\n        font-weight:bold;\n        cursor:grab;\n        width: var(--title-width, '');\n        text-align: var(--title-text-align, '')\n      }\n    "]);
+  var data = _taggedTemplateLiteral(["\n        <mwc-icon-button class=\"left-icon\">\n          ", "\n        </mwc-icon-button>\n      "]);
 
   _templateObject2$2 = function _templateObject2() {
     return data;
@@ -16107,7 +16456,7 @@ function _templateObject2$2() {
 }
 
 function _templateObject$2() {
-  var data = _taggedTemplateLiteral(["\n      <div class=\"head-title\"> ", " </div>\n      <slot></slot>\n      <mwc-icon class=\"head-btn\" @click=\"", "\">\n        ", "\n      </mwc-icon>\n    "]);
+  var data = _taggedTemplateLiteral(["\n    ", "\n\n      <div class=\"head-title\">\n        ", "\n      </div>\n      <slot></slot>\n      <mwc-icon class=\"head-btn\" @click=\"", "\">\n        ", "\n      </mwc-icon>\n    "]);
 
   _templateObject$2 = function _templateObject() {
     return data;
@@ -16136,6 +16485,9 @@ var GscapeHeader = /*#__PURE__*/function (_GscapeWidget) {
         },
         icon: {
           type: String
+        },
+        left_icon: {
+          type: String
         }
       };
     }
@@ -16151,6 +16503,7 @@ var GscapeHeader = /*#__PURE__*/function (_GscapeWidget) {
     _this.initial_icon = 'arrow_drop_down';
     _this.secondary_icon = 'arrow_drop_up';
     _this.icon = _this.initial_icon;
+    _this.left_icon = '';
 
     _this.onClick = function () {};
 
@@ -16160,7 +16513,7 @@ var GscapeHeader = /*#__PURE__*/function (_GscapeWidget) {
   _createClass(GscapeHeader, [{
     key: "render",
     value: function render() {
-      return html$1(_templateObject$2(), this.title, this.iconClickHandler, this.icon);
+      return html$1(_templateObject$2(), this.isCustomIcon(this.left_icon) ? html$1(_templateObject2$2(), this.isCustomIcon(this.left_icon) ? html$1(_templateObject3$1(), this.left_icon) : '') : html$1(_templateObject4$1(), this.left_icon), this.title, this.iconClickHandler, this.icon);
     }
   }, {
     key: "iconClickHandler",
@@ -16196,7 +16549,7 @@ var GscapeHeader = /*#__PURE__*/function (_GscapeWidget) {
       // we don't need super.styles, just the colors from default imported theme
       var colors = _get(_getPrototypeOf(GscapeHeader), "styles", this)[1];
 
-      return css(_templateObject2$2(), colors.on_primary, colors.secondary);
+      return css(_templateObject5$1(), colors.on_primary, colors.secondary);
     }
   }]);
 
@@ -16204,10 +16557,10 @@ var GscapeHeader = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-head', GscapeHeader);
 
-function _templateObject3$1() {
+function _templateObject3$2() {
   var data = _taggedTemplateLiteral(["\n        <div\n          @click=\"", "\"\n          name=\"", "\"\n          diagram-id=\"", "\"\n          class=\"diagram-item highlight ", "\"\n        >\n          ", "\n        </div>\n        "]);
 
-  _templateObject3$1 = function _templateObject3() {
+  _templateObject3$2 = function _templateObject3() {
     return data;
   };
 
@@ -16215,7 +16568,7 @@ function _templateObject3$1() {
 }
 
 function _templateObject2$3() {
-  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"", "\"\n        class=\"drag-handler\"></gscape-head>\n\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"", "\" left_icon=\"dns\"\n        class=\"drag-handler\"></gscape-head>\n\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n    "]);
 
   _templateObject2$3 = function _templateObject2() {
     return data;
@@ -16277,7 +16630,7 @@ var GscapeDiagramSelector = /*#__PURE__*/function (_GscapeWidget) {
       var _this2 = this;
 
       return html$1(_templateObject2$3(), this.default_title, this.diagrams.map(function (diagram, id) {
-        return html$1(_templateObject3$1(), _this2.changeDiagram, diagram.name, id, id == _this2.actual_diagram_id ? "selected" : "", diagram.name);
+        return html$1(_templateObject3$2(), _this2.changeDiagram, diagram.name, id, id == _this2.actual_diagram_id ? "selected" : "", diagram.name);
       }));
     }
   }, {
@@ -16317,30 +16670,30 @@ var GscapeDiagramSelector = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-diagram-selector', GscapeDiagramSelector);
 
-function _templateObject5$1() {
+function _templateObject5$2() {
   var data = _taggedTemplateLiteral(["\n                <div class=\"sub-row highlight\"\n                  diagram_id=\"", "\"\n                  node_id=\"", "\"\n                  @click=\"", "\"\n                >\n                  - ", " - ", "\n                </div>\n              "]);
 
-  _templateObject5$1 = function _templateObject5() {
+  _templateObject5$2 = function _templateObject5() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject4$1() {
+function _templateObject4$2() {
   var data = _taggedTemplateLiteral(["\n          <div>\n            <div\n              id=\"", "\"\n              class=\"row highlight\"\n              type=\"", "\"\n              label = \"", "\"\n            >\n              <span><mwc-icon @click='", "'>keyboard_arrow_right</mwc-icon></span>\n              <span>", "</span>\n              <div class=\"row-label\" @click='", "'>", "</div>\n            </div>\n\n            <div class=\"sub-rows-wrapper hide\">\n            ", "\n            </div>\n          </div>\n        "]);
 
-  _templateObject4$1 = function _templateObject4() {
+  _templateObject4$2 = function _templateObject4() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject3$2() {
-  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"Explorer\" class=\"drag-handler\">\n        <input\n          type=\"text\"\n          autocomplete=\"off\"\n          @keyup=\"", "\"\n          placeholder=\"Search Entities\"\n        />\n      </gscape-head>\n\n      <div class=\"widget-body hide\">\n      ", "\n      </div>\n    "]);
+function _templateObject3$3() {
+  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"Explorer\" left_icon=\"explore\" class=\"drag-handler\">\n        <input\n          type=\"text\"\n          autocomplete=\"off\"\n          @keyup=\"", "\"\n          placeholder=\"Search Entities\"\n        />\n      </gscape-head>\n\n      <div class=\"widget-body hide\">\n      ", "\n      </div>\n    "]);
 
-  _templateObject3$2 = function _templateObject3() {
+  _templateObject3$3 = function _templateObject3() {
     return data;
   };
 
@@ -16358,7 +16711,7 @@ function _templateObject2$4() {
 }
 
 function _templateObject$4() {
-  var data = _taggedTemplateLiteral(["\n        :host {\n          left:50%;\n          top:10px;\n          min-width:340px;\n          max-width:450px;\n          transform: translate(-50%, 0);\n        }\n\n        .widget-body {\n          overflow:auto;\n        }\n\n        .row{\n          line-height: 0;\n          display: flex;\n          align-items: center;\n          padding:4px 0;\n        }\n\n        .row-label{\n          padding-left:5px;\n          cursor:pointer;\n          width:100%;\n          white-space: nowrap;\n        }\n\n        mwc-icon:hover{\n          color: var(--theme-gscape-primary, ", ");\n          cursor:pointer;\n        }\n\n        .type-img{\n          width: 20px;\n          height: 20px;\n          text-align: center;\n          line-height: 20px;\n        }\n\n        .type-img-A{\n          background-color: var(--theme-graph-attribute, ", ");\n          color: var(--theme-graph-attribute-dark, ", ");\n          border: solid 1px var(--theme-graph-attribute-dark, ", ");\n        }\n\n        .type-img-R{\n          background-color: var(--theme-graph-role, ", ");\n          color: var(--theme-graph-role-dark, ", ");\n          border: solid 1px var(--theme-graph-role-dark, ", ");\n        }\n\n        .type-img-C{\n          background-color: var(--theme-graph-concept, ", ");\n          color: var(--theme-graph-concept-dark, ", ");\n          border: solid 1px var(--theme-graph-concept-dark, ", ");\n        }\n\n        .type-img-I{\n          background-color: var(--theme-graph-individual, ", ");\n          color: var(--theme-graph-individual-dark, ", ");\n          border: solid 1px var(--theme-graph-individual-dark, ", ");\n        }\n\n        .sub-row{\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          padding: 4px 0 4px 34px;\n          cursor: pointer;\n        }\n\n        .sub-rows-wrapper{\n          padding: 2px 0;\n        }\n\n        .add-shadow{\n          box-shadow: 0 2px 2px 0 var(--theme-gscape-shadows, ", ");\n        }\n\n        gscape-head input {\n          position:absolute;\n          left: 30%;\n          width: 50%;\n          padding: 0;\n          line-height:22px;\n          box-sizing: border-box;\n          background-color: var(--theme-gscape-primary, ", ");\n          border:none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          transition: all .35s ease-in-out;\n          color:inherit;\n        }\n\n        gscape-head input:focus {\n          border-color: var(--theme-gscape-secondary, ", ");\n          left:0;\n          margin: 0px 8px;\n          width:80%;\n        }\n      "]);
+  var data = _taggedTemplateLiteral(["\n        :host {\n          left:50%;\n          top:10px;\n          min-width:370px;\n          max-width:450px;\n          transform: translate(-50%, 0);\n        }\n\n        .widget-body {\n          overflow:auto;\n        }\n\n        .row{\n          line-height: 0;\n          display: flex;\n          align-items: center;\n          padding:4px 0;\n        }\n\n        .row-label{\n          padding-left:5px;\n          cursor:pointer;\n          width:100%;\n          white-space: nowrap;\n        }\n\n        mwc-icon:hover{\n          color: var(--theme-gscape-primary, ", ");\n          cursor:pointer;\n        }\n\n        .type-img{\n          width: 20px;\n          height: 20px;\n          text-align: center;\n          line-height: 20px;\n        }\n\n        .type-img-A{\n          background-color: var(--theme-graph-attribute, ", ");\n          color: var(--theme-graph-attribute-dark, ", ");\n          border: solid 1px var(--theme-graph-attribute-dark, ", ");\n        }\n\n        .type-img-R{\n          background-color: var(--theme-graph-role, ", ");\n          color: var(--theme-graph-role-dark, ", ");\n          border: solid 1px var(--theme-graph-role-dark, ", ");\n        }\n\n        .type-img-C{\n          background-color: var(--theme-graph-concept, ", ");\n          color: var(--theme-graph-concept-dark, ", ");\n          border: solid 1px var(--theme-graph-concept-dark, ", ");\n        }\n\n        .type-img-I{\n          background-color: var(--theme-graph-individual, ", ");\n          color: var(--theme-graph-individual-dark, ", ");\n          border: solid 1px var(--theme-graph-individual-dark, ", ");\n        }\n\n        .sub-row{\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          padding: 4px 0 4px 34px;\n          cursor: pointer;\n        }\n\n        .sub-rows-wrapper{\n          padding: 2px 0;\n        }\n\n        .add-shadow{\n          box-shadow: 0 2px 2px 0 var(--theme-gscape-shadows, ", ");\n        }\n\n        gscape-head input {\n          position:initial;\n          left: 30%;\n          width: 50%;\n          padding: 0 10px;\n          line-height:23px;\n          box-sizing: border-box;\n          background-color: var(--theme-gscape-primary, ", ");\n          border:none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          transition: width .35s ease-in-out;\n          color:inherit;\n          flex-grow:2;\n          font-size:inherit;\n        }\n\n        gscape-head input:focus {\n          position:absolute;\n          border-color: var(--theme-gscape-secondary, ", ");\n          left: 34px;\n          margin: 0px 8px;\n          width:75%;\n        }\n      "]);
 
   _templateObject$4 = function _templateObject() {
     return data;
@@ -16414,10 +16767,10 @@ var GscapeExplorer = /*#__PURE__*/function (_GscapeWidget) {
         return html$1(_templateObject2$4(), letter, letter);
       }
 
-      return html$1(_templateObject3$2(), this.search, Object.keys(this.predicates).map(function (key) {
+      return html$1(_templateObject3$3(), this.search, Object.keys(this.predicates).map(function (key) {
         var predicate = _this2.predicates[key];
-        return html$1(_templateObject4$1(), predicate.subrows[0].id, predicate.type, predicate.label, _this2.toggleSubRows, getTypeImg(predicate.type), _this2.handleEntitySelection, predicate.label, predicate.subrows.map(function (predicate_instance) {
-          return html$1(_templateObject5$1(), predicate_instance.diagram.id, predicate_instance.id, _this2.handleNodeSelection, predicate_instance.diagram.name, predicate_instance.id_xml);
+        return html$1(_templateObject4$2(), predicate.subrows[0].id, predicate.type, predicate.label, _this2.toggleSubRows, getTypeImg(predicate.type), _this2.handleEntitySelection, predicate.label, predicate.subrows.map(function (predicate_instance) {
+          return html$1(_templateObject5$2(), predicate_instance.diagram.id, predicate_instance.id, _this2.handleNodeSelection, predicate_instance.diagram.name, predicate_instance.id_xml);
         }));
       }));
     }
@@ -16553,30 +16906,30 @@ function _templateObject6$1() {
   return data;
 }
 
-function _templateObject5$2() {
+function _templateObject5$3() {
   var data = _taggedTemplateLiteral(["<th rowspan=\"3\">", "</th>"]);
 
-  _templateObject5$2 = function _templateObject5() {
+  _templateObject5$3 = function _templateObject5() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject4$2() {
+function _templateObject4$3() {
   var data = _taggedTemplateLiteral(["\n                  <tr>\n                    ", "\n                    <td class=\"language\">", "</td>\n                    <td>", "</td>\n                  </tr>\n                "]);
 
-  _templateObject4$2 = function _templateObject4() {
+  _templateObject4$3 = function _templateObject4() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject3$3() {
+function _templateObject3$4() {
   var data = _taggedTemplateLiteral(["\n            <tbody class=\"annotation-row\">\n              ", "\n            </tbody>\n          "]);
 
-  _templateObject3$3 = function _templateObject3() {
+  _templateObject3$4 = function _templateObject3() {
     return data;
   };
 
@@ -16605,18 +16958,18 @@ function _templateObject$5() {
 var annotationsTemplate = (function (entity) {
   return html$1(_templateObject$5(), entity.annotations && Object.keys(entity.annotations).length > 0 ? html$1(_templateObject2$5(), Object.keys(entity.annotations).map(function (kind) {
     var annotation = entity.annotations[kind];
-    return html$1(_templateObject3$3(), Object.keys(annotation).map(function (language, count) {
-      return html$1(_templateObject4$2(), count == 0 ? html$1(_templateObject5$2(), kind.charAt(0).toUpperCase() + kind.slice(1)) : '', language, annotation[language]);
+    return html$1(_templateObject3$4(), Object.keys(annotation).map(function (language, count) {
+      return html$1(_templateObject4$3(), count == 0 ? html$1(_templateObject5$3(), kind.charAt(0).toUpperCase() + kind.slice(1)) : '', language, annotation[language]);
     }));
   })) : '', entity.description && Object.keys(entity.description).length > 0 ? html$1(_templateObject6$1(), Object.keys(entity.description).map(function (language) {
     return html$1(_templateObject7$1(), language, language != '' ? html$1(_templateObject8$1(), language) : '');
   })) : html$1(_templateObject9$1()));
 });
 
-function _templateObject3$4() {
+function _templateObject3$5() {
   var data = _taggedTemplateLiteral(["\n            <tr>\n              <th>", "</th>\n              <td node_id=\"", "\" class=\"clickable\" @click=\"", "\">", "</td>\n            </tr>\n          "]);
 
-  _templateObject3$4 = function _templateObject3() {
+  _templateObject3$5 = function _templateObject3() {
     return data;
   };
 
@@ -16644,7 +16997,7 @@ function _templateObject$6() {
 }
 var entityOccurrencesTemplate = (function (occurrences, onNodeNavigation) {
   return html$1(_templateObject$6(), occurrences && occurrences.length > 0 ? html$1(_templateObject2$6(), occurrences.map(function (occurrence) {
-    return html$1(_templateObject3$4(), occurrence.diagram_name, occurrence.id, onNodeNavigation, occurrence.id_xml);
+    return html$1(_templateObject3$5(), occurrence.diagram_name, occurrence.id, onNodeNavigation, occurrence.id_xml);
   })) : '');
 });
 
@@ -16678,30 +17031,30 @@ function _templateObject6$2() {
   return data;
 }
 
-function _templateObject5$3() {
+function _templateObject5$4() {
   var data = _taggedTemplateLiteral([""]);
 
-  _templateObject5$3 = function _templateObject5() {
+  _templateObject5$4 = function _templateObject5() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject4$3() {
+function _templateObject4$4() {
   var data = _taggedTemplateLiteral(["\n                <tr>\n                  <th>IRI</th>\n                  <td>", "</td>\n                </tr>\n                "]);
 
-  _templateObject4$3 = function _templateObject4() {
+  _templateObject4$4 = function _templateObject4() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject3$5() {
+function _templateObject3$6() {
   var data = _taggedTemplateLiteral(["\n            <div class=\"section\">\n              <table class=\"details_table\">\n                <tr>\n                  <th>Name</th>\n                  <td class=\"wiki\" @click=\"", "\">", "</td>\n                </tr>\n                <tr>\n                  <th>Type</th>\n                  <td>", "</td>\n                </tr>\n                ", "\n              </table>\n            </div>\n\n            <div class=\"chips-wrapper\">\n              ", "\n            </div>\n\n            ", "\n          "]);
 
-  _templateObject3$5 = function _templateObject3() {
+  _templateObject3$6 = function _templateObject3() {
     return data;
   };
 
@@ -16709,7 +17062,7 @@ function _templateObject3$5() {
 }
 
 function _templateObject2$7() {
-  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"Entity Details\" class=\"drag-handler\"></gscape-head>\n      <div class=\"widget-body\">\n        ", "\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"Entity Details\" left_icon=\"info\" class=\"drag-handler\"></gscape-head>\n      <div class=\"widget-body\">\n        ", "\n      </div>\n    "]);
 
   _templateObject2$7 = function _templateObject2() {
     return data;
@@ -16780,7 +17133,7 @@ var GscapeEntityDetails = /*#__PURE__*/function (_GscapeWidget) {
     value: function render() {
       var _this2 = this;
 
-      return html$1(_templateObject2$7(), this.entity ? html$1(_templateObject3$5(), this.wikiClickHandler, this.entity.iri.remaining_chars, this.entity.type, this.entity.type != 'individual' ? html$1(_templateObject4$3(), this.entity.iri.full_iri) : html$1(_templateObject5$3()), Object.keys(this.properties).map(function (property) {
+      return html$1(_templateObject2$7(), this.entity ? html$1(_templateObject3$6(), this.wikiClickHandler, this.entity.iri.remaining_chars, this.entity.type, this.entity.type != 'individual' ? html$1(_templateObject4$4(), this.entity.iri.full_iri) : html$1(_templateObject5$4()), Object.keys(this.properties).map(function (property) {
         return _this2.entity[property] ? html$1(_templateObject6$2(), _this2.properties[property]) : html$1(_templateObject7$2());
       }), annotationsTemplate(this.entity)) : html$1(_templateObject8$2()));
     }
@@ -16871,8 +17224,18 @@ var GscapeEntityDetails = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-entity-details', GscapeEntityDetails);
 
+function _templateObject3$7() {
+  var data = _taggedTemplateLiteral(["<span class=\"btn-label\">", "<span>"]);
+
+  _templateObject3$7 = function _templateObject3() {
+    return data;
+  };
+
+  return data;
+}
+
 function _templateObject2$8() {
-  var data = _taggedTemplateLiteral(["\n      <div\n        class=\"btn\"\n        ?active = \"", "\"\n        @click=\"", "\"\n        title=\"", "\">\n\n        <mwc-icon>", "</mwc-icon>\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      <div\n        class=\"btn\"\n        ?active = \"", "\"\n        @click=\"", "\"\n        title=\"", "\">\n\n        <mwc-icon>", "</mwc-icon>\n        ", "\n      </div>\n    "]);
 
   _templateObject2$8 = function _templateObject2() {
     return data;
@@ -16882,7 +17245,7 @@ function _templateObject2$8() {
 }
 
 function _templateObject$8() {
-  var data = _taggedTemplateLiteral(["\n\n        mwc-icon {\n          font-size: var(--gscape-button-font-size, 24px)\n        }\n\n        .btn {\n          padding:5px;\n          line-height:0;\n          cursor: pointer;\n        }\n\n        .btn:hover {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n\n        .btn[active] {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n      "]);
+  var data = _taggedTemplateLiteral(["\n\n        mwc-icon {\n          font-size: var(--gscape-button-font-size, 24px)\n        }\n\n        .btn {\n          padding:5px;\n          line-height:0;\n          cursor: pointer;\n          display: flex;\n          align-items: center;\n        }\n\n        .btn-label {\n          font-weight: var(--gscape-button-font-weight, 600);\n          padding: 0 5px 0 8px;\n        }\n\n        .btn:hover {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n\n        .btn[active] {\n          color: var(--theme-gscape-secondary, ", ");\n        }\n      "]);
 
   _templateObject$8 = function _templateObject() {
     return data;
@@ -16905,6 +17268,9 @@ var GscapeButton = /*#__PURE__*/function (_GscapeWidget) {
         },
         active: {
           type: Boolean
+        },
+        label: {
+          type: String
         }
       };
     }
@@ -16929,16 +17295,19 @@ var GscapeButton = /*#__PURE__*/function (_GscapeWidget) {
     _this.draggable = draggable;
     _this.icon = icon;
     _this.alternate_icon = alt_icon || icon;
-    _this.onClick = null;
+
+    _this.onClick = function () {};
+
     _this.highlight = false;
     _this.active = false;
+    _this.label = '';
     return _this;
   }
 
   _createClass(GscapeButton, [{
     key: "render",
     value: function render() {
-      return html$1(_templateObject2$8(), this.active, this.clickHandler, this.icon, this.icon);
+      return html$1(_templateObject2$8(), this.active, this.clickHandler, this.icon, this.icon, this.label ? html$1(_templateObject3$7(), this.label) : "");
     }
   }, {
     key: "clickHandler",
@@ -16992,30 +17361,30 @@ var GscapeButton = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-button', GscapeButton);
 
-function _templateObject5$4() {
+function _templateObject5$5() {
   var data = _taggedTemplateLiteral(["<span class=\"toggle-label\">", "</span>"]);
 
-  _templateObject5$4 = function _templateObject5() {
+  _templateObject5$5 = function _templateObject5() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject4$4() {
+function _templateObject4$5() {
   var data = _taggedTemplateLiteral([""]);
 
-  _templateObject4$4 = function _templateObject4() {
+  _templateObject4$5 = function _templateObject4() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject3$6() {
+function _templateObject3$8() {
   var data = _taggedTemplateLiteral([""]);
 
-  _templateObject3$6 = function _templateObject3() {
+  _templateObject3$8 = function _templateObject3() {
     return data;
   };
 
@@ -17100,7 +17469,7 @@ var GscapeToggle = /*#__PURE__*/function (_GscapeWidget) {
   _createClass(GscapeToggle, [{
     key: "render",
     value: function render() {
-      return html$1(_templateObject2$9(), this.label_pos == 'left' ? this.label_span : html$1(_templateObject3$6()), this.key, this.checked, this.disabled, this.clickHandler, this.label_pos == 'right' ? this.label_span : html$1(_templateObject4$4()));
+      return html$1(_templateObject2$9(), this.label_pos == 'left' ? this.label_span : html$1(_templateObject3$8()), this.key, this.checked, this.disabled, this.clickHandler, this.label_pos == 'right' ? this.label_span : html$1(_templateObject4$5()));
     }
   }, {
     key: "clickHandler",
@@ -17128,7 +17497,7 @@ var GscapeToggle = /*#__PURE__*/function (_GscapeWidget) {
   }, {
     key: "label_span",
     get: function get() {
-      return html$1(_templateObject5$4(), this.label);
+      return html$1(_templateObject5$5(), this.label);
     }
   }]);
 
@@ -17136,10 +17505,10 @@ var GscapeToggle = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-toggle', GscapeToggle);
 
-function _templateObject3$7() {
+function _templateObject3$9() {
   var data = _taggedTemplateLiteral(["\n              ", "\n            "]);
 
-  _templateObject3$7 = function _templateObject3() {
+  _templateObject3$9 = function _templateObject3() {
     return data;
   };
 
@@ -17157,7 +17526,7 @@ function _templateObject2$a() {
 }
 
 function _templateObject$a() {
-  var data = _taggedTemplateLiteral(["\n        :host {\n          bottom:10px;\n          left:10px;\n        }\n\n        gscape-button{\n          position: static;\n        }\n\n        gscape-toggle {\n          padding: 8px;\n        }\n\n        gscape-toggle[first]{\n          justify-content: center;\n          border-bottom: 1px solid #ccc;\n          margin-bottom: 10px;\n          padding: 10px;\n        }\n      "]);
+  var data = _taggedTemplateLiteral(["\n        :host {\n          display:inline-block;\n          position: initial;\n          margin-right:10px;\n        }\n\n        gscape-button{\n          position: static;\n        }\n\n        gscape-toggle {\n          padding: 8px;\n        }\n\n        gscape-toggle[first]{\n          justify-content: center;\n          border-bottom: 1px solid #ccc;\n          margin-bottom: 10px;\n          padding: 10px;\n        }\n      "]);
 
   _templateObject$a = function _templateObject() {
     return data;
@@ -17241,7 +17610,7 @@ var GscapeFilters = /*#__PURE__*/function (_GscapeWidget) {
         }
 
         toggle.label_pos = 'right';
-        return html$1(_templateObject3$7(), toggle);
+        return html$1(_templateObject3$9(), toggle);
       }));
     }
   }, {
@@ -17265,16 +17634,21 @@ var GscapeFilters = /*#__PURE__*/function (_GscapeWidget) {
       this.btn.active = is_activated;
       this.btn.requestUpdate();
     }
+  }, {
+    key: "show",
+    value: function show() {
+      if (this.isEnabled) this.style.display = 'inline-block';
+    }
   }]);
 
   return GscapeFilters;
 }(GscapeWidget);
 customElements.define('gscape-filters', GscapeFilters);
 
-function _templateObject3$8() {
+function _templateObject3$a() {
   var data = _taggedTemplateLiteral(["\n                    <tr>\n                      <th>", "</th>\n                      <td>", "</td>\n                    </tr>\n                  "]);
 
-  _templateObject3$8 = function _templateObject3() {
+  _templateObject3$a = function _templateObject3() {
     return data;
   };
 
@@ -17292,7 +17666,7 @@ function _templateObject2$b() {
 }
 
 function _templateObject$b() {
-  var data = _taggedTemplateLiteral(["\n        :host {\n          bottom:10px;\n          left:52px;\n        }\n\n        .gscape-panel {\n          padding-right: 0;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .iri-dict th.table-header{\n          text-align: center;\n          padding: 12px;\n          font-weight: bold;\n          border-right: 0;\n          color: var(--theme-gscape-on-primary, ", ");\n        }\n\n        .iri-dict th {\n          color: var(--theme-gscape-on-primary, ", ");\n          border-right: solid 1px var(--theme-gscape-shadows, ", ");\n          text-align: left;\n          font-weight: normal;\n        }\n\n        .wrapper {\n          overflow-y: auto;\n          scrollbar-width: inherit;\n          max-height: 420px;\n          overflow-x: hidden;\n          padding-right: 10px;\n        }\n\n        .section {\n          padding-left: 0;\n          padding-right: 0;\n        }\n      "]);
+  var data = _taggedTemplateLiteral(["\n        :host {\n          display:inline-block;\n          position: initial;\n          margin-right:10px;\n        }\n\n        .gscape-panel {\n          padding-right: 0;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .iri-dict th.table-header{\n          text-align: center;\n          padding: 12px;\n          font-weight: bold;\n          border-right: 0;\n          color: var(--theme-gscape-on-primary, ", ");\n        }\n\n        .iri-dict th {\n          color: var(--theme-gscape-on-primary, ", ");\n          border-right: solid 1px var(--theme-gscape-shadows, ", ");\n          text-align: left;\n          font-weight: normal;\n        }\n\n        .wrapper {\n          overflow-y: auto;\n          scrollbar-width: inherit;\n          max-height: 420px;\n          overflow-x: hidden;\n          padding-right: 10px;\n        }\n\n        .section {\n          padding-left: 0;\n          padding-right: 0;\n        }\n      "]);
 
   _templateObject$b = function _templateObject() {
     return data;
@@ -17334,7 +17708,7 @@ var GscapeOntologyInfo = /*#__PURE__*/function (_GscapeWidget) {
     value: function render() {
       return html$1(_templateObject2$b(), this.btn, this.ontology.name, this.ontology.version, annotationsTemplate(this.ontology), _toConsumableArray(this.ontology.namespaces).map(function (iri) {
         if (!iri.isStandard()) {
-          return html$1(_templateObject3$8(), iri.prefixes[0], iri.value);
+          return html$1(_templateObject3$a(), iri.prefixes[0], iri.value);
         }
       }));
     }
@@ -17358,14 +17732,30 @@ var GscapeOntologyInfo = /*#__PURE__*/function (_GscapeWidget) {
         });
       }
     }
+  }, {
+    key: "show",
+    value: function show() {
+      if (this.isEnabled) this.style.display = 'inline-block';
+    }
   }]);
 
   return GscapeOntologyInfo;
 }(GscapeWidget);
 customElements.define('gscape-ontology-info', GscapeOntologyInfo);
 
+function _templateObject$c() {
+  var data = _taggedTemplateLiteral(["<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\nstyle=\"height: 20px; width: auto; padding: 2px;\" aria-hidden=\"true\" focusable=\"false\" style=\"-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 24 24\"><path d=\"M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z\" fill=\"currentColor\"/></svg>"]);
+
+  _templateObject$c = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+var owl_icon = html$1(_templateObject$c());
+
 function _templateObject2$c() {
-  var data = _taggedTemplateLiteral(["\n      <div class=\"widget-body\">\n        <div class=\"owl-text\"></div>\n      </div>\n      <gscape-head title=\"Owl Translation\"></gscape-head>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      <div class=\"widget-body\">\n        <div class=\"owl-text\"></div>\n      </div>\n      ", "\n    "]);
 
   _templateObject2$c = function _templateObject2() {
     return data;
@@ -17374,10 +17764,10 @@ function _templateObject2$c() {
   return data;
 }
 
-function _templateObject$c() {
-  var data = _taggedTemplateLiteral(["\n        :host {\n          left:50%;\n          bottom:10px;\n          transform: translate(-50%, 0);\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        .owl-text {\n          padding: 15px 10px;\n          font-family: \"Lucida Console\", Monaco, monospace;\n          overflow: auto;\n          white-space: nowrap;\n          line-height: 1.5;\n        }\n\n        .owl_concept{\n          color: #b58900;\n        }\n\n        .owl_role{\n          color: #268bd2;\n        }\n\n        .owl_attribute{\n          color: #859900;\n        }\n\n        .owl_value-domain{\n          color: #2aa198;\n        }\n\n        .owl_individual{\n          color: #6c71c4;\n        }\n\n        .owl_value {\n          color: #d33682;\n        }\n\n        .axiom_predicate_prefix{\n          color:#cb4b16;\n        }\n\n        .owl_error {\n          color: var(--theme-gscape-error, ", ");\n        }\n\n        .axiom_predefinite_obj {\n          color: #00c0a0;\n        }\n\n      "]);
+function _templateObject$d() {
+  var data = _taggedTemplateLiteral(["\n        :host {\n          left:50%;\n          bottom:10px;\n          transform: translate(-50%, 0);\n          max-width:60%;\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        .owl-text {\n          padding: 15px 10px;\n          font-family: \"Lucida Console\", Monaco, monospace;\n          overflow: auto;\n          white-space: nowrap;\n          line-height: 1.5;\n        }\n\n        .owl_concept{\n          color: #b58900;\n        }\n\n        .owl_role{\n          color: #268bd2;\n        }\n\n        .owl_attribute{\n          color: #859900;\n        }\n\n        .owl_value-domain{\n          color: #2aa198;\n        }\n\n        .owl_individual{\n          color: #6c71c4;\n        }\n\n        .owl_value {\n          color: #d33682;\n        }\n\n        .axiom_predicate_prefix{\n          color:#cb4b16;\n        }\n\n        .owl_error {\n          color: var(--theme-gscape-error, ", ");\n        }\n\n        .axiom_predefinite_obj {\n          color: #00c0a0;\n        }\n\n      "]);
 
-  _templateObject$c = function _templateObject() {
+  _templateObject$d = function _templateObject() {
     return data;
   };
 
@@ -17402,7 +17792,7 @@ var GscapeOwlTranslator = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeOwlTranslator), "styles", this);
 
       var colors = super_styles[1];
-      return [_get(_getPrototypeOf(GscapeOwlTranslator), "styles", this)[0], css(_templateObject$c(), colors.shadows, colors.error)];
+      return [_get(_getPrototypeOf(GscapeOwlTranslator), "styles", this)[0], css(_templateObject$d(), colors.shadows, colors.error)];
     }
   }]);
 
@@ -17415,13 +17805,16 @@ var GscapeOwlTranslator = /*#__PURE__*/function (_GscapeWidget) {
     _this.collapsible = true;
     _this.hiddenDefault = true;
     _this.owl_text = '';
+    _this.header = new GscapeHeader();
+    _this.header.title = 'Owl Translation';
+    _this.header.left_icon = owl_icon;
     return _this;
   }
 
   _createClass(GscapeOwlTranslator, [{
     key: "render",
     value: function render() {
-      return html$1(_templateObject2$c());
+      return html$1(_templateObject2$c(), this.header);
     }
   }, {
     key: "updated",
@@ -17450,10 +17843,10 @@ function _templateObject2$d() {
   return data;
 }
 
-function _templateObject$d() {
+function _templateObject$e() {
   var data = _taggedTemplateLiteral(["\n        :host {\n          position: absolute;\n          bottom:52px;\n          right:10px;\n        }\n\n        gscape-button{\n          position: static;\n          box-shadow: initial;\n        }\n\n        #hr {\n          height:1px;\n          width:90%;\n          margin: 2px auto 0 auto;\n          background-color: var(--theme-gscape-shadows, ", ")\n        }\n\n      "]);
 
-  _templateObject$d = function _templateObject() {
+  _templateObject$e = function _templateObject() {
     return data;
   };
 
@@ -17471,7 +17864,7 @@ var GscapeZoomTools = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeZoomTools), "styles", this);
 
       var colors = super_styles[1];
-      return [super_styles[0], css(_templateObject$d(), colors.shadows)];
+      return [super_styles[0], css(_templateObject$e(), colors.shadows)];
     }
   }]);
 
@@ -17846,6 +18239,21 @@ var GrapholscapeRenderer = /*#__PURE__*/function () {
       _this.cy.container().style.cursor = 'inherit';
     });
   }
+  /**
+   * WHY NOT USING cy.mount(container)??
+   * because it causes a problem with float renderer.
+   * In particular at the second time this.mount() will be
+   * called, the layout will stop working, something happens internally
+   * breaking the layout.
+   *
+   * WHY SWITCHING FROM display:none TO position:absolute??
+   * display:none will cause the container having clientHeight(Width) = 0
+   * and cytoscpae uses those values to perform the fit().
+   * This will cause problems when switching renderers cause in some
+   * cases fit() will be automatically called on the container having
+   *  zero asdimensions
+   */
+
 
   _createClass(GrapholscapeRenderer, [{
     key: "mount",
@@ -18098,6 +18506,8 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
   _createClass(FloatingGscapeRenderer, [{
     key: "drawDiagram",
     value: function drawDiagram(diagram) {
+      var _this2 = this;
+
       this.clearPoppers();
 
       _get(_getPrototypeOf(FloatingGscapeRenderer.prototype), "drawDiagram", this).call(this, diagram);
@@ -18106,11 +18516,20 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
       this.main_layout = this.layout(); // apply layout on those not locked
 
       this.main_layout.run();
+      /**
+       * hack: let layout run a bit and fit to it.
+       * Prevent some diagrams to disappear from screen due to
+       * automatic layout.
+       */
+
+      setTimeout(function () {
+        return _this2.cy.fit();
+      }, 100);
     }
   }, {
     key: "centerOnNode",
     value: function centerOnNode(node_id, zoom) {
-      var _this2 = this;
+      var _this3 = this;
 
       var node = this.cy.$id(node_id);
 
@@ -18120,13 +18539,13 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
         if (node.data('type') == 'role') {
           var elems = node.connectedNodes();
           setTimeout(function () {
-            return _this2.cy.fit(elems);
+            return _this3.cy.fit(elems);
           }, 300);
           node.select();
           elems.select();
         } else {
           setTimeout(function () {
-            return _this2.centerOnPosition(node.position('x'), node.position('y'), zoom);
+            return _this3.centerOnPosition(node.position('x'), node.position('y'), zoom);
           }, 300);
           node.select();
         }
@@ -18141,42 +18560,45 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
   }, {
     key: "unlockNode",
     value: function unlockNode(node) {
-      node.unlockButton.destroy();
+      this.removeUnlockButton(node);
       node.unlock();
     }
   }, {
     key: "lockNode",
     value: function lockNode(node) {
-      var _this3 = this;
+      var _this4 = this;
 
       node.lock();
       var unlockButton = node.popper({
         content: function content() {
-          var dimension = node.data('width') / 9 * _this3.cy.zoom();
+          var dimension = node.data('width') / 9 * _this4.cy.zoom();
 
           var div = document.createElement('div');
           div.style.background = node.style('border-color');
           div.style.borderRadius = '100%';
           div.style.padding = '5px';
-          div.style.color = _this3.theme.on_secondary;
+          div.style.color = _this4.theme.on_secondary;
           div.style.cursor = 'pointer';
           div.setAttribute('title', 'Unlock Node');
           div.innerHTML = "<mwc-icon>lock_open</mwc_icon>";
           setStyle(dimension, div);
 
           div.onclick = function () {
-            return _this3.unlockNode(node);
+            return _this4.unlockNode(node);
           };
 
-          document.body.appendChild(div);
-          return div;
-        } //popper: {} // my popper options here
+          _this4.cy.container().appendChild(div);
 
+          return div;
+        },
+        popper: {
+          removeOnDestroy: true
+        }
       });
       node.unlockButton = unlockButton;
 
       var update = function update() {
-        var dimension = node.data('width') / 9 * _this3.cy.zoom();
+        var dimension = node.data('width') / 9 * _this4.cy.zoom();
 
         setStyle(dimension, unlockButton.popper);
         unlockButton.scheduleUpdate();
@@ -18208,16 +18630,26 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
   }, {
     key: "clearPoppers",
     value: function clearPoppers() {
+      var _this5 = this;
+
       this.cy.nodes().each(function (node) {
-        if (node.unlockButton) node.unlockButton.destroy();
+        return _this5.removeUnlockButton(node);
       });
     }
   }, {
     key: "unmount",
     value: function unmount() {
-      _get(_getPrototypeOf(FloatingGscapeRenderer.prototype), "unmount", this).call(this);
-
       this.clearPoppers();
+
+      _get(_getPrototypeOf(FloatingGscapeRenderer.prototype), "unmount", this).call(this);
+    }
+  }, {
+    key: "removeUnlockButton",
+    value: function removeUnlockButton(node) {
+      if (node.unlockButton) {
+        node.unlockButton.destroy();
+        node.unlockButton = null;
+      }
     }
   }, {
     key: "layout_settings",
@@ -18253,11 +18685,11 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
   }, {
     key: "dragAndPin",
     set: function set(active) {
-      var _this4 = this;
+      var _this6 = this;
 
       this._dragAndPin = active;
       if (!active) this.cy.$(':locked').each(function (node) {
-        return _this4.unlockNode(node);
+        return _this6.unlockNode(node);
       });
     },
     get: function get() {
@@ -18268,31 +18700,41 @@ var FloatingGscapeRenderer = /*#__PURE__*/function (_GrapholscapeRenderer) {
   return FloatingGscapeRenderer;
 }(GrapholscapeRenderer);
 
-function _templateObject$e() {
-  var data = _taggedTemplateLiteral(["<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n  viewBox=\"0 0 12 12\" fill=\"currentColor\" xml:space=\"preserve\">\n<path id=\"path847\" d=\"M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1\n c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7\n C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5\n c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6\n L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2\n c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z\"/>\n</svg>"]);
+function _templateObject$f() {
+  var data = _taggedTemplateLiteral(["<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n  viewBox=\"0 0 12 12\" fill=\"currentColor\" xml:space=\"preserve\" style=\"height: 20px; width: auto; padding: 2px;\">\n<path id=\"path847\" d=\"M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1\n c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7\n C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5\n c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6\n L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2\n c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z\"/>\n</svg>"]);
 
-  _templateObject$e = function _templateObject() {
+  _templateObject$f = function _templateObject() {
     return data;
   };
 
   return data;
 }
-var graphol = html$1(_templateObject$e());
+var graphol_logo = html$1(_templateObject$f());
 
-function _templateObject4$5() {
-  var data = _taggedTemplateLiteral(["<mwc-icon>", "</mwc-icon>"]);
+function _templateObject5$6() {
+  var data = _taggedTemplateLiteral(["\n          <mwc-icon-button icon=\"", "\"></mwc-icon-button>\n        "]);
 
-  _templateObject4$5 = function _templateObject4() {
+  _templateObject5$6 = function _templateObject5() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject3$9() {
-  var data = _taggedTemplateLiteral(["\n        <div\n          @click=\"", "\"\n          mode=\"", "\"\n          class=\"renderer-item ", "\"\n        >\n        ", "\n        <span>", "</span>\n        </div>\n        "]);
+function _templateObject4$6() {
+  var data = _taggedTemplateLiteral(["\n          <mwc-icon-button>", "</mwc-icon-button>"]);
 
-  _templateObject3$9 = function _templateObject3() {
+  _templateObject4$6 = function _templateObject4() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject3$b() {
+  var data = _taggedTemplateLiteral(["\n        <div\n          @click=\"", "\"\n          mode=\"", "\"\n          class=\"renderer-item ", "\"\n        >\n        ", "\n        <span class=\"name\">", "</span>\n        </div>\n        "]);
+
+  _templateObject3$b = function _templateObject3() {
     return data;
   };
 
@@ -18300,7 +18742,7 @@ function _templateObject3$9() {
 }
 
 function _templateObject2$e() {
-  var data = _taggedTemplateLiteral(["\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n\n      <gscape-head title=", "></gscape-head>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      <div class=\"widget-body hide\">\n        ", "\n      </div>\n\n     ", "\n    "]);
 
   _templateObject2$e = function _templateObject2() {
     return data;
@@ -18309,10 +18751,10 @@ function _templateObject2$e() {
   return data;
 }
 
-function _templateObject$f() {
-  var data = _taggedTemplateLiteral(["\n        :host {\n          bottom:10px;\n          left: 136px;\n        }\n\n        .renderer-item {\n          cursor:pointer;\n          padding:5px 10px;\n          display: flex;\n          align-items: center;\n        }\n\n        .renderer-item:hover {\n          color: var(--theme-gscape-on-secondary, ", ");\n          background-color:var(--theme-gscape-secondary, ", ");\n        }\n\n        .renderer-item:first-of-type {\n          border-top-left-radius: inherit;\n          border-top-right-radius: inherit;\n        }\n\n        .selected {\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          color: var(--theme-gscape-on-primary-dark, ", ");\n          font-weight: bold;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-radius: inherit;\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        gscape-head {\n          --header-padding: 5px 8px;\n        }\n\n        mwc-icon {\n          padding-right:8px;\n        }\n\n        svg {\n          height: 20px;\n          width: auto;\n          padding: 2px;\n          margin-right:8px;\n        }\n      "]);
+function _templateObject$g() {
+  var data = _taggedTemplateLiteral(["\n        :host {\n          display:inline-block;\n          position:initial;\n          margin-right:10px;\n        }\n\n        .renderer-item {\n          cursor:pointer;\n          padding:5px 10px;\n          display: flex;\n          align-items: center;\n        }\n\n        .renderer-item:hover {\n          color: var(--theme-gscape-on-secondary, ", ");\n          background-color:var(--theme-gscape-secondary, ", ");\n        }\n\n        .renderer-item:first-of-type {\n          border-top-left-radius: inherit;\n          border-top-right-radius: inherit;\n        }\n\n        .renderer-item > .name {\n          padding:0 10px;\n        }\n\n        .selected {\n          background-color: var(--theme-gscape-primary-dark, ", ");\n          color: var(--theme-gscape-on-primary-dark, ", ");\n          font-weight: bold;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-radius: inherit;\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        gscape-head {\n          --header-padding: 5px 8px;\n        }\n\n        svg {\n          margin-right:8px;\n        }\n      "]);
 
-  _templateObject$f = function _templateObject() {
+  _templateObject$g = function _templateObject() {
     return data;
   };
 
@@ -18339,7 +18781,7 @@ var GscapeRenderSelector = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeRenderSelector), "styles", this);
 
       var colors = super_styles[1];
-      return [super_styles[0], css(_templateObject$f(), colors.on_secondary, colors.secondary, colors.primary_dark, colors.on_primary_dark, colors.shadows)];
+      return [super_styles[0], css(_templateObject$g(), colors.on_secondary, colors.secondary, colors.primary_dark, colors.on_primary_dark, colors.shadows)];
     }
   }]);
 
@@ -18354,7 +18796,7 @@ var GscapeRenderSelector = /*#__PURE__*/function (_GscapeWidget) {
     _this.dict = {
       "default": {
         name: "Graphol",
-        icon: ""
+        icon: graphol_logo
       },
       lite: {
         name: "Graphol-Lite",
@@ -18367,6 +18809,9 @@ var GscapeRenderSelector = /*#__PURE__*/function (_GscapeWidget) {
     };
     _this.actual_mode = 'default';
     _this._onRendererChange = {};
+    _this.header = new GscapeHeader();
+    _this.header.title = _this.dict[_this.actual_mode].name;
+    _this.header.left_icon = _this.dict[_this.actual_mode].icon;
     return _this;
   }
 
@@ -18376,8 +18821,8 @@ var GscapeRenderSelector = /*#__PURE__*/function (_GscapeWidget) {
       var _this2 = this;
 
       return html$1(_templateObject2$e(), Object.keys(this.renderers).map(function (mode) {
-        return html$1(_templateObject3$9(), _this2.changeRenderer, mode, mode == _this2.actual_mode ? "selected" : "", mode == 'default' ? graphol : html$1(_templateObject4$5(), _this2.dict[mode].icon), _this2.dict[mode].name);
-      }), this.dict[this.actual_mode].name);
+        return html$1(_templateObject3$b(), _this2.changeRenderer, mode, mode == _this2.actual_mode ? "selected" : "", _this2.isCustomIcon(_this2.dict[mode].icon) ? html$1(_templateObject4$6(), _this2.dict[mode].icon) : html$1(_templateObject5$6(), _this2.dict[mode].icon), _this2.dict[mode].name);
+      }), this.header);
     }
   }, {
     key: "changeRenderer",
@@ -18387,6 +18832,7 @@ var GscapeRenderSelector = /*#__PURE__*/function (_GscapeWidget) {
       target.classList.add('selected');
       var mode = target.getAttribute('mode');
       this.header.title = this.dict[mode].name;
+      this.header.left_icon = this.dict[mode].icon;
       this.actual_mode = mode;
 
       this._onRendererChange(mode);
@@ -18398,6 +18844,11 @@ var GscapeRenderSelector = /*#__PURE__*/function (_GscapeWidget) {
 
 
       this.header.invertIcons();
+    }
+  }, {
+    key: "show",
+    value: function show() {
+      if (this.isEnabled) this.style.display = 'inline-block';
     }
   }, {
     key: "onRendererChange",
@@ -18420,10 +18871,10 @@ function _templateObject2$f() {
   return data;
 }
 
-function _templateObject$g() {
+function _templateObject$h() {
   var data = _taggedTemplateLiteral(["\n        :host {\n          left: 50%;\n          bottom: 10px;\n          transform: translate(-50%, 0);\n        }\n\n        gscape-head span {\n          display: flex;\n        }\n\n        .widget-body {\n          margin:0;\n          border-top: none;\n          border-bottom: 1px solid var(--theme-gscape-shadows, ", ");\n          border-radius: inherit;\n          border-bottom-left-radius:0;\n          border-bottom-right-radius:0;\n        }\n\n        gscape-head {\n          --header-padding: 5px 8px;\n          --title-padding: 0 30px 0 0;\n          --btn-padding: 0 0 0 10px;\n        }\n\n        gscape-toggle {\n          margin-left: 50px;\n        }\n\n        .wrapper {\n          display:flex;\n          align-items: center;\n          justify-content: space-between;\n          padding: 8px;\n        }\n\n        .title {\n          padding: 0 5px 0 0;\n          font-weight:bold;\n        }\n\n        .toggles-wrapper {\n          display: flex;\n        }\n      "]);
 
-  _templateObject$g = function _templateObject() {
+  _templateObject$h = function _templateObject() {
     return data;
   };
 
@@ -18446,7 +18897,7 @@ var GscapeLayoutSettings = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeLayoutSettings), "styles", this);
 
       var colors = super_styles[1];
-      return [super_styles[0], css(_templateObject$g(), colors.shadows)];
+      return [super_styles[0], css(_templateObject$h(), colors.shadows)];
     }
   }]);
 
@@ -18473,16 +18924,16 @@ var GscapeLayoutSettings = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-layout-settings', GscapeLayoutSettings);
 
-function _templateObject$h() {
+function _templateObject$i() {
   var data = _taggedTemplateLiteral(["<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" id=\"Livello_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n\t viewBox=\"0 0 1024 792.6\" style=\"enable-background:new 0 0 1024 792.6;\" xml:space=\"preserve\">\n<style type=\"text/css\">\n\t.st0{fill:url(#SVGID_1_);}\n\t.st1{fill:#FFFFFF;}\n\t.st2{enable-background:new    ;}\n\t.st3{fill:url(#SVGID_2_);}\n</style>\n<g>\n\t<g id=\"Logo\">\n\n\t\t\t<radialGradient id=\"SVGID_1_\" cx=\"502.1\" cy=\"894.61\" r=\"662.91\" gradientTransform=\"matrix(1 0 0 1 12.76 -283.3)\" gradientUnits=\"userSpaceOnUse\">\n\t\t\t<stop  offset=\"0\" style=\"stop-color:#5B86E5\"/>\n\t\t\t<stop  offset=\"0.34\" style=\"stop-color:#509CE2\"/>\n\t\t\t<stop  offset=\"1\" style=\"stop-color:#36D1DC\"/>\n\t\t</radialGradient>\n\t\t<path class=\"st0\" d=\"M512,506c-138.1,0-250-111.9-250-250c0-66.3,26.3-129.9,73.2-176.8c97.6-97.6,256-97.6,353.6,0\n\t\t\ts97.6,256,0,353.6C642,479.8,578.3,506.2,512,506z\"/>\n\t\t<path class=\"st1\" d=\"M512,11.9c134.8,0,244.1,109.3,244.1,244.2c0,98.1-58.7,186.6-149.1,224.8c-124.2,52.5-267.4-5.7-319.9-129.9\n\t\t\tS292.8,83.6,417,31.1C447.1,18.4,479.4,11.9,512,11.9 M512,0C370.6,0,256,114.6,256,256s114.6,256,256,256s256-114.6,256-256\n\t\t\tS653.4,0,512,0z\"/>\n\t\t<path class=\"st1\" d=\"M513.6,432c-12.4,0-24.4-4.9-33.1-13.7L344.1,282c-18.3-18.3-18.3-48,0-66.3L513.6,46.2l40.3,40.3\n\t\t\tL391.6,248.8l122,122l122-122L594.7,208l-81.2,81.1l-40.3-40.3l88.3-88.3c18.3-18.3,48-18.3,66.3,0l55.2,55.2\n\t\t\tc18.3,18.3,18.3,48,0,66.3L546.7,418.3C537.9,427.1,526,432,513.6,432z\"/>\n\t\t<g class=\"st2\">\n\t\t\t<path d=\"M83,594.8c5.3,0,10.2,0.3,14.7,0.8s8.9,1.3,13.1,2.2c4.2,1,8.2,2.1,12.1,3.5s7.9,2.9,11.9,4.5v12.6\n\t\t\t\tc-3.2-2-6.5-3.9-10.1-5.7s-7.4-3.3-11.6-4.7c-4.1-1.3-8.6-2.4-13.3-3.2c-4.7-0.8-9.8-1.2-15.3-1.2c-11.1,0-20.8,1.2-29.1,3.5\n\t\t\t\ts-15.2,5.7-20.6,10c-5.5,4.3-9.6,9.6-12.4,15.8c-2.7,6.2-4.1,13.2-4.1,21c0,7.3,1.3,14,4,20.1s6.8,11.4,12.2,15.8\n\t\t\t\tc5.5,4.4,12.3,7.9,20.5,10.4s17.8,3.7,28.9,3.7c4.3,0,8.6-0.2,12.9-0.5c4.2-0.3,8.3-0.8,12-1.3c3.8-0.5,7.2-1.1,10.3-1.7\n\t\t\t\tc3.1-0.6,5.7-1.3,7.9-2V664H80.7v-9.7h56.9v50.3c-4.1,1.4-8.3,2.7-12.4,3.8c-4.2,1.1-8.5,2-13,2.8c-4.5,0.7-9.1,1.3-13.9,1.7\n\t\t\t\ts-9.8,0.6-15.1,0.6c-10.8,0-20.7-1.2-30-3.6c-9.2-2.4-17.2-6.1-23.9-11s-12-11.1-15.9-18.5c-3.8-7.4-5.7-16.2-5.7-26.2\n\t\t\t\tc0-6.7,0.9-12.8,2.7-18.3s4.3-10.5,7.5-14.9s7.2-8.3,11.7-11.5c4.6-3.3,9.7-6,15.2-8.1c5.6-2.1,11.6-3.7,18-4.8\n\t\t\t\tC69.3,595.3,76,594.8,83,594.8z\"/>\n\t\t\t<path d=\"M181.2,662.2v48.9h-10.4V596.8h56.9c8.7,0,16.2,0.7,22.4,2c6.2,1.4,11.3,3.4,15.3,6.2c4,2.7,6.9,6.2,8.7,10.3\n\t\t\t\tc1.8,4.1,2.7,8.9,2.7,14.4c0,8.5-2.2,15.4-6.7,20.5s-11.7,8.6-21.7,10.5l39,50.4h-13.1l-36.9-49.3c-1.6,0.1-3.1,0.2-4.7,0.2\n\t\t\t\tc-1.6,0.1-3.3,0.1-5,0.1L181.2,662.2L181.2,662.2z M266.1,629.7c0-4.9-0.9-8.8-2.6-11.9c-1.7-3-4.5-5.4-8.4-7s-9-2.8-15.3-3.4\n\t\t\t\tc-6.3-0.6-14-0.9-23.2-0.9h-35.5v45.9h35.1c9.2,0,16.9-0.3,23.2-0.8s11.5-1.6,15.4-3.2c3.9-1.6,6.8-3.9,8.5-6.9\n\t\t\t\tC265.3,638.6,266.1,634.6,266.1,629.7z\"/>\n\t\t\t<path d=\"M417.4,711.2L401.7,681h-77.6l-15.7,30.2H297l59.8-114.3H369l59.8,114.3H417.4z M362.9,606.9l-33.8,64.6h67.5\n\t\t\t\tL362.9,606.9z\"/>\n\t\t\t<path d=\"M562.8,632c0,5.7-0.9,10.8-2.8,15.1c-1.9,4.4-4.8,8.1-8.8,11.1s-9.1,5.3-15.4,6.8c-6.3,1.5-13.9,2.3-22.8,2.3h-51.3v43.9\n\t\t\t\th-10.4V596.8H513c8.9,0,16.5,0.8,22.8,2.3s11.4,3.8,15.4,6.7s6.9,6.6,8.8,11C561.8,621.2,562.8,626.2,562.8,632z M552.1,632\n\t\t\t\tc0-5.4-0.9-9.8-2.7-13.1s-4.6-5.9-8.3-7.7s-8.5-3-14.2-3.6s-12.6-0.9-20.4-0.9h-44.7v50.9h44.7c3.1,0,6.3,0,9.8,0\n\t\t\t\ts6.9-0.1,10.3-0.5c3.4-0.4,6.6-1,9.7-1.9s5.8-2.3,8.2-4.2s4.2-4.4,5.7-7.4C551.4,640.5,552.1,636.6,552.1,632z\"/>\n\t\t\t<path d=\"M703.6,711.2v-55.6H601.2v55.6h-10.4V596.8h10.4v49.3h102.4v-49.3H714v114.3h-10.4V711.2z\"/>\n\t\t\t<path d=\"M889.7,654.1c0,10.3-1.9,19.1-5.6,26.6c-3.7,7.5-8.8,13.6-15.3,18.5s-14.1,8.4-23,10.8s-18.3,3.5-28.5,3.5\n\t\t\t\tc-10.3,0-19.8-1.2-28.7-3.5s-16.6-5.9-23.1-10.8c-6.5-4.9-11.7-11-15.4-18.5s-5.6-16.3-5.6-26.6c0-6.8,0.9-13,2.6-18.6\n\t\t\t\tc1.7-5.6,4.1-10.6,7.2-15c3.1-4.4,6.9-8.2,11.3-11.4c4.4-3.2,9.3-5.9,14.7-8s11.2-3.7,17.4-4.7s12.7-1.5,19.5-1.5\n\t\t\t\tc10.2,0,19.7,1.2,28.5,3.5s16.5,5.9,23,10.8c6.5,4.9,11.6,11,15.3,18.5C887.8,635,889.7,643.8,889.7,654.1z M879,654.1\n\t\t\t\tc0-8.1-1.3-15.3-4-21.5c-2.6-6.2-6.5-11.4-11.7-15.7c-5.2-4.2-11.6-7.5-19.3-9.7s-16.6-3.3-26.8-3.3s-19.1,1.1-26.9,3.3\n\t\t\t\tc-7.7,2.2-14.2,5.5-19.4,9.7s-9.2,9.5-11.8,15.7s-4,13.4-4,21.3c0,8.1,1.3,15.3,4,21.5s6.6,11.4,11.8,15.7\n\t\t\t\tc5.2,4.2,11.7,7.5,19.4,9.7s16.7,3.3,26.9,3.3s19.1-1.1,26.8-3.3s14.1-5.4,19.3-9.7c5.2-4.2,9.1-9.5,11.7-15.7\n\t\t\t\tC877.7,669.3,879,662.2,879,654.1z\"/>\n\t\t\t<path d=\"M920.2,711.2V596.8h10.4v104.6h83.5v9.7h-93.9V711.2z\"/>\n\t\t</g>\n\n\t\t\t<radialGradient id=\"SVGID_2_\" cx=\"513.05\" cy=\"1101.48\" r=\"466.86\" gradientTransform=\"matrix(1 0 0 1 0 -286)\" gradientUnits=\"userSpaceOnUse\">\n\t\t\t<stop  offset=\"0\" style=\"stop-color:#5B86E5\"/>\n\t\t\t<stop  offset=\"0.34\" style=\"stop-color:#509CE2\"/>\n\t\t\t<stop  offset=\"1\" style=\"stop-color:#36D1DC\"/>\n\t\t</radialGradient>\n\t\t<path class=\"st3\" d=\"M389.9,700.8h244.3c16.8,0,30.4,13.6,30.4,30.4v27.4c0,16.8-13.6,30.4-30.4,30.4H389.9\n\t\t\tc-16.8,0-30.4-13.6-30.4-30.4v-27.4C359.4,714.4,373,700.8,389.9,700.8L389.9,700.8L389.9,700.8z\"/>\n\t\t<path class=\"st1\" d=\"M634.2,704.3c14.8,0,26.8,12,26.8,26.9v27.4c0,14.8-12,26.9-26.9,26.9l0,0H389.9c-14.8,0-26.9-12-26.9-26.9\n\t\t\tv-27.4c0-14.8,12-26.9,26.9-26.9l0,0H634.2 M634.2,697.2H389.9c-18.8,0-34,15.2-34,34v27.4c0,18.8,15.2,34,34,34h244.3\n\t\t\tc18.8,0,34-15.2,34-34v-27.4C668.2,712.4,652.9,697.2,634.2,697.2L634.2,697.2z\"/>\n\t\t<g class=\"st2\">\n\t\t\t<path class=\"st1\" d=\"M385,764.8c-3.7-0.9-6.6-2-8.6-3.3l3-4c2.1,1.2,4.7,2.2,7.8,3c3.1,0.8,6.4,1.2,9.8,1.2\n\t\t\t\tc4.5,0,7.9-0.5,10.1-1.6c2.2-1.1,3.3-2.6,3.3-4.5c0-1.4-0.6-2.4-1.8-3.2c-1.2-0.8-2.7-1.4-4.5-1.8c-1.8-0.4-4.2-0.8-7.3-1.2\n\t\t\t\tc-4-0.6-7.3-1.1-9.7-1.7c-2.5-0.6-4.5-1.6-6.3-3c-1.7-1.4-2.6-3.4-2.6-5.9c0-3.1,1.7-5.7,5.2-7.7c3.5-2,8.3-3,14.4-3\n\t\t\t\tc3.2,0,6.4,0.3,9.6,1c3.2,0.6,5.9,1.5,7.9,2.5l-2.9,4c-4.1-2.1-9-3.2-14.6-3.2c-4.3,0-7.5,0.6-9.7,1.7c-2.2,1.1-3.3,2.6-3.3,4.5\n\t\t\t\tc0,1.4,0.6,2.6,1.8,3.4c1.2,0.9,2.8,1.5,4.6,1.9c1.8,0.4,4.3,0.8,7.6,1.2c4,0.6,7.1,1.1,9.5,1.7c2.4,0.6,4.4,1.5,6.1,2.9\n\t\t\t\ts2.5,3.3,2.5,5.7c0,3.3-1.8,5.9-5.4,7.8c-3.6,1.9-8.6,2.9-15.1,2.9C392.6,766.1,388.7,765.7,385,764.8z\"/>\n\t\t\t<path class=\"st1\" d=\"M436.9,763.7c-3.9-1.6-6.9-3.9-9.1-6.8c-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.3-9.8\n\t\t\t\tc2.2-2.9,5.2-5.1,9.1-6.7c3.9-1.6,8.3-2.4,13.2-2.4c4.3,0,8.1,0.6,11.5,1.9c3.4,1.3,6,3.1,8,5.5l-5,2.6c-1.6-1.8-3.7-3.2-6.2-4.2\n\t\t\t\tc-2.5-0.9-5.3-1.4-8.2-1.4c-3.6,0-6.8,0.6-9.7,1.8c-2.9,1.2-5.1,2.9-6.7,5.1s-2.4,4.8-2.4,7.6c0,2.9,0.8,5.4,2.4,7.6\n\t\t\t\tc1.6,2.2,3.8,3.9,6.7,5.1c2.9,1.2,6.1,1.8,9.7,1.8c3,0,5.7-0.4,8.2-1.3c2.5-0.9,4.6-2.3,6.2-4.1l5,2.6c-2,2.4-4.6,4.2-8,5.5\n\t\t\t\tc-3.4,1.3-7.2,1.9-11.4,1.9C445.1,766.1,440.7,765.3,436.9,763.7z\"/>\n\t\t\t<path class=\"st1\" d=\"M514.9,731.8c3.5,2.4,5.2,6,5.2,10.8v23.1h-6.4v-5.8c-1.5,1.9-3.7,3.5-6.7,4.5c-2.9,1.1-6.4,1.6-10.4,1.6\n\t\t\t\tc-5.5,0-9.9-1-13.2-3c-3.3-2-4.9-4.6-4.9-7.9c0-3.2,1.5-5.7,4.6-7.7c3.1-1.9,7.9-2.9,14.6-2.9h15.8v-2.3c0-3.2-1.2-5.7-3.6-7.3\n\t\t\t\tc-2.4-1.7-5.9-2.5-10.5-2.5c-3.1,0-6.2,0.4-9.1,1.2c-2.9,0.8-5.4,1.9-7.5,3.2l-3-3.8c2.5-1.6,5.5-2.9,9.1-3.7\n\t\t\t\tc3.5-0.9,7.2-1.3,11.1-1.3C506.5,728.1,511.5,729.3,514.9,731.8z M507.4,760.2c2.7-1.3,4.7-3.2,6-5.6v-6.1h-15.6\n\t\t\t\tc-8.5,0-12.7,2.2-12.7,6.7c0,2.2,1.1,3.9,3.3,5.1c2.2,1.3,5.3,1.9,9.3,1.9C501.4,762.1,504.7,761.5,507.4,760.2z\"/>\n\t\t\t<path class=\"st1\" d=\"M576.6,730.5c3.8,1.6,6.7,3.8,8.9,6.7c2.1,2.9,3.2,6.2,3.2,9.9c0,3.7-1.1,7.1-3.2,9.9\n\t\t\t\tc-2.1,2.9-5.1,5.1-8.8,6.7c-3.7,1.6-8,2.4-12.7,2.4c-4,0-7.7-0.6-10.9-1.9c-3.2-1.3-5.9-3.1-8-5.5v20.8h-6.7v-51.1h6.4v7.4\n\t\t\t\tc2-2.5,4.7-4.4,8-5.7s7-2,11.2-2C568.6,728.1,572.8,728.9,576.6,730.5z M572.9,759.8c2.8-1.2,5.1-2.9,6.7-5.1\n\t\t\t\tc1.6-2.2,2.4-4.8,2.4-7.6s-0.8-5.4-2.4-7.6c-1.6-2.2-3.8-3.9-6.7-5.1c-2.8-1.2-6-1.8-9.4-1.8c-3.5,0-6.7,0.6-9.5,1.8\n\t\t\t\tc-2.8,1.2-5,2.9-6.6,5.1s-2.4,4.7-2.4,7.6s0.8,5.4,2.4,7.6c1.6,2.2,3.8,3.9,6.6,5.1s6,1.8,9.5,1.8\n\t\t\t\tC566.9,761.6,570.1,761,572.9,759.8z\"/>\n\t\t\t<path class=\"st1\" d=\"M645.6,748.6h-41.5c0.4,3.9,2.4,7,5.9,9.4c3.6,2.4,8.1,3.6,13.6,3.6c3.1,0,5.9-0.4,8.5-1.2\n\t\t\t\tc2.6-0.8,4.8-2,6.7-3.7l3.8,3.3c-2.2,2-5,3.5-8.3,4.5c-3.3,1-6.9,1.6-10.9,1.6c-5.1,0-9.6-0.8-13.6-2.5c-3.9-1.6-7-3.9-9.2-6.8\n\t\t\t\tc-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.2-9.8c2.1-2.9,5-5.1,8.7-6.7c3.7-1.6,7.8-2.4,12.4-2.4c4.6,0,8.7,0.8,12.4,2.4\n\t\t\t\tc3.7,1.6,6.5,3.8,8.6,6.7c2.1,2.9,3.1,6.1,3.1,9.8L645.6,748.6z M609.6,735.9c-3.2,2.3-5.1,5.3-5.5,9h35.2\n\t\t\t\tc-0.4-3.7-2.3-6.7-5.5-9c-3.2-2.3-7.3-3.4-12.1-3.4C616.8,732.5,612.8,733.6,609.6,735.9z\"/>\n\t\t</g>\n\t</g>\n</g>\n</svg>"]);
 
-  _templateObject$h = function _templateObject() {
+  _templateObject$i = function _templateObject() {
     return data;
   };
 
   return data;
 }
-var grapholscape = html$1(_templateObject$h());
+var grapholscape = html$1(_templateObject$i());
 
 function _templateObject10$1() {
   var data = _taggedTemplateLiteral([""]);
@@ -18534,30 +18985,30 @@ function _templateObject6$3() {
   return data;
 }
 
-function _templateObject5$5() {
+function _templateObject5$7() {
   var data = _taggedTemplateLiteral(["\n            <div class=\"setting\">\n              <div class=\"title-wrap\">\n                <div class=\"setting-title\">", "</div>\n                <div class=\"setting-label\">", "</div>\n              </div>\n            ", "\n\n            ", "\n            </div>\n          "]);
 
-  _templateObject5$5 = function _templateObject5() {
+  _templateObject5$7 = function _templateObject5() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject4$6() {
+function _templateObject4$7() {
   var data = _taggedTemplateLiteral(["\n          <div class=\"area\">\n            <div class=\"area-title\">", "</div>\n\n        ", "\n        </div>\n        "]);
 
-  _templateObject4$6 = function _templateObject4() {
+  _templateObject4$7 = function _templateObject4() {
     return data;
   };
 
   return data;
 }
 
-function _templateObject3$a() {
+function _templateObject3$c() {
   var data = _taggedTemplateLiteral([""]);
 
-  _templateObject3$a = function _templateObject3() {
+  _templateObject3$c = function _templateObject3() {
     return data;
   };
 
@@ -18565,7 +19016,7 @@ function _templateObject3$a() {
 }
 
 function _templateObject2$g() {
-  var data = _taggedTemplateLiteral(["\n      ", "\n\n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Settings</div>\n\n        <div class=\"settings-wrapper\">\n\n      ", "\n\n        <div class=\"area\">\n          <div class=\"area-title\">About</div>\n          <div id=\"logo\">\n            ", "\n          </div>\n\n          <div id=\"version\">\n            <span>Version: </span>\n            <span>", "</span>\n          </div>\n        </div>\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      ", "\n\n      <div class=\"widget-body hide gscape-panel\">\n        <div class=\"gscape-panel-title\">Settings</div>\n\n        <div class=\"settings-wrapper\">\n\n      ", "\n\n        <div class=\"area\">\n          <div class=\"area-title\">Export Ontology Image</div>\n          <div class=\"setting\">\n            <div class=\"title-wrap\">\n              <div class=\"setting-title\">Image</div>\n              <div class=\"setting-label\">Save a PNG image of the current diagram on your disk</div>\n            </div>\n\n            <div class=\"setting-obj\">\n              ", "\n            </div>\n          </div>\n\n          <div class=\"setting\">\n          <div class=\"title-wrap\">\n            <div class=\"setting-title\">Vectorial</div>\n            <div class=\"setting-label\">Save an SVG of the current diagram on your disk</div>\n          </div>\n\n          <div class=\"setting-obj\">\n            ", "\n          </div>\n        </div>\n        </div>\n\n        <div class=\"area\">\n          <div class=\"area-title\">About</div>\n          <div id=\"logo\">\n            ", "\n          </div>\n\n          <div id=\"version\">\n            <span>Version: </span>\n            <span>", "</span>\n          </div>\n        </div>\n      </div>\n    "]);
 
   _templateObject2$g = function _templateObject2() {
     return data;
@@ -18574,10 +19025,10 @@ function _templateObject2$g() {
   return data;
 }
 
-function _templateObject$i() {
-  var data = _taggedTemplateLiteral(["\n        :host {\n          bottom:10px;\n          left: 94px;\n          padding-right:0;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .gscape-panel {\n          padding-right: 0;\n        }\n\n        .settings-wrapper {\n          overflow-y: auto;\n          scrollbar-width: inherit;\n          max-height: 420px;\n          overflow-x: hidden;\n          white-space: nowrap;\n          padding-right: 20px;\n        }\n\n        .area {\n          margin-bottom: 30px;\n        }\n\n        .area:last-of-type {\n          margin-bottom: 0;\n        }\n\n        .area-title {\n          font-weight: bold;\n          margin-bottom: 5px;\n          font-size: 105%;\n        }\n\n        .setting {\n          padding: 10px;\n          display: flex;\n          justify-content: space-between;\n          align-items: center;\n        }\n\n        .title-wrap {\n          margin-right: 50px;\n        }\n\n        .setting-label {\n          font-size : 12px;\n          opacity: 0.7;\n        }\n\n        #logo {\n          text-align:center;\n        }\n\n        #logo svg {\n          width: 40%;\n          height: auto;\n          margin: 20px 0;\n        }\n\n        #version {\n          text-align: center;\n          font-size: 14px;\n        }\n      "]);
+function _templateObject$j() {
+  var data = _taggedTemplateLiteral(["\n        :host {\n          display:inline-block;\n          position: initial;\n          margin-right:10px;\n        }\n\n        gscape-button {\n          position: static;\n        }\n\n        .gscape-panel {\n          padding-right: 0;\n        }\n\n        .settings-wrapper {\n          overflow-y: auto;\n          scrollbar-width: inherit;\n          max-height: 420px;\n          overflow-x: hidden;\n          white-space: nowrap;\n          padding-right: 20px;\n        }\n\n        .area {\n          margin-bottom: 30px;\n        }\n\n        .area:last-of-type {\n          margin-bottom: 0;\n        }\n\n        .area-title {\n          font-weight: bold;\n          margin-bottom: 5px;\n          font-size: 105%;\n        }\n\n        .setting {\n          padding: 10px;\n          display: flex;\n          justify-content: space-between;\n          align-items: center;\n        }\n\n        .title-wrap {\n          margin-right: 50px;\n        }\n\n        .setting-label {\n          font-size : 12px;\n          opacity: 0.7;\n        }\n\n        #logo {\n          text-align:center;\n        }\n\n        #logo svg {\n          width: 40%;\n          height: auto;\n          margin: 20px 0;\n        }\n\n        #version {\n          text-align: center;\n          font-size: 14px;\n        }\n      "]);
 
-  _templateObject$i = function _templateObject() {
+  _templateObject$j = function _templateObject() {
     return data;
   };
 
@@ -18595,7 +19046,7 @@ var GscapeSettings = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeSettings), "styles", this);
 
       var colors = super_styles[1];
-      return [super_styles[0], css(_templateObject$i())];
+      return [super_styles[0], css(_templateObject$j())];
     }
   }]);
 
@@ -18610,6 +19061,10 @@ var GscapeSettings = /*#__PURE__*/function (_GscapeWidget) {
     _this.btn = new GscapeButton('settings');
     _this.btn.onClick = _this.toggleBody.bind(_assertThisInitialized(_this));
     _this.callbacks = {};
+    _this.savePNGButton = new GscapeButton('save');
+    _this.savePNGButton.label = 'PNG';
+    _this.saveSVGButton = new GscapeButton('save');
+    _this.saveSVGButton.label = 'SVG';
     return _this;
   }
 
@@ -18619,20 +19074,49 @@ var GscapeSettings = /*#__PURE__*/function (_GscapeWidget) {
       var _this2 = this;
 
       return html$1(_templateObject2$g(), this.btn, Object.keys(this.settings).map(function (area_entry) {
-        if (area_entry == 'default') return html$1(_templateObject3$a());
+        if (area_entry == 'default') return html$1(_templateObject3$c());
         var area = _this2.settings[area_entry];
-        return html$1(_templateObject4$6(), capitalizeFirstLetter(area_entry), Object.keys(area).map(function (setting_entry) {
+        return html$1(_templateObject4$7(), capitalizeFirstLetter(area_entry), Object.keys(area).map(function (setting_entry) {
           var setting = area[setting_entry];
-          return html$1(_templateObject5$5(), setting.title, setting.label, setting.type == 'list' ? html$1(_templateObject6$3(), area_entry, setting_entry, _this2.onListChange, setting.list.map(function (option) {
+          return html$1(_templateObject5$7(), setting.title, setting.label, setting.type == 'list' ? html$1(_templateObject6$3(), area_entry, setting_entry, _this2.onListChange, setting.list.map(function (option) {
             if (option.value == '') return;
             var selected = option.value == setting.selected;
             return html$1(_templateObject7$3(), option.value, selected, option.label);
           })) : html$1(_templateObject8$3()), setting.type == 'boolean' ? html$1(_templateObject9$2(), new GscapeToggle(setting_entry, setting.enabled, false, '', _this2.onToggleChange.bind(_this2))) : html$1(_templateObject10$1()));
         }));
-      }), grapholscape, "1.1.0");
+      }), this.savePNGButton, this.saveSVGButton, grapholscape, "1.2.0");
 
       function capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
+      }
+    }
+  }, {
+    key: "updated",
+    value: function updated(changedProperties) {
+      var _this3 = this;
+
+      /**
+       * when controller change a property in this.settings, lit element doesn't see it
+       * (this.settings should be assigned to a completely new object (new reference)
+       * for lit element to notice it).
+       * So controller forces the update and in that case litElement will update even if
+       * no property has changed.
+       * So if it has been updated forcefully from controller, then react to each change
+       */
+      if (changedProperties.size == 0) {
+        this.shadowRoot.querySelectorAll('select').forEach(function (list) {
+          _this3.onListChange({
+            target: list
+          });
+        });
+        this.shadowRoot.querySelectorAll('gscape-toggle').forEach(function (toggle) {
+          // onToggleChange uses toggle.id because it gets the <input> elem
+          toggle.id = toggle.key;
+
+          _this3.onToggleChange({
+            target: toggle
+          });
+        });
       }
     }
   }, {
@@ -18649,6 +19133,11 @@ var GscapeSettings = /*#__PURE__*/function (_GscapeWidget) {
       var toggle = e.target;
       this.settings.widgets[toggle.id].enabled = toggle.checked;
       toggle.checked ? this.callbacks.widgetEnable(toggle.id) : this.callbacks.widgetDisable(toggle.id);
+    }
+  }, {
+    key: "show",
+    value: function show() {
+      if (this.isEnabled) this.style.display = 'inline-block';
     }
   }, {
     key: "onEntityNameSelection",
@@ -18675,6 +19164,16 @@ var GscapeSettings = /*#__PURE__*/function (_GscapeWidget) {
     set: function set(foo) {
       this.callbacks.widgetDisable = foo;
     }
+  }, {
+    key: "onPNGSaveButtonClick",
+    set: function set(foo) {
+      this.savePNGButton.onClick = foo;
+    }
+  }, {
+    key: "onSVGSaveButtonClick",
+    set: function set(foo) {
+      this.saveSVGButton.onClick = foo;
+    }
   }]);
 
   return GscapeSettings;
@@ -18691,10 +19190,10 @@ function _templateObject2$h() {
   return data;
 }
 
-function _templateObject$j() {
+function _templateObject$k() {
   var data = _taggedTemplateLiteral(["\n      .loader {\n        border: 3px solid ", ";\n        border-radius: 50%;\n        border-top: 3px solid ", ";\n        width: 30px;\n        height: 30px;\n        -webkit-animation: spin 1s linear infinite; /* Safari */\n        animation: spin 1s linear infinite;\n        box-sizing: border-box;\n        position:absolute;\n        top:50%;\n        left: 50%;\n        margin-top: -15px;\n        margin-left: -15px;\n      }\n\n      /* Safari */\n      @-webkit-keyframes spin {\n        0% { -webkit-transform: rotate(0deg); }\n        100% { -webkit-transform: rotate(360deg); }\n      }\n\n      @keyframes spin {\n        0% { transform: rotate(0deg); }\n        100% { transform: rotate(360deg); }\n      }\n    "]);
 
-  _templateObject$j = function _templateObject() {
+  _templateObject$k = function _templateObject() {
     return data;
   };
 
@@ -18709,7 +19208,7 @@ var GscapeSpinner = /*#__PURE__*/function (_LitElement) {
   _createClass(GscapeSpinner, null, [{
     key: "styles",
     get: function get() {
-      return css(_templateObject$j(), gscape.shadows, gscape.secondary);
+      return css(_templateObject$k(), gscape.shadows, gscape.secondary);
     }
   }]);
 
@@ -18740,10 +19239,10 @@ var GscapeSpinner = /*#__PURE__*/function (_LitElement) {
 }(LitElement);
 customElements.define('gscape-spinner', GscapeSpinner);
 
-function _templateObject3$b() {
+function _templateObject3$d() {
   var data = _taggedTemplateLiteral(["<p>", "</p>"]);
 
-  _templateObject3$b = function _templateObject3() {
+  _templateObject3$d = function _templateObject3() {
     return data;
   };
 
@@ -18760,10 +19259,10 @@ function _templateObject2$i() {
   return data;
 }
 
-function _templateObject$k() {
+function _templateObject$l() {
   var data = _taggedTemplateLiteral(["\n        :host {\n          top: 30%;\n          left: 50%;\n          max-width: 500px;\n          transform: translate(-50%, 0);\n        }\n\n        .widget-body {\n          padding : 10px;\n          width: initial;\n        }\n\n        .widget-body.error {\n          background : var(--theme-gscape-error, ", ");\n          color : var(--theme-gscape-on-error, ", ");\n        }\n\n        gscape-head {\n          --title-text-align : center;\n          --title-width : 100%;\n        }\n\n        gscape-head.error {\n          color : var(--theme-gscape-error, ", ");\n        }\n\n        gscape-head.warning {\n          color : var(--theme-gscape-warning, ", ");\n        }\n      "]);
 
-  _templateObject$k = function _templateObject() {
+  _templateObject$l = function _templateObject() {
     return data;
   };
 
@@ -18793,7 +19292,7 @@ var GscapeDialog = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeDialog), "styles", this);
 
       var colors = super_styles[1];
-      return [super_styles[0], css(_templateObject$k(), colors.error, colors.on_error, colors.error, colors.warning)];
+      return [super_styles[0], css(_templateObject$l(), colors.error, colors.on_error, colors.error, colors.warning)];
     }
   }]);
 
@@ -18813,7 +19312,7 @@ var GscapeDialog = /*#__PURE__*/function (_GscapeWidget) {
     key: "render",
     value: function render() {
       return html$1(_templateObject2$i(), this.type, this.type.toLowerCase(), this.type.toLowerCase(), this.text.map(function (text) {
-        return html$1(_templateObject3$b(), text);
+        return html$1(_templateObject3$d(), text);
       }));
     } // override
 
@@ -18847,7 +19346,7 @@ var GscapeDialog = /*#__PURE__*/function (_GscapeWidget) {
 customElements.define('gscape-dialog', GscapeDialog);
 
 function _templateObject2$j() {
-  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"Entity Occurrences\" class=\"drag-handler\"></gscape-head>\n      <div class=\"widget-body\">\n        ", "\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n      <gscape-head title=\"Entity Occurrences\" left_icon=\"visibility\" class=\"drag-handler\"></gscape-head>\n      <div class=\"widget-body\">\n        ", "\n      </div>\n    "]);
 
   _templateObject2$j = function _templateObject2() {
     return data;
@@ -18856,10 +19355,10 @@ function _templateObject2$j() {
   return data;
 }
 
-function _templateObject$l() {
+function _templateObject$m() {
   var data = _taggedTemplateLiteral(["\n        :host {\n          top:50%;\n          transform: translate(0, -50%);\n          left:10px;\n        }\n\n        .widget-body {\n          max-height: 250px;\n        }\n\n        gscape-head {\n          --title-text-align: center;\n          --title-width: 100%;\n        }\n\n        .details_table {\n          margin:5px 0;\n        }\n      "]);
 
-  _templateObject$l = function _templateObject() {
+  _templateObject$m = function _templateObject() {
     return data;
   };
 
@@ -18886,7 +19385,7 @@ var GscapeEntityOccurrences = /*#__PURE__*/function (_GscapeWidget) {
       var super_styles = _get(_getPrototypeOf(GscapeEntityOccurrences), "styles", this);
 
       var colors = super_styles[1];
-      return [super_styles[0], css(_templateObject$l())];
+      return [super_styles[0], css(_templateObject$m())];
     }
   }]);
 
@@ -18934,6 +19433,17 @@ var GscapeEntityOccurrences = /*#__PURE__*/function (_GscapeWidget) {
 }(GscapeWidget);
 customElements.define('gscape-entity-occurrences', GscapeEntityOccurrences);
 
+var bottom_left_container = (function () {
+  var div = document.createElement('div');
+  div.style.setProperty('position', 'absolute');
+  div.style.setProperty('bottom', '0');
+  div.style.setProperty('left', '0');
+  div.style.setProperty('margin', '10px');
+  div.style.setProperty('display', 'flex');
+  div.style.setProperty('align-items', 'flex-end');
+  return div;
+});
+
 var GrapholscapeView = /*#__PURE__*/function () {
   function GrapholscapeView(container) {
     _classCallCheck(this, GrapholscapeView);
@@ -18963,6 +19473,8 @@ var GrapholscapeView = /*#__PURE__*/function () {
     this.container.appendChild(this.spinner);
     this.dialog = new GscapeDialog();
     this.container.appendChild(this.dialog);
+    this.themes = {};
+    Object.assign(this.themes, themes);
   }
 
   _createClass(GrapholscapeView, [{
@@ -19009,7 +19521,7 @@ var GrapholscapeView = /*#__PURE__*/function () {
       zoom_widget.onZoomOut = this.zoomOut.bind(this);
       this.widgets.set('zoom_widget', zoom_widget);
       this.renderer_selector = new GscapeRenderSelector(this.renderers);
-      this.renderer_selector.onRendererChange = this.changeRenderingMode.bind(this);
+      this.renderer_selector.onRendererChange = this.onRenderingModeChange;
       this.widgets.set('simplifications', this.renderer_selector);
       this.layout_settings = new GscapeLayoutSettings();
 
@@ -19030,6 +19542,8 @@ var GrapholscapeView = /*#__PURE__*/function () {
       this.settings_widget.onThemeSelection = this.onThemeSelection.bind(this);
       this.settings_widget.onWidgetEnabled = this.onWidgetEnabled.bind(this);
       this.settings_widget.onWidgetDisabled = this.onWidgetDisabled.bind(this);
+      this.settings_widget.onPNGSaveButtonClick = this.onExportToPNG;
+      this.settings_widget.onSVGSaveButtonClick = this.onExportToSVG;
       this.widgets.set('settings_widget', this.settings_widget);
       Object.keys(this.renderers).forEach(function (renderer) {
         return _this.registerEvents(_this.renderers[renderer]);
@@ -19039,22 +19553,29 @@ var GrapholscapeView = /*#__PURE__*/function () {
         if (!this.settings.widgets[widget_name].enabled) this.onWidgetDisabled(widget_name);
       }
 
+      var widget_container = bottom_left_container();
       this.widgets.forEach(function (widget, key) {
-        _this.container.appendChild(widget);
-
         switch (key) {
           case 'filters':
           case 'ontology_info':
           case 'settings_widget':
           case 'simplifications':
+            widget_container.appendChild(widget);
+
             widget.onToggleBody = function () {
               return _this.blurAll(widget);
             };
 
             break;
+
+          default:
+            _this.container.appendChild(widget);
+
+            break;
         }
       });
-      if (this.settings.rendering.theme.selected != 'custom') this.setTheme(themes[this.settings.rendering.theme.selected]);
+      this.container.appendChild(widget_container);
+      if (this.settings.rendering.theme.selected != 'custom') this.setTheme(this.themes[this.settings.rendering.theme.selected]);
     }
   }, {
     key: "registerEvents",
@@ -19222,7 +19743,7 @@ var GrapholscapeView = /*#__PURE__*/function () {
   }, {
     key: "setRenderer",
     value: function setRenderer(renderer) {
-      for (name in this.renderers) {
+      for (var name in this.renderers) {
         if (this.renderers[name]) this.renderers[name].unmount();
       }
 
@@ -19308,7 +19829,7 @@ var GrapholscapeView = /*#__PURE__*/function () {
   }, {
     key: "onThemeSelection",
     value: function onThemeSelection(theme_name) {
-      theme_name == 'custom' ? this.setTheme(this.custom_theme) : this.setTheme(themes[theme_name]);
+      this.setTheme(this.themes[theme_name]);
     }
   }, {
     key: "setTheme",
@@ -19327,24 +19848,25 @@ var GrapholscapeView = /*#__PURE__*/function () {
 
         theme_aux[key] = color;
       });
-      this.graph_container.style.background = theme.background; // Apply theme to graph
+      this.graph_container.style.background = typeof theme.background == 'string' ? theme.background : theme.background.cssText; // Apply theme to graph
 
       Object.keys(this.renderers).map(function (key) {
         _this5.renderers[key].setTheme(theme_aux);
       });
     }
   }, {
-    key: "setCustomTheme",
-    value: function setCustomTheme(new_theme) {
+    key: "registerCustomTheme",
+    value: function registerCustomTheme(new_theme, key_value) {
       var _this6 = this;
 
-      this.custom_theme = JSON.parse(JSON.stringify(gscape));
+      // new custom theme will be based on gscape default theme
+      this.themes[key_value] = JSON.parse(JSON.stringify(gscape)); // each new custom colour will overwrite the default one
+
       Object.keys(new_theme).forEach(function (color) {
-        if (_this6.custom_theme[color]) {
-          _this6.custom_theme[color] = new_theme[color];
+        if (_this6.themes[key_value][color]) {
+          _this6.themes[key_value][color] = new_theme[color];
         }
       });
-      this.setTheme(this.custom_theme);
     }
   }, {
     key: "showWidget",
@@ -20561,6 +21083,17 @@ var default_config = /*#__PURE__*/Object.freeze({
   'default': config
 });
 
+var downloadBlob = (function (blob, fileName) {
+  var a = document.createElement('a');
+  document.body.appendChild(a);
+  a.style.setProperty('style', 'none');
+  var url = window.URL.createObjectURL(blob);
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  window.URL.revokeObjectURL(url);
+});
+
 var GrapholscapeController = /*#__PURE__*/function () {
   function GrapholscapeController(ontology) {
     var _this = this;
@@ -20644,9 +21177,11 @@ var GrapholscapeController = /*#__PURE__*/function () {
       this.view.onNodeSelection = this.onNodeSelection.bind(this);
       this.view.onBackgroundClick = this.onBackgroundClick.bind(this);
       this.view.onEdgeSelection = this.onEdgeSelection.bind(this);
-      this.view.onRenderingModeChange = this.onRenderingModeChange.bind(this);
+      this.view.onRenderingModeChange = this.changeRenderingMode.bind(this);
       this.view.onEntityNameTypeChange = this.onEntityNameTypeChange.bind(this);
       this.view.onLanguageChange = this.onLanguageChange.bind(this);
+      this.view.onExportToPNG = this.exportToPNG.bind(this);
+      this.view.onExportToSVG = this.exportToSVG.bind(this);
       this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config);
     }
     /**
@@ -20839,41 +21374,9 @@ var GrapholscapeController = /*#__PURE__*/function () {
         this.view.showOwlTranslation(owl_text);
       }
     }
-  }, {
-    key: "onRenderingModeChange",
-    value: function onRenderingModeChange(mode, state) {
-      var _this4 = this;
-
-      this.actualMode = mode;
-
-      switch (mode) {
-        case 'lite':
-        case 'float':
-          {
-            this.SimplifiedOntologyPromise.then(function () {
-              if (_this4.actualMode === mode) {
-                _this4.ontology = _this4.ontologies[mode];
-
-                _this4.updateGraphView(state);
-
-                _this4.updateEntitiesList();
-              }
-            });
-            break;
-          }
-
-        case 'default':
-          {
-            this.ontology = this.ontologies["default"];
-            this.updateGraphView(state);
-            this.updateEntitiesList();
-            break;
-          }
-      }
-    }
     /**
      * Change the rendering mode.
-     * @param {string} mode - the rendering/simplifation mode to activate: `graphol`, `lite`, or `float`
+     * @param {string} mode - the rendering/simplifation mode to activate: `default`, `lite`, or `float`
      * @param {boolean} keep_viewport_state - if `false`, viewport will fit on diagram.
      * Set it `true` if you don't want the viewport state to change.
      * In case of no diagram displayed yet, it will be forced to `false`.
@@ -20885,9 +21388,86 @@ var GrapholscapeController = /*#__PURE__*/function () {
   }, {
     key: "changeRenderingMode",
     value: function changeRenderingMode(mode) {
+      var _this4 = this;
+
       var keep_viewport_state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      this.view.changeRenderingMode(mode, keep_viewport_state);
+      this.view.blurAll();
+      if (mode === this.actualMode) return;
+      var old_mode = this.actualMode; // if we change to lite or default mode, coming from float mode,
+      // and we didn't define a new viewport state, then reset viewport
+      // to fit the diagram because there's no equivalence in float graph
+      // and other graphs, unlike lite and default mode which have fixed
+      // positions for nodes.
+
+      var shouldHardResetViewport = mode != 'float' && old_mode == 'float' || mode == 'float';
+      var new_viewport_state = keep_viewport_state && !shouldHardResetViewport ? this.view.renderer.getActualPosition() : null;
+      this.actualMode = mode;
       this.view.widgets.get('simplifications').actual_mode = mode;
+      mode == 'float' ? this.view.showWidget('layout_settings') : this.view.hideWidget('layout_settings');
+
+      switch (mode) {
+        case 'lite':
+        case 'float':
+          {
+            this.SimplifiedOntologyPromise.then(function () {
+              // async code, actualMode may be changed
+              if (_this4.actualMode === mode) {
+                try {
+                  performChange.bind(_this4)();
+                } catch (e) {
+                  console.log(e);
+                }
+              }
+            });
+            break;
+          }
+
+        case 'default':
+          {
+            performChange.bind(this)();
+            break;
+          }
+      }
+
+      function performChange() {
+        var _this5 = this;
+
+        this.ontology = this.ontologies[mode];
+        this.view.setRenderer(this.view.renderers[mode]);
+        Object.keys(this.view.filters).map(function (key) {
+          if (key != 'all' && key != 'attributes' && key != 'individuals') {
+            if (mode == 'float' || mode == 'lite') {
+              // disable all unnecessary filters
+              _this5.view.filters[key].disabled = true;
+            }
+
+            if (mode == 'default') {
+              // enable filters that may have been disabled by lite mode
+              _this5.view.filters[key].disabled = false;
+              if (key == 'value_domain' && _this5.view.filters.attributes.active) _this5.view.filters.value_domain.disabled = true;
+            }
+          }
+        });
+        this.updateGraphView(new_viewport_state);
+        this.updateEntitiesList();
+        this.view.widgets.get('filters').requestUpdate();
+
+        if (shouldHardResetViewport) {
+          /*
+           * HACKY
+           * WHY TIMEOUT?
+           * mount() and unmount() from cytoscape create issues with labels
+           * in float mode. to avoid that grapholscape mount and unmount
+           * renderers using display:none. this somehow causes container to get
+           * zero as both dimensions inside cytoscape even after setting display:block
+           * and it fails to perform the fit() operation.
+           * waiting a little bit assure those dimensions to have correct values.
+           */
+          setTimeout(function () {
+            return _this5.view.resetView();
+          }, 250);
+        }
+      }
     }
     /**
      * Redraw actual diagram and set viewport state. If state is not passed, viewport is not changed.
@@ -20909,10 +21489,10 @@ var GrapholscapeController = /*#__PURE__*/function () {
   }, {
     key: "updateEntitiesList",
     value: function updateEntitiesList() {
-      var _this5 = this;
+      var _this6 = this;
 
       var entitiesViewData = this.ontology.getEntities().map(function (entity) {
-        return _this5.entityModelToViewData(entity);
+        return _this6.entityModelToViewData(entity);
       });
       this.view.updateEntitiesList(entitiesViewData);
     }
@@ -20925,17 +21505,17 @@ var GrapholscapeController = /*#__PURE__*/function () {
   }, {
     key: "onEntityNameTypeChange",
     value: function onEntityNameTypeChange(type) {
-      var _this6 = this;
+      var _this7 = this;
 
       this.SimplifiedOntologyPromise.then(function () {
-        Object.keys(_this6.ontologies).forEach(function (key) {
-          var entities = _this6.ontologies[key].getEntities(false); // get cytoscape nodes
+        Object.keys(_this7.ontologies).forEach(function (key) {
+          var entities = _this7.ontologies[key].getEntities(false); // get cytoscape nodes
 
 
           switch (type) {
             case 'label':
               entities.forEach(function (entity) {
-                if (entity.data('label')[_this6.language]) entity.data('displayed_name', entity.data('label')[_this6.language]);else if (entity.data('label')[_this6.default_language]) entity.data('displayed_name', entity.data('label')[_this6.default_language]);else {
+                if (entity.data('label')[_this7.language]) entity.data('displayed_name', entity.data('label')[_this7.language]);else if (entity.data('label')[_this7.default_language]) entity.data('displayed_name', entity.data('label')[_this7.default_language]);else {
                   var first_label_key = Object.keys(entity.data('label'))[0];
                   entity.data('displayed_name', entity.data('label')[first_label_key]);
                 }
@@ -20957,9 +21537,9 @@ var GrapholscapeController = /*#__PURE__*/function () {
           }
         });
 
-        _this6.updateGraphView(_this6.view.renderer.getActualPosition());
+        _this7.updateGraphView(_this7.view.renderer.getActualPosition());
 
-        _this6.updateEntitiesList();
+        _this7.updateEntitiesList();
       });
     }
     /*
@@ -20975,39 +21555,95 @@ var GrapholscapeController = /*#__PURE__*/function () {
 
       this.onEntityNameTypeChange(this.config.preferences.entity_name.selected);
     }
+    /**
+     * Update the actual configuration and apply changes.
+     * @param {Object} new_config - a configuration object. Please read [wiki/settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+     */
+
   }, {
     key: "setConfig",
     value: function setConfig(new_config) {
-      var _this7 = this;
+      var _this8 = this;
 
       Object.keys(new_config).forEach(function (entry) {
         // if custom theme
         if (entry == 'theme' && _typeof(new_config[entry]) == 'object') {
-          _this7.view.setCustomTheme(new_config[entry]);
+          var custom_theme_value = "custom";
 
-          _this7.config.rendering.theme.list.push({
-            value: 'custom',
-            label: 'Custom'
-          });
+          _this8.config.rendering.theme.list.push({
+            value: custom_theme_value,
+            label: new_config[entry].name || 'Custom'
+          }); // if marked with selected, update the 'selected' field in config
 
-          _this7.config.rendering.theme.selected = 'custom';
-          return; // continue to next entry and skip next for
-        }
 
-        for (var area in _this7.config) {
-          try {
-            var setting = _this7.config[area][entry];
+          if (new_config[entry].selected) _this8.config.rendering.theme.selected = custom_theme_value; // remove metadata from theme in order to get only colours
 
-            if (setting) {
-              // apply custom settings only if they match type and are defined in lists
-              if (setting.type == 'boolean' && typeof new_config[entry] == 'boolean') _this7.config[area][entry].enabled = new_config[entry];else if (_this7.config[area][entry].list.map(function (elm) {
-                return elm.value;
-              }).includes(new_config[entry])) _this7.config[area][entry].selected = new_config[entry];
+          delete new_config[entry].name;
+          delete new_config[entry].selected;
+
+          _this8.view.registerCustomTheme(new_config[entry], custom_theme_value);
+        } else {
+          for (var area in _this8.config) {
+            try {
+              var setting = _this8.config[area][entry];
+
+              if (setting) {
+                // apply custom settings only if they match type and are defined in lists
+                if (setting.type == 'boolean' && typeof new_config[entry] == 'boolean') _this8.config[area][entry].enabled = new_config[entry];else if (_this8.config[area][entry].list.map(function (elm) {
+                  return elm.value;
+                }).includes(new_config[entry])) _this8.config[area][entry].selected = new_config[entry];
+              }
+            } catch (e) {
+              console.warn("Custom default setting [".concat(entry, "] not recognized"));
             }
-          } catch (e) {}
+          }
         }
       });
+      /*
+       * setting widget observes this.config object reference, not internal properties.
+       * Forcing the update it will render using the new config internal properties
+       * reacting to each change.
+       */
+
+      this.view.settings_widget.requestUpdate();
     }
+    /**
+     * Export the current diagram in to a PNG image and save it on user's disk
+     * @param {String} fileName - the name to assign to the file
+     * (Default: [ontology name]-[diagram name]-v[ontology version])
+     */
+
+  }, {
+    key: "exportToPNG",
+    value: function exportToPNG() {
+      var fileName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      fileName = fileName || this.export_file_name + '.png';
+      this.view.renderer.cy.png(this.export_options).then(function (blob) {
+        return downloadBlob(blob, fileName);
+      });
+    }
+    /**
+     * Export the current diagram in to a SVG file and save it on user's disk
+     * @param {String} fileName - the name to assign to the file
+     * (Default: [ontology name]-[diagram name]-v[ontology version])
+     */
+
+  }, {
+    key: "exportToSVG",
+    value: function exportToSVG() {
+      var fileName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      console.log(this.export_options.bg);
+      fileName = fileName || this.export_file_name + '.svg';
+      var svg_content = this.view.renderer.cy.svg(this.export_options);
+      var blob = new Blob([svg_content], {
+        type: "image/svg+xml;charset=utf-8"
+      });
+      downloadBlob(blob, fileName);
+    }
+    /*
+     * Options for exports, blob-promise
+     */
+
   }, {
     key: "entityModelToViewData",
     value: function entityModelToViewData(entityModelData) {
@@ -21073,6 +21709,25 @@ var GrapholscapeController = /*#__PURE__*/function () {
       return JSON.parse(JSON.stringify(diagramViewData));
     }
   }, {
+    key: "export_options",
+    get: function get() {
+      var bg = this.view.themes[this.config.rendering.theme.selected].background.cssText || this.view.themes[this.config.rendering.theme.selected].background;
+      return {
+        output: 'blob-promise',
+        full: true,
+        bg: bg
+      };
+    }
+    /*
+     ** Filename for exports: [ontology name]-[diagram name]-v[ontology version])
+     */
+
+  }, {
+    key: "export_file_name",
+    get: function get() {
+      return "".concat(this.ontology.name, "-").concat(this.actual_diagram.name, "-v").concat(this.ontology.version);
+    }
+  }, {
     key: "ontology",
     set: function set(ontology) {
       this._ontology = ontology;
@@ -21135,6 +21790,7 @@ var GrapholscapeController = /*#__PURE__*/function () {
 
 cytoscape.use(popper);
 cytoscape.use(cola);
+cytoscape.use(cy_svg);
 
 var GrapholScape = /*#__PURE__*/function () {
   function GrapholScape(file) {

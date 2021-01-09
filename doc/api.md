@@ -6,7 +6,7 @@
 an object of this class is returned to the promise when reading a graphol file.
 It expose a set of methods to set filters, change viewport state etc.
 
-Version: 1.0.0
+Version: 1.2.0 <!-- don't touch, automatic version injection, see src/doc/doc.js -->
 
 ## init()
 
@@ -69,7 +69,7 @@ Change the rendering mode.
 
 ### Params:
 
-* **string** *mode* - the rendering/simplifation mode to activate: `graphol`, `lite`, or `float`
+* **string** *mode* - the rendering/simplifation mode to activate: `default`, `lite`, or `float`
 * **boolean** *keep_viewport_state* - if `false`, viewport will fit on diagram. Set it `true` if you don't want the viewport state to change.
 In case of no diagram displayed yet, it will be forced to `false`.
 Default: `true`.
@@ -88,6 +88,30 @@ Redraw actual diagram and set viewport state. If state is not passed, viewport i
 ## updateEntitiesList()
 
 Update the entities list in the ontology explorer widget
+
+## setConfig(new_config)
+
+Update the actual configuration and apply changes.
+
+### Params:
+
+* **Object** *new_config* - a configuration object. Please read [wiki/settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+
+## exportToPNG(fileName)
+
+Export the current diagram in to a PNG image and save it on user's disk
+
+### Params:
+
+* **String** *fileName* - the name to assign to the file (Default: [ontology name]-[diagram name]-v[ontology version])
+
+## exportToSVG(fileName)
+
+Export the current diagram in to a SVG file and save it on user's disk
+
+### Params:
+
+* **String** *fileName* - the name to assign to the file (Default: [ontology name]-[diagram name]-v[ontology version])
 
 ## onWikiClick
 
