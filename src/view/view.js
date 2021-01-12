@@ -163,9 +163,7 @@ export default class GrapholscapeView {
     })
 
     this.container.appendChild(widget_container)
-
-    if(this.settings.rendering.theme.selected != 'custom')
-      this.setTheme(this.themes[this.settings.rendering.theme.selected])
+    this.setTheme(this.themes[this.settings.rendering.theme.selected])
   }
 
   registerEvents(renderer) {

@@ -452,15 +452,16 @@ export default class GrapholscapeController {
 
       // if custom theme
       if (entry == 'theme' && typeof(new_config[entry]) == 'object') {
-        let custom_theme_value = `custom`
+        let custom_theme_value = `custom${this.config.rendering.theme.list.length}`
 
         this.config.rendering.theme.list.push({
           value : custom_theme_value,
-          label : new_config[entry].name || 'Custom'
+          label : new_config[entry].name || `Custom${this.config.rendering.theme.list.length}`
         })
 
-        // if marked with selected, update the 'selected' field in config
-        if ( new_config[entry].selected )
+
+        // update selected theme unless new config is set with selected = false
+        if ( new_config[entry].selected == undefined || new_config[entry].selected == true)
           this.config.rendering.theme.selected = custom_theme_value
 
         // remove metadata from theme in order to get only colours
@@ -491,7 +492,7 @@ export default class GrapholscapeController {
      * Forcing the update it will render using the new config internal properties
      * reacting to each change.
      */
-    this.view.settings_widget.requestUpdate()
+    this.view.settings_widget?.requestUpdate()
   }
 
   /**
@@ -510,7 +511,6 @@ export default class GrapholscapeController {
    * (Default: [ontology name]-[diagram name]-v[ontology version])
    */
   exportToSVG(fileName = null) {
-    console.log(this.export_options.bg)
     fileName = fileName || this.export_file_name+'.svg'
     let svg_content = this.view.renderer.cy.svg(this.export_options)
     let blob = new Blob([svg_content], {type:"image/svg+xml;charset=utf-8"});
