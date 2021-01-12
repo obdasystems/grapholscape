@@ -19084,7 +19084,7 @@ var GscapeSettings = /*#__PURE__*/function (_GscapeWidget) {
             return html$1(_templateObject7$3(), option.value, selected, option.label);
           })) : html$1(_templateObject8$3()), setting.type == 'boolean' ? html$1(_templateObject9$2(), new GscapeToggle(setting_entry, setting.enabled, false, '', _this2.onToggleChange.bind(_this2))) : html$1(_templateObject10$1()));
         }));
-      }), this.savePNGButton, this.saveSVGButton, grapholscape, "1.2.0");
+      }), this.savePNGButton, this.saveSVGButton, grapholscape, "1.2.1");
 
       function capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
@@ -19575,7 +19575,7 @@ var GrapholscapeView = /*#__PURE__*/function () {
         }
       });
       this.container.appendChild(widget_container);
-      if (this.settings.rendering.theme.selected != 'custom') this.setTheme(this.themes[this.settings.rendering.theme.selected]);
+      this.setTheme(this.themes[this.settings.rendering.theme.selected]);
     }
   }, {
     key: "registerEvents",
@@ -21563,20 +21563,21 @@ var GrapholscapeController = /*#__PURE__*/function () {
   }, {
     key: "setConfig",
     value: function setConfig(new_config) {
-      var _this8 = this;
+      var _this8 = this,
+          _this$view$settings_w;
 
       Object.keys(new_config).forEach(function (entry) {
         // if custom theme
         if (entry == 'theme' && _typeof(new_config[entry]) == 'object') {
-          var custom_theme_value = "custom";
+          var custom_theme_value = "custom".concat(_this8.config.rendering.theme.list.length);
 
           _this8.config.rendering.theme.list.push({
             value: custom_theme_value,
-            label: new_config[entry].name || 'Custom'
-          }); // if marked with selected, update the 'selected' field in config
+            label: new_config[entry].name || "Custom".concat(_this8.config.rendering.theme.list.length)
+          }); // update selected theme unless new config is set with selected = false
 
 
-          if (new_config[entry].selected) _this8.config.rendering.theme.selected = custom_theme_value; // remove metadata from theme in order to get only colours
+          if (new_config[entry].selected == undefined || new_config[entry].selected == true) _this8.config.rendering.theme.selected = custom_theme_value; // remove metadata from theme in order to get only colours
 
           delete new_config[entry].name;
           delete new_config[entry].selected;
@@ -21605,7 +21606,7 @@ var GrapholscapeController = /*#__PURE__*/function () {
        * reacting to each change.
        */
 
-      this.view.settings_widget.requestUpdate();
+      (_this$view$settings_w = this.view.settings_widget) === null || _this$view$settings_w === void 0 ? void 0 : _this$view$settings_w.requestUpdate();
     }
     /**
      * Export the current diagram in to a PNG image and save it on user's disk
@@ -21632,7 +21633,6 @@ var GrapholscapeController = /*#__PURE__*/function () {
     key: "exportToSVG",
     value: function exportToSVG() {
       var fileName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-      console.log(this.export_options.bg);
       fileName = fileName || this.export_file_name + '.svg';
       var svg_content = this.view.renderer.cy.svg(this.export_options);
       var blob = new Blob([svg_content], {
