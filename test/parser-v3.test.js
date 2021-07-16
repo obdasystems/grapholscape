@@ -21,7 +21,7 @@ describe("Test parsing ontology metadata", () => {
       },
       annotations: {
         author : {
-          en : 'obdasystems'
+          en : [ 'obdasystems', 'secondauthor' ]
         }
       }
     }
@@ -39,7 +39,7 @@ describe("Test parsing ontology metadata", () => {
     expect(ontology_infos.other_infos.description).toEqual(output.other_infos.description)
   })
 
-  test('it should not parse multiple annotation of the same language', () => {
+  test('it should parse multiple annotation of the same language', () => {
     expect(ontology_infos.other_infos.annotations).toEqual(output.other_infos.annotations)
   })
 })

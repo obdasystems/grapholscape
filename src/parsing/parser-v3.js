@@ -1,8 +1,8 @@
 export let warnings = new Set()
 
 export function getOntologyInfo(xmlDocument) {
-  let project = xmlDocument.getElementsByTagName('project')[0]
-  let ontology_languages = xmlDocument.getElementsByTagName('languages')[0].children
+  let project = getTag(xmlDocument, 'project')
+  let ontology_languages = getTag(xmlDocument, 'languages').children
   let iri = getTag(xmlDocument, 'ontology').getAttribute('iri')
   let iri_elem = getIriElem(iri, xmlDocument)
 
@@ -153,10 +153,11 @@ function getIriAnnotations(iri) {
       } else {
         if (!result.annotations[annotation_kind])
           result.annotations[annotation_kind] = {}
-
-        // take only one annotation for each language
+        
         if (!result.annotations[annotation_kind][language])
-          result.annotations[annotation_kind][language] = lexicalForm
+          result.annotations[annotation_kind][language] = []
+
+        result.annotations[annotation_kind][language].push(lexicalForm)
       }
     }
   }
@@ -195,7 +196,7 @@ function getIriElem(node, xmlDocument) {
     node_iri = getTagText(node, 'iri')
 
   if (!node_iri) return null
-  let iris = xmlDocument.getElementsByTagName('iris')[0].children
+  let iris = getTag(xmlDocument, 'iris').children
   for (let iri of iris) {
     if(node_iri == getTagText(iri, 'value')) {
       return iri
