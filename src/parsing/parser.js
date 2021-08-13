@@ -249,9 +249,7 @@ export default class GrapholParser {
       }
     }
 
-    if (edge.data.type.toLowerCase() == 'membership')
-      edge.data.displayed_name = 'instance Of'
-    else if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different')
+    if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different')
       edge.data.displayed_name = edge.data.type.toLowerCase()
 
     // Prendiamo i nodi source e target

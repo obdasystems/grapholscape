@@ -47,11 +47,21 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge[type = "inclusion"], [type = "membership"], edge.inclusion',
+      selector: 'edge[type = "inclusion"], edge.inclusion',
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled'
+      }
+    },
+
+    {
+      selector: 'edge[type = "membership"]',
+      style: {
+        'line-style': 'dashed',
+        'line-dash-pattern': [2,3],
+        'target-arrow-shape': 'triangle',
+        'target-arrow-fill': 'hollow'
       }
     },
 
