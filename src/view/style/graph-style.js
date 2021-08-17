@@ -34,6 +34,20 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: 'node[labelXcentered]',
+      style: {
+        'text-halign': 'center',
+      }
+    },
+
+    {
+      selector: 'node[labelYcentered]',
+      style: {
+        'text-valign': 'center',
+      }
+    },
+
+    {
       selector: 'edge',
       style: {
         'width': 2,

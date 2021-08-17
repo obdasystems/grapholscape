@@ -224,8 +224,20 @@ export default class GrapholParser {
     let label = element.getElementsByTagName('label')[0]
     // apply label position and font size
     if (label != null) {
-      nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1
-      nodo.data.labelYpos = (parseInt(label.getAttribute('y')) - nodo.position.y) + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4
+      
+      if (parseInt(label.getAttribute('x')) == nodo.position.x) {
+        nodo.data.labelXcentered = true
+        nodo.data.labelXpos = 0
+      } else {
+        nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1
+      }
+
+      if (parseInt(label.getAttribute('y')) == nodo.position.y) {
+        nodo.data.labelYcentered = true
+        nodo.data.labelYpos = 0
+      } else {
+        nodo.data.labelYpos = (parseInt(label.getAttribute('y')) - nodo.position.y) + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4
+      }
 
       nodo.data.fontSize = parseInt(label.getAttribute('size')) || 12
     }
