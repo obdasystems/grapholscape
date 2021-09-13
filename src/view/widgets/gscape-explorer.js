@@ -1,7 +1,6 @@
 import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
-import { forEach } from 'core-js/core/array'
 
 export default class GscapeExplorer extends GscapeWidget{
 
