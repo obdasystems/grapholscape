@@ -6,7 +6,7 @@
 an object of this class is returned to the promise when reading a graphol file.
 It expose a set of methods to set filters, change viewport state etc.
 
-Version: 1.2.1 <!-- don't touch, automatic version injection, see src/doc/doc.js -->
+Version: 1.2.2 <!-- don't touch, automatic version injection, see src/doc/doc.js -->
 
 ## init()
 
