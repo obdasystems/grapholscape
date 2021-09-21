@@ -2,7 +2,6 @@ import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
 import GscapeToggle from './common/gscape-toggle'
-import { Icon } from '@material/mwc-icon'
 
 export default class GscapeLayoutSettings extends GscapeWidget {
 
