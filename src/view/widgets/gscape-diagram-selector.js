@@ -66,12 +66,12 @@ export default class GscapeDiagramSelector extends GscapeWidget {
             if (x > y) { return 1; }
             return 0
           })
-          .map( (diagram, id) => html`
+          .map( diagram => html`
             <div
               @click="${this.changeDiagram}"
               name="${diagram.name}"
-              diagram-id="${id}"
-              class="diagram-item highlight ${id == this.actual_diagram_id ? `selected` : ``}"
+              diagram-id="${diagram.id}"
+              class="diagram-item highlight ${diagram.id == this.actual_diagram_id ? `selected` : ``}"
             >
               ${diagram.name}
             </div>
@@ -100,8 +100,14 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   set actual_diagram_id(diagram_id) {
     this._actual_diagram_id = diagram_id
 
-    if (diagram_id != null)
-      this.header.title = this.diagrams[diagram_id].name
+    if (diagram_id != null) {
+      for (let diagram of this.diagrams) {
+        if (diagram.id == diagram_id) {
+          this.header.title = diagram.name
+          break
+        }
+      }
+    }
 
     this.requestUpdate()
   }
