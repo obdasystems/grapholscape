@@ -10,6 +10,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
     this.layoutStopped = false
     this.dragAndPin = false
+    this.useOriginalPositions = false
 
     this.cy.on('grab', (e) => {
       e.target.data('old_pos', JSON.stringify(e.target.position()))
@@ -18,7 +19,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.cy.on('free', (e) => {
       let actual_pos = JSON.stringify(e.target.position())
       if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
-        this.lockNode(e.target)
+        this.pinNode(e.target)
       }
 
       e.target.removeData('old_pos')
@@ -29,8 +30,13 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.clearPoppers()
     super.drawDiagram(diagram)
     this.cy.nodes().addClass('float')
-    this.main_layout = this.layout() // apply layout on those not locked
-    this.main_layout.run()
+
+    if (this.useOriginalPositions) {
+      this.activateOriginalPositions()
+    } else {
+      this.main_layout = this.layout() // apply layout on those not locked
+      this.main_layout.run()
+    }
 
     /**
      * hack: let layout run a bit and fit to it.
@@ -61,13 +67,15 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     return this.cy.$(selector).layout(this.layout_settings)
   }
 
-  unlockNode(node) {
+  unpinNode(node) {
     this.removeUnlockButton(node)
     node.unlock()
+    node.data("pinned", false)
   }
 
-  lockNode(node) {
+  pinNode(node) {
     node.lock()
+    node.data("pinned", true)
 
     let unlockButton = node.popper({
       content: () => {
@@ -83,7 +91,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
         div.innerHTML = `<mwc-icon>lock_open</mwc_icon>`
         setStyle(dimension, div)
 
-        div.onclick = () => this.unlockNode(node)
+        div.onclick = () => this.unpinNode(node)
         this.cy.container().appendChild(div)
 
         return div
@@ -137,6 +145,31 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     }
   }
 
+  activateOriginalPositions() {
+    let layout_options = this.layout_settings
+    // customize options
+    delete layout_options.edgeLength
+    layout_options.avoidOverlap = false
+    this.main_layout = this.cy.$('*').layout(layout_options)
+
+    this.cy.$('.concept').forEach( node => {
+      if (!node.locked()) {
+        if (!node.data('pinned')) {
+          node.position(JSON.parse(node.data('original-position')))
+          node.lock()
+        } 
+      }
+    })
+
+    this.main_layout.run()
+  }
+
+  disableOriginalPositions() {
+    this.cy.$('[type = "concept"][!pinned]').unlock()
+    this.main_layout = this.layout('*')
+    this.main_layout.run()
+  }
+
   get layout_settings() {
     return {
       name: 'cola',
@@ -171,8 +204,19 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
   set dragAndPin(active) {
     this._dragAndPin = active
-    if (!active) this.cy.$(':locked').each(node => this.unlockNode(node))
+    if (!active) this.cy.$('[?pinned]').each(node => this.unpinNode(node))
   }
 
   get dragAndPin() { return this._dragAndPin }
+
+  /**
+   * lock concept(classes) nodes in their original positions
+   */
+  set useOriginalPositions(active) {
+    this._useOriginalPoisions = active
+
+    active ? this.activateOriginalPositions() : this.disableOriginalPositions()
+  }
+
+  get useOriginalPositions() { return this._useOriginalPoisions }
 }

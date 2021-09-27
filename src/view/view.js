@@ -120,6 +120,10 @@ export default class GrapholscapeView {
 
     this.layout_settings.onDragAndPinToggle =
       () => this.renderer.dragAndPin = !this.renderer.dragAndPin
+
+    this.layout_settings.onUseOriginalPositions = 
+      () => this.renderer.useOriginalPositions = !this.renderer.useOriginalPositions
+
     this.layout_settings.hide()
     this.widgets.set('layout_settings', this.layout_settings)
 

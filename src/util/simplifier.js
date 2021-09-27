@@ -548,6 +548,10 @@ export default function computeSimplifiedOntologies(ontology) {
     let cy = cytoscape()
     cy.add(nodes)
     cy.add(edges)
+    // remember original positions
+    cy.$('node').forEach( node => {
+      node.data('original-position', JSON.stringify(node.position()))
+    })
 
     simplifyRolesFloat(cy)
     simplifyHierarchiesFloat(cy)

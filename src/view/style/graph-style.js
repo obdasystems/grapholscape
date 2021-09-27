@@ -352,8 +352,14 @@ export function getGraphStyle(theme) {
     {
       selector: '.float:locked',
       style: {
-        'border-color' : theme.secondary,
         'border-width' : '4px',
+      }
+    },
+
+    {
+      selector: '.float[?pinned]',
+      style: {
+        'border-color' : theme.secondary,
       }
     },
 

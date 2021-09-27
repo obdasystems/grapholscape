@@ -71,6 +71,7 @@ export default class GscapeLayoutSettings extends GscapeWidget {
 
     this.onLayoutRunToggle = {}
     this.onDragAndPinToggle = {}
+    this.onUseOriginalPositions = {}
   }
 
   render() {
@@ -91,6 +92,7 @@ export default class GscapeLayoutSettings extends GscapeWidget {
         <span class="toggles-wrapper">
           ${new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle)}
           ${new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle)}
+          ${new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions', this.onUseOriginalPositions)}
         </span>
       </div>
 
