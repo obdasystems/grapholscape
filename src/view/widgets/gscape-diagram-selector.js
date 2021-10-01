@@ -101,12 +101,7 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     this._actual_diagram_id = diagram_id
 
     if (diagram_id != null) {
-      for (let diagram of this.diagrams) {
-        if (diagram.id == diagram_id) {
-          this.header.title = diagram.name
-          break
-        }
-      }
+      this.header.title = this.diagrams.find(d => d.id == diagram_id).name
     }
 
     this.requestUpdate()

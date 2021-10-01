@@ -256,12 +256,14 @@ export default class GscapeExplorer extends GscapeWidget{
 
   set predicates(predicates) {
     function getSubRowsObject(predicate) {
+
+      let diagram_name = this.diagrams.find(d => d.id == predicate.diagram_id).name
       return {
         id : predicate.id,
         id_xml : predicate.id_xml,
         diagram : {
           id : predicate.diagram_id,
-          name : this.diagrams[predicate.diagram_id].name,
+          name : diagram_name,
         }
       }
     }
