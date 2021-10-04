@@ -115,11 +115,26 @@ export default class GrapholscapeView {
     this.widgets.set('simplifications', this.renderer_selector)
 
     this.layout_settings = new GscapeLayoutSettings()
-    this.layout_settings.onLayoutRunToggle =
-      () => this.renderer.layoutStopped = !this.renderer.layoutStopped
+    this.layout_settings.onLayoutRunToggle = () => {
+      if (!this.layoutStopped) {
+        this.layout_settings.useOriginalPositionsToggle.state = false
+        this.renderer.useOriginalPositions = false
+      }
 
+      this.renderer.layoutStopped = !this.renderer.layoutStopped
+    }
     this.layout_settings.onDragAndPinToggle =
       () => this.renderer.dragAndPin = !this.renderer.dragAndPin
+
+    this.layout_settings.onUseOriginalPositions = () => {
+      if (!this.renderer.useOriginalPositions) {
+        this.layout_settings.layoutRunToggle.state = false
+        this.renderer.layoutStopped = true
+      }
+
+      this.renderer.useOriginalPositions = !this.renderer.useOriginalPositions
+    }
+
     this.layout_settings.hide()
     this.widgets.set('layout_settings', this.layout_settings)
 
