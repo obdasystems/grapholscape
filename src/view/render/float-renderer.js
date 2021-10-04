@@ -63,7 +63,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
       }
   }
 
-  layout(selector = ':unlocked') {
+  layout(selector = '*') {
     return this.cy.$(selector).layout(this.layout_settings)
   }
 
@@ -145,29 +145,37 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     }
   }
 
+  /**
+   * Create a new layout with default edgeLength and allowing overlapping
+   * Put concepts (not already pinned) in their original position and lock them
+   * Run the new layout to place hierarchies nodes and attributes
+   */
   activateOriginalPositions() {
     let layout_options = this.layout_settings
     // customize options
     delete layout_options.edgeLength
     layout_options.avoidOverlap = false
+    delete layout_options.convergenceThreshold
     this.main_layout = this.cy.$('*').layout(layout_options)
 
     this.cy.$('.concept').forEach( node => {
-      if (!node.locked()) {
-        if (!node.data('pinned')) {
-          node.position(JSON.parse(node.data('original-position')))
-          node.lock()
-        } 
+      if (!node.data('pinned')) {
+        node.position(JSON.parse(node.data('original-position')))
+        node.lock()
       }
     })
 
     this.main_layout.run()
+    /**
+     * when the layout finishes placing attributes and hierarchy nodes, unlock all
+     * nodes not already pinned somewhere
+     */
+    this.main_layout.on("layoutstop", () => this.cy.$('[!pinned]').unlock())
   }
 
   disableOriginalPositions() {
     this.cy.$('[type = "concept"][!pinned]').unlock()
-    this.main_layout = this.layout('*')
-    this.main_layout.run()
+    this.main_layout = this.layout()
   }
 
   get layout_settings() {
@@ -219,4 +227,11 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
   }
 
   get useOriginalPositions() { return this._useOriginalPoisions }
+
+  set main_layout(new_layout) {
+    this._main_layout?.stop()
+    this._main_layout = new_layout
+  }
+
+  get main_layout() { return this._main_layout }
 }
