@@ -96,15 +96,14 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
         return div
       },
-      popper: {removeOnDestroy: true}
     })
 
     node.unlockButton = unlockButton
 
     let update = () => {
       let dimension =  node.data('width') / 9 * this.cy.zoom()
-      setStyle(dimension, unlockButton.popper)
-      unlockButton.scheduleUpdate()
+      setStyle(dimension, unlockButton.state.elements.popper)
+      unlockButton.update()
     }
 
     node.on('position', update)
@@ -140,6 +139,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
   removeUnlockButton(node) {
     if (node.unlockButton) {
+      node.unlockButton.state.elements.popper.remove()
       node.unlockButton.destroy()
       node.unlockButton = null
     }
