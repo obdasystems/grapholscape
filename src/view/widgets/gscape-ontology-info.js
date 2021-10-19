@@ -1,4 +1,4 @@
-import { html, css } from 'lit-element'
+import { html, css } from 'lit'
 import GscapeWidget from './common/gscape-widget'
 import GscapeButton from './common/gscape-button'
 import annotationsTemplate from './common/annotations-template'

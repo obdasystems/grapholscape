@@ -1,4 +1,4 @@
-import {html, css} from 'lit-element'
+import {html, css} from 'lit'
 import GscapeWidget from './gscape-widget'
 
 export default class GscapeToggle extends GscapeWidget {

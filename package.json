@@ -70,7 +70,7 @@
     "cytoscape-cola": "^2.5.0",
     "cytoscape-popper": "^2.0.0",
     "cytoscape-svg": "^0.3.1",
-    "lit-element": "^3.0.1",
+    "lit": "^2.0.2",
     "regenerator-runtime": "^0.13.9"
   }
 }

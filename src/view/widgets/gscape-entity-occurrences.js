@@ -1,4 +1,4 @@
-import { html, css } from 'lit-element'
+import { html, css } from 'lit'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
 import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'

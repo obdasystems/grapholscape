@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit-element'
+import { LitElement, html, css } from 'lit'
 import * as theme from '../../style/themes'
 
 export default class GscapeWidget extends LitElement {

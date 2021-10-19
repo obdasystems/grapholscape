@@ -1,4 +1,4 @@
-import {html} from 'lit-element'
+import {html} from 'lit'
 
 export default html`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
   viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: auto; padding: 2px;">

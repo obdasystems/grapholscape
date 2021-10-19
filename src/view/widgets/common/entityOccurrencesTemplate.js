@@ -1,4 +1,4 @@
-import {html} from 'lit-element'
+import {html} from 'lit'
 
 export default (occurrences, onNodeNavigation) => {
   return html`${occurrences && occurrences.length > 0 ?

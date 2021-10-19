@@ -1,4 +1,4 @@
-import { html , css, LitElement } from 'lit-element'
+import { html , css, LitElement } from 'lit'
 import {gscape} from '../../style/themes'
 
 export default class GscapeSpinner extends LitElement {
