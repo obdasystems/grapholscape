@@ -15,66 +15,48 @@ cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.use(cy_svg)
 
-export default class GrapholScape {
-  constructor (file, container = false, config = null) {
-    this.readGraphol(file)
-    .then( result => { this._ontology = result })
-    .catch( error => {
-      console.error(error)
-    })
+export default function GrapholScape(file, container = false, config = null) {
+  if (!container) return undefined
 
-    if (container) {
-      return this.init(container, config)
-    }
-  }
+  let view = new GrapholscapeView(container)
 
-  init(container, config = null) {
-    this.view = new GrapholscapeView(container)
-    return new Promise( (resolve,reject) => {
-      this.readFilePromise.then( () => {
-        this.controller = new GrapholscapeController(this._ontology, this.view, config)
-        this.controller.init()
-        resolve(this.controller)
-      })
-      .catch( (reason) => {
-        this.view.showDialog(reason.name, reason.message)
-        reject(reason)
-      })
-      .finally( () => this.view.spinner.hide())
-    })
-  }
+  return new Promise ((resolve, reject) => {
+    let ontology = null
 
-  readGraphol(file) {
-    this.readFilePromise = new Promise ((resolve, reject) => {
-      let result = null
+    if (typeof (file) === 'object') {
+      let reader = new FileReader()
 
-      if (typeof (file) === 'object') {
-        let reader = new FileReader()
-        reader.onloadend = () => {
-          try {
-            result = getResult(reader.result)
-          } catch (error) { reject(error) }
-          resolve(result)
-        }
-
-        reader.readAsText(file)
-
-        setTimeout( () => {
-          reject('Error: timeout expired')
-        }, 10000)
-
-      } else if (typeof (file) === 'string') {
-        result = getResult(file)
-        resolve(result)
-      } else {
-        reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
+      reader.onloadend = () => {
+        try {
+          ontology = getResult(reader.result)
+          init()
+        } catch (error) { reject(error) }
       }
-    })
-    return this.readFilePromise
 
-    function getResult(file) {
-      let graphol_parser = new GrapholParser(file)
-      return graphol_parser.parseGraphol()
+      reader.readAsText(file)
+
+      setTimeout( () => {
+        reject('Error: timeout expired')
+      }, 10000)
+
+    } else if (typeof (file) === 'string') {
+      ontology = getResult(file)
+      init()
+    } else {
+      reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
     }
+
+    function init() {
+      let controller = new GrapholscapeController(ontology,view,config)
+      controller.init()
+      resolve(controller)
+    }
+  })
+  .catch(error => view.showDialog(error.name, error.message) )
+  .finally( () => view.spinner.hide() )
+
+  function getResult(file) {
+    let graphol_parser = new GrapholParser(file)
+    return graphol_parser.parseGraphol()
   }
 }
