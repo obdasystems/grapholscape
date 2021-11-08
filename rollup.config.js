@@ -107,9 +107,7 @@ const configs = [
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
       BABEL ? babel(getBabelOptions()) : {},
-      terser({
-        sourcemap: false
-      }),
+      terser(),
       license(licenseHeaderOptions)
     ]
   },
