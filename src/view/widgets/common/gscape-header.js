@@ -1,5 +1,4 @@
 import { html, css } from 'lit-element'
-import { IconButton } from '@material/mwc-icon-button'
 import GscapeWidget from './gscape-widget';
 
 export default class GscapeHeader extends GscapeWidget {

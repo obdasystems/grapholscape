@@ -2,7 +2,6 @@ import { html, css } from 'lit-element'
 import GscapeWidget from './common/gscape-widget'
 import GscapeHeader from './common/gscape-header'
 import GscapeToggle from './common/gscape-toggle'
-import { Icon } from '@material/mwc-icon'
 
 export default class GscapeLayoutSettings extends GscapeWidget {
 
@@ -70,8 +69,13 @@ export default class GscapeLayoutSettings extends GscapeWidget {
     super()
     this.collapsible = false
 
+    this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running')
+    this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin')
+    this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions')
+
     this.onLayoutRunToggle = {}
     this.onDragAndPinToggle = {}
+    this.onUseOriginalPositions = {}
   }
 
   render() {
@@ -90,12 +94,32 @@ export default class GscapeLayoutSettings extends GscapeWidget {
       <div class="wrapper">
         <span class="title">Layout Settings</span>
         <span class="toggles-wrapper">
-          ${new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle)}
-          ${new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle)}
+          ${this.layoutRunToggle}
+          ${this.dragAndDropToggle}
+          ${this.useOriginalPositionsToggle}
         </span>
       </div>
 
     `
+  }
+
+  set onLayoutRunToggle(callback) {
+    this._onLayoutRunToggle = callback
+    this.layoutRunToggle.onToggle = callback
+  }
+
+  set onDragAndPinToggle(callback) {
+    this._onDragAndPinToggle = callback
+    this.dragAndDropToggle.onToggle = callback
+  }
+
+  set onUseOriginalPositions(callback) {
+    this._onUseOriginalPositions = callback
+    this.useOriginalPositionsToggle.onToggle = callback
+  }
+
+  get onLayoutRunToggle() {
+    return this._onLayoutRunToggle
   }
 }
 

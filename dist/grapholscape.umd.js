@@ -23,10 +23,10 @@
  */
 
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@webcomponents/webcomponentsjs'), require('cytoscape'), require('@material/mwc-icon-button'), require('@material/mwc-icon'), require('cytoscape-popper'), require('cytoscape-cola'), require('cytoscape-svg')) :
-  typeof define === 'function' && define.amd ? define(['@webcomponents/webcomponentsjs', 'cytoscape', '@material/mwc-icon-button', '@material/mwc-icon', 'cytoscape-popper', 'cytoscape-cola', 'cytoscape-svg'], factory) :
-  (global = global || self, global.GrapholScape = factory(null, global.cytoscape, global.mwcIconButton, global.mwcIcon, global.popper, global.cola, global.svg));
-}(this, (function (webcomponentsjs, cytoscape, mwcIconButton, mwcIcon, popper, cola, cy_svg) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@webcomponents/webcomponentsjs'), require('@material/mwc-icon'), require('@material/mwc-icon-button'), require('cytoscape'), require('cytoscape-popper'), require('cytoscape-cola'), require('cytoscape-svg')) :
+  typeof define === 'function' && define.amd ? define(['@webcomponents/webcomponentsjs', '@material/mwc-icon', '@material/mwc-icon-button', 'cytoscape', 'cytoscape-popper', 'cytoscape-cola', 'cytoscape-svg'], factory) :
+  (global = global || self, global.GrapholScape = factory(null, global.mwcIcon, global.mwcIconButton, global.cytoscape, global.popper, global.cola, global.svg));
+}(this, (function (webcomponentsjs, mwcIcon, mwcIconButton, cytoscape, popper, cola, cy_svg) { 'use strict';
 
   cytoscape = cytoscape && Object.prototype.hasOwnProperty.call(cytoscape, 'default') ? cytoscape['default'] : cytoscape;
   popper = popper && Object.prototype.hasOwnProperty.call(popper, 'default') ? popper['default'] : popper;
@@ -11212,8 +11212,8 @@
 
   var warnings$1 = new Set();
   function getOntologyInfo$1(xmlDocument) {
-    var project = xmlDocument.getElementsByTagName('project')[0];
-    var ontology_languages = xmlDocument.getElementsByTagName('languages')[0].children;
+    var project = getTag(xmlDocument, 'project');
+    var ontology_languages = getTag(xmlDocument, 'languages').children;
     var iri = getTag(xmlDocument, 'ontology').getAttribute('iri');
     var iri_elem = getIriElem(iri, xmlDocument);
     return {
@@ -11395,9 +11395,9 @@
 
             result.description[language].push(lexicalForm);
           } else {
-            if (!result.annotations[annotation_kind]) result.annotations[annotation_kind] = {}; // take only one annotation for each language
-
-            if (!result.annotations[annotation_kind][language]) result.annotations[annotation_kind][language] = lexicalForm;
+            if (!result.annotations[annotation_kind]) result.annotations[annotation_kind] = {};
+            if (!result.annotations[annotation_kind][language]) result.annotations[annotation_kind][language] = [];
+            result.annotations[annotation_kind][language].push(lexicalForm);
           }
         }
       } catch (err) {
@@ -11437,7 +11437,7 @@
     var node_iri = null;
     if (typeof node === 'string') node_iri = node;else node_iri = getTagText(node, 'iri');
     if (!node_iri) return null;
-    var iris = xmlDocument.getElementsByTagName('iris')[0].children;
+    var iris = getTag(xmlDocument, 'iris').children;
 
     var _iterator5 = _createForOfIteratorHelper(iris),
         _step5;
@@ -11734,8 +11734,20 @@
         var label = element.getElementsByTagName('label')[0]; // apply label position and font size
 
         if (label != null) {
-          nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1;
-          nodo.data.labelYpos = parseInt(label.getAttribute('y')) - nodo.position.y + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4;
+          if (parseInt(label.getAttribute('x')) == nodo.position.x) {
+            nodo.data.labelXcentered = true;
+            nodo.data.labelXpos = 0;
+          } else {
+            nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1;
+          }
+
+          if (parseInt(label.getAttribute('y')) == nodo.position.y) {
+            nodo.data.labelYcentered = true;
+            nodo.data.labelYpos = 0;
+          } else {
+            nodo.data.labelYpos = parseInt(label.getAttribute('y')) - nodo.position.y + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4;
+          }
+
           nodo.data.fontSize = parseInt(label.getAttribute('size')) || 12;
         }
 
@@ -11757,7 +11769,7 @@
             breakpoints: []
           }
         };
-        if (edge.data.type.toLowerCase() == 'membership') edge.data.displayed_name = 'instance Of';else if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different') edge.data.displayed_name = edge.data.type.toLowerCase(); // Prendiamo i nodi source e target
+        if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different') edge.data.displayed_name = edge.data.type.toLowerCase(); // Prendiamo i nodi source e target
 
         var source = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.source);
         var target = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.target); // Impostiamo le label numeriche per gli archi che entrano nei role-chain
@@ -16561,7 +16573,7 @@
   customElements.define('gscape-head', GscapeHeader);
 
   function _templateObject3$2() {
-    var data = _taggedTemplateLiteral(["\n        <div\n          @click=\"", "\"\n          name=\"", "\"\n          diagram-id=\"", "\"\n          class=\"diagram-item highlight ", "\"\n        >\n          ", "\n        </div>\n        "]);
+    var data = _taggedTemplateLiteral(["\n            <div\n              @click=\"", "\"\n              name=\"", "\"\n              diagram-id=\"", "\"\n              class=\"diagram-item highlight ", "\"\n            >\n              ", "\n            </div>\n            "]);
 
     _templateObject3$2 = function _templateObject3() {
       return data;
@@ -16632,8 +16644,21 @@
       value: function render() {
         var _this2 = this;
 
-        return html$1(_templateObject2$3(), this.default_title, this.diagrams.map(function (diagram, id) {
-          return html$1(_templateObject3$2(), _this2.changeDiagram, diagram.name, id, id == _this2.actual_diagram_id ? "selected" : "", diagram.name);
+        return html$1(_templateObject2$3(), this.default_title, this.diagrams.sort(function (a, b) {
+          var x = a.name.toLowerCase();
+          var y = b.name.toLowerCase();
+
+          if (x < y) {
+            return -1;
+          }
+
+          if (x > y) {
+            return 1;
+          }
+
+          return 0;
+        }).map(function (diagram) {
+          return html$1(_templateObject3$2(), _this2.changeDiagram, diagram.name, diagram.id, diagram.id == _this2.actual_diagram_id ? "selected" : "", diagram.name);
         }));
       }
     }, {
@@ -16656,7 +16681,13 @@
       key: "actual_diagram_id",
       set: function set(diagram_id) {
         this._actual_diagram_id = diagram_id;
-        if (diagram_id != null) this.header.title = this.diagrams[diagram_id].name;
+
+        if (diagram_id != null) {
+          this.header.title = this.diagrams.find(function (d) {
+            return d.id == diagram_id;
+          }).name;
+        }
+
         this.requestUpdate();
       },
       get: function get() {
@@ -16684,7 +16715,7 @@
   }
 
   function _templateObject4$2() {
-    var data = _taggedTemplateLiteral(["\n          <div>\n            <div\n              id=\"", "\"\n              class=\"row highlight\"\n              type=\"", "\"\n              label = \"", "\"\n            >\n              <span><mwc-icon @click='", "'>keyboard_arrow_right</mwc-icon></span>\n              <span>", "</span>\n              <div class=\"row-label\" @click='", "'>", "</div>\n            </div>\n\n            <div class=\"sub-rows-wrapper hide\">\n            ", "\n            </div>\n          </div>\n        "]);
+    var data = _taggedTemplateLiteral(["\n          <div>\n            <div\n              id=\"", "\"\n              class=\"row highlight\"\n              type=\"", "\"\n              displayed_name = \"", "\"\n            >\n              <span><mwc-icon @click='", "'>keyboard_arrow_right</mwc-icon></span>\n              <span>", "</span>\n              <div class=\"row-label\" @click='", "'>", "</div>\n            </div>\n\n            <div class=\"sub-rows-wrapper hide\">\n            ", "\n            </div>\n          </div>\n        "]);
 
     _templateObject4$2 = function _templateObject4() {
       return data;
@@ -16772,7 +16803,7 @@
 
         return html$1(_templateObject3$3(), this.search, Object.keys(this.predicates).map(function (key) {
           var predicate = _this2.predicates[key];
-          return html$1(_templateObject4$2(), predicate.subrows[0].id, predicate.type, predicate.label, _this2.toggleSubRows, getTypeImg(predicate.type), _this2.handleEntitySelection, predicate.label, predicate.subrows.map(function (predicate_instance) {
+          return html$1(_templateObject4$2(), predicate.subrows[0].id, predicate.type, predicate.displayed_name, _this2.toggleSubRows, getTypeImg(predicate.type), _this2.handleEntitySelection, predicate.displayed_name, predicate.subrows.map(function (predicate_instance) {
             return html$1(_templateObject5$2(), predicate_instance.diagram.id, predicate_instance.id, _this2.handleNodeSelection, predicate_instance.diagram.name, predicate_instance.id_xml);
           }));
         }));
@@ -16789,6 +16820,8 @@
     }, {
       key: "search",
       value: function search(e) {
+        var _this3 = this;
+
         if (e.keyCode == 27) {
           e.target.blur();
         }
@@ -16798,11 +16831,43 @@
         var rows = this.shadowRoot.querySelectorAll('.row');
         rows.forEach(function (row) {
           value.split(' ').forEach(function (word) {
-            if (row.getAttribute('label').toLowerCase().indexOf(word) > -1 || row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
-              row.style.display = '';
+            var key = row.getAttribute('displayed_name') + row.getAttribute('type');
+            var predicate = _this3.predicates[key];
+            var found = false;
+
+            if (!predicate.labels) {
+              // Graphol v2 has only one label for each entity
+              if (predicate.label_v2.toLowerCase().indexOf(word) > -1 || row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
+                row.style.display = '';
+                found = true;
+              }
             } else {
-              row.style.display = 'none';
+              // Graphol v3 has multiple labels for multiples languages
+              for (var language in predicate.labels) {
+                var _iterator = _createForOfIteratorHelper(predicate.labels[language]),
+                    _step;
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    var label = _step.value;
+
+                    if (label.toLowerCase().indexOf(word) > -1 || row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
+                      row.style.display = '';
+                      found = true;
+                      break;
+                    }
+                  }
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
+                }
+
+                if (found) break;
+              }
             }
+
+            if (!found) row.style.display = 'none';
           });
         });
         e.target.focus();
@@ -16835,12 +16900,15 @@
       },
       set: function set(predicates) {
         function getSubRowsObject(predicate) {
+          var diagram_name = this.diagrams.find(function (d) {
+            return d.id == predicate.diagram_id;
+          }).name;
           return {
             id: predicate.id,
             id_xml: predicate.id_xml,
             diagram: {
               id: predicate.diagram_id,
-              name: this.diagrams[predicate.diagram_id].name
+              name: diagram_name
             }
           };
         }
@@ -16848,13 +16916,18 @@
         var getSubRowsObjectBound = getSubRowsObject.bind(this);
         var dictionary = [];
         predicates.forEach(function (predicate) {
-          var label = predicate.displayed_name.replace(/\r?\n|\r/g, '');
-          var key = label.concat(predicate.type);
+          var displayed_name = predicate.displayed_name.replace(/\r?\n|\r/g, '');
+          var key = displayed_name.concat(predicate.type);
 
           if (!(key in dictionary)) {
+            var _predicate$annotation;
+
             dictionary[key] = {
               type: predicate.type,
-              label: label,
+              displayed_name: displayed_name,
+              labels: predicate === null || predicate === void 0 ? void 0 : (_predicate$annotation = predicate.annotations) === null || _predicate$annotation === void 0 ? void 0 : _predicate$annotation.label,
+              label_v2: predicate.label,
+              // for graphol v2, not having annotations for labels 
               subrows: []
             };
           }
@@ -16869,8 +16942,18 @@
   }(GscapeWidget);
   customElements.define('gscape-explorer', GscapeExplorer);
 
-  function _templateObject9$1() {
+  function _templateObject10$1() {
     var data = _taggedTemplateLiteral([""]);
+
+    _templateObject10$1 = function _templateObject10() {
+      return data;
+    };
+
+    return data;
+  }
+
+  function _templateObject9$1() {
+    var data = _taggedTemplateLiteral(["<span class=\"language\">", "</span>"]);
 
     _templateObject9$1 = function _templateObject9() {
       return data;
@@ -16880,7 +16963,7 @@
   }
 
   function _templateObject8$1() {
-    var data = _taggedTemplateLiteral(["<span class=\"language\">", "</span>"]);
+    var data = _taggedTemplateLiteral(["\n              <div class=\"description\" lang=\"", "\">\n                ", "\n                <span class=\"descr-text\"></span>\n              </div>\n            "]);
 
     _templateObject8$1 = function _templateObject8() {
       return data;
@@ -16890,7 +16973,7 @@
   }
 
   function _templateObject7$1() {
-    var data = _taggedTemplateLiteral(["\n            <div class=\"description\" lang=\"", "\">\n              ", "\n              <span class=\"descr-text\"></span>\n            </div>\n          "]);
+    var data = _taggedTemplateLiteral(["\n        <div class=\"section\">\n          <div class=\"section-header\"> Description </div>\n          ", "\n        </div>\n      "]);
 
     _templateObject7$1 = function _templateObject7() {
       return data;
@@ -16900,7 +16983,7 @@
   }
 
   function _templateObject6$1() {
-    var data = _taggedTemplateLiteral(["\n      <div class=\"section\">\n        <div class=\"section-header\"> Description </div>\n        ", "\n      </div>\n    "]);
+    var data = _taggedTemplateLiteral(["<th rowspan=\"3\">", "</th>"]);
 
     _templateObject6$1 = function _templateObject6() {
       return data;
@@ -16910,7 +16993,7 @@
   }
 
   function _templateObject5$3() {
-    var data = _taggedTemplateLiteral(["<th rowspan=\"3\">", "</th>"]);
+    var data = _taggedTemplateLiteral(["\n                        <tr>\n                          ", "\n                          <td class=\"language\">", "</td>\n                          <td>", "</td>\n                        </tr>\n                      "]);
 
     _templateObject5$3 = function _templateObject5() {
       return data;
@@ -16920,7 +17003,7 @@
   }
 
   function _templateObject4$3() {
-    var data = _taggedTemplateLiteral(["\n                  <tr>\n                    ", "\n                    <td class=\"language\">", "</td>\n                    <td>", "</td>\n                  </tr>\n                "]);
+    var data = _taggedTemplateLiteral(["\n                    ", "\n                  "]);
 
     _templateObject4$3 = function _templateObject4() {
       return data;
@@ -16930,7 +17013,7 @@
   }
 
   function _templateObject3$4() {
-    var data = _taggedTemplateLiteral(["\n            <tbody class=\"annotation-row\">\n              ", "\n            </tbody>\n          "]);
+    var data = _taggedTemplateLiteral(["\n              <tbody class=\"annotation-row\">\n                ", "\n              </tbody>\n            "]);
 
     _templateObject3$4 = function _templateObject3() {
       return data;
@@ -16940,7 +17023,7 @@
   }
 
   function _templateObject2$5() {
-    var data = _taggedTemplateLiteral(["\n      <div class=\"section\">\n        <div class=\"section-header\">Annotations</div>\n        <table class=\"details_table annotations\">\n        ", "\n        </table>\n      </div>\n    "]);
+    var data = _taggedTemplateLiteral(["\n        <div class=\"section\">\n          <div class=\"section-header\">Annotations</div>\n          <table class=\"details_table annotations\">\n          ", "\n          </table>\n        </div>\n      "]);
 
     _templateObject2$5 = function _templateObject2() {
       return data;
@@ -16950,7 +17033,7 @@
   }
 
   function _templateObject$5() {
-    var data = _taggedTemplateLiteral(["\n    ", "\n\n  ", "\n  "]);
+    var data = _taggedTemplateLiteral(["\n    ", "\n\n    ", "\n  "]);
 
     _templateObject$5 = function _templateObject() {
       return data;
@@ -16962,11 +17045,13 @@
     return html$1(_templateObject$5(), entity.annotations && Object.keys(entity.annotations).length > 0 ? html$1(_templateObject2$5(), Object.keys(entity.annotations).map(function (kind) {
       var annotation = entity.annotations[kind];
       return html$1(_templateObject3$4(), Object.keys(annotation).map(function (language, count) {
-        return html$1(_templateObject4$3(), count == 0 ? html$1(_templateObject5$3(), kind.charAt(0).toUpperCase() + kind.slice(1)) : '', language, annotation[language]);
+        return html$1(_templateObject4$3(), annotation[language].map(function (value) {
+          return html$1(_templateObject5$3(), count == 0 ? html$1(_templateObject6$1(), kind.charAt(0).toUpperCase() + kind.slice(1)) : '', language, value);
+        }));
       }));
-    })) : '', entity.description && Object.keys(entity.description).length > 0 ? html$1(_templateObject6$1(), Object.keys(entity.description).map(function (language) {
-      return html$1(_templateObject7$1(), language, language != '' ? html$1(_templateObject8$1(), language) : '');
-    })) : html$1(_templateObject9$1()));
+    })) : '', entity.description && Object.keys(entity.description).length > 0 ? html$1(_templateObject7$1(), Object.keys(entity.description).map(function (language) {
+      return html$1(_templateObject8$1(), language, language != '' ? html$1(_templateObject9$1(), language) : '');
+    })) : html$1(_templateObject10$1()));
   });
 
   function _templateObject3$5() {
@@ -17936,6 +18021,16 @@
         'min-zoomed-font-size': '5px'
       }
     }, {
+      selector: 'node[labelXcentered]',
+      style: {
+        'text-halign': 'center'
+      }
+    }, {
+      selector: 'node[labelYcentered]',
+      style: {
+        'text-valign': 'center'
+      }
+    }, {
       selector: 'edge',
       style: {
         'width': 2,
@@ -17947,11 +18042,19 @@
         'color': theme.label_color
       }
     }, {
-      selector: 'edge[type = "inclusion"], [type = "membership"], edge.inclusion',
+      selector: 'edge[type = "inclusion"], edge.inclusion',
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled'
+      }
+    }, {
+      selector: 'edge[type = "membership"]',
+      style: {
+        'line-style': 'dashed',
+        'line-dash-pattern': [2, 3],
+        'target-arrow-shape': 'triangle',
+        'target-arrow-fill': 'hollow'
       }
     }, {
       selector: 'edge.hierarchy',
@@ -18162,8 +18265,12 @@
     }, {
       selector: '.float:locked',
       style: {
-        'border-color': theme.secondary,
         'border-width': '4px'
+      }
+    }, {
+      selector: '.float[?pinned]',
+      style: {
+        'border-color': theme.secondary
       }
     }, {
       // the right border part of functional && inverseFunctional roles
@@ -18488,6 +18595,7 @@
 
       _this.layoutStopped = false;
       _this.dragAndPin = false;
+      _this.useOriginalPositions = false;
 
       _this.cy.on('grab', function (e) {
         e.target.data('old_pos', JSON.stringify(e.target.position()));
@@ -18497,7 +18605,7 @@
         var actual_pos = JSON.stringify(e.target.position());
 
         if (_this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
-          _this.lockNode(e.target);
+          _this.pinNode(e.target);
         }
 
         e.target.removeData('old_pos');
@@ -18516,14 +18624,20 @@
         _get(_getPrototypeOf(FloatingGscapeRenderer.prototype), "drawDiagram", this).call(this, diagram);
 
         this.cy.nodes().addClass('float');
-        this.main_layout = this.layout(); // apply layout on those not locked
 
-        this.main_layout.run();
+        if (this.useOriginalPositions) {
+          this.activateOriginalPositions();
+        } else {
+          this.main_layout = this.layout(); // apply layout on those not locked
+
+          this.main_layout.run();
+        }
         /**
          * hack: let layout run a bit and fit to it.
          * Prevent some diagrams to disappear from screen due to
          * automatic layout.
          */
+
 
         setTimeout(function () {
           return _this2.cy.fit();
@@ -18557,21 +18671,23 @@
     }, {
       key: "layout",
       value: function layout() {
-        var selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : ':unlocked';
+        var selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '*';
         return this.cy.$(selector).layout(this.layout_settings);
       }
     }, {
-      key: "unlockNode",
-      value: function unlockNode(node) {
+      key: "unpinNode",
+      value: function unpinNode(node) {
         this.removeUnlockButton(node);
         node.unlock();
+        node.data("pinned", false);
       }
     }, {
-      key: "lockNode",
-      value: function lockNode(node) {
+      key: "pinNode",
+      value: function pinNode(node) {
         var _this4 = this;
 
         node.lock();
+        node.data("pinned", true);
         var unlockButton = node.popper({
           content: function content() {
             var dimension = node.data('width') / 9 * _this4.cy.zoom();
@@ -18587,7 +18703,7 @@
             setStyle(dimension, div);
 
             div.onclick = function () {
-              return _this4.unlockNode(node);
+              return _this4.unpinNode(node);
             };
 
             _this4.cy.container().appendChild(div);
@@ -18654,6 +18770,45 @@
           node.unlockButton = null;
         }
       }
+      /**
+       * Create a new layout with default edgeLength and allowing overlapping
+       * Put concepts (not already pinned) in their original position and lock them
+       * Run the new layout to place hierarchies nodes and attributes
+       */
+
+    }, {
+      key: "activateOriginalPositions",
+      value: function activateOriginalPositions() {
+        var _this6 = this;
+
+        var layout_options = this.layout_settings; // customize options
+
+        delete layout_options.edgeLength;
+        layout_options.avoidOverlap = false;
+        delete layout_options.convergenceThreshold;
+        this.main_layout = this.cy.$('*').layout(layout_options);
+        this.cy.$('.concept').forEach(function (node) {
+          if (!node.data('pinned')) {
+            node.position(JSON.parse(node.data('original-position')));
+            node.lock();
+          }
+        });
+        this.main_layout.run();
+        /**
+         * when the layout finishes placing attributes and hierarchy nodes, unlock all
+         * nodes not already pinned somewhere
+         */
+
+        this.main_layout.on("layoutstop", function () {
+          return _this6.cy.$('[!pinned]').unlock();
+        });
+      }
+    }, {
+      key: "disableOriginalPositions",
+      value: function disableOriginalPositions() {
+        this.cy.$('[type = "concept"][!pinned]').unlock();
+        this.main_layout = this.layout();
+      }
     }, {
       key: "layout_settings",
       get: function get() {
@@ -18688,15 +18843,39 @@
     }, {
       key: "dragAndPin",
       set: function set(active) {
-        var _this6 = this;
+        var _this7 = this;
 
         this._dragAndPin = active;
-        if (!active) this.cy.$(':locked').each(function (node) {
-          return _this6.unlockNode(node);
+        if (!active) this.cy.$('[?pinned]').each(function (node) {
+          return _this7.unpinNode(node);
         });
       },
       get: function get() {
         return this._dragAndPin;
+      }
+      /**
+       * lock concept(classes) nodes in their original positions
+       */
+
+    }, {
+      key: "useOriginalPositions",
+      set: function set(active) {
+        this._useOriginalPoisions = active;
+        active ? this.activateOriginalPositions() : this.disableOriginalPositions();
+      },
+      get: function get() {
+        return this._useOriginalPoisions;
+      }
+    }, {
+      key: "main_layout",
+      set: function set(new_layout) {
+        var _this$_main_layout;
+
+        (_this$_main_layout = this._main_layout) === null || _this$_main_layout === void 0 ? void 0 : _this$_main_layout.stop();
+        this._main_layout = new_layout;
+      },
+      get: function get() {
+        return this._main_layout;
       }
     }]);
 
@@ -18865,7 +19044,7 @@
   customElements.define('gscape-render-selection', GscapeRenderSelector);
 
   function _templateObject2$f() {
-    var data = _taggedTemplateLiteral(["\n      <!-- in case of body\n      <div class=\"widget-body hide\">\n      </div>\n      <gscape-head title=\"Layout Settings\" collapsed=\"true\" class=\"drag-handler\">\n        <span>\n          ", "\n          ", "\n        </span>\n      </gscape-head>\n      -->\n\n      <div class=\"wrapper\">\n        <span class=\"title\">Layout Settings</span>\n        <span class=\"toggles-wrapper\">\n          ", "\n          ", "\n        </span>\n      </div>\n\n    "]);
+    var data = _taggedTemplateLiteral(["\n      <!-- in case of body\n      <div class=\"widget-body hide\">\n      </div>\n      <gscape-head title=\"Layout Settings\" collapsed=\"true\" class=\"drag-handler\">\n        <span>\n          ", "\n          ", "\n        </span>\n      </gscape-head>\n      -->\n\n      <div class=\"wrapper\">\n        <span class=\"title\">Layout Settings</span>\n        <span class=\"toggles-wrapper\">\n          ", "\n          ", "\n          ", "\n        </span>\n      </div>\n\n    "]);
 
     _templateObject2$f = function _templateObject2() {
       return data;
@@ -18911,15 +19090,40 @@
 
       _this = _super.call(this);
       _this.collapsible = false;
+      _this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running');
+      _this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin');
+      _this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions');
       _this.onLayoutRunToggle = {};
       _this.onDragAndPinToggle = {};
+      _this.onUseOriginalPositions = {};
       return _this;
     }
 
     _createClass(GscapeLayoutSettings, [{
       key: "render",
       value: function render() {
-        return html$1(_templateObject2$f(), new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle), new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle), new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle), new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle));
+        return html$1(_templateObject2$f(), new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle), new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle), this.layoutRunToggle, this.dragAndDropToggle, this.useOriginalPositionsToggle);
+      }
+    }, {
+      key: "onLayoutRunToggle",
+      set: function set(callback) {
+        this._onLayoutRunToggle = callback;
+        this.layoutRunToggle.onToggle = callback;
+      },
+      get: function get() {
+        return this._onLayoutRunToggle;
+      }
+    }, {
+      key: "onDragAndPinToggle",
+      set: function set(callback) {
+        this._onDragAndPinToggle = callback;
+        this.dragAndDropToggle.onToggle = callback;
+      }
+    }, {
+      key: "onUseOriginalPositions",
+      set: function set(callback) {
+        this._onUseOriginalPositions = callback;
+        this.useOriginalPositionsToggle.onToggle = callback;
       }
     }]);
 
@@ -18938,10 +19142,10 @@
   }
   var grapholscape = html$1(_templateObject$i());
 
-  function _templateObject10$1() {
+  function _templateObject10$2() {
     var data = _taggedTemplateLiteral([""]);
 
-    _templateObject10$1 = function _templateObject10() {
+    _templateObject10$2 = function _templateObject10() {
       return data;
     };
 
@@ -19085,9 +19289,9 @@
               if (option.value == '') return;
               var selected = option.value == setting.selected;
               return html$1(_templateObject7$3(), option.value, selected, option.label);
-            })) : html$1(_templateObject8$3()), setting.type == 'boolean' ? html$1(_templateObject9$2(), new GscapeToggle(setting_entry, setting.enabled, false, '', _this2.onToggleChange.bind(_this2))) : html$1(_templateObject10$1()));
+            })) : html$1(_templateObject8$3()), setting.type == 'boolean' ? html$1(_templateObject9$2(), new GscapeToggle(setting_entry, setting.enabled, false, '', _this2.onToggleChange.bind(_this2))) : html$1(_templateObject10$2()));
           }));
-        }), this.savePNGButton, this.saveSVGButton, grapholscape, "1.2.1");
+        }), this.savePNGButton, this.saveSVGButton, grapholscape, "1.3.0");
 
         function capitalizeFirstLetter(string) {
           return string.charAt(0).toUpperCase() + string.slice(1);
@@ -19529,11 +19733,25 @@
         this.layout_settings = new GscapeLayoutSettings();
 
         this.layout_settings.onLayoutRunToggle = function () {
-          return _this.renderer.layoutStopped = !_this.renderer.layoutStopped;
+          if (!_this.layoutStopped) {
+            _this.layout_settings.useOriginalPositionsToggle.state = false;
+            _this.renderer.useOriginalPositions = false;
+          }
+
+          _this.renderer.layoutStopped = !_this.renderer.layoutStopped;
         };
 
         this.layout_settings.onDragAndPinToggle = function () {
           return _this.renderer.dragAndPin = !_this.renderer.dragAndPin;
+        };
+
+        this.layout_settings.onUseOriginalPositions = function () {
+          if (!_this.renderer.useOriginalPositions) {
+            _this.layout_settings.layoutRunToggle.state = false;
+            _this.renderer.layoutStopped = true;
+          }
+
+          _this.renderer.useOriginalPositions = !_this.renderer.useOriginalPositions;
         };
 
         this.layout_settings.hide();
@@ -21003,7 +21221,11 @@
     function simplifyDiagramFloat(nodes, edges) {
       var cy = cytoscape();
       cy.add(nodes);
-      cy.add(edges);
+      cy.add(edges); // remember original positions
+
+      cy.$('node').forEach(function (node) {
+        node.data('original-position', JSON.stringify(node.position()));
+      });
       simplifyRolesFloat(cy);
       simplifyHierarchiesFloat(cy);
       simplifyAttributesFloat(cy);
@@ -21032,7 +21254,7 @@
                 target: target.id(),
                 type: domain.target().data('type'),
                 iri: domain.target().data('iri'),
-                displayed_name: domain.target().data('displayed_name'),
+                displayed_name: domain.target().data('displayed_name').replace(/\r?\n|\r/g, ''),
                 label: domain.target().data('label'),
                 description: domain.target().data('description'),
                 functional: domain.target().data('functional'),

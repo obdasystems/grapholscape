@@ -163,11 +163,11 @@ export default class GscapeExplorer extends GscapeWidget{
               id="${predicate.subrows[0].id}"
               class="row highlight"
               type="${predicate.type}"
-              label = "${predicate.label}"
+              displayed_name = "${predicate.displayed_name}"
             >
               <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
               <span>${getTypeImg(predicate.type)}</span>
-              <div class="row-label" @click='${this.handleEntitySelection}'>${predicate.label}</div>
+              <div class="row-label" @click='${this.handleEntitySelection}'>${predicate.displayed_name}</div>
             </div>
 
             <div class="sub-rows-wrapper hide">
@@ -215,12 +215,35 @@ export default class GscapeExplorer extends GscapeWidget{
 
     rows.forEach( row => {
       value.split(' ').forEach(word => {
-        if (row.getAttribute('label').toLowerCase().indexOf(word) > -1 ||
-            row.getAttribute('type').toLowerCase().indexOf(word) > -1 ) {
-          row.style.display = ''
+        let key = row.getAttribute('displayed_name') + row.getAttribute('type')
+        let predicate = this.predicates[key]
+
+        let found = false
+
+        if (!predicate.labels) {
+          // Graphol v2 has only one label for each entity
+          if (predicate.label_v2.toLowerCase().indexOf(word) > -1 ||
+              row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
+            row.style.display = ''
+            found = true
+          }
         } else {
-          row.style.display = 'none'
+          // Graphol v3 has multiple labels for multiples languages
+          for ( let language in predicate.labels) {
+            for ( let label of predicate.labels[language]) {
+              if (label.toLowerCase().indexOf(word) > -1 || 
+                row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
+                row.style.display = ''
+                found = true
+                break
+              }
+            }
+  
+            if (found) break
+          }
         }
+        
+        if (!found) row.style.display = 'none'
       })
     })
 
@@ -233,12 +256,14 @@ export default class GscapeExplorer extends GscapeWidget{
 
   set predicates(predicates) {
     function getSubRowsObject(predicate) {
+
+      let diagram_name = this.diagrams.find(d => d.id == predicate.diagram_id).name
       return {
         id : predicate.id,
         id_xml : predicate.id_xml,
         diagram : {
           id : predicate.diagram_id,
-          name : this.diagrams[predicate.diagram_id].name,
+          name : diagram_name,
         }
       }
     }
@@ -247,13 +272,15 @@ export default class GscapeExplorer extends GscapeWidget{
     let dictionary = []
 
     predicates.forEach(predicate => {
-      let label = predicate.displayed_name.replace(/\r?\n|\r/g, '')
-      let key = label.concat(predicate.type)
+      let displayed_name = predicate.displayed_name.replace(/\r?\n|\r/g, '')
+      let key = displayed_name.concat(predicate.type)
 
       if (!(key in dictionary)) {
         dictionary[key] = {
           type : predicate.type,
-          label : label,
+          displayed_name : displayed_name,
+          labels: predicate?.annotations?.label,
+          label_v2: predicate.label, // for graphol v2, not having annotations for labels 
           subrows : []
         }
       }

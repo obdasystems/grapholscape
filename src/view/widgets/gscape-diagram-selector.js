@@ -58,16 +58,24 @@ export default class GscapeDiagramSelector extends GscapeWidget {
         class="drag-handler"></gscape-head>
 
       <div class="widget-body hide">
-        ${this.diagrams.map( (diagram, id) => html`
-        <div
-          @click="${this.changeDiagram}"
-          name="${diagram.name}"
-          diagram-id="${id}"
-          class="diagram-item highlight ${id == this.actual_diagram_id ? `selected` : ``}"
-        >
-          ${diagram.name}
-        </div>
-        `)}
+        ${this.diagrams
+          .sort(function (a, b) {
+            var x = a.name.toLowerCase()
+            var y = b.name.toLowerCase()
+            if (x < y) { return -1; }
+            if (x > y) { return 1; }
+            return 0
+          })
+          .map( diagram => html`
+            <div
+              @click="${this.changeDiagram}"
+              name="${diagram.name}"
+              diagram-id="${diagram.id}"
+              class="diagram-item highlight ${diagram.id == this.actual_diagram_id ? `selected` : ``}"
+            >
+              ${diagram.name}
+            </div>
+            `)}
       </div>
     `
   }
@@ -92,8 +100,9 @@ export default class GscapeDiagramSelector extends GscapeWidget {
   set actual_diagram_id(diagram_id) {
     this._actual_diagram_id = diagram_id
 
-    if (diagram_id != null)
-      this.header.title = this.diagrams[diagram_id].name
+    if (diagram_id != null) {
+      this.header.title = this.diagrams.find(d => d.id == diagram_id).name
+    }
 
     this.requestUpdate()
   }

@@ -34,6 +34,20 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: 'node[labelXcentered]',
+      style: {
+        'text-halign': 'center',
+      }
+    },
+
+    {
+      selector: 'node[labelYcentered]',
+      style: {
+        'text-valign': 'center',
+      }
+    },
+
+    {
       selector: 'edge',
       style: {
         'width': 2,
@@ -47,11 +61,21 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge[type = "inclusion"], [type = "membership"], edge.inclusion',
+      selector: 'edge[type = "inclusion"], edge.inclusion',
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled'
+      }
+    },
+
+    {
+      selector: 'edge[type = "membership"]',
+      style: {
+        'line-style': 'dashed',
+        'line-dash-pattern': [2,3],
+        'target-arrow-shape': 'triangle',
+        'target-arrow-fill': 'hollow'
       }
     },
 
@@ -328,8 +352,14 @@ export function getGraphStyle(theme) {
     {
       selector: '.float:locked',
       style: {
-        'border-color' : theme.secondary,
         'border-width' : '4px',
+      }
+    },
+
+    {
+      selector: '.float[?pinned]',
+      style: {
+        'border-color' : theme.secondary,
       }
     },
 

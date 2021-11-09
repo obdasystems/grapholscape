@@ -10,6 +10,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
     this.layoutStopped = false
     this.dragAndPin = false
+    this.useOriginalPositions = false
 
     this.cy.on('grab', (e) => {
       e.target.data('old_pos', JSON.stringify(e.target.position()))
@@ -18,7 +19,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.cy.on('free', (e) => {
       let actual_pos = JSON.stringify(e.target.position())
       if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
-        this.lockNode(e.target)
+        this.pinNode(e.target)
       }
 
       e.target.removeData('old_pos')
@@ -29,8 +30,13 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.clearPoppers()
     super.drawDiagram(diagram)
     this.cy.nodes().addClass('float')
-    this.main_layout = this.layout() // apply layout on those not locked
-    this.main_layout.run()
+
+    if (this.useOriginalPositions) {
+      this.activateOriginalPositions()
+    } else {
+      this.main_layout = this.layout() // apply layout on those not locked
+      this.main_layout.run()
+    }
 
     /**
      * hack: let layout run a bit and fit to it.
@@ -57,17 +63,19 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
       }
   }
 
-  layout(selector = ':unlocked') {
+  layout(selector = '*') {
     return this.cy.$(selector).layout(this.layout_settings)
   }
 
-  unlockNode(node) {
+  unpinNode(node) {
     this.removeUnlockButton(node)
     node.unlock()
+    node.data("pinned", false)
   }
 
-  lockNode(node) {
+  pinNode(node) {
     node.lock()
+    node.data("pinned", true)
 
     let unlockButton = node.popper({
       content: () => {
@@ -83,7 +91,7 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
         div.innerHTML = `<mwc-icon>lock_open</mwc_icon>`
         setStyle(dimension, div)
 
-        div.onclick = () => this.unlockNode(node)
+        div.onclick = () => this.unpinNode(node)
         this.cy.container().appendChild(div)
 
         return div
@@ -137,6 +145,39 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     }
   }
 
+  /**
+   * Create a new layout with default edgeLength and allowing overlapping
+   * Put concepts (not already pinned) in their original position and lock them
+   * Run the new layout to place hierarchies nodes and attributes
+   */
+  activateOriginalPositions() {
+    let layout_options = this.layout_settings
+    // customize options
+    delete layout_options.edgeLength
+    layout_options.avoidOverlap = false
+    delete layout_options.convergenceThreshold
+    this.main_layout = this.cy.$('*').layout(layout_options)
+
+    this.cy.$('.concept').forEach( node => {
+      if (!node.data('pinned')) {
+        node.position(JSON.parse(node.data('original-position')))
+        node.lock()
+      }
+    })
+
+    this.main_layout.run()
+    /**
+     * when the layout finishes placing attributes and hierarchy nodes, unlock all
+     * nodes not already pinned somewhere
+     */
+    this.main_layout.on("layoutstop", () => this.cy.$('[!pinned]').unlock())
+  }
+
+  disableOriginalPositions() {
+    this.cy.$('[type = "concept"][!pinned]').unlock()
+    this.main_layout = this.layout()
+  }
+
   get layout_settings() {
     return {
       name: 'cola',
@@ -171,8 +212,26 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
 
   set dragAndPin(active) {
     this._dragAndPin = active
-    if (!active) this.cy.$(':locked').each(node => this.unlockNode(node))
+    if (!active) this.cy.$('[?pinned]').each(node => this.unpinNode(node))
   }
 
   get dragAndPin() { return this._dragAndPin }
+
+  /**
+   * lock concept(classes) nodes in their original positions
+   */
+  set useOriginalPositions(active) {
+    this._useOriginalPoisions = active
+
+    active ? this.activateOriginalPositions() : this.disableOriginalPositions()
+  }
+
+  get useOriginalPositions() { return this._useOriginalPoisions }
+
+  set main_layout(new_layout) {
+    this._main_layout?.stop()
+    this._main_layout = new_layout
+  }
+
+  get main_layout() { return this._main_layout }
 }
