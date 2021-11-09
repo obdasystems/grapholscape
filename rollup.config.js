@@ -18,8 +18,8 @@ const dependencies = Object.keys(require('./package.json').dependencies)
 dependencies.splice(dependencies.indexOf('lit-html'), 1)
 dependencies.splice(dependencies.indexOf('lit-element'), 1)
 
-const input = './src/grapholscape.js'
-const name = 'GrapholScape'
+const input = './src/index.js'
+const name = 'Grapholscape'
 
 const envVariables = {
   'process.env.VERSION': JSON.stringify(VERSION),

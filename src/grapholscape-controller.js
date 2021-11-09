@@ -9,7 +9,8 @@
 import OwlTranslator from "./util/owl"
 import computeSimplifiedOntologies from "./util/simplifier"
 import * as default_config from "./config.json"
-import downloadBlob from "./util/download_blob"
+import downloadBlob from "./exporting/download-blob"
+import { diagramModelToViewData, entityModelToViewData } from "./util/model-to-view-data"
 
 export default class GrapholscapeController {
   constructor(ontology, view = null, custom_config = null) {
@@ -75,7 +76,7 @@ export default class GrapholscapeController {
     let diagramsModelData = this.ontology.diagrams
     let entitiesModelData = this.ontology.getEntities()
 
-    let diagramsViewData = diagramsModelData.map(diagram => this.diagramModelToViewData(diagram))
+    let diagramsViewData = diagramsModelData.map(diagram => diagramModelToViewData(diagram))
     let entitiesViewData = entitiesModelData.map(entity => this.entityModelToViewData(entity))
     let ontologyViewData = {
       name : this.ontology.name,
@@ -98,7 +99,7 @@ export default class GrapholscapeController {
     this.view.onExportToPNG = this.exportToPNG.bind(this)
     this.view.onExportToSVG = this.exportToSVG.bind(this)
 
-    this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
+    //this.view.createUi(ontologyViewData, diagramsViewData, entitiesViewData, this.config)
   }
 
   /**
@@ -148,8 +149,8 @@ export default class GrapholscapeController {
     if (!diagramModelData)
       this.view.showDialog('error', `Diagram not existing`)
 
-    let diagramViewData = this.diagramModelToViewData(diagramModelData)
-    this.view.drawDiagram(diagramViewData)
+    let diagramViewData = diagramModelToViewData(diagramModelData)
+    this.view.renderer.drawDiagram(diagramViewData)
   }
 
   /*
@@ -577,17 +578,6 @@ export default class GrapholscapeController {
     }
 
     return JSON.parse(JSON.stringify(entityViewData))
-  }
-
-  diagramModelToViewData(diagramModelData) {
-    let diagramViewData =  {
-      name : diagramModelData.name,
-      id : diagramModelData.id,
-      nodes : diagramModelData.nodes,
-      edges : diagramModelData.edges,
-    }
-
-    return JSON.parse(JSON.stringify(diagramViewData))
   }
 
   set ontology(ontology) {

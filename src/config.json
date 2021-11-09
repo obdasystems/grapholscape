@@ -116,6 +116,13 @@
           "active": false,
           "disabled": false,
           "class": "filtercomplements"
+        },
+        "key": {
+          "selector": "[type = \"key\"]",
+          "label": "Key",
+          "active": false,
+          "disabled": false,
+          "class": "filterKeys"
         }
       }
     },

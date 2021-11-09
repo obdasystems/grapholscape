@@ -24,6 +24,10 @@ export default class Ontology {
     this.version = version
     this.namespaces = namespaces
     this.diagrams = diagrams
+
+    this.annotations = []
+    this.languages = { list : [], default: ''}
+    this.description = []
   }
 
   // @param {Iri} iri
@@ -124,11 +128,10 @@ export default class Ontology {
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns {JSON} The plain json representation of the entity.
    */
-  getOccurrences(iri) {
-    return this.getEntities().filter(i => {
-      return i.data.iri.full_iri === iri ||
-        i.data.iri.prefix + i.data.iri.remaining_chars === iri
-    })
+  getEntityOccurrences(iri) {
+    if (!this.entities || Object.keys(this.entities).length === 0) this.getEntities()
+
+    return this.entities[iri].occurrences
   }
 
   /**
@@ -152,20 +155,31 @@ export default class Ontology {
   /**
    * Get the entities in the ontology
    * @param {boolean} json  - if true return plain json, if false return cytoscape collection. Default true.
-   * @returns {JSON | any}
-   *    - if `json` = `true` : array of JSONs with entities
-   *    - if `json` = `false` : [cytoscape collection](https://js.cytoscape.org/#collection)
+   * @returns {object[]} an array of objects, one per iri with an array of occurrences inside
+   *    - if `json` = `true` : occurrences are in plain json
+   *    - if `json` = `false` : occurrences are [cytoscape elems](https://js.cytoscape.org/#collection)
    */
-  getEntities (json = true) {
-    let predicates = cytoscape().collection()
+  getEntities(json = true) {
+    let entities = {}
     this.diagrams.forEach(diagram => {
-      predicates = predicates.union(diagram.cy.$('.predicate'))
+      diagram.cy.$('.predicate').forEach( entity => {
+        let iri = entity.data('iri').full_iri
+        if (Object.keys(entities).includes(iri)) {
+          addOccurrence(iri, entity)
+        } else {
+          entities[iri] = { occurrences: [] }
+          addOccurrence(iri, entity)
+        }
+      })
     })
+    
+    this.entities = entities
+    return entities
 
-    predicates = predicates.sort((a,b) => {
-      return a.data('displayed_name').localeCompare(b.data('displayed_name'))
-    })
-
-    return json ? predicates.jsons() : predicates
+    function addOccurrence(iri, entity) {
+      entity = json ? entity.json() : entity
+      entities[iri].occurrences.push(entity)
+      
+    }
   }
 }

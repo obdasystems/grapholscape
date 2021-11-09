@@ -1,17 +1,17 @@
 import cytoscape from 'cytoscape'
-import { getGraphStyle }  from '../style/graph-style'
+import { getGraphStyle }  from '../../style/graph-style'
 
 export default class GrapholscapeRenderer {
   constructor (container = null) {
-
+    this.label = ''
     this.actual_diagram = null
     let cy_container = document.createElement('div')
 
     cy_container.style.width = '100%'
     cy_container.style.height = '100%'
     cy_container.style.position = 'relative'
-    if (container)
-      container.insertBefore(cy_container, container.firstChild)
+    
+    if(container) this.setContainer(container)
 
     this.cy = cytoscape({
       container: cy_container,
@@ -48,6 +48,11 @@ export default class GrapholscapeRenderer {
     this.cy.on('mouseout', '*', e => {
       this.cy.container().style.cursor = 'inherit'
     })
+  }
+
+  setContainer(container) {
+    if (container)
+      container.insertBefore(this.cy.container(), container.firstChild)
   }
 
   /**
@@ -111,7 +116,7 @@ export default class GrapholscapeRenderer {
     })
   }
 
-  resetView () {
+  fitToGraph() {
     this.cy.fit()
   }
 
@@ -207,11 +212,15 @@ export default class GrapholscapeRenderer {
     this.cy.style(getGraphStyle(theme))
   }
 
-  getActualPosition() {
+  get actualViewportState() {
     return {
       x : this.cy.pan().x,
       y : this.cy.pan().y,
       zoom : this.cy.zoom()
     }
   }
+
+  get disabledFilters() {
+    return []
+  } 
 }

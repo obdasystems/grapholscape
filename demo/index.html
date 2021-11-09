@@ -86,7 +86,6 @@
     // Examples
     var examples_list = document.getElementById('examples_list');
     var i = 0;
-    var examples_graphs = [];
 
     for (i=0; i<examples.length; i++) {
       var li = document.createElement('li');
@@ -99,15 +98,18 @@
 
       examples_list.appendChild(li);
     }
-
+    let a
     function useGrapholscape(file) {
       document.getElementById('home').style.display = 'none';
       grapholscape_container.style.display = 'block';
 
+      a = new Grapholscape(file, grapholscape_container)
+      /*
       const grapholscape = new GrapholScape(file, grapholscape_container)
       grapholscape.then( function(grapholscape) {
         grapholscape.showDiagram(0)
       })
+      */
     }
   </script>
 </body>

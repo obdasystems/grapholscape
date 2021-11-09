@@ -12,9 +12,9 @@ export default class GscapeHeader extends GscapeWidget {
     }
   }
 
-  constructor() {
+  constructor(title = 'header') {
     super()
-    this.title = 'header'
+    this.title = title
     this.initial_icon = 'arrow_drop_down'
     this.secondary_icon = 'arrow_drop_up'
     this.icon = this.initial_icon

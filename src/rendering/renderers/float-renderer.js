@@ -1,6 +1,6 @@
 import GrapholscapeRenderer from './default-renderer'
 
-export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
+export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
     super(container)
 
@@ -177,6 +177,8 @@ export default class FloatingGscapeRenderer extends GrapholscapeRenderer {
     this.cy.$('[type = "concept"][!pinned]').unlock()
     this.main_layout = this.layout()
   }
+  
+  get disabledFilters() { return ["not", "universal_quantifier", "value_domain"] }
 
   get layout_settings() {
     return {

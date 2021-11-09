@@ -1,4 +1,4 @@
-import Ontology from '../model/ontology'
+import Ontology from '../model'
 import Namespace from '../model/namespace'
 import Diagram from '../model/diagram'
 import * as ParserUtil from './parser_util'
@@ -22,13 +22,13 @@ export default class GrapholParser {
   parseGraphol() {
     let ontology_info = this.graphol.getOntologyInfo(this.xmlDocument)
     this.ontology = new Ontology(ontology_info.name, ontology_info.version)
-    this.ontology.languages = ontology_info.languages || []
-    this.ontology.default_language = ontology_info.default_language || ontology_info.languages[0]
+    this.ontology.languages.list = ontology_info.languages || []
+    this.ontology.languages.default = ontology_info.default_language || ontology_info.languages[0]
     if (ontology_info.other_infos) {
       this.ontology.annotations = ontology_info.other_infos.annotations
       this.ontology.description = ontology_info.other_infos.description
     }
-      // Create iri and add them to ontology.namespaces
+    // Create iri and add them to ontology.namespaces
     //let iri_list = this.xmlDocument.getElementsByTagName('iri')
     let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
 
@@ -66,7 +66,7 @@ export default class GrapholParser {
             node.data.displayed_name = node.data.label[this.ontology.default_language]
           else {
             // otherwise pick the first language available
-            for (let lang of this.ontology.languages) {
+            for (let lang of this.ontology.languages.list) {
               if (node.data.label[lang]) {
                 node.data.displayed_name = node.data.label[lang]
                 break

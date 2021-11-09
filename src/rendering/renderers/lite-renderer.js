@@ -21,4 +21,6 @@ export default class LiteGscapeRenderer extends GrapholscapeRenderer {
     })
     layout.run()
   }
+
+  get disabledFilters() { return ["not", "universal_quantifier", "value_domain"] }
 }

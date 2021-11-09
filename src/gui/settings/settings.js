@@ -1,8 +1,8 @@
 import { html, css } from 'lit'
-import GscapeWidget from './common/gscape-widget'
-import GscapeButton from './common/gscape-button'
-import GscapeToggle from './common/gscape-toggle'
-import { grapholscape as logo} from './assets/gscape-logo'
+import GscapeWidget from '../common/gscape-widget'
+import GscapeButton from '../common/gscape-button'
+import GscapeToggle from '../common/gscape-toggle'
+import { grapholscape as logo} from '../assets/gscape-logo'
 
 export default class GscapeSettings extends GscapeWidget {
 
@@ -84,7 +84,7 @@ export default class GscapeSettings extends GscapeWidget {
     ]
   }
 
-  constructor(settings) {
+  constructor(settings = null) {
     super()
     this.collapsible = true
     this.settings = settings
