@@ -29,13 +29,11 @@ export default class Grapholscape {
       this.renderersManager = initRenderersManager(container, ['default', 'lite', 'float'])
     }
 
-    this.applyTheme(this.config.rendering.theme.selected)
-
     // set language
     this.config.preferences.language.list = ontology.languages.list.map(lang => {
       return {
-        "label" : lang,
-        "value" : lang,
+        "label": lang,
+        "value": lang,
       }
     })
 
@@ -43,15 +41,15 @@ export default class Grapholscape {
 
     // if not selected in config, select the default one
     let selectedLanguage = this.config.preferences.language.selected
-    if ( selectedLanguage == '')
+    if (selectedLanguage == '')
       this.config.preferences.language.selected = this.defaultLanguage
     else {
       // if language is not supported by ontology, add it in the list
       // only for consistency : user defined it so he wants to see it
       if (!ontology.languages.list.includes(selectedLanguage))
         this.config.preferences.language.list.push({
-          "label" : selectedLanguage + ' - unsupported' ,
-          "value" : selectedLanguage
+          "label": selectedLanguage + ' - unsupported',
+          "value": selectedLanguage
         })
     }
 
@@ -64,11 +62,14 @@ export default class Grapholscape {
     this._callbacksFilterOff = []
     this._callbacksRendererChange = []
     this._callbacksWikiClick = []
-    
+    this._callbacksThemeChange = []
+    this._callbacksEntityNameTypeChange = []
+    this._callbacksLanguageChange = []
+
     this.renderersManager.onEdgeSelection = this.handleEdgeSelection.bind(this)
     this.renderersManager.onNodeSelection = this.handleNodeSelection.bind(this)
     this.renderersManager.onBackgroundClick = this.handleBackgroundClick.bind(this)
-    
+
     this.ontologies = {
       default: ontology,
       lite: null,
@@ -83,6 +84,8 @@ export default class Grapholscape {
       .catch(reason => {
         console.log(reason)
       })
+
+    this.applyTheme(this.config.rendering.theme.selected)
   }
 
   onEntitySelection(callback) { this._callbacksEntitySelection.push(callback) }
@@ -288,35 +291,39 @@ export default class Grapholscape {
     this._callbacksFilterOff.forEach(fn => fn(unFilteredElems))
   }
 
+  onThemeChange(callback) { this._callbacksThemeChange.push(callback) }
   /**
    * Apply an existing theme or pass a new custom theme that will be added and then applied
    * Please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
    * @param {string | object } themeKey a predefined theme key or a custom theme object
    */
   applyTheme(themeKey) {
+    if (themeKey === this.themesController.actualTheme) return
+
     let normalizedTheme = this.themesController.getTheme(themeKey)
     if (!normalizedTheme) { // if it's not definedthen maybe it's a custom theme
       try {
         themeKey = this.addTheme(themeKey) // addTheme returns the key of the new added theme
         normalizedTheme = this.themesController.getTheme(themeKey)
-      } catch { 
-        console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes') 
+      } catch {
+        console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes')
         return
       }
     }
 
     this.container.style.background = normalizedTheme.background // prevent black background on fullscreen
-    
+
     // set custom properties on container so the gui widgets can use these new colours
     let prefix = '--theme-gscape-'
-    Object.keys(normalizedTheme).forEach( key => {
-      let css_key = prefix + key.replace(/_/g,'-')
+    Object.keys(normalizedTheme).forEach(key => {
+      let css_key = prefix + key.replace(/_/g, '-')
       this.container.style.setProperty(css_key, normalizedTheme[key])
     })
 
-    
+
     this.renderersManager.setTheme(normalizedTheme) // set graph style based on new theme
     this.themesController.actualTheme = themeKey
+    this._callbacksThemeChange.forEach(fn => fn(themeKey))
   }
 
   /**
@@ -344,16 +351,22 @@ export default class Grapholscape {
     return custom_theme_value
   }
 
+  onEntityNameTypeChange(callback) { this._callbacksEntityNameTypeChange.push(callback) }
+
   changeEntityNameType(entityNameType) {
     this.config.preferences.entity_name.selected = entityNameType
     // update displayed names (if label is selected then update the label language)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+    this._callbacksEntityNameTypeChange.forEach(fn => fn(entityNameType))
   }
+
+  onLanguageChange(callback) { this._callbacksLanguageChange.push(callback) }
 
   changeLanguage(language) {
     this.config.preferences.language.selected = language
     // update displayed names (if label is selected then update the label language)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+    this._callbacksLanguageChange.forEach(fn => fn(language))
   }
 
   /**
@@ -440,7 +453,7 @@ export default class Grapholscape {
 
   get languages() {
     return {
-      selected: this.config.preferences.language.selected ,
+      selected: this.config.preferences.language.selected,
       default: this.defaultLanguage,
       list: this.config.preferences.language.list
     }

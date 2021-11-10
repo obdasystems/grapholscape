@@ -8,12 +8,26 @@ export default function(settingsComponent, grapholscape) {
   settingsComponent.settings = grapholscape.config
   settingsComponent.onEntityNameSelection = (entityNameType) => { 
     grapholscape.changeEntityNameType(entityNameType)
-
-    // language selection only makes sense for label as displayed names
-    settingsComponent.shadowRoot.querySelector('select#language').disabled = entityNameType !== 'label'
   }
   settingsComponent.onLanguageSelection = (language) => { grapholscape.changeLanguage(language) }
   settingsComponent.onThemeSelection = (themeKey) => grapholscape.applyTheme(themeKey)
   settingsComponent.onPNGSaveButtonClick = () => grapholscape.exportToPNG()
   settingsComponent.onSVGSaveButtonClick = () => grapholscape.exportToSVG()
+
+  grapholscape.onLanguageChange( language => updateOnChange('language', language))
+  grapholscape.onEntityNameTypeChange( entityNameType => updateOnChange('entity_name', entityNameType) )
+  grapholscape.onThemeChange( themeKey => updateOnChange('theme', themeKey))
+
+  function updateOnChange(settingID, newValue) {
+    let select = settingsComponent.shadowRoot.querySelector(`#${settingID}`)
+    let option = Array.from(select.options)?.find( o => o.value === newValue)
+
+    if (option) {
+      option.selected = true
+      
+      let languageSelect = settingsComponent.shadowRoot.querySelector('#language')
+      if (select.id == 'entity_name') 
+        languageSelect.disabled = (select.value !== 'label')
+    }
+  }
 }
