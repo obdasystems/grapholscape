@@ -40,6 +40,7 @@ export default function main(grapholscape) {
   diagramSelector.diagrams = diagramsViewData
   diagramSelector.onDiagramChange = (diagram) => grapholscape.showDiagram(diagram)
 
+  entityDetails.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
   entityOccurrences.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID)
 
   zoomTools.onZoomIn = () => grapholscape.zoomIn()

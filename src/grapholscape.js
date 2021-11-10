@@ -51,6 +51,7 @@ export default class Grapholscape {
     this._callbacksFilterOn = []
     this._callbacksFilterOff = []
     this._callbacksRendererChange = []
+    this._callbacksWikiClick = []
     
 
     this.themesController = new ThemesController()
@@ -402,6 +403,18 @@ export default class Grapholscape {
         }
       }
     })
+  }
+
+  /**
+   * Set a callback to be called on a wiki redirection.
+   * @param {function} callback the function to call on a wiki redirection, it will be passed the IRI to redirect to
+   */
+  onWikiClick(callback) {
+    this._callbacksWikiClick.push(callback)
+  }
+
+  wikiRedirectTo(iri) {
+    this._callbacksWikiClick.forEach(fn => fn(iri))
   }
 
   get ontology() {
