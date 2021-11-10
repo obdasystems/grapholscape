@@ -18,7 +18,19 @@ export default class Grapholscape {
    */
   constructor(ontology, container, customConfig = null) {
     this.config = JSON.parse(JSON.stringify(defaultConfig)) //create copy
-    
+
+    this.themesController = new ThemesController()
+
+    if (customConfig) this.setConfig(customConfig)
+
+    if (customConfig?.renderers) {
+      this.renderersManager = initRenderersManager(container, customConfig.renderers)
+    } else {
+      this.renderersManager = initRenderersManager(container, ['default', 'lite', 'float'])
+    }
+
+    this.applyTheme(this.config.rendering.theme.selected)
+
     // set language
     this.config.preferences.language.list = ontology.languages.list.map(lang => {
       return {
@@ -53,21 +65,10 @@ export default class Grapholscape {
     this._callbacksRendererChange = []
     this._callbacksWikiClick = []
     
-
-    this.themesController = new ThemesController()
-
-    if (customConfig?.renderers) {
-      this.renderersManager = initRenderersManager(container, customConfig.renderers)
-    } else {
-      this.renderersManager = initRenderersManager(container, ['default', 'lite', 'float'])
-    }
-
     this.renderersManager.onEdgeSelection = this.handleEdgeSelection.bind(this)
     this.renderersManager.onNodeSelection = this.handleNodeSelection.bind(this)
     this.renderersManager.onBackgroundClick = this.handleBackgroundClick.bind(this)
     
-    this.applyTheme('gscape')
-
     this.ontologies = {
       default: ontology,
       lite: null,
@@ -82,9 +83,6 @@ export default class Grapholscape {
       .catch(reason => {
         console.log(reason)
       })
-
-
-    if (customConfig) this.setConfig(customConfig)
   }
 
   onEntitySelection(callback) { this._callbacksEntitySelection.push(callback) }
