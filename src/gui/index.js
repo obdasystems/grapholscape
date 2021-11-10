@@ -1,19 +1,19 @@
-import Grapholscape from "./grapholscape";
-import { diagramSelector } from "./gui/diagram-selector";
-import { entityDetails } from "./gui/entity-details";
-import { entityOccurrences } from "./gui/entity-occurrences";
-import { fullscreenButton } from "./gui/fullscreen";
-import { ontologyExplorer } from "./gui/ontology-explorer";
-import { ontologyInfo } from "./gui/ontology-info";
-import { owlVisualizer } from "./gui/owl-visualizer";
-import bottomLeftContainer from "./gui/util/bottom-left-container";
-import { zoomTools } from "./gui/zoom-tools";
-import { diagramModelToViewData, ontologyModelToViewData } from "./util/model-to-view-data";
-import { filters } from "./gui/filters"
-import { settings } from "./gui/settings";
-import { rendererSelector } from "./gui/renderer-selector";
-import GscapeButton from "./gui/common/gscape-button";
-import { layoutSettings } from "./gui/floaty-layout-settings";
+import Grapholscape from "../grapholscape";
+import GscapeButton from "./common/gscape-button";
+import { diagramSelector } from "./diagram-selector";
+import { entityDetails } from "./entity-details";
+import { entityOccurrences } from "./entity-occurrences";
+import { filters } from "./filters";
+import { layoutSettings } from "./floaty-layout-settings";
+import { fullscreenButton } from "./fullscreen";
+import { ontologyExplorer } from "./ontology-explorer";
+import { ontologyInfo } from "./ontology-info";
+import { owlVisualizer } from "./owl-visualizer";
+import { rendererSelector } from "./renderer-selector";
+import { settings } from "./settings";
+import bottomLeftContainer from "./util/bottom-left-container";
+import { zoomTools } from "./zoom-tools";
+import { diagramModelToViewData, ontologyModelToViewData } from "../util/model-to-view-data";
 
 const widgetNames = {
   explorer: 'gscape-explorer',

@@ -8,7 +8,7 @@ import cytoscape from 'cytoscape'
 import popper from 'cytoscape-popper'
 import cola from 'cytoscape-cola'
 
-import initGUI from './ui-init'
+import initGUI from './gui'
 
 
 import Grapholscape from './grapholscape'
