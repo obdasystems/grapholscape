@@ -1,7 +1,7 @@
 import { html, css } from 'lit'
+import '@material/mwc-icon-button'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
-import graphol_logo from '../assets/graphol-icon'
 
 export default class GscapeRenderSelector extends GscapeWidget {
 

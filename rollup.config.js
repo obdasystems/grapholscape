@@ -15,8 +15,7 @@ const BABEL = process.env.BABEL !== 'false' // default true
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
 const matchSnapshot = process.env.SNAPSHOT === 'match'
 const dependencies = Object.keys(require('./package.json').dependencies)
-dependencies.splice(dependencies.indexOf('lit-html'), 1)
-dependencies.splice(dependencies.indexOf('lit-element'), 1)
+dependencies.splice(dependencies.indexOf('lit'), 1)
 
 const input = './src/index.js'
 const name = 'Grapholscape'
@@ -48,8 +47,7 @@ const getJsonOptions = () => ({
 const getBabelOptions = () => ({
   include: [
     'src/**',
-    'node_modules/lit-html/**',
-    'node_modules/lit-element/**',
+    'node_modules/lit/**',
     'node_modules/@material/**'
   ],
   babelrc: false,

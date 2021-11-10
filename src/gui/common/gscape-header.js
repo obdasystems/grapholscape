@@ -1,5 +1,7 @@
 import { html, css } from 'lit'
 import GscapeWidget from './gscape-widget';
+import '@material/mwc-icon'
+import '@material/mwc-icon-button'
 
 export default class GscapeHeader extends GscapeWidget {
   static get properties() {

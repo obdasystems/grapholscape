@@ -1,3 +1,4 @@
+import '@material/mwc-icon'
 import GrapholscapeRenderer from './default-renderer'
 
 export default class FloatyGscapeRenderer extends GrapholscapeRenderer {

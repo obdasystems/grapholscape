@@ -1,8 +1,6 @@
 import "core-js/stable"
 import "regenerator-runtime/runtime"
 import "@webcomponents/webcomponentsjs"
-import '@material/mwc-icon'
-import '@material/mwc-icon-button'
 import GrapholParser from './parsing/parser'
 import cytoscape from 'cytoscape'
 import popper from 'cytoscape-popper'
