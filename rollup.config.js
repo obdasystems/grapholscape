@@ -9,11 +9,7 @@ import path from 'path'
 import json from '@rollup/plugin-json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
-const FILE = process.env.FILE
-const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
-const BABEL = process.env.BABEL !== 'false' // default true
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
-const matchSnapshot = process.env.SNAPSHOT === 'match'
 const dependencies = Object.keys(require('./package.json').dependencies)
 dependencies.splice(dependencies.indexOf('lit'), 1)
 
@@ -22,7 +18,8 @@ const name = 'Grapholscape'
 
 const envVariables = {
   'process.env.VERSION': JSON.stringify(VERSION),
-  'process.env.NODE_ENV': JSON.stringify(NODE_ENV)
+  'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+  'preventAssignment': true,
 }
 
 const getJsonOptions = () => ({
@@ -39,9 +36,6 @@ const getJsonOptions = () => ({
 
   // ignores indent and generates the smallest code
   compact: true, // Default: false
-
-  // generate a named export for every property of the JSON object
-  namedExports: true // Default: true
 })
 
 const getBabelOptions = () => ({
@@ -56,6 +50,10 @@ const getBabelOptions = () => ({
     [
       '@babel/preset-env',
       {
+        targets: [
+          "last 5 versions",
+          "IE >= 11"
+        ],
         useBuiltIns: 'usage',
         corejs: 3
       }
@@ -73,67 +71,61 @@ const licenseHeaderOptions = {
 }
 
 const configs = [
-  {
+  { // development
     input,
-    output: {
-      file: 'build/grapholscape.js',
-      format: 'umd',
-      name,
-      sourcemap: SOURCEMAPS ? 'inline' : false
-    },
+    output: [
+      {
+        file: 'demo/js/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: 'inline'
+      },
+      {
+        file: 'app/graphol/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: 'inline'
+      }
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
-      license(licenseHeaderOptions),
-      !FILE ? sizeSnapshot({ matchSnapshot }) : {}
     ]
   },
-
-  {
+  { // production transpiled, minified
     input,
-    output: {
-      file: 'build/grapholscape.min.js',
-      format: 'umd',
-      name
-    },
+    output: [
+      {
+        file: 'build/grapholscape.min.js',
+        format: 'iife',
+        name,
+        sourcemap: false
+      },
+      {
+        file: 'demo/js/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: false
+      },
+      {
+        file: 'app/graphol/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: false
+      }
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
+      babel(getBabelOptions()),
+      sizeSnapshot(),
       terser(),
       license(licenseHeaderOptions)
     ]
-  },
-
-  {
-    input,
-    output: {
-      file: 'build/grapholscape.umd.js',
-      format: 'umd',
-      name,
-      globals: {
-        'cytoscape': 'cytoscape',
-        '@material/mwc-icon': 'mwcIcon',
-        '@material/mwc-icon-button': 'mwcIconButton',
-        'cytoscape-popper': 'popper',
-        'cytoscape-cola': 'cola',
-        'cytoscape-svg': 'svg',
-      }
-    },
-    plugins: [
-      json(getJsonOptions()),
-      nodeResolve(),
-      replace(envVariables),
-      commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
-      license(licenseHeaderOptions)
-    ],
-    external: dependencies
   },
   {
     input,
@@ -147,13 +139,11 @@ const configs = [
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
       license(licenseHeaderOptions)
     ],
     external: dependencies
   }
 ]
 
-export default FILE
-  ? configs.filter(config => config.output.file.endsWith(FILE + '.js'))
-  : configs
+export default NODE_ENV === 'production'
+  ? configs.splice(1) : configs[0]

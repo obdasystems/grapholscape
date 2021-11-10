@@ -1,6 +1,3 @@
-import "core-js/stable"
-import "regenerator-runtime/runtime"
-import "@webcomponents/webcomponentsjs"
 import GrapholParser from './parsing/parser'
 import cytoscape from 'cytoscape'
 import popper from 'cytoscape-popper'
@@ -17,13 +14,6 @@ cytoscape.use(cola)
 export default function (file, container, config = null) {
   if (!container) return undefined
 
-  //let view = new GrapholscapeView(container)
-  /*
-  renderersManager.addRenderer('Graphol', renderers.default)
-  renderersManager.addRenderer('Lite', renderers.liteRenderer)
-  renderersManager.setRenderer('Graphol')
-  renderersManager.setContainer(container)
-  */
   return new Promise ((resolve, reject) => {
     let ontology = null
 
@@ -56,9 +46,6 @@ export default function (file, container, config = null) {
         initGUI(grapholscape)
         resolve(grapholscape)
       } catch (e) { console.log(e)}
-      //let controller = new GrapholscapeController(ontology,view,config)
-      //controller.init()
-      //resolve(controller)
     }
   })
   .catch(error => console.log(error) )
