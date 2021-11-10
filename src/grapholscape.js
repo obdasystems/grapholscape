@@ -290,14 +290,19 @@ export default class Grapholscape {
 
   /**
    * Apply an existing theme or pass a new custom theme that will be added and then applied
-   * @param {string | object } theme a predefined theme name or a custom theme
+   * Please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
+   * @param {string | object } themeKey a predefined theme key or a custom theme object
    */
-  applyTheme(theme) {
-    let normalizedTheme = this.themesController.getTheme(theme)
-    if (!normalizedTheme) {
+  applyTheme(themeKey) {
+    let normalizedTheme = this.themesController.getTheme(themeKey)
+    if (!normalizedTheme) { // if it's not definedthen maybe it's a custom theme
       try {
-        this.addTheme(theme)
-      } catch { return }
+        themeKey = this.addTheme(themeKey) // addTheme returns the key of the new added theme
+        normalizedTheme = this.themesController.getTheme(themeKey)
+      } catch { 
+        console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes') 
+        return
+      }
     }
 
     this.container.style.background = normalizedTheme.background // prevent black background on fullscreen
@@ -311,12 +316,12 @@ export default class Grapholscape {
 
     
     this.renderersManager.setTheme(normalizedTheme) // set graph style based on new theme
-    this.themesController.actualTheme = theme
+    this.themesController.actualTheme = themeKey
   }
 
   /**
-   * 
-   * @param {object} theme add a new custom
+   * Register a new theme
+   * @param {object} theme a theme object, please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
    */
   addTheme(theme) {
     let custom_theme_value = `custom${this.config.rendering.theme.list.length}`
@@ -336,6 +341,7 @@ export default class Grapholscape {
     delete theme.selected
 
     this.themesController.addTheme(theme, custom_theme_value)
+    return custom_theme_value
   }
 
   changeEntityNameType(entityNameType) {

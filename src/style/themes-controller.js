@@ -20,7 +20,7 @@ export default class ThemesController {
   }
 
   getTheme(themeKey) {
-    return this.getNormalizedTheme(this.themes[themeKey])
+    return this.themes[themeKey] ? this.getNormalizedTheme(this.themes[themeKey]) : undefined
   }
 
   getNormalizedTheme(theme) {
