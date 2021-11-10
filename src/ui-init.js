@@ -117,6 +117,8 @@ export default function main(grapholscape) {
     }
   })
 
+  disableWidgets(grapholscape.config.widgets)
+
   function blurAll(container, widgetsToSkip = []) {
     container.querySelectorAll('*').forEach(widget => {
       if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
@@ -128,10 +130,16 @@ export default function main(grapholscape) {
   function isGrapholscapeWidget(widget) {
     return widget.nodeName.toLowerCase().startsWith('gscape')
   }
+
+  function disableWidgets(widgets) {
+    for ( let widget in widgets ) {
+      if (!widgets[widget].enabled)
+        gui_container.querySelector(widgetNames[widget]).disable()
+    }
+  }
 }
 
 function hideEntityRelatedWidgets() {
   entityDetails.hide()
   entityOccurrences.hide()
 }
-
