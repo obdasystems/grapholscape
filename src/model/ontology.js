@@ -110,28 +110,39 @@ export default class Ontology {
   }
 
   /**
-   * Retrieve an entity by its IRI.
+   * Retrieve an entity in json by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns {JSON} The plain json representation of the entity.
    */
   getEntity(iri) {
-    return this.getEntities().find(i => {
-      return i.data.iri.full_iri === iri ||
-        i.data.iri.prefix + i.data.iri.remaining_chars === iri
-    })
+    if (this.isEntitiesEmpty) this.getEntities()
+    return this.entities[iri]?.occurrences[0] || this.entities[this.prefixedToFullIri(iri)]?.occurrences[0]
   }
 
   /**
    * Retrieve all occurrences of an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-   * @returns {JSON} The plain json representation of the entity.
+   * @param {boolean} json - 
+   * @returns {Array} The plain json representation of the entity.
+   *    - if `json` = `true` : occurrences are in plain json
+   *    - if `json` = `false` : occurrences are [cytoscape elems](https://js.cytoscape.org/#collection)
    */
-  getEntityOccurrences(iri) {
-    if (!this.entities || Object.keys(this.entities).length === 0) this.getEntities()
-
-    return this.entities[iri].occurrences
+  getEntityOccurrences(iri, json = true) {
+    /**
+     * use local variable cause this.entities only contains json
+     * in case of json = false, we need cytoscape objects
+     * and this.getEntities() populates this.entities only if json = true
+     */
+    let entities = this.entities
+    if ( json && this.isEntitiesEmpty ) 
+      entities = this.getEntities()
+    else if (!json)
+      entities = this.getEntities(false)
+      
+  
+    return entities[iri]?.occurrences || entities[this.prefixedToFullIri(iri)]?.occurrences
   }
 
   /**
@@ -155,7 +166,7 @@ export default class Ontology {
   /**
    * Get the entities in the ontology
    * @param {boolean} json  - if true return plain json, if false return cytoscape collection. Default true.
-   * @returns {object[]} an array of objects, one per iri with an array of occurrences inside
+   * @returns {object} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
    *    - if `json` = `true` : occurrences are in plain json
    *    - if `json` = `false` : occurrences are [cytoscape elems](https://js.cytoscape.org/#collection)
    */
@@ -173,13 +184,29 @@ export default class Ontology {
       })
     })
     
-    this.entities = entities
+    if(json) this.entities = entities
     return entities
 
     function addOccurrence(iri, entity) {
       entity = json ? entity.json() : entity
       entities[iri].occurrences.push(entity)
-      
     }
   }
+
+  checkEntityIri(entity, iri) {
+    return entity.data.iri.full_iri === iri ||
+        entity.data.iri.prefix + entity.data.iri.remaining_chars === iri
+  }
+
+  prefixedToFullIri(prefixedIri) {
+    for (let namespace of this.namespaces) {
+      for (let prefix of namespace.prefixes) {
+        if(prefixedIri.includes(prefix+':')) {
+          return prefixedIri.replace(prefix+':', namespace.value)
+        }
+      }
+    }
+  }
+
+  get isEntitiesEmpty() { return (!this.entities || Object.keys(this.entities).length === 0) }
 }
