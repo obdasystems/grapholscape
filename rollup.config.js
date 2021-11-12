@@ -132,7 +132,6 @@ const configs = [
     output: {
       file: 'build/grapholscape.esm.js',
       format: 'es',
-      name
     },
     plugins: [
       json(getJsonOptions()),
@@ -145,5 +144,6 @@ const configs = [
   }
 ]
 
+// splice(1) removes everything starting at index 1 and returns what he removed
 export default NODE_ENV === 'production'
   ? configs.splice(1) : configs[0]
