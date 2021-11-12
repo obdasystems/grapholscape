@@ -15,7 +15,7 @@ const elems_input = [
     iri : {
       full_iri: 'http://www.test.com/entity1',
       remaining_chars: 'entity1',
-      prefix: 'test:'
+      prefix: 'test'
     },
     displayed_name: 'entity1',
   },
@@ -35,7 +35,7 @@ const elems_input = [
       iri : {
         full_iri: 'http://www.test.com/entity2',
         remaining_chars: 'entity2',
-        prefix: 'test:'
+        prefix: 'test'
       },
       displayed_name: 'entity2',
     },
@@ -98,13 +98,17 @@ describe('Test Diagram Class', () => {
 describe('Test Ontology Class', () => {
   const name = 'test'
   const version = '1.0'
-  const ontology = new Ontology(name, version)
+  const ontology = new Ontology(name, version, [namespace, namespace2])
   
   test('constructor', () => {
     expect(ontology.name).toBe(name)
     expect(ontology.version).toBe(version)
-    expect(ontology.namespaces).toEqual([])
+    expect(ontology.namespaces).toEqual([namespace, namespace2])
     expect(ontology.diagrams).toEqual([])
+  })
+
+  test('prefixedToFullIri() should return full iri given a prefixed iri', () => {
+    expect(ontology.prefixedToFullIri('test:entity2')).toBe(elems_input[2].data.iri.full_iri)
   })
 
   test('addIri() should add a namespace to the namespaces dictionary', () => {
@@ -176,7 +180,7 @@ describe('Test Ontology Class', () => {
   })
 
   test('getEntities()', () => {
-    expect(ontology.getEntities(false).length).toBe(2)
-    expect(ontology.getEntities().length).toBe(2)
+    expect(Object.keys(ontology.getEntities(false)).length).toBe(2)
+    expect(Object.keys(ontology.getEntities()).length).toBe(2)
   })
 })

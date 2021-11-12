@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import * as parserV3 from '../src/parsing/parser-v3'
 import input from './input'
 import Ontology from '../src/model/ontology'
