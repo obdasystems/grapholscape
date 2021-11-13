@@ -34,7 +34,7 @@ export default function(filterComponent, grapholscape) {
            * but when filter all is active, filter value-domain must be disabled, let's disable it
            */
           if (key == 'value_domain')
-            filterComponent.filterList[key].disabled = filterComponent.filterList.all.active
+            filterComponent.filterList[key].disabled = true
   
           executeFilter(key)
         }
