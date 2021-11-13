@@ -24,7 +24,7 @@ export default class RendererManager {
     this.actualDiagramID = undefined
   }
 
-  setRenderer(rendererKey, keepViewportState = true) {
+  setRenderer(rendererKey) {
     if (!this.renderers[rendererKey]) {
       console.warn(`renderer [${rendererKey}] not existing`)
       return
@@ -36,9 +36,8 @@ export default class RendererManager {
     
     let viewportState = this.actualViewportState
 
-    this.renderers[rendererKey].mount(this.graphContainer)
+    this.renderers[rendererKey].setContainer(this.graphContainer)
     this.renderer = this.renderers[rendererKey]
-    if (keepViewportState) this.setViewport(viewportState)
   }
   
   /**
@@ -63,15 +62,18 @@ export default class RendererManager {
   
   /**
    * 
-   * @param {object} diagramViewData The diagram to display
+   * @param {Diagram} diagram The diagram to display
+   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    */
-  drawDiagram(diagramViewData) {
+  drawDiagram(diagram, shouldViewportFit) {
     //let diagramView = diagramModelToViewData(diagram)
-    this.renderer.drawDiagram(diagramViewData)
-    this.actualDiagramID = diagramViewData.id
+    this.renderer.drawDiagram(diagram)
+    if (shouldViewportFit) this.renderer.fitToDiagram()
+    this.actualDiagramID = diagram.id
+    diagram.hasEverBeenRendered = true
   }
 
-
+  /** @param {import('./renderers/default-renderer').ViewportState} state*/
   setViewport(state) {
     if (state) this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
   }

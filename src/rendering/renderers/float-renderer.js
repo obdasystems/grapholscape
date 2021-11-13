@@ -5,26 +5,9 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
     super(container)
 
-    this.cy.style.textureOnViewport = true
-
-    this.cy.autoungrabify(false)
-
     this.layoutStopped = false
     this.dragAndPin = false
     this.useOriginalPositions = false
-
-    this.cy.on('grab', (e) => {
-      e.target.data('old_pos', JSON.stringify(e.target.position()))
-    })
-
-    this.cy.on('free', (e) => {
-      let actual_pos = JSON.stringify(e.target.position())
-      if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
-        this.pinNode(e.target)
-      }
-
-      e.target.removeData('old_pos')
-    })
   }
 
   drawDiagram(diagram) {
@@ -44,7 +27,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
      * Prevent some diagrams to disappear from screen due to
      * automatic layout.
      */
-    setTimeout(() => this.cy.fit(), 100)
+    //setTimeout(() => this.cy.fit(), 100)
   }
 
   centerOnNode(node_id, zoom) {
@@ -237,4 +220,28 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   get main_layout() { return this._main_layout }
+
+  /** @param {import('cytoscape').Core} */
+  set cy(cyInstance) {
+    super.cy = cyInstance
+
+    this.cy.style.textureOnViewport = true
+
+    this.cy.autoungrabify(false)
+
+    this.cy.on('grab', (e) => {
+      e.target.data('old_pos', JSON.stringify(e.target.position()))
+    })
+
+    this.cy.on('free', (e) => {
+      let actual_pos = JSON.stringify(e.target.position())
+      if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
+        this.pinNode(e.target)
+      }
+
+      e.target.removeData('old_pos')
+    })
+  }
+
+  get cy() { return super.cy }
 }

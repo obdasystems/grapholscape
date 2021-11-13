@@ -141,10 +141,11 @@ export default class Grapholscape {
 
   /**
    * Display a diagram on the screen.
-   * @param {JSON | string | number} diagramModelData The diagram retrieved from model, its name or it's id
+   * @param {import('./model/diagram').default | string | number} diagramModelData The diagram retrieved from model, its name or it's id
+   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    * @param {function} callback optional callback to execute after a diagram change
    */
-  showDiagram(diagramModelData) {
+  showDiagram(diagramModelData, shouldViewportFit = false) {
     if (typeof diagramModelData == 'string' || typeof diagramModelData == 'number') {
       diagramModelData = this.ontology.getDiagram(diagramModelData)
     }
@@ -153,9 +154,10 @@ export default class Grapholscape {
       console.warn('diagram not existing')
       return
     }
-
+    
+    shouldViewportFit = shouldViewportFit || !diagramModelData.hasEverBeenRendered
     let diagramViewData = diagramModelToViewData(diagramModelData)
-    this.renderersManager.drawDiagram(diagramViewData)
+    this.renderersManager.drawDiagram(diagramModelData, shouldViewportFit)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
 
     Object.keys(this.filterList).forEach(key => {
@@ -209,45 +211,55 @@ export default class Grapholscape {
    * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
    */
   setRenderer(rendererKey, keepViewportState = true) {
+    const performChange = () => {
+      let viewportState = keepViewportState ? this.renderersManager.actualViewportState : undefined
+
+      this.renderersManager.setRenderer(rendererKey)
+
+      Object.keys(this.filterList).forEach(filterKey => {
+        this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey)
+      })
+      this.showDiagram(this.actualDiagramID) // either viewport state is set manually or untouched
+      console.log(viewportState)
+      this.setViewport(viewportState)
+
+      this._callbacksRendererChange.forEach(fn => fn(rendererKey))
+    }
+
+    let oldRendererKey = this.renderer.key
     // TODO maintain selected entities selected
-    if (rendererKey === this.renderer.key) return
+    if (rendererKey === oldRendererKey) return
+    console.log(( oldRendererKey !== 'float' || rendererKey !== 'float'))
+    // if we come or are going to float renderer then never keep the old viewport state
+    keepViewportState = keepViewportState && 
+      !( oldRendererKey == 'float' || rendererKey == 'float')
 
     switch (rendererKey) {
       // for simplified ontologies wait for them to be computed
       case 'lite':
       case 'float': {
         this.SimplifiedOntologyPromise.then(() => {
-          performChange.bind(this)()
+          performChange()
         })
         break
       }
       default: {
-        performChange.bind(this)()
+        performChange()
         break
       }
     }
-
-    function performChange() {
-      this.renderersManager.setRenderer(rendererKey, keepViewportState)
-
-      Object.keys(this.filterList).forEach(filterKey => {
-        this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey)
-      })
-      this.showDiagram(this.actualDiagramID)
-      this._callbacksRendererChange.forEach(fn => fn(rendererKey))
-    }
-
-
   }
 
   /**
    * Set viewport state.
-   * @param {object} state - object representation of **rendered position** in [cytoscape format](https://js.cytoscape.org/#notation/position).
+   * @param {import('./rendering/renderers/default-renderer').ViewportState} state - 
+   * object representation of **rendered position** in 
+   * [cytoscape format](https://js.cytoscape.org/#notation/position).
    *
    * > Example: { x: 0, y: 0, zoom: 1} - initial state
    */
-  setViewPort(state) {
-    if (state) this.renderersManager.setViewPort(state)
+  setViewport(state) {
+    if (state) this.renderersManager.setViewport(state)
   }
 
   zoomIn() { this.renderersManager.zoomIn() }

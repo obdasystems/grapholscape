@@ -16,6 +16,8 @@ export default class Diagram {
     this.cy = cytoscape()
     if (elements)
       this.addElems(elements)
+    /** @type {boolean} */
+    this.hasEverBeenRendered = false
   }
 
   /**

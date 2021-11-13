@@ -1,3 +1,10 @@
+/** 
+ * @typedef {object} ViewportState 
+ * @property {number} ViewportState.x
+ * @property {number} ViewportState.y
+ * @property {zoom} ViewportState.zoom
+*/
+
 import cytoscape from 'cytoscape'
 import { getGraphStyle }  from '../../style/graph-style'
 
@@ -5,54 +12,18 @@ export default class GrapholscapeRenderer {
   constructor (container = null) {
     this.label = ''
     this.actual_diagram = null
-    let cy_container = document.createElement('div')
+    this.cy_container = document.createElement('div')
 
-    cy_container.style.width = '100%'
-    cy_container.style.height = '100%'
-    cy_container.style.position = 'relative'
-    
+    this.cy_container.style.width = '100%'
+    this.cy_container.style.height = '100%'
+    this.cy_container.style.position = 'relative'
+    this.cy = cytoscape()
     if(container) this.setContainer(container)
-
-    this.cy = cytoscape({
-      container: cy_container,
-      autoungrabify: true,
-      wheelSensitivity: 0.4,
-      maxZoom: 2.5,
-      minZoom: 0.02,
-      layout: {
-        name: 'preset'
-      }
-    })
-
-    this.cy.on('select', 'node', e => {
-      let type = e.target.data('type')
-      switch(type) {
-        case 'intersection':
-        case 'union':
-        case 'disjoint-union':
-          e.target.neighborhood().select()
-          break
-      }
-      e.target.select();
-      this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))
-    })
-    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
-    this.cy.on('tap', evt => {
-      if (evt.target === this.cy) {
-        this.onBackgroundClick()
-      }
-    })
-    this.cy.on('mouseover', '*', e => {
-      this.cy.container().style.cursor = 'pointer'
-    })
-    this.cy.on('mouseout', '*', e => {
-      this.cy.container().style.cursor = 'inherit'
-    })
   }
 
   setContainer(container) {
     if (container)
-      container.insertBefore(this.cy.container(), container.firstChild)
+      container.insertBefore(this.cy_container, container.firstChild)
   }
 
   /**
@@ -73,15 +44,16 @@ export default class GrapholscapeRenderer {
     //container.insertBefore(this.cy.container(), container.firstChild)
     // force refresh
 
-    this.cy.container().style.display = 'block'
+    //this.cy.container().style.display = 'block'
     //container.setAttribute('id', 'cy')
-    //this.cy.mount(container)
+    this.cy_container = container
+    this.cy?.mount(this.cy_container)
   }
 
   unmount() {
-    this.cy.container().style.display = 'none'
+    //this.cy.container().style.display = 'none'
     //this.cy.container().parentElement.removeChild(this.cy.container())
-    //this.cy.unmount()
+    this.cy?.unmount()
   }
 
   centerOnNode (node_id, zoom) {
@@ -116,15 +88,13 @@ export default class GrapholscapeRenderer {
     })
   }
 
-  fitToGraph() {
+  fitToDiagram() {
     this.cy.fit()
   }
 
   drawDiagram (diagram) {
-    this.cy.remove('*')
-    this.cy.add(diagram.nodes)
-    this.cy.add(diagram.edges)
-    this.cy.fit()
+    this.cy = diagram.cy
+    //this.cy.fit()
     this.actual_diagram = diagram.id
   }
 
@@ -209,9 +179,10 @@ export default class GrapholscapeRenderer {
 
   setTheme(theme) {
     this.theme = theme
-    this.cy.style(getGraphStyle(theme))
+    this.cy?.style(getGraphStyle(theme))
   }
 
+  /** @returns {ViewportState} */
   get actualViewportState() {
     return {
       x : this.cy.pan().x,
@@ -222,5 +193,48 @@ export default class GrapholscapeRenderer {
 
   get disabledFilters() {
     return []
-  } 
+  }
+
+  /** @param {import('cytoscape').Core} cyInstance*/
+  set cy(cyInstance) {
+    if (cyInstance.json() === this.cy?.json()) return
+    if (this._cy) this._cy.unmount()
+    cyInstance.mount(this.cy_container)
+
+    cyInstance.autoungrabify(true)
+    cyInstance.maxZoom(2.5)
+    cyInstance.minZoom(0.02)
+    cyInstance.layout({ name: 'preset' })
+    
+    this._cy = cyInstance
+
+    if (this.theme) this.setTheme(this.theme)
+
+    this.cy.on('select', 'node', e => {
+      let type = e.target.data('type')
+      switch(type) {
+        case 'intersection':
+        case 'union':
+        case 'disjoint-union':
+          e.target.neighborhood().select()
+          break
+      }
+      e.target.select();
+      this.onNodeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))
+    })
+    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target.data('id_xml'), e.target.data('diagram_id'))})
+    this.cy.on('tap', evt => {
+      if (evt.target === this.cy) {
+        this.onBackgroundClick()
+      }
+    })
+    this.cy.on('mouseover', '*', e => {
+      this.cy.container().style.cursor = 'pointer'
+    })
+    this.cy.on('mouseout', '*', e => {
+      this.cy.container().style.cursor = 'inherit'
+    })
+  }
+
+  get cy() { return this._cy }
 }
