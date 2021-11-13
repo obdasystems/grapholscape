@@ -82,7 +82,7 @@ export function getIri(element, ontology) {
     node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
   } else {
     rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':')+1) : label
-    namespace = ontology.getIriFromPrefix(node_prefix_iri)
+    namespace = ontology.getNamespaceFromPrefix(node_prefix_iri)
 
     if (!namespace && ParserUtil.isPredicate(element)) {
       this.warnings.add(`The prefix "${node_prefix_iri}" is not associated to any namespace`)

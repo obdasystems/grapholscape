@@ -33,7 +33,7 @@ export default class GrapholParser {
     let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
 
     dictionary.forEach(iri => {
-      this.ontology.addIri(new Namespace(iri.prefixes, iri.value, iri.standard))
+      this.ontology.addNamespace(new Namespace(iri.prefixes, iri.value, iri.standard))
     })
 
     let i, k, nodes, edges, cnt, array_json_elems, diagram, node

@@ -111,23 +111,23 @@ describe('Test Ontology Class', () => {
     expect(ontology.prefixedToFullIri('test:entity2')).toBe(elems_input[2].data.iri.full_iri)
   })
 
-  test('addIri() should add a namespace to the namespaces dictionary', () => {
-    ontology.addIri(namespace)
-    ontology.addIri(namespace2)
+  test('addNamespace() should add a namespace to the namespaces dictionary', () => {
+    ontology.addNamespace(namespace)
+    ontology.addNamespace(namespace2)
     expect(ontology.namespaces).toContain(namespace)
     expect(ontology.namespaces).toContain(namespace2)
   })
 
-  test('getIriFromValue() should return the namespace given it\'s prefix', () => {
-    expect(ontology.getIriFromPrefix()).toBe(undefined)
-    expect(ontology.getIriFromPrefix('test')).toEqual(namespace)
-    expect(ontology.getIriFromPrefix(null)).toBeFalsy()
+  test('getNamespace() should return the namespace given it\'s prefix', () => {
+    expect(ontology.getNamespaceFromPrefix()).toBe(undefined)
+    expect(ontology.getNamespaceFromPrefix('test')).toEqual(namespace)
+    expect(ontology.getNamespaceFromPrefix(null)).toBeFalsy()
   })
 
-  test('getIriFromValue() should return the namespace given the full IRI', () => {
-    expect(ontology.getIriFromValue()).toBe(undefined)
-    expect(ontology.getIriFromValue('http://www.test2.com')).toEqual(namespace2)
-    expect(ontology.getIriFromValue('unknown')).toBeFalsy()
+  test('getNamespace() should return the namespace given the full IRI', () => {
+    expect(ontology.getNamespace()).toBe(undefined)
+    expect(ontology.getNamespace('http://www.test2.com')).toEqual(namespace2)
+    expect(ontology.getNamespace('unknown')).toBeFalsy()
   })
 
   test('destructureIri() should destructure a namespace given the full IRI with last separator', () => {

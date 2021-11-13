@@ -30,23 +30,27 @@ export default class Ontology {
     this.description = []
   }
 
-  // @param {Iri} iri
-  addIri(iri) {
-    this.namespaces.push(iri)
+  /** @param {Namespace} namespace */
+  addNamespace(namespace) {
+    this.namespaces.push(namespace)
   }
 
-  getIriFromValue(value) {
-    for(let iri of this.namespaces) {
-      if (iri.value == value)
-        return iri
-    }
+  /**
+   * Get the Namspace object given its IRI string
+   * @param {string} iriValue the IRI assigned to the namespace
+   * @returns {Namespace}
+   */
+  getNamespace(iriValue) {
+    return this.namespaces.find( ns => ns.value === iriValue)
   }
 
-  getIriFromPrefix(prefix) {
-    for(let iri of this.namespaces) {
-      if (iri.prefixes && iri.prefixes.includes(prefix))
-        return iri
-    }
+  /**
+   * Get the Namespace given one of its prefixes
+   * @param {string} prefix 
+   * @returns {Namespace}
+   */
+  getNamespaceFromPrefix(prefix) {
+    return this.namespaces.find( ns => ns.hasPrefix(prefix) )
   }
 
   destructureIri(iri) {
