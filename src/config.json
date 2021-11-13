@@ -118,7 +118,7 @@
           "class": "filtercomplements"
         },
         "key": {
-          "selector": "[type = \"key\"]",
+          "selector": "[type = \"has-key\"]",
           "label": "Key",
           "active": false,
           "disabled": false,
