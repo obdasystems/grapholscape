@@ -553,6 +553,7 @@ export default function computeSimplifiedOntologies(ontology) {
       node.data('original-position', JSON.stringify(node.position()))
     })
 
+    filterByCriterion(cy, node => node.data('type') === 'has-key')
     simplifyRolesFloat(cy)
     simplifyHierarchiesFloat(cy)
     simplifyAttributesFloat(cy)

@@ -162,7 +162,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     this.main_layout = this.layout()
   }
   
-  get disabledFilters() { return ["not", "universal_quantifier", "value_domain"] }
+  get disabledFilters() { return ["not", "universal_quantifier", "value_domain", "key"] }
 
   get layout_settings() {
     return {
