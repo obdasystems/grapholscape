@@ -1,4 +1,12 @@
 /**
+ * @typedef {object} Iri
+ * @property {string} Iri.namespace
+ * @property {string} Iri.remaining_chars
+ * @property {string} Iri.prefix
+ * @property {string} Iri.prefixed
+ */
+
+/**
  * # Ontology
  * Class used as the Model of the whole app.
   * @property {string} name
@@ -6,8 +14,6 @@
   * @property {Namespace[]} namespaces
   * @property {Diagram[]} diagrams
  */
-
-import cytoscape from 'cytoscape'
 import Diagram from './diagram'
 import Namespace from './namespace'
 
@@ -53,15 +59,20 @@ export default class Ontology {
     return this.namespaces.find( ns => ns.hasPrefix(prefix) )
   }
 
+  /**
+   * Get 
+   * @param {string} iri 
+   * @returns 
+   */
   destructureIri(iri) {
     let result = {
       namespace : '',
       prefix : '',
-      rem_chars : ''
+      remaining_chars : ''
     }
     for (let namespace of this.namespaces) {
-      // if iri contains namespace or namespace without last separator
-      if (iri.search(namespace.value) != -1) {
+      // if iri contains namespace 
+      if (iri.includes(namespace.value)) {
         result.namespace = namespace.value
         result.prefix = namespace.prefixes[0]
 

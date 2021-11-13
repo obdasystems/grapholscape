@@ -79,9 +79,9 @@ export default class RendererManager {
   }
   
   /**
-   * 
+   * Center the view port on a node given its ID and zoom on it
    * @param {number} nodeID
-   * @param {number?} zoom
+   * @param {number?} zoom level of zoom
    */
   centerOnNode(nodeID, zoom) {
     this.renderer.centerOnNode(nodeID, zoom)
@@ -89,7 +89,7 @@ export default class RendererManager {
   
   /**
    * Set the container
-   * @param {Element} container the container in which the renderer will draw the graph
+   * @param {HTMLElement} container the container in which the renderer will draw the graph
    */
   setContainer(container) {
     if(this.container)

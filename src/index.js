@@ -52,6 +52,13 @@ export function bareGrapholscape(file, container, config = null) {
   return promise
 }
 
+/**
+ * 
+ * @param {string | object} file 
+ * @param {object} container 
+ * @param {oject} config 
+ * @returns {Promise<Grapholscape>}
+ */
 function getPromise(file, container, config) {
   return new Promise ((resolve, reject) => {
     let ontology = null

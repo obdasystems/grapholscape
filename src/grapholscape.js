@@ -24,6 +24,7 @@ export default class Grapholscape {
     if (customConfig) this.setConfig(customConfig)
 
     if (customConfig?.renderers) {
+      /** @type {import("./rendering/renderer-manager").default} */
       this.renderersManager = initRenderersManager(container, customConfig.renderers)
     } else {
       this.renderersManager = initRenderersManager(container, ['default', 'lite', 'float'])
@@ -271,9 +272,9 @@ export default class Grapholscape {
    * Activate a predefined filter or execute a custom filter on a selector
    * @param {string | object} filterType The name of the predefined filter to execute
    * or a custom filter
-   * @param {string} filterType.selector the cytoscape selector, read more about
+   * @property {string} filterType.selector the cytoscape selector, read more about
    * [cytoscape selectors](https://js.cytoscape.org/#selectors)
-   * @param {string} filterType.class the class (css) that will be added to filtered elems
+   * @property {string} filterType.class the class (css) that will be added to filtered elems
    */
   filter(filterType) {
     let filterObj = this.isDefinedFilter(filterType) ?
@@ -446,12 +447,16 @@ export default class Grapholscape {
     this._callbacksWikiClick.forEach(fn => fn(iri))
   }
 
+  /**
+   * @returns {Ontology}
+   */
   get ontology() {
     return this.ontologies[this.actualRenderingMode] || this.ontologies.default
   }
 
-  /*
-   ** Filename for exports: [ontology name]-[diagram name]-v[ontology version])
+  /**
+   * Filename for exports: [ontology name]-[diagram name]-v[ontology version])
+   * @returns {string}
    */
   get exportFileName() {
     return `${this.ontology.name}-${this.actualDiagram.name}-v${this.ontology.version}`
@@ -460,13 +465,21 @@ export default class Grapholscape {
   get renderer() { return this.renderersManager.renderer }
 
   get container() { return this.renderersManager.container }
-
   get graphContainer() { return this.renderersManager.graphContainer }
+
+  /** 
+   * @typedef {Object} Language
+   * @property {string} value - identifier of the language
+   * @property {string} label - string representation to be visualized
+   */
 
   get languages() {
     return {
+      /** @type {string} */
       selected: this.config.preferences.language.selected,
+      /** @type {string} */
       default: this.defaultLanguage,
+      /** @type {Language[]} */
       list: this.config.preferences.language.list
     }
   }
@@ -475,12 +488,17 @@ export default class Grapholscape {
 
   get themes() { return this.themesController.themes }
 
+  /** @returns {string | number} */
   get actualDiagramID() { return this.renderersManager.actualDiagramID }
 
+  /** @returns {string} */
   get actualRenderingMode() { return this.renderer.key }
 
+  /** @typedef {"label" | "full" | "prefixed"} EntityNameType */
+  /** @returns {EntityNameType} */
   get actualEntityNameType() { return this.config.preferences.entity_name.selected }
 
+  /** @returns {import("cytoscape").Collection} */
   get selectedEntities() {
     return this.renderersManager.renderer.cy.$('.predicates:selected')
   }
