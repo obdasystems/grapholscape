@@ -53,7 +53,7 @@ export default function main(grapholscape) {
   const fitViewToGraphButton = new GscapeButton('filter_center_focus')
   fitViewToGraphButton.style.bottom = '10px'
   fitViewToGraphButton.style.right = '10px'
-  fitViewToGraphButton.onClick = () => grapholscape.renderer.fitToGraph()
+  fitViewToGraphButton.onClick = () => grapholscape.renderer.fitToDiagram()
 
   const ontologyExplorerComponent = ontologyExplorer(grapholscape)
   const owlVisualizerComponent = owlVisualizer(grapholscape)
