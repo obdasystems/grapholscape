@@ -1,5 +1,4 @@
 import Diagram from "../model/diagram"
-import { diagramModelToViewData, entityModelToViewData } from "../util/model-to-view-data"
 import GrapholscapeRenderer from "./renderers/default-renderer"
 
 export default class RendererManager {

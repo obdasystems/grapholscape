@@ -1,4 +1,4 @@
-import { rendererModelToViewData } from "../../util/model-to-view-data"
+import { rendererModelToViewData } from "../../util/model-obj-transformations"
 import graphol_icon from "../assets/graphol-icon"
 
 let icons = {

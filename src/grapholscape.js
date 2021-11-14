@@ -1,14 +1,15 @@
+/** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
+
 import defaultConfig from "./config.json";
 import * as exporter from './exporting';
 import Ontology from "./model";
 import initRenderersManager from './rendering';
 import ThemesController from "./style/themes-controller";
-import { diagramModelToViewData, entityModelToViewData } from "./util/model-to-view-data";
+import { cyToGrapholElem, diagramModelToViewData } from "./util/model-obj-transformations";
 import computeSimplifiedOntologies from "./util/simplifier"
 
 
 export default class Grapholscape {
-  // TODO move this comment on index.js and make it merge it in doc/api.md
   /**
    * Create a core object of Grapholscape
    * @param {!Ontology} ontology An Ontology object
@@ -97,15 +98,16 @@ export default class Grapholscape {
    */
   onNodeSelection(callback) { this._callbacksNodeSelection.push(callback) }
 
-  handleNodeSelection(nodeID, nodeDiagramID) {
-    let nodeModelData = this.ontology.getElemByDiagramAndId(nodeID, nodeDiagramID)
-
-    if (nodeModelData.classes.includes('predicate')) {
-      let entityViewData = entityModelToViewData(nodeModelData, this.languages)
-      this._callbacksEntitySelection.forEach(fn => fn(entityViewData))
+  /**
+   * Function handling the selection of a node on a diagram [called by renderer]
+   * @param {CollectionReturnValue} node 
+   */
+  handleNodeSelection(node) {
+    if (cyToGrapholElem(node).classes.includes('predicate')) {
+      this._callbacksEntitySelection.forEach(fn => fn(node))
     }
 
-    this._callbacksNodeSelection.forEach(fn => fn(nodeModelData))
+    this._callbacksNodeSelection.forEach(fn => fn(node))
   }
 
   /**
@@ -114,14 +116,16 @@ export default class Grapholscape {
    */
   onEdgeSelection(callback) { this._callbacksEdgeSelection.push(callback) }
 
-  handleEdgeSelection(edgeID, edgeDiagramID) {
-    let edgeModelData = this.ontology.getElemByDiagramAndId(edgeID, edgeDiagramID)
-    if (edgeModelData.classes.includes('predicate')) {
-      let entityViewData = entityModelToViewData(edgeModelData, this.languages)
-      this._callbacksEntitySelection.forEach(fn => fn(entityViewData))
+  /**
+   * Function handling the selection of an edge on a diagram [called by renderer]
+   * @param {CollectionReturnValue} edge 
+   */
+  handleEdgeSelection(edge) {
+    if (cyToGrapholElem(edge).classes.includes('predicate')) {
+      this._callbacksEntitySelection.forEach(fn => fn(edge))
     }
 
-    this._callbacksEdgeSelection.forEach(fn => fn(edgeModelData))
+    this._callbacksEdgeSelection.forEach(fn => fn(edge))
   }
 
   /**
@@ -176,21 +180,12 @@ export default class Grapholscape {
    */
   centerOnNode(nodeID, zoom = 1.5) {
     // get diagram id containing the node
-    let nodeDiagramID = this.ontology.getElem(nodeID).data.diagram_id
+    let nodeDiagramID = cyToGrapholElem(this.ontology.getElem(nodeID)).data.diagram_id
     if (this.renderersManager.actualDiagramID != nodeDiagramID) {
       this.showDiagram(nodeDiagramID)
     }
 
     this.renderersManager.centerOnNode(nodeID, zoom)
-
-    /**
-    let nodeViewData = {
-      id : nodeModelData.data.id,
-      position : nodeModelData.position,
-    }
-
-    this.view.centerOnNode(nodeViewData, zoom)
-    */
   }
 
   /**
@@ -221,7 +216,6 @@ export default class Grapholscape {
         this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey)
       })
       this.showDiagram(this.actualDiagramID) // either viewport state is set manually or untouched
-      console.log(viewportState)
       this.setViewport(viewportState)
 
       this._callbacksRendererChange.forEach(fn => fn(rendererKey))
@@ -230,7 +224,6 @@ export default class Grapholscape {
     let oldRendererKey = this.renderer.key
     // TODO maintain selected entities selected
     if (rendererKey === oldRendererKey) return
-    console.log(( oldRendererKey !== 'float' || rendererKey !== 'float'))
     // if we come or are going to float renderer then never keep the old viewport state
     keepViewportState = keepViewportState && 
       !( oldRendererKey == 'float' || rendererKey == 'float')

@@ -13,7 +13,7 @@ import { rendererSelector } from "./renderer-selector";
 import { settings } from "./settings";
 import bottomLeftContainer from "./util/bottom-left-container";
 import { zoomTools } from "./zoom-tools";
-import { diagramModelToViewData, ontologyModelToViewData } from "../util/model-to-view-data";
+import { cyToGrapholElem, diagramModelToViewData, entityModelToViewData, ontologyModelToViewData } from "../util/model-obj-transformations";
 
 const widgetNames = {
   explorer: 'gscape-explorer',
@@ -23,7 +23,6 @@ const widgetNames = {
   simplifications: 'gscape-render-selector',
   occurrences_list: 'gscape-entity-occurrences'
 }
-// TODO create one controller for each component managing all of what concernes the component
 /**
  * Initialize the UI
  * @param {Grapholscape} grapholscape 
@@ -66,16 +65,18 @@ export default function main(grapholscape) {
 
   // USING GRAPHOLSCAPE CALLBACKS
   grapholscape.onDiagramChange(newDiagram => diagramSelector.actual_diagram_id = newDiagram.id)
-  grapholscape.onEntitySelection(entityViewData => {
+  grapholscape.onEntitySelection(entity => {
+    let entityViewData = entityModelToViewData(entity, grapholscape.languages)
     entityDetails.entity = entityViewData
     entityDetails.show()
 
     let entityOccurrencesViewData = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.full_iri).map(elem => {
+      let grapholElem = cyToGrapholElem(elem)
       return {
-        id: elem.data.id,
-        id_xml: elem.data.id_xml,
-        diagram_id: elem.data.diagram_id,
-        diagram_name: grapholscape.ontology.getDiagram(elem.data.diagram_id).name
+        id: grapholElem.data.id,
+        id_xml: grapholElem.data.id_xml,
+        diagram_id: grapholElem.data.diagram_id,
+        diagram_name: grapholscape.ontology.getDiagram(grapholElem.data.diagram_id).name
       }
     })
 
@@ -86,11 +87,13 @@ export default function main(grapholscape) {
     blurAll(gui_container)
   })
   grapholscape.onNodeSelection(node => {
-    if (!node.classes.includes('predicate')) hideEntityRelatedWidgets()
+    let grapholNode = cyToGrapholElem(node)
+    if (!grapholNode.classes.includes('predicate')) hideEntityRelatedWidgets()
   })
 
   grapholscape.onEdgeSelection(edge => {
-    if (!edge.classes.includes('predicate')) hideEntityRelatedWidgets()
+    let grapholEdge = cyToGrapholElem(edge)
+    if (!grapholEdge.classes.includes('predicate')) hideEntityRelatedWidgets()
   })
 
   gui_container.appendChild(diagramSelector)

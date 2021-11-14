@@ -1,4 +1,4 @@
-import { entityModelToViewData } from "../../util/model-to-view-data";
+import { entityModelToViewData } from "../../util/model-obj-transformations";
 
 export default function(ontologyExplorerComponent, grapholscape) {
   let languages = grapholscape.languages
@@ -16,7 +16,7 @@ export default function(ontologyExplorerComponent, grapholscape) {
   function createEntitiesDict(entities) {
     let result = Object.keys(entities).map( iri => {
       return { 
-        occurrences : entities[iri].occurrences.map( entity => {
+        occurrences : entities[iri].map( entity => {
           let entityViewData = entityModelToViewData(entity, languages)
           entityViewData.diagram_name = grapholscape.ontology.getDiagram(entityViewData.diagram_id).name
 
