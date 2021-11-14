@@ -235,8 +235,9 @@ export default class Ontology {
   }
 
   checkEntityIri(entity, iri) {
-    return entity.data.iri.full_iri === iri ||
-      entity.data.iri.prefix + entity.data.iri.remaining_chars === iri
+    let entityIri = entity.data('iri') || entity.data.iri
+    return entityIri.full_iri === iri ||
+      entityIri.prefix + entityIri.remaining_chars === iri
   }
 
   prefixedToFullIri(prefixedIri) {
