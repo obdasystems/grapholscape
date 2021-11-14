@@ -288,7 +288,7 @@ export function getGraphStyle(theme) {
         'line-color' : theme.role_dark,
         'source-arrow-color': theme.role_dark,
         'target-arrow-color': theme.role_dark,
-        'target-arrow-shape': 'square',
+        'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'square',
         'source-arrow-fill': 'hollow',
