@@ -4,6 +4,7 @@ import Diagram from '../model/diagram'
 import * as ParserUtil from './parser_util'
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
+import { grapholNodes, nodeTypes, nodeShapes } from '../model'
 
 export default class GrapholParser {
   constructor(xmlString) {
@@ -94,8 +95,8 @@ export default class GrapholParser {
         // add fake nodes when necessary
         // for property assertion, facets or for
         // both functional and inverseFunctional ObjectProperties
-        if (array_json_elems[cnt].data.type === 'property-assertion' ||
-          array_json_elems[cnt].data.type === 'facet' ||
+        if (array_json_elems[cnt].data.type === nodeTypes.PROPERTY_ASSERTION ||
+          array_json_elems[cnt].data.type ===  nodeTypes.FACET ||
           (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
           this.addFakeNodes(array_json_elems)
           cnt += array_json_elems.length - cnt
@@ -127,16 +128,19 @@ export default class GrapholParser {
   }
 
   getBasicNodeInfos(element, diagram_id) {
+    let enumTypeKey = Object.keys(grapholNodes).find( k => grapholNodes[k].TYPE === element.getAttribute('type'))
     let nodo = {
       data: {
         id_xml: element.getAttribute('id'),
         diagram_id: diagram_id,
         id: element.getAttribute('id') + '_' + diagram_id,
         fillColor: element.getAttribute('color'),
-        type: element.getAttribute('type'),
+        type: grapholNodes[enumTypeKey].TYPE,
+        shape: grapholNodes[enumTypeKey].SHAPE,
+        identity: grapholNodes[enumTypeKey].IDENTITY
       },
       position: {},
-      classes: element.getAttribute('type')
+      classes:grapholNodes[enumTypeKey].TYPE
     }
 
     // Parsing the <geometry> child node of node
@@ -149,76 +153,24 @@ export default class GrapholParser {
     // Gli individual hanno dimensioni negative nel file graphol
     if (nodo.data.height < 0) { nodo.data.height = -nodo.data.height }
     // L'altezza dei facet è nulla nel file graphol, la impostiamo a 40
-    if (nodo.data.type === 'facet') {
+    if (nodo.data.type === nodeTypes.FACET) {
       nodo.data.height = 40
     }
 
     nodo.position.x = parseInt(geometry.getAttribute('x'))
     nodo.position.y = parseInt(geometry.getAttribute('y'))
 
-    switch (nodo.data.type) {
-      case 'concept':
-      case 'domain-restriction':
-        nodo.data.shape = 'rectangle'
-        nodo.data.identity = 'concept'
-        break
-      case 'range-restriction':
-        nodo.data.shape = 'rectangle'
-        nodo.data.identity = 'neutral'
-        break
-      case 'role':
-        nodo.data.shape = 'diamond'
-        nodo.data.identity = 'role'
-        break
-      case 'attribute':
-        nodo.data.shape = 'ellipse'
-        nodo.data.identity = 'attribute'
-        break
-      case 'union':
-      case 'disjoint-union':
-      case 'complement':
-      case 'intersection':
-      case 'enumeration':
-      case 'has-key':
-        nodo.data.shape = 'hexagon'
-        nodo.data.identity = 'neutral'
-        break
-      case 'role-inverse':
-      case 'role-chain':
-        nodo.data.shape = 'hexagon'
-        nodo.data.identity = 'role'
-        if (nodo.data.type === 'role-chain') {
-          if (element.getAttribute('inputs') !== '') { nodo.data.inputs = element.getAttribute('inputs').split(',') }
-        }
-        break
-      case 'datatype-restriction':
-        nodo.data.shape = 'hexagon'
-        nodo.data.identity = 'value_domain'
-        break
-      case 'value-domain':
-        nodo.data.shape = 'roundrectangle'
-        nodo.data.identity = 'value_domain'
-        break
-      case 'property-assertion':
-        nodo.data.shape = 'roundrectangle'
-        nodo.data.identity = 'neutral'
+    if (nodo.data.type === grapholNodes.ROLE_CHAIN.TYPE) {
+      if (element.getAttribute('inputs') !== '')
         nodo.data.inputs = element.getAttribute('inputs').split(',')
-        break
-      case 'literal':
-      case 'individual':
-        nodo.data.shape = 'octagon'
-        nodo.data.identity = nodo.data.type == 'individual' ? 'individual' : 'value'
-        break
-      case 'facet':
-        nodo.data.shape = 'polygon'
-        nodo.data.shape_points = '-0.9 -1 1 -1 0.9 1 -1 1'
-        nodo.data.fillColor = '#ffffff'
-        nodo.data.identity = 'facet'
-        break
-      default:
-        console.error('tipo di nodo sconosciuto')
-        console.log(nodo)
-        break
+    }
+
+    if (nodo.data.type === grapholNodes.PROPERTY_ASSERTION.TYPE)
+      nodo.data.inputs = element.getAttribute('inputs').split(',')
+
+    if (nodo.data.type === grapholNodes.FACET.TYPE) {
+      nodo.data.shape_points = grapholNodes.FACET.SHAPE_POINTS
+      nodo.data.fillColor = '#ffffff'
     }
 
     let label = element.getElementsByTagName('label')[0]
@@ -274,7 +226,7 @@ export default class GrapholParser {
     // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
     // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
     // la target_label in base alla posizione nella sequenza
-    if (target.data('type') ==='role-chain' || target.data('type') ==='property-assertion') {
+    if (target.data('type') === nodeTypes.ROLE_CHAIN || target.data('type') === nodeTypes.PROPERTY_ASSERTION) {
       for (k = 0; k < target.data('inputs').length; k++) {
         if (target.data('inputs')[k] ===edge.data.id_xml) {
           edge.data.target_label = k + 1
@@ -360,7 +312,7 @@ export default class GrapholParser {
         data: {
           height: nodo.data.height,
           width: nodo.data.width,
-          shape: 'polygon',
+          shape: nodeShapes.POLYGON,
           shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
           diagram_id: nodo.data.diagram_id,
           parent_node_id: nodo.data.id,
@@ -447,14 +399,14 @@ export default class GrapholParser {
       array_json_nodes.push(nodo)
     }
 
-    if (nodo.data.type ==='property-assertion') {
+    if (nodo.data.type === nodeTypes.PROPERTY_ASSERTION) {
       var circle1 = {
         selectable: false,
         classes: 'no_overlay',
         data: {
           height: nodo.data.height,
           width: nodo.data.height,
-          shape: 'ellipse',
+          shape: nodeShapes.ELLIPSE,
           diagram_id: nodo.data.diagram_id,
           fillColor: '#fff',
           parent_node_id: nodo.data.id,
@@ -471,7 +423,7 @@ export default class GrapholParser {
         data: {
           height: nodo.data.height,
           width: nodo.data.height,
-          shape: 'ellipse',
+          shape: nodeShapes.ELLIPSE,
           diagram_id: nodo.data.diagram_id,
           fillColor: '#fff',
           parent_node_id: nodo.data.id,
@@ -487,7 +439,7 @@ export default class GrapholParser {
           selectable: false,
           height: nodo.data.height,
           width: nodo.data.width - nodo.data.height,
-          shape: 'rectangle',
+          shape: nodeShapes.RECTANGLE,
           diagram_id: nodo.data.diagram_id,
           fillColor: '#fff',
           parent_node_id: nodo.data.id,
@@ -498,8 +450,8 @@ export default class GrapholParser {
 
       nodo.data.height -= 1
       nodo.data.width = nodo.data.width - nodo.data.height
-      nodo.data.shape = 'rectangle'
-      nodo.classes = 'property-assertion no_border'
+      nodo.data.shape = nodeShapes.RECTANGLE
+      nodo.classes = `${nodeTypes.PROPERTY_ASSERTION} no_border`
       
       array_json_nodes[array_json_nodes.length - 1] = back_rectangle
       array_json_nodes.push(circle1)
@@ -520,12 +472,18 @@ export default class GrapholParser {
     function findIdentity (node) {
       var first_input_node = node.incomers('[type = "input"]').sources()
       var identity = first_input_node.data('identity')
-      if (identity ==='neutral') { return findIdentity(first_input_node) } else {
+      if (identity === nodeTypes.NEUTRAL) { return findIdentity(first_input_node) } else {
         switch (node.data('type')) {
-          case 'range-restriction':
-            if (identity ==='role') { return 'concept' } else if (identity ==='attribute') { return 'value_domain' } else { return identity }
-          case 'enumeration':
-            if (identity ==='individual') { return 'concept' } else { return identity }
+          case nodeTypes.RANGE_RESTRICTION:
+            if (identity === nodeTypes.OBJECT_PROPERTY) { 
+              return nodeTypes.CONCEPT
+            } else if (identity === nodeTypes.DATA_PROPERTY) { 
+              return nodeTypes.VALUE_DOMAIN
+            } else {
+              return identity
+            }
+          case nodeTypes.ENUMERATION:
+            if (identity === nodeTypes.INDIVIDUAL) { return grapholNodes.CONCEPT.TYPE } else { return identity }
           default:
             return identity
         }
