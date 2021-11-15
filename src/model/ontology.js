@@ -170,7 +170,7 @@ export default class Ontology {
   getElem(elem_id) {
     for (let diagram of this.diagrams) {
       let node = diagram.cy.$id(elem_id)
-      if (node) return node
+      if (node.length > 0) return node
     }
   }
 

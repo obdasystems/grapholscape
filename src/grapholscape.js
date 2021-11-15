@@ -1,4 +1,7 @@
-/** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
+/** 
+ * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue 
+ * @typedef {import('./model/diagram').default} Diagram
+ */
 
 import defaultConfig from "./config.json";
 import * as exporter from './exporting';
@@ -146,30 +149,40 @@ export default class Grapholscape {
 
   /**
    * Display a diagram on the screen.
-   * @param {import('./model/diagram').default | string | number} diagramModelData The diagram retrieved from model, its name or it's id
+   * @param {Diagram | string | number} diagram The diagram retrieved from model, its name or it's id
    * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    * @param {function} callback optional callback to execute after a diagram change
    */
-  showDiagram(diagramModelData, shouldViewportFit = false) {
-    if (typeof diagramModelData == 'string' || typeof diagramModelData == 'number') {
-      diagramModelData = this.ontology.getDiagram(diagramModelData)
+  showDiagram(diagram, shouldViewportFit = false) {
+    if (typeof diagram == 'string' || typeof diagram == 'number') {
+      diagram = this.ontology.getDiagram(diagram)
     }
 
-    if (!diagramModelData) {
+    if (!diagram) {
       console.warn('diagram not existing')
       return
     }
     
-    shouldViewportFit = shouldViewportFit || !diagramModelData.hasEverBeenRendered
-    let diagramViewData = diagramModelToViewData(diagramModelData)
-    this.renderersManager.drawDiagram(diagramModelData, shouldViewportFit)
+    shouldViewportFit = shouldViewportFit || !diagram.hasEverBeenRendered
+    this.renderersManager.drawDiagram(diagram, shouldViewportFit)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
 
     Object.keys(this.filterList).forEach(key => {
       let filter = this.filterList[key]
       if (filter.active) this.renderersManager.filter(filter)
     })
-    this._callbacksDiagramChange.forEach(fn => fn(diagramViewData))
+
+    // simulate selection on old selected entity, this updates UI too
+    let entity = diagram.getSelectedEntity()
+    if (entity) {
+      let grapholEntity = cyToGrapholElem(entity)
+      if (grapholEntity.data.diagram_id === this.actualDiagramID) {
+        this._callbacksEntitySelection.forEach( fn => fn(entity))
+        this.centerOnNode(grapholEntity.data.id)
+      }
+    }
+
+    this._callbacksDiagramChange.forEach(fn => fn(diagram))
   }
 
   /**
@@ -209,13 +222,25 @@ export default class Grapholscape {
   setRenderer(rendererKey, keepViewportState = true) {
     const performChange = () => {
       let viewportState = keepViewportState ? this.renderersManager.actualViewportState : undefined
+      
+      let selectedEntities = {}
+      // get selected entity in each diagram
+      this.ontology.diagrams.forEach( diagram => {
+        if (diagram.getSelectedEntity())
+          selectedEntities[diagram.id] = cyToGrapholElem(diagram.getSelectedEntity())
+      })
 
       this.renderersManager.setRenderer(rendererKey)
 
       Object.keys(this.filterList).forEach(filterKey => {
         this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey)
       })
+
       this.showDiagram(this.actualDiagramID) // either viewport state is set manually or untouched
+      // for each selected entity in each diagram, select it again in the new renderer
+      Object.keys(selectedEntities).forEach( diagramID => {
+        this.selectEntity(selectedEntities[diagramID].data.iri.full_iri, diagramID)
+      })
       this.setViewport(viewportState)
 
       this._callbacksRendererChange.forEach(fn => fn(rendererKey))
@@ -330,6 +355,38 @@ export default class Grapholscape {
     this.renderersManager.setTheme(normalizedTheme) // set graph style based on new theme
     this.themesController.actualTheme = themeKey
     this._callbacksThemeChange.forEach(fn => fn(themeKey))
+  }
+
+  /**
+   * Select an entity by its IRI and the diagram it belongs to,
+   * if you don't pass a diagram, the actual diagram will be used
+   * @param {string} iri the IRI of the entity to select in full or prefixed form
+   * @param {Diagram | number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   */
+  selectEntity(iri, diagram = this.actualDiagramID || 0) {
+    let diagramID = ''
+    try {
+      if ( typeof(diagram) === 'object' ) 
+        diagramID = diagram.id
+      else
+        diagramID = this.ontology.getDiagram(diagram).id
+    } catch(e) { console.error(`Diagram ${diagram} not defined`)}
+
+    this.ontology.entities[iri].forEach( entity => {
+      let grapholEntity = cyToGrapholElem(entity)
+      if (grapholEntity.data.diagram_id === diagramID) {
+        this.selectElem(grapholEntity.data.id, diagramID)
+      }
+    })
+  }
+
+  /**
+   * Select a node or an edge given its unique id
+   * @param {string} id unique elem id (node or edge)
+   * @param {number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   */
+  selectElem(id, diagramID = this.actualDiagramID || 0) {
+    this.ontology.getDiagram(diagramID)?.selectElem(id)
   }
 
   /**
@@ -491,8 +548,4 @@ export default class Grapholscape {
   /** @returns {EntityNameType} */
   get actualEntityNameType() { return this.config.preferences.entity_name.selected }
 
-  /** @returns {import("cytoscape").Collection} */
-  get selectedEntities() {
-    return this.renderersManager.renderer.cy.$('.predicates:selected')
-  }
 }

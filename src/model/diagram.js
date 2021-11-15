@@ -29,6 +29,26 @@ export default class Diagram {
   }
 
   /**
+   * Get the entity selected
+   * @returns {cytoscape.CollectionReturnValue | undefined}
+   */
+  getSelectedEntity() {
+    let result = this.cy.$('.predicate:selected').first()
+
+    return result.length > 0 ? result : undefined
+  }
+
+  /**
+   * Select a node or an edge given its unique id
+   * @param {string} id unique elem id (node or edge)
+   * @param {boolean} [unselect=true] should selected elements be unselected
+   */
+   selectElem(id, unselect = true) {
+    if (unselect) this.cy.$('*:selected').unselect()
+    this.cy.$id(id).select()
+  }
+
+  /**
    * Getter
    * @returns {JSON} - nodes in JSON
    */
