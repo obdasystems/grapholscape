@@ -6,12 +6,12 @@ import GscapeHeader from '../common/gscape-header'
 export default class GscapeExplorer extends GscapeWidget{
 
   static get properties() {
-    return [
-      super.properties,
-      {
-        predicates: Object
+    return {
+      predicates: { 
+        type: Object,
+        attribute: false,
       }
-    ]
+    }
   }
 
   static get styles() {
@@ -128,7 +128,6 @@ export default class GscapeExplorer extends GscapeWidget{
     super()
     this.draggable = true
     this.collapsible = true
-    this.predicates = predicates || []
 
     this.onEntitySelect = (entityID, boh) => {}
     this.onNodeNavigation = (nodeID) => {}
@@ -155,8 +154,7 @@ export default class GscapeExplorer extends GscapeWidget{
       </gscape-head>
 
       <div class="widget-body hide">
-      ${this.predicates.map( item => {
-        let occurrences = item.occurrences
+      ${this.predicates.map( occurrences => {
         let entityData = occurrences[0]
         return html`
           <div>
@@ -165,6 +163,7 @@ export default class GscapeExplorer extends GscapeWidget{
               class="row highlight"
               type="${entityData.type}"
               displayed_name = "${entityData.displayed_name}"
+              iri = ""
             >
               <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
               <span>${getTypeImg(entityData.type)}</span>
@@ -194,12 +193,13 @@ export default class GscapeExplorer extends GscapeWidget{
   toggleSubRows(e) {
     let row_wrapper = e.target.parentNode.parentNode.parentNode
     row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('hide')
+    row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('open')
     e.target.innerHTML = e.target.innerHTML == 'keyboard_arrow_right' ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
 
     let row = row_wrapper.querySelector('.row')
     row.classList.toggle('add-shadow')
   }
-
+/*
   search(e) {
     if (e.keyCode == 27) {
       e.target.blur()
@@ -250,6 +250,7 @@ export default class GscapeExplorer extends GscapeWidget{
 
     e.target.focus()
   }
+  */
 
   handleEntitySelection(e) {
     let entity_id = e.target.parentNode.getAttribute('id')

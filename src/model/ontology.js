@@ -1,6 +1,6 @@
 /**
  * @typedef {object} Iri
- * @property {string} Iri.namespace
+ * @property {string} Iri.full_iri
  * @property {string} Iri.remaining_chars the string after the namespace or prefix
  * @property {string} Iri.prefix
  * @property {string} Iri.prefixed
@@ -191,9 +191,7 @@ export default class Ontology {
    * @returns {CollectionReturnValue[]} An array of cytoscape object representation
    */
   getEntityOccurrences(iri) {
-    if (this.isEntitiesEmpty) this.getEntities()
-
-    return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)] 
+    return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
   }
 
   /**
@@ -230,7 +228,7 @@ export default class Ontology {
       })
     })
 
-    this.entities = entities
+    this._entities = entities
     return entities
   }
 
@@ -250,5 +248,7 @@ export default class Ontology {
     }
   }
 
-  get isEntitiesEmpty() { return (!this.entities || Object.keys(this.entities).length === 0) }
+  get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0) }
+
+  get entities() { return this.isEntitiesEmpty ? this.getEntities() : this._entities}
 }

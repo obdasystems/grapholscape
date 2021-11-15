@@ -11,8 +11,8 @@
  */
 export function entityModelToViewData(cyEntity, languages) {
   let entity = cyToGrapholElem(cyEntity)
-  let language_variant_properties = ["label"]
-  for (let property of language_variant_properties) {
+  let language_variant_properties = {label: ''}
+  for (let property in language_variant_properties) {
     if (entity.data[property]) {
       // select a language, either 'selected language', 'default language' or any language from the list 
       if (entity.data[property][languages.selected])
