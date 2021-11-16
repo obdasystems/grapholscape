@@ -5,7 +5,7 @@ const OUT_DIR = 'doc/'
 
 const files = [
   // input, output file
-  { path : 'src/grapholscape-controller.js', out : 'api.md'},
+  { path : 'src/grapholscape.js', out : 'api.md'},
   { path : 'src/model/diagram.js', out : 'diagram.md'},
   { path : 'src/model/ontology.js', out : 'ontology.md'},
   { path : 'src/model/namespace.js', out : 'namespace.md'},

@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape'
 import Diagram from '../model/diagram'
-import GrapholscapeRenderer from '../view/render/default-renderer'
+import GrapholscapeRenderer from '../rendering/renderers/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
 
@@ -553,6 +553,7 @@ export default function computeSimplifiedOntologies(ontology) {
       node.data('original-position', JSON.stringify(node.position()))
     })
 
+    filterByCriterion(cy, node => node.data('type') === 'has-key')
     simplifyRolesFloat(cy)
     simplifyHierarchiesFloat(cy)
     simplifyAttributesFloat(cy)

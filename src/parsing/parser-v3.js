@@ -98,7 +98,7 @@ export function getLabel(element, ontology, xmlDocument) {
     return iri == name ? iri : prefixed_iri
   }
 
-  let label_property_iri = ontology.getIriFromPrefix('rdfs').value + 'label'
+  let label_property_iri = ontology.getNamespaceFromPrefix('rdfs').value + 'label'
   let annotations = getTag(iri_xml_elem, 'annotations')
   let labels = {}
   if (annotations) {

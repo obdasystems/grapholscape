@@ -5,4 +5,5 @@ dists/**
 coverage/**
 .*/
 .size-snapshot.json
-app/graphol/grapholscape.min.js
+app/graphol/grapholscape.js
+demo/js/grapholscape.js
