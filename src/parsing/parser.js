@@ -5,6 +5,7 @@ import * as ParserUtil from './parser_util'
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
 import { grapholNodes, nodeTypes, nodeShapes } from '../model'
+import { constructorLabels, types } from '../model/node-enums'
 
 export default class GrapholParser {
   constructor(xmlString) {
@@ -51,35 +52,6 @@ export default class GrapholParser {
       for (k = 0; k < nodes.length; k++) {
         node = this.getBasicNodeInfos(nodes[k], i)
         node.data.iri = this.graphol.getIri(nodes[k], this.ontology)
-        node.data.label = this.graphol.getLabel(nodes[k], this.ontology, this.xmlDocument)
-
-        // label should be an object { language : label },
-        // if it's a string then it has no language, assign default language
-        if (typeof node.data.label === "string") {
-          let aux_label = node.data.label
-          node.data.label = {}
-          node.data.label[this.ontology.default_language] = aux_label
-        }
-
-        if (node.data.label) {
-          // try to apply default language as displayed name
-          if (node.data.label[this.ontology.default_language])
-            node.data.displayed_name = node.data.label[this.ontology.default_language]
-          else {
-            // otherwise pick the first language available
-            for (let lang of this.ontology.languages.list) {
-              if (node.data.label[lang]) {
-                node.data.displayed_name = node.data.label[lang]
-                break
-              }
-            }
-
-            // in case of no languages defined for labels
-            if (!node.data.displayed_name) {
-              node.data.displayed_name = node.data.label[Object.keys(node.data.label)[0]]
-            }
-          }
-        }
 
         if (ParserUtil.isPredicate(nodes[k])) {
           let predicate_infos = this.graphol.getPredicateInfo(nodes[k], this.xmlDocument, this.ontology)
@@ -87,9 +59,57 @@ export default class GrapholParser {
             Object.keys(predicate_infos).forEach(info => {
               node.data[info] = predicate_infos[info]
             })
-          }
-        }
+            
+            // APPLY DISPLAYED NAME FROM LABELS
+            let labels = node.data.annotations.label
+            let displayedName
+            // if no labels defined, apply remainingChars from iri as displayed name
+            if (!labels) { 
+              displayedName = node.data.iri.remainingChars
+            }
 
+            // else try to apply default language label as displayed name
+            else if (labels[this.ontology.languages.default]?.length > 0) {
+              displayedName = labels[this.ontology.languages.default][0]
+            }
+            // otherwise pick the first language available
+            else {
+              for (let lang of this.ontology.languages.list) {
+                if (labels[lang]?.length > 0) {
+                  displayedName = labels[lang][0]
+                  break
+                }
+              }
+            }
+
+            // if still failing, pick the first label you find
+            if (!displayedName) {
+              displayedName = labels[Object.keys(labels)[0]][0]
+            }
+
+            node.data.displayed_name = displayedName
+          }
+        } else { // not an entity, take label from <label> tag or use those for constructor nodes
+          if (node.data.type === types.FACET) {
+            node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.xmlDocument, this.ontology)
+          } 
+
+          else if (node.data.type === types.VALUE_DOMAIN) {
+            node.data.displayed_name = node.data.iri.prefixed
+          }
+          
+          // for domain/range restrictions, cardinalities
+          else if (Graphol3.getTagText(nodes[k], 'label')) {
+            node.data.displayed_name = Graphol3.getTagText(nodes[k], 'label')
+          }
+
+          else { // a constructor node
+            let typeKey = Object.keys(types).find(k => types[k] === node.data.type)
+            if (constructorLabels[typeKey])
+              node.data.displayed_name = constructorLabels[typeKey]
+          }
+        }        
+        
         array_json_elems.push(node)
 
         // add fake nodes when necessary

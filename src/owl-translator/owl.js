@@ -1,3 +1,5 @@
+import { entityIriTemplate } from "./iri-template"
+
 const malformed = '<span class="owl_error">Malformed Axiom</span>'
 const missing_operand = '<span class="owl_error">Missing Operand</span>'
 
@@ -175,7 +177,7 @@ export function nodeToOwlString (node, from_node) {
   var from_node_flag = from_node || null
 
   if (from_node_flag && (node.hasClass('predicate') || node.data('type') == 'value-domain')) {
-    var owl_predicate = '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_' + node.data('type') + '">' + node.data('iri').remaining_chars + '</span>'
+    var owl_predicate = entityIriTemplate(node.data('iri'), node.data('type'))
     var owl_type
 
     switch (node.data('type')) {
@@ -215,9 +217,9 @@ export function nodeToOwlString (node, from_node) {
         break
 
       case 'individual':
-        if (node.data('iri').remaining_chars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
-          var value = node.data('iri').remaining_chars.split('^^')[0]
-          var datatype = node.data('iri').remaining_chars.split(':')[1]
+        if (node.data('iri').remainingChars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+          var value = node.data('iri').remainingChars.split('^^')[0]
+          var datatype = node.data('iri').remainingChars.split(':')[1]
 
           owl_predicate = '<span class="owl_value">' + value + '</span>^^' +
           '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span>' +
@@ -236,9 +238,9 @@ export function nodeToOwlString (node, from_node) {
 
   switch (node.data('type')) {
     case 'individual':
-      if (node.data('iri').remaining_chars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
-        var value = node.data('iri').remaining_chars.split('^^')[0]
-        var datatype = node.data('iri').remaining_chars.split(':')[1]
+      if (node.data('iri').remainingChars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+        var value = node.data('iri').remainingChars.split('^^')[0]
+        var datatype = node.data('iri').remainingChars.split(':')[1]
 
         return '<span class="owl_value">' + value + '</span>^^' +
         '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span>' +
@@ -250,7 +252,7 @@ export function nodeToOwlString (node, from_node) {
     case 'value-domain':
     case 'attribute':
     case 'individual':
-      return '<span class="axiom_predicate_prefix">' + node.data('iri').prefix + '</span><span class="owl_' + node.data('type') + '">' + node.data('iri').remaining_chars + '</span>'
+      return entityIriTemplate(node.data('iri'), node.data('type'))
       break
 
     case 'facet':

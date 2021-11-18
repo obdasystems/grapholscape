@@ -98,16 +98,16 @@ export default class GrapholscapeRenderer {
     this.actual_diagram = diagram.id
   }
 
-  zoomIn() {
+  zoomIn(zoomValue) {
     this.cy.zoom({
-      level: this.cy.zoom() + 0.08,
+      level: this.cy.zoom() + zoomValue,
       renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
     })
   }
 
-  zoomOut() {
+  zoomOut(zoomValue) {
     this.cy.zoom({
-      level: this.cy.zoom() - 0.08,
+      level: this.cy.zoom() - zoomValue,
       renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
     })
   }

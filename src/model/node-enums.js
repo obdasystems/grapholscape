@@ -1,3 +1,7 @@
+/** @typedef {string} ElemType */
+/** @typedef {string} ElemShape */
+
+/** @enum {ElemType} */
 export const types = {
   CONCEPT: 'concept',
   DOMAIN_RESTRICTION: 'domain-restriction',
@@ -22,6 +26,7 @@ export const types = {
   VALUE: 'value'
 }
 
+/** @enum {ElemShape} */
 export const shapes = {
   RECTANGLE: 'rectangle',
   DIAMOND: 'diamond',
@@ -131,4 +136,15 @@ export default {
     SHAPE_POINTS: POLYGON_POINTS, 
     IDENTITY: types.FACET
   }
+}
+
+export const constructorLabels = {
+  UNION: 'or',
+  INTERSECTION : 'and',
+  ROLE_CHAIN : 'chain',
+  ROLE_INVERSE : 'inv',
+  COMPLEMENT: 'not',
+  DATATYPE_RESTRICTION : 'data',
+  ENUMERATION : 'oneOf',
+  KEY : 'key',
 }
