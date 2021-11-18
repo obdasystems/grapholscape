@@ -101,7 +101,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
               <table class="details_table">
                 <tr>
                   <th>Name</th>
-                  <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.iri.remaining_chars}</td>
+                  <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.iri.remainingChars}</td>
                 </tr>
                 <tr>
                   <th>Type</th>
@@ -110,7 +110,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
                 ${this.entity.type != 'individual' ? html`
                 <tr>
                   <th>IRI</th>
-                  <td>${this.entity.iri.full_iri}</td>
+                  <td>${this.entity.iri.fullIri}</td>
                 </tr>
                 ` : html``
                 }
@@ -135,7 +135,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
   wikiClickHandler(e) {
     if (this._onWikiClick)
-      this._onWikiClick(this.entity.iri.full_iri)
+      this._onWikiClick(this.entity.iri.fullIri)
   }
 
   set onWikiClick(foo) {

@@ -1,5 +1,5 @@
 import { cyToGrapholElem } from "../../util/model-obj-transformations"
-import * as owlTranslator from "../../util/owl"
+import * as owlTranslator from "../../owl-translator/owl"
 
 /**
  * 

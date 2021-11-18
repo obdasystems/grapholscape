@@ -70,7 +70,7 @@ export default function main(grapholscape) {
     entityDetails.entity = entityViewData
     entityDetails.show()
 
-    let entityOccurrencesViewData = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.full_iri).map(elem => {
+    let entityOccurrencesViewData = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.fullIri).map(elem => {
       let grapholElem = cyToGrapholElem(elem)
       return {
         id: grapholElem.data.id,

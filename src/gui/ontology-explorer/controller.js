@@ -77,8 +77,8 @@ export default function(ontologyExplorerComponent, grapholscape) {
 
 
     function matchInIRI(iri, searchValue) {
-      let prefixed = iri.prefix + ':' + iri.remaining_chars
-      return isMatch(iri.full_iri, searchValue) || isMatch(prefixed, searchValue)
+      let prefixed = iri.prefix + ':' + iri.remainingChars
+      return isMatch(iri.fullIri, searchValue) || isMatch(prefixed, searchValue)
     }
 
     function matchInLabelV2(label, searchValue) {

@@ -1,9 +1,13 @@
 /**
+ * @typedef {import('./node-enums').ElemShape} ElemShape
+ * @typedef {import('./node-enums').ElemType} ElemType
+ * 
  * @typedef {object} Iri
- * @property {string} Iri.full_iri
- * @property {string} Iri.remaining_chars the string after the namespace or prefix
+ * @property {string} Iri.fullIri
+ * @property {string} Iri.remainingChars the string after the namespace or prefix
  * @property {string} Iri.prefix
  * @property {string} Iri.prefixed
+ * @property {string} Iri.namespace
  * 
  * @typedef {object} Position
  * @property {number} Position.x
@@ -29,6 +33,7 @@
  * @property {number} height 
  * @property {number} width
  * @property {Object.<string, string>} label a map <language, value>
+ * @property {Object.<string, string[]>} description a map <language, value>
  * @property {Iri} iri
  * @property {string} id unique id in the ontology [id]+_+[diagram_id]
  * @property {string} id_xml the parsed id (not unique in the ontology)
@@ -38,7 +43,7 @@
  * @property {boolean?} labelYcentered whether to center node's label on node's body along X axis
  * @property {number} labelXpos offset position of the node's label in case it's not centered along X
  * @property {number} labelYpos offset position of the node's label in case it's not centered along Y
- * @property {string?} shape the shape of the node
+ * @property {ElemShape} shape the shape of the node
  * @property {string[]?} inputs [property-assertion] list of id_xml
  * //edge
  * @property {string?} source [edge] the id of the source node
@@ -113,36 +118,24 @@ export default class Ontology {
     return this.namespaces.find(ns => ns.hasPrefix(prefix))
   }
 
-  // TODO maybe this doesn't belong to ontology
   /**
    * Get 
-   * @param {string} iri 
-   * @returns 
+   * @param {string} iri full iri
+   * @returns {Iri | undefined}
    */
   destructureIri(iri) {
-    let result = {
-      namespace: '',
-      prefix: '',
-      remaining_chars: ''
-    }
     for (let namespace of this.namespaces) {
       // if iri contains namespace 
       if (iri.includes(namespace.value)) {
-        result.namespace = namespace.value
-        result.prefix = namespace.prefixes[0]
-
-        result.rem_chars = iri.slice(namespace.value.length)
-        break;
+        return {
+          namespace: namespace.value,
+          prefix: namespace.prefixes[0],
+          fullIri: iri,
+          remainingChars: iri.slice(namespace.value.length),
+          prefixed:  namespace.prefixes[0] + ':' + iri.slice(namespace.value.length)
+        }
       }
-      //else if (iri.search(namespace.value.slice(0, -1)) != -1) {
-      //result.namespace = namespace.value
-      //result.prefix = namespace.prefixes[0]
-      //result.rem_chars = iri.slice(namespace.value.length - 1)
-      //break;
-      //}
     }
-
-    return result
   }
 
   /** @param {Diagram} diagram */
@@ -218,7 +211,7 @@ export default class Ontology {
     let entities = {}
     this.diagrams.forEach(diagram => {
       diagram.cy.$('.predicate').forEach(entity => {
-        let iri = entity.data('iri').full_iri
+        let iri = entity.data('iri').fullIri
 
         if (!Object.keys(entities).includes(iri)) {
           entities[iri] = []
@@ -232,19 +225,28 @@ export default class Ontology {
     return entities
   }
 
+  /**
+   * Check if entity has the specified iri in full or prefixed form
+   * @param {Entity} entity 
+   * @param {string} iri
+   * @returns {boolean}
+   */
   checkEntityIri(entity, iri) {
+    /** @type {Iri} */
     let entityIri = entity.data('iri') || entity.data.iri
-    return entityIri.full_iri === iri ||
-      entityIri.prefix + entityIri.remaining_chars === iri
+    return entityIri.fullIri === iri ||
+      entityIri.prefixed === iri
   }
 
+  /**
+   * Retrieve the full IRI given a prefixed IRI
+   * @param {string} prefixedIri a prefixed IRI
+   * @returns {string} full IRI
+   */
   prefixedToFullIri(prefixedIri) {
     for (let namespace of this.namespaces) {
-      for (let prefix of namespace.prefixes) {
-        if (prefixedIri.includes(prefix + ':')) {
-          return prefixedIri.replace(prefix + ':', namespace.value)
-        }
-      }
+      let prefix = namespace.prefixes.find( p => prefixedIri.includes(p))
+      if (prefix) return prefixedIri.replace(prefix + ':')
     }
   }
 
