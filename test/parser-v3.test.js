@@ -10,26 +10,26 @@ import Namespace from '../src/model/namespace'
 const domParser = new DOMParser()
 const xmlDoc = domParser.parseFromString(input, 'text/xml')
 const ontology_infos = parserV3.getOntologyInfo(xmlDoc)
-const namespaces = parserV3.getIriPrefixesDictionary(xmlDoc).map( ns => 
+const namespaces = parserV3.getIriPrefixesDictionary(xmlDoc).map(ns =>
   new Namespace(ns.prefixes, ns.value, ns.standard)
 )
 const ontology = new Ontology('', '', namespaces)
 
 describe("Test parsing ontology metadata", () => {
   const output = {
-    name : 'TEST',
+    name: 'TEST',
     version: '1.0',
     iri: 'http://www.obdasystems.com/test',
-    languages: [ 'it', 'en'],
+    languages: ['it', 'en'],
     default_language: 'en',
     other_infos: {
-      description: {
-        en : [ 'Ontology for testing', 'Hello world' ]
-      },
       annotations: {
-        author : {
-          en : [ 'obdasystems', 'secondauthor' ]
-        }
+        author: {
+          en: ['obdasystems', 'secondauthor']
+        },
+        comment: {
+          en: ['Ontology for testing', 'Hello world']
+        },
       }
     }
   }
@@ -43,7 +43,7 @@ describe("Test parsing ontology metadata", () => {
   })
 
   test('it should chain comments of the same language in an array', () => {
-    expect(ontology_infos.other_infos.description).toEqual(output.other_infos.description)
+    expect(ontology_infos.other_infos.annotations.comment).toEqual(output.other_infos.annotations.comment)
   })
 
   test('it should parse multiple annotation of the same language', () => {
@@ -55,33 +55,33 @@ describe("Test namespaces dictionary parsing", () => {
 
   const output = [
     {
-      prefixes : ['xsd'],
+      prefixes: ['xsd'],
       value: 'http://www.w3.org/2001/XMLSchema#',
       standard: false,
     },
     {
-      prefixes : ['rdf'],
+      prefixes: ['rdf'],
       value: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
       standard: false,
     },
     {
-      prefixes : ['rdfs'],
+      prefixes: ['rdfs'],
       value: 'http://www.w3.org/2000/01/rdf-schema#',
       standard: false,
     },
     {
-      prefixes : ['test'],
+      prefixes: ['test', 'obda'],
       value: 'http://www.obdasystems.com/test',
       standard: false,
     },
     {
-      prefixes : [''],
+      prefixes: [''],
       value: 'http://www.obdasystems.com/',
       standard: false,
     },
     {
-      prefixes : ['test2'],
-      value: 'http://www.obdasystems.com/test',
+      prefixes: ['test2'],
+      value: 'http://www.obdasystems.com/test2',
       standard: false,
     },
   ]
@@ -101,9 +101,11 @@ describe('Test retrieving IRI of a node', () => {
   `)
 
   const output1 = {
-    full_iri : 'http://www.obdasystems.com/testNode1',
-    prefix: 'test:',
-    remaining_chars: 'Node1'
+    fullIri: 'http://www.obdasystems.com/testNode1',
+    prefix: 'test',
+    remainingChars: 'Node1',
+    prefixed: 'test:Node1',
+    namespace: 'http://www.obdasystems.com/test'
   }
 
   const node2_mock_input = parseSingleNode(`
@@ -115,12 +117,14 @@ describe('Test retrieving IRI of a node', () => {
   `)
 
   const output2 = {
-    full_iri : 'http://www.unkwown.com/testNode2',
-    prefix: 'undefined:',
-    remaining_chars: 'http://www.unkwown.com/testNode2'
+    fullIri: 'http://www.unkwown.com/testNode2',
+    prefix: 'undefined',
+    remainingChars: 'http://www.unkwown.com/testNode2',
+    prefixed: 'http://www.unkwown.com/testNode2',
+    namespace: 'undefined'
   }
 
-  test('it should parse and destructure a node\'s IRI in { full_iri, prefix, remaining_chars } ', () => {
+  test('it should parse and destructure a node\'s IRI', () => {
     const retrieved_iri = parserV3.getIri(node1_mock_input, ontology)
     expect(retrieved_iri).toEqual(output1)
   })
@@ -144,85 +148,47 @@ describe('Test retrieving IRI of a node', () => {
 
 })
 
-describe('Test retrieving labels', () => {
-
-  test('nodes having label inside their tag', () => {
-    const node_mockup = parseSingleNode(`
-    <node id="n32" color="#000000" type="range-restriction">
-      <geometry width="20" y="440" x="1190" height="20"/>
-      <label width="39" customSize="0" y="440" x="1220" size="12" height="23">exists</label>
-    </node>
-    `)
-
-    const output = 'exists'
-    const retrieved_label = parserV3.getLabel(node_mockup, ontology, xmlDoc)
-
-    expect(retrieved_label).toBe(output)
-  })
-
-  test('it should find predicates nodes\' labels as annotations\n\
-      and ignore multiple labels for the same language', () => {
-
-    const node1_mock_input = parseSingleNode(`
+describe('Test retrieving annotations', () => {
+  const node1_mock_input = parseSingleNode(`
     <node id="n36" color="#fcfcfc" type="concept">
       <geometry width="110" y="180" x="300" height="50"/>
       <iri>http://www.obdasystems.com/testNode1</iri>
       <label width="129" customSize="0" y="180" x="300" size="12" height="23"/>
     </node>
-    `)
+  `)
 
+  const retrievedInfos = parserV3.getPredicateInfo(node1_mock_input, xmlDoc)
+
+  test('it should parse multiple labels for each language, even not defined language', () => {
     const output = {
-      '': 'label con ritorni\na capo senza lingua',
-      'en': 'label inglese'
+      '': ['label con ritorni\na capo senza lingua', 'label2 senza lingua'],
+      'en': ['label inglese', 'label inglese 2'],
+      'it': ['label1', 'label2']
     }
-    const retrieved_label = parserV3.getLabel(node1_mock_input, ontology, xmlDoc)
-
-    expect(retrieved_label).toEqual(output)
+    expect(retrievedInfos.annotations.label).toEqual(output)
   })
 
-  test('it should use prefixed IRI if no label is found', () => {
-    const node2_mock_input = parseSingleNode(`
-    <node id="n36" color="#fcfcfc" type="concept">
-      <geometry width="110" y="180" x="300" height="50"/>
-      <iri>http://www.obdasystems.com/testNode2</iri>
-      <label width="129" customSize="0" y="180" x="300" size="12" height="23"/>
-    </node>
-    `)
+  test('it should parse multiple descriptions for multiple languages', () => {
+    const output = {
+      'en': ['Ontology for testing', 'Hello world'],
+      'it': ['Lorem ipsum']
+    }
 
-    const output = 'test:Node2'
-    const retrieved_label = parserV3.getLabel(node2_mock_input, ontology, xmlDoc)
-
-    expect(retrieved_label).toBe(output)
+    expect(retrievedInfos.annotations.comment).toEqual(output)
   })
 
-  test('it should use hard coded label dictionary for constructor nodes', () => {
-    const node_mock_input = parseSingleNode(`
-    <node id="n117" color="#000000" type="complement">
-      <geometry width="50" y="-300" x="-110" height="30"/>
-    </node>
-    `)
-
-    const output = 'not'
-    const retrieved_label = parserV3.getLabel(node_mock_input, ontology, xmlDoc)
-
-    expect(retrieved_label).toBe(output)
+  // For DataProperties and ObjectProperties
+  test('it should parse missing properties as falsy value', () => {
+    expect(retrievedInfos.functional).toBeFalsy()
   })
 
-  test('it should always use prefixed IRI for datatypes', () => {
-    const node_mock_input = parseSingleNode(`
-    <node type="value-domain" id="n48" color="#fcfcfc">
-      <geometry height="40" x="980" width="90" y="-430"/>
-      <iri>http://www.w3.org/2001/XMLSchema#integer</iri>
-      <label height="23" x="980" customSize="0" size="12" width="66" y="-430"/>
-    </node>
-    `)
-
-    const output = 'xsd:integer'
-    const retrieved_label = parserV3.getLabel(node_mock_input, ontology, xmlDoc)
-
-    expect(retrieved_label).toBe(output)
+  test('it should parse correctly truthy properties', () => {
+    expect(retrievedInfos.symmetric).toBeTruthy()
+    expect(retrievedInfos.reflexive).toBeTruthy()
   })
+})
 
+describe('Test Facet\'s displayed names', () => {
   test('facet\'s label in the form [constraining-facet-iri^^"value"]', () => {
     const node_mock_input = parseSingleNode(`
     <node id="n6" color="#000000" type="facet">
@@ -240,31 +206,9 @@ describe('Test retrieving labels', () => {
 
     const output = 'xsd:minInclusive^^"1"'
 
-    expect(parserV3.getLabel(node_mock_input, ontology, xmlDoc)).toBe(output)
+    expect(parserV3.getFacetDisplayedName(node_mock_input, ontology, xmlDoc)).toBe(output)
   })
 })
-
-describe('Test predicate\'s info parsing', () => {
-  const node_mock_input = parseSingleNode(`
-    <node id="n36" color="#fcfcfc" type="role">
-      <geometry width="110" y="180" x="300" height="50"/>
-      <iri>http://www.obdasystems.com/testNode1</iri>
-      <label width="129" customSize="0" y="180" x="300" size="12" height="23"/>
-    </node>
-    `)
-
-  const retrieved_infos = parserV3.getPredicateInfo(node_mock_input, xmlDoc)
-
-  test('it should parse missing properties as falsy value', () => {
-    expect(retrieved_infos.functional).toBeFalsy()
-  })
-
-  test('it should parse correctly truthy properties', () => {
-    expect(retrieved_infos.symmetric).toBeTruthy()
-    expect(retrieved_infos.reflexive).toBeTruthy()
-  })
-})
-
 
 function parseSingleNode(string_repr, tagName = 'node') {
   return domParser.parseFromString(string_repr, 'text/xml').getElementsByTagName(tagName)[0]

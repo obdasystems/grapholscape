@@ -127,7 +127,7 @@ export function getPredicateInfo(element, xmlDocument) {
       end_body_index = description.indexOf('</body')
 
       if (description)
-        result.description = { '' : [description.slice(start_body_index, end_body_index)] }
+        result.annotations.comment = { '' : [description.slice(start_body_index, end_body_index)] }
 
       // Impostazione delle funzionalità dei nodi di tipo role o attribute
       if (type === 'attribute' || type === 'role') {

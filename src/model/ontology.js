@@ -174,7 +174,7 @@ export default class Ontology {
    * @returns {CollectionReturnValue} The cytoscape object representation.
    */
   getEntity(iri) {
-    return this.getEntityOccurrences(iri)[0]
+    if (this.getEntityOccurrences(iri)) return this.getEntityOccurrences(iri)[0]
   }
 
   /**
@@ -244,9 +244,15 @@ export default class Ontology {
    * @returns {string} full IRI
    */
   prefixedToFullIri(prefixedIri) {
+    if (!prefixedIri || typeof(prefixedIri) !== 'string') return
     for (let namespace of this.namespaces) {
-      let prefix = namespace.prefixes.find( p => prefixedIri.includes(p))
-      if (prefix) return prefixedIri.replace(prefix + ':')
+      let prefix = namespace.prefixes.find( p => prefixedIri.includes(p + ':'))
+
+      if (prefix) return prefixedIri.replace(prefix + ':', namespace.value)
+
+      else if (prefixedIri.startsWith(':') && namespace.prefixes.some( p => p === '')) {
+        return prefixedIri.replace(':', namespace.value)
+      }
     }
   }
 

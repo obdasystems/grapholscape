@@ -295,7 +295,7 @@ export default class Grapholscape {
     }
 
     let oldRendererKey = this.renderer.key
-    // TODO maintain selected entities selected
+
     if (rendererKey === oldRendererKey) return
     // if we come or are going to float renderer then never keep the old viewport state
     keepViewportState = keepViewportState &&

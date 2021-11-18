@@ -1,8 +1,6 @@
-/** */
-
 /** @typedef {import('../model').default} Ontology */
 
-import { constructorLabels, types } from '../model/node-enums'
+import { types } from '../model/node-enums'
 
 export let warnings = new Set()
 
@@ -18,16 +16,16 @@ export function getOntologyInfo(xmlDocument) {
 
   return {
     /** @type {string} */
-    name : project.getAttribute('name'),
+    name: project.getAttribute('name'),
     /** @type {string} */
-    version : project.getAttribute('version'),
+    version: project.getAttribute('version'),
     /** @type {string} */
-    iri : iri,
+    iri: iri,
     /** @type {string[]} */
-    languages : [...ontology_languages].map(lang => lang.textContent),
+    languages: [...ontology_languages].map(lang => lang.textContent),
     /** @type {string} */
-    default_language : getTag(xmlDocument, 'ontology').getAttribute('lang'),
-    other_infos : getIriAnnotations(iri_elem)
+    default_language: getTag(xmlDocument, 'ontology').getAttribute('lang'),
+    other_infos: getIriAnnotations(iri_elem)
   }
 }
 
@@ -40,11 +38,17 @@ export function getIriPrefixesDictionary(xmlDocument) {
   let result = []
   let prefixes = getTag(xmlDocument, 'prefixes').children
   for (const p of prefixes) {
-    result.push({
-      prefixes : [getTagText(p, 'value')],
-      value : getTagText(p, 'namespace'),
-      standard : false,
-    })
+    const namespaceValue = getTagText(p, 'namespace')
+    const namespace = result.find( n => n.value === namespaceValue)
+    if (namespace) 
+      namespace.prefixes.push(getTagText(p, 'value'))
+    else {
+      result.push({
+        prefixes: [getTagText(p, 'value')],
+        value: namespaceValue,
+        standard: false,
+      })
+    }
   }
   return result
 }
@@ -56,7 +60,10 @@ export function getIriPrefixesDictionary(xmlDocument) {
  * @returns {import('../model/ontology').Iri}
  */
 export function getIri(element, ontology) {
-  let nodeIri = getTagText(element, 'iri') || ''
+  let nodeIri = getTagText(element, 'iri')
+  
+  if (!nodeIri) return {}
+
   let destructuredIri = ontology.destructureIri(nodeIri)
   if (destructuredIri) {
     return destructuredIri
@@ -67,20 +74,18 @@ export function getIri(element, ontology) {
       prefix: 'undefined',
       remainingChars: nodeIri,
       namespace: 'undefined',
-      fullIri: 'undefined#' + nodeIri,
-      prefixed: "undefined:" + nodeIri
+      fullIri: nodeIri,
+      prefixed: nodeIri
     }
   }
 }
 /**
  * 
  * @param {HTMLElement} element 
- * @param {Ontology} ontology 
- * @param {*} xmlDocument 
+ * @param {Ontology} ontology
  * @returns {string}
  */
-export function getFacetDisplayedName(element, ontology, xmlDocument) {
-
+export function getFacetDisplayedName(element, ontology) {
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
   if (element.getAttribute('type') === types.FACET) {
     let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
@@ -92,52 +97,15 @@ export function getFacetDisplayedName(element, ontology, xmlDocument) {
     //let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
     //datatype = datatype.prefix + ':' + datatype.rem_chars
 
-    return constraining_facet + '^^"' + value +'"'
+    return constraining_facet + '^^"' + value + '"'
   }
-
-  let label = getTagText(element, 'label')
-  if (label) return label
-
-  let iri = getTagText(element, 'iri')
-  // constructors node do not have any iri
-  if (!iri) {
-    let typeKey = Object.keys(types).filter( k => types[k] === element.getAttribute('type'))
-    return constructorLabels[typeKey]
-  }
-
-  // build prefixed iri to be used in some cases
-  let destructured_iri = ontology.destructureIri(iri)
-  // datatypes always have prefixed iri as label
-  if (element.getAttribute('type') == types.VALUE_DOMAIN) {
-    return destructured_iri.prefixed
-  }
-  let iri_xml_elem = getIriElem(element, xmlDocument)
-  if (!iri_xml_elem) {
-    return iri == destructured_iri.remainingChars ? iri : destructured_iri.prefixed
-  }
-
-  let label_property_iri = ontology.getNamespaceFromPrefix('rdfs').value + 'label'
-  let annotations = getTag(iri_xml_elem, 'annotations')
-  let labels = {}
-  if (annotations) {
-    for (let annotation of annotations.children) {
-      if (getTagText(annotation, 'property') == label_property_iri) {
-        // add label for a given language only if it doesn't already exist
-        if (!labels[getTagText(annotation, 'language')])
-          labels[getTagText(annotation, 'language')] = getTagText(annotation, 'lexicalForm')
-      }
-    }
-  }
-
-  // if no label annotation, then use prefixed label
-  return Object.keys(labels).length ? labels : destructured_iri.prefixed
 }
 
 /**
  * Returns an object with annotations, description and the properties (functional, etc..) for DataProperties
  * @param {HTMLElement} element 
  * @param {Document | XMLDocument} xmlDocument 
- * @returns {Object.<string, string[] | boolean>}
+ * @returns {Object.<string, Object.<string, string[]> | boolean>}
  */
 export function getPredicateInfo(element, xmlDocument) {
   let result = {}
@@ -145,10 +113,10 @@ export function getPredicateInfo(element, xmlDocument) {
   result = getIriAnnotations(actual_iri_elem)
 
   if (actual_iri_elem && actual_iri_elem.children) {
-    for(let property of actual_iri_elem.children) {
+    for (let property of actual_iri_elem.children) {
       if (property.tagName != 'value' && property.tagName != 'annotations' &&
-          property.textContent != '0') {
-        result[property.tagName] =  1
+        property.textContent != '0') {
+        result[property.tagName] = 1
       }
     }
   }
@@ -160,31 +128,23 @@ export function getPredicateInfo(element, xmlDocument) {
 function getIriAnnotations(iri) {
   let result = {}
   /** @type {Object.<string, string[]} */
-  result.description = {}
-  /** @type {Object.<string, string[]} */
   result.annotations = {}
 
   let annotations = getTag(iri, 'annotations')
   let language, annotation_kind, lexicalForm
   if (annotations) {
-    for(let annotation of annotations.children) {
-      annotation_kind = getRemainingChars(getTagText(annotation,'property'))
+    for (let annotation of annotations.children) {
+      annotation_kind = getRemainingChars(getTagText(annotation, 'property'))
       language = getTagText(annotation, 'language')
       lexicalForm = getTagText(annotation, 'lexicalForm')
-      if (annotation_kind == 'comment') {
-        if (!result.description[language])
-          result.description[language] = []
 
-        result.description[language].push(lexicalForm)
-      } else {
-        if (!result.annotations[annotation_kind])
-          result.annotations[annotation_kind] = {}
-        
-        if (!result.annotations[annotation_kind][language])
-          result.annotations[annotation_kind][language] = []
+      if (!result.annotations[annotation_kind])
+        result.annotations[annotation_kind] = {}
 
-        result.annotations[annotation_kind][language].push(lexicalForm)
-      }
+      if (!result.annotations[annotation_kind][language])
+        result.annotations[annotation_kind][language] = []
+
+      result.annotations[annotation_kind][language].push(lexicalForm)
     }
   }
 
@@ -224,7 +184,7 @@ export function getTagText(root, tagName, n = 0) {
 function getIriElem(node, xmlDocument) {
   let node_iri = null
 
-  if (typeof(node) === 'string')
+  if (typeof (node) === 'string')
     node_iri = node
   else
     node_iri = getTagText(node, 'iri')
@@ -232,7 +192,7 @@ function getIriElem(node, xmlDocument) {
   if (!node_iri) return null
   let iris = getTag(xmlDocument, 'iris').children
   for (let iri of iris) {
-    if(node_iri == getTagText(iri, 'value')) {
+    if (node_iri == getTagText(iri, 'value')) {
       return iri
     }
   }

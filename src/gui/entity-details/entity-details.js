@@ -166,8 +166,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
   }
 
   updated() {
-    if (this.entity && this.entity.description)
-      this.renderDescription(this.entity.description)
+    if (this.entity && this.entity.annotations?.comment)
+      this.renderDescription(this.entity.annotations.comment)
 
     if (this._onWikiClick) {
       this.shadowRoot.querySelectorAll('.wiki').forEach(el => {

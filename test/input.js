@@ -20,12 +20,16 @@ export default `
           <namespace>http://www.obdasystems.com/test</namespace>
         </prefix>
         <prefix>
+          <value>obda</value>
+          <namespace>http://www.obdasystems.com/test</namespace>
+        </prefix>
+        <prefix>
           <value></value>
           <namespace>http://www.obdasystems.com/</namespace>
         </prefix>
         <prefix>
           <value>test2</value>
-          <namespace>http://www.obdasystems.com/test</namespace>
+          <namespace>http://www.obdasystems.com/test2</namespace>
         </prefix>
       </prefixes>
       <languages>
@@ -71,6 +75,51 @@ a capo senza lingua</lexicalForm>
                 <lexicalForm>label inglese 2</lexicalForm>
                 <datatype>http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral</datatype>
                 <language>en</language>
+              </object>
+            </annotation>
+            <annotation>
+              <subject>http://www.obdasystems.com/testNode1</subject>
+              <property>http://www.w3.org/2000/01/rdf-schema#label</property>
+              <object>
+                <lexicalForm>label1</lexicalForm>
+                <datatype>http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral</datatype>
+                <language>it</language>
+              </object>
+            </annotation>
+            <annotation>
+              <subject>http://www.obdasystems.com/testNode1</subject>
+              <property>http://www.w3.org/2000/01/rdf-schema#label</property>
+              <object>
+                <lexicalForm>label2</lexicalForm>
+                <datatype>http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral</datatype>
+                <language>it</language>
+              </object>
+            </annotation>
+            <annotation>
+              <subject>http://www.obdasystems.com/testNode1</subject>
+              <property>http://www.w3.org/2000/01/rdf-schema#comment</property>
+              <object>
+                <lexicalForm>Ontology for testing</lexicalForm>
+                <datatype>http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral</datatype>
+                <language>en</language>
+              </object>
+            </annotation>
+            <annotation>
+              <subject>http://www.obdasystems.com/testNode1</subject>
+              <property>http://www.w3.org/2000/01/rdf-schema#comment</property>
+              <object>
+                <lexicalForm>Hello world</lexicalForm>
+                <datatype>http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral</datatype>
+                <language>en</language>
+              </object>
+            </annotation>
+            <annotation>
+              <subject>http://www.obdasystems.com/testNode1</subject>
+              <property>http://www.w3.org/2000/01/rdf-schema#comment</property>
+              <object>
+                <lexicalForm>Lorem ipsum</lexicalForm>
+                <datatype>http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral</datatype>
+                <language>it</language>
               </object>
             </annotation>
           </annotations>

@@ -1,8 +1,9 @@
 import Ontology from '../src/model/ontology'
 import Namespace from '../src/model/namespace'
 import Diagram from '../src/model/diagram'
+import { cyToGrapholElem } from '../src/util/model-obj-transformations'
 
-const namespace = new Namespace(['test'], 'http://www.test.com/')
+const namespace = new Namespace(['test', 't', 'testing'], 'http://www.test.com/')
 const namespace2 = new Namespace( null , 'http://www.test2.com', true)
 let diagram = null
 let diagram2 = null
@@ -13,9 +14,11 @@ const elems_input = [
     id_xml: 'n1', 
     id:'n1_2',
     iri : {
-      full_iri: 'http://www.test.com/entity1',
-      remaining_chars: 'entity1',
-      prefix: 'test'
+      fullIri: 'http://www.test.com/entity1',
+      remainingChars: 'entity1',
+      prefix: 'test',
+      prefixed: 'test:entity1',
+      namespace: 'http://www.test.com/'
     },
     displayed_name: 'entity1',
   },
@@ -33,9 +36,11 @@ const elems_input = [
       id_xml: 'n3', 
       id:'n3_2',
       iri : {
-        full_iri: 'http://www.test.com/entity2',
-        remaining_chars: 'entity2',
-        prefix: 'test'
+        fullIri: 'http://www.test2.comentity2',
+        remainingChars: 'entity2',
+        prefix: '',
+        prefixed: ':entity2',
+        namespace: 'http://www.test2.com'
       },
       displayed_name: 'entity2',
     },
@@ -55,7 +60,7 @@ const elems_input = [
 // namespace
 describe('Test Namespace Class', () => {
   test('constructor', () => {
-    expect(namespace.prefixes.length).toBe(1)
+    expect(namespace.prefixes.length).toBe(3)
     expect(namespace.standard).toBeFalsy()
     expect(namespace.value).toBe('http://www.test.com/')
     expect(namespace2.standard).toBeTruthy()
@@ -83,7 +88,7 @@ describe('Test Namespace Class', () => {
 // diagram
 describe('Test Diagram Class', () => {
   diagram = new Diagram('test', 0)
-  diagram2 = new Diagram('test2', 1, elems_input)
+  diagram2 = new Diagram('test2', '1', elems_input)
 
   test('constructor', () => {
     expect(diagram.name).toBe('test')
@@ -100,6 +105,11 @@ describe('Test Ontology Class', () => {
   const version = '1.0'
   const ontology = new Ontology(name, version, [namespace, namespace2])
   
+  const getElem = id => cyToGrapholElem(ontology.getElem(id))
+  const getElemByDiagramAndId = (elemID, diagramID) => 
+    cyToGrapholElem(ontology.getElemByDiagramAndId(elemID, diagramID))
+  const getEntity = (entityIRI) => cyToGrapholElem(ontology.getEntity(entityIRI))
+
   test('constructor', () => {
     expect(ontology.name).toBe(name)
     expect(ontology.version).toBe(version)
@@ -108,7 +118,10 @@ describe('Test Ontology Class', () => {
   })
 
   test('prefixedToFullIri() should return full iri given a prefixed iri', () => {
-    expect(ontology.prefixedToFullIri('test:entity2')).toBe(elems_input[2].data.iri.full_iri)
+    expect(ontology.prefixedToFullIri('test:entity1')).toBe(elems_input[0].data.iri.fullIri)
+    expect(ontology.prefixedToFullIri('t:entity1')).toBe(elems_input[0].data.iri.fullIri)
+    expect(ontology.prefixedToFullIri('testing:entity1')).toBe(elems_input[0].data.iri.fullIri)
+    expect(ontology.prefixedToFullIri(':entity2')).toBe(elems_input[2].data.iri.fullIri)
   })
 
   test('addNamespace() should add a namespace to the namespaces dictionary', () => {
@@ -135,7 +148,9 @@ describe('Test Ontology Class', () => {
     const output = {
       prefix: 'test',
       namespace: 'http://www.test.com/',
-      rem_chars: 'prova'
+      remainingChars: 'prova',
+      prefixed: 'test:prova',
+      fullIri: 'http://www.test.com/prova'
     }
     expect(ontology.destructureIri(input)).toEqual(output)
   })
@@ -154,29 +169,31 @@ describe('Test Ontology Class', () => {
   })
 
   test('getElem() and getElemByDiagramAndId() should return an element or undefined', () => {
-    expect(ontology.getElem('n3_2').data).toEqual(elems_input[2].data)
-    expect(ontology.getElem('n0')).toBeFalsy()
-    expect(ontology.getElem(2)).toBeFalsy()
-    expect(ontology.getElem('n2_2', false)).not.toBe(undefined)
+    expect(getElem('n3_2').data).toEqual(elems_input[2].data)
+    expect(getElem('n0')).toBeFalsy()
+    expect(getElem(2)).toBeFalsy()
+    expect(getElem('n2_2', false)).not.toBe(undefined)
 
-    expect(ontology.getElemByDiagramAndId('n2', 1).data).toEqual(elems_input[1].data)
-    expect(ontology.getElemByDiagramAndId('n0', 0)).toBeFalsy()
-    expect(ontology.getElemByDiagramAndId(2, 0)).toBeFalsy()
-    expect(ontology.getElemByDiagramAndId('n1', 1, false)).not.toBe(undefined)
-    expect(ontology.getElemByDiagramAndId('n1', 5, false)).not.toBe(undefined)
+    expect(getElemByDiagramAndId('n2', 1).data).toEqual(elems_input[1].data)
+    expect(getElemByDiagramAndId('n0', 0)).toBeFalsy()
+    expect(getElemByDiagramAndId(2, 0)).toBeFalsy()
+    expect(getElemByDiagramAndId('n1', '1')).not.toBe(undefined)
+    expect(getElemByDiagramAndId('n1', 5)).toBe(undefined)
   })
 
   test('getEntity() should retrieve an entity by its IRI', () => {
     const iri1 = 'http://www.test.com/entity1'
     const prefixed_iri1 = 'test:entity1'
-    const iri2 = 'http://www.test.com/entity2'
-    const prefixed_iri2 = 'test:entity2'
+    const iri2 = 'http://www.test2.comentity2'
+    const prefixed_iri2 = ':entity2'
 
-    expect(ontology.getEntity(iri1).data).toEqual(elems_input[0].data)
-    expect(ontology.getEntity(iri2).data).toEqual(elems_input[2].data)
-    expect(ontology.getEntity(prefixed_iri1).data).toEqual(elems_input[0].data)
-    expect(ontology.getEntity(prefixed_iri2).data).toEqual(elems_input[2].data)
-    expect(ontology.getEntity('error')).toBe(undefined)
+    expect(getEntity(iri1).data).toEqual(elems_input[0].data)
+    expect(getEntity(iri2).data).toEqual(elems_input[2].data)
+    expect(getEntity(prefixed_iri1).data).toEqual(elems_input[0].data)
+    expect(getEntity('test:entity2')).toBe(undefined)
+    expect(getEntity(prefixed_iri2).data).toEqual(elems_input[2].data)
+    expect(getEntity('error')).toBe(undefined)
+    expect(getEntity()).toBe(undefined)
   })
 
   test('getEntities()', () => {
@@ -184,3 +201,4 @@ describe('Test Ontology Class', () => {
     expect(Object.keys(ontology.getEntities()).length).toBe(2)
   })
 })
+

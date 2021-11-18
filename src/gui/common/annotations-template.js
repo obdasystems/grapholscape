@@ -8,6 +8,7 @@ export default (entity) => {
           <div class="section-header">Annotations</div>
           <table class="details_table annotations">
           ${Object.keys(entity.annotations).map( kind => {
+            if (kind === 'comment') return html``
             let annotation = entity.annotations[kind]
             return html`
               <tbody class="annotation-row">
@@ -31,12 +32,12 @@ export default (entity) => {
         </div>
       ` : ''
     }
-
-    ${entity.description && Object.keys(entity.description).length > 0 ?
+    
+    ${entity.annotations.comment && Object.keys(entity.annotations.comment).length > 0 ?
       html`
         <div class="section">
           <div class="section-header"> Description </div>
-          ${Object.keys(entity.description).map( language => {
+          ${Object.keys(entity.annotations.comment).map( language => {
             return html`
               <div class="description" lang="${language}">
                 ${language != '' ? html`<span class="language">${language}</span>` : ''}

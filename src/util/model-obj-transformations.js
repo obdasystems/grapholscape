@@ -9,7 +9,7 @@
  * @param {CollectionReturnValue} cyEntity 
  * @returns {object} Entity for view
  */
-export function entityModelToViewData(cyEntity, languages) {
+export function entityModelToViewData(cyEntity) {
   let entity = cyToGrapholElem(cyEntity)
 
   let entityViewData = {
@@ -19,7 +19,6 @@ export function entityModelToViewData(cyEntity, languages) {
     displayed_name : entity.data.displayed_name,
     type : entity.data.type,
     iri : entity.data.iri,
-    description : entity.data.description,
     annotations : entity.data.annotations,
     functional : entity.data.functional,
     inverseFunctional : entity.data.inverseFunctional,
@@ -78,5 +77,5 @@ export function rendererModelToViewData(rendererModelData) {
  * @returns {GrapholElem}
  */
 export function cyToGrapholElem(cytoscapeObj) {
-  return cytoscapeObj.json()
+  return cytoscapeObj?.json()
 }
