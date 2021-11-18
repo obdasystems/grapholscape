@@ -23,4 +23,12 @@ export default class Namespace {
   isStandard () {
     return this.standard
   }
+
+  /**
+   * Check if the passed prefix is assigned to this namespace
+   * @param {string} prefix the prefix to check
+   */
+  hasPrefix(prefix) {
+    return this.prefixes.includes(prefix)
+  }
 }

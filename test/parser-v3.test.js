@@ -1,11 +1,18 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import * as parserV3 from '../src/parsing/parser-v3'
 import input from './input'
 import Ontology from '../src/model/ontology'
+import Namespace from '../src/model/namespace'
 
 const domParser = new DOMParser()
 const xmlDoc = domParser.parseFromString(input, 'text/xml')
 const ontology_infos = parserV3.getOntologyInfo(xmlDoc)
-const namespaces = parserV3.getIriPrefixesDictionary(xmlDoc)
+const namespaces = parserV3.getIriPrefixesDictionary(xmlDoc).map( ns => 
+  new Namespace(ns.prefixes, ns.value, ns.standard)
+)
 const ontology = new Ontology('', '', namespaces)
 
 describe("Test parsing ontology metadata", () => {

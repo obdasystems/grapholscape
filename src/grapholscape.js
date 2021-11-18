@@ -1,80 +1,551 @@
-import "core-js/stable"
-import "regenerator-runtime/runtime"
-import "@webcomponents/webcomponentsjs"
-import '@material/mwc-icon'
-import '@material/mwc-icon-button'
-import GrapholParser from './parsing/parser'
-import GrapholscapeView from './view/view'
-import GrapholscapeController from './grapholscape-controller'
-import cytoscape from 'cytoscape'
-import popper from 'cytoscape-popper'
-import cola from 'cytoscape-cola'
-import cy_svg from 'cytoscape-svg'
+/** 
+ * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue 
+ * @typedef {import('./model/diagram').default} Diagram
+ */
 
-cytoscape.use(popper)
-cytoscape.use(cola)
-cytoscape.use(cy_svg)
+import defaultConfig from "./config.json";
+import * as exporter from './exporting';
+import Ontology from "./model";
+import initRenderersManager from './rendering';
+import ThemesController from "./style/themes-controller";
+import { cyToGrapholElem, diagramModelToViewData } from "./util/model-obj-transformations";
+import computeSimplifiedOntologies from "./util/simplifier"
 
-export default class GrapholScape {
-  constructor (file, container = false, config = null) {
-    this.readGraphol(file)
-    .then( result => { this._ontology = result })
-    .catch( error => {
-      console.error(error)
-    })
 
-    if (container) {
-      return this.init(container, config)
+export default class Grapholscape {
+  /**
+   * Create a core object of Grapholscape
+   * @param {!Ontology} ontology An Ontology object
+   * @param {object} container DOM element in which grapholscape will render the ontology
+   * @param {?object} customConfig JSON of custom default settings, check out 
+   * [wiki/settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+   */
+  constructor(ontology, container, customConfig = null) {
+    this.config = JSON.parse(JSON.stringify(defaultConfig)) //create copy
+
+    this.themesController = new ThemesController()
+
+    if (customConfig) this.setConfig(customConfig)
+
+    if (customConfig?.renderers) {
+      /** @type {import("./rendering/renderer-manager").default} */
+      this.renderersManager = initRenderersManager(container, customConfig.renderers)
+    } else {
+      this.renderersManager = initRenderersManager(container, ['default', 'lite', 'float'])
     }
-  }
 
-  init(container, config = null) {
-    this.view = new GrapholscapeView(container)
-    return new Promise( (resolve,reject) => {
-      this.readFilePromise.then( () => {
-        this.controller = new GrapholscapeController(this._ontology, this.view, config)
-        this.controller.init()
-        resolve(this.controller)
-      })
-      .catch( (reason) => {
-        this.view.showDialog(reason.name, reason.message)
-        reject(reason)
-      })
-      .finally( () => this.view.spinner.hide())
-    })
-  }
-
-  readGraphol(file) {
-    this.readFilePromise = new Promise ((resolve, reject) => {
-      let result = null
-
-      if (typeof (file) === 'object') {
-        let reader = new FileReader()
-        reader.onloadend = () => {
-          try {
-            result = getResult(reader.result)
-          } catch (error) { reject(error) }
-          resolve(result)
-        }
-
-        reader.readAsText(file)
-
-        setTimeout( () => {
-          reject('Error: timeout expired')
-        }, 10000)
-
-      } else if (typeof (file) === 'string') {
-        result = getResult(file)
-        resolve(result)
-      } else {
-        reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
+    // set language
+    this.config.preferences.language.list = ontology.languages.list.map(lang => {
+      return {
+        "label": lang,
+        "value": lang,
       }
     })
-    return this.readFilePromise
 
-    function getResult(file) {
-      let graphol_parser = new GrapholParser(file)
-      return graphol_parser.parseGraphol()
+    this.defaultLanguage = ontology.languages.default
+
+    // if not selected in config, select the default one
+    let selectedLanguage = this.config.preferences.language.selected
+    if (selectedLanguage == '')
+      this.config.preferences.language.selected = this.defaultLanguage
+    else {
+      // if language is not supported by ontology, add it in the list
+      // only for consistency : user defined it so he wants to see it
+      if (!ontology.languages.list.includes(selectedLanguage))
+        this.config.preferences.language.list.push({
+          "label": selectedLanguage + ' - unsupported',
+          "value": selectedLanguage
+        })
+    }
+
+    this._callbacksDiagramChange = []
+    this._callbacksEntitySelection = []
+    this._callbacksNodeSelection = []
+    this._callbacksBackgroundClick = []
+    this._callbacksEdgeSelection = []
+    this._callbacksFilterOn = []
+    this._callbacksFilterOff = []
+    this._callbacksRendererChange = []
+    this._callbacksWikiClick = []
+    this._callbacksThemeChange = []
+    this._callbacksEntityNameTypeChange = []
+    this._callbacksLanguageChange = []
+
+    this.renderersManager.onEdgeSelection = this.handleEdgeSelection.bind(this)
+    this.renderersManager.onNodeSelection = this.handleNodeSelection.bind(this)
+    this.renderersManager.onBackgroundClick = this.handleBackgroundClick.bind(this)
+
+    this.ontologies = {
+      default: ontology,
+      lite: null,
+      float: null
+    }
+
+    this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology)
+      .then(result => {
+        this.ontologies.lite = result.lite
+        this.ontologies.float = result.float
+      })
+      .catch(reason => {
+        console.log(reason)
+      })
+
+    this.applyTheme(this.config.rendering.theme.selected)
+  }
+
+  onEntitySelection(callback) { this._callbacksEntitySelection.push(callback) }
+
+  /**
+   * Register a new callback to be called on a node selection
+   * @param {function} callback 
+   */
+  onNodeSelection(callback) { this._callbacksNodeSelection.push(callback) }
+
+  /**
+   * Function handling the selection of a node on a diagram [called by renderer]
+   * @param {CollectionReturnValue} node 
+   */
+  handleNodeSelection(node) {
+    if (cyToGrapholElem(node).classes.includes('predicate')) {
+      this._callbacksEntitySelection.forEach(fn => fn(node))
+    }
+
+    this._callbacksNodeSelection.forEach(fn => fn(node))
+  }
+
+  /**
+   * Register a new callback to be called on a edge selection
+   * @param {function} callback 
+   */
+  onEdgeSelection(callback) { this._callbacksEdgeSelection.push(callback) }
+
+  /**
+   * Function handling the selection of an edge on a diagram [called by renderer]
+   * @param {CollectionReturnValue} edge 
+   */
+  handleEdgeSelection(edge) {
+    if (cyToGrapholElem(edge).classes.includes('predicate')) {
+      this._callbacksEntitySelection.forEach(fn => fn(edge))
+    }
+
+    this._callbacksEdgeSelection.forEach(fn => fn(edge))
+  }
+
+  /**
+   * Register a new callback to be called on a background click
+   * @param {function} callback 
+   */
+  onBackgroundClick(callback) {
+    this._callbacksBackgroundClick.push(callback)
+  }
+
+  handleBackgroundClick() { this._callbacksBackgroundClick.forEach(fn => fn()) }
+
+  /**
+   * Register a new callback to be called on a diagram change
+   * @param {function} callback 
+   */
+  onDiagramChange(callback) { this._callbacksDiagramChange.push(callback) }
+
+  /**
+   * Display a diagram on the screen.
+   * @param {Diagram | string | number} diagram The diagram retrieved from model, its name or it's id
+   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
+   * @param {function} callback optional callback to execute after a diagram change
+   */
+  showDiagram(diagram, shouldViewportFit = false) {
+    if (typeof diagram == 'string' || typeof diagram == 'number') {
+      diagram = this.ontology.getDiagram(diagram)
+    }
+
+    if (!diagram) {
+      console.warn('diagram not existing')
+      return
+    }
+    
+    shouldViewportFit = shouldViewportFit || !diagram.hasEverBeenRendered
+    this.renderersManager.drawDiagram(diagram, shouldViewportFit)
+    this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+
+    Object.keys(this.filterList).forEach(key => {
+      let filter = this.filterList[key]
+      if (filter.active) this.renderersManager.filter(filter)
+    })
+
+    // simulate selection on old selected entity, this updates UI too
+    let entity = diagram.getSelectedEntity()
+    if (entity) {
+      let grapholEntity = cyToGrapholElem(entity)
+      if (grapholEntity.data.diagram_id === this.actualDiagramID) {
+        this._callbacksEntitySelection.forEach( fn => fn(entity))
+        this.centerOnNode(grapholEntity.data.id)
+      }
+    }
+
+    this._callbacksDiagramChange.forEach(fn => fn(diagram))
+  }
+
+  /**
+   * Focus on a single node and zoom on it.
+   * If necessary it also display the diagram containing the node.
+   * @param {number} nodeID - The node unique ID
+   * @param {number?} zoom - The zoom level to apply (Default: 1.5)
+   */
+  centerOnNode(nodeID, zoom = 1.5) {
+    // get diagram id containing the node
+    let nodeDiagramID = cyToGrapholElem(this.ontology.getElem(nodeID)).data.diagram_id
+    if (this.renderersManager.actualDiagramID != nodeDiagramID) {
+      this.showDiagram(nodeDiagramID)
+    }
+
+    this.renderersManager.centerOnNode(nodeID, zoom)
+  }
+
+  /**
+   * Register a new callback to be called on a renderer change
+   * @param {function} callback 
+   */
+  onRendererChange(callback) {
+    this._callbacksRendererChange.push(callback)
+  }
+
+  /**
+   * Change the rendering mode.
+   * @param {string} rendererKey - the rendering/simplifation mode to activate: `default`, `lite`, or `float`
+   * @param {boolean} keepViewportState - if `false`, viewport will fit on diagram.
+   * Set it `true` if you don't want the viewport state to change.
+   * In case of no diagram displayed yet, it will be forced to `false`.
+   * Default: `true`.
+   *
+   * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
+   */
+  setRenderer(rendererKey, keepViewportState = true) {
+    const performChange = () => {
+      let viewportState = keepViewportState ? this.renderersManager.actualViewportState : undefined
+      
+      let selectedEntities = {}
+      // get selected entity in each diagram
+      this.ontology.diagrams.forEach( diagram => {
+        if (diagram.getSelectedEntity())
+          selectedEntities[diagram.id] = cyToGrapholElem(diagram.getSelectedEntity())
+      })
+
+      this.renderersManager.setRenderer(rendererKey)
+
+      Object.keys(this.filterList).forEach(filterKey => {
+        this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey)
+      })
+
+      this.showDiagram(this.actualDiagramID) // either viewport state is set manually or untouched
+      // for each selected entity in each diagram, select it again in the new renderer
+      Object.keys(selectedEntities).forEach( diagramID => {
+        this.selectEntity(selectedEntities[diagramID].data.iri.full_iri, diagramID)
+      })
+      this.setViewport(viewportState)
+
+      this._callbacksRendererChange.forEach(fn => fn(rendererKey))
+    }
+
+    let oldRendererKey = this.renderer.key
+    // TODO maintain selected entities selected
+    if (rendererKey === oldRendererKey) return
+    // if we come or are going to float renderer then never keep the old viewport state
+    keepViewportState = keepViewportState && 
+      !( oldRendererKey == 'float' || rendererKey == 'float')
+
+    switch (rendererKey) {
+      // for simplified ontologies wait for them to be computed
+      case 'lite':
+      case 'float': {
+        this.SimplifiedOntologyPromise.then(() => {
+          performChange()
+        })
+        break
+      }
+      default: {
+        performChange()
+        break
+      }
     }
   }
+
+  /**
+   * Set viewport state.
+   * @param {import('./rendering/renderers/default-renderer').ViewportState} state - 
+   * object representation of **rendered position** in 
+   * [cytoscape format](https://js.cytoscape.org/#notation/position).
+   *
+   * > Example: { x: 0, y: 0, zoom: 1} - initial state
+   */
+  setViewport(state) {
+    if (state) this.renderersManager.setViewport(state)
+  }
+
+  zoomIn() { this.renderersManager.zoomIn() }
+  zoomOut() { this.renderersManager.zoomOut() }
+
+  onFilter(callback) { this._callbacksFilterOn.push(callback) }
+
+  /**
+   * Activate a predefined filter or execute a custom filter on a selector
+   * @param {string | object} filterType The name of the predefined filter to execute
+   * or a custom filter
+   * @property {string} filterType.selector the cytoscape selector, read more about
+   * [cytoscape selectors](https://js.cytoscape.org/#selectors)
+   * @property {string} filterType.class the class (css) that will be added to filtered elems
+   */
+  filter(filterType) {
+    let filterObj = this.isDefinedFilter(filterType) ?
+      this.filterList[filterType] : filterType
+
+    let filteredElems = this.renderersManager.filter(filterObj)
+
+    this._callbacksFilterOn.forEach(fn => fn(filteredElems))
+  }
+
+  isDefinedFilter(filterType) {
+    return this.filterList[filterType] ? true : false
+  }
+
+  /**
+   * deactivate a predefined filter or execute a custom filter on a selector
+   * @param {string} filterType The name of the predefined filter to execute
+   * or the cytoscape selector defining a custom filter, read more about
+   * [cytoscape selectors](https://js.cytoscape.org/#selectors)
+   */
+  unfilter(filterType) {
+    let filterObj = this.isDefinedFilter(filterType) ?
+      this.filterList[filterType] : filterType
+
+    let unFilteredElems = this.renderersManager.unfilter(filterObj)
+
+    this._callbacksFilterOff.forEach(fn => fn(unFilteredElems))
+  }
+
+  onThemeChange(callback) { this._callbacksThemeChange.push(callback) }
+  /**
+   * Apply an existing theme or pass a new custom theme that will be added and then applied
+   * Please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
+   * @param {string | object } themeKey a predefined theme key or a custom theme object
+   */
+  applyTheme(themeKey) {
+    if (themeKey === this.themesController.actualTheme) return
+
+    let normalizedTheme = this.themesController.getTheme(themeKey)
+    if (!normalizedTheme) { // if it's not definedthen maybe it's a custom theme
+      try {
+        themeKey = this.addTheme(themeKey) // addTheme returns the key of the new added theme
+        normalizedTheme = this.themesController.getTheme(themeKey)
+      } catch {
+        console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes')
+        return
+      }
+    }
+
+    this.container.style.background = normalizedTheme.background // prevent black background on fullscreen
+
+    // set custom properties on container so the gui widgets can use these new colours
+    let prefix = '--theme-gscape-'
+    Object.keys(normalizedTheme).forEach(key => {
+      let css_key = prefix + key.replace(/_/g, '-')
+      this.container.style.setProperty(css_key, normalizedTheme[key])
+    })
+
+
+    this.renderersManager.setTheme(normalizedTheme) // set graph style based on new theme
+    this.themesController.actualTheme = themeKey
+    this._callbacksThemeChange.forEach(fn => fn(themeKey))
+  }
+
+  /**
+   * Select an entity by its IRI and the diagram it belongs to,
+   * if you don't pass a diagram, the actual diagram will be used
+   * @param {string} iri the IRI of the entity to select in full or prefixed form
+   * @param {Diagram | number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   */
+  selectEntity(iri, diagram = this.actualDiagramID || 0) {
+    let diagramID = ''
+    try {
+      if ( typeof(diagram) === 'object' ) 
+        diagramID = diagram.id
+      else
+        diagramID = this.ontology.getDiagram(diagram).id
+    } catch(e) { console.error(`Diagram ${diagram} not defined`)}
+
+    this.ontology.entities[iri].forEach( entity => {
+      let grapholEntity = cyToGrapholElem(entity)
+      if (grapholEntity.data.diagram_id === diagramID) {
+        this.selectElem(grapholEntity.data.id, diagramID)
+      }
+    })
+  }
+
+  /**
+   * Select a node or an edge given its unique id
+   * @param {string} id unique elem id (node or edge)
+   * @param {number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   */
+  selectElem(id, diagramID = this.actualDiagramID || 0) {
+    this.ontology.getDiagram(diagramID)?.selectElem(id)
+  }
+
+  /**
+   * Register a new theme
+   * @param {object} theme a theme object, please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
+   */
+  addTheme(theme) {
+    let custom_theme_value = `custom${this.config.rendering.theme.list.length}`
+
+    this.config.rendering.theme.list.push({
+      value: custom_theme_value,
+      label: theme.name || `Custom${this.config.rendering.theme.list.length}`
+    })
+
+
+    // update selected theme unless new them is set with selected = false
+    if (theme.selected == undefined || theme.selected == true) {
+      this.config.rendering.theme.selected = custom_theme_value
+    }
+    // remove metadata from theme in order to get only colours
+    delete theme.name
+    delete theme.selected
+
+    this.themesController.addTheme(theme, custom_theme_value)
+    return custom_theme_value
+  }
+
+  onEntityNameTypeChange(callback) { this._callbacksEntityNameTypeChange.push(callback) }
+
+  changeEntityNameType(entityNameType) {
+    this.config.preferences.entity_name.selected = entityNameType
+    // update displayed names (if label is selected then update the label language)
+    this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+    this._callbacksEntityNameTypeChange.forEach(fn => fn(entityNameType))
+  }
+
+  onLanguageChange(callback) { this._callbacksLanguageChange.push(callback) }
+
+  changeLanguage(language) {
+    this.config.preferences.language.selected = language
+    // update displayed names (if label is selected then update the label language)
+    this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+    this._callbacksLanguageChange.forEach(fn => fn(language))
+  }
+
+  /**
+   * Export the current diagram in to a PNG image and save it on user's disk
+   * @param {String} fileName - the name to assign to the file
+   * (Default: [ontology name]-[diagram name]-v[ontology version])
+   */
+  exportToPNG(fileName = this.exportFileName) {
+    fileName = fileName + '.png'
+    exporter.toPNG(fileName, this.renderer.cy, this.themesController.actualTheme.background)
+
+    //this.onExportToPNG()
+  }
+
+  /**
+   * Export the current diagram in to a SVG file and save it on user's disk
+   * @param {String} fileName - the name to assign to the file
+   * (Default: [ontology name]-[diagram name]-v[ontology version])
+   */
+  exportToSVG(fileName = this.exportFileName) {
+    fileName = fileName + '.svg'
+    exporter.toSVG(fileName, this.renderer.cy, this.themesController.actualTheme.background)
+
+    //this.onExportToSVG()
+  }
+
+  /**
+   * Update the actual configuration and apply changes.
+   * @param {Object} new_config - a configuration object. Please read [wiki/settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+   */
+  setConfig(new_config) {
+    Object.keys(new_config).forEach(entry => {
+
+      // if custom theme
+      if (entry == 'theme' && typeof (new_config[entry]) == 'object') {
+        this.addTheme(new_config[entry])
+      } else {
+        for (let area in this.config) {
+          try {
+            let setting = this.config[area][entry]
+            if (setting) {
+              // apply custom settings only if they match type and are defined in lists
+              if (setting.type == 'boolean' && typeof (new_config[entry]) == 'boolean')
+                this.config[area][entry].enabled = new_config[entry]
+              else if (this.config[area][entry].list.map(elm => elm.value).includes(new_config[entry]))
+                this.config[area][entry].selected = new_config[entry]
+            }
+          } catch (e) {
+            console.warn(`Custom default setting [${entry}] not recognized`)
+          }
+        }
+      }
+    })
+  }
+
+  /**
+   * Set a callback to be called on a wiki redirection.
+   * @param {function} callback the function to call on a wiki redirection, it will be passed the IRI to redirect to
+   */
+  onWikiClick(callback) {
+    this._callbacksWikiClick.push(callback)
+  }
+
+  wikiRedirectTo(iri) {
+    this._callbacksWikiClick.forEach(fn => fn(iri))
+  }
+
+  /**
+   * @returns {Ontology}
+   */
+  get ontology() {
+    return this.ontologies[this.actualRenderingMode] || this.ontologies.default
+  }
+
+  /**
+   * Filename for exports: [ontology name]-[diagram name]-v[ontology version])
+   * @returns {string}
+   */
+  get exportFileName() {
+    return `${this.ontology.name}-${this.actualDiagram.name}-v${this.ontology.version}`
+  }
+
+  get renderer() { return this.renderersManager.renderer }
+
+  get container() { return this.renderersManager.container }
+  get graphContainer() { return this.renderersManager.graphContainer }
+
+  /** 
+   * @typedef {Object} Language
+   * @property {string} value - identifier of the language
+   * @property {string} label - string representation to be visualized
+   */
+
+  get languages() {
+    return {
+      /** @type {string} */
+      selected: this.config.preferences.language.selected,
+      /** @type {string} */
+      default: this.defaultLanguage,
+      /** @type {Language[]} */
+      list: this.config.preferences.language.list
+    }
+  }
+
+  get filterList() { return this.config.widgets.filters.filter_list }
+
+  get themes() { return this.themesController.themes }
+
+  /** @returns {string | number} */
+  get actualDiagramID() { return this.renderersManager.actualDiagramID }
+
+  /** @returns {string} */
+  get actualRenderingMode() { return this.renderer.key }
+
+  /** @typedef {"label" | "full" | "prefixed"} EntityNameType */
+  /** @returns {EntityNameType} */
+  get actualEntityNameType() { return this.config.preferences.entity_name.selected }
+
 }

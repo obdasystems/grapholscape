@@ -75,14 +75,12 @@ Install `npm` and `Node.js` and run `npm install` before using `npm run`.
 
 Run `npm run <target>` in the console. The main targets are:
 
-- `build` : do both builds (unminified & minified) for both web and electron app (transpiled with babel)
-- `start` : serve demo on `http://localhost:8000/demo` and run electron app from builds
-- `watch` : serve demo on `http://localhost:8000/demo` and watch for changes for automatic unminified rebuilding (debug on demo)
-- `watch:build` : do only unminified untranspiled build and watch for changes
-- `app` : run electron app
+- `start` : builds for development (no transpiled), watch for changes and serve demo on `http://localhost:8000`
+- `build` : builds for production (minified and transpiled with babel)
+- `app` : build for development and run electron app
 - `app:dist` : create electron app packages for all platforms (win32, darwin, linux)
-- `dist` : do builds in production, distribute builds and package electron app for all platforms
-- `deploy` : copy `./build/grapholscape.min.js` to demo folder, publish whole `demo` folder to gh-pages and remove the build so demo in dev mode will keep on using `./build/grapholscape.js`
+- `dist` : builds for production and package electron app for all platforms
+- `deploy` : publish whole `demo` folder to gh-pages
 - `test`: run all test suites
 
 ### Release Instructions
