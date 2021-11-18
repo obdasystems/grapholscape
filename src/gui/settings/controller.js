@@ -16,7 +16,7 @@ export default function(settingsComponent, grapholscape) {
 
   grapholscape.onLanguageChange( language => updateOnChange('language', language))
   grapholscape.onEntityNameTypeChange( entityNameType => updateOnChange('entity_name', entityNameType) )
-  grapholscape.onThemeChange( themeKey => updateOnChange('theme', themeKey))
+  grapholscape.onThemeChange( (_ , themeKey) => updateOnChange('theme', themeKey))
 
   function updateOnChange(settingID, newValue) {
     let select = settingsComponent.shadowRoot.querySelector(`#${settingID}`)

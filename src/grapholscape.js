@@ -192,7 +192,7 @@ export default class Grapholscape {
 
   /**
    * Register a new callback to be called on a diagram change
-   * @param {function} callback 
+   * @param {diagramChangeCallback} callback 
    */
   onDiagramChange(callback) { this._callbacksDiagramChange.push(callback) }
 
@@ -200,7 +200,6 @@ export default class Grapholscape {
    * Display a diagram on the screen.
    * @param {Diagram | string | number} diagram The diagram retrieved from model, its name or it's id
    * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
-   * @param {function} callback optional callback to execute after a diagram change
    */
   showDiagram(diagram, shouldViewportFit = false) {
     if (typeof diagram == 'string' || typeof diagram == 'number') {
@@ -252,7 +251,7 @@ export default class Grapholscape {
 
   /**
    * Register a new callback to be called on a renderer change
-   * @param {function} callback 
+   * @param {rendererChangeCallback} callback 
    */
   onRendererChange(callback) {
     this._callbacksRendererChange.push(callback)
@@ -363,10 +362,10 @@ export default class Grapholscape {
 
   zoomIn(zoomValue = this.ZOOM_STEP_VALUE) { this.renderersManager.zoomIn(zoomValue) }
   zoomOut(zoomValue = this.ZOOM_STEP_VALUE) { this.renderersManager.zoomOut(zoomValue) }
-
+  fit() { this.renderersManager.fit()}
   /**
    * Register a callback to be called on a filter activation
-   * @param {filterOnCallback} callback 
+   * @param {filterCallback} callback 
    */
   onFilter(callback) { this._callbacksFilterOn.push(callback) }
 
@@ -380,14 +379,21 @@ export default class Grapholscape {
     let filterObj = this.isDefinedFilter(filterType) ?
       this.filterList[filterType] : filterType
 
+    if (this.isDefinedFilter(filterType)) {
+      this.filterList[filterType].active = true
+    }
+  
     this.renderersManager.filter(filterObj)
-    filterObj['key'] = Object.keys(this.filterList).find(f => f === filterObj)
+    filterObj['key'] = Object.keys(this.filterList).find(key => this.filterList[key] === filterObj)
     this._callbacksFilterOn.forEach(fn => fn(filterObj))
   }
 
   isDefinedFilter(filterType) {
     return this.filterList[filterType] ? true : false
   }
+  
+  /** @param {filterCallback} callback */
+  onUnfilter(callback) { this._callbacksFilterOff.push(callback) }
 
   /**
    * deactivate a predefined filter or execute a custom filter on a selector
@@ -398,6 +404,9 @@ export default class Grapholscape {
     /** @type {Filter} */
     let filterObj = this.isDefinedFilter(filterType) ?
       this.filterList[filterType] : filterType
+
+    if (this.isDefinedFilter(filterType)) 
+      this.filterList[filterType].active = false
 
     this.renderersManager.unfilter(filterObj)
 
@@ -437,7 +446,7 @@ export default class Grapholscape {
 
     this.renderersManager.setTheme(normalizedTheme) // set graph style based on new theme
     this.themesController.actualTheme = themeKey
-    this._callbacksThemeChange.forEach(fn => fn(normalizedTheme))
+    this._callbacksThemeChange.forEach(fn => fn(normalizedTheme, themeKey))
   }
 
   /**

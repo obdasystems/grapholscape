@@ -88,7 +88,7 @@ export default class GrapholscapeRenderer {
     })
   }
 
-  fitToDiagram() {
+  fit() {
     this.cy.fit()
   }
 

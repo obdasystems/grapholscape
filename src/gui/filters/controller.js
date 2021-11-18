@@ -1,9 +1,8 @@
-import Grapholscape from "../../grapholscape";
 /**
- * 
- * @param {Grapholscape} grapholscape 
+ * @param {import('./index').default} filterComponent
+ * @param {import('../../grapholscape').default} grapholscape 
  */
-export default function(filterComponent, grapholscape) {
+export default function (filterComponent, grapholscape) {
   filterComponent.filterList = grapholscape.filterList
   filterComponent.onFilterOn = (filterType) => {
     filterComponent.filterList[filterType].active = true
@@ -14,28 +13,28 @@ export default function(filterComponent, grapholscape) {
     onFilterToggle(filterType)
   }
 
-  grapholscape.onRendererChange( () => filterComponent.requestUpdate() )
-
-  grapholscape.onBackgroundClick( () => filterComponent.blur())
+  grapholscape.onFilter(_ => filterComponent.updateTogglesState())
+  grapholscape.onUnfilter(_ => filterComponent.updateTogglesState())
+  grapholscape.onRendererChange(() => filterComponent.requestUpdate())
 
   function onFilterToggle(type) {
     if (type == 'attributes' && !grapholscape.renderer.disabledFilters.includes('value_domain')) {
       filterComponent.filterList.value_domain.disabled = filterComponent.filterList.attributes.active
     }
-  
+
     // if 'all' is toggled, it affect all other filters
     if (type == 'all') {
       Object.keys(filterComponent.filterList).map(key => {
-        if ( key != 'all' && !filterComponent.filterList[key].disbaled) {
+        if (key != 'all' && !filterComponent.filterList[key].disbaled) {
           filterComponent.filterList[key].active = filterComponent.filterList.all.active
-  
+
           /**
            * if the actual filter is value-domain it means it's not disabled (see previous if condition)
            * but when filter all is active, filter value-domain must be disabled, let's disable it
            */
           if (key == 'value_domain')
             filterComponent.filterList[key].disabled = true
-  
+
           executeFilter(key)
         }
       })
@@ -44,11 +43,11 @@ export default function(filterComponent, grapholscape) {
       // then make the 'all' toggle deactivated
       filterComponent.filterList.all.active = false
     }
-  
+
     executeFilter(type)
     filterComponent.updateTogglesState()
   }
-  
+
   function executeFilter(type) {
     if (filterComponent.filterList[type].active) {
       grapholscape.filter(type)

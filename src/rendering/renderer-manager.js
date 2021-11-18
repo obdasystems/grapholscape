@@ -68,7 +68,7 @@ export default class RendererManager {
   drawDiagram(diagram, shouldViewportFit) {
     //let diagramView = diagramModelToViewData(diagram)
     this.renderer.drawDiagram(diagram)
-    if (shouldViewportFit) this.renderer.fitToDiagram()
+    if (shouldViewportFit) this.renderer.fit()
     this.actualDiagramID = diagram.id
     diagram.hasEverBeenRendered = true
   }
@@ -109,6 +109,8 @@ export default class RendererManager {
   zoomOut(zoomValue) {
     this.renderer.zoomOut(zoomValue)
   }
+
+  fit() {this.renderer.fit()}
 
   /** @param {import("../grapholscape").Filter} filterObj*/
   filter(filterObj) {
