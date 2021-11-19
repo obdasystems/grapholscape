@@ -5,13 +5,13 @@ import { entityModelToViewData } from "../../util/model-obj-transformations";
  * @param {import('./ontology-explorer').default} ontologyExplorerComponent 
  * @param {import('../../grapholscape').default} grapholscape 
  */
-export default function(ontologyExplorerComponent, grapholscape) {
+export default function (ontologyExplorerComponent, grapholscape) {
   let languages = grapholscape.languages
   let entities = createEntitiesList(grapholscape.ontology.entities)
 
   ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
   ontologyExplorerComponent.predicates = entities
-  
+
   ontologyExplorerComponent.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID)
   ontologyExplorerComponent.search = e => {
     closeAllSubRows()
@@ -32,9 +32,9 @@ export default function(ontologyExplorerComponent, grapholscape) {
     }
   }
 
-  
 
-  grapholscape.onRendererChange( () => {
+
+  grapholscape.onRendererChange(() => {
     ontologyExplorerComponent.predicates = entities
     ontologyExplorerComponent.requestUpdate()
   })
@@ -45,8 +45,8 @@ export default function(ontologyExplorerComponent, grapholscape) {
    * @returns {Object[][]}
    */
   function createEntitiesList(entities) {
-    let result = Object.keys(entities).map( iri => {
-      return entities[iri].map( entity => {
+    let result = Object.keys(entities).map(iri => {
+      return entities[iri].map(entity => {
         let entityViewData = entityModelToViewData(entity, languages)
         entityViewData.diagram_name = grapholscape.ontology.getDiagram(entityViewData.diagram_id).name
 
@@ -54,7 +54,7 @@ export default function(ontologyExplorerComponent, grapholscape) {
       })
     })
 
-    return result.sort( (a,b) => a[0].displayed_name.localeCompare(b[0].displayed_name) )
+    return result.sort((a, b) => a[0].displayed_name.localeCompare(b[0].displayed_name))
   }
 
   /**
@@ -63,14 +63,13 @@ export default function(ontologyExplorerComponent, grapholscape) {
    * @returns {string[]} array of IRI strings
    */
   function search(searchValue) {
-    
-    return entities.filter( iriOccurrences => {
+
+    return entities.filter(iriOccurrences => {
       let entity = iriOccurrences[0]
       for (const word of searchValue.split(' ')) {
         if (word.length <= 2) return
         return matchInIRI(entity.iri, word) ||
-          matchInLabelV2(entity.label, word) ||
-          matchInLabelV3(entity.annotations?.label, word)
+          matchInLabel(entity.annotations?.label, word)
       }
       return false
     })
@@ -81,13 +80,9 @@ export default function(ontologyExplorerComponent, grapholscape) {
       return isMatch(iri.fullIri, searchValue) || isMatch(prefixed, searchValue)
     }
 
-    function matchInLabelV2(label, searchValue) {
-      return isMatch(label, searchValue)
-    }
-
-    function matchInLabelV3(labels, searchValue) {
+    function matchInLabel(labels, searchValue) {
       // search in labels defined in annotations (only for Graphol v3)
-      for (const language in labels ) {
+      for (const language in labels) {
         let found = labels[language].some(label => isMatch(label, searchValue))
         // if you return [found] directly you'll skip other languages if it is false!
         if (found) return true
