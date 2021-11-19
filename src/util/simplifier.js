@@ -4,10 +4,11 @@ import GrapholscapeRenderer from '../rendering/renderers/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
 
+/** @param {Ontology} ontology */
 export default function computeSimplifiedOntologies(ontology) {
   let aux_renderer = new GrapholscapeRenderer(null)
-  let lite_ontology = new Ontology(ontology.name, ontology.version)
-  let float_ontology = new Ontology(ontology.name, ontology.version)
+  let lite_ontology = new Ontology(ontology.name, ontology.version, ontology.namespaces)
+  let float_ontology = new Ontology(ontology.name, ontology.version, ontology.namespaces)
   let new_ontologies = {
     lite : lite_ontology,
     float : float_ontology,
