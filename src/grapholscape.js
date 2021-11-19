@@ -331,7 +331,7 @@ export default class Grapholscape {
         diagramID = this.ontology.getDiagram(diagram).id
     } catch (e) { console.error(`Diagram ${diagram} not defined`) }
 
-    this.ontology.entities[iri].forEach(entity => {
+    this.ontology.getEntityOccurrences(iri).forEach(entity => {
       let grapholEntity = cyToGrapholElem(entity)
       if (grapholEntity.data.diagram_id === diagramID) {
         this.selectElem(grapholEntity.data.id, diagramID)
