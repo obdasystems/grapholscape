@@ -277,6 +277,12 @@ export function getGraphStyle(theme) {
       style: {
         'background-color': theme.attribute,
         'border-color': theme.attribute_dark,
+      }
+    },
+
+    {
+      selector: '.attribute:selected',
+      style: {
         'text-background-color': theme.background,
         'text-background-opacity': 1,
       }
