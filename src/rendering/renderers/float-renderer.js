@@ -8,11 +8,49 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     this.layoutStopped = false
     this.dragAndPin = false
     this.useOriginalPositions = false
+
+    this.popperContainers = []
   }
 
+  setCySettings() {
+    this.cy.style.textureOnViewport = true
+
+    this.cy.autoungrabify(false)
+
+    this.cy.on('grab', (e) => {
+      e.target.data('old_pos', JSON.stringify(e.target.position()))
+    })
+
+    this.cy.on('free', (e) => {
+      let actual_pos = JSON.stringify(e.target.position())
+      if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
+        this.pinNode(e.target)
+      }
+
+      e.target.removeData('old_pos')
+    })
+  }
+
+  addPopperContainer() {
+    const popperContainer = document.createElement('div')
+    popperContainer.setAttribute('id', this.actual_diagram)
+    this.popperContainers[this.actual_diagram] = popperContainer
+  }
+
+  /** @param {import('../../model/diagram').default} diagram*/
   drawDiagram(diagram) {
-    this.clearPoppers()
     super.drawDiagram(diagram)
+   
+    this.setCySettings()
+    /**
+     * At each diagram change, cy instance changes and everything
+     * inside cy.container() is overwritten by cytoscape with 
+     * the cy instance own container, inside this container we add 
+     * the popper container related to the new diagram as the one
+     * related to the previous diagram has been deleted.
+     */
+    this.cy.container().appendChild(this.popperContainer)
+
     this.cy.nodes().addClass('float')
 
     if (this.useOriginalPositions) {
@@ -61,7 +99,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     node.lock()
     node.data("pinned", true)
 
-    let unlockButton = node.popper({
+    node.unlockButton = node.popper({
       content: () => {
         let dimension =  node.data('width') / 9 * this.cy.zoom()
         let div = document.createElement('div')
@@ -73,42 +111,44 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
         div.setAttribute('title', 'Unlock Node')
 
         div.innerHTML = `<mwc-icon>lock_open</mwc_icon>`
-        setStyle(dimension, div)
+        this.setPopperStyle(dimension, div)
 
         div.onclick = () => this.unpinNode(node)
-        this.cy.container().appendChild(div)
+        this.popperContainer.appendChild(div)
 
         return div
       },
     })
 
-    node.unlockButton = unlockButton
+    node.on('position', () => this.updatePopper(node))
+    this.cy.on('pan zoom resize', () => this.updatePopper(node))
+  }
 
-    let update = () => {
-      let dimension =  node.data('width') / 9 * this.cy.zoom()
-      setStyle(dimension, unlockButton.state.elements.popper)
-      unlockButton.update()
-    }
+  updatePopper(node) {
+    if (!node.unlockButton) return
 
-    node.on('position', update)
-    this.cy.on('pan zoom resize', update)
+    
+    let unlockButton = node.unlockButton
+    let dimension =  node.data('width') / 9 * this.cy.zoom()
+    this.setPopperStyle(dimension, unlockButton.state.elements.popper)
+    unlockButton.update()
+  }
 
-    function setStyle(dim, div) {
-      let icon = div.querySelector('mwc-icon')
-      if (dim > 2) {
-        if (dim < 8) {
-          icon.style.display = 'none'
-        } else {
-          icon.style.display = 'inline'
-          icon.style.fontSize = dim + 'px'
-        }
-        div.style.width = dim + 'px'
-        div.style.height = dim + 'px'
-        div.style.display = 'flex'
-      } else {
+  setPopperStyle(dim, popper) {
+    let icon = popper.querySelector('mwc-icon')
+    if (dim > 2) {
+      if (dim < 8) {
         icon.style.display = 'none'
-        div.style.display = 'none'
+      } else {
+        icon.style.display = 'inline'
+        icon.style.fontSize = dim + 'px'
       }
+      popper.style.width = dim + 'px'
+      popper.style.height = dim + 'px'
+      popper.style.display = 'flex'
+    } else {
+      icon.style.display = 'none'
+      popper.style.display = 'none'
     }
   }
 
@@ -117,7 +157,6 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   unmount() {
-    this.clearPoppers()
     super.unmount()
   }
 
@@ -221,27 +260,17 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
   get main_layout() { return this._main_layout }
 
-  /** @param {import('cytoscape').Core} */
-  set cy(cyInstance) {
-    super.cy = cyInstance
+  /** 
+   * Each diagram must have its own poppers in its own
+   * popper container, if it's the first time we draw
+   * a diagram we will create the popper container with
+   * addPopperContainer() 
+   * @returns {HTMLDivElement} 
+   */
+  get popperContainer() { 
+    if (!this.popperContainers[this.actual_diagram])
+      this.addPopperContainer()
 
-    this.cy.style.textureOnViewport = true
-
-    this.cy.autoungrabify(false)
-
-    this.cy.on('grab', (e) => {
-      e.target.data('old_pos', JSON.stringify(e.target.position()))
-    })
-
-    this.cy.on('free', (e) => {
-      let actual_pos = JSON.stringify(e.target.position())
-      if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
-        this.pinNode(e.target)
-      }
-
-      e.target.removeData('old_pos')
-    })
+    return this.popperContainers[this.actual_diagram]
   }
-
-  get cy() { return super.cy }
 }
