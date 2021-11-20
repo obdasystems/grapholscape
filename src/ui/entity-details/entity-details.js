@@ -2,6 +2,7 @@ import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import annotationsTemplate from '../common/annotations-template'
+import entityOccurrencesTemplate from './entityOccurrencesTemplate'
 //import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 export default class GscapeEntityDetails extends GscapeWidget {
@@ -124,7 +125,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
                 : html``
               })}
             </div>
-
+            
+            ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
             ${annotationsTemplate(this.entity)}
           `
         : html``

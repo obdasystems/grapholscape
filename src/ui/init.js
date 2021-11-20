@@ -1,7 +1,6 @@
-import { cyToGrapholElem, entityModelToViewData } from "../util/model-obj-transformations";
+import { cyToGrapholElem } from "../util/model-obj-transformations";
 import { diagramSelector } from "./diagram-selector";
 import { entityDetails } from "./entity-details";
-import { entityOccurrences } from "./entity-occurrences";
 import { filters } from "./filters";
 import { layoutSettings } from "./floaty-layout-settings";
 import { fullscreenButton } from "./fullscreen";
@@ -21,7 +20,6 @@ const widgetNames = {
   owl_translator: 'gscape-owl-visualizer',
   filters: 'gscape-filters',
   simplifications: 'gscape-render-selector',
-  occurrences_list: 'gscape-entity-occurrences'
 }
 
 /**
@@ -33,7 +31,6 @@ export default function (grapholscape) {
 
   const diagramSelectorComponent = diagramSelector(grapholscape)
   const entityDetailsComponent = entityDetails(grapholscape)
-  entityOccurrences.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID)
 
   const zoomToolsComponent = zoomTools(grapholscape)
   const ontologyInfoComponent = ontologyInfo(grapholscape.ontology)
@@ -49,41 +46,23 @@ export default function (grapholscape) {
   const layoutSettingsComponent = layoutSettings(grapholscape)
 
   // USING GRAPHOLSCAPE CALLBACKS
-  grapholscape.onEntitySelection(entity => {
-    let entityViewData = entityModelToViewData(entity, grapholscape.languages)
-
-    let entityOccurrencesViewData = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.fullIri).map(elem => {
-      let grapholElem = cyToGrapholElem(elem)
-      return {
-        id: grapholElem.data.id,
-        id_xml: grapholElem.data.id_xml,
-        diagram_id: grapholElem.data.diagram_id,
-        diagram_name: grapholscape.ontology.getDiagram(grapholElem.data.diagram_id).name
-      }
-    })
-
-    entityOccurrences.occurrences = entityOccurrencesViewData
-    entityOccurrences.show()
-  })
-
   grapholscape.onBackgroundClick(() => {
     blurAll(gui_container)
   })
   grapholscape.onNodeSelection(node => {
     let grapholNode = cyToGrapholElem(node)
-    if (!grapholNode.classes.includes('predicate')) hideEntityRelatedWidgets()
+    if (!grapholNode.classes.includes('predicate')) entityDetailsComponent.hide()
   })
 
   grapholscape.onEdgeSelection(edge => {
     let grapholEdge = cyToGrapholElem(edge)
-    if (!grapholEdge.classes.includes('predicate')) hideEntityRelatedWidgets()
+    if (!grapholEdge.classes.includes('predicate')) entityDetailsComponent.hide()
   })
 
   gui_container.appendChild(diagramSelectorComponent)
   gui_container.appendChild(ontologyExplorerComponent)
   gui_container.appendChild(entityDetailsComponent)
   gui_container.appendChild(zoomToolsComponent)
-  gui_container.appendChild(entityOccurrences)
   gui_container.appendChild(owlVisualizerComponent)
   gui_container.appendChild(fullscreenComponent)
   gui_container.appendChild(fitButtonComponent)
@@ -122,10 +101,5 @@ export default function (grapholscape) {
       if (!widgets[widget].enabled)
         gui_container.querySelector(widgetNames[widget]).disable()
     }
-  }
-
-  function hideEntityRelatedWidgets() {
-    entityDetailsComponent.hide()
-    entityOccurrences.hide()
   }
 }
