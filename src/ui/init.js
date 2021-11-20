@@ -1,5 +1,4 @@
-import Grapholscape from "../grapholscape";
-import GscapeButton from "./common/gscape-button";
+import { cyToGrapholElem, entityModelToViewData } from "../util/model-obj-transformations";
 import { diagramSelector } from "./diagram-selector";
 import { entityDetails } from "./entity-details";
 import { entityOccurrences } from "./entity-occurrences";
@@ -13,7 +12,8 @@ import { rendererSelector } from "./renderer-selector";
 import { settings } from "./settings";
 import bottomLeftContainer from "./util/bottom-left-container";
 import { zoomTools } from "./zoom-tools";
-import { cyToGrapholElem, diagramModelToViewData, entityModelToViewData, ontologyModelToViewData } from "../util/model-obj-transformations";
+import { fitButton } from "./fit-button";
+
 
 const widgetNames = {
   explorer: 'gscape-explorer',
@@ -23,37 +23,22 @@ const widgetNames = {
   simplifications: 'gscape-render-selector',
   occurrences_list: 'gscape-entity-occurrences'
 }
+
 /**
  * Initialize the UI
  * @param {Grapholscape} grapholscape 
  */
-export default function main(grapholscape) {
-  /**
-   * Create the various controller for each widget
-   * 
-   * usage example: diagramSelector.onDiagramChange = grapholscape.drawDiagram
-   */
+export default function (grapholscape) {
   let gui_container = document.createElement('div')
-  let diagramsViewData = grapholscape.ontology.diagrams.map(diagram => diagramModelToViewData(diagram))
 
-  diagramSelector.diagrams = diagramsViewData
-  diagramSelector.onDiagramChange = (diagram) => grapholscape.showDiagram(diagram)
-
-  entityDetails.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
+  const diagramSelectorComponent = diagramSelector(grapholscape)
+  const entityDetailsComponent = entityDetails(grapholscape)
   entityOccurrences.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID)
 
-  zoomTools.onZoomIn = () => grapholscape.zoomIn()
-  zoomTools.onZoomOut = () => grapholscape.zoomOut()
-
-  ontologyInfo.ontology = ontologyModelToViewData(grapholscape.ontology)
-
+  const zoomToolsComponent = zoomTools(grapholscape)
+  const ontologyInfoComponent = ontologyInfo(grapholscape.ontology)
   const fullscreenComponent = fullscreenButton(grapholscape.container)
-
-  const fitViewToGraphButton = new GscapeButton('filter_center_focus')
-  fitViewToGraphButton.style.bottom = '10px'
-  fitViewToGraphButton.style.right = '10px'
-  fitViewToGraphButton.onClick = () => grapholscape.fit()
-
+  const fitButtonComponent = fitButton(grapholscape)
   const ontologyExplorerComponent = ontologyExplorer(grapholscape)
   const owlVisualizerComponent = owlVisualizer(grapholscape)
   const filterComponent = filters(grapholscape)
@@ -64,11 +49,8 @@ export default function main(grapholscape) {
   const layoutSettingsComponent = layoutSettings(grapholscape)
 
   // USING GRAPHOLSCAPE CALLBACKS
-  grapholscape.onDiagramChange(newDiagram => diagramSelector.actual_diagram_id = newDiagram.id)
   grapholscape.onEntitySelection(entity => {
     let entityViewData = entityModelToViewData(entity, grapholscape.languages)
-    entityDetails.entity = entityViewData
-    entityDetails.show()
 
     let entityOccurrencesViewData = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.fullIri).map(elem => {
       let grapholElem = cyToGrapholElem(elem)
@@ -83,6 +65,7 @@ export default function main(grapholscape) {
     entityOccurrences.occurrences = entityOccurrencesViewData
     entityOccurrences.show()
   })
+
   grapholscape.onBackgroundClick(() => {
     blurAll(gui_container)
   })
@@ -96,19 +79,19 @@ export default function main(grapholscape) {
     if (!grapholEdge.classes.includes('predicate')) hideEntityRelatedWidgets()
   })
 
-  gui_container.appendChild(diagramSelector)
+  gui_container.appendChild(diagramSelectorComponent)
   gui_container.appendChild(ontologyExplorerComponent)
-  gui_container.appendChild(entityDetails)
-  gui_container.appendChild(zoomTools)
+  gui_container.appendChild(entityDetailsComponent)
+  gui_container.appendChild(zoomToolsComponent)
   gui_container.appendChild(entityOccurrences)
   gui_container.appendChild(owlVisualizerComponent)
   gui_container.appendChild(fullscreenComponent)
-  gui_container.appendChild(fitViewToGraphButton)
+  gui_container.appendChild(fitButtonComponent)
   gui_container.appendChild(layoutSettingsComponent)
 
   let bottomContainer = bottomLeftContainer()
   bottomContainer.appendChild(filterComponent)
-  bottomContainer.appendChild(ontologyInfo)
+  bottomContainer.appendChild(ontologyInfoComponent)
   bottomContainer.appendChild(settingsComponent)
   bottomContainer.appendChild(rendererSelectorComponent)
   gui_container.appendChild(bottomContainer)
@@ -135,14 +118,14 @@ export default function main(grapholscape) {
   }
 
   function disableWidgets(widgets) {
-    for ( let widget in widgets ) {
+    for (let widget in widgets) {
       if (!widgets[widget].enabled)
         gui_container.querySelector(widgetNames[widget]).disable()
     }
   }
-}
 
-function hideEntityRelatedWidgets() {
-  entityDetails.hide()
-  entityOccurrences.hide()
+  function hideEntityRelatedWidgets() {
+    entityDetailsComponent.hide()
+    entityOccurrences.hide()
+  }
 }

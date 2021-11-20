@@ -1,10 +1,7 @@
-import GscapeLayoutSettings from "./layout-settings"
-import Grapholscape from "../../grapholscape"
-
 /**
  * 
- * @param {GscapeLayoutSettings} layoutSettingsComponent 
- * @param {Grapholscape} grapholscape 
+ * @param {import('./layout-settings').default} layoutSettingsComponent 
+ * @param {import('../../grapholscape').default} grapholscape 
  */
 export default function(layoutSettingsComponent, grapholscape) {
   layoutSettingsComponent.hide()
