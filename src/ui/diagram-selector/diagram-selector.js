@@ -1,6 +1,7 @@
 import { html, css } from 'lit'
 import GscapeHeader from '../common/gscape-header'
 import GscapeWidget from '../common/gscape-widget'
+import { diagrams as diagramsIcon } from '../assets/icons'
 
 export default class GscapeDiagramSelector extends GscapeWidget {
   static get properties() {
@@ -48,14 +49,14 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     this.collapsible = true
     this.diagrams = diagrams
     this.actual_diagram_id = null
-    this.default_title = 'Select a Diagram'
     this._onDiagramChange = null
+    this.header = new GscapeHeader('Select a Diagram', diagramsIcon)
+    this.header.classList.add('drag-handler')
   }
 
   render () {
     return html`
-      <gscape-head title="${this.default_title}" left_icon="dns"
-        class="drag-handler"></gscape-head>
+      ${this.header}
 
       <div class="widget-body hide">
         ${this.diagrams

@@ -1,7 +1,7 @@
 import { html, css } from 'lit'
-import '@material/mwc-icon'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
+import { explore, arrow_right, arrow_down } from '../assets/icons'
 
 export default class GscapeExplorer extends GscapeWidget{
 
@@ -38,16 +38,16 @@ export default class GscapeExplorer extends GscapeWidget{
           display: flex;
           align-items: center;
           padding:4px 0;
+          cursor:pointer;
         }
 
         .row-label{
           padding-left:5px;
-          cursor:pointer;
           width:100%;
           white-space: nowrap;
         }
 
-        mwc-icon:hover{
+        .icon:hover{
           color: var(--theme-gscape-primary, ${colors.primary});
           cursor:pointer;
         }
@@ -124,12 +124,11 @@ export default class GscapeExplorer extends GscapeWidget{
     ]
   }
 
-  constructor(predicates) {
+  constructor(predicates = []) {
     super()
     this.draggable = true
     this.collapsible = true
-
-    this.onEntitySelect = (entityID, boh) => {}
+    this.predicates = predicates
     this.onNodeNavigation = (nodeID) => {}
   }
 
@@ -144,7 +143,7 @@ export default class GscapeExplorer extends GscapeWidget{
 
 
     return html`
-      <gscape-head title="Explorer" left_icon="explore" class="drag-handler">
+      <gscape-head title="Explorer" class="drag-handler">
         <input
           type="text"
           autocomplete="off"
@@ -163,11 +162,14 @@ export default class GscapeExplorer extends GscapeWidget{
               class="row highlight"
               type="${entityData.type}"
               displayed_name = "${entityData.displayed_name}"
-              iri = ""
+              iri = "${entityData.iri.fullIri}"
+              @click='${this.toggleSubRows}'
             >
-              <span><mwc-icon @click='${this.toggleSubRows}'>keyboard_arrow_right</mwc-icon></span>
+              <span class="icon">
+                ${entityData.areSubrowsOpen ? arrow_down : arrow_right}
+              </span>
               <span>${getTypeImg(entityData.type)}</span>
-              <div class="row-label" @click='${this.handleEntitySelection}'>${entityData.displayed_name}</div>
+              <div class="row-label" >${entityData.displayed_name}</div>
             </div>
 
             <div class="sub-rows-wrapper hide">
@@ -191,70 +193,18 @@ export default class GscapeExplorer extends GscapeWidget{
   }
 
   toggleSubRows(e) {
-    let row_wrapper = e.target.parentNode.parentNode.parentNode
-    row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('hide')
-    row_wrapper.querySelector('.sub-rows-wrapper').classList.toggle('open')
-    e.target.innerHTML = e.target.innerHTML == 'keyboard_arrow_right' ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
+    const iri = e.currentTarget.getAttribute('iri')
 
-    let row = row_wrapper.querySelector('.row')
-    row.classList.toggle('add-shadow')
-  }
-/*
-  search(e) {
-    if (e.keyCode == 27) {
-      e.target.blur()
-    }
+    e.currentTarget.parentNode
+      .querySelector('.sub-rows-wrapper')
+      .classList
+      .toggle('hide')
 
-    let value = e.target.value.toLowerCase()
+    const entity = this.predicates.find( entityOccurr => entityOccurr[0].iri.fullIri === iri)
+    entity[0].areSubrowsOpen = !entity[0].areSubrowsOpen
 
-    if (value === '')
-      this.collapseBody()
-    else
-      this.showBody()
-
-    var rows = this.shadowRoot.querySelectorAll('.row')
-
-    rows.forEach( row => {
-      value.split(' ').forEach(word => {
-        let key = row.getAttribute('displayed_name') + row.getAttribute('type')
-        let predicate = this.predicates[key]
-
-        let found = false
-
-        if (!predicate.labels) {
-          // Graphol v2 has only one label for each entity
-          if (predicate.label_v2.toLowerCase().indexOf(word) > -1 ||
-              row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
-            row.style.display = ''
-            found = true
-          }
-        } else {
-          // Graphol v3 has multiple labels for multiples languages
-          for ( let language in predicate.labels) {
-            for ( let label of predicate.labels[language]) {
-              if (label.toLowerCase().indexOf(word) > -1 || 
-                row.getAttribute('type').toLowerCase().indexOf(word) > -1) {
-                row.style.display = ''
-                found = true
-                break
-              }
-            }
-  
-            if (found) break
-          }
-        }
-        
-        if (!found) row.style.display = 'none'
-      })
-    })
-
-    e.target.focus()
-  }
-  */
-
-  handleEntitySelection(e) {
-    let entity_id = e.target.parentNode.getAttribute('id')
-    this.onEntitySelect(entity_id, true)
+    e.currentTarget.classList.toggle('add-shadow')
+    this.requestUpdate()
   }
 
   handleNodeSelection(e) {
@@ -267,6 +217,11 @@ export default class GscapeExplorer extends GscapeWidget{
   blur() {
     super.blur()
     this.shadowRoot.querySelector('input').blur()
+  }
+
+  firstUpdated() {
+    super.firstUpdated()
+    this.header.left_icon = explore
   }
 }
 

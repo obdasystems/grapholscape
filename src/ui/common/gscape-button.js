@@ -68,7 +68,7 @@ export default class GscapeButton extends GscapeWidget {
         @click="${this.clickHandler}"
         title="${this.icon}">
 
-        <mwc-icon>${this.icon}</mwc-icon>
+        <div class="icon">${this.icon}</div>
         ${this.label ? html`<span class="btn-label">${this.label}<span>` : ``}
       </div>
     `
@@ -114,7 +114,7 @@ export default class GscapeButton extends GscapeWidget {
   firstUpdated() {
     super.firstUpdated()
 
-    this.shadowRoot.querySelector('mwc-icon').onselectstart =  () => false
+    this.shadowRoot.querySelector('.icon').onselectstart =  () => false
   }
 }
 

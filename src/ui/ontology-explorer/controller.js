@@ -46,9 +46,14 @@ export default function (ontologyExplorerComponent, grapholscape) {
    */
   function createEntitiesList(entities) {
     let result = Object.keys(entities).map(iri => {
-      return entities[iri].map(entity => {
+      return entities[iri].map( (entity, i) => {
         let entityViewData = entityModelToViewData(entity, languages)
         entityViewData.diagram_name = grapholscape.ontology.getDiagram(entityViewData.diagram_id).name
+
+        // the first entity occurrence will have the state of subrows wrapper, open or closed
+        if (i === 0) {
+          entityViewData.areSubrowsOpen = false
+        }
 
         return entityViewData
       })
@@ -95,13 +100,19 @@ export default function (ontologyExplorerComponent, grapholscape) {
   }
 
   function closeAllSubRows() {
-    ontologyExplorerComponent.shadowRoot.querySelectorAll('.sub-rows-wrapper.open').forEach(subrow => {
-      let entityRow = subrow.parentElement
-      entityRow.querySelector('.row').classList.remove('add-shadow')
-      entityRow.querySelector('mwc-icon').innerHTML = 'keyboard_arrow_right'
-      subrow.classList.add('hide')
-      subrow.classList.remove('open')
+    ontologyExplorerComponent.predicates.forEach( entityOccurr => {
+      if (entityOccurr[0].areSubrowsOpen) {
+        entityOccurr[0].areSubrowsOpen = false
+        const entityRow = ontologyExplorerComponent.shadowRoot
+          .querySelector(`.row[iri = '${entityOccurr[0].iri.fullIri}']`)
+        
+        entityRow.classList.remove('add-shadow')
+        entityRow.parentNode
+          .querySelector('.sub-rows-wrapper')
+          .classList.add('hide')
+      }
     })
+    ontologyExplorerComponent.requestUpdate()
   }
 }
 

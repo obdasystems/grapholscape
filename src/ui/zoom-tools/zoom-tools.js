@@ -1,6 +1,7 @@
 import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget';
 import GscapeButton from '../common/gscape-button';
+import { minus, plus } from '../assets/icons';
 
 export default class GscapeZoomTools extends GscapeWidget {
 
@@ -35,8 +36,8 @@ export default class GscapeZoomTools extends GscapeWidget {
   constructor() {
     super()
 
-    this.btn_plus = new GscapeButton('add')
-    this.btn_minus = new GscapeButton('remove')
+    this.btn_plus = new GscapeButton(plus)
+    this.btn_minus = new GscapeButton(minus)
 
     this._onZoomIn = null
     this._onZoomOut = null

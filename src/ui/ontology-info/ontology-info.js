@@ -2,6 +2,7 @@ import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeButton from '../common/gscape-button'
 import annotationsTemplate from '../common/annotations-template'
+import { info_outline } from '../assets/icons'
 
 export default class GscapeOntologyInfo extends GscapeWidget {
 
@@ -62,7 +63,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
     this.collapsible = true
     this.ontology = ontology
 
-    this.btn = new GscapeButton('info_outline')
+    this.btn = new GscapeButton(info_outline)
     this.btn.onClick = this.toggleBody.bind(this)
   }
 

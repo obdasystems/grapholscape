@@ -3,6 +3,7 @@ import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import annotationsTemplate from '../common/annotations-template'
 import entityOccurrencesTemplate from './entityOccurrencesTemplate'
+import { info_filled } from '../assets/icons'
 //import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 export default class GscapeEntityDetails extends GscapeWidget {
@@ -90,11 +91,13 @@ export default class GscapeEntityDetails extends GscapeWidget {
     }
 
     this.onNodeNavigation = {}
+    this.header = new GscapeHeader('Entity Details', info_filled)
+    this.header.classList.add('drag-handler')
   }
 
   render() {
     return html`
-      <gscape-head title="Entity Details" left_icon="info" class="drag-handler"></gscape-head>
+      ${this.header}
       <div class="widget-body">
         ${this.entity?
           html`

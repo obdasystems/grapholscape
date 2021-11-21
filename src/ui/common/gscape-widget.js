@@ -156,6 +156,11 @@ export default class GscapeWidget extends LitElement {
         color: var(--theme-gscape-secondary-dark, ${colors.secondary_dark});
       }
 
+      .icon {
+        height:24px;
+        width:24px;
+      }
+
     `], colors]
   }
 

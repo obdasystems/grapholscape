@@ -1,10 +1,11 @@
 import { rendererModelToViewData } from "../../util/model-obj-transformations"
 import graphol_icon from "../assets/graphol-icon"
+import { bubbles, lite } from "../assets/icons"
 
 let icons = {
   'default': graphol_icon,
-  'lite': 'flash_on',
-  'float': 'bubble_chart'
+  'lite': lite,
+  'float': bubbles
 }
 
 /**

@@ -2,6 +2,7 @@ import { html, css } from 'lit'
 import GscapeButton from '../common/gscape-button'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeToggle from '../common/gscape-toggle'
+import { filter } from '../assets/icons'
 
 export default class GscapeFilters extends GscapeWidget {
 
@@ -60,7 +61,7 @@ export default class GscapeFilters extends GscapeWidget {
     this.collapsible = true
     this.filterList = filters
 
-    this.btn = new GscapeButton('filter_list')
+    this.btn = new GscapeButton(filter)
     this.btn.onClick = this.toggleBody.bind(this)
     this.btn.active = false
 

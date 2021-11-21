@@ -1,7 +1,6 @@
-import { html, css } from 'lit'
+import { html, css, svg } from 'lit'
 import GscapeWidget from './gscape-widget';
-import '@material/mwc-icon'
-import '@material/mwc-icon-button'
+import { triangle_down, triangle_up } from '../assets/icons';
 
 export default class GscapeHeader extends GscapeWidget {
   static get properties() {
@@ -14,13 +13,13 @@ export default class GscapeHeader extends GscapeWidget {
     }
   }
 
-  constructor(title = 'header') {
+  constructor(title = 'header', left_icon = '') {
     super()
     this.title = title
-    this.initial_icon = 'arrow_drop_down'
-    this.secondary_icon = 'arrow_drop_up'
+    this.initial_icon = triangle_down
+    this.secondary_icon = triangle_up
     this.icon = this.initial_icon
-    this.left_icon = ''
+    this.left_icon = left_icon
     this.onClick = () => {}
   }
 
@@ -57,27 +56,19 @@ export default class GscapeHeader extends GscapeWidget {
         justify-self: flex-start;
       }
 
+      .icon {
+        height:24px;
+        width:24px;
+      }
     `
   }
 
   render () {
     return html`
-    ${this.isCustomIcon(this.left_icon) ?
-      html`
-        <mwc-icon-button class="left-icon">
-          ${this.isCustomIcon(this.left_icon) ? html`${this.left_icon}` :''}
-        </mwc-icon-button>
-      ` : html`
-        <mwc-icon-button class="left-icon" icon="${this.left_icon}"></mwc-icon-button>
-      `}
-
-      <div class="head-title">
-        ${this.title}
-      </div>
+      <div class='icon'>${this.left_icon}</div>
+      <div class="head-title">${this.title}</div>
       <slot></slot>
-      <mwc-icon class="head-btn" @click="${this.iconClickHandler}">
-        ${this.icon}
-      </mwc-icon>
+      <div class="head-btn icon" @click="${this.iconClickHandler}">${this.icon}</div>
     `
   }
 
