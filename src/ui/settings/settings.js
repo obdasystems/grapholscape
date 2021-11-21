@@ -3,7 +3,7 @@ import GscapeWidget from '../common/gscape-widget'
 import GscapeButton from '../common/gscape-button'
 import GscapeToggle from '../common/gscape-toggle'
 import { grapholscape as logo} from '../assets/gscape-logo'
-import { settings as settingsIcon } from '../assets/icons'
+import { save, settings as settingsIcon } from '../assets/icons'
 
 export default class GscapeSettings extends GscapeWidget {
 
@@ -93,9 +93,9 @@ export default class GscapeSettings extends GscapeWidget {
     this.btn.onClick = this.toggleBody.bind(this)
     this.callbacks = {}
 
-    this.savePNGButton = new GscapeButton('save')
+    this.savePNGButton = new GscapeButton(save)
     this.savePNGButton.label = 'PNG'
-    this.saveSVGButton = new GscapeButton('save')
+    this.saveSVGButton = new GscapeButton(save)
     this.saveSVGButton.label = 'SVG'
   }
 

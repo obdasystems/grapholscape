@@ -1,4 +1,4 @@
-import '@material/mwc-icon'
+import { lock_open } from '../../ui/assets/icons'
 import GrapholscapeRenderer from './default-renderer'
 
 export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
@@ -110,7 +110,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
         div.style.cursor = 'pointer'
         div.setAttribute('title', 'Unlock Node')
 
-        div.innerHTML = `<mwc-icon>lock_open</mwc_icon>`
+        div.innerHTML = `<span class="icon">${lock_open}</span>`
         this.setPopperStyle(dimension, div)
 
         div.onclick = () => this.unpinNode(node)
@@ -135,17 +135,21 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   setPopperStyle(dim, popper) {
-    let icon = popper.querySelector('mwc-icon')
+    let icon = popper.querySelector('.icon > svg')
+    icon.style.display = 'inherit'
     if (dim > 2) {
-      if (dim < 8) {
-        icon.style.display = 'none'
-      } else {
-        icon.style.display = 'inline'
-        icon.style.fontSize = dim + 'px'
-      }
       popper.style.width = dim + 'px'
       popper.style.height = dim + 'px'
       popper.style.display = 'flex'
+      if (dim > 8) {
+        icon.setAttribute('width', dim+'px')
+        icon.setAttribute('height', dim+'px')
+      } else if (dim - 10 > 0 ) {
+        icon.setAttribute('width', (dim - 10)+'px')
+        icon.setAttribute('height', (dim - 10)+'px')
+      } else {
+        icon.style.display = 'none'
+      }
     } else {
       icon.style.display = 'none'
       popper.style.display = 'none'
