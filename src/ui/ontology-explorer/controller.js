@@ -35,8 +35,7 @@ export default function (ontologyExplorerComponent, grapholscape) {
 
 
   grapholscape.onRendererChange(() => {
-    ontologyExplorerComponent.predicates = entities
-    ontologyExplorerComponent.requestUpdate()
+    entities = ontologyExplorerComponent.predicates = createEntitiesList(grapholscape.ontology.entities)
   })
 
   /**
