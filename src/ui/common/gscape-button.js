@@ -25,7 +25,7 @@ export default class GscapeButton extends GscapeWidget {
 
         .btn {
           padding:5px;
-          line-height:0;
+          line-height: 25px;
           cursor: pointer;
           display: flex;
           align-items: center;

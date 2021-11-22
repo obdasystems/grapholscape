@@ -1,5 +1,4 @@
 import { html, css } from 'lit'
-import '@material/mwc-icon-button'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 

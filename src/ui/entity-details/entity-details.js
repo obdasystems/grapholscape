@@ -92,7 +92,6 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
     this.onNodeNavigation = {}
     this.header = new GscapeHeader('Entity Details', info_filled)
-    this.header.classList.add('drag-handler')
   }
 
   render() {
@@ -204,6 +203,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
   firstUpdated() {
     super.firstUpdated()
     this.header.invertIcons()
+    this.makeDraggableHeadTitle()
   }
 
   // override

@@ -4,8 +4,8 @@ import * as theme from '../../style/themes'
 export default class GscapeWidget extends LitElement {
   static get properties() {
     return {
-      isEnabled : {type : Boolean},
-      hiddenDefault : { type : Boolean }
+      isEnabled: { type: Boolean },
+      hiddenDefault: { type: Boolean }
     }
   }
 
@@ -172,10 +172,10 @@ export default class GscapeWidget extends LitElement {
     this._hiddenDefault = false
 
     this.onselectstart = () => { false }
-    this.onToggleBody = () => {}
+    this.onToggleBody = () => { }
   }
 
-  render () {
+  render() {
     return html``
   }
 
@@ -203,7 +203,7 @@ export default class GscapeWidget extends LitElement {
   }
 
   showBody() {
-    if(this.collapsible) {
+    if (this.collapsible) {
       if (this.header && this.isCollapsed)
         this.header.toggleIcon()
 
@@ -220,23 +220,34 @@ export default class GscapeWidget extends LitElement {
       this.addEventListener('toggle-widget-body', this.toggleBody)
     }
 
-    if (this.draggable)
-      this.makeDraggable()
+    if (this.draggable) {
+      let dragHandler = this.shadowRoot.querySelector('.drag-handler')
+      if (dragHandler) this.makeDraggable(dragHandler)
+    }
   }
 
-  makeDraggable() {
+  makeDraggableHeadTitle() {
+    if (this.draggable) {
+      setTimeout( () => {
+        const headTitleDiv = this.header.shadowRoot.querySelector('.head-title')
+        headTitleDiv.classList.add('drag_handler')
+        this.makeDraggable(headTitleDiv)
+      })     
+    }
+  }
+
+  makeDraggable(drag_handler) {
     let pos1 = 0
     let pos2 = 0
     let pos3 = 0
     let pos4 = 0
 
     const elmnt = this
-    let drag_handler = this.shadowRoot.querySelector('.drag-handler')
 
     if (drag_handler)
       drag_handler.onmousedown = dragMouseDown
     else
-      console.log(`No .drag-handler elem for a ${this.constructor.name} draggable instance`)
+      console.warn(`No .drag-handler elem for a ${this.constructor.name} draggable instance`)
 
     function dragMouseDown(e) {
       e = e || window.event
@@ -291,7 +302,7 @@ export default class GscapeWidget extends LitElement {
   }
 
   isCustomIcon(icon) {
-    return typeof(icon) !== 'string'
+    return typeof (icon) !== 'string'
   }
 
   get isVisible() {

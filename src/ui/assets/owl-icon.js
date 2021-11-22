@@ -1,5 +1,5 @@
 /**
- * Author: Austin Andrews
+ * Author: Simran
  * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
  */
 

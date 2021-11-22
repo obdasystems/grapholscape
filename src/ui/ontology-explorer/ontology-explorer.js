@@ -143,7 +143,7 @@ export default class GscapeExplorer extends GscapeWidget{
 
 
     return html`
-      <gscape-head title="Explorer" class="drag-handler">
+      <gscape-head title="Explorer">
         <input
           type="text"
           autocomplete="off"
@@ -222,6 +222,7 @@ export default class GscapeExplorer extends GscapeWidget{
   firstUpdated() {
     super.firstUpdated()
     this.header.left_icon = explore
+    this.makeDraggableHeadTitle()
   }
 }
 

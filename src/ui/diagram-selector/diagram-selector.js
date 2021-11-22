@@ -51,7 +51,6 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     this.actual_diagram_id = null
     this._onDiagramChange = null
     this.header = new GscapeHeader('Select a Diagram', diagramsIcon)
-    this.header.classList.add('drag-handler')
   }
 
   render () {
@@ -92,6 +91,12 @@ export default class GscapeDiagramSelector extends GscapeWidget {
     this.toggleBody()
     this.actual_diagram_id = diagram_id
     this._onDiagramChange(diagram_id)
+  }
+
+  firstUpdated() {
+    super.firstUpdated()
+
+    this.makeDraggableHeadTitle()
   }
 
   set onDiagramChange(f) {
