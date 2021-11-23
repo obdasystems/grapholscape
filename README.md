@@ -1,4 +1,4 @@
-<p style="margin:auto; max-width:200px" align="center">
+<p style="margin:auto; max-width:250px" align="center">
   <img src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
 </p>
 

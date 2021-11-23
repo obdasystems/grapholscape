@@ -13,7 +13,7 @@
     "clean": "rimraf ./build",
     "app": "rollup -c && electron ./app",
     "app:dist": "electron-packager ./app --out=./dists --icon=./app/assets/icon --overwrite",
-    "deploy": "cross-env-shell gh-pages -d doc/output/grapholscape/ -m \"$npm_package_version\"",
+    "deploy": "cross-env-shell gh-pages -d doc/output/grapholscape/$npm_package_version -m \"$npm_package_version\"",
     "doc": "jsdoc -c doc/jsdoc.config.json --tutorials doc/static/tutorials",
     "test": "jest",
     "preversion": "run-s test",
