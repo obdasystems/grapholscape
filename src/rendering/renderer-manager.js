@@ -1,18 +1,34 @@
-/**
- * @typedef {import('./renderers').GrapholscapeRenderer} GrapholscapeRenderer
- * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue
- */
-import Diagram from "../model/diagram"
+/** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
+/** 
+ * @typedef {object} ViewportState 
+ * @property {number} ViewportState.x
+ * @property {number} ViewportState.y
+ * @property {number} ViewportState.zoom
+*/
 
-export default class RendererManager {
+/**
+ * Class that manages and control a set of renderers, it's used
+ * to handle events fired by renderers, to mount/unmount
+ * the required renderer and change the viewport state.
+ */
+class RendererManager {
   constructor() {
 
     this.renderers = {}
-    /** @type {GrapholscapeRenderer} */
+    /** @type {import('./renderers/index').GrapholscapeRenderer} */
     this.renderer = null
-    /** @type {HTMLElement} */
+
+    /** 
+     * The main Grapholscape container, the one passed at initialisation
+     * @type {HTMLElement}
+     */
     this.container = null
-    /** @type {HTMLDivElement} */
+    /**
+     * A div container to use for rendering the graph,
+     * this one will be used by renderers.
+     * 
+     * @type {HTMLDivElement} 
+     */
     this.graphContainer = document.createElement('div')
 
     this.graphContainer.style.width = '100%'
@@ -23,6 +39,7 @@ export default class RendererManager {
     this._onNodeSelection = () => { }
     this._onBackgroundClick = () => { }
 
+    /** @type {number | string} */
     this.actualDiagramID = undefined
   }
 
@@ -36,8 +53,6 @@ export default class RendererManager {
         this.renderers[key].unmount()
     }
 
-    let viewportState = this.actualViewportState
-
     this.renderer = this.renderers[rendererKey]
     this.renderer.setContainer(this.graphContainer)
   }
@@ -46,7 +61,7 @@ export default class RendererManager {
    * Register a new renderer in the renderers list
    * @param {string} key id of the renderer
    * @param {string} label name of the renderer
-   * @param {GrapholscapeRenderer} renderer an object of the Class `GrapholscapeRenderer`
+   * @param {import('./renderers/index').GrapholscapeRenderer} renderer an object of the Class `GrapholscapeRenderer`
    */
   addRenderer(key, label, renderer) {
     if (this.renderers[key]) console.warn(`Renderer ${key} overwritten`)
@@ -62,7 +77,7 @@ export default class RendererManager {
 
   /**
    * 
-   * @param {Diagram} diagram The diagram to display
+   * @param {import('../model/index').Diagram} diagram The diagram to display
    * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    */
   drawDiagram(diagram, shouldViewportFit) {
@@ -73,7 +88,7 @@ export default class RendererManager {
     diagram.hasEverBeenRendered = true
   }
 
-  /** @param {import('./renderers/default-renderer').ViewportState} state*/
+  /** @param {ViewportState} state*/
   setViewport(state) {
     if (state) this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
   }
@@ -122,7 +137,7 @@ export default class RendererManager {
     this.renderer.unfilter(filterObj)
   }
 
-  /** @param {import("../style/themes-controller").Theme} theme */
+  /** @param {import("../style/themes").Theme} theme */
   setTheme(theme) {
     // Apply theme to graph
     for (let name in this.renderers) {
@@ -170,12 +185,10 @@ export default class RendererManager {
     })
   }
 
-  /** @returns {import('./renderers/default-renderer').ViewportState} */
+  /** @type {ViewportState} */
   get actualViewportState() { return this.renderer?.actualViewportState }
 
-  /** @callback backgroundClickCallback */
-
-  /** @param {backgroundClickCallback} callback */
+  /** @param {import('../grapholscape').backgroundClickCallback} callback */
   onBackgroundClick(callback) {
     this._onBackgroundClick = callback
     Object.keys(this.renderers).forEach(k => {
@@ -183,25 +196,15 @@ export default class RendererManager {
     })
   }
 
-  /**
-   * @callback edgeSelectionCallbak
-   * @param {CollectionReturnValue} selectedEdge
-   */
-
-  /** @param {edgeSelectionCallbak} callback */
+  /** @param {import('../grapholscape').edgeSelectionCallbak} callback */
   onEdgeSelection(callback) {
     this._onEdgeSelection = callback
     Object.keys(this.renderers).forEach(k => {
       this.renderers[k].onEdgeSelection = this._onEdgeSelection
     })
   }
-
-  /**
-   * @callback nodeSelectionCallbak
-   * @param {CollectionReturnValue} selectedNode
-   */ 
    
-  /** @param {nodeSelectionCallbak} callback */
+  /** @param {import('../grapholscape').nodeSelectionCallbak} callback */
   onNodeSelection(callback) {
     this._onNodeSelection = callback
     Object.keys(this.renderers).forEach(k => {
@@ -209,3 +212,5 @@ export default class RendererManager {
     })
   }
 }
+
+export default RendererManager

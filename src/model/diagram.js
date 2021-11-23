@@ -4,7 +4,7 @@ import cytoscape from 'cytoscape'
  * @property {string | number} id - diagram's identifier
  * @property {cytoscape} cy - cytoscape headless instance for managing elements
  */
-export default class Diagram {
+class Diagram {
   /**
    * @param {string} name
    * @param {string | number} id
@@ -65,3 +65,4 @@ export default class Diagram {
   }
 }
 
+export default Diagram

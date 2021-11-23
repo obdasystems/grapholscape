@@ -1,7 +1,4 @@
-/** 
- * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue
- * @typedef {import('../model/ontology').GrapholElem} GrapholElem
-*/
+/** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
 // functions to transform Objects from Model to plain JSON for the views
 
 /**
@@ -74,7 +71,7 @@ export function rendererModelToViewData(rendererModelData) {
 /**
  * 
  * @param {CollectionReturnValue} cytoscapeObj 
- * @returns {GrapholElem}
+ * @returns {import('../model/ontology').GrapholElem}
  */
 export function cyToGrapholElem(cytoscapeObj) {
   return cytoscapeObj?.json()

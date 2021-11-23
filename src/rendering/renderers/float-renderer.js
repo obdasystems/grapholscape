@@ -37,7 +37,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     this.popperContainers[this.actual_diagram] = popperContainer
   }
 
-  /** @param {import('../../model/diagram').default} diagram*/
+  /** @param {import('../../model/index').Diagram} diagram*/
   drawDiagram(diagram) {
     super.drawDiagram(diagram)
    

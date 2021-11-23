@@ -50,12 +50,9 @@ const getBabelOptions = () => ({
     [
       '@babel/preset-env',
       {
-        targets: [
-          "last 5 versions",
-          "IE >= 11"
-        ],
+        targets: "> 0.25%, not dead",
         useBuiltIns: 'usage',
-        corejs: 3
+        corejs: "3"
       }
     ]
   ]
@@ -75,7 +72,7 @@ const configs = [
     input,
     output: [
       {
-        file: 'demo/js/grapholscape.js',
+        file: 'doc/static/demo/js/grapholscape.js',
         format: 'iife',
         name,
         sourcemap: 'inline'
@@ -98,13 +95,18 @@ const configs = [
     input,
     output: [
       {
-        file: 'build/grapholscape.min.js',
+        file: 'dist/grapholscape.min.js',
         format: 'iife',
         name,
         sourcemap: false
       },
       {
-        file: 'demo/js/grapholscape.js',
+        file: 'dist/grapholscape.esm.min.js',
+        format: 'es',
+        sourcemap: false
+      },
+      {
+        file: 'doc/static/demo/js/grapholscape.js',
         format: 'iife',
         name,
         sourcemap: false
@@ -114,7 +116,7 @@ const configs = [
         format: 'iife',
         name,
         sourcemap: false
-      }
+      },
     ],
     plugins: [
       json(getJsonOptions()),
@@ -130,7 +132,7 @@ const configs = [
   {
     input,
     output: {
-      file: 'build/grapholscape.esm.js',
+      file: 'dist/grapholscape.esm.js',
       format: 'es',
     },
     plugins: [

@@ -5,7 +5,7 @@ import * as ParserUtil from './parser_util'
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
 import { grapholNodes, nodeTypes, nodeShapes } from '../model'
-import { constructorLabels, types } from '../model/node-enums'
+import { constructorLabels, Type } from '../model/node-enums'
 
 export default class GrapholParser {
   constructor(xmlString) {
@@ -90,11 +90,11 @@ export default class GrapholParser {
             node.data.displayed_name = displayedName
           }
         } else { // not an entity, take label from <label> tag or use those for constructor nodes
-          if (node.data.type === types.FACET) {
+          if (node.data.type === Type.FACET) {
             node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.xmlDocument, this.ontology)
           } 
 
-          else if (node.data.type === types.VALUE_DOMAIN) {
+          else if (node.data.type === Type.VALUE_DOMAIN) {
             node.data.displayed_name = node.data.iri.prefixed
           }
           
@@ -104,7 +104,7 @@ export default class GrapholParser {
           }
 
           else { // a constructor node
-            let typeKey = Object.keys(types).find(k => types[k] === node.data.type)
+            let typeKey = Object.keys(Type).find(k => Type[k] === node.data.type)
             if (constructorLabels[typeKey])
               node.data.displayed_name = constructorLabels[typeKey]
           }

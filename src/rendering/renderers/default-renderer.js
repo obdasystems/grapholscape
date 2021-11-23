@@ -1,10 +1,3 @@
-/** 
- * @typedef {object} ViewportState 
- * @property {number} ViewportState.x
- * @property {number} ViewportState.y
- * @property {zoom} ViewportState.zoom
-*/
-
 import cytoscape from 'cytoscape'
 import { getGraphStyle }  from '../../style/graph-style'
 
@@ -182,7 +175,7 @@ export default class GrapholscapeRenderer {
     this.cy?.style(getGraphStyle(theme))
   }
 
-  /** @returns {ViewportState} */
+  /** @type {import('../renderer-manager').ViewportState} */
   get actualViewportState() {
     return {
       x : this.cy.pan().x,

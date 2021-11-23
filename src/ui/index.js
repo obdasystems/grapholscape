@@ -1,10 +1,10 @@
+/** @module UI */
 export { default as GscapeButton } from "./common/gscape-button"
 export { default as GscapeToggle } from "./common/gscape-toggle"
 export { default as GscapeDialog } from "./common/dialog"
 export { default as GscapeWidget } from "./common/gscape-widget"
 export * from "./diagram-selector"
 export * from "./entity-details"
-//export { entityOccurrences } from "./entity-occurrences"
 export * from "./filters";
 export * from "./floaty-layout-settings"
 export * from "./fullscreen"

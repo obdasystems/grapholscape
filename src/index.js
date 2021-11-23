@@ -1,9 +1,6 @@
-/** @typedef {import('./grapholscape').default} Grapholscape */
-
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import Grapholscape from './grapholscape'
 import initGrapholscape from './init'
 import * as themes from './style/themes'
 
@@ -24,7 +21,9 @@ export { themes }
  * or a String representing the .graphol file to be displayed
  * @param {object} container a DOM element in which the ontology will be rendered in
  * @param {object} config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
- * @returns {Promise<Grapholscape>} a promise that will be fulfilled with a Grapholscape object
+ * @returns {Promise<import('./grapholscape').default>} a promise that will be fulfilled with a Grapholscape object
+ * @tutorial Settings
+ * @tutorial Themes
  */
 export function bareGrapholscape(file, container, config = null) {
   if (!file || !container) {

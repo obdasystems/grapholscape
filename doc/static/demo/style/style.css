@@ -39,9 +39,10 @@
 */
 
 #grapholscape_container {
-  height: 100%;
+  height: calc(100% - 75px);
   position: relative;
   display: none;
+  margin-top: 75px;
 }
 
 body, html {
@@ -52,9 +53,9 @@ body, html {
 }
 
 #home {
-  height: 100%;
+  height: calc(100% - 75px);
   width: 100%;
-  position: absolute;
+  margin-top: 75px;
 }
 
 .panel {
@@ -137,7 +138,8 @@ body, html {
   line-height: 38px;
   margin: 30px auto;
   font-size: 24pt;
-  transition: all 0.2s
+  transition: all 0.2s;
+  box-sizing: content-box;
 }
 
 #add-button:hover {

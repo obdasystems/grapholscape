@@ -4,7 +4,7 @@
  * @property {string} value - namespace lexical form
  * @property {boolean} standard - bool saying if the namespace is standard or user defined
  */
-export default class Namespace {
+class Namespace {
   /**
    * @param {string[]} prefixes - array of prefixes
    * @param {string} value - namespace lexical form
@@ -32,3 +32,5 @@ export default class Namespace {
     return this.prefixes.includes(prefix)
   }
 }
+
+export default Namespace

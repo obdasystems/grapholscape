@@ -1,6 +1,6 @@
 /** @typedef {import('../model').default} Ontology */
 
-import { types } from '../model/node-enums'
+import { Type } from '../model/node-enums'
 
 export let warnings = new Set()
 
@@ -87,7 +87,7 @@ export function getIri(element, ontology) {
  */
 export function getFacetDisplayedName(element, ontology) {
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
-  if (element.getAttribute('type') === types.FACET) {
+  if (element.getAttribute('type') === Type.FACET) {
     let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
     constraining_facet = constraining_facet.prefix + ':' + constraining_facet.remainingChars
 

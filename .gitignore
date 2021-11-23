@@ -6,4 +6,5 @@ coverage/**
 .*/
 .size-snapshot.json
 app/graphol/grapholscape.js
-demo/js/grapholscape.js
+doc/static/demo/js/grapholscape.js
+doc/output/**

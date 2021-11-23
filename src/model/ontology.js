@@ -1,19 +1,23 @@
-/**
- * @typedef {import('./node-enums').ElemShape} ElemShape
- * @typedef {import('./node-enums').ElemType} ElemType
- * 
+/** 
  * @typedef {object} Iri
  * @property {string} Iri.fullIri
  * @property {string} Iri.remainingChars the string after the namespace or prefix
  * @property {string} Iri.prefix
  * @property {string} Iri.prefixed
  * @property {string} Iri.namespace
- * 
+ */ 
+ 
+/** 
  * @typedef {object} Position
  * @property {number} Position.x
  * @property {number} Position.y
- * 
- * @typedef {object} GrapholElem
+ */
+
+/**
+ * @typedef {Object.<string, string[]>} Annotation
+ */
+ 
+/** @typedef {object} GrapholElem
  * @property {Position} position
  * @property {string} classes
  * @property {"nodes"|"edges"} group
@@ -24,26 +28,27 @@
  * @property {boolean} selectable
  * @property {boolean} selected
  * @property {ElemData} data
- * 
+ */ 
+ 
+/** 
  * @typedef {object} ElemData the data related to the diagram elements: nodes or edges
  * @property {number} diagram_id the id owning this element
  * @property {string} displayed_name the name displayed in the diagram
  * @property {string} fillColor color of the node body
  * @property {string} fontSize the size of the displayed name
- * @property {number} height 
+ * @property {number} height
  * @property {number} width
- * @property {Object.<string, string>} label a map <language, value>
- * @property {Object.<string, string[]>} description a map <language, value>
+ * @property {Object<string, Annotation>} annotations map <annotationKind, Annotation> where annotationKind can be `label`, `comment` etc..
  * @property {Iri} iri
  * @property {string} id unique id in the ontology [id]+_+[diagram_id]
  * @property {string} id_xml the parsed id (not unique in the ontology)
- * @property {ElemType} identity
- * @property {ElemType} type the type of node
+ * @property {import('./node-enums').Types} identity
+ * @property {Types} type the type of node
  * @property {boolean?} labelXcentered whether to center node's label on node's body along X axis
  * @property {boolean?} labelYcentered whether to center node's label on node's body along X axis
  * @property {number} labelXpos offset position of the node's label in case it's not centered along X
  * @property {number} labelYpos offset position of the node's label in case it's not centered along Y
- * @property {ElemShape} shape the shape of the node
+ * @property {import('./node-enums').Shape} shape the shape of the node
  * @property {string[]?} inputs [property-assertion] list of id_xml
  * //edge
  * @property {string?} source [edge] the id of the source node
@@ -61,37 +66,44 @@
  * @property {boolean?} reflexive
  * @property {boolean?} irreflexive
  * @property {boolean?} transitive
- * 
- * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue
+ */
+ 
+/** 
+ * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue 
  */
 
+import Diagram from './diagram'
+import Namespace from './namespace'
 /**
  * # Ontology
  * Class used as the Model of the whole app.
-  * @property {string} name
-  * @property {string} version
-  * @property {Namespace[]} namespaces
-  * @property {Diagram[]} diagrams
  */
-import Diagram from './diagram'
-import Namespace from './namespace'
-
-export default class Ontology {
+class Ontology {
   /**
-   *
    * @param {string} name
    * @param {string} version
    * @param {Namespace[]} namespaces
    * @param {Diagram[]} diagrams
    */
   constructor(name, version, namespaces = [], diagrams = []) {
+    /** @type {string} */
     this.name = name
+    /** @type {string} */
     this.version = version
+    /** @type {Namespace[]} */
     this.namespaces = namespaces
+    /** @type {Diagram[]} */
     this.diagrams = diagrams
 
+    /** @type {Object.<string, Annotation>} */
     this.annotations = []
-    this.languages = { list: [], default: '' }
+    
+    this.languages = { 
+      /** @type {import('../grapholscape').Language[]}*/
+      list: [], 
+      default: ''
+    }
+    /** @type {Annotation} */
     this.description = []
   }
 
@@ -205,7 +217,7 @@ export default class Ontology {
 
   /**
    * Get the entities in the ontology
-   * @returns {Object.<string, CollectionReturnValue[]} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
+   * @returns {Object.<string, CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
    */
   getEntities() {
     let entities = {}
@@ -260,3 +272,5 @@ export default class Ontology {
 
   get entities() { return this.isEntitiesEmpty ? this.getEntities() : this._entities}
 }
+
+export default Ontology

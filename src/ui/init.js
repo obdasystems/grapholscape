@@ -24,7 +24,7 @@ const widgetNames = {
 
 /**
  * Initialize the UI
- * @param {Grapholscape} grapholscape 
+ * @param {import('../grapholscape').default} grapholscape 
  */
 export default function (grapholscape) {
   let gui_container = document.createElement('div')

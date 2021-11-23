@@ -1,10 +1,8 @@
+/** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
+/** @typedef {import('./rendering/renderers/index').GrapholscapeRenderer} Renderer */
+/** @typedef {'label' | 'full' | 'prefixed'} EntityNameType */
+
 /** 
- * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue 
- * @typedef {import('./model/diagram').default} Diagram
- * @typedef {import('./rendering/renderers').GrapholscapeRenderer} Renderer
- * @typedef {import('./style/themes-controller').Theme} Theme
- * @typedef {'label' | 'full' | 'prefixed'} EntityNameType 
- * 
  * @typedef {object} Filter
  * @property {string} Filter.selector Cytoscape selector identifying the elements to filter out
  * [cytoscape selectors](https://js.cytoscape.org/#selectors)
@@ -12,39 +10,61 @@
  * @property {boolean} Filter.disabled
  * @property {string} Filter.class the class to add to filtered elems to easily retrieve them later on
  * @property {string} Filter.key
- * 
+ */
+
+/** 
  * @typedef {Object} Language
  * @property {string} label - string representation to be visualized
  * @property {string} value - identifier of the language
- * 
+ */
+
+/** 
  * @typedef {Object} Languages
  * @property {string} selected - key value in config.json of the selected language
  * @property {string} default - key value of the default language defined in the ontology
  * @property {Language[]} list - list of languages supported by the ontology
- * 
+ */
+
+/**
  * @callback edgeSelectionCallbak
  * @param {CollectionReturnValue} selectedEdge
- * 
+ */
+
+/**
  * @callback nodeSelectionCallbak
  * @param {CollectionReturnValue} selectedNode
- * 
+ */
+
+/**
  * @callback entitySelectionCallbak
  * @param {CollectionReturnValue} selectedEntity
- * 
+ */
+
+/**
  * @callback backgroundClickCallback
- * 
+ */
+
+/**
  * @callback diagramChangeCallback
- * @param {Diagram} newDiagram
- * 
+ * @param {import('./model/index').Diagram} newDiagram
+ */
+
+/**
  * @callback rendererChangeCallback
  * @param {string} newRenderer
- * 
+ */
+
+/**
  * @callback filterCallback
  * @param {Filter} filterObj
- * 
+ */
+
+/**
  * @callback themeChangeCallback
- * @param {Theme} newTheme
- * 
+ * @param {import('./style/themes').Theme} newTheme
+ */
+ 
+/**
  * @callback entityNameTypeChangeCallback
  * @param {EntityNameType} newEntityNameType
  */
@@ -57,8 +77,7 @@ import ThemesController from "./style/themes-controller";
 import { cyToGrapholElem } from "./util/model-obj-transformations";
 import computeSimplifiedOntologies from "./util/simplifier"
 
-
-export default class Grapholscape {
+class Grapholscape {
   /**
    * Create a core object of Grapholscape
    * @param {!Ontology} ontology An Ontology object
@@ -350,7 +369,7 @@ export default class Grapholscape {
 
   /**
    * Set viewport state.
-   * @param {import('./rendering/renderers/default-renderer').ViewportState} state - 
+   * @param {import('./rendering/renderer-manager').ViewportState} state - 
    * object representation of **rendered position** in 
    * [cytoscape format](https://js.cytoscape.org/#notation/position).
    *
@@ -419,6 +438,7 @@ export default class Grapholscape {
    * Apply an existing theme or pass a new custom theme that will be added and then applied
    * Please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
    * @param {string | Theme } themeKey a predefined theme key or a custom Theme object
+   * @tutorial Themes
    */
   applyTheme(themeKey) {
     if (themeKey === this.themesController.actualTheme) return
@@ -451,8 +471,9 @@ export default class Grapholscape {
 
   /**
    * Register a new theme
-   * @param {Theme} theme a theme object, please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
+   * @param {import('./style/themes').Theme} theme a theme object, please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
    * @returns {string} the key assigned to the new theme for later setting it
+   * @tutorial Themes
    */
   addTheme(theme) {
     let custom_theme_value = `custom${this.config.rendering.theme.list.length}`
@@ -525,6 +546,7 @@ export default class Grapholscape {
   /**
    * Update the actual configuration and apply changes.
    * @param {Object} new_config - a configuration object. Please read [wiki/settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+   * @tutorial Settings
    */
   setConfig(new_config) {
     Object.keys(new_config).forEach(entry => {
@@ -586,27 +608,28 @@ export default class Grapholscape {
   /** @returns {Languages} */
   get languages() {
     return {
-      /** @type {string} */
       selected: this.config.preferences.language.selected,
-      /** @type {string} */
       default: this.defaultLanguage,
-      /** @type {Language[]} */
       list: this.config.preferences.language.list
     }
   }
 
-  /** @returns {Filter[]} */
+  /** @type {Filter[]} */
   get filterList() { return this.config.widgets.filters.filter_list }
 
+  /** @type {import('./style/themes').Theme} */
   get themes() { return this.themesController.themes }
 
-  /** @returns {string | number} */
+  /** @type {string | number} */
   get actualDiagramID() { return this.renderersManager.actualDiagramID }
 
-  /** @returns {string} */
+  /** @type {string} */
   get actualRenderingMode() { return this.renderer.key }
 
-  /** @returns {EntityNameType} */
+  /** @type {EntityNameType} */
   get actualEntityNameType() { return this.config.preferences.entity_name.selected }
 
 }
+
+/** @type {Grapholscape} */
+export default Grapholscape

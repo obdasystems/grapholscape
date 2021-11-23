@@ -1,5 +1,5 @@
-<p align="center">
-  <img width="50%" src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
+<p style="margin:auto; max-width:200px" align="center">
+  <img src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
 </p>
 
 #
@@ -18,34 +18,61 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 * Filter elements that are not necessary for your analysis
 * Multi-diagrammatic inspection that allows you to navigate through all diagrams that builds up the ontology
 
-<img src="https://github.com/obdasystems/grapholscape/raw/master/resources/demo.gif" />
+<p align="center">
+  <img src="https://github.com/obdasystems/grapholscape/raw/master/resources/demo.gif" />
+</p>
 
 ## What is Graphol?
 GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.\
-Further information [here](http://www.dis.uniroma1.it/~graphol/).
+Further information [here](https://www.obdasystems.com/it/node/107).
 
 ## Usage | [Demo](https://obdasystems.github.io/grapholscape/)
-You can try it [here](https://obdasystems.github.io/grapholscape/) or just clone the repository `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
+You can try it [here](https://obdasystems.github.io/grapholscape/) or just clone the repository, `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
 
 ### Embed in your project
-Import GrapholScape
-```html
-<script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
+
+#### HTML Environment
+If you are using a HTML Environment (without a build system) you can:
+
+- link `grapholscape.min.js` in a `<script>` tag:
+
+  ```js
+  <script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
+  ```
+
+- import Grapholscape as an ES6 module:
+
+  ```js
+  <script type="module">
+    import * as Grapholscape from "./grapholscape.esm.min.js";
+  </script>
+  ```
+
+#### Via NPM
+If you want to nstall it via **npm**: `npm install grapholscape`.
+Then you can choose what to import depending on your needs:
+```js
+// import everything
+import * as Grapholscape from "grapholscape";
+
+// import only core features for basic usage
+import { fullGrapholscape } from "grapholscape"; // with UI widgets
+// or
+import { bareGrapholscape } from "grapholscape; // without UI widgets
 ```
 
-Create an instance of grapholscape providing a `.graphol` ontology file and an empty container.
+### Initialisation
+Basic initialisation with UI widgets.
 ```js
-const grapholscape = new Grapholscape(file, container)
-grapholscape.then( gscape_controller => {
-  gscape_controller.showDiagram(0)
-})
+const grapholscape = await Grapholscape.fullGrapholscape(file, container)
+grapholscape.showDiagram(0)
 ```
 > **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
 
-Once the initialization phase is done, `gscape_controller` will be returned and can be used to perform actions on the tool.
+Once the initialization phase is done, the promise will return a `Grapholscape` object that can be used to perform actions on the tool.
 In the example we saw the method `showDiagram(0)`, for the complete API please read [`doc/api.md`](doc/api.md).
 
-Information about entities, namesapaces and diagrams are stored in `gscape_controller.ontology`. Read More in [`doc/ontology.md`](doc/ontology.md).
+Information about entities, namesapaces and diagrams are stored in `Grapholscape.ontology`. Read More in [`doc/ontology.md`](doc/ontology.md).
 
 It is possible to pass also a json config object to define custom default settings. Read more: [default settings customization](https://github.com/obdasystems/grapholscape/wiki/Settings#default-settings-customization).
 
@@ -65,10 +92,8 @@ npm run install
 Build and start:
 ```cmd
 npm run build
-npm run start
 ```
-
-This will launch the electron app and serve a web demo on `http://localhost:8000/demo`.
+And open `demo/index.html`.
 
 ### Build Instructions
 Install `npm` and `Node.js` and run `npm install` before using `npm run`.
@@ -77,10 +102,10 @@ Run `npm run <target>` in the console. The main targets are:
 
 - `start` : builds for development (no transpiled), watch for changes and serve demo on `http://localhost:8000`
 - `build` : builds for production (minified and transpiled with babel)
-- `app` : build for development and run electron app
+- `app` : builds for development and run electron app
 - `app:dist` : create electron app packages for all platforms (win32, darwin, linux)
 - `dist` : builds for production and package electron app for all platforms
-- `deploy` : publish whole `demo` folder to gh-pages
+- `deploy` : publish whole `demo` folder to `gh-pages` branch from which github page of the project is served
 - `test`: run all test suites
 
 ### Release Instructions

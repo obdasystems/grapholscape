@@ -1,12 +1,8 @@
-/**
- * @typedef {Object.<string, string>} Theme
- */
-
 import * as themes from './themes'
 
-export default class ThemesController {
+class ThemesController {
   constructor() {
-    /** @type {Object<string, Theme>} */
+    /** @type {Object<string, import('./themes').Theme>} */
     this.themes = {}
     for (let themeKey in themes) {
       this.themes[themeKey] = ThemesController.getNormalizedTheme(themes[themeKey])
@@ -57,3 +53,5 @@ export default class ThemesController {
   set actualTheme(themeKey) { this.actualThemeKey = themeKey }
   get actualTheme() { return this.getTheme(this.actualThemeKey) }
 }
+
+export default ThemesController
