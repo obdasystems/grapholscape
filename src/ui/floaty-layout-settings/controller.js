@@ -4,7 +4,7 @@
  * @param {import('../../grapholscape').default} grapholscape 
  */
 export default function(layoutSettingsComponent, grapholscape) {
-  layoutSettingsComponent.hide()
+  if (grapholscape.renderer.key !== 'float') layoutSettingsComponent.hide()
 
   grapholscape.onRendererChange( rendererKey => {
     if (rendererKey === 'float')

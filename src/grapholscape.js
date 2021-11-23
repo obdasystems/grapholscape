@@ -146,12 +146,14 @@ class Grapholscape {
       float: null
     }
 
-    this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology)
-      .then(result => {
-        this.ontologies.lite = result.lite
-        this.ontologies.float = result.float
-      })
-      .catch(reason => { console.error(reason) })
+    if (this.shouldSimplify) {
+      this.SimplifiedOntologyPromise = computeSimplifiedOntologies(ontology)
+        .then(result => {
+          this.ontologies.lite = result.lite
+          this.ontologies.float = result.float
+        })
+        .catch(reason => { console.error(reason) })
+    }
 
     this.applyTheme(this.config.rendering.theme.selected)
     this.ZOOM_STEP_VALUE = 0.08
@@ -221,35 +223,39 @@ class Grapholscape {
    * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    */
   showDiagram(diagram, shouldViewportFit = false) {
-    if (typeof diagram == 'string' || typeof diagram == 'number') {
-      diagram = this.ontology.getDiagram(diagram)
-    }
-
-    if (!diagram) {
-      console.warn('diagram not existing')
-      return
-    }
-
-    shouldViewportFit = shouldViewportFit || !diagram.hasEverBeenRendered
-    this.renderersManager.drawDiagram(diagram, shouldViewportFit)
-    this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
-
-    Object.keys(this.filterList).forEach(key => {
-      let filter = this.filterList[key]
-      if (filter.active) this.renderersManager.filter(filter)
-    })
-
-    // simulate selection on old selected entity, this updates UI too
-    let entity = diagram.getSelectedEntity()
-    if (entity) {
-      let grapholEntity = cyToGrapholElem(entity)
-      if (grapholEntity.data.diagram_id === this.actualDiagramID) {
-        this._callbacksEntitySelection.forEach(fn => fn(entity))
-        this.centerOnNode(grapholEntity.data.id)
+    const showDiagram = () => {
+      if (typeof diagram == 'string' || typeof diagram == 'number') {
+        diagram = this.ontology.getDiagram(diagram)
       }
-    }
 
-    this._callbacksDiagramChange.forEach(fn => fn(diagram))
+      if (!diagram) {
+        console.warn('diagram not existing')
+        return
+      }
+
+      shouldViewportFit = shouldViewportFit || !diagram.hasEverBeenRendered
+      this.renderersManager.drawDiagram(diagram, shouldViewportFit)
+      this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+
+      Object.keys(this.filterList).forEach(key => {
+        let filter = this.filterList[key]
+        if (filter.active) this.renderersManager.filter(filter)
+      })
+
+      // simulate selection on old selected entity, this updates UI too
+      let entity = diagram.getSelectedEntity()
+      if (entity) {
+        let grapholEntity = cyToGrapholElem(entity)
+        if (grapholEntity.data.diagram_id === this.actualDiagramID) {
+          this._callbacksEntitySelection.forEach(fn => fn(entity))
+          this.centerOnNode(grapholEntity.data.id)
+        }
+      }
+
+      this._callbacksDiagramChange.forEach(fn => fn(diagram))
+    }
+    
+    this.performActionInvolvingOntology(showDiagram)
   }
 
   /**
@@ -259,13 +265,22 @@ class Grapholscape {
    * @param {number?} zoom - The zoom level to apply (Default: 1.5)
    */
   centerOnNode(nodeID, zoom = 1.5) {
-    // get diagram id containing the node
-    let nodeDiagramID = cyToGrapholElem(this.ontology.getElem(nodeID)).data.diagram_id
-    if (this.renderersManager.actualDiagramID != nodeDiagramID) {
-      this.showDiagram(nodeDiagramID)
+    const centerOnNode = () => {
+      // get diagram id containing the node
+      let elem = this.ontology.getElem(nodeID)
+      if (!elem) {
+        console.warn(`Could not find any element with id=${nodeID} in the actual ontology, try to change renderer`)
+        return
+      }
+      let nodeDiagramID = cyToGrapholElem(this.ontology.getElem(nodeID)).data.diagram_id
+      if (this.renderersManager.actualDiagramID != nodeDiagramID) {
+        this.showDiagram(nodeDiagramID)
+      }
+
+      this.renderersManager.centerOnNode(nodeID, zoom)
     }
 
-    this.renderersManager.centerOnNode(nodeID, zoom)
+    this.performActionInvolvingOntology(centerOnNode)
   }
 
   /**
@@ -286,7 +301,7 @@ class Grapholscape {
    * > Note: in case of activation or deactivation of the `float` mode, this value will be ignored.
    */
   setRenderer(rendererKey, keepViewportState = true) {
-    const performChange = () => {
+    const setRenderer = () => {
       let viewportState = keepViewportState ? this.renderersManager.actualViewportState : undefined
 
       let selectedEntities = {}
@@ -319,20 +334,7 @@ class Grapholscape {
     keepViewportState = keepViewportState &&
       !(oldRendererKey == 'float' || rendererKey == 'float')
 
-    switch (rendererKey) {
-      // for simplified ontologies wait for them to be computed
-      case 'lite':
-      case 'float': {
-        this.SimplifiedOntologyPromise.then(() => {
-          performChange()
-        })
-        break
-      }
-      default: {
-        performChange()
-        break
-      }
-    }
+    this.performActionInvolvingOntology(setRenderer)
   }
 
   /**
@@ -342,20 +344,31 @@ class Grapholscape {
    * @param {Diagram | number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
    */
   selectEntity(iri, diagram = this.actualDiagramID || 0) {
-    let diagramID = ''
-    try {
-      if (typeof (diagram) === 'object')
-        diagramID = diagram.id
-      else
-        diagramID = this.ontology.getDiagram(diagram).id
-    } catch (e) { console.error(`Diagram ${diagram} not defined`) }
+    const selectEntity = () => {
+      let diagramID = ''
+      try {
+        if (typeof (diagram) === 'object')
+          diagramID = diagram.id
+        else
+          diagramID = this.ontology.getDiagram(diagram).id
+      } catch (e) { console.error(`Diagram ${diagram} not defined`) }
 
-    this.ontology.getEntityOccurrences(iri).forEach(entity => {
-      let grapholEntity = cyToGrapholElem(entity)
-      if (grapholEntity.data.diagram_id === diagramID) {
-        this.selectElem(grapholEntity.data.id, diagramID)
+      let iriOccurrences = this.ontology.getEntityOccurrences(iri)
+      
+      if (!iriOccurrences) {
+        console.warn(`Could not find any entity with "${iri}" as prefixed or full IRI`)
+        return
       }
-    })
+
+      iriOccurrences.forEach(entity => {
+        let grapholEntity = cyToGrapholElem(entity)
+        if (grapholEntity.data.diagram_id === diagramID) {
+          this.selectElem(grapholEntity.data.id, diagramID)
+        }
+      })
+    }
+    
+    this.performActionInvolvingOntology(selectEntity)
   }
 
   /**
@@ -364,7 +377,10 @@ class Grapholscape {
    * @param {number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
    */
   selectElem(id, diagramID = this.actualDiagramID || 0) {
-    this.ontology.getDiagram(diagramID)?.selectElem(id)
+    const selectElem = () => 
+      this.ontology.getDiagram(diagramID)?.selectElem(id)
+
+    this.performActionInvolvingOntology(selectElem)
   }
 
   /**
@@ -586,7 +602,7 @@ class Grapholscape {
   }
 
   /**
-   * @returns {Ontology}
+   * @type {Ontology}
    */
   get ontology() {
     return this.ontologies[this.actualRenderingMode] || this.ontologies.default
@@ -594,7 +610,8 @@ class Grapholscape {
 
   /**
    * Filename for exports
-   * @returns {string} string in the form: "[ontology name]-[diagram name]-v[ontology version]"
+   * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
+   * @type {string}
    */
   get exportFileName() {
     return `${this.ontology.name}-${this.actualDiagram.name}-v${this.ontology.version}`
@@ -605,7 +622,7 @@ class Grapholscape {
   get container() { return this.renderersManager.container }
   get graphContainer() { return this.renderersManager.graphContainer }
 
-  /** @returns {Languages} */
+  /** @type {Languages} */
   get languages() {
     return {
       selected: this.config.preferences.language.selected,
@@ -624,11 +641,30 @@ class Grapholscape {
   get actualDiagramID() { return this.renderersManager.actualDiagramID }
 
   /** @type {string} */
-  get actualRenderingMode() { return this.renderer.key }
+  get actualRenderingMode() { return this.renderer?.key }
 
   /** @type {EntityNameType} */
   get actualEntityNameType() { return this.config.preferences.entity_name.selected }
 
+  /**
+   * Whether grapholscape should perform simplifications or not
+   * used to wait for result in case 'lite' or 'float' renderer
+   * is selected.
+   * @type {boolean}
+   */
+  get shouldSimplify() {
+    let rendererKeys = Object.keys(this.renderersManager.renderers)
+    return rendererKeys.includes('lite') || rendererKeys.includes('float')
+  }
+
+  performActionInvolvingOntology(callback) {
+    let renderers = Object.keys(this.renderersManager.renderers)
+    if (this.shouldSimplify && (renderers.includes('lite') || renderers.includes('float'))) {
+      this.SimplifiedOntologyPromise.then( () => callback())
+    } else {
+      callback()
+    }
+  }
 }
 
 /** @type {Grapholscape} */

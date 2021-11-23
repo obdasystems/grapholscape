@@ -27,79 +27,89 @@ const widgetNames = {
  * @param {import('../grapholscape').default} grapholscape 
  */
 export default function (grapholscape) {
-  let gui_container = document.createElement('div')
+  const init = () => {
+    let gui_container = document.createElement('div')
 
-  const diagramSelectorComponent = diagramSelector(grapholscape)
-  const entityDetailsComponent = entityDetails(grapholscape)
+    const diagramSelectorComponent = diagramSelector(grapholscape)
+    const entityDetailsComponent = entityDetails(grapholscape)
 
-  const zoomToolsComponent = zoomTools(grapholscape)
-  const ontologyInfoComponent = ontologyInfo(grapholscape.ontology)
-  const fullscreenComponent = fullscreenButton(grapholscape.container)
-  const fitButtonComponent = fitButton(grapholscape)
-  const ontologyExplorerComponent = ontologyExplorer(grapholscape)
-  const owlVisualizerComponent = owlVisualizer(grapholscape)
-  const filterComponent = filters(grapholscape)
-  const settingsComponent = settings(grapholscape)
-  settingsComponent.onWidgetEnabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).enable()
-  settingsComponent.onWidgetDisabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).disable()
-  const rendererSelectorComponent = rendererSelector(grapholscape)
-  const layoutSettingsComponent = layoutSettings(grapholscape)
+    const zoomToolsComponent = zoomTools(grapholscape)
+    const ontologyInfoComponent = ontologyInfo(grapholscape.ontology)
+    const fullscreenComponent = fullscreenButton(grapholscape.container)
+    const fitButtonComponent = fitButton(grapholscape)
+    const ontologyExplorerComponent = ontologyExplorer(grapholscape)
+    const owlVisualizerComponent = owlVisualizer(grapholscape)
+    const filterComponent = filters(grapholscape)
+    const settingsComponent = settings(grapholscape)
+    settingsComponent.onWidgetEnabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).enable()
+    settingsComponent.onWidgetDisabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).disable()
+    const rendererSelectorComponent = rendererSelector(grapholscape)
+    const layoutSettingsComponent = layoutSettings(grapholscape)
 
-  // USING GRAPHOLSCAPE CALLBACKS
-  grapholscape.onBackgroundClick(() => {
-    blurAll(gui_container)
-  })
-  grapholscape.onNodeSelection(node => {
-    let grapholNode = cyToGrapholElem(node)
-    if (!grapholNode.classes.includes('predicate')) entityDetailsComponent.hide()
-  })
+    // USING GRAPHOLSCAPE CALLBACKS
+    grapholscape.onBackgroundClick(() => {
+      blurAll(gui_container)
+    })
+    grapholscape.onNodeSelection(node => {
+      let grapholNode = cyToGrapholElem(node)
+      if (!grapholNode.classes.includes('predicate')) entityDetailsComponent.hide()
+    })
 
-  grapholscape.onEdgeSelection(edge => {
-    let grapholEdge = cyToGrapholElem(edge)
-    if (!grapholEdge.classes.includes('predicate')) entityDetailsComponent.hide()
-  })
+    grapholscape.onEdgeSelection(edge => {
+      let grapholEdge = cyToGrapholElem(edge)
+      if (!grapholEdge.classes.includes('predicate')) entityDetailsComponent.hide()
+    })
 
-  gui_container.appendChild(diagramSelectorComponent)
-  gui_container.appendChild(ontologyExplorerComponent)
-  gui_container.appendChild(entityDetailsComponent)
-  gui_container.appendChild(zoomToolsComponent)
-  gui_container.appendChild(owlVisualizerComponent)
-  gui_container.appendChild(fullscreenComponent)
-  gui_container.appendChild(fitButtonComponent)
-  gui_container.appendChild(layoutSettingsComponent)
+    gui_container.appendChild(diagramSelectorComponent)
+    gui_container.appendChild(ontologyExplorerComponent)
+    gui_container.appendChild(entityDetailsComponent)
+    gui_container.appendChild(zoomToolsComponent)
+    gui_container.appendChild(owlVisualizerComponent)
+    gui_container.appendChild(fullscreenComponent)
+    gui_container.appendChild(fitButtonComponent)
+    gui_container.appendChild(layoutSettingsComponent)
 
-  let bottomContainer = bottomLeftContainer()
-  bottomContainer.appendChild(filterComponent)
-  bottomContainer.appendChild(ontologyInfoComponent)
-  bottomContainer.appendChild(settingsComponent)
-  bottomContainer.appendChild(rendererSelectorComponent)
-  gui_container.appendChild(bottomContainer)
-  grapholscape.container.appendChild(gui_container)
+    let bottomContainer = bottomLeftContainer()
+    bottomContainer.appendChild(filterComponent)
+    bottomContainer.appendChild(ontologyInfoComponent)
+    bottomContainer.appendChild(settingsComponent)
+    bottomContainer.appendChild(rendererSelectorComponent)
+    gui_container.appendChild(bottomContainer)
+    grapholscape.container.appendChild(gui_container)
 
-  bottomContainer.querySelectorAll('*').forEach(widget => {
-    if (isGrapholscapeWidget(widget)) {
-      widget.onToggleBody = () => blurAll(bottomContainer, [widget])
-    }
-  })
-
-  disableWidgets(grapholscape.config.widgets)
-
-  function blurAll(container, widgetsToSkip = []) {
-    container.querySelectorAll('*').forEach(widget => {
-      if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
-        widget.blur()
+    bottomContainer.querySelectorAll('*').forEach(widget => {
+      if (isGrapholscapeWidget(widget)) {
+        widget.onToggleBody = () => blurAll(bottomContainer, [widget])
       }
     })
-  }
 
-  function isGrapholscapeWidget(widget) {
-    return widget.nodeName.toLowerCase().startsWith('gscape')
-  }
+    disableWidgets(grapholscape.config.widgets)
 
-  function disableWidgets(widgets) {
-    for (let widget in widgets) {
-      if (!widgets[widget].enabled)
-        gui_container.querySelector(widgetNames[widget]).disable()
+    function blurAll(container, widgetsToSkip = []) {
+      container.querySelectorAll('*').forEach(widget => {
+        if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
+          widget.blur()
+        }
+      })
+    }
+
+    function isGrapholscapeWidget(widget) {
+      return widget.nodeName.toLowerCase().startsWith('gscape')
+    }
+
+    function disableWidgets(widgets) {
+      for (let widget in widgets) {
+        if (!widgets[widget].enabled)
+          gui_container.querySelector(widgetNames[widget]).disable()
+      }
     }
   }
+
+  let renderers = Object.keys(grapholscape.renderersManager.renderers)
+  if (grapholscape.shouldSimplify && (renderers.includes('lite') || renderers.includes('float'))) {
+    grapholscape.SimplifiedOntologyPromise.then( _ => {
+      init()
+    })
+  } else
+    init()
 }
