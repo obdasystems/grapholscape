@@ -56,17 +56,34 @@ const defaultSettings = {
 }
 ```
 and passing it to **`Grapholscape`** constructor.
-> **`setting-key`** must be the `key` of the setting we want to customize, in config.json \
+>**`setting-key`** must be the `key` of the setting we want to customize, in config.json
+
 > **`custom-value`** must be the `value` of the option we want to select in case of type `list` or a boolean in case of type `boolean`.
 
+### List of settings
 The object for customizing default settings **must not** be structured in areas, just list all setting values you want to be the new default value.
-#### Example - full iri as default names and no owl-translator
+  - `entity_name`: *`string`* the type of name to display on entities, plese see [EntityNameType](global.html#EntityNameType)
+  - `language`: *`string`* the value of a desired language, please see [Language](global.html#Language)
+  - `explorer`: *`boolean`* whether to enable or not the ontology explorer widget
+  - `details`: *`boolean`* whether to enable or not the entity details widget
+  - `owl_translator`: *`boolean`* whether to enable or not the OWL translator widget
+  - `filters`: *`boolean`* whether to enable or not the filters widget
+  - `simplifications`: *`boolean`* whether to enable or not the simplifications (renderers) widget
+  - `renderers`: *`Array<string>`* an array of desired renderers by their keys. There must be at least one of `['default', 'lite', 'float']`,
+  if the array does not contain any valid renderer key, `default` will be used as fallback.
+  - `theme`: *`object | string`* either specify the key value of a predefined theme or define a completely new one.
+    > **Note** : for costumizing themes read more [here](https://github.com/obdasystems/grapholscape/wiki/Themes#default-theme-customization)
+
+### Example
+Let's suppose we want to visualize the ontology only in its simplest representation which is the one offered by the `floaty` renderer,
+since we will be using only one renderer, we are not interested in having the widget to switch between simplifications too.
+Lastly we want the secondary colour to be a bright fancy `red`. Here's the setting object:
 ```js
 const defaultSettings = { 
-  entity_name : "full",
-  owl_translator : false
+  renderers: [ 'float' ],
+  simplifications: false,
+  theme: { secondary: 'red' }
 }
 
 const grapholscape = await fullGrapholscape(grapholFile, container, defaultSettings)
 ```
-> **Note** : for the key **`theme`** it is possible to specify more information than just a `value` in the list. Read more [here](https://github.com/obdasystems/grapholscape/wiki/Themes#default-theme-customization)
