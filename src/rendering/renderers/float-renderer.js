@@ -29,6 +29,11 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
       e.target.removeData('old_pos')
     })
+
+    this.cy.$('[?pinned]').each( n => {
+      n.on('position', () => this.updatePopper(n))
+      this.cy.on('pan zoom resize', () => this.updatePopper(n))
+    })
   }
 
   addPopperContainer() {
@@ -108,9 +113,10 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
         div.style.padding = '5px'
         div.style.color = this.theme.on_secondary
         div.style.cursor = 'pointer'
+        div.style.boxSizing = 'content-box'
         div.setAttribute('title', 'Unlock Node')
 
-        div.innerHTML = `<span class="icon">${lock_open}</span>`
+        div.innerHTML = `<span class="popper-icon">${lock_open}</span>`
         this.setPopperStyle(dimension, div)
 
         div.onclick = () => this.unpinNode(node)
@@ -135,7 +141,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   setPopperStyle(dim, popper) {
-    let icon = popper.querySelector('.icon > svg')
+    let icon = popper.querySelector('.popper-icon > svg')
     icon.style.display = 'inherit'
     if (dim > 2) {
       popper.style.width = dim + 'px'

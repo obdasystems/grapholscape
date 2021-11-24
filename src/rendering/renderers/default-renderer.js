@@ -194,6 +194,7 @@ export default class GrapholscapeRenderer {
     if (this._cy) this._cy.unmount()
     cyInstance.mount(this.cy_container)
 
+    cyInstance.removeAllListeners()
     cyInstance.autoungrabify(true)
     cyInstance.maxZoom(2.5)
     cyInstance.minZoom(0.02)
