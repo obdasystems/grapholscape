@@ -2,8 +2,6 @@ import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import GscapeToggle from '../common/gscape-toggle'
-import GscapeButton from '../common/gscape-button'
-import { move_bubbles } from '../assets/icons'
 
 export default class GscapeLayoutSettings extends GscapeWidget {
 
@@ -44,13 +42,8 @@ export default class GscapeLayoutSettings extends GscapeWidget {
           --btn-padding: 0 0 0 10px;
         }
 
-        gscape-toggle, gscape-button {
+        gscape-toggle {
           margin-left: 50px;
-        }
-
-        gscape-button {
-          line-height: 24px;
-          position: inherit;
         }
 
         .wrapper {
@@ -78,8 +71,6 @@ export default class GscapeLayoutSettings extends GscapeWidget {
 
     this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running')
     this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin')
-    this.useOriginalPositionsButton = new GscapeButton(move_bubbles)
-    this.useOriginalPositionsButton.label = 'Original Positions'
     this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions')
 
     this.onLayoutRunToggle = {}
@@ -105,7 +96,7 @@ export default class GscapeLayoutSettings extends GscapeWidget {
         <span class="toggles-wrapper">
           ${this.layoutRunToggle}
           ${this.dragAndDropToggle}
-          ${this.useOriginalPositionsButton}
+          ${this.useOriginalPositionsToggle}
         </span>
       </div>
 
@@ -124,7 +115,7 @@ export default class GscapeLayoutSettings extends GscapeWidget {
 
   set onUseOriginalPositions(callback) {
     this._onUseOriginalPositions = callback
-    this.useOriginalPositionsButton.onClick = callback
+    this.useOriginalPositionsToggle.onToggle = callback
   }
 
   get onLayoutRunToggle() {
