@@ -86,7 +86,6 @@ export default class GrapholscapeRenderer {
   }
 
   drawDiagram (diagram) {
-    if (diagram.id === this.actual_diagram) return
     this.cy = diagram.cy
     //this.cy.fit()
     this.actual_diagram = diagram.id
@@ -199,7 +198,7 @@ export default class GrapholscapeRenderer {
     cyInstance.maxZoom(2.5)
     cyInstance.minZoom(0.02)
     cyInstance.layout({ name: 'preset' })
-    cyInstance.removeAllListeners()
+    
     this._cy = cyInstance
 
     if (this.theme) this.setTheme(this.theme)

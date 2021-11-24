@@ -13,6 +13,8 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   setCySettings() {
+    this.cy.style.textureOnViewport = true
+
     this.cy.autoungrabify(false)
 
     this.cy.on('grab', (e) => {
@@ -20,10 +22,8 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     })
 
     this.cy.on('free', (e) => {
-      console.log(e)
       let actual_pos = JSON.stringify(e.target.position())
       if (this.dragAndPin && e.target.data('old_pos') !== actual_pos) {
-        console.log(e.target.json())
         this.pinNode(e.target)
       }
 
@@ -39,9 +39,8 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
   /** @param {import('../../model/index').Diagram} diagram*/
   drawDiagram(diagram) {
-    if (diagram.id === this.actual_diagram) return
     super.drawDiagram(diagram)
-
+   
     this.setCySettings()
     /**
      * At each diagram change, cy instance changes and everything
