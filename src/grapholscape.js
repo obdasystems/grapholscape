@@ -332,7 +332,7 @@ class Grapholscape {
       this.showDiagram(this.actualDiagramID) // either viewport state is set manually or untouched
       // for each selected entity in each diagram, select it again in the new renderer
       Object.keys(selectedEntities).forEach(diagramID => {
-        this.selectEntity(selectedEntities[diagramID].data.iri.fullIri, diagramID)
+        this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID)
       })
       this.setViewport(viewportState)
 
