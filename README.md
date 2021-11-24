@@ -1,8 +1,7 @@
 <p style="margin:auto; max-width:250px" align="center">
-  <img src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
+  <img width="250px" src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
 </p>
 
-#
 Advanced web viewer for ontologies written in [GRAPHOL](http://www.obdasystems.com/it/node/107). [**Try me**](https://obdasystems.github.io/grapholscape/)
 
 ## Features
@@ -36,13 +35,13 @@ If you are using a HTML Environment (without a build system) you can:
 
 - link `grapholscape.min.js` in a `<script>` tag:
 
-  ```js
+  ```html
   <script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
   ```
 
 - import Grapholscape as an ES6 module:
 
-  ```js
+  ```html
   <script type="module">
     import * as Grapholscape from "./grapholscape.esm.min.js";
   </script>
@@ -93,7 +92,7 @@ Build and start:
 ```cmd
 npm run build
 ```
-And open `demo/index.html`.
+And open `doc/static/demo/index.html`.
 
 ### Build Instructions
 Install `npm` and `Node.js` and run `npm install` before using `npm run`.
@@ -104,8 +103,7 @@ Run `npm run <target>` in the console. The main targets are:
 - `build` : builds for production (minified and transpiled with babel)
 - `app` : builds for development and run electron app
 - `app:dist` : create electron app packages for all platforms (win32, darwin, linux)
-- `dist` : builds for production and package electron app for all platforms
-- `deploy` : publish whole `demo` folder to `gh-pages` branch from which github page of the project is served
+- `deploy` : publish whole generated documentation in `doc/output` folder to `gh-pages` branch from which github page of the project is served
 - `test`: run all test suites
 
 ### Release Instructions

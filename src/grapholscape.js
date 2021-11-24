@@ -259,7 +259,7 @@ class Grapholscape {
   }
 
   /**
-   * Focus on a single node and zoom on it.
+   * Select a single node and zoom on it.
    * If necessary it also display the diagram containing the node.
    * @param {number} nodeID - The node unique ID
    * @param {number?} zoom - The zoom level to apply (Default: 1.5)
@@ -273,10 +273,22 @@ class Grapholscape {
         return
       }
       let nodeDiagramID = cyToGrapholElem(this.ontology.getElem(nodeID)).data.diagram_id
-      if (this.renderersManager.actualDiagramID != nodeDiagramID) {
+      if (this.actualDiagramID != nodeDiagramID) {
         this.showDiagram(nodeDiagramID)
+        /**
+         * hack in case of actual renderer is based on simplifications.
+         * In that case, if we call centerOnNode on renderer immediately, it will be performed
+         * before the new diagram has been drawn, this because showDiagram will wait for
+         * the simplified ontology promise to be resolved. (showDiagram is async).
+         * Calling again this same function will wait again for that promise to be
+         * fulfilled and for sure the right diagram will be drawn.
+         */
+        if (this.shouldWaitSimplifyPromise) {
+          this.centerOnNode(nodeID, zoom)
+          return
+        }
       }
-
+      
       this.renderersManager.centerOnNode(nodeID, zoom)
     }
 
@@ -338,48 +350,63 @@ class Grapholscape {
   }
 
   /**
-   * Select an entity by its IRI and the diagram it belongs to,
-   * if you don't pass a diagram, the actual diagram will be used
+   * Select an entity by its IRI and the diagram it belongs to.
+   * If you don't specify a diagram, actual diagram will be used if it exists and if it contains
+   * any occurrence of the specified entity IRI, otherwise the diagram of the first entity IRI
+   * occurrence will be used.
    * @param {string} iri the IRI of the entity to select in full or prefixed form
-   * @param {Diagram | number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   * @param {Diagram | number | string} [diagram] The diagram in which to select the IRI (can be
+   * also the diagram id).
    */
-  selectEntity(iri, diagram = this.actualDiagramID || 0) {
-    const selectEntity = () => {
+  selectEntityOccurrences(iri, diagram) {
+    const selectEntityOccurrences = () => {
       let diagramID = ''
-      try {
-        if (typeof (diagram) === 'object')
-          diagramID = diagram.id
-        else
-          diagramID = this.ontology.getDiagram(diagram).id
-      } catch (e) { console.error(`Diagram ${diagram} not defined`) }
+      if (typeof (diagram) === 'object')
+        diagramID = diagram.id
+      else
+        diagramID = this.ontology.getDiagram(diagram)?.id
 
-      let iriOccurrences = this.ontology.getEntityOccurrences(iri)
+      const iriOccurrences = this.ontology.getEntityOccurrences(iri)
       
-      if (!iriOccurrences) {
+      if (!iriOccurrences || iriOccurrences.length === 0) {
         console.warn(`Could not find any entity with "${iri}" as prefixed or full IRI`)
         return
       }
 
+      if (!diagramID) {
+        if (this.actualDiagramID && iriOccurrences.some( e => cyToGrapholElem(e).data.diagram_id === this.actualDiagramID)) {
+          diagramID = this.actualDiagramID
+        } else {
+          diagramID = cyToGrapholElem(iriOccurrences[0]).data.diagram_id
+        }
+      }
+
       iriOccurrences.forEach(entity => {
-        let grapholEntity = cyToGrapholElem(entity)
+        const grapholEntity = cyToGrapholElem(entity)
         if (grapholEntity.data.diagram_id === diagramID) {
           this.selectElem(grapholEntity.data.id, diagramID)
         }
       })
     }
     
-    this.performActionInvolvingOntology(selectEntity)
+    this.performActionInvolvingOntology(selectEntityOccurrences)
   }
 
   /**
-   * Select a node or an edge given its unique id
+   * Select a node or an edge given its unique id.
+   * It does not change diagram nor viewport state.
+   * If you want to select and focus viewport on a node,
+   * you should use {@link centerOnNode}.
    * @param {string} id unique elem id (node or edge)
-   * @param {number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   * @param {number | string} [diagram] The diagram in which to select the IRI (can be also the diagram id)
    */
-  selectElem(id, diagramID = this.actualDiagramID || 0) {
-    const selectElem = () => 
-      this.ontology.getDiagram(diagramID)?.selectElem(id)
-
+  selectElem(id, diagram) {
+    const selectElem = () => {
+      if (!diagram) {
+        diagram = cyToGrapholElem(this.ontology.getElem(id)).data.diagram_id
+      }
+      this.ontology.getDiagram(diagram)?.selectElem(id)
+    }
     this.performActionInvolvingOntology(selectElem)
   }
 
@@ -657,9 +684,12 @@ class Grapholscape {
     return rendererKeys.includes('lite') || rendererKeys.includes('float')
   }
 
+  get shouldWaitSimplifyPromise() {
+    return this.renderer.key !== 'default'
+  }
+
   performActionInvolvingOntology(callback) {
-    let renderers = Object.keys(this.renderersManager.renderers)
-    if (this.shouldSimplify && (renderers.includes('lite') || renderers.includes('float'))) {
+    if (this.shouldSimplify && this.shouldWaitSimplifyPromise) {
       this.SimplifiedOntologyPromise.then( () => callback())
     } else {
       callback()

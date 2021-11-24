@@ -105,8 +105,7 @@ export default function (grapholscape) {
     }
   }
 
-  let renderers = Object.keys(grapholscape.renderersManager.renderers)
-  if (grapholscape.shouldSimplify && (renderers.includes('lite') || renderers.includes('float'))) {
+  if (grapholscape.shouldSimplify && grapholscape.shouldWaitSimplifyPromise) {
     grapholscape.SimplifiedOntologyPromise.then( _ => {
       init()
     })
