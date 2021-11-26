@@ -17,7 +17,8 @@
  * @typedef {Object.<string, string[]>} Annotation
  */
  
-/** @typedef {object} GrapholElem
+/**
+ * @typedef {object} GrapholElem
  * @property {Position} position
  * @property {string} classes
  * @property {"nodes"|"edges"} group

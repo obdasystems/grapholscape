@@ -2,15 +2,15 @@
   "name": "grapholscape",
   "version": "2.0.0-beta.0",
   "description": "ontology visualization",
-  "module": "build/grapholscape.esm.js",
-  "main": "build/grapholscape.esm.js",
+  "module": "dist/grapholscape.esm.js",
+  "main": "dist/grapholscape.esm.js",
   "files": [
-    "build"
+    "dist"
   ],
   "scripts": {
     "start": "ws -o -d doc/static & rollup -c -w",
     "build": "cross-env NODE_ENV=production VERSION=$npm_package_version rollup -c",
-    "clean": "rimraf ./build",
+    "clean": "rimraf ./dist",
     "app": "rollup -c && electron ./app",
     "app:dist": "electron-packager ./app --out=./dists --icon=./app/assets/icon --overwrite",
     "deploy": "cross-env-shell gh-pages -d doc/output/grapholscape/$npm_package_version -m \"$npm_package_version\"",
