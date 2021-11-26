@@ -641,7 +641,8 @@ class Grapholscape {
    * @type {string}
    */
   get exportFileName() {
-    return `${this.ontology.name}-${this.actualDiagram.name}-v${this.ontology.version}`
+    const diagramName = this.ontology.getDiagram(this.actualDiagramID).name
+    return `${this.ontology.name}-${diagramName}-v${this.ontology.version}`
   }
 
   get renderer() { return this.renderersManager.renderer }
