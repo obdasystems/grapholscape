@@ -170,7 +170,6 @@ class Ontology {
   /**
    * Get an element in the ontology by id, searching in every diagram
    * @param {string} elem_id - The `id` of the elem to retrieve
-   * @param {boolean} json - if `true` return plain json, if `false` return cytoscape node. Default `false`
    * @returns {CollectionReturnValue} The cytoscape object representation.
    */
   getElem(elem_id) {
@@ -181,7 +180,7 @@ class Ontology {
   }
 
   /**
-   * Retrieve an entity in json by its IRI.
+   * Retrieve an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns {CollectionReturnValue} The cytoscape object representation.

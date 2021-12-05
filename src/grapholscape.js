@@ -662,7 +662,6 @@ class Grapholscape {
   /** @type {Filter[]} */
   get filterList() { return this.config.widgets.filters.filter_list }
 
-  /** @type {import('./style/themes').Theme} */
   get themes() { return this.themesController.themes }
 
   /** @type {string | number} */
@@ -689,6 +688,12 @@ class Grapholscape {
     return this.renderer.key !== 'default'
   }
 
+  /**
+   * Perform any action that might be using simplified ontologies,
+   * this ensures the action to be performed only when such
+   * ontology is available.
+   * @param {function} callback the function to execute
+   */
   performActionInvolvingOntology(callback) {
     if (this.shouldSimplify && this.shouldWaitSimplifyPromise) {
       this.SimplifiedOntologyPromise.then( () => callback())
