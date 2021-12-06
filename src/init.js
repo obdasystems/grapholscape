@@ -38,9 +38,9 @@ export default function (file, container, config) {
     function init() {
       try {
         resolve(new Grapholscape(ontology, container, config))
-      } catch (e) { console.log(e)}
+      } catch (e) { console.error(e)}
     }
-  }).catch(error => console.log(error) )
+  }).catch(error => console.error(error) )
 
   function getResult(file) {
     return new GrapholParser(file).parseGraphol()
