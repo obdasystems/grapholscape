@@ -220,9 +220,11 @@ class Grapholscape {
   /**
    * Display a diagram on the screen.
    * @param {Diagram | string | number} diagram The diagram retrieved from model, its name or it's id
-   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
+   * @param {import("./rendering/renderer-manager").ViewportState} viewportState the viewPortState of the viewport,
+   * if you don't pass it, viewport won't change unless it's the first time you draw such diagram. In this case
+   * viewport will fit to diagram.
    */
-  showDiagram(diagram, shouldViewportFit = false) {
+  showDiagram(diagram, viewportState = null) {
     const showDiagram = () => {
       if (typeof diagram == 'string' || typeof diagram == 'number') {
         diagram = this.ontology.getDiagram(diagram)
@@ -233,8 +235,13 @@ class Grapholscape {
         return
       }
 
-      shouldViewportFit = shouldViewportFit || !diagram.hasEverBeenRendered
-      this.renderersManager.drawDiagram(diagram, shouldViewportFit)
+      const isFirstTimeRendering = diagram.hasEverBeenRendered
+      this.renderersManager.drawDiagram(diagram)
+      if (viewportState)
+        this.renderersManager.setViewport(viewportState)
+      else if (!isFirstTimeRendering) {
+        this.renderersManager.fit()
+      }
       this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
 
       Object.keys(this.filterList).forEach(key => {
@@ -314,7 +321,7 @@ class Grapholscape {
    */
   setRenderer(rendererKey, keepViewportState = true) {
     const setRenderer = () => {
-      let viewportState = keepViewportState ? this.renderersManager.actualViewportState : undefined
+      let viewportState = keepViewportState ? this.renderersManager.actualViewportState : null
 
       let selectedEntities = {}
       // get selected entity in each diagram
@@ -329,12 +336,11 @@ class Grapholscape {
         this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey)
       })
 
-      this.showDiagram(this.actualDiagramID) // either viewport state is set manually or untouched
+      this.showDiagram(this.actualDiagramID, viewportState)
       // for each selected entity in each diagram, select it again in the new renderer
       Object.keys(selectedEntities).forEach(diagramID => {
         this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID)
       })
-      this.setViewport(viewportState)
 
       this._callbacksRendererChange.forEach(fn => fn(rendererKey))
     }

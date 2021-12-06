@@ -78,12 +78,9 @@ class RendererManager {
   /**
    * 
    * @param {import('../model/index').Diagram} diagram The diagram to display
-   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    */
-  drawDiagram(diagram, shouldViewportFit) {
-    //let diagramView = diagramModelToViewData(diagram)
+  drawDiagram(diagram) {
     this.renderer.drawDiagram(diagram)
-    if (shouldViewportFit) this.renderer.fit()
     this.actualDiagramID = diagram.id
     diagram.hasEverBeenRendered = true
   }
