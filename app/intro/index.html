@@ -1,210 +1,63 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <link href="style.css" rel="stylesheet" />
+  <head>
+    <link href="style.css" rel="stylesheet" />
 
-  <title>Welcome to Grapholscape</title>
-</head>
+    <title>Welcome to Grapholscape</title>
+  </head>
 
-<body style="margin: 0">
-  <div id="grapholscape_container"></div>
+  <body style="margin: 0">
+    <div id="grapholscape_container"></div>
 
-  <div id="home">
-    <div class="panel" id="left-panel">
-      <div id="recent-files">
-        <ul>
-        </ul>
+    <div id="home">
+      <div class="panel" id="left-panel">
+        <div id="recent-files">
+          <ul>
+          </ul>
+        </div>
+      </div>
+
+      <div class ="panel" id="right-panel"> 
+        <div id="logo">
+          <img style="width:50%" src="../assets/logo.png" />
+        </div>
+
+        <div id="version"></div>
+
+        <div id="dropbox">
+          <h2>Select or drop a file</h2>
+          <h1 id="add-button">+</h1>
+          <p>Select your .graphol file to display it</p>
+        </div>
       </div>
     </div>
 
-    <div class ="panel" id="right-panel"> 
-      <div id="logo">
-        <img style="width:50%" src="../assets/logo.png" />
-      </div>
+    <script>
+      const dropbox = document.getElementById('dropbox');
+      dropbox.onclick = () => window.recents.selectFileFromDialog()
+      dropbox.addEventListener("dragenter",dragenter,false);
+      dropbox.addEventListener("dragover", dragover, false);
+      dropbox.addEventListener("drop", drop,false);
 
-      <div id="version"></div>
-
-      <div id="dropbox">
-        <h2>Select or drop a file</h2>
-        <h1 id="add-button">+</h1>
-        <p>Select your .graphol file to display it</p>
-      </div>
-    </div>
-  </div>
-
-
-  <script>
-    const path = require('path')
-    const app = require('electron').remote.app
-    const ipcRenderer = require('electron').ipcRenderer
-    const fs = require('fs')
-    const examplesPath = path.resolve(__dirname, '..', 'examples')
-    const dropbox = document.getElementById('dropbox');
-    const recentsPath = path.join(app.getPath('userData'), 'recent-files')
-    const MAX_RECENTS = 10
-    let recents = []
-
-    // Version
-    document.getElementById('version').innerHTML = 'App Version: ' + app.getVersion()
-    ipcRenderer.on('remove-recent', (e, filePath) =>{
-      deleteRecentFile(filePath)
-    })
-    updateRecentList()
-
-    fs.readFile(recentsPath, 'utf-8', (err, data) => {
-      if (err) {
-        console.log(err)
-      } else {
-        data.split(/\r?\n/g).forEach( filePath => {
-          if (filePath.length > 1) {
-            recents.unshift(filePath)
-          }
-        })
+      function dragenter(e) {
+        e.stopPropagation();
+        e.preventDefault();
       }
-      appendExamples()
-      updateRecentList()
 
-      function appendExamples() {
-        // add examples in recents list
-        fs.readdirSync(examplesPath).forEach(example => {
-          fs.readdirSync(path.join(examplesPath, example)).forEach(file => {
-            let filePath = path.join(examplesPath, example, file)
-            if (!recents.includes(filePath))
-              recents.push(filePath)
-          })
-        })
-      }  
-    })
-
-    document.getElementById('dropbox').onclick = () => {
-      ipcRenderer.invoke('select-file').then(selectedPath => {
-        !selectedPath ? null : logRecentFile(selectedPath)
-      })
-    }
-
-    dropbox.addEventListener("dragenter",dragenter,false);
-    dropbox.addEventListener("dragover", dragover, false);
-    dropbox.addEventListener("drop", drop,false);
-
-    function dragenter(e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    function dragover(e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    function drop(e) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      var dt = e.dataTransfer;
-      var files = dt.files;
-
-      useGrapholPath(files[0].path)
-    }
-
-    function addRecentFileEntry(filePath, fileName) {
-      let name = 
-        fileName || 
-        filePath.slice(filePath.lastIndexOf(path.sep)+1, -8) // 8 is the length of ".graphol" 
-      
-      let recentList = document.getElementById('recent-files').getElementsByTagName('ul')[0]
-
-      let li = document.createElement('li')
-      li.setAttribute('name', name)
-      li.setAttribute('path', filePath)
-      li.setAttribute('title', filePath)
-
-      let name_span = document.createElement('span')
-      name_span.classList.add('name')
-      name_span.innerHTML = name
-      let path_span = document.createElement('span')
-      path_span.classList.add('path')
-      path_span.innerHTML = filePath
-      let delete_icon = document.createElement('div')
-      delete_icon.classList.add('delete-icon')
-      delete_icon.onclick = (e) => {
-        e.stopPropagation()
-        deleteRecentFile(filePath)
+      function dragover(e) {
+        e.stopPropagation();
+        e.preventDefault();
       }
-      delete_icon.setAttribute('title', 'Remove from list')
 
-      li.appendChild(name_span)
-      li.appendChild(path_span)
-      li.appendChild(delete_icon)
-      li.onclick = () => useGrapholPath(filePath)
-      recentList.appendChild(li)
-    }
+      function drop(e) {
+        e.stopPropagation();
+        e.preventDefault();
 
-    function useGrapholPath(filePath) {
-      ipcRenderer.invoke('use-graphol-path', filePath)
-      logRecentFile(filePath)
-    }
+        var dt = e.dataTransfer;
+        var files = dt.files;
 
-    function deleteRecentFile(filePath) {
-      let index = recents.indexOf(filePath)
-
-      if (index == -1)
-        return
-
-      recents.splice(index, 1)
-
-      updateRecentFile()
-      updateRecentList()
-    }
-
-    function logRecentFile(filePath) {
-      let index = recents.indexOf(filePath)
-
-      if (index != -1) {
-        recents.splice(index, 1)
+        window.recents.useGrapholPath(files[0].path)
       }
-      recents.unshift(filePath)
-      /* 
-      if we exceed the max number of recent files, then the file to log is not already in the 
-      list so we need to delete the last element in the array and reflect this on the file.
-      The array is written in reverse in "[userData]/recent-file", this means that we should 
-      delete only the first row of the file => much easier to rewrite the whole array
-
-      If the file is not new, then we removed from a given position in array and added back
-      in 1st position. We need to reflect it on the file, 
-      again much easier to rewrite the whole array in the file
-      */
-      if(recents.length > MAX_RECENTS || index != -1) {
-        index != -1 ? null : recents.pop()
-        updateRecentFile()
-      } else { 
-        /* 
-        If the file to log is new and we have space in the array, then in the file we just need to
-        append the path of the new file to log.
-        */
-        fs.appendFile(recentsPath, filePath+'\n', (err) => {
-          if (err) console.log(err)
-        })
-      }
-      updateRecentList()
-    }
-
-    /**
-     * Update the file with array of recent selected files
-     * write the array in reverse so when we read the file the first row will be the oldest path
-     * and last one will be the last path used in grapholscape. (easy to create the list in the ui)
-    **/
-    function updateRecentFile() {
-      fs.writeFile(recentsPath, recents.reverse().join('\n'), (err) => {return})
-      recents.reverse()
-    }
-
-    function updateRecentList() {
-      let recent_files = document.querySelector('#recent-files')
-      recent_files.getElementsByTagName('ul')[0].remove()
-      recent_files.appendChild(document.createElement('ul'))
-      
-      recents.forEach( filePath => addRecentFileEntry(filePath) )
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

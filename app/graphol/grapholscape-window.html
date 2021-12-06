@@ -15,18 +15,19 @@
 </body>
 
 <script>
-  const ipcRenderer = require('electron').ipcRenderer
   const grapholscape_container = document.getElementById('grapholscape_container')
-
-  ipcRenderer.on('start', start)
-
-  function start(e, fileString) {
-    const gscape = new GrapholScape(fileString, grapholscape_container)
-    gscape.then( gscape => {
+  async function start(fileString) {
+    try {
+      const gscape = await Grapholscape.fullGrapholscape(fileString, grapholscape_container)
       document.title = document.title + ' - ' + gscape.ontology.name
       gscape.showDiagram(0)
-      ipcRenderer.send('gscape-ready')
-    })
+    } catch (error) { window.graphol.onError(error) }
   }
+
+  /**
+   * use contextBridge api in preload.js to register start() as a callback to execute
+   * when the signal 'start' comes from main process.
+   */
+  window.graphol.onStart(start)
 </script>
 </html>
