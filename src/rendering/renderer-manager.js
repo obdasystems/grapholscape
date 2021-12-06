@@ -181,6 +181,12 @@ class RendererManager {
         }
       }
 
+      /**
+       * In floaty mode remove all '\n' from labels to avoid glitches
+       */
+      if (this.renderer === this.renderers['float'])
+        displayedName = displayedName.replace(/\r?\n|\r/g, '')
+
       entity.data('displayed_name', displayedName)
     })
   }

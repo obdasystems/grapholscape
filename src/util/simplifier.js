@@ -586,7 +586,7 @@ export default function computeSimplifiedOntologies(ontology) {
               target : target.id(),
               type : domain.target().data('type'),
               iri : domain.target().data('iri'),
-              displayed_name : domain.target().data('displayed_name').replace(/\r?\n|\r/g, ''),
+              displayed_name : domain.target().data('displayed_name'),
               annotations : domain.target().data('annotations'),
               description : domain.target().data('description'),
               functional : domain.target().data('functional'),
