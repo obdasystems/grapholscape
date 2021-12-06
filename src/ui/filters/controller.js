@@ -30,10 +30,12 @@ export default function (filterComponent, grapholscape) {
 
           /**
            * if the actual filter is value-domain it means it's not disabled (see previous if condition)
-           * but when filter all is active, filter value-domain must be disabled, let's disable it
+           * but when filter all is active, filter value-domain must be disabled, let's disable it.
+           * Basically value-domain filter disabled state must be equal to the active state of the 
+           * 'all' filter.
            */
           if (key == 'value_domain')
-            filterComponent.filterList[key].disabled = true
+            filterComponent.filterList[key].disabled = filterComponent.filterList['all'].active
 
           executeFilter(key)
         }
