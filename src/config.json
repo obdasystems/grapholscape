@@ -131,12 +131,6 @@
       "title" : "Simplifications",
       "enabled" : true,
       "label" : "Allow ontology simplification widget"
-    },
-    "occurrences_list" : {
-      "type" : "boolean",
-      "title" : "Entity Occurrences",
-      "enabled" : true,
-      "label" : "Enable entity occurrences list widget"
     }
   }
 }
