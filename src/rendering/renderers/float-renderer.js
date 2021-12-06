@@ -58,6 +58,9 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
     this.cy.nodes().addClass('float')
 
+    this.cy.$('[!pinned]').unlock()
+    this.main_layout.removeAllListeners()
+
     if (this.useOriginalPositions) {
       this.activateOriginalPositions()
     } else {
