@@ -302,6 +302,13 @@ export function getGraphStyle(theme) {
     },
 
     {
+      selector: 'edge.role.predicate',
+      style: {
+        'width': 4,
+      }
+    },
+
+    {
       selector: 'edge.range',
       style: {
         'target-arrow-shape': 'square',
