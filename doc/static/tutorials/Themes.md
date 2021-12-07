@@ -49,15 +49,19 @@ const grapholscape = await fullGrapholscape(grapholFile, container, defaultSetti
 It is possible to define new theme specifying each colour in the custom settings at the `theme` entry.
 This time the value will not be a `string` but an `object` whose properties are the colours with their values.
 The new theme will be based on the `light` theme of Grapholscape, this means that all unspecified colours will not be overwritten.
-You can use two special keys:
+
+You must specify an **unique identifier** for your custom theme:
+- **`id`**(`String`): the identifier of the new theme
+You can also use two special keys:
 - **`name`**(`String`): the name that will be displayed to the user in the setting panel.
-  > Default: `name = Custom[i]` where `[i]` is a number
+  > Default: `name = id`
 - **`selected`**(`Boolean`): for telling Grapholscape whether to apply the theme or not, if false it will be defined and registered in themes list and the user can select it in setting panel.
   > Default: `selected = true`
 #### Example - using 'red' as secondary colour
 ```js
 const defaultSettings = {
   theme : {
+    id: '1',
     secondary : 'red',
     name: 'Red Passion Theme',
     selected: true

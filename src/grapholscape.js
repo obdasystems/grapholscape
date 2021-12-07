@@ -498,13 +498,14 @@ class Grapholscape {
     if (!normalizedTheme) { // if it's not defined then maybe it's a custom theme
       try {
         this.addTheme(themeKey) // addTheme returns the key of the new added theme
-        normalizedTheme = this.themesController.getTheme(themeKey.id)
-        themeKey = themeKey.id
       } catch (e) {
         console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes')
         console.error(e)
         return
       }
+      normalizedTheme = this.themesController.getTheme(themeKey.id)
+      if(!normalizedTheme) return
+      themeKey = themeKey.id
     }
 
     this.container.style.background = normalizedTheme.background // prevent black background on fullscreen
@@ -530,13 +531,12 @@ class Grapholscape {
    */
   addTheme(theme) {
     if (!theme.id) {
-      console.error('The custom theme you specified must have a declared unique "id" property')
-      return
+      throw( new Error('The custom theme you specified must have a declared unique "id" property'))
     }
 
     this.config.rendering.theme.list.push({
       value: theme.id,
-      label: theme.name || `Custom${this.config.rendering.theme.list.length}`
+      label: theme.name || theme.id
     })
 
 
