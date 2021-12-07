@@ -27,7 +27,79 @@ import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
 import cy_svg from 'cytoscape-svg';
 
-const preferences={entity_name:{type:"list",title:"Entities Name",label:"Select the type of name to display on entities",selected:"label",list:[{value:"label",label:"Label"},{value:"prefixed",label:"Prefixed IRI"},{value:"full",label:"Full IRI"}]},language:{type:"list",title:"Language",label:"Select the preferred language",selected:"",list:[]}};const rendering={theme:{type:"list",title:"Themes",label:"Select a theme",selected:"gscape",list:[{value:"gscape",label:"Light"},{value:"dark",label:"Dark"},{value:"classic",label:"Graphol"}]}};const widgets={explorer:{title:"Ontology Explorer",type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",title:"Entity Details",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",title:"OWL Translator",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",title:"Filters",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][displayed_name = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"},key:{selector:"[type = \"has-key\"]",label:"Key",active:false,disabled:false,"class":"filterKeys"}}},simplifications:{type:"boolean",title:"Simplifications",enabled:true,label:"Allow ontology simplification widget"},occurrences_list:{type:"boolean",title:"Entity Occurrences",enabled:true,label:"Enable entity occurrences list widget"}};var defaultConfig = {preferences:preferences,rendering:rendering,widgets:widgets};
+const NAMESPACE = 'obda-systems.grapholscape';
+const namespacedKey = (key) => `${NAMESPACE}-${key}`;
+const valueToStore = (v) => JSON.stringify(v);
+const valueFromStorage = (v) => JSON.parse(v);
+
+/**
+ * Load config from local storage
+ */
+function loadConfig() {
+  const config = {};
+  const key = (key) => key.substring(NAMESPACE.length + 1);
+  if (storageAvailable() && isAnySettingSaved()) {
+    Object.keys(window.localStorage)
+      .filter(k => k.startsWith(NAMESPACE)) // take only local storage items written by grapholscape
+      .forEach(k => config[key(k)] = valueFromStorage(window.localStorage.getItem(k)));
+  }
+
+  return config
+}
+
+/**
+ * Store a single setting in local storage
+ * @param {string} k the key of the setting to store
+ * @param {string} value the value of the setting to store
+ */
+function storeConfigEntry(k, value) {
+  if (storageAvailable())
+    window.localStorage.setItem(namespacedKey(k), valueToStore(value));
+}
+
+function storageAvailable(type = 'localStorage') {
+  var storage;
+  try {
+    storage = window[type];
+    var x = '__storage_test__';
+    storage.setItem(x, x);
+    storage.removeItem(x);
+    return true
+  }
+  catch (e) {
+    return e instanceof DOMException && (
+      // everything except Firefox
+      e.code === 22 ||
+      // Firefox
+      e.code === 1014 ||
+      // test name field too, because code might not be present
+      // everything except Firefox
+      e.name === 'QuotaExceededError' ||
+      // Firefox
+      e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+      // acknowledge QuotaExceededError only if there's something already stored
+      (storage && storage.length !== 0)
+  }
+}
+
+/**
+ * @returns Whether there is any local storage in setting belonging to grapholscape
+ */
+function isAnySettingSaved() {
+  if (storageAvailable()) {
+    return Object.keys(window.localStorage).some(k => k.startsWith(NAMESPACE))
+  }
+
+  return false
+}
+
+function clearLocalStorage() {
+  Object.keys(window.localStorage)
+    .filter( k => k.startsWith(NAMESPACE))
+    .forEach(k => window.localStorage.removeItem(k));
+}
+
+const preferences={entity_name:{type:"list",title:"Entities Name",label:"Select the type of name to display on entities",selected:"label",list:[{value:"label",label:"Label"},{value:"prefixed",label:"Prefixed IRI"},{value:"full",label:"Full IRI"}]},language:{type:"list",title:"Language",label:"Select the preferred language",selected:"",list:[]}};const rendering={theme:{type:"list",title:"Themes",label:"Select a theme",selected:"gscape",list:[{value:"gscape",label:"Light"},{value:"dark",label:"Dark"},{value:"classic",label:"Graphol"}]}};const widgets={explorer:{title:"Ontology Explorer",type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",title:"Entity Details",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",title:"OWL Translator",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",title:"Filters",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][displayed_name = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"},key:{selector:"[type = \"has-key\"]",label:"Key",active:false,disabled:false,"class":"filterKeys"}}},simplifications:{type:"boolean",title:"Simplifications",enabled:true,label:"Allow ontology simplification widget"}};var defaultConfig = {preferences:preferences,rendering:rendering,widgets:widgets};
 
 var downloadBlob = (blob, fileName) => {
   let a = document.createElement('a');
@@ -283,7 +355,6 @@ class Ontology {
   /**
    * Get an element in the ontology by id, searching in every diagram
    * @param {string} elem_id - The `id` of the elem to retrieve
-   * @param {boolean} json - if `true` return plain json, if `false` return cytoscape node. Default `false`
    * @returns {CollectionReturnValue} The cytoscape object representation.
    */
   getElem(elem_id) {
@@ -294,7 +365,7 @@ class Ontology {
   }
 
   /**
-   * Retrieve an entity in json by its IRI.
+   * Retrieve an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns {CollectionReturnValue} The cytoscape object representation.
@@ -628,12 +699,6 @@ const constructorLabels = {
 var t$1;const i$1=globalThis.trustedTypes,s$3=i$1?i$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,e$2=`lit$${(Math.random()+"").slice(9)}$`,o$3="?"+e$2,n$3=`<${o$3}>`,l$1=document,h$1=(t="")=>l$1.createComment(t),r$2=t=>null===t||"object"!=typeof t&&"function"!=typeof t,d=Array.isArray,u=t=>{var i;return d(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},c=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,a=/>/g,f=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,_=/'/g,m=/"/g,g=/^(?:script|style|textarea)$/i,$=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),p=$(1),y=$(2),b=Symbol.for("lit-noChange"),T=Symbol.for("lit-nothing"),x=new WeakMap,w=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(h$1(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},A=l$1.createTreeWalker(l$1,129,null,!1),C=(t,i)=>{const o=t.length-1,l=[];let h,r=2===i?"<svg>":"",d=c;for(let i=0;i<o;i++){const s=t[i];let o,u,$=-1,p=0;for(;p<s.length&&(d.lastIndex=p,u=d.exec(s),null!==u);)p=d.lastIndex,d===c?"!--"===u[1]?d=v:void 0!==u[1]?d=a:void 0!==u[2]?(g.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=f):void 0!==u[3]&&(d=f):d===f?">"===u[0]?(d=null!=h?h:c,$=-1):void 0===u[1]?$=-2:($=d.lastIndex-u[2].length,o=u[1],d=void 0===u[3]?f:'"'===u[3]?m:_):d===m||d===_?d=f:d===v||d===a?d=c:(d=f,h=void 0);const y=d===f&&t[i+1].startsWith("/>")?" ":"";r+=d===c?s+n$3:$>=0?(l.push(o),s.slice(0,$)+"$lit$"+s.slice($)+e$2+y):s+e$2+(-2===$?(l.push(void 0),i):y);}const u=r+(t[o]||"<?>")+(2===i?"</svg>":"");return [void 0!==s$3?s$3.createHTML(u):u,l]};class P{constructor({strings:t,_$litType$:s},n){let l;this.parts=[];let r=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C(t,s);if(this.el=P.createElement(v,n),A.currentNode=this.el.content,2===s){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(e$2)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(e$2),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S$1});}else c.push({type:6,index:r});}for(const i of t)l.removeAttribute(i);}if(g.test(l.tagName)){const t=l.textContent.split(e$2),s=t.length-1;if(s>0){l.textContent=i$1?i$1.emptyScript:"";for(let i=0;i<s;i++)l.append(t[i],h$1()),A.nextNode(),c.push({type:2,index:++r});l.append(t[s],h$1());}}}else if(8===l.nodeType)if(l.data===o$3)c.push({type:2,index:r});else {let t=-1;for(;-1!==(t=l.data.indexOf(e$2,t+1));)c.push({type:7,index:r}),t+=e$2.length-1;}r++;}}static createElement(t,i){const s=l$1.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===b)return i;let d=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=r$2(i)?void 0:i._$litDirective$;return (null==d?void 0:d.constructor)!==u&&(null===(n=null==d?void 0:d._$AO)||void 0===n||n.call(d,!1),void 0===u?d=void 0:(d=new u(t),d._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=d:s._$Cu=d),void 0!==d&&(i=V(t,d._$AS(t,i.values),d,e)),i}class E{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:l$1).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),h=0,r=0,d=e[0];for(;void 0!==d;){if(h===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.v.push(i),d=e[++r];}h!==(null==d?void 0:d.index)&&(n=A.nextNode(),h++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=T,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cg=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cg}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),r$2(t)?t===T||null==t||""===t?(this._$AH!==T&&this._$AR(),this._$AH=T):t!==this._$AH&&t!==b&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.S(t):u(t)?this.M(t):this.$(t);}A(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}S(t){this._$AH!==t&&(this._$AR(),this._$AH=this.A(t));}$(t){this._$AH!==T&&r$2(this._$AH)?this._$AA.nextSibling.data=t:this.S(l$1.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new E(o,this),i=t.p(this.options);t.m(s),this.S(i),this._$AH=t;}}_$AC(t){let i=x.get(t.strings);return void 0===i&&x.set(t.strings,i=new P(t)),i}M(t){d(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.A(h$1()),this.A(h$1()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cg=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S$1{constructor(t,i,s,e,o){this.type=1,this._$AH=T,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=T;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!r$2(t)||t!==this._$AH&&t!==b,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===b&&(h=this._$AH[l]),n||(n=!r$2(h)||h!==this._$AH[l]),h===T?t=T:t!==T&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.k(t);}k(t){t===T?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S$1{constructor(){super(...arguments),this.type=3;}k(t){this.element[this.name]=t===T?void 0:t;}}class k extends S$1{constructor(){super(...arguments),this.type=4;}k(t){t&&t!==T?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class H extends S$1{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:T)===b)return;const e=this._$AH,o=t===T&&e!==T||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==T&&(e===T||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const R=window.litHtmlPolyfillSupport;null==R||R(P,N),(null!==(t$1=globalThis.litHtmlVersions)&&void 0!==t$1?t$1:globalThis.litHtmlVersions=[]).push("2.0.1");
 
 /** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
-/** 
- * @typedef {object} ViewportState 
- * @property {number} ViewportState.x
- * @property {number} ViewportState.y
- * @property {number} ViewportState.zoom
-*/
 
 /**
  * Class that manages and control a set of renderers, it's used
@@ -707,12 +772,9 @@ class RendererManager {
   /**
    * 
    * @param {import('../model/index').Diagram} diagram The diagram to display
-   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
    */
-  drawDiagram(diagram, shouldViewportFit) {
-    //let diagramView = diagramModelToViewData(diagram)
+  drawDiagram(diagram) {
     this.renderer.drawDiagram(diagram);
-    if (shouldViewportFit) this.renderer.fit();
     this.actualDiagramID = diagram.id;
     diagram.hasEverBeenRendered = true;
   }
@@ -809,6 +871,12 @@ class RendererManager {
           break
         }
       }
+
+      /**
+       * In floaty mode remove all '\n' from edges' labels to avoid glitches
+       */
+      if (this.renderer === this.renderers['float'] && entity.data('type') === Type.OBJECT_PROPERTY)
+        displayedName = displayedName.replace(/\r?\n|\r/g, '');
 
       entity.data('displayed_name', displayedName);
     });
@@ -1146,6 +1214,13 @@ function getGraphStyle(theme) {
     },
 
     {
+      selector: 'edge.role.predicate',
+      style: {
+        'width': 4,
+      }
+    },
+
+    {
       selector: 'edge.range',
       style: {
         'target-arrow-shape': 'square',
@@ -1433,6 +1508,7 @@ class GrapholscapeRenderer {
     if (this._cy) this._cy.unmount();
     cyInstance.mount(this.cy_container);
 
+    cyInstance.removeAllListeners();
     cyInstance.autoungrabify(true);
     cyInstance.maxZoom(2.5);
     cyInstance.minZoom(0.02);
@@ -1553,12 +1629,6 @@ const save = y`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 
 
 const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
 
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
- */
-const move_bubbles = y`<svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" /></svg>`;
-
 class FloatyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
     super(container);
@@ -1587,6 +1657,11 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
       e.target.removeData('old_pos');
     });
+
+    this.cy.$('[?pinned]').each( n => {
+      n.on('position', () => this.updatePopper(n));
+      this.cy.on('pan zoom resize', () => this.updatePopper(n));
+    });
   }
 
   addPopperContainer() {
@@ -1610,6 +1685,9 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
     this.cy.container().appendChild(this.popperContainer);
 
     this.cy.nodes().addClass('float');
+
+    this.cy.$('[!pinned]').unlock();
+    this.main_layout.removeAllListeners();
 
     if (this.useOriginalPositions) {
       this.activateOriginalPositions();
@@ -1666,9 +1744,10 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
         div.style.padding = '5px';
         div.style.color = this.theme.on_secondary;
         div.style.cursor = 'pointer';
+        div.style.boxSizing = 'content-box';
         div.setAttribute('title', 'Unlock Node');
 
-        div.innerHTML = `<span class="icon">${lock_open}</span>`;
+        div.innerHTML = `<span class="popper-icon">${lock_open}</span>`;
         this.setPopperStyle(dimension, div);
 
         div.onclick = () => this.unpinNode(node);
@@ -1693,7 +1772,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   setPopperStyle(dim, popper) {
-    let icon = popper.querySelector('.icon > svg');
+    let icon = popper.querySelector('.popper-icon > svg');
     icon.style.display = 'inherit';
     if (dim > 2) {
       popper.style.width = dim + 'px';
@@ -1884,34 +1963,39 @@ function initRenderersManager(container, renderersKeys = ['default']) {
 
 /**
  * @typedef {object} Theme an object of colours
- * @property {string} primary
- * @property {string} on_primary
- * @property {string} primary_dark
- * @property {string} on_primary_dark
- * @property {string} secondary
- * @property {string} on_secondary
- * @property {string} secondary_dark
- * @property {string} on_secondary_dark
- * @property {string} shadows
- * @property {string} error
- * @property {string} on_error
- * @property {string} warning
- * @property {string} on_warning
- * @property {string} background
- * @property {string} edge
- * @property {string} node_bg
- * @property {string} node_bg_contrast
- * @property {string} node_border
- * @property {string} label_color
- * @property {string} label_color_contrast
- * @property {string} role
- * @property {string} role_dark
- * @property {string} attribute
- * @property {string} attribute_dark
- * @property {string} concept
- * @property {string} concept_dark
- * @property {string} individual
- * @property {string} individual_dark
+ * 
+ * @property {string} id
+ * @property {string?} name
+ * @property {boolean?} selected
+ * 
+ * @property {string?} primary
+ * @property {string?} on_primary
+ * @property {string?} primary_dark
+ * @property {string?} on_primary_dark
+ * @property {string?} secondary
+ * @property {string?} on_secondary
+ * @property {string?} secondary_dark
+ * @property {string?} on_secondary_dark
+ * @property {string?} shadows
+ * @property {string?} error
+ * @property {string?} on_error
+ * @property {string?} warning
+ * @property {string?} on_warning
+ * @property {string?} background
+ * @property {string?} edge
+ * @property {string?} node_bg
+ * @property {string?} node_bg_contrast
+ * @property {string?} node_border
+ * @property {string?} label_color
+ * @property {string?} label_color_contrast
+ * @property {string?} role
+ * @property {string?} role_dark
+ * @property {string?} attribute
+ * @property {string?} attribute_dark
+ * @property {string?} concept
+ * @property {string?} concept_dark
+ * @property {string?} individual
+ * @property {string?} individual_dark
  */
 
 const gscape = {
@@ -2071,8 +2155,10 @@ class ThemesController {
       this.themes[themeKey] = ThemesController.getNormalizedTheme(themes[themeKey]);
     }
 
-    this.actualThemeKey = 'gscape';
+    this.actualThemeKey = ThemesController.DEFAULT;
   }
+
+  static DEFAULT = 'gscape'
 
   /**
    * 
@@ -2201,7 +2287,7 @@ function cyToGrapholElem(cytoscapeObj) {
 // Funzioni che ritornano il primo figlio o il fratello successivo di un dato nodo
 // Ignorano quindi tutti gli elementi di tipo diverso da 1
 // cioè gli attributi, gli spazi vuoti ecc...
-function getFirstChild (node) {
+function getFirstChild(node) {
   if (node == null || node.firstChild == null) { return null }
 
   node = node.firstChild;
@@ -2211,7 +2297,7 @@ function getFirstChild (node) {
   return node
 }
 
-function getNextSibling (node) {
+function getNextSibling(node) {
   if (node == null || node.nextSibling == null) { return null }
 
   node = node.nextSibling;
@@ -2224,7 +2310,7 @@ function getNextSibling (node) {
   return node
 }
 
-function isPredicate (node) {
+function isPredicate(node) {
   switch (node.getAttribute('type')) {
     case 'concept':
     case 'attribute':
@@ -2238,7 +2324,7 @@ function isPredicate (node) {
 
 // Date le posizioni di source, target e del breakpoint,
 // la funzione calcola i due parametri peso e distanza del breakpoint e li restituisce
-function getDistanceWeight (target, source, point) {
+function getDistanceWeight(target, source, point) {
   // Esprimiamo le coordinate di point traslando l'origine sul source:
   // point['0'] corrisponde alla coordinata x del punto, point['1'] è l'ordinata
   var breakpoint = [];
@@ -2357,46 +2443,73 @@ function getDistanceWeight (target, source, point) {
 // Traslando sul bordo l'endpoint in direzione del breakpoint successivo (nel caso di source) o precedente
 // (nel caso di target), cytoscape farà corrispondere la punta della freccia sul bordo del nodo e
 // sarà quindi visibile
-function getNewEndpoint (end_point, node, break_point) {
+function getNewEndpoint(end_point, node, break_point) {
   // Calcoliamo le coordinate relative al nodo source (o target)
-  var endpoint = [];
-  endpoint['x'] = end_point['x'] - node.position('x');
-  endpoint['y'] = end_point['y'] - node.position('y');
-  
-  if(endpoint['x'] == 0 && endpoint['y'] == 0)
+  var endpoint = {};
+  endpoint.x = end_point.x - node.position('x');
+  endpoint.y = end_point.y - node.position('y');
+
+  if (endpoint.x == 0 && endpoint.y == 0)
     return endpoint
 
-  var breakpoint = [];
-  breakpoint['x'] = break_point['x'] - node.position('x');
-  breakpoint['y'] = break_point['y'] - node.position('y');
+  var breakpoint = {};
+  breakpoint.x = break_point['x'] - node.position('x');
+  breakpoint.y = break_point['y'] - node.position('y');
 
   // Se l'endpoint non è centrato nel nodo ma ha la X uguale al breakpoint successivo (o precedente)
   // Allora l'arco parte (o arriva) perpendicolarmente dall'alto o dal basso
 
-  if (endpoint['x'] == breakpoint['x']) {
+  if (endpoint.x == breakpoint.x) {
     // Se il breakpoint si trova più in basso (Ricorda: asse Y al contrario in cytoscape!),
     // allora spostiamo sul bordo inferiore l'endpoint
-    if (breakpoint['y'] > 0) {
-      endpoint['y'] = node.data('height') / 2;
+    if (breakpoint.y > 0) {
+      endpoint.y = node.data('height') / 2;
       return endpoint
     }
     // Se invece il breakpoint è più in alto del nodo, allora spostiamo l'endpoint sul bordo superiore
-    else if (breakpoint['y'] < 0) {
-      endpoint['y'] = -node.data('height') / 2;
+    else if (breakpoint.y < 0) {
+      endpoint.y = -node.data('height') / 2;
       return endpoint
     }
   }
   // Se invece ad essere uguale è la Y, l'arco arriva da destra o da sinistra, facciamo gli stessi passaggi appena fatti
-  else if (endpoint['y'] == breakpoint['y']) {
-    if (breakpoint['x'] > 0) {
-      endpoint['x'] = node.data('width') / 2;
+  else if (endpoint.y == breakpoint.y) {
+    if (breakpoint.x > 0) {
+      endpoint.x = node.data('width') / 2;
       return endpoint
-    } else if (breakpoint['x'] < 0) {
-      endpoint['x'] = -node.data('width') / 2;
+    } else if (breakpoint.x < 0) {
+      endpoint.x = -node.data('width') / 2;
       return endpoint
     }
   }
   return endpoint
+}
+
+function getPointOnEdge(point1, point2) {
+  const m = (point1.y - point2.y) / (point1.x - point2.x);
+  const result = { x: 0, y: 0 };
+  const middleX = (point1.x - point2.x) / 2;
+  const middleY = (point1.y - point2.y) / 2;
+
+  if (point1.x !== point2.x && point1.y !== point2.y) {
+    result.x = point1.x - middleX;
+    // y = mx + q  [ q = y1 - mx1 ] => y = mx + y1 - mx1
+    result.y = m * result.x + point1.y - m * point1.x;
+  }
+
+  // horizontal line
+  else if (point1.y === point2.y) {
+    result.x = point1.x - middleX;
+    result.y = point1.y;
+  }
+
+  // vertical line
+  else if (point1.x === point2.x) {
+    result.x = point1.x;
+    result.y = point1.y - middleY;
+  }
+
+  return result
 }
 
 /** @param {Ontology} ontology */
@@ -2981,7 +3094,7 @@ function computeSimplifiedOntologies(ontology) {
               target : target.id(),
               type : domain.target().data('type'),
               iri : domain.target().data('iri'),
-              displayed_name : domain.target().data('displayed_name').replace(/\r?\n|\r/g, ''),
+              displayed_name : domain.target().data('displayed_name'),
               annotations : domain.target().data('annotations'),
               description : domain.target().data('description'),
               functional : domain.target().data('functional'),
@@ -3170,9 +3283,11 @@ class Grapholscape {
   /**
    * Display a diagram on the screen.
    * @param {Diagram | string | number} diagram The diagram retrieved from model, its name or it's id
-   * @param {boolean} shouldViewportFit whether to fit viewport to diagram or not
+   * @param {import("./rendering/renderer-manager").ViewportState} viewportState the viewPortState of the viewport,
+   * if you don't pass it, viewport won't change unless it's the first time you draw such diagram. In this case
+   * viewport will fit to diagram.
    */
-  showDiagram(diagram, shouldViewportFit = false) {
+  showDiagram(diagram, viewportState = null) {
     const showDiagram = () => {
       if (typeof diagram == 'string' || typeof diagram == 'number') {
         diagram = this.ontology.getDiagram(diagram);
@@ -3183,8 +3298,13 @@ class Grapholscape {
         return
       }
 
-      shouldViewportFit = shouldViewportFit || !diagram.hasEverBeenRendered;
-      this.renderersManager.drawDiagram(diagram, shouldViewportFit);
+      const isFirstTimeRendering = diagram.hasEverBeenRendered;
+      this.renderersManager.drawDiagram(diagram);
+      if (viewportState)
+        this.renderersManager.setViewport(viewportState);
+      else if (!isFirstTimeRendering) {
+        this.renderersManager.fit();
+      }
       this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages);
 
       Object.keys(this.filterList).forEach(key => {
@@ -3209,7 +3329,7 @@ class Grapholscape {
   }
 
   /**
-   * Focus on a single node and zoom on it.
+   * Select a single node and zoom on it.
    * If necessary it also display the diagram containing the node.
    * @param {number} nodeID - The node unique ID
    * @param {number?} zoom - The zoom level to apply (Default: 1.5)
@@ -3223,10 +3343,22 @@ class Grapholscape {
         return
       }
       let nodeDiagramID = cyToGrapholElem(this.ontology.getElem(nodeID)).data.diagram_id;
-      if (this.renderersManager.actualDiagramID != nodeDiagramID) {
+      if (this.actualDiagramID != nodeDiagramID) {
         this.showDiagram(nodeDiagramID);
+        /**
+         * hack in case of actual renderer is based on simplifications.
+         * In that case, if we call centerOnNode on renderer immediately, it will be performed
+         * before the new diagram has been drawn, this because showDiagram will wait for
+         * the simplified ontology promise to be resolved. (showDiagram is async).
+         * Calling again this same function will wait again for that promise to be
+         * fulfilled and for sure the right diagram will be drawn.
+         */
+        if (this.shouldWaitSimplifyPromise) {
+          this.centerOnNode(nodeID, zoom);
+          return
+        }
       }
-
+      
       this.renderersManager.centerOnNode(nodeID, zoom);
     };
 
@@ -3252,7 +3384,7 @@ class Grapholscape {
    */
   setRenderer(rendererKey, keepViewportState = true) {
     const setRenderer = () => {
-      let viewportState = keepViewportState ? this.renderersManager.actualViewportState : undefined;
+      let viewportState = keepViewportState ? this.renderersManager.actualViewportState : null;
 
       let selectedEntities = {};
       // get selected entity in each diagram
@@ -3267,12 +3399,11 @@ class Grapholscape {
         this.filterList[filterKey].disabled = this.renderer.disabledFilters.includes(filterKey);
       });
 
-      this.showDiagram(this.actualDiagramID); // either viewport state is set manually or untouched
+      this.showDiagram(this.actualDiagramID, viewportState);
       // for each selected entity in each diagram, select it again in the new renderer
       Object.keys(selectedEntities).forEach(diagramID => {
-        this.selectEntity(selectedEntities[diagramID].data.iri.fullIri, diagramID);
+        this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID);
       });
-      this.setViewport(viewportState);
 
       this._callbacksRendererChange.forEach(fn => fn(rendererKey));
     };
@@ -3288,48 +3419,63 @@ class Grapholscape {
   }
 
   /**
-   * Select an entity by its IRI and the diagram it belongs to,
-   * if you don't pass a diagram, the actual diagram will be used
+   * Select an entity by its IRI and the diagram it belongs to.
+   * If you don't specify a diagram, actual diagram will be used if it exists and if it contains
+   * any occurrence of the specified entity IRI, otherwise the diagram of the first entity IRI
+   * occurrence will be used.
    * @param {string} iri the IRI of the entity to select in full or prefixed form
-   * @param {Diagram | number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   * @param {Diagram | number | string} [diagram] The diagram in which to select the IRI (can be
+   * also the diagram id).
    */
-  selectEntity(iri, diagram = this.actualDiagramID || 0) {
-    const selectEntity = () => {
+  selectEntityOccurrences(iri, diagram) {
+    const selectEntityOccurrences = () => {
       let diagramID = '';
-      try {
-        if (typeof (diagram) === 'object')
-          diagramID = diagram.id;
-        else
-          diagramID = this.ontology.getDiagram(diagram).id;
-      } catch (e) { console.error(`Diagram ${diagram} not defined`); }
+      if (typeof (diagram) === 'object')
+        diagramID = diagram.id;
+      else
+        diagramID = this.ontology.getDiagram(diagram)?.id;
 
-      let iriOccurrences = this.ontology.getEntityOccurrences(iri);
+      const iriOccurrences = this.ontology.getEntityOccurrences(iri);
       
-      if (!iriOccurrences) {
+      if (!iriOccurrences || iriOccurrences.length === 0) {
         console.warn(`Could not find any entity with "${iri}" as prefixed or full IRI`);
         return
       }
 
+      if (!diagramID) {
+        if (this.actualDiagramID && iriOccurrences.some( e => cyToGrapholElem(e).data.diagram_id === this.actualDiagramID)) {
+          diagramID = this.actualDiagramID;
+        } else {
+          diagramID = cyToGrapholElem(iriOccurrences[0]).data.diagram_id;
+        }
+      }
+
       iriOccurrences.forEach(entity => {
-        let grapholEntity = cyToGrapholElem(entity);
+        const grapholEntity = cyToGrapholElem(entity);
         if (grapholEntity.data.diagram_id === diagramID) {
           this.selectElem(grapholEntity.data.id, diagramID);
         }
       });
     };
     
-    this.performActionInvolvingOntology(selectEntity);
+    this.performActionInvolvingOntology(selectEntityOccurrences);
   }
 
   /**
-   * Select a node or an edge given its unique id
+   * Select a node or an edge given its unique id.
+   * It does not change diagram nor viewport state.
+   * If you want to select and focus viewport on a node,
+   * you should use {@link centerOnNode}.
    * @param {string} id unique elem id (node or edge)
-   * @param {number | string} [diagram=actualDiagramID] The diagram in which to select the IRI (can be also the diagram id)
+   * @param {number | string} [diagram] The diagram in which to select the IRI (can be also the diagram id)
    */
-  selectElem(id, diagramID = this.actualDiagramID || 0) {
-    const selectElem = () => 
-      this.ontology.getDiagram(diagramID)?.selectElem(id);
-
+  selectElem(id, diagram) {
+    const selectElem = () => {
+      if (!diagram) {
+        diagram = cyToGrapholElem(this.ontology.getElem(id)).data.diagram_id;
+      }
+      this.ontology.getDiagram(diagram)?.selectElem(id);
+    };
     this.performActionInvolvingOntology(selectElem);
   }
 
@@ -3400,10 +3546,11 @@ class Grapholscape {
 
   /** @param {themeChangeCallback} callback */
   onThemeChange(callback) { this._callbacksThemeChange.push(callback); }
+
   /**
    * Apply an existing theme or pass a new custom theme that will be added and then applied
    * Please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
-   * @param {string | Theme } themeKey a predefined theme key or a custom Theme object
+   * @param {string | import('./style/themes').Theme } themeKey a predefined theme key or a custom Theme object
    * @tutorial Themes
    */
   applyTheme(themeKey) {
@@ -3412,12 +3559,15 @@ class Grapholscape {
     let normalizedTheme = this.themesController.getTheme(themeKey);
     if (!normalizedTheme) { // if it's not defined then maybe it's a custom theme
       try {
-        themeKey = this.addTheme(themeKey); // addTheme returns the key of the new added theme
-        normalizedTheme = this.themesController.getTheme(themeKey);
-      } catch {
+        this.addTheme(themeKey); // addTheme returns the key of the new added theme
+      } catch (e) {
         console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes');
+        console.error(e);
         return
       }
+      normalizedTheme = this.themesController.getTheme(themeKey.id);
+      if(!normalizedTheme) return
+      themeKey = themeKey.id;
     }
 
     this.container.style.background = normalizedTheme.background; // prevent black background on fullscreen
@@ -3429,37 +3579,38 @@ class Grapholscape {
       this.container.style.setProperty(css_key, normalizedTheme[key]);
     });
 
-
+    this.config.rendering.theme.selected = themeKey;
     this.renderersManager.setTheme(normalizedTheme); // set graph style based on new theme
     this.themesController.actualTheme = themeKey;
+    storeConfigEntry('theme', themeKey);
     this._callbacksThemeChange.forEach(fn => fn(normalizedTheme, themeKey));
   }
 
   /**
    * Register a new theme
    * @param {import('./style/themes').Theme} theme a theme object, please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
-   * @returns {string} the key assigned to the new theme for later setting it
    * @tutorial Themes
    */
   addTheme(theme) {
-    let custom_theme_value = `custom${this.config.rendering.theme.list.length}`;
+    if (!theme.id) {
+      throw( new Error('The custom theme you specified must have a declared unique "id" property'))
+    }
 
     this.config.rendering.theme.list.push({
-      value: custom_theme_value,
-      label: theme.name || `Custom${this.config.rendering.theme.list.length}`
+      value: theme.id,
+      label: theme.name || theme.id
     });
 
 
     // update selected theme unless new them is set with selected = false
     if (theme.selected == undefined || theme.selected == true) {
-      this.config.rendering.theme.selected = custom_theme_value;
+      this.config.rendering.theme.selected = theme.id;
     }
     // remove metadata from theme in order to get only colours
     delete theme.name;
     delete theme.selected;
 
-    this.themesController.addTheme(theme, custom_theme_value);
-    return custom_theme_value
+    this.themesController.addTheme(theme, theme.id);
   }
 
   /** @param {entityNameTypeChangeCallback} callback */
@@ -3473,6 +3624,7 @@ class Grapholscape {
     this.config.preferences.entity_name.selected = entityNameType;
     // update displayed names (if label is selected then update the label language)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages);
+    storeConfigEntry('entity_name', entityNameType);
     this._callbacksEntityNameTypeChange.forEach(fn => fn(entityNameType));
   }
 
@@ -3486,6 +3638,7 @@ class Grapholscape {
     this.config.preferences.language.selected = language;
     // update displayed names (if label is selected then update the label language)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages);
+    storeConfigEntry('language', language);
     this._callbacksLanguageChange.forEach(fn => fn(language));
   }
 
@@ -3564,7 +3717,8 @@ class Grapholscape {
    * @type {string}
    */
   get exportFileName() {
-    return `${this.ontology.name}-${this.actualDiagram.name}-v${this.ontology.version}`
+    const diagramName = this.ontology.getDiagram(this.actualDiagramID).name;
+    return `${this.ontology.name}-${diagramName}-v${this.ontology.version}`
   }
 
   get renderer() { return this.renderersManager.renderer }
@@ -3584,7 +3738,6 @@ class Grapholscape {
   /** @type {Filter[]} */
   get filterList() { return this.config.widgets.filters.filter_list }
 
-  /** @type {import('./style/themes').Theme} */
   get themes() { return this.themesController.themes }
 
   /** @type {string | number} */
@@ -3607,9 +3760,18 @@ class Grapholscape {
     return rendererKeys.includes('lite') || rendererKeys.includes('float')
   }
 
+  get shouldWaitSimplifyPromise() {
+    return this.renderer.key !== 'default'
+  }
+
+  /**
+   * Perform any action that might be using simplified ontologies,
+   * this ensures the action to be performed only when such
+   * ontology is available.
+   * @param {function} callback the function to execute
+   */
   performActionInvolvingOntology(callback) {
-    let renderers = Object.keys(this.renderersManager.renderers);
-    if (this.shouldSimplify && (renderers.includes('lite') || renderers.includes('float'))) {
+    if (this.shouldSimplify && this.shouldWaitSimplifyPromise) {
       this.SimplifiedOntologyPromise.then( () => callback());
     } else {
       callback();
@@ -4290,26 +4452,62 @@ class GrapholParser {
     }
     // Calcoliamo gli endpoints sul source e sul target
     // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
-    var source_endpoint = [];
-    source_endpoint['x'] = breakpoints[0]['x'];
-    source_endpoint['y'] = breakpoints[0]['y'];
-    source_endpoint = getNewEndpoint(source_endpoint, source, breakpoints[1]);
+    let source_endpoint = getNewEndpoint(
+      breakpoints[0], // first breakpoint is the one on source
+      source,
+      breakpoints[1]
+    );
+
     // Impostiamo l'endpoint solo se è diverso da zero
     // perchè di default l'endpoint è impostato a (0,0) relativamente al nodo di riferimento
-    if (source_endpoint['x'] != 0 || source_endpoint['y'] != 0) {
+    if (source_endpoint.x != 0 || source_endpoint.y != 0) {
       edge.data.source_endpoint = [];
-      edge.data.source_endpoint.push(source_endpoint['x']);
-      edge.data.source_endpoint.push(source_endpoint['y']);
+      edge.data.source_endpoint.push(source_endpoint.x);
+      edge.data.source_endpoint.push(source_endpoint.y);
     }
     // Facciamo la stessa cosa per il target
-    var target_endpoint = [];
-    target_endpoint['x'] = breakpoints[breakpoints.length - 1]['x'];
-    target_endpoint['y'] = breakpoints[breakpoints.length - 1]['y'];
-    target_endpoint = getNewEndpoint(target_endpoint, target, breakpoints[breakpoints.length - 2]);
-    if (target_endpoint['x'] != 0 || target_endpoint['y'] != 0) {
+    let target_endpoint = getNewEndpoint(
+      breakpoints[breakpoints.length - 1], // last endpoint is the one on target
+      target, 
+      breakpoints[breakpoints.length - 2]
+    );
+
+    if (target_endpoint.x != 0 || target_endpoint.y != 0) {
       edge.data.target_endpoint = [];
-      edge.data.target_endpoint.push(target_endpoint['x']);
-      edge.data.target_endpoint.push(target_endpoint['y']);
+      edge.data.target_endpoint.push(target_endpoint.x);
+      edge.data.target_endpoint.push(target_endpoint.y);
+    }
+
+    // If we have no control-points and only one endpoint, we need an intermediate breakpoint
+    // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
+    let breakpoint;
+    if ( breakpoints.length === 2 ) { // 2 breakpoints means no control-points
+      if ((edge.data.source_endpoint && !edge.data.target_endpoint)) {
+        /**
+         * we have custom endpoint only on source, get a middle breakpoint 
+         * between the custom endpoint on source (breakpoints[0]) and target position
+         * (we don't have endpoint on target)
+         * 
+         * NOTE: don't use source_endpoint because it contains relative coordinate 
+         * with respect source node position. We need absolute coordinates which are
+         * the ones parsed from .graphol file
+         */
+        breakpoint = getPointOnEdge(breakpoints[0], target.position());
+      }
+
+      if (!edge.data.source_endpoint && edge.data.target_endpoint) {
+        // same as above but with endpoint on target, which is the last breakpoints (1 since they are just 2)
+        breakpoint = getPointOnEdge(source.position(), breakpoints[1]);
+      }
+
+      if (breakpoint) {
+        // now if we have the breakpoint we need, let's get distance and weight for cytoscape
+        // just like any other breakpoint
+        const distanceWeight = getDistanceWeight(target.position(), source.position(), breakpoint);
+        edge.data.breakpoints = [ breakpoint ];
+        edge.data.segment_distances = [ distanceWeight[0] ];
+        edge.data.segment_weights = [ distanceWeight[1] ];
+      }
     }
     return edge
   }
@@ -4515,6 +4713,15 @@ class GrapholParser {
  * @returns {Promise<Grapholscape>}
  */
 function initGrapholscape (file, container, config) {
+
+  const savedConfig = loadConfig();
+  let lastUsedTheme = savedConfig.theme;
+  delete savedConfig.theme; // we don't need to override theme in config
+  // copy savedConfig over config
+  config = Object.assign(config, savedConfig);
+  if (config.theme) {
+    config.theme.selected = lastUsedTheme && lastUsedTheme === config.theme?.id;
+  }
   return new Promise ((resolve, reject) => {
     let ontology = null;
 
@@ -4543,10 +4750,12 @@ function initGrapholscape (file, container, config) {
 
     function init() {
       try {
-        resolve(new Grapholscape(ontology, container, config));
-      } catch (e) { console.log(e);}
+        const gscape = new Grapholscape(ontology, container, config);
+        if (lastUsedTheme) gscape.applyTheme(lastUsedTheme);
+        resolve(gscape);
+      } catch (e) { console.error(e);}
     }
-  }).catch(error => console.log(error) )
+  }).catch(error => console.error(error) )
 
   function getResult(file) {
     return new GrapholParser(file).parseGraphol()
@@ -5954,10 +6163,12 @@ function init$6 (filterComponent, grapholscape) {
 
           /**
            * if the actual filter is value-domain it means it's not disabled (see previous if condition)
-           * but when filter all is active, filter value-domain must be disabled, let's disable it
+           * but when filter all is active, filter value-domain must be disabled, let's disable it.
+           * Basically value-domain filter disabled state must be equal to the active state of the 
+           * 'all' filter.
            */
-          if (key == 'value_domain')
-            filterComponent.filterList[key].disabled = true;
+          if (key == 'value_domain' && !grapholscape.renderer.disabledFilters.includes('value_domain'))
+            filterComponent.filterList[key].disabled = filterComponent.filterList['all'].active;
 
           executeFilter(key);
         }
@@ -6036,13 +6247,8 @@ class GscapeLayoutSettings extends GscapeWidget {
           --btn-padding: 0 0 0 10px;
         }
 
-        gscape-toggle, gscape-button {
+        gscape-toggle {
           margin-left: 50px;
-        }
-
-        gscape-button {
-          line-height: 24px;
-          position: inherit;
         }
 
         .wrapper {
@@ -6070,8 +6276,6 @@ class GscapeLayoutSettings extends GscapeWidget {
 
     this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running');
     this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin');
-    this.useOriginalPositionsButton = new GscapeButton(move_bubbles);
-    this.useOriginalPositionsButton.label = 'Original Positions';
     this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions');
 
     this.onLayoutRunToggle = {};
@@ -6097,7 +6301,7 @@ class GscapeLayoutSettings extends GscapeWidget {
         <span class="toggles-wrapper">
           ${this.layoutRunToggle}
           ${this.dragAndDropToggle}
-          ${this.useOriginalPositionsButton}
+          ${this.useOriginalPositionsToggle}
         </span>
       </div>
 
@@ -6116,7 +6320,7 @@ class GscapeLayoutSettings extends GscapeWidget {
 
   set onUseOriginalPositions(callback) {
     this._onUseOriginalPositions = callback;
-    this.useOriginalPositionsButton.onClick = callback;
+    this.useOriginalPositionsToggle.onToggle = callback;
   }
 
   get onLayoutRunToggle() {
@@ -7803,7 +8007,7 @@ class GscapeSettings extends GscapeWidget {
 
           <div id="version">
             <span>Version: </span>
-            <span>${"2.0.0-beta.0"}</span>
+            <span>${"2.0.0-beta.1"}</span>
           </div>
         </div>
       </div>
@@ -8042,8 +8246,14 @@ function init (grapholscape) {
     const owlVisualizerComponent = owlVisualizer(grapholscape);
     const filterComponent = filters(grapholscape);
     const settingsComponent = settings(grapholscape);
-    settingsComponent.onWidgetEnabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).enable();
-    settingsComponent.onWidgetDisabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).disable();
+    settingsComponent.onWidgetEnabled = (widgetName) => {
+      gui_container.querySelector(widgetNames[widgetName]).enable();
+      storeConfigEntry(widgetName, true);
+    };
+    settingsComponent.onWidgetDisabled = (widgetName) => {
+      gui_container.querySelector(widgetNames[widgetName]).disable();
+      storeConfigEntry(widgetName, false);
+    };
     const rendererSelectorComponent = rendererSelector(grapholscape);
     const layoutSettingsComponent = layoutSettings(grapholscape);
 
@@ -8106,8 +8316,7 @@ function init (grapholscape) {
     }
   };
 
-  let renderers = Object.keys(grapholscape.renderersManager.renderers);
-  if (grapholscape.shouldSimplify && (renderers.includes('lite') || renderers.includes('float'))) {
+  if (grapholscape.shouldSimplify && grapholscape.shouldWaitSimplifyPromise) {
     grapholscape.SimplifiedOntologyPromise.then( _ => {
       init();
     });
@@ -8151,11 +8360,11 @@ var index = /*#__PURE__*/Object.freeze({
  * or a String representing the .graphol file to be displayed
  * @param {object} container a DOM element in which the ontology will be rendered in
  * @param {object} config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
- * @returns {Promise<import('./grapholscape').default>} a promise that will be fulfilled with a Grapholscape object
+ * @returns a promise that will be fulfilled with a Grapholscape object
  * @tutorial Settings
  * @tutorial Themes
  */
-async function fullGrapholscape(file, container, config = null) {
+async function fullGrapholscape(file, container, config = {}) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape');
     return undefined
@@ -8177,11 +8386,11 @@ cytoscape.use(cola);
  * or a String representing the .graphol file to be displayed
  * @param {object} container a DOM element in which the ontology will be rendered in
  * @param {object} config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
- * @returns {Promise<import('./grapholscape').default>} a promise that will be fulfilled with a Grapholscape object
+ * @returns a promise that will be fulfilled with a Grapholscape object
  * @tutorial Settings
  * @tutorial Themes
  */
-function bareGrapholscape(file, container, config = null) {
+function bareGrapholscape(file, container, config = {}) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape');
     return undefined
@@ -8190,4 +8399,4 @@ function bareGrapholscape(file, container, config = null) {
   return initGrapholscape(file, container, config)
 }
 
-export { POLYGON_POINTS, Shape, Type, index as UI, bareGrapholscape, constructorLabels, fullGrapholscape, grapholNodes as grapholEnums, themes };
+export { POLYGON_POINTS, Shape, Type, index as UI, bareGrapholscape, clearLocalStorage, constructorLabels, fullGrapholscape, grapholNodes as grapholEnums, loadConfig, storeConfigEntry, themes };
