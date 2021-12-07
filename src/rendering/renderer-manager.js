@@ -6,6 +6,8 @@
  * @property {number} ViewportState.zoom
 */
 
+import { Type } from '../model/node-enums'
+
 /**
  * Class that manages and control a set of renderers, it's used
  * to handle events fired by renderers, to mount/unmount
@@ -179,9 +181,9 @@ class RendererManager {
       }
 
       /**
-       * In floaty mode remove all '\n' from labels to avoid glitches
+       * In floaty mode remove all '\n' from edges' labels to avoid glitches
        */
-      if (this.renderer === this.renderers['float'])
+      if (this.renderer === this.renderers['float'] && entity.data('type') === Type.OBJECT_PROPERTY)
         displayedName = displayedName.replace(/\r?\n|\r/g, '')
 
       entity.data('displayed_name', displayedName)
