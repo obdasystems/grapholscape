@@ -295,26 +295,62 @@ export default class GrapholParser {
     }
     // Calcoliamo gli endpoints sul source e sul target
     // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
-    var source_endpoint = []
-    source_endpoint['x'] = breakpoints[0]['x']
-    source_endpoint['y'] = breakpoints[0]['y']
-    source_endpoint = ParserUtil.getNewEndpoint(source_endpoint, source, breakpoints[1])
+    let source_endpoint = ParserUtil.getNewEndpoint(
+      breakpoints[0], // first breakpoint is the one on source
+      source,
+      breakpoints[1]
+    )
+
     // Impostiamo l'endpoint solo se è diverso da zero
     // perchè di default l'endpoint è impostato a (0,0) relativamente al nodo di riferimento
-    if (source_endpoint['x'] != 0 || source_endpoint['y'] != 0) {
+    if (source_endpoint.x != 0 || source_endpoint.y != 0) {
       edge.data.source_endpoint = []
-      edge.data.source_endpoint.push(source_endpoint['x'])
-      edge.data.source_endpoint.push(source_endpoint['y'])
+      edge.data.source_endpoint.push(source_endpoint.x)
+      edge.data.source_endpoint.push(source_endpoint.y)
     }
     // Facciamo la stessa cosa per il target
-    var target_endpoint = []
-    target_endpoint['x'] = breakpoints[breakpoints.length - 1]['x']
-    target_endpoint['y'] = breakpoints[breakpoints.length - 1]['y']
-    target_endpoint = ParserUtil.getNewEndpoint(target_endpoint, target, breakpoints[breakpoints.length - 2])
-    if (target_endpoint['x'] != 0 || target_endpoint['y'] != 0) {
+    let target_endpoint = ParserUtil.getNewEndpoint(
+      breakpoints[breakpoints.length - 1], // last endpoint is the one on target
+      target, 
+      breakpoints[breakpoints.length - 2]
+    )
+
+    if (target_endpoint.x != 0 || target_endpoint.y != 0) {
       edge.data.target_endpoint = []
-      edge.data.target_endpoint.push(target_endpoint['x'])
-      edge.data.target_endpoint.push(target_endpoint['y'])
+      edge.data.target_endpoint.push(target_endpoint.x)
+      edge.data.target_endpoint.push(target_endpoint.y)
+    }
+
+    // If we have no control-points and only one endpoint, we need an intermediate breakpoint
+    // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
+    let breakpoint
+    if ( breakpoints.length === 2 ) { // 2 breakpoints means no control-points
+      if ((edge.data.source_endpoint && !edge.data.target_endpoint)) {
+        /**
+         * we have custom endpoint only on source, get a middle breakpoint 
+         * between the custom endpoint on source (breakpoints[0]) and target position
+         * (we don't have endpoint on target)
+         * 
+         * NOTE: don't use source_endpoint because it contains relative coordinate 
+         * with respect source node position. We need absolute coordinates which are
+         * the ones parsed from .graphol file
+         */
+        breakpoint = ParserUtil.getPointOnEdge(breakpoints[0], target.position())
+      }
+
+      if (!edge.data.source_endpoint && edge.data.target_endpoint) {
+        // same as above but with endpoint on target, which is the last breakpoints (1 since they are just 2)
+        breakpoint = ParserUtil.getPointOnEdge(source.position(), breakpoints[1])
+      }
+
+      if (breakpoint) {
+        // now if we have the breakpoint we need, let's get distance and weight for cytoscape
+        // just like any other breakpoint
+        const distanceWeight = ParserUtil.getDistanceWeight(target.position(), source.position(), breakpoint)
+        edge.data.breakpoints = [ breakpoint ]
+        edge.data.segment_distances = [ distanceWeight[0] ]
+        edge.data.segment_weights = [ distanceWeight[1] ]
+      }
     }
     return edge
   }

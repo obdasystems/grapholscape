@@ -3,7 +3,7 @@
 // Funzioni che ritornano il primo figlio o il fratello successivo di un dato nodo
 // Ignorano quindi tutti gli elementi di tipo diverso da 1
 // cioè gli attributi, gli spazi vuoti ecc...
-export function getFirstChild (node) {
+export function getFirstChild(node) {
   if (node == null || node.firstChild == null) { return null }
 
   node = node.firstChild
@@ -13,7 +13,7 @@ export function getFirstChild (node) {
   return node
 }
 
-export function getNextSibling (node) {
+export function getNextSibling(node) {
   if (node == null || node.nextSibling == null) { return null }
 
   node = node.nextSibling
@@ -26,7 +26,7 @@ export function getNextSibling (node) {
   return node
 }
 
-export function isPredicate (node) {
+export function isPredicate(node) {
   switch (node.getAttribute('type')) {
     case 'concept':
     case 'attribute':
@@ -40,7 +40,7 @@ export function isPredicate (node) {
 
 // Date le posizioni di source, target e del breakpoint,
 // la funzione calcola i due parametri peso e distanza del breakpoint e li restituisce
-export function getDistanceWeight (target, source, point) {
+export function getDistanceWeight(target, source, point) {
   // Esprimiamo le coordinate di point traslando l'origine sul source:
   // point['0'] corrisponde alla coordinata x del punto, point['1'] è l'ordinata
   var breakpoint = []
@@ -159,44 +159,71 @@ export function getDistanceWeight (target, source, point) {
 // Traslando sul bordo l'endpoint in direzione del breakpoint successivo (nel caso di source) o precedente
 // (nel caso di target), cytoscape farà corrispondere la punta della freccia sul bordo del nodo e
 // sarà quindi visibile
-export function getNewEndpoint (end_point, node, break_point) {
+export function getNewEndpoint(end_point, node, break_point) {
   // Calcoliamo le coordinate relative al nodo source (o target)
-  var endpoint = []
-  endpoint['x'] = end_point['x'] - node.position('x')
-  endpoint['y'] = end_point['y'] - node.position('y')
-  
-  if(endpoint['x'] == 0 && endpoint['y'] == 0)
+  var endpoint = {}
+  endpoint.x = end_point.x - node.position('x')
+  endpoint.y = end_point.y - node.position('y')
+
+  if (endpoint.x == 0 && endpoint.y == 0)
     return endpoint
 
-  var breakpoint = []
-  breakpoint['x'] = break_point['x'] - node.position('x')
-  breakpoint['y'] = break_point['y'] - node.position('y')
+  var breakpoint = {}
+  breakpoint.x = break_point['x'] - node.position('x')
+  breakpoint.y = break_point['y'] - node.position('y')
 
   // Se l'endpoint non è centrato nel nodo ma ha la X uguale al breakpoint successivo (o precedente)
   // Allora l'arco parte (o arriva) perpendicolarmente dall'alto o dal basso
 
-  if (endpoint['x'] == breakpoint['x']) {
+  if (endpoint.x == breakpoint.x) {
     // Se il breakpoint si trova più in basso (Ricorda: asse Y al contrario in cytoscape!),
     // allora spostiamo sul bordo inferiore l'endpoint
-    if (breakpoint['y'] > 0) {
-      endpoint['y'] = node.data('height') / 2
+    if (breakpoint.y > 0) {
+      endpoint.y = node.data('height') / 2
       return endpoint
     }
     // Se invece il breakpoint è più in alto del nodo, allora spostiamo l'endpoint sul bordo superiore
-    else if (breakpoint['y'] < 0) {
-      endpoint['y'] = -node.data('height') / 2
+    else if (breakpoint.y < 0) {
+      endpoint.y = -node.data('height') / 2
       return endpoint
     }
   }
   // Se invece ad essere uguale è la Y, l'arco arriva da destra o da sinistra, facciamo gli stessi passaggi appena fatti
-  else if (endpoint['y'] == breakpoint['y']) {
-    if (breakpoint['x'] > 0) {
-      endpoint['x'] = node.data('width') / 2
+  else if (endpoint.y == breakpoint.y) {
+    if (breakpoint.x > 0) {
+      endpoint.x = node.data('width') / 2
       return endpoint
-    } else if (breakpoint['x'] < 0) {
-      endpoint['x'] = -node.data('width') / 2
+    } else if (breakpoint.x < 0) {
+      endpoint.x = -node.data('width') / 2
       return endpoint
     }
   }
   return endpoint
+}
+
+export function getPointOnEdge(point1, point2) {
+  const m = (point1.y - point2.y) / (point1.x - point2.x)
+  const result = { x: 0, y: 0 }
+  const middleX = (point1.x - point2.x) / 2
+  const middleY = (point1.y - point2.y) / 2
+
+  if (point1.x !== point2.x && point1.y !== point2.y) {
+    result.x = point1.x - middleX
+    // y = mx + q  [ q = y1 - mx1 ] => y = mx + y1 - mx1
+    result.y = m * result.x + point1.y - m * point1.x
+  }
+
+  // horizontal line
+  else if (point1.y === point2.y) {
+    result.x = point1.x - middleX
+    result.y = point1.y
+  }
+
+  // vertical line
+  else if (point1.x === point2.x) {
+    result.x = point1.x
+    result.y = point1.y - middleY
+  }
+
+  return result
 }
