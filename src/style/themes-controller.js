@@ -8,8 +8,10 @@ class ThemesController {
       this.themes[themeKey] = ThemesController.getNormalizedTheme(themes[themeKey])
     }
 
-    this.actualThemeKey = 'gscape'
+    this.actualThemeKey = ThemesController.DEFAULT
   }
+
+  static DEFAULT = 'gscape'
 
   /**
    * 

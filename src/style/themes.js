@@ -1,33 +1,38 @@
 /**
  * @typedef {object} Theme an object of colours
- * @property {string} primary
- * @property {string} on_primary
- * @property {string} primary_dark
- * @property {string} on_primary_dark
- * @property {string} secondary
- * @property {string} on_secondary
- * @property {string} secondary_dark
- * @property {string} on_secondary_dark
- * @property {string} shadows
- * @property {string} error
- * @property {string} on_error
- * @property {string} warning
- * @property {string} on_warning
- * @property {string} background
- * @property {string} edge
- * @property {string} node_bg
- * @property {string} node_bg_contrast
- * @property {string} node_border
- * @property {string} label_color
- * @property {string} label_color_contrast
- * @property {string} role
- * @property {string} role_dark
- * @property {string} attribute
- * @property {string} attribute_dark
- * @property {string} concept
- * @property {string} concept_dark
- * @property {string} individual
- * @property {string} individual_dark
+ * 
+ * @property {string} id
+ * @property {string?} name
+ * @property {boolean?} selected
+ * 
+ * @property {string?} primary
+ * @property {string?} on_primary
+ * @property {string?} primary_dark
+ * @property {string?} on_primary_dark
+ * @property {string?} secondary
+ * @property {string?} on_secondary
+ * @property {string?} secondary_dark
+ * @property {string?} on_secondary_dark
+ * @property {string?} shadows
+ * @property {string?} error
+ * @property {string?} on_error
+ * @property {string?} warning
+ * @property {string?} on_warning
+ * @property {string?} background
+ * @property {string?} edge
+ * @property {string?} node_bg
+ * @property {string?} node_bg_contrast
+ * @property {string?} node_border
+ * @property {string?} label_color
+ * @property {string?} label_color_contrast
+ * @property {string?} role
+ * @property {string?} role_dark
+ * @property {string?} attribute
+ * @property {string?} attribute_dark
+ * @property {string?} concept
+ * @property {string?} concept_dark
+ * @property {string?} individual
+ * @property {string?} individual_dark
  */
 
 import { css } from 'lit'

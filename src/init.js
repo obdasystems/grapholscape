@@ -1,3 +1,4 @@
+import { loadConfig } from "./config/config-manager"
 import Grapholscape from "./grapholscape"
 import GrapholParser from "./parsing/parser"
 
@@ -9,6 +10,15 @@ import GrapholParser from "./parsing/parser"
  * @returns {Promise<Grapholscape>}
  */
 export default function (file, container, config) {
+
+  const savedConfig = loadConfig()
+  let lastUsedTheme = savedConfig.theme
+  delete savedConfig.theme // we don't need to override theme in config
+  // copy savedConfig over config
+  config = Object.assign(config, savedConfig)
+  if (config.theme) {
+    config.theme.selected = lastUsedTheme && lastUsedTheme === config.theme?.id
+  }
   return new Promise ((resolve, reject) => {
     let ontology = null
 
@@ -37,7 +47,9 @@ export default function (file, container, config) {
 
     function init() {
       try {
-        resolve(new Grapholscape(ontology, container, config))
+        const gscape = new Grapholscape(ontology, container, config)
+        if (lastUsedTheme) gscape.applyTheme(lastUsedTheme)
+        resolve(gscape)
       } catch (e) { console.error(e)}
     }
   }).catch(error => console.error(error) )

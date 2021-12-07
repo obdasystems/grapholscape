@@ -12,7 +12,7 @@ import * as UI from './ui'
  * @tutorial Settings
  * @tutorial Themes
  */
-export async function fullGrapholscape(file, container, config = null) {
+export async function fullGrapholscape(file, container, config = {}) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined

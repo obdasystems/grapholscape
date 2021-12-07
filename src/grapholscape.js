@@ -69,7 +69,8 @@
  * @param {EntityNameType} newEntityNameType
  */
 
-import defaultConfig from "./config.json";
+import defaultConfig from "./config/config.json";
+import * as ConfigManager from "./config/config-manager"
 import * as exporter from './exporting';
 import Ontology from "./model";
 import initRenderersManager from './rendering';
@@ -483,10 +484,11 @@ class Grapholscape {
 
   /** @param {themeChangeCallback} callback */
   onThemeChange(callback) { this._callbacksThemeChange.push(callback) }
+
   /**
    * Apply an existing theme or pass a new custom theme that will be added and then applied
    * Please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
-   * @param {string | Theme } themeKey a predefined theme key or a custom Theme object
+   * @param {string | import('./style/themes').Theme } themeKey a predefined theme key or a custom Theme object
    * @tutorial Themes
    */
   applyTheme(themeKey) {
@@ -495,10 +497,12 @@ class Grapholscape {
     let normalizedTheme = this.themesController.getTheme(themeKey)
     if (!normalizedTheme) { // if it's not defined then maybe it's a custom theme
       try {
-        themeKey = this.addTheme(themeKey) // addTheme returns the key of the new added theme
-        normalizedTheme = this.themesController.getTheme(themeKey)
-      } catch {
+        this.addTheme(themeKey) // addTheme returns the key of the new added theme
+        normalizedTheme = this.themesController.getTheme(themeKey.id)
+        themeKey = themeKey.id
+      } catch (e) {
         console.error('The specified theme is not a valid theme, please read: https://github.com/obdasystems/grapholscape/wiki/Themes')
+        console.error(e)
         return
       }
     }
@@ -512,37 +516,39 @@ class Grapholscape {
       this.container.style.setProperty(css_key, normalizedTheme[key])
     })
 
-
+    this.config.rendering.theme.selected = themeKey
     this.renderersManager.setTheme(normalizedTheme) // set graph style based on new theme
     this.themesController.actualTheme = themeKey
+    ConfigManager.storeConfigEntry('theme', themeKey)
     this._callbacksThemeChange.forEach(fn => fn(normalizedTheme, themeKey))
   }
 
   /**
    * Register a new theme
    * @param {import('./style/themes').Theme} theme a theme object, please read more about [themes](https://github.com/obdasystems/grapholscape/wiki/Themes)
-   * @returns {string} the key assigned to the new theme for later setting it
    * @tutorial Themes
    */
   addTheme(theme) {
-    let custom_theme_value = `custom${this.config.rendering.theme.list.length}`
+    if (!theme.id) {
+      console.error('The custom theme you specified must have a declared unique "id" property')
+      return
+    }
 
     this.config.rendering.theme.list.push({
-      value: custom_theme_value,
+      value: theme.id,
       label: theme.name || `Custom${this.config.rendering.theme.list.length}`
     })
 
 
     // update selected theme unless new them is set with selected = false
     if (theme.selected == undefined || theme.selected == true) {
-      this.config.rendering.theme.selected = custom_theme_value
+      this.config.rendering.theme.selected = theme.id
     }
     // remove metadata from theme in order to get only colours
     delete theme.name
     delete theme.selected
 
-    this.themesController.addTheme(theme, custom_theme_value)
-    return custom_theme_value
+    this.themesController.addTheme(theme, theme.id)
   }
 
   /** @param {entityNameTypeChangeCallback} callback */
@@ -556,6 +562,7 @@ class Grapholscape {
     this.config.preferences.entity_name.selected = entityNameType
     // update displayed names (if label is selected then update the label language)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+    ConfigManager.storeConfigEntry('entity_name', entityNameType)
     this._callbacksEntityNameTypeChange.forEach(fn => fn(entityNameType))
   }
 
@@ -569,6 +576,7 @@ class Grapholscape {
     this.config.preferences.language.selected = language
     // update displayed names (if label is selected then update the label language)
     this.renderersManager.updateDisplayedNames(this.actualEntityNameType, this.languages)
+    ConfigManager.storeConfigEntry('language', language)
     this._callbacksLanguageChange.forEach(fn => fn(language))
   }
 

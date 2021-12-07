@@ -12,6 +12,7 @@ export { UI } from './index.full'
 export * from './model/node-enums'
 export { default as grapholEnums } from './model/node-enums'
 export { themes }
+export * from './config/config-manager'
 //export { GrapholscapeRenderer } from './rendering/renderers'
 
 /**
@@ -25,7 +26,7 @@ export { themes }
  * @tutorial Settings
  * @tutorial Themes
  */
-export function bareGrapholscape(file, container, config = null) {
+export function bareGrapholscape(file, container, config = {}) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined

@@ -12,6 +12,7 @@ import { settings } from "./settings";
 import bottomLeftContainer from "./util/bottom-left-container";
 import { zoomTools } from "./zoom-tools";
 import { fitButton } from "./fit-button";
+import { storeConfigEntry } from "../config/config-manager";
 
 
 const widgetNames = {
@@ -41,8 +42,14 @@ export default function (grapholscape) {
     const owlVisualizerComponent = owlVisualizer(grapholscape)
     const filterComponent = filters(grapholscape)
     const settingsComponent = settings(grapholscape)
-    settingsComponent.onWidgetEnabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).enable()
-    settingsComponent.onWidgetDisabled = (widgetName) => gui_container.querySelector(widgetNames[widgetName]).disable()
+    settingsComponent.onWidgetEnabled = (widgetName) => {
+      gui_container.querySelector(widgetNames[widgetName]).enable()
+      storeConfigEntry(widgetName, true)
+    }
+    settingsComponent.onWidgetDisabled = (widgetName) => {
+      gui_container.querySelector(widgetNames[widgetName]).disable()
+      storeConfigEntry(widgetName, false)
+    }
     const rendererSelectorComponent = rendererSelector(grapholscape)
     const layoutSettingsComponent = layoutSettings(grapholscape)
 
