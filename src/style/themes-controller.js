@@ -11,8 +11,6 @@ class ThemesController {
     this.actualThemeKey = ThemesController.DEFAULT
   }
 
-  static DEFAULT = 'gscape'
-
   /**
    * 
    * @param {Theme} new_theme 
@@ -55,5 +53,7 @@ class ThemesController {
   set actualTheme(themeKey) { this.actualThemeKey = themeKey }
   get actualTheme() { return this.getTheme(this.actualThemeKey) }
 }
+
+ThemesController.DEFAULT = 'gscape'
 
 export default ThemesController
