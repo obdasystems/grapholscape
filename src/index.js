@@ -7,6 +7,7 @@ import * as themes from './style/themes'
 cytoscape.use(popper)
 cytoscape.use(cola)
 
+export { default as Grapholscape} from './grapholscape'
 export { fullGrapholscape } from './index.full'
 export { UI } from './index.full'
 export * from './model/node-enums'
