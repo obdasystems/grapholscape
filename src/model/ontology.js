@@ -164,7 +164,7 @@ class Ontology {
     if (index < 0 || index > this.diagrams.length) return
     if (this.diagrams[index]) return this.diagrams[index]
 
-    return this.diagrams.find(d => d.name.toLowerCase() === index.toString().toLowerCase())
+    return this.diagrams.find(d => d.name.toLowerCase() === index?.toString().toLowerCase())
   }
 
   /**
