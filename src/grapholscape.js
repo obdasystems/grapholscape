@@ -28,6 +28,7 @@
 /**
  * @callback edgeSelectionCallbak
  * @param {CollectionReturnValue} selectedEdge
+ * @param {Event} event
  */
 
 /**
@@ -177,7 +178,7 @@ class Grapholscape {
    * @param {CollectionReturnValue} node 
    */
   handleNodeSelection(node) {
-    if (cyToGrapholElem(node).classes.includes('predicate')) {
+    if (cyToGrapholElem(node).isEntity()) {
       this._callbacksEntitySelection.forEach(fn => fn(node))
     }
 
@@ -195,7 +196,7 @@ class Grapholscape {
    * @param {CollectionReturnValue} edge 
    */
   handleEdgeSelection(edge) {
-    if (cyToGrapholElem(edge).classes.includes('predicate')) {
+    if (cyToGrapholElem(edge).isEntity()) {
       this._callbacksEntitySelection.forEach(fn => fn(edge))
     }
 
@@ -269,7 +270,7 @@ class Grapholscape {
   /**
    * Select a single node and zoom on it.
    * If necessary it also display the diagram containing the node.
-   * @param {number} nodeID - The node unique ID
+   * @param {string} nodeID - The node unique ID
    * @param {number?} zoom - The zoom level to apply (Default: 1.5)
    */
   centerOnNode(nodeID, zoom = 1.5) {

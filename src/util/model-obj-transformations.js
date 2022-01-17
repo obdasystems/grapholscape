@@ -1,4 +1,6 @@
 /** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
+
+import { Type } from '../model/node-enums'
 // functions to transform Objects from Model to plain JSON for the views
 
 /**
@@ -74,5 +76,20 @@ export function rendererModelToViewData(rendererModelData) {
  * @returns {import('../model/ontology').GrapholElem}
  */
 export function cyToGrapholElem(cytoscapeObj) {
-  return cytoscapeObj?.json()
+  const result = cytoscapeObj?.json()
+  if (result) {
+    result.isEntity = function() {
+      switch (this.data.type) {
+        case Type.CONCEPT:
+        case Type.DATA_PROPERTY:
+        case Type.OBJECT_PROPERTY:
+        case Type.INDIVIDUAL:
+          return true
+      }
+    
+      return false
+    }
+
+    return result
+  }
 }

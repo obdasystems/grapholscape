@@ -30,6 +30,7 @@ const widgetNames = {
 export default function (grapholscape) {
   const init = () => {
     let gui_container = document.createElement('div')
+    gui_container.setAttribute('id', 'gscape-ui')
 
     const diagramSelectorComponent = diagramSelector(grapholscape)
     const entityDetailsComponent = entityDetails(grapholscape)
@@ -59,12 +60,12 @@ export default function (grapholscape) {
     })
     grapholscape.onNodeSelection(node => {
       let grapholNode = cyToGrapholElem(node)
-      if (!grapholNode.classes.includes('predicate')) entityDetailsComponent.hide()
+      if (!grapholNode.isEntity()) entityDetailsComponent.hide()
     })
 
     grapholscape.onEdgeSelection(edge => {
       let grapholEdge = cyToGrapholElem(edge)
-      if (!grapholEdge.classes.includes('predicate')) entityDetailsComponent.hide()
+      if (!grapholEdge.isEntity()) entityDetailsComponent.hide()
     })
 
     gui_container.appendChild(diagramSelectorComponent)
@@ -77,6 +78,7 @@ export default function (grapholscape) {
     gui_container.appendChild(layoutSettingsComponent)
 
     let bottomContainer = bottomLeftContainer()
+    bottomContainer.setAttribute('id', 'gscape-ui-bottom-container')
     bottomContainer.appendChild(filterComponent)
     bottomContainer.appendChild(ontologyInfoComponent)
     bottomContainer.appendChild(settingsComponent)

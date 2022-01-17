@@ -1,4 +1,4 @@
-// TO DO: export everything and import in parser.js
+import { Type } from "../model/node-enums"
 
 // Funzioni che ritornano il primo figlio o il fratello successivo di un dato nodo
 // Ignorano quindi tutti gli elementi di tipo diverso da 1
@@ -28,10 +28,10 @@ export function getNextSibling(node) {
 
 export function isPredicate(node) {
   switch (node.getAttribute('type')) {
-    case 'concept':
-    case 'attribute':
-    case 'role':
-    case 'individual':
+    case Type.CONCEPT:
+    case Type.DATA_PROPERTY:
+    case Type.OBJECT_PROPERTY:
+    case Type.INDIVIDUAL:
       return true
   }
 
