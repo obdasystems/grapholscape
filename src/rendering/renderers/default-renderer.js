@@ -204,7 +204,7 @@ export default class GrapholscapeRenderer {
 
     if (this.theme) this.setTheme(this.theme)
 
-    this.cy.on('select', 'node', e => {
+    this.cy.on('select', e => {
       let type = e.target.data('type')
       switch(type) {
         case 'intersection':
@@ -213,10 +213,10 @@ export default class GrapholscapeRenderer {
           e.target.neighborhood().select()
           break
       }
-      e.target.select();
-      this.onNodeSelection(e.target)
+
+      this.onElemSelection(e.target)
     })
-    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target)})
+
     this.cy.on('tap', evt => {
       if (evt.target === this.cy) {
         this.onBackgroundClick()

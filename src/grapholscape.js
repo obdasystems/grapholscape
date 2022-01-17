@@ -26,14 +26,8 @@
  */
 
 /**
- * @callback edgeSelectionCallbak
- * @param {CollectionReturnValue} selectedEdge
- * @param {Event} event
- */
-
-/**
- * @callback nodeSelectionCallbak
- * @param {CollectionReturnValue} selectedNode
+ * @callback elemSelectionCallbak
+ * @param {CollectionReturnValue} selectedElem
  */
 
 /**
@@ -138,8 +132,7 @@ class Grapholscape {
     this._callbacksEntityNameTypeChange = []
     this._callbacksLanguageChange = []
 
-    this.renderersManager.onEdgeSelection(selectedEdge => this.handleEdgeSelection(selectedEdge))
-    this.renderersManager.onNodeSelection(selectedNode => this.handleNodeSelection(selectedNode))
+    this.renderersManager.onEelemSelection(selectedElem => this.handleElemSelection(selectedElem))
     this.renderersManager.onBackgroundClick(_ => this.handleBackgroundClick())
 
     this.ontologies = {
@@ -169,39 +162,30 @@ class Grapholscape {
 
   /**
    * Register a new callback to be called on a node selection
-   * @param {nodeSelectionCallbak} callback 
+   * @param {elemSelectionCallbak} callback 
    */
   onNodeSelection(callback) { this._callbacksNodeSelection.push(callback) }
 
   /**
    * Function handling the selection of a node on a diagram [called by renderer]
-   * @param {CollectionReturnValue} node 
+   * @param {CollectionReturnValue} elem 
    */
-  handleNodeSelection(node) {
-    if (cyToGrapholElem(node).isEntity()) {
-      this._callbacksEntitySelection.forEach(fn => fn(node))
+  handleElemSelection(elem) {
+    if (cyToGrapholElem(elem).isEntity()) {
+      this._callbacksEntitySelection.forEach(fn => fn(elem))
     }
 
-    this._callbacksNodeSelection.forEach(fn => fn(node))
+    if (elem.isNode())
+      this._callbacksNodeSelection.forEach(fn => fn(elem))
+    else
+      this._callbacksEdgeSelection.forEach(fn => fn(elem))
   }
 
   /**
    * Register a new callback to be called on a edge selection
-   * @param {edgeSelectionCallbak} callback 
+   * @param {elemSelectionCallbak} callback 
    */
   onEdgeSelection(callback) { this._callbacksEdgeSelection.push(callback) }
-
-  /**
-   * Function handling the selection of an edge on a diagram [called by renderer]
-   * @param {CollectionReturnValue} edge 
-   */
-  handleEdgeSelection(edge) {
-    if (cyToGrapholElem(edge).isEntity()) {
-      this._callbacksEntitySelection.forEach(fn => fn(edge))
-    }
-
-    this._callbacksEdgeSelection.forEach(fn => fn(edge))
-  }
 
   /**
    * Register a new callback to be called on a background click

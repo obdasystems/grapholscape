@@ -37,8 +37,7 @@ class RendererManager {
     this.graphContainer.style.height = '100%'
     this.graphContainer.style.position = 'relative'
 
-    this._onEdgeSelection = () => { }
-    this._onNodeSelection = () => { }
+    this._onElemSelection = () => { }
     this._onBackgroundClick = () => { }
 
     /** @type {number | string} */
@@ -69,8 +68,7 @@ class RendererManager {
     if (this.renderers[key]) console.warn(`Renderer ${key} overwritten`)
 
     renderer.setContainer(this.graphContainer)
-    renderer.onNodeSelection = this._onNodeSelection
-    renderer.onEdgeSelection = this._onEdgeSelection
+    renderer.onElemSelection = this._onElemSelection
     renderer.onBackgroundClick = this._onBackgroundClick
     renderer.label = label
     renderer.key = key
@@ -201,19 +199,11 @@ class RendererManager {
     })
   }
 
-  /** @param {import('../grapholscape').edgeSelectionCallbak} callback */
-  onEdgeSelection(callback) {
-    this._onEdgeSelection = callback
+  /** @param {import('../grapholscape').elemSelectionCallbak} callback */
+  onEelemSelection(callback) {
+    this._onElemSelection = callback
     Object.keys(this.renderers).forEach(k => {
-      this.renderers[k].onEdgeSelection = this._onEdgeSelection
-    })
-  }
-   
-  /** @param {import('../grapholscape').nodeSelectionCallbak} callback */
-  onNodeSelection(callback) {
-    this._onNodeSelection = callback
-    Object.keys(this.renderers).forEach(k => {
-      this.renderers[k].onNodeSelection = this._onNodeSelection
+      this.renderers[k].onElemSelection = this._onElemSelection
     })
   }
 }
