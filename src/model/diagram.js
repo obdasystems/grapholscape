@@ -43,9 +43,17 @@ class Diagram {
    * @param {string} id unique elem id (node or edge)
    * @param {boolean} [unselect=true] should selected elements be unselected
    */
-   selectElem(id, unselect = true) {
-    if (unselect) this.cy.$('*:selected').unselect()
+  selectElem(id, unselect = true) {
+    if (unselect) this.unselectAll()
     this.cy.$id(id).select()
+  }
+
+  /**
+   * Unselect every selected element in this diagram
+   * @param {string} [selector='*'] cytoscape selector to filter the elements to unselect, default '*'
+   */
+  unselectAll(selector = '*') {
+    this.cy.$(selector+':selected').unselect()
   }
 
   /**

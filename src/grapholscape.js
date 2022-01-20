@@ -132,6 +132,11 @@ class Grapholscape {
     this._callbacksEntityNameTypeChange = []
     this._callbacksLanguageChange = []
 
+    /**
+     * @type {string} the iri of the current selected Entity
+     */
+    this.selectedEntityIri = null
+
     this.renderersManager.onEelemSelection(selectedElem => this.handleElemSelection(selectedElem))
     this.renderersManager.onBackgroundClick(_ => this.handleBackgroundClick())
 
@@ -171,8 +176,12 @@ class Grapholscape {
    * @param {CollectionReturnValue} elem 
    */
   handleElemSelection(elem) {
-    if (cyToGrapholElem(elem).isEntity()) {
+    const grapholElem = cyToGrapholElem(elem)
+    if (grapholElem.isEntity()) {
+      this.selectedEntityIri = grapholElem.data.iri.fullIri
       this._callbacksEntitySelection.forEach(fn => fn(elem))
+    } else {
+      this.unselectEntity([this.actualDiagramID])
     }
 
     if (elem.isNode())
@@ -195,7 +204,25 @@ class Grapholscape {
     this._callbacksBackgroundClick.push(callback)
   }
 
-  handleBackgroundClick() { this._callbacksBackgroundClick.forEach(fn => fn()) }
+  handleBackgroundClick() {
+    this.unselectEntity([this.actualDiagramID])
+    this._callbacksBackgroundClick.forEach(fn => fn()) 
+  }
+
+  /**
+   * Unselect the current selected entity in every diagram
+   * @param {string[]} [diagramsToSkip = []] array of diagram IDs to be skipped
+   */
+  unselectEntity(diagramsToSkip) {
+    for (const key in this.ontologies) {
+      this.ontologies[key].diagrams.forEach( d => {
+        if (!diagramsToSkip.includes(d.id) || this.ontologies[key] !== this.ontology) {
+          d.unselectAll()
+        }
+      })
+    }
+    this.selectedEntityIri = null
+  }
 
   /**
    * Register a new callback to be called on a diagram change
@@ -236,13 +263,8 @@ class Grapholscape {
       })
 
       // simulate selection on old selected entity, this updates UI too
-      let entity = diagram.getSelectedEntity()
-      if (entity) {
-        let grapholEntity = cyToGrapholElem(entity)
-        if (grapholEntity.data.diagram_id === this.actualDiagramID) {
-          this._callbacksEntitySelection.forEach(fn => fn(entity))
-          this.centerOnNode(grapholEntity.data.id)
-        }
+      if (this.selectedEntityIri) {
+        this.selectEntityOccurrences(this.selectedEntityIri)
       }
 
       this._callbacksDiagramChange.forEach(fn => fn(diagram))
@@ -309,12 +331,12 @@ class Grapholscape {
     const setRenderer = () => {
       let viewportState = keepViewportState ? this.renderersManager.actualViewportState : null
 
-      let selectedEntities = {}
-      // get selected entity in each diagram
-      this.ontology.diagrams.forEach(diagram => {
-        if (diagram.getSelectedEntity())
-          selectedEntities[diagram.id] = cyToGrapholElem(diagram.getSelectedEntity())
-      })
+      // let selectedEntities = {}
+      // // get selected entity in each diagram
+      // this.ontology.diagrams.forEach(diagram => {
+      //   if (diagram.getSelectedEntity())
+      //     selectedEntities[diagram.id] = cyToGrapholElem(diagram.getSelectedEntity())
+      // })
 
       this.renderersManager.setRenderer(rendererKey)
 
@@ -324,9 +346,12 @@ class Grapholscape {
 
       this.showDiagram(this.actualDiagramID, viewportState)
       // for each selected entity in each diagram, select it again in the new renderer
-      Object.keys(selectedEntities).forEach(diagramID => {
-        this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID)
-      })
+      // Object.keys(selectedEntities).forEach(diagramID => {
+      //   this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID)
+      // })
+      if (this.selectedEntityIri) {
+        this.selectEntityOccurrences(this.selectedEntityIri)
+      }
 
       this._callbacksRendererChange.forEach(fn => fn(rendererKey))
     }
@@ -366,19 +391,15 @@ class Grapholscape {
       }
 
       if (!diagramID) {
-        if (this.actualDiagramID && iriOccurrences.some( e => cyToGrapholElem(e).data.diagram_id === this.actualDiagramID)) {
-          diagramID = this.actualDiagramID
-        } else {
-          diagramID = cyToGrapholElem(iriOccurrences[0]).data.diagram_id
-        }
+        iriOccurrences.forEach( elem => this.selectElem(cyToGrapholElem(elem).data.id))
+      } else {
+        iriOccurrences.forEach(entity => {
+          const grapholEntity = cyToGrapholElem(entity)
+          if (grapholEntity.data.diagram_id === diagramID) {
+            this.selectElem(grapholEntity.data.id)
+          }
+        })
       }
-
-      iriOccurrences.forEach(entity => {
-        const grapholEntity = cyToGrapholElem(entity)
-        if (grapholEntity.data.diagram_id === diagramID) {
-          this.selectElem(grapholEntity.data.id, diagramID)
-        }
-      })
     }
     
     this.performActionInvolvingOntology(selectEntityOccurrences)
