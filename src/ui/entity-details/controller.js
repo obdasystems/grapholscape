@@ -24,4 +24,14 @@ export default function(entityDetailsComponent, grapholscape) {
     entityDetailsComponent.entity = entityViewData
     entityDetailsComponent.show()
   })
+
+  grapholscape.onNodeSelection(node => {
+    let grapholNode = cyToGrapholElem(node)
+    if (!grapholNode.isEntity()) entityDetailsComponent.hide()
+  })
+
+  grapholscape.onEdgeSelection(edge => {
+    let grapholEdge = cyToGrapholElem(edge)
+    if (!grapholEdge.isEntity()) entityDetailsComponent.hide()
+  })
 }

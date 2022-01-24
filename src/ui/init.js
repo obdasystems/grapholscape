@@ -58,15 +58,6 @@ export default function (grapholscape) {
     grapholscape.onBackgroundClick(() => {
       blurAll(gui_container)
     })
-    grapholscape.onNodeSelection(node => {
-      let grapholNode = cyToGrapholElem(node)
-      if (!grapholNode.isEntity()) entityDetailsComponent.hide()
-    })
-
-    grapholscape.onEdgeSelection(edge => {
-      let grapholEdge = cyToGrapholElem(edge)
-      if (!grapholEdge.isEntity()) entityDetailsComponent.hide()
-    })
 
     gui_container.appendChild(diagramSelectorComponent)
     gui_container.appendChild(ontologyExplorerComponent)
