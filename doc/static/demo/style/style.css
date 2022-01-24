@@ -58,6 +58,10 @@ body, html {
   margin-top: 75px;
 }
 
+#home h2 {
+  font-size: 24px !important;
+}
+
 .panel {
   float:left;
   box-sizing:border-box;
