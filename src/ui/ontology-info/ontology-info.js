@@ -67,7 +67,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
     this.collapsible = true
     this.ontology = ontology
 
-    this.btn = new GscapeButton(info_outline)
+    this.btn = new GscapeButton(info_outline, 'Ontology Info')
     this.btn.onClick = this.toggleBody.bind(this)
   }
 

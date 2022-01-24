@@ -5,7 +5,7 @@ import { triangle_down, triangle_up } from '../assets/icons';
 export default class GscapeHeader extends GscapeWidget {
   static get properties() {
     return {
-      title: { type : String },
+      title: { type : String, reflect: true },
       initial_icon: { type : String },
       secondary_icon: { type : String },
       icon : { type : String },

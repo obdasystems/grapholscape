@@ -1,15 +1,16 @@
-import { html , css } from 'lit'
+import { html, css } from 'lit'
 import GscapeWidget from './gscape-widget'
 
 export default class GscapeButton extends GscapeWidget {
 
   static get properties() {
     return {
-        icon: { type : String },
-        active: { type : Boolean },
-        label: { type : String }
-      }
+      icon: { type: String },
+      active: { type: Boolean },
+      label: { type: String },
+      title: { type: String, reflect: true }
     }
+  }
 
   static get styles() {
     let super_styles = super.styles
@@ -47,13 +48,14 @@ export default class GscapeButton extends GscapeWidget {
     ]
   }
 
-  constructor(icon, alt_icon, draggable=false) {
+  constructor(icon, title = '', alt_icon = null, draggable = false) {
     super()
     this.draggable = draggable
 
+    this.title = title
     this.icon = icon
     this.alternate_icon = alt_icon
-    this.onClick = () => {}
+    this.onClick = () => { }
     this.highlight = false
     this.active = false
     this.label = ''
@@ -65,7 +67,7 @@ export default class GscapeButton extends GscapeWidget {
         class="btn"
         ?active = "${this.active}"
         @click="${this.clickHandler}"
-        title="${this.icon}">
+      >
 
         <div class="icon">${this.icon}</div>
         ${this.label ? html`<span class="btn-label">${this.label}<span>` : ``}
@@ -115,7 +117,7 @@ export default class GscapeButton extends GscapeWidget {
   firstUpdated() {
     super.firstUpdated()
 
-    this.shadowRoot.querySelector('.icon').onselectstart =  () => false
+    this.shadowRoot.querySelector('.icon').onselectstart = () => false
   }
 }
 

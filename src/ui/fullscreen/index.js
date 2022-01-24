@@ -2,7 +2,7 @@ import { enter_fullscreen, exit_fullscreen } from "../assets/icons"
 import GscapeButton from "../common/gscape-button"
 
 export const fullscreenButton = (container) => {
-  const fullscreenComponent = new GscapeButton(enter_fullscreen, exit_fullscreen)
+  const fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen)
   fullscreenComponent.container = container
   fullscreenComponent.style.top = '10px'
   fullscreenComponent.style.right = '10px'

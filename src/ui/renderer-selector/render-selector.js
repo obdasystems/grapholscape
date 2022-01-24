@@ -85,7 +85,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this._actual_mode = null
     this._onRendererChange = () => {}
 
-    this.mainButton = new GscapeButton()
+    this.mainButton = new GscapeButton(null, 'Select Renderer')
     this.mainButton.onclick = () => this.toggleBody()
     this.mainButton.style.position = 'inherit'
     //this.header.title = this.dict[this.actual_mode]?.label

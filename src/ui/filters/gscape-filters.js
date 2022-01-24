@@ -65,7 +65,7 @@ export default class GscapeFilters extends GscapeWidget {
     this.collapsible = true
     this.filterList = filters
 
-    this.btn = new GscapeButton(filter)
+    this.btn = new GscapeButton(filter, 'Filters')
     this.btn.onClick = this.toggleBody.bind(this)
     this.btn.active = false
 

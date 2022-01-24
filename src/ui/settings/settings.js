@@ -93,13 +93,13 @@ export default class GscapeSettings extends GscapeWidget {
     super()
     this.collapsible = true
     this.settings = settings
-    this.btn = new GscapeButton(settingsIcon)
+    this.btn = new GscapeButton(settingsIcon, 'Settings')
     this.btn.onClick = this.toggleBody.bind(this)
     this.callbacks = {}
 
-    this.savePNGButton = new GscapeButton(save)
+    this.savePNGButton = new GscapeButton(save, 'Save')
     this.savePNGButton.label = 'PNG'
-    this.saveSVGButton = new GscapeButton(save)
+    this.saveSVGButton = new GscapeButton(save, 'Save')
     this.saveSVGButton.label = 'SVG'
   }
 
