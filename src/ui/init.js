@@ -9,7 +9,7 @@ import { ontologyInfo } from "./ontology-info";
 import { owlVisualizer } from "./owl-visualizer";
 import { rendererSelector } from "./renderer-selector";
 import { settings } from "./settings";
-import bottomLeftContainer from "./util/bottom-left-container";
+import bottomRightContainer from "./util/bottom-right-container";
 import { zoomTools } from "./zoom-tools";
 import { fitButton } from "./fit-button";
 import { storeConfigEntry } from "../config/config-manager";
@@ -62,14 +62,14 @@ export default function (grapholscape) {
     gui_container.appendChild(diagramSelectorComponent)
     gui_container.appendChild(ontologyExplorerComponent)
     gui_container.appendChild(entityDetailsComponent)
-    gui_container.appendChild(zoomToolsComponent)
     gui_container.appendChild(owlVisualizerComponent)
     gui_container.appendChild(fullscreenComponent)
-    gui_container.appendChild(fitButtonComponent)
     gui_container.appendChild(layoutSettingsComponent)
 
-    let bottomContainer = bottomLeftContainer()
+    let bottomContainer = bottomRightContainer()
     bottomContainer.setAttribute('id', 'gscape-ui-bottom-container')
+    bottomContainer.appendChild(zoomToolsComponent)
+    bottomContainer.appendChild(fitButtonComponent)
     bottomContainer.appendChild(filterComponent)
     bottomContainer.appendChild(ontologyInfoComponent)
     bottomContainer.appendChild(settingsComponent)
@@ -94,7 +94,7 @@ export default function (grapholscape) {
     }
 
     function isGrapholscapeWidget(widget) {
-      return widget.nodeName.toLowerCase().startsWith('gscape')
+      return widget?.nodeName?.toLowerCase().startsWith('gscape')
     }
 
     function disableWidgets(widgets) {

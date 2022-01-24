@@ -13,9 +13,8 @@ export default class GscapeZoomTools extends GscapeWidget {
       super_styles[0],
       css`
         :host {
-          position: absolute;
-          bottom:52px;
-          right:10px;
+          margin-top:10px;
+          position: initial;
         }
 
         gscape-button{

@@ -16,11 +16,15 @@ export default class GscapeOntologyInfo extends GscapeWidget {
         :host {
           display:inline-block;
           position: initial;
-          margin-right:10px;
+          margin-top: 10px;
         }
 
         .gscape-panel {
           padding-right: 0;
+        }
+
+        .gscape-panel::after {
+          bottom: 177px;
         }
 
         gscape-button {

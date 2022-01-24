@@ -35,7 +35,11 @@ export default class GscapeFilters extends GscapeWidget {
         :host {
           display:inline-block;
           position: initial;
-          margin-right:10px;
+          margin-top:10px;
+        }
+
+        .gscape-panel::after {
+          bottom: 133px;
         }
 
         gscape-button{

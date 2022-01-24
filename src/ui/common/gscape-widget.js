@@ -46,22 +46,24 @@ export default class GscapeWidget extends LitElement {
 
       .gscape-panel {
         position: absolute;
-        bottom: 40px;
+        right:0;
+        bottom:0;
         width: auto;
         padding:10px;
         overflow: unset;
-        border: none;
+        margin-right: calc(100% + 8px);
+        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
       .gscape-panel::after {
         content: "";
         position: absolute;
-        top: 100%;
-        left: 16px;
-        margin-left: -8px;
+        left: 100%;
         border-width: 8px;
         border-style: solid;
-        border-color: #ddd transparent transparent transparent;
+        border-color: transparent transparent transparent #ddd;
+        transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
       }
 
       .gscape-panel-title{

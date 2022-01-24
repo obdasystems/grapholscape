@@ -52,7 +52,7 @@ export default class GscapeButton extends GscapeWidget {
     this.draggable = draggable
 
     this.icon = icon
-    this.alternate_icon = alt_icon || icon
+    this.alternate_icon = alt_icon
     this.onClick = () => {}
     this.highlight = false
     this.active = false
@@ -105,6 +105,8 @@ export default class GscapeButton extends GscapeWidget {
   }
 
   toggleIcon() {
+    if (!this._alternate_icon) return
+
     let aux = this._icon
     this.icon = this._alternate_icon
     this.alternate_icon = aux

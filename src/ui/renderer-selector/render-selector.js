@@ -1,6 +1,7 @@
 import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
+import GscapeButton from '../common/gscape-button'
 
 export default class GscapeRenderSelector extends GscapeWidget {
 
@@ -19,8 +20,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
       css`
         :host {
           display:inline-block;
-          position:initial;
-          margin-right:10px;
+          position: initial;
+          margin-top:10px;
         }
 
         .renderer-item {
@@ -42,6 +43,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
 
         .renderer-item > .label {
           padding:0 10px;
+          white-space: nowrap;
         }
 
         .selected {
@@ -51,14 +53,19 @@ export default class GscapeRenderSelector extends GscapeWidget {
         }
 
         .widget-body {
-          margin:0;
-          border-top: none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
           border-radius: inherit;
-          border-bottom-left-radius:0;
           border-bottom-right-radius:0;
         }
 
+        .gscape-panel {
+          padding: 0;
+          bottom:initial;
+          top:10px;
+        }
+
+        .gscape-panel::after {
+          top: 8px;
+        }
         gscape-head {
           --header-padding: 5px 8px;
         }
@@ -78,14 +85,16 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this._actual_mode = null
     this._onRendererChange = () => {}
 
-    this.header = new GscapeHeader('')
+    this.mainButton = new GscapeButton()
+    this.mainButton.onclick = () => this.toggleBody()
+    this.mainButton.style.position = 'inherit'
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
   }
 
   render() {
     return html`
-      <div class="widget-body hide">
+      <div class="widget-body hide gscape-panel">
         ${Object.keys(this.dict).map( mode => html`
         <div
           @click="${this.changeRenderer}"
@@ -102,7 +111,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
         `)}
       </div>
 
-     ${this.header}
+     ${this.mainButton}
     `
   }
 
@@ -118,12 +127,6 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this._onRendererChange(mode)
   }
 
-  firstUpdated() {
-    super.firstUpdated()
-    // invert header's dropdown icon behaviour
-    this.header.invertIcons()
-  }
-
   set onRendererChange(f) {
     this._onRendererChange = f
   }
@@ -135,8 +138,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
   set actual_mode(mode) {
     this._actual_mode = mode
 
-    this.header.title = this.dict[mode].label
-    this.header.left_icon = this.dict[mode].icon
+    //this.header.title = this.dict[mode].label
+    this.mainButton.icon = this.dict[mode].icon
   }
 
   get actual_mode() { return this._actual_mode }

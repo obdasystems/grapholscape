@@ -17,7 +17,7 @@ export default class GscapeSettings extends GscapeWidget {
         :host {
           display:inline-block;
           position: initial;
-          margin-right:10px;
+          margin-top:10px;
         }
 
         gscape-button {
@@ -26,6 +26,10 @@ export default class GscapeSettings extends GscapeWidget {
 
         .gscape-panel {
           padding-right: 0;
+        }
+
+        .gscape-panel::after {
+          bottom: 221px;
         }
 
         .settings-wrapper {
