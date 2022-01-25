@@ -17,3 +17,12 @@
 .side-nav a.is-active {
   color: #3273dc;
 }
+
+html {
+  overflow: initial;
+}
+
+#main > .core {
+  width: 100%;
+  overflow: initial;
+}

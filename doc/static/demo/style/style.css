@@ -42,7 +42,7 @@
   height: calc(100% - 75px);
   position: relative;
   display: none;
-  margin-top: 75px;
+  top: 75px;
 }
 
 body, html {
@@ -50,12 +50,13 @@ body, html {
   color: #555;
   -webkit-user-select:none; 
   height: 100%;
+  margin: 0;
 }
 
 #home {
-  height: calc(100% - 75px);
+  height: 100%;
   width: 100%;
-  margin-top: 75px;
+  padding-top: 75px;
 }
 
 #home h2 {
