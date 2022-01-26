@@ -9,12 +9,10 @@ import { info_filled } from '../assets/icons'
 export default class GscapeEntityDetails extends GscapeWidget {
 
   static get properties() {
-    return [
-      super.properties,
-      {
-        entity: { type: Object }
-      }
-    ]
+    return {
+      entity: { type: Object },
+      languageSelected: { type: String }
+    }
   }
 
   static get styles() {
@@ -69,6 +67,16 @@ export default class GscapeEntityDetails extends GscapeWidget {
           display: table-row;
           height: 20px;
         }
+
+        .descr-text > span {
+          margin-bottom:10px;
+          display: inline-block;
+        }
+
+        #language-select {
+          margin: 10px auto;
+          display: block;
+        }
       `
     ]
   }
@@ -89,12 +97,14 @@ export default class GscapeEntityDetails extends GscapeWidget {
       irreflexive : 'Irreflexive',
       transitive : 'Transitive',
     }
+    this._languageSelected = ''
 
     this.onNodeNavigation = {}
     this.header = new GscapeHeader('Entity Details', info_filled)
   }
 
   render() {
+    let comment = this.entity?.annotations?.comment
     return html`
       ${this.header}
       <div class="widget-body">
@@ -130,11 +140,38 @@ export default class GscapeEntityDetails extends GscapeWidget {
             
             ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
             ${annotationsTemplate(this.entity)}
+            
+            ${comment && Object.keys(comment).length > 0 ?
+              html`
+                <div class="section">
+                  <div class="section-header"> Description </div>
+                    ${!Object.keys(comment).includes('') 
+                      ? html`
+                        <select name="language-select" id="language-select" @change=${this._languageChangeHandler}>
+                        ${Object.keys(comment).map( language =>
+                          html`
+                            <option value="${language}" >
+                              ${language.toUpperCase()}
+                            </option>
+                          `
+                        )}
+                        </select>
+                      `
+                      : ''
+                    }
+                    <span class="descr-text"></span>
+                </div>
+              ` : html``
+            }
           `
         : html``
         }
       </div>
     `
+  }
+
+  _languageChangeHandler(e) {
+    this.languageSelected = e.target.value
   }
 
   wikiClickHandler(e) {
@@ -170,6 +207,14 @@ export default class GscapeEntityDetails extends GscapeWidget {
   }
 
   updated() {
+    let description = this.entity?.annotations?.comment
+    // if actual language is not available, select the first available
+    if (description && !description[this.languageSelected]) {
+      this._languageSelected = Object.keys(description)[0]
+    }
+
+    if (this.languageSelect) this.languageSelect.value = this.languageSelected
+
     if (this.entity && this.entity.annotations?.comment)
       this.renderDescription(this.entity.annotations.comment)
 
@@ -181,18 +226,14 @@ export default class GscapeEntityDetails extends GscapeWidget {
   }
 
   renderDescription (description) {
-    let descr_container
-    let text
-    Object.keys(description).forEach( language => {
-      text = ''
-      descr_container = this.shadowRoot.querySelector(`[lang = "${language}"] > .descr-text`)
-      description[language].forEach((comment, i) => {
-        i > 0 ?
-          text += '<p>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</p>' :
-          text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')
-      })
-      descr_container.innerHTML = text
+    let text = ''
+
+    description[this.languageSelected].forEach( comment => {
+      text += '<span>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</span>'
     })
+
+    if (text.length > 0) 
+      this.shadowRoot.querySelector('.descr-text').innerHTML = text
   }
 
   handleNodeSelection(e) {
@@ -209,6 +250,19 @@ export default class GscapeEntityDetails extends GscapeWidget {
   // override
   blur() {
     this.hide()
+  }
+
+  set languageSelected(language) {
+    this._languageSelected = language
+    this.requestUpdate()
+  }
+
+  get languageSelected() {
+    return this._languageSelected
+  }
+
+  get languageSelect() {
+    return this.shadowRoot.querySelector('#language-select')
   }
 }
 

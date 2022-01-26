@@ -7,6 +7,7 @@ import { entityModelToViewData, cyToGrapholElem } from '../../util/model-obj-tra
 export default function(entityDetailsComponent, grapholscape) {
   entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
   entityDetailsComponent.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID)
+  entityDetailsComponent.languageSelected = grapholscape.languages.selected
 
   grapholscape.onEntitySelection(entity => {
     let entityViewData = entityModelToViewData(entity, grapholscape.languages)
@@ -33,5 +34,9 @@ export default function(entityDetailsComponent, grapholscape) {
   grapholscape.onEdgeSelection(edge => {
     let grapholEdge = cyToGrapholElem(edge)
     if (!grapholEdge.isEntity()) entityDetailsComponent.hide()
+  })
+
+  grapholscape.onLanguageChange(language => {
+    entityDetailsComponent.languageSelected = language
   })
 }

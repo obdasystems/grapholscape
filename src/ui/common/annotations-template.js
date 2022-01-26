@@ -32,21 +32,5 @@ export default (entity) => {
         </div>
       ` : ''
     }
-    
-    ${entity.annotations.comment && Object.keys(entity.annotations.comment).length > 0 ?
-      html`
-        <div class="section">
-          <div class="section-header"> Description </div>
-          ${Object.keys(entity.annotations.comment).map( language => {
-            return html`
-              <div class="description" lang="${language}">
-                ${language != '' ? html`<span class="language">${language}</span>` : ''}
-                <span class="descr-text"></span>
-              </div>
-            `
-          })}
-        </div>
-      ` : html``
-    }
   `
 }
