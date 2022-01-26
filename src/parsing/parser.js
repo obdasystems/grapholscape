@@ -91,8 +91,8 @@ export default class GrapholParser {
           }
         } else { // not an entity, take label from <label> tag or use those for constructor nodes
           if (node.data.type === Type.FACET) {
-            node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.xmlDocument, this.ontology)
-          } 
+            node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.ontology)
+          }
 
           else if (node.data.type === Type.VALUE_DOMAIN) {
             node.data.displayed_name = node.data.iri.prefixed
