@@ -19,6 +19,13 @@ export default class GscapeButton extends GscapeWidget {
     return [
       super_styles[0],
       css`
+        :host {
+          box-shadow: 0 0 4px 0 var(--theme-gscape-shadows, ${colors.shadows});
+        }
+
+        :host(:hover){
+          box-shadow: 0 0 8px 0 var(--theme-gscape-shadows, ${colors.shadows});
+        }
 
         mwc-icon {
           font-size: var(--gscape-button-font-size, 24px)

@@ -54,7 +54,6 @@ export default class GscapeHeader extends GscapeWidget {
         width: var(--title-width, '');
         text-align: var(--title-text-align, 'left');
         justify-self: flex-start;
-        line-height: 25px;
       }
 
       .icon {
