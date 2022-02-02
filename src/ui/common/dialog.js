@@ -1,4 +1,6 @@
 import { html , css } from 'lit'
+import { close } from '../assets/icons'
+import GscapeHeader from './gscape-header'
 import GscapeWidget from './gscape-widget'
 
 export default class GscapeDialog extends GscapeWidget {
@@ -46,6 +48,10 @@ export default class GscapeDialog extends GscapeWidget {
         gscape-head.warning {
           color : var(--theme-gscape-warning, ${colors.warning});
         }
+
+        p {
+          white-space: pre;
+        }
       `
     ]
   }
@@ -53,32 +59,32 @@ export default class GscapeDialog extends GscapeWidget {
   constructor() {
     super()
     this.draggable = true
+    this.collapsible = false
     this.text = []
-    this.type = 'error'
+    this.title = 'Message'
   }
 
   render() {
     return html`
     <gscape-head
-      title="${this.type}"
-      icon="close"
-      class="${this.type.toLowerCase()} drag-handler">
+      title="${this.title}"
+      class="${this.title.toLowerCase()} drag-handler">
     </gscape-head>
-    <div class="widget-body ${this.type.toLowerCase()}">
+    <div class="widget-body ${this.title.toLowerCase()}">
+      <slot></slot>
       ${this.text.map( text => html`<p>${text}</p>`)}
     </div>
     `
   }
 
-  // override
-  show(type, message) {
-    super.show()
+  /**
+   * @param {{ type: string; text: string; }} newMessageObj
+   */
+  set message(newMessageObj) {
+    this.title = newMessageObj.type,
+    this.text = newMessageObj.text
 
-    this.type = type
-    if (typeof(message) == 'string')
-      this.text = [message]
-    else
-      this.text = message
+    typeof(newMessageObj.text) === 'string' ? this.text = [newMessageObj.text] : this.text = newMessageObj.text
   }
 
   clickHandler() {
@@ -90,6 +96,7 @@ export default class GscapeDialog extends GscapeWidget {
     super.firstUpdated()
 
     this.hide()
+    this.header.icon = close
     this.header.onClick = this.hide.bind(this)
   }
 }
