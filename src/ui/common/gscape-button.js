@@ -5,10 +5,11 @@ export default class GscapeButton extends GscapeWidget {
 
   static get properties() {
     return {
-      icon: { type: String },
-      active: { type: Boolean },
+      icon: { attribute: false },
+      highlighted: { attribute: false },
       label: { type: String },
-      title: { type: String, reflect: true }
+      title: { type: String, reflect: true },
+      enabled: { attribute: false },
     }
   }
 
@@ -51,6 +52,12 @@ export default class GscapeButton extends GscapeWidget {
         .btn[active] {
           color: var(--theme-gscape-secondary, ${colors.secondary});
         }
+
+        .btn[disabled] {
+          opacity: 20%;
+          cursor: initial;
+          pointer-events: none;
+        }
       `
     ]
   }
@@ -63,8 +70,9 @@ export default class GscapeButton extends GscapeWidget {
     this.icon = icon
     this.alternate_icon = alt_icon
     this.onClick = () => { }
-    this.highlight = false
-    this.active = false
+    this.asSwitch = false
+    this.highlighted = false
+    this.enabled = true
     this.label = ''
   }
 
@@ -72,7 +80,8 @@ export default class GscapeButton extends GscapeWidget {
     return html`
       <div
         class="btn"
-        ?active = "${this.active}"
+        ?disabled = "${!this.enabled}"
+        ?active = "${this.highlighted}"
         @click="${this.clickHandler}"
       >
 
@@ -106,8 +115,10 @@ export default class GscapeButton extends GscapeWidget {
   }
 
   clickHandler() {
-    if (this.highlight)
-      this.active = !this.active
+    if (!this.enabled) return
+
+    if (this.asSwitch)
+      this.highlighted = !this.highlighted
 
     this.toggleIcon()
     this._onClick()
