@@ -104,6 +104,18 @@ export const classic = {
   node_border: css`#000`,
   label_color: css`#000`,
   label_color_contrast: css`#fcfcfc`,
+
+  role: css`#fcfcfc`,
+  role_dark: css`#000`,
+
+  attribute: css`#fcfcfc`,
+  attribute_dark: css`#000`,
+
+  concept: css`#fcfcfc`,
+  concept_dark: css`#000`,
+
+  individual: css`#fcfcfc`,
+  individual_dark: css`#000`,
 }
 
 export const dark_old = {
