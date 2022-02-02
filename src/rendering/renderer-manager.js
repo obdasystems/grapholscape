@@ -87,7 +87,7 @@ class RendererManager {
 
   /** @param {ViewportState} state*/
   setViewport(state) {
-    if (state) this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom)
+    if (state) this.renderer.centerOnPosition(state.x, state.y, state.zoom)
   }
 
   /**
