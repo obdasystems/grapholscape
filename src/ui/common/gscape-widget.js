@@ -2,11 +2,9 @@ import { LitElement, html, css } from 'lit'
 import * as theme from '../../style/themes'
 
 export default class GscapeWidget extends LitElement {
-  static get properties() {
-    return {
-      isEnabled: { type: Boolean },
-      hiddenDefault: { type: Boolean }
-    }
+  static properties = {
+    isEnabled: { type: Boolean },
+    hiddenDefault: { type: Boolean }
   }
 
   static get styles() {
