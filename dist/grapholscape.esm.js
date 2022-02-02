@@ -195,9 +195,17 @@ class Diagram {
    * @param {string} id unique elem id (node or edge)
    * @param {boolean} [unselect=true] should selected elements be unselected
    */
-   selectElem(id, unselect = true) {
-    if (unselect) this.cy.$('*:selected').unselect();
+  selectElem(id, unselect = true) {
+    if (unselect) this.unselectAll();
     this.cy.$id(id).select();
+  }
+
+  /**
+   * Unselect every selected element in this diagram
+   * @param {string} [selector='*'] cytoscape selector to filter the elements to unselect, default '*'
+   */
+  unselectAll(selector = '*') {
+    this.cy.$(selector+':selected').unselect();
   }
 
   /**
@@ -349,7 +357,7 @@ class Ontology {
     if (index < 0 || index > this.diagrams.length) return
     if (this.diagrams[index]) return this.diagrams[index]
 
-    return this.diagrams.find(d => d.name.toLowerCase() === index.toString().toLowerCase())
+    return this.diagrams.find(d => d.name.toLowerCase() === index?.toString().toLowerCase())
   }
 
   /**
@@ -729,8 +737,7 @@ class RendererManager {
     this.graphContainer.style.height = '100%';
     this.graphContainer.style.position = 'relative';
 
-    this._onEdgeSelection = () => { };
-    this._onNodeSelection = () => { };
+    this._onElemSelection = () => { };
     this._onBackgroundClick = () => { };
 
     /** @type {number | string} */
@@ -761,8 +768,7 @@ class RendererManager {
     if (this.renderers[key]) console.warn(`Renderer ${key} overwritten`);
 
     renderer.setContainer(this.graphContainer);
-    renderer.onNodeSelection = this._onNodeSelection;
-    renderer.onEdgeSelection = this._onEdgeSelection;
+    renderer.onElemSelection = this._onElemSelection;
     renderer.onBackgroundClick = this._onBackgroundClick;
     renderer.label = label;
     renderer.key = key;
@@ -781,7 +787,7 @@ class RendererManager {
 
   /** @param {ViewportState} state*/
   setViewport(state) {
-    if (state) this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom);
+    if (state) this.renderer.centerOnPosition(state.x, state.y, state.zoom);
   }
 
   /**
@@ -893,19 +899,11 @@ class RendererManager {
     });
   }
 
-  /** @param {import('../grapholscape').edgeSelectionCallbak} callback */
-  onEdgeSelection(callback) {
-    this._onEdgeSelection = callback;
+  /** @param {import('../grapholscape').elemSelectionCallbak} callback */
+  onEelemSelection(callback) {
+    this._onElemSelection = callback;
     Object.keys(this.renderers).forEach(k => {
-      this.renderers[k].onEdgeSelection = this._onEdgeSelection;
-    });
-  }
-   
-  /** @param {import('../grapholscape').nodeSelectionCallbak} callback */
-  onNodeSelection(callback) {
-    this._onNodeSelection = callback;
-    Object.keys(this.renderers).forEach(k => {
-      this.renderers[k].onNodeSelection = this._onNodeSelection;
+      this.renderers[k].onElemSelection = this._onElemSelection;
     });
   }
 }
@@ -1518,7 +1516,7 @@ class GrapholscapeRenderer {
 
     if (this.theme) this.setTheme(this.theme);
 
-    this.cy.on('select', 'node', e => {
+    this.cy.on('select', e => {
       let type = e.target.data('type');
       switch(type) {
         case 'intersection':
@@ -1527,10 +1525,10 @@ class GrapholscapeRenderer {
           e.target.neighborhood().select();
           break
       }
-      e.target.select();
-      this.onNodeSelection(e.target);
+
+      this.onElemSelection(e.target);
     });
-    this.cy.on('select', 'edge', e => {this.onEdgeSelection(e.target);});
+
     this.cy.on('tap', evt => {
       if (evt.target === this.cy) {
         this.onBackgroundClick();
@@ -1628,6 +1626,8 @@ const minus = y`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0
 const save = y`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>`;
 
 const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
+
+const close = y`<svg fillColor="currentColor" style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
 
 class FloatyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
@@ -2065,6 +2065,18 @@ const classic = {
   node_border: r$1`#000`,
   label_color: r$1`#000`,
   label_color_contrast: r$1`#fcfcfc`,
+
+  role: r$1`#fcfcfc`,
+  role_dark: r$1`#000`,
+
+  attribute: r$1`#fcfcfc`,
+  attribute_dark: r$1`#000`,
+
+  concept: r$1`#fcfcfc`,
+  concept_dark: r$1`#000`,
+
+  individual: r$1`#fcfcfc`,
+  individual_dark: r$1`#000`,
 };
 
 const dark_old = {
@@ -2158,8 +2170,6 @@ class ThemesController {
     this.actualThemeKey = ThemesController.DEFAULT;
   }
 
-  static DEFAULT = 'gscape'
-
   /**
    * 
    * @param {Theme} new_theme 
@@ -2202,6 +2212,8 @@ class ThemesController {
   set actualTheme(themeKey) { this.actualThemeKey = themeKey; }
   get actualTheme() { return this.getTheme(this.actualThemeKey) }
 }
+
+ThemesController.DEFAULT = 'gscape';
 
 /** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
 // functions to transform Objects from Model to plain JSON for the views
@@ -2279,10 +2291,23 @@ function rendererModelToViewData(rendererModelData) {
  * @returns {import('../model/ontology').GrapholElem}
  */
 function cyToGrapholElem(cytoscapeObj) {
-  return cytoscapeObj?.json()
-}
+  const result = cytoscapeObj?.json();
+  if (result) {
+    result.isEntity = function() {
+      switch (this.data.type) {
+        case Type.CONCEPT:
+        case Type.DATA_PROPERTY:
+        case Type.OBJECT_PROPERTY:
+        case Type.INDIVIDUAL:
+          return true
+      }
+    
+      return false
+    };
 
-// TO DO: export everything and import in parser.js
+    return result
+  }
+}
 
 // Funzioni che ritornano il primo figlio o il fratello successivo di un dato nodo
 // Ignorano quindi tutti gli elementi di tipo diverso da 1
@@ -2312,10 +2337,10 @@ function getNextSibling(node) {
 
 function isPredicate(node) {
   switch (node.getAttribute('type')) {
-    case 'concept':
-    case 'attribute':
-    case 'role':
-    case 'individual':
+    case Type.CONCEPT:
+    case Type.DATA_PROPERTY:
+    case Type.OBJECT_PROPERTY:
+    case Type.INDIVIDUAL:
       return true
   }
 
@@ -3199,8 +3224,12 @@ class Grapholscape {
     this._callbacksEntityNameTypeChange = [];
     this._callbacksLanguageChange = [];
 
-    this.renderersManager.onEdgeSelection(selectedEdge => this.handleEdgeSelection(selectedEdge));
-    this.renderersManager.onNodeSelection(selectedNode => this.handleNodeSelection(selectedNode));
+    /**
+     * @type {string} the iri of the current selected Entity
+     */
+    this.selectedEntityIri = null;
+
+    this.renderersManager.onEelemSelection(selectedElem => this.handleElemSelection(selectedElem));
     this.renderersManager.onBackgroundClick(_ => this.handleBackgroundClick());
 
     this.ontologies = {
@@ -3230,39 +3259,34 @@ class Grapholscape {
 
   /**
    * Register a new callback to be called on a node selection
-   * @param {nodeSelectionCallbak} callback 
+   * @param {elemSelectionCallbak} callback 
    */
   onNodeSelection(callback) { this._callbacksNodeSelection.push(callback); }
 
   /**
    * Function handling the selection of a node on a diagram [called by renderer]
-   * @param {CollectionReturnValue} node 
+   * @param {CollectionReturnValue} elem 
    */
-  handleNodeSelection(node) {
-    if (cyToGrapholElem(node).classes.includes('predicate')) {
-      this._callbacksEntitySelection.forEach(fn => fn(node));
+  handleElemSelection(elem) {
+    const grapholElem = cyToGrapholElem(elem);
+    if (grapholElem.isEntity()) {
+      this.selectedEntityIri = grapholElem.data.iri.fullIri;
+      this._callbacksEntitySelection.forEach(fn => fn(elem));
+    } else {
+      this.unselectEntity([this.actualDiagramID]);
     }
 
-    this._callbacksNodeSelection.forEach(fn => fn(node));
+    if (elem.isNode())
+      this._callbacksNodeSelection.forEach(fn => fn(elem));
+    else
+      this._callbacksEdgeSelection.forEach(fn => fn(elem));
   }
 
   /**
    * Register a new callback to be called on a edge selection
-   * @param {edgeSelectionCallbak} callback 
+   * @param {elemSelectionCallbak} callback 
    */
   onEdgeSelection(callback) { this._callbacksEdgeSelection.push(callback); }
-
-  /**
-   * Function handling the selection of an edge on a diagram [called by renderer]
-   * @param {CollectionReturnValue} edge 
-   */
-  handleEdgeSelection(edge) {
-    if (cyToGrapholElem(edge).classes.includes('predicate')) {
-      this._callbacksEntitySelection.forEach(fn => fn(edge));
-    }
-
-    this._callbacksEdgeSelection.forEach(fn => fn(edge));
-  }
 
   /**
    * Register a new callback to be called on a background click
@@ -3272,7 +3296,25 @@ class Grapholscape {
     this._callbacksBackgroundClick.push(callback);
   }
 
-  handleBackgroundClick() { this._callbacksBackgroundClick.forEach(fn => fn()); }
+  handleBackgroundClick() {
+    this.unselectEntity([this.actualDiagramID]);
+    this._callbacksBackgroundClick.forEach(fn => fn()); 
+  }
+
+  /**
+   * Unselect the current selected entity in every diagram
+   * @param {string[]} [diagramsToSkip = []] array of diagram IDs to be skipped
+   */
+  unselectEntity(diagramsToSkip) {
+    for (const key in this.ontologies) {
+      this.ontologies[key].diagrams.forEach( d => {
+        if (!diagramsToSkip.includes(d.id) || this.ontologies[key] !== this.ontology) {
+          d.unselectAll();
+        }
+      });
+    }
+    this.selectedEntityIri = null;
+  }
 
   /**
    * Register a new callback to be called on a diagram change
@@ -3313,13 +3355,8 @@ class Grapholscape {
       });
 
       // simulate selection on old selected entity, this updates UI too
-      let entity = diagram.getSelectedEntity();
-      if (entity) {
-        let grapholEntity = cyToGrapholElem(entity);
-        if (grapholEntity.data.diagram_id === this.actualDiagramID) {
-          this._callbacksEntitySelection.forEach(fn => fn(entity));
-          this.centerOnNode(grapholEntity.data.id);
-        }
+      if (this.selectedEntityIri) {
+        this.selectEntityOccurrences(this.selectedEntityIri);
       }
 
       this._callbacksDiagramChange.forEach(fn => fn(diagram));
@@ -3331,7 +3368,7 @@ class Grapholscape {
   /**
    * Select a single node and zoom on it.
    * If necessary it also display the diagram containing the node.
-   * @param {number} nodeID - The node unique ID
+   * @param {string} nodeID - The node unique ID
    * @param {number?} zoom - The zoom level to apply (Default: 1.5)
    */
   centerOnNode(nodeID, zoom = 1.5) {
@@ -3386,12 +3423,12 @@ class Grapholscape {
     const setRenderer = () => {
       let viewportState = keepViewportState ? this.renderersManager.actualViewportState : null;
 
-      let selectedEntities = {};
-      // get selected entity in each diagram
-      this.ontology.diagrams.forEach(diagram => {
-        if (diagram.getSelectedEntity())
-          selectedEntities[diagram.id] = cyToGrapholElem(diagram.getSelectedEntity());
-      });
+      // let selectedEntities = {}
+      // // get selected entity in each diagram
+      // this.ontology.diagrams.forEach(diagram => {
+      //   if (diagram.getSelectedEntity())
+      //     selectedEntities[diagram.id] = cyToGrapholElem(diagram.getSelectedEntity())
+      // })
 
       this.renderersManager.setRenderer(rendererKey);
 
@@ -3401,9 +3438,12 @@ class Grapholscape {
 
       this.showDiagram(this.actualDiagramID, viewportState);
       // for each selected entity in each diagram, select it again in the new renderer
-      Object.keys(selectedEntities).forEach(diagramID => {
-        this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID);
-      });
+      // Object.keys(selectedEntities).forEach(diagramID => {
+      //   this.selectEntityOccurrences(selectedEntities[diagramID].data.iri.fullIri, diagramID)
+      // })
+      if (this.selectedEntityIri) {
+        this.selectEntityOccurrences(this.selectedEntityIri);
+      }
 
       this._callbacksRendererChange.forEach(fn => fn(rendererKey));
     };
@@ -3443,19 +3483,15 @@ class Grapholscape {
       }
 
       if (!diagramID) {
-        if (this.actualDiagramID && iriOccurrences.some( e => cyToGrapholElem(e).data.diagram_id === this.actualDiagramID)) {
-          diagramID = this.actualDiagramID;
-        } else {
-          diagramID = cyToGrapholElem(iriOccurrences[0]).data.diagram_id;
-        }
+        iriOccurrences.forEach( elem => this.selectElem(cyToGrapholElem(elem).data.id));
+      } else {
+        iriOccurrences.forEach(entity => {
+          const grapholEntity = cyToGrapholElem(entity);
+          if (grapholEntity.data.diagram_id === diagramID) {
+            this.selectElem(grapholEntity.data.id);
+          }
+        });
       }
-
-      iriOccurrences.forEach(entity => {
-        const grapholEntity = cyToGrapholElem(entity);
-        if (grapholEntity.data.diagram_id === diagramID) {
-          this.selectElem(grapholEntity.data.id, diagramID);
-        }
-      });
     };
     
     this.performActionInvolvingOntology(selectEntityOccurrences);
@@ -4248,8 +4284,8 @@ class GrapholParser {
           }
         } else { // not an entity, take label from <label> tag or use those for constructor nodes
           if (node.data.type === Type.FACET) {
-            node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.xmlDocument, this.ontology);
-          } 
+            node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.ontology);
+          }
 
           else if (node.data.type === Type.VALUE_DOMAIN) {
             node.data.displayed_name = node.data.iri.prefixed;
@@ -4763,11 +4799,9 @@ function initGrapholscape (file, container, config) {
 }
 
 class GscapeWidget extends s {
-  static get properties() {
-    return {
-      isEnabled: { type: Boolean },
-      hiddenDefault: { type: Boolean }
-    }
+  static properties = {
+    isEnabled: { type: Boolean },
+    hiddenDefault: { type: Boolean }
   }
 
   static get styles() {
@@ -4807,22 +4841,24 @@ class GscapeWidget extends s {
 
       .gscape-panel {
         position: absolute;
-        bottom: 40px;
+        right:0;
+        bottom:0;
         width: auto;
         padding:10px;
         overflow: unset;
-        border: none;
+        margin-right: calc(100% + 8px);
+        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
       .gscape-panel::after {
         content: "";
         position: absolute;
-        top: 100%;
-        left: 16px;
-        margin-left: -8px;
+        left: 100%;
         border-width: 8px;
         border-style: solid;
-        border-color: #ddd transparent transparent transparent;
+        border-color: transparent transparent transparent #ddd;
+        transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
       }
 
       .gscape-panel-title{
@@ -4920,6 +4956,15 @@ class GscapeWidget extends s {
       .icon {
         height:24px;
         width:24px;
+      }
+
+      select {
+        color: var(--theme-gscape-on-primary, ${colors.on_primary});
+        background-color:var(--theme-gscape-primary, ${colors.primary});
+        border-radius: 6px;
+        border: solid 1px gray;
+        margin: 5px;
+        padding: 5px;
       }
 
     `], colors]
@@ -5094,11 +5139,12 @@ class GscapeButton extends GscapeWidget {
 
   static get properties() {
     return {
-        icon: { type : String },
-        active: { type : Boolean },
-        label: { type : String }
-      }
+      icon: { type: String },
+      active: { type: Boolean },
+      label: { type: String },
+      title: { type: String, reflect: true }
     }
+  }
 
   static get styles() {
     let super_styles = super.styles;
@@ -5107,6 +5153,13 @@ class GscapeButton extends GscapeWidget {
     return [
       super_styles[0],
       r$1`
+        :host {
+          box-shadow: 0 0 4px 0 var(--theme-gscape-shadows, ${colors.shadows});
+        }
+
+        :host(:hover){
+          box-shadow: 0 0 8px 0 var(--theme-gscape-shadows, ${colors.shadows});
+        }
 
         mwc-icon {
           font-size: var(--gscape-button-font-size, 24px)
@@ -5136,13 +5189,14 @@ class GscapeButton extends GscapeWidget {
     ]
   }
 
-  constructor(icon, alt_icon, draggable=false) {
+  constructor(icon, title = '', alt_icon = null, draggable = false) {
     super();
     this.draggable = draggable;
 
+    this.title = title;
     this.icon = icon;
-    this.alternate_icon = alt_icon || icon;
-    this.onClick = () => {};
+    this.alternate_icon = alt_icon;
+    this.onClick = () => { };
     this.highlight = false;
     this.active = false;
     this.label = '';
@@ -5154,7 +5208,7 @@ class GscapeButton extends GscapeWidget {
         class="btn"
         ?active = "${this.active}"
         @click="${this.clickHandler}"
-        title="${this.icon}">
+      >
 
         <div class="icon">${this.icon}</div>
         ${this.label ? p`<span class="btn-label">${this.label}<span>` : ``}
@@ -5194,6 +5248,8 @@ class GscapeButton extends GscapeWidget {
   }
 
   toggleIcon() {
+    if (!this._alternate_icon) return
+
     let aux = this._icon;
     this.icon = this._alternate_icon;
     this.alternate_icon = aux;
@@ -5202,7 +5258,7 @@ class GscapeButton extends GscapeWidget {
   firstUpdated() {
     super.firstUpdated();
 
-    this.shadowRoot.querySelector('.icon').onselectstart =  () => false;
+    this.shadowRoot.querySelector('.icon').onselectstart = () => false;
   }
 }
 
@@ -5350,105 +5406,10 @@ class GscapeToggle extends GscapeWidget {
 
 customElements.define('gscape-toggle', GscapeToggle);
 
-class GscapeDialog extends GscapeWidget {
-
-  static get properties() {
-    return {
-      text: { type : Array },
-      type: { type : String },
-    }
-  }
-
-  static get styles() {
-    let super_styles = super.styles;
-    let colors = super_styles[1];
-
-    return [
-      super_styles[0],
-      r$1`
-        :host {
-          top: 30%;
-          left: 50%;
-          max-width: 500px;
-          transform: translate(-50%, 0);
-        }
-
-        .widget-body {
-          padding : 10px;
-          width: initial;
-        }
-
-        .widget-body.error {
-          background : var(--theme-gscape-error, ${colors.error});
-          color : var(--theme-gscape-on-error, ${colors.on_error});
-        }
-
-        gscape-head {
-          --title-text-align : center;
-          --title-width : 100%;
-        }
-
-        gscape-head.error {
-          color : var(--theme-gscape-error, ${colors.error});
-        }
-
-        gscape-head.warning {
-          color : var(--theme-gscape-warning, ${colors.warning});
-        }
-      `
-    ]
-  }
-
-  constructor() {
-    super();
-    this.draggable = true;
-    this.text = [];
-    this.type = 'error';
-  }
-
-  render() {
-    return p`
-    <gscape-head
-      title="${this.type}"
-      icon="close"
-      class="${this.type.toLowerCase()} drag-handler">
-    </gscape-head>
-    <div class="widget-body ${this.type.toLowerCase()}">
-      ${this.text.map( text => p`<p>${text}</p>`)}
-    </div>
-    `
-  }
-
-  // override
-  show(type, message) {
-    super.show();
-
-    this.type = type;
-    if (typeof(message) == 'string')
-      this.text = [message];
-    else
-      this.text = message;
-  }
-
-  clickHandler() {
-    this.hide();
-    this._onClick();
-  }
-
-  firstUpdated() {
-    super.firstUpdated();
-
-    this.hide();
-    this.header.onClick = this.hide.bind(this);
-  }
-}
-
-customElements.define('gscape-dialog', GscapeDialog);
-
 class GscapeHeader extends GscapeWidget {
   static get properties() {
     return {
-      title: { type : String },
+      title: { type : String, reflect: true },
       initial_icon: { type : String },
       secondary_icon: { type : String },
       icon : { type : String },
@@ -5497,7 +5458,6 @@ class GscapeHeader extends GscapeWidget {
         width: var(--title-width, '');
         text-align: var(--title-text-align, 'left');
         justify-self: flex-start;
-        line-height: 25px;
       }
 
       .icon {
@@ -5540,6 +5500,106 @@ class GscapeHeader extends GscapeWidget {
 }
 
 customElements.define('gscape-head', GscapeHeader);
+
+class GscapeDialog extends GscapeWidget {
+
+  static get properties() {
+    return {
+      text: { type : Array },
+      type: { type : String },
+    }
+  }
+
+  static get styles() {
+    let super_styles = super.styles;
+    let colors = super_styles[1];
+
+    return [
+      super_styles[0],
+      r$1`
+        :host {
+          top: 30%;
+          left: 50%;
+          max-width: 500px;
+          transform: translate(-50%, 0);
+        }
+
+        .widget-body {
+          padding : 10px;
+          width: initial;
+        }
+
+        .widget-body.error {
+          background : var(--theme-gscape-error, ${colors.error});
+          color : var(--theme-gscape-on-error, ${colors.on_error});
+        }
+
+        gscape-head {
+          --title-text-align : center;
+          --title-width : 100%;
+        }
+
+        gscape-head.error {
+          color : var(--theme-gscape-error, ${colors.error});
+        }
+
+        gscape-head.warning {
+          color : var(--theme-gscape-warning, ${colors.warning});
+        }
+
+        p {
+          white-space: pre;
+        }
+      `
+    ]
+  }
+
+  constructor() {
+    super();
+    this.draggable = true;
+    this.collapsible = false;
+    this.text = [];
+    this.title = 'Message';
+  }
+
+  render() {
+    return p`
+    <gscape-head
+      title="${this.title}"
+      class="${this.title.toLowerCase()} drag-handler">
+    </gscape-head>
+    <div class="widget-body ${this.title.toLowerCase()}">
+      <slot></slot>
+      ${this.text.map( text => p`<p>${text}</p>`)}
+    </div>
+    `
+  }
+
+  /**
+   * @param {{ type: string; text: string; }} newMessageObj
+   */
+  set message(newMessageObj) {
+    this.title = newMessageObj.type,
+    this.text = newMessageObj.text;
+
+    typeof(newMessageObj.text) === 'string' ? this.text = [newMessageObj.text] : this.text = newMessageObj.text;
+  }
+
+  clickHandler() {
+    this.hide();
+    this._onClick();
+  }
+
+  firstUpdated() {
+    super.firstUpdated();
+
+    this.hide();
+    this.header.icon = close;
+    this.header.onClick = this.hide.bind(this);
+  }
+}
+
+customElements.define('gscape-dialog', GscapeDialog);
 
 class GscapeDiagramSelector extends GscapeWidget {
   static get properties() {
@@ -5713,22 +5773,6 @@ var annotationsTemplate = (entity) => {
         </div>
       ` : ''
     }
-    
-    ${entity.annotations.comment && Object.keys(entity.annotations.comment).length > 0 ?
-      p`
-        <div class="section">
-          <div class="section-header"> Description </div>
-          ${Object.keys(entity.annotations.comment).map( language => {
-            return p`
-              <div class="description" lang="${language}">
-                ${language != '' ? p`<span class="language">${language}</span>` : ''}
-                <span class="descr-text"></span>
-              </div>
-            `
-          })}
-        </div>
-      ` : p``
-    }
   `
 };
 
@@ -5761,12 +5805,10 @@ var entityOccurrencesTemplate = (occurrences, onNodeNavigation) => {
 class GscapeEntityDetails extends GscapeWidget {
 
   static get properties() {
-    return [
-      super.properties,
-      {
-        entity: { type: Object }
-      }
-    ]
+    return {
+      entity: { type: Object },
+      languageSelected: { type: String }
+    }
   }
 
   static get styles() {
@@ -5821,6 +5863,16 @@ class GscapeEntityDetails extends GscapeWidget {
           display: table-row;
           height: 20px;
         }
+
+        .descr-text > span {
+          margin-bottom:10px;
+          display: inline-block;
+        }
+
+        #language-select {
+          margin: 10px auto;
+          display: block;
+        }
       `
     ]
   }
@@ -5841,12 +5893,14 @@ class GscapeEntityDetails extends GscapeWidget {
       irreflexive : 'Irreflexive',
       transitive : 'Transitive',
     };
+    this._languageSelected = '';
 
     this.onNodeNavigation = {};
     this.header = new GscapeHeader('Entity Details', info_filled);
   }
 
   render() {
+    let comment = this.entity?.annotations?.comment;
     return p`
       ${this.header}
       <div class="widget-body">
@@ -5882,11 +5936,38 @@ class GscapeEntityDetails extends GscapeWidget {
             
             ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
             ${annotationsTemplate(this.entity)}
+            
+            ${comment && Object.keys(comment).length > 0 ?
+              p`
+                <div class="section">
+                  <div class="section-header"> Description </div>
+                    ${!Object.keys(comment).includes('') 
+                      ? p`
+                        <select name="language-select" id="language-select" @change=${this._languageChangeHandler}>
+                        ${Object.keys(comment).map( language =>
+                          p`
+                            <option value="${language}" >
+                              ${language.toUpperCase()}
+                            </option>
+                          `
+                        )}
+                        </select>
+                      `
+                      : ''
+                    }
+                    <span class="descr-text"></span>
+                </div>
+              ` : p``
+            }
           `
         : p``
         }
       </div>
     `
+  }
+
+  _languageChangeHandler(e) {
+    this.languageSelected = e.target.value;
   }
 
   wikiClickHandler(e) {
@@ -5922,6 +6003,14 @@ class GscapeEntityDetails extends GscapeWidget {
   }
 
   updated() {
+    let description = this.entity?.annotations?.comment;
+    // if actual language is not available, select the first available
+    if (description && !description[this.languageSelected]) {
+      this._languageSelected = Object.keys(description)[0];
+    }
+
+    if (this.languageSelect) this.languageSelect.value = this.languageSelected;
+
     if (this.entity && this.entity.annotations?.comment)
       this.renderDescription(this.entity.annotations.comment);
 
@@ -5933,18 +6022,14 @@ class GscapeEntityDetails extends GscapeWidget {
   }
 
   renderDescription (description) {
-    let descr_container;
-    let text;
-    Object.keys(description).forEach( language => {
-      text = '';
-      descr_container = this.shadowRoot.querySelector(`[lang = "${language}"] > .descr-text`);
-      description[language].forEach((comment, i) => {
-        i > 0 ?
-          text += '<p>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</p>' :
-          text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/');
-      });
-      descr_container.innerHTML = text;
+    let text = '';
+
+    description[this.languageSelected].forEach( comment => {
+      text += '<span>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</span>';
     });
+
+    if (text.length > 0) 
+      this.shadowRoot.querySelector('.descr-text').innerHTML = text;
   }
 
   handleNodeSelection(e) {
@@ -5962,6 +6047,19 @@ class GscapeEntityDetails extends GscapeWidget {
   blur() {
     this.hide();
   }
+
+  set languageSelected(language) {
+    this._languageSelected = language;
+    this.requestUpdate();
+  }
+
+  get languageSelected() {
+    return this._languageSelected
+  }
+
+  get languageSelect() {
+    return this.shadowRoot.querySelector('#language-select')
+  }
 }
 
 customElements.define('gscape-entity-details', GscapeEntityDetails);
@@ -5973,6 +6071,7 @@ customElements.define('gscape-entity-details', GscapeEntityDetails);
 function init$7(entityDetailsComponent, grapholscape) {
   entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri);
   entityDetailsComponent.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID);
+  entityDetailsComponent.languageSelected = grapholscape.languages.selected;
 
   grapholscape.onEntitySelection(entity => {
     let entityViewData = entityModelToViewData(entity, grapholscape.languages);
@@ -5989,6 +6088,20 @@ function init$7(entityDetailsComponent, grapholscape) {
 
     entityDetailsComponent.entity = entityViewData;
     entityDetailsComponent.show();
+  });
+
+  grapholscape.onNodeSelection(node => {
+    let grapholNode = cyToGrapholElem(node);
+    if (!grapholNode.isEntity()) entityDetailsComponent.hide();
+  });
+
+  grapholscape.onEdgeSelection(edge => {
+    let grapholEdge = cyToGrapholElem(edge);
+    if (!grapholEdge.isEntity()) entityDetailsComponent.hide();
+  });
+
+  grapholscape.onLanguageChange(language => {
+    entityDetailsComponent.languageSelected = language;
   });
 }
 
@@ -6029,7 +6142,11 @@ class GscapeFilters extends GscapeWidget {
         :host {
           display:inline-block;
           position: initial;
-          margin-right:10px;
+          margin-top:10px;
+        }
+
+        .gscape-panel::after {
+          bottom: 133px;
         }
 
         gscape-button{
@@ -6055,7 +6172,7 @@ class GscapeFilters extends GscapeWidget {
     this.collapsible = true;
     this.filterList = filters;
 
-    this.btn = new GscapeButton(filter);
+    this.btn = new GscapeButton(filter, 'Filters');
     this.btn.onClick = this.toggleBody.bind(this);
     this.btn.active = false;
 
@@ -6375,7 +6492,7 @@ const layoutSettings = (grapholscape) => {
 };
 
 const fullscreenButton = (container) => {
-  const fullscreenComponent = new GscapeButton(enter_fullscreen, exit_fullscreen);
+  const fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen);
   fullscreenComponent.container = container;
   fullscreenComponent.style.top = '10px';
   fullscreenComponent.style.right = '10px';
@@ -6777,11 +6894,15 @@ class GscapeOntologyInfo extends GscapeWidget {
         :host {
           display:inline-block;
           position: initial;
-          margin-right:10px;
+          margin-top: 10px;
         }
 
         .gscape-panel {
           padding-right: 0;
+        }
+
+        .gscape-panel::after {
+          bottom: 177px;
         }
 
         gscape-button {
@@ -6824,7 +6945,7 @@ class GscapeOntologyInfo extends GscapeWidget {
     this.collapsible = true;
     this.ontology = ontology;
 
-    this.btn = new GscapeButton(info_outline);
+    this.btn = new GscapeButton(info_outline, 'Ontology Info');
     this.btn.onClick = this.toggleBody.bind(this);
   }
 
@@ -7563,8 +7684,8 @@ class GscapeRenderSelector extends GscapeWidget {
       r$1`
         :host {
           display:inline-block;
-          position:initial;
-          margin-right:10px;
+          position: initial;
+          margin-top:10px;
         }
 
         .renderer-item {
@@ -7586,6 +7707,7 @@ class GscapeRenderSelector extends GscapeWidget {
 
         .renderer-item > .label {
           padding:0 10px;
+          white-space: nowrap;
         }
 
         .selected {
@@ -7595,14 +7717,19 @@ class GscapeRenderSelector extends GscapeWidget {
         }
 
         .widget-body {
-          margin:0;
-          border-top: none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
           border-radius: inherit;
-          border-bottom-left-radius:0;
           border-bottom-right-radius:0;
         }
 
+        .gscape-panel {
+          padding: 0;
+          bottom:initial;
+          top:10px;
+        }
+
+        .gscape-panel::after {
+          top: 8px;
+        }
         gscape-head {
           --header-padding: 5px 8px;
         }
@@ -7622,14 +7749,16 @@ class GscapeRenderSelector extends GscapeWidget {
     this._actual_mode = null;
     this._onRendererChange = () => {};
 
-    this.header = new GscapeHeader('');
+    this.mainButton = new GscapeButton(null, 'Select Renderer');
+    this.mainButton.onclick = () => this.toggleBody();
+    this.mainButton.style.position = 'inherit';
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
   }
 
   render() {
     return p`
-      <div class="widget-body hide">
+      <div class="widget-body hide gscape-panel">
         ${Object.keys(this.dict).map( mode => p`
         <div
           @click="${this.changeRenderer}"
@@ -7646,7 +7775,7 @@ class GscapeRenderSelector extends GscapeWidget {
         `)}
       </div>
 
-     ${this.header}
+     ${this.mainButton}
     `
   }
 
@@ -7662,12 +7791,6 @@ class GscapeRenderSelector extends GscapeWidget {
     this._onRendererChange(mode);
   }
 
-  firstUpdated() {
-    super.firstUpdated();
-    // invert header's dropdown icon behaviour
-    this.header.invertIcons();
-  }
-
   set onRendererChange(f) {
     this._onRendererChange = f;
   }
@@ -7679,8 +7802,8 @@ class GscapeRenderSelector extends GscapeWidget {
   set actual_mode(mode) {
     this._actual_mode = mode;
 
-    this.header.title = this.dict[mode].label;
-    this.header.left_icon = this.dict[mode].icon;
+    //this.header.title = this.dict[mode].label
+    this.mainButton.icon = this.dict[mode].icon;
   }
 
   get actual_mode() { return this._actual_mode }
@@ -7840,7 +7963,7 @@ class GscapeSettings extends GscapeWidget {
         :host {
           display:inline-block;
           position: initial;
-          margin-right:10px;
+          margin-top:10px;
         }
 
         gscape-button {
@@ -7849,6 +7972,10 @@ class GscapeSettings extends GscapeWidget {
 
         .gscape-panel {
           padding-right: 0;
+        }
+
+        .gscape-panel::after {
+          bottom: 221px;
         }
 
         .settings-wrapper {
@@ -7912,13 +8039,13 @@ class GscapeSettings extends GscapeWidget {
     super();
     this.collapsible = true;
     this.settings = settings;
-    this.btn = new GscapeButton(settings$1);
+    this.btn = new GscapeButton(settings$1, 'Settings');
     this.btn.onClick = this.toggleBody.bind(this);
     this.callbacks = {};
 
-    this.savePNGButton = new GscapeButton(save);
+    this.savePNGButton = new GscapeButton(save, 'Save');
     this.savePNGButton.label = 'PNG';
-    this.saveSVGButton = new GscapeButton(save);
+    this.saveSVGButton = new GscapeButton(save, 'Save');
     this.saveSVGButton.label = 'SVG';
   }
 
@@ -8007,7 +8134,7 @@ class GscapeSettings extends GscapeWidget {
 
           <div id="version">
             <span>Version: </span>
-            <span>${"2.0.0-beta.1"}</span>
+            <span>${"2.0.0-beta.2"}</span>
           </div>
         </div>
       </div>
@@ -8140,9 +8267,8 @@ class GscapeZoomTools extends GscapeWidget {
       super_styles[0],
       r$1`
         :host {
-          position: absolute;
-          bottom:52px;
-          right:10px;
+          margin-top:10px;
+          position: initial;
         }
 
         gscape-button{
@@ -8163,8 +8289,8 @@ class GscapeZoomTools extends GscapeWidget {
   constructor() {
     super();
 
-    this.btn_plus = new GscapeButton(plus);
-    this.btn_minus = new GscapeButton(minus);
+    this.btn_plus = new GscapeButton(plus, 'Zoom In');
+    this.btn_minus = new GscapeButton(minus, 'Zoom Out');
 
     this._onZoomIn = null;
     this._onZoomOut = null;
@@ -8200,21 +8326,22 @@ const zoomTools = (grapholscape) => {
 
 /** @param {import('../grapholscape').default} */
 const fitButton = (grapholscape) => {
-  const fitButtonComponent = new GscapeButton(center_diagram);
-  fitButtonComponent.style.bottom = '10px';
-  fitButtonComponent.style.right = '10px';
+  const fitButtonComponent = new GscapeButton(center_diagram, 'Center Diagram');
+  fitButtonComponent.style.marginTop = '10px';
+  fitButtonComponent.style.position = 'initial';
   fitButtonComponent.onClick = () => grapholscape.fit();
   return fitButtonComponent
 };
 
-var bottomLeftContainer = () => {
+var bottomRightContainer = () => {
   let div = document.createElement('div');
   div.style.setProperty('position','absolute');
   div.style.setProperty('bottom','0');
-  div.style.setProperty('left','0');
+  div.style.setProperty('right','0');
   div.style.setProperty('margin','10px');
   div.style.setProperty('display','flex');
-  div.style.setProperty('align-items','flex-end');
+  div.style.setProperty('align-items','center');
+  div.style.setProperty('flex-direction', 'column-reverse');
 
   return div
 };
@@ -8234,6 +8361,7 @@ const widgetNames = {
 function init (grapholscape) {
   const init = () => {
     let gui_container = document.createElement('div');
+    gui_container.setAttribute('id', 'gscape-ui');
 
     const diagramSelectorComponent = diagramSelector(grapholscape);
     const entityDetailsComponent = entityDetails(grapholscape);
@@ -8261,26 +8389,18 @@ function init (grapholscape) {
     grapholscape.onBackgroundClick(() => {
       blurAll(gui_container);
     });
-    grapholscape.onNodeSelection(node => {
-      let grapholNode = cyToGrapholElem(node);
-      if (!grapholNode.classes.includes('predicate')) entityDetailsComponent.hide();
-    });
-
-    grapholscape.onEdgeSelection(edge => {
-      let grapholEdge = cyToGrapholElem(edge);
-      if (!grapholEdge.classes.includes('predicate')) entityDetailsComponent.hide();
-    });
 
     gui_container.appendChild(diagramSelectorComponent);
     gui_container.appendChild(ontologyExplorerComponent);
     gui_container.appendChild(entityDetailsComponent);
-    gui_container.appendChild(zoomToolsComponent);
     gui_container.appendChild(owlVisualizerComponent);
     gui_container.appendChild(fullscreenComponent);
-    gui_container.appendChild(fitButtonComponent);
     gui_container.appendChild(layoutSettingsComponent);
 
-    let bottomContainer = bottomLeftContainer();
+    let bottomContainer = bottomRightContainer();
+    bottomContainer.setAttribute('id', 'gscape-ui-bottom-container');
+    bottomContainer.appendChild(zoomToolsComponent);
+    bottomContainer.appendChild(fitButtonComponent);
     bottomContainer.appendChild(filterComponent);
     bottomContainer.appendChild(ontologyInfoComponent);
     bottomContainer.appendChild(settingsComponent);
@@ -8305,7 +8425,7 @@ function init (grapholscape) {
     }
 
     function isGrapholscapeWidget(widget) {
-      return widget.nodeName.toLowerCase().startsWith('gscape')
+      return widget?.nodeName?.toLowerCase().startsWith('gscape')
     }
 
     function disableWidgets(widgets) {
@@ -8332,6 +8452,7 @@ var index = /*#__PURE__*/Object.freeze({
   GscapeToggle: GscapeToggle,
   GscapeDialog: GscapeDialog,
   GscapeWidget: GscapeWidget,
+  GscapeHeader: GscapeHeader,
   initUI: init,
   GscapeDiagramSelector: GscapeDiagramSelector,
   diagramSelector: diagramSelector,
@@ -8399,4 +8520,4 @@ function bareGrapholscape(file, container, config = {}) {
   return initGrapholscape(file, container, config)
 }
 
-export { POLYGON_POINTS, Shape, Type, index as UI, bareGrapholscape, clearLocalStorage, constructorLabels, fullGrapholscape, grapholNodes as grapholEnums, loadConfig, storeConfigEntry, themes };
+export { Grapholscape, POLYGON_POINTS, Shape, Type, index as UI, bareGrapholscape, clearLocalStorage, constructorLabels, fullGrapholscape, grapholNodes as grapholEnums, loadConfig, storeConfigEntry, themes };
