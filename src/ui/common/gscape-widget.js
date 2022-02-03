@@ -165,7 +165,7 @@ export default class GscapeWidget extends LitElement {
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
         background-color:var(--theme-gscape-primary, ${colors.primary});
         border-radius: 6px;
-        border: solid 1px gray;
+        border: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         margin: 5px;
         padding: 5px;
       }
