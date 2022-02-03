@@ -4,7 +4,8 @@ import * as theme from '../../style/themes'
 export default class GscapeWidget extends LitElement {
   static properties = {
     isEnabled: { type: Boolean },
-    hiddenDefault: { type: Boolean }
+    hiddenDefault: { type: Boolean },
+    draggable: { attribute: false }
   }
 
   static get styles() {
@@ -180,7 +181,6 @@ export default class GscapeWidget extends LitElement {
     this.isEnabled = true
     this._hiddenDefault = false
 
-    this.onselectstart = () => { false }
     this.onToggleBody = () => { }
   }
 

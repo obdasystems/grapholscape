@@ -48,7 +48,6 @@
 body, html {
   font-family : "Montserrat", "Open Sans","Helvetica Neue",Helvetica,sans-serif;
   color: #555;
-  -webkit-user-select:none; 
   height: 100%;
   margin: 0;
 }

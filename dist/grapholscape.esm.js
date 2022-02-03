@@ -4801,7 +4801,8 @@ function initGrapholscape (file, container, config) {
 class GscapeWidget extends s {
   static properties = {
     isEnabled: { type: Boolean },
-    hiddenDefault: { type: Boolean }
+    hiddenDefault: { type: Boolean },
+    draggable: { attribute: false }
   }
 
   static get styles() {
@@ -4962,7 +4963,7 @@ class GscapeWidget extends s {
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
         background-color:var(--theme-gscape-primary, ${colors.primary});
         border-radius: 6px;
-        border: solid 1px gray;
+        border: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         margin: 5px;
         padding: 5px;
       }
@@ -4977,7 +4978,6 @@ class GscapeWidget extends s {
     this.isEnabled = true;
     this._hiddenDefault = false;
 
-    this.onselectstart = () => { };
     this.onToggleBody = () => { };
   }
 
