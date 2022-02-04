@@ -22,7 +22,7 @@ export default class GscapeWidget extends LitElement {
         border-radius: 8px;
         transition: opacity 0.2s;
         scrollbar-width: thin;
-        --mdc-icon-button-size: 24px;
+        --gscape-icon-size: 24px;
       }
 
       :host(:hover){
@@ -158,8 +158,8 @@ export default class GscapeWidget extends LitElement {
       }
 
       .icon {
-        height:24px;
-        width:24px;
+        height: var(--gscape-icon-size);
+        width: var(--gscape-icon-size);
       }
 
       select {

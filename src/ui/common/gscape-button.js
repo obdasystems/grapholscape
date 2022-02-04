@@ -22,19 +22,14 @@ export default class GscapeButton extends GscapeWidget {
       css`
         :host {
           box-shadow: 0 0 4px 0 var(--theme-gscape-shadows, ${colors.shadows});
+          padding: calc(var(--gscape-icon-size) * 0.2 );
         }
 
         :host(:hover){
           box-shadow: 0 0 8px 0 var(--theme-gscape-shadows, ${colors.shadows});
         }
 
-        mwc-icon {
-          font-size: var(--gscape-button-font-size, 24px)
-        }
-
         .btn {
-          padding:5px;
-          line-height: 25px;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -57,6 +52,11 @@ export default class GscapeButton extends GscapeWidget {
           opacity: 20%;
           cursor: initial;
           pointer-events: none;
+        }
+
+        svg {
+          height: inherit;
+          width: inherit;
         }
       `
     ]
