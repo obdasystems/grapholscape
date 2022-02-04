@@ -1,7 +1,7 @@
 import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
-import owl_icon from '../assets/owl-icon'
+import { owl_icon } from '../assets/icons'
 
 export default class GscapeOwlVisualizer extends GscapeWidget {
   static get properties() {

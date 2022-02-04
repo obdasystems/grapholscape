@@ -1,5 +1,5 @@
 import { rendererModelToViewData } from "../../util/model-obj-transformations"
-import graphol_icon from "../assets/graphol-icon"
+import { graphol_icon } from "../assets/icons"
 import { bubbles, lite } from "../assets/icons"
 
 let icons = {
