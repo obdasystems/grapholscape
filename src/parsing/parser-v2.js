@@ -82,7 +82,7 @@ export function getIri(element, ontology) {
     node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
   } else {
     rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':')+1) : label
-    namespace = ontology.getIriFromPrefix(node_prefix_iri)
+    namespace = ontology.getNamespaceFromPrefix(node_prefix_iri)
 
     if (!namespace && ParserUtil.isPredicate(element)) {
       this.warnings.add(`The prefix "${node_prefix_iri}" is not associated to any namespace`)
@@ -91,22 +91,29 @@ export function getIri(element, ontology) {
     namespace = namespace ? namespace.value : ''
   }
 
-  iri_infos.remaining_chars = rem_chars
-  iri_infos.prefix = node_prefix_iri.length > 0 ? node_prefix_iri + ':' : node_prefix_iri
-  iri_infos.full_iri = namespace + rem_chars
+  iri_infos.remainingChars = rem_chars
+  iri_infos.prefix = node_prefix_iri
+  iri_infos.fullIri = namespace + rem_chars
+  iri_infos.namespace = namespace
+  iri_infos.prefixed = node_prefix_iri + ':' + rem_chars
   return iri_infos
 }
 
-export function getLabel(element) {
+export function getFacetDisplayedName(element) {
   if (element.getElementsByTagName('label')[0])
     // language undefined for v2 = ''
-    return { '' : element.getElementsByTagName('label')[0].textContent }
+    return element.getElementsByTagName('label')[0].textContent
   else return undefined
 }
 
 export function getPredicateInfo(element, xmlDocument) {
   let result = {}
-  let label_no_break = element.getElementsByTagName('label')[0].textContent.replace(/\n/g, '')
+  result.annotations = {
+    label : { 
+      '': [element.getElementsByTagName('label')[0].textContent]
+    }
+  }
+  let label_no_break = result.annotations.label[''][0].replace(/\n/g, '')
   let type = element.getAttribute('type')
   let description, start_body_index, end_body_index
   // for searching predicates' description in graphol v2
@@ -120,7 +127,7 @@ export function getPredicateInfo(element, xmlDocument) {
       end_body_index = description.indexOf('</body')
 
       if (description)
-        result.description = { '' : [description.slice(start_body_index, end_body_index)] }
+        result.annotations.comment = { '' : [description.slice(start_body_index, end_body_index)] }
 
       // Impostazione delle funzionalità dei nodi di tipo role o attribute
       if (type === 'attribute' || type === 'role') {

@@ -9,21 +9,17 @@ import path from 'path'
 import json from '@rollup/plugin-json'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
-const FILE = process.env.FILE
-const SOURCEMAPS = process.env.SOURCEMAPS === 'false' // default true
-const BABEL = process.env.BABEL !== 'false' // default true
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
-const matchSnapshot = process.env.SNAPSHOT === 'match'
 const dependencies = Object.keys(require('./package.json').dependencies)
-dependencies.splice(dependencies.indexOf('lit-html'), 1)
-dependencies.splice(dependencies.indexOf('lit-element'), 1)
+dependencies.splice(dependencies.indexOf('lit'), 1)
 
-const input = './src/grapholscape.js'
-const name = 'GrapholScape'
+const input = './src/index.js'
+const name = 'Grapholscape'
 
 const envVariables = {
   'process.env.VERSION': JSON.stringify(VERSION),
-  'process.env.NODE_ENV': JSON.stringify(NODE_ENV)
+  'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+  'preventAssignment': true,
 }
 
 const getJsonOptions = () => ({
@@ -40,16 +36,12 @@ const getJsonOptions = () => ({
 
   // ignores indent and generates the smallest code
   compact: true, // Default: false
-
-  // generate a named export for every property of the JSON object
-  namedExports: true // Default: true
 })
 
 const getBabelOptions = () => ({
   include: [
     'src/**',
-    'node_modules/lit-html/**',
-    'node_modules/lit-element/**',
+    'node_modules/lit/**',
     'node_modules/@material/**'
   ],
   babelrc: false,
@@ -58,8 +50,9 @@ const getBabelOptions = () => ({
     [
       '@babel/preset-env',
       {
+        targets: "> 0.25%, not dead",
         useBuiltIns: 'usage',
-        corejs: 3
+        corejs: "3"
       }
     ]
   ]
@@ -75,89 +68,84 @@ const licenseHeaderOptions = {
 }
 
 const configs = [
-  {
+  { // development
     input,
-    output: {
-      file: 'build/grapholscape.js',
-      format: 'umd',
-      name,
-      sourcemap: SOURCEMAPS ? 'inline' : false
-    },
-    plugins: [
-      json(getJsonOptions()),
-      nodeResolve(),
-      replace(envVariables),
-      commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
-      license(licenseHeaderOptions),
-      !FILE ? sizeSnapshot({ matchSnapshot }) : {}
-    ]
-  },
-
-  {
-    input,
-    output: {
-      file: 'build/grapholscape.min.js',
-      format: 'umd',
-      name
-    },
-    plugins: [
-      json(getJsonOptions()),
-      nodeResolve(),
-      replace(envVariables),
-      commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
-      terser({
-        sourcemap: false
-      }),
-      license(licenseHeaderOptions)
-    ]
-  },
-
-  {
-    input,
-    output: {
-      file: 'build/grapholscape.umd.js',
-      format: 'umd',
-      name,
-      globals: {
-        'cytoscape': 'cytoscape',
-        '@material/mwc-icon': 'mwcIcon',
-        '@material/mwc-icon-button': 'mwcIconButton',
-        'cytoscape-popper': 'popper',
-        'cytoscape-cola': 'cola',
-        'cytoscape-svg': 'svg',
+    output: [
+      {
+        file: 'doc/static/demo/js/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: 'inline'
+      },
+      {
+        file: 'app/graphol/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: 'inline'
       }
-    },
+    ],
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
-      license(licenseHeaderOptions)
+    ]
+  },
+  { // production transpiled, minified
+    input,
+    output: [
+      {
+        file: 'dist/grapholscape.min.js',
+        format: 'iife',
+        name,
+        sourcemap: false
+      },
+      {
+        file: 'dist/grapholscape.esm.min.js',
+        format: 'es',
+        sourcemap: false
+      },
+      {
+        file: 'doc/static/demo/js/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: false
+      },
+      {
+        file: 'app/graphol/grapholscape.js',
+        format: 'iife',
+        name,
+        sourcemap: false
+      },
     ],
-    external: dependencies
+    plugins: [
+      json(getJsonOptions()),
+      nodeResolve(),
+      replace(envVariables),
+      commonjs({ include: '**/node_modules/**' }),
+      babel(getBabelOptions()),
+      sizeSnapshot(),
+      terser(),
+      license(licenseHeaderOptions)
+    ]
   },
   {
     input,
     output: {
-      file: 'build/grapholscape.esm.js',
+      file: 'dist/grapholscape.esm.js',
       format: 'es',
-      name
     },
     plugins: [
       json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
-      BABEL ? babel(getBabelOptions()) : {},
       license(licenseHeaderOptions)
     ],
     external: dependencies
   }
 ]
 
-export default FILE
-  ? configs.filter(config => config.output.file.endsWith(FILE + '.js'))
-  : configs
+// splice(1) removes everything starting at index 1 and returns what he removed
+export default NODE_ENV === 'production'
+  ? configs.splice(1) : configs[0]

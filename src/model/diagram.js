@@ -4,7 +4,7 @@ import cytoscape from 'cytoscape'
  * @property {string | number} id - diagram's identifier
  * @property {cytoscape} cy - cytoscape headless instance for managing elements
  */
-export default class Diagram {
+class Diagram {
   /**
    * @param {string} name
    * @param {string | number} id
@@ -16,6 +16,8 @@ export default class Diagram {
     this.cy = cytoscape()
     if (elements)
       this.addElems(elements)
+    /** @type {boolean} */
+    this.hasEverBeenRendered = false
   }
 
   /**
@@ -24,6 +26,34 @@ export default class Diagram {
    */
   addElems (elems) {
     this.cy.add(elems)
+  }
+
+  /**
+   * Get the entity selected
+   * @returns {cytoscape.CollectionReturnValue | undefined}
+   */
+  getSelectedEntity() {
+    let result = this.cy.$('.predicate:selected').first()
+
+    return result.length > 0 ? result : undefined
+  }
+
+  /**
+   * Select a node or an edge given its unique id
+   * @param {string} id unique elem id (node or edge)
+   * @param {boolean} [unselect=true] should selected elements be unselected
+   */
+  selectElem(id, unselect = true) {
+    if (unselect) this.unselectAll()
+    this.cy.$id(id).select()
+  }
+
+  /**
+   * Unselect every selected element in this diagram
+   * @param {string} [selector='*'] cytoscape selector to filter the elements to unselect, default '*'
+   */
+  unselectAll(selector = '*') {
+    this.cy.$(selector+':selected').unselect()
   }
 
   /**
@@ -43,3 +73,4 @@ export default class Diagram {
   }
 }
 
+export default Diagram

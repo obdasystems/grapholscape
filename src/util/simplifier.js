@@ -1,13 +1,14 @@
 import cytoscape from 'cytoscape'
 import Diagram from '../model/diagram'
-import GrapholscapeRenderer from '../view/render/default-renderer'
+import GrapholscapeRenderer from '../rendering/renderers/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
 
+/** @param {Ontology} ontology */
 export default function computeSimplifiedOntologies(ontology) {
   let aux_renderer = new GrapholscapeRenderer(null)
-  let lite_ontology = new Ontology(ontology.name, ontology.version)
-  let float_ontology = new Ontology(ontology.name, ontology.version)
+  let lite_ontology = new Ontology(ontology.name, ontology.version, ontology.namespaces)
+  let float_ontology = new Ontology(ontology.name, ontology.version, ontology.namespaces)
   let new_ontologies = {
     lite : lite_ontology,
     float : float_ontology,
@@ -553,6 +554,7 @@ export default function computeSimplifiedOntologies(ontology) {
       node.data('original-position', JSON.stringify(node.position()))
     })
 
+    filterByCriterion(cy, node => node.data('type') === 'has-key')
     simplifyRolesFloat(cy)
     simplifyHierarchiesFloat(cy)
     simplifyAttributesFloat(cy)
@@ -584,8 +586,8 @@ export default function computeSimplifiedOntologies(ontology) {
               target : target.id(),
               type : domain.target().data('type'),
               iri : domain.target().data('iri'),
-              displayed_name : domain.target().data('displayed_name').replace(/\r?\n|\r/g, ''),
-              label : domain.target().data('label'),
+              displayed_name : domain.target().data('displayed_name'),
+              annotations : domain.target().data('annotations'),
               description : domain.target().data('description'),
               functional : domain.target().data('functional'),
               inverseFunctional : domain.target().data('inverseFunctional'),
