@@ -3,7 +3,7 @@ import GscapeWidget from '../common/gscape-widget'
 import GscapeButton from '../common/gscape-button'
 import GscapeToggle from '../common/gscape-toggle'
 import { grapholscape as logo} from '../assets/gscape-logo'
-import { save, settings as settingsIcon } from '../assets/icons'
+import { save, settings_icon } from '../assets/icons'
 
 export default class GscapeSettings extends GscapeWidget {
 
@@ -93,7 +93,7 @@ export default class GscapeSettings extends GscapeWidget {
     super()
     this.collapsible = true
     this.settings = settings
-    this.btn = new GscapeButton(settingsIcon, 'Settings')
+    this.btn = new GscapeButton(settings_icon, 'Settings')
     this.btn.onClick = this.toggleBody.bind(this)
     this.callbacks = {}
 
