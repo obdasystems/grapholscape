@@ -1,4 +1,3 @@
-import { cyToGrapholElem } from "../util/model-obj-transformations";
 import { diagramSelector } from "./diagram-selector";
 import { entityDetails } from "./entity-details";
 import { filters } from "./filters";
@@ -12,16 +11,7 @@ import { settings } from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
 import { zoomTools } from "./zoom-tools";
 import { fitButton } from "./fit-button";
-import { storeConfigEntry } from "../config/config-manager";
-
-
-const widgetNames = {
-  explorer: 'gscape-explorer',
-  details: 'gscape-entity-details',
-  owl_translator: 'gscape-owl-visualizer',
-  filters: 'gscape-filters',
-  simplifications: 'gscape-render-selector',
-}
+import widgetNames from "./util/widget-names";
 
 /**
  * Initialize the UI
@@ -31,6 +21,7 @@ export default function (grapholscape) {
   const init = () => {
     let gui_container = document.createElement('div')
     gui_container.setAttribute('id', 'gscape-ui')
+    grapholscape.container.appendChild(gui_container)
 
     const diagramSelectorComponent = diagramSelector(grapholscape)
     const entityDetailsComponent = entityDetails(grapholscape)
@@ -43,14 +34,6 @@ export default function (grapholscape) {
     const owlVisualizerComponent = owlVisualizer(grapholscape)
     const filterComponent = filters(grapholscape)
     const settingsComponent = settings(grapholscape)
-    settingsComponent.onWidgetEnabled = (widgetName) => {
-      gui_container.querySelector(widgetNames[widgetName]).enable()
-      storeConfigEntry(widgetName, true)
-    }
-    settingsComponent.onWidgetDisabled = (widgetName) => {
-      gui_container.querySelector(widgetNames[widgetName]).disable()
-      storeConfigEntry(widgetName, false)
-    }
     const rendererSelectorComponent = rendererSelector(grapholscape)
     const layoutSettingsComponent = layoutSettings(grapholscape)
 
@@ -75,7 +58,6 @@ export default function (grapholscape) {
     bottomContainer.appendChild(settingsComponent)
     bottomContainer.appendChild(rendererSelectorComponent)
     gui_container.appendChild(bottomContainer)
-    grapholscape.container.appendChild(gui_container)
 
     bottomContainer.querySelectorAll('*').forEach(widget => {
       if (isGrapholscapeWidget(widget)) {
@@ -89,6 +71,9 @@ export default function (grapholscape) {
       container.querySelectorAll('*').forEach(widget => {
         if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
           widget.blur()
+          if ( widget.btn?.hasPanel ) {
+            widget.btn.classList.remove('panel-open')
+          }
         }
       })
     }

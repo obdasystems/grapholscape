@@ -38,10 +38,6 @@ export default class GscapeFilters extends GscapeWidget {
           margin-top:10px;
         }
 
-        .gscape-panel::after {
-          bottom: 133px;
-        }
-
         gscape-button{
           position: static;
         }
@@ -66,6 +62,7 @@ export default class GscapeFilters extends GscapeWidget {
     this.filterList = filters
 
     this.btn = new GscapeButton(filter, 'Filters')
+    this.highlighted = true
     this.btn.onClick = this.toggleBody.bind(this)
     this.btn.active = false
 
@@ -76,7 +73,7 @@ export default class GscapeFilters extends GscapeWidget {
   render() {
     return html`
       ${this.btn}
-
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Filters</div>
 
@@ -128,7 +125,7 @@ export default class GscapeFilters extends GscapeWidget {
         is_activated = true
     })
 
-    this.btn.active = is_activated
+    this.btn.highlighted = is_activated
     this.btn.requestUpdate()
   }
 

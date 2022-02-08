@@ -26,7 +26,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
 
         .renderer-item {
           cursor:pointer;
-          padding:5px 10px;
+          padding: 10px;
           display: flex;
           align-items: center;
         }
@@ -41,9 +41,15 @@ export default class GscapeRenderSelector extends GscapeWidget {
           border-top-right-radius: inherit;
         }
 
+        .renderer-item:last-of-type {
+          border-bottom-left-radius: inherit;
+          border-bottom-right-radius: inherit;
+        }
+
         .renderer-item > .label {
-          padding:0 10px;
           white-space: nowrap;
+          top: 2px;
+          position: relative;
         }
 
         .selected {
@@ -52,20 +58,12 @@ export default class GscapeRenderSelector extends GscapeWidget {
           font-weight: bold;
         }
 
-        .widget-body {
-          border-radius: inherit;
-          border-bottom-right-radius:0;
-        }
-
         .gscape-panel {
           padding: 0;
           bottom:initial;
           top:10px;
         }
 
-        .gscape-panel::after {
-          top: 8px;
-        }
         gscape-head {
           --header-padding: 5px 8px;
         }
@@ -86,7 +84,8 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this._onRendererChange = () => {}
 
     this.mainButton = new GscapeButton(null, 'Select Renderer')
-    this.mainButton.onclick = () => this.toggleBody()
+    this.mainButton.highlighted = true
+    this.mainButton.onClick = () => this.toggleBody()
     this.mainButton.style.position = 'inherit'
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
@@ -94,6 +93,9 @@ export default class GscapeRenderSelector extends GscapeWidget {
 
   render() {
     return html`
+      ${this.mainButton}
+      
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         ${Object.keys(this.dict).map( mode => html`
         <div
@@ -101,17 +103,11 @@ export default class GscapeRenderSelector extends GscapeWidget {
           mode="${mode}"
           class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
         >
-        ${this.isCustomIcon(this.dict[mode].icon) ? html`
-          <mwc-icon-button>${this.dict[mode].icon}</mwc-icon-button>`
-        : html`
-          <mwc-icon-button icon="${this.dict[mode].icon}"></mwc-icon-button>
-        `}
+        ${this.dict[mode].icon}
         <span class="label">${this.dict[mode].label}</span>
         </div>
         `)}
       </div>
-
-     ${this.mainButton}
     `
   }
 

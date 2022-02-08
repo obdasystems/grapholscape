@@ -28,10 +28,6 @@ export default class GscapeSettings extends GscapeWidget {
           padding-right: 0;
         }
 
-        .gscape-panel::after {
-          bottom: 221px;
-        }
-
         .settings-wrapper {
           overflow-y: auto;
           scrollbar-width: inherit;
@@ -106,7 +102,7 @@ export default class GscapeSettings extends GscapeWidget {
   render() {
     return html`
       ${this.btn}
-
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Settings</div>
 

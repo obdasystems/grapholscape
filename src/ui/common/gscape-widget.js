@@ -54,15 +54,12 @@ export default class GscapeWidget extends LitElement {
         border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
-      .gscape-panel::after {
-        content: "";
+      .gscape-panel-arrow {
         position: absolute;
-        left: 100%;
+        transform: translate(-50%, -24px);
         border-width: 8px;
         border-style: solid;
-        border-color: transparent transparent transparent #ddd;
-        transform: rotate(0deg);
-        -webkit-transform: rotate(0deg);
+        border-color: transparent transparent transparent var(--theme-gscape-shadows, ${colors.shadows});
       }
 
       .gscape-panel-title{
@@ -194,8 +191,10 @@ export default class GscapeWidget extends LitElement {
         this.header.toggleIcon()
       }
 
-      if (this.body)
+      if (this.body) {
         this.body.classList.toggle('hide')
+        this.shadowRoot.querySelector('.gscape-panel-arrow')?.classList.toggle('hide')
+      }
 
       this.onToggleBody()
     }
@@ -206,8 +205,10 @@ export default class GscapeWidget extends LitElement {
       if (this.header && !this.isCollapsed)
         this.header.toggleIcon()
 
-      if (this.body)
+      if (this.body) {
         this.body.classList.add('hide')
+        this.shadowRoot.querySelector('.gscape-panel-arrow')?.classList.add('hide')
+      }
     }
   }
 

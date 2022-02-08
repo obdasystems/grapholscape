@@ -1,5 +1,8 @@
 import Grapholscape from "../../grapholscape";
 import GscapeSettings from "./settings";
+import { storeConfigEntry } from "../../config/config-manager";
+import widgetNames from "../util/widget-names";
+
 /**
  * @param {GscapeSettings} settingsComponent
  * @param {Grapholscape} grapholscape 
@@ -13,6 +16,16 @@ export default function(settingsComponent, grapholscape) {
   settingsComponent.onThemeSelection = (themeKey) => grapholscape.applyTheme(themeKey)
   settingsComponent.onPNGSaveButtonClick = () => grapholscape.exportToPNG()
   settingsComponent.onSVGSaveButtonClick = () => grapholscape.exportToSVG()
+
+  let gui_container = grapholscape.container.querySelector('#gscape-ui')
+  settingsComponent.onWidgetEnabled = (widgetName) => {
+    gui_container.querySelector(widgetNames[widgetName]).enable()
+    storeConfigEntry(widgetName, true)
+  }
+  settingsComponent.onWidgetDisabled = (widgetName) => {
+    gui_container.querySelector(widgetNames[widgetName]).disable()
+    storeConfigEntry(widgetName, false)
+  }
 
   grapholscape.onLanguageChange( language => updateOnChange('language', language))
   grapholscape.onEntityNameTypeChange( entityNameType => updateOnChange('entity_name', entityNameType) )
