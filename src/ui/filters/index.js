@@ -1,11 +1,12 @@
 import GscapeFilters from "./gscape-filters";
 import init from "./controller";
 
-export default GscapeFilters
+export { GscapeFilters }
 
-export const filterComponent = new GscapeFilters()
+const filterComponent = new GscapeFilters()
 
-export const filters = (grapholscape) => {
+export function initFilters(grapholscape) {
   init(filterComponent, grapholscape)
-  return filterComponent
 }
+
+export default filterComponent

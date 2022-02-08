@@ -1,11 +1,12 @@
 import GscapeRenderSelector from "./render-selector";
 import init from "./controller"
 
-export default GscapeRenderSelector
+export { GscapeRenderSelector }
 
-export const rendererSelectorComponent = new GscapeRenderSelector()
+const rendererSelectorComponent = new GscapeRenderSelector()
 
-export const rendererSelector = (grapholscape) => {
+export function initRendererSelector(grapholscape) {
   init(rendererSelectorComponent, grapholscape)
-  return rendererSelectorComponent
 }
+
+export default rendererSelectorComponent

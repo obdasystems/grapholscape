@@ -1,10 +1,12 @@
 import GscapeZoomTools from "./zoom-tools";
 
-export default GscapeZoomTools
+export { GscapeZoomTools }
 
-export const zoomTools = (grapholscape) => {
-  const zoomToolsComponent = new GscapeZoomTools()
+const zoomToolsComponent = new GscapeZoomTools()
+
+export function initZoomTools(grapholscape) {
   zoomToolsComponent.onZoomIn = () => grapholscape.zoomIn()
   zoomToolsComponent.onZoomOut = () => grapholscape.zoomOut()
-  return zoomToolsComponent
 }
+
+export default zoomToolsComponent

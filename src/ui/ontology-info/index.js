@@ -1,7 +1,12 @@
 import GscapeOntologyInfo from "./ontology-info"
 import { ontologyModelToViewData } from "../../util/model-obj-transformations"
 
-export default GscapeOntologyInfo
+export { GscapeOntologyInfo }
 
-export const ontologyInfo = (ontology) => 
-  new GscapeOntologyInfo(ontologyModelToViewData(ontology))
+const ontologyInfoComponent = new GscapeOntologyInfo()
+
+export function initOntologyInfo(ontology) {
+  ontologyInfoComponent.ontology = ontologyModelToViewData(ontology)
+}
+
+export default ontologyInfoComponent  

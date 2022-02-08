@@ -1,11 +1,12 @@
 import GscapeExplorer from "./ontology-explorer";
 import init from "./controller"
 
-export default GscapeExplorer
+export { GscapeExplorer }
 
-export const ontologyExplorerComponent = new GscapeExplorer()
+const ontologyExplorerComponent = new GscapeExplorer()
 
-export const ontologyExplorer = (grapholscape) => {
+export function initOntologyExplorer(grapholscape) {
   init(ontologyExplorerComponent, grapholscape)
-  return ontologyExplorerComponent
 }
+
+export default ontologyExplorerComponent

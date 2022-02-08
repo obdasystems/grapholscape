@@ -1,11 +1,12 @@
 import GscapeOwlVisualizer from "./owl-visualizer";
 import init from './controller'
 
-export default GscapeOwlVisualizer
+export { GscapeOwlVisualizer }
 
-export const owlVisualizerComponent = new GscapeOwlVisualizer()
+const owlVisualizerComponent = new GscapeOwlVisualizer()
 
-export const owlVisualizer = (grapholscape) => {
+export function initOwlVisualizer(grapholscape) {
   init(owlVisualizerComponent, grapholscape)
-  return owlVisualizerComponent
 }
+
+export default owlVisualizerComponent

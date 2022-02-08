@@ -1,10 +1,12 @@
 import GscapeLayoutSettings from "./layout-settings";
 import init from "./controller"
 
-export default GscapeLayoutSettings
+export { GscapeLayoutSettings }
 
-export const layoutSettings = (grapholscape) => {
-  const layoutSettingsComponent = new GscapeLayoutSettings()
+const layoutSettingsComponent = new GscapeLayoutSettings()
+
+export function initLayoutSettings(grapholscape) {
   init(layoutSettingsComponent, grapholscape)
-  return layoutSettingsComponent
 }
+
+export default layoutSettingsComponent

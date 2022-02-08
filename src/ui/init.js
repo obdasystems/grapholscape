@@ -1,16 +1,16 @@
-import { diagramSelector } from "./diagram-selector";
-import { entityDetails } from "./entity-details";
-import { filters } from "./filters";
-import { layoutSettings } from "./floaty-layout-settings";
-import { fullscreenButton } from "./fullscreen";
-import { ontologyExplorer } from "./ontology-explorer";
-import { ontologyInfo } from "./ontology-info";
-import { owlVisualizer } from "./owl-visualizer";
-import { rendererSelector } from "./renderer-selector";
-import { settings } from "./settings";
+import { default as diagramSelectorComponent, initDiagramSelector } from "./diagram-selector";
+import { default as entityDetailsComponent, initEntityDetails } from "./entity-details";
+import { default as filterComponent, initFilters } from "./filters";
+import { default as layoutSettingsComponent, initLayoutSettings } from "./floaty-layout-settings";
+import { default as fullscreenComponent, initFullscreenButton } from "./fullscreen";
+import { default as ontologyExplorerComponent, initOntologyExplorer } from "./ontology-explorer";
+import { default as ontologyInfoComponent, initOntologyInfo } from "./ontology-info";
+import { default as owlVisualizerComponent, initOwlVisualizer } from "./owl-visualizer";
+import { default as rendererSelectorComponent, initRendererSelector } from "./renderer-selector";
+import { default as settingsComponent, initSettings } from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
-import { zoomTools } from "./zoom-tools";
-import { fitButton } from "./fit-button";
+import { default as zoomToolsComponent, initZoomTools } from "./zoom-tools";
+import { default as fitButtonComponent, initFitButton } from "./fit-button";
 import widgetNames from "./util/widget-names";
 
 /**
@@ -23,19 +23,19 @@ export default function (grapholscape) {
     gui_container.setAttribute('id', 'gscape-ui')
     grapholscape.container.appendChild(gui_container)
 
-    const diagramSelectorComponent = diagramSelector(grapholscape)
-    const entityDetailsComponent = entityDetails(grapholscape)
+    initDiagramSelector(grapholscape)
+    initEntityDetails(grapholscape)
 
-    const zoomToolsComponent = zoomTools(grapholscape)
-    const ontologyInfoComponent = ontologyInfo(grapholscape.ontology)
-    const fullscreenComponent = fullscreenButton(grapholscape.container)
-    const fitButtonComponent = fitButton(grapholscape)
-    const ontologyExplorerComponent = ontologyExplorer(grapholscape)
-    const owlVisualizerComponent = owlVisualizer(grapholscape)
-    const filterComponent = filters(grapholscape)
-    const settingsComponent = settings(grapholscape)
-    const rendererSelectorComponent = rendererSelector(grapholscape)
-    const layoutSettingsComponent = layoutSettings(grapholscape)
+    initZoomTools(grapholscape)
+    initOntologyInfo(grapholscape.ontology)
+    initFullscreenButton(grapholscape.container)
+    initFitButton(grapholscape)
+    initOntologyExplorer(grapholscape)
+    initOwlVisualizer(grapholscape)
+    initFilters(grapholscape)
+    initSettings(grapholscape)
+    initRendererSelector(grapholscape)
+    initLayoutSettings(grapholscape)
 
     // USING GRAPHOLSCAPE CALLBACKS
     grapholscape.onBackgroundClick(() => {
