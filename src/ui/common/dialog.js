@@ -8,7 +8,7 @@ export default class GscapeDialog extends GscapeWidget {
   static get properties() {
     return {
       text: { type : Array },
-      type: { type : String },
+      title: { type : String, reflect: true },
     }
   }
 
@@ -77,15 +77,11 @@ export default class GscapeDialog extends GscapeWidget {
     `
   }
 
-  /**
-   * @param {{ type: string; text: string; }} newMessageObj
-   */
-  set message(newMessageObj) {
-    this.title = newMessageObj.type,
-    this.text = newMessageObj.text
-
-    typeof(newMessageObj.text) === 'string' ? this.text = [newMessageObj.text] : this.text = newMessageObj.text
+  set text(newText) {
+    this._text = typeof(newText) === 'string' ? [newText] : newText
   }
+
+  get text() { return this._text }
 
   clickHandler() {
     this.hide()
