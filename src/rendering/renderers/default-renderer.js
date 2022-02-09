@@ -52,13 +52,13 @@ export default class GrapholscapeRenderer {
   centerOnNode (node_id, zoom) {
     var node = this.cy.getElementById(node_id)
     if (node) {
-      this.centerOnPosition(node.position('x'), node.position('y'), zoom)
+      this.centerOnModelPosition(node.position('x'), node.position('y'), zoom)
       this.cy.$(':selected').unselect()
       node.select()
     }
   }
 
-  centerOnPosition (x_pos, y_pos, zoom = this.cy.zoom()) {
+  centerOnModelPosition (x_pos, y_pos, zoom = this.cy.zoom()) {
     this.cy.reset()
     let offset_x = this.cy.width() / 2
     let offset_y = this.cy.height() / 2

@@ -87,7 +87,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
           node.select();
           elems.select();
         } else {
-          setTimeout( () => this.centerOnPosition(node.position('x'), node.position('y'), zoom), 300)
+          setTimeout( () => this.centerOnModelPosition(node.position('x'), node.position('y'), zoom), 300)
           node.select()
         }
       }

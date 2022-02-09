@@ -58,7 +58,7 @@
  * @callback themeChangeCallback
  * @param {import('./style/themes').Theme} newTheme
  */
- 
+
 /**
  * @callback entityNameTypeChangeCallback
  * @param {EntityNameType} newEntityNameType
@@ -161,7 +161,7 @@ class Grapholscape {
 
   /**
    * Register a new callback to be called on a entity selection
-   * @param {entitySelectionCallbak} callback 
+   * @param {entitySelectionCallbak} callback
    */
   onEntitySelection(callback) { this._callbacksEntitySelection.push(callback) }
 
@@ -206,7 +206,7 @@ class Grapholscape {
 
   handleBackgroundClick() {
     this.unselectEntity([this.actualDiagramID])
-    this._callbacksBackgroundClick.forEach(fn => fn()) 
+    this._callbacksBackgroundClick.forEach(fn => fn())
   }
 
   /**
@@ -215,7 +215,7 @@ class Grapholscape {
    */
   unselectEntity(diagramsToSkip) {
     for (const key in this.ontologies) {
-      this.ontologies[key].diagrams.forEach( d => {
+      this.ontologies[key].diagrams.forEach(d => {
         if (!diagramsToSkip.includes(d.id) || this.ontologies[key] !== this.ontology) {
           d.unselectAll()
         }
@@ -250,6 +250,7 @@ class Grapholscape {
 
       const isFirstTimeRendering = diagram.hasEverBeenRendered
       this.renderersManager.drawDiagram(diagram)
+      console.log(viewportState)
       if (viewportState)
         this.renderersManager.setViewport(viewportState)
       else if (!isFirstTimeRendering) {
@@ -269,7 +270,7 @@ class Grapholscape {
 
       this._callbacksDiagramChange.forEach(fn => fn(diagram))
     }
-    
+
     this.performActionInvolvingOntology(showDiagram)
   }
 
@@ -303,7 +304,7 @@ class Grapholscape {
           return
         }
       }
-      
+
       this.renderersManager.centerOnNode(nodeID, zoom)
     }
 
@@ -384,14 +385,14 @@ class Grapholscape {
         diagramID = this.ontology.getDiagram(diagram)?.id
 
       const iriOccurrences = this.ontology.getEntityOccurrences(iri)
-      
+
       if (!iriOccurrences || iriOccurrences.length === 0) {
         console.warn(`Could not find any entity with "${iri}" as prefixed or full IRI`)
         return
       }
 
       if (!diagramID) {
-        iriOccurrences.forEach( elem => this.selectElem(cyToGrapholElem(elem).data.id))
+        iriOccurrences.forEach(elem => this.selectElem(cyToGrapholElem(elem).data.id))
       } else {
         iriOccurrences.forEach(entity => {
           const grapholEntity = cyToGrapholElem(entity)
@@ -401,7 +402,7 @@ class Grapholscape {
         })
       }
     }
-    
+
     this.performActionInvolvingOntology(selectEntityOccurrences)
   }
 
@@ -437,7 +438,7 @@ class Grapholscape {
 
   zoomIn(zoomValue = this.ZOOM_STEP_VALUE) { this.renderersManager.zoomIn(zoomValue) }
   zoomOut(zoomValue = this.ZOOM_STEP_VALUE) { this.renderersManager.zoomOut(zoomValue) }
-  fit() { this.renderersManager.fit()}
+  fit() { this.renderersManager.fit() }
   /**
    * Register a callback to be called on a filter activation
    * @param {filterCallback} callback 
@@ -457,7 +458,7 @@ class Grapholscape {
     if (this.isDefinedFilter(filterType)) {
       this.filterList[filterType].active = true
     }
-  
+
     this.renderersManager.filter(filterObj)
     filterObj['key'] = Object.keys(this.filterList).find(key => this.filterList[key] === filterObj)
     this._callbacksFilterOn.forEach(fn => fn(filterObj))
@@ -466,7 +467,7 @@ class Grapholscape {
   isDefinedFilter(filterType) {
     return this.filterList[filterType] ? true : false
   }
-  
+
   /** @param {filterCallback} callback */
   onUnfilter(callback) { this._callbacksFilterOff.push(callback) }
 
@@ -480,7 +481,7 @@ class Grapholscape {
     let filterObj = this.isDefinedFilter(filterType) ?
       this.filterList[filterType] : filterType
 
-    if (this.isDefinedFilter(filterType)) 
+    if (this.isDefinedFilter(filterType))
       this.filterList[filterType].active = false
 
     this.renderersManager.unfilter(filterObj)
@@ -510,7 +511,7 @@ class Grapholscape {
         return
       }
       normalizedTheme = this.themesController.getTheme(themeKey.id)
-      if(!normalizedTheme) return
+      if (!normalizedTheme) return
       themeKey = themeKey.id
     }
 
@@ -537,7 +538,7 @@ class Grapholscape {
    */
   addTheme(theme) {
     if (!theme.id) {
-      throw( new Error('The custom theme you specified must have a declared unique "id" property'))
+      throw (new Error('The custom theme you specified must have a declared unique "id" property'))
     }
 
     this.config.rendering.theme.list.push({
@@ -716,7 +717,7 @@ class Grapholscape {
    */
   performActionInvolvingOntology(callback) {
     if (this.shouldSimplify && this.shouldWaitSimplifyPromise) {
-      this.SimplifiedOntologyPromise.then( () => callback())
+      this.SimplifiedOntologyPromise.then(() => callback())
     } else {
       callback()
     }
