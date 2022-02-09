@@ -787,7 +787,7 @@ class RendererManager {
 
   /** @param {ViewportState} state*/
   setViewport(state) {
-    if (state) this.renderer.centerOnPosition(state.x, state.y, state.zoom);
+    if (state) this.renderer.centerOnRenderedPosition(state.x, state.y, state.zoom);
   }
 
   /**
@@ -1364,13 +1364,13 @@ class GrapholscapeRenderer {
   centerOnNode (node_id, zoom) {
     var node = this.cy.getElementById(node_id);
     if (node) {
-      this.centerOnPosition(node.position('x'), node.position('y'), zoom);
+      this.centerOnModelPosition(node.position('x'), node.position('y'), zoom);
       this.cy.$(':selected').unselect();
       node.select();
     }
   }
 
-  centerOnPosition (x_pos, y_pos, zoom = this.cy.zoom()) {
+  centerOnModelPosition (x_pos, y_pos, zoom = this.cy.zoom()) {
     this.cy.reset();
     let offset_x = this.cy.width() / 2;
     let offset_y = this.cy.height() / 2;
@@ -1615,7 +1615,7 @@ const bubbles = y`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox=
 
 const lite = y`<svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><rect fill="none" height="24" width="24"/><g><path d="M14.06,9.94L12,9l2.06-0.94L15,6l0.94,2.06L18,9l-2.06,0.94L15,12L14.06,9.94z M4,14l0.94-2.06L7,11l-2.06-0.94L4,8 l-0.94,2.06L1,11l2.06,0.94L4,14z M8.5,9l1.09-2.41L12,5.5L9.59,4.41L8.5,2L7.41,4.41L5,5.5l2.41,1.09L8.5,9z M4.5,20.5l6-6.01l4,4 L23,8.93l-1.41-1.41l-7.09,7.97l-4-4L3,19L4.5,20.5z"/></g></svg>`;
 
-const settings$1 = y`<svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><g><path d="M0,0h24v24H0V0z" fill="none"/><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></g></svg>`;
+const settings_icon = y`<svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><g><path d="M0,0h24v24H0V0z" fill="none"/><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></g></svg>`;
 
 const info_filled = y`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`;
 
@@ -1628,6 +1628,46 @@ const save = y`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 
 const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
 
 const close = y`<svg fillColor="currentColor" style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
+ */
+const move_bubbles = y`<svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" /></svg>`; 
+
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
+ */
+ const owl_icon = y`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 20px; width: auto; padding: 2px;" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z"/></svg>`;
+
+ const graphol_icon = y`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: auto; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
+
+var icons$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  diagrams: diagrams,
+  triangle_up: triangle_up,
+  triangle_down: triangle_down,
+  arrow_right: arrow_right,
+  arrow_down: arrow_down,
+  explore: explore,
+  info_outline: info_outline,
+  enter_fullscreen: enter_fullscreen,
+  exit_fullscreen: exit_fullscreen,
+  center_diagram: center_diagram,
+  filter: filter,
+  bubbles: bubbles,
+  lite: lite,
+  settings_icon: settings_icon,
+  info_filled: info_filled,
+  plus: plus,
+  minus: minus,
+  save: save,
+  lock_open: lock_open,
+  close: close,
+  move_bubbles: move_bubbles,
+  owl_icon: owl_icon,
+  graphol_icon: graphol_icon
+});
 
 class FloatyGscapeRenderer extends GrapholscapeRenderer {
   constructor(container) {
@@ -1715,7 +1755,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
           node.select();
           elems.select();
         } else {
-          setTimeout( () => this.centerOnPosition(node.position('x'), node.position('y'), zoom), 300);
+          setTimeout( () => this.centerOnModelPosition(node.position('x'), node.position('y'), zoom), 300);
           node.select();
         }
       }
@@ -3253,7 +3293,7 @@ class Grapholscape {
 
   /**
    * Register a new callback to be called on a entity selection
-   * @param {entitySelectionCallbak} callback 
+   * @param {entitySelectionCallbak} callback
    */
   onEntitySelection(callback) { this._callbacksEntitySelection.push(callback); }
 
@@ -3298,7 +3338,7 @@ class Grapholscape {
 
   handleBackgroundClick() {
     this.unselectEntity([this.actualDiagramID]);
-    this._callbacksBackgroundClick.forEach(fn => fn()); 
+    this._callbacksBackgroundClick.forEach(fn => fn());
   }
 
   /**
@@ -3307,7 +3347,7 @@ class Grapholscape {
    */
   unselectEntity(diagramsToSkip) {
     for (const key in this.ontologies) {
-      this.ontologies[key].diagrams.forEach( d => {
+      this.ontologies[key].diagrams.forEach(d => {
         if (!diagramsToSkip.includes(d.id) || this.ontologies[key] !== this.ontology) {
           d.unselectAll();
         }
@@ -3342,6 +3382,7 @@ class Grapholscape {
 
       const isFirstTimeRendering = diagram.hasEverBeenRendered;
       this.renderersManager.drawDiagram(diagram);
+      console.log(viewportState);
       if (viewportState)
         this.renderersManager.setViewport(viewportState);
       else if (!isFirstTimeRendering) {
@@ -3361,7 +3402,7 @@ class Grapholscape {
 
       this._callbacksDiagramChange.forEach(fn => fn(diagram));
     };
-    
+
     this.performActionInvolvingOntology(showDiagram);
   }
 
@@ -3395,7 +3436,7 @@ class Grapholscape {
           return
         }
       }
-      
+
       this.renderersManager.centerOnNode(nodeID, zoom);
     };
 
@@ -3476,14 +3517,14 @@ class Grapholscape {
         diagramID = this.ontology.getDiagram(diagram)?.id;
 
       const iriOccurrences = this.ontology.getEntityOccurrences(iri);
-      
+
       if (!iriOccurrences || iriOccurrences.length === 0) {
         console.warn(`Could not find any entity with "${iri}" as prefixed or full IRI`);
         return
       }
 
       if (!diagramID) {
-        iriOccurrences.forEach( elem => this.selectElem(cyToGrapholElem(elem).data.id));
+        iriOccurrences.forEach(elem => this.selectElem(cyToGrapholElem(elem).data.id));
       } else {
         iriOccurrences.forEach(entity => {
           const grapholEntity = cyToGrapholElem(entity);
@@ -3493,7 +3534,7 @@ class Grapholscape {
         });
       }
     };
-    
+
     this.performActionInvolvingOntology(selectEntityOccurrences);
   }
 
@@ -3529,7 +3570,7 @@ class Grapholscape {
 
   zoomIn(zoomValue = this.ZOOM_STEP_VALUE) { this.renderersManager.zoomIn(zoomValue); }
   zoomOut(zoomValue = this.ZOOM_STEP_VALUE) { this.renderersManager.zoomOut(zoomValue); }
-  fit() { this.renderersManager.fit();}
+  fit() { this.renderersManager.fit(); }
   /**
    * Register a callback to be called on a filter activation
    * @param {filterCallback} callback 
@@ -3549,7 +3590,7 @@ class Grapholscape {
     if (this.isDefinedFilter(filterType)) {
       this.filterList[filterType].active = true;
     }
-  
+
     this.renderersManager.filter(filterObj);
     filterObj['key'] = Object.keys(this.filterList).find(key => this.filterList[key] === filterObj);
     this._callbacksFilterOn.forEach(fn => fn(filterObj));
@@ -3558,7 +3599,7 @@ class Grapholscape {
   isDefinedFilter(filterType) {
     return this.filterList[filterType] ? true : false
   }
-  
+
   /** @param {filterCallback} callback */
   onUnfilter(callback) { this._callbacksFilterOff.push(callback); }
 
@@ -3572,7 +3613,7 @@ class Grapholscape {
     let filterObj = this.isDefinedFilter(filterType) ?
       this.filterList[filterType] : filterType;
 
-    if (this.isDefinedFilter(filterType)) 
+    if (this.isDefinedFilter(filterType))
       this.filterList[filterType].active = false;
 
     this.renderersManager.unfilter(filterObj);
@@ -3602,7 +3643,7 @@ class Grapholscape {
         return
       }
       normalizedTheme = this.themesController.getTheme(themeKey.id);
-      if(!normalizedTheme) return
+      if (!normalizedTheme) return
       themeKey = themeKey.id;
     }
 
@@ -3629,7 +3670,7 @@ class Grapholscape {
    */
   addTheme(theme) {
     if (!theme.id) {
-      throw( new Error('The custom theme you specified must have a declared unique "id" property'))
+      throw (new Error('The custom theme you specified must have a declared unique "id" property'))
     }
 
     this.config.rendering.theme.list.push({
@@ -3808,7 +3849,7 @@ class Grapholscape {
    */
   performActionInvolvingOntology(callback) {
     if (this.shouldSimplify && this.shouldWaitSimplifyPromise) {
-      this.SimplifiedOntologyPromise.then( () => callback());
+      this.SimplifiedOntologyPromise.then(() => callback());
     } else {
       callback();
     }
@@ -4819,7 +4860,7 @@ class GscapeWidget extends s {
         border-radius: 8px;
         transition: opacity 0.2s;
         scrollbar-width: thin;
-        --mdc-icon-button-size: 24px;
+        --gscape-icon-size: 24px;
       }
 
       :host(:hover){
@@ -4851,15 +4892,12 @@ class GscapeWidget extends s {
         border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
-      .gscape-panel::after {
-        content: "";
+      .gscape-panel-arrow {
         position: absolute;
-        left: 100%;
+        transform: translate(-50%, -24px);
         border-width: 8px;
         border-style: solid;
-        border-color: transparent transparent transparent #ddd;
-        transform: rotate(0deg);
-        -webkit-transform: rotate(0deg);
+        border-color: transparent transparent transparent var(--theme-gscape-shadows, ${colors.shadows});
       }
 
       .gscape-panel-title{
@@ -4955,8 +4993,8 @@ class GscapeWidget extends s {
       }
 
       .icon {
-        height:24px;
-        width:24px;
+        height: var(--gscape-icon-size);
+        width: var(--gscape-icon-size);
       }
 
       select {
@@ -4991,8 +5029,10 @@ class GscapeWidget extends s {
         this.header.toggleIcon();
       }
 
-      if (this.body)
+      if (this.body) {
         this.body.classList.toggle('hide');
+        this.shadowRoot.querySelector('.gscape-panel-arrow')?.classList.toggle('hide');
+      }
 
       this.onToggleBody();
     }
@@ -5003,8 +5043,10 @@ class GscapeWidget extends s {
       if (this.header && !this.isCollapsed)
         this.header.toggleIcon();
 
-      if (this.body)
+      if (this.body) {
         this.body.classList.add('hide');
+        this.shadowRoot.querySelector('.gscape-panel-arrow')?.classList.add('hide');
+      }
     }
   }
 
@@ -5156,20 +5198,16 @@ class GscapeButton extends GscapeWidget {
       r$1`
         :host {
           box-shadow: 0 0 4px 0 var(--theme-gscape-shadows, ${colors.shadows});
+          padding: calc(var(--gscape-icon-size) * 0.2 );
+          cursor: pointer;
         }
 
         :host(:hover){
           box-shadow: 0 0 8px 0 var(--theme-gscape-shadows, ${colors.shadows});
-        }
-
-        mwc-icon {
-          font-size: var(--gscape-button-font-size, 24px)
+          color: var(--theme-gscape-secondary, ${colors.secondary});
         }
 
         .btn {
-          padding:5px;
-          line-height: 25px;
-          cursor: pointer;
           display: flex;
           align-items: center;
         }
@@ -5177,10 +5215,6 @@ class GscapeButton extends GscapeWidget {
         .btn-label {
           font-weight: var(--gscape-button-font-weight, 600);
           padding: 0 5px 0 8px;
-        }
-
-        .btn:hover {
-          color: var(--theme-gscape-secondary, ${colors.secondary});
         }
 
         .btn[active] {
@@ -5191,6 +5225,11 @@ class GscapeButton extends GscapeWidget {
           opacity: 20%;
           cursor: initial;
           pointer-events: none;
+        }
+
+        svg {
+          height: inherit;
+          width: inherit;
         }
       `
     ]
@@ -5216,7 +5255,6 @@ class GscapeButton extends GscapeWidget {
         class="btn"
         ?disabled = "${!this.enabled}"
         ?active = "${this.highlighted}"
-        @click="${this.clickHandler}"
       >
 
         <div class="icon">${this.icon}</div>
@@ -5231,6 +5269,7 @@ class GscapeButton extends GscapeWidget {
     this._icon = icon;
 
     this.requestUpdate('icon', oldval);
+    this.onclick = () => this.clickHandler();
   }
 
   get icon() {
@@ -5516,8 +5555,8 @@ class GscapeDialog extends GscapeWidget {
 
   static get properties() {
     return {
-      text: { type : Array },
-      type: { type : String },
+      _text: { attribute: false },
+      title: { type : String, reflect: true },
     }
   }
 
@@ -5586,15 +5625,11 @@ class GscapeDialog extends GscapeWidget {
     `
   }
 
-  /**
-   * @param {{ type: string; text: string; }} newMessageObj
-   */
-  set message(newMessageObj) {
-    this.title = newMessageObj.type,
-    this.text = newMessageObj.text;
-
-    typeof(newMessageObj.text) === 'string' ? this.text = [newMessageObj.text] : this.text = newMessageObj.text;
+  set text(newText) {
+    this._text = typeof(newText) === 'string' ? [newText] : newText;
   }
+
+  get text() { return this._text }
 
   clickHandler() {
     this.hide();
@@ -5746,11 +5781,11 @@ function init$8(diagramSelectorComponent, grapholscape) {
   grapholscape.onDiagramChange(newDiagram => diagramSelectorComponent.actual_diagram_id = newDiagram.id);
 }
 
-const diagramSelector = (grapholscape) => {
-  const diagramSelectorComponent = new GscapeDiagramSelector();
+const diagramSelectorComponent = new GscapeDiagramSelector();
+
+function initDiagramSelector(grapholscape) {
   init$8(diagramSelectorComponent, grapholscape);
-  return diagramSelectorComponent
-};
+}
 
 var annotationsTemplate = (entity) => {
   return p`
@@ -6079,27 +6114,13 @@ customElements.define('gscape-entity-details', GscapeEntityDetails);
  * @param {import('./index').default} entityDetailsComponent
  * @param {import('../../grapholscape').default} grapholscape 
  */
-function init$7(entityDetailsComponent, grapholscape) {
+function init$7 (entityDetailsComponent, grapholscape) {
   entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri);
   entityDetailsComponent.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID);
   entityDetailsComponent.languageSelected = grapholscape.languages.selected;
+  entityDetailsComponent.setEntity = setEntity;
 
-  grapholscape.onEntitySelection(entity => {
-    let entityViewData = entityModelToViewData(entity, grapholscape.languages);
-
-    entityViewData.occurrences = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.fullIri).map(elem => {
-      const grapholElem = cyToGrapholElem(elem);
-      return {
-        id: grapholElem.data.id,
-        id_xml: grapholElem.data.id_xml,
-        diagram_id: grapholElem.data.diagram_id,
-        diagram_name: grapholscape.ontology.getDiagram(grapholElem.data.diagram_id).name
-      }
-    });
-
-    entityDetailsComponent.entity = entityViewData;
-    entityDetailsComponent.show();
-  });
+  grapholscape.onEntitySelection(entity => entityDetailsComponent.setEntity(entity));
 
   grapholscape.onNodeSelection(node => {
     let grapholNode = cyToGrapholElem(node);
@@ -6114,13 +6135,35 @@ function init$7(entityDetailsComponent, grapholscape) {
   grapholscape.onLanguageChange(language => {
     entityDetailsComponent.languageSelected = language;
   });
+
+  /**
+   * 
+   * @param {import('cytoscape').CollectionReturnValue} entity
+   */
+  function setEntity(entity) {
+    let entityViewData = entityModelToViewData(entity, grapholscape.languages);
+
+    entityViewData.occurrences = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.fullIri).map(elem => {
+      const grapholElem = cyToGrapholElem(elem);
+      return {
+        id: grapholElem.data.id,
+        id_xml: grapholElem.data.id_xml,
+        diagram_id: grapholElem.data.diagram_id,
+        diagram_name: grapholscape.ontology.getDiagram(grapholElem.data.diagram_id).name
+      }
+    });
+
+    entityDetailsComponent.entity = entityViewData;
+    entityDetailsComponent.show();
+  }
+
 }
 
-const entityDetails = (grapholscape) => {
-  const entityDetailsComponent = new GscapeEntityDetails();
+const entityDetailsComponent = new GscapeEntityDetails();
+
+function initEntityDetails(grapholscape) {
   init$7(entityDetailsComponent, grapholscape);
-  return entityDetailsComponent
-};
+}
 
 class GscapeFilters extends GscapeWidget {
 
@@ -6156,10 +6199,6 @@ class GscapeFilters extends GscapeWidget {
           margin-top:10px;
         }
 
-        .gscape-panel::after {
-          bottom: 133px;
-        }
-
         gscape-button{
           position: static;
         }
@@ -6184,6 +6223,7 @@ class GscapeFilters extends GscapeWidget {
     this.filterList = filters;
 
     this.btn = new GscapeButton(filter, 'Filters');
+    this.highlighted = true;
     this.btn.onClick = this.toggleBody.bind(this);
     this.btn.active = false;
 
@@ -6194,7 +6234,7 @@ class GscapeFilters extends GscapeWidget {
   render() {
     return p`
       ${this.btn}
-
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Filters</div>
 
@@ -6246,7 +6286,7 @@ class GscapeFilters extends GscapeWidget {
         is_activated = true;
     });
 
-    this.btn.active = is_activated;
+    this.btn.highlighted = is_activated;
     this.btn.requestUpdate();
   }
 
@@ -6331,10 +6371,9 @@ function init$6 (filterComponent, grapholscape) {
 
 const filterComponent = new GscapeFilters();
 
-const filters = (grapholscape) => {
+function initFilters(grapholscape) {
   init$6(filterComponent, grapholscape);
-  return filterComponent
-};
+}
 
 class GscapeLayoutSettings extends GscapeWidget {
 
@@ -6496,14 +6535,14 @@ function init$5(layoutSettingsComponent, grapholscape) {
   };
 }
 
-const layoutSettings = (grapholscape) => {
-  const layoutSettingsComponent = new GscapeLayoutSettings();
-  init$5(layoutSettingsComponent, grapholscape);
-  return layoutSettingsComponent
-};
+const layoutSettingsComponent = new GscapeLayoutSettings();
 
-const fullscreenButton = (container) => {
-  const fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen);
+function initLayoutSettings(grapholscape) {
+  init$5(layoutSettingsComponent, grapholscape);
+}
+
+const  fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen);
+function initFullscreenButton(container) {
   fullscreenComponent.container = container;
   fullscreenComponent.style.top = '10px';
   fullscreenComponent.style.right = '10px';
@@ -6544,7 +6583,7 @@ const fullscreenButton = (container) => {
     fullscreenComponent.container?.webkitRequestFullscreen || // Webkit
     fullscreenComponent.container?.msRequestFullscreen; // IE
   }
-};
+}
 
 class GscapeExplorer extends GscapeWidget{
 
@@ -6888,10 +6927,9 @@ function init$4 (ontologyExplorerComponent, grapholscape) {
 
 const ontologyExplorerComponent = new GscapeExplorer();
 
-const ontologyExplorer = (grapholscape) => {
+function initOntologyExplorer(grapholscape) {
   init$4(ontologyExplorerComponent, grapholscape);
-  return ontologyExplorerComponent
-};
+}
 
 class GscapeOntologyInfo extends GscapeWidget {
 
@@ -6910,10 +6948,6 @@ class GscapeOntologyInfo extends GscapeWidget {
 
         .gscape-panel {
           padding-right: 0;
-        }
-
-        .gscape-panel::after {
-          bottom: 177px;
         }
 
         gscape-button {
@@ -6963,7 +6997,7 @@ class GscapeOntologyInfo extends GscapeWidget {
   render() {
     return p`
       ${this.btn}
-
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Ontology Info</div>
 
@@ -7028,16 +7062,11 @@ class GscapeOntologyInfo extends GscapeWidget {
 
 customElements.define('gscape-ontology-info', GscapeOntologyInfo);
 
-const ontologyInfo = (ontology) => 
-  new GscapeOntologyInfo(ontologyModelToViewData(ontology));
+const ontologyInfoComponent = new GscapeOntologyInfo();
 
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
- */
-
-var owl_icon = p`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-style="height: 20px; width: auto; padding: 2px;" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z" fill="currentColor"/></svg>`;
+function initOntologyInfo(ontology) {
+  ontologyInfoComponent.ontology = ontologyModelToViewData(ontology);
+}
 
 class GscapeOwlVisualizer extends GscapeWidget {
   static get properties() {
@@ -7673,10 +7702,9 @@ function init$3(owlVisualizerComponent, grapholscape) {
 
 const owlVisualizerComponent = new GscapeOwlVisualizer();
 
-const owlVisualizer = (grapholscape) => {
+function initOwlVisualizer(grapholscape) {
   init$3(owlVisualizerComponent, grapholscape);
-  return owlVisualizerComponent
-};
+}
 
 class GscapeRenderSelector extends GscapeWidget {
 
@@ -7701,7 +7729,7 @@ class GscapeRenderSelector extends GscapeWidget {
 
         .renderer-item {
           cursor:pointer;
-          padding:5px 10px;
+          padding: 10px;
           display: flex;
           align-items: center;
         }
@@ -7716,9 +7744,15 @@ class GscapeRenderSelector extends GscapeWidget {
           border-top-right-radius: inherit;
         }
 
+        .renderer-item:last-of-type {
+          border-bottom-left-radius: inherit;
+          border-bottom-right-radius: inherit;
+        }
+
         .renderer-item > .label {
-          padding:0 10px;
           white-space: nowrap;
+          top: 2px;
+          position: relative;
         }
 
         .selected {
@@ -7727,20 +7761,12 @@ class GscapeRenderSelector extends GscapeWidget {
           font-weight: bold;
         }
 
-        .widget-body {
-          border-radius: inherit;
-          border-bottom-right-radius:0;
-        }
-
         .gscape-panel {
           padding: 0;
           bottom:initial;
           top:10px;
         }
 
-        .gscape-panel::after {
-          top: 8px;
-        }
         gscape-head {
           --header-padding: 5px 8px;
         }
@@ -7761,7 +7787,8 @@ class GscapeRenderSelector extends GscapeWidget {
     this._onRendererChange = () => {};
 
     this.mainButton = new GscapeButton(null, 'Select Renderer');
-    this.mainButton.onclick = () => this.toggleBody();
+    this.mainButton.highlighted = true;
+    this.mainButton.onClick = () => this.toggleBody();
     this.mainButton.style.position = 'inherit';
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
@@ -7769,6 +7796,9 @@ class GscapeRenderSelector extends GscapeWidget {
 
   render() {
     return p`
+      ${this.mainButton}
+      
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         ${Object.keys(this.dict).map( mode => p`
         <div
@@ -7776,17 +7806,11 @@ class GscapeRenderSelector extends GscapeWidget {
           mode="${mode}"
           class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
         >
-        ${this.isCustomIcon(this.dict[mode].icon) ? p`
-          <mwc-icon-button>${this.dict[mode].icon}</mwc-icon-button>`
-        : p`
-          <mwc-icon-button icon="${this.dict[mode].icon}"></mwc-icon-button>
-        `}
+        ${this.dict[mode].icon}
         <span class="label">${this.dict[mode].label}</span>
         </div>
         `)}
       </div>
-
-     ${this.mainButton}
     `
   }
 
@@ -7822,16 +7846,6 @@ class GscapeRenderSelector extends GscapeWidget {
 
 customElements.define('gscape-render-selector', GscapeRenderSelector);
 
-var graphol_icon = p`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-  viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: auto; padding: 2px;">
-<path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1
- c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7
- C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5
- c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6
- L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2
- c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/>
-</svg>`;
-
 let icons = {
   'default': graphol_icon,
   'lite': lite,
@@ -7857,10 +7871,9 @@ function init$2(rendererSelector, grapholscape) {
 
 const rendererSelectorComponent = new GscapeRenderSelector();
 
-const rendererSelector = (grapholscape) => {
+function initRendererSelector(grapholscape) {
   init$2(rendererSelectorComponent, grapholscape);
-  return rendererSelectorComponent
-};
+}
 
 const grapholscape = p`<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -7985,10 +7998,6 @@ class GscapeSettings extends GscapeWidget {
           padding-right: 0;
         }
 
-        .gscape-panel::after {
-          bottom: 221px;
-        }
-
         .settings-wrapper {
           overflow-y: auto;
           scrollbar-width: inherit;
@@ -8050,7 +8059,7 @@ class GscapeSettings extends GscapeWidget {
     super();
     this.collapsible = true;
     this.settings = settings;
-    this.btn = new GscapeButton(settings$1, 'Settings');
+    this.btn = new GscapeButton(settings_icon, 'Settings');
     this.btn.onClick = this.toggleBody.bind(this);
     this.callbacks = {};
 
@@ -8063,7 +8072,7 @@ class GscapeSettings extends GscapeWidget {
   render() {
     return p`
       ${this.btn}
-
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Settings</div>
 
@@ -8229,6 +8238,14 @@ class GscapeSettings extends GscapeWidget {
 
 customElements.define('gscape-settings', GscapeSettings);
 
+var widgetNames = {
+  explorer: 'gscape-explorer',
+  details: 'gscape-entity-details',
+  owl_translator: 'gscape-owl-visualizer',
+  filters: 'gscape-filters',
+  simplifications: 'gscape-render-selector',
+};
+
 /**
  * @param {GscapeSettings} settingsComponent
  * @param {Grapholscape} grapholscape 
@@ -8242,6 +8259,16 @@ function init$1(settingsComponent, grapholscape) {
   settingsComponent.onThemeSelection = (themeKey) => grapholscape.applyTheme(themeKey);
   settingsComponent.onPNGSaveButtonClick = () => grapholscape.exportToPNG();
   settingsComponent.onSVGSaveButtonClick = () => grapholscape.exportToSVG();
+
+  let gui_container = grapholscape.container.querySelector('#gscape-ui');
+  settingsComponent.onWidgetEnabled = (widgetName) => {
+    gui_container.querySelector(widgetNames[widgetName]).enable();
+    storeConfigEntry(widgetName, true);
+  };
+  settingsComponent.onWidgetDisabled = (widgetName) => {
+    gui_container.querySelector(widgetNames[widgetName]).disable();
+    storeConfigEntry(widgetName, false);
+  };
 
   grapholscape.onLanguageChange( language => updateOnChange('language', language));
   grapholscape.onEntityNameTypeChange( entityNameType => updateOnChange('entity_name', entityNameType) );
@@ -8263,10 +8290,9 @@ function init$1(settingsComponent, grapholscape) {
 
 const settingsComponent = new GscapeSettings();
 
-const settings = (grapholscape) => {
+function initSettings(grapholscape) {
   init$1(settingsComponent, grapholscape);
-  return settingsComponent
-};
+}
 
 class GscapeZoomTools extends GscapeWidget {
 
@@ -8328,21 +8354,21 @@ class GscapeZoomTools extends GscapeWidget {
 
 customElements.define('gscape-zoom-tools', GscapeZoomTools);
 
-const zoomTools = (grapholscape) => {
-  const zoomToolsComponent = new GscapeZoomTools();
+const zoomToolsComponent = new GscapeZoomTools();
+
+function initZoomTools(grapholscape) {
   zoomToolsComponent.onZoomIn = () => grapholscape.zoomIn();
   zoomToolsComponent.onZoomOut = () => grapholscape.zoomOut();
-  return zoomToolsComponent
-};
+}
+
+const fitButtonComponent = new GscapeButton(center_diagram, 'Center Diagram');
 
 /** @param {import('../grapholscape').default} */
-const fitButton = (grapholscape) => {
-  const fitButtonComponent = new GscapeButton(center_diagram, 'Center Diagram');
+function initFitButton(grapholscape) {
   fitButtonComponent.style.marginTop = '10px';
   fitButtonComponent.style.position = 'initial';
   fitButtonComponent.onClick = () => grapholscape.fit();
-  return fitButtonComponent
-};
+}
 
 var bottomRightContainer = () => {
   let div = document.createElement('div');
@@ -8357,14 +8383,6 @@ var bottomRightContainer = () => {
   return div
 };
 
-const widgetNames = {
-  explorer: 'gscape-explorer',
-  details: 'gscape-entity-details',
-  owl_translator: 'gscape-owl-visualizer',
-  filters: 'gscape-filters',
-  simplifications: 'gscape-render-selector',
-};
-
 /**
  * Initialize the UI
  * @param {import('../grapholscape').default} grapholscape 
@@ -8373,28 +8391,21 @@ function init (grapholscape) {
   const init = () => {
     let gui_container = document.createElement('div');
     gui_container.setAttribute('id', 'gscape-ui');
+    grapholscape.container.appendChild(gui_container);
 
-    const diagramSelectorComponent = diagramSelector(grapholscape);
-    const entityDetailsComponent = entityDetails(grapholscape);
+    initDiagramSelector(grapholscape);
+    initEntityDetails(grapholscape);
 
-    const zoomToolsComponent = zoomTools(grapholscape);
-    const ontologyInfoComponent = ontologyInfo(grapholscape.ontology);
-    const fullscreenComponent = fullscreenButton(grapholscape.container);
-    const fitButtonComponent = fitButton(grapholscape);
-    const ontologyExplorerComponent = ontologyExplorer(grapholscape);
-    const owlVisualizerComponent = owlVisualizer(grapholscape);
-    const filterComponent = filters(grapholscape);
-    const settingsComponent = settings(grapholscape);
-    settingsComponent.onWidgetEnabled = (widgetName) => {
-      gui_container.querySelector(widgetNames[widgetName]).enable();
-      storeConfigEntry(widgetName, true);
-    };
-    settingsComponent.onWidgetDisabled = (widgetName) => {
-      gui_container.querySelector(widgetNames[widgetName]).disable();
-      storeConfigEntry(widgetName, false);
-    };
-    const rendererSelectorComponent = rendererSelector(grapholscape);
-    const layoutSettingsComponent = layoutSettings(grapholscape);
+    initZoomTools(grapholscape);
+    initOntologyInfo(grapholscape.ontology);
+    initFullscreenButton(grapholscape.container);
+    initFitButton(grapholscape);
+    initOntologyExplorer(grapholscape);
+    initOwlVisualizer(grapholscape);
+    initFilters(grapholscape);
+    initSettings(grapholscape);
+    initRendererSelector(grapholscape);
+    initLayoutSettings(grapholscape);
 
     // USING GRAPHOLSCAPE CALLBACKS
     grapholscape.onBackgroundClick(() => {
@@ -8417,7 +8428,6 @@ function init (grapholscape) {
     bottomContainer.appendChild(settingsComponent);
     bottomContainer.appendChild(rendererSelectorComponent);
     gui_container.appendChild(bottomContainer);
-    grapholscape.container.appendChild(gui_container);
 
     bottomContainer.querySelectorAll('*').forEach(widget => {
       if (isGrapholscapeWidget(widget)) {
@@ -8431,6 +8441,9 @@ function init (grapholscape) {
       container.querySelectorAll('*').forEach(widget => {
         if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
           widget.blur();
+          if ( widget.btn?.hasPanel ) {
+            widget.btn.classList.remove('panel-open');
+          }
         }
       });
     }
@@ -8464,25 +8477,42 @@ var index = /*#__PURE__*/Object.freeze({
   GscapeDialog: GscapeDialog,
   GscapeWidget: GscapeWidget,
   GscapeHeader: GscapeHeader,
+  diagramSelector: diagramSelectorComponent,
+  entityDetails: entityDetailsComponent,
+  filters: filterComponent,
+  layoutSettings: layoutSettingsComponent,
+  fullscreen: fullscreenComponent,
+  ontologyExplorer: ontologyExplorerComponent,
+  ontologyInfo: ontologyInfoComponent,
+  owlVisualizer: owlVisualizerComponent,
+  rendererSelector: rendererSelectorComponent,
+  settings: settingsComponent,
+  zoomTools: zoomToolsComponent,
+  fitButton: fitButtonComponent,
+  icons: icons$1,
   initUI: init,
   GscapeDiagramSelector: GscapeDiagramSelector,
-  diagramSelector: diagramSelector,
-  entityDetails: entityDetails,
-  filterComponent: filterComponent,
-  filters: filters,
-  layoutSettings: layoutSettings,
-  fullscreenButton: fullscreenButton,
-  ontologyExplorerComponent: ontologyExplorerComponent,
-  ontologyExplorer: ontologyExplorer,
-  ontologyInfo: ontologyInfo,
-  owlVisualizerComponent: owlVisualizerComponent,
-  owlVisualizer: owlVisualizer,
-  rendererSelectorComponent: rendererSelectorComponent,
-  rendererSelector: rendererSelector,
-  settingsComponent: settingsComponent,
-  settings: settings,
-  zoomTools: zoomTools,
-  fitButton: fitButton
+  initDiagramSelector: initDiagramSelector,
+  GscapeEntityDetails: GscapeEntityDetails,
+  initEntityDetails: initEntityDetails,
+  GscapeFilters: GscapeFilters,
+  initFilters: initFilters,
+  GscapeLayoutSettings: GscapeLayoutSettings,
+  initLayoutSettings: initLayoutSettings,
+  initFullscreenButton: initFullscreenButton,
+  GscapeExplorer: GscapeExplorer,
+  initOntologyExplorer: initOntologyExplorer,
+  GscapeOntologyInfo: GscapeOntologyInfo,
+  initOntologyInfo: initOntologyInfo,
+  GscapeOwlVisualizer: GscapeOwlVisualizer,
+  initOwlVisualizer: initOwlVisualizer,
+  GscapeRenderSelector: GscapeRenderSelector,
+  initRendererSelector: initRendererSelector,
+  GscapeSettings: GscapeSettings,
+  initSettings: initSettings,
+  GscapeZoomTools: GscapeZoomTools,
+  initZoomTools: initZoomTools,
+  initFitButton: initFitButton
 });
 
 /**
@@ -8531,4 +8561,4 @@ function bareGrapholscape(file, container, config = {}) {
   return initGrapholscape(file, container, config)
 }
 
-export { Grapholscape, POLYGON_POINTS, Shape, Type, index as UI, bareGrapholscape, clearLocalStorage, constructorLabels, fullGrapholscape, grapholNodes as grapholEnums, loadConfig, storeConfigEntry, themes };
+export { Grapholscape, POLYGON_POINTS, Shape, Type, index as UI, bareGrapholscape, clearLocalStorage, constructorLabels, cyToGrapholElem, diagramModelToViewData, entityModelToViewData, fullGrapholscape, grapholNodes as grapholEnums, loadConfig, ontologyModelToViewData, rendererModelToViewData, storeConfigEntry, themes };
