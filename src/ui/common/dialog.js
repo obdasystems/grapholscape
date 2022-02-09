@@ -7,7 +7,7 @@ export default class GscapeDialog extends GscapeWidget {
 
   static get properties() {
     return {
-      text: { type : Array },
+      _text: { attribute: false },
       title: { type : String, reflect: true },
     }
   }
