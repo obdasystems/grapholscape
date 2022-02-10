@@ -3382,7 +3382,6 @@ class Grapholscape {
 
       const isFirstTimeRendering = diagram.hasEverBeenRendered;
       this.renderersManager.drawDiagram(diagram);
-      console.log(viewportState);
       if (viewportState)
         this.renderersManager.setViewport(viewportState);
       else if (!isFirstTimeRendering) {
@@ -5849,7 +5848,10 @@ var entityOccurrencesTemplate = (occurrences, onNodeNavigation) => {
 //import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 class GscapeEntityDetails extends GscapeWidget {
-
+  /**
+   * @param {import('cytoscape').CollectionReturnValue} entity
+   */
+  setEntity = (entity) => { }
   static get properties() {
     return {
       entity: { type: Object },

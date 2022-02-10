@@ -55,7 +55,7 @@
     "rollup-plugin-terser": "^7.0.2"
   },
   "dependencies": {
-    "cytoscape": "^3.19.1",
+    "cytoscape": "^3.20.0",
     "cytoscape-cola": "^2.5.0",
     "cytoscape-popper": "^2.0.0",
     "cytoscape-svg": "^0.3.1",
