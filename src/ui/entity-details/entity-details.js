@@ -7,7 +7,10 @@ import { info_filled } from '../assets/icons'
 //import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 export default class GscapeEntityDetails extends GscapeWidget {
-
+  /**
+   * @param {import('cytoscape').CollectionReturnValue} entity
+   */
+  setEntity = (entity) => { }
   static get properties() {
     return {
       entity: { type: Object },

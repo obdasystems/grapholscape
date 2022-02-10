@@ -250,7 +250,6 @@ class Grapholscape {
 
       const isFirstTimeRendering = diagram.hasEverBeenRendered
       this.renderersManager.drawDiagram(diagram)
-      console.log(viewportState)
       if (viewportState)
         this.renderersManager.setViewport(viewportState)
       else if (!isFirstTimeRendering) {
