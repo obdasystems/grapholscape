@@ -571,32 +571,35 @@ export default function computeSimplifiedOntologies(ontology) {
     let eles = cy.$(`[type = "${Type.OBJECT_PROPERTY}"]`)
 
     eles.forEach(role => {
-      let edges = role.incomers(`edge.${Type.OBJECT_PROPERTY}`)
-      let domains = edges.filter('.domain')
-      let range_nodes = edges.filter('.range').sources()
+      let domains = getDomains(role)
+      let ranges = getRanges(role)
+      connectDomainsRanges(domains, ranges, role)
+    })
 
+    cy.remove(eles)
+
+    function connectDomainsRanges(domains, ranges, roleEntity) {
       domains.forEach(domain => {
-        range_nodes.forEach((target,i) => {
+        ranges.forEach((range,i) => {
 
           let new_edge = {
             data : {
-              id : domain.id() + '-' + i,
-              id_xml : domain.target().data('id_xml'),
-              diagram_id : domain.target().data('diagram_id'),
-              source : domain.source().id(),
-              target : target.id(),
-              type : domain.target().data('type'),
-              iri : domain.target().data('iri'),
-              displayed_name : domain.target().data('displayed_name'),
-              annotations : domain.target().data('annotations'),
-              description : domain.target().data('description'),
-              functional : domain.target().data('functional'),
-              inverseFunctional : domain.target().data('inverseFunctional'),
-              asymmetric : domain.target().data('asymmetric'),
-              irreflexive : domain.target().data('irreflexive'),
-              reflexive : domain.target().data('reflexive'),
-              symmetric : domain.target().data('symmetric'),
-              transitive : domain.target().data('transitive')
+              id_xml : roleEntity.data('id_xml'),
+              diagram_id : roleEntity.data('diagram_id'),
+              source : domain.id(),
+              target : range.id(),
+              type : roleEntity.data('type'),
+              iri : roleEntity.data('iri'),
+              displayed_name : roleEntity.data('displayed_name'),
+              annotations : roleEntity.data('annotations'),
+              description : roleEntity.data('description'),
+              functional : roleEntity.data('functional'),
+              inverseFunctional : roleEntity.data('inverseFunctional'),
+              asymmetric : roleEntity.data('asymmetric'),
+              irreflexive : roleEntity.data('irreflexive'),
+              reflexive : roleEntity.data('reflexive'),
+              symmetric : roleEntity.data('symmetric'),
+              transitive : roleEntity.data('transitive')
             },
             classes : `${Type.OBJECT_PROPERTY} predicate`
           }
@@ -604,12 +607,25 @@ export default function computeSimplifiedOntologies(ontology) {
           cy.add(new_edge)
           if(cy.getElementById(new_edge.data.id).isLoop()) {
             let loop_edge = cy.getElementById(new_edge.data.id)
-            loop_edge.data('control_point_step_size', target.data('width'))
+            loop_edge.data('control_point_step_size', range.data('width'))
           }
         })
       })
-      cy.remove(role)
-    })
+    }
+
+    function getDomains(role) {
+      if (!role || role.empty()) return null
+      let domains = role.incomers(`edge.domain`).sources()
+      let roleFather = role.outgoers('edge[type = "inclusion"][!displayed_name]').targets()
+      return domains.union(getDomains(roleFather))
+    }
+
+    function getRanges(role) {
+      if (!role || role.empty()) return null
+      let ranges = role.incomers(`edge.range`).sources()
+      let roleFather = role.outgoers('edge[type = "inclusion"][!displayed_name]').targets()
+      return ranges.union(getRanges(roleFather))
+    }
   }
 
   function simplifyHierarchiesFloat(cy) {
