@@ -304,7 +304,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: `edge.${Type.OBJECT_PROPERTY}.predicate`,
+      selector: `edge.predicate[type = "${Type.OBJECT_PROPERTY}"]`,
       style: {
         'width': 4,
       }
