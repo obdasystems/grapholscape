@@ -3,6 +3,7 @@ import Diagram from '../model/diagram'
 import GrapholscapeRenderer from '../rendering/renderers/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
+import { Type } from '../model/node-enums'
 
 /** @param {Ontology} ontology */
 export default function computeSimplifiedOntologies(ontology) {
@@ -41,14 +42,14 @@ export default function computeSimplifiedOntologies(ontology) {
 
     filterByCriterion(cy, (node) => {
       switch(node.data('type')) {
-        case 'complement' :
-        case 'value-domain':
-        case 'role-chain':
-        case 'enumeration':
+        case Type.COMPLEMENT:
+        case Type.VALUE_DOMAIN:
+        case Type.ROLE_CHAIN:
+        case Type.ENUMERATION:
           return true
 
-        case 'domain-restriction':
-        case 'range-restriction':
+        case Type.DOMAIN_RESTRICTION:
+        case Type.RANGE_RESTRICTION:
           if (node.data('displayed_name') == 'forall')
             return true
           else
@@ -78,7 +79,7 @@ export default function computeSimplifiedOntologies(ontology) {
     eles.filter(selector).forEach(restriction => {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
       let new_edge = null
-      let type = restriction.data('type') == 'domain-restriction' ? 'domain' : 'range'
+      let type = restriction.data('type') == Type.DOMAIN_RESTRICTION ? 'domain' : 'range'
 
       restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
         new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i)
@@ -96,7 +97,7 @@ export default function computeSimplifiedOntologies(ontology) {
     function getInputEdgeFromPropertyToRestriction(restriction_node) {
       let e = null
       restriction_node.incomers('[type = "input"]').forEach(edge => {
-        if (edge.source().data('type') == 'role' || edge.source().data('type') == 'attribute') {
+        if (edge.source().data('type') == Type.OBJECT_PROPERTY || edge.source().data('type') == Type.DATA_PROPERTY) {
           e = edge
         }
       })
@@ -111,10 +112,10 @@ export default function computeSimplifiedOntologies(ontology) {
       /**
        * if the actual edge is between two existential, remove it and filter the other existential
        */
-      if ((edgeToRestriction.source().data('type') == 'domain-restriction' ||
-           edgeToRestriction.source().data('type') == 'range-restriction') &&
-          (edgeToRestriction.target().data('type') == 'domain-restriction' ||
-           edgeToRestriction.target().data('type') == 'range-restriction')) {
+      if ((edgeToRestriction.source().data('type') == Type.DOMAIN_RESTRICTION ||
+           edgeToRestriction.source().data('type') == Type.RANGE_RESTRICTION) &&
+          (edgeToRestriction.target().data('type') == Type.DOMAIN_RESTRICTION ||
+           edgeToRestriction.target().data('type') == Type.RANGE_RESTRICTION)) {
         cy.remove(edgeToRestriction)
         return new_edge
       }
@@ -126,7 +127,7 @@ export default function computeSimplifiedOntologies(ontology) {
       }
 
       // move attribute on restriction node position
-      if (edgeFromProperty.source().data('type') == "attribute") {
+      if (edgeFromProperty.source().data('type') == Type.DATA_PROPERTY) {
         edgeFromProperty.source().position(edgeFromProperty.target().position())
         new_edge = edges[0]
         new_edge.data.target = edgeFromProperty.source().id()
@@ -230,7 +231,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function isQualifiedRestriction(node) {
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)
         && (node.data('displayed_name') == 'exists')) {
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
@@ -241,7 +242,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function inputEdgesBetweenRestrictions(node) {
     let outcome = false
 
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
+    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)) {
       node.incomers('edge[type = "input"]').forEach(edge => {
         if (edge.source().data('type').endsWith('restriction')){
           outcome = true
@@ -252,7 +253,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function isExistentialWithCardinality(node) {
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)
         && node.data('displayed_name').search(/[0-9]/g) >= 0) {
       return true
     }
@@ -261,14 +262,14 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function isComplexHierarchy(node) {
-    if (node.data('type') != 'union' &&
-        node.data('type') != 'disjoint-union' &&
-        node.data('type') != 'intersection')
+    if (node.data('type') != Type.UNION &&
+        node.data('type') != Type.DISJOINT_UNION &&
+        node.data('type') != Type.INTERSECTION)
       return false
 
     let outcome = false
     node.incomers('[type *= "input"]').forEach(input => {
-      if (input.source().data('type') != 'concept') {
+      if (input.source().data('type') != Type.CONCEPT) {
         outcome = true
       }
     })
@@ -300,7 +301,7 @@ export default function computeSimplifiedOntologies(ontology) {
       // process inclusion edges
       union.outgoers('edge[type = "inclusion"]').forEach(inclusion => {
         inclusion.addClass('hierarchy')
-        if (union.data('type') == 'disjoint-union')
+        if (union.data('type') == Type.DISJOINT_UNION)
           inclusion.addClass('disjoint')
       })
 
@@ -327,7 +328,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function simplifyIntersections(cytoscape_instance) {
     let cy = cytoscape_instance
 
-    cy.$('node[type = "intersection"]').forEach( and => {
+    cy.$(`node[type = "${Type.INTERSECTION}"]`).forEach( and => {
       replicateAttributes(and)
       replicateRoleTypizations(and)
 
@@ -376,7 +377,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function replicateRoleTypizations(constructor) {
     let cy = constructor.cy()
     // replicate role tipization on input classes
-    constructor.connectedEdges('edge.role').forEach(role_edge => {
+    constructor.connectedEdges(`edge.${Type.OBJECT_PROPERTY}`).forEach(role_edge => {
       constructor.incomers('[type *= "input"]').forEach( (input,i) => {
         let new_id = `${role_edge.id()}_${i}`
         let new_edge = {}
@@ -429,7 +430,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function simplifyComplexHierarchies(cytoscape_instance) {
     let cy = cytoscape_instance
 
-    cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
+    cy.nodes(`[type = "${Type.INTERSECTION}"],[type = "${Type.UNION}"],[type = "${Type.DISJOINT_UNION}"]`).forEach(node => {
       if(isComplexHierarchy(node)) {
         replicateAttributes(node)
         aux_renderer.filterElem(node, '', cy)
@@ -442,12 +443,12 @@ export default function computeSimplifiedOntologies(ontology) {
   function replicateAttributes(node) {
     let cy = node.cy()
     let all_classes = getAllInputs(node)
-    let all_attributes = node.neighborhood('[type = "attribute"]')
+    let all_attributes = node.neighborhood(`[type = "${Type.DATA_PROPERTY}"]`)
     let all_inclusion_attributes = cy.collection()
 
     all_classes.forEach( (concept,i) => {
       all_attributes.forEach((attribute, j) => {
-        addAttribute(concept, i, attribute, 'attribute')
+        addAttribute(concept, i, attribute, Type.DATA_PROPERTY)
       })
     })
 
@@ -473,7 +474,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
       // recursively add new attributes connected to replicated attributes by inclusions
       if (!target.hasClass('repositioned')) {
-        attribute.neighborhood('[type = "attribute"]').forEach( (inclusion_attribute, j) => {
+        attribute.neighborhood(`[type = "${Type.DATA_PROPERTY}"]`).forEach( (inclusion_attribute, j) => {
           if(all_attributes.contains(inclusion_attribute)) {
             return
           }
@@ -488,9 +489,9 @@ export default function computeSimplifiedOntologies(ontology) {
       let all_classes = node.cy().collection()
 
       let input_edges = node.incomers('edge[type *= "input"]')
-      all_classes = all_classes.union(input_edges.sources('[type = "concept"]'))
+      all_classes = all_classes.union(input_edges.sources(`[type = "${Type.CONCEPT}"]`))
 
-      input_edges.sources('[type != "concept"]').forEach(constructor => {
+      input_edges.sources(`[type != "${Type.CONCEPT}"]`).forEach(constructor => {
         all_classes = all_classes.union(getAllInputs(constructor))
         constructor.addClass('attr_replicated')
       })
@@ -502,7 +503,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function simplifyRoleInverse(cytoscape_instance) {
     let cy = cytoscape_instance
 
-    cy.nodes('[type = "role-inverse"]').forEach(role_inverse => {
+    cy.nodes(`[type = "${Type.ROLE_INVERSE}"]`).forEach(role_inverse => {
       let new_edges_count = 0
       // the input role is only one
       let input_edge = role_inverse.incomers('[type *= "input"]')
@@ -554,7 +555,7 @@ export default function computeSimplifiedOntologies(ontology) {
       node.data('original-position', JSON.stringify(node.position()))
     })
 
-    filterByCriterion(cy, node => node.data('type') === 'has-key')
+    filterByCriterion(cy, node => node.data('type') === Type.KEY)
     simplifyRolesFloat(cy)
     simplifyHierarchiesFloat(cy)
     simplifyAttributesFloat(cy)
@@ -562,15 +563,15 @@ export default function computeSimplifiedOntologies(ontology) {
     cy.edges().removeData('segment_weights')
     cy.edges().removeData('target_endpoint')
     cy.edges().removeData('source_endpoint')
-    cy.$('[type = "concept"]').addClass('bubble')
+    cy.$(`[type = "${Type.CONCEPT}"]`).addClass('bubble')
     return cy.$('*')
   }
 
   function simplifyRolesFloat(cy) {
-    let eles = cy.$('[type = "role"]')
+    let eles = cy.$(`[type = "${Type.OBJECT_PROPERTY}"]`)
 
     eles.forEach(role => {
-      let edges = role.incomers('edge.role')
+      let edges = role.incomers(`edge.${Type.OBJECT_PROPERTY}`)
       let domains = edges.filter('.domain')
       let range_nodes = edges.filter('.range').sources()
 
@@ -597,7 +598,7 @@ export default function computeSimplifiedOntologies(ontology) {
               symmetric : domain.target().data('symmetric'),
               transitive : domain.target().data('transitive')
             },
-            classes : 'role predicate'
+            classes : `${Type.OBJECT_PROPERTY} predicate`
           }
 
           cy.add(new_edge)
@@ -622,7 +623,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function simplifyAttributesFloat(cy) {
-    cy.$('[type = "attribute"]').forEach(attribute => {
+    cy.$(`[type = "${Type.DATA_PROPERTY}"]`).forEach(attribute => {
       attribute.neighborhood('node').forEach(neighbor => {
         attribute.position(neighbor.position())
       })

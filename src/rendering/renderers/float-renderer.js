@@ -1,3 +1,4 @@
+import { Type } from '../../model/node-enums'
 import { lock_open } from '../../ui/assets/icons'
 import GrapholscapeRenderer from './default-renderer'
 
@@ -224,8 +225,8 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
         if (edge.hasClass('role')) {
           return 300 + edge.data('displayed_name').length * 4
         }
-        else if (edge.target().data('type') == 'attribute' ||
-                 edge.source().data('type') == 'attribute' )
+        else if (edge.target().data('type') == Type.DATA_PROPERTY ||
+                 edge.source().data('type') == Type.DATA_PROPERTY )
           return 150
         else
           return 250

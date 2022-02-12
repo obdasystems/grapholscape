@@ -1,3 +1,5 @@
+import { Shape, Type } from "../model/node-enums";
+
 export function getGraphStyle(theme) {
   return [
     {
@@ -228,7 +230,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '.facet',
+      selector: `.${Type.FACET}`,
       style: {
         'background-opacity': 0
       }
@@ -257,7 +259,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '.concept',
+      selector: `.${Type.CONCEPT}`,
       style: {
         'background-color': theme.concept,
         'border-color': theme.concept_dark,
@@ -265,7 +267,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '.role, .fake-triangle',
+      selector: `.${Type.OBJECT_PROPERTY}, .fake-triangle`,
       style: {
         'background-color': theme.role,
         'border-color': theme.role_dark,
@@ -273,7 +275,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '.attribute',
+      selector: `.${Type.DATA_PROPERTY}`,
       style: {
         'background-color': theme.attribute,
         'border-color': theme.attribute_dark,
@@ -281,7 +283,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '.attribute:selected',
+      selector: `.${Type.DATA_PROPERTY}:selected`,
       style: {
         'text-background-color': theme.background,
         'text-background-opacity': 1,
@@ -289,7 +291,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.role',
+      selector: `edge.${Type.OBJECT_PROPERTY}`,
       style: {
         'line-color' : theme.role_dark,
         'source-arrow-color': theme.role_dark,
@@ -302,7 +304,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.role.predicate',
+      selector: `edge.${Type.OBJECT_PROPERTY}.predicate`,
       style: {
         'width': 4,
       }
@@ -327,7 +329,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.attribute',
+      selector: `edge.${Type.DATA_PROPERTY}`,
       style: {
         'line-color': theme.attribute_dark,
         'source-arrow-shape': 'none',
@@ -348,7 +350,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '.individual',
+      selector: `.${Type.INDIVIDUAL}`,
       style: {
         'background-color': theme.individual,
         'border-color': theme.individual_dark,
@@ -356,7 +358,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[type = "range-restriction"], [type = "disjoint-union"]',
+      selector: `[type = "${Type.RANGE_RESTRICTION}"], [type = "${Type.DISJOINT_UNION}"]`,
       style: {
         'background-color': theme.node_bg_contrast,
       }
@@ -384,7 +386,7 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[shape = "hexagon"],[type = "value-domain"], .facet',
+      selector: `[shape = "${Shape.HEXAGON}"],[type = "${Type.VALUE_DOMAIN}"], .${Type.FACET}`,
       style: {
         'color': theme.node_bg_contrast,
       }

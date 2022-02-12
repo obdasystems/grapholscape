@@ -2,6 +2,13 @@ import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import { explore, arrow_right, arrow_down } from '../assets/icons'
+import { Type } from '../../model/node-enums'
+
+const TYPE_IMG_TEXT = {}
+TYPE_IMG_TEXT[Type.DATA_PROPERTY] = 'DP'
+TYPE_IMG_TEXT[Type.CONCEPT] = 'C'
+TYPE_IMG_TEXT[Type.OBJECT_PROPERTY] = 'OP'
+TYPE_IMG_TEXT[Type.INDIVIDUAL] = 'I'
 
 export default class GscapeExplorer extends GscapeWidget{
 
@@ -34,7 +41,6 @@ export default class GscapeExplorer extends GscapeWidget{
         }
 
         .row{
-          line-height: 0;
           display: flex;
           align-items: center;
           padding:4px 0;
@@ -45,6 +51,8 @@ export default class GscapeExplorer extends GscapeWidget{
           padding-left:5px;
           width:100%;
           white-space: nowrap;
+          position: relative;
+          top: 2.5px;
         }
 
         .icon:hover{
@@ -53,34 +61,32 @@ export default class GscapeExplorer extends GscapeWidget{
         }
 
         .type-img{
-          width: 20px;
-          height: 20px;
+          width: 26px;
+          height: 26px;
           text-align: center;
-          line-height: 20px;
+          padding-top: 3px;
+          box-sizing: border-box;
+          border: solid 1px;
         }
 
-        .type-img-A{
+        .type-img-DP {
           background-color: var(--theme-graph-attribute, ${colors.attribute});
           color: var(--theme-graph-attribute-dark, ${colors.attribute_dark});
-          border: solid 1px var(--theme-graph-attribute-dark, ${colors.attribute_dark});
         }
 
-        .type-img-R{
+        .type-img-OP {
           background-color: var(--theme-graph-role, ${colors.role});
           color: var(--theme-graph-role-dark, ${colors.role_dark});
-          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark});
         }
 
-        .type-img-C{
+        .type-img-C {
           background-color: var(--theme-graph-concept, ${colors.concept});
           color: var(--theme-graph-concept-dark, ${colors.concept_dark});
-          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark});
         }
 
-        .type-img-I{
+        .type-img-I {
           background-color: var(--theme-graph-individual, ${colors.individual});
           color: var(--theme-graph-individual-dark, ${colors.individual_dark});
-          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark});
         }
 
         .sub-row{
@@ -137,7 +143,7 @@ export default class GscapeExplorer extends GscapeWidget{
       let letter = type.charAt(0).toUpperCase()
 
       return html`
-        <div class="type-img type-img-${letter}">${letter}<div>
+        
       `
     }
 
@@ -161,6 +167,7 @@ export default class GscapeExplorer extends GscapeWidget{
               id="${entityData.id}"
               class="row highlight"
               type="${entityData.type}"
+              title="${entityData.type}"
               displayed_name = "${entityData.displayed_name}"
               iri = "${entityData.iri.fullIri}"
               @click='${this.toggleSubRows}'
@@ -168,7 +175,11 @@ export default class GscapeExplorer extends GscapeWidget{
               <span class="icon">
                 ${entityData.areSubrowsOpen ? arrow_down : arrow_right}
               </span>
-              <span>${getTypeImg(entityData.type)}</span>
+              <div>
+                <div class="type-img type-img-${TYPE_IMG_TEXT[entityData.type]}">
+                  ${TYPE_IMG_TEXT[entityData.type]}
+                </div>
+              </div>
               <div class="row-label" >${entityData.displayed_name}</div>
             </div>
 
