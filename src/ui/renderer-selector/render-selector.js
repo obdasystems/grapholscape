@@ -2,12 +2,15 @@ import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import GscapeButton from '../common/gscape-button'
+import { tune } from '../assets/icons'
+import layoutSettingsComponent from './floaty-layout-settings'
+import * as renderers from '../../rendering/renderers'
 
 export default class GscapeRenderSelector extends GscapeWidget {
 
   static get properties() {
     return {
-      actual_mode : { type : String }
+      _actual_mode : { type : String }
     }
   }
 
@@ -71,6 +74,13 @@ export default class GscapeRenderSelector extends GscapeWidget {
         svg {
           margin-right:8px;
         }
+
+        #hr {
+          height:1px;
+          width:90%;
+          margin: 0 auto;
+          background-color: var(--theme-gscape-shadows, ${colors.shadows})
+        }
       `,
     ]
   }
@@ -83,20 +93,26 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this._actual_mode = null
     this._onRendererChange = () => {}
 
-    this.mainButton = new GscapeButton(null, 'Select Renderer')
-    this.mainButton.highlighted = true
-    this.mainButton.onClick = () => this.toggleBody()
-    this.mainButton.style.position = 'inherit'
+    this.btn = new GscapeButton(null, 'Select Renderer')
+    this.btn.highlighted = true
+    this.btn.onClick = () => this.toggleBody()
+    this.btn.style.position = 'inherit'
+    this.btn.classList.add('flat')
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
   }
 
   render() {
     return html`
-      ${this.mainButton}
-      
+      ${this.actual_mode === renderers.floatyRenderer.key
+        ? html`${layoutSettingsComponent} <div id="hr"></div>`
+        : null
+      }
+
+
+      ${this.btn}
       <span class="gscape-panel-arrow hide"></span>
-      <div class="widget-body hide gscape-panel">
+      <div class="widget-body hide gscape-panel border-right">
         ${Object.keys(this.dict).map( mode => html`
         <div
           @click="${this.changeRenderer}"
@@ -131,11 +147,19 @@ export default class GscapeRenderSelector extends GscapeWidget {
     if (this.isEnabled) this.style.display = 'inline-block'
   }
 
+  blur() {
+    super.blur()
+  }
+
   set actual_mode(mode) {
     this._actual_mode = mode
 
     //this.header.title = this.dict[mode].label
-    this.mainButton.icon = this.dict[mode].icon
+    this.btn.icon = this.dict[mode].icon
+    if (mode === renderers.floatyRenderer.key)
+      this.btn.classList.add('flat-button')
+    else 
+      this.btn.classList.remove('flat-button')
   }
 
   get actual_mode() { return this._actual_mode }

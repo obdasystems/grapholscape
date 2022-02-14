@@ -1,17 +1,9 @@
 /**
  * 
  * @param {import('./layout-settings').default} layoutSettingsComponent 
- * @param {import('../../grapholscape').default} grapholscape 
+ * @param {import('../../../grapholscape').default} grapholscape 
  */
 export default function(layoutSettingsComponent, grapholscape) {
-  if (grapholscape.renderer.key !== 'float') layoutSettingsComponent.hide()
-
-  grapholscape.onRendererChange( rendererKey => {
-    if (rendererKey === 'float')
-      layoutSettingsComponent.show()
-    else
-      layoutSettingsComponent.hide()
-  })
 
   layoutSettingsComponent.onLayoutRunToggle = () => {
     if (!grapholscape.layoutStopped) {

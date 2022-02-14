@@ -1,7 +1,9 @@
 import { html, css } from 'lit'
-import GscapeWidget from '../common/gscape-widget'
-import GscapeHeader from '../common/gscape-header'
-import GscapeToggle from '../common/gscape-toggle'
+import GscapeWidget from '../../common/gscape-widget'
+import GscapeHeader from '../../common/gscape-header'
+import GscapeToggle from '../../common/gscape-toggle'
+import GscapeButton from '../../common/gscape-button'
+import { tune } from '../../assets/icons'
 
 export default class GscapeLayoutSettings extends GscapeWidget {
 
@@ -18,48 +20,22 @@ export default class GscapeLayoutSettings extends GscapeWidget {
       super_styles[0],
       css`
         :host {
-          left: 50%;
-          bottom: 10px;
-          transform: translate(-50%, 0);
+          box-shadow: initial;
+          position: initial;
         }
 
-        gscape-head span {
-          display: flex;
-        }
-
-        .widget-body {
-          margin:0;
-          border-top: none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
-          border-radius: inherit;
-          border-bottom-left-radius:0;
-          border-bottom-right-radius:0;
-        }
-
-        gscape-head {
-          --header-padding: 5px 8px;
-          --title-padding: 0 30px 0 0;
-          --btn-padding: 0 0 0 10px;
+        .gscape-panel {
+          bottom:initial;
+          top:10px;
         }
 
         gscape-toggle {
-          margin-left: 50px;
-        }
-
-        .wrapper {
-          display:flex;
-          align-items: center;
-          justify-content: space-between;
           padding: 8px;
-        }
-
-        .title {
-          padding: 0 5px 0 0;
-          font-weight:bold;
         }
 
         .toggles-wrapper {
           display: flex;
+          flex-direction: column;
         }
       `,
     ]
@@ -67,37 +43,37 @@ export default class GscapeLayoutSettings extends GscapeWidget {
 
   constructor() {
     super()
-    this.collapsible = false
+    this.collapsible = true
 
     this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running')
+    this.layoutRunToggle.label_pos = 'right'
     this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin')
+    this.dragAndDropToggle.label_pos = 'right'
     this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions')
+    this.useOriginalPositionsToggle.label_pos = 'right'
 
     this.onLayoutRunToggle = {}
     this.onDragAndPinToggle = {}
     this.onUseOriginalPositions = {}
+
+    this.btn = new GscapeButton(tune, 'Floaty Layout Settings')
+    this.btn.onClick = () => this.toggleBody()
+    this.btn.classList.add('flat')
+    this.btn.style.position = 'inherit'
+    this.classList.add('flat')
   }
 
   render() {
     return html`
-      <!-- in case of body
-      <div class="widget-body hide">
-      </div>
-      <gscape-head title="Layout Settings" collapsed="true" class="drag-handler">
-        <span>
-          ${new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle)}
-          ${new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle)}
-        </span>
-      </gscape-head>
-      -->
-
-      <div class="wrapper">
-        <span class="title">Layout Settings</span>
-        <span class="toggles-wrapper">
+      ${this.btn}
+      <span class="gscape-panel-arrow hide"></span>
+      <div class="widget-body hide gscape-panel border-right">
+        <div class="gscape-panel-title">Layout Settings</div>
+        <div class="toggles-wrapper">
           ${this.layoutRunToggle}
           ${this.dragAndDropToggle}
           ${this.useOriginalPositionsToggle}
-        </span>
+        </div>
       </div>
 
     `

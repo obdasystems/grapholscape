@@ -1,7 +1,6 @@
 import { default as diagramSelectorComponent, initDiagramSelector } from "./diagram-selector";
 import { default as entityDetailsComponent, initEntityDetails } from "./entity-details";
 import { default as filterComponent, initFilters } from "./filters";
-import { default as layoutSettingsComponent, initLayoutSettings } from "./floaty-layout-settings";
 import { default as fullscreenComponent, initFullscreenButton } from "./fullscreen";
 import { default as ontologyExplorerComponent, initOntologyExplorer } from "./ontology-explorer";
 import { default as ontologyInfoComponent, initOntologyInfo } from "./ontology-info";
@@ -12,6 +11,7 @@ import bottomRightContainer from "./util/bottom-right-container";
 import { default as zoomToolsComponent, initZoomTools } from "./zoom-tools";
 import { default as fitButtonComponent, initFitButton } from "./fit-button";
 import widgetNames from "./util/widget-names";
+import layoutSettingsComponent from "./renderer-selector/floaty-layout-settings";
 
 /**
  * Initialize the UI
@@ -35,7 +35,6 @@ export default function (grapholscape) {
     initFilters(grapholscape)
     initSettings(grapholscape)
     initRendererSelector(grapholscape)
-    initLayoutSettings(grapholscape)
 
     // USING GRAPHOLSCAPE CALLBACKS
     grapholscape.onBackgroundClick(() => {
@@ -47,7 +46,6 @@ export default function (grapholscape) {
     gui_container.appendChild(entityDetailsComponent)
     gui_container.appendChild(owlVisualizerComponent)
     gui_container.appendChild(fullscreenComponent)
-    gui_container.appendChild(layoutSettingsComponent)
 
     let bottomContainer = bottomRightContainer()
     bottomContainer.setAttribute('id', 'gscape-ui-bottom-container')
@@ -65,17 +63,26 @@ export default function (grapholscape) {
       }
     })
 
+    layoutSettingsComponent.onToggleBody = () => blurAll(bottomContainer, [layoutSettingsComponent])
+
     disableWidgets(grapholscape.config.widgets)
 
     function blurAll(container, widgetsToSkip = []) {
       container.querySelectorAll('*').forEach(widget => {
         if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
-          widget.blur()
-          if ( widget.btn?.hasPanel ) {
-            widget.btn.classList.remove('panel-open')
-          }
+          performBlur(widget)
         }
       })
+
+      if (!widgetsToSkip.includes(layoutSettingsComponent))
+        performBlur(layoutSettingsComponent)
+
+      function performBlur(widget) {
+        widget.blur()
+        if ( widget.btn?.hasPanel ) {
+          widget.btn.classList.remove('panel-open')
+        }
+      }
     }
 
     function isGrapholscapeWidget(widget) {

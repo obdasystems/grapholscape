@@ -213,7 +213,7 @@ class Grapholscape {
    * Unselect the current selected entity in every diagram
    * @param {string[]} [diagramsToSkip = []] array of diagram IDs to be skipped
    */
-  unselectEntity(diagramsToSkip) {
+  unselectEntity(diagramsToSkip = []) {
     for (const key in this.ontologies) {
       this.ontologies[key].diagrams.forEach(d => {
         if (!diagramsToSkip.includes(d.id) || this.ontologies[key] !== this.ontology) {

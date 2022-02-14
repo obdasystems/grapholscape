@@ -36,7 +36,6 @@ export default class GscapeWidget extends LitElement {
       .widget-body {
         width: 100%;
         max-height:450px;
-        border-top:solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         border-bottom-left-radius: inherit;
         border-bottom-right-radius: inherit;
         overflow:auto;
@@ -51,7 +50,6 @@ export default class GscapeWidget extends LitElement {
         padding:10px;
         overflow: unset;
         margin-right: calc(100% + 8px);
-        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
       .gscape-panel-arrow {
@@ -166,6 +164,10 @@ export default class GscapeWidget extends LitElement {
         border: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         margin: 5px;
         padding: 5px;
+      }
+
+      .flat {
+        box-shadow: initial;
       }
 
     `], colors]
