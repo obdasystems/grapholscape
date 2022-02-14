@@ -48,7 +48,7 @@ export default class GscapeFilters extends GscapeWidget {
 
         gscape-toggle[first]{
           justify-content: center;
-          border-bottom: 1px solid #ccc;
+          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
           margin-bottom: 10px;
           padding: 10px;
         }

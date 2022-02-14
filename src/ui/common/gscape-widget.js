@@ -58,7 +58,7 @@ export default class GscapeWidget extends LitElement {
         transform: translate(-50%, -24px);
         border-width: 8px;
         border-style: solid;
-        border-color: transparent transparent transparent var(--theme-gscape-shadows, ${colors.shadows});
+        border-color: transparent transparent transparent var(--theme-gscape-borders, ${colors.borders});
       }
 
       .gscape-panel-title{
@@ -74,7 +74,7 @@ export default class GscapeWidget extends LitElement {
       .widget-body .section-header {
         text-align: center;
         font-weight: bold;
-        border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border-bottom: solid 1px var(--theme-gscape-borders, ${colors.borders});
         color: var(--theme-gscape-secondary, ${colors.secondary});
         width: 85%;
         margin: auto;
@@ -106,7 +106,7 @@ export default class GscapeWidget extends LitElement {
 
       .details_table th {
         color: var(--theme-gscape-secondary, ${colors.secondary});
-        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border-right: solid 1px var(--theme-gscape-borders, ${colors.borders});
         font-weight: bold;
         text-align:left;
         min-width: 50px;
@@ -162,7 +162,7 @@ export default class GscapeWidget extends LitElement {
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
         background-color:var(--theme-gscape-primary, ${colors.primary});
         border-radius: 6px;
-        border: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border: solid 1px var(--theme-gscape-borders, ${colors.borders});
         margin: 5px;
         padding: 5px;
       }

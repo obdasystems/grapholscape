@@ -111,7 +111,7 @@ export default class GscapeExplorer extends GscapeWidget{
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
           border:none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
           transition: width .35s ease-in-out;
           color:inherit;
           flex-grow:2;

@@ -26,7 +26,7 @@ export default class GscapeZoomTools extends GscapeWidget {
           height:1px;
           width:90%;
           margin: 0 auto;
-          background-color: var(--theme-gscape-shadows, ${colors.shadows})
+          background-color: var(--theme-gscape-borders, ${colors.borders})
         }
 
       `

@@ -14,6 +14,7 @@
  * @property {string?} secondary_dark
  * @property {string?} on_secondary_dark
  * @property {string?} shadows
+ * @property {string?} borders
  * @property {string?} error
  * @property {string?} on_error
  * @property {string?} warning
@@ -52,6 +53,7 @@ export const gscape = {
 
   // misc
   shadows: css`rgba(0,0,0,0.2)`,
+  borders: css`rgba(0,0,0,0.2)`,
   error: css`#cc3b3b`,
   on_error: css`#fff`,
   warning: css`#D39F0A`,
@@ -94,6 +96,7 @@ export const classic = {
 
   // misc
   shadows: css`rgba(0,0,0,0.2)`,
+  borders: css`rgba(0,0,0,0.2)`,
   error: css`#cc3b3b`,
   on_error: css`#fff`,
 
@@ -165,7 +168,8 @@ export const dark = {
   secondary_dark: css`#0099e6`,
   on_secondary_dark: css`#a0a0a0`,
 
-  shadows: css`rgba(255, 255, 255, 0.25)`,
+  shadows: css`transparent`,
+  borders: css`rgba(255, 255, 255, 0.25)`,
   error: css`#cc3b3b`,
   on_error: css`#fff`,
 

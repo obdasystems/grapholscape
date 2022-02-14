@@ -37,7 +37,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
 
         .iri-dict th {
           color: var(--theme-gscape-on-primary, ${colors.on_primary});
-          border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+          border-right: solid 1px var(--theme-gscape-borders, ${colors.borders});
           text-align: left;
           font-weight: normal;
         }
