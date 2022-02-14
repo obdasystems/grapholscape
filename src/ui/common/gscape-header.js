@@ -53,8 +53,6 @@ export default class GscapeHeader extends GscapeWidget {
         cursor:grab;
         width: var(--title-width, '');
         text-align: var(--title-text-align, 'left');
-        position: relative;
-        top: 2px;
       }
 
       .icon {

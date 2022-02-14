@@ -51,8 +51,6 @@ export default class GscapeExplorer extends GscapeWidget{
           padding-left:5px;
           width:100%;
           white-space: nowrap;
-          position: relative;
-          top: 2.5px;
         }
 
         .icon:hover{
@@ -63,10 +61,11 @@ export default class GscapeExplorer extends GscapeWidget{
         .type-img{
           width: 26px;
           height: 26px;
-          text-align: center;
-          padding-top: 3px;
           box-sizing: border-box;
           border: solid 1px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .type-img-DP {
@@ -177,7 +176,7 @@ export default class GscapeExplorer extends GscapeWidget{
               </span>
               <div>
                 <div class="type-img type-img-${TYPE_IMG_TEXT[entityData.type]}">
-                  ${TYPE_IMG_TEXT[entityData.type]}
+                  <div>${TYPE_IMG_TEXT[entityData.type]}</div>
                 </div>
               </div>
               <div class="row-label" >${entityData.displayed_name}</div>

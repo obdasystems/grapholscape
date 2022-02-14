@@ -13,7 +13,6 @@ export default class GscapeWidget extends LitElement {
 
     return [[css`
       :host, .gscape-panel{
-        font-family : "Open Sans","Helvetica Neue",Helvetica,sans-serif;
         display: block;
         position: absolute;
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
