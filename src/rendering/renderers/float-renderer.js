@@ -66,7 +66,10 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
       this.activateOriginalPositions()
     } else {
       this.main_layout = this.layout() // apply layout on those not locked
-      this.main_layout.run()
+      
+      // if layout it's not stopped or if the diagram has never been rendered, run layout
+      if (!this.layoutStopped || !diagram.hasEverBeenRendered)
+        this.main_layout.run()
     }
 
     /**
