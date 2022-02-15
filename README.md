@@ -2,7 +2,7 @@
   <img width="250px" src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
 </p>
 
-Advanced web viewer for ontologies written in GRAPHOL.[**Try me**](https://obdasystems.github.io/grapholscape/)
+Advanced web viewer for ontologies written in GRAPHOL.[**Try me**](https://obdasystems.github.io/grapholscape/demo/)
 
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
@@ -24,8 +24,8 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 ## What is Graphol?
 GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.
 
-## Usage | [Demo](https://obdasystems.github.io/grapholscape/)
-You can try it [here](https://obdasystems.github.io/grapholscape/) or just clone the repository, `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
+## Usage | [Demo](https://obdasystems.github.io/grapholscape/demo/)
+You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or just clone the repository, `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
 
 ### Embed in your project
 
@@ -72,7 +72,7 @@ In the example we saw the method `showDiagram(0)`, for the complete API please r
 
 Information about entities, namesapaces and diagrams are stored in `Grapholscape.ontology`. Read More in [`doc/ontology.md`](https://obdasystems.github.io/grapholscape/Ontology.html).
 
-It is possible to pass also a json config object to define custom default settings. Read more: [default settings customization](https://github.com/obdasystems/grapholscape/tutorial-Settings.html).
+It is possible to pass also a json config object to define custom default settings. Read more: [default settings customization](https://obdasystems.github.io/grapholscape/tutorial-Settings.html).
 
 ### Build it locally
 Install `Node` and `npm`.
