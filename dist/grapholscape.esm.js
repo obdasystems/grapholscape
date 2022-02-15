@@ -99,7 +99,7 @@ function clearLocalStorage() {
     .forEach(k => window.localStorage.removeItem(k));
 }
 
-const preferences={entity_name:{type:"list",title:"Entities Name",label:"Select the type of name to display on entities",selected:"label",list:[{value:"label",label:"Label"},{value:"prefixed",label:"Prefixed IRI"},{value:"full",label:"Full IRI"}]},language:{type:"list",title:"Language",label:"Select the preferred language",selected:"",list:[]}};const rendering={theme:{type:"list",title:"Themes",label:"Select a theme",selected:"gscape",list:[{value:"gscape",label:"Light"},{value:"dark",label:"Dark"},{value:"classic",label:"Graphol"}]}};const widgets={explorer:{title:"Ontology Explorer",type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",title:"Entity Details",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",title:"OWL Translator",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",title:"Filters",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Attributes",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][displayed_name = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"},key:{selector:"[type = \"has-key\"]",label:"Key",active:false,disabled:false,"class":"filterKeys"}}},simplifications:{type:"boolean",title:"Simplifications",enabled:true,label:"Allow ontology simplification widget"}};var defaultConfig = {preferences:preferences,rendering:rendering,widgets:widgets};
+const preferences={entity_name:{type:"list",title:"Entities Name",label:"Select the type of name to display on entities",selected:"label",list:[{value:"label",label:"Label"},{value:"prefixed",label:"Prefixed IRI"},{value:"full",label:"Full IRI"}]},language:{type:"list",title:"Language",label:"Select the preferred language",selected:"",list:[]}};const rendering={theme:{type:"list",title:"Themes",label:"Select a theme",selected:"gscape",list:[{value:"gscape",label:"Light"},{value:"dark",label:"Dark"},{value:"classic",label:"Graphol"}]}};const widgets={explorer:{title:"Ontology Explorer",type:"boolean",enabled:true,label:"Enable Ontology Explorer widget"},details:{type:"boolean",title:"Entity Details",enabled:true,label:"Enable Entity Details widget"},owl_translator:{type:"boolean",title:"OWL Translator",enabled:true,label:"Enable Owl Translation widget"},filters:{type:"boolean",title:"Filters",enabled:true,label:"Enable Filters widget",filter_list:{all:{selector:"#undefined",label:"Filter All",active:false,disabled:false,"class":"undefined"},attributes:{selector:"[type = \"attribute\"]",label:"Data Properties",active:false,disabled:false,"class":"filterattributes"},value_domain:{selector:"[type = \"value-domain\"]",label:"Value Domain",active:false,disabled:false,"class":"filtervaluedomains"},individuals:{selector:"[type = \"individual\"]",label:"Individuals",active:false,disabled:false,"class":"filterindividuals"},universal_quantifier:{selector:"[type $= \"-restriction\"][displayed_name = \"forall\"]",label:"Universal Quantifier",active:false,disabled:false,"class":"filterforall"},not:{selector:"[type = \"complement\"]",label:"Not",active:false,disabled:false,"class":"filtercomplements"},key:{selector:"[type = \"has-key\"]",label:"Key",active:false,disabled:false,"class":"filterKeys"}}},simplifications:{type:"boolean",title:"Simplifications",enabled:true,label:"Allow ontology simplification widget"}};var defaultConfig = {preferences:preferences,rendering:rendering,widgets:widgets};
 
 var downloadBlob = (blob, fileName) => {
   let a = document.createElement('a');
@@ -1138,7 +1138,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '.facet',
+      selector: `.${Type.FACET}`,
       style: {
         'background-opacity': 0
       }
@@ -1167,7 +1167,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '.concept',
+      selector: `.${Type.CONCEPT}`,
       style: {
         'background-color': theme.concept,
         'border-color': theme.concept_dark,
@@ -1175,7 +1175,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '.role, .fake-triangle',
+      selector: `.${Type.OBJECT_PROPERTY}, .fake-triangle`,
       style: {
         'background-color': theme.role,
         'border-color': theme.role_dark,
@@ -1183,7 +1183,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '.attribute',
+      selector: `.${Type.DATA_PROPERTY}`,
       style: {
         'background-color': theme.attribute,
         'border-color': theme.attribute_dark,
@@ -1191,7 +1191,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '.attribute:selected',
+      selector: `.${Type.DATA_PROPERTY}:selected`,
       style: {
         'text-background-color': theme.background,
         'text-background-opacity': 1,
@@ -1199,7 +1199,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.role',
+      selector: `edge.${Type.OBJECT_PROPERTY}`,
       style: {
         'line-color' : theme.role_dark,
         'source-arrow-color': theme.role_dark,
@@ -1212,7 +1212,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.role.predicate',
+      selector: `edge.predicate[type = "${Type.OBJECT_PROPERTY}"]`,
       style: {
         'width': 4,
       }
@@ -1237,7 +1237,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge.attribute',
+      selector: `edge.${Type.DATA_PROPERTY}`,
       style: {
         'line-color': theme.attribute_dark,
         'source-arrow-shape': 'none',
@@ -1258,7 +1258,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '.individual',
+      selector: `.${Type.INDIVIDUAL}`,
       style: {
         'background-color': theme.individual,
         'border-color': theme.individual_dark,
@@ -1266,7 +1266,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '[type = "range-restriction"], [type = "disjoint-union"]',
+      selector: `[type = "${Type.RANGE_RESTRICTION}"], [type = "${Type.DISJOINT_UNION}"]`,
       style: {
         'background-color': theme.node_bg_contrast,
       }
@@ -1294,7 +1294,7 @@ function getGraphStyle(theme) {
     },
 
     {
-      selector: '[shape = "hexagon"],[type = "value-domain"], .facet',
+      selector: `[shape = "${Shape.HEXAGON}"],[type = "${Type.VALUE_DOMAIN}"], .${Type.FACET}`,
       style: {
         'color': theme.node_bg_contrast,
       }
@@ -1642,6 +1642,8 @@ const move_bubbles = y`<svg style="width:24px;height:24px" viewBox="0 0 24 24"><
 
  const graphol_icon = y`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: auto; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
 
+ const tune = y`<svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 13C6.14 13 4.59 14.28 4.14 16H2V18H4.14C4.59 19.72 6.14 21 8 21S11.41 19.72 11.86 18H22V16H11.86C11.41 14.28 9.86 13 8 13M8 19C6.9 19 6 18.1 6 17C6 15.9 6.9 15 8 15S10 15.9 10 17C10 18.1 9.1 19 8 19M19.86 6C19.41 4.28 17.86 3 16 3S12.59 4.28 12.14 6H2V8H12.14C12.59 9.72 14.14 11 16 11S19.41 9.72 19.86 8H22V6H19.86M16 9C14.9 9 14 8.1 14 7C14 5.9 14.9 5 16 5S18 5.9 18 7C18 8.1 17.1 9 16 9Z" /></svg>`;
+
 var icons$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   diagrams: diagrams,
@@ -1666,7 +1668,8 @@ var icons$1 = /*#__PURE__*/Object.freeze({
   close: close,
   move_bubbles: move_bubbles,
   owl_icon: owl_icon,
-  graphol_icon: graphol_icon
+  graphol_icon: graphol_icon,
+  tune: tune
 });
 
 class FloatyGscapeRenderer extends GrapholscapeRenderer {
@@ -1698,7 +1701,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
       e.target.removeData('old_pos');
     });
 
-    this.cy.$('[?pinned]').each( n => {
+    this.cy.$('[?pinned]').each(n => {
       n.on('position', () => this.updatePopper(n));
       this.cy.on('pan zoom resize', () => this.updatePopper(n));
     });
@@ -1713,7 +1716,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
   /** @param {import('../../model/index').Diagram} diagram*/
   drawDiagram(diagram) {
     super.drawDiagram(diagram);
-   
+
     this.setCySettings();
     /**
      * At each diagram change, cy instance changes and everything
@@ -1733,7 +1736,10 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
       this.activateOriginalPositions();
     } else {
       this.main_layout = this.layout(); // apply layout on those not locked
-      this.main_layout.run();
+      
+      // if layout it's not stopped or if the diagram has never been rendered, run layout
+      if (!this.layoutStopped || !diagram.hasEverBeenRendered)
+        this.main_layout.run();
     }
 
     /**
@@ -1745,20 +1751,20 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   centerOnNode(node_id, zoom) {
-      let node = this.cy.$id(node_id);
-      if (node) {
-        this.cy.$(':selected').unselect();
+    let node = this.cy.$id(node_id);
+    if (node) {
+      this.cy.$(':selected').unselect();
 
-        if ( node.data('type') == 'role') {
-          let elems = node.connectedNodes();
-          setTimeout( () => this.cy.fit(elems), 300);
-          node.select();
-          elems.select();
-        } else {
-          setTimeout( () => this.centerOnModelPosition(node.position('x'), node.position('y'), zoom), 300);
-          node.select();
-        }
+      if (node.data('type') == 'role') {
+        let elems = node.connectedNodes();
+        setTimeout(() => this.cy.fit(elems), 300);
+        node.select();
+        elems.select();
+      } else {
+        setTimeout(() => this.centerOnModelPosition(node.position('x'), node.position('y'), zoom), 300);
+        node.select();
       }
+    }
   }
 
   layout(selector = '*') {
@@ -1777,7 +1783,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
     node.unlockButton = node.popper({
       content: () => {
-        let dimension =  node.data('width') / 9 * this.cy.zoom();
+        let dimension = node.data('width') / 9 * this.cy.zoom();
         let div = document.createElement('div');
         div.style.background = node.style('border-color');
         div.style.borderRadius = '100%';
@@ -1804,9 +1810,9 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
   updatePopper(node) {
     if (!node.unlockButton) return
 
-    
+
     let unlockButton = node.unlockButton;
-    let dimension =  node.data('width') / 9 * this.cy.zoom();
+    let dimension = node.data('width') / 9 * this.cy.zoom();
     this.setPopperStyle(dimension, unlockButton.state.elements.popper);
     unlockButton.update();
   }
@@ -1819,11 +1825,11 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
       popper.style.height = dim + 'px';
       popper.style.display = 'flex';
       if (dim > 8) {
-        icon.setAttribute('width', dim+'px');
-        icon.setAttribute('height', dim+'px');
-      } else if (dim - 10 > 0 ) {
-        icon.setAttribute('width', (dim - 10)+'px');
-        icon.setAttribute('height', (dim - 10)+'px');
+        icon.setAttribute('width', dim + 'px');
+        icon.setAttribute('height', dim + 'px');
+      } else if (dim - 10 > 0) {
+        icon.setAttribute('width', (dim - 10) + 'px');
+        icon.setAttribute('height', (dim - 10) + 'px');
       } else {
         icon.style.display = 'none';
       }
@@ -1862,7 +1868,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
     delete layout_options.convergenceThreshold;
     this.main_layout = this.cy.$('*').layout(layout_options);
 
-    this.cy.$('.concept').forEach( node => {
+    this.cy.$('.concept').forEach(node => {
       if (!node.data('pinned')) {
         node.position(JSON.parse(node.data('original-position')));
         node.lock();
@@ -1881,40 +1887,45 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
     this.cy.$('[type = "concept"][!pinned]').unlock();
     this.main_layout = this.layout();
   }
-  
+
   get disabledFilters() { return ["not", "universal_quantifier", "value_domain", "key"] }
 
   get layout_settings() {
     return {
       name: 'cola',
-      avoidOverlap: true,
-      edgeLength: function(edge) {
+      avoidOverlap: false,
+      edgeLength: function (edge) {
+        let crowdnessFactor =
+          edge.target().neighborhood(`[type = "${Type.OBJECT_PROPERTY}"]`).length +
+          edge.source().neighborhood(`[type = "${Type.OBJECT_PROPERTY}"]`).length;
+
+        crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0;
         if (edge.hasClass('role')) {
-          return 300 + edge.data('displayed_name').length * 4
+          return 250 + edge.data('displayed_name').length * 4 + crowdnessFactor
         }
-        else if (edge.target().data('type') == 'attribute' ||
-                 edge.source().data('type') == 'attribute' )
+        else if (edge.target().data('type') == Type.DATA_PROPERTY ||
+          edge.source().data('type') == Type.DATA_PROPERTY)
           return 150
-        else
-          return 250
+        else {
+          return 200 + crowdnessFactor
+        }
       },
-      fit : false,
+      fit: false,
       infinite: !this.layoutStopped,
       handleDisconnected: true, // if true, avoids disconnected components from overlapping
-      convergenceThreshold: 0.000000001
     }
   }
 
   set layoutStopped(isStopped) {
     this._layoutStopped = isStopped;
 
-    if(this.main_layout) {
+    if (this.main_layout) {
       this.main_layout.options.infinite = !isStopped;
       isStopped ? this.main_layout.stop() : this.main_layout.run();
     }
   }
 
-  get layoutStopped() { return this._layoutStopped}
+  get layoutStopped() { return this._layoutStopped }
 
   set dragAndPin(active) {
     this._dragAndPin = active;
@@ -1948,7 +1959,7 @@ class FloatyGscapeRenderer extends GrapholscapeRenderer {
    * addPopperContainer() 
    * @returns {HTMLDivElement} 
    */
-  get popperContainer() { 
+  get popperContainer() {
     if (!this.popperContainers[this.actual_diagram])
       this.addPopperContainer();
 
@@ -2017,6 +2028,7 @@ function initRenderersManager(container, renderersKeys = ['default']) {
  * @property {string?} secondary_dark
  * @property {string?} on_secondary_dark
  * @property {string?} shadows
+ * @property {string?} borders
  * @property {string?} error
  * @property {string?} on_error
  * @property {string?} warning
@@ -2053,6 +2065,7 @@ const gscape = {
 
   // misc
   shadows: r$1`rgba(0,0,0,0.2)`,
+  borders: r$1`rgba(0,0,0,0.2)`,
   error: r$1`#cc3b3b`,
   on_error: r$1`#fff`,
   warning: r$1`#D39F0A`,
@@ -2095,6 +2108,7 @@ const classic = {
 
   // misc
   shadows: r$1`rgba(0,0,0,0.2)`,
+  borders: r$1`rgba(0,0,0,0.2)`,
   error: r$1`#cc3b3b`,
   on_error: r$1`#fff`,
 
@@ -2166,7 +2180,8 @@ const dark = {
   secondary_dark: r$1`#0099e6`,
   on_secondary_dark: r$1`#a0a0a0`,
 
-  shadows: r$1`rgba(255, 255, 255, 0.25)`,
+  shadows: r$1`transparent`,
+  borders: r$1`rgba(255, 255, 255, 0.25)`,
   error: r$1`#cc3b3b`,
   on_error: r$1`#fff`,
 
@@ -2614,14 +2629,14 @@ function computeSimplifiedOntologies(ontology) {
 
     filterByCriterion(cy, (node) => {
       switch(node.data('type')) {
-        case 'complement' :
-        case 'value-domain':
-        case 'role-chain':
-        case 'enumeration':
+        case Type.COMPLEMENT:
+        case Type.VALUE_DOMAIN:
+        case Type.ROLE_CHAIN:
+        case Type.ENUMERATION:
           return true
 
-        case 'domain-restriction':
-        case 'range-restriction':
+        case Type.DOMAIN_RESTRICTION:
+        case Type.RANGE_RESTRICTION:
           if (node.data('displayed_name') == 'forall')
             return true
           else
@@ -2651,7 +2666,7 @@ function computeSimplifiedOntologies(ontology) {
     eles.filter(selector).forEach(restriction => {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction);
       let new_edge = null;
-      let type = restriction.data('type') == 'domain-restriction' ? 'domain' : 'range';
+      let type = restriction.data('type') == Type.DOMAIN_RESTRICTION ? 'domain' : 'range';
 
       restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
         new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i);
@@ -2669,7 +2684,7 @@ function computeSimplifiedOntologies(ontology) {
     function getInputEdgeFromPropertyToRestriction(restriction_node) {
       let e = null;
       restriction_node.incomers('[type = "input"]').forEach(edge => {
-        if (edge.source().data('type') == 'role' || edge.source().data('type') == 'attribute') {
+        if (edge.source().data('type') == Type.OBJECT_PROPERTY || edge.source().data('type') == Type.DATA_PROPERTY) {
           e = edge;
         }
       });
@@ -2684,10 +2699,10 @@ function computeSimplifiedOntologies(ontology) {
       /**
        * if the actual edge is between two existential, remove it and filter the other existential
        */
-      if ((edgeToRestriction.source().data('type') == 'domain-restriction' ||
-           edgeToRestriction.source().data('type') == 'range-restriction') &&
-          (edgeToRestriction.target().data('type') == 'domain-restriction' ||
-           edgeToRestriction.target().data('type') == 'range-restriction')) {
+      if ((edgeToRestriction.source().data('type') == Type.DOMAIN_RESTRICTION ||
+           edgeToRestriction.source().data('type') == Type.RANGE_RESTRICTION) &&
+          (edgeToRestriction.target().data('type') == Type.DOMAIN_RESTRICTION ||
+           edgeToRestriction.target().data('type') == Type.RANGE_RESTRICTION)) {
         cy.remove(edgeToRestriction);
         return new_edge
       }
@@ -2699,7 +2714,7 @@ function computeSimplifiedOntologies(ontology) {
       }
 
       // move attribute on restriction node position
-      if (edgeFromProperty.source().data('type') == "attribute") {
+      if (edgeFromProperty.source().data('type') == Type.DATA_PROPERTY) {
         edgeFromProperty.source().position(edgeFromProperty.target().position());
         new_edge = edges[0];
         new_edge.data.target = edgeFromProperty.source().id();
@@ -2803,7 +2818,7 @@ function computeSimplifiedOntologies(ontology) {
   }
 
   function isQualifiedRestriction(node) {
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)
         && (node.data('displayed_name') == 'exists')) {
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
@@ -2814,7 +2829,7 @@ function computeSimplifiedOntologies(ontology) {
   function inputEdgesBetweenRestrictions(node) {
     let outcome = false;
 
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')) {
+    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)) {
       node.incomers('edge[type = "input"]').forEach(edge => {
         if (edge.source().data('type').endsWith('restriction')){
           outcome = true;
@@ -2825,7 +2840,7 @@ function computeSimplifiedOntologies(ontology) {
   }
 
   function isExistentialWithCardinality(node) {
-    if ((node.data('type') == 'domain-restriction' || node.data('type') == 'range-restriction')
+    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)
         && node.data('displayed_name').search(/[0-9]/g) >= 0) {
       return true
     }
@@ -2834,14 +2849,14 @@ function computeSimplifiedOntologies(ontology) {
   }
 
   function isComplexHierarchy(node) {
-    if (node.data('type') != 'union' &&
-        node.data('type') != 'disjoint-union' &&
-        node.data('type') != 'intersection')
+    if (node.data('type') != Type.UNION &&
+        node.data('type') != Type.DISJOINT_UNION &&
+        node.data('type') != Type.INTERSECTION)
       return false
 
     let outcome = false;
     node.incomers('[type *= "input"]').forEach(input => {
-      if (input.source().data('type') != 'concept') {
+      if (input.source().data('type') != Type.CONCEPT) {
         outcome = true;
       }
     });
@@ -2873,7 +2888,7 @@ function computeSimplifiedOntologies(ontology) {
       // process inclusion edges
       union.outgoers('edge[type = "inclusion"]').forEach(inclusion => {
         inclusion.addClass('hierarchy');
-        if (union.data('type') == 'disjoint-union')
+        if (union.data('type') == Type.DISJOINT_UNION)
           inclusion.addClass('disjoint');
       });
 
@@ -2900,7 +2915,7 @@ function computeSimplifiedOntologies(ontology) {
   function simplifyIntersections(cytoscape_instance) {
     let cy = cytoscape_instance;
 
-    cy.$('node[type = "intersection"]').forEach( and => {
+    cy.$(`node[type = "${Type.INTERSECTION}"]`).forEach( and => {
       replicateAttributes(and);
       replicateRoleTypizations(and);
 
@@ -2949,7 +2964,7 @@ function computeSimplifiedOntologies(ontology) {
   function replicateRoleTypizations(constructor) {
     let cy = constructor.cy();
     // replicate role tipization on input classes
-    constructor.connectedEdges('edge.role').forEach(role_edge => {
+    constructor.connectedEdges(`edge.${Type.OBJECT_PROPERTY}`).forEach(role_edge => {
       constructor.incomers('[type *= "input"]').forEach( (input,i) => {
         let new_id = `${role_edge.id()}_${i}`;
         let new_edge = {};
@@ -3002,7 +3017,7 @@ function computeSimplifiedOntologies(ontology) {
   function simplifyComplexHierarchies(cytoscape_instance) {
     let cy = cytoscape_instance;
 
-    cy.nodes('[type = "intersection"],[type = "union"],[type = "disjoint-union"]').forEach(node => {
+    cy.nodes(`[type = "${Type.INTERSECTION}"],[type = "${Type.UNION}"],[type = "${Type.DISJOINT_UNION}"]`).forEach(node => {
       if(isComplexHierarchy(node)) {
         replicateAttributes(node);
         aux_renderer.filterElem(node, '', cy);
@@ -3015,12 +3030,12 @@ function computeSimplifiedOntologies(ontology) {
   function replicateAttributes(node) {
     let cy = node.cy();
     let all_classes = getAllInputs(node);
-    let all_attributes = node.neighborhood('[type = "attribute"]');
+    let all_attributes = node.neighborhood(`[type = "${Type.DATA_PROPERTY}"]`);
     let all_inclusion_attributes = cy.collection();
 
     all_classes.forEach( (concept,i) => {
       all_attributes.forEach((attribute, j) => {
-        addAttribute(concept, i, attribute, 'attribute');
+        addAttribute(concept, i, attribute, Type.DATA_PROPERTY);
       });
     });
 
@@ -3046,7 +3061,7 @@ function computeSimplifiedOntologies(ontology) {
 
       // recursively add new attributes connected to replicated attributes by inclusions
       if (!target.hasClass('repositioned')) {
-        attribute.neighborhood('[type = "attribute"]').forEach( (inclusion_attribute, j) => {
+        attribute.neighborhood(`[type = "${Type.DATA_PROPERTY}"]`).forEach( (inclusion_attribute, j) => {
           if(all_attributes.contains(inclusion_attribute)) {
             return
           }
@@ -3061,9 +3076,9 @@ function computeSimplifiedOntologies(ontology) {
       let all_classes = node.cy().collection();
 
       let input_edges = node.incomers('edge[type *= "input"]');
-      all_classes = all_classes.union(input_edges.sources('[type = "concept"]'));
+      all_classes = all_classes.union(input_edges.sources(`[type = "${Type.CONCEPT}"]`));
 
-      input_edges.sources('[type != "concept"]').forEach(constructor => {
+      input_edges.sources(`[type != "${Type.CONCEPT}"]`).forEach(constructor => {
         all_classes = all_classes.union(getAllInputs(constructor));
         constructor.addClass('attr_replicated');
       });
@@ -3075,7 +3090,7 @@ function computeSimplifiedOntologies(ontology) {
   function simplifyRoleInverse(cytoscape_instance) {
     let cy = cytoscape_instance;
 
-    cy.nodes('[type = "role-inverse"]').forEach(role_inverse => {
+    cy.nodes(`[type = "${Type.ROLE_INVERSE}"]`).forEach(role_inverse => {
       let new_edges_count = 0;
       // the input role is only one
       let input_edge = role_inverse.incomers('[type *= "input"]');
@@ -3127,7 +3142,7 @@ function computeSimplifiedOntologies(ontology) {
       node.data('original-position', JSON.stringify(node.position()));
     });
 
-    filterByCriterion(cy, node => node.data('type') === 'has-key');
+    filterByCriterion(cy, node => node.data('type') === Type.KEY);
     simplifyRolesFloat(cy);
     simplifyHierarchiesFloat(cy);
     simplifyAttributesFloat(cy);
@@ -3135,53 +3150,69 @@ function computeSimplifiedOntologies(ontology) {
     cy.edges().removeData('segment_weights');
     cy.edges().removeData('target_endpoint');
     cy.edges().removeData('source_endpoint');
-    cy.$('[type = "concept"]').addClass('bubble');
+    cy.$(`[type = "${Type.CONCEPT}"]`).addClass('bubble');
     return cy.$('*')
   }
 
   function simplifyRolesFloat(cy) {
-    let eles = cy.$('[type = "role"]');
+    let eles = cy.$(`[type = "${Type.OBJECT_PROPERTY}"]`);
 
     eles.forEach(role => {
-      let edges = role.incomers('edge.role');
-      let domains = edges.filter('.domain');
-      let range_nodes = edges.filter('.range').sources();
+      let domains = getDomains(role);
+      let ranges = getRanges(role);
+      connectDomainsRanges(domains, ranges, role);
+    });
 
+    cy.remove(eles);
+
+    function connectDomainsRanges(domains, ranges, roleEntity) {
       domains.forEach(domain => {
-        range_nodes.forEach((target,i) => {
+        ranges.forEach((range,i) => {
 
           let new_edge = {
             data : {
-              id : domain.id() + '-' + i,
-              id_xml : domain.target().data('id_xml'),
-              diagram_id : domain.target().data('diagram_id'),
-              source : domain.source().id(),
-              target : target.id(),
-              type : domain.target().data('type'),
-              iri : domain.target().data('iri'),
-              displayed_name : domain.target().data('displayed_name'),
-              annotations : domain.target().data('annotations'),
-              description : domain.target().data('description'),
-              functional : domain.target().data('functional'),
-              inverseFunctional : domain.target().data('inverseFunctional'),
-              asymmetric : domain.target().data('asymmetric'),
-              irreflexive : domain.target().data('irreflexive'),
-              reflexive : domain.target().data('reflexive'),
-              symmetric : domain.target().data('symmetric'),
-              transitive : domain.target().data('transitive')
+              id_xml : roleEntity.data('id_xml'),
+              diagram_id : roleEntity.data('diagram_id'),
+              source : domain.id(),
+              target : range.id(),
+              type : roleEntity.data('type'),
+              iri : roleEntity.data('iri'),
+              displayed_name : roleEntity.data('displayed_name'),
+              annotations : roleEntity.data('annotations'),
+              description : roleEntity.data('description'),
+              functional : roleEntity.data('functional'),
+              inverseFunctional : roleEntity.data('inverseFunctional'),
+              asymmetric : roleEntity.data('asymmetric'),
+              irreflexive : roleEntity.data('irreflexive'),
+              reflexive : roleEntity.data('reflexive'),
+              symmetric : roleEntity.data('symmetric'),
+              transitive : roleEntity.data('transitive')
             },
-            classes : 'role predicate'
+            classes : `${Type.OBJECT_PROPERTY} predicate`
           };
 
           cy.add(new_edge);
           if(cy.getElementById(new_edge.data.id).isLoop()) {
             let loop_edge = cy.getElementById(new_edge.data.id);
-            loop_edge.data('control_point_step_size', target.data('width'));
+            loop_edge.data('control_point_step_size', range.data('width'));
           }
         });
       });
-      cy.remove(role);
-    });
+    }
+
+    function getDomains(role) {
+      if (!role || role.empty()) return null
+      let domains = role.incomers(`edge.domain`).sources();
+      let roleFather = role.outgoers('edge[type = "inclusion"][!displayed_name]').targets();
+      return domains.union(getDomains(roleFather))
+    }
+
+    function getRanges(role) {
+      if (!role || role.empty()) return null
+      let ranges = role.incomers(`edge.range`).sources();
+      let roleFather = role.outgoers('edge[type = "inclusion"][!displayed_name]').targets();
+      return ranges.union(getRanges(roleFather))
+    }
   }
 
   function simplifyHierarchiesFloat(cy) {
@@ -3195,7 +3226,7 @@ function computeSimplifiedOntologies(ontology) {
   }
 
   function simplifyAttributesFloat(cy) {
-    cy.$('[type = "attribute"]').forEach(attribute => {
+    cy.$(`[type = "${Type.DATA_PROPERTY}"]`).forEach(attribute => {
       attribute.neighborhood('node').forEach(neighbor => {
         attribute.position(neighbor.position());
       });
@@ -3345,7 +3376,7 @@ class Grapholscape {
    * Unselect the current selected entity in every diagram
    * @param {string[]} [diagramsToSkip = []] array of diagram IDs to be skipped
    */
-  unselectEntity(diagramsToSkip) {
+  unselectEntity(diagramsToSkip = []) {
     for (const key in this.ontologies) {
       this.ontologies[key].diagrams.forEach(d => {
         if (!diagramsToSkip.includes(d.id) || this.ontologies[key] !== this.ontology) {
@@ -3985,11 +4016,11 @@ function getPredicateInfo$1(element, xmlDocument) {
         result.annotations.comment = { '' : [description.slice(start_body_index, end_body_index)] };
 
       // Impostazione delle funzionalità dei nodi di tipo role o attribute
-      if (type === 'attribute' || type === 'role') {
+      if (type === Type.DATA_PROPERTY || type === Type.OBJECT_PROPERTY) {
         result.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent);
       }
 
-      if (type === 'role') {
+      if (type === Type.OBJECT_PROPERTY) {
         result.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent);
         result.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent);
         result.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent);
@@ -4839,10 +4870,12 @@ function initGrapholscape (file, container, config) {
 }
 
 class GscapeWidget extends s {
-  static properties = {
-    isEnabled: { type: Boolean },
-    hiddenDefault: { type: Boolean },
-    draggable: { attribute: false }
+  static get properties() {
+    return {
+      isEnabled: { type: Boolean },
+      hiddenDefault: { type: Boolean },
+      draggable: { attribute: false }
+    }
   }
 
   static get styles() {
@@ -4850,7 +4883,6 @@ class GscapeWidget extends s {
 
     return [[r$1`
       :host, .gscape-panel{
-        font-family : "Open Sans","Helvetica Neue",Helvetica,sans-serif;
         display: block;
         position: absolute;
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
@@ -4873,7 +4905,6 @@ class GscapeWidget extends s {
       .widget-body {
         width: 100%;
         max-height:450px;
-        border-top:solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         border-bottom-left-radius: inherit;
         border-bottom-right-radius: inherit;
         overflow:auto;
@@ -4888,7 +4919,6 @@ class GscapeWidget extends s {
         padding:10px;
         overflow: unset;
         margin-right: calc(100% + 8px);
-        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
       .gscape-panel-arrow {
@@ -4896,7 +4926,7 @@ class GscapeWidget extends s {
         transform: translate(-50%, -24px);
         border-width: 8px;
         border-style: solid;
-        border-color: transparent transparent transparent var(--theme-gscape-shadows, ${colors.shadows});
+        border-color: transparent transparent transparent var(--theme-gscape-borders, ${colors.borders});
       }
 
       .gscape-panel-title{
@@ -4912,7 +4942,7 @@ class GscapeWidget extends s {
       .widget-body .section-header {
         text-align: center;
         font-weight: bold;
-        border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border-bottom: solid 1px var(--theme-gscape-borders, ${colors.borders});
         color: var(--theme-gscape-secondary, ${colors.secondary});
         width: 85%;
         margin: auto;
@@ -4944,7 +4974,7 @@ class GscapeWidget extends s {
 
       .details_table th {
         color: var(--theme-gscape-secondary, ${colors.secondary});
-        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border-right: solid 1px var(--theme-gscape-borders, ${colors.borders});
         font-weight: bold;
         text-align:left;
         min-width: 50px;
@@ -5000,9 +5030,13 @@ class GscapeWidget extends s {
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
         background-color:var(--theme-gscape-primary, ${colors.primary});
         border-radius: 6px;
-        border: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border: solid 1px var(--theme-gscape-borders, ${colors.borders});
         margin: 5px;
         padding: 5px;
+      }
+
+      .flat {
+        box-shadow: initial;
       }
 
     `], colors]
@@ -5353,7 +5387,7 @@ class GscapeToggle extends GscapeWidget {
           left: 0;
           right: 0;
           bottom: 0;
-          background-color: #ccc;
+          background-color: var(--theme-gscape-borders, ${colors.borders});
           transition: checked 0.2s;
           border-radius: 19px;
         }
@@ -5506,7 +5540,6 @@ class GscapeHeader extends GscapeWidget {
         cursor:grab;
         width: var(--title-width, '');
         text-align: var(--title-text-align, 'left');
-        justify-self: flex-start;
       }
 
       .icon {
@@ -5848,10 +5881,6 @@ var entityOccurrencesTemplate = (occurrences, onNodeNavigation) => {
 //import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 class GscapeEntityDetails extends GscapeWidget {
-  /**
-   * @param {import('cytoscape').CollectionReturnValue} entity
-   */
-  setEntity = (entity) => { }
   static get properties() {
     return {
       entity: { type: Object },
@@ -5880,7 +5909,7 @@ class GscapeEntityDetails extends GscapeWidget {
           text-align: center;
           padding: 12px;
           font-weight: bold;
-          border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: solid 1px var(--theme-gscape-borders, ${colors.borders});
           color: var(--theme-gscape-secondary, ${colors.secondary});
           width: 85%;
           margin: auto;
@@ -5945,6 +5974,11 @@ class GscapeEntityDetails extends GscapeWidget {
 
     this.onNodeNavigation = {};
     this.header = new GscapeHeader('Entity Details', info_filled);
+
+    /**
+     * @param {import('cytoscape').CollectionReturnValue} entity
+     */
+    this.setEntity = (entity) => { };
   }
 
   render() {
@@ -6190,7 +6224,7 @@ class GscapeFilters extends GscapeWidget {
 
   static get styles() {
     let super_styles = super.styles;
-    super_styles[1];
+    let colors = super_styles[1];
 
     return [
       super_styles[0],
@@ -6211,7 +6245,7 @@ class GscapeFilters extends GscapeWidget {
 
         gscape-toggle[first]{
           justify-content: center;
-          border-bottom: 1px solid #ccc;
+          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
           margin-bottom: 10px;
           padding: 10px;
         }
@@ -6386,54 +6420,28 @@ class GscapeLayoutSettings extends GscapeWidget {
 
   static get styles() {
     let super_styles = super.styles;
-    let colors = super_styles[1];
+    super_styles[1];
 
     return [
       super_styles[0],
       r$1`
         :host {
-          left: 50%;
-          bottom: 10px;
-          transform: translate(-50%, 0);
+          box-shadow: initial;
+          position: initial;
         }
 
-        gscape-head span {
-          display: flex;
-        }
-
-        .widget-body {
-          margin:0;
-          border-top: none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
-          border-radius: inherit;
-          border-bottom-left-radius:0;
-          border-bottom-right-radius:0;
-        }
-
-        gscape-head {
-          --header-padding: 5px 8px;
-          --title-padding: 0 30px 0 0;
-          --btn-padding: 0 0 0 10px;
+        .gscape-panel {
+          bottom:initial;
+          top:10px;
         }
 
         gscape-toggle {
-          margin-left: 50px;
-        }
-
-        .wrapper {
-          display:flex;
-          align-items: center;
-          justify-content: space-between;
           padding: 8px;
-        }
-
-        .title {
-          padding: 0 5px 0 0;
-          font-weight:bold;
         }
 
         .toggles-wrapper {
           display: flex;
+          flex-direction: column;
         }
       `,
     ]
@@ -6441,37 +6449,37 @@ class GscapeLayoutSettings extends GscapeWidget {
 
   constructor() {
     super();
-    this.collapsible = false;
+    this.collapsible = true;
 
     this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running');
+    this.layoutRunToggle.label_pos = 'right';
     this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin');
+    this.dragAndDropToggle.label_pos = 'right';
     this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions');
+    this.useOriginalPositionsToggle.label_pos = 'right';
 
     this.onLayoutRunToggle = {};
     this.onDragAndPinToggle = {};
     this.onUseOriginalPositions = {};
+
+    this.btn = new GscapeButton(tune, 'Floaty Layout Settings');
+    this.btn.onClick = () => this.toggleBody();
+    this.btn.classList.add('flat');
+    this.btn.style.position = 'inherit';
+    this.classList.add('flat');
   }
 
   render() {
     return p`
-      <!-- in case of body
-      <div class="widget-body hide">
-      </div>
-      <gscape-head title="Layout Settings" collapsed="true" class="drag-handler">
-        <span>
-          ${new GscapeToggle('layout-run', true, false, 'Layout Running', this.onLayoutRunToggle)}
-          ${new GscapeToggle('layout-pin', false, false, 'Drag and Pin', this.onDragAndPinToggle)}
-        </span>
-      </gscape-head>
-      -->
-
-      <div class="wrapper">
-        <span class="title">Layout Settings</span>
-        <span class="toggles-wrapper">
+      ${this.btn}
+      <span class="gscape-panel-arrow hide"></span>
+      <div class="widget-body hide gscape-panel border-right">
+        <div class="gscape-panel-title">Layout Settings</div>
+        <div class="toggles-wrapper">
           ${this.layoutRunToggle}
           ${this.dragAndDropToggle}
           ${this.useOriginalPositionsToggle}
-        </span>
+        </div>
       </div>
 
     `
@@ -6504,17 +6512,9 @@ customElements.define('gscape-layout-settings', GscapeLayoutSettings);
 /**
  * 
  * @param {import('./layout-settings').default} layoutSettingsComponent 
- * @param {import('../../grapholscape').default} grapholscape 
+ * @param {import('../../../grapholscape').default} grapholscape 
  */
 function init$5(layoutSettingsComponent, grapholscape) {
-  if (grapholscape.renderer.key !== 'float') layoutSettingsComponent.hide();
-
-  grapholscape.onRendererChange( rendererKey => {
-    if (rendererKey === 'float')
-      layoutSettingsComponent.show();
-    else
-      layoutSettingsComponent.hide();
-  });
 
   layoutSettingsComponent.onLayoutRunToggle = () => {
     if (!grapholscape.layoutStopped) {
@@ -6587,6 +6587,12 @@ function initFullscreenButton(container) {
   }
 }
 
+const TYPE_IMG_TEXT = {};
+TYPE_IMG_TEXT[Type.DATA_PROPERTY] = 'DP';
+TYPE_IMG_TEXT[Type.CONCEPT] = 'C';
+TYPE_IMG_TEXT[Type.OBJECT_PROPERTY] = 'OP';
+TYPE_IMG_TEXT[Type.INDIVIDUAL] = 'I';
+
 class GscapeExplorer extends GscapeWidget{
 
   static get properties() {
@@ -6618,7 +6624,6 @@ class GscapeExplorer extends GscapeWidget{
         }
 
         .row{
-          line-height: 0;
           display: flex;
           align-items: center;
           padding:4px 0;
@@ -6637,34 +6642,33 @@ class GscapeExplorer extends GscapeWidget{
         }
 
         .type-img{
-          width: 20px;
-          height: 20px;
-          text-align: center;
-          line-height: 20px;
+          width: 26px;
+          height: 26px;
+          box-sizing: border-box;
+          border: solid 1px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .type-img-A{
+        .type-img-DP {
           background-color: var(--theme-graph-attribute, ${colors.attribute});
           color: var(--theme-graph-attribute-dark, ${colors.attribute_dark});
-          border: solid 1px var(--theme-graph-attribute-dark, ${colors.attribute_dark});
         }
 
-        .type-img-R{
+        .type-img-OP {
           background-color: var(--theme-graph-role, ${colors.role});
           color: var(--theme-graph-role-dark, ${colors.role_dark});
-          border: solid 1px var(--theme-graph-role-dark, ${colors.role_dark});
         }
 
-        .type-img-C{
+        .type-img-C {
           background-color: var(--theme-graph-concept, ${colors.concept});
           color: var(--theme-graph-concept-dark, ${colors.concept_dark});
-          border: solid 1px var(--theme-graph-concept-dark, ${colors.concept_dark});
         }
 
-        .type-img-I{
+        .type-img-I {
           background-color: var(--theme-graph-individual, ${colors.individual});
           color: var(--theme-graph-individual-dark, ${colors.individual_dark});
-          border: solid 1px var(--theme-graph-individual-dark, ${colors.individual_dark});
         }
 
         .sub-row{
@@ -6690,7 +6694,7 @@ class GscapeExplorer extends GscapeWidget{
           box-sizing: border-box;
           background-color: var(--theme-gscape-primary, ${colors.primary});
           border:none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
           transition: width .35s ease-in-out;
           color:inherit;
           flex-grow:2;
@@ -6717,13 +6721,6 @@ class GscapeExplorer extends GscapeWidget{
   }
 
   render() {
-    function getTypeImg(type) {
-      let letter = type.charAt(0).toUpperCase();
-
-      return p`
-        <div class="type-img type-img-${letter}">${letter}<div>
-      `
-    }
 
 
     return p`
@@ -6745,6 +6742,7 @@ class GscapeExplorer extends GscapeWidget{
               id="${entityData.id}"
               class="row highlight"
               type="${entityData.type}"
+              title="${entityData.type}"
               displayed_name = "${entityData.displayed_name}"
               iri = "${entityData.iri.fullIri}"
               @click='${this.toggleSubRows}'
@@ -6752,7 +6750,11 @@ class GscapeExplorer extends GscapeWidget{
               <span class="icon">
                 ${entityData.areSubrowsOpen ? arrow_down : arrow_right}
               </span>
-              <span>${getTypeImg(entityData.type)}</span>
+              <div>
+                <div class="type-img type-img-${TYPE_IMG_TEXT[entityData.type]}">
+                  <div>${TYPE_IMG_TEXT[entityData.type]}</div>
+                </div>
+              </div>
               <div class="row-label" >${entityData.displayed_name}</div>
             </div>
 
@@ -6847,6 +6849,7 @@ function init$4 (ontologyExplorerComponent, grapholscape) {
 
 
   grapholscape.onRendererChange(() => {
+    closeAllSubRows();
     entities = ontologyExplorerComponent.predicates = createEntitiesList(grapholscape.ontology.entities);
   });
 
@@ -6966,7 +6969,7 @@ class GscapeOntologyInfo extends GscapeWidget {
 
         .iri-dict th {
           color: var(--theme-gscape-on-primary, ${colors.on_primary});
-          border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+          border-right: solid 1px var(--theme-gscape-borders, ${colors.borders});
           text-align: left;
           font-weight: normal;
         }
@@ -7098,7 +7101,7 @@ class GscapeOwlVisualizer extends GscapeWidget {
         .widget-body {
           margin:0;
           border-top: none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
           border-bottom-left-radius:0;
           border-bottom-right-radius:0;
         }
@@ -7200,40 +7203,40 @@ function edgeToOwlString (edge) {
 
   switch (edge.data('type')) {
     case 'inclusion':
-      if (source.data('identity') == 'concept' && target.data('identity') == 'concept') {
-        if (source.data('type') == 'domain-restriction' && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
+      if (source.data('identity') == Type.CONCEPT && target.data('identity') == Type.CONCEPT) {
+        if (source.data('type') == Type.DOMAIN_RESTRICTION && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
           return propertyDomain(edge)
-        } else if (source.data('type') == 'range-restriction' && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
+        } else if (source.data('type') == Type.RANGE_RESTRICTION && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
           return propertyRange(edge)
-        } else if (target.data('type') == 'complement' || source.data('type') == 'complement') {
+        } else if (target.data('type') == Type.COMPLEMENT || source.data('type') == Type.COMPLEMENT) {
           return disjointClassesFromEdge(edge.connectedNodes())
         }
 
         return subClassOf(edge)
-      } else if (source.data('identity') == 'role' && target.data('identity') == 'role') {
-        if (target.data('type') == 'complement') {
+      } else if (source.data('identity') == Type.OBJECT_PROPERTY && target.data('identity') == Type.OBJECT_PROPERTY) {
+        if (target.data('type') == Type.COMPLEMENT) {
           return disjointTypeProperties(edge)
         }
         return subTypePropertyOf(edge)
-      } else if (source.data('identity') == 'value_domain' && target.data('identity') == 'value_domain') {
+      } else if (source.data('identity') == Type.VALUE_DOMAIN && target.data('identity') == Type.VALUE_DOMAIN) {
         return propertyRange(edge)
-      } else if (source.data('identity') == 'attribute' && target.data('identity') == 'attribute') {
-        if (target.data('type') == 'complement') {
+      } else if (source.data('identity') == Type.DATA_PROPERTY && target.data('identity') == Type.DATA_PROPERTY) {
+        if (target.data('type') == Type.COMPLEMENT) {
           return disjointTypeProperties(edge)
         } else { return subTypePropertyOf(edge) }
       } else { return malformed }
 
     case 'equivalence':
-      if (source.data('identity') == 'concept' && target.data('identity') == 'concept') {
+      if (source.data('identity') == Type.CONCEPT && target.data('identity') == Type.CONCEPT) {
         return equivalentClasses(edge)
-      } else if (source.data('identity') == 'role' && target.data('identity') == 'role') {
-        if (source.data('type') == 'role-inverse' || target.data('type') == 'role-inverse') { return inverseObjectProperties(edge) } else { return equivalentTypeProperties(edge) }
-      } else if (source.data('identity') == 'attribute' && target.data('identity') == 'attribute') {
+      } else if (source.data('identity') == Type.OBJECT_PROPERTY && target.data('identity') == Type.OBJECT_PROPERTY) {
+        if (source.data('type') == Type.ROLE_INVERSE || target.data('type') == Type.ROLE_INVERSE) { return inverseObjectProperties(edge) } else { return equivalentTypeProperties(edge) }
+      } else if (source.data('identity') == Type.DATA_PROPERTY && target.data('identity') == Type.DATA_PROPERTY) {
         return equivalentTypeProperties(edge)
       } else { return malformed }
 
     case 'membership':
-      if (target.data('identity') == 'concept') { return classAssertion(edge) } else { return propertyAssertion(edge) }
+      if (target.data('identity') == Type.CONCEPT) { return classAssertion(edge) } else { return propertyAssertion(edge) }
   }
 }
 
@@ -7241,13 +7244,13 @@ function propertyAssertion (edge) {
   var axiom_type = 'Object';
   var owl_string;
 
-  if (edge.target().data('identity') == 'attribute') {
+  if (edge.target().data('identity') == Type.DATA_PROPERTY) {
     axiom_type = 'Data';
   }
 
   owl_string = axiom_type + 'PropertyAssertion(' + nodeToOwlString(edge.target()) + ' ';
 
-  if (edge.source().data('type') == 'property-assertion') {
+  if (edge.source().data('type') == Type.PROPERTY_ASSERTION) {
     var property_node = edge.source();
 
     property_node.incomers('[type = "input"]').sources().forEach( input => {
@@ -7269,7 +7272,7 @@ function classAssertion (edge) {
 function inverseObjectProperties (edge) {
   var complement_input;
   var input;
-  if (edge.source().data('type') == 'role-inverse') {
+  if (edge.source().data('type') == Type.ROLE_INVERSE) {
     input = edge.target();
     complement_input = edge.source().incomers('[type = "input"]').sources().first();
   } else {
@@ -7288,7 +7291,7 @@ function equivalentClasses (edge) {
 
 function equivalentTypeProperties (edge) {
   var axiom_type;
-  if (edge.source().data('idenity') == 'role') { axiom_type = 'Object'; } else { axiom_type = 'Data'; }
+  if (edge.source().data('idenity') == Type.OBJECT_PROPERTY) { axiom_type = 'Object'; } else { axiom_type = 'Data'; }
 
   return 'Equivalent' + axiom_type + 'Properties(' + nodeToOwlString(edge.source()) + ' ' + nodeToOwlString(edge.target()) + ')'
 }
@@ -7300,7 +7303,7 @@ function subClassOf (edge) {
 function subTypePropertyOf (edge) {
   var axiom_type;
 
-  if (edge.target().data('identity') == 'role') { axiom_type = 'Object'; } else if (edge.target().data('type') == 'attribute') { axiom_type = 'Data'; } else { return null }
+  if (edge.target().data('identity') == Type.OBJECT_PROPERTY) { axiom_type = 'Object'; } else if (edge.target().data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data'; } else { return null }
 
   return 'Sub' + axiom_type + 'PropertyOf(' + nodeToOwlString(edge.source()) + ' ' + nodeToOwlString(edge.target()) + ')'
 }
@@ -7310,7 +7313,7 @@ function propertyDomain (edge) {
 
   if (node.size() > 1) { return subClassOf(edge) }
 
-  if (node.data('type') == 'role') { return 'ObjectPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == 'attribute') { return 'DataPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
+  if (node.data('type') == Type.OBJECT_PROPERTY) { return 'ObjectPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == Type.DATA_PROPERTY) { return 'DataPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
 }
 
 function propertyRange (edge) {
@@ -7318,14 +7321,14 @@ function propertyRange (edge) {
 
   if (node.size() > 1) { return subClassOf(edge) }
 
-  if (node.data('type') == 'role') { return 'ObjectPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == 'attribute') { return 'DataPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
+  if (node.data('type') == Type.OBJECT_PROPERTY) { return 'ObjectPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == Type.DATA_PROPERTY) { return 'DataPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
 }
 
 function disjointClassesFromEdge (inputs) {
   var owl_string = 'DisjointClasses(';
 
   inputs.forEach(function (input) {
-    if (input.data('type') == 'complement') {
+    if (input.data('type') == Type.COMPLEMENT) {
       input = input.incomers('[type = "input"]').source();
     }
     owl_string += nodeToOwlString(input) + ' ';
@@ -7339,12 +7342,12 @@ function disjointClassesFromEdge (inputs) {
 function disjointTypeProperties (edge) {
   var axiom_type, owl_string;
 
-  if (edge.target().data('identity') == 'role') { axiom_type = 'Object'; } else if (edge.target().data('identity') == 'attribute') { axiom_type = 'Data'; } else { return null }
+  if (edge.target().data('identity') == Type.OBJECT_PROPERTY) { axiom_type = 'Object'; } else if (edge.target().data('identity') == Type.DATA_PROPERTY) { axiom_type = 'Data'; } else { return null }
 
   owl_string = 'Disjoint' + axiom_type + 'Properties(';
 
   edge.connectedNodes().forEach(function (node) {
-    if (node.data('type') == 'complement') {
+    if (node.data('type') == Type.COMPLEMENT) {
       node = node.incomers('[type = "input"]').source();
     }
     owl_string += nodeToOwlString(node) + ' ';
@@ -7362,16 +7365,16 @@ function nodeToOwlString (node, from_node) {
   
   var from_node_flag = from_node || null;
 
-  if (from_node_flag && (node.hasClass('predicate') || node.data('type') == 'value-domain')) {
+  if (from_node_flag && (node.hasClass('predicate') || node.data('type') == Type.VALUE_DOMAIN)) {
     var owl_predicate = entityIriTemplate(node.data('iri'), node.data('type'));
     var owl_type;
 
     switch (node.data('type')) {
-      case 'concept':
+      case Type.CONCEPT:
         owl_type = 'Class';
         return 'Declaration(' + owl_type + '(' + owl_predicate + '))'
 
-      case 'role':
+      case Type.OBJECT_PROPERTY:
         owl_type = 'ObjectProperty';
         var owl_string = 'Declaration(' + owl_type + '(' + owl_predicate + '))';
 
@@ -7391,7 +7394,7 @@ function nodeToOwlString (node, from_node) {
 
         return owl_string
 
-      case 'attribute':
+      case Type.DATA_PROPERTY:
         owl_type = 'DataProperty';
         var owl_string = 'Declaration(' + owl_type + '(' + owl_predicate + '))';
 
@@ -7399,7 +7402,7 @@ function nodeToOwlString (node, from_node) {
 
         return owl_string
 
-      case 'individual':
+      case Type.INDIVIDUAL:
         if (node.data('iri').remainingChars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
           var value = node.data('iri').remainingChars.split('^^')[0];
           var datatype = node.data('iri').remainingChars.split(':')[1];
@@ -7411,14 +7414,14 @@ function nodeToOwlString (node, from_node) {
         owl_type = 'NamedIndividual';
         return 'Declaration(' + owl_type + '(' + owl_predicate + '))'
 
-      case 'value-domain':
+      case Type.VALUE_DOMAIN:
         owl_type = 'Datatype';
         return 'Declaration(' + owl_type + '(' + owl_predicate + '))'
     }
   }
 
   switch (node.data('type')) {
-    case 'individual':
+    case Type.INDIVIDUAL:
       if (node.data('iri').remainingChars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
         var value = node.data('iri').remainingChars.split('^^')[0];
         var datatype = node.data('iri').remainingChars.split(':')[1];
@@ -7428,36 +7431,36 @@ function nodeToOwlString (node, from_node) {
         '<span class="owl_value-domain">' + datatype + '</span>'
       }
 
-    case 'concept':
-    case 'role':
-    case 'value-domain':
-    case 'attribute':
-    case 'individual':
+    case Type.CONCEPT:
+    case Type.OBJECT_PROPERTY:
+    case Type.VALUE_DOMAIN:
+    case Type.DATA_PROPERTY:
+    case Type.INDIVIDUAL:
       return entityIriTemplate(node.data('iri'), node.data('type'))
 
-    case 'facet':
+    case Type.FACET:
       var rem_chars = node.data('displayed_name').replace(/\n/g, '^').split('^^');
       rem_chars[0] = rem_chars[0].slice(4);
       return '<span class="axiom_predicate_prefix">xsd:</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>'
 
-    case 'domain-restriction':
-    case 'range-restriction':
+    case Type.DOMAIN_RESTRICTION:
+    case Type.RANGE_RESTRICTION:
       var input_edges = node.connectedEdges('edge[target = "' + node.id() + '"][type = "input"]');
       var input_first; var input_other;
       if (!input_edges.length) { return missing_operand }
 
       input_edges.forEach(function (e) {
-        if (e.source().data('type') == 'role' || e.source().data('type') == 'attribute') {
+        if (e.source().data('type') == Type.OBJECT_PROPERTY || e.source().data('type') == Type.DATA_PROPERTY) {
           input_first = e.source();
         }
 
-        if (e.source().data('type') != 'role' && e.source().data('type') != 'attribute') {
+        if (e.source().data('type') != Type.OBJECT_PROPERTY && e.source().data('type') != Type.DATA_PROPERTY) {
           input_other = e.source();
         }
       });
 
       if (input_first) {
-        if (input_first.data('type') == 'attribute' && node.data('type') == 'range-restriction') { return not_defined }
+        if (input_first.data('type') == Type.DATA_PROPERTY && node.data('type') == Type.RANGE_RESTRICTION) { return not_defined }
 
         if (node.data('displayed_name') == 'exists') { return someValuesFrom(input_first, input_other, node.data('type')) } else if (node.data('displayed_name') == 'forall') { return allValuesFrom(input_first, input_other, node.data('type')) } else if (node.data('displayed_name').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
           var cardinality = node.data('displayed_name').replace(/\(|\)/g, '').split(/,/);
@@ -7467,50 +7470,50 @@ function nodeToOwlString (node, from_node) {
         }
       } else return missing_operand
 
-    case 'role-inverse':
+    case Type.ROLE_INVERSE:
       var input = node.incomers('[type = "input"]').sources();
 
       if (!input.length) { return missing_operand }
 
       return objectInverseOf(input)
 
-    case 'role-chain':
+    case Type.ROLE_CHAIN:
       if (!node.data('inputs')) { return missing_operand }
 
       return objectPropertyChain(node.incomers('[type = "input"]').sources())
 
-    case 'union':
-    case 'intersection':
-    case 'complement':
-    case 'enumeration':
-    case 'disjoint-union':
+    case Type.UNION:
+    case Type.INTERSECTION:
+    case Type.COMPLEMENT:
+    case Type.ENUMERATION:
+    case Type.DISJOINT_UNION:
       var inputs = node.incomers('[type = "input"]').sources();
       if (!inputs.length) { return missing_operand }
 
       var axiom_type = 'Object';
 
-      if (node.data('identity') != 'concept' && node.data('identity') != 'role') { axiom_type = 'Data'; }
+      if (node.data('identity') != Type.CONCEPT && node.data('identity') != Type.OBJECT_PROPERTY) { axiom_type = 'Data'; }
 
-      if (node.data('type') == 'disjoint-union') {
+      if (node.data('type') == Type.DISJOINT_UNION) {
         if (!from_node_flag) {
-          return logicalConstructors(inputs, 'union', axiom_type)
+          return logicalConstructors(inputs, Type.UNION, axiom_type)
         } else {
-          return logicalConstructors(inputs, 'union', axiom_type) + '<br />' + disjointClassesFromNode(inputs)
+          return logicalConstructors(inputs, Type.UNION, axiom_type) + '<br />' + disjointClassesFromNode(inputs)
         }
       }
 
       return logicalConstructors(inputs, node.data('type'), axiom_type)
 
-    case 'datatype-restriction':
+    case Type.DATATYPE_RESTRICTION:
       inputs = node.incomers('[type = "input"]').sources();
       if (!inputs.length) { return missing_operand }
 
       return datatypeRestriction(inputs)
 
-    case 'property-assertion':
+    case Type.PROPERTY_ASSERTION:
       return not_defined
 
-    case 'has-key':
+    case Type.KEY:
       inputs = node.incomers('[type = "input"]');
       if (!inputs.length || inputs.length < 2)
         return missing_operand
@@ -7522,14 +7525,14 @@ function nodeToOwlString (node, from_node) {
 
 function someValuesFrom (first, other, restr_type) {
   var axiom_type, owl_string;
-  if (first.data('type') == 'role') { axiom_type = 'Object'; }
+  if (first.data('type') == Type.OBJECT_PROPERTY) { axiom_type = 'Object'; }
 
-  if (first.data('type') == 'attribute') { axiom_type = 'Data'; }
+  if (first.data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data'; }
 
   owl_string = axiom_type + 'SomeValuesFrom(';
 
   // if the node is a range-restriction, put the inverse of the role
-  if (restr_type == 'range-restriction') { owl_string += objectInverseOf(first); } else { owl_string += nodeToOwlString(first); }
+  if (restr_type == Type.RANGE_RESTRICTION) { owl_string += objectInverseOf(first); } else { owl_string += nodeToOwlString(first); }
 
   if (!other && axiom_type == 'Object') { return owl_string += ' ' + owl_thing + ')' }
 
@@ -7540,14 +7543,14 @@ function someValuesFrom (first, other, restr_type) {
 
 function allValuesFrom (first, other, restr_type) {
   var axiom_type, owl_string;
-  if (first.data('type') == 'role') { axiom_type = 'Object'; }
+  if (first.data('type') == Type.OBJECT_PROPERTY) { axiom_type = 'Object'; }
 
-  if (first.data('type') == 'attribute') { axiom_type = 'Data'; }
+  if (first.data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data'; }
 
   owl_string = axiom_type + 'AllValuesFrom(';
 
   // if the node is a range-restriction, put the inverse of the role
-  if (restr_type == 'range-restriction') { owl_string += objectInverseOf(first); } else { owl_string += nodeToOwlString(first); }
+  if (restr_type == Type.RANGE_RESTRICTION) { owl_string += objectInverseOf(first); } else { owl_string += nodeToOwlString(first); }
 
   if (!other && axiom_type == 'Object') { return owl_string += ' ' + owl_thing + ')' }
 
@@ -7558,12 +7561,12 @@ function allValuesFrom (first, other, restr_type) {
 
 function minMaxExactCardinality (first, other, cardinality, restr_type) {
   var axiom_type;
-  if (first.data('type') == 'role') { axiom_type = 'Object'; }
+  if (first.data('type') == Type.OBJECT_PROPERTY) { axiom_type = 'Object'; }
 
-  if (first.data('type') == 'attribute') { axiom_type = 'Data'; }
+  if (first.data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data'; }
 
   if (cardinality[0] == '-') {
-    if (restr_type == 'range-restriction') {
+    if (restr_type == Type.RANGE_RESTRICTION) {
       if (!other) { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + objectInverseOf(first) + ')' } else { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + objectInverseOf(first) + ' ' + nodeToOwlString(other) + ')' }
     } else {
       if (!other) { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + nodeToOwlString(first) + ')' } else { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + nodeToOwlString(first) + ' ' + nodeToOwlString(other) + ')' }
@@ -7571,7 +7574,7 @@ function minMaxExactCardinality (first, other, cardinality, restr_type) {
   }
 
   if (cardinality[1] == '-') {
-    if (restr_type == 'range-restriction') {
+    if (restr_type == Type.RANGE_RESTRICTION) {
       if (!other) { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + objectInverseOf(first) + ')' } else { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + objectInverseOf(first) + ' ' + nodeToOwlString(other) + ')' }
     } else {
       if (!other) { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + nodeToOwlString(first) + ')' } else { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + nodeToOwlString(first) + ' ' + nodeToOwlString(other) + ')' }
@@ -7624,7 +7627,7 @@ function hasKey(inputs) {
 function logicalConstructors (inputs, constructor_name, axiom_type) {
   var owl_string;
 
-  if (constructor_name == 'enumeration') { constructor_name = 'One'; } else // Capitalize first char
+  if (constructor_name == Type.ENUMERATION) { constructor_name = 'One'; } else // Capitalize first char
   { constructor_name = constructor_name.charAt(0).toUpperCase() + constructor_name.slice(1); }
 
   owl_string = axiom_type + constructor_name + 'Of(';
@@ -7659,7 +7662,7 @@ function datatypeRestriction (inputs) {
   owl_string += nodeToOwlString(value_domain) + ' ';
 
   inputs.forEach(function (input) {
-    if (input.data('type') == 'facet') {
+    if (input.data('type') == Type.FACET) {
       owl_string += nodeToOwlString(input) + '^^';
       owl_string += nodeToOwlString(value_domain) + ' ';
     }
@@ -7671,7 +7674,7 @@ function datatypeRestriction (inputs) {
 
 function hasSelf (input, restr_type) {
   // if the restriction is on the range, put the inverse of node
-  if (restr_type == 'range-restriction') { return 'ObjectHasSelf(' + objectInverseOf(input) + ')' }
+  if (restr_type == Type.RANGE_RESTRICTION) { return 'ObjectHasSelf(' + objectInverseOf(input) + ')' }
 
   return 'ObjectHasSelf(' + nodeToOwlString(input) + ')'
 }
@@ -7712,7 +7715,7 @@ class GscapeRenderSelector extends GscapeWidget {
 
   static get properties() {
     return {
-      actual_mode : { type : String }
+      _actual_mode : { type : String }
     }
   }
 
@@ -7776,6 +7779,13 @@ class GscapeRenderSelector extends GscapeWidget {
         svg {
           margin-right:8px;
         }
+
+        #hr {
+          height:1px;
+          width:90%;
+          margin: 0 auto;
+          background-color: var(--theme-gscape-borders, ${colors.borders})
+        }
       `,
     ]
   }
@@ -7788,20 +7798,26 @@ class GscapeRenderSelector extends GscapeWidget {
     this._actual_mode = null;
     this._onRendererChange = () => {};
 
-    this.mainButton = new GscapeButton(null, 'Select Renderer');
-    this.mainButton.highlighted = true;
-    this.mainButton.onClick = () => this.toggleBody();
-    this.mainButton.style.position = 'inherit';
+    this.btn = new GscapeButton(null, 'Select Renderer');
+    this.btn.highlighted = true;
+    this.btn.onClick = () => this.toggleBody();
+    this.btn.style.position = 'inherit';
+    this.btn.classList.add('flat');
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
   }
 
   render() {
     return p`
-      ${this.mainButton}
-      
+      ${this.actual_mode === floatyRenderer.key
+        ? p`${layoutSettingsComponent} <div id="hr"></div>`
+        : null
+      }
+
+
+      ${this.btn}
       <span class="gscape-panel-arrow hide"></span>
-      <div class="widget-body hide gscape-panel">
+      <div class="widget-body hide gscape-panel border-right">
         ${Object.keys(this.dict).map( mode => p`
         <div
           @click="${this.changeRenderer}"
@@ -7836,11 +7852,19 @@ class GscapeRenderSelector extends GscapeWidget {
     if (this.isEnabled) this.style.display = 'inline-block';
   }
 
+  blur() {
+    super.blur();
+  }
+
   set actual_mode(mode) {
     this._actual_mode = mode;
 
     //this.header.title = this.dict[mode].label
-    this.mainButton.icon = this.dict[mode].icon;
+    this.btn.icon = this.dict[mode].icon;
+    if (mode === floatyRenderer.key)
+      this.btn.classList.add('flat-button');
+    else 
+      this.btn.classList.remove('flat-button');
   }
 
   get actual_mode() { return this._actual_mode }
@@ -7875,6 +7899,7 @@ const rendererSelectorComponent = new GscapeRenderSelector();
 
 function initRendererSelector(grapholscape) {
   init$2(rendererSelectorComponent, grapholscape);
+  initLayoutSettings(grapholscape);
 }
 
 const grapholscape = p`<?xml version="1.0" encoding="utf-8"?>
@@ -8156,7 +8181,7 @@ class GscapeSettings extends GscapeWidget {
 
           <div id="version">
             <span>Version: </span>
-            <span>${"2.0.0-beta.2"}</span>
+            <span>${"2.0.0"}</span>
           </div>
         </div>
       </div>
@@ -8318,8 +8343,8 @@ class GscapeZoomTools extends GscapeWidget {
         #hr {
           height:1px;
           width:90%;
-          margin: 2px auto 0 auto;
-          background-color: var(--theme-gscape-shadows, ${colors.shadows})
+          margin: 0 auto;
+          background-color: var(--theme-gscape-borders, ${colors.borders})
         }
 
       `
@@ -8407,7 +8432,6 @@ function init (grapholscape) {
     initFilters(grapholscape);
     initSettings(grapholscape);
     initRendererSelector(grapholscape);
-    initLayoutSettings(grapholscape);
 
     // USING GRAPHOLSCAPE CALLBACKS
     grapholscape.onBackgroundClick(() => {
@@ -8419,7 +8443,6 @@ function init (grapholscape) {
     gui_container.appendChild(entityDetailsComponent);
     gui_container.appendChild(owlVisualizerComponent);
     gui_container.appendChild(fullscreenComponent);
-    gui_container.appendChild(layoutSettingsComponent);
 
     let bottomContainer = bottomRightContainer();
     bottomContainer.setAttribute('id', 'gscape-ui-bottom-container');
@@ -8437,17 +8460,26 @@ function init (grapholscape) {
       }
     });
 
+    layoutSettingsComponent.onToggleBody = () => blurAll(bottomContainer, [layoutSettingsComponent]);
+
     disableWidgets(grapholscape.config.widgets);
 
     function blurAll(container, widgetsToSkip = []) {
       container.querySelectorAll('*').forEach(widget => {
         if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
-          widget.blur();
-          if ( widget.btn?.hasPanel ) {
-            widget.btn.classList.remove('panel-open');
-          }
+          performBlur(widget);
         }
       });
+
+      if (!widgetsToSkip.includes(layoutSettingsComponent))
+        performBlur(layoutSettingsComponent);
+
+      function performBlur(widget) {
+        widget.blur();
+        if ( widget.btn?.hasPanel ) {
+          widget.btn.classList.remove('panel-open');
+        }
+      }
     }
 
     function isGrapholscapeWidget(widget) {
