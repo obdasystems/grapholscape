@@ -35,6 +35,7 @@ export default function (ontologyExplorerComponent, grapholscape) {
 
 
   grapholscape.onRendererChange(() => {
+    closeAllSubRows()
     entities = ontologyExplorerComponent.predicates = createEntitiesList(grapholscape.ontology.entities)
   })
 

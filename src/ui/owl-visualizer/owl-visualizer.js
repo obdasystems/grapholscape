@@ -1,7 +1,7 @@
 import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
-import owl_icon from '../assets/owl-icon'
+import { owl_icon } from '../assets/icons'
 
 export default class GscapeOwlVisualizer extends GscapeWidget {
   static get properties() {
@@ -31,7 +31,7 @@ export default class GscapeOwlVisualizer extends GscapeWidget {
         .widget-body {
           margin:0;
           border-top: none;
-          border-bottom: 1px solid var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
           border-bottom-left-radius:0;
           border-bottom-right-radius:0;
         }

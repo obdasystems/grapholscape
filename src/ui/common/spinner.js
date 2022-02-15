@@ -6,7 +6,7 @@ export default class GscapeSpinner extends LitElement {
   static get styles() {
     return css`
       .loader {
-        border: 3px solid ${gscape.shadows};
+        border: 3px solid ${gscape.borders};
         border-radius: 50%;
         border-top: 3px solid ${gscape.secondary};
         width: 30px;

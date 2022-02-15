@@ -3,8 +3,10 @@ import init from './controller'
 
 export { GscapeDiagramSelector }
 
-export const diagramSelector = (grapholscape) => {
-  const diagramSelectorComponent = new GscapeDiagramSelector()
+const diagramSelectorComponent = new GscapeDiagramSelector()
+
+export function initDiagramSelector(grapholscape) {
   init(diagramSelectorComponent, grapholscape)
-  return diagramSelectorComponent
 }
+
+export default diagramSelectorComponent

@@ -41,7 +41,7 @@ export default class GscapeToggle extends GscapeWidget {
           left: 0;
           right: 0;
           bottom: 0;
-          background-color: #ccc;
+          background-color: var(--theme-gscape-borders, ${colors.borders});
           transition: checked 0.2s;
           border-radius: 19px;
         }

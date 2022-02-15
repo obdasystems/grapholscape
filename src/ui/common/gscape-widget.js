@@ -2,10 +2,12 @@ import { LitElement, html, css } from 'lit'
 import * as theme from '../../style/themes'
 
 export default class GscapeWidget extends LitElement {
-  static properties = {
-    isEnabled: { type: Boolean },
-    hiddenDefault: { type: Boolean },
-    draggable: { attribute: false }
+  static get properties() {
+    return {
+      isEnabled: { type: Boolean },
+      hiddenDefault: { type: Boolean },
+      draggable: { attribute: false }
+    }
   }
 
   static get styles() {
@@ -13,7 +15,6 @@ export default class GscapeWidget extends LitElement {
 
     return [[css`
       :host, .gscape-panel{
-        font-family : "Open Sans","Helvetica Neue",Helvetica,sans-serif;
         display: block;
         position: absolute;
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
@@ -22,7 +23,7 @@ export default class GscapeWidget extends LitElement {
         border-radius: 8px;
         transition: opacity 0.2s;
         scrollbar-width: thin;
-        --mdc-icon-button-size: 24px;
+        --gscape-icon-size: 24px;
       }
 
       :host(:hover){
@@ -36,7 +37,6 @@ export default class GscapeWidget extends LitElement {
       .widget-body {
         width: 100%;
         max-height:450px;
-        border-top:solid 1px var(--theme-gscape-shadows, ${colors.shadows});
         border-bottom-left-radius: inherit;
         border-bottom-right-radius: inherit;
         overflow:auto;
@@ -51,18 +51,14 @@ export default class GscapeWidget extends LitElement {
         padding:10px;
         overflow: unset;
         margin-right: calc(100% + 8px);
-        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
       }
 
-      .gscape-panel::after {
-        content: "";
+      .gscape-panel-arrow {
         position: absolute;
-        left: 100%;
+        transform: translate(-50%, -24px);
         border-width: 8px;
         border-style: solid;
-        border-color: transparent transparent transparent #ddd;
-        transform: rotate(0deg);
-        -webkit-transform: rotate(0deg);
+        border-color: transparent transparent transparent var(--theme-gscape-borders, ${colors.borders});
       }
 
       .gscape-panel-title{
@@ -78,7 +74,7 @@ export default class GscapeWidget extends LitElement {
       .widget-body .section-header {
         text-align: center;
         font-weight: bold;
-        border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border-bottom: solid 1px var(--theme-gscape-borders, ${colors.borders});
         color: var(--theme-gscape-secondary, ${colors.secondary});
         width: 85%;
         margin: auto;
@@ -110,7 +106,7 @@ export default class GscapeWidget extends LitElement {
 
       .details_table th {
         color: var(--theme-gscape-secondary, ${colors.secondary});
-        border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border-right: solid 1px var(--theme-gscape-borders, ${colors.borders});
         font-weight: bold;
         text-align:left;
         min-width: 50px;
@@ -158,17 +154,21 @@ export default class GscapeWidget extends LitElement {
       }
 
       .icon {
-        height:24px;
-        width:24px;
+        height: var(--gscape-icon-size);
+        width: var(--gscape-icon-size);
       }
 
       select {
         color: var(--theme-gscape-on-primary, ${colors.on_primary});
         background-color:var(--theme-gscape-primary, ${colors.primary});
         border-radius: 6px;
-        border: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+        border: solid 1px var(--theme-gscape-borders, ${colors.borders});
         margin: 5px;
         padding: 5px;
+      }
+
+      .flat {
+        box-shadow: initial;
       }
 
     `], colors]
@@ -194,8 +194,10 @@ export default class GscapeWidget extends LitElement {
         this.header.toggleIcon()
       }
 
-      if (this.body)
+      if (this.body) {
         this.body.classList.toggle('hide')
+        this.shadowRoot.querySelector('.gscape-panel-arrow')?.classList.toggle('hide')
+      }
 
       this.onToggleBody()
     }
@@ -206,8 +208,10 @@ export default class GscapeWidget extends LitElement {
       if (this.header && !this.isCollapsed)
         this.header.toggleIcon()
 
-      if (this.body)
+      if (this.body) {
         this.body.classList.add('hide')
+        this.shadowRoot.querySelector('.gscape-panel-arrow')?.classList.add('hide')
+      }
     }
   }
 

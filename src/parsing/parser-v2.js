@@ -1,3 +1,4 @@
+import { Type } from '../model/node-enums'
 import * as ParserUtil from './parser_util'
 
 export let warnings = new Set()
@@ -130,11 +131,11 @@ export function getPredicateInfo(element, xmlDocument) {
         result.annotations.comment = { '' : [description.slice(start_body_index, end_body_index)] }
 
       // Impostazione delle funzionalità dei nodi di tipo role o attribute
-      if (type === 'attribute' || type === 'role') {
+      if (type === Type.DATA_PROPERTY || type === Type.OBJECT_PROPERTY) {
         result.functional = parseInt(predicateXml.getElementsByTagName('functional')[0].textContent)
       }
 
-      if (type === 'role') {
+      if (type === Type.OBJECT_PROPERTY) {
         result.inverseFunctional = parseInt(predicateXml.getElementsByTagName('inverseFunctional')[0].textContent)
         result.asymmetric = parseInt(predicateXml.getElementsByTagName('asymmetric')[0].textContent)
         result.irreflexive = parseInt(predicateXml.getElementsByTagName('irreflexive')[0].textContent)

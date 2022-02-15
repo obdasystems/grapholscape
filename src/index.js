@@ -14,6 +14,7 @@ export * from './model/node-enums'
 export { default as grapholEnums } from './model/node-enums'
 export { themes }
 export * from './config/config-manager'
+export * from './util/model-obj-transformations'
 //export { GrapholscapeRenderer } from './rendering/renderers'
 
 /**

@@ -1,27 +1,17 @@
-import { cyToGrapholElem } from "../util/model-obj-transformations";
-import { diagramSelector } from "./diagram-selector";
-import { entityDetails } from "./entity-details";
-import { filters } from "./filters";
-import { layoutSettings } from "./floaty-layout-settings";
-import { fullscreenButton } from "./fullscreen";
-import { ontologyExplorer } from "./ontology-explorer";
-import { ontologyInfo } from "./ontology-info";
-import { owlVisualizer } from "./owl-visualizer";
-import { rendererSelector } from "./renderer-selector";
-import { settings } from "./settings";
+import { default as diagramSelectorComponent, initDiagramSelector } from "./diagram-selector";
+import { default as entityDetailsComponent, initEntityDetails } from "./entity-details";
+import { default as filterComponent, initFilters } from "./filters";
+import { default as fullscreenComponent, initFullscreenButton } from "./fullscreen";
+import { default as ontologyExplorerComponent, initOntologyExplorer } from "./ontology-explorer";
+import { default as ontologyInfoComponent, initOntologyInfo } from "./ontology-info";
+import { default as owlVisualizerComponent, initOwlVisualizer } from "./owl-visualizer";
+import { default as rendererSelectorComponent, initRendererSelector } from "./renderer-selector";
+import { default as settingsComponent, initSettings } from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
-import { zoomTools } from "./zoom-tools";
-import { fitButton } from "./fit-button";
-import { storeConfigEntry } from "../config/config-manager";
-
-
-const widgetNames = {
-  explorer: 'gscape-explorer',
-  details: 'gscape-entity-details',
-  owl_translator: 'gscape-owl-visualizer',
-  filters: 'gscape-filters',
-  simplifications: 'gscape-render-selector',
-}
+import { default as zoomToolsComponent, initZoomTools } from "./zoom-tools";
+import { default as fitButtonComponent, initFitButton } from "./fit-button";
+import widgetNames from "./util/widget-names";
+import layoutSettingsComponent from "./renderer-selector/floaty-layout-settings";
 
 /**
  * Initialize the UI
@@ -31,28 +21,20 @@ export default function (grapholscape) {
   const init = () => {
     let gui_container = document.createElement('div')
     gui_container.setAttribute('id', 'gscape-ui')
+    grapholscape.container.appendChild(gui_container)
 
-    const diagramSelectorComponent = diagramSelector(grapholscape)
-    const entityDetailsComponent = entityDetails(grapholscape)
+    initDiagramSelector(grapholscape)
+    initEntityDetails(grapholscape)
 
-    const zoomToolsComponent = zoomTools(grapholscape)
-    const ontologyInfoComponent = ontologyInfo(grapholscape.ontology)
-    const fullscreenComponent = fullscreenButton(grapholscape.container)
-    const fitButtonComponent = fitButton(grapholscape)
-    const ontologyExplorerComponent = ontologyExplorer(grapholscape)
-    const owlVisualizerComponent = owlVisualizer(grapholscape)
-    const filterComponent = filters(grapholscape)
-    const settingsComponent = settings(grapholscape)
-    settingsComponent.onWidgetEnabled = (widgetName) => {
-      gui_container.querySelector(widgetNames[widgetName]).enable()
-      storeConfigEntry(widgetName, true)
-    }
-    settingsComponent.onWidgetDisabled = (widgetName) => {
-      gui_container.querySelector(widgetNames[widgetName]).disable()
-      storeConfigEntry(widgetName, false)
-    }
-    const rendererSelectorComponent = rendererSelector(grapholscape)
-    const layoutSettingsComponent = layoutSettings(grapholscape)
+    initZoomTools(grapholscape)
+    initOntologyInfo(grapholscape.ontology)
+    initFullscreenButton(grapholscape.container)
+    initFitButton(grapholscape)
+    initOntologyExplorer(grapholscape)
+    initOwlVisualizer(grapholscape)
+    initFilters(grapholscape)
+    initSettings(grapholscape)
+    initRendererSelector(grapholscape)
 
     // USING GRAPHOLSCAPE CALLBACKS
     grapholscape.onBackgroundClick(() => {
@@ -64,7 +46,6 @@ export default function (grapholscape) {
     gui_container.appendChild(entityDetailsComponent)
     gui_container.appendChild(owlVisualizerComponent)
     gui_container.appendChild(fullscreenComponent)
-    gui_container.appendChild(layoutSettingsComponent)
 
     let bottomContainer = bottomRightContainer()
     bottomContainer.setAttribute('id', 'gscape-ui-bottom-container')
@@ -75,7 +56,6 @@ export default function (grapholscape) {
     bottomContainer.appendChild(settingsComponent)
     bottomContainer.appendChild(rendererSelectorComponent)
     gui_container.appendChild(bottomContainer)
-    grapholscape.container.appendChild(gui_container)
 
     bottomContainer.querySelectorAll('*').forEach(widget => {
       if (isGrapholscapeWidget(widget)) {
@@ -83,14 +63,26 @@ export default function (grapholscape) {
       }
     })
 
+    layoutSettingsComponent.onToggleBody = () => blurAll(bottomContainer, [layoutSettingsComponent])
+
     disableWidgets(grapholscape.config.widgets)
 
     function blurAll(container, widgetsToSkip = []) {
       container.querySelectorAll('*').forEach(widget => {
         if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
-          widget.blur()
+          performBlur(widget)
         }
       })
+
+      if (!widgetsToSkip.includes(layoutSettingsComponent))
+        performBlur(layoutSettingsComponent)
+
+      function performBlur(widget) {
+        widget.blur()
+        if ( widget.btn?.hasPanel ) {
+          widget.btn.classList.remove('panel-open')
+        }
+      }
     }
 
     function isGrapholscapeWidget(widget) {

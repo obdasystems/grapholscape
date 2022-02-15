@@ -22,20 +22,16 @@ export default class GscapeButton extends GscapeWidget {
       css`
         :host {
           box-shadow: 0 0 4px 0 var(--theme-gscape-shadows, ${colors.shadows});
+          padding: calc(var(--gscape-icon-size) * 0.2 );
+          cursor: pointer;
         }
 
         :host(:hover){
           box-shadow: 0 0 8px 0 var(--theme-gscape-shadows, ${colors.shadows});
-        }
-
-        mwc-icon {
-          font-size: var(--gscape-button-font-size, 24px)
+          color: var(--theme-gscape-secondary, ${colors.secondary});
         }
 
         .btn {
-          padding:5px;
-          line-height: 25px;
-          cursor: pointer;
           display: flex;
           align-items: center;
         }
@@ -43,10 +39,6 @@ export default class GscapeButton extends GscapeWidget {
         .btn-label {
           font-weight: var(--gscape-button-font-weight, 600);
           padding: 0 5px 0 8px;
-        }
-
-        .btn:hover {
-          color: var(--theme-gscape-secondary, ${colors.secondary});
         }
 
         .btn[active] {
@@ -57,6 +49,11 @@ export default class GscapeButton extends GscapeWidget {
           opacity: 20%;
           cursor: initial;
           pointer-events: none;
+        }
+
+        svg {
+          height: inherit;
+          width: inherit;
         }
       `
     ]
@@ -82,7 +79,6 @@ export default class GscapeButton extends GscapeWidget {
         class="btn"
         ?disabled = "${!this.enabled}"
         ?active = "${this.highlighted}"
-        @click="${this.clickHandler}"
       >
 
         <div class="icon">${this.icon}</div>
@@ -97,6 +93,7 @@ export default class GscapeButton extends GscapeWidget {
     this._icon = icon
 
     this.requestUpdate('icon', oldval)
+    this.onclick = () => this.clickHandler()
   }
 
   get icon() {

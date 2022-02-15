@@ -1,3 +1,4 @@
+import { Type } from '../../model/node-enums'
 import { lock_open } from '../../ui/assets/icons'
 import GrapholscapeRenderer from './default-renderer'
 
@@ -30,7 +31,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
       e.target.removeData('old_pos')
     })
 
-    this.cy.$('[?pinned]').each( n => {
+    this.cy.$('[?pinned]').each(n => {
       n.on('position', () => this.updatePopper(n))
       this.cy.on('pan zoom resize', () => this.updatePopper(n))
     })
@@ -45,7 +46,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   /** @param {import('../../model/index').Diagram} diagram*/
   drawDiagram(diagram) {
     super.drawDiagram(diagram)
-   
+
     this.setCySettings()
     /**
      * At each diagram change, cy instance changes and everything
@@ -65,7 +66,10 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
       this.activateOriginalPositions()
     } else {
       this.main_layout = this.layout() // apply layout on those not locked
-      this.main_layout.run()
+      
+      // if layout it's not stopped or if the diagram has never been rendered, run layout
+      if (!this.layoutStopped || !diagram.hasEverBeenRendered)
+        this.main_layout.run()
     }
 
     /**
@@ -77,20 +81,20 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   }
 
   centerOnNode(node_id, zoom) {
-      let node = this.cy.$id(node_id)
-      if (node) {
-        this.cy.$(':selected').unselect()
+    let node = this.cy.$id(node_id)
+    if (node) {
+      this.cy.$(':selected').unselect()
 
-        if ( node.data('type') == 'role') {
-          let elems = node.connectedNodes()
-          setTimeout( () => this.cy.fit(elems), 300)
-          node.select();
-          elems.select();
-        } else {
-          setTimeout( () => this.centerOnPosition(node.position('x'), node.position('y'), zoom), 300)
-          node.select()
-        }
+      if (node.data('type') == 'role') {
+        let elems = node.connectedNodes()
+        setTimeout(() => this.cy.fit(elems), 300)
+        node.select();
+        elems.select();
+      } else {
+        setTimeout(() => this.centerOnModelPosition(node.position('x'), node.position('y'), zoom), 300)
+        node.select()
       }
+    }
   }
 
   layout(selector = '*') {
@@ -109,7 +113,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
 
     node.unlockButton = node.popper({
       content: () => {
-        let dimension =  node.data('width') / 9 * this.cy.zoom()
+        let dimension = node.data('width') / 9 * this.cy.zoom()
         let div = document.createElement('div')
         div.style.background = node.style('border-color')
         div.style.borderRadius = '100%'
@@ -136,9 +140,9 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
   updatePopper(node) {
     if (!node.unlockButton) return
 
-    
+
     let unlockButton = node.unlockButton
-    let dimension =  node.data('width') / 9 * this.cy.zoom()
+    let dimension = node.data('width') / 9 * this.cy.zoom()
     this.setPopperStyle(dimension, unlockButton.state.elements.popper)
     unlockButton.update()
   }
@@ -151,11 +155,11 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
       popper.style.height = dim + 'px'
       popper.style.display = 'flex'
       if (dim > 8) {
-        icon.setAttribute('width', dim+'px')
-        icon.setAttribute('height', dim+'px')
-      } else if (dim - 10 > 0 ) {
-        icon.setAttribute('width', (dim - 10)+'px')
-        icon.setAttribute('height', (dim - 10)+'px')
+        icon.setAttribute('width', dim + 'px')
+        icon.setAttribute('height', dim + 'px')
+      } else if (dim - 10 > 0) {
+        icon.setAttribute('width', (dim - 10) + 'px')
+        icon.setAttribute('height', (dim - 10) + 'px')
       } else {
         icon.style.display = 'none'
       }
@@ -194,7 +198,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     delete layout_options.convergenceThreshold
     this.main_layout = this.cy.$('*').layout(layout_options)
 
-    this.cy.$('.concept').forEach( node => {
+    this.cy.$('.concept').forEach(node => {
       if (!node.data('pinned')) {
         node.position(JSON.parse(node.data('original-position')))
         node.lock()
@@ -213,40 +217,45 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
     this.cy.$('[type = "concept"][!pinned]').unlock()
     this.main_layout = this.layout()
   }
-  
+
   get disabledFilters() { return ["not", "universal_quantifier", "value_domain", "key"] }
 
   get layout_settings() {
     return {
       name: 'cola',
-      avoidOverlap: true,
-      edgeLength: function(edge) {
+      avoidOverlap: false,
+      edgeLength: function (edge) {
+        let crowdnessFactor =
+          edge.target().neighborhood(`[type = "${Type.OBJECT_PROPERTY}"]`).length +
+          edge.source().neighborhood(`[type = "${Type.OBJECT_PROPERTY}"]`).length
+
+        crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
         if (edge.hasClass('role')) {
-          return 300 + edge.data('displayed_name').length * 4
+          return 250 + edge.data('displayed_name').length * 4 + crowdnessFactor
         }
-        else if (edge.target().data('type') == 'attribute' ||
-                 edge.source().data('type') == 'attribute' )
+        else if (edge.target().data('type') == Type.DATA_PROPERTY ||
+          edge.source().data('type') == Type.DATA_PROPERTY)
           return 150
-        else
-          return 250
+        else {
+          return 200 + crowdnessFactor
+        }
       },
-      fit : false,
+      fit: false,
       infinite: !this.layoutStopped,
       handleDisconnected: true, // if true, avoids disconnected components from overlapping
-      convergenceThreshold: 0.000000001
     }
   }
 
   set layoutStopped(isStopped) {
     this._layoutStopped = isStopped
 
-    if(this.main_layout) {
+    if (this.main_layout) {
       this.main_layout.options.infinite = !isStopped
       isStopped ? this.main_layout.stop() : this.main_layout.run()
     }
   }
 
-  get layoutStopped() { return this._layoutStopped}
+  get layoutStopped() { return this._layoutStopped }
 
   set dragAndPin(active) {
     this._dragAndPin = active
@@ -280,7 +289,7 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
    * addPopperContainer() 
    * @returns {HTMLDivElement} 
    */
-  get popperContainer() { 
+  get popperContainer() {
     if (!this.popperContainers[this.actual_diagram])
       this.addPopperContainer()
 

@@ -7,7 +7,6 @@ import { info_filled } from '../assets/icons'
 //import entityOccurrencesTemplate from './common/entityOccurrencesTemplate'
 
 export default class GscapeEntityDetails extends GscapeWidget {
-
   static get properties() {
     return {
       entity: { type: Object },
@@ -36,7 +35,7 @@ export default class GscapeEntityDetails extends GscapeWidget {
           text-align: center;
           padding: 12px;
           font-weight: bold;
-          border-bottom: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+          border-bottom: solid 1px var(--theme-gscape-borders, ${colors.borders});
           color: var(--theme-gscape-secondary, ${colors.secondary});
           width: 85%;
           margin: auto;
@@ -101,6 +100,11 @@ export default class GscapeEntityDetails extends GscapeWidget {
 
     this.onNodeNavigation = {}
     this.header = new GscapeHeader('Entity Details', info_filled)
+
+    /**
+     * @param {import('cytoscape').CollectionReturnValue} entity
+     */
+    this.setEntity = (entity) => { }
   }
 
   render() {

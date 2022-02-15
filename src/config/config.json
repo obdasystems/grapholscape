@@ -84,7 +84,7 @@
         },
         "attributes": {
           "selector": "[type = \"attribute\"]",
-          "label": "Attributes",
+          "label": "Data Properties",
           "active": false,
           "disabled": false,
           "class": "filterattributes"

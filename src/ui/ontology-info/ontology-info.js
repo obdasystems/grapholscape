@@ -23,10 +23,6 @@ export default class GscapeOntologyInfo extends GscapeWidget {
           padding-right: 0;
         }
 
-        .gscape-panel::after {
-          bottom: 177px;
-        }
-
         gscape-button {
           position: static;
         }
@@ -41,7 +37,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
 
         .iri-dict th {
           color: var(--theme-gscape-on-primary, ${colors.on_primary});
-          border-right: solid 1px var(--theme-gscape-shadows, ${colors.shadows});
+          border-right: solid 1px var(--theme-gscape-borders, ${colors.borders});
           text-align: left;
           font-weight: normal;
         }
@@ -74,7 +70,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
   render() {
     return html`
       ${this.btn}
-
+      <span class="gscape-panel-arrow hide"></span>
       <div class="widget-body hide gscape-panel">
         <div class="gscape-panel-title">Ontology Info</div>
 
