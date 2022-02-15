@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> style/themes.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="doc-style.css">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+             
+                <a class="image" href="index.html">
+                    <img src="assets/img/icon.png" alt="logo">
+                </a>
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">Grapholscape</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                <div class="dropdown is-hoverable is-right">
+                    <a class="dropdown-trigger link">
+                        Tutorials
+                        <i class="fas fa-chevron-down fa-xs"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-content">
+                        
+                            <a class="dropdown-item" href="tutorial-Settings.html">
+                                Settings
+                            </a>
+                        
+                            <a class="dropdown-item" href="tutorial-Themes.html">
+                                Themes
+                            </a>
+                        
+                        </div>
+                    </div>
+                </div>
+                
+                 
+                    
+                        <a
+                            class="link user-link "
+                            href="https://github.com/obdasystems/grapholscape"
+                        >
+                            Github
+                        </a>
+                    
+                        <a
+                            class="link user-link "
+                            href="./demo/index.html"
+                        >
+                            Demo
+                        </a>
+                    
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+                <div class="search-wrapper">
+                    <input id="search" type="text" placeholder="Search docs..." class="input">
+                </div>
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Classes</h3><ul><li><a href="Diagram.html">Diagram</a></li><li><a href="Grapholscape.html">Grapholscape</a></li><li><a href="Namespace.html">Namespace</a></li><li><a href="Ontology.html">Ontology</a></li><li><a href="RendererManager.html">RendererManager</a></li></ul><h3>Global</h3><ul><li><a href="global.html#bareGrapholscape">bareGrapholscape</a></li><li><a href="global.html#constructorLabels">constructorLabels</a></li><li><a href="global.html#fullGrapholscape">fullGrapholscape</a></li><li><a href="global.html#Shape">Shape</a></li><li><a href="global.html#Type">Type</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>style/themes.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @typedef {object} Theme an object of colours
+ * 
+ * @property {string} id
+ * @property {string?} name
+ * @property {boolean?} selected
+ * 
+ * @property {string?} primary
+ * @property {string?} on_primary
+ * @property {string?} primary_dark
+ * @property {string?} on_primary_dark
+ * @property {string?} secondary
+ * @property {string?} on_secondary
+ * @property {string?} secondary_dark
+ * @property {string?} on_secondary_dark
+ * @property {string?} shadows
+ * @property {string?} borders
+ * @property {string?} error
+ * @property {string?} on_error
+ * @property {string?} warning
+ * @property {string?} on_warning
+ * @property {string?} background
+ * @property {string?} edge
+ * @property {string?} node_bg
+ * @property {string?} node_bg_contrast
+ * @property {string?} node_border
+ * @property {string?} label_color
+ * @property {string?} label_color_contrast
+ * @property {string?} role
+ * @property {string?} role_dark
+ * @property {string?} attribute
+ * @property {string?} attribute_dark
+ * @property {string?} concept
+ * @property {string?} concept_dark
+ * @property {string?} individual
+ * @property {string?} individual_dark
+ */
+
+import { css } from 'lit'
+
+export const gscape = {
+  // primary colors
+  primary: css`#fff`,
+  on_primary: css`#666`,
+  primary_dark: css`#e6e6e6`,
+  on_primary_dark: css`#888`,
+
+  // secondary colors
+  secondary: css`rgb(81,149,199)`,
+  on_secondary: css`#fff`,
+  secondary_dark: css`#2c6187`,
+  on_secondary_dark: css`#fff`,
+
+  // misc
+  shadows: css`rgba(0,0,0,0.2)`,
+  borders: css`rgba(0,0,0,0.2)`,
+  error: css`#cc3b3b`,
+  on_error: css`#fff`,
+  warning: css`#D39F0A`,
+  on_warning: css`#fff`,
+
+  // graph colors
+  background: css`#fafafa`,
+  edge: css`#000`,
+  node_bg: css`#fcfcfc`,
+  node_bg_contrast: css`#000`,
+  node_border: css`#000`,
+  label_color: css`#000`,
+  label_color_contrast: css`#fcfcfc`,
+
+  role: css`#AACDE1`,
+  role_dark: css`#065A85`,
+
+  attribute: css`#C7DAAD`,
+  attribute_dark: css`#4B7900`,
+
+  concept: css`#F9F3A6`,
+  concept_dark: css`#B08D00`,
+
+  individual: css`#d3b3ef`,
+  individual_dark: css`#9875b7`,
+}
+
+export const classic = {
+  // primary colors
+  primary: css`#fff`,
+  on_primary: css`#666`,
+  primary_dark: css`#e6e6e6`,
+  on_primary_dark: css`#888`,
+
+  // secondary colors
+  secondary: css`rgb(81,149,199)`,
+  on_secondary: css`#fff`,
+  secondary_dark: css`#2c6187`,
+  on_secondary_dark: css`#fff`,
+
+  // misc
+  shadows: css`rgba(0,0,0,0.2)`,
+  borders: css`rgba(0,0,0,0.2)`,
+  error: css`#cc3b3b`,
+  on_error: css`#fff`,
+
+  background: css`#fafafa`,
+  edge: css`#000`,
+  node_bg: css`#fcfcfc`,
+  node_bg_contrast: css`#000`,
+  node_border: css`#000`,
+  label_color: css`#000`,
+  label_color_contrast: css`#fcfcfc`,
+
+  role: css`#fcfcfc`,
+  role_dark: css`#000`,
+
+  attribute: css`#fcfcfc`,
+  attribute_dark: css`#000`,
+
+  concept: css`#fcfcfc`,
+  concept_dark: css`#000`,
+
+  individual: css`#fcfcfc`,
+  individual_dark: css`#000`,
+}
+
+export const dark_old = {
+  primary: css`#333`,
+  on_primary: css`#fff`,
+  primary_dark: css`#1a1a1a`,
+  on_primary_dark: css`#fff`,
+
+  secondary: css`#99ddff`,
+  on_secondary: css`#333`,
+  secondary_dark: css`#0099e6`,
+  on_secondary_dark: css`#fff`,
+
+  shadows: css`rgba(255, 255, 255, 0.5)`,
+  error: css`#cc3b3b`,
+  on_error: css`#fff`,
+
+  // graph colors
+  background: css`#333`,
+  edge: css`#fff`,
+  node_bg: css`#333`,
+  node_bg_contrast: css`#000`,
+  node_border: css`#fcfcfc`,
+  label_color: css`#fcfcfc`,
+
+  role: css`#666`,
+  role_dark: css`#065A85`,
+
+  attribute: css`#666`,
+  attribute_dark: css`#4B7900`,
+
+  concept: css`#666`,
+  concept_dark: css`#B08D00`,
+
+  individual: css`#666`,
+  individual_dark: css`#9875b7`,
+}
+
+export const dark = {
+  primary: css`#222831`,
+  on_primary: css`#a0a0a0`,
+  primary_dark: css`#1a1a1a`,
+  on_primary_dark: css`#a0a0a0`,
+
+  secondary: css`#72c1f5`,
+  on_secondary: css`#222831`,
+  secondary_dark: css`#0099e6`,
+  on_secondary_dark: css`#a0a0a0`,
+
+  shadows: css`transparent`,
+  borders: css`rgba(255, 255, 255, 0.25)`,
+  error: css`#cc3b3b`,
+  on_error: css`#fff`,
+
+  // graph colors
+  background: css`#181c22`,
+  edge: css`#a0a0a0`,
+  node_bg: css`#a0a0a0`,
+  node_bg_contrast: css`#010101`,
+  node_border: css`#a0a0a0`,
+  label_color: css`#a0a0a0`,
+
+  role: css`#043954`,
+  role_dark: css`#7fb3d2`,
+
+  attribute_dark: css`#C7DAAD`,
+  attribute: css`#4B7900`,
+
+  concept_dark: css`#b28f00`,
+  concept: css`#423500`,
+
+  individual_dark: css`#9875b7`,
+  individual: css`#422D53`,
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+<script src="scripts/search.js"> </script>
+
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> Settings</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="doc-style.css">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+             
+                <a class="image" href="index.html">
+                    <img src="assets/img/icon.png" alt="logo">
+                </a>
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">Grapholscape</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                <div class="dropdown is-hoverable is-right">
+                    <a class="dropdown-trigger link">
+                        Tutorials
+                        <i class="fas fa-chevron-down fa-xs"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-content">
+                        
+                            <a class="dropdown-item" href="tutorial-Settings.html">
+                                Settings
+                            </a>
+                        
+                            <a class="dropdown-item" href="tutorial-Themes.html">
+                                Themes
+                            </a>
+                        
+                        </div>
+                    </div>
+                </div>
+                
+                 
+                    
+                        <a
+                            class="link user-link "
+                            href="https://github.com/obdasystems/grapholscape"
+                        >
+                            Github
+                        </a>
+                    
+                        <a
+                            class="link user-link "
+                            href="./demo/index.html"
+                        >
+                            Demo
+                        </a>
+                    
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar tutorials"
+            id="sidebarNav"
+        >
+            
+                <div class="search-wrapper">
+                    <input id="search" type="text" placeholder="Search docs..." class="input">
+                </div>
+            
+            <nav>
+                
+                    <div class="category"><h3>Tutorials</h3><ul><li><a href="tutorial-Settings.html">Settings</a></li><li><a href="tutorial-Themes.html">Themes</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Tutorial</p>
+                    <h1>Settings</h1>
+                </header>
+                <section>
+
+<article>
+    <p>Default settings in Grapholscape are managed with a <a href="https://github.com/obdasystems/grapholscape/blob/master/src/config.json"><code>config.json</code></a> file which is a JSON structured in 2 layers, <strong><code>areas</code></strong> which are 1-st level objects and <strong><code>settings</code></strong> which are objects contained in an area object.</p>
+<p>Each setting have these properties:</p>
+<ul>
+<li><strong><code>type</code></strong> : can be <code>boolean</code> or <code>list</code></li>
+<li><strong><code>title</code></strong> : the name of a setting to be displayed</li>
+<li><strong><code>label</code></strong> : optional field with a short text explaining how the setting works</li>
+<li>In case of <code>&quot;type&quot; : &quot;list&quot;</code>
+<ul>
+<li><strong><code>selected</code></strong> : the <code>value</code> field of the option selected from the list</li>
+<li><strong><code>list</code></strong> : the array of options, <strong>each option</strong> is an boject having 2 properties, <code>value</code> and <code>label</code> where the former should be univoque and is used to identify the option, the latter is the text to be displayed.</li>
+</ul>
+</li>
+<li>In case of <code>&quot;type&quot; : &quot;boolean&quot;</code>
+<ul>
+<li><strong><code>enabled</code></strong> : the default state of setting</li>
+</ul>
+</li>
+</ul>
+<p>Here's a portion of config.js for better understanding its structure.</p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;preferences&quot; : {
+    &quot;entity_name&quot; : {
+      &quot;type&quot; : &quot;list&quot;,
+      &quot;title&quot; : &quot;Entities Name&quot;,
+      &quot;label&quot; : &quot;Select the type of name to display on entities&quot;,
+      &quot;selected&quot; : &quot;label&quot;,
+      &quot;list&quot; : [
+        {
+          &quot;value&quot; : &quot;label&quot;,
+          &quot;label&quot; : &quot;Label&quot;
+        },
+        {
+          &quot;value&quot; : &quot;prefixed&quot;,
+          &quot;label&quot; : &quot;Prefixed IRI&quot;
+        },
+        {
+          &quot;value&quot; : &quot;full&quot;,
+          &quot;label&quot;: &quot;Full IRI&quot;
+        }
+      ]
+    }
+  },
+  &quot;widgets&quot; : {
+    &quot;explorer&quot; : {
+      &quot;title&quot; : &quot;Ontology Explorer&quot;,
+      &quot;type&quot; : &quot;boolean&quot;,
+      &quot;enabled&quot; : true,
+      &quot;label&quot; : &quot;Enable Ontology Explorer widget&quot;
+    }
+  }
+}   
+</code></pre>
+<h2>Default Settings Customization</h2>
+<p>It's possible to change default settings customizing each setting defined in <a href="https://github.com/obdasystems/grapholscape/blob/master/src/config.json"><code>config.json</code></a> using an object of options in the form:</p>
+<pre class="prettyprint source lang-js"><code>const defaultSettings = {
+  ...
+  setting-key : custom-value,
+  ...
+}
+</code></pre>
+<p>and passing it to <strong><code>Grapholscape</code></strong> constructor.</p>
+<blockquote>
+<p><strong><code>setting-key</code></strong> must be the <code>key</code> of the setting we want to customize, in config.json</p>
+</blockquote>
+<blockquote>
+<p><strong><code>custom-value</code></strong> must be the <code>value</code> of the option we want to select in case of type <code>list</code> or a boolean in case of type <code>boolean</code>.</p>
+</blockquote>
+<h3>List of settings</h3>
+<p>The object for customizing default settings <strong>must not</strong> be structured in areas, just list all setting values you want to be the new default value.</p>
+<ul>
+<li><code>entity_name</code>: <em><code>string</code></em> the type of name to display on entities, plese see <a href="global.html#EntityNameType">EntityNameType</a></li>
+<li><code>language</code>: <em><code>string</code></em> the value of a desired language, please see <a href="global.html#Language">Language</a></li>
+<li><code>explorer</code>: <em><code>boolean</code></em> whether to enable or not the ontology explorer widget</li>
+<li><code>details</code>: <em><code>boolean</code></em> whether to enable or not the entity details widget</li>
+<li><code>owl_translator</code>: <em><code>boolean</code></em> whether to enable or not the OWL translator widget</li>
+<li><code>filters</code>: <em><code>boolean</code></em> whether to enable or not the filters widget</li>
+<li><code>simplifications</code>: <em><code>boolean</code></em> whether to enable or not the simplifications (renderers) widget</li>
+<li><code>renderers</code>: <em><code>Array&lt;string&gt;</code></em> an array of desired renderers by their keys. There must be at least one of <code>['default', 'lite', 'float']</code>,
+if the array does not contain any valid renderer key, <code>default</code> will be used as fallback.</li>
+<li><code>theme</code>: <em><code>object | string</code></em> either specify the key value of a predefined theme or define a completely new one.
+<blockquote>
+<p><strong>Note</strong> : for costumizing themes read more <a href="https://github.com/obdasystems/grapholscape/wiki/Themes#default-theme-customization">here</a></p>
+</blockquote>
+</li>
+</ul>
+<h3>Example</h3>
+<p>Let's suppose we want to visualize the ontology only in its simplest representation which is the one offered by the <code>floaty</code> renderer,
+since we will be using only one renderer, we are not interested in having the widget to switch between simplifications too.
+Lastly we want the secondary colour to be a bright fancy <code>red</code>. Here's the setting object:</p>
+<pre class="prettyprint source lang-js"><code>const defaultSettings = { 
+  renderers: [ 'float' ],
+  simplifications: false,
+  theme: { secondary: 'red' }
+}
+
+const grapholscape = await fullGrapholscape(grapholFile, container, defaultSettings)
+</code></pre>
+</article>
+
+</section>
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+<script src="scripts/search.js"> </script>
+
+</body>
+</html>

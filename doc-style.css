@@ -1,0 +1,28 @@
+.logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo img {
+  max-height: 52px;
+  width: auto;
+  display: inline;
+}
+
+.sidebar a:hover,
+.sidebar a.active,
+.side-nav a:hover,
+.side-nav a.is-active {
+  color: #3273dc;
+}
+
+html {
+  overflow: initial;
+}
+
+#main > .core {
+  width: 100%;
+  overflow: initial;
+}
