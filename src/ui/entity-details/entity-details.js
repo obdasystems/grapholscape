@@ -112,8 +112,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
     return html`
       ${this.header}
       <div class="widget-body">
-        ${this.entity?
-          html`
+        ${this.entity
+          ? html`
             <div class="section">
               <table class="details_table">
                 <tr>
@@ -124,12 +124,23 @@ export default class GscapeEntityDetails extends GscapeWidget {
                   <th>Type</th>
                   <td>${this.entity.type}</td>
                 </tr>
-                ${this.entity.type != 'individual' ? html`
-                <tr>
-                  <th>IRI</th>
-                  <td>${this.entity.iri.fullIri}</td>
-                </tr>
-                ` : html``
+                ${this.entity.type != 'individual'
+                  ? html`
+                    <tr>
+                      <th>IRI</th>
+                      <td>${this.entity.iri.fullIri}</td>
+                    </tr>
+                  `
+                  : html``
+                }
+                ${this.entity.datatype
+                  ? html`
+                  <tr>
+                    <th>Datatype</th>
+                    <td>${this.entity.datatype.prefixed}</td>
+                  </tr>
+                  `
+                  : html``
                 }
               </table>
             </div>
@@ -145,8 +156,8 @@ export default class GscapeEntityDetails extends GscapeWidget {
             ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
             ${annotationsTemplate(this.entity)}
             
-            ${comment && Object.keys(comment).length > 0 ?
-              html`
+            ${comment && Object.keys(comment).length > 0 
+              ? html`
                 <div class="section">
                   <div class="section-header"> Description </div>
                     ${!Object.keys(comment).includes('') 
@@ -165,10 +176,11 @@ export default class GscapeEntityDetails extends GscapeWidget {
                     }
                     <span class="descr-text"></span>
                 </div>
-              ` : html``
+              `
+              : html``
             }
           `
-        : html``
+          : html``
         }
       </div>
     `

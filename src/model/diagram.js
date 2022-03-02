@@ -1,4 +1,6 @@
 import cytoscape from 'cytoscape'
+import setDatatypeOnDataProperty from '../util/set-datatype-on-data-property'
+import { Type } from './node-enums'
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
@@ -26,6 +28,8 @@ class Diagram {
    */
   addElems (elems) {
     this.cy.add(elems)
+
+    this.cy.$(`node[type = "${Type.DATA_PROPERTY}"]`).forEach(cyDataProperty => setDatatypeOnDataProperty(cyDataProperty))
   }
 
   /**

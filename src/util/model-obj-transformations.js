@@ -18,6 +18,7 @@ export function entityModelToViewData(cyEntity) {
     displayed_name : entity.data.displayed_name,
     type : entity.data.type,
     iri : entity.data.iri,
+    datatype: entity.data.datatype,
     annotations : entity.data.annotations,
     functional : entity.data.functional,
     inverseFunctional : entity.data.inverseFunctional,
