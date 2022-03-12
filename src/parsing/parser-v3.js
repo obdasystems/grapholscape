@@ -112,15 +112,17 @@ export function getPredicateInfo(element, xmlDocument) {
   let actual_iri_elem = getIriElem(element, xmlDocument)
   result = getIriAnnotations(actual_iri_elem)
 
-  if (actual_iri_elem && actual_iri_elem.children) {
-    for (let property of actual_iri_elem.children) {
-      if (property.tagName != 'value' && property.tagName != 'annotations' &&
-        property.textContent != '0') {
-        result[property.tagName] = 1
+  const elementType = element.getAttribute('type')
+  if (elementType === Type.OBJECT_PROPERTY || elementType === Type.DATA_PROPERTY) {
+    if (actual_iri_elem && actual_iri_elem.children) {
+      for (let property of actual_iri_elem.children) {
+        if (property.tagName != 'value' && property.tagName != 'annotations' &&
+          property.textContent != '0') {
+          result[property.tagName] = 1
+        }
       }
     }
   }
-
   return result
 }
 
