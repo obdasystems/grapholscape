@@ -12,12 +12,13 @@ export default (entity) => {
             let annotation = entity.annotations[kind]
             return html`
               <tbody class="annotation-row">
-                ${Object.keys(annotation).map( (language, count)  => {
+                ${Object.keys(annotation).map(language  => {
+                  const numberAnnotationOfThisLanguage = annotation[language].length
                   return html`
-                    ${annotation[language].map( value => {
+                    ${annotation[language].map((value, count) => {
                       return html`
                         <tr>
-                          ${count == 0 ? html`<th rowspan="3">${kind.charAt(0).toUpperCase() + kind.slice(1)}</th>` : ''}
+                          ${count == 0 ? html`<th rowspan="${numberAnnotationOfThisLanguage}">${kind.charAt(0).toUpperCase() + kind.slice(1)}</th>` : ''}
                           <td class="language">${language}</td>
                           <td>${value}</td>
                         </tr>
