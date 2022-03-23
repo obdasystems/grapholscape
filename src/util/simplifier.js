@@ -46,6 +46,7 @@ export default function computeSimplifiedOntologies(ontology) {
         case Type.VALUE_DOMAIN:
         case Type.ROLE_CHAIN:
         case Type.ENUMERATION:
+        case Type.KEY:
           return true
 
         case Type.DOMAIN_RESTRICTION:
