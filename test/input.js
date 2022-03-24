@@ -131,6 +131,15 @@ a capo senza lingua</lexicalForm>
           <transitive/>
         </iri>
         <iri>
+          <value>http://www.obdasystems.com/testNode2</value>
+          <inverseFunctional/>
+          <symmetric>1</symmetric>
+          <asymmetric/>
+          <reflexive/>
+          <irreflexive/>
+          <transitive/>
+        </iri>
+        <iri>
           <value>http://www.obdasystems.com/test</value>
           <annotations>
             <annotation>

@@ -157,7 +157,16 @@ describe('Test retrieving annotations', () => {
     </node>
   `)
 
-  const retrievedInfos = parserV3.getPredicateInfo(node1_mock_input, xmlDoc)
+  const node2_mock_input = parseSingleNode(`
+    <node id="n36" color="#fcfcfc" type="role">
+      <geometry width="110" y="180" x="300" height="50"/>
+      <iri>http://www.obdasystems.com/testNode2</iri>
+      <label width="129" customSize="0" y="180" x="300" size="12" height="23"/>
+    </node>
+  `)
+
+  const retrievedInfosConcept = parserV3.getPredicateInfo(node1_mock_input, xmlDoc)
+  const retrievedInfosObjectProperty = parserV3.getPredicateInfo(node2_mock_input, xmlDoc)
 
   test('it should parse multiple labels for each language, even not defined language', () => {
     const output = {
@@ -165,7 +174,7 @@ describe('Test retrieving annotations', () => {
       'en': ['label inglese', 'label inglese 2'],
       'it': ['label1', 'label2']
     }
-    expect(retrievedInfos.annotations.label).toEqual(output)
+    expect(retrievedInfosConcept.annotations.label).toEqual(output)
   })
 
   test('it should parse multiple descriptions for multiple languages', () => {
@@ -174,17 +183,32 @@ describe('Test retrieving annotations', () => {
       'it': ['Lorem ipsum']
     }
 
-    expect(retrievedInfos.annotations.comment).toEqual(output)
+    expect(retrievedInfosConcept.annotations.comment).toEqual(output)
   })
 
   // For DataProperties and ObjectProperties
   test('it should parse missing properties as falsy value', () => {
-    expect(retrievedInfos.functional).toBeFalsy()
+    expect(retrievedInfosConcept.functional).toBeFalsy()
   })
 
-  test('it should parse correctly truthy properties', () => {
-    expect(retrievedInfos.symmetric).toBeTruthy()
-    expect(retrievedInfos.reflexive).toBeTruthy()
+  test('it should not parse properties on Concepts', () => {
+    expect(retrievedInfosConcept.symmetric).toBeUndefined()
+    expect(retrievedInfosConcept.asymmetric).toBeUndefined()
+    expect(retrievedInfosConcept.reflexive).toBeUndefined()
+    expect(retrievedInfosConcept.irreflexive).toBeUndefined()
+    expect(retrievedInfosConcept.inverseFunctional).toBeUndefined()
+    expect(retrievedInfosConcept.functional).toBeUndefined()
+    expect(retrievedInfosConcept.transitive).toBeUndefined()
+  })
+
+  test('it should parse properties on ObjectProperties correctly', () => {
+    expect(retrievedInfosObjectProperty.symmetric).toBeTruthy()
+    expect(retrievedInfosObjectProperty.asymmetric).toBeTruthy()
+    expect(retrievedInfosObjectProperty.reflexive).toBeTruthy()
+    expect(retrievedInfosObjectProperty.irreflexive).toBeTruthy()
+    expect(retrievedInfosObjectProperty.transitive).toBeTruthy()
+    expect(retrievedInfosObjectProperty.inverseFunctional).toBeTruthy()
+    expect(retrievedInfosObjectProperty.functional).toBeFalsy()
   })
 })
 
