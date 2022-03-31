@@ -1,9 +1,12 @@
 import { enter_fullscreen, exit_fullscreen } from "../assets/icons"
 import GscapeButton from "../common/gscape-button"
 
-const  fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen)
-export function initFullscreenButton(container) {
-  fullscreenComponent.container = container
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+export default function initFullscreenButton(grapholscape) {
+  const  fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen)
+  fullscreenComponent.container = grapholscape.container
   fullscreenComponent.style.top = '10px'
   fullscreenComponent.style.right = '10px'
   fullscreenComponent.onClick = toggleFullscreen
@@ -17,7 +20,7 @@ export function initFullscreenButton(container) {
   document.webkitCancelFullScreen ||
   document.msExitFullscreen
 
-  return fullscreenComponent
+  grapholscape.widgets.FULLSCREEN_BUTTON = fullscreenComponent
 
   function toggleFullscreen () {
     setFullScreenRequest()
@@ -44,5 +47,3 @@ export function initFullscreenButton(container) {
     fullscreenComponent.container?.msRequestFullscreen // IE
   }
 }
-
-export default fullscreenComponent

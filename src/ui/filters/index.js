@@ -3,10 +3,11 @@ import init from "./controller";
 
 export { GscapeFilters }
 
-const filterComponent = new GscapeFilters()
-
-export function initFilters(grapholscape) {
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+export default function initFilters(grapholscape) {
+  const filterComponent = new GscapeFilters()
   init(filterComponent, grapholscape)
+  grapholscape.widgets.FILTERS = filterComponent
 }
-
-export default filterComponent

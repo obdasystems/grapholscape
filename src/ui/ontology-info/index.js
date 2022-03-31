@@ -3,10 +3,11 @@ import { ontologyModelToViewData } from "../../util/model-obj-transformations"
 
 export { GscapeOntologyInfo }
 
-const ontologyInfoComponent = new GscapeOntologyInfo()
-
-export function initOntologyInfo(ontology) {
-  ontologyInfoComponent.ontology = ontologyModelToViewData(ontology)
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+export default function initOntologyInfo(grapholscape) {
+  const ontologyInfoComponent = new GscapeOntologyInfo()
+  ontologyInfoComponent.ontology = ontologyModelToViewData(grapholscape.ontology)
+  grapholscape.widgets.ONTOLOGY_INFO = ontologyInfoComponent
 }
-
-export default ontologyInfoComponent  

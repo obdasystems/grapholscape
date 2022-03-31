@@ -14,6 +14,7 @@ export default class GscapeOntologyInfo extends GscapeWidget {
       super_styles[0],
       css`
         :host {
+          order: 4;
           display:inline-block;
           position: initial;
           margin-top: 10px;

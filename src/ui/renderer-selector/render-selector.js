@@ -3,14 +3,14 @@ import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import GscapeButton from '../common/gscape-button'
 import { tune } from '../assets/icons'
-import layoutSettingsComponent from './floaty-layout-settings'
 import * as renderers from '../../rendering/renderers'
 
 export default class GscapeRenderSelector extends GscapeWidget {
 
   static get properties() {
     return {
-      _actual_mode : { type : String }
+      _actual_mode : { type : String },
+      layoutSettingsComponent: { type: Object, attribute: false}
     }
   }
 
@@ -22,6 +22,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
       super_styles[0],
       css`
         :host {
+          order: 6;
           display:inline-block;
           position: initial;
           margin-top:10px;
@@ -98,6 +99,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
     this.btn.onClick = () => this.toggleBody()
     this.btn.style.position = 'inherit'
     this.btn.classList.add('flat')
+    this.layoutSettingsComponent = null
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
   }
@@ -105,7 +107,7 @@ export default class GscapeRenderSelector extends GscapeWidget {
   render() {
     return html`
       ${this.actual_mode === renderers.floatyRenderer.key
-        ? html`${layoutSettingsComponent} <div id="hr"></div>`
+        ? html`${this.layoutSettingsComponent} <div id="hr"></div>`
         : null
       }
 

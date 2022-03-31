@@ -13,6 +13,7 @@ export default class GscapeZoomTools extends GscapeWidget {
       super_styles[0],
       css`
         :host {
+          order: 1;
           margin-top:10px;
           position: initial;
         }

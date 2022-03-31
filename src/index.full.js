@@ -19,7 +19,7 @@ export async function fullGrapholscape(file, container, config = {}) {
   }
 
   const grapholscape = await initGrapholscape(file, container, config)
-  UI.initUI(grapholscape)
+  await UI.initUI(grapholscape)
   return grapholscape
 }
 

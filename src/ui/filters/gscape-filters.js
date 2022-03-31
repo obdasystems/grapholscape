@@ -33,6 +33,7 @@ export default class GscapeFilters extends GscapeWidget {
       super_styles[0],
       css`
         :host {
+          order: 3;
           display:inline-block;
           position: initial;
           margin-top:10px;

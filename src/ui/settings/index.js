@@ -3,10 +3,11 @@ import init from "./controller"
 
 export { GscapeSettings }
 
-const settingsComponent = new GscapeSettings()
-
-export function initSettings(grapholscape) {
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+export default function initSettings(grapholscape) {
+  const settingsComponent = new GscapeSettings()
   init(settingsComponent, grapholscape)
+  grapholscape.widgets.SETTINGS = settingsComponent
 }
-
-export default settingsComponent

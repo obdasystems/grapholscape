@@ -1,7 +1,7 @@
 import Grapholscape from "../../grapholscape";
 import GscapeSettings from "./settings";
 import { storeConfigEntry } from "../../config/config-manager";
-import widgetNames from "../util/widget-names";
+import { widgetTagNames } from "../util/widget-enum";
 
 /**
  * @param {GscapeSettings} settingsComponent
@@ -19,11 +19,11 @@ export default function(settingsComponent, grapholscape) {
 
   let gui_container = grapholscape.container.querySelector('#gscape-ui')
   settingsComponent.onWidgetEnabled = (widgetName) => {
-    gui_container.querySelector(widgetNames[widgetName]).enable()
+    gui_container.querySelector(widgetTagNames[widgetName]).enable()
     storeConfigEntry(widgetName, true)
   }
   settingsComponent.onWidgetDisabled = (widgetName) => {
-    gui_container.querySelector(widgetNames[widgetName]).disable()
+    gui_container.querySelector(widgetTagNames[widgetName]).disable()
     storeConfigEntry(widgetName, false)
   }
 

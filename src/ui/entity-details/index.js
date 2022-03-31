@@ -1,12 +1,13 @@
-import GscapeEntityDetails from "./entity-details";
+import GscapeEntityDetails from "./entity-details"
 import init from './controller'
 
 export { GscapeEntityDetails }
 
-const entityDetailsComponent = new GscapeEntityDetails()
-
-export function initEntityDetails(grapholscape) {
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+export default function initEntityDetails(grapholscape) {
+  const entityDetailsComponent = new GscapeEntityDetails()
   init(entityDetailsComponent, grapholscape)
+  grapholscape.widgets.ENTITY_DETAILS = entityDetailsComponent
 }
-
-export default entityDetailsComponent

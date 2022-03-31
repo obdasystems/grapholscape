@@ -1,14 +1,16 @@
 import GscapeRenderSelector from "./render-selector";
 import init from "./controller"
-import { initLayoutSettings } from "./floaty-layout-settings";
+import initLayoutSettings from "./floaty-layout-settings";
 
 export { GscapeRenderSelector }
 
-const rendererSelectorComponent = new GscapeRenderSelector()
-
-export function initRendererSelector(grapholscape) {
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+export default function initRendererSelector(grapholscape) {
+  const rendererSelectorComponent = new GscapeRenderSelector()
   init(rendererSelectorComponent, grapholscape)
-  initLayoutSettings(grapholscape)
+  rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape)
+  rendererSelectorComponent.requestUpdate()
+  grapholscape.widgets.RENDERER_SELECTOR = rendererSelectorComponent
 }
-
-export default rendererSelectorComponent

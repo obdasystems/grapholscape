@@ -3,10 +3,11 @@ import init from './controller'
 
 export { GscapeOwlVisualizer }
 
-const owlVisualizerComponent = new GscapeOwlVisualizer()
-
-export function initOwlVisualizer(grapholscape) {
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+export default function initOwlVisualizer(grapholscape) {
+  const owlVisualizerComponent = new GscapeOwlVisualizer()
   init(owlVisualizerComponent, grapholscape)
+  grapholscape.widgets.OWL_VISUALIZER = owlVisualizerComponent
 }
-
-export default owlVisualizerComponent

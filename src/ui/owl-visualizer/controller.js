@@ -9,10 +9,10 @@ import * as owlTranslator from "../../owl-translator/owl"
 export default function(owlVisualizerComponent, grapholscape) {
   grapholscape.onNodeSelection( node => showOwlTranslation(node))
   grapholscape.onEdgeSelection( edge => showOwlTranslation(edge))
-  grapholscape.onRendererChange( rendererKey => {
-    if (rendererKey !== 'default')
-      owlVisualizerComponent.hide()
-  })
+  // grapholscape.onRendererChange( rendererKey => {
+  //   if (rendererKey !== 'default')
+  //     owlVisualizerComponent.hide()
+  // })
 
   function showOwlTranslation(elem) {
     let grapholElem = cyToGrapholElem(elem)

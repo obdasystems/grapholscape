@@ -3,10 +3,11 @@ import init from "./controller"
 
 export { GscapeExplorer }
 
-const ontologyExplorerComponent = new GscapeExplorer()
-
-export function initOntologyExplorer(grapholscape) {
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+export default function initOntologyExplorer(grapholscape) {
+  const ontologyExplorerComponent = new GscapeExplorer()
   init(ontologyExplorerComponent, grapholscape)
+  grapholscape.widgets.ONTOLOGY_EXPLORER = ontologyExplorerComponent
 }
-
-export default ontologyExplorerComponent

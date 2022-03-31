@@ -157,6 +157,32 @@ class Grapholscape {
 
     this.applyTheme(this.config.rendering.theme.selected)
     this.ZOOM_STEP_VALUE = 0.08
+    
+    
+    this.widgets = {
+      /** @type {import('./ui').GscapeWidget} */
+      DIAGRAM_SELECTOR: null,
+      /** @type {import('./ui').GscapeWidget} */
+      ENTITY_DETAILS: null,
+      /** @type {import('./ui').GscapeWidget} */
+      FILTERS: null,
+      /** @type {import('./ui').GscapeWidget} */
+      FIT_BUTTON: null,
+      /** @type {import('./ui').GscapeWidget} */
+      FULLSCREEN_BUTTON: null,
+      /** @type {import('./ui').GscapeWidget} */
+      ONTOLOGY_EXPLORER: null,
+      /** @type {import('./ui').GscapeWidget} */
+      ONTOLOGY_INFO: null,
+      /** @type {import('./ui').GscapeWidget} */
+      OWL_VISUALIZER: null,
+      /** @type {import('./ui').GscapeWidget} */
+      RENDERER_SELECTOR: null,
+      /** @type {import('./ui').GscapeWidget} */
+      SETTINGS: null,
+      /** @type {import('./ui').GscapeWidget} */
+      ZOOM_TOOLS: null,
+    }
   }
 
   /**
