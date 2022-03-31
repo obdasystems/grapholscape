@@ -114,18 +114,23 @@ export default class GscapeRenderSelector extends GscapeWidget {
 
       ${this.btn}
       <span class="gscape-panel-arrow hide"></span>
-      <div class="widget-body hide gscape-panel border-right">
-        ${Object.keys(this.dict).map( mode => html`
-        <div
-          @click="${this.changeRenderer}"
-          mode="${mode}"
-          class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
-        >
-        ${this.dict[mode].icon}
-        <span class="label">${this.dict[mode].label}</span>
-        </div>
-        `)}
-      </div>
+      ${Object.keys(this.dict)?.length > 1
+        ? html`
+          <div class="widget-body hide gscape-panel border-right">
+            ${Object.keys(this.dict).map( mode => html`
+            <div
+              @click="${this.changeRenderer}"
+              mode="${mode}"
+              class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
+            >
+            ${this.dict[mode].icon}
+            <span class="label">${this.dict[mode].label}</span>
+            </div>
+            `)}
+          </div>
+        `
+        : null
+      }
     `
   }
 
