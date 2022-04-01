@@ -160,27 +160,27 @@ class Grapholscape {
     
     
     this.widgets = {
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       DIAGRAM_SELECTOR: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       ENTITY_DETAILS: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       FILTERS: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       FIT_BUTTON: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       FULLSCREEN_BUTTON: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       ONTOLOGY_EXPLORER: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       ONTOLOGY_INFO: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       OWL_VISUALIZER: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       RENDERER_SELECTOR: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       SETTINGS: null,
-      /** @type {import('./ui').GscapeWidget} */
+      /** @type {import('./ui/index').GscapeWidget} */
       ZOOM_TOOLS: null,
     }
   }
