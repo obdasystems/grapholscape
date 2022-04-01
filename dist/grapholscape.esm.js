@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2018-2020 OBDA Systems
+ * Copyright (c) 2018-2022 OBDA Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -151,6 +151,258 @@ function checkParams(fileName, cy) {
   return true
 }
 
+/** 
+ * Node types in a Graphol ontology
+ * @enum {string}
+ * @property {string} CONCEPT concept
+ * @property {string} DOMAIN_RESTRICTION domain-restriction
+ * @property {string} RANGE_RESTRICTION range-restriction
+ * @property {string} OBJECT_PROPERTY role
+ * @property {string} DATA_PROPERTY attribute
+ * @property {string} UNION union
+ * @property {string} DISJOINT_UNION disjoint-union
+ * @property {string} COMPLEMENT complement
+ * @property {string} INTERSECTION intersection
+ * @property {string} ENUMERATION enumeration
+ * @property {string} KEY has-key
+ * @property {string} ROLE_INVERSE role-inverse
+ * @property {string} ROLE_CHAIN role-chain
+ * @property {string} DATATYPE_RESTRICTION datatype-restriction
+ * @property {string} VALUE_DOMAIN value-domain
+ * @property {string} PROPERTY_ASSERTION property-assertion
+ * @property {string} LITERAL literal
+ * @property {string} INDIVIDUAL individual
+ * @property {string} FACET facet
+ * @property {string} NEUTRAL neutral
+ * @property {string} VALUE value
+ */
+const Type = {
+  /** @type {"concept"} */
+  CONCEPT: 'concept',
+  /** @type {"domain-restriction"} */
+  DOMAIN_RESTRICTION: 'domain-restriction',
+  /** @type {"range-restriction"} */
+  RANGE_RESTRICTION: 'range-restriction',
+  /** @type {"role"} */
+  OBJECT_PROPERTY: 'role',
+  /** @type {"attribute"} */
+  DATA_PROPERTY: 'attribute',
+  /** @type {"union"} */
+  UNION: 'union',
+  /** @type {"disjoint-union"} */
+  DISJOINT_UNION: 'disjoint-union',
+  /** @type {"complement"} */
+  COMPLEMENT: 'complement',
+  /** @type {"intersection"} */
+  INTERSECTION: 'intersection',
+  /** @type {"enumeration"} */
+  ENUMERATION: 'enumeration',
+  /** @type {"has-key"} */
+  KEY: 'has-key',
+  /** @type {"role-inverse"} */
+  ROLE_INVERSE: 'role-inverse',
+  /** @type {"role-chain"} */
+  ROLE_CHAIN: 'role-chain',
+  /** @type {"datatype-restriction"} */
+  DATATYPE_RESTRICTION: 'datatype-restriction',
+  /** @type {"value-domain"} */
+  VALUE_DOMAIN: 'value-domain',
+  /** @type {"property-assertion"} */
+  PROPERTY_ASSERTION: 'property-assertion',
+  /** @type {"literal"} */
+  LITERAL: 'literal',
+  /** @type {"individual"} */
+  INDIVIDUAL: 'individual',
+  /** @type {"facet"} */
+  FACET: 'facet',
+  /** @type {"neutral"} */
+  NEUTRAL: 'neutral',
+  /** @type {"value"} */
+  VALUE: 'value'
+};
+
+/**
+ * Shapes assigned to Graphol nodes. These are [Cytoscape.js shapes](https://js.cytoscape.org/#style/node-body)  
+ * @enum {string}
+ * @property {string} RECTANGLE rectangle
+ * @property {string} DIAMOND diamond
+ * @property {string} ELLIPSE ellipse
+ * @property {string} HEXAGON hexagon
+ * @property {string} ROUND_RECTANGLE roundrectangle
+ * @property {string} OCTAGON octagon
+ * @property {string} POLYGON polygon
+ */
+const Shape = {
+  /** @type {"rectangle"} */
+  RECTANGLE: 'rectangle',
+  /** @type {"diamond"} */
+  DIAMOND: 'diamond',
+  /** @type {"ellipse"} */
+  ELLIPSE: 'ellipse',
+  /** @type {"hexagon"} */
+  HEXAGON: 'hexagon',
+  /** @type {"roundrectangle"} */
+  ROUND_RECTANGLE: 'roundrectangle',
+  /** @type {"octagon"} */
+  OCTAGON: 'octagon',
+  /** @type {"polygon"} */
+  POLYGON: 'polygon'
+};
+
+const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1';
+
+/**
+ * Enumeration having `type`, `shape` and `identity` for each Graphol node
+ * @type {object} 
+ */
+var grapholNodes = {
+  CONCEPT: {
+    TYPE: Type.CONCEPT,
+    SHAPE: Shape.RECTANGLE,
+    IDENTITY: Type.CONCEPT
+  },
+  DOMAIN_RESTRICTION: {
+    TYPE: Type.DOMAIN_RESTRICTION,
+    SHAPE: Shape.RECTANGLE,
+    IDENTITY: Type.CONCEPT,
+  },
+  RANGE_RESTRICTION: {
+    TYPE: Type.RANGE_RESTRICTION,
+    SHAPE: Shape.RECTANGLE,
+    IDENTITY: Type.NEUTRAL
+  },
+  OBJECT_PROPERTY: {
+    TYPE: Type.OBJECT_PROPERTY,
+    SHAPE: Shape.DIAMOND,
+    IDENTITY: Type.OBJECT_PROPERTY
+  },
+  DATA_PROPERTY: {
+    TYPE: Type.DATA_PROPERTY,
+    SHAPE: Shape.ELLIPSE,
+    IDENTITY: Type.DATA_PROPERTY
+  },
+  UNION: {
+    TYPE: Type.UNION,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.NEUTRAL
+  },
+  DISJOINT_UNION: {
+    TYPE: Type.DISJOINT_UNION,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.NEUTRAL
+  },
+  COMPLEMENT: {
+    TYPE: Type.COMPLEMENT,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.NEUTRAL
+  },
+  INTERSECTION: {
+    TYPE: Type.INTERSECTION,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.NEUTRAL
+  },
+  ENUMERATION: {
+    TYPE: Type.ENUMERATION,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.NEUTRAL
+  },
+  KEY: {
+    TYPE: Type.KEY,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.NEUTRAL
+  },
+  ROLE_INVERSE: {
+    TYPE: Type.ROLE_INVERSE,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.OBJECT_PROPERTY
+  },
+  ROLE_CHAIN: {
+    TYPE: Type.ROLE_CHAIN,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.OBJECT_PROPERTY
+  },
+  DATATYPE_RESTRICTION: {
+    TYPE: Type.DATATYPE_RESTRICTION,
+    SHAPE: Shape.HEXAGON,
+    IDENTITY: Type.VALUE_DOMAIN
+  },
+  VALUE_DOMAIN: {
+    TYPE: Type.VALUE_DOMAIN,
+    SHAPE: Shape.ROUND_RECTANGLE,
+    IDENTITY: Type.VALUE_DOMAIN
+  },
+  PROPERTY_ASSERTION: {
+    TYPE: Type.PROPERTY_ASSERTION,
+    SHAPE: Shape.ROUND_RECTANGLE,
+    IDENTITY: Type.NEUTRAL
+  },
+  LITERAL: {
+    TYPE: Type.LITERAL,
+    SHAPE: Shape.OCTAGON,
+    IDENTITY: Type.VALUE
+  },
+  INDIVIDUAL: {
+    TYPE: Type.INDIVIDUAL,
+    SHAPE: Shape.OCTAGON,
+    IDENTITY: Type.INDIVIDUAL
+  },
+  FACET: {
+    TYPE: Type.FACET,
+    SHAPE: Shape.POLYGON,
+    SHAPE_POINTS: POLYGON_POINTS, 
+    IDENTITY: Type.FACET
+  }
+};
+
+/**
+ * Labels to apply to constructor nodes in Graphol
+ * @enum {string}
+ * @property {string} UNION or
+ * @property {string} INTERSECTION and
+ * @property {string} ROLE_CHAIN inv
+ * @property {string} COMPLEMENT not
+ * @property {string} DATATYPE_RESTRICTION data
+ * @property {string} ENUMERATION oneOf
+ * @property {string} KEY key
+ */
+const constructorLabels = {
+  /** @type {"or"} */
+  UNION: 'or',
+  /** @type {"and"} */
+  INTERSECTION : 'and',
+  /** @type {"chain"} */
+  ROLE_CHAIN : 'chain',
+  /** @type {"inv"} */
+  ROLE_INVERSE : 'inv',
+  /** @type {"not"} */
+  COMPLEMENT: 'not',
+  /** @type {"data"} */
+  DATATYPE_RESTRICTION : 'data',
+  /** @type {"oneOf"} */
+  ENUMERATION : 'oneOf',
+  /** @type {"key"} */
+  KEY : 'key',
+};
+
+/**
+ * Set `datatype` field on a data property node
+ * @param {import('cytoscape').CollectionReturnValue} cyDataProperty 
+ */
+function setDatatypeOnDataProperty (cyDataProperty) {
+  if(!cyDataProperty) return
+
+  // retrieve datatype for dataproperties
+  if(cyDataProperty.data().type === Type.DATA_PROPERTY) {
+    let datatype = cyDataProperty
+      .neighborhood(`node[type = "${Type.RANGE_RESTRICTION}"]`)
+      .neighborhood(`node[type = "${Type.VALUE_DOMAIN}"]`);
+
+    if(datatype.nonempty()) {
+      cyDataProperty.data('datatype', datatype[0].data().iri);
+    }
+  }
+}
+
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
@@ -178,6 +430,8 @@ class Diagram {
    */
   addElems (elems) {
     this.cy.add(elems);
+
+    this.cy.$(`node[type = "${Type.DATA_PROPERTY}"]`).forEach(cyDataProperty => setDatatypeOnDataProperty(cyDataProperty));
   }
 
   /**
@@ -465,239 +719,6 @@ class Ontology {
 
   get entities() { return this.isEntitiesEmpty ? this.getEntities() : this._entities}
 }
-
-/** 
- * Node types in a Graphol ontology
- * @enum {string}
- * @property {string} CONCEPT concept
- * @property {string} DOMAIN_RESTRICTION domain-restriction
- * @property {string} RANGE_RESTRICTION range-restriction
- * @property {string} OBJECT_PROPERTY role
- * @property {string} DATA_PROPERTY attribute
- * @property {string} UNION union
- * @property {string} DISJOINT_UNION disjoint-union
- * @property {string} COMPLEMENT complement
- * @property {string} INTERSECTION intersection
- * @property {string} ENUMERATION enumeration
- * @property {string} KEY has-key
- * @property {string} ROLE_INVERSE role-inverse
- * @property {string} ROLE_CHAIN role-chain
- * @property {string} DATATYPE_RESTRICTION datatype-restriction
- * @property {string} VALUE_DOMAIN value-domain
- * @property {string} PROPERTY_ASSERTION property-assertion
- * @property {string} LITERAL literal
- * @property {string} INDIVIDUAL individual
- * @property {string} FACET facet
- * @property {string} NEUTRAL neutral
- * @property {string} VALUE value
- */
-const Type = {
-  /** @type {"concept"} */
-  CONCEPT: 'concept',
-  /** @type {"domain-restriction"} */
-  DOMAIN_RESTRICTION: 'domain-restriction',
-  /** @type {"range-restriction"} */
-  RANGE_RESTRICTION: 'range-restriction',
-  /** @type {"role"} */
-  OBJECT_PROPERTY: 'role',
-  /** @type {"attribute"} */
-  DATA_PROPERTY: 'attribute',
-  /** @type {"union"} */
-  UNION: 'union',
-  /** @type {"disjoint-union"} */
-  DISJOINT_UNION: 'disjoint-union',
-  /** @type {"complement"} */
-  COMPLEMENT: 'complement',
-  /** @type {"intersection"} */
-  INTERSECTION: 'intersection',
-  /** @type {"enumeration"} */
-  ENUMERATION: 'enumeration',
-  /** @type {"has-key"} */
-  KEY: 'has-key',
-  /** @type {"role-inverse"} */
-  ROLE_INVERSE: 'role-inverse',
-  /** @type {"role-chain"} */
-  ROLE_CHAIN: 'role-chain',
-  /** @type {"datatype-restriction"} */
-  DATATYPE_RESTRICTION: 'datatype-restriction',
-  /** @type {"value-domain"} */
-  VALUE_DOMAIN: 'value-domain',
-  /** @type {"property-assertion"} */
-  PROPERTY_ASSERTION: 'property-assertion',
-  /** @type {"literal"} */
-  LITERAL: 'literal',
-  /** @type {"individual"} */
-  INDIVIDUAL: 'individual',
-  /** @type {"facet"} */
-  FACET: 'facet',
-  /** @type {"neutral"} */
-  NEUTRAL: 'neutral',
-  /** @type {"value"} */
-  VALUE: 'value'
-};
-
-/**
- * Shapes assigned to Graphol nodes. These are [Cytoscape.js shapes](https://js.cytoscape.org/#style/node-body)  
- * @enum {string}
- * @property {string} RECTANGLE rectangle
- * @property {string} DIAMOND diamond
- * @property {string} ELLIPSE ellipse
- * @property {string} HEXAGON hexagon
- * @property {string} ROUND_RECTANGLE roundrectangle
- * @property {string} OCTAGON octagon
- * @property {string} POLYGON polygon
- */
-const Shape = {
-  /** @type {"rectangle"} */
-  RECTANGLE: 'rectangle',
-  /** @type {"diamond"} */
-  DIAMOND: 'diamond',
-  /** @type {"ellipse"} */
-  ELLIPSE: 'ellipse',
-  /** @type {"hexagon"} */
-  HEXAGON: 'hexagon',
-  /** @type {"roundrectangle"} */
-  ROUND_RECTANGLE: 'roundrectangle',
-  /** @type {"octagon"} */
-  OCTAGON: 'octagon',
-  /** @type {"polygon"} */
-  POLYGON: 'polygon'
-};
-
-const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1';
-
-/**
- * Enumeration having `type`, `shape` and `identity` for each Graphol node
- * @type {object} 
- */
-var grapholNodes = {
-  CONCEPT: {
-    TYPE: Type.CONCEPT,
-    SHAPE: Shape.RECTANGLE,
-    IDENTITY: Type.CONCEPT
-  },
-  DOMAIN_RESTRICTION: {
-    TYPE: Type.DOMAIN_RESTRICTION,
-    SHAPE: Shape.RECTANGLE,
-    IDENTITY: Type.CONCEPT,
-  },
-  RANGE_RESTRICTION: {
-    TYPE: Type.RANGE_RESTRICTION,
-    SHAPE: Shape.RECTANGLE,
-    IDENTITY: Type.NEUTRAL
-  },
-  OBJECT_PROPERTY: {
-    TYPE: Type.OBJECT_PROPERTY,
-    SHAPE: Shape.DIAMOND,
-    IDENTITY: Type.OBJECT_PROPERTY
-  },
-  DATA_PROPERTY: {
-    TYPE: Type.DATA_PROPERTY,
-    SHAPE: Shape.ELLIPSE,
-    IDENTITY: Type.DATA_PROPERTY
-  },
-  UNION: {
-    TYPE: Type.UNION,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.NEUTRAL
-  },
-  DISJOINT_UNION: {
-    TYPE: Type.DISJOINT_UNION,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.NEUTRAL
-  },
-  COMPLEMENT: {
-    TYPE: Type.COMPLEMENT,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.NEUTRAL
-  },
-  INTERSECTION: {
-    TYPE: Type.INTERSECTION,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.NEUTRAL
-  },
-  ENUMERATION: {
-    TYPE: Type.ENUMERATION,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.NEUTRAL
-  },
-  KEY: {
-    TYPE: Type.KEY,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.NEUTRAL
-  },
-  ROLE_INVERSE: {
-    TYPE: Type.ROLE_INVERSE,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.OBJECT_PROPERTY
-  },
-  ROLE_CHAIN: {
-    TYPE: Type.ROLE_CHAIN,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.OBJECT_PROPERTY
-  },
-  DATATYPE_RESTRICTION: {
-    TYPE: Type.DATATYPE_RESTRICTION,
-    SHAPE: Shape.HEXAGON,
-    IDENTITY: Type.VALUE_DOMAIN
-  },
-  VALUE_DOMAIN: {
-    TYPE: Type.VALUE_DOMAIN,
-    SHAPE: Shape.ROUND_RECTANGLE,
-    IDENTITY: Type.VALUE_DOMAIN
-  },
-  PROPERTY_ASSERTION: {
-    TYPE: Type.PROPERTY_ASSERTION,
-    SHAPE: Shape.ROUND_RECTANGLE,
-    IDENTITY: Type.NEUTRAL
-  },
-  LITERAL: {
-    TYPE: Type.LITERAL,
-    SHAPE: Shape.OCTAGON,
-    IDENTITY: Type.VALUE
-  },
-  INDIVIDUAL: {
-    TYPE: Type.INDIVIDUAL,
-    SHAPE: Shape.OCTAGON,
-    IDENTITY: Type.INDIVIDUAL
-  },
-  FACET: {
-    TYPE: Type.FACET,
-    SHAPE: Shape.POLYGON,
-    SHAPE_POINTS: POLYGON_POINTS, 
-    IDENTITY: Type.FACET
-  }
-};
-
-/**
- * Labels to apply to constructor nodes in Graphol
- * @enum {string}
- * @property {string} UNION or
- * @property {string} INTERSECTION and
- * @property {string} ROLE_CHAIN inv
- * @property {string} COMPLEMENT not
- * @property {string} DATATYPE_RESTRICTION data
- * @property {string} ENUMERATION oneOf
- * @property {string} KEY key
- */
-const constructorLabels = {
-  /** @type {"or"} */
-  UNION: 'or',
-  /** @type {"and"} */
-  INTERSECTION : 'and',
-  /** @type {"chain"} */
-  ROLE_CHAIN : 'chain',
-  /** @type {"inv"} */
-  ROLE_INVERSE : 'inv',
-  /** @type {"not"} */
-  COMPLEMENT: 'not',
-  /** @type {"data"} */
-  DATATYPE_RESTRICTION : 'data',
-  /** @type {"oneOf"} */
-  ENUMERATION : 'oneOf',
-  /** @type {"key"} */
-  KEY : 'key',
-};
 
 /**
  * @license
@@ -2288,6 +2309,7 @@ function entityModelToViewData(cyEntity) {
     displayed_name : entity.data.displayed_name,
     type : entity.data.type,
     iri : entity.data.iri,
+    datatype: entity.data.datatype,
     annotations : entity.data.annotations,
     functional : entity.data.functional,
     inverseFunctional : entity.data.inverseFunctional,
@@ -2633,6 +2655,7 @@ function computeSimplifiedOntologies(ontology) {
         case Type.VALUE_DOMAIN:
         case Type.ROLE_CHAIN:
         case Type.ENUMERATION:
+        case Type.KEY:
           return true
 
         case Type.DOMAIN_RESTRICTION:
@@ -3320,6 +3343,32 @@ class Grapholscape {
 
     this.applyTheme(this.config.rendering.theme.selected);
     this.ZOOM_STEP_VALUE = 0.08;
+    
+    
+    this.widgets = {
+      /** @type {import('./ui/index').GscapeWidget} */
+      DIAGRAM_SELECTOR: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      ENTITY_DETAILS: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      FILTERS: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      FIT_BUTTON: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      FULLSCREEN_BUTTON: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      ONTOLOGY_EXPLORER: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      ONTOLOGY_INFO: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      OWL_VISUALIZER: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      RENDERER_SELECTOR: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      SETTINGS: null,
+      /** @type {import('./ui/index').GscapeWidget} */
+      ZOOM_TOOLS: null,
+    };
   }
 
   /**
@@ -4156,15 +4205,17 @@ function getPredicateInfo(element, xmlDocument) {
   let actual_iri_elem = getIriElem(element, xmlDocument);
   result = getIriAnnotations(actual_iri_elem);
 
-  if (actual_iri_elem && actual_iri_elem.children) {
-    for (let property of actual_iri_elem.children) {
-      if (property.tagName != 'value' && property.tagName != 'annotations' &&
-        property.textContent != '0') {
-        result[property.tagName] = 1;
+  const elementType = element.getAttribute('type');
+  if (elementType === Type.OBJECT_PROPERTY || elementType === Type.DATA_PROPERTY) {
+    if (actual_iri_elem && actual_iri_elem.children) {
+      for (let property of actual_iri_elem.children) {
+        if (property.tagName != 'value' && property.tagName != 'annotations' &&
+          property.textContent != '0') {
+          result[property.tagName] = 1;
+        }
       }
     }
   }
-
   return result
 }
 
@@ -5050,6 +5101,8 @@ class GscapeWidget extends s {
     this._hiddenDefault = false;
 
     this.onToggleBody = () => { };
+    this.onEnabled = () => { };
+    this.onDisabled = () => { };
   }
 
   render() {
@@ -5109,11 +5162,11 @@ class GscapeWidget extends s {
 
   makeDraggableHeadTitle() {
     if (this.draggable) {
-      setTimeout( () => {
+      setTimeout(() => {
         const headTitleDiv = this.header.shadowRoot.querySelector('.head-title');
         headTitleDiv.classList.add('drag_handler');
         this.makeDraggable(headTitleDiv);
-      });     
+      });
     }
   }
 
@@ -5168,14 +5221,32 @@ class GscapeWidget extends s {
     this.style.display = 'none';
   }
 
-  enable() {
+  /**
+   * 
+   * @param {boolean} callCallback Wether to call callback or not
+   * the callback will update other components, you might not want them
+   * to update cause they are already updated.
+   * BE CAREFUL, calling callback when not necessary might end up in
+   * infinite recursion.
+   */
+  enable(callCallback = true) {
     this.isEnabled = true;
     if (!this.hiddenDefault) this.show();
+    if (callCallback) this.onEnabled();
   }
 
-  disable() {
+  /**
+   * 
+   * @param {boolean} callCallback Wether to call callback or not
+   * the callback will update other components, you might not want them
+   * to update cause they are already updated.
+   * BE CAREFUL, calling callback when not necessary might end up in
+   * infinite recursion.
+   */
+  disable(callCallback = true) {
     this.isEnabled = false;
     this.hide();
+    if (callCallback) this.onDisabled();
   }
 
   blur() {
@@ -5813,10 +5884,13 @@ function init$8(diagramSelectorComponent, grapholscape) {
   grapholscape.onDiagramChange(newDiagram => diagramSelectorComponent.actual_diagram_id = newDiagram.id);
 }
 
-const diagramSelectorComponent = new GscapeDiagramSelector();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
 function initDiagramSelector(grapholscape) {
+  const diagramSelectorComponent = new GscapeDiagramSelector();
   init$8(diagramSelectorComponent, grapholscape);
+  grapholscape.widgets.DIAGRAM_SELECTOR = diagramSelectorComponent;
 }
 
 var annotationsTemplate = (entity) => {
@@ -5831,12 +5905,13 @@ var annotationsTemplate = (entity) => {
             let annotation = entity.annotations[kind];
             return p`
               <tbody class="annotation-row">
-                ${Object.keys(annotation).map( (language, count)  => {
+                ${Object.keys(annotation).map(language  => {
+                  const numberAnnotationOfThisLanguage = annotation[language].length;
                   return p`
-                    ${annotation[language].map( value => {
+                    ${annotation[language].map((value, count) => {
                       return p`
                         <tr>
-                          ${count == 0 ? p`<th rowspan="3">${kind.charAt(0).toUpperCase() + kind.slice(1)}</th>` : ''}
+                          ${count == 0 ? p`<th rowspan="${numberAnnotationOfThisLanguage}">${kind.charAt(0).toUpperCase() + kind.slice(1)}</th>` : ''}
                           <td class="language">${language}</td>
                           <td>${value}</td>
                         </tr>
@@ -5986,8 +6061,8 @@ class GscapeEntityDetails extends GscapeWidget {
     return p`
       ${this.header}
       <div class="widget-body">
-        ${this.entity?
-          p`
+        ${this.entity
+          ? p`
             <div class="section">
               <table class="details_table">
                 <tr>
@@ -5998,12 +6073,23 @@ class GscapeEntityDetails extends GscapeWidget {
                   <th>Type</th>
                   <td>${this.entity.type}</td>
                 </tr>
-                ${this.entity.type != 'individual' ? p`
-                <tr>
-                  <th>IRI</th>
-                  <td>${this.entity.iri.fullIri}</td>
-                </tr>
-                ` : p``
+                ${this.entity.type != 'individual'
+                  ? p`
+                    <tr>
+                      <th>IRI</th>
+                      <td>${this.entity.iri.fullIri}</td>
+                    </tr>
+                  `
+                  : p``
+                }
+                ${this.entity.datatype
+                  ? p`
+                  <tr>
+                    <th>Datatype</th>
+                    <td>${this.entity.datatype.prefixed}</td>
+                  </tr>
+                  `
+                  : p``
                 }
               </table>
             </div>
@@ -6019,8 +6105,8 @@ class GscapeEntityDetails extends GscapeWidget {
             ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
             ${annotationsTemplate(this.entity)}
             
-            ${comment && Object.keys(comment).length > 0 ?
-              p`
+            ${comment && Object.keys(comment).length > 0 
+              ? p`
                 <div class="section">
                   <div class="section-header"> Description </div>
                     ${!Object.keys(comment).includes('') 
@@ -6039,10 +6125,11 @@ class GscapeEntityDetails extends GscapeWidget {
                     }
                     <span class="descr-text"></span>
                 </div>
-              ` : p``
+              `
+              : p``
             }
           `
-        : p``
+          : p``
         }
       </div>
     `
@@ -6195,10 +6282,13 @@ function init$7 (entityDetailsComponent, grapholscape) {
 
 }
 
-const entityDetailsComponent = new GscapeEntityDetails();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
 function initEntityDetails(grapholscape) {
+  const entityDetailsComponent = new GscapeEntityDetails();
   init$7(entityDetailsComponent, grapholscape);
+  grapholscape.widgets.ENTITY_DETAILS = entityDetailsComponent;
 }
 
 class GscapeFilters extends GscapeWidget {
@@ -6230,6 +6320,7 @@ class GscapeFilters extends GscapeWidget {
       super_styles[0],
       r$1`
         :host {
+          order: 3;
           display:inline-block;
           position: initial;
           margin-top:10px;
@@ -6405,147 +6496,21 @@ function init$6 (filterComponent, grapholscape) {
   }
 }
 
-const filterComponent = new GscapeFilters();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
 function initFilters(grapholscape) {
+  const filterComponent = new GscapeFilters();
   init$6(filterComponent, grapholscape);
+  grapholscape.widgets.FILTERS = filterComponent;
 }
-
-class GscapeLayoutSettings extends GscapeWidget {
-
-  static get properties() {
-    return {
-    }
-  }
-
-  static get styles() {
-    let super_styles = super.styles;
-    super_styles[1];
-
-    return [
-      super_styles[0],
-      r$1`
-        :host {
-          box-shadow: initial;
-          position: initial;
-        }
-
-        .gscape-panel {
-          bottom:initial;
-          top:10px;
-        }
-
-        gscape-toggle {
-          padding: 8px;
-        }
-
-        .toggles-wrapper {
-          display: flex;
-          flex-direction: column;
-        }
-      `,
-    ]
-  }
-
-  constructor() {
-    super();
-    this.collapsible = true;
-
-    this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running');
-    this.layoutRunToggle.label_pos = 'right';
-    this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin');
-    this.dragAndDropToggle.label_pos = 'right';
-    this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions');
-    this.useOriginalPositionsToggle.label_pos = 'right';
-
-    this.onLayoutRunToggle = {};
-    this.onDragAndPinToggle = {};
-    this.onUseOriginalPositions = {};
-
-    this.btn = new GscapeButton(tune, 'Floaty Layout Settings');
-    this.btn.onClick = () => this.toggleBody();
-    this.btn.classList.add('flat');
-    this.btn.style.position = 'inherit';
-    this.classList.add('flat');
-  }
-
-  render() {
-    return p`
-      ${this.btn}
-      <span class="gscape-panel-arrow hide"></span>
-      <div class="widget-body hide gscape-panel border-right">
-        <div class="gscape-panel-title">Layout Settings</div>
-        <div class="toggles-wrapper">
-          ${this.layoutRunToggle}
-          ${this.dragAndDropToggle}
-          ${this.useOriginalPositionsToggle}
-        </div>
-      </div>
-
-    `
-  }
-
-  set onLayoutRunToggle(callback) {
-    this._onLayoutRunToggle = callback;
-    this.layoutRunToggle.onToggle = callback;
-  }
-
-  set onDragAndPinToggle(callback) {
-    this._onDragAndPinToggle = callback;
-    this.dragAndDropToggle.onToggle = callback;
-  }
-
-  set onUseOriginalPositions(callback) {
-    this._onUseOriginalPositions = callback;
-    this.useOriginalPositionsToggle.onToggle = callback;
-  }
-
-  get onLayoutRunToggle() {
-    return this._onLayoutRunToggle
-  }
-}
-
-
-
-customElements.define('gscape-layout-settings', GscapeLayoutSettings);
 
 /**
- * 
- * @param {import('./layout-settings').default} layoutSettingsComponent 
- * @param {import('../../../grapholscape').default} grapholscape 
+ * @param {import('../../grapholscape').default} grapholscape 
  */
-function init$5(layoutSettingsComponent, grapholscape) {
-
-  layoutSettingsComponent.onLayoutRunToggle = () => {
-    if (!grapholscape.layoutStopped) {
-      layoutSettingsComponent.useOriginalPositionsToggle.state = false;
-      grapholscape.renderer.useOriginalPositions = false;
-    }
-
-    grapholscape.renderer.layoutStopped = !grapholscape.renderer.layoutStopped;
-  };
-  layoutSettingsComponent.onDragAndPinToggle =
-    () => grapholscape.renderer.dragAndPin = !grapholscape.renderer.dragAndPin;
-
-  layoutSettingsComponent.onUseOriginalPositions = () => {
-    if (!grapholscape.renderer.useOriginalPositions) {
-      layoutSettingsComponent.layoutRunToggle.state = false;
-      grapholscape.renderer.layoutStopped = true;
-    }
-
-    grapholscape.renderer.useOriginalPositions = !grapholscape.renderer.useOriginalPositions;
-  };
-}
-
-const layoutSettingsComponent = new GscapeLayoutSettings();
-
-function initLayoutSettings(grapholscape) {
-  init$5(layoutSettingsComponent, grapholscape);
-}
-
-const  fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen);
-function initFullscreenButton(container) {
-  fullscreenComponent.container = container;
+function initFullscreenButton(grapholscape) {
+  const  fullscreenComponent = new GscapeButton(enter_fullscreen, 'Fullscreen' ,exit_fullscreen);
+  fullscreenComponent.container = grapholscape.container;
   fullscreenComponent.style.top = '10px';
   fullscreenComponent.style.right = '10px';
   fullscreenComponent.onClick = toggleFullscreen;
@@ -6559,7 +6524,7 @@ function initFullscreenButton(container) {
   document.webkitCancelFullScreen ||
   document.msExitFullscreen;
 
-  return fullscreenComponent
+  grapholscape.widgets.FULLSCREEN_BUTTON = fullscreenComponent;
 
   function toggleFullscreen () {
     setFullScreenRequest();
@@ -6819,7 +6784,7 @@ customElements.define('gscape-explorer', GscapeExplorer);
  * @param {import('./ontology-explorer').default} ontologyExplorerComponent 
  * @param {import('../../grapholscape').default} grapholscape 
  */
-function init$4 (ontologyExplorerComponent, grapholscape) {
+function init$5 (ontologyExplorerComponent, grapholscape) {
   grapholscape.languages;
   let entities = createEntitiesList(grapholscape.ontology.entities);
 
@@ -6930,10 +6895,13 @@ function init$4 (ontologyExplorerComponent, grapholscape) {
   }
 }
 
-const ontologyExplorerComponent = new GscapeExplorer();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
 function initOntologyExplorer(grapholscape) {
-  init$4(ontologyExplorerComponent, grapholscape);
+  const ontologyExplorerComponent = new GscapeExplorer();
+  init$5(ontologyExplorerComponent, grapholscape);
+  grapholscape.widgets.ONTOLOGY_EXPLORER = ontologyExplorerComponent;
 }
 
 class GscapeOntologyInfo extends GscapeWidget {
@@ -6946,6 +6914,7 @@ class GscapeOntologyInfo extends GscapeWidget {
       super_styles[0],
       r$1`
         :host {
+          order: 4;
           display:inline-block;
           position: initial;
           margin-top: 10px;
@@ -7067,10 +7036,13 @@ class GscapeOntologyInfo extends GscapeWidget {
 
 customElements.define('gscape-ontology-info', GscapeOntologyInfo);
 
-const ontologyInfoComponent = new GscapeOntologyInfo();
-
-function initOntologyInfo(ontology) {
-  ontologyInfoComponent.ontology = ontologyModelToViewData(ontology);
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
+function initOntologyInfo(grapholscape) {
+  const ontologyInfoComponent = new GscapeOntologyInfo();
+  ontologyInfoComponent.ontology = ontologyModelToViewData(grapholscape.ontology);
+  grapholscape.widgets.ONTOLOGY_INFO = ontologyInfoComponent;
 }
 
 class GscapeOwlVisualizer extends GscapeWidget {
@@ -7684,13 +7656,13 @@ function hasSelf (input, restr_type) {
  * @param {import('./owl-visualizer').default} owlVisualizerComponent 
  * @param {import('../../grapholscape').default} grapholscape
  */
-function init$3(owlVisualizerComponent, grapholscape) {
+function init$4(owlVisualizerComponent, grapholscape) {
   grapholscape.onNodeSelection( node => showOwlTranslation(node));
   grapholscape.onEdgeSelection( edge => showOwlTranslation(edge));
-  grapholscape.onRendererChange( rendererKey => {
-    if (rendererKey !== 'default')
-      owlVisualizerComponent.hide();
-  });
+  // grapholscape.onRendererChange( rendererKey => {
+  //   if (rendererKey !== 'default')
+  //     owlVisualizerComponent.hide()
+  // })
 
   function showOwlTranslation(elem) {
     let grapholElem = cyToGrapholElem(elem);
@@ -7705,17 +7677,21 @@ function init$3(owlVisualizerComponent, grapholscape) {
   }
 }
 
-const owlVisualizerComponent = new GscapeOwlVisualizer();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
 function initOwlVisualizer(grapholscape) {
-  init$3(owlVisualizerComponent, grapholscape);
+  const owlVisualizerComponent = new GscapeOwlVisualizer();
+  init$4(owlVisualizerComponent, grapholscape);
+  grapholscape.widgets.OWL_VISUALIZER = owlVisualizerComponent;
 }
 
 class GscapeRenderSelector extends GscapeWidget {
 
   static get properties() {
     return {
-      _actual_mode : { type : String }
+      _actual_mode : { type : String },
+      layoutSettingsComponent: { type: Object, attribute: false}
     }
   }
 
@@ -7727,6 +7703,7 @@ class GscapeRenderSelector extends GscapeWidget {
       super_styles[0],
       r$1`
         :host {
+          order: 6;
           display:inline-block;
           position: initial;
           margin-top:10px;
@@ -7803,6 +7780,7 @@ class GscapeRenderSelector extends GscapeWidget {
     this.btn.onClick = () => this.toggleBody();
     this.btn.style.position = 'inherit';
     this.btn.classList.add('flat');
+    this.layoutSettingsComponent = null;
     //this.header.title = this.dict[this.actual_mode]?.label
     //this.header.left_icon = this.dict[this.actual_mode]?.icon
   }
@@ -7810,25 +7788,30 @@ class GscapeRenderSelector extends GscapeWidget {
   render() {
     return p`
       ${this.actual_mode === floatyRenderer.key
-        ? p`${layoutSettingsComponent} <div id="hr"></div>`
+        ? p`${this.layoutSettingsComponent} <div id="hr"></div>`
         : null
       }
 
 
       ${this.btn}
       <span class="gscape-panel-arrow hide"></span>
-      <div class="widget-body hide gscape-panel border-right">
-        ${Object.keys(this.dict).map( mode => p`
-        <div
-          @click="${this.changeRenderer}"
-          mode="${mode}"
-          class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
-        >
-        ${this.dict[mode].icon}
-        <span class="label">${this.dict[mode].label}</span>
-        </div>
-        `)}
-      </div>
+      ${Object.keys(this.dict)?.length > 1
+        ? p`
+          <div class="widget-body hide gscape-panel border-right">
+            ${Object.keys(this.dict).map( mode => p`
+            <div
+              @click="${this.changeRenderer}"
+              mode="${mode}"
+              class="renderer-item ${mode == this.actual_mode ? `selected` : ``}"
+            >
+            ${this.dict[mode].icon}
+            <span class="label">${this.dict[mode].label}</span>
+            </div>
+            `)}
+          </div>
+        `
+        : null
+      }
     `
   }
 
@@ -7883,7 +7866,7 @@ let icons = {
  * @param {import('./index').default} rendererSelector 
  * @param {import('../../grapholscape').default} grapholscape 
  */
-function init$2(rendererSelector, grapholscape) {
+function init$3(rendererSelector, grapholscape) {
   Object.keys(grapholscape.renderersManager.renderers).forEach(key => {
     let renderer = grapholscape.renderersManager.renderers[key];
     rendererSelector.dict[key] = rendererModelToViewData(renderer);
@@ -7895,11 +7878,150 @@ function init$2(rendererSelector, grapholscape) {
   grapholscape.onRendererChange( rendererKey => rendererSelector.actual_mode = rendererKey);
 }
 
-const rendererSelectorComponent = new GscapeRenderSelector();
+class GscapeLayoutSettings extends GscapeWidget {
 
+  static get properties() {
+    return {
+    }
+  }
+
+  static get styles() {
+    let super_styles = super.styles;
+    super_styles[1];
+
+    return [
+      super_styles[0],
+      r$1`
+        :host {
+          box-shadow: initial;
+          position: initial;
+        }
+
+        .gscape-panel {
+          bottom:initial;
+          top:10px;
+        }
+
+        gscape-toggle {
+          padding: 8px;
+        }
+
+        .toggles-wrapper {
+          display: flex;
+          flex-direction: column;
+        }
+      `,
+    ]
+  }
+
+  constructor() {
+    super();
+    this.collapsible = true;
+
+    this.layoutRunToggle = new GscapeToggle('layout-run', true, false, 'Layout Running');
+    this.layoutRunToggle.label_pos = 'right';
+    this.dragAndDropToggle = new GscapeToggle('layout-pin', false, false, 'Drag and Pin');
+    this.dragAndDropToggle.label_pos = 'right';
+    this.useOriginalPositionsToggle = new GscapeToggle('layout-orginal-pos', false, false, 'Original Positions');
+    this.useOriginalPositionsToggle.label_pos = 'right';
+
+    this.onLayoutRunToggle = {};
+    this.onDragAndPinToggle = {};
+    this.onUseOriginalPositions = {};
+
+    this.btn = new GscapeButton(tune, 'Floaty Layout Settings');
+    this.btn.onClick = () => this.toggleBody();
+    this.btn.classList.add('flat');
+    this.btn.style.position = 'inherit';
+    this.classList.add('flat');
+  }
+
+  render() {
+    return p`
+      ${this.btn}
+      <span class="gscape-panel-arrow hide"></span>
+      <div class="widget-body hide gscape-panel border-right">
+        <div class="gscape-panel-title">Layout Settings</div>
+        <div class="toggles-wrapper">
+          ${this.layoutRunToggle}
+          ${this.dragAndDropToggle}
+          ${this.useOriginalPositionsToggle}
+        </div>
+      </div>
+
+    `
+  }
+
+  set onLayoutRunToggle(callback) {
+    this._onLayoutRunToggle = callback;
+    this.layoutRunToggle.onToggle = callback;
+  }
+
+  set onDragAndPinToggle(callback) {
+    this._onDragAndPinToggle = callback;
+    this.dragAndDropToggle.onToggle = callback;
+  }
+
+  set onUseOriginalPositions(callback) {
+    this._onUseOriginalPositions = callback;
+    this.useOriginalPositionsToggle.onToggle = callback;
+  }
+
+  get onLayoutRunToggle() {
+    return this._onLayoutRunToggle
+  }
+}
+
+
+
+customElements.define('gscape-layout-settings', GscapeLayoutSettings);
+
+/**
+ * 
+ * @param {import('./layout-settings').default} layoutSettingsComponent 
+ * @param {import('../../../grapholscape').default} grapholscape 
+ */
+function init$2(layoutSettingsComponent, grapholscape) {
+
+  layoutSettingsComponent.onLayoutRunToggle = () => {
+    if (!grapholscape.layoutStopped) {
+      layoutSettingsComponent.useOriginalPositionsToggle.state = false;
+      grapholscape.renderer.useOriginalPositions = false;
+    }
+
+    grapholscape.renderer.layoutStopped = !grapholscape.renderer.layoutStopped;
+  };
+  layoutSettingsComponent.onDragAndPinToggle =
+    () => grapholscape.renderer.dragAndPin = !grapholscape.renderer.dragAndPin;
+
+  layoutSettingsComponent.onUseOriginalPositions = () => {
+    if (!grapholscape.renderer.useOriginalPositions) {
+      layoutSettingsComponent.layoutRunToggle.state = false;
+      grapholscape.renderer.layoutStopped = true;
+    }
+
+    grapholscape.renderer.useOriginalPositions = !grapholscape.renderer.useOriginalPositions;
+  };
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function initLayoutSettings(grapholscape) {
+  const layoutSettingsComponent = new GscapeLayoutSettings();
+  init$2(layoutSettingsComponent, grapholscape);
+  return layoutSettingsComponent
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
 function initRendererSelector(grapholscape) {
-  init$2(rendererSelectorComponent, grapholscape);
-  initLayoutSettings(grapholscape);
+  const rendererSelectorComponent = new GscapeRenderSelector();
+  init$3(rendererSelectorComponent, grapholscape);
+  rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape);
+  rendererSelectorComponent.requestUpdate();
+  grapholscape.widgets.RENDERER_SELECTOR = rendererSelectorComponent;
 }
 
 const grapholscape = p`<?xml version="1.0" encoding="utf-8"?>
@@ -8012,6 +8134,7 @@ class GscapeSettings extends GscapeWidget {
       super_styles[0],
       r$1`
         :host {
+          order: 5;
           display:inline-block;
           position: initial;
           margin-top:10px;
@@ -8181,7 +8304,7 @@ class GscapeSettings extends GscapeWidget {
 
           <div id="version">
             <span>Version: </span>
-            <span>${"2.0.0"}</span>
+            <span>${"2.0.1"}</span>
           </div>
         </div>
       </div>
@@ -8265,12 +8388,29 @@ class GscapeSettings extends GscapeWidget {
 
 customElements.define('gscape-settings', GscapeSettings);
 
-var widgetNames = {
+const widgetTagNames = {
   explorer: 'gscape-explorer',
   details: 'gscape-entity-details',
   owl_translator: 'gscape-owl-visualizer',
   filters: 'gscape-filters',
   simplifications: 'gscape-render-selector',
+};
+
+/**
+ * @enum {string}
+ */
+ const widgetEnum = {
+  DIAGRAM_SELECTOR: 'DIAGRAM_SELECTOR',
+  ENTITY_DETAILS: 'details',
+  FILTERS: 'filters',
+  FIT_BUTTON: 'FIT_BUTTON',
+  FULLSCREEN_BUTTON: 'FULLSCREEN_BUTTON',
+  ONTOLOGY_EXPLORER: 'explorer',
+  ONTOLOGY_INFO: 'ONTOLOGY_INFO',
+  OWL_VISUALIZER: 'owl_translator',
+  RENDERER_SELECTOR: 'simplifications',
+  SETTINGS: 'SETTINGS',
+  ZOOM_TOOLS: 'ZOOM_TOOLS',
 };
 
 /**
@@ -8289,11 +8429,11 @@ function init$1(settingsComponent, grapholscape) {
 
   let gui_container = grapholscape.container.querySelector('#gscape-ui');
   settingsComponent.onWidgetEnabled = (widgetName) => {
-    gui_container.querySelector(widgetNames[widgetName]).enable();
+    gui_container.querySelector(widgetTagNames[widgetName]).enable(false);
     storeConfigEntry(widgetName, true);
   };
   settingsComponent.onWidgetDisabled = (widgetName) => {
-    gui_container.querySelector(widgetNames[widgetName]).disable();
+    gui_container.querySelector(widgetTagNames[widgetName]).disable(false);
     storeConfigEntry(widgetName, false);
   };
 
@@ -8315,11 +8455,27 @@ function init$1(settingsComponent, grapholscape) {
   }
 }
 
-const settingsComponent = new GscapeSettings();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
 function initSettings(grapholscape) {
+  const settingsComponent = new GscapeSettings();
   init$1(settingsComponent, grapholscape);
+  grapholscape.widgets.SETTINGS = settingsComponent;
 }
+
+var bottomRightContainer = () => {
+  let div = document.createElement('div');
+  div.style.setProperty('position','absolute');
+  div.style.setProperty('bottom','0');
+  div.style.setProperty('right','0');
+  div.style.setProperty('margin','10px');
+  div.style.setProperty('display','flex');
+  div.style.setProperty('align-items','center');
+  div.style.setProperty('flex-direction', 'column-reverse');
+
+  return div
+};
 
 class GscapeZoomTools extends GscapeWidget {
 
@@ -8331,6 +8487,7 @@ class GscapeZoomTools extends GscapeWidget {
       super_styles[0],
       r$1`
         :host {
+          order: 1;
           margin-top:10px;
           position: initial;
         }
@@ -8381,40 +8538,33 @@ class GscapeZoomTools extends GscapeWidget {
 
 customElements.define('gscape-zoom-tools', GscapeZoomTools);
 
-const zoomToolsComponent = new GscapeZoomTools();
-
+/**
+ * @param {import('../../grapholscape').default} grapholscape 
+ */
 function initZoomTools(grapholscape) {
+  const zoomToolsComponent = new GscapeZoomTools();
   zoomToolsComponent.onZoomIn = () => grapholscape.zoomIn();
   zoomToolsComponent.onZoomOut = () => grapholscape.zoomOut();
+  grapholscape.widgets.ZOOM_TOOLS = zoomToolsComponent;
 }
 
-const fitButtonComponent = new GscapeButton(center_diagram, 'Center Diagram');
-
-/** @param {import('../grapholscape').default} */
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
 function initFitButton(grapholscape) {
+  const fitButtonComponent = new GscapeButton(center_diagram, 'Center Diagram');
+  fitButtonComponent.style.order = '2';
   fitButtonComponent.style.marginTop = '10px';
   fitButtonComponent.style.position = 'initial';
   fitButtonComponent.onClick = () => grapholscape.fit();
+  grapholscape.widgets.FIT_BUTTON = fitButtonComponent;
 }
-
-var bottomRightContainer = () => {
-  let div = document.createElement('div');
-  div.style.setProperty('position','absolute');
-  div.style.setProperty('bottom','0');
-  div.style.setProperty('right','0');
-  div.style.setProperty('margin','10px');
-  div.style.setProperty('display','flex');
-  div.style.setProperty('align-items','center');
-  div.style.setProperty('flex-direction', 'column-reverse');
-
-  return div
-};
 
 /**
  * Initialize the UI
  * @param {import('../grapholscape').default} grapholscape 
  */
-function init (grapholscape) {
+async function init (grapholscape) {
   const init = () => {
     let gui_container = document.createElement('div');
     gui_container.setAttribute('id', 'gscape-ui');
@@ -8422,10 +8572,9 @@ function init (grapholscape) {
 
     initDiagramSelector(grapholscape);
     initEntityDetails(grapholscape);
-
     initZoomTools(grapholscape);
-    initOntologyInfo(grapholscape.ontology);
-    initFullscreenButton(grapholscape.container);
+    initOntologyInfo(grapholscape);
+    initFullscreenButton(grapholscape);
     initFitButton(grapholscape);
     initOntologyExplorer(grapholscape);
     initOwlVisualizer(grapholscape);
@@ -8438,40 +8587,62 @@ function init (grapholscape) {
       blurAll(gui_container);
     });
 
-    gui_container.appendChild(diagramSelectorComponent);
-    gui_container.appendChild(ontologyExplorerComponent);
-    gui_container.appendChild(entityDetailsComponent);
-    gui_container.appendChild(owlVisualizerComponent);
-    gui_container.appendChild(fullscreenComponent);
-
     let bottomContainer = bottomRightContainer();
     bottomContainer.setAttribute('id', 'gscape-ui-bottom-container');
-    bottomContainer.appendChild(zoomToolsComponent);
-    bottomContainer.appendChild(fitButtonComponent);
-    bottomContainer.appendChild(filterComponent);
-    bottomContainer.appendChild(ontologyInfoComponent);
-    bottomContainer.appendChild(settingsComponent);
-    bottomContainer.appendChild(rendererSelectorComponent);
-    gui_container.appendChild(bottomContainer);
+  
+    Object.entries(grapholscape.widgets).forEach(widgetEntry => {
+      const widget = widgetEntry[1];
+      const widgetKey = widgetEntry[0];
+      if (widget) {
+        switch(widgetEnum[widgetKey]) {
+          case widgetEnum.ZOOM_TOOLS:
+          case widgetEnum.FIT_BUTTON:
+          case widgetEnum.FILTERS:
+          case widgetEnum.ONTOLOGY_INFO:
+          case widgetEnum.SETTINGS:
+          case widgetEnum.RENDERER_SELECTOR:
+            bottomContainer.appendChild(widget);
+            widget.onToggleBody = () => blurAll(bottomContainer, [widget]);
+            break
 
-    bottomContainer.querySelectorAll('*').forEach(widget => {
-      if (isGrapholscapeWidget(widget)) {
-        widget.onToggleBody = () => blurAll(bottomContainer, [widget]);
+          default:
+            gui_container.appendChild(widget);
+        }
+
+        // Reflect manual disabling/enabling widgets in config and update settings widget
+        widget.onEnabled = () => {
+          const configEntry = grapholscape.config.widgets[widgetEnum[widgetKey]];
+          if (configEntry) {
+            configEntry.enabled = true;
+            grapholscape.widgets.SETTINGS.requestUpdate();
+          }
+        };
+  
+        widget.onDisabled = () => {
+          const configEntry = grapholscape.config.widgets[widgetEnum[widgetKey]];
+          if (configEntry) {
+            configEntry.enabled = false;
+            grapholscape.widgets.SETTINGS.requestUpdate();
+          }
+        };
       }
     });
+    gui_container.appendChild(bottomContainer);
 
-    layoutSettingsComponent.onToggleBody = () => blurAll(bottomContainer, [layoutSettingsComponent]);
+    grapholscape.widgets.RENDERER_SELECTOR.layoutSettingsComponent.onToggleBody = () => 
+      blurAll(bottomContainer, [ grapholscape.widgets.RENDERER_SELECTOR.layoutSettingsComponent]);
 
     disableWidgets(grapholscape.config.widgets);
 
     function blurAll(container, widgetsToSkip = []) {
+      const layoutSettingsComponent = grapholscape.widgets.RENDERER_SELECTOR.layoutSettingsComponent;
       container.querySelectorAll('*').forEach(widget => {
         if (isGrapholscapeWidget(widget) && !widgetsToSkip.includes(widget)) {
           performBlur(widget);
         }
       });
 
-      if (!widgetsToSkip.includes(layoutSettingsComponent))
+      if (layoutSettingsComponent && !widgetsToSkip.includes(layoutSettingsComponent))
         performBlur(layoutSettingsComponent);
 
       function performBlur(widget) {
@@ -8489,13 +8660,13 @@ function init (grapholscape) {
     function disableWidgets(widgets) {
       for (let widget in widgets) {
         if (!widgets[widget].enabled)
-          gui_container.querySelector(widgetNames[widget]).disable();
+          gui_container.querySelector(widgetTagNames[widget]).disable();
       }
     }
   };
 
   if (grapholscape.shouldSimplify && grapholscape.shouldWaitSimplifyPromise) {
-    grapholscape.SimplifiedOntologyPromise.then( _ => {
+    await grapholscape.SimplifiedOntologyPromise.then( _ => {
       init();
     });
   } else
@@ -8511,42 +8682,8 @@ var index = /*#__PURE__*/Object.freeze({
   GscapeDialog: GscapeDialog,
   GscapeWidget: GscapeWidget,
   GscapeHeader: GscapeHeader,
-  diagramSelector: diagramSelectorComponent,
-  entityDetails: entityDetailsComponent,
-  filters: filterComponent,
-  layoutSettings: layoutSettingsComponent,
-  fullscreen: fullscreenComponent,
-  ontologyExplorer: ontologyExplorerComponent,
-  ontologyInfo: ontologyInfoComponent,
-  owlVisualizer: owlVisualizerComponent,
-  rendererSelector: rendererSelectorComponent,
-  settings: settingsComponent,
-  zoomTools: zoomToolsComponent,
-  fitButton: fitButtonComponent,
   icons: icons$1,
-  initUI: init,
-  GscapeDiagramSelector: GscapeDiagramSelector,
-  initDiagramSelector: initDiagramSelector,
-  GscapeEntityDetails: GscapeEntityDetails,
-  initEntityDetails: initEntityDetails,
-  GscapeFilters: GscapeFilters,
-  initFilters: initFilters,
-  GscapeLayoutSettings: GscapeLayoutSettings,
-  initLayoutSettings: initLayoutSettings,
-  initFullscreenButton: initFullscreenButton,
-  GscapeExplorer: GscapeExplorer,
-  initOntologyExplorer: initOntologyExplorer,
-  GscapeOntologyInfo: GscapeOntologyInfo,
-  initOntologyInfo: initOntologyInfo,
-  GscapeOwlVisualizer: GscapeOwlVisualizer,
-  initOwlVisualizer: initOwlVisualizer,
-  GscapeRenderSelector: GscapeRenderSelector,
-  initRendererSelector: initRendererSelector,
-  GscapeSettings: GscapeSettings,
-  initSettings: initSettings,
-  GscapeZoomTools: GscapeZoomTools,
-  initZoomTools: initZoomTools,
-  initFitButton: initFitButton
+  initUI: init
 });
 
 /**
@@ -8567,7 +8704,7 @@ async function fullGrapholscape(file, container, config = {}) {
   }
 
   const grapholscape = await initGrapholscape(file, container, config);
-  init(grapholscape);
+  await init(grapholscape);
   return grapholscape
 }
 
