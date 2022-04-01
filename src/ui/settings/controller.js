@@ -19,11 +19,11 @@ export default function(settingsComponent, grapholscape) {
 
   let gui_container = grapholscape.container.querySelector('#gscape-ui')
   settingsComponent.onWidgetEnabled = (widgetName) => {
-    gui_container.querySelector(widgetTagNames[widgetName]).enable()
+    gui_container.querySelector(widgetTagNames[widgetName]).enable(false)
     storeConfigEntry(widgetName, true)
   }
   settingsComponent.onWidgetDisabled = (widgetName) => {
-    gui_container.querySelector(widgetTagNames[widgetName]).disable()
+    gui_container.querySelector(widgetTagNames[widgetName]).disable(false)
     storeConfigEntry(widgetName, false)
   }
 

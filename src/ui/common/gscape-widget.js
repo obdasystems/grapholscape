@@ -182,6 +182,8 @@ export default class GscapeWidget extends LitElement {
     this._hiddenDefault = false
 
     this.onToggleBody = () => { }
+    this.onEnabled = () => { }
+    this.onDisabled = () => { }
   }
 
   render() {
@@ -241,11 +243,11 @@ export default class GscapeWidget extends LitElement {
 
   makeDraggableHeadTitle() {
     if (this.draggable) {
-      setTimeout( () => {
+      setTimeout(() => {
         const headTitleDiv = this.header.shadowRoot.querySelector('.head-title')
         headTitleDiv.classList.add('drag_handler')
         this.makeDraggable(headTitleDiv)
-      })     
+      })
     }
   }
 
@@ -300,14 +302,32 @@ export default class GscapeWidget extends LitElement {
     this.style.display = 'none'
   }
 
-  enable() {
+  /**
+   * 
+   * @param {boolean} callCallback Wether to call callback or not
+   * the callback will update other components, you might not want them
+   * to update cause they are already updated.
+   * BE CAREFUL, calling callback when not necessary might end up in
+   * infinite recursion.
+   */
+  enable(callCallback = true) {
     this.isEnabled = true
     if (!this.hiddenDefault) this.show()
+    if (callCallback) this.onEnabled()
   }
 
-  disable() {
+  /**
+   * 
+   * @param {boolean} callCallback Wether to call callback or not
+   * the callback will update other components, you might not want them
+   * to update cause they are already updated.
+   * BE CAREFUL, calling callback when not necessary might end up in
+   * infinite recursion.
+   */
+  disable(callCallback = true) {
     this.isEnabled = false
     this.hide()
+    if (callCallback) this.onDisabled()
   }
 
   blur() {

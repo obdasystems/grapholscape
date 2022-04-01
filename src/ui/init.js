@@ -46,7 +46,7 @@ export default async function (grapholscape) {
       const widget = widgetEntry[1]
       const widgetKey = widgetEntry[0]
       if (widget) {
-        switch(widgetKey) {
+        switch(widgetEnum[widgetKey]) {
           case widgetEnum.ZOOM_TOOLS:
           case widgetEnum.FIT_BUTTON:
           case widgetEnum.FILTERS:
@@ -59,6 +59,23 @@ export default async function (grapholscape) {
 
           default:
             gui_container.appendChild(widget)
+        }
+
+        // Reflect manual disabling/enabling widgets in config and update settings widget
+        widget.onEnabled = () => {
+          const configEntry = grapholscape.config.widgets[widgetEnum[widgetKey]]
+          if (configEntry) {
+            configEntry.enabled = true
+            grapholscape.widgets.SETTINGS.requestUpdate()
+          }
+        }
+  
+        widget.onDisabled = () => {
+          const configEntry = grapholscape.config.widgets[widgetEnum[widgetKey]]
+          if (configEntry) {
+            configEntry.enabled = false
+            grapholscape.widgets.SETTINGS.requestUpdate()
+          }
         }
       }
     })
