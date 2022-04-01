@@ -2,7 +2,7 @@
   <img width="250px" src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
 </p>
 
-Advanced web viewer for ontologies written in [GRAPHOL](http://www.obdasystems.com/it/node/107). [**Try me**](https://obdasystems.github.io/grapholscape/)
+Advanced web viewer for ontologies written in GRAPHOL.[**Try me**](https://obdasystems.github.io/grapholscape/demo/)
 
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
@@ -18,15 +18,14 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 * Multi-diagrammatic inspection that allows you to navigate through all diagrams that builds up the ontology
 
 <p align="center">
-  <img src="https://github.com/obdasystems/grapholscape/raw/master/resources/demo.gif" />
+  <img src="https://github.com/obdasystems/grapholscape/blob/master/doc/static/assets/img/demo.gif" />
 </p>
 
 ## What is Graphol?
-GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.\
-Further information [here](https://www.obdasystems.com/it/node/107).
+GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.
 
-## Usage | [Demo](https://obdasystems.github.io/grapholscape/)
-You can try it [here](https://obdasystems.github.io/grapholscape/) or just clone the repository, `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
+## Usage | [Demo](https://obdasystems.github.io/grapholscape/demo/)
+You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or just clone the repository, `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
 
 ### Embed in your project
 
@@ -48,7 +47,7 @@ If you are using a HTML Environment (without a build system) you can:
   ```
 
 #### Via NPM
-If you want to nstall it via **npm**: `npm install grapholscape`.
+If you want to install it via **npm**: `npm install grapholscape`.
 Then you can choose what to import depending on your needs:
 ```js
 // import everything
@@ -57,7 +56,7 @@ import * as Grapholscape from "grapholscape";
 // import only core features for basic usage
 import { fullGrapholscape } from "grapholscape"; // with UI widgets
 // or
-import { bareGrapholscape } from "grapholscape; // without UI widgets
+import { bareGrapholscape } from "grapholscape"; // without UI widgets
 ```
 
 ### Initialisation
@@ -69,11 +68,11 @@ grapholscape.showDiagram(0)
 > **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
 
 Once the initialization phase is done, the promise will return a `Grapholscape` object that can be used to perform actions on the tool.
-In the example we saw the method `showDiagram(0)`, for the complete API please read [`doc/api.md`](doc/api.md).
+In the example we saw the method `showDiagram(0)`, for the complete API please read [`doc/api.md`](https://obdasystems.github.io/grapholscape/Grapholscape.html).
 
-Information about entities, namesapaces and diagrams are stored in `Grapholscape.ontology`. Read More in [`doc/ontology.md`](doc/ontology.md).
+Information about entities, namesapaces and diagrams are stored in `Grapholscape.ontology`. Read More in [`doc/ontology.md`](https://obdasystems.github.io/grapholscape/Ontology.html).
 
-It is possible to pass also a json config object to define custom default settings. Read more: [default settings customization](https://github.com/obdasystems/grapholscape/wiki/Settings#default-settings-customization).
+It is possible to pass also a json config object to define custom default settings. Read more: [default settings customization](https://obdasystems.github.io/grapholscape/tutorial-Settings.html).
 
 ### Build it locally
 Install `Node` and `npm`.
@@ -88,9 +87,9 @@ Install dependencies:
 npm run install
 ```
 
-Build and start:
+Build in dev/debug mode:
 ```cmd
-npm run build
+npm run start
 ```
 And open `doc/static/demo/index.html`.
 
