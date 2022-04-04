@@ -23,7 +23,7 @@
     "doc": "jsdoc -c doc/jsdoc.config.json --tutorials doc/static/tutorials",
     "test": "jest",
     "preversion": "run-s test",
-    "version": "run-s doc build app:dist && git add -A"
+    "version": "run-s build doc app:dist && git add -A"
   },
   "repository": {
     "type": "git",
