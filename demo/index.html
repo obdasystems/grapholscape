@@ -75,23 +75,31 @@
   <div id="grapholscape_container"></div>
 
   <div id="home">
-    <div id="logo">
-      <img style="width:20%" src="../assets/img/logo.png" />
-    </div>
-    <div class="panel" id="left-panel">
-      <h2>Select an example</h2>
-      <div id="examples_list">
-        <ul>
-        </ul>
-      </div>
+    <div id="gscape-logo">
+      <img src="../assets/img/logo.png" />
     </div>
 
-    <div class="panel" id="right-panel">
-      <div id="dropbox">
-        <h2>Select or drop a file</h2>
-        <h1 id="add-button">+</h1>
-        <input id="file-input" type="file" name="select-graphol" style="display: none" />
-        <p>Select your .graphol file to display it</p>
+    <form id="url-graphol-form" onsubmit="fetchGrapholFromUrl(this)" action="javascript:void(0);">
+      <input id="url-input" type="url" placeholder="URL of your .graphol file..." required/>
+      <input id="submit-input" type="submit" value="Open"/>
+    </form>
+    or
+    <div id="gscape-panel-wrapper">
+      <div class="gscape-panel" id="left-panel">
+        <h2>Select an example</h2>
+        <div id="examples_list">
+          <ul>
+          </ul>
+        </div>
+      </div>
+      <hr/>
+      <div class="gscape-panel" id="right-panel">
+        <div id="dropbox">
+          <h2>Select or drop a file</h2>
+          <h1 id="add-button">+</h1>
+          <input id="file-input" type="file" name="select-graphol" style="display: none" />
+          <p>Select your .graphol file to display it</p>
+        </div>
       </div>
     </div>
   </div>
@@ -137,7 +145,7 @@
     }
 
     // Examples
-    var examples_list = document.getElementById('examples_list');
+    var examples_list = document.querySelector('#examples_list > ul');
     var i = 0;
 
     for (i=0; i<examples.length; i++) {
@@ -158,6 +166,24 @@
 
       grapholscape = await Grapholscape.fullGrapholscape(file, grapholscape_container)
       grapholscape.showDiagram(0)
+    }
+
+    function fetchGrapholFromUrl(form) {
+      const inputField = form.querySelector('input')
+      const url = inputField.value
+      fetch(url)
+        .then(response => {
+          if(!response.ok) {
+            inputField.setCustomValidity('This is not a valid file')
+            return
+          }
+          response.blob().then(file => file.text().then(text => {
+            if (text && text.length > 0) useGrapholscape(text)
+          }))
+        })
+        .catch(error => {
+          inputField.setCustomValidity(error)
+        })
     }
   </script>
 </body>
