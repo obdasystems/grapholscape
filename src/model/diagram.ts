@@ -1,4 +1,4 @@
-import cytoscape from 'cytoscape'
+import cytoscape, { Core } from 'cytoscape'
 import setDatatypeOnDataProperty from '../util/set-datatype-on-data-property'
 import { Type } from './node-enums'
 /**
@@ -7,12 +7,16 @@ import { Type } from './node-enums'
  * @property {cytoscape} cy - cytoscape headless instance for managing elements
  */
 class Diagram {
+  name: string
+  id: string | number
+  hasEverBeenRendered: boolean
+  cy: Core
   /**
    * @param {string} name
    * @param {string | number} id
    * @param {JSON} elements - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
    */
-  constructor (name, id, elements = null) {
+  constructor(name: string, id: string | number, elements: JSON = null) {
     this.name = name
     this.id = id
     this.cy = cytoscape()
@@ -22,19 +26,22 @@ class Diagram {
     this.hasEverBeenRendered = false
   }
 
+  render(container: Element) {
+    this.cy.mount(container)
+  }
+
   /**
    * Add a collection of nodes and edges to the diagram
    * @param {JSON} elems - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
    */
-  addElems (elems) {
-    this.cy.add(elems)
+  addElems(elems: JSON) {
+    //this.cy.add(elems)
 
-    this.cy.$(`node[type = "${Type.DATA_PROPERTY}"]`).forEach(cyDataProperty => setDatatypeOnDataProperty(cyDataProperty))
+    //this.cy.$(`node[type = "${Type.DATA_PROPERTY}"]`).forEach(cyDataProperty => setDatatypeOnDataProperty(cyDataProperty))
   }
 
   /**
    * Get the entity selected
-   * @returns {cytoscape.CollectionReturnValue | undefined}
    */
   getSelectedEntity() {
     let result = this.cy.$('.predicate:selected').first()
@@ -47,7 +54,7 @@ class Diagram {
    * @param {string} id unique elem id (node or edge)
    * @param {boolean} [unselect=true] should selected elements be unselected
    */
-  selectElem(id, unselect = true) {
+  selectElem(id: string, unselect: boolean = true) {
     if (unselect) this.unselectAll()
     this.cy.$id(id).select()
   }
@@ -56,13 +63,12 @@ class Diagram {
    * Unselect every selected element in this diagram
    * @param {string} [selector='*'] cytoscape selector to filter the elements to unselect, default '*'
    */
-  unselectAll(selector = '*') {
-    this.cy.$(selector+':selected').unselect()
+  unselectAll(selector: string = '*') {
+    this.cy.$(selector + ':selected').unselect()
   }
 
   /**
    * Getter
-   * @returns {JSON} - nodes in JSON
    */
   get nodes() {
     return this.cy.nodes().jsons()
@@ -70,7 +76,6 @@ class Diagram {
 
   /**
    * Getter
-   * @returns {JSON} - edges in JSON
    */
   get edges() {
     return this.cy.edges().jsons()

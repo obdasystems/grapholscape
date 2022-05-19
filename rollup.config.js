@@ -7,13 +7,14 @@ import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
 import path from 'path'
 import json from '@rollup/plugin-json'
+import typescript from '@rollup/plugin-typescript'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
 const dependencies = Object.keys(require('./package.json').dependencies)
 dependencies.splice(dependencies.indexOf('lit'), 1)
 
-const input = './src/index.js'
+const input = './src/index.ts'
 const name = 'Grapholscape'
 
 const envVariables = {
@@ -88,6 +89,10 @@ const configs = [
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
+      typescript({
+        allowSyntheticDefaultImports: true,
+        target: 'es6'
+      }),
     ]
   },
   { // production transpiled, minified

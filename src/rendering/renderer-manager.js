@@ -126,12 +126,12 @@ class RendererManager {
 
   /** @param {import("../grapholscape").Filter} filterObj*/
   filter(filterObj) {
-    this.renderer.filter(filterObj)
+    Object.values(this.renderers).forEach(renderer => renderer.filter(filterObj))
   }
 
   /** @param {import("../grapholscape").Filter} filterObj*/
   unfilter(filterObj) {
-    this.renderer.unfilter(filterObj)
+    Object.values(this.renderers).forEach(renderer => renderer.unfilter(filterObj))
   }
 
   /** @param {import("../style/themes").Theme} theme */

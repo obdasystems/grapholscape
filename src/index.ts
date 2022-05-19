@@ -1,7 +1,9 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
+import core from './core'
 import initGrapholscape from './init'
+import { GrapholscapeState } from './model'
 import * as themes from './style/themes'
 
 cytoscape.use(popper)
@@ -35,4 +37,12 @@ export function bareGrapholscape(file, container, config = {}) {
   }
 
   return initGrapholscape(file, container, config)
+}
+
+
+export function newGrapholscape() {
+  const state = new GrapholscapeState()
+  let c = core(state)
+  
+  return c
 }

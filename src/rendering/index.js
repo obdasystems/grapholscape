@@ -1,4 +1,3 @@
-import { render } from "lit-html"
 import RendererManager from "./renderer-manager"
 import * as renderers from "./renderers"
 
