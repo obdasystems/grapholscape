@@ -7,9 +7,13 @@ import * as Graphol3 from './parser-v3'
 import { grapholNodes, nodeTypes, nodeShapes } from '../model'
 import { constructorLabels, Type } from '../model/node-enums'
 import GrapholEntity, { Functionalities } from '../model/graphol-elems/entity'
-import GrapholNode from '../model/graphol-elems/node'
+import GrapholNode, { LABEL_HEIGHT } from '../model/graphol-elems/node'
 import Iri from '../model/iri'
 import Annotation from '../model/graphol-elems/annotation'
+import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
+import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
+import FakeRectangle from '../model/graphol-elems/fakes/fake-rectangle'
+import FakeCircle from '../model/graphol-elems/fakes/fake-circle'
 
 interface Graphol {
   getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
@@ -60,9 +64,9 @@ export default class GrapholParser {
         const nodeXmlElement = nodes[k]
         const grapholNodeType = this.getGrapholNodeType(nodeXmlElement)
         const node = this.getBasicGrapholNode(nodeXmlElement, i)
-        const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
 
         if (node.isEntity()) {
+          const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
           let entity = this.ontology.getEntity(iri.fullIri)
           if (!entity) {
             entity = new GrapholEntity(iri, grapholNodeType.TYPE)
@@ -99,55 +103,52 @@ export default class GrapholParser {
             // if no labels defined, apply remainingChars from iri as displayed name
             node.displayedName = entity.iri.remainder
           }
-        } else { // not an entity, take label from <label> tag or use those for constructor nodes
-          
+
+          // Add fake nodes
+          if (node.is(Type.OBJECT_PROPERTY) &&
+            entity.hasFunctionality(Functionalities.functional) &&
+            entity.hasFunctionality(Functionalities.inverseFunctional)) {
+            node.addFakeNode(new FakeTriangleRight(node, diagram.id))
+            node.addFakeNode(new FakeTriangleLeft(node, diagram.id))
+            node.height -= 8
+            node.width -= 10
+
+            // If the node is both functional and inverse functional,
+            // we added the double style border and changed the node height and width.
+            // The label position is function of node's height and width so we adjust it
+            // now after those changes.
+            if (node.displayedName) {
+              node.labelYpos -= 4
+            }
+          }
+        } else {
+          // not an entity, take label from <label> tag or use those for constructor nodes          
           switch (node.type) {
             case Type.FACET:
               node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
               break
-            
+
             case Type.VALUE_DOMAIN:
+              const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
               node.displayedName = iri.prefixed
               break
 
-            default: 
+            default:
               let typeKey = Object.keys(Type).find(k => Type[k] === node.type)
               if (constructorLabels[typeKey])
                 node.displayedName = constructorLabels[typeKey]
               break
-          } // CONTINUE HERE 
-          
-          // if (node.is(Type.FACET)) {
-          //   node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
-          // } else if (node.data.type === Type.VALUE_DOMAIN) {
-          //   node.data.displayed_name = node.data.iri.prefixed
-          // }
+          }
 
           // for domain/range restrictions, cardinalities
           if (Graphol3.getTagText(nodes[k], 'label')) {
             node.displayedName = Graphol3.getTagText(nodes[k], 'label')
           }
-
-          // else { // a constructor node
-          //   let typeKey = Object.keys(Type).find(k => Type[k] === node.data.type)
-          //   if (constructorLabels[typeKey])
-          //     node.data.displayed_name = constructorLabels[typeKey]
-          // }
         }
 
-        array_json_elems.push(node)
-
-        // add fake nodes when necessary
-        // for property assertion, facets or for
-        // both functional and inverseFunctional ObjectProperties
-        if (array_json_elems[cnt].data.type === nodeTypes.PROPERTY_ASSERTION ||
-          array_json_elems[cnt].data.type === nodeTypes.FACET ||
-          (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
-          this.addFakeNodes(array_json_elems)
-          cnt += array_json_elems.length - cnt
-        } else { cnt++ }
+        diagram.addNode(node)
       }
-      diagram.addElems(array_json_elems)
+
       array_json_elems = []
       for (k = 0; k < edges.length; k++) {
         array_json_elems.push(this.EdgeXmlToJson(edges[k], i))
@@ -172,27 +173,14 @@ export default class GrapholParser {
     return this.ontology
   }
 
-  getBasicGrapholNode(element: Element, diagram_id: number) {
+  getBasicGrapholNode(element: Element, diagramId: number) {
     let enumTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
-    let grapholNode = new GrapholNode(element.getAttribute('id'), diagram_id)
+    let grapholNode = new GrapholNode(element.getAttribute('id'), diagramId)
 
     grapholNode.type = grapholNodes[enumTypeKey].TYPE
     grapholNode.shape = grapholNodes[enumTypeKey].SHAPE
     grapholNode.identity = grapholNodes[enumTypeKey].IDENTITY
-
-    let nodo = {
-      data: {
-        id_xml: element.getAttribute('id'),
-        diagram_id: diagram_id,
-        id: element.getAttribute('id') + '_' + diagram_id,
-        fillColor: element.getAttribute('color'),
-        type: grapholNodes[enumTypeKey].TYPE,
-        shape: grapholNodes[enumTypeKey].SHAPE,
-        identity: grapholNodes[enumTypeKey].IDENTITY
-      },
-      position: {},
-      classes: grapholNodes[enumTypeKey].TYPE
-    }
+    grapholNode.fillColor = element.getAttribute('color')
 
     // Parsing the <geometry> child node of node
     var geometry = element.getElementsByTagName('geometry')[0]
@@ -206,21 +194,44 @@ export default class GrapholParser {
         grapholNode.inputs = element.getAttribute('inputs').split(',')
     }
 
-    if (grapholNode.is(Type.FACET)) {
-      grapholNode.shapePoints = grapholNodes.FACET.SHAPE_POINTS
-      grapholNode.fillColor = '#ffffff'
-    }
-
     let label = element.getElementsByTagName('label')[0]
     // apply label position and font size
     if (label != null) {
       grapholNode.labelXpos = parseInt(label.getAttribute('x'))
-      grapholNode.labelYpos = parseInt(label.getAttribute('y'))
+      grapholNode.labelYpos = this.getCorrectLabelYpos(parseInt(label.getAttribute('y')), grapholNode.position.y, grapholNode.height)
       grapholNode.fontSize = parseInt(label.getAttribute('size')) || 12
     }
 
-    if (ParserUtil.isPredicate(element))
-      nodo.classes += ' predicate'
+    if (grapholNode.is(Type.FACET)) {
+      grapholNode.shapePoints = grapholNodes.FACET.SHAPE_POINTS
+      grapholNode.fillColor = '#ffffff'
+
+      // Add fake nodes
+      grapholNode.displayedName = grapholNode.displayedName.replace('^^', '\n\n')
+      grapholNode.labelYpos = grapholNode.height
+
+      grapholNode.addFakeNode(new FakeTopRhomboid(grapholNode, diagramId))
+      grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode, diagramId))
+    }
+
+    if (grapholNode.is(Type.PROPERTY_ASSERTION)) {
+      // Add fake nodes
+      grapholNode.height -= 1
+      grapholNode.width = grapholNode.width - grapholNode.height
+
+      grapholNode.addFakeNode(new FakeRectangle(grapholNode, diagramId))
+
+      const fakeCircle1 = new FakeCircle(grapholNode, diagramId)
+      fakeCircle1.x = grapholNode.x - ((grapholNode.width - grapholNode.height) / 2)
+      grapholNode.addFakeNode(fakeCircle1)
+
+      const fakeCircle2 = new FakeCircle(grapholNode, diagramId)
+      fakeCircle2.x = grapholNode.x + ((grapholNode.width - grapholNode.height) / 2)
+      grapholNode.addFakeNode(fakeCircle2)
+    }
+
+    // if (ParserUtil.isPredicate(element))
+    //   nodo.classes += ' predicate'
     return grapholNode
   }
 
@@ -360,166 +371,166 @@ export default class GrapholParser {
     return edge
   }
 
-  addFakeNodes(array_json_nodes) {
-    var nodo = array_json_nodes[array_json_nodes.length - 1]
-    if (nodo.data.type === 'facet') {
-      // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
-      // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
-      nodo.data.displayed_name = nodo.data.displayed_name.replace('^^', '\n\n')
-      nodo.data.labelYpos = nodo.data.height
-      // Creating the top rhomboid for the grey background
-      var top_rhomboid = {
-        selectable: false,
-        data: {
-          height: nodo.data.height,
-          width: nodo.data.width,
-          shape: nodeShapes.POLYGON,
-          shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
-          diagram_id: nodo.data.diagram_id,
-          parent_node_id: nodo.data.id,
-          type: nodo.data.type
-        },
-        position: {
-          x: nodo.position.x,
-          y: nodo.position.y
-        },
-        classes: 'fake-top-rhomboid'
-      }
+  // addFakeNodes(array_json_nodes) {
+  //   var nodo = array_json_nodes[array_json_nodes.length - 1]
+  //   if (nodo.data.type === 'facet') {
+  //     // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
+  //     // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
+  //     nodo.data.displayed_name = nodo.data.displayed_name.replace('^^', '\n\n')
+  //     nodo.data.labelYpos = nodo.data.height
+  //     // Creating the top rhomboid for the grey background
+  //     var top_rhomboid = {
+  //       selectable: false,
+  //       data: {
+  //         height: nodo.data.height,
+  //         width: nodo.data.width,
+  //         shape: nodeShapes.POLYGON,
+  //         shape_points: '-0.9 -1 1 -1 0.95 0 -0.95 0',
+  //         diagram_id: nodo.data.diagram_id,
+  //         parent_node_id: nodo.data.id,
+  //         type: nodo.data.type
+  //       },
+  //       position: {
+  //         x: nodo.position.x,
+  //         y: nodo.position.y
+  //       },
+  //       classes: 'fake-top-rhomboid'
+  //     }
 
-      var bottom_rhomboid = {
-        selectable: false,
-        data: {
-          height: nodo.data.height,
-          width: nodo.data.width,
-          shape: 'polygon',
-          shape_points: '-0.95 0 0.95 0 0.9 1 -1 1',
-          diagram_id: nodo.data.diagram_id,
-          parent_node_id: nodo.data.id,
-          type: nodo.data.type
-        },
-        position: {
-          x: nodo.position.x,
-          y: nodo.position.y
-        }
-      }
-      array_json_nodes[array_json_nodes.length - 1] = top_rhomboid
-      array_json_nodes.push(bottom_rhomboid)
-      array_json_nodes.push(nodo)
-      return
-    }
+  //     var bottom_rhomboid = {
+  //       selectable: false,
+  //       data: {
+  //         height: nodo.data.height,
+  //         width: nodo.data.width,
+  //         shape: 'polygon',
+  //         shape_points: '-0.95 0 0.95 0 0.9 1 -1 1',
+  //         diagram_id: nodo.data.diagram_id,
+  //         parent_node_id: nodo.data.id,
+  //         type: nodo.data.type
+  //       },
+  //       position: {
+  //         x: nodo.position.x,
+  //         y: nodo.position.y
+  //       }
+  //     }
+  //     array_json_nodes[array_json_nodes.length - 1] = top_rhomboid
+  //     array_json_nodes.push(bottom_rhomboid)
+  //     array_json_nodes.push(nodo)
+  //     return
+  //   }
 
-    if (nodo.data.functional === 1 && nodo.data.inverseFunctional === 1) {
-      // Creating "fake" nodes for the double style border effect
-      var triangle_right = {
-        selectable: false,
-        data: {
-          height: nodo.data.height,
-          width: nodo.data.width,
-          fillColor: "#000",
-          shape: 'polygon',
-          shape_points: '0 -1 1 0 0 1',
-          diagram_id: nodo.data.diagram_id,
-          type: nodo.data.type,
-        },
-        position: {
-          x: nodo.position.x,
-          y: nodo.position.y,
-        },
-        classes: 'fake-triangle fake-triangle-right'
-      }
-      var triangle_left = {
-        selectable: false,
-        data: {
-          height: nodo.data.height,
-          width: nodo.data.width + 2,
-          fillColor: '#fcfcfc',
-          shape: 'polygon',
-          shape_points: '0 -1 -1 0 0 1',
-          diagram_id: nodo.data.diagram_id,
-          type: nodo.data.type,
-        },
-        position: {
-          x: nodo.position.x,
-          y: nodo.position.y
-        },
-        classes: 'fake-triangle'
-      }
-      //var old_labelXpos = nodo.data.labelXpos
-      //var old_labelYpos = nodo.data.labelYpos
-      nodo.data.height -= 8
-      nodo.data.width -= 10
-      // If the node is both functional and inverse functional,
-      // we added the double style border and changed the node height and width.
-      // The label position is function of node's height and width so we adjust it
-      // now after those changes.
-      if (nodo.data.displayed_name != null) {
-        nodo.data.labelYpos -= 4
-      }
-      array_json_nodes[array_json_nodes.length - 1] = triangle_left
-      array_json_nodes.push(triangle_right)
-      array_json_nodes.push(nodo)
-    }
+  //   if (nodo.data.functional === 1 && nodo.data.inverseFunctional === 1) {
+  //     // Creating "fake" nodes for the double style border effect
+  //     var triangle_right = {
+  //       selectable: false,
+  //       data: {
+  //         height: nodo.data.height,
+  //         width: nodo.data.width,
+  //         fillColor: "#000",
+  //         shape: 'polygon',
+  //         shape_points: '0 -1 1 0 0 1',
+  //         diagram_id: nodo.data.diagram_id,
+  //         type: nodo.data.type,
+  //       },
+  //       position: {
+  //         x: nodo.position.x,
+  //         y: nodo.position.y,
+  //       },
+  //       classes: 'fake-triangle fake-triangle-right'
+  //     }
+  //     var triangle_left = {
+  //       selectable: false,
+  //       data: {
+  //         height: nodo.data.height,
+  //         width: nodo.data.width + 2,
+  //         fillColor: '#fcfcfc',
+  //         shape: 'polygon',
+  //         shape_points: '0 -1 -1 0 0 1',
+  //         diagram_id: nodo.data.diagram_id,
+  //         type: nodo.data.type,
+  //       },
+  //       position: {
+  //         x: nodo.position.x,
+  //         y: nodo.position.y
+  //       },
+  //       classes: 'fake-triangle'
+  //     }
+  //     //var old_labelXpos = nodo.data.labelXpos
+  //     //var old_labelYpos = nodo.data.labelYpos
+  //     nodo.data.height -= 8
+  //     nodo.data.width -= 10
+  //     // If the node is both functional and inverse functional,
+  //     // we added the double style border and changed the node height and width.
+  //     // The label position is function of node's height and width so we adjust it
+  //     // now after those changes.
+  //     if (nodo.data.displayed_name != null) {
+  //       nodo.data.labelYpos -= 4
+  //     }
+  //     array_json_nodes[array_json_nodes.length - 1] = triangle_left
+  //     array_json_nodes.push(triangle_right)
+  //     array_json_nodes.push(nodo)
+  //   }
 
-    if (nodo.data.type === nodeTypes.PROPERTY_ASSERTION) {
-      var circle1 = {
-        selectable: false,
-        classes: 'no_overlay',
-        data: {
-          height: nodo.data.height,
-          width: nodo.data.height,
-          shape: nodeShapes.ELLIPSE,
-          diagram_id: nodo.data.diagram_id,
-          fillColor: '#fff',
-          parent_node_id: nodo.data.id,
-          type: nodo.data.type
-        },
-        position: {
-          x: nodo.position.x - ((nodo.data.width - nodo.data.height) / 2),
-          y: nodo.position.y
-        }
-      }
-      var circle2 = {
-        selectable: false,
-        classes: 'no_overlay',
-        data: {
-          height: nodo.data.height,
-          width: nodo.data.height,
-          shape: nodeShapes.ELLIPSE,
-          diagram_id: nodo.data.diagram_id,
-          fillColor: '#fff',
-          parent_node_id: nodo.data.id,
-          type: nodo.data.type
-        },
-        position: {
-          x: nodo.position.x + ((nodo.data.width - nodo.data.height) / 2),
-          y: nodo.position.y
-        }
-      }
-      var back_rectangle = {
-        data: {
-          selectable: false,
-          height: nodo.data.height,
-          width: nodo.data.width - nodo.data.height,
-          shape: nodeShapes.RECTANGLE,
-          diagram_id: nodo.data.diagram_id,
-          fillColor: '#fff',
-          parent_node_id: nodo.data.id,
-          type: nodo.data.type
-        },
-        position: nodo.position
-      }
+  //   if (nodo.data.type === nodeTypes.PROPERTY_ASSERTION) {
+  //     var circle1 = {
+  //       selectable: false,
+  //       classes: 'no_overlay',
+  //       data: {
+  //         height: nodo.data.height,
+  //         width: nodo.data.height,
+  //         shape: nodeShapes.ELLIPSE,
+  //         diagram_id: nodo.data.diagram_id,
+  //         fillColor: '#fff',
+  //         parent_node_id: nodo.data.id,
+  //         type: nodo.data.type
+  //       },
+  //       position: {
+  //         x: nodo.position.x - ((nodo.data.width - nodo.data.height) / 2),
+  //         y: nodo.position.y
+  //       }
+  //     }
+  //     var circle2 = {
+  //       selectable: false,
+  //       classes: 'no_overlay',
+  //       data: {
+  //         height: nodo.data.height,
+  //         width: nodo.data.height,
+  //         shape: nodeShapes.ELLIPSE,
+  //         diagram_id: nodo.data.diagram_id,
+  //         fillColor: '#fff',
+  //         parent_node_id: nodo.data.id,
+  //         type: nodo.data.type
+  //       },
+  //       position: {
+  //         x: nodo.position.x + ((nodo.data.width - nodo.data.height) / 2),
+  //         y: nodo.position.y
+  //       }
+  //     }
+  //     var back_rectangle = {
+  //       data: {
+  //         selectable: false,
+  //         height: nodo.data.height,
+  //         width: nodo.data.width - nodo.data.height,
+  //         shape: nodeShapes.RECTANGLE,
+  //         diagram_id: nodo.data.diagram_id,
+  //         fillColor: '#fff',
+  //         parent_node_id: nodo.data.id,
+  //         type: nodo.data.type
+  //       },
+  //       position: nodo.position
+  //     }
 
-      nodo.data.height -= 1
-      nodo.data.width = nodo.data.width - nodo.data.height
-      nodo.data.shape = nodeShapes.RECTANGLE
-      nodo.classes = `${nodeTypes.PROPERTY_ASSERTION} no_border`
+  //     node.data.height -= 1
+  //     node.data.width = node.data.width - node.data.height
+  //     node.data.shape = nodeShapes.RECTANGLE
+  //     node.classes = `${nodeTypes.PROPERTY_ASSERTION} no_border`
 
-      array_json_nodes[array_json_nodes.length - 1] = back_rectangle
-      array_json_nodes.push(circle1)
-      array_json_nodes.push(circle2)
-      array_json_nodes.push(nodo)
-    }
-  }
+  //     // array_json_nodes[array_json_nodes.length - 1] = back_rectangle
+  //     // array_json_nodes.push(circle1)
+  //     // array_json_nodes.push(circle2)
+  //     // array_json_nodes.push(node)
+  //   }
+  // }
 
   getIdentityForNeutralNodes() {
     this.ontology.diagrams.forEach(diagram => {
@@ -557,5 +568,9 @@ export default class GrapholParser {
     const nodeTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
 
     return grapholNodes[nodeTypeKey]
+  }
+
+  getCorrectLabelYpos(labelYpos: number, positionY: number, height: number) {
+    return (labelYpos - positionY) + (height + 2) / 2 + LABEL_HEIGHT / 4
   }
 }

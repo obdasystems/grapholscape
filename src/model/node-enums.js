@@ -189,7 +189,7 @@ export default {
   },
   PROPERTY_ASSERTION: {
     TYPE: Type.PROPERTY_ASSERTION,
-    SHAPE: Shape.ROUND_RECTANGLE,
+    SHAPE: Shape.RECTANGLE,
     IDENTITY: Type.NEUTRAL
   },
   LITERAL: {

@@ -95,7 +95,7 @@ export function getIri(element: Element, ontology: Ontology) {
   // return iri_infos
 }
 
-export function getFacetDisplayedName(element) {
+export function getFacetDisplayedName(element:Element) {
   if (element.getElementsByTagName('label')[0])
     // language undefined for v2 = ''
     return element.getElementsByTagName('label')[0].textContent

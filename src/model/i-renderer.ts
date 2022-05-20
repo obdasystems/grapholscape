@@ -1,4 +1,4 @@
-interface Renderer {
+export default interface Renderer {
   render: (container?: Element) => void
   showEntity: (iri: string, zoom?: number) => void
   selectEntity: (iri: string, zoom?: number) => void
@@ -7,5 +7,5 @@ interface Renderer {
   unselect: () => void
   fit: (padding: number) => void
   zoomIn: (level: number) => void
-  zommOut: (level: number) => void
+  zoomOut: (level: number) => void
 }

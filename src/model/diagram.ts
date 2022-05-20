@@ -1,9 +1,7 @@
-import cytoscape, { Core } from 'cytoscape'
+import cytoscape from 'cytoscape'
 import cytoscapeDefaultConfig from '../config/cytoscape-default-config'
-import setDatatypeOnDataProperty from '../util/set-datatype-on-data-property'
-import GrapholEntity from './graphol-elems/entity'
-import Iri from './iri'
-import { Type } from './node-enums'
+import GrapholNode from './graphol-elems/node'
+import Renderer from './i-renderer'
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
@@ -14,6 +12,9 @@ class Diagram implements Renderer {
   id: number
   hasEverBeenRendered: boolean
   cy = cytoscape(cytoscapeDefaultConfig)
+  grapholNodes: GrapholNode[]
+  //grapholEdges: GrapholEdge[]
+  private fakeNodes: GrapholNode[]
 
   /**
    * @param {string} name
@@ -31,7 +32,6 @@ class Diagram implements Renderer {
   showEntity: (iri: string, zoom?: number) => void
   selectEntity: (iri: string, zoom?: number) => void
   centerOnRederedPosition: (x: number, y: number, zoom?: number) => void
-  zommOut: (level: number) => void
 
   render(container: Element) {
     this.cy.mount(container)
@@ -45,6 +45,15 @@ class Diagram implements Renderer {
     //this.cy.add(elems)
 
     //this.cy.$(`node[type = "${Type.DATA_PROPERTY}"]`).forEach(cyDataProperty => setDatatypeOnDataProperty(cyDataProperty))
+  }
+
+  /**
+   * Add a new node to the diagram
+   * @param newNode the GrapholNode to add to the diagram
+   */
+  addNode(newNode: GrapholNode) {
+    this.grapholNodes.push(newNode)
+    //this.cy.add(newNode)
   }
 
   /**

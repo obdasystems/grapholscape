@@ -2,9 +2,10 @@ import { Position } from "cytoscape"
 import { Shape, Type } from "../node-enums"
 import GrapholElement from "./graphol-element"
 
+export const LABEL_HEIGHT = 23
 
 export default class GrapholNode extends GrapholElement {
-  
+
   private _position: Position = { x: 0, y: 0 }
   private _shape: Shape
   private _identity: Type
@@ -13,19 +14,18 @@ export default class GrapholNode extends GrapholElement {
   private _displayedName: string
   private _fillColor: string
 
-  private LABEL_HEIGHT = 23
   private _labelXpos?: number
   private _labelXcentered?: boolean
   private _labelYpos?: number
   private _labelYcentered?: boolean
   private _fontSize?: number
+  private _fakeNodes: GrapholNode[]
 
   // Inputs for role-chains, a list nodes IDs
   private _inputs?: string[]
 
   // shape points for nodes with non-standard shapes
-  private _shapePoints?: number[]
-  shapePoints: any
+  private _shapePoints?: string
 
   get position() { return this._position }
   set position(pos: Position) {
@@ -54,7 +54,7 @@ export default class GrapholNode extends GrapholElement {
 
   get height() { return this._height }
   set height(height: number) {
-    this._height = height >=0 ? height : -height
+    this._height = height >= 0 ? height : -height
 
     if (this.type === Type.FACET) {
       this._height = 40
@@ -87,7 +87,7 @@ export default class GrapholNode extends GrapholElement {
       this._labelYcentered = true
       this._labelYpos = 0
     } else {
-      this._labelYpos = (labelYpos - this.position.y) + (this.height + 2) / 2 + this.LABEL_HEIGHT / 4
+      this._labelYpos = labelYpos
     }
   }
 
@@ -102,5 +102,14 @@ export default class GrapholNode extends GrapholElement {
   get inputs() { return this._inputs }
   set inputs(inputs: string[]) {
     this._inputs = inputs
+  }
+
+  get shapePoints() { return this.shapePoints }
+  set shapePoints(shapePoints: string) {
+    this._shapePoints = shapePoints
+  }
+
+  addFakeNode(newFakeNode: GrapholNode) {
+    this._fakeNodes.push(newFakeNode)
   }
 }
