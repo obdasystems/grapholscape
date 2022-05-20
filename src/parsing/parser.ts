@@ -6,42 +6,49 @@ import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
 import { grapholNodes, nodeTypes, nodeShapes } from '../model'
 import { constructorLabels, Type } from '../model/node-enums'
+import GrapholEntity, { Functionalities } from '../model/graphol-elems/entity'
+import GrapholNode from '../model/graphol-elems/node'
+import Iri from '../model/iri'
+import Annotation from '../model/graphol-elems/annotation'
+
+interface Graphol {
+  getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
+  getNamespaces: (xmlDocument: XMLDocument) => Namespace[]
+  getIri: (element: HTMLElement, ontology: Ontology) => Iri
+  getFacetDisplayedName: (element: Element, ontology: Ontology) => string
+  getFunctionalities: (element: Element, xmlDocument: XMLDocument) => Functionalities[]
+  getEntityAnnotations: (element: Element, xmlDocument: XMLDocument) => Annotation[]
+
+}
 
 export default class GrapholParser {
+  xmlDocument: XMLDocument
+  graphol_ver: any
+  graphol: Graphol
+  ontology: Ontology
+  warnings: any[]
+
   constructor(xmlString) {
     this.xmlDocument = (xmlString instanceof XMLDocument) ? xmlString : new DOMParser().parseFromString(xmlString, 'text/xml')
 
     this.graphol_ver = this.xmlDocument.getElementsByTagName('graphol')[0].getAttribute('version') || -1
 
-    if(this.graphol_ver == 2 || this.graphol_ver == -1)
+    if (this.graphol_ver == 2 || this.graphol_ver == -1)
       this.graphol = Graphol2
-    else if(this.graphol_ver == 3)
+    else if (this.graphol_ver == 3)
       this.graphol = Graphol3
     else
       throw new Error(`Graphol version [${this.graphol_ver}] not supported`)
   }
 
   parseGraphol() {
-    let ontology_info = this.graphol.getOntologyInfo(this.xmlDocument)
-    this.ontology = new Ontology(ontology_info.name, ontology_info.version)
-    this.ontology.languages.list = ontology_info.languages || []
-    this.ontology.languages.default = ontology_info.default_language || ontology_info.languages[0]
-    if (ontology_info.other_infos) {
-      this.ontology.annotations = ontology_info.other_infos.annotations
-      this.ontology.description = ontology_info.other_infos.description
-    }
-    // Create iri and add them to ontology.namespaces
-    //let iri_list = this.xmlDocument.getElementsByTagName('iri')
-    let dictionary = this.graphol.getIriPrefixesDictionary(this.xmlDocument)
+    this.ontology = this.graphol.getOntologyInfo(this.xmlDocument)
+    this.ontology.namespaces = this.graphol.getNamespaces(this.xmlDocument)
 
-    dictionary.forEach(iri => {
-      this.ontology.addNamespace(new Namespace(iri.prefixes, iri.value, iri.standard))
-    })
-
-    let i, k, nodes, edges, cnt, array_json_elems, diagram, node
+    let i, k, nodes, edges, cnt, array_json_elems
     let diagrams = this.xmlDocument.getElementsByTagName('diagram')
     for (i = 0; i < diagrams.length; i++) {
-      diagram = new Diagram(diagrams[i].getAttribute('name'), i)
+      const diagram = new Diagram(diagrams[i].getAttribute('name'), i)
       this.ontology.addDiagram(diagram)
 
       array_json_elems = []
@@ -50,54 +57,67 @@ export default class GrapholParser {
       cnt = 0
       // Create JSON for each node to be added to the collection
       for (k = 0; k < nodes.length; k++) {
-        node = this.getBasicNodeInfos(nodes[k], i)
-        node.data.iri = this.graphol.getIri(nodes[k], this.ontology)
+        const nodeXmlElement = nodes[k]
+        const grapholNodeType = this.getGrapholNodeType(nodeXmlElement)
+        const node = this.getBasicGrapholNode(nodeXmlElement, i)
+        //node.data.iri = this.graphol.getIri(nodeXmlElement, this.ontology)
 
-        if (ParserUtil.isPredicate(nodes[k])) {
-          let predicate_infos = this.graphol.getPredicateInfo(nodes[k], this.xmlDocument, this.ontology)
-          if (predicate_infos) {
-            Object.keys(predicate_infos).forEach(info => {
-              node.data[info] = predicate_infos[info]
-            })
-            
-            // APPLY DISPLAYED NAME FROM LABELS
-            let labels = node.data.annotations.label
-            let displayedName
-            // if no labels defined, apply remainingChars from iri as displayed name
-            if (!labels) { 
-              displayedName = node.data.iri.remainingChars
-            }
+        if (node.isEntity()) {
+          const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
+          let entity = this.ontology.getEntity(iri.fullIri)
+          if (!entity) {
+            entity = new GrapholEntity(iri, grapholNodeType.TYPE)
+            this.ontology.addEntity(entity)
+          }
 
-            // else try to apply default language label as displayed name
-            else if (labels[this.ontology.languages.default]?.length > 0) {
-              displayedName = labels[this.ontology.languages.default][0]
-            }
-            // otherwise pick the first language available
-            else {
+          entity.addOccurrence(node.id, diagram.id)
+          entity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+          entity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
+
+          // APPLY DISPLAYED NAME FROM LABELS
+          if (entity.getLabels().length > 0) {
+            // try to apply default language label as displayed name
+            const labelInDefaultLanguage = entity.getLabels(this.ontology.languages.default)[0]
+            if (labelInDefaultLanguage) {
+              node.displayedName = labelInDefaultLanguage.lexicalForm
+            } else {
+              // otherwise pick the first language available
               for (let lang of this.ontology.languages.list) {
-                if (labels[lang]?.length > 0) {
-                  displayedName = labels[lang][0]
+                const labels = entity.getLabels(lang)
+                if (labels?.length > 0) {
+                  node.displayedName = labels[0].lexicalForm
                   break
                 }
               }
             }
 
             // if still failing, pick the first label you find
-            if (!displayedName) {
-              displayedName = labels[Object.keys(labels)[0]][0]
+            if (!node.displayedName) {
+              node.displayedName = entity.getLabels()[0].lexicalForm
             }
 
-            node.data.displayed_name = displayedName
+          } else {
+            // if no labels defined, apply remainingChars from iri as displayed name
+            node.displayedName = entity.iri.remainder
           }
         } else { // not an entity, take label from <label> tag or use those for constructor nodes
-          if (node.data.type === Type.FACET) {
-            node.data.displayed_name = this.graphol.getFacetDisplayedName(nodes[k], this.ontology)
-          }
-
-          else if (node.data.type === Type.VALUE_DOMAIN) {
+          
+          switch (node.type) {
+            case Type.FACET:
+              node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
+              break
+            
+            case Type.VALUE_DOMAIN:
+              node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
+              break
+          } // CONTINUE HERE 
+          
+          if (node.is(Type.FACET)) {
+            node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
+          } else if (node.data.type === Type.VALUE_DOMAIN) {
             node.data.displayed_name = node.data.iri.prefixed
           }
-          
+
           // for domain/range restrictions, cardinalities
           else if (Graphol3.getTagText(nodes[k], 'label')) {
             node.data.displayed_name = Graphol3.getTagText(nodes[k], 'label')
@@ -108,15 +128,15 @@ export default class GrapholParser {
             if (constructorLabels[typeKey])
               node.data.displayed_name = constructorLabels[typeKey]
           }
-        }        
-        
+        }
+
         array_json_elems.push(node)
 
         // add fake nodes when necessary
         // for property assertion, facets or for
         // both functional and inverseFunctional ObjectProperties
         if (array_json_elems[cnt].data.type === nodeTypes.PROPERTY_ASSERTION ||
-          array_json_elems[cnt].data.type ===  nodeTypes.FACET ||
+          array_json_elems[cnt].data.type === nodeTypes.FACET ||
           (array_json_elems[cnt].data.functional && array_json_elems[cnt].data.inverseFunctional)) {
           this.addFakeNodes(array_json_elems)
           cnt += array_json_elems.length - cnt
@@ -132,7 +152,7 @@ export default class GrapholParser {
 
     }
 
-    if(i==0) {
+    if (i == 0) {
       throw new Error("The selected .graphol file has no defined diagram")
     }
 
@@ -143,12 +163,18 @@ export default class GrapholParser {
       this.warnings = this.warnings.slice(0, 9)
       this.warnings.push(`...${length - 10} warnings not shown`)
     }
-    this.warnings.forEach( w => console.warn(w) )
+    this.warnings.forEach(w => console.warn(w))
     return this.ontology
   }
 
-  getBasicNodeInfos(element, diagram_id) {
-    let enumTypeKey = Object.keys(grapholNodes).find( k => grapholNodes[k].TYPE === element.getAttribute('type'))
+  getBasicGrapholNode(element: Element, diagram_id: number) {
+    let enumTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
+    let grapholNode = new GrapholNode(element.getAttribute('id'), diagram_id)
+
+    grapholNode.type = grapholNodes[enumTypeKey].TYPE
+    grapholNode.shape = grapholNodes[enumTypeKey].SHAPE
+    grapholNode.identity = grapholNodes[enumTypeKey].IDENTITY
+
     let nodo = {
       data: {
         id_xml: element.getAttribute('id'),
@@ -160,66 +186,40 @@ export default class GrapholParser {
         identity: grapholNodes[enumTypeKey].IDENTITY
       },
       position: {},
-      classes:grapholNodes[enumTypeKey].TYPE
+      classes: grapholNodes[enumTypeKey].TYPE
     }
 
     // Parsing the <geometry> child node of node
     var geometry = element.getElementsByTagName('geometry')[0]
-    nodo.data.width = parseInt(geometry.getAttribute('width'))
-    nodo.data.height = parseInt(geometry.getAttribute('height'))
+    grapholNode.width = parseInt(geometry.getAttribute('width'))
+    grapholNode.height = parseInt(geometry.getAttribute('height'))
+    grapholNode.x = parseInt(geometry.getAttribute('x'))
+    grapholNode.y = parseInt(geometry.getAttribute('y'))
 
-    // Gli individual hanno dimensioni negative nel file graphol
-    if (nodo.data.width < 0) { nodo.data.width = -nodo.data.width }
-    // Gli individual hanno dimensioni negative nel file graphol
-    if (nodo.data.height < 0) { nodo.data.height = -nodo.data.height }
-    // L'altezza dei facet è nulla nel file graphol, la impostiamo a 40
-    if (nodo.data.type === nodeTypes.FACET) {
-      nodo.data.height = 40
-    }
-
-    nodo.position.x = parseInt(geometry.getAttribute('x'))
-    nodo.position.y = parseInt(geometry.getAttribute('y'))
-
-    if (nodo.data.type === grapholNodes.ROLE_CHAIN.TYPE) {
+    if (grapholNode.is(Type.ROLE_CHAIN) || grapholNode.is(Type.PROPERTY_ASSERTION)) {
       if (element.getAttribute('inputs') !== '')
-        nodo.data.inputs = element.getAttribute('inputs').split(',')
+        grapholNode.inputs = element.getAttribute('inputs').split(',')
     }
 
-    if (nodo.data.type === grapholNodes.PROPERTY_ASSERTION.TYPE)
-      nodo.data.inputs = element.getAttribute('inputs').split(',')
-
-    if (nodo.data.type === grapholNodes.FACET.TYPE) {
-      nodo.data.shape_points = grapholNodes.FACET.SHAPE_POINTS
-      nodo.data.fillColor = '#ffffff'
+    if (grapholNode.is(Type.FACET)) {
+      grapholNode.shapePoints = grapholNodes.FACET.SHAPE_POINTS
+      grapholNode.fillColor = '#ffffff'
     }
 
     let label = element.getElementsByTagName('label')[0]
     // apply label position and font size
     if (label != null) {
-      
-      if (parseInt(label.getAttribute('x')) == nodo.position.x) {
-        nodo.data.labelXcentered = true
-        nodo.data.labelXpos = 0
-      } else {
-        nodo.data.labelXpos = parseInt(label.getAttribute('x')) - nodo.position.x + 1
-      }
-
-      if (parseInt(label.getAttribute('y')) == nodo.position.y) {
-        nodo.data.labelYcentered = true
-        nodo.data.labelYpos = 0
-      } else {
-        nodo.data.labelYpos = (parseInt(label.getAttribute('y')) - nodo.position.y) + (nodo.data.height + 2) / 2 + parseInt(label.getAttribute('height')) / 4
-      }
-
-      nodo.data.fontSize = parseInt(label.getAttribute('size')) || 12
+      grapholNode.labelXpos = parseInt(label.getAttribute('x'))
+      grapholNode.labelYpos = parseInt(label.getAttribute('y'))
+      grapholNode.fontSize = parseInt(label.getAttribute('size')) || 12
     }
 
-    if(ParserUtil.isPredicate(element))
+    if (ParserUtil.isPredicate(element))
       nodo.classes += ' predicate'
-    return nodo
+    return grapholNode
   }
 
-  EdgeXmlToJson (arco, diagram_id) {
+  EdgeXmlToJson(arco, diagram_id) {
     var k
     var edge = {
       data: {
@@ -248,7 +248,7 @@ export default class GrapholParser {
     // la target_label in base alla posizione nella sequenza
     if (target.data('type') === nodeTypes.ROLE_CHAIN || target.data('type') === nodeTypes.PROPERTY_ASSERTION) {
       for (k = 0; k < target.data('inputs').length; k++) {
-        if (target.data('inputs')[k] ===edge.data.id_xml) {
+        if (target.data('inputs')[k] === edge.data.id_xml) {
           edge.data.target_label = k + 1
           break
         }
@@ -268,8 +268,8 @@ export default class GrapholParser {
       // Ignoriamo spazi vuoti, e altri figli di tipo diverso da 1
       if (arco.childNodes[j].nodeType != 1) { continue }
       breakpoints[count] = {
-        'x' : parseInt(point.getAttribute('x')),
-        'y' : parseInt(point.getAttribute('y')),
+        'x': parseInt(point.getAttribute('x')),
+        'y': parseInt(point.getAttribute('y')),
       }
       //breakpoints[count].push(parseInt(point.getAttribute('x')))
       //breakpoints[count].push(parseInt(point.getAttribute('y')))
@@ -311,7 +311,7 @@ export default class GrapholParser {
     // Facciamo la stessa cosa per il target
     let target_endpoint = ParserUtil.getNewEndpoint(
       breakpoints[breakpoints.length - 1], // last endpoint is the one on target
-      target, 
+      target,
       breakpoints[breakpoints.length - 2]
     )
 
@@ -324,7 +324,7 @@ export default class GrapholParser {
     // If we have no control-points and only one endpoint, we need an intermediate breakpoint
     // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
     let breakpoint
-    if ( breakpoints.length === 2 ) { // 2 breakpoints means no control-points
+    if (breakpoints.length === 2) { // 2 breakpoints means no control-points
       if ((edge.data.source_endpoint && !edge.data.target_endpoint)) {
         /**
          * we have custom endpoint only on source, get a middle breakpoint 
@@ -347,9 +347,9 @@ export default class GrapholParser {
         // now if we have the breakpoint we need, let's get distance and weight for cytoscape
         // just like any other breakpoint
         const distanceWeight = ParserUtil.getDistanceWeight(target.position(), source.position(), breakpoint)
-        edge.data.breakpoints = [ breakpoint ]
-        edge.data.segment_distances = [ distanceWeight[0] ]
-        edge.data.segment_weights = [ distanceWeight[1] ]
+        edge.data.breakpoints = [breakpoint]
+        edge.data.segment_distances = [distanceWeight[0]]
+        edge.data.segment_weights = [distanceWeight[1]]
       }
     }
     return edge
@@ -357,7 +357,7 @@ export default class GrapholParser {
 
   addFakeNodes(array_json_nodes) {
     var nodo = array_json_nodes[array_json_nodes.length - 1]
-    if (nodo.data.type ==='facet') {
+    if (nodo.data.type === 'facet') {
       // Se il nodo è di tipo facet inseriamo i ritorni a capo nella label
       // e la trasliamo verso il basso di una quantità pari all'altezza del nodo
       nodo.data.displayed_name = nodo.data.displayed_name.replace('^^', '\n\n')
@@ -378,7 +378,7 @@ export default class GrapholParser {
           x: nodo.position.x,
           y: nodo.position.y
         },
-        classes: 'fake-top-rhomboid' 
+        classes: 'fake-top-rhomboid'
       }
 
       var bottom_rhomboid = {
@@ -403,7 +403,7 @@ export default class GrapholParser {
       return
     }
 
-    if (nodo.data.functional ===1 && nodo.data.inverseFunctional ===1) {
+    if (nodo.data.functional === 1 && nodo.data.inverseFunctional === 1) {
       // Creating "fake" nodes for the double style border effect
       var triangle_right = {
         selectable: false,
@@ -508,7 +508,7 @@ export default class GrapholParser {
       nodo.data.width = nodo.data.width - nodo.data.height
       nodo.data.shape = nodeShapes.RECTANGLE
       nodo.classes = `${nodeTypes.PROPERTY_ASSERTION} no_border`
-      
+
       array_json_nodes[array_json_nodes.length - 1] = back_rectangle
       array_json_nodes.push(circle1)
       array_json_nodes.push(circle2)
@@ -525,15 +525,15 @@ export default class GrapholParser {
 
     // Recursively traverse first input node and return his identity
     // if he is neutral => recursive step
-    function findIdentity (node) {
+    function findIdentity(node) {
       var first_input_node = node.incomers('[type = "input"]').sources()
       var identity = first_input_node.data('identity')
       if (identity === nodeTypes.NEUTRAL) { return findIdentity(first_input_node) } else {
         switch (node.data('type')) {
           case nodeTypes.RANGE_RESTRICTION:
-            if (identity === nodeTypes.OBJECT_PROPERTY) { 
+            if (identity === nodeTypes.OBJECT_PROPERTY) {
               return nodeTypes.CONCEPT
-            } else if (identity === nodeTypes.DATA_PROPERTY) { 
+            } else if (identity === nodeTypes.DATA_PROPERTY) {
               return nodeTypes.VALUE_DOMAIN
             } else {
               return identity
@@ -545,5 +545,12 @@ export default class GrapholParser {
         }
       }
     }
+  }
+
+
+  getGrapholNodeType(element) {
+    const nodeTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
+
+    return grapholNodes[nodeTypeKey]
   }
 }

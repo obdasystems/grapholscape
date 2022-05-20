@@ -1,83 +1,67 @@
 /** @typedef {import('../model').default} Ontology */
 
+import Ontology from '../model'
+import Annotation from '../model/graphol-elems/annotation'
+import { Functionalities } from '../model/graphol-elems/entity'
+import Iri from '../model/iri'
+import Namespace from '../model/namespace'
 import { Type } from '../model/node-enums'
 
 export let warnings = new Set()
 
-/**
- * 
- * @param {Document | XMLDocument} xmlDocument 
- */
-export function getOntologyInfo(xmlDocument) {
+export function getOntologyInfo(xmlDocument: XMLDocument) {
   let project = getTag(xmlDocument, 'project')
   let ontology_languages = getTag(xmlDocument, 'languages').children
   let iri = getTag(xmlDocument, 'ontology').getAttribute('iri')
-  let iri_elem = getIriElem(iri, xmlDocument)
 
-  return {
-    /** @type {string} */
-    name: project.getAttribute('name'),
-    /** @type {string} */
-    version: project.getAttribute('version'),
-    /** @type {string} */
-    iri: iri,
-    /** @type {string[]} */
-    languages: [...ontology_languages].map(lang => lang.textContent),
-    /** @type {string} */
-    default_language: getTag(xmlDocument, 'ontology').getAttribute('lang'),
-    other_infos: getIriAnnotations(iri_elem)
-  }
+  const ontology = new Ontology(project.getAttribute('name'), project.getAttribute('version'))
+  ontology.languages.list = [...ontology_languages].map(lang => lang.textContent) || []
+  ontology.languages.default = getTag(xmlDocument, 'ontology').getAttribute('lang') || ontology.languages.list[0]
+  ontology.annotations = getIriAnnotations(iri, xmlDocument)
+  return ontology
 }
 
 /**
  * 
- * @param {Document | XMLDocument} xmlDocument 
+ * @param {Element} xmlDocument 
  * @returns 
  */
-export function getIriPrefixesDictionary(xmlDocument) {
-  let result = []
+export function getNamespaces(xmlDocument: XMLDocument): Namespace[] {
+  let result: Namespace[] = []
   let prefixes = getTag(xmlDocument, 'prefixes').children
   for (const p of prefixes) {
     const namespaceValue = getTagText(p, 'namespace')
-    const namespace = result.find( n => n.value === namespaceValue)
+    const namespace = result.find( n => n.toString() === namespaceValue)
     if (namespace) 
       namespace.prefixes.push(getTagText(p, 'value'))
     else {
-      result.push({
-        prefixes: [getTagText(p, 'value')],
-        value: namespaceValue,
-        standard: false,
-      })
+      result.push(new Namespace([getTagText(p, 'value')], namespaceValue, false))
     }
   }
   return result
 }
 
-/**
- * 
- * @param {HTMLElment} element an xml element
- * @param {import('../model/').default} ontology 
- * @returns {import('../model/ontology').Iri}
- */
-export function getIri(element, ontology) {
+
+export function getIri(element: HTMLElement, ontology: Ontology): Iri {
   let nodeIri = getTagText(element, 'iri')
   
-  if (!nodeIri) return {}
+  if (!nodeIri) return null
 
-  let destructuredIri = ontology.destructureIri(nodeIri)
-  if (destructuredIri) {
-    return destructuredIri
-  } else {
-    this.warnings.add(`Namespace not found for [${nodeIri}]. The prefix "undefined" has been assigned`)
-    /** @type {import('../model/ontology').Iri} */
-    return {
-      prefix: 'undefined',
-      remainingChars: nodeIri,
-      namespace: 'undefined',
-      fullIri: nodeIri,
-      prefixed: nodeIri
-    }
-  }
+  return new Iri(nodeIri, ontology.namespaces)
+  // let destructuredIri = ontology.destructureIri(nodeIri)
+  // if (destructuredIri) {
+  //   return destructuredIri
+  // } else {
+  //   this.warnings.add(`Namespace not found for [${nodeIri}]. The prefix "undefined" has been assigned`)
+  //   /** @type {import('../model/ontology').Iri} */
+  //   return {
+  //     prefix: 'undefined',
+  //     remainingChars: nodeIri,
+  //     namespace: 'undefined',
+  //     fullIri: nodeIri,
+  //     prefixed: nodeIri
+  //   }
+  // }
 }
 /**
  * 
@@ -103,22 +87,22 @@ export function getFacetDisplayedName(element, ontology) {
 
 /**
  * Returns an object with annotations, description and the properties (functional, etc..) for DataProperties
- * @param {HTMLElement} element 
- * @param {Document | XMLDocument} xmlDocument 
- * @returns {Object.<string, Object.<string, string[]> | boolean>}
+ * @param {Element} element 
+ * @param {Element} xmlDocument 
+ * @returns {Functionalities[]}
  */
-export function getPredicateInfo(element, xmlDocument) {
-  let result = {}
+export function getFunctionalities(element: Element, xmlDocument: XMLDocument): Functionalities[] {
+  let result: Functionalities[] = []
   let actual_iri_elem = getIriElem(element, xmlDocument)
-  result = getIriAnnotations(actual_iri_elem)
 
   const elementType = element.getAttribute('type')
   if (elementType === Type.OBJECT_PROPERTY || elementType === Type.DATA_PROPERTY) {
     if (actual_iri_elem && actual_iri_elem.children) {
       for (let property of actual_iri_elem.children) {
-        if (property.tagName != 'value' && property.tagName != 'annotations' &&
-          property.textContent != '0') {
-          result[property.tagName] = 1
+
+        const functionality = Object.values(Functionalities).find(f => f.toString() === property.tagName)
+        if (functionality) {
+          result.push(functionality)
         }
       }
     }
@@ -126,27 +110,22 @@ export function getPredicateInfo(element, xmlDocument) {
   return result
 }
 
-/** @param {HTMLElement} iri */
-function getIriAnnotations(iri) {
-  let result = {}
-  /** @type {Object.<string, string[]} */
-  result.annotations = {}
+export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument) {
+  return getIriAnnotations(getTagText(element, 'iri'), xmlDocument)
+}
 
-  let annotations = getTag(iri, 'annotations')
-  let language, annotation_kind, lexicalForm
+function getIriAnnotations(iri: string, xmlDocument: XMLDocument): Annotation[] {
+  let result: Annotation[] = []
+  const iriElem = getIriElem(iri, xmlDocument)
+  let annotations = getTag(iriElem, 'annotations')
+  let language: string, annotation_kind: string, lexicalForm: string
   if (annotations) {
     for (let annotation of annotations.children) {
       annotation_kind = getRemainingChars(getTagText(annotation, 'property'))
       language = getTagText(annotation, 'language')
       lexicalForm = getTagText(annotation, 'lexicalForm')
 
-      if (!result.annotations[annotation_kind])
-        result.annotations[annotation_kind] = {}
-
-      if (!result.annotations[annotation_kind][language])
-        result.annotations[annotation_kind][language] = []
-
-      result.annotations[annotation_kind][language].push(lexicalForm)
+      result.push(new Annotation(annotation_kind, lexicalForm, language))
     }
   }
 
@@ -155,35 +134,35 @@ function getIriAnnotations(iri) {
 
 /**
  * Retrieve the xml tag element in a xml root element
- * @param {HTMLElement} root root element to search the tag in
+ * @param {Element} root root element to search the tag in
  * @param {string} tagName the name of the tag to search
  * @param {number} n in case of more instances, retrieve the n-th. Default: 0 (the first one)
- * @returns {HTMLElement}
+ * @returns {Element}
  */
-export function getTag(root, tagName, n = 0) {
+export function getTag(root: Element | XMLDocument, tagName: string, n: number = 0): Element {
   if (root && root.getElementsByTagName(tagName[n]))
     return root.getElementsByTagName(tagName)[n]
 }
 
 /**
  * Retrieve the text inside a given tag in a xml root element
- * @param {HTMLElement} root root element to search the tag in
+ * @param {Element} root root element to search the tag in
  * @param {string} tagName the name of the tag to search
  * @param {number} n in case of more instances, retrieve the n-th. Default: 0 (the first one)
  * @returns {string}
  */
-export function getTagText(root, tagName, n = 0) {
+export function getTagText(root: Element | XMLDocument, tagName: string, n: number = 0): string {
   if (root && root.getElementsByTagName(tagName)[n])
     return root.getElementsByTagName(tagName)[n].textContent
 }
 
 /**
  * 
- * @param {string | HTMLElement} node 
- * @param {Document | XMLDocument} xmlDocument 
- * @returns {HTMLElement}
+ * @param {string | Element} node 
+ * @param {Element | XMLDocument} xmlDocument 
+ * @returns {Element}
  */
-function getIriElem(node, xmlDocument) {
+function getIriElem(node: string | Element, xmlDocument: Element | XMLDocument): Element {
   let node_iri = null
 
   if (typeof (node) === 'string')

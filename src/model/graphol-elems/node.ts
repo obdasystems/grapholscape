@@ -1,22 +1,106 @@
-import { Position } from "../ontology";
-
-export default class GrapholNode {
-  private _id: string
-  private _position: Position
-
-  constructor(id: string, position: Position) {
-    this.id = id
-    this.position = position
-  }
+import { Position } from "cytoscape"
+import { Shape, Type } from "../node-enums"
+import GrapholElement from "./graphol-element"
 
 
-  get id () { return this._id }
-  set id(value: string) {
-    this._id = value
-  }
+export default class GrapholNode extends GrapholElement {
+  
+  private _position: Position = { x: 0, y: 0 }
+  private _shape: Shape
+  private _identity: Type
+  private _height: number
+  private _width: number
+  private _displayedName: string
+  private _fillColor: string
+
+  private LABEL_HEIGHT = 23
+  private _labelXpos?: number
+  private _labelXcentered?: boolean
+  private _labelYpos?: number
+  private _labelYcentered?: boolean
+  private _fontSize?: number
+
+  // Inputs for role-chains, a list nodes IDs
+  private _inputs?: string[]
+
+  // shape points for nodes with non-standard shapes
+  private _shapePoints?: number[]
+  shapePoints: any
 
   get position() { return this._position }
   set position(pos: Position) {
     this._position = pos
+  }
+
+  get x() { return this._position.x }
+  set x(valX: number) { this._position.x = valX }
+  get y() { return this._position.y }
+  set y(valY: number) { this._position.y = valY }
+
+  get shape() { return this._shape }
+  set shape(shape: Shape) {
+    this._shape = shape
+  }
+
+  get identity() { return this._identity }
+  set identity(identity: Type) {
+    this._identity = identity
+  }
+
+  get width() { return this._width }
+  set width(width: number) {
+    this._width = width >= 0 ? width : -width
+  }
+
+  get height() { return this._height }
+  set height(height: number) {
+    this._height = height >=0 ? height : -height
+
+    if (this.type === Type.FACET) {
+      this._height = 40
+    }
+  }
+
+  get displayedName() { return this._displayedName }
+  set displayedName(displayedName: string) {
+    this._displayedName = displayedName
+  }
+
+  get fillColor() { return this._fillColor }
+  set fillColor(fillColor: string) {
+    this._fillColor = fillColor
+  }
+
+  get labelXpos() { return this._labelXpos }
+  set labelXpos(labelXpos: number) {
+    if (labelXpos === this.position.x) {
+      this._labelXcentered = true
+      this._labelXpos = 0
+    } else {
+      this._labelXpos = labelXpos - this.position.x + 1
+    }
+  }
+
+  get labelYpos() { return this._labelYpos }
+  set labelYpos(labelYpos: number) {
+    if (labelYpos === this.position.y) {
+      this._labelYcentered = true
+      this._labelYpos = 0
+    } else {
+      this._labelYpos = (labelYpos - this.position.y) + (this.height + 2) / 2 + this.LABEL_HEIGHT / 4
+    }
+  }
+
+  get isLabelXcentered() { return this._labelXcentered }
+  get isLabelYcentered() { return this._labelYcentered }
+
+  get fontSize() { return this._fontSize }
+  set fontSize(value: number) {
+    this._fontSize = value
+  }
+
+  get inputs() { return this._inputs }
+  set inputs(inputs: string[]) {
+    this._inputs = inputs
   }
 }

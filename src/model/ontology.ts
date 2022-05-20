@@ -5,8 +5,8 @@
  * @property {string} Iri.prefix
  * @property {string} Iri.prefixed
  * @property {string} Iri.namespace
- */ 
- 
+ */
+
 /** 
  * @typedef {object} Position
  * @property {number} Position.x
@@ -16,7 +16,7 @@
 /**
  * @typedef {Object.<string, string[]>} Annotation
  */
- 
+
 /**
  * @typedef {object} GrapholElem
  * @property {Position} position
@@ -29,8 +29,8 @@
  * @property {boolean} selectable
  * @property {boolean} selected
  * @property {ElemData} data
- */ 
- 
+ */
+
 /** 
  * @typedef {object} ElemData the data related to the diagram elements: nodes or edges
  * @property {number} diagram_id the id owning this element
@@ -68,25 +68,36 @@
  * @property {boolean?} irreflexive
  * @property {boolean?} transitive
  */
- 
-/** 
- * @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue 
- */
 
+
+import cytoscape from 'cytoscape'
+import AnnotatedElement from './annotated-element'
 import Diagram from './diagram'
+import GrapholEntity from './graphol-elems/entity'
 import Namespace from './namespace'
 /**
  * # Ontology
  * Class used as the Model of the whole app.
  */
-class Ontology {
+class Ontology extends AnnotatedElement {
+  name: string
+  version: string
+  namespaces: Namespace[]
+  diagrams: Diagram[]
+  languages: {
+    /** @type {import('../grapholscape').Language[]}*/
+    list: any[]; default: string
+  }
+  _entities: GrapholEntity[]
+
   /**
    * @param {string} name
    * @param {string} version
    * @param {Namespace[]} namespaces
    * @param {Diagram[]} diagrams
    */
-  constructor(name, version, namespaces = [], diagrams = []) {
+  constructor(name: string, version: string, namespaces: Namespace[] = [], diagrams: Diagram[] = []) {
+    super()
     /** @type {string} */
     this.name = name
     /** @type {string} */
@@ -96,20 +107,16 @@ class Ontology {
     /** @type {Diagram[]} */
     this.diagrams = diagrams
 
-    /** @type {Object.<string, Annotation>} */
-    this.annotations = []
-    
-    this.languages = { 
+
+    this.languages = {
       /** @type {import('../grapholscape').Language[]}*/
-      list: [], 
+      list: [],
       default: ''
     }
-    /** @type {Annotation} */
-    this.description = []
   }
 
   /** @param {Namespace} namespace */
-  addNamespace(namespace) {
+  addNamespace(namespace: Namespace) {
     this.namespaces.push(namespace)
   }
 
@@ -118,8 +125,8 @@ class Ontology {
    * @param {string} iriValue the IRI assigned to the namespace
    * @returns {Namespace}
    */
-  getNamespace(iriValue) {
-    return this.namespaces.find(ns => ns.value === iriValue)
+  getNamespace(iriValue: string): Namespace {
+    return this.namespaces.find(ns => ns.toString() === iriValue)
   }
 
   /**
@@ -127,52 +134,61 @@ class Ontology {
    * @param {string} prefix 
    * @returns {Namespace}
    */
-  getNamespaceFromPrefix(prefix) {
+  getNamespaceFromPrefix(prefix: string): Namespace {
     return this.namespaces.find(ns => ns.hasPrefix(prefix))
   }
 
-  /**
-   * Get 
-   * @param {string} iri full iri
-   * @returns {Iri | undefined}
-   */
-  destructureIri(iri) {
-    for (let namespace of this.namespaces) {
-      // if iri contains namespace 
-      if (iri.includes(namespace.value)) {
-        return {
-          namespace: namespace.value,
-          prefix: namespace.prefixes[0],
-          fullIri: iri,
-          remainingChars: iri.slice(namespace.value.length),
-          prefixed:  namespace.prefixes[0] + ':' + iri.slice(namespace.value.length)
-        }
-      }
-    }
-  }
+  // /**
+  //  * Get 
+  //  * @param {string} iri full iri
+  //  * @returns {Iri | undefined}
+  //  */
+  // destructureIri(iri) {
+  //   for (let namespace of this.namespaces) {
+  //     // if iri contains namespace 
+  //     if (iri.includes(namespace.value)) {
+  //       return {
+  //         namespace: namespace.value,
+  //         prefix: namespace.prefixes[0],
+  //         fullIri: iri,
+  //         remainingChars: iri.slice(namespace.value.length),
+  //         prefixed:  namespace.prefixes[0] + ':' + iri.slice(namespace.value.length)
+  //       }
+  //     }
+  //   }
+  // }
 
   /** @param {Diagram} diagram */
-  addDiagram(diagram) {
+  addDiagram(diagram: Diagram) {
     this.diagrams.push(diagram)
   }
+
 
   /**
    * @param {string | number} index the id or the name of the diagram
    * @returns {Diagram} The diagram object
    */
-  getDiagram(index) {
+  getDiagram(index: string | number): Diagram {
     if (index < 0 || index > this.diagrams.length) return
     if (this.diagrams[index]) return this.diagrams[index]
 
     return this.diagrams.find(d => d.name.toLowerCase() === index?.toString().toLowerCase())
   }
 
+  addEntity(entity: GrapholEntity) {
+    this.entities.push(entity)
+  }
+
+  getEntity(iri: string) {
+    return this.entities.find(e => e.iri.equals(iri))
+  }
+
   /**
    * Get an element in the ontology by id, searching in every diagram
    * @param {string} elem_id - The `id` of the elem to retrieve
-   * @returns {CollectionReturnValue} The cytoscape object representation.
+   * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
    */
-  getElem(elem_id) {
+  getElem(elem_id: string): cytoscape.CollectionReturnValue {
     for (let diagram of this.diagrams) {
       let node = diagram.cy.$id(elem_id)
       if (node.length > 0) return node
@@ -183,19 +199,19 @@ class Ontology {
    * Retrieve an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-   * @returns {CollectionReturnValue} The cytoscape object representation.
+   * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
    */
-  getEntity(iri) {
-    if (this.getEntityOccurrences(iri)) return this.getEntityOccurrences(iri)[0]
-  }
+  // getEntity(iri: string): cytoscape.CollectionReturnValue {
+  //   if (this.getEntityOccurrences(iri)) return this.getEntityOccurrences(iri)[0]
+  // }
 
   /**
    * Retrieve all occurrences of an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-   * @returns {CollectionReturnValue[]} An array of cytoscape object representation
+   * @returns {cytoscape.CollectionReturnValue[]} An array of cytoscape object representation
    */
-  getEntityOccurrences(iri) {
+  getEntityOccurrences(iri: string): cytoscape.CollectionReturnValue[] {
     return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
   }
 
@@ -203,9 +219,9 @@ class Ontology {
    * Get an element in the ontology by its id and its diagram id
    * @param {string} elemID - The id of the element to retrieve
    * @param {string } diagramID - the id of the diagram containing the element
-   * @returns {CollectionReturnValue} The element in cytoscape object representation
+   * @returns {cytoscape.CollectionReturnValue} The element in cytoscape object representation
    */
-  getElemByDiagramAndId(elemID, diagramID) {
+  getElemByDiagramAndId(elemID: string, diagramID: string): cytoscape.CollectionReturnValue {
     let diagram = this.getDiagram(diagramID)
 
     if (diagram) {
@@ -217,9 +233,9 @@ class Ontology {
 
   /**
    * Get the entities in the ontology
-   * @returns {Object.<string, CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
+   * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
    */
-  getEntities() {
+  getEntities(): { [s: string]: cytoscape.CollectionReturnValue[] } {
     let entities = {}
     this.diagrams.forEach(diagram => {
       diagram.cy.$('.predicate').forEach(entity => {
@@ -233,7 +249,7 @@ class Ontology {
       })
     })
 
-    this._entities = entities
+    //this._entities = entities
     return entities
   }
 
@@ -243,34 +259,34 @@ class Ontology {
    * @param {string} iri
    * @returns {boolean}
    */
-  checkEntityIri(entity, iri) {
-    /** @type {Iri} */
-    let entityIri = entity.data('iri') || entity.data.iri
-    return entityIri.fullIri === iri ||
-      entityIri.prefixed === iri
-  }
+  // checkEntityIri(entity: Entity, iri: string): boolean {
+  //   /** @type {Iri} */
+  //   let entityIri: Iri = entity.data('iri') || entity.data.iri
+  //   return entityIri.fullIri === iri ||
+  //     entityIri.prefixed === iri
+  // }
 
   /**
    * Retrieve the full IRI given a prefixed IRI
    * @param {string} prefixedIri a prefixed IRI
    * @returns {string} full IRI
    */
-  prefixedToFullIri(prefixedIri) {
-    if (!prefixedIri || typeof(prefixedIri) !== 'string') return
+  prefixedToFullIri(prefixedIri: string): string {
+    if (!prefixedIri || typeof (prefixedIri) !== 'string') return
     for (let namespace of this.namespaces) {
-      let prefix = namespace.prefixes.find( p => prefixedIri.includes(p + ':'))
+      let prefix = namespace.prefixes.find(p => prefixedIri.includes(p + ':'))
 
-      if (prefix) return prefixedIri.replace(prefix + ':', namespace.value)
+      if (prefix) return prefixedIri.replace(prefix + ':', namespace.toString())
 
-      else if (prefixedIri.startsWith(':') && namespace.prefixes.some( p => p === '')) {
-        return prefixedIri.replace(':', namespace.value)
+      else if (prefixedIri.startsWith(':') && namespace.prefixes.some(p => p === '')) {
+        return prefixedIri.replace(':', namespace.toString())
       }
     }
   }
 
   get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0) }
 
-  get entities() { return this.isEntitiesEmpty ? this.getEntities() : this._entities}
+  get entities() { return this._entities }
 }
 
 export default Ontology

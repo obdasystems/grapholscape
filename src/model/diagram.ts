@@ -1,30 +1,37 @@
 import cytoscape, { Core } from 'cytoscape'
+import cytoscapeDefaultConfig from '../config/cytoscape-default-config'
 import setDatatypeOnDataProperty from '../util/set-datatype-on-data-property'
+import GrapholEntity from './graphol-elems/entity'
+import Iri from './iri'
 import { Type } from './node-enums'
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
  * @property {cytoscape} cy - cytoscape headless instance for managing elements
  */
-class Diagram {
+class Diagram implements Renderer {
   name: string
-  id: string | number
+  id: number
   hasEverBeenRendered: boolean
-  cy: Core
+  cy = cytoscape(cytoscapeDefaultConfig)
+
   /**
    * @param {string} name
-   * @param {string | number} id
+   * @param {number} id
    * @param {JSON} elements - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
    */
-  constructor(name: string, id: string | number, elements: JSON = null) {
+  constructor(name: string, id: number, elements: JSON = null) {
     this.name = name
     this.id = id
-    this.cy = cytoscape()
-    if (elements)
-      this.addElems(elements)
     /** @type {boolean} */
     this.hasEverBeenRendered = false
+    if (elements)
+      this.addElems(elements)
   }
+  showEntity: (iri: string, zoom?: number) => void
+  selectEntity: (iri: string, zoom?: number) => void
+  centerOnRederedPosition: (x: number, y: number, zoom?: number) => void
+  zommOut: (level: number) => void
 
   render(container: Element) {
     this.cy.mount(container)
@@ -49,22 +56,73 @@ class Diagram {
     return result.length > 0 ? result : undefined
   }
 
+
   /**
    * Select a node or an edge given its unique id
-   * @param {string} id unique elem id (node or edge)
-   * @param {boolean} [unselect=true] should selected elements be unselected
+   * @param {string} iri unique elem id (node or edge)
    */
-  selectElem(id: string, unselect: boolean = true) {
-    if (unselect) this.unselectAll()
-    this.cy.$id(id).select()
+  selectIri(iri: string) {
+    this.unselect()
+    //this.getEntityElement().select()
+    this.cy.$id(iri).select()
   }
 
   /**
    * Unselect every selected element in this diagram
-   * @param {string} [selector='*'] cytoscape selector to filter the elements to unselect, default '*'
    */
-  unselectAll(selector: string = '*') {
-    this.cy.$(selector + ':selected').unselect()
+  unselect() {
+    this.cy.elements().unselect()
+  }
+
+  fit() {
+    this.cy.fit()
+  }
+
+  focusElement(elementId: string, zoom?: number) {
+    var node = this.cy.getElementById(elementId)
+    if (node) {
+      this.centerOnModelPosition(node.position('x'), node.position('y'), zoom)
+    } else {
+      console.warn('Element id (${elementId}) not found. Please check that this is the correct diagram')
+    }
+  }
+
+  centerOnModelPosition(xPos: number, yPos: number, zoom?: number) {
+    const _zoom = zoom || this.cy.zoom()
+
+    let offsetX = this.cy.width() / 2
+    let offsetY = this.cy.height() / 2
+    xPos -= offsetX
+    yPos -= offsetY
+    this.cy.pan({
+      x: -xPos,
+      y: -yPos
+    })
+    this.cy.zoom({
+      level: _zoom,
+      renderedPosition: { x: offsetX, y: offsetY }
+    })
+  }
+
+  centerOnRenderedPosition(xPos: number, yPos: number, zoom = this.cy.zoom()) {
+    this.cy.viewport({
+      zoom: zoom,
+      pan: { x: xPos, y: yPos }
+    })
+  }
+
+  zoomIn(zoomValue: number) {
+    this.cy.zoom({
+      level: this.cy.zoom() + zoomValue,
+      renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+    })
+  }
+
+  zoomOut(zoomValue: number) {
+    this.cy.zoom({
+      level: this.cy.zoom() - zoomValue,
+      renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+    })
   }
 
   /**

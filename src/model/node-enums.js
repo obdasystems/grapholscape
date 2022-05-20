@@ -65,7 +65,16 @@ export const Type = {
   /** @type {"neutral"} */
   NEUTRAL: 'neutral',
   /** @type {"value"} */
-  VALUE: 'value'
+  VALUE: 'value',
+  // EDGES
+  /** @type {"inclusion"} */
+  INCLUSION: 'inclusion',
+  /** @type {"input"} */
+  INPUT: 'input',
+  /** @type {"equivalence"} */
+  EQUIVALENCE: 'equivalence',
+  /** @type {"instanceOf"} */
+  INSTANCE_OF: 'instanceOf',
 }
 
 /**

@@ -3,11 +3,14 @@ import GrapholscapeState from "../model/state/state"
 import { filter, unfilter } from "./filtering"
 import { showDiagram } from "./show-diagram"
 
-export default function (state: GrapholscapeState) {
+export const ZOOM_STEP_VALUE = 0.08
+
+export default function (state: GrapholscapeState, container: Element) {
   const actualState = state
   const lifecycle = new Lifecycle()
   // Public API
   const core = {
+    container: container,
     lifecycle: lifecycle,
     actualState: state,
     selectElement: null,
@@ -18,8 +21,8 @@ export default function (state: GrapholscapeState) {
     centerOnNode: null,
     filter: filter,
     unfilter: unfilter,
-    zoomIn: null,
-    zoomOut: null,
+    zoomIn: (value = ZOOM_STEP_VALUE) => actualState.diagram.zoomIn(value),
+    zoomOut: (value = ZOOM_STEP_VALUE) => actualState.diagram.zoomOut(value),
     ontology: null,
     setRenderer: null,
     setTheme: null,

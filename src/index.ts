@@ -40,9 +40,9 @@ export function bareGrapholscape(file, container, config = {}) {
 }
 
 
-export function newGrapholscape() {
+export function newGrapholscape(file, container: Element, config) {
   const state = new GrapholscapeState()
-  let c = core(state)
+  let c = core(state, container)
   
   return c
 }
