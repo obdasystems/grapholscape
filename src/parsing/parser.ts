@@ -60,10 +60,9 @@ export default class GrapholParser {
         const nodeXmlElement = nodes[k]
         const grapholNodeType = this.getGrapholNodeType(nodeXmlElement)
         const node = this.getBasicGrapholNode(nodeXmlElement, i)
-        //node.data.iri = this.graphol.getIri(nodeXmlElement, this.ontology)
+        const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
 
         if (node.isEntity()) {
-          const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
           let entity = this.ontology.getEntity(iri.fullIri)
           if (!entity) {
             entity = new GrapholEntity(iri, grapholNodeType.TYPE)
@@ -108,26 +107,32 @@ export default class GrapholParser {
               break
             
             case Type.VALUE_DOMAIN:
-              node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
+              node.displayedName = iri.prefixed
+              break
+
+            default: 
+              let typeKey = Object.keys(Type).find(k => Type[k] === node.type)
+              if (constructorLabels[typeKey])
+                node.displayedName = constructorLabels[typeKey]
               break
           } // CONTINUE HERE 
           
-          if (node.is(Type.FACET)) {
-            node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
-          } else if (node.data.type === Type.VALUE_DOMAIN) {
-            node.data.displayed_name = node.data.iri.prefixed
-          }
+          // if (node.is(Type.FACET)) {
+          //   node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
+          // } else if (node.data.type === Type.VALUE_DOMAIN) {
+          //   node.data.displayed_name = node.data.iri.prefixed
+          // }
 
           // for domain/range restrictions, cardinalities
-          else if (Graphol3.getTagText(nodes[k], 'label')) {
-            node.data.displayed_name = Graphol3.getTagText(nodes[k], 'label')
+          if (Graphol3.getTagText(nodes[k], 'label')) {
+            node.displayedName = Graphol3.getTagText(nodes[k], 'label')
           }
 
-          else { // a constructor node
-            let typeKey = Object.keys(Type).find(k => Type[k] === node.data.type)
-            if (constructorLabels[typeKey])
-              node.data.displayed_name = constructorLabels[typeKey]
-          }
+          // else { // a constructor node
+          //   let typeKey = Object.keys(Type).find(k => Type[k] === node.data.type)
+          //   if (constructorLabels[typeKey])
+          //     node.data.displayed_name = constructorLabels[typeKey]
+          // }
         }
 
         array_json_elems.push(node)
@@ -157,7 +162,7 @@ export default class GrapholParser {
     }
 
     this.getIdentityForNeutralNodes()
-    this.warnings = [...this.graphol.warnings];
+    //this.warnings = [...this.graphol.warnings];
     if (this.warnings.length > 10) {
       let length = this.warnings.length
       this.warnings = this.warnings.slice(0, 9)
