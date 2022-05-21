@@ -37,6 +37,7 @@
   "author": "OBDA Systems",
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.18.0",
     "@babel/preset-env": "^7.16.4",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^21.0.0",
@@ -45,13 +46,14 @@
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.3.2",
     "@types/cytoscape": "^3.19.4",
-    "babel-jest": "^27.2.5",
+    "@types/jest": "^27.5.1",
     "better-docs": "^2.3.2",
     "cross-env": "^7.0.3",
     "electron": "^15.2.0",
     "electron-packager": "^15.4.0",
     "gh-pages": "^3.2.3",
-    "jest": "^27.2.5",
+    "jest": "^28.1.0",
+    "jest-environment-jsdom": "^28.1.0",
     "jsdoc": "^3.6.7",
     "jsdoc-tsimport-plugin": "^1.0.5",
     "local-web-server": "^5.1.1",
@@ -61,6 +63,7 @@
     "rollup-plugin-license": "^2.6.0",
     "rollup-plugin-size-snapshot": "^0.12.0",
     "rollup-plugin-terser": "^7.0.2",
+    "ts-jest": "^28.0.2",
     "typescript": "^4.6.4"
   },
   "dependencies": {
