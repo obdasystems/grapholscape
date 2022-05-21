@@ -31,18 +31,20 @@ export function getNamespaces(xmlDocument: XMLDocument): Namespace[] {
   let prefixes = getTag(xmlDocument, 'prefixes').children
   for (const p of prefixes) {
     const namespaceValue = getTagText(p, 'namespace')
+    const prefixValue = getTagText(p, 'value')
     const namespace = result.find( n => n.toString() === namespaceValue)
-    if (namespace) 
-      namespace.prefixes.push(getTagText(p, 'value'))
+    if (namespace) {
+      namespace.addPrefix(prefixValue)
+    }
     else {
-      result.push(new Namespace([getTagText(p, 'value')], namespaceValue, false))
+      result.push(new Namespace([prefixValue], namespaceValue, false))
     }
   }
   return result
 }
 
 
-export function getIri(element: HTMLElement, ontology: Ontology): Iri {
+export function getIri(element: Element, ontology: Ontology): Iri {
   let nodeIri = getTagText(element, 'iri')
   
   if (!nodeIri) return null
@@ -65,15 +67,16 @@ export function getIri(element: HTMLElement, ontology: Ontology): Iri {
 }
 /**
  * 
- * @param {HTMLElement} element 
+ * @param {Element} element 
  * @param {Ontology} ontology
  * @returns {string}
  */
-export function getFacetDisplayedName(element, ontology) {
+export function getFacetDisplayedName(element: Element, ontology: Ontology) {
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
   if (element.getAttribute('type') === Type.FACET) {
-    let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
-    constraining_facet = constraining_facet.prefix + ':' + constraining_facet.remainingChars
+    const facetIri = new Iri(getTagText(element, 'constrainingFacet'), ontology.namespaces)
+    //let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
+    //constraining_facet = constraining_facet.prefix + ':' + constraining_facet.remainingChars
 
     let value = getTagText(element, 'lexicalForm')
 
@@ -81,7 +84,7 @@ export function getFacetDisplayedName(element, ontology) {
     //let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
     //datatype = datatype.prefix + ':' + datatype.rem_chars
 
-    return constraining_facet + '^^"' + value + '"'
+    return `${facetIri.prefixed}^^"${value}"`
   }
 }
 

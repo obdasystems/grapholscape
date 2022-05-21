@@ -49,6 +49,10 @@ class Namespace {
   public hasPrefix(prefix: string) {
     return this.prefixes.includes(prefix)
   }
+
+  public addPrefix(newPrefix: string) {
+    this._prefixes.push(newPrefix)
+  }
 }
 
 export default Namespace

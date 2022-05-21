@@ -6,19 +6,15 @@ export default class Iri {
   private _prefixes: string[]
 
   constructor(iri: string, namespaces: Namespace[]) {
-    for (let namespace of namespaces) {
-      // if iri contains namespace 
-      if (iri.includes(namespace.toString())) {
-        this.namespace = namespace
-        this.remainder = iri.slice(namespace.toString().length)
-      }
-    }
+    this.namespace = namespaces.find(n => iri.includes(n.toString()))
 
 
     if (!this.namespace) {
-      console.warn(`Namespace not found for [${iri}]. The prefix "undefined" has been assigned`)
-      this.namespace = new Namespace(['undefined'], '')
+      console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
+      this.namespace = new Namespace([undefined], undefined)
       this.remainder = iri
+    } else {
+      this.remainder = iri.slice(this.namespace.toString().length)
     }
   }
 
@@ -43,11 +39,11 @@ export default class Iri {
   }
 
   public get fullIri() {
-    return this.namespace + this.remainder
+    return this.namespace.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
   }
 
   public get prefixed() {
-    return `${this.prefix}:${this.remainder}`
+    return this.prefix ? `${this.prefix}:${this.remainder}` : `${this.remainder}`
   }
 
   public equals(iriToCheck: string) {
