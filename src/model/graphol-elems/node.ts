@@ -11,7 +11,6 @@ export default class GrapholNode extends GrapholElement {
   private _identity: Type
   private _height: number
   private _width: number
-  private _displayedName: string
   private _fillColor: string
 
   private _labelXpos?: number
@@ -59,11 +58,6 @@ export default class GrapholNode extends GrapholElement {
     if (this.type === Type.FACET) {
       this._height = 40
     }
-  }
-
-  get displayedName() { return this._displayedName }
-  set displayedName(displayedName: string) {
-    this._displayedName = displayedName
   }
 
   get fillColor() { return this._fillColor }

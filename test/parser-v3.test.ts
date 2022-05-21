@@ -8,6 +8,7 @@ import Ontology from '../src/model/ontology'
 import Namespace from '../src/model/namespace'
 import GrapholEntity, { Functionalities } from '../src/model/graphol-elems/entity'
 import { UNDEFINED_LANGUAGE } from '../src/model/graphol-elems/annotation'
+import GrapholParser from '../src/parsing/parser'
 
 const domParser = new DOMParser()
 const xmlDoc = domParser.parseFromString(customOntology, 'text/xml')
@@ -263,6 +264,40 @@ describe('Test Facet\'s displayed names', () => {
 
     expect(parserV3.getFacetDisplayedName(node_mock_input, ontology)).toBe(output)
   })
+})
+
+describe('It should parse edges correctly', () => {
+
+  const edgeMock = `<edge id="e165" target="n8" type="equivalence" source="n113">
+      <point x="300" y="-350"/>
+      <point x="640" y="-350"/>
+      <point x="640" y="-10"/>
+    </edge>`
+  
+  const grapholParser = new GrapholParser(books3)
+  grapholParser.parseGraphol()
+  const grapholEdge = grapholParser.getGrapholEdgeFromXML(parseSingleNode(edgeMock, 'edge'), 0)
+  
+  test('It should create GrapholEdge', () => {
+    expect(grapholEdge).toBeDefined()
+  })
+
+  test('It should parse breakpoints correctly', () => {
+    expect(grapholEdge.breakpoints).toHaveLength(3)
+    expect(grapholEdge.breakpoints[0]).toMatchObject({ x: 300, y: -350 })
+    expect(grapholEdge.breakpoints[1]).toMatchObject({ x: 640, y: -350 })
+    expect(grapholEdge.breakpoints[2]).toMatchObject({ x: 640, y: -10 })
+  })
+  
+  test('It should compute breakpoints distance and weight', () => {
+    expect(grapholEdge.breakpoints[0].distance).toBeUndefined()
+    expect(grapholEdge.breakpoints[0].weight).toBeUndefined()
+    expect(grapholEdge.breakpoints[1].distance.toPrecision(8)).toBe('240.41631')
+    expect(grapholEdge.breakpoints[1].weight).toBe(0.5)
+    expect(grapholEdge.breakpoints[2].distance).toBeUndefined()
+    expect(grapholEdge.breakpoints[2].distance).toBeUndefined()
+  })
+
 })
 
 function parseSingleNode(string_repr, tagName = 'node') {

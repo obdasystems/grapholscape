@@ -14,6 +14,8 @@ import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fake
 import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
 import FakeRectangle from '../model/graphol-elems/fakes/fake-rectangle'
 import FakeCircle from '../model/graphol-elems/fakes/fake-circle'
+import GrapholEdge from '../model/graphol-elems/edge'
+import Breakpoint from '../model/graphol-elems/breakpoint'
 
 interface Graphol {
   getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
@@ -63,7 +65,7 @@ export default class GrapholParser {
       for (k = 0; k < nodes.length; k++) {
         const nodeXmlElement = nodes[k]
         const grapholNodeType = this.getGrapholNodeType(nodeXmlElement)
-        const node = this.getBasicGrapholNode(nodeXmlElement, i)
+        const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i)
 
         if (node.isEntity()) {
           const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
@@ -148,13 +150,10 @@ export default class GrapholParser {
         diagram.addNode(node)
       }
 
-      // array_json_elems = []
-      // for (k = 0; k < edges.length; k++) {
-      //   array_json_elems.push(this.EdgeXmlToJson(edges[k], i))
-      // }
-      // diagram.addElems(array_json_elems)
-
-
+      for (k = 0; k < edges.length; k++) {
+        const edgeXmlElement = edges[k]
+        diagram.addEdge(this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id))
+      }
     }
 
     if (i == 0) {
@@ -162,17 +161,10 @@ export default class GrapholParser {
     }
 
     this.getIdentityForNeutralNodes()
-    //this.warnings = [...this.graphol.warnings];
-    // if (this.warnings.length > 10) {
-    //   let length = this.warnings.length
-    //   this.warnings = this.warnings.slice(0, 9)
-    //   this.warnings.push(`...${length - 10} warnings not shown`)
-    // }
-    // this.warnings.forEach(w => console.warn(w))
     return this.ontology
   }
 
-  getBasicGrapholNode(element: Element, diagramId: number) {
+  getBasicGrapholNodeFromXML(element: Element, diagramId: number) {
     let enumTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
     let grapholNode = new GrapholNode(element.getAttribute('id'), diagramId)
 
@@ -234,141 +226,150 @@ export default class GrapholParser {
     return grapholNode
   }
 
-  // EdgeXmlToJson(arco, diagram_id) {
-  //   var k
-  //   var edge = {
-  //     data: {
-  //       target: arco.getAttribute('target') + '_' + diagram_id,
-  //       source: arco.getAttribute('source') + '_' + diagram_id,
-  //       id: arco.getAttribute('id') + '_' + diagram_id,
-  //       id_xml: arco.getAttribute('id'),
-  //       diagram_id: diagram_id,
-  //       type: arco.getAttribute('type'),
-  //       breakpoints: [],
-  //     }
-  //   }
+  getGrapholEdgeFromXML(edgeXmlElement: Element, diagramId: number) {
+    const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id'), diagramId)
 
-  //   if (edge.data.type.toLowerCase() == 'same' || edge.data.type.toLowerCase() == 'different')
-  //     edge.data.displayed_name = edge.data.type.toLowerCase()
+    grapholEdge.sourceId = edgeXmlElement.getAttribute('source')
+    grapholEdge.targetId = edgeXmlElement.getAttribute('target')
+    grapholEdge.type = Type[edgeXmlElement.getAttribute('type')]
 
-  //   // Prendiamo i nodi source e target
-  //   var source = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.source)
-  //   var target = this.ontology.getDiagram(diagram_id).cy.$id(edge.data.target)
-  //   // Impostiamo le label numeriche per gli archi che entrano nei role-chain
-  //   // I role-chain hanno un campo <input> con una lista di id di archi all'interno
-  //   // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
-  //   // numerica che deve avere l'arco
-  //   // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
-  //   // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
-  //   // la target_label in base alla posizione nella sequenza
-  //   if (target.data('type') === nodeTypes.ROLE_CHAIN || target.data('type') === nodeTypes.PROPERTY_ASSERTION) {
-  //     for (k = 0; k < target.data('inputs').length; k++) {
-  //       if (target.data('inputs')[k] === edge.data.id_xml) {
-  //         edge.data.target_label = k + 1
-  //         break
-  //       }
-  //     }
-  //   }
 
-  //   // info = <POINT>
-  //   // Processiamo i breakpoints dell'arco
-  //   // NOTA: ogni arco ha sempre almeno 2 breakpoints, cioè gli endpoints
-  //   var point = ParserUtil.getFirstChild(arco)
-  //   var breakpoints = []
-  //   var segment_weights = []
-  //   var segment_distances = []
-  //   var j
-  //   var count = 0
-  //   for (j = 0; j < arco.childNodes.length; j++) {
-  //     // Ignoriamo spazi vuoti, e altri figli di tipo diverso da 1
-  //     if (arco.childNodes[j].nodeType != 1) { continue }
-  //     breakpoints[count] = {
-  //       'x': parseInt(point.getAttribute('x')),
-  //       'y': parseInt(point.getAttribute('y')),
-  //     }
-  //     //breakpoints[count].push(parseInt(point.getAttribute('x')))
-  //     //breakpoints[count].push(parseInt(point.getAttribute('y')))
-  //     if (ParserUtil.getNextSibling(point) != null) {
-  //       point = ParserUtil.getNextSibling(point)
-  //       // Se il breakpoint in questione non è il primo
-  //       // e non è l'ultimo, visto che ha un fratello,
-  //       // allora calcoliamo peso e distanza per questo breakpoint
-  //       // [Il primo e l'ultimo breakpoint sono gli endpoint e non hanno peso e distanza]
-  //       if (count > 0) {
-  //         var aux = ParserUtil.getDistanceWeight(target.position(), source.position(), breakpoints[count])
-  //         segment_distances.push(aux[0])
-  //         segment_weights.push(aux[1])
-  //       }
-  //       count++
-  //     } else { break }
-  //   }
-  //   // Se ci sono almeno 3 breakpoints, allora impostiamo gli array delle distanze e dei pesi
-  //   if (count > 1) {
-  //     edge.data.breakpoints = breakpoints.slice(1, count)
-  //     edge.data.segment_distances = segment_distances
-  //     edge.data.segment_weights = segment_weights
-  //   }
-  //   // Calcoliamo gli endpoints sul source e sul target
-  //   // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
-  //   let source_endpoint = ParserUtil.getNewEndpoint(
-  //     breakpoints[0], // first breakpoint is the one on source
-  //     source,
-  //     breakpoints[1]
-  //   )
+    // var k
 
-  //   // Impostiamo l'endpoint solo se è diverso da zero
-  //   // perchè di default l'endpoint è impostato a (0,0) relativamente al nodo di riferimento
-  //   if (source_endpoint.x != 0 || source_endpoint.y != 0) {
-  //     edge.data.source_endpoint = []
-  //     edge.data.source_endpoint.push(source_endpoint.x)
-  //     edge.data.source_endpoint.push(source_endpoint.y)
-  //   }
-  //   // Facciamo la stessa cosa per il target
-  //   let target_endpoint = ParserUtil.getNewEndpoint(
-  //     breakpoints[breakpoints.length - 1], // last endpoint is the one on target
-  //     target,
-  //     breakpoints[breakpoints.length - 2]
-  //   )
+    // var edgeXmlElement = {
+    //   data: {
+    //     target: edgeXmlElement.getAttribute('target') + '_' + diagramId,
+    //     source: edgeXmlElement.getAttribute('source') + '_' + diagramId,
+    //     id: edgeXmlElement.getAttribute('id') + '_' + diagramId,
+    //     id_xml: edgeXmlElement.getAttribute('id'),
+    //     diagram_id: diagramId,
+    //     type: edgeXmlElement.getAttribute('type'),
+    //     breakpoints: [],
+    //   }
+    // }
 
-  //   if (target_endpoint.x != 0 || target_endpoint.y != 0) {
-  //     edge.data.target_endpoint = []
-  //     edge.data.target_endpoint.push(target_endpoint.x)
-  //     edge.data.target_endpoint.push(target_endpoint.y)
-  //   }
+    // Prendiamo i nodi source e target
+    var sourceGrapholNode = this.ontology.getDiagram(diagramId).getGrapholNode(grapholEdge.sourceId)
+    var targetGrapholNode = this.ontology.getDiagram(diagramId).getGrapholNode(grapholEdge.targetId)
+    // Impostiamo le label numeriche per gli archi che entrano nei role-chain
+    // I role-chain hanno un campo <input> con una lista di id di archi all'interno
+    // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
+    // numerica che deve avere l'arco
+    // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
+    // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
+    // la target_label in base alla posizione nella sequenza
+    if (targetGrapholNode.is(Type.ROLE_CHAIN) || targetGrapholNode.is(Type.PROPERTY_ASSERTION)) {
+      for (let k = 0; k < targetGrapholNode.inputs.length; k++) {
+        if (targetGrapholNode.inputs[k] === grapholEdge.idXml) {
+          grapholEdge.targetLabel = (k + 1).toString()
+          break
+        }
+      }
+    }
 
-  //   // If we have no control-points and only one endpoint, we need an intermediate breakpoint
-  //   // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
-  //   let breakpoint
-  //   if (breakpoints.length === 2) { // 2 breakpoints means no control-points
-  //     if ((edge.data.source_endpoint && !edge.data.target_endpoint)) {
-  //       /**
-  //        * we have custom endpoint only on source, get a middle breakpoint 
-  //        * between the custom endpoint on source (breakpoints[0]) and target position
-  //        * (we don't have endpoint on target)
-  //        * 
-  //        * NOTE: don't use source_endpoint because it contains relative coordinate 
-  //        * with respect source node position. We need absolute coordinates which are
-  //        * the ones parsed from .graphol file
-  //        */
-  //       breakpoint = ParserUtil.getPointOnEdge(breakpoints[0], target.position())
-  //     }
+    // info = <POINT>
+    // Processiamo i breakpoints dell'arco
+    // NOTA: ogni arco ha sempre almeno 2 breakpoints, cioè gli endpoints
+    let point = ParserUtil.getFirstChild(edgeXmlElement)
+    // let breakpoints = []
+    // let segment_weights = []
+    // let segment_distances = []
+    let count = 0
+    for (let j = 0; j < edgeXmlElement.childNodes.length; j++) {
+      // Ignoriamo spazi vuoti, e altri figli di tipo diverso da 1
+      if (edgeXmlElement.childNodes[j].nodeType != 1) { continue }
 
-  //     if (!edge.data.source_endpoint && edge.data.target_endpoint) {
-  //       // same as above but with endpoint on target, which is the last breakpoints (1 since they are just 2)
-  //       breakpoint = ParserUtil.getPointOnEdge(source.position(), breakpoints[1])
-  //     }
+      const breakpoint = new Breakpoint(parseInt(point.getAttribute('x')), parseInt(point.getAttribute('y')))
+      //breakpoints[count].push(parseInt(point.getAttribute('x')))
+      //breakpoints[count].push(parseInt(point.getAttribute('y')))
+      if (ParserUtil.getNextSibling(point) != null) {
+        point = ParserUtil.getNextSibling(point)
+        // Se il breakpoint in questione non è il primo
+        // e non è l'ultimo, visto che ha un fratello,
+        // allora calcoliamo peso e distanza per questo breakpoint
+        // [Il primo e l'ultimo breakpoint sono gli endpoint e non hanno peso e distanza]
+        if (count > 0) {
+          breakpoint.setSourceTarget(sourceGrapholNode.position, targetGrapholNode.position)
+          // var aux = ParserUtil.getDistanceWeight(targetGrapholNode.position, sourceGrapholNode.position, breakpoints[count])
+          // segment_distances.push(aux[0])
+          // segment_weights.push(aux[1])
 
-  //     if (breakpoint) {
-  //       // now if we have the breakpoint we need, let's get distance and weight for cytoscape
-  //       // just like any other breakpoint
-  //       const distanceWeight = ParserUtil.getDistanceWeight(target.position(), source.position(), breakpoint)
-  //       edge.data.breakpoints = [breakpoint]
-  //       edge.data.segment_distances = [distanceWeight[0]]
-  //       edge.data.segment_weights = [distanceWeight[1]]
-  //     }
-  //   }
-  //   return edge
-  // }
+        }
+        count++
+      }
+
+      grapholEdge.addBreakPoint(breakpoint)
+    }
+    // Se ci sono almeno 3 breakpoints, allora impostiamo gli array delle distanze e dei pesi
+    // if (count > 1) {
+    //   edgeXmlElement.data.breakpoints = breakpoints.slice(1, count)
+    //   edgeXmlElement.data.segment_distances = segment_distances
+    //   edgeXmlElement.data.segment_weights = segment_weights
+    // }
+    // Calcoliamo gli endpoints sul source e sul target
+    // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
+    grapholEdge.sourceEndpoint = ParserUtil.getNewEndpoint(
+      grapholEdge.breakpoints[0], // first breakpoint is the one on source
+      sourceGrapholNode,
+      grapholEdge.breakpoints[1]
+    )
+
+    // Impostiamo l'endpoint solo se è diverso da zero
+    // perchè di default l'endpoint è impostato a (0,0) relativamente al nodo di riferimento
+    // if (source_endpoint.x != 0 || source_endpoint.y != 0) {
+    //   // edgeXmlElement.data.source_endpoint = []
+    //   // edgeXmlElement.data.source_endpoint.push(source_endpoint.x)
+    //   // edgeXmlElement.data.source_endpoint.push(source_endpoint.y)
+    // }
+    // Facciamo la stessa cosa per il target
+    grapholEdge.targetEndpoint = ParserUtil.getNewEndpoint(
+      grapholEdge.breakpoints[grapholEdge.breakpoints.length - 1], // last endpoint is the one on target
+      targetGrapholNode,
+      grapholEdge.breakpoints[grapholEdge.breakpoints.length - 2]
+    )
+
+    // if (target_endpoint.x != 0 || target_endpoint.y != 0) {
+    //   // edgeXmlElement.data.target_endpoint = []
+    //   // edgeXmlElement.data.target_endpoint.push(target_endpoint.x)
+    //   // edgeXmlElement.data.target_endpoint.push(target_endpoint.y)
+    //   grapholEdge.targetEndpoint = new Breakpoint(target_endpoint.x, target_endpoint.y)
+    // }
+
+    // If we have no control-points and only one endpoint, we need an intermediate breakpoint
+    // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
+    let breakpoint: Breakpoint
+    if (grapholEdge.breakpoints.length === 2) { // 2 breakpoints means no control-points
+      if ((grapholEdge.sourceEndpoint && !grapholEdge.targetEndpoint)) {
+        /**
+         * we have custom endpoint only on source, get a middle breakpoint 
+         * between the custom endpoint on source (breakpoints[0]) and target position
+         * (we don't have endpoint on target)
+         * 
+         * NOTE: don't use source_endpoint because it contains relative coordinate 
+         * with respect source node position. We need absolute coordinates which are
+         * the ones parsed from .graphol file
+         */
+        breakpoint = ParserUtil.getPointOnEdge(grapholEdge.breakpoints[0], targetGrapholNode.position)
+      }
+
+      if (!grapholEdge.sourceEndpoint && grapholEdge.targetEndpoint) {
+        // same as above but with endpoint on target, which is the last breakpoints (1 since they are just 2)
+        breakpoint = ParserUtil.getPointOnEdge(sourceGrapholNode.position, grapholEdge.breakpoints[1])
+      }
+
+      if (breakpoint) {
+        // now if we have the breakpoint we need, let's get distance and weight for cytoscape
+        // just like any other breakpoint
+        breakpoint.setSourceTarget(sourceGrapholNode.position, targetGrapholNode.position)
+        grapholEdge.addBreakPoint(breakpoint)
+        // const distanceWeight = ParserUtil.getDistanceWeight(targetGrapholNode.position(), sourceGrapholNode.position(), breakpoint)
+        // edgeXmlElement.data.breakpoints = [breakpoint]
+        // edgeXmlElement.data.segment_distances = [distanceWeight[0]]
+        // edgeXmlElement.data.segment_weights = [distanceWeight[1]]
+      }
+    }
+    return grapholEdge
+  }
 
   // addFakeNodes(array_json_nodes) {
   //   var nodo = array_json_nodes[array_json_nodes.length - 1]

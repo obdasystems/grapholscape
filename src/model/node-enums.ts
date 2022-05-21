@@ -75,6 +75,10 @@ export enum Type {
   EQUIVALENCE = 'equivalence',
   /** @type {"instanceOf"} */
   INSTANCE_OF = 'instanceOf',
+  /** @type {"same"} */
+  SAME = 'same',
+  /** @type {"different"} */
+  DIFFERENT = 'different',
 }
 
 /**

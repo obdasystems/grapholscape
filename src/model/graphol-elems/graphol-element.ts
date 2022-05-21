@@ -6,6 +6,7 @@ export default class GrapholElement {
   // The id coming from xml
   private _idXml: string
   private _type: Type
+  private _displayedName: string
 
   constructor(idXml: string, diagramId: number) {
     this.id = `${idXml}_${diagramId}`
@@ -25,6 +26,11 @@ export default class GrapholElement {
   get type() { return this._type }
   set type(type: Type) {
     this._type = type
+  }
+
+  get displayedName() { return this._displayedName }
+  set displayedName(displayedName: string) {
+    this._displayedName = displayedName
   }
 
   /**

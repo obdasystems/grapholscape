@@ -1,5 +1,6 @@
 import cytoscape from 'cytoscape'
 import cytoscapeDefaultConfig from '../config/cytoscape-default-config'
+import GrapholEdge from './graphol-elems/edge'
 import GrapholNode from './graphol-elems/node'
 import Renderer from './i-renderer'
 /**
@@ -13,7 +14,7 @@ class Diagram implements Renderer {
   hasEverBeenRendered: boolean
   cy = cytoscape(cytoscapeDefaultConfig)
   grapholNodes: GrapholNode[] = []
-  //grapholEdges: GrapholEdge[]
+  grapholEdges: GrapholEdge[] = []
   private fakeNodes: GrapholNode[] = []
 
   /**
@@ -54,6 +55,10 @@ class Diagram implements Renderer {
   addNode(newNode: GrapholNode) {
     this.grapholNodes.push(newNode)
     //this.cy.add(newNode)
+  }
+
+  addEdge(newEdge: GrapholEdge) {
+    this.grapholEdges.push(newEdge)
   }
 
   /**
@@ -132,6 +137,10 @@ class Diagram implements Renderer {
       level: this.cy.zoom() - zoomValue,
       renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
     })
+  }
+
+  getGrapholNode(nodeId: string) {
+    return this.grapholNodes.find(gNode => gNode.idXml === nodeId)
   }
 
   /**
