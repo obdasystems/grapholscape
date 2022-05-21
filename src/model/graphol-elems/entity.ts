@@ -16,7 +16,7 @@ export enum Functionalities {
 
 export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
-  private _occurrences: { elementId: string, diagramId: number }[]
+  private _occurrences: { elementId: string, diagramId: number }[] = []
   private _type: Type
   private _functionalities?: Functionalities[]
 

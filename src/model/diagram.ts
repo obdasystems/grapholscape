@@ -12,9 +12,9 @@ class Diagram implements Renderer {
   id: number
   hasEverBeenRendered: boolean
   cy = cytoscape(cytoscapeDefaultConfig)
-  grapholNodes: GrapholNode[]
+  grapholNodes: GrapholNode[] = []
   //grapholEdges: GrapholEdge[]
-  private fakeNodes: GrapholNode[]
+  private fakeNodes: GrapholNode[] = []
 
   /**
    * @param {string} name

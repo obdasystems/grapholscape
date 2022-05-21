@@ -30,12 +30,12 @@ export default class Iri {
     return this._remainder
   }
 
-  private set namespace(value) {
+  private set namespace(value: Namespace) {
     this._namespace = value
   }
 
   public get namespace() {
-    return this.namespace?.toString()
+    return this._namespace
   }
 
   public get prefix() {

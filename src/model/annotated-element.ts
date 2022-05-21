@@ -39,7 +39,7 @@ export default class AnnotatedElement {
     return this.getAnnotations(language, AnnotationsKind.label)
   }
 
-  public getDescriptions(language?: string) {
+  public getComments(language?: string) {
     return this.getAnnotations(language, AnnotationsKind.comment)
   }
 }

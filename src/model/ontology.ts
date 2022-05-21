@@ -82,13 +82,13 @@ import Namespace from './namespace'
 class Ontology extends AnnotatedElement {
   name: string
   version: string
-  namespaces: Namespace[]
-  diagrams: Diagram[]
+  namespaces: Namespace[] = []
+  diagrams: Diagram[] = []
   languages: {
     /** @type {import('../grapholscape').Language[]}*/
     list: any[]; default: string
   }
-  _entities: GrapholEntity[]
+  _entities: GrapholEntity[] = []
 
   /**
    * @param {string} name
