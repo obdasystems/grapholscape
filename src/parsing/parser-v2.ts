@@ -5,7 +5,6 @@ import { Functionalities } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
 import { Type } from '../model/node-enums'
-import * as ParserUtil from './parser_util'
 
 export let warnings = new Set()
 
@@ -78,9 +77,9 @@ export function getIri(element: Element, ontology: Ontology) {
     rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':')+1) : label
     namespace = ontology.getNamespaceFromPrefix(node_prefix_iri)
 
-    if (!namespace && ParserUtil.isPredicate(element)) {
-      this.warnings.add(`The prefix "${node_prefix_iri}" is not associated to any namespace`)
-    }
+    // if (!namespace && ParserUtil.isPredicate(element)) {
+    //   this.warnings.add(`The prefix "${node_prefix_iri}" is not associated to any namespace`)
+    // }
 
     namespace = namespace ? namespace.value : ''
   }
