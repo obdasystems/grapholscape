@@ -1,4 +1,4 @@
-import { Position } from "cytoscape";
+import { ElementDefinition, Position } from "cytoscape";
 import { Type } from "../node-enums";
 import Breakpoint from "./breakpoint";
 import GrapholElement from "./graphol-element";
@@ -29,7 +29,7 @@ export default class GrapholEdge extends GrapholElement {
   }
 
   set sourceEndpoint(endpoint: Position) {
-    if (endpoint.x !== 0 && endpoint.y !== 0)
+    if (endpoint.x !== 0 || endpoint.y !== 0)
       this._sourceEndpoint = endpoint
   }
 
@@ -38,11 +38,21 @@ export default class GrapholEdge extends GrapholElement {
   }
 
   set targetEndpoint(endpoint: Position) {
-    if (endpoint.x !== 0 && endpoint.y !== 0)
+    if (endpoint.x !== 0 || endpoint.y !== 0)
       this._targetEndpoint = endpoint
   }
 
+  /**
+   * Returns an array of mid-edge breakpoints (without source/target endpoints)
+   */
   public get breakpoints() {
+    return this._breakpoints.slice(1, -1)
+  }
+
+  /**
+   * Returns an array of all the breakpoints (including source/target endpoints)
+   */
+  public get controlpoints() {
     return this._breakpoints
   }
 
@@ -74,11 +84,29 @@ export default class GrapholEdge extends GrapholElement {
     this._sourceLabel = sourceLabel
   }
 
-
+  public get type() { return super.type }
   public set type(newType: Type) {
     super.type = newType
 
     if (this.is(Type.SAME) || this.is(Type.DIFFERENT))
       this.displayedName = this.type
+  }
+
+  public toCyRepr() {
+    let result = super.toCyRepr()
+    Object.assign(result.data, {
+      type: this.type || undefined,
+      source: this.sourceId,
+      target: this.targetId,
+      sourceLabel: this.sourceLabel || undefined,
+      targetLabel: this.targetLabel || undefined,
+      sourceEndpoint: this.sourceEndpoint ? [this.sourceEndpoint.x, this.sourceEndpoint.y] : undefined,
+      targetEndpoint: this.targetEndpoint ? [this.targetEndpoint.x, this.targetEndpoint.y] : undefined,
+      segmentDistances: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.distance) : undefined,
+      segmentWeights: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.weight) : undefined,
+    })
+
+    result.classes = this.type.toString()
+    return result
   }
 }

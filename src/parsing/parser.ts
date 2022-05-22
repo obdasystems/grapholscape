@@ -72,7 +72,7 @@ export default class GrapholParser {
           let entity = this.ontology.getEntity(iri.fullIri)
           if (!entity) {
             entity = new GrapholEntity(iri, grapholNodeType.TYPE)
-            this.ontology.addEntity(entity)
+            diagram.addEntity(entity)
           }
 
           entity.addOccurrence(node.id, diagram.id)
@@ -136,8 +136,10 @@ export default class GrapholParser {
               break
 
             default:
-              if (constructorLabels[node.type])
-                node.displayedName = constructorLabels[node.type]
+              const constructorLabel = constructorLabels[Object.keys(Type).find(k => Type[k] === node.type)]
+              if (constructorLabel) {
+                node.displayedName = constructorLabel
+              }
               break
           }
 
@@ -231,9 +233,9 @@ export default class GrapholParser {
 
     grapholEdge.sourceId = edgeXmlElement.getAttribute('source')
     grapholEdge.targetId = edgeXmlElement.getAttribute('target')
-    grapholEdge.type = Type[edgeXmlElement.getAttribute('type')]
-
-
+    grapholEdge.type = Type[Object.keys(Type).find(k => Type[k] === edgeXmlElement.getAttribute('type'))]
+    if (!grapholEdge.type)
+      console.log(edgeXmlElement.getAttribute('type'))
     // var k
 
     // var edgeXmlElement = {
@@ -309,9 +311,9 @@ export default class GrapholParser {
     // Calcoliamo gli endpoints sul source e sul target
     // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
     grapholEdge.sourceEndpoint = ParserUtil.getNewEndpoint(
-      grapholEdge.breakpoints[0], // first breakpoint is the one on source
+      grapholEdge.controlpoints[0], // first breakpoint is the one on source
       sourceGrapholNode,
-      grapholEdge.breakpoints[1]
+      grapholEdge.controlpoints[1]
     )
 
     // Impostiamo l'endpoint solo se è diverso da zero
@@ -323,9 +325,9 @@ export default class GrapholParser {
     // }
     // Facciamo la stessa cosa per il target
     grapholEdge.targetEndpoint = ParserUtil.getNewEndpoint(
-      grapholEdge.breakpoints[grapholEdge.breakpoints.length - 1], // last endpoint is the one on target
+      grapholEdge.controlpoints[grapholEdge.controlpoints.length - 1], // last endpoint is the one on target
       targetGrapholNode,
-      grapholEdge.breakpoints[grapholEdge.breakpoints.length - 2]
+      grapholEdge.controlpoints[grapholEdge.controlpoints.length - 2]
     )
 
     // if (target_endpoint.x != 0 || target_endpoint.y != 0) {
@@ -338,7 +340,7 @@ export default class GrapholParser {
     // If we have no control-points and only one endpoint, we need an intermediate breakpoint
     // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
     let breakpoint: Breakpoint
-    if (grapholEdge.breakpoints.length === 2) { // 2 breakpoints means no control-points
+    if (grapholEdge.controlpoints.length === 2) { // 2 breakpoints means only endpoints
       if ((grapholEdge.sourceEndpoint && !grapholEdge.targetEndpoint)) {
         /**
          * we have custom endpoint only on source, get a middle breakpoint 
@@ -349,19 +351,20 @@ export default class GrapholParser {
          * with respect source node position. We need absolute coordinates which are
          * the ones parsed from .graphol file
          */
-        breakpoint = ParserUtil.getPointOnEdge(grapholEdge.breakpoints[0], targetGrapholNode.position)
+        breakpoint = ParserUtil.getPointOnEdge(grapholEdge.controlpoints[0], targetGrapholNode.position)
       }
 
       if (!grapholEdge.sourceEndpoint && grapholEdge.targetEndpoint) {
         // same as above but with endpoint on target, which is the last breakpoints (1 since they are just 2)
-        breakpoint = ParserUtil.getPointOnEdge(sourceGrapholNode.position, grapholEdge.breakpoints[1])
+        breakpoint = ParserUtil.getPointOnEdge(sourceGrapholNode.position, grapholEdge.controlpoints[1])
       }
 
       if (breakpoint) {
         // now if we have the breakpoint we need, let's get distance and weight for cytoscape
         // just like any other breakpoint
         breakpoint.setSourceTarget(sourceGrapholNode.position, targetGrapholNode.position)
-        grapholEdge.addBreakPoint(breakpoint)
+        // insert new breakpoint between the the other two we already have
+        grapholEdge.controlpoints.splice(1, 0, breakpoint)
         // const distanceWeight = ParserUtil.getDistanceWeight(targetGrapholNode.position(), sourceGrapholNode.position(), breakpoint)
         // edgeXmlElement.data.breakpoints = [breakpoint]
         // edgeXmlElement.data.segment_distances = [distanceWeight[0]]

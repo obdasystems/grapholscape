@@ -79,6 +79,8 @@ export enum Type {
   SAME = 'same',
   /** @type {"different"} */
   DIFFERENT = 'different',
+  /** @type {"membership"} */
+  MEMBERSHIP = 'membership',
 }
 
 /**

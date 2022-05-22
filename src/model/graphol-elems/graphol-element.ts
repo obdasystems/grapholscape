@@ -1,3 +1,4 @@
+import { ElementDefinition } from "cytoscape"
 import { Type } from "../node-enums"
 
 export default class GrapholElement {
@@ -55,5 +56,17 @@ export default class GrapholElement {
     }
 
     return false
+  }
+
+  toCyRepr(): ElementDefinition {
+    const result: ElementDefinition = {
+      data: {
+        id: this.id,
+        idXml: this.idXml || undefined,
+        type: this.type || undefined,
+        displayedName: this.displayedName || undefined
+      }
+    }
+    return result
   }
 }

@@ -107,12 +107,11 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument) {
   // for searching predicates' functionalities in graphol v2
   const xmlPredicates = xmlDocument.getElementsByTagName('predicate')
   const type = element.getAttribute('type')
-
   for (let predicateXml of xmlPredicates) {
     if (labelNoBreak === predicateXml.getAttribute('name') && type === predicateXml.getAttribute('type')) {
 
       Object.values(Functionalities).forEach(functionalityKind => {
-        const value = parseInt(predicateXml.getElementsByTagName(functionalityKind)[0].textContent)
+        const value = parseInt(predicateXml.getElementsByTagName(functionalityKind)[0]?.textContent) || 0
 
         if (value !== 0)
           result.push(functionalityKind)

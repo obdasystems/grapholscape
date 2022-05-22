@@ -9,14 +9,14 @@ import * as themes from './style/themes'
 cytoscape.use(popper)
 cytoscape.use(cola)
 
-export { default as Grapholscape} from './grapholscape'
-export { fullGrapholscape } from './index.full'
-export { UI } from './index.full'
-export * from './model/node-enums'
-export { default as grapholEnums } from './model/node-enums'
-export { themes }
-export * from './config/config-manager'
-export * from './util/model-obj-transformations'
+// export { default as Grapholscape} from './grapholscape'
+// export { fullGrapholscape } from './index.full'
+// export { UI } from './index.full'
+// export * from './model/node-enums'
+// export { default as grapholEnums } from './model/node-enums'
+// export { themes }
+// export * from './config/config-manager'
+// export * from './util/model-obj-transformations'
 //export { GrapholscapeRenderer } from './rendering/renderers'
 
 /**
@@ -30,19 +30,11 @@ export * from './util/model-obj-transformations'
  * @tutorial Settings
  * @tutorial Themes
  */
-export function bareGrapholscape(file, container, config = {}) {
+export function fullGrapholscape(file, container, config = {}) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined
   }
 
   return initGrapholscape(file, container, config)
-}
-
-
-export function newGrapholscape(file, container: Element, config) {
-  const state = new GrapholscapeState()
-  let c = core(state, container)
-  
-  return c
 }

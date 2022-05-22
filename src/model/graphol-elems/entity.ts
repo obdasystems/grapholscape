@@ -47,7 +47,7 @@ export default class GrapholEntity extends AnnotatedElement {
   }
 
   public get occurrences() {
-    return this.occurrences
+    return this._occurrences
   }
 
   public set iri(val: Iri) {
@@ -68,5 +68,9 @@ export default class GrapholEntity extends AnnotatedElement {
 
   public hasFunctionality(functionalityKind: Functionalities) {
     return this._functionalities?.includes(functionalityKind)
+  }
+
+  public hasOccurrence(occurrenceId: string, diagramId: number) {
+    return this.occurrences.find(occ => occ.elementId === occurrenceId && diagramId === diagramId)
   }
 }

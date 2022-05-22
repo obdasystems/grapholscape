@@ -1,4 +1,4 @@
-import { Position } from "cytoscape"
+import { ElementDefinition, Position } from "cytoscape"
 import { Shape, Type } from "../node-enums"
 import GrapholElement from "./graphol-element"
 
@@ -98,12 +98,35 @@ export default class GrapholNode extends GrapholElement {
     this._inputs = inputs
   }
 
-  get shapePoints() { return this.shapePoints }
+  get shapePoints() { return this._shapePoints }
   set shapePoints(shapePoints: string) {
     this._shapePoints = shapePoints
   }
 
   addFakeNode(newFakeNode: GrapholNode) {
+    if (!this._fakeNodes)
+      this._fakeNodes = []
+
     this._fakeNodes.push(newFakeNode)
+  }
+
+  toCyRepr() {
+    let result = super.toCyRepr()
+
+    result.position = this.position
+    Object.assign(result.data, {
+      shape: this.shape || undefined,
+      height: this.height || undefined,
+      width: this.width || undefined,
+      fillColor: this.fillColor || undefined,
+      shapePoints: this.shapePoints || undefined,
+      labelXpos: this.labelXpos  || this.labelXpos == 0 ? this.labelXpos : undefined,
+      labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,
+      labelXcentered: this.isLabelXcentered,
+      labelYcentered: this.isLabelYcentered,
+    })
+
+    result.classes = this.type.toString()
+    return result
   }
 }

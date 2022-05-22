@@ -27,10 +27,8 @@ export default class Breakpoint implements Position {
    */
   public setSourceTarget(source: Position, target: Position) {
     // Coordinate del breakpoint traslando l'origine sul source:
-    let breakpoint: Position = {
-      x: this.x - source.x,
-      y: this.y - source.y
-    }
+    this.breakpointRelativeToSource.x = this.x - source.x
+    this.breakpointRelativeToSource.y = this.y - source.y
 
     this.deltaX = target.x - source.x
     this.deltaY = target.y - source.y
@@ -40,9 +38,9 @@ export default class Breakpoint implements Position {
     // Sappiamo però automaticamente che la retta perpendicolare è del tipo y = c
     // quindi l'intersect point avrà X = 0 e Y = breakpoint['y']
     if (this.deltaX == 0) {
-      this.intersectionPoint = { x: 0, y: breakpoint.y }
+      this.intersectionPoint = { x: 0, y: this.breakpointRelativeToSource.y }
     } else if (this.deltaY == 0) {
-      this.intersectionPoint = { x: breakpoint.x, y: 0 }
+      this.intersectionPoint = { x: this.breakpointRelativeToSource.x, y: 0 }
       this.angularCoefficient = 0
     } else {
       this.angularCoefficient = this.deltaY / this.deltaX
@@ -56,7 +54,7 @@ export default class Breakpoint implements Position {
       // dobbiamo calcolare quote imponendo che point faccia parte della retta T, quindi calcoliamo:
       // quote = breakpoint_y + (breakpoint_x/angularCoefficient)
 
-      const quote = breakpoint.y + (breakpoint.x / this.angularCoefficient)
+      const quote = this.breakpointRelativeToSource.y + (this.breakpointRelativeToSource.x / this.angularCoefficient)
 
       // Adesso mettiamo a sistema le due rette T ed R (che sono perpendicolari) e risolvendo il sistema
       // otteniamo che il punto di intersezione tra le due ha le coordinate:
@@ -65,18 +63,18 @@ export default class Breakpoint implements Position {
 
       this.intersectionPoint.x = (quote * this.angularCoefficient) / (Math.pow(this.angularCoefficient, 2) + 1)
       this.intersectionPoint.y = this.intersectionPoint.x * this.angularCoefficient
-
-      // Distanza tra source e target
-      this.distanceSourceTarget = getDisance(source, target)
-      /**
-       * Distanza tra intersection point e source
-       * Le coordinate di intersect point sono espresse traslando l'origine su source, che quindi diventa l'origina (0,0)
-       */
-      this.distanceIntersectionSource = getDisance(this.intersectionPoint, { x: 0, y: 0 })
-
-      this.setDistance()
-      this.setWeight()
     }
+
+    // Distanza tra source e target
+    this.distanceSourceTarget = getDisance(source, target)
+    /**
+     * Distanza tra intersection point e source
+     * Le coordinate di intersect point sono espresse traslando l'origine su source, che quindi diventa l'origine (0,0)
+     */
+    this.distanceIntersectionSource = getDisance(this.intersectionPoint, { x: 0, y: 0 })
+
+    this.setDistance()
+    this.setWeight()
   }
 
   private setWeight() {

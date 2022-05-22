@@ -1,8 +1,14 @@
 import cytoscape from 'cytoscape'
 import cytoscapeDefaultConfig from '../config/cytoscape-default-config'
+import { getGraphStyle } from '../style/graph-style'
+import GrapholscapeTheme from '../model/theme'
 import GrapholEdge from './graphol-elems/edge'
 import GrapholNode from './graphol-elems/node'
 import Renderer from './i-renderer'
+import { setTheme } from '../core/themes'
+import GrapholEntity, { Functionalities } from './graphol-elems/entity'
+import GrapholElement from './graphol-elems/graphol-element'
+import { Type } from './node-enums'
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
@@ -15,20 +21,17 @@ class Diagram implements Renderer {
   cy = cytoscape(cytoscapeDefaultConfig)
   grapholNodes: GrapholNode[] = []
   grapholEdges: GrapholEdge[] = []
-  private fakeNodes: GrapholNode[] = []
+  grapholEntities: GrapholEntity[] = []
 
   /**
    * @param {string} name
    * @param {number} id
-   * @param {JSON} elements - JSON representation of cytoscape elements @see [cytoscpae-eles](https://js.cytoscape.org/#notation/elements-json)
    */
-  constructor(name: string, id: number, elements: JSON = null) {
+  constructor(name: string, id: number) {
     this.name = name
     this.id = id
     /** @type {boolean} */
     this.hasEverBeenRendered = false
-    if (elements)
-      this.addElems(elements)
   }
   showEntity: (iri: string, zoom?: number) => void
   selectEntity: (iri: string, zoom?: number) => void
@@ -48,17 +51,40 @@ class Diagram implements Renderer {
     //this.cy.$(`node[type = "${Type.DATA_PROPERTY}"]`).forEach(cyDataProperty => setDatatypeOnDataProperty(cyDataProperty))
   }
 
+  addEntity(entity: GrapholEntity) {
+    this.grapholEntities.push(entity)
+  }
+
+  getEntityByOccurrence(occurrence: GrapholElement) {
+    return this.grapholEntities.find(gEntity => gEntity.hasOccurrence(occurrence.id, this.id))
+  }
+
   /**
    * Add a new node to the diagram
    * @param newNode the GrapholNode to add to the diagram
    */
   addNode(newNode: GrapholNode) {
     this.grapholNodes.push(newNode)
-    //this.cy.add(newNode)
+
+    const cyNode = newNode.toCyRepr()
+    
+    if (newNode.is(Type.DATA_PROPERTY) || newNode.is(Type.OBJECT_PROPERTY)) {
+      const entity = this.getEntityByOccurrence(newNode)
+      cyNode.data[Functionalities.functional] = entity.hasFunctionality(Functionalities.functional)
+      cyNode.data[Functionalities.inverseFunctional] = entity.hasFunctionality(Functionalities.inverseFunctional)
+    }
+
+    this.cy.add(cyNode)
   }
 
   addEdge(newEdge: GrapholEdge) {
     this.grapholEdges.push(newEdge)
+    const cyEdge = newEdge.toCyRepr()
+    // Transform source id from XML to source absolute id
+    cyEdge.data.source = `${cyEdge.data.source}_${this.id}`
+    // Transform source id from XML to source absolute id
+    cyEdge.data.target = `${cyEdge.data.target}_${this.id}`
+    this.cy.add(cyEdge)
   }
 
   /**
@@ -141,6 +167,10 @@ class Diagram implements Renderer {
 
   getGrapholNode(nodeId: string) {
     return this.grapholNodes.find(gNode => gNode.idXml === nodeId)
+  }
+
+  setTheme(theme: GrapholscapeTheme) {
+    this.cy.style(getGraphStyle(theme))
   }
 
   /**

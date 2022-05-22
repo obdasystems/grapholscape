@@ -8,6 +8,7 @@ export const showDiagram = function (diagramId: number, container = this.contain
   const diagram = actualState.ontology.getDiagram(diagramId)
 
   if (diagram && diagram !== actualState.diagram) {
+    diagram.setTheme(actualState.theme)
     diagram.render(container || this.container)
     actualState.diagram = diagram
     lifecyle.trigger(LifecycleEvent.DiagramChange, diagram)

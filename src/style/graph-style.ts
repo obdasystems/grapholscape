@@ -1,19 +1,22 @@
+import { CssStyleDeclaration } from "cytoscape";
 import { Shape, Type } from "../model/node-enums";
+import GrapholTheme from '../model/theme'
+import { ColoursNames } from "./themes";
 
-export function getGraphStyle(theme) {
+export function getGraphStyle(theme: GrapholTheme) {
   return [
     {
       selector: 'node',
       style: {
         'height': 'data(height)',
         'width': 'data(width)',
-        'background-color': theme.node_bg,
+        'background-color': theme.getColour(ColoursNames.node_bg),
         'shape': 'data(shape)',
         'border-width': 1,
-        'border-color': theme.node_border,
+        'border-color': theme.getColour(ColoursNames.node_border),
         'border-style': 'solid',
         'font-size': 12,
-        'color': theme.label_color,
+        'color': theme.getColour(ColoursNames.label_color),
       }
     },
 
@@ -25,9 +28,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'node[displayed_name]',
+      selector: 'node[displayedName]',
       style: {
-        'label': 'data(displayed_name)',
+        'label': 'data(displayedName)',
         'text-margin-x': 'data(labelXpos)',
         'text-margin-y': 'data(labelYpos)',
         'text-wrap': 'wrap',
@@ -53,12 +56,12 @@ export function getGraphStyle(theme) {
       selector: 'edge',
       style: {
         'width': 2,
-        'line-color': theme.edge,
-        'target-arrow-color': theme.edge,
-        'source-arrow-color': theme.edge,
+        'line-color': theme.getColour(ColoursNames.edge),
+        'target-arrow-color': theme.getColour(ColoursNames.edge),
+        'source-arrow-color': theme.getColour(ColoursNames.edge),
         'curve-style': 'bezier',
         'arrow-scale': 1.3,
-        'color': theme.label_color,
+        'color': theme.getColour(ColoursNames.label_color),
       }
     },
 
@@ -124,11 +127,11 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[segment_distances]',
+      selector: '[segmentDistances]',
       style: {
         'curve-style': 'segments',
-        'segment-distances': 'data(segment_distances)',
-        'segment-weights': 'data(segment_weights)',
+        'segment-distances': 'data(segmentDistances)',
+        'segment-weights': 'data(segmentWeights)',
         'edge-distances': 'node-position'
       }
     },
@@ -142,16 +145,16 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[source_endpoint]',
+      selector: '[sourceEndpoint]',
       style: {
-        'source-endpoint': 'data(source_endpoint)'
+        'source-endpoint': 'data(sourceEndpoint)'
       }
     },
 
     {
-      selector: '[target_endpoint]',
+      selector: '[targetEndpoint]',
       style: {
-        'target-endpoint': 'data(target_endpoint)'
+        'target-endpoint': 'data(targetEndpoint)'
       }
     },
 
@@ -159,7 +162,7 @@ export function getGraphStyle(theme) {
       selector: '[?functional][!inverseFunctional]',
       style: {
         'border-width': 5,
-        'border-color': theme.node_border,
+        'border-color': theme.getColour(ColoursNames.node_border),
         'border-style': 'double'
       }
     },
@@ -168,15 +171,15 @@ export function getGraphStyle(theme) {
       selector: '[?inverseFunctional][!functional]',
       style: {
         'border-width': 4,
-        'border-color': theme.node_border,
+        'border-color': theme.getColour(ColoursNames.node_border),
         'border-style': 'solid'
       }
     },
 
     {
-      selector: 'edge[displayed_name]',
+      selector: 'edge[displayedName]',
       style: {
-        'label': 'data(displayed_name)',
+        'label': 'data(displayedName)',
         'font-size': 10,
         'text-rotation': 'autorotate',
         'text-margin-y': -10,
@@ -206,9 +209,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: 'edge[displayed_name],[source_label],[target_label],[text_background]',
+      selector: 'edge[displayedName],[source_label],[target_label],[text_background]',
       style: {
-        'text-background-color': theme.background,
+        'text-background-color': theme.getColour(ColoursNames.background),
         'text-background-opacity': 1,
         'text-background-shape': 'roundrectangle',
         'text-background-padding' : 2,
@@ -216,9 +219,9 @@ export function getGraphStyle(theme) {
     },
 
     {
-      selector: '[shape_points]',
+      selector: '[shapePoints]',
       style: {
-        'shape-polygon-points': 'data(shape_points)'
+        'shape-polygon-points': 'data(shapePoints)'
       }
     },
 
@@ -261,31 +264,31 @@ export function getGraphStyle(theme) {
     {
       selector: `.${Type.CONCEPT}`,
       style: {
-        'background-color': theme.concept,
-        'border-color': theme.concept_dark,
+        'background-color': theme.getColour(ColoursNames.concept),
+        'border-color': theme.getColour(ColoursNames.concept_dark),
       }
     },
 
     {
       selector: `.${Type.OBJECT_PROPERTY}, .fake-triangle`,
       style: {
-        'background-color': theme.role,
-        'border-color': theme.role_dark,
+        'background-color': theme.getColour(ColoursNames.role),
+        'border-color': theme.getColour(ColoursNames.role_dark),
       }
     },
 
     {
       selector: `.${Type.DATA_PROPERTY}`,
       style: {
-        'background-color': theme.attribute,
-        'border-color': theme.attribute_dark,
+        'background-color': theme.getColour(ColoursNames.attribute),
+        'border-color': theme.getColour(ColoursNames.attribute_dark),
       }
     },
 
     {
       selector: `.${Type.DATA_PROPERTY}:selected`,
       style: {
-        'text-background-color': theme.background,
+        'text-background-color': theme.getColour(ColoursNames.background),
         'text-background-opacity': 1,
       }
     },
@@ -293,9 +296,9 @@ export function getGraphStyle(theme) {
     {
       selector: `edge.${Type.OBJECT_PROPERTY}`,
       style: {
-        'line-color' : theme.role_dark,
-        'source-arrow-color': theme.role_dark,
-        'target-arrow-color': theme.role_dark,
+        'line-color' : theme.getColour(ColoursNames.role_dark),
+        'source-arrow-color': theme.getColour(ColoursNames.role_dark),
+        'target-arrow-color': theme.getColour(ColoursNames.role_dark),
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'square',
@@ -331,7 +334,7 @@ export function getGraphStyle(theme) {
     {
       selector: `edge.${Type.DATA_PROPERTY}`,
       style: {
-        'line-color': theme.attribute_dark,
+        'line-color': theme.getColour(ColoursNames.attribute_dark),
         'source-arrow-shape': 'none',
         'target-arrow-shape': 'none',
       }
@@ -352,15 +355,15 @@ export function getGraphStyle(theme) {
     {
       selector: `.${Type.INDIVIDUAL}`,
       style: {
-        'background-color': theme.individual,
-        'border-color': theme.individual_dark,
+        'background-color': theme.getColour(ColoursNames.individual),
+        'border-color': theme.getColour(ColoursNames.individual_dark),
       }
     },
 
     {
       selector: `[type = "${Type.RANGE_RESTRICTION}"], [type = "${Type.DISJOINT_UNION}"]`,
       style: {
-        'background-color': theme.node_bg_contrast,
+        'background-color': theme.getColour(ColoursNames.node_bg_contrast),
       }
     },
 
@@ -374,21 +377,21 @@ export function getGraphStyle(theme) {
     {
       selector: '.float[?pinned]',
       style: {
-        'border-color' : theme.secondary,
+        'border-color' : theme.getColour(ColoursNames.secondary),
       }
     },
 
     { // the right border part of functional && inverseFunctional roles
       selector: '.fake-triangle-right',
       style: {
-        'background-color': theme.role_dark || 'black',
+        'background-color': theme.getColour(ColoursNames.role_dark) || 'black',
       }
     },
 
     {
       selector: `[shape = "${Shape.HEXAGON}"],[type = "${Type.VALUE_DOMAIN}"], .${Type.FACET}`,
       style: {
-        'color': theme.node_bg_contrast,
+        'color': theme.getColour(ColoursNames.node_bg_contrast),
       }
     },
 
@@ -397,10 +400,10 @@ export function getGraphStyle(theme) {
     {
       selector: ':selected',
       style: {
-        'overlay-color': theme.secondary,
+        'overlay-color': theme.getColour(ColoursNames.secondary),
         'overlay-opacity': 0.2,
         'z-index': '100'
       }
     },
-  ]
+  ] as CssStyleDeclaration[]
 }

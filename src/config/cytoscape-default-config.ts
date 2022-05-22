@@ -3,5 +3,5 @@ export default {
   autoungrabify: true,
   maxZoom: 2.5,
   minZoom: 0.02,
-  wheelSensitivity: 0.04,
+  wheelSensitivity: 0.08,
 }

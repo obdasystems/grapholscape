@@ -9,6 +9,8 @@ import Namespace from '../src/model/namespace'
 import GrapholEntity, { Functionalities } from '../src/model/graphol-elems/entity'
 import { UNDEFINED_LANGUAGE } from '../src/model/graphol-elems/annotation'
 import GrapholParser from '../src/parsing/parser'
+import GrapholNode from '../src/model/graphol-elems/node'
+import { getNewEndpoint } from '../src/parsing/parser_util'
 
 const domParser = new DOMParser()
 const xmlDoc = domParser.parseFromString(customOntology, 'text/xml')
@@ -50,7 +52,7 @@ describe("Test parsing ontology metadata", () => {
   test('it should parse multiple annotation of the same language', () => {
     const englishAnnotations = ontology.getAnnotations('en').map(ann => ann.lexicalForm)
     const expectedResult = output.other_infos.annotations.author.en.concat(output.other_infos.annotations.comment.en)
-    
+
     for (const englishAnnotation of expectedResult) {
       expect(englishAnnotations).toContain(englishAnnotation)
     }
@@ -179,7 +181,7 @@ describe('Test retrieving annotations', () => {
   `)
 
   const retrievedInfosConcept = parserV3.getEntityAnnotations(node1_mock_input, xmlDoc)
-  const conceptEntity = new GrapholEntity(null,null)
+  const conceptEntity = new GrapholEntity(null, null)
   conceptEntity.annotations = retrievedInfosConcept
 
   test('it should parse multiple labels for each language, even not defined language', () => {
@@ -273,29 +275,56 @@ describe('It should parse edges correctly', () => {
       <point x="640" y="-350"/>
       <point x="640" y="-10"/>
     </edge>`
-  
+
   const grapholParser = new GrapholParser(books3)
   grapholParser.parseGraphol()
   const grapholEdge = grapholParser.getGrapholEdgeFromXML(parseSingleNode(edgeMock, 'edge'), 0)
-  
+
   test('It should create GrapholEdge', () => {
     expect(grapholEdge).toBeDefined()
   })
 
   test('It should parse breakpoints correctly', () => {
-    expect(grapholEdge.breakpoints).toHaveLength(3)
-    expect(grapholEdge.breakpoints[0]).toMatchObject({ x: 300, y: -350 })
-    expect(grapholEdge.breakpoints[1]).toMatchObject({ x: 640, y: -350 })
-    expect(grapholEdge.breakpoints[2]).toMatchObject({ x: 640, y: -10 })
+    expect(grapholEdge.breakpoints).toHaveLength(1)
+    expect(grapholEdge.controlpoints).toHaveLength(3)
+    expect(grapholEdge.controlpoints[0]).toMatchObject({ x: 300, y: -350 })
+    expect(grapholEdge.controlpoints[1]).toMatchObject({ x: 640, y: -350 })
+    expect(grapholEdge.controlpoints[2]).toMatchObject({ x: 640, y: -10 })
+    expect(grapholEdge.breakpoints[0]).toBe(grapholEdge.controlpoints[1])
   })
-  
+
   test('It should compute breakpoints distance and weight', () => {
-    expect(grapholEdge.breakpoints[0].distance).toBeUndefined()
-    expect(grapholEdge.breakpoints[0].weight).toBeUndefined()
-    expect(grapholEdge.breakpoints[1].distance.toPrecision(8)).toBe('240.41631')
-    expect(grapholEdge.breakpoints[1].weight).toBe(0.5)
-    expect(grapholEdge.breakpoints[2].distance).toBeUndefined()
-    expect(grapholEdge.breakpoints[2].distance).toBeUndefined()
+    expect(grapholEdge.controlpoints[0].distance).toBeUndefined()
+    expect(grapholEdge.controlpoints[0].weight).toBeUndefined()
+    expect(grapholEdge.controlpoints[1].distance.toPrecision(8)).toBe('-240.41631')
+    expect(grapholEdge.controlpoints[1].weight).toBe(0.5)
+    expect(grapholEdge.controlpoints[2].distance).toBeUndefined()
+    expect(grapholEdge.controlpoints[2].distance).toBeUndefined()
+  })
+
+  test('It should move endpoints on borders correctly', () => {
+    const grapholNode = new GrapholNode(null, null)
+    grapholNode.position = { x: 1000, y: 1000 }
+    const customEndpoint = { x: 1020, y: 1010 }
+
+    grapholNode.height = 50
+    grapholNode.width = 100
+
+    let firstBreakPoint = { x: 1020, y: 1300 }
+    // endpoint should be placed on bottom border, so relatively to the center of the node
+    // it should be on (20, 25)
+    expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: 20, y: 25 })
+    // now edge comes from top
+    firstBreakPoint = { x: 1020, y: -235 }
+    expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: 20, y: -25 })
+
+    // edge coming from left
+    firstBreakPoint = { x: 100, y: 1010}
+    expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: -50, y: 10 })
+
+    // edge coming from right
+    firstBreakPoint = { x: 1100, y: 1010}
+    expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: 50, y: 10 })
   })
 
 })

@@ -1,5 +1,7 @@
 import { loadConfig } from "./config/config-manager"
-import Grapholscape from "./grapholscape"
+import grapholscape from "./core"
+import { GrapholscapeState } from "./model"
+import GrapholscapeTheme from "./model/theme"
 import GrapholParser from "./parsing/parser"
 
 /**
@@ -47,8 +49,13 @@ export default function (file, container, config) {
 
     function init() {
       try {
-        const gscape = new Grapholscape(ontology, container, config)
-        if (lastUsedTheme) gscape.applyTheme(lastUsedTheme)
+        //const gscape = new Grapholscape(ontology, container, config)
+        const grapholscapeState = new GrapholscapeState()
+        grapholscapeState.ontology = ontology
+        grapholscapeState.theme = GrapholscapeTheme.defaultTheme
+        const gscape = grapholscape(grapholscapeState, container)
+        //if (lastUsedTheme) gscape.applyTheme(lastUsedTheme)
+        globalThis['gscape'] = gscape
         resolve(gscape)
       } catch (e) { console.error(e)}
     }

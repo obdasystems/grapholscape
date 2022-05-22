@@ -1,20 +1,18 @@
 import { EntityNameType, Language } from "../../grapholscape"
-import { Theme } from "../../style/themes"
 import Diagram from "../diagram"
 import Iri from "../iri"
 import Ontology from "../ontology"
+import GrapholscapeTheme from "../theme"
 
 export default class GrapholscapeState {
   private _language: Language
-  private _theme: Theme
+  private _theme: GrapholscapeTheme
   private _diagram: Diagram
   private _ontology: Ontology
   private _selectedEntityIri: Iri
   private _entityNameType: EntityNameType
 
-  constructor() {
-
-  }
+  constructor() {}
 
   get language() { return this._language }
   set language(lang) {
@@ -22,6 +20,9 @@ export default class GrapholscapeState {
   }
 
   get theme() { return this._theme }
+  set theme(newTheme: GrapholscapeTheme) {
+    this._theme = newTheme
+  }
 
   get diagram() { return this._diagram }
   
