@@ -9,6 +9,5 @@ export default class FakeRectangle extends FakeGrapholNode {
     this.shape = Shape.RECTANGLE
     this.width = this.width - this.height
     this.fillColor = '#fff'
-    // this.x = this.position.x + ((this.width - this.height) / 2)
   }
 }

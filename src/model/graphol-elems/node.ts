@@ -103,6 +103,8 @@ export default class GrapholNode extends GrapholElement {
     this._shapePoints = shapePoints
   }
 
+  get fakeNodes() { return this._fakeNodes }
+
   addFakeNode(newFakeNode: GrapholNode) {
     if (!this._fakeNodes)
       this._fakeNodes = []
@@ -120,13 +122,16 @@ export default class GrapholNode extends GrapholElement {
       width: this.width || undefined,
       fillColor: this.fillColor || undefined,
       shapePoints: this.shapePoints || undefined,
-      labelXpos: this.labelXpos  || this.labelXpos == 0 ? this.labelXpos : undefined,
+      labelXpos: this.labelXpos || this.labelXpos == 0 ? this.labelXpos : undefined,
       labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,
       labelXcentered: this.isLabelXcentered,
       labelYcentered: this.isLabelYcentered,
     })
 
     result.classes = this.type.toString()
+    if (this.is(Type.PROPERTY_ASSERTION)) {
+      result.classes += ' no_border'
+    }
     return result
   }
 }

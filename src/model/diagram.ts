@@ -68,10 +68,19 @@ class Diagram implements Renderer {
 
     const cyNode = newNode.toCyRepr()
     
+    // Set functionality for data/object properties
     if (newNode.is(Type.DATA_PROPERTY) || newNode.is(Type.OBJECT_PROPERTY)) {
       const entity = this.getEntityByOccurrence(newNode)
       cyNode.data[Functionalities.functional] = entity.hasFunctionality(Functionalities.functional)
       cyNode.data[Functionalities.inverseFunctional] = entity.hasFunctionality(Functionalities.inverseFunctional)
+    }
+
+    if(newNode.fakeNodes) {
+      console.log(newNode.fakeNodes)
+      newNode.fakeNodes.forEach(fakeNode => {
+        const fakeCyNode = fakeNode.toCyRepr()
+        this.cy.add(fakeCyNode)
+      })
     }
 
     this.cy.add(cyNode)
