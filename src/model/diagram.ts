@@ -39,6 +39,16 @@ class Diagram implements Renderer {
 
   render(container: Element) {
     this.cy.mount(container)
+
+    if (!this.hasEverBeenRendered) {
+      this.cy.fit()
+    }
+
+    this.hasEverBeenRendered = true
+  }
+
+  stopRendering() {
+    this.cy.unmount()
   }
 
   /**

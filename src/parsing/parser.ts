@@ -190,8 +190,9 @@ export default class GrapholParser {
     let label = element.getElementsByTagName('label')[0]
     // apply label position and font size
     if (label != null) {
+      grapholNode.labelHeight = parseInt(label.getAttribute('height'))
       grapholNode.labelXpos = parseInt(label.getAttribute('x'))
-      grapholNode.labelYpos = this.getCorrectLabelYpos(parseInt(label.getAttribute('y')), grapholNode.position.y, grapholNode.height)
+      grapholNode.labelYpos = parseInt(label.getAttribute('y'))
       grapholNode.fontSize = parseInt(label.getAttribute('size')) || 12
     }
 
@@ -215,11 +216,11 @@ export default class GrapholParser {
       grapholNode.addFakeNode(new FakeRectangle(grapholNode, diagramId))
 
       const fakeCircle1 = new FakeCircle(grapholNode, diagramId)
-      fakeCircle1.x = grapholNode.x - ((grapholNode.width - grapholNode.height) / 2)
+      // fakeCircle1.x = grapholNode.x - ((grapholNode.width - grapholNode.height) / 2)
       grapholNode.addFakeNode(fakeCircle1)
 
       const fakeCircle2 = new FakeCircle(grapholNode, diagramId)
-      fakeCircle2.x = grapholNode.x + ((grapholNode.width - grapholNode.height) / 2)
+      // fakeCircle2.x = grapholNode.x + ((grapholNode.width - grapholNode.height) / 2)
       grapholNode.addFakeNode(fakeCircle2)
     }
 

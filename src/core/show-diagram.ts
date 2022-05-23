@@ -5,6 +5,7 @@ export const showDiagram = function (diagramId: number, container = this.contain
   const actualState: GrapholscapeState = this.actualState
   const lifecyle: Lifecycle = this.lifecycle
 
+  actualState.diagram?.stopRendering()
   const diagram = actualState.ontology.getDiagram(diagramId)
 
   if (diagram && diagram !== actualState.diagram) {

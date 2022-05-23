@@ -12,6 +12,7 @@ export default class GrapholNode extends GrapholElement {
   private _height: number
   private _width: number
   private _fillColor: string
+  private _labelHeight: number = LABEL_HEIGHT
 
   private _labelXpos?: number
   private _labelXcentered?: boolean
@@ -75,13 +76,18 @@ export default class GrapholNode extends GrapholElement {
     }
   }
 
+  get labelHeight() { return this._labelHeight }
+  set labelHeight(value: number) {
+    this._labelHeight = value
+  }
+
   get labelYpos() { return this._labelYpos }
   set labelYpos(labelYpos: number) {
     if (labelYpos === this.position.y) {
       this._labelYcentered = true
       this._labelYpos = 0
     } else {
-      this._labelYpos = labelYpos
+      this._labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4
     }
   }
 
