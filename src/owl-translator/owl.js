@@ -1,5 +1,5 @@
 import { entityIriTemplate } from "./iri-template"
-import { Type } from "../model/node-enums"
+import { GrapholTypesEnum } from "../model/graphol-elems/node-enums"
 
 const malformed = '<span class="owl_error">Malformed Axiom</span>'
 const missing_operand = '<span class="owl_error">Missing Operand</span>'
@@ -10,25 +10,25 @@ export function edgeToOwlString (edge) {
 
   switch (edge.data('type')) {
     case 'inclusion':
-      if (source.data('identity') == Type.CONCEPT && target.data('identity') == Type.CONCEPT) {
-        if (source.data('type') == Type.DOMAIN_RESTRICTION && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
+      if (source.data('identity') == GrapholTypesEnum.CONCEPT && target.data('identity') == GrapholTypesEnum.CONCEPT) {
+        if (source.data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
           return propertyDomain(edge)
-        } else if (source.data('type') == Type.RANGE_RESTRICTION && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
+        } else if (source.data('type') == GrapholTypesEnum.RANGE_RESTRICTION && source.data('displayed_name') != 'self' && target.data('displayed_name') != 'self') {
           return propertyRange(edge)
-        } else if (target.data('type') == Type.COMPLEMENT || source.data('type') == Type.COMPLEMENT) {
+        } else if (target.data('type') == GrapholTypesEnum.COMPLEMENT || source.data('type') == GrapholTypesEnum.COMPLEMENT) {
           return disjointClassesFromEdge(edge.connectedNodes())
         }
 
         return subClassOf(edge)
-      } else if (source.data('identity') == Type.OBJECT_PROPERTY && target.data('identity') == Type.OBJECT_PROPERTY) {
-        if (target.data('type') == Type.COMPLEMENT) {
+      } else if (source.data('identity') == GrapholTypesEnum.OBJECT_PROPERTY && target.data('identity') == GrapholTypesEnum.OBJECT_PROPERTY) {
+        if (target.data('type') == GrapholTypesEnum.COMPLEMENT) {
           return disjointTypeProperties(edge)
         }
         return subTypePropertyOf(edge)
-      } else if (source.data('identity') == Type.VALUE_DOMAIN && target.data('identity') == Type.VALUE_DOMAIN) {
+      } else if (source.data('identity') == GrapholTypesEnum.VALUE_DOMAIN && target.data('identity') == GrapholTypesEnum.VALUE_DOMAIN) {
         return propertyRange(edge)
-      } else if (source.data('identity') == Type.DATA_PROPERTY && target.data('identity') == Type.DATA_PROPERTY) {
-        if (target.data('type') == Type.COMPLEMENT) {
+      } else if (source.data('identity') == GrapholTypesEnum.DATA_PROPERTY && target.data('identity') == GrapholTypesEnum.DATA_PROPERTY) {
+        if (target.data('type') == GrapholTypesEnum.COMPLEMENT) {
           return disjointTypeProperties(edge)
         } else { return subTypePropertyOf(edge) }
       } else { return malformed }
@@ -36,18 +36,18 @@ export function edgeToOwlString (edge) {
       break
 
     case 'equivalence':
-      if (source.data('identity') == Type.CONCEPT && target.data('identity') == Type.CONCEPT) {
+      if (source.data('identity') == GrapholTypesEnum.CONCEPT && target.data('identity') == GrapholTypesEnum.CONCEPT) {
         return equivalentClasses(edge)
-      } else if (source.data('identity') == Type.OBJECT_PROPERTY && target.data('identity') == Type.OBJECT_PROPERTY) {
-        if (source.data('type') == Type.ROLE_INVERSE || target.data('type') == Type.ROLE_INVERSE) { return inverseObjectProperties(edge) } else { return equivalentTypeProperties(edge) }
-      } else if (source.data('identity') == Type.DATA_PROPERTY && target.data('identity') == Type.DATA_PROPERTY) {
+      } else if (source.data('identity') == GrapholTypesEnum.OBJECT_PROPERTY && target.data('identity') == GrapholTypesEnum.OBJECT_PROPERTY) {
+        if (source.data('type') == GrapholTypesEnum.ROLE_INVERSE || target.data('type') == GrapholTypesEnum.ROLE_INVERSE) { return inverseObjectProperties(edge) } else { return equivalentTypeProperties(edge) }
+      } else if (source.data('identity') == GrapholTypesEnum.DATA_PROPERTY && target.data('identity') == GrapholTypesEnum.DATA_PROPERTY) {
         return equivalentTypeProperties(edge)
       } else { return malformed }
 
       break
 
     case 'membership':
-      if (target.data('identity') == Type.CONCEPT) { return classAssertion(edge) } else { return propertyAssertion(edge) }
+      if (target.data('identity') == GrapholTypesEnum.CONCEPT) { return classAssertion(edge) } else { return propertyAssertion(edge) }
       break
   }
 }
@@ -56,13 +56,13 @@ function propertyAssertion (edge) {
   var axiom_type = 'Object'
   var owl_string
 
-  if (edge.target().data('identity') == Type.DATA_PROPERTY) {
+  if (edge.target().data('identity') == GrapholTypesEnum.DATA_PROPERTY) {
     axiom_type = 'Data'
   }
 
   owl_string = axiom_type + 'PropertyAssertion(' + nodeToOwlString(edge.target()) + ' '
 
-  if (edge.source().data('type') == Type.PROPERTY_ASSERTION) {
+  if (edge.source().data('type') == GrapholTypesEnum.PROPERTY_ASSERTION) {
     var property_node = edge.source()
 
     property_node.incomers('[type = "input"]').sources().forEach( input => {
@@ -84,7 +84,7 @@ function classAssertion (edge) {
 function inverseObjectProperties (edge) {
   var complement_input
   var input
-  if (edge.source().data('type') == Type.ROLE_INVERSE) {
+  if (edge.source().data('type') == GrapholTypesEnum.ROLE_INVERSE) {
     input = edge.target()
     complement_input = edge.source().incomers('[type = "input"]').sources().first()
   } else {
@@ -103,7 +103,7 @@ function equivalentClasses (edge) {
 
 function equivalentTypeProperties (edge) {
   var axiom_type
-  if (edge.source().data('idenity') == Type.OBJECT_PROPERTY) { axiom_type = 'Object' } else { axiom_type = 'Data' }
+  if (edge.source().data('idenity') == GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Object' } else { axiom_type = 'Data' }
 
   return 'Equivalent' + axiom_type + 'Properties(' + nodeToOwlString(edge.source()) + ' ' + nodeToOwlString(edge.target()) + ')'
 }
@@ -115,7 +115,7 @@ function subClassOf (edge) {
 function subTypePropertyOf (edge) {
   var axiom_type
 
-  if (edge.target().data('identity') == Type.OBJECT_PROPERTY) { axiom_type = 'Object' } else if (edge.target().data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data' } else { return null }
+  if (edge.target().data('identity') == GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Object' } else if (edge.target().data('type') == GrapholTypesEnum.DATA_PROPERTY) { axiom_type = 'Data' } else { return null }
 
   return 'Sub' + axiom_type + 'PropertyOf(' + nodeToOwlString(edge.source()) + ' ' + nodeToOwlString(edge.target()) + ')'
 }
@@ -125,7 +125,7 @@ function propertyDomain (edge) {
 
   if (node.size() > 1) { return subClassOf(edge) }
 
-  if (node.data('type') == Type.OBJECT_PROPERTY) { return 'ObjectPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == Type.DATA_PROPERTY) { return 'DataPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
+  if (node.data('type') == GrapholTypesEnum.OBJECT_PROPERTY) { return 'ObjectPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == GrapholTypesEnum.DATA_PROPERTY) { return 'DataPropertyDomain(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
 }
 
 function propertyRange (edge) {
@@ -133,14 +133,14 @@ function propertyRange (edge) {
 
   if (node.size() > 1) { return subClassOf(edge) }
 
-  if (node.data('type') == Type.OBJECT_PROPERTY) { return 'ObjectPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == Type.DATA_PROPERTY) { return 'DataPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
+  if (node.data('type') == GrapholTypesEnum.OBJECT_PROPERTY) { return 'ObjectPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' } else if (node.data('type') == GrapholTypesEnum.DATA_PROPERTY) { return 'DataPropertyRange(' + nodeToOwlString(node) + ' ' + nodeToOwlString(edge.target()) + ')' }
 }
 
 function disjointClassesFromEdge (inputs) {
   var owl_string = 'DisjointClasses('
 
   inputs.forEach(function (input) {
-    if (input.data('type') == Type.COMPLEMENT) {
+    if (input.data('type') == GrapholTypesEnum.COMPLEMENT) {
       input = input.incomers('[type = "input"]').source()
     }
     owl_string += nodeToOwlString(input) + ' '
@@ -154,12 +154,12 @@ function disjointClassesFromEdge (inputs) {
 function disjointTypeProperties (edge) {
   var axiom_type, owl_string
 
-  if (edge.target().data('identity') == Type.OBJECT_PROPERTY) { axiom_type = 'Object' } else if (edge.target().data('identity') == Type.DATA_PROPERTY) { axiom_type = 'Data' } else { return null }
+  if (edge.target().data('identity') == GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Object' } else if (edge.target().data('identity') == GrapholTypesEnum.DATA_PROPERTY) { axiom_type = 'Data' } else { return null }
 
   owl_string = 'Disjoint' + axiom_type + 'Properties('
 
   edge.connectedNodes().forEach(function (node) {
-    if (node.data('type') == Type.COMPLEMENT) {
+    if (node.data('type') == GrapholTypesEnum.COMPLEMENT) {
       node = node.incomers('[type = "input"]').source()
     }
     owl_string += nodeToOwlString(node) + ' '
@@ -177,17 +177,17 @@ export function nodeToOwlString (node, from_node) {
   
   var from_node_flag = from_node || null
 
-  if (from_node_flag && (node.hasClass('predicate') || node.data('type') == Type.VALUE_DOMAIN)) {
+  if (from_node_flag && (node.hasClass('predicate') || node.data('type') == GrapholTypesEnum.VALUE_DOMAIN)) {
     var owl_predicate = entityIriTemplate(node.data('iri'), node.data('type'))
     var owl_type
 
     switch (node.data('type')) {
-      case Type.CONCEPT:
+      case GrapholTypesEnum.CONCEPT:
         owl_type = 'Class'
         return 'Declaration(' + owl_type + '(' + owl_predicate + '))'
         break
 
-      case Type.OBJECT_PROPERTY:
+      case GrapholTypesEnum.OBJECT_PROPERTY:
         owl_type = 'ObjectProperty'
         var owl_string = 'Declaration(' + owl_type + '(' + owl_predicate + '))'
 
@@ -208,7 +208,7 @@ export function nodeToOwlString (node, from_node) {
         return owl_string
         break
 
-      case Type.DATA_PROPERTY:
+      case GrapholTypesEnum.DATA_PROPERTY:
         owl_type = 'DataProperty'
         var owl_string = 'Declaration(' + owl_type + '(' + owl_predicate + '))'
 
@@ -217,7 +217,7 @@ export function nodeToOwlString (node, from_node) {
         return owl_string
         break
 
-      case Type.INDIVIDUAL:
+      case GrapholTypesEnum.INDIVIDUAL:
         if (node.data('iri').remainingChars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
           var value = node.data('iri').remainingChars.split('^^')[0]
           var datatype = node.data('iri').remainingChars.split(':')[1]
@@ -230,7 +230,7 @@ export function nodeToOwlString (node, from_node) {
         return 'Declaration(' + owl_type + '(' + owl_predicate + '))'
         break
 
-      case Type.VALUE_DOMAIN:
+      case GrapholTypesEnum.VALUE_DOMAIN:
         owl_type = 'Datatype'
         return 'Declaration(' + owl_type + '(' + owl_predicate + '))'
         break
@@ -238,7 +238,7 @@ export function nodeToOwlString (node, from_node) {
   }
 
   switch (node.data('type')) {
-    case Type.INDIVIDUAL:
+    case GrapholTypesEnum.INDIVIDUAL:
       if (node.data('iri').remainingChars.search(/"[\w]+"\^\^[\w]+:/) != -1) {
         var value = node.data('iri').remainingChars.split('^^')[0]
         var datatype = node.data('iri').remainingChars.split(':')[1]
@@ -248,39 +248,39 @@ export function nodeToOwlString (node, from_node) {
         '<span class="owl_value-domain">' + datatype + '</span>'
       }
 
-    case Type.CONCEPT:
-    case Type.OBJECT_PROPERTY:
-    case Type.VALUE_DOMAIN:
-    case Type.DATA_PROPERTY:
-    case Type.INDIVIDUAL:
+    case GrapholTypesEnum.CONCEPT:
+    case GrapholTypesEnum.OBJECT_PROPERTY:
+    case GrapholTypesEnum.VALUE_DOMAIN:
+    case GrapholTypesEnum.DATA_PROPERTY:
+    case GrapholTypesEnum.INDIVIDUAL:
       return entityIriTemplate(node.data('iri'), node.data('type'))
       break
 
-    case Type.FACET:
+    case GrapholTypesEnum.FACET:
       var rem_chars = node.data('displayed_name').replace(/\n/g, '^').split('^^')
       rem_chars[0] = rem_chars[0].slice(4)
       return '<span class="axiom_predicate_prefix">xsd:</span><span class="owl_value-domain">' + rem_chars[0] + '</span><span class="owl_value">' + rem_chars[1] + '</span>'
       break
 
-    case Type.DOMAIN_RESTRICTION:
-    case Type.RANGE_RESTRICTION:
+    case GrapholTypesEnum.DOMAIN_RESTRICTION:
+    case GrapholTypesEnum.RANGE_RESTRICTION:
       var input_edges = node.connectedEdges('edge[target = "' + node.id() + '"][type = "input"]')
       var input_first; var input_other; var input_attribute = null
 
       if (!input_edges.length) { return missing_operand }
 
       input_edges.forEach(function (e) {
-        if (e.source().data('type') == Type.OBJECT_PROPERTY || e.source().data('type') == Type.DATA_PROPERTY) {
+        if (e.source().data('type') == GrapholTypesEnum.OBJECT_PROPERTY || e.source().data('type') == GrapholTypesEnum.DATA_PROPERTY) {
           input_first = e.source()
         }
 
-        if (e.source().data('type') != Type.OBJECT_PROPERTY && e.source().data('type') != Type.DATA_PROPERTY) {
+        if (e.source().data('type') != GrapholTypesEnum.OBJECT_PROPERTY && e.source().data('type') != GrapholTypesEnum.DATA_PROPERTY) {
           input_other = e.source()
         }
       })
 
       if (input_first) {
-        if (input_first.data('type') == Type.DATA_PROPERTY && node.data('type') == Type.RANGE_RESTRICTION) { return not_defined }
+        if (input_first.data('type') == GrapholTypesEnum.DATA_PROPERTY && node.data('type') == GrapholTypesEnum.RANGE_RESTRICTION) { return not_defined }
 
         if (node.data('displayed_name') == 'exists') { return someValuesFrom(input_first, input_other, node.data('type')) } else if (node.data('displayed_name') == 'forall') { return allValuesFrom(input_first, input_other, node.data('type')) } else if (node.data('displayed_name').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
           var cardinality = node.data('displayed_name').replace(/\(|\)/g, '').split(/,/)
@@ -290,7 +290,7 @@ export function nodeToOwlString (node, from_node) {
         }
       } else return missing_operand
 
-    case Type.ROLE_INVERSE:
+    case GrapholTypesEnum.ROLE_INVERSE:
       var input = node.incomers('[type = "input"]').sources()
 
       if (!input.length) { return missing_operand }
@@ -298,46 +298,46 @@ export function nodeToOwlString (node, from_node) {
       return objectInverseOf(input)
       break
 
-    case Type.ROLE_CHAIN:
+    case GrapholTypesEnum.ROLE_CHAIN:
       if (!node.data('inputs')) { return missing_operand }
 
       return objectPropertyChain(node.incomers('[type = "input"]').sources())
       break
 
-    case Type.UNION:
-    case Type.INTERSECTION:
-    case Type.COMPLEMENT:
-    case Type.ENUMERATION:
-    case Type.DISJOINT_UNION:
+    case GrapholTypesEnum.UNION:
+    case GrapholTypesEnum.INTERSECTION:
+    case GrapholTypesEnum.COMPLEMENT:
+    case GrapholTypesEnum.ENUMERATION:
+    case GrapholTypesEnum.DISJOINT_UNION:
       var inputs = node.incomers('[type = "input"]').sources()
       if (!inputs.length) { return missing_operand }
 
       var axiom_type = 'Object'
 
-      if (node.data('identity') != Type.CONCEPT && node.data('identity') != Type.OBJECT_PROPERTY) { axiom_type = 'Data' }
+      if (node.data('identity') != GrapholTypesEnum.CONCEPT && node.data('identity') != GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Data' }
 
-      if (node.data('type') == Type.DISJOINT_UNION) {
+      if (node.data('type') == GrapholTypesEnum.DISJOINT_UNION) {
         if (!from_node_flag) {
-          return logicalConstructors(inputs, Type.UNION, axiom_type)
+          return logicalConstructors(inputs, GrapholTypesEnum.UNION, axiom_type)
         } else {
-          return logicalConstructors(inputs, Type.UNION, axiom_type) + '<br />' + disjointClassesFromNode(inputs)
+          return logicalConstructors(inputs, GrapholTypesEnum.UNION, axiom_type) + '<br />' + disjointClassesFromNode(inputs)
         }
       }
 
       return logicalConstructors(inputs, node.data('type'), axiom_type)
       break
 
-    case Type.DATATYPE_RESTRICTION:
+    case GrapholTypesEnum.DATATYPE_RESTRICTION:
       inputs = node.incomers('[type = "input"]').sources()
       if (!inputs.length) { return missing_operand }
 
       return datatypeRestriction(inputs)
       break
 
-    case Type.PROPERTY_ASSERTION:
+    case GrapholTypesEnum.PROPERTY_ASSERTION:
       return not_defined
 
-    case Type.KEY:
+    case GrapholTypesEnum.KEY:
       inputs = node.incomers('[type = "input"]')
       if (!inputs.length || inputs.length < 2)
         return missing_operand
@@ -350,14 +350,14 @@ export function nodeToOwlString (node, from_node) {
 
 function someValuesFrom (first, other, restr_type) {
   var axiom_type, owl_string
-  if (first.data('type') == Type.OBJECT_PROPERTY) { axiom_type = 'Object' }
+  if (first.data('type') == GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Object' }
 
-  if (first.data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data' }
+  if (first.data('type') == GrapholTypesEnum.DATA_PROPERTY) { axiom_type = 'Data' }
 
   owl_string = axiom_type + 'SomeValuesFrom('
 
   // if the node is a range-restriction, put the inverse of the role
-  if (restr_type == Type.RANGE_RESTRICTION) { owl_string += objectInverseOf(first) } else { owl_string += nodeToOwlString(first) }
+  if (restr_type == GrapholTypesEnum.RANGE_RESTRICTION) { owl_string += objectInverseOf(first) } else { owl_string += nodeToOwlString(first) }
 
   if (!other && axiom_type == 'Object') { return owl_string += ' ' + owl_thing + ')' }
 
@@ -368,14 +368,14 @@ function someValuesFrom (first, other, restr_type) {
 
 function allValuesFrom (first, other, restr_type) {
   var axiom_type, owl_string
-  if (first.data('type') == Type.OBJECT_PROPERTY) { axiom_type = 'Object' }
+  if (first.data('type') == GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Object' }
 
-  if (first.data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data' }
+  if (first.data('type') == GrapholTypesEnum.DATA_PROPERTY) { axiom_type = 'Data' }
 
   owl_string = axiom_type + 'AllValuesFrom('
 
   // if the node is a range-restriction, put the inverse of the role
-  if (restr_type == Type.RANGE_RESTRICTION) { owl_string += objectInverseOf(first) } else { owl_string += nodeToOwlString(first) }
+  if (restr_type == GrapholTypesEnum.RANGE_RESTRICTION) { owl_string += objectInverseOf(first) } else { owl_string += nodeToOwlString(first) }
 
   if (!other && axiom_type == 'Object') { return owl_string += ' ' + owl_thing + ')' }
 
@@ -386,12 +386,12 @@ function allValuesFrom (first, other, restr_type) {
 
 function minMaxExactCardinality (first, other, cardinality, restr_type) {
   var axiom_type, owl_string
-  if (first.data('type') == Type.OBJECT_PROPERTY) { axiom_type = 'Object' }
+  if (first.data('type') == GrapholTypesEnum.OBJECT_PROPERTY) { axiom_type = 'Object' }
 
-  if (first.data('type') == Type.DATA_PROPERTY) { axiom_type = 'Data' }
+  if (first.data('type') == GrapholTypesEnum.DATA_PROPERTY) { axiom_type = 'Data' }
 
   if (cardinality[0] == '-') {
-    if (restr_type == Type.RANGE_RESTRICTION) {
+    if (restr_type == GrapholTypesEnum.RANGE_RESTRICTION) {
       if (!other) { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + objectInverseOf(first) + ')' } else { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + objectInverseOf(first) + ' ' + nodeToOwlString(other) + ')' }
     } else {
       if (!other) { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + nodeToOwlString(first) + ')' } else { return axiom_type + 'MaxCardinality(' + cardinality[1] + ' ' + nodeToOwlString(first) + ' ' + nodeToOwlString(other) + ')' }
@@ -399,7 +399,7 @@ function minMaxExactCardinality (first, other, cardinality, restr_type) {
   }
 
   if (cardinality[1] == '-') {
-    if (restr_type == Type.RANGE_RESTRICTION) {
+    if (restr_type == GrapholTypesEnum.RANGE_RESTRICTION) {
       if (!other) { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + objectInverseOf(first) + ')' } else { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + objectInverseOf(first) + ' ' + nodeToOwlString(other) + ')' }
     } else {
       if (!other) { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + nodeToOwlString(first) + ')' } else { return axiom_type + 'MinCardinality(' + cardinality[0] + ' ' + nodeToOwlString(first) + ' ' + nodeToOwlString(other) + ')' }
@@ -452,7 +452,7 @@ function hasKey(inputs) {
 function logicalConstructors (inputs, constructor_name, axiom_type) {
   var owl_string
 
-  if (constructor_name == Type.ENUMERATION) { constructor_name = 'One' } else // Capitalize first char
+  if (constructor_name == GrapholTypesEnum.ENUMERATION) { constructor_name = 'One' } else // Capitalize first char
   { constructor_name = constructor_name.charAt(0).toUpperCase() + constructor_name.slice(1) }
 
   owl_string = axiom_type + constructor_name + 'Of('
@@ -487,7 +487,7 @@ function datatypeRestriction (inputs) {
   owl_string += nodeToOwlString(value_domain) + ' '
 
   inputs.forEach(function (input) {
-    if (input.data('type') == Type.FACET) {
+    if (input.data('type') == GrapholTypesEnum.FACET) {
       owl_string += nodeToOwlString(input) + '^^'
       owl_string += nodeToOwlString(value_domain) + ' '
     }
@@ -499,7 +499,7 @@ function datatypeRestriction (inputs) {
 
 function hasSelf (input, restr_type) {
   // if the restriction is on the range, put the inverse of node
-  if (restr_type == Type.RANGE_RESTRICTION) { return 'ObjectHasSelf(' + objectInverseOf(input) + ')' }
+  if (restr_type == GrapholTypesEnum.RANGE_RESTRICTION) { return 'ObjectHasSelf(' + objectInverseOf(input) + ')' }
 
   return 'ObjectHasSelf(' + nodeToOwlString(input) + ')'
 }

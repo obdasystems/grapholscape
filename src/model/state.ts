@@ -1,8 +1,21 @@
-import { EntityNameType, Language } from "../../grapholscape"
-import Diagram from "../diagram"
-import Iri from "../iri"
-import Ontology from "../ontology"
-import GrapholscapeTheme from "../theme"
+import Diagram from "./diagram"
+import Iri from "./iri"
+import Ontology from "./ontology"
+import GrapholscapeTheme from "./theme"
+
+export enum Language {
+  DE = 'de',
+  EN = 'en',
+  ES = 'es',
+  FR = 'fr',
+  IT = 'it',
+}
+
+export enum EntityNameType {
+  LABEL = 'label',
+  PREFIXED_IRI = 'prefixedIri',
+  FULL_IRI = 'fullIri'
+}
 
 export default class GrapholscapeState {
   private _language: Language
@@ -10,7 +23,7 @@ export default class GrapholscapeState {
   private _diagram: Diagram
   private _ontology: Ontology
   private _selectedEntityIri: Iri
-  private _entityNameType: EntityNameType
+  private _entityNameType: EntityNameType = EntityNameType.LABEL
   private _focusedElementZoom: number = 1.2
 
   constructor() {}
@@ -42,7 +55,6 @@ export default class GrapholscapeState {
   get entityNameType() {
     return this._entityNameType
   }
-
   set entityNameType(value) {
     this._entityNameType = value
   }

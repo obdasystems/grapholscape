@@ -1,4 +1,4 @@
-import { Type } from '../../model/node-enums'
+import { GrapholTypesEnum } from '../../model/graphol-elems/node-enums'
 import { lock_open } from '../../ui/assets/icons'
 import GrapholscapeRenderer from './default-renderer'
 
@@ -226,15 +226,15 @@ export default class FloatyGscapeRenderer extends GrapholscapeRenderer {
       avoidOverlap: false,
       edgeLength: function (edge) {
         let crowdnessFactor =
-          edge.target().neighborhood(`[type = "${Type.OBJECT_PROPERTY}"]`).length +
-          edge.source().neighborhood(`[type = "${Type.OBJECT_PROPERTY}"]`).length
+          edge.target().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length +
+          edge.source().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length
 
         crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
         if (edge.hasClass('role')) {
           return 250 + edge.data('displayed_name').length * 4 + crowdnessFactor
         }
-        else if (edge.target().data('type') == Type.DATA_PROPERTY ||
-          edge.source().data('type') == Type.DATA_PROPERTY)
+        else if (edge.target().data('type') == GrapholTypesEnum.DATA_PROPERTY ||
+          edge.source().data('type') == GrapholTypesEnum.DATA_PROPERTY)
           return 150
         else {
           return 200 + crowdnessFactor

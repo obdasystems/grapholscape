@@ -2,13 +2,13 @@ import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import { explore, arrow_right, arrow_down } from '../assets/icons'
-import { Type } from '../../model/node-enums'
+import { GrapholTypesEnum } from '../../model/graphol-elems/node-enums'
 
 const TYPE_IMG_TEXT = {}
-TYPE_IMG_TEXT[Type.DATA_PROPERTY] = 'DP'
-TYPE_IMG_TEXT[Type.CONCEPT] = 'C'
-TYPE_IMG_TEXT[Type.OBJECT_PROPERTY] = 'OP'
-TYPE_IMG_TEXT[Type.INDIVIDUAL] = 'I'
+TYPE_IMG_TEXT[GrapholTypesEnum.DATA_PROPERTY] = 'DP'
+TYPE_IMG_TEXT[GrapholTypesEnum.CONCEPT] = 'C'
+TYPE_IMG_TEXT[GrapholTypesEnum.OBJECT_PROPERTY] = 'OP'
+TYPE_IMG_TEXT[GrapholTypesEnum.INDIVIDUAL] = 'I'
 
 export default class GscapeExplorer extends GscapeWidget{
 

@@ -23,7 +23,7 @@
  * @property {string} NEUTRAL neutral
  * @property {string} VALUE value
  */
-export enum Type {
+export enum GrapholTypesEnum {
   /** @type {"concept"} */
   CONCEPT = 'concept',
   /** @type {"domain-restriction"} */
@@ -119,100 +119,100 @@ export const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1'
  */
 export default {
   CONCEPT : {
-    TYPE : Type.CONCEPT,
+    TYPE : GrapholTypesEnum.CONCEPT,
     SHAPE : Shape.RECTANGLE,
-    IDENTITY : Type.CONCEPT
+    IDENTITY : GrapholTypesEnum.CONCEPT
   },
   DOMAIN_RESTRICTION : {
-    TYPE : Type.DOMAIN_RESTRICTION,
+    TYPE : GrapholTypesEnum.DOMAIN_RESTRICTION,
     SHAPE : Shape.RECTANGLE,
-    IDENTITY : Type.CONCEPT,
+    IDENTITY : GrapholTypesEnum.CONCEPT,
   },
   RANGE_RESTRICTION : {
-    TYPE : Type.RANGE_RESTRICTION,
+    TYPE : GrapholTypesEnum.RANGE_RESTRICTION,
     SHAPE : Shape.RECTANGLE,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   OBJECT_PROPERTY : {
-    TYPE : Type.OBJECT_PROPERTY,
+    TYPE : GrapholTypesEnum.OBJECT_PROPERTY,
     SHAPE : Shape.DIAMOND,
-    IDENTITY : Type.OBJECT_PROPERTY
+    IDENTITY : GrapholTypesEnum.OBJECT_PROPERTY
   },
   DATA_PROPERTY : {
-    TYPE : Type.DATA_PROPERTY,
+    TYPE : GrapholTypesEnum.DATA_PROPERTY,
     SHAPE : Shape.ELLIPSE,
-    IDENTITY : Type.DATA_PROPERTY
+    IDENTITY : GrapholTypesEnum.DATA_PROPERTY
   },
   UNION : {
-    TYPE : Type.UNION,
+    TYPE : GrapholTypesEnum.UNION,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   DISJOINT_UNION : {
-    TYPE : Type.DISJOINT_UNION,
+    TYPE : GrapholTypesEnum.DISJOINT_UNION,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   COMPLEMENT : {
-    TYPE : Type.COMPLEMENT,
+    TYPE : GrapholTypesEnum.COMPLEMENT,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   INTERSECTION : {
-    TYPE : Type.INTERSECTION,
+    TYPE : GrapholTypesEnum.INTERSECTION,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   ENUMERATION : {
-    TYPE : Type.ENUMERATION,
+    TYPE : GrapholTypesEnum.ENUMERATION,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   KEY : {
-    TYPE : Type.KEY,
+    TYPE : GrapholTypesEnum.KEY,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   ROLE_INVERSE : {
-    TYPE : Type.ROLE_INVERSE,
+    TYPE : GrapholTypesEnum.ROLE_INVERSE,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.OBJECT_PROPERTY
+    IDENTITY : GrapholTypesEnum.OBJECT_PROPERTY
   },
   ROLE_CHAIN : {
-    TYPE : Type.ROLE_CHAIN,
+    TYPE : GrapholTypesEnum.ROLE_CHAIN,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.OBJECT_PROPERTY
+    IDENTITY : GrapholTypesEnum.OBJECT_PROPERTY
   },
   DATATYPE_RESTRICTION : {
-    TYPE : Type.DATATYPE_RESTRICTION,
+    TYPE : GrapholTypesEnum.DATATYPE_RESTRICTION,
     SHAPE : Shape.HEXAGON,
-    IDENTITY : Type.VALUE_DOMAIN
+    IDENTITY : GrapholTypesEnum.VALUE_DOMAIN
   },
   VALUE_DOMAIN : {
-    TYPE : Type.VALUE_DOMAIN,
+    TYPE : GrapholTypesEnum.VALUE_DOMAIN,
     SHAPE : Shape.ROUND_RECTANGLE,
-    IDENTITY : Type.VALUE_DOMAIN
+    IDENTITY : GrapholTypesEnum.VALUE_DOMAIN
   },
   PROPERTY_ASSERTION : {
-    TYPE : Type.PROPERTY_ASSERTION,
+    TYPE : GrapholTypesEnum.PROPERTY_ASSERTION,
     SHAPE : Shape.RECTANGLE,
-    IDENTITY : Type.NEUTRAL
+    IDENTITY : GrapholTypesEnum.NEUTRAL
   },
   LITERAL : {
-    TYPE : Type.LITERAL,
+    TYPE : GrapholTypesEnum.LITERAL,
     SHAPE : Shape.OCTAGON,
-    IDENTITY : Type.VALUE
+    IDENTITY : GrapholTypesEnum.VALUE
   },
   INDIVIDUAL : {
-    TYPE : Type.INDIVIDUAL,
+    TYPE : GrapholTypesEnum.INDIVIDUAL,
     SHAPE : Shape.OCTAGON,
-    IDENTITY : Type.INDIVIDUAL
+    IDENTITY : GrapholTypesEnum.INDIVIDUAL
   },
   FACET : {
-    TYPE : Type.FACET,
+    TYPE : GrapholTypesEnum.FACET,
     SHAPE : Shape.POLYGON,
     SHAPE_POINTS : POLYGON_POINTS, 
-    IDENTITY : Type.FACET
+    IDENTITY : GrapholTypesEnum.FACET
   }
 }
 
@@ -227,7 +227,7 @@ export default {
  * @property {string} ENUMERATION oneOf
  * @property {string} KEY key
  */
-export enum constructorLabels {
+export enum ConstructorLabelsEnum {
   /** @type {"or"} */
   UNION = 'or',
   /** @type {"and"} */

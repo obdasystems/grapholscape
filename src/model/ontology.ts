@@ -87,7 +87,6 @@ class Ontology extends AnnotatedElement {
   namespaces: Namespace[] = []
   diagrams: Diagram[] = []
   languages: {
-    /** @type {import('../grapholscape').Language[]}*/
     list: any[]; default: string
   }
   private _entities: Map<string, GrapholEntity> = new Map()

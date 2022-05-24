@@ -1,6 +1,6 @@
 /** @typedef {import('cytoscape').CollectionReturnValue} CollectionReturnValue */
 
-import { Type } from '../model/node-enums'
+import { GrapholTypesEnum } from '../model/graphol-elems/node-enums'
 // functions to transform Objects from Model to plain JSON for the views
 
 /**
@@ -81,10 +81,10 @@ export function cyToGrapholElem(cytoscapeObj) {
   if (result) {
     result.isEntity = function() {
       switch (this.data.type) {
-        case Type.CONCEPT:
-        case Type.DATA_PROPERTY:
-        case Type.OBJECT_PROPERTY:
-        case Type.INDIVIDUAL:
+        case GrapholTypesEnum.CONCEPT:
+        case GrapholTypesEnum.DATA_PROPERTY:
+        case GrapholTypesEnum.OBJECT_PROPERTY:
+        case GrapholTypesEnum.INDIVIDUAL:
           return true
       }
     

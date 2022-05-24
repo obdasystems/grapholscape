@@ -3,7 +3,7 @@ import Diagram from '../model/diagram'
 import GrapholscapeRenderer from '../rendering/renderers/default-renderer'
 import { getDistanceWeight } from '../parsing/parser_util'
 import Ontology from '../model/ontology'
-import { Type } from '../model/node-enums'
+import { GrapholTypesEnum } from '../model/graphol-elems/node-enums'
 
 /** @param {Ontology} ontology */
 export default function computeSimplifiedOntologies(ontology) {
@@ -42,15 +42,15 @@ export default function computeSimplifiedOntologies(ontology) {
 
     filterByCriterion(cy, (node) => {
       switch(node.data('type')) {
-        case Type.COMPLEMENT:
-        case Type.VALUE_DOMAIN:
-        case Type.ROLE_CHAIN:
-        case Type.ENUMERATION:
-        case Type.KEY:
+        case GrapholTypesEnum.COMPLEMENT:
+        case GrapholTypesEnum.VALUE_DOMAIN:
+        case GrapholTypesEnum.ROLE_CHAIN:
+        case GrapholTypesEnum.ENUMERATION:
+        case GrapholTypesEnum.KEY:
           return true
 
-        case Type.DOMAIN_RESTRICTION:
-        case Type.RANGE_RESTRICTION:
+        case GrapholTypesEnum.DOMAIN_RESTRICTION:
+        case GrapholTypesEnum.RANGE_RESTRICTION:
           if (node.data('displayed_name') == 'forall')
             return true
           else
@@ -80,7 +80,7 @@ export default function computeSimplifiedOntologies(ontology) {
     eles.filter(selector).forEach(restriction => {
       let input_edge = getInputEdgeFromPropertyToRestriction(restriction)
       let new_edge = null
-      let type = restriction.data('type') == Type.DOMAIN_RESTRICTION ? 'domain' : 'range'
+      let type = restriction.data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION ? 'domain' : 'range'
 
       restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
         new_edge = createRoleEdge(edgeToRestriction, input_edge, type, i)
@@ -98,7 +98,7 @@ export default function computeSimplifiedOntologies(ontology) {
     function getInputEdgeFromPropertyToRestriction(restriction_node) {
       let e = null
       restriction_node.incomers('[type = "input"]').forEach(edge => {
-        if (edge.source().data('type') == Type.OBJECT_PROPERTY || edge.source().data('type') == Type.DATA_PROPERTY) {
+        if (edge.source().data('type') == GrapholTypesEnum.OBJECT_PROPERTY || edge.source().data('type') == GrapholTypesEnum.DATA_PROPERTY) {
           e = edge
         }
       })
@@ -113,10 +113,10 @@ export default function computeSimplifiedOntologies(ontology) {
       /**
        * if the actual edge is between two existential, remove it and filter the other existential
        */
-      if ((edgeToRestriction.source().data('type') == Type.DOMAIN_RESTRICTION ||
-           edgeToRestriction.source().data('type') == Type.RANGE_RESTRICTION) &&
-          (edgeToRestriction.target().data('type') == Type.DOMAIN_RESTRICTION ||
-           edgeToRestriction.target().data('type') == Type.RANGE_RESTRICTION)) {
+      if ((edgeToRestriction.source().data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION ||
+           edgeToRestriction.source().data('type') == GrapholTypesEnum.RANGE_RESTRICTION) &&
+          (edgeToRestriction.target().data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION ||
+           edgeToRestriction.target().data('type') == GrapholTypesEnum.RANGE_RESTRICTION)) {
         cy.remove(edgeToRestriction)
         return new_edge
       }
@@ -128,7 +128,7 @@ export default function computeSimplifiedOntologies(ontology) {
       }
 
       // move attribute on restriction node position
-      if (edgeFromProperty.source().data('type') == Type.DATA_PROPERTY) {
+      if (edgeFromProperty.source().data('type') == GrapholTypesEnum.DATA_PROPERTY) {
         edgeFromProperty.source().position(edgeFromProperty.target().position())
         new_edge = edges[0]
         new_edge.data.target = edgeFromProperty.source().id()
@@ -232,7 +232,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function isQualifiedRestriction(node) {
-    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)
+    if ((node.data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION || node.data('type') == GrapholTypesEnum.RANGE_RESTRICTION)
         && (node.data('displayed_name') == 'exists')) {
       return node.incomers('edge[type = "input"]').size() > 1 ? true : false
     }
@@ -243,7 +243,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function inputEdgesBetweenRestrictions(node) {
     let outcome = false
 
-    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)) {
+    if ((node.data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION || node.data('type') == GrapholTypesEnum.RANGE_RESTRICTION)) {
       node.incomers('edge[type = "input"]').forEach(edge => {
         if (edge.source().data('type').endsWith('restriction')){
           outcome = true
@@ -254,7 +254,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function isExistentialWithCardinality(node) {
-    if ((node.data('type') == Type.DOMAIN_RESTRICTION || node.data('type') == Type.RANGE_RESTRICTION)
+    if ((node.data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION || node.data('type') == GrapholTypesEnum.RANGE_RESTRICTION)
         && node.data('displayed_name').search(/[0-9]/g) >= 0) {
       return true
     }
@@ -263,14 +263,14 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function isComplexHierarchy(node) {
-    if (node.data('type') != Type.UNION &&
-        node.data('type') != Type.DISJOINT_UNION &&
-        node.data('type') != Type.INTERSECTION)
+    if (node.data('type') != GrapholTypesEnum.UNION &&
+        node.data('type') != GrapholTypesEnum.DISJOINT_UNION &&
+        node.data('type') != GrapholTypesEnum.INTERSECTION)
       return false
 
     let outcome = false
     node.incomers('[type *= "input"]').forEach(input => {
-      if (input.source().data('type') != Type.CONCEPT) {
+      if (input.source().data('type') != GrapholTypesEnum.CONCEPT) {
         outcome = true
       }
     })
@@ -302,7 +302,7 @@ export default function computeSimplifiedOntologies(ontology) {
       // process inclusion edges
       union.outgoers('edge[type = "inclusion"]').forEach(inclusion => {
         inclusion.addClass('hierarchy')
-        if (union.data('type') == Type.DISJOINT_UNION)
+        if (union.data('type') == GrapholTypesEnum.DISJOINT_UNION)
           inclusion.addClass('disjoint')
       })
 
@@ -329,7 +329,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function simplifyIntersections(cytoscape_instance) {
     let cy = cytoscape_instance
 
-    cy.$(`node[type = "${Type.INTERSECTION}"]`).forEach( and => {
+    cy.$(`node[type = "${GrapholTypesEnum.INTERSECTION}"]`).forEach( and => {
       replicateAttributes(and)
       replicateRoleTypizations(and)
 
@@ -378,7 +378,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function replicateRoleTypizations(constructor) {
     let cy = constructor.cy()
     // replicate role tipization on input classes
-    constructor.connectedEdges(`edge.${Type.OBJECT_PROPERTY}`).forEach(role_edge => {
+    constructor.connectedEdges(`edge.${GrapholTypesEnum.OBJECT_PROPERTY}`).forEach(role_edge => {
       constructor.incomers('[type *= "input"]').forEach( (input,i) => {
         let new_id = `${role_edge.id()}_${i}`
         let new_edge = {}
@@ -431,7 +431,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function simplifyComplexHierarchies(cytoscape_instance) {
     let cy = cytoscape_instance
 
-    cy.nodes(`[type = "${Type.INTERSECTION}"],[type = "${Type.UNION}"],[type = "${Type.DISJOINT_UNION}"]`).forEach(node => {
+    cy.nodes(`[type = "${GrapholTypesEnum.INTERSECTION}"],[type = "${GrapholTypesEnum.UNION}"],[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`).forEach(node => {
       if(isComplexHierarchy(node)) {
         replicateAttributes(node)
         aux_renderer.filterElem(node, '', cy)
@@ -444,12 +444,12 @@ export default function computeSimplifiedOntologies(ontology) {
   function replicateAttributes(node) {
     let cy = node.cy()
     let all_classes = getAllInputs(node)
-    let all_attributes = node.neighborhood(`[type = "${Type.DATA_PROPERTY}"]`)
+    let all_attributes = node.neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`)
     let all_inclusion_attributes = cy.collection()
 
     all_classes.forEach( (concept,i) => {
       all_attributes.forEach((attribute, j) => {
-        addAttribute(concept, i, attribute, Type.DATA_PROPERTY)
+        addAttribute(concept, i, attribute, GrapholTypesEnum.DATA_PROPERTY)
       })
     })
 
@@ -475,7 +475,7 @@ export default function computeSimplifiedOntologies(ontology) {
 
       // recursively add new attributes connected to replicated attributes by inclusions
       if (!target.hasClass('repositioned')) {
-        attribute.neighborhood(`[type = "${Type.DATA_PROPERTY}"]`).forEach( (inclusion_attribute, j) => {
+        attribute.neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).forEach( (inclusion_attribute, j) => {
           if(all_attributes.contains(inclusion_attribute)) {
             return
           }
@@ -490,9 +490,9 @@ export default function computeSimplifiedOntologies(ontology) {
       let all_classes = node.cy().collection()
 
       let input_edges = node.incomers('edge[type *= "input"]')
-      all_classes = all_classes.union(input_edges.sources(`[type = "${Type.CONCEPT}"]`))
+      all_classes = all_classes.union(input_edges.sources(`[type = "${GrapholTypesEnum.CONCEPT}"]`))
 
-      input_edges.sources(`[type != "${Type.CONCEPT}"]`).forEach(constructor => {
+      input_edges.sources(`[type != "${GrapholTypesEnum.CONCEPT}"]`).forEach(constructor => {
         all_classes = all_classes.union(getAllInputs(constructor))
         constructor.addClass('attr_replicated')
       })
@@ -504,7 +504,7 @@ export default function computeSimplifiedOntologies(ontology) {
   function simplifyRoleInverse(cytoscape_instance) {
     let cy = cytoscape_instance
 
-    cy.nodes(`[type = "${Type.ROLE_INVERSE}"]`).forEach(role_inverse => {
+    cy.nodes(`[type = "${GrapholTypesEnum.ROLE_INVERSE}"]`).forEach(role_inverse => {
       let new_edges_count = 0
       // the input role is only one
       let input_edge = role_inverse.incomers('[type *= "input"]')
@@ -556,7 +556,7 @@ export default function computeSimplifiedOntologies(ontology) {
       node.data('original-position', JSON.stringify(node.position()))
     })
 
-    filterByCriterion(cy, node => node.data('type') === Type.KEY)
+    filterByCriterion(cy, node => node.data('type') === GrapholTypesEnum.KEY)
     simplifyRolesFloat(cy)
     simplifyHierarchiesFloat(cy)
     simplifyAttributesFloat(cy)
@@ -564,12 +564,12 @@ export default function computeSimplifiedOntologies(ontology) {
     cy.edges().removeData('segment_weights')
     cy.edges().removeData('target_endpoint')
     cy.edges().removeData('source_endpoint')
-    cy.$(`[type = "${Type.CONCEPT}"]`).addClass('bubble')
+    cy.$(`[type = "${GrapholTypesEnum.CONCEPT}"]`).addClass('bubble')
     return cy.$('*')
   }
 
   function simplifyRolesFloat(cy) {
-    let eles = cy.$(`[type = "${Type.OBJECT_PROPERTY}"]`)
+    let eles = cy.$(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`)
 
     eles.forEach(role => {
       let domains = getDomains(role)
@@ -602,7 +602,7 @@ export default function computeSimplifiedOntologies(ontology) {
               symmetric : roleEntity.data('symmetric'),
               transitive : roleEntity.data('transitive')
             },
-            classes : `${Type.OBJECT_PROPERTY} predicate`
+            classes : `${GrapholTypesEnum.OBJECT_PROPERTY} predicate`
           }
 
           cy.add(new_edge)
@@ -640,7 +640,7 @@ export default function computeSimplifiedOntologies(ontology) {
   }
 
   function simplifyAttributesFloat(cy) {
-    cy.$(`[type = "${Type.DATA_PROPERTY}"]`).forEach(attribute => {
+    cy.$(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).forEach(attribute => {
       attribute.neighborhood('node').forEach(neighbor => {
         attribute.position(neighbor.position())
       })

@@ -1,11 +1,11 @@
 import { ElementDefinition } from "cytoscape"
-import { Type } from "../node-enums"
+import { GrapholTypesEnum } from "./node-enums"
 import GrapholEntity, { Functionalities } from "./entity"
 
 export default class GrapholElement {
   // The id coming from xml
   private _id: string
-  private _type: Type
+  private _type: GrapholTypesEnum
   private _displayedName: string
 
   constructor(id: string) {
@@ -18,7 +18,7 @@ export default class GrapholElement {
   }
 
   get type() { return this._type }
-  set type(type: Type) {
+  set type(type: GrapholTypesEnum) {
     this._type = type
   }
 
@@ -31,7 +31,7 @@ export default class GrapholElement {
    * Check if node is of a certain type
    * @param type 
    */
-  is(type: Type): boolean {
+  is(type: GrapholTypesEnum): boolean {
     return this.type === type
   }
 
@@ -41,17 +41,17 @@ export default class GrapholElement {
    */
   isEntity(): boolean {
     switch (this.type) {
-      case Type.CONCEPT:
-      case Type.DATA_PROPERTY:
-      case Type.OBJECT_PROPERTY:
-      case Type.INDIVIDUAL:
+      case GrapholTypesEnum.CONCEPT:
+      case GrapholTypesEnum.DATA_PROPERTY:
+      case GrapholTypesEnum.OBJECT_PROPERTY:
+      case GrapholTypesEnum.INDIVIDUAL:
         return true
     }
 
     return false
   }
 
-  getCytoscapeRepr(grapholEntity: GrapholEntity): ElementDefinition[] {
+  getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[] {
     const result: ElementDefinition = {
       data: {
         id: this.id,
@@ -61,7 +61,7 @@ export default class GrapholElement {
     }
 
     // Set functionality for data/object properties
-    if (grapholEntity?.is(Type.DATA_PROPERTY) || grapholEntity?.is(Type.OBJECT_PROPERTY)) {
+    if (grapholEntity?.is(GrapholTypesEnum.DATA_PROPERTY) || grapholEntity?.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
       result.data[Functionalities.functional] = grapholEntity.hasFunctionality(Functionalities.functional)
       result.data[Functionalities.inverseFunctional] = grapholEntity.hasFunctionality(Functionalities.inverseFunctional)
     }

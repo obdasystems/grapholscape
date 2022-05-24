@@ -2,8 +2,10 @@ import cytoscape from 'cytoscape'
 import cytoscapeDefaultConfig from '../config/cytoscape-default-config'
 import GrapholscapeTheme from '../model/theme'
 import { getGraphStyle } from '../style/graph-style'
+import { isGrapholEdge } from './graphol-elems/edge'
 import GrapholEntity from './graphol-elems/entity'
 import GrapholElement from './graphol-elems/graphol-element'
+import { isGrapholNode } from './graphol-elems/node'
 import Renderer from './i-renderer'
 /**
  * @property {string} name - diagram's name
@@ -143,6 +145,30 @@ class Diagram implements Renderer {
 
   setTheme(theme: GrapholscapeTheme) {
     this.cy.style(getGraphStyle(theme))
+  }
+
+  updateAll() {
+    for (let grapholElement of this.grapholElements.values()) {
+      this.updateElement(grapholElement.id)
+    }
+  }
+
+  updateElement(elementId: string) {
+    const grapholElement = this.grapholElements.get(elementId)
+    const cyElement = this.cy.$id(grapholElement.id)
+
+      if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+        cyElement.position(grapholElement.position)
+      }
+
+      if (isGrapholEdge(grapholElement)) {
+        cyElement.move({
+          source: grapholElement.sourceId,
+          target: grapholElement.targetId
+        })
+      }
+
+      cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
   }
 
   /**

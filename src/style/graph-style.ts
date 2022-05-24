@@ -1,5 +1,5 @@
 import { CssStyleDeclaration } from "cytoscape";
-import { Shape, Type } from "../model/node-enums";
+import { Shape, GrapholTypesEnum } from "../model/graphol-elems/node-enums";
 import GrapholTheme from '../model/theme'
 import { ColoursNames } from "./themes";
 
@@ -233,7 +233,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${Type.FACET}`,
+      selector: `.${GrapholTypesEnum.FACET}`,
       style: {
         'background-opacity': 0
       }
@@ -262,7 +262,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${Type.CONCEPT}`,
+      selector: `.${GrapholTypesEnum.CONCEPT}`,
       style: {
         'background-color': theme.getColour(ColoursNames.concept),
         'border-color': theme.getColour(ColoursNames.concept_dark),
@@ -270,7 +270,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${Type.OBJECT_PROPERTY}, .fake-triangle`,
+      selector: `.${GrapholTypesEnum.OBJECT_PROPERTY}, .fake-triangle`,
       style: {
         'background-color': theme.getColour(ColoursNames.role),
         'border-color': theme.getColour(ColoursNames.role_dark),
@@ -278,7 +278,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${Type.DATA_PROPERTY}`,
+      selector: `.${GrapholTypesEnum.DATA_PROPERTY}`,
       style: {
         'background-color': theme.getColour(ColoursNames.attribute),
         'border-color': theme.getColour(ColoursNames.attribute_dark),
@@ -286,7 +286,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${Type.DATA_PROPERTY}:selected`,
+      selector: `.${GrapholTypesEnum.DATA_PROPERTY}:selected`,
       style: {
         'text-background-color': theme.getColour(ColoursNames.background),
         'text-background-opacity': 1,
@@ -294,7 +294,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `edge.${Type.OBJECT_PROPERTY}`,
+      selector: `edge.${GrapholTypesEnum.OBJECT_PROPERTY}`,
       style: {
         'line-color' : theme.getColour(ColoursNames.role_dark),
         'source-arrow-color': theme.getColour(ColoursNames.role_dark),
@@ -307,7 +307,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `edge.predicate[type = "${Type.OBJECT_PROPERTY}"]`,
+      selector: `edge.predicate[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
       style: {
         'width': 4,
       }
@@ -332,7 +332,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `edge.${Type.DATA_PROPERTY}`,
+      selector: `edge.${GrapholTypesEnum.DATA_PROPERTY}`,
       style: {
         'line-color': theme.getColour(ColoursNames.attribute_dark),
         'source-arrow-shape': 'none',
@@ -353,7 +353,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${Type.INDIVIDUAL}`,
+      selector: `.${GrapholTypesEnum.INDIVIDUAL}`,
       style: {
         'background-color': theme.getColour(ColoursNames.individual),
         'border-color': theme.getColour(ColoursNames.individual_dark),
@@ -361,7 +361,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `[type = "${Type.RANGE_RESTRICTION}"], [type = "${Type.DISJOINT_UNION}"]`,
+      selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"], [type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
       style: {
         'background-color': theme.getColour(ColoursNames.node_bg_contrast),
       }
@@ -389,7 +389,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `[shape = "${Shape.HEXAGON}"],[type = "${Type.VALUE_DOMAIN}"], .${Type.FACET}`,
+      selector: `[shape = "${Shape.HEXAGON}"],[type = "${GrapholTypesEnum.VALUE_DOMAIN}"], .${GrapholTypesEnum.FACET}`,
       style: {
         'color': theme.getColour(ColoursNames.node_bg_contrast),
       }

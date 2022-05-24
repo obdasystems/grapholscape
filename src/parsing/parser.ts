@@ -4,8 +4,8 @@ import Diagram from '../model/diagram'
 import * as ParserUtil from './parser_util'
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
-import { grapholNodes, nodeTypes, nodeShapes } from '../model'
-import { constructorLabels, Type } from '../model/node-enums'
+import { GrapholNodesEnum, GrapholTypesEnum } from '../model'
+import { ConstructorLabelsEnum } from '../model/graphol-elems/node-enums'
 import GrapholEntity, { Functionalities } from '../model/graphol-elems/entity'
 import GrapholNode, { LABEL_HEIGHT } from '../model/graphol-elems/node'
 import Iri from '../model/iri'
@@ -108,7 +108,7 @@ export default class GrapholParser {
           }
 
           // Add fake nodes
-          if (node.is(Type.OBJECT_PROPERTY) &&
+          if (node.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
             grapholEntity.hasFunctionality(Functionalities.functional) &&
             grapholEntity.hasFunctionality(Functionalities.inverseFunctional)) {
             node.addFakeNode(new FakeTriangleRight(node))
@@ -119,17 +119,17 @@ export default class GrapholParser {
         } else {
           // not an entity, take label from <label> tag or use those for constructor nodes          
           switch (node.type) {
-            case Type.FACET:
+            case GrapholTypesEnum.FACET:
               node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology)
               break
 
-            case Type.VALUE_DOMAIN:
+            case GrapholTypesEnum.VALUE_DOMAIN:
               const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
               node.displayedName = iri.prefixed
               break
 
             default:
-              const constructorLabel = constructorLabels[Object.keys(Type).find(k => Type[k] === node.type)]
+              const constructorLabel = ConstructorLabelsEnum[Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === node.type)]
               if (constructorLabel) {
                 node.displayedName = constructorLabel
               }
@@ -160,12 +160,12 @@ export default class GrapholParser {
   }
 
   getBasicGrapholNodeFromXML(element: Element, diagramId: number) {
-    let enumTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
+    let enumTypeKey = Object.keys(GrapholNodesEnum).find(k => GrapholNodesEnum[k].TYPE === element.getAttribute('type'))
     let grapholNode = new GrapholNode(element.getAttribute('id'))
 
-    grapholNode.type = grapholNodes[enumTypeKey].TYPE
-    grapholNode.shape = grapholNodes[enumTypeKey].SHAPE
-    grapholNode.identity = grapholNodes[enumTypeKey].IDENTITY
+    grapholNode.type = GrapholNodesEnum[enumTypeKey].TYPE
+    grapholNode.shape = GrapholNodesEnum[enumTypeKey].SHAPE
+    grapholNode.identity = GrapholNodesEnum[enumTypeKey].IDENTITY
     grapholNode.fillColor = element.getAttribute('color')
 
     // Parsing the <geometry> child node of node
@@ -175,7 +175,7 @@ export default class GrapholParser {
     grapholNode.x = parseInt(geometry.getAttribute('x'))
     grapholNode.y = parseInt(geometry.getAttribute('y'))
 
-    if (grapholNode.is(Type.ROLE_CHAIN) || grapholNode.is(Type.PROPERTY_ASSERTION)) {
+    if (grapholNode.is(GrapholTypesEnum.ROLE_CHAIN) || grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
       if (element.getAttribute('inputs') !== '')
         grapholNode.inputs = element.getAttribute('inputs').split(',')
     }
@@ -189,8 +189,8 @@ export default class GrapholParser {
       grapholNode.fontSize = parseInt(label.getAttribute('size')) || 12
     }
 
-    if (grapholNode.is(Type.FACET)) {
-      grapholNode.shapePoints = grapholNodes.FACET.SHAPE_POINTS
+    if (grapholNode.is(GrapholTypesEnum.FACET)) {
+      grapholNode.shapePoints = GrapholNodesEnum.FACET.SHAPE_POINTS
       grapholNode.fillColor = '#ffffff'
 
       // Add fake nodes
@@ -201,7 +201,7 @@ export default class GrapholParser {
       grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode))
     }
 
-    if (grapholNode.is(Type.PROPERTY_ASSERTION)) {
+    if (grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
       // Add fake nodes
       grapholNode.height -= 1
       grapholNode.width = grapholNode.width - grapholNode.height
@@ -227,7 +227,7 @@ export default class GrapholParser {
 
     grapholEdge.sourceId = edgeXmlElement.getAttribute('source')
     grapholEdge.targetId = edgeXmlElement.getAttribute('target')
-    grapholEdge.type = Type[Object.keys(Type).find(k => Type[k] === edgeXmlElement.getAttribute('type'))]
+    grapholEdge.type = GrapholTypesEnum[Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === edgeXmlElement.getAttribute('type'))]
     if (!grapholEdge.type)
       console.log(edgeXmlElement.getAttribute('type'))
     // var k
@@ -254,7 +254,7 @@ export default class GrapholParser {
     // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
     // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
     // la target_label in base alla posizione nella sequenza
-    if (targetGrapholNode.is(Type.ROLE_CHAIN) || targetGrapholNode.is(Type.PROPERTY_ASSERTION)) {
+    if (targetGrapholNode.is(GrapholTypesEnum.ROLE_CHAIN) || targetGrapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
       for (let k = 0; k < targetGrapholNode.inputs.length; k++) {
         if (targetGrapholNode.inputs[k] === grapholEdge.id) {
           grapholEdge.targetLabel = (k + 1).toString()
@@ -541,18 +541,18 @@ export default class GrapholParser {
     function findIdentity(node) {
       var first_input_node = node.incomers('[type = "input"]').sources()
       var identity = first_input_node.data('identity')
-      if (identity === nodeTypes.NEUTRAL) { return findIdentity(first_input_node) } else {
+      if (identity === GrapholTypesEnum.NEUTRAL) { return findIdentity(first_input_node) } else {
         switch (node.data('type')) {
-          case nodeTypes.RANGE_RESTRICTION:
-            if (identity === nodeTypes.OBJECT_PROPERTY) {
-              return nodeTypes.CONCEPT
-            } else if (identity === nodeTypes.DATA_PROPERTY) {
-              return nodeTypes.VALUE_DOMAIN
+          case GrapholTypesEnum.RANGE_RESTRICTION:
+            if (identity === GrapholTypesEnum.OBJECT_PROPERTY) {
+              return GrapholTypesEnum.CONCEPT
+            } else if (identity === GrapholTypesEnum.DATA_PROPERTY) {
+              return GrapholTypesEnum.VALUE_DOMAIN
             } else {
               return identity
             }
-          case nodeTypes.ENUMERATION:
-            if (identity === nodeTypes.INDIVIDUAL) { return grapholNodes.CONCEPT.TYPE } else { return identity }
+          case GrapholTypesEnum.ENUMERATION:
+            if (identity === GrapholTypesEnum.INDIVIDUAL) { return GrapholNodesEnum.CONCEPT.TYPE } else { return identity }
           default:
             return identity
         }
@@ -562,9 +562,9 @@ export default class GrapholParser {
 
 
   getGrapholNodeType(element) {
-    const nodeTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
+    const nodeTypeKey = Object.keys(GrapholNodesEnum).find(k => GrapholNodesEnum[k].TYPE === element.getAttribute('type'))
 
-    return grapholNodes[nodeTypeKey]
+    return GrapholNodesEnum[nodeTypeKey]
   }
 
   getCorrectLabelYpos(labelYpos: number, positionY: number, height: number) {

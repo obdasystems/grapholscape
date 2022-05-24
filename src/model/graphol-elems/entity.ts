@@ -1,7 +1,6 @@
-import AnnotatedElement, { AnnotationsKind } from "../annotated-element"
+import AnnotatedElement from "../annotated-element"
 import Iri from "../iri"
-import { Type } from "../node-enums"
-import Annotation from "./annotation"
+import { GrapholTypesEnum } from "./node-enums"
 
 export enum Functionalities {
   functional = 'functional',
@@ -21,10 +20,10 @@ export type EntityOccurrence = {
 export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
   private _occurrences: EntityOccurrence[] = []
-  private _type: Type
+  private _type: GrapholTypesEnum
   private _functionalities?: Functionalities[]
 
-  constructor(iri: Iri, type: Type) {
+  constructor(iri: Iri, type: GrapholTypesEnum) {
     super()
     this.iri = iri
     this.type = type
@@ -44,7 +43,7 @@ export default class GrapholEntity extends AnnotatedElement {
   }
 
   get type() { return this._type }
-  set type(type: Type) {
+  set type(type: GrapholTypesEnum) {
     this._type = type
   }
 
@@ -52,7 +51,7 @@ export default class GrapholEntity extends AnnotatedElement {
    * Check if entity is of a certain type
    * @param type 
    */
-  is(type: Type): boolean {
+  is(type: GrapholTypesEnum): boolean {
     return this.type === type
   }
 

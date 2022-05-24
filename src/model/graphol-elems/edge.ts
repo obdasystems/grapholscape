@@ -1,5 +1,5 @@
 import { ElementDefinition, Position } from "cytoscape";
-import { Type } from "../node-enums";
+import { GrapholTypesEnum } from "./node-enums";
 import Breakpoint from "./breakpoint";
 import GrapholEntity from "./entity";
 import GrapholElement from "./graphol-element";
@@ -86,14 +86,14 @@ export default class GrapholEdge extends GrapholElement {
   }
 
   public get type() { return super.type }
-  public set type(newType: Type) {
+  public set type(newType: GrapholTypesEnum) {
     super.type = newType
 
-    if (this.is(Type.SAME) || this.is(Type.DIFFERENT))
+    if (this.is(GrapholTypesEnum.SAME) || this.is(GrapholTypesEnum.DIFFERENT))
       this.displayedName = this.type
   }
 
-  public getCytoscapeRepr(grapholEntity: GrapholEntity) {
+  public getCytoscapeRepr(grapholEntity?: GrapholEntity) {
     let result = super.getCytoscapeRepr(grapholEntity)
     Object.assign(result[0].data, {
       type: this.type || undefined,

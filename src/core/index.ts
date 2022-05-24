@@ -1,8 +1,9 @@
 import Lifecycle from "../lifecycle"
-import GrapholscapeState from "../model/state/state"
+import GrapholscapeState, { Language } from "../model/state"
 import GrapholscapeTheme from "../model/theme"
 import { centerOnElement, centerOnEntity, selectElement, selectEntity, unselect } from "./center-select"
 import { filter, unfilter } from "./filtering"
+import { setLanguage } from "./set-language"
 import { showDiagram } from "./show-diagram"
 import { addTheme, setTheme } from "./themes"
 
@@ -36,6 +37,7 @@ export default function (state: GrapholscapeState, container: Element) {
     themes: themes,
     addTheme: addTheme,
     setTheme: setTheme,
+    setLanguage: setLanguage,
     on: lifecycle.on.bind(lifecycle)
   }
 

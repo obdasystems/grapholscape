@@ -1,5 +1,5 @@
 import { ElementDefinition, Position } from "cytoscape"
-import { Shape, Type } from "../node-enums"
+import { Shape, GrapholTypesEnum } from "./node-enums"
 import GrapholEntity from "./entity"
 import GrapholElement from "./graphol-element"
 
@@ -9,7 +9,7 @@ export default class GrapholNode extends GrapholElement {
 
   private _position: Position = { x: 0, y: 0 }
   private _shape: Shape
-  private _identity: Type
+  private _identity: GrapholTypesEnum
   private _height: number
   private _width: number
   private _fillColor: string
@@ -44,7 +44,7 @@ export default class GrapholNode extends GrapholElement {
   }
 
   get identity() { return this._identity }
-  set identity(identity: Type) {
+  set identity(identity: GrapholTypesEnum) {
     this._identity = identity
   }
 
@@ -57,7 +57,7 @@ export default class GrapholNode extends GrapholElement {
   set height(height: number) {
     this._height = height >= 0 ? height : -height
 
-    if (this.type === Type.FACET) {
+    if (this.type === GrapholTypesEnum.FACET) {
       this._height = 40
     }
   }
@@ -119,7 +119,7 @@ export default class GrapholNode extends GrapholElement {
     this._fakeNodes.push(newFakeNode)
   }
 
-  getCytoscapeRepr(grapholEntity: GrapholEntity): ElementDefinition[] {
+  getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[] {
     const fakeNodesCytoscapeRepr = []
     const thisCytoscapeRepr = super.getCytoscapeRepr(grapholEntity)
 
@@ -137,7 +137,7 @@ export default class GrapholNode extends GrapholElement {
     })
 
     thisCytoscapeRepr[0].classes = this.type.toString()
-    if (this.is(Type.PROPERTY_ASSERTION)) {
+    if (this.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
       thisCytoscapeRepr[0].classes += ' no_border'
     }
 

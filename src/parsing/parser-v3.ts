@@ -5,7 +5,7 @@ import Annotation from '../model/graphol-elems/annotation'
 import { Functionalities } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
-import { Type } from '../model/node-enums'
+import { GrapholTypesEnum } from '../model/graphol-elems/node-enums'
 
 export let warnings = new Set()
 
@@ -73,7 +73,7 @@ export function getIri(element: Element, ontology: Ontology): Iri {
  */
 export function getFacetDisplayedName(element: Element, ontology: Ontology) {
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
-  if (element.getAttribute('type') === Type.FACET) {
+  if (element.getAttribute('type') === GrapholTypesEnum.FACET) {
     const facetIri = new Iri(getTagText(element, 'constrainingFacet'), ontology.namespaces)
     //let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
     //constraining_facet = constraining_facet.prefix + ':' + constraining_facet.remainingChars
@@ -99,7 +99,7 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument): 
   let actual_iri_elem = getIriElem(element, xmlDocument)
 
   const elementType = element.getAttribute('type')
-  if (elementType === Type.OBJECT_PROPERTY || elementType === Type.DATA_PROPERTY) {
+  if (elementType === GrapholTypesEnum.OBJECT_PROPERTY || elementType === GrapholTypesEnum.DATA_PROPERTY) {
     if (actual_iri_elem && actual_iri_elem.children) {
       for (let property of actual_iri_elem.children) {
 
