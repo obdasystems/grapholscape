@@ -3,8 +3,8 @@ import GrapholNode from "../node"
 import FakeGrapholNode from "./fake-base"
 
 export default class FakeCircle extends FakeGrapholNode {
-  constructor(originalNode: GrapholNode, diagramId: number) {
-    super(originalNode, diagramId)
+  constructor(originalNode: GrapholNode) {
+    super(originalNode)
     
     this.shape = Shape.ELLIPSE
     this.fillColor = '#fff'

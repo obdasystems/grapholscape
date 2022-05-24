@@ -5,10 +5,15 @@ export const showDiagram = function (diagramId: number, container = this.contain
   const actualState: GrapholscapeState = this.actualState
   const lifecyle: Lifecycle = this.lifecycle
 
-  actualState.diagram?.stopRendering()
   const diagram = actualState.ontology.getDiagram(diagramId)
 
-  if (diagram && diagram !== actualState.diagram) {
+  if (!diagram) {
+    console.warn(`Can't find any diagram with id="${diagramId}"`)
+    return
+  }
+
+  if (diagram !== actualState.diagram) {
+    actualState.diagram?.stopRendering()
     diagram.setTheme(actualState.theme)
     diagram.render(container || this.container)
     actualState.diagram = diagram

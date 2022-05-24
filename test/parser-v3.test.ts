@@ -303,7 +303,7 @@ describe('It should parse edges correctly', () => {
   })
 
   test('It should move endpoints on borders correctly', () => {
-    const grapholNode = new GrapholNode(null, null)
+    const grapholNode = new GrapholNode(null)
     grapholNode.position = { x: 1000, y: 1000 }
     const customEndpoint = { x: 1020, y: 1010 }
 

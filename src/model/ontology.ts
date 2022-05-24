@@ -73,7 +73,9 @@
 import cytoscape from 'cytoscape'
 import AnnotatedElement from './annotated-element'
 import Diagram from './diagram'
-import GrapholEntity from './graphol-elems/entity'
+import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
+import GrapholNode from './graphol-elems/node'
+import Iri from './iri'
 import Namespace from './namespace'
 /**
  * # Ontology
@@ -88,7 +90,7 @@ class Ontology extends AnnotatedElement {
     /** @type {import('../grapholscape').Language[]}*/
     list: any[]; default: string
   }
-  _entities: GrapholEntity[] = []
+  private _entities: Map<string, GrapholEntity> = new Map()
 
   /**
    * @param {string} name
@@ -138,49 +140,67 @@ class Ontology extends AnnotatedElement {
     return this.namespaces.find(ns => ns.hasPrefix(prefix))
   }
 
-  // /**
-  //  * Get 
-  //  * @param {string} iri full iri
-  //  * @returns {Iri | undefined}
-  //  */
-  // destructureIri(iri) {
-  //   for (let namespace of this.namespaces) {
-  //     // if iri contains namespace 
-  //     if (iri.includes(namespace.value)) {
-  //       return {
-  //         namespace: namespace.value,
-  //         prefix: namespace.prefixes[0],
-  //         fullIri: iri,
-  //         remainingChars: iri.slice(namespace.value.length),
-  //         prefixed:  namespace.prefixes[0] + ':' + iri.slice(namespace.value.length)
-  //       }
-  //     }
-  //   }
-  // }
 
   /** @param {Diagram} diagram */
   addDiagram(diagram: Diagram) {
     this.diagrams.push(diagram)
   }
 
-
   /**
-   * @param {string | number} index the id or the name of the diagram
+   * @param {number} index the id of the diagram
    * @returns {Diagram} The diagram object
    */
-  getDiagram(index: string | number): Diagram {
+  getDiagram(index: number): Diagram {
     if (index < 0 || index > this.diagrams.length) return
-    if (this.diagrams[index]) return this.diagrams[index]
+    if (this.diagrams[index])
+      return this.diagrams[index]
+  }
 
-    return this.diagrams.find(d => d.name.toLowerCase() === index?.toString().toLowerCase())
+  getDiagramByName(name: string): Diagram {
+    return this.diagrams.find(d => d.name.toLowerCase() === name?.toLowerCase())
   }
 
   addEntity(entity: GrapholEntity) {
-    this.entities.push(entity)
+    this.entities.set(entity.iri.fullIri, entity)
   }
 
   getEntity(iri: string) {
-    return this.entities.find(e => e.iri.equals(iri))
+    for(let entity of this.entities.values()) {
+      if (entity.iri.equals(iri)) {
+        return entity
+      }
+    }
+    
+    console.warn(`Can't find any entity with iri = "${iri}"`)
+    return null
+  }
+
+  getGrapholElement(elementId: string, diagramId?: number) {
+    if (diagramId)
+      return this.getDiagram(diagramId).grapholElements.get(elementId)
+
+    for(let diagram of this.diagrams) {
+      const elem = diagram.grapholElements.get(elementId)
+      if (elem) return elem
+    }
+  }
+
+  getGrapholNode(nodeId: string, diagramId?: number) {
+    try {
+      const node = this.getGrapholElement(nodeId, diagramId) as GrapholNode
+      return node
+    } catch(e) {
+      console.error(e)
+    }
+  }
+
+  getGrapholEdge(edgeId: string, diagramId?: number) {
+    try {
+      const edge = this.getGrapholElement(edgeId, diagramId) as GrapholNode
+      return edge
+    } catch(e) {
+      console.error(e)
+    }
   }
 
   /**
@@ -211,23 +231,24 @@ class Ontology extends AnnotatedElement {
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns {cytoscape.CollectionReturnValue[]} An array of cytoscape object representation
    */
-  getEntityOccurrences(iri: string): cytoscape.CollectionReturnValue[] {
-    return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
+  getEntityOccurrences(iri: string, diagramId?: number): EntityOccurrence[] {
+    // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
+    return diagramId || diagramId === 0 
+      ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId) 
+      : this.getEntity(iri).occurrences
   }
 
   /**
    * Get an element in the ontology by its id and its diagram id
    * @param {string} elemID - The id of the element to retrieve
-   * @param {string } diagramID - the id of the diagram containing the element
+   * @param {number} diagramID - the id of the diagram containing the element
    * @returns {cytoscape.CollectionReturnValue} The element in cytoscape object representation
    */
-  getElemByDiagramAndId(elemID: string, diagramID: string): cytoscape.CollectionReturnValue {
+  getElemByDiagramAndId(elemID: string, diagramID: number): cytoscape.CollectionReturnValue {
     let diagram = this.getDiagram(diagramID)
 
     if (diagram) {
-      let node = diagram.cy.$(`[id_xml = "${elemID}"]`) || diagram.cy.$id(elemID)
-      if (node.length > 0)
-        return node
+      return diagram.cy.$id(elemID)
     }
   }
 
@@ -235,23 +256,23 @@ class Ontology extends AnnotatedElement {
    * Get the entities in the ontology
    * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
    */
-  getEntities(): { [s: string]: cytoscape.CollectionReturnValue[] } {
-    let entities = {}
-    this.diagrams.forEach(diagram => {
-      diagram.cy.$('.predicate').forEach(entity => {
-        let iri = entity.data('iri').fullIri
+  // getEntities(): { [s: string]: cytoscape.CollectionReturnValue[] } {
+  //   let entities = {}
+  //   this.diagrams.forEach(diagram => {
+  //     diagram.cy.$('.predicate').forEach(entity => {
+  //       let iri = entity.data('iri').fullIri
 
-        if (!Object.keys(entities).includes(iri)) {
-          entities[iri] = []
-        }
+  //       if (!Object.keys(entities).includes(iri)) {
+  //         entities[iri] = []
+  //       }
 
-        entities[iri].push(entity)
-      })
-    })
+  //       entities[iri].push(entity)
+  //     })
+  //   })
 
-    //this._entities = entities
-    return entities
-  }
+  //   //this._entities = entities
+  //   return entities
+  // }
 
   /**
    * Check if entity has the specified iri in full or prefixed form

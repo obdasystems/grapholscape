@@ -11,6 +11,7 @@ export default class GrapholscapeState {
   private _ontology: Ontology
   private _selectedEntityIri: Iri
   private _entityNameType: EntityNameType
+  private _focusedElementZoom: number = 1.2
 
   constructor() {}
 
@@ -44,5 +45,10 @@ export default class GrapholscapeState {
 
   set entityNameType(value) {
     this._entityNameType = value
+  }
+
+  get focusedElementZoom() { return this._focusedElementZoom }
+  set focusedElementZoom(zoom: number) {
+    this._focusedElementZoom = zoom
   }
 }

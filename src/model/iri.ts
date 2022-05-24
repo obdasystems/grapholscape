@@ -47,7 +47,15 @@ export default class Iri {
   }
 
   public equals(iriToCheck: string) {
-    return this.prefixed === iriToCheck || this.fullIri === iriToCheck
+    if (this.fullIri === iriToCheck || this.prefixed === iriToCheck) return true
+
+    for(let prefix of this.namespace.prefixes) {
+      if (`${prefix}:${this.remainder}` === iriToCheck) {
+        return true
+      }
+    }
+
+    return false
   }
 
   public hasPrefix(prefixToCheck: string) {

@@ -66,29 +66,30 @@ export default class GrapholParser {
         const nodeXmlElement = nodes[k]
         const grapholNodeType = this.getGrapholNodeType(nodeXmlElement)
         const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i)
+        let grapholEntity: GrapholEntity
 
         if (node.isEntity()) {
           const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
-          let entity = this.ontology.getEntity(iri.fullIri)
-          if (!entity) {
-            entity = new GrapholEntity(iri, grapholNodeType.TYPE)
-            diagram.addEntity(entity)
+          grapholEntity = this.ontology.entities.get(iri.fullIri)
+          if (!grapholEntity) {
+            grapholEntity = new GrapholEntity(iri, grapholNodeType.TYPE)
+            this.ontology.addEntity(grapholEntity)
           }
 
-          entity.addOccurrence(node.id, diagram.id)
-          entity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
-          entity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
+          grapholEntity.addOccurrence(node.id, diagram.id)
+          grapholEntity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+          grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
 
           // APPLY DISPLAYED NAME FROM LABELS
-          if (entity.getLabels().length > 0) {
+          if (grapholEntity.getLabels().length > 0) {
             // try to apply default language label as displayed name
-            const labelInDefaultLanguage = entity.getLabels(this.ontology.languages.default)[0]
+            const labelInDefaultLanguage = grapholEntity.getLabels(this.ontology.languages.default)[0]
             if (labelInDefaultLanguage) {
               node.displayedName = labelInDefaultLanguage.lexicalForm
             } else {
               // otherwise pick the first language available
               for (let lang of this.ontology.languages.list) {
-                const labels = entity.getLabels(lang)
+                const labels = grapholEntity.getLabels(lang)
                 if (labels?.length > 0) {
                   node.displayedName = labels[0].lexicalForm
                   break
@@ -98,30 +99,22 @@ export default class GrapholParser {
 
             // if still failing, pick the first label you find
             if (!node.displayedName) {
-              node.displayedName = entity.getLabels()[0].lexicalForm
+              node.displayedName = grapholEntity.getLabels()[0].lexicalForm
             }
 
           } else {
             // if no labels defined, apply remainingChars from iri as displayed name
-            node.displayedName = entity.iri.remainder
+            node.displayedName = grapholEntity.iri.remainder
           }
 
           // Add fake nodes
           if (node.is(Type.OBJECT_PROPERTY) &&
-            entity.hasFunctionality(Functionalities.functional) &&
-            entity.hasFunctionality(Functionalities.inverseFunctional)) {
-            node.addFakeNode(new FakeTriangleRight(node, diagram.id))
-            node.addFakeNode(new FakeTriangleLeft(node, diagram.id))
+            grapholEntity.hasFunctionality(Functionalities.functional) &&
+            grapholEntity.hasFunctionality(Functionalities.inverseFunctional)) {
+            node.addFakeNode(new FakeTriangleRight(node))
+            node.addFakeNode(new FakeTriangleLeft(node))
             node.height -= 8
             node.width -= 10
-
-            // If the node is both functional and inverse functional,
-            // we added the double style border and changed the node height and width.
-            // The label position is function of node's height and width so we adjust it
-            // now after those changes.
-            if (node.displayedName) {
-              node.labelYpos -= 4
-            }
           }
         } else {
           // not an entity, take label from <label> tag or use those for constructor nodes          
@@ -149,12 +142,12 @@ export default class GrapholParser {
           }
         }
 
-        diagram.addNode(node)
+        diagram.addElement(node, grapholEntity)
       }
 
       for (k = 0; k < edges.length; k++) {
         const edgeXmlElement = edges[k]
-        diagram.addEdge(this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id))
+        diagram.addElement(this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id))
       }
     }
 
@@ -168,7 +161,7 @@ export default class GrapholParser {
 
   getBasicGrapholNodeFromXML(element: Element, diagramId: number) {
     let enumTypeKey = Object.keys(grapholNodes).find(k => grapholNodes[k].TYPE === element.getAttribute('type'))
-    let grapholNode = new GrapholNode(element.getAttribute('id'), diagramId)
+    let grapholNode = new GrapholNode(element.getAttribute('id'))
 
     grapholNode.type = grapholNodes[enumTypeKey].TYPE
     grapholNode.shape = grapholNodes[enumTypeKey].SHAPE
@@ -204,8 +197,8 @@ export default class GrapholParser {
       grapholNode.displayedName = grapholNode.displayedName.replace('^^', '\n\n')
       grapholNode.labelYpos = grapholNode.height
 
-      grapholNode.addFakeNode(new FakeTopRhomboid(grapholNode, diagramId))
-      grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode, diagramId))
+      grapholNode.addFakeNode(new FakeTopRhomboid(grapholNode))
+      grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode))
     }
 
     if (grapholNode.is(Type.PROPERTY_ASSERTION)) {
@@ -213,13 +206,13 @@ export default class GrapholParser {
       grapholNode.height -= 1
       grapholNode.width = grapholNode.width - grapholNode.height
 
-      grapholNode.addFakeNode(new FakeRectangle(grapholNode, diagramId))
+      grapholNode.addFakeNode(new FakeRectangle(grapholNode))
 
-      const fakeCircle1 = new FakeCircle(grapholNode, diagramId)
+      const fakeCircle1 = new FakeCircle(grapholNode)
       // fakeCircle1.x = grapholNode.x - ((grapholNode.width - grapholNode.height) / 2)
       grapholNode.addFakeNode(fakeCircle1)
 
-      const fakeCircle2 = new FakeCircle(grapholNode, diagramId)
+      const fakeCircle2 = new FakeCircle(grapholNode)
       // fakeCircle2.x = grapholNode.x + ((grapholNode.width - grapholNode.height) / 2)
       grapholNode.addFakeNode(fakeCircle2)
     }
@@ -230,7 +223,7 @@ export default class GrapholParser {
   }
 
   getGrapholEdgeFromXML(edgeXmlElement: Element, diagramId: number) {
-    const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id'), diagramId)
+    const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id'))
 
     grapholEdge.sourceId = edgeXmlElement.getAttribute('source')
     grapholEdge.targetId = edgeXmlElement.getAttribute('target')
@@ -252,8 +245,8 @@ export default class GrapholParser {
     // }
 
     // Prendiamo i nodi source e target
-    var sourceGrapholNode = this.ontology.getDiagram(diagramId).getGrapholNode(grapholEdge.sourceId)
-    var targetGrapholNode = this.ontology.getDiagram(diagramId).getGrapholNode(grapholEdge.targetId)
+    var sourceGrapholNode = this.ontology.getGrapholNode(grapholEdge.sourceId, diagramId)
+    var targetGrapholNode = this.ontology.getGrapholNode(grapholEdge.targetId, diagramId)
     // Impostiamo le label numeriche per gli archi che entrano nei role-chain
     // I role-chain hanno un campo <input> con una lista di id di archi all'interno
     // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
@@ -263,7 +256,7 @@ export default class GrapholParser {
     // la target_label in base alla posizione nella sequenza
     if (targetGrapholNode.is(Type.ROLE_CHAIN) || targetGrapholNode.is(Type.PROPERTY_ASSERTION)) {
       for (let k = 0; k < targetGrapholNode.inputs.length; k++) {
-        if (targetGrapholNode.inputs[k] === grapholEdge.idXml) {
+        if (targetGrapholNode.inputs[k] === grapholEdge.id) {
           grapholEdge.targetLabel = (k + 1).toString()
           break
         }

@@ -1,6 +1,7 @@
 import Lifecycle from "../lifecycle"
 import GrapholscapeState from "../model/state/state"
 import GrapholscapeTheme from "../model/theme"
+import { centerOnElement, centerOnEntity, selectElement, selectEntity, unselect } from "./center-select"
 import { filter, unfilter } from "./filtering"
 import { showDiagram } from "./show-diagram"
 import { addTheme, setTheme } from "./themes"
@@ -19,12 +20,13 @@ export default function (state: GrapholscapeState, container: Element) {
     container: container,
     lifecycle: lifecycle,
     actualState: state,
-    selectElement: null,
-    selectEntity: null,
-    unselect: null,
+    centerOnElement: centerOnElement,
+    selectElement: selectElement,
+    centerOnEntity: centerOnEntity,
+    selectEntity: selectEntity,
+    unselect: unselect,
     showDiagram: showDiagram,
-    centerOnEntity: null,
-    centerOnNode: null,
+    fit: function() { this.actualState.diagram.fit() },
     filter: filter,
     unfilter: unfilter,
     zoomIn: function (value = ZOOM_STEP_VALUE) { this.actualState.diagram.zoomIn(value) },
@@ -34,7 +36,7 @@ export default function (state: GrapholscapeState, container: Element) {
     themes: themes,
     addTheme: addTheme,
     setTheme: setTheme,
-    on: lifecycle.on
+    on: lifecycle.on.bind(lifecycle)
   }
 
   return core

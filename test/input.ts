@@ -1579,6 +1579,18 @@ Revision</lexicalForm>
           <point x="-260" y="400"/>
         </edge>
       </diagram>
+      <diagram height="10000" name="2-books" width="10000">
+        <node id="n0" color="#fcfcfc" type="concept">
+          <geometry height="50" x="350" width="110" y="220"/>
+          <iri>http://www.obdasystems.com/books/Author</iri>
+          <label height="23" customSize="0" x="100" width="101" size="12" y="220"/>
+        </node>
+        <node id="n1" color="#fcfcfc" type="concept">
+          <geometry height="50" x="1000" width="110" y="220"/>
+          <iri>http://www.obdasystems.com/books/Author</iri>
+          <label height="23" customSize="0" x="100" width="101" size="12" y="220"/>
+        </node>
+      </diagram>
     </diagrams>
   </project>
 </graphol>`

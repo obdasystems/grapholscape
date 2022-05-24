@@ -1,20 +1,23 @@
 import { ElementDefinition } from "cytoscape"
 import { Shape } from "../../node-enums"
+import GrapholEntity from "../entity"
 import GrapholNode from "../node"
 
 export default class FakeGrapholNode extends GrapholNode {
-  constructor(originalNode: GrapholNode, diagramId: number) {
-    super(originalNode.idXml, diagramId)
+  constructor(originalNode: GrapholNode) {
+    super(originalNode.id)
     Object.assign(this, originalNode)
     this.shape = Shape.POLYGON
+    this._fakeNodes = null
   }
 
 
-  toCyRepr(): ElementDefinition {
-    const result = super.toCyRepr()
-    result.selectable = false
-    result.classes += ' no_overlay'
-    delete result.data.id
+  getCytoscapeRepr(grapholEntity: GrapholEntity): ElementDefinition[] {
+    const result = super.getCytoscapeRepr(grapholEntity)
+    result[0].selectable = false
+    result[0].classes += ' no_overlay'
+    delete result[0].data.id
+    delete result[0].data.displayedName
     return result
   }
 }

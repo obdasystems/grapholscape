@@ -1,6 +1,7 @@
 import { ElementDefinition, Position } from "cytoscape";
 import { Type } from "../node-enums";
 import Breakpoint from "./breakpoint";
+import GrapholEntity from "./entity";
 import GrapholElement from "./graphol-element";
 
 
@@ -13,8 +14,8 @@ export default class GrapholEdge extends GrapholElement {
   private _sourceEndpoint: Position
   private _targetEndpoint: Position
   
-  constructor(idXml: string, diagramId: number) {
-    super(idXml, diagramId)
+  constructor(id: string) {
+    super(id)
   }
 
   addBreakPoint(breakpoint: Breakpoint) {
@@ -92,9 +93,9 @@ export default class GrapholEdge extends GrapholElement {
       this.displayedName = this.type
   }
 
-  public toCyRepr() {
-    let result = super.toCyRepr()
-    Object.assign(result.data, {
+  public getCytoscapeRepr(grapholEntity: GrapholEntity) {
+    let result = super.getCytoscapeRepr(grapholEntity)
+    Object.assign(result[0].data, {
       type: this.type || undefined,
       source: this.sourceId,
       target: this.targetId,
@@ -106,7 +107,11 @@ export default class GrapholEdge extends GrapholElement {
       segmentWeights: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.weight) : undefined,
     })
 
-    result.classes = this.type.toString()
+    result[0].classes = this.type.toString()
     return result
   }
+}
+
+export function isGrapholEdge(elem: GrapholElement): elem is GrapholEdge {
+  return (elem as GrapholEdge).sourceId !== undefined
 }

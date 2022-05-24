@@ -1,27 +1,20 @@
 import { ElementDefinition } from "cytoscape"
 import { Type } from "../node-enums"
+import GrapholEntity, { Functionalities } from "./entity"
 
 export default class GrapholElement {
-  // unique id build as [idXml_diagramId]
-  private _id: string
   // The id coming from xml
-  private _idXml: string
+  private _id: string
   private _type: Type
   private _displayedName: string
 
-  constructor(idXml: string, diagramId: number) {
-    this.id = `${idXml}_${diagramId}`
-    this.idXml = idXml
+  constructor(id: string) {
+    this.id = id
   }
 
   get id() { return this._id }
   set id(value: string) {
     this._id = value
-  }
-
-  get idXml() { return this._idXml }
-  set idXml(value: string) {
-    this._idXml = value
   }
 
   get type() { return this._type }
@@ -58,15 +51,20 @@ export default class GrapholElement {
     return false
   }
 
-  toCyRepr(): ElementDefinition {
+  getCytoscapeRepr(grapholEntity: GrapholEntity): ElementDefinition[] {
     const result: ElementDefinition = {
       data: {
         id: this.id,
-        idXml: this.idXml || undefined,
         type: this.type || undefined,
         displayedName: this.displayedName || undefined
       }
     }
-    return result
+
+    // Set functionality for data/object properties
+    if (grapholEntity?.is(Type.DATA_PROPERTY) || grapholEntity?.is(Type.OBJECT_PROPERTY)) {
+      result.data[Functionalities.functional] = grapholEntity.hasFunctionality(Functionalities.functional)
+      result.data[Functionalities.inverseFunctional] = grapholEntity.hasFunctionality(Functionalities.inverseFunctional)
+    }
+    return [result]
   }
 }

@@ -3,8 +3,8 @@ import GrapholNode from "../node"
 import FakeGrapholNode from "./fake-base"
 
 export default class FakeRectangle extends FakeGrapholNode {
-  constructor(originalNode: GrapholNode, diagramId: number) {
-    super(originalNode, diagramId)
+  constructor(originalNode: GrapholNode) {
+    super(originalNode)
     
     this.shape = Shape.RECTANGLE
     this.width = this.width - this.height

@@ -1,5 +1,6 @@
 import { ElementDefinition, Position } from "cytoscape"
 import { Shape, Type } from "../node-enums"
+import GrapholEntity from "./entity"
 import GrapholElement from "./graphol-element"
 
 export const LABEL_HEIGHT = 23
@@ -19,7 +20,7 @@ export default class GrapholNode extends GrapholElement {
   private _labelYpos?: number
   private _labelYcentered?: boolean
   private _fontSize?: number
-  private _fakeNodes: GrapholNode[]
+  protected _fakeNodes: GrapholNode[]
 
   // Inputs for role-chains, a list nodes IDs
   private _inputs?: string[]
@@ -118,11 +119,12 @@ export default class GrapholNode extends GrapholElement {
     this._fakeNodes.push(newFakeNode)
   }
 
-  toCyRepr() {
-    let result = super.toCyRepr()
+  getCytoscapeRepr(grapholEntity: GrapholEntity): ElementDefinition[] {
+    const fakeNodesCytoscapeRepr = []
+    const thisCytoscapeRepr = super.getCytoscapeRepr(grapholEntity)
 
-    result.position = this.position
-    Object.assign(result.data, {
+    thisCytoscapeRepr[0].position = this.position
+    Object.assign(thisCytoscapeRepr[0].data, {
       shape: this.shape || undefined,
       height: this.height || undefined,
       width: this.width || undefined,
@@ -134,10 +136,22 @@ export default class GrapholNode extends GrapholElement {
       labelYcentered: this.isLabelYcentered,
     })
 
-    result.classes = this.type.toString()
+    thisCytoscapeRepr[0].classes = this.type.toString()
     if (this.is(Type.PROPERTY_ASSERTION)) {
-      result.classes += ' no_border'
+      thisCytoscapeRepr[0].classes += ' no_border'
     }
-    return result
+
+    if (this.fakeNodes) {
+      this.fakeNodes.forEach(fakeNode => {
+        const fakeCyNode = fakeNode.getCytoscapeRepr(grapholEntity)
+        fakeNodesCytoscapeRepr.push(...fakeCyNode)
+      })
+    }
+
+    return [...fakeNodesCytoscapeRepr, ...thisCytoscapeRepr]
   }
+}
+
+export function isGrapholNode(elem: GrapholElement): elem is GrapholNode {
+  return (elem as GrapholNode).shape !== undefined
 }

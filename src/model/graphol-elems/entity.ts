@@ -13,10 +13,14 @@ export enum Functionalities {
   irreflexive = 'irreflexive'
 }
 
+export type EntityOccurrence = {
+  elementId: string,
+  diagramId: number,
+}
 
 export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
-  private _occurrences: { elementId: string, diagramId: number }[] = []
+  private _occurrences: EntityOccurrence[] = []
   private _type: Type
   private _functionalities?: Functionalities[]
 
@@ -31,6 +35,12 @@ export default class GrapholEntity extends AnnotatedElement {
       elementId: occurenceId,
       diagramId: diagramId,
     })
+
+    if (this.iri.remainder === 'Azienda') console.log(this._occurrences)
+  }
+
+  getOccurrencesByDiagramId(diagramId: number) {
+    return this._occurrences.filter(occ => occ.diagramId === diagramId)
   }
 
   get type() { return this._type }
