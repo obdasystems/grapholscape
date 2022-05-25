@@ -3,6 +3,7 @@ import GrapholscapeState, { Language } from "../model/state"
 import GrapholscapeTheme from "../model/theme"
 import { centerOnElement, centerOnEntity, selectElement, selectEntity, unselect } from "./center-select"
 import { filter, unfilter } from "./filtering"
+import { setEntityNameType } from "./set-entity-name-type"
 import { setLanguage } from "./set-language"
 import { showDiagram } from "./show-diagram"
 import { addTheme, setTheme } from "./themes"
@@ -38,6 +39,7 @@ export default function (state: GrapholscapeState, container: Element) {
     addTheme: addTheme,
     setTheme: setTheme,
     setLanguage: setLanguage,
+    setEntityNameType: setEntityNameType,
     on: lifecycle.on.bind(lifecycle)
   }
 

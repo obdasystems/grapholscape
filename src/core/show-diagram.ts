@@ -15,7 +15,7 @@ export const showDiagram = function (diagramId: number, container = this.contain
   if (diagram !== actualState.diagram) {
     actualState.diagram?.stopRendering()
     diagram.setTheme(actualState.theme)
-    diagram.render(container || this.container)
+    diagram.render(container)
     actualState.diagram = diagram
     lifecyle.trigger(LifecycleEvent.DiagramChange, diagram)
   }
