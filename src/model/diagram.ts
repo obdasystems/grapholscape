@@ -89,8 +89,12 @@ class Diagram implements Renderer {
     if (cyElement.empty()) {
       console.warn('Element id (${elementId}) not found. Please check that this is the correct diagram')
     } else {
-      this.zoom(zoom)
-      this.cy.center(cyElement)
+      this.cy.animate({
+        center: {
+          eles: cyElement
+        },
+        zoom: zoom,
+      })
       if (select && this.cy.$(':selected') !== cyElement) {
         this.unselect()
         cyElement.select()
@@ -128,20 +132,26 @@ class Diagram implements Renderer {
 
   zoom(zoomValue: number) {
     if (zoomValue != this.cy.zoom())
-      this.cy.zoom(zoomValue)
+      this.cy.animate({
+        zoom: zoomValue,
+      })
   }
 
   zoomIn(zoomValue: number) {
-    this.cy.zoom({
-      level: this.cy.zoom() + zoomValue,
-      renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+    this.cy.animate({
+      zoom: {
+        level: this.cy.zoom() + zoomValue,
+        renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+      }
     })
   }
 
   zoomOut(zoomValue: number) {
-    this.cy.zoom({
-      level: this.cy.zoom() - zoomValue,
-      renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+    this.cy.animate({
+      zoom:{
+        level: this.cy.zoom() - zoomValue,
+        renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+      }
     })
   }
 
