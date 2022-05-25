@@ -1,4 +1,5 @@
 import Diagram from "./diagram"
+import Filter from "./filter"
 import Iri from "./iri"
 import Ontology from "./ontology"
 import GrapholscapeTheme from "./theme"
@@ -25,6 +26,7 @@ export default class GrapholscapeState {
   private _selectedEntityIri: Iri
   private _entityNameType: EntityNameType = EntityNameType.LABEL
   private _focusedElementZoom: number = 1.2
+  private _activeFilters: Set<Filter> = new Set()
 
   constructor() {}
 
@@ -63,4 +65,6 @@ export default class GrapholscapeState {
   set focusedElementZoom(zoom: number) {
     this._focusedElementZoom = zoom
   }
+
+  get activeFilters() { return this._activeFilters }
 }

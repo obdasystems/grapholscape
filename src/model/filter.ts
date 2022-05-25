@@ -1,12 +1,4 @@
-/** 
- * @typedef {object} Filter
- * @property {string} Filter.selector Cytoscape selector identifying the elements to filter out
- * [cytoscape selectors](https://js.cytoscape.org/#selectors)
- * @property {boolean} Filter.active whether the filter is currently active or not
- * @property {boolean} Filter.activable whether the filter is currently activable
- * @property {string} Filter.class the class to add to filtered elems to easily retrieve them later on
- * @property {string} Filter.key unique key to identify a filter
- */
+import GrapholElement from "./graphol-elems/graphol-element"
 
 /**
  * @type {Filter[]}
@@ -45,32 +37,64 @@ export function setFilters(newFilters: any) {
   filters = newFilters
 }
 
+export enum DefaultFilterKeyEnum {
+  ALL = 'all',
+  DATA_PROPERTY = 'data-property',
+  VALUE_DOMAIN = 'value-domain',
+  INDIVIDUAL = 'individual',
+  UNIVERSAL_QUANTIFIER = 'for-all',
+  COMPLEMENT = 'complement',
+  HAS_KEY = 'has-key'
+}
+
+
+/** 
+ * @typedef {object} Filter
+ * @property {string} Filter.selector Cytoscape selector identifying the elements to filter out
+ * [cytoscape selectors](https://js.cytoscape.org/#selectors)
+ * @property {boolean} Filter.active whether the filter is currently active or not
+ * @property {boolean} Filter.activable whether the filter is currently activable
+ * @property {string} Filter.class the class to add to filtered elems to easily retrieve them later on
+ * @property {string} Filter.key unique key to identify a filter
+ */
+
+
 
 export default class Filter {
   private _key: string
-  private _class: string
-  private _cytoscapeSelector: string
-  active: boolean
-  activable: boolean
+  private _compareFn: (grapholElement: GrapholElement) => boolean = () => false
+  active: boolean = false
+  private _locked: boolean = false
 
-  constructor(key: string, cyClass: string, selector: string, active = false, activable = true ) {
+  /**
+   * 
+   * @param key Unique identifier
+   * @param compareFn Function receiving a GrapholElement and returning true if the element should be filtered, false otherwise
+   */
+  constructor(key: string, compareFn: (grapholElement: GrapholElement) => boolean) {
     this._key = key
-    this._class = cyClass
-    this._cytoscapeSelector = selector
-    this.active = active
-    this.activable = activable
-  }
-
-
-  get cytoscapeSelector() {
-    return this._cytoscapeSelector
+    this._compareFn = compareFn
   }
 
   get key() {
     return this._key
   }
 
-  get class() {
-    return this._class
+  get filterTag() {
+    return `filter-${this.key}`
+  }
+
+  get locked() { return this._locked }
+
+  lock() {
+    this._locked = true
+  }
+
+  unlock() {
+    this._locked = false
+  }
+
+  shouldFilter(grapholElement: GrapholElement) {
+    return this._compareFn(grapholElement)
   }
 }

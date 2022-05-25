@@ -2,10 +2,12 @@ import cytoscape from 'cytoscape'
 import cytoscapeDefaultConfig from '../config/cytoscape-default-config'
 import GrapholscapeTheme from '../model/theme'
 import { getGraphStyle } from '../style/graph-style'
+import Filter from './filter'
 import { isGrapholEdge } from './graphol-elems/edge'
 import GrapholEntity from './graphol-elems/entity'
 import GrapholElement from './graphol-elems/graphol-element'
 import { isGrapholNode } from './graphol-elems/node'
+import { GrapholTypesEnum } from './graphol-elems/node-enums'
 import Renderer from './i-renderer'
 /**
  * @property {string} name - diagram's name
@@ -157,18 +159,86 @@ class Diagram implements Renderer {
     const grapholElement = this.grapholElements.get(elementId)
     const cyElement = this.cy.$id(grapholElement.id)
 
-      if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-        cyElement.position(grapholElement.position)
-      }
+    if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+      cyElement.position(grapholElement.position)
+    }
 
-      if (isGrapholEdge(grapholElement)) {
-        cyElement.move({
-          source: grapholElement.sourceId,
-          target: grapholElement.targetId
-        })
-      }
+    if (isGrapholEdge(grapholElement)) {
+      cyElement.move({
+        source: grapholElement.sourceId,
+        target: grapholElement.targetId
+      })
+    }
 
-      cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
+    cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
+  }
+
+  filter(filter: Filter) {
+    this.grapholElements.forEach(grapholElement => {
+      if (filter.shouldFilter(grapholElement)) {
+        this.filterCyElement(this.cy.$id(grapholElement.id), filter.filterTag)
+      }
+    })
+  }
+
+  private filterCyElement(element: cytoscape.NodeSingular, filter_class: string) {
+    const classesToAdd = ['filtered', filter_class]
+    element.addClass(classesToAdd.join(' '))
+    // Filter fake nodes!
+    this.cy.nodes(`[parent_node_id = "${element.id()}"]`).addClass(classesToAdd.join(' '))
+
+    // ARCHI IN USCITA
+    //var selector = `[source = "${element.data('id')}"]`
+    element.outgoers('edge').forEach(e => {
+      let neighbour = e.target()
+
+      // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      let number_edges_in_out = getNumberEdgesInOut(neighbour)
+
+      if (!e.target().hasClass(classesToAdd[0]) && (number_edges_in_out <= 0 || e.data('type') === GrapholTypesEnum.INPUT)) {
+        this.filterCyElement(e.target(), filter_class)
+      }
+    })
+
+    // ARCHI IN ENTRATA
+    element.incomers('edge').forEach(e => {
+      let neighbour = e.source()
+      // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      let number_edges_in_out = getNumberEdgesInOut(neighbour)
+
+      if (!e.source().hasClass(classesToAdd[0]) && number_edges_in_out === 0) {
+        this.filterCyElement(e.source(), filter_class)
+      }
+    })
+
+    function getNumberEdgesInOut(neighbour: cytoscape.NodeSingular) {
+      let count = neighbour.outgoers('edge').size() + neighbour.incomers(`edge[type != "${GrapholTypesEnum.INPUT}"]`).size()
+
+      neighbour.outgoers('node').forEach(node => {
+        if (node.hasClass(classesToAdd[0])) {
+          count--
+        }
+      })
+
+      neighbour.incomers(`edge[type != "${GrapholTypesEnum.INPUT}"]`).forEach(e => {
+        if (e.source().hasClass(classesToAdd[0])) {
+          count--
+        }
+      })
+
+      return count
+    }
+  }
+
+  unfilter(filter: Filter) {
+    const classToRemove = ['filtered', filter.filterTag]
+    this.grapholElements.forEach(grapholElement => {
+      if (filter.shouldFilter(grapholElement)) {
+        this.cy.$id(grapholElement.id).removeClass(classToRemove.join(' '))
+      }
+    })
+    console.log(this.cy.$(`.filtered`))
+    this.cy.$(`.${filter.filterTag}`).removeClass(classToRemove.join(' '))
   }
 
   /**
