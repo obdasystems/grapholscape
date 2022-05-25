@@ -3,10 +3,20 @@ import Namespace from "./namespace"
 export default class Iri {
   private _namespace?: Namespace
   private _remainder: string
-  private _prefixes: string[]
 
   constructor(iri: string, namespaces: Namespace[]) {
-    this.namespace = namespaces.find(n => iri.includes(n.toString()))
+    let isPrefixed = false
+    this.namespace = namespaces.find(n => {
+      if (iri.includes(n.toString()))
+        return true
+
+      for (let prefix of n.prefixes) {
+        if (iri === `${prefix}:${iri.split(':')[1]}`) {
+          isPrefixed = true
+          return true
+        }
+      }
+    })
 
 
     if (!this.namespace) {
@@ -14,7 +24,7 @@ export default class Iri {
       this.namespace = new Namespace([undefined], undefined)
       this.remainder = iri
     } else {
-      this.remainder = iri.slice(this.namespace.toString().length)
+      this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length)
     }
   }
 
@@ -43,7 +53,7 @@ export default class Iri {
   }
 
   public get prefixed() {
-    return this.prefix ? `${this.prefix}:${this.remainder}` : `${this.remainder}`
+    return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`
   }
 
   public equals(iriToCheck: string) {

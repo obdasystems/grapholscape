@@ -28,8 +28,8 @@ export function getNamespaces(xmlDocument: XMLDocument) {
     // for old graphol files
     result.push(new Namespace([''], xmlDocument.getElementsByTagName('iri')[0].textContent, false))
   } else {
-    let iri_prefixes
-    let iri_value, is_standard, prefixes, properties
+    let iri_prefixes: string[]
+    let iri_value: string, is_standard: boolean, prefixes: HTMLCollectionOf<Element>, properties: HTMLCollectionOf<Element>
     let iris = xmlDocument.getElementsByTagName('iri')
     // Foreach iri create a Iri object
     for (let iri of iris) {
@@ -50,7 +50,7 @@ export function getNamespaces(xmlDocument: XMLDocument) {
         is_standard = property.getAttribute('property_value') == 'Standard_IRI'
       }
 
-      result.push(iri_prefixes, iri_value, is_standard)
+      result.push(new Namespace(iri_prefixes, iri_value, is_standard))
     }
   }
 
@@ -69,21 +69,19 @@ export function getIri(element: Element, ontology: Ontology) {
   let namespace, rem_chars
   // facets
   if (node_prefix_iri.search(/"[\w]+"\^\^[\w]+:/) != -1) {
+    // TODO: test facets
     rem_chars = label
     namespace = ''
     node_prefix_iri = node_prefix_iri.slice(node_prefix_iri.lastIndexOf('^') + 1, node_prefix_iri.lastIndexOf(':') + 1)
   } else {
-    rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':')+1) : label
-    namespace = ontology.getNamespaceFromPrefix(node_prefix_iri)
+    //rem_chars = splitted_label.length > 1 ? label.slice(label.indexOf(':')+1) : label
+    //namespace = ontology.getNamespaceFromPrefix(node_prefix_iri)
 
     // if (!namespace && ParserUtil.isPredicate(element)) {
     //   this.warnings.add(`The prefix "${node_prefix_iri}" is not associated to any namespace`)
     // }
-
-    namespace = namespace ? namespace.value : ''
+    return new Iri(label, ontology.namespaces)
   }
-
-  return new Iri(namespace+rem_chars, ontology.namespaces)
 
   // iri_infos.remainingChars = rem_chars
   // iri_infos.prefix = node_prefix_iri
