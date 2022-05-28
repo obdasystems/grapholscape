@@ -1,4 +1,5 @@
 import AnnotatedElement from "../annotated-element"
+import { RenderStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import { GrapholTypesEnum } from "./node-enums"
 
@@ -19,7 +20,7 @@ export type EntityOccurrence = {
 
 export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
-  private _occurrences: EntityOccurrence[] = []
+  private _occurrences: Map<RenderStatesEnum, EntityOccurrence[]> = new Map([[RenderStatesEnum.GRAPHOL, []]])
   private _type: GrapholTypesEnum
   private _functionalities?: Functionalities[]
 
@@ -29,17 +30,15 @@ export default class GrapholEntity extends AnnotatedElement {
     this.type = type
   }
 
-  public addOccurrence(occurenceId: string, diagramId: number) {
-    this._occurrences.push({
+  public addOccurrence(occurenceId: string, diagramId: number, representationKind = RenderStatesEnum.GRAPHOL) {
+    this._occurrences.get(representationKind).push({
       elementId: occurenceId,
       diagramId: diagramId,
     })
-
-    if (this.iri.remainder === 'Azienda') console.log(this._occurrences)
   }
 
-  getOccurrencesByDiagramId(diagramId: number) {
-    return this._occurrences.filter(occ => occ.diagramId === diagramId)
+  getOccurrencesByDiagramId(diagramId: number, representationKind = RenderStatesEnum.GRAPHOL) {
+    return this._occurrences.get(representationKind).filter(occ => occ.diagramId === diagramId)
   }
 
   get type() { return this._type }
@@ -79,7 +78,15 @@ export default class GrapholEntity extends AnnotatedElement {
     return this._functionalities?.includes(functionalityKind)
   }
 
-  public hasOccurrence(occurrenceId: string, diagramId: number) {
-    return this.occurrences.find(occ => occ.elementId === occurrenceId && diagramId === diagramId)
+  public hasOccurrenceInDiagram(diagramId: number, representationKind: RenderStatesEnum) {
+    if (representationKind) {
+      return this.occurrences.get(representationKind).some(occ => occ.diagramId === diagramId)
+    }
+    
+    for(let occurrenceInRepresentation of this.occurrences.values()) {
+      if (occurrenceInRepresentation.some(occ => occ.diagramId === diagramId)) {
+        return true
+      }
+    }
   }
 }

@@ -1,7 +1,7 @@
-import Diagram from "./diagram"
-import Filter from "./filter"
+import Diagram from "./diagrams/diagram"
 import Iri from "./iri"
 import Ontology from "./ontology"
+import Filter from "./renderers/filter"
 import GrapholscapeTheme from "./theme"
 
 export enum Language {

@@ -1,10 +1,10 @@
-import { Filter } from "../model";
-import { Diagram } from "../model";
-import GrapholEdge from "../model/graphol-elems/edge";
-import GrapholEntity from "../model/graphol-elems/entity";
-import GrapholNode from "../model/graphol-elems/node";
-import { EntityNameType, Language } from "../model/state";
-import GrapholscapeTheme from "../model/theme";
+import { Filter } from "..";
+import { Diagram } from "..";
+import GrapholEdge from "../graphol-elems/edge";
+import GrapholEntity from "../graphol-elems/entity";
+import GrapholNode from "../graphol-elems/node";
+import { EntityNameType, Language } from "../state";
+import GrapholscapeTheme from "../theme";
 
 export enum LifecycleEvent {
   DiagramChange = 'diagramChange',
@@ -22,18 +22,18 @@ export enum LifecycleEvent {
 }
 
 export default class Lifecycle {
-  diagramChange: ((diagram: Diagram) => void)[] = []
-  rendererChange: ((renderer: string) => void)[] = []
-  themeChange: ((theme: GrapholscapeTheme) => void)[] = []
-  entitySelection: ((entity: GrapholEntity) => void)[] = []
-  nodeSelection: ((grapholNode: GrapholNode) => void)[] = []
-  edgeSelection: ((grapholEdge: GrapholEdge) => void)[] = []
-  languageChange: ((language: Language) => void)[] = []
-  entityNameTypeChange: ((nameType: EntityNameType) => void)[] = []
-  filter: ((filter: Filter) => void)[] = []
-  unfilter: ((filter: Filter) => void)[] = []
-  filterRequest: ((filter: Filter) => boolean) = () => true
-  unfilterRequest: ((filter: Filter) => boolean) = () => true
+  private diagramChange: ((diagram: Diagram) => void)[] = []
+  private rendererChange: ((renderer: string) => void)[] = []
+  private themeChange: ((theme: GrapholscapeTheme) => void)[] = []
+  private entitySelection: ((entity: GrapholEntity) => void)[] = []
+  private nodeSelection: ((grapholNode: GrapholNode) => void)[] = []
+  private edgeSelection: ((grapholEdge: GrapholEdge) => void)[] = []
+  private languageChange: ((language: Language) => void)[] = []
+  private entityNameTypeChange: ((nameType: EntityNameType) => void)[] = []
+  private filter: ((filter: Filter) => void)[] = []
+  private unfilter: ((filter: Filter) => void)[] = []
+  private filterRequest: ((filter: Filter) => boolean) = () => true
+  private unfilterRequest: ((filter: Filter) => boolean) = () => true
 
 
   constructor() { }

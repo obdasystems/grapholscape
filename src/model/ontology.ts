@@ -1,82 +1,10 @@
-/** 
- * @typedef {object} Iri
- * @property {string} Iri.fullIri
- * @property {string} Iri.remainingChars the string after the namespace or prefix
- * @property {string} Iri.prefix
- * @property {string} Iri.prefixed
- * @property {string} Iri.namespace
- */
-
-/** 
- * @typedef {object} Position
- * @property {number} Position.x
- * @property {number} Position.y
- */
-
-/**
- * @typedef {Object.<string, string[]>} Annotation
- */
-
-/**
- * @typedef {object} GrapholElem
- * @property {Position} position
- * @property {string} classes
- * @property {"nodes"|"edges"} group
- * @property {boolean} grabbable
- * @property {boolean} locked
- * @property {boolean} pannable
- * @property {boolean} removed
- * @property {boolean} selectable
- * @property {boolean} selected
- * @property {ElemData} data
- */
-
-/** 
- * @typedef {object} ElemData the data related to the diagram elements: nodes or edges
- * @property {number} diagram_id the id owning this element
- * @property {string} displayed_name the name displayed in the diagram
- * @property {string} fillColor color of the node body
- * @property {string} fontSize the size of the displayed name
- * @property {number} height
- * @property {number} width
- * @property {Object<string, Annotation>} annotations map <annotationKind, Annotation> where annotationKind can be `label`, `comment` etc..
- * @property {Iri} iri
- * @property {string} id unique id in the ontology [id]+_+[diagram_id]
- * @property {string} id_xml the parsed id (not unique in the ontology)
- * @property {import('./node-enums').Types} identity
- * @property {Types} type the type of node
- * @property {boolean?} labelXcentered whether to center node's label on node's body along X axis
- * @property {boolean?} labelYcentered whether to center node's label on node's body along X axis
- * @property {number} labelXpos offset position of the node's label in case it's not centered along X
- * @property {number} labelYpos offset position of the node's label in case it's not centered along Y
- * @property {import('./node-enums').Shape} shape the shape of the node
- * @property {string[]?} inputs [property-assertion] list of id_xml
- * //edge
- * @property {string?} source [edge] the id of the source node
- * @property {string?} target [edge] the id of the target node
- * @property {Position[]?} breakpoints [edge] a list of edge's breakpoints positions
- * @property {number[]?} segment_distances [edge] read more about segment-distances(https://js.cytoscape.org/#style/unbundled-bezier-edges)
- * @property {number[]?} segment_weights [edge] read more about segment-weights (https://js.cytoscape.org/#style/unbundled-bezier-edges)
- * @property {number[]?} source_endpoint [edge] position of the endpoint on source node
- * @property {number[]?} target_endpoint [edge] position of the endpoint on target node
- * // Object/DataProperties
- * @property {boolean?} functional
- * @property {boolean?} inverseFunctional
- * @property {boolean?} symmetric
- * @property {boolean?} asymmetric
- * @property {boolean?} reflexive
- * @property {boolean?} irreflexive
- * @property {boolean?} transitive
- */
-
-
-import cytoscape from 'cytoscape'
 import AnnotatedElement from './annotated-element'
-import Diagram from './diagram'
+import Diagram from './diagrams/diagram'
 import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
 import GrapholNode from './graphol-elems/node'
 import Iri from './iri'
 import Namespace from './namespace'
+import { RenderStatesEnum } from './renderers/i-render-state'
 /**
  * # Ontology
  * Class used as the Model of the whole app.
@@ -174,45 +102,45 @@ class Ontology extends AnnotatedElement {
     return null
   }
 
-  getGrapholElement(elementId: string, diagramId?: number) {
+  getGrapholElement(elementId: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL) {
     if (diagramId)
-      return this.getDiagram(diagramId).grapholElements.get(elementId)
+      return this.getDiagram(diagramId).representations.get(renderState).grapholElements.get(elementId)
 
     for(let diagram of this.diagrams) {
-      const elem = diagram.grapholElements.get(elementId)
+      const elem = diagram.representations.get(renderState).grapholElements.get(elementId)
       if (elem) return elem
     }
   }
 
-  getGrapholNode(nodeId: string, diagramId?: number) {
+  getGrapholNode(nodeId: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL) {
     try {
-      const node = this.getGrapholElement(nodeId, diagramId) as GrapholNode
+      const node = this.getGrapholElement(nodeId, diagramId, renderState) as GrapholNode
       return node
     } catch(e) {
       console.error(e)
     }
   }
 
-  getGrapholEdge(edgeId: string, diagramId?: number) {
+  getGrapholEdge(edgeId: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL) {
     try {
-      const edge = this.getGrapholElement(edgeId, diagramId) as GrapholNode
+      const edge = this.getGrapholElement(edgeId, diagramId, renderState) as GrapholNode
       return edge
     } catch(e) {
       console.error(e)
     }
   }
 
-  /**
-   * Get an element in the ontology by id, searching in every diagram
-   * @param {string} elem_id - The `id` of the elem to retrieve
-   * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-   */
-  getElem(elem_id: string): cytoscape.CollectionReturnValue {
-    for (let diagram of this.diagrams) {
-      let node = diagram.cy.$id(elem_id)
-      if (node.length > 0) return node
-    }
-  }
+  // /**
+  //  * Get an element in the ontology by id, searching in every diagram
+  //  * @param {string} elem_id - The `id` of the elem to retrieve
+  //  * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
+  //  */
+  // getElem(elem_id: string): cytoscape.CollectionReturnValue {
+  //   for (let diagram of this.diagrams) {
+  //     let node = diagram.cy.$id(elem_id)
+  //     if (node.length > 0) return node
+  //   }
+  // }
 
   /**
    * Retrieve an entity by its IRI.
@@ -230,26 +158,26 @@ class Ontology extends AnnotatedElement {
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns {cytoscape.CollectionReturnValue[]} An array of cytoscape object representation
    */
-  getEntityOccurrences(iri: string, diagramId?: number): EntityOccurrence[] {
+  getEntityOccurrences(iri: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL): EntityOccurrence[] {
     // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
     return diagramId || diagramId === 0 
-      ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId) 
-      : this.getEntity(iri).occurrences
+      ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId, renderState) 
+      : this.getEntity(iri).occurrences.get(renderState)
   }
 
-  /**
-   * Get an element in the ontology by its id and its diagram id
-   * @param {string} elemID - The id of the element to retrieve
-   * @param {number} diagramID - the id of the diagram containing the element
-   * @returns {cytoscape.CollectionReturnValue} The element in cytoscape object representation
-   */
-  getElemByDiagramAndId(elemID: string, diagramID: number): cytoscape.CollectionReturnValue {
-    let diagram = this.getDiagram(diagramID)
+  // /**
+  //  * Get an element in the ontology by its id and its diagram id
+  //  * @param {string} elemID - The id of the element to retrieve
+  //  * @param {number} diagramID - the id of the diagram containing the element
+  //  * @returns {cytoscape.CollectionReturnValue} The element in cytoscape object representation
+  //  */
+  // getElemByDiagramAndId(elemID: string, diagramID: number): cytoscape.CollectionReturnValue {
+  //   let diagram = this.getDiagram(diagramID)
 
-    if (diagram) {
-      return diagram.cy.$id(elemID)
-    }
-  }
+  //   if (diagram) {
+  //     return diagram.cy.$id(elemID)
+  //   }
+  // }
 
   /**
    * Get the entities in the ontology

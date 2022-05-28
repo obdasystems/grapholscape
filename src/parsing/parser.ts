@@ -1,21 +1,14 @@
-import Ontology from '../model'
-import Namespace from '../model/namespace'
-import Diagram from '../model/diagram'
-import * as ParserUtil from './parser_util'
-import * as Graphol2 from './parser-v2'
-import * as Graphol3 from './parser-v3'
-import { GrapholNodesEnum, GrapholTypesEnum } from '../model'
-import { ConstructorLabelsEnum } from '../model/graphol-elems/node-enums'
-import GrapholEntity, { Functionalities } from '../model/graphol-elems/entity'
-import GrapholNode, { LABEL_HEIGHT } from '../model/graphol-elems/node'
-import Iri from '../model/iri'
-import Annotation from '../model/graphol-elems/annotation'
+import Ontology, { Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace } from "../model"
+import Breakpoint from "../model/graphol-elems/breakpoint"
+import { Functionalities } from "../model/graphol-elems/entity"
+import FakeCircle from '../model/graphol-elems/fakes/fake-circle'
+import FakeRectangle from '../model/graphol-elems/fakes/fake-rectangle'
 import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
 import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
-import FakeRectangle from '../model/graphol-elems/fakes/fake-rectangle'
-import FakeCircle from '../model/graphol-elems/fakes/fake-circle'
-import GrapholEdge from '../model/graphol-elems/edge'
-import Breakpoint from '../model/graphol-elems/breakpoint'
+import { LABEL_HEIGHT } from "../model/graphol-elems/node"
+import * as Graphol2 from './parser-v2'
+import * as Graphol3 from './parser-v3'
+import * as ParserUtil from './parser_util'
 
 interface Graphol {
   getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
@@ -531,7 +524,8 @@ export default class GrapholParser {
 
   getIdentityForNeutralNodes() {
     this.ontology.diagrams.forEach(diagram => {
-      diagram.cy.nodes('[identity = "neutral"]').forEach(node => {
+      const cy = diagram.representations.get('graphol').cy
+      cy.nodes('[identity = "neutral"]').forEach(node => {
         node.data('identity', findIdentity(node))
       })
     })

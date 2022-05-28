@@ -1,4 +1,4 @@
-import GrapholElement from "./graphol-elems/graphol-element"
+import GrapholElement from "../graphol-elems/graphol-element"
 
 /**
  * @type {Filter[]}
@@ -36,17 +36,6 @@ export function getFilters() {
 export function setFilters(newFilters: any) {
   filters = newFilters
 }
-
-export enum DefaultFilterKeyEnum {
-  ALL = 'all',
-  DATA_PROPERTY = 'data-property',
-  VALUE_DOMAIN = 'value-domain',
-  INDIVIDUAL = 'individual',
-  UNIVERSAL_QUANTIFIER = 'for-all',
-  COMPLEMENT = 'complement',
-  HAS_KEY = 'has-key'
-}
-
 
 /** 
  * @typedef {object} Filter
