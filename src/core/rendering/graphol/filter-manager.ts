@@ -1,5 +1,5 @@
 import { BaseFilterManager, Filter } from "../../../model"
-import { DefaultFilterKeyEnum } from "../default-filters"
+import { DefaultFilterKeyEnum } from "../filtering"
 
 export default class GrapholFilterManager extends BaseFilterManager {
   filters: Map<string, Filter>

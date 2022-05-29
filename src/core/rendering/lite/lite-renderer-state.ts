@@ -1,7 +1,6 @@
 import { CytoscapeOptions } from "cytoscape";
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config";
-import { iFilterManager, Diagram } from "../../../model";
-import { BaseRenderer, RenderStatesEnum } from "../../../model/renderers/i-render-state";
+import { iFilterManager, BaseRenderer, RenderStatesEnum } from "../../../model";
 import LiteFilterManager from "./filter-manager";
 import LiteTransformer from "./lite-transformer";
 
@@ -30,8 +29,9 @@ export default class LiteRendererState extends BaseRenderer {
       liteRepresentation = liteTransformer.transform(this.renderer.diagram)
       this.renderer.diagram.representations.set('lite', liteRepresentation)
       this.renderer.cy = liteRepresentation.cy
+      this.renderer.applyTheme()
       this.renderer.mount() // mount before fitting (dimensions 0!)
-      this.renderer.fit()
+      //this.renderer.fit()
     } else {
       this.renderer.mount()
     }

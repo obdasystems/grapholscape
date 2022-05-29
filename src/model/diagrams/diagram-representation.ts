@@ -1,6 +1,8 @@
 import cytoscape from "cytoscape";
+import { isGrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
+import { isGrapholNode } from "../graphol-elems/node";
 
 export default class DiagramRepresentation {
   private _cy = cytoscape()
@@ -31,8 +33,40 @@ export default class DiagramRepresentation {
     this.cy.add(cyElems)
   }
 
+  updateElement(element: GrapholElement): void
+  updateElement(elementId: string): void
+  updateElement(elementIdOrObj: string | GrapholElement) {
+    let grapholElement: GrapholElement
+    if (typeof elementIdOrObj === 'string') {
+      grapholElement = this.grapholElements.get(elementIdOrObj)
+    } else {
+      grapholElement = elementIdOrObj
+    }
+
+    if (!grapholElement) return
+
+    const cyElement = this.cy.$id(grapholElement.id)
+
+    if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+      cyElement.position(grapholElement.position)
+    }
+
+    if (isGrapholEdge(grapholElement)) {
+      cyElement.move({
+        source: grapholElement.sourceId,
+        target: grapholElement.targetId
+      })
+    }
+
+    cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
+  }
+
   get grapholElements() {
     return this._grapholElements
+  }
+
+  set grapholElements(newElementMap) {
+    this._grapholElements = newElementMap
   }
 
   /**

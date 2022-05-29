@@ -294,7 +294,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `edge.${GrapholTypesEnum.OBJECT_PROPERTY}`,
+      selector: `edge[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"], edge[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
       style: {
         'line-color' : theme.getColour(ColoursNames.role_dark),
         'source-arrow-color': theme.getColour(ColoursNames.role_dark),
@@ -314,7 +314,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge.range',
+      selector: `edge[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
       style: {
         'target-arrow-shape': 'square',
         'target-arrow-fill': 'filled',
@@ -323,7 +323,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge.domain',
+      selector: `edge[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"]`,
       style: {
         'target-arrow-shape': 'square',
         'target-arrow-fill': 'hollow',
@@ -332,7 +332,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `edge.${GrapholTypesEnum.DATA_PROPERTY}`,
+      selector: `edge[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
       style: {
         'line-color': theme.getColour(ColoursNames.attribute_dark),
         'source-arrow-shape': 'none',

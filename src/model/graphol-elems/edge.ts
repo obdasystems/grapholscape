@@ -25,12 +25,18 @@ export default class GrapholEdge extends GrapholElement {
     this._breakpoints.push(breakpoint)
   }
 
+  computeBreakpointsDistancesWeights(sourcePosition: Position, targetPosition: Position) {
+    this.breakpoints.forEach(breakpoint => {
+      breakpoint.setSourceTarget(sourcePosition, targetPosition)
+    })
+  }
+
   get sourceEndpoint() {
     return this._sourceEndpoint
   }
 
   set sourceEndpoint(endpoint: Position) {
-    if (endpoint.x !== 0 || endpoint.y !== 0)
+    if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
       this._sourceEndpoint = endpoint
   }
 
@@ -39,7 +45,7 @@ export default class GrapholEdge extends GrapholElement {
   }
 
   set targetEndpoint(endpoint: Position) {
-    if (endpoint.x !== 0 || endpoint.y !== 0)
+    if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
       this._targetEndpoint = endpoint
   }
 
@@ -55,6 +61,10 @@ export default class GrapholEdge extends GrapholElement {
    */
   public get controlpoints() {
     return this._breakpoints
+  }
+
+  public set controlpoints(newControlPoints) {
+    this._breakpoints = newControlPoints
   }
 
   public get sourceId() {

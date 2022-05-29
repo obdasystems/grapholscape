@@ -17,6 +17,7 @@ export { default as GrapholNode } from './graphol-elems/node'
 export { default as GrapholEdge } from './graphol-elems/edge'
 
 export { default as iFilterManager, BaseFilterManager } from './renderers/i-filter-manager'
-export { default as iRenderState, RenderStatesEnum, BaseRenderer } from './renderers/i-render-state'
+export { default as iRenderState, RenderStatesEnum } from './renderers/i-render-state'
+export { default as BaseRenderer } from './renderers/base-renderer'
 export { default as Lifecycle } from './lifecycle'
 export * from './lifecycle'

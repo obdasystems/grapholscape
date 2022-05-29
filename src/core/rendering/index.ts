@@ -5,7 +5,7 @@ import { isGrapholNode } from "../../model/graphol-elems/node"
 import GrapholscapeTheme from "../../model/theme"
 import { getGraphStyle } from "../../style/graph-style"
 import RenderState from "../../model/renderers/i-render-state"
-import { DefaultFilterKeyEnum, getDefaultFilters } from "./default-filters"
+import { DefaultFilterKeyEnum, getDefaultFilters } from "./filtering"
 import Lifecycle from "../../model/lifecycle"
 
 /**
@@ -255,7 +255,7 @@ export default class Renderer {
     }
   }
 
-  private applyTheme() {
+  applyTheme() {
     if (this._theme) {
       this.cy.style(getGraphStyle(this._theme))
     } else {
