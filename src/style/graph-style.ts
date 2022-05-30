@@ -66,7 +66,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge[type = "inclusion"], edge.inclusion',
+      selector: `edge[type = "${GrapholTypesEnum.INCLUSION}"]`,
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
@@ -75,7 +75,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge[type = "membership"]',
+      selector: `edge[type = "${GrapholTypesEnum.MEMBERSHIP}"]`,
       style: {
         'line-style': 'dashed',
         'line-dash-pattern': [2,3],
@@ -85,22 +85,30 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge.hierarchy',
+      selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
       style: {
         'width': 6,
+        'line-style': 'solid',
+        'target-arrow-shape': 'triangle',
+      }
+    },
+
+    {
+      selector: `edge[type = "${GrapholTypesEnum.UNION}"]`,
+      style: {
         'target-arrow-fill': 'hollow',
       }
     },
 
     {
-      selector: 'edge.disjoint',
+      selector: `edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
       style: {
         'target-arrow-fill': 'filled',
       }
     },
 
     {
-      selector: 'edge[type = "input"]',
+      selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
       style: {
         'line-style': 'dashed',
         'target-arrow-shape': 'diamond',
@@ -109,14 +117,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge[type = "easy_input"]',
-      style: {
-        'line-style': 'solid',
-      }
-    },
-
-    {
-      selector: 'edge[type = "equivalence"]',
+      selector: `edge[type = "${GrapholTypesEnum.EQUIVALENCE}"]`,
       style: {
         'line-style': 'solid',
         'source-arrow-shape': 'triangle',
@@ -187,21 +188,21 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: '[target_label]',
+      selector: '[targetLabel]',
       style: {
-        'target-label': 'data(target_label)',
+        'target-label': 'data(targetLabel)',
       }
     },
 
     {
-      selector: '[source_label]',
+      selector: '[sourceLabel]',
       style: {
-        'source-label': 'data(source_label)',
+        'source-label': 'data(sourceLabel)',
       }
     },
 
     {
-      selector: '[source_label],[target_label]',
+      selector: '[sourceLabel],[targetLabel]',
       style: {
         'font-size': 15,
         'target-text-offset': 20,
@@ -209,7 +210,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: 'edge[displayedName],[source_label],[target_label],[text_background]',
+      selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
       style: {
         'text-background-color': theme.getColour(ColoursNames.background),
         'text-background-opacity': 1,
@@ -307,7 +308,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `edge.predicate[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
+      selector: `edge[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
       style: {
         'width': 4,
       }

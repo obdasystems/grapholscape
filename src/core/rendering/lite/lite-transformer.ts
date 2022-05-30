@@ -23,7 +23,9 @@ export default class LiteTransformer implements Transformer {
     this.newCy.elements().removeClass('filtered') // make all filtered elements not filtered anymore
 
     this.filterByCriterion((node) => {
-      switch (node.data('type')) {
+      const grapholNode = this.getGrapholElement(node.id())
+      if (!grapholNode) return
+      switch (grapholNode.type) {
         case GrapholTypesEnum.COMPLEMENT:
         case GrapholTypesEnum.VALUE_DOMAIN:
         case GrapholTypesEnum.ROLE_CHAIN:
@@ -33,7 +35,7 @@ export default class LiteTransformer implements Transformer {
 
         case GrapholTypesEnum.DOMAIN_RESTRICTION:
         case GrapholTypesEnum.RANGE_RESTRICTION:
-          if (node.data('displayed_name') == 'forall')
+          if (grapholNode.displayedName == 'forall')
             return true
           else
             return false
@@ -45,10 +47,10 @@ export default class LiteTransformer implements Transformer {
     this.filterByCriterion(this.inputEdgesBetweenRestrictions)
     this.deleteFilteredElements()
     this.simplifyDomainAndRange()
-    this.simplifyComplexHierarchies(cy)
-    // simplifyUnions(cy)
-    // simplifyIntersections(cy)
-    // simplifyRoleInverse(cy)
+    this.simplifyComplexHierarchies()
+    this.simplifyUnions()
+    this.simplifyIntersections()
+    this.simplifyRoleInverse()
 
     // return cy.$('*')
     console.log(this.result)
@@ -102,8 +104,8 @@ export default class LiteTransformer implements Transformer {
           const grapholEdge = this.getGrapholElement(edge.id())
           const grapholSource = this.getGrapholElement(edge.data().source)
 
-          return grapholEdge.is(GrapholTypesEnum.INPUT) && 
-          (grapholSource.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholSource.is(GrapholTypesEnum.DATA_PROPERTY))
+          return grapholEdge.is(GrapholTypesEnum.INPUT) &&
+            (grapholSource.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholSource.is(GrapholTypesEnum.DATA_PROPERTY))
         })
 
       if (!edgeResult.empty()) {
@@ -226,11 +228,12 @@ export default class LiteTransformer implements Transformer {
     // }
   }
 
-  simplifyComplexHierarchies() {
+  private simplifyComplexHierarchies() {
     this.newCy.nodes().forEach(node => {
       if (this.isComplexHierarchy(node)) {
         this.replicateAttributes(node)
-        //aux_renderer.filterElem(node, '', cy)
+        cytoscapeFilter(node.id(), '', this.newCy)
+        this.deleteFilteredElements()
       }
     })
 
@@ -239,9 +242,9 @@ export default class LiteTransformer implements Transformer {
 
   private isComplexHierarchy(node: NodeSingular) {
     const grapholNode = this.getGrapholElement(node.id())
-    if (!grapholNode.is(GrapholTypesEnum.UNION) ||
-      !grapholNode.is(GrapholTypesEnum.DISJOINT_UNION) ||
-      !grapholNode.is(GrapholTypesEnum.INTERSECTION)
+    if (!grapholNode || (!grapholNode.is(GrapholTypesEnum.UNION) &&
+      !grapholNode.is(GrapholTypesEnum.DISJOINT_UNION) &&
+      !grapholNode.is(GrapholTypesEnum.INTERSECTION))
     )
       return false
 
@@ -251,7 +254,7 @@ export default class LiteTransformer implements Transformer {
       .sources()
       .filter(node => !this.getGrapholElement(node.id()).is(GrapholTypesEnum.CONCEPT))
 
-    return inputNodesNotConcepts.empty()
+    return !inputNodesNotConcepts.empty()
   }
 
   private replicateAttributes(node: NodeSingular) {
@@ -260,7 +263,7 @@ export default class LiteTransformer implements Transformer {
      * @param node the hierearchy node
      * @returns a collection of classes nodes
      */
-     const getAllInputClasses = (node: NodeSingular): CollectionReturnValue => {
+    const getAllInputClasses = (node: NodeSingular): CollectionReturnValue => {
       let allInputClasses = node.cy().collection()
 
       let inputEdges = node.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
@@ -272,54 +275,268 @@ export default class LiteTransformer implements Transformer {
 
       return allInputClasses
     }
-    
+
+    /**
+     * 
+     * @param concept 
+     * @param attribute 
+     * @param i 
+     */
+    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, i: number) => {
+      const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
+      const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
+
+      newAttribute.x = concept.position().x
+      newAttribute.y = concept.position().y
+      Object.entries(attribute.data()).forEach(([key, value]) => {
+        if (key !== 'id')
+          newAttribute[key] = value
+      })
+
+      newAttributeEdge.sourceId = concept.id()
+      newAttributeEdge.targetId = newAttribute.id
+      newAttributeEdge.type = GrapholTypesEnum.DATA_PROPERTY
+      this.result.addElement(newAttribute)
+      this.result.addElement(newAttributeEdge)
+      this.newCy.$id(newAttribute.id).addClass('repositioned')
+      //addAttribute(concept, i, attribute, GrapholTypesEnum.DATA_PROPERTY)
+
+      // TODO: recursively add new attributes connected to replicated attributes by inclusions
+      // if (!attribute.hasClass('repositioned')) {
+      //   attribute.neighborhood('node').filter(node => node.is(GrapholTypesEnum.DATA_PROPERTY)).forEach( (inclusion_attribute, j) => {
+      //     if(allAttributes.contains(inclusion_attribute)) {
+      //       return
+      //     }
+
+      //     addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, j)
+      //     allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute)
+      //   })
+      // }
+    }
+
     let allClasses = getAllInputClasses(node)
-    let allAttributes = node.neighborhood(`node`).filter(node => node.is(GrapholTypesEnum.DATA_PROPERTY))
-    let all_inclusion_attributes = this.newCy.collection()
+    let allAttributes = node.neighborhood(`node`).filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY))
+    let allInclusionAttributes = this.newCy.collection()
 
     allClasses.forEach((concept, i) => {
       allAttributes.forEach((attribute, j) => {
-        const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
-        const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
-
-        newAttribute.position = concept.position()
-        newAttribute.type = GrapholTypesEnum.DATA_PROPERTY
-        //addAttribute(concept, i, attribute, GrapholTypesEnum.DATA_PROPERTY)
+        addAttribute(concept, attribute, i)
       })
     })
 
-    this.newCy.remove(allAttributes)
-    aux_renderer.filterElem(all_inclusion_attributes, '', cy)
+    this.deleteElements(allAttributes)
+    this.deleteElements(allInclusionAttributes)
+  }
 
-    function addAttribute(target, i, attribute, edge_classes) {
-      let new_attribute = attribute.json()
-      new_attribute.position = target.position()
-      new_attribute.data.id += '_' + i + '_' + target.id()
-      new_attribute.classes += ' repositioned'
-      //attribute.addClass('repositioned')
-      cy.add(new_attribute)
-      let edge = {
-        data: {
-          id: new_attribute.data.id + '_edge',
-          target: new_attribute.data.id,
-          source: target.id(),
-        },
-        classes: edge_classes,
-      }
-      cy.add(edge)
+  private simplifyUnions() {
+    this.newCy.nodes().forEach(union => {
+      const grapholUnion = this.getGrapholElement(union.id())
+      if (!grapholUnion || !isGrapholNode(grapholUnion) ||
+        (!grapholUnion.is(GrapholTypesEnum.UNION) && !grapholUnion.is(GrapholTypesEnum.DISJOINT_UNION)))
+        return
 
-      // recursively add new attributes connected to replicated attributes by inclusions
-      if (!target.hasClass('repositioned')) {
-        attribute.neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).forEach((inclusion_attribute, j) => {
-          if (allAttributes.contains(inclusion_attribute)) {
-            return
+      grapholUnion.height = grapholUnion.width = 0.1
+      //makeDummyPoint(union)
+
+      //union.incomers('edge[type = "input"]').data('type', 'easy_input')
+      // delete incoming inclusions
+      union.incomers('edge').forEach(edge => {
+        const grapholEdge = this.getGrapholElement(edge.id())
+        if (grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
+          this.deleteElement(edge)
+        }
+      })
+
+      // process equivalence edges
+      union.connectedEdges('edge').forEach(edge => {
+        const grapholEdge = this.getGrapholElement(edge.id()) as GrapholEdge
+
+        // if it's equivalence add 'C' and reverse if needed
+        if (grapholEdge.is(GrapholTypesEnum.EQUIVALENCE)) {
+          grapholEdge.type = grapholUnion.type
+          grapholEdge.targetLabel = 'C'
+
+          // the edge must have as source the union node
+          if (grapholEdge.sourceId != grapholUnion.id) {
+            this.reverseEdge(grapholEdge)
           }
 
-          addAttribute(cy.$id(new_attribute.data.id), j, inclusion_attribute, 'inclusion')
-          all_inclusion_attributes = all_inclusion_attributes.union(inclusion_attribute)
-        })
+          this.result.updateElement(grapholEdge)
+          return
+        }
+
+        // if it's outgoing and of type inclusion
+        if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
+          grapholEdge.type = grapholUnion.type
+          this.result.updateElement(grapholEdge)
+        }
+      })
+
+      // process inclusion edges
+      // union.outgoers('edge').forEach(inclusion => {
+      //   inclusion.addClass('hierarchy')
+      //   if (union.data('type') == GrapholTypesEnum.DISJOINT_UNION)
+      //     inclusion.addClass('disjoint')
+      // })
+
+      // if (union.data('label'))
+      //   union.data('label', '')
+      grapholUnion.displayedName = undefined
+
+      this.replicateAttributes(union)
+
+      // replicate role tipization on input classes
+      this.replicateRoleTypizations(union)
+
+      this.result.updateElement(grapholUnion)
+
+      const numberEdgesNotInput = union.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT)).size()
+
+      if (numberEdgesNotInput <= 0) {
+        this.deleteElement(union)
       }
-    }
+      // if the union has not any connected non-input edges, then remove it
+      // if (union.connectedEdges('[type !*= "input"]').size() == 0)
+      //   cy.remove(union)
+    })
+  }
+
+  private simplifyIntersections() {
+    this.newCy.nodes().forEach(and => {
+      const grapholAndNode = this.getGrapholElement(and.id())
+      if (!grapholAndNode || !grapholAndNode.is(GrapholTypesEnum.INTERSECTION))
+        return
+
+      this.replicateAttributes(and)
+      this.replicateRoleTypizations(and)
+
+      // if there are no incoming inclusions or equivalence and no equivalences connected,
+      // remove the intersection
+      const incomingInclusions = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION))
+      const connectedEquivalences = and.connectedEdges().filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.EQUIVALENCE))
+      if (incomingInclusions.empty() && connectedEquivalences.empty()) {
+        cytoscapeFilter(grapholAndNode.id, '', this.newCy)
+      } else {
+        const incomingInputs = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+        // process incoming inclusion && connected equivalences
+        incomingInclusions.union(connectedEquivalences).forEach(inEquivInclusion => {
+          const inEqOrInclusionGrapholEdge = this.getGrapholElement(inEquivInclusion.id()) as GrapholEdge
+          /**
+           * create a new ISA edge for each input class
+           * the new edge will be a concatenation:
+           *  - ISA towards the 'and' node + input edge
+           *
+           * the input edge must be reversed
+           * In case of equivalence edge, we only consider the
+           * isa towards the 'and' node and discard the other direction
+           */
+          incomingInputs.forEach((input, i) => {
+            /**
+             * if the edge is an equivalence, we must consider it as an
+             * incoming edge in any case and ignore the opposite direction.
+             * so if the edge is outgoing from the intersection, we reverse it
+             */
+            if (inEqOrInclusionGrapholEdge.is(GrapholTypesEnum.EQUIVALENCE) &&
+              inEqOrInclusionGrapholEdge.sourceId === grapholAndNode.id) {
+              this.reverseEdge(inEqOrInclusionGrapholEdge)
+            }
+
+            // Edge concatenation: isa/equilvance + reversed input
+            const grapholInputEdge = this.getGrapholElement(input.id()) as GrapholEdge
+            this.reverseEdge(grapholInputEdge)
+
+            grapholInputEdge.sourceId = inEqOrInclusionGrapholEdge.sourceId
+            grapholInputEdge.controlpoints.unshift(...inEqOrInclusionGrapholEdge.controlpoints)
+
+            const source = this.getGrapholElement(grapholInputEdge.sourceId) as GrapholNode
+            const target = this.getGrapholElement(grapholInputEdge.targetId) as GrapholNode
+            grapholInputEdge.computeBreakpointsDistancesWeights(source.position, target.position)
+            grapholInputEdge.type = GrapholTypesEnum.INCLUSION
+          })
+        })
+
+        cytoscapeFilter(grapholAndNode.id, '', this.newCy)
+      }
+      this.deleteFilteredElements()
+    })
+  }
+
+  private replicateRoleTypizations(constructorNode: NodeSingular) {
+    // replicate role tipization on input classes
+    const restrictionEdges = constructorNode.connectedEdges().filter(edge => this.isRestriction(this.getGrapholElement(edge.id())))
+    const inputEdges = constructorNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+
+    restrictionEdges.forEach(restrictionEdge => {
+      const grapholRestrictionEdge = this.getGrapholElement(restrictionEdge.id()) as GrapholEdge
+
+      inputEdges.forEach((inputEdge) => {
+        const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
+
+        /**
+         * if the connected non input edge is only one (the one we are processing)
+         * then the new edge will be the concatenation of the input edge + role edge
+         */
+        if (constructorNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT)).size() === 1) {
+          grapholInputEdge.controlpoints = grapholInputEdge.controlpoints.concat(grapholRestrictionEdge.controlpoints)
+        } else {
+          grapholInputEdge.controlpoints = grapholRestrictionEdge.controlpoints
+        }
+
+        grapholInputEdge.type = grapholRestrictionEdge.type
+        grapholInputEdge.targetId = grapholRestrictionEdge.targetId
+        const sourceNode = this.getGrapholElement(grapholInputEdge.sourceId) as GrapholNode
+        const targetNode = this.getGrapholElement(grapholInputEdge.targetId) as GrapholNode
+        grapholInputEdge.computeBreakpointsDistancesWeights(sourceNode.position, targetNode.position)
+        this.result.updateElement(grapholInputEdge)
+      })
+
+      this.deleteElement(restrictionEdge)
+    })
+  }
+
+  private simplifyRoleInverse() {
+    this.newCy.nodes().filter(node => this.getGrapholElement(node.id())?.is(GrapholTypesEnum.ROLE_INVERSE)).forEach(roleInverseNode => {
+      let new_edges_count = 0
+      // the input role is only one
+      const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+      const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
+      // the input edge must always be reversed
+      this.reverseEdge(grapholInputEdge)
+      const grapholRoleInverseNode = this.getGrapholElement(roleInverseNode.id()) as GrapholNode
+      
+      // for each other edge connected, create a concatenated edge
+      // the edge is directed towards the input_role
+      roleInverseNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+        .forEach((edge) => {
+
+        const roleInverseEdge = this.getGrapholElement(edge.id()) as GrapholEdge
+        roleInverseEdge.type = GrapholTypesEnum.ROLE_INVERSE
+        roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints)
+        roleInverseEdge.targetId = grapholInputEdge.targetId
+
+        const source = this.getGrapholElement(roleInverseEdge.sourceId) as GrapholNode
+        const target = this.getGrapholElement(roleInverseEdge.targetId) as GrapholNode
+        roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position)
+        roleInverseEdge.displayedName = 'inverse Of'
+        this.result.updateElement(roleInverseEdge)
+      })
+
+      this.deleteElement(inputEdge)
+      this.deleteElement(roleInverseNode)
+
+      // if (new_edges_count > 1) {
+      //   cy.remove(inputEdge)
+      //   makeDummyPoint(roleInverseNode)
+      //   roleInverseNode.data('label', 'inverse Of')
+      //   roleInverseNode.data('labelXpos', 0)
+      //   roleInverseNode.data('labelYpos', 0)
+      //   roleInverseNode.data('text_background', true)
+      // } else {
+      //   if (inputEdge.source())
+      //     inputEdge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
+      //   cy.remove(roleInverseNode)
+      // }
+    })
   }
 
 
@@ -337,14 +554,8 @@ export default class LiteTransformer implements Transformer {
   }
 
   private deleteFilteredElements() {
-    const deletedElements = this.newCy.remove('.filtered')
-    console.log('deleted')
-    deletedElements.forEach(elem => {
-      console.log(elem)
-      this.result.grapholElements.delete(elem.id())
-    })
+    this.deleteElements(this.newCy.elements('.filtered'))
   }
-
 
   private isRestriction(grapholElement: GrapholElement) {
     if (!grapholElement) return false
@@ -354,5 +565,18 @@ export default class LiteTransformer implements Transformer {
 
   private getGrapholElement(id: string) {
     return this.result.grapholElements.get(id)
+  }
+
+  private deleteElements(elements: Collection) {
+    elements.forEach(elem => {
+      this.deleteElement(elem)
+    })
+  }
+
+  private deleteElement(elem: EdgeSingular)
+  private deleteElement(elem: NodeSingular)
+  private deleteElement(elem: SingularElementReturnValue) {
+    this.newCy.remove(elem)
+    this.result.grapholElements.delete(elem.id())
   }
 }

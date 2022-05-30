@@ -69,11 +69,15 @@ export default class GrapholNode extends GrapholElement {
 
   get labelXpos() { return this._labelXpos }
   set labelXpos(labelXpos: number) {
+    this._labelXpos = labelXpos
+  }
+
+  setLabelXposFromXML(labelXpos: number) {
     if (labelXpos === this.position.x) {
       this._labelXcentered = true
-      this._labelXpos = 0
+      this.labelXpos = 0
     } else {
-      this._labelXpos = labelXpos - this.position.x + 1
+      this.labelXpos = labelXpos - this.position.x + 1
     }
   }
 
@@ -84,11 +88,15 @@ export default class GrapholNode extends GrapholElement {
 
   get labelYpos() { return this._labelYpos }
   set labelYpos(labelYpos: number) {
+    this._labelYpos = labelYpos
+  }
+
+  setLabelYposFromXML(labelYpos: number) {
     if (labelYpos === this.position.y) {
       this._labelYcentered = true
-      this._labelYpos = 0
+      this.labelYpos = 0
     } else {
-      this._labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4
+      this.labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4
     }
   }
 

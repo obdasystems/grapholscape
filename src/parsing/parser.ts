@@ -177,8 +177,8 @@ export default class GrapholParser {
     // apply label position and font size
     if (label != null) {
       grapholNode.labelHeight = parseInt(label.getAttribute('height'))
-      grapholNode.labelXpos = parseInt(label.getAttribute('x'))
-      grapholNode.labelYpos = parseInt(label.getAttribute('y'))
+      grapholNode.setLabelXposFromXML(parseInt(label.getAttribute('x')))
+      grapholNode.setLabelYposFromXML(parseInt(label.getAttribute('y')))
       grapholNode.fontSize = parseInt(label.getAttribute('size')) || 12
     }
 
