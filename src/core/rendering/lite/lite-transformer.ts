@@ -95,16 +95,18 @@ export default class LiteTransformer implements Transformer {
      * @returns the input from object/data property to the given restriction
      */
     const getInputEdgeFromPropertyToRestriction = (restriction: NodeSingular) => {
-      let edgeResult: EdgeSingular
-      const sources = restriction.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).sources()
-      const source = sources.filter(node => {
-        const grapholNode = this.getGrapholElement(node.id())
-        return grapholNode.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholNode.is(GrapholTypesEnum.DATA_PROPERTY)
-      })
+      //let edgeResult: EdgeSingular
+      // source is any obj/data property node connected to restriction by input edge
+      const edgeResult = restriction.incomers('edge')
+        .filter(edge => {
+          const grapholEdge = this.getGrapholElement(edge.id())
+          const grapholSource = this.getGrapholElement(edge.data().source)
 
-      edgeResult = source[0].edgesTo(restriction)[0]
+          return grapholEdge.is(GrapholTypesEnum.INPUT) && 
+          (grapholSource.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholSource.is(GrapholTypesEnum.DATA_PROPERTY))
+        })
 
-      if (edgeResult) {
+      if (!edgeResult.empty()) {
         return this.getGrapholElement(edgeResult.id()) as GrapholEdge
       }
     }
@@ -113,35 +115,36 @@ export default class LiteTransformer implements Transformer {
      * Given a domain/range restriction, we need each edge on the restriction of type != input
      * to be transformed into a ROLE EDGE going into the object/data property using the 
      * input edge from property -> restriction (here we assume it is already been reversed).
-     * @param edgeToRestriction an edge connected to the restriction node, will be transformed into a role edge
+     * @param edgeOnRestriction an edge connected to the restriction node, will be transformed into a role edge
      * @param edgeFromProperty the edge from property to restriction (reversed, so it's going from restriction to property)
      * @param restrictionNode the restriction node, must become a breakpoint
      */
-    const transformIntoRoleEdge = (edgeToRestriction: GrapholEdge, edgeFromProperty: GrapholEdge, restrictionNode: GrapholNode, i) => {
+    const transformIntoRoleEdge = (edgeOnRestriction: GrapholEdge, edgeFromProperty: GrapholEdge, restrictionNode: GrapholNode) => {
       // let edges = []
       // let new_edge = null
+      let edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId) as GrapholNode
+      let edgeOnRestrictionTargetNode = this.getGrapholElement(edgeOnRestriction.targetId) as GrapholNode
+      const propertyNode = this.getGrapholElement(edgeFromProperty.targetId) as GrapholNode
 
       /**
-       * if the actual edge is between two existential, remove it and filter the other existential
+       * if the edge to restriction is between two existential, remove it and filter the other existential
        */
-      // if ((edgeToRestriction.source().data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION ||
-      //      edgeToRestriction.source().data('type') == GrapholTypesEnum.RANGE_RESTRICTION) &&
-      //     (edgeToRestriction.target().data('type') == GrapholTypesEnum.DOMAIN_RESTRICTION ||
-      //      edgeToRestriction.target().data('type') == GrapholTypesEnum.RANGE_RESTRICTION)) {
-      //   cy.remove(edgeToRestriction)
-      //   return new_edge
-      // }
-
-      if (edgeToRestriction.targetId !== restrictionNode.id) {
-        this.reverseEdge(edgeToRestriction)
+      if (this.isRestriction(edgeOnRestrictionSourceNode) && this.isRestriction(edgeOnRestrictionTargetNode)) {
+        this.newCy.remove(`#${edgeOnRestriction.id}`)
+        this.result.grapholElements.delete(edgeOnRestrictionSourceNode.id)
+        return
       }
 
-      const sourceNode = this.getGrapholElement(edgeToRestriction.sourceId) as GrapholNode
-      const propertyNode = this.getGrapholElement(edgeFromProperty.targetId) as GrapholNode
-      edgeToRestriction.targetId = propertyNode.id
+      if (edgeOnRestriction.targetId !== restrictionNode.id) {
+        this.reverseEdge(edgeOnRestriction)
+        edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId) as GrapholNode
+      }
+
+      edgeOnRestriction.targetId = propertyNode.id
+
       // move attribute on restriction node position
       if (propertyNode.is(GrapholTypesEnum.DATA_PROPERTY)) {
-        edgeToRestriction.type = GrapholTypesEnum.DATA_PROPERTY
+        edgeOnRestriction.type = GrapholTypesEnum.DATA_PROPERTY
         propertyNode.x = restrictionNode.position.x
         propertyNode.y = restrictionNode.position.y
         this.result.updateElement(propertyNode)
@@ -149,18 +152,18 @@ export default class LiteTransformer implements Transformer {
       }
 
       if (propertyNode.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
-        edgeToRestriction.type = restrictionNode.type
+        edgeOnRestriction.type = restrictionNode.type
         // restriction node must become a new breakpoint
-        edgeToRestriction.addBreakPoint(new Breakpoint(restrictionNode.x, restrictionNode.y))
+        edgeOnRestriction.addBreakPoint(new Breakpoint(restrictionNode.x, restrictionNode.y))
 
         // each breakpoint from restriction to property must become a breakpoint for the result edge
         edgeFromProperty.breakpoints.forEach(breakpoint => {
-          edgeToRestriction.addBreakPoint(breakpoint)
+          edgeOnRestriction.addBreakPoint(breakpoint)
         })
       }
 
-      edgeToRestriction.computeBreakpointsDistancesWeights(sourceNode.position, propertyNode.position)
-      this.result.updateElement(edgeToRestriction)
+      edgeOnRestriction.computeBreakpointsDistancesWeights(edgeOnRestrictionSourceNode.position, propertyNode.position)
+      this.result.updateElement(edgeOnRestriction)
     }
 
 
@@ -177,21 +180,23 @@ export default class LiteTransformer implements Transformer {
       this.reverseEdge(inputGrapholEdge)
       // create a new role edge concatenating each edge different from inputs
       // to the input edge from object/data property to restriction node
-      restriction.connectedEdges('[type != "input"]').forEach((edgeToRestriction, i) => {
-        const grapholEdgeToRestriction = this.getGrapholElement(edgeToRestriction.id())
-        if (!isGrapholEdge(grapholEdgeToRestriction) || !isGrapholNode(grapholRestrictionNode)) return
+      restriction.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+        .forEach((edgeToRestriction, i) => {
+          const grapholEdgeToRestriction = this.getGrapholElement(edgeToRestriction.id())
+          if (!isGrapholEdge(grapholEdgeToRestriction) || !isGrapholNode(grapholRestrictionNode))
+            return
 
-        transformIntoRoleEdge(grapholEdgeToRestriction, inputGrapholEdge, grapholRestrictionNode, i)
-      })
+          transformIntoRoleEdge(grapholEdgeToRestriction, inputGrapholEdge, grapholRestrictionNode)
+        })
 
       restriction.addClass('filtered')
       this.deleteFilteredElements()
     })
 
-    // this.deleteFilteredElements()
+    this.deleteFilteredElements()
   }
 
-  reverseEdge(edge: GrapholEdge) {
+  private reverseEdge(edge: GrapholEdge) {
     //let new_edge = edge.json()
     let sourceIdAux = edge.sourceId
     edge.sourceId = edge.targetId
