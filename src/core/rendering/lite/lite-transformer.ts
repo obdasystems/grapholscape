@@ -52,8 +52,6 @@ export default class LiteTransformer implements Transformer {
     this.simplifyIntersections()
     this.simplifyRoleInverse()
 
-    // return cy.$('*')
-    console.log(this.result)
     return this.result
   }
 
@@ -282,7 +280,7 @@ export default class LiteTransformer implements Transformer {
      * @param attribute 
      * @param i 
      */
-    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, i: number) => {
+    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum, i: number) => {
       const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
       const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
 
@@ -295,33 +293,36 @@ export default class LiteTransformer implements Transformer {
 
       newAttributeEdge.sourceId = concept.id()
       newAttributeEdge.targetId = newAttribute.id
-      newAttributeEdge.type = GrapholTypesEnum.DATA_PROPERTY
+      newAttributeEdge.type = edgeType
       this.result.addElement(newAttribute)
       this.result.addElement(newAttributeEdge)
       this.newCy.$id(newAttribute.id).addClass('repositioned')
-      //addAttribute(concept, i, attribute, GrapholTypesEnum.DATA_PROPERTY)
 
-      // TODO: recursively add new attributes connected to replicated attributes by inclusions
-      // if (!attribute.hasClass('repositioned')) {
-      //   attribute.neighborhood('node').filter(node => node.is(GrapholTypesEnum.DATA_PROPERTY)).forEach( (inclusion_attribute, j) => {
-      //     if(allAttributes.contains(inclusion_attribute)) {
-      //       return
-      //     }
+      // recursively add new attributes connected to replicated attributes by inclusions
+      if (!attribute.hasClass('repositioned')) {
+        attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY)).forEach( (inclusion_attribute, j) => {
+          if(allAttributes.contains(inclusion_attribute)) {
+            return
+          }
 
-      //     addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, j)
-      //     allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute)
-      //   })
-      // }
+          const edgeBetweenAttributes = attribute.edgesTo(inclusion_attribute)[0]
+          addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, edgeBetweenAttributes.data().type, i)
+          inclusion_attribute.addClass('repositioned')
+          allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute)
+        })
+      }
     }
 
     let allClasses = getAllInputClasses(node)
     let allAttributes = node.neighborhood(`node`).filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY))
     let allInclusionAttributes = this.newCy.collection()
 
-    allClasses.forEach((concept, i) => {
-      allAttributes.forEach((attribute, j) => {
-        addAttribute(concept, attribute, i)
+    allAttributes.forEach((attribute) => {
+      allClasses.forEach((concept, j) => {
+        addAttribute(concept, attribute, GrapholTypesEnum.DATA_PROPERTY, j)
       })
+      attribute.addClass('repositioned')
+      allInclusionAttributes.addClass('repositioned')
     })
 
     this.deleteElements(allAttributes)
@@ -550,7 +551,6 @@ export default class LiteTransformer implements Transformer {
         cytoscapeFilter(node.id(), '', this.newCy)
       }
     })
-    console.log(count)
   }
 
   private deleteFilteredElements() {
