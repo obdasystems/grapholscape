@@ -48,6 +48,7 @@ export default class Renderer {
 
   render(diagram: Diagram) {
     if (!this.diagram || this.diagram.id !== diagram.id) {
+      console.log('init-rendering')
       this.stopRendering()
       this.diagram = diagram
       this._renderState.render()
@@ -56,9 +57,7 @@ export default class Renderer {
   }
 
   mount() {
-    if (!this.cy.style()) {
-      this.applyTheme()
-    }
+    this.applyTheme()
 
     this.cy.mount(this.container)
   }

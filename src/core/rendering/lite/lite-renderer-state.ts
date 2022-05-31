@@ -5,34 +5,40 @@ import LiteFilterManager from "./filter-manager";
 import LiteTransformer from "./lite-transformer";
 
 export default class LiteRendererState extends BaseRenderer {
-  readonly id: RenderStatesEnum = RenderStatesEnum.FLOATY
+  readonly id: RenderStatesEnum = RenderStatesEnum.GRAPHOL_LITE
   filterManager: iFilterManager = new LiteFilterManager()
   cyConfig: CytoscapeOptions = cytoscapeDefaultConfig
+  private _layout: cytoscape.Layouts
 
   layoutRun(): void {
-    let layout = this.renderer.cy.$('.repositioned').closedNeighborhood().closedNeighborhood().layout({
+    this._layout?.stop()
+    this.renderer.cy.nodes().lock()
+    this._layout = this.renderer.cy.$('.repositioned').closedNeighborhood().closedNeighborhood().layout({
       name: 'cola',
-      randomize:false,
-      fit: false,
+      centerGraph: false,
       refresh:3,
       maxSimulationTime: 8000,
-      convergenceThreshold: 0.0000001
+      convergenceThreshold: 0.0000001,
+      fit: false,
     } as any)
-    layout.run()
+    this.renderer.cy.$('.repositioned').unlock()
+    this._layout.run()
   }
 
   render(): void {
-    let liteRepresentation = this.renderer.diagram.representations.get('lite')
+    let liteRepresentation = this.renderer.diagram.representations.get(this.id)
 
     if (!liteRepresentation || !liteRepresentation.hasEverBeenRendered) {
       const liteTransformer = new LiteTransformer()
       liteRepresentation = liteTransformer.transform(this.renderer.diagram)
       this.renderer.diagram.representations.set('lite', liteRepresentation)
       this.renderer.cy = liteRepresentation.cy
-      this.renderer.applyTheme()
       this.renderer.mount() // mount before fitting (dimensions 0!)
+      this.renderer.fit()
+      this.layoutRun()
       //this.renderer.fit()
     } else {
+      this.renderer.cy = liteRepresentation.cy
       this.renderer.mount()
     }
 

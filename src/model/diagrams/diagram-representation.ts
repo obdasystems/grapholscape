@@ -1,16 +1,25 @@
-import cytoscape from "cytoscape";
+import cytoscape, { CytoscapeOptions } from "cytoscape";
+import cytoscapeDefaultConfig from "../../config/cytoscape-default-config";
 import { isGrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
 import { isGrapholNode } from "../graphol-elems/node";
 
 export default class DiagramRepresentation {
-  private _cy = cytoscape()
+  private _cy: cytoscape.Core
   private _grapholElements: Map<string, GrapholElement> = new Map()
   private _hasEverBeenRendered = false
 
+  constructor(cyConfig = cytoscapeDefaultConfig) {
+    this.cy = cytoscape(cyConfig)
+  }
+
   get cy() {
     return this._cy
+  }
+
+  set cy(newCy: cytoscape.Core) {
+    this._cy = newCy
   }
 
   get hasEverBeenRendered() {

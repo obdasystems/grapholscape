@@ -5,6 +5,7 @@ import { isGrapholEdge } from "../../../model/graphol-elems/edge";
 import { isGrapholNode } from "../../../model/graphol-elems/node";
 import { cytoscapeFilter } from "../filtering";
 import Breakpoint from '../../../model/graphol-elems/breakpoint'
+import { liteOptions } from "../../../config/cytoscape-default-config";
 
 interface Transformer {
   transform(diagram: Diagram): DiagramRepresentation
@@ -16,10 +17,10 @@ export default class LiteTransformer implements Transformer {
   get newCy() { return this.result.cy }
 
   transform(diagram: Diagram): DiagramRepresentation {
-    this.result = new DiagramRepresentation()
+    this.result = new DiagramRepresentation(liteOptions)
     this.result.grapholElements = new Map(diagram.representations.get(RenderStatesEnum.GRAPHOL).grapholElements)
 
-    this.newCy.add(diagram.representations.get(RenderStatesEnum.GRAPHOL).cy.elements())
+    this.newCy.add(diagram.representations.get(RenderStatesEnum.GRAPHOL).cy.elements().clone())
     this.newCy.elements().removeClass('filtered') // make all filtered elements not filtered anymore
 
     this.filterByCriterion((node) => {
@@ -283,14 +284,16 @@ export default class LiteTransformer implements Transformer {
     const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum, i: number) => {
       const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
       const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
-
+      console.log(attribute.data().labelXpos)
+      console.log(attribute.data().labelYpos)
       newAttribute.x = concept.position().x
       newAttribute.y = concept.position().y
       Object.entries(attribute.data()).forEach(([key, value]) => {
         if (key !== 'id')
           newAttribute[key] = value
       })
-
+      console.log(newAttribute.labelXpos)
+      console.log(newAttribute.labelYpos)
       newAttributeEdge.sourceId = concept.id()
       newAttributeEdge.targetId = newAttribute.id
       newAttributeEdge.type = edgeType
