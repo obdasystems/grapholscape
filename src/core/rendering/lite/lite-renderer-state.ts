@@ -1,7 +1,8 @@
 import { CytoscapeOptions } from "cytoscape";
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config";
-import { iFilterManager, BaseRenderer, RenderStatesEnum } from "../../../model";
+import { iFilterManager, BaseRenderer, RenderStatesEnum, GrapholscapeTheme } from "../../../model";
 import LiteFilterManager from "./filter-manager";
+import liteStyle from "./lite-style";
 import LiteTransformer from "./lite-transformer";
 
 export default class LiteRendererState extends BaseRenderer {
@@ -47,5 +48,9 @@ export default class LiteRendererState extends BaseRenderer {
 
   layoutStop(): void {
     throw new Error("Method not implemented.");
+  }
+
+  getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
+    return liteStyle(theme)
   }
 }

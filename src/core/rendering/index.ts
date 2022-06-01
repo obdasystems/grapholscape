@@ -256,7 +256,7 @@ export default class Renderer {
 
   applyTheme() {
     if (this._theme) {
-      this.cy.style(getGraphStyle(this._theme))
+      this.cy.style(this.renderState.getGraphStyle(this._theme))
     } else {
       console.warn('Cannot render anything, please set a theme')
     }

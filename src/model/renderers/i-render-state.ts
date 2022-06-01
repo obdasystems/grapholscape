@@ -1,9 +1,8 @@
+import { Stylesheet } from "cytoscape"
 import Renderer from "../../core/rendering"
-import Diagram from '../diagrams/diagram'
+import GrapholscapeTheme from "../theme"
 import Filter from './filter'
-import { GrapholTypesEnum } from "../graphol-elems/node-enums"
 import FilterManager from "./i-filter-manager"
-import { cytoscapeFilter, cytoscapeUnfilter } from "../../core/rendering/filtering"
 
 export enum RenderStatesEnum {
   GRAPHOL = 'graphol',
@@ -21,4 +20,5 @@ export default interface RenderState {
   unfilter(elementId: string, filter: Filter): void
   layoutRun(): void
   layoutStop(): void
+  getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
 }

@@ -1,6 +1,8 @@
+import { Stylesheet } from "cytoscape"
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config"
-import { BaseRenderer, iFilterManager, RenderStatesEnum } from "../../../model"
+import { BaseRenderer, iFilterManager, RenderStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
+import grapholStyle from "./graphol-style"
 
 export default class GrapholRendererState extends BaseRenderer {
   id: RenderStatesEnum = RenderStatesEnum.GRAPHOL
@@ -22,5 +24,9 @@ export default class GrapholRendererState extends BaseRenderer {
   }
   layoutStop(): void {
     throw new Error("Method not implemented.")
+  }
+
+  getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
+    return grapholStyle(theme)
   }
 }
