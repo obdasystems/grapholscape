@@ -6,15 +6,10 @@ import { isGrapholNode } from "../../../model/graphol-elems/node";
 import { cytoscapeFilter } from "../filtering";
 import Breakpoint from '../../../model/graphol-elems/breakpoint'
 import { liteOptions } from "../../../config/cytoscape-default-config";
+import BaseGrapholTransformer from "../base-transformer";
 
-interface Transformer {
-  transform(diagram: Diagram): DiagramRepresentation
-}
-
-export default class LiteTransformer implements Transformer {
-  private result: DiagramRepresentation
-
-  get newCy() { return this.result.cy }
+export default class LiteTransformer extends BaseGrapholTransformer {
+  protected result: DiagramRepresentation
 
   transform(diagram: Diagram): DiagramRepresentation {
     this.result = new DiagramRepresentation(liteOptions)
@@ -339,7 +334,7 @@ export default class LiteTransformer implements Transformer {
         (!grapholUnion.is(GrapholTypesEnum.UNION) && !grapholUnion.is(GrapholTypesEnum.DISJOINT_UNION)))
         return
 
-      grapholUnion.height = grapholUnion.width = 0.1
+      //grapholUnion.height = grapholUnion.width = 0.1
       //makeDummyPoint(union)
 
       //union.incomers('edge[type = "input"]').data('type', 'easy_input')
@@ -385,7 +380,7 @@ export default class LiteTransformer implements Transformer {
 
       // if (union.data('label'))
       //   union.data('label', '')
-      grapholUnion.displayedName = undefined
+      //grapholUnion.displayedName = undefined
 
       this.replicateAttributes(union)
 
@@ -543,43 +538,4 @@ export default class LiteTransformer implements Transformer {
     })
   }
 
-
-  // filter nodes if the criterion function returns true
-  // criterion must be a function returning a boolean value for a given a node
-  private filterByCriterion(criterion: (element: cytoscape.SingularElementReturnValue) => boolean) {
-    let count = 0
-    this.newCy.$('*').forEach(node => {
-      if (criterion(node)) {
-        count += 1
-        cytoscapeFilter(node.id(), '', this.newCy)
-      }
-    })
-  }
-
-  private deleteFilteredElements() {
-    this.deleteElements(this.newCy.elements('.filtered'))
-  }
-
-  private isRestriction(grapholElement: GrapholElement) {
-    if (!grapholElement) return false
-    return grapholElement.is(GrapholTypesEnum.DOMAIN_RESTRICTION) ||
-      grapholElement.is(GrapholTypesEnum.RANGE_RESTRICTION)
-  }
-
-  private getGrapholElement(id: string) {
-    return this.result.grapholElements.get(id)
-  }
-
-  private deleteElements(elements: Collection) {
-    elements.forEach(elem => {
-      this.deleteElement(elem)
-    })
-  }
-
-  private deleteElement(elem: EdgeSingular)
-  private deleteElement(elem: NodeSingular)
-  private deleteElement(elem: SingularElementReturnValue) {
-    this.newCy.remove(elem)
-    this.result.grapholElements.delete(elem.id())
-  }
 }

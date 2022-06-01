@@ -16,7 +16,16 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     { // UNIONS AND DISJOINT UNIONS ARE EDGES IN GRAPHOL-LITE
-      selector: `[type = "${GrapholTypesEnum.UNION}"], [type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+      selector: `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+      style: {
+        'label': '',
+        'width': 0.1,
+        'height': 0.1,
+      }
+    },
+
+    { // UNIONS AND DISJOINT UNIONS ARE EDGES IN GRAPHOL-LITE
+      selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
       style: {
         'width': 6,
         'line-style': 'solid',

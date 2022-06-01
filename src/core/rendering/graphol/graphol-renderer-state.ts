@@ -5,6 +5,7 @@ import GrapholFilterManager from "./filter-manager"
 import grapholStyle from "./graphol-style"
 
 export default class GrapholRendererState extends BaseRenderer {
+  layout: cytoscape.Layouts
   id: RenderStatesEnum = RenderStatesEnum.GRAPHOL
   cyConfig: cytoscape.CytoscapeOptions = cytoscapeDefaultConfig
   filterManager: iFilterManager = new GrapholFilterManager()

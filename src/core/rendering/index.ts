@@ -163,7 +163,7 @@ export default class Renderer {
   /**
    * Fit viewport to diagram
    */
-  fit() {
+  fit = () => {
     this.cy.fit()
   }
 
@@ -220,14 +220,14 @@ export default class Renderer {
     })
   }
 
-  zoom(zoomValue: number) {
+  zoom = (zoomValue: number) => {
     if (zoomValue != this.cy.zoom())
       this.cy.animate({
         zoom: zoomValue,
       })
   }
 
-  zoomIn(zoomValue: number) {
+  zoomIn = (zoomValue: number) => {
     this.cy.animate({
       zoom: {
         level: this.cy.zoom() + zoomValue,
@@ -236,7 +236,7 @@ export default class Renderer {
     })
   }
 
-  zoomOut(zoomValue: number) {
+  zoomOut = (zoomValue: number) => {
     this.cy.animate({
       zoom: {
         level: this.cy.zoom() - zoomValue,

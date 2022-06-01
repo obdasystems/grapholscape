@@ -5,6 +5,7 @@ import GrapholscapeTheme from "../model/theme"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import Renderer from "./rendering"
+import FloatyRenderState from "./rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "./rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "./rendering/lite/lite-renderer-state"
 
@@ -19,6 +20,7 @@ export default class Grapholscape {
   private entityNavigator = new EntityNavigator(this)
   private displayedNamesManager = new DisplayedNamesManager(this)
   lite: LiteRendererState
+  floaty: FloatyRenderState
 
   constructor(ontology: Ontology, container: Element) {
     this.ontology = ontology
@@ -28,6 +30,7 @@ export default class Grapholscape {
     this.renderer.renderState = new GrapholRendererState()
     this.renderer.setTheme(this.themes[0])
     this.lite = new LiteRendererState()
+    this.floaty = new FloatyRenderState()
   }
   
   showDiagram(diagramId: number, viewportState = null) {
