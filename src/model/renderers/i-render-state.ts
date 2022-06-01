@@ -14,7 +14,7 @@ export default interface RenderState {
   id: RenderStatesEnum
   renderer: Renderer
   filterManager: FilterManager
-  cyConfig: cytoscape.CytoscapeOptions
+  layout: cytoscape.Layouts
   render(): void
   filter(elementId: string, filter: Filter): void
   unfilter(elementId: string, filter: Filter): void

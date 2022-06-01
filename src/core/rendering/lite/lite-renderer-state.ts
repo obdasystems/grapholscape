@@ -17,7 +17,7 @@ export default class LiteRendererState extends BaseRenderer {
     this._layout = this.renderer.cy.$('.repositioned').closedNeighborhood().closedNeighborhood().layout({
       name: 'cola',
       centerGraph: false,
-      refresh:3,
+      refresh: 3,
       maxSimulationTime: 8000,
       convergenceThreshold: 0.0000001,
       fit: false,
@@ -32,7 +32,7 @@ export default class LiteRendererState extends BaseRenderer {
     if (!liteRepresentation || !liteRepresentation.hasEverBeenRendered) {
       const liteTransformer = new LiteTransformer()
       liteRepresentation = liteTransformer.transform(this.renderer.diagram)
-      this.renderer.diagram.representations.set('lite', liteRepresentation)
+      this.renderer.diagram.representations.set(this.id, liteRepresentation)
       this.renderer.cy = liteRepresentation.cy
       this.renderer.mount() // mount before fitting (dimensions 0!)
       this.renderer.fit()
@@ -53,4 +53,7 @@ export default class LiteRendererState extends BaseRenderer {
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
     return liteStyle(theme)
   }
+
+  get layout() { return this._layout }
+  set layout(newLayout) { this._layout = newLayout }
 }

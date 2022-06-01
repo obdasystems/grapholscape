@@ -2,6 +2,7 @@ import Ontology from "./ontology";
 
 export default Ontology
 export { default as Diagram } from "./diagrams/diagram"
+export { default as DiagramRepresentation } from './diagrams/diagram-representation'
 export { default as Namespace } from './namespace'
 export { default as Iri } from "./iri"
 export { default as Annotation } from './graphol-elems/annotation'
