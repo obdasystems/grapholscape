@@ -12,8 +12,8 @@ export default abstract class BaseRenderer implements RenderState {
   abstract filterManager: FilterManager
   abstract layout: cytoscape.Layouts
   abstract render(): void
-  abstract layoutRun(): void
-  abstract layoutStop(): void
+  abstract runLayout(): void
+  abstract stopLayout(): void
   abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
 
   constructor(renderer?: Renderer) {

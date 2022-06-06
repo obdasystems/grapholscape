@@ -18,7 +18,7 @@ export default interface RenderState {
   render(): void
   filter(elementId: string, filter: Filter): void
   unfilter(elementId: string, filter: Filter): void
-  layoutRun(): void
-  layoutStop(): void
+  runLayout(): void
+  stopLayout(): void
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
 }

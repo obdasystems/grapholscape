@@ -11,7 +11,7 @@ export default class LiteRendererState extends BaseRenderer {
   cyConfig: CytoscapeOptions = cytoscapeDefaultConfig
   private _layout: cytoscape.Layouts
 
-  layoutRun(): void {
+  runLayout(): void {
     this._layout?.stop()
     this.renderer.cy.nodes().lock()
     this._layout = this.renderer.cy.$('.repositioned').closedNeighborhood().closedNeighborhood().layout({
@@ -40,15 +40,13 @@ export default class LiteRendererState extends BaseRenderer {
 
     if (!liteRepresentation.hasEverBeenRendered) {
       this.renderer.fit()
-      this.layoutRun()
+      this.runLayout()
     }
 
     liteRepresentation.hasEverBeenRendered = true
   }
 
-  layoutStop(): void {
-    throw new Error("Method not implemented.");
-  }
+  stopLayout(): void {}
 
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
     return liteStyle(theme)

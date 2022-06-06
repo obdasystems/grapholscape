@@ -20,10 +20,10 @@ export default class GrapholRendererState extends BaseRenderer {
     }
   }
 
-  layoutRun(): void {
+  runLayout(): void {
     throw new Error("Method not implemented.")
   }
-  layoutStop(): void {
+  stopLayout(): void {
     throw new Error("Method not implemented.")
   }
 
