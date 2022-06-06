@@ -15,6 +15,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
     if (!liteRepresentation || liteRepresentation.grapholElements.size === 0) {
       liteRepresentation = new LiteTransformer().transform(diagram)
+      diagram.representations.set(RenderStatesEnum.GRAPHOL_LITE, liteRepresentation)
     }
 
     this.result.grapholElements = new Map(liteRepresentation.grapholElements)
@@ -41,6 +42,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     // cy.edges().removeData('source_endpoint')
     //cy.$(`[type = "${GrapholTypesEnum.CONCEPT}"]`).addClass('bubble')
 
+    this.newCy.elements().unlock()
     return this.result
   }
 

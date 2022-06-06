@@ -29,18 +29,18 @@ export default class LiteRendererState extends BaseRenderer {
   render(): void {
     let liteRepresentation = this.renderer.diagram.representations.get(this.id)
 
-    if (!liteRepresentation || !liteRepresentation.hasEverBeenRendered) {
+    if (!liteRepresentation) {
       const liteTransformer = new LiteTransformer()
       liteRepresentation = liteTransformer.transform(this.renderer.diagram)
       this.renderer.diagram.representations.set(this.id, liteRepresentation)
-      this.renderer.cy = liteRepresentation.cy
-      this.renderer.mount() // mount before fitting (dimensions 0!)
+    }
+
+    this.renderer.cy = liteRepresentation.cy
+    this.renderer.mount()
+
+    if (!liteRepresentation.hasEverBeenRendered) {
       this.renderer.fit()
       this.layoutRun()
-      //this.renderer.fit()
-    } else {
-      this.renderer.cy = liteRepresentation.cy
-      this.renderer.mount()
     }
 
     liteRepresentation.hasEverBeenRendered = true

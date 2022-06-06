@@ -13,7 +13,7 @@ export default class FloatyRenderState extends BaseRenderer {
 
   layoutRun(): void {
     this._layout?.stop()
-    this._layout = this.renderer.cy.layout({
+    this._layout = this.renderer.cy.elements().layout({
       name: 'cola',
       avoidOverlap: false,
       edgeLength: function (edge) {
@@ -32,9 +32,10 @@ export default class FloatyRenderState extends BaseRenderer {
           return 200 + crowdnessFactor
         }
       },
-      fit: false,
-      infinite: true,
+      fit: true,
+      maxSimulationTime: 4000,
       handleDisconnected: true, // if true, avoids disconnected components from overlapping
+      centerGraph: false,
     } as any)
     this._layout.run()
   }
@@ -42,18 +43,17 @@ export default class FloatyRenderState extends BaseRenderer {
   render(): void {
     let floatyRepresentation = this.renderer.diagram.representations.get(this.id)
 
-    if (!floatyRepresentation || !floatyRepresentation.hasEverBeenRendered) {
-      const liteTransformer = new FloatyTransformer()
-      floatyRepresentation = liteTransformer.transform(this.renderer.diagram)
+    if (!floatyRepresentation) {
+      const floatyTransformer = new FloatyTransformer()
+      floatyRepresentation = floatyTransformer.transform(this.renderer.diagram)
       this.renderer.diagram.representations.set(this.id, floatyRepresentation)
-      this.renderer.cy = floatyRepresentation.cy
-      this.renderer.mount() // mount before fitting (dimensions 0!)
-      this.renderer.fit()
+    }
+
+    this.renderer.cy = floatyRepresentation.cy
+    this.renderer.mount()
+
+    if (!floatyRepresentation.hasEverBeenRendered) {
       this.layoutRun()
-      //this.renderer.fit()
-    } else {
-      this.renderer.cy = floatyRepresentation.cy
-      this.renderer.mount()
     }
 
     floatyRepresentation.hasEverBeenRendered = true
