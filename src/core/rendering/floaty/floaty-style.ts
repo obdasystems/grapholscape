@@ -5,7 +5,7 @@ import grapholStyle from "../graphol/graphol-style";
 
 export default function (theme: GrapholscapeTheme) {
   const baseStyle = grapholStyle(theme)
-  const liteStyle = [
+  const floatyStyle = [
 
     {
       selector: 'node',
@@ -88,5 +88,5 @@ export default function (theme: GrapholscapeTheme) {
 
   ] as Stylesheet[]
 
-  return baseStyle.concat(liteStyle)
+  return baseStyle.concat(floatyStyle)
 }

@@ -156,13 +156,13 @@ class Ontology extends AnnotatedElement {
    * Retrieve all occurrences of an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-   * @returns {cytoscape.CollectionReturnValue[]} An array of cytoscape object representation
+   * @returns An array of EntityOccurrence objects
    */
-  getEntityOccurrences(iri: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL): EntityOccurrence[] {
+  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RenderStatesEnum): Map<RenderStatesEnum, EntityOccurrence[]> {
     // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
     return diagramId || diagramId === 0 
-      ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId, renderState) 
-      : this.getEntity(iri).occurrences.get(renderState)
+      ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId, renderState)
+      : this.getEntity(iri).occurrences
   }
 
   // /**

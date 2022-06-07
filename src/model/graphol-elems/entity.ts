@@ -31,14 +31,34 @@ export default class GrapholEntity extends AnnotatedElement {
   }
 
   public addOccurrence(occurenceId: string, diagramId: number, representationKind = RenderStatesEnum.GRAPHOL) {
-    this._occurrences.get(representationKind).push({
+    if (!this.occurrences.get(representationKind)) {
+      this.occurrences.set(representationKind, [])
+    }
+
+    this.occurrences.get(representationKind).push({
       elementId: occurenceId,
       diagramId: diagramId,
     })
   }
 
-  getOccurrencesByDiagramId(diagramId: number, representationKind = RenderStatesEnum.GRAPHOL) {
-    return this._occurrences.get(representationKind).filter(occ => occ.diagramId === diagramId)
+  /**
+   * Get all occurrences of the entity in a given diagram
+   * @param diagramId the diagram in which the entity must occurr
+   * @param representationKind the diagram representation identifier ({@link RenderStatesEnum}) 
+   * if not set, all representations will be considered
+   * @returns A map with the occurrences in the original Graphol representation and other 
+   * replicated occurrences in other diagram representations
+   */
+  getOccurrencesByDiagramId(diagramId: number, representationKind?: RenderStatesEnum): Map<RenderStatesEnum, EntityOccurrence[]> {
+    const result = new Map<RenderStatesEnum, EntityOccurrence[]>()
+    if (representationKind) {
+      result.set(representationKind, this.occurrences.get(representationKind).filter(occ => occ.diagramId === diagramId))
+    } else {
+      for (let [representationKind, occurrences] of this.occurrences) {
+        result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId))
+      }
+    }
+    return result
   }
 
   get type() { return this._type }
@@ -82,8 +102,8 @@ export default class GrapholEntity extends AnnotatedElement {
     if (representationKind) {
       return this.occurrences.get(representationKind).some(occ => occ.diagramId === diagramId)
     }
-    
-    for(let occurrenceInRepresentation of this.occurrences.values()) {
+
+    for (let occurrenceInRepresentation of this.occurrences.values()) {
       if (occurrenceInRepresentation.some(occ => occ.diagramId === diagramId)) {
         return true
       }

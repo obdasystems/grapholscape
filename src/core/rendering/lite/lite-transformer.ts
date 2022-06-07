@@ -279,16 +279,15 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum, i: number) => {
       const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
       const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
-      console.log(attribute.data().labelXpos)
-      console.log(attribute.data().labelYpos)
+
+      newAttribute.originalId = attribute.id()
       newAttribute.x = concept.position().x
       newAttribute.y = concept.position().y
       Object.entries(attribute.data()).forEach(([key, value]) => {
         if (key !== 'id')
           newAttribute[key] = value
       })
-      console.log(newAttribute.labelXpos)
-      console.log(newAttribute.labelYpos)
+
       newAttributeEdge.sourceId = concept.id()
       newAttributeEdge.targetId = newAttribute.id
       newAttributeEdge.type = edgeType
@@ -298,8 +297,8 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // recursively add new attributes connected to replicated attributes by inclusions
       if (!attribute.hasClass('repositioned')) {
-        attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY)).forEach( (inclusion_attribute, j) => {
-          if(allAttributes.contains(inclusion_attribute)) {
+        attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY)).forEach((inclusion_attribute, j) => {
+          if (allAttributes.contains(inclusion_attribute)) {
             return
           }
 
@@ -502,23 +501,23 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       // the input edge must always be reversed
       this.reverseEdge(grapholInputEdge)
       const grapholRoleInverseNode = this.getGrapholElement(roleInverseNode.id()) as GrapholNode
-      
+
       // for each other edge connected, create a concatenated edge
       // the edge is directed towards the input_role
       roleInverseNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
         .forEach((edge) => {
 
-        const roleInverseEdge = this.getGrapholElement(edge.id()) as GrapholEdge
-        roleInverseEdge.type = GrapholTypesEnum.ROLE_INVERSE
-        roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints)
-        roleInverseEdge.targetId = grapholInputEdge.targetId
+          const roleInverseEdge = this.getGrapholElement(edge.id()) as GrapholEdge
+          roleInverseEdge.type = GrapholTypesEnum.ROLE_INVERSE
+          roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints)
+          roleInverseEdge.targetId = grapholInputEdge.targetId
 
-        const source = this.getGrapholElement(roleInverseEdge.sourceId) as GrapholNode
-        const target = this.getGrapholElement(roleInverseEdge.targetId) as GrapholNode
-        roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position)
-        roleInverseEdge.displayedName = 'inverse Of'
-        this.result.updateElement(roleInverseEdge)
-      })
+          const source = this.getGrapholElement(roleInverseEdge.sourceId) as GrapholNode
+          const target = this.getGrapholElement(roleInverseEdge.targetId) as GrapholNode
+          roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position)
+          roleInverseEdge.displayedName = 'inverse Of'
+          this.result.updateElement(roleInverseEdge)
+        })
 
       this.deleteElement(inputEdge)
       this.deleteElement(roleInverseNode)

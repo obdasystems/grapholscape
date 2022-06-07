@@ -1,11 +1,10 @@
 import cytoscape, { ElementDefinition } from "cytoscape"
-import { Diagram, Filter, GrapholElement, LifecycleEvent } from "../../model"
+import { DefaultFilterKeyEnum, Diagram, Filter, getDefaultFilters, GrapholElement, LifecycleEvent } from "../../model"
 import { isGrapholEdge } from "../../model/graphol-elems/edge"
 import { isGrapholNode } from "../../model/graphol-elems/node"
 import GrapholscapeTheme from "../../model/theme"
 import { getGraphStyle } from "../../style/graph-style"
 import RenderState from "../../model/renderers/i-render-state"
-import { DefaultFilterKeyEnum, getDefaultFilters } from "./filtering"
 import Lifecycle from "../../model/lifecycle"
 
 /**
@@ -48,7 +47,6 @@ export default class Renderer {
 
   render(diagram: Diagram) {
     if (!this.diagram || this.diagram.id !== diagram.id) {
-      console.log('init-rendering')
       this.stopRendering()
       this.diagram = diagram
       this._renderState.render()
@@ -175,9 +173,9 @@ export default class Renderer {
    */
   centerOnElementById(elementId: string, zoom = this.cy.zoom(), select?: boolean) {
     const cyElement = this.cy.$id(elementId)
-
+    zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom 
     if (cyElement.empty()) {
-      console.warn('Element id (${elementId}) not found. Please check that this is the correct diagram')
+      console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
     } else {
       this.cy.animate({
         center: {

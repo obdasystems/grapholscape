@@ -1,4 +1,4 @@
-import Ontology, { Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace } from "../model"
+import Ontology, { Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace, RenderStatesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { Functionalities } from "../model/graphol-elems/entity"
 import FakeCircle from '../model/graphol-elems/fakes/fake-circle'
@@ -524,7 +524,7 @@ export default class GrapholParser {
 
   getIdentityForNeutralNodes() {
     this.ontology.diagrams.forEach(diagram => {
-      const cy = diagram.representations.get('graphol').cy
+      const cy = diagram.representations.get(RenderStatesEnum.GRAPHOL).cy
       cy.nodes('[identity = "neutral"]').forEach(node => {
         node.data('identity', findIdentity(node))
       })

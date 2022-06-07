@@ -32,7 +32,7 @@ export default class Grapholscape {
     this.lite = new LiteRendererState()
     this.floaty = new FloatyRenderState()
   }
-  
+
   showDiagram(diagramId: number, viewportState = null) {
     const diagram = this.ontology.getDiagram(diagramId)
 
@@ -41,11 +41,22 @@ export default class Grapholscape {
       return
     }
 
+    const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
+      ?.representations.get(this.renderState).hasEverBeenRendered
+
     this.renderer.render(diagram)
+    if (shouldUpdateEntities)
+      this.entityNavigator.updateEntitiesOccurrences()
   }
 
   setRenderer(newRenderState: RenderState) {
+    const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
+      ?.representations.get(this.renderState).hasEverBeenRendered
+
     this.renderer.renderState = newRenderState
+
+    if (shouldUpdateEntities)
+      this.entityNavigator.updateEntitiesOccurrences()
   }
 
   setTheme(newTheme: GrapholscapeTheme) {
@@ -91,7 +102,7 @@ export default class Grapholscape {
   unfilter = this.renderer.unfilter
 
   get diagramId() {
-    return this.renderer.diagram.id
+    return this.renderer.diagram?.id
   }
 
   get renderState() {

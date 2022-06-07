@@ -100,16 +100,14 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           }
         })
 
-        console.log(newGrapholEdge)
+        newGrapholEdge.originalId = objectProperty.id().toString()
+
         this.result.addElement(newGrapholEdge)
 
         if (newGrapholEdge.sourceId === newGrapholEdge.targetId) {
           let loop_edge = this.newCy.$id(newGrapholEdge.id)
           loop_edge.data('control_point_step_size', grapholDomainNode.width)
         }
-
-        //cy.add(new_edge)
-
       })
     })
   }

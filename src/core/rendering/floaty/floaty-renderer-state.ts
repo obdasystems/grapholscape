@@ -1,13 +1,12 @@
-import { AnimatedLayoutOptions, LayoutOptions } from "cytoscape";
 import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RenderStatesEnum } from "../../../model";
-import LiteFilterManager from "./filter-manager";
-import liteStyle from "./floaty-style";
+import FloatyFilterManager from "./filter-manager";
+import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
 
 export default class FloatyRenderState extends BaseRenderer {
   layout: cytoscape.Layouts;
   readonly id: RenderStatesEnum = RenderStatesEnum.FLOATY
-  filterManager: iFilterManager = new LiteFilterManager()
+  filterManager: iFilterManager = new FloatyFilterManager()
   private _layout: cytoscape.Layouts
 
   runLayout(): void {
@@ -45,7 +44,7 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
-    return liteStyle(theme)
+    return floatyStyle(theme)
   }
 
   stopLayout(): void {

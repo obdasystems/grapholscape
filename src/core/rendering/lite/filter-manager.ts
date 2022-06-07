@@ -1,12 +1,12 @@
-import { BaseFilterManager, Filter } from "../../../model";
-import { DefaultFilterKeyEnum } from "../filtering";
+import { BaseFilterManager, Filter, DefaultFilterKeyEnum } from "../../../model";
 
 export default class LiteFilterManager extends BaseFilterManager {
   private _filters: Map<string, Filter>
   private lockedFilters = [
     DefaultFilterKeyEnum.VALUE_DOMAIN,
     DefaultFilterKeyEnum.UNIVERSAL_QUANTIFIER,
-    DefaultFilterKeyEnum.COMPLEMENT
+    DefaultFilterKeyEnum.COMPLEMENT,
+    DefaultFilterKeyEnum.HAS_KEY,
   ]
 
   get filters() { return this._filters }
