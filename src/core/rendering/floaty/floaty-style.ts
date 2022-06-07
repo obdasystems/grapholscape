@@ -86,6 +86,14 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    {
+      selector: '[?pinned]',
+      style: {
+        'border-width': 4,
+        'border-color' : theme.getColour(ColoursNames.secondary),
+      }
+    },
+
   ] as Stylesheet[]
 
   return baseStyle.concat(floatyStyle)

@@ -1,4 +1,5 @@
 import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RenderStatesEnum } from "../../../model";
+import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
@@ -8,6 +9,8 @@ export default class FloatyRenderState extends BaseRenderer {
   readonly id: RenderStatesEnum = RenderStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
   private _layout: cytoscape.Layouts
+  private _dragAndPing: boolean = false
+  private popperContainers: Map<number, HTMLDivElement> = new Map()
 
   runLayout(): void {
     this.stopLayout()
@@ -33,7 +36,13 @@ export default class FloatyRenderState extends BaseRenderer {
 
     if (!floatyRepresentation.hasEverBeenRendered) {
       this.runLayout()
+      this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
+      this.setDragAndPinEventHandlers()
     }
+
+    this.renderer.cy.container().appendChild(this.popperContainer)
+    if (!this.dragAndPin)
+      this.unpinAll()
 
     floatyRepresentation.hasEverBeenRendered = true
 
@@ -55,6 +64,111 @@ export default class FloatyRenderState extends BaseRenderer {
     this.floatyLayoutOptions.infinite = true
     this.floatyLayoutOptions.fit = false
     this.runLayout()
+  }
+
+  pinNode(node) {
+    node.lock()
+    node.data("pinned", true)
+
+    node.unlockButton = node.popper({
+      content: () => {
+        let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
+        let div = document.createElement('div')
+        div.style.background = node.style('border-color')
+        div.style.borderRadius = '100%'
+        div.style.padding = '5px'
+        div.style.cursor = 'pointer'
+        div.style.boxSizing = 'content-box'
+        div.setAttribute('title', 'Unlock Node')
+
+        div.innerHTML = `<span class="popper-icon">${lock_open}</span>`
+        this.setPopperStyle(dimension, div)
+
+        div.onclick = () => this.unpinNode(node)
+        this.popperContainer.appendChild(div)
+
+        return div
+      },
+    })
+
+    node.on('position', () => this.updatePopper(node))
+    this.renderer.cy.on('pan zoom resize', () => this.updatePopper(node))
+  }
+
+  unpinAll() {
+    this.renderer.cy.$('[?pinned]').each(node => this.unpinNode(node))
+  }
+
+  private setPopperStyle(dim, popper) {
+    let icon = popper.querySelector('.popper-icon > svg')
+    icon.style.display = 'inherit'
+    if (dim > 2) {
+      popper.style.width = dim + 'px'
+      popper.style.height = dim + 'px'
+      popper.style.display = 'flex'
+      if (dim > 8) {
+        icon.setAttribute('width', dim + 'px')
+        icon.setAttribute('height', dim + 'px')
+      } else if (dim - 10 > 0) {
+        icon.setAttribute('width', (dim - 10) + 'px')
+        icon.setAttribute('height', (dim - 10) + 'px')
+      } else {
+        icon.style.display = 'none'
+      }
+    } else {
+      icon.style.display = 'none'
+      popper.style.display = 'none'
+    }
+  }
+
+  private updatePopper(node) {
+    if (!node.unlockButton) return
+
+    let unlockButton = node.unlockButton
+    let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
+    this.setPopperStyle(dimension, unlockButton.state.elements.popper)
+    unlockButton.update()
+  }
+
+  unpinNode(node) {
+    this.removeUnlockButton(node)
+    node.unlock()
+    node.data("pinned", false)
+  }
+
+  private removeUnlockButton(node) {
+    if (node.unlockButton) {
+      node.unlockButton.state.elements.popper.remove()
+      node.unlockButton.destroy()
+      node.unlockButton = null
+    }
+  }
+
+  private setDragAndPinEventHandlers() {
+    this.renderer.cy.on('grab', this.grabHandler)
+
+    this.renderer.cy.on('free', this.freeHandler)
+
+    // this.renderer.cy.$('[?pinned]').each(n => {
+    //   //n.on('position', () => this.updatePopper(n))
+    //   this.renderer.cy.on('pan zoom resize', () => this.updatePopper(n))
+    // })
+  }
+
+  private grabHandler = (e: cytoscape.EventObject) => {
+    if (this.dragAndPin)
+      e.target.data('old_pos', JSON.stringify(e.target.position()))
+  }
+
+  private freeHandler = (e: cytoscape.EventObject) => {
+    if (this.dragAndPin) {
+      let actual_pos = JSON.stringify(e.target.position())
+      if (e.target.data('old_pos') !== actual_pos) {
+        this.pinNode(e.target)
+      }
+
+      e.target.removeData('old_pos')
+    }
   }
 
   private floatyLayoutOptions = {
@@ -85,5 +199,17 @@ export default class FloatyRenderState extends BaseRenderer {
 
   get isLayoutInfinite() {
     return this.floatyLayoutOptions.infinite ? true : false
+  }
+
+  get dragAndPin() { return this._dragAndPing }
+
+  set dragAndPin(isActive: boolean) {
+    this._dragAndPing = isActive
+
+    if (!isActive) this.unpinAll()
+  }
+
+  private get popperContainer() {
+    return this.popperContainers.get(this.renderer.diagram.id)
   }
 }
