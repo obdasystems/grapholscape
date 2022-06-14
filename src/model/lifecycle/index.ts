@@ -21,6 +21,20 @@ export enum LifecycleEvent {
   UnfilterRequest = 'unfilterRequest',
 }
 
+interface IonEvent {
+  (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity) => void): void;
+  (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void;
+  (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void;
+  (event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void;
+  (event: LifecycleEvent.RendererChange, callback: (renderer: string) => void): void;
+  (event: LifecycleEvent.LanguageChange, callback: (language: string) => void): void
+  (event: LifecycleEvent.EntityNameTypeChange, callback: (nameType: EntityNameType) => void): void;
+  (event: LifecycleEvent.Filter, callback: (filter: Filter) => void): void;
+  (event: LifecycleEvent.Unfilter, callback: (filter: Filter) => void): void;
+  (event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void;
+  (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void;
+}
+
 export default class Lifecycle {
   private diagramChange: ((diagram: Diagram) => void)[] = []
   private rendererChange: ((renderer: string) => void)[] = []
@@ -58,20 +72,9 @@ export default class Lifecycle {
     this[event].forEach((callback: any) => callback(...params))
   }
 
-  on(event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity) => void): void
-  on(event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void
-  on(event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void
-  on(event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void
-  on(event: LifecycleEvent.RendererChange, callback: (renderer: string) => void): void
-  on(event: LifecycleEvent.LanguageChange, callback: (language: string) => void): void
-  on(event: LifecycleEvent.EntityNameTypeChange, callback: (nameType: EntityNameType) => void): void
-  on(event: LifecycleEvent.Filter, callback: (filter: Filter) => void): void
-  on(event: LifecycleEvent.Unfilter, callback: (filter: Filter) => void): void
-  on(event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void
-  on(event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void
-  on(event: string, callback: any): void {
+  on: IonEvent = (event: string, callback: any): void => {
 
-    if (event === LifecycleEvent.FilterRequest || LifecycleEvent.UnfilterRequest) {
+    if (event === LifecycleEvent.FilterRequest || event === LifecycleEvent.UnfilterRequest) {
       this[event] = callback
       return
     }
