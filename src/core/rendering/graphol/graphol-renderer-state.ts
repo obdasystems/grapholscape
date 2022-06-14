@@ -18,6 +18,8 @@ export default class GrapholRendererState extends BaseRenderer {
     if (!grapholRepresentation.hasEverBeenRendered) {
       this.renderer.fit()
     }
+
+    grapholRepresentation.hasEverBeenRendered = true
   }
 
   runLayout(): void {
