@@ -3,15 +3,48 @@ import { css } from "lit"
 
 export default css`
 .gscape-panel {
-  color: var(--theme-gscape-on-primary);
-  background-color: var(--theme-gscape-primary);
-  box-shadow: 0 2px 4px 0 var(--theme-gscape-shadows);
-  border-radius: 8px;
+  background-color: var(--gscape-color-bg-subtle);
+  box-shadow: 0 2px 10px 0 var(--gscape-color-border-default);
+  border-radius: var(--gscape-border-radius);
+    border-top-left-radius: ;
+    border-top-right-radius: ;
+    border-bottom-right-radius: ;
+    border-bottom-left-radius: ;
   scrollbar-width: thin;
-  --gscape-icon-size: 24px;
+  padding: 8px;
+  animation-name: dropdown;
+  animation-duration: 200ms;
 }
 
+.actionable {
+  border-radius: var(--gscape-border-radius-btn);
+  padding: 6px 8px;
+  cursor: pointer;
+  width: 100%;
+}
 
+.actionable:hover {
+  background-color: var(--gscape-color-neutral-muted);
+}
+
+.actionable:active {
+  filter: brightness(90%);
+}
+
+.selected-item::before {
+  content: '.';
+  position: static;
+  line-height: 24px;
+  background-color: var(--gscape-color-accent-emphasis);
+  color: var(--gscape-color-accent-emphasis);
+  border-radius: var(--gscape-border-radius);
+  margin: 4px 0;
+}
+
+.selected-item > .actionable {
+  background-color: var(--gscape-color-neutral-muted);
+  font-weight: 600;
+}
 
 .primary {
   color: var(--gscape-color-accent-fg);
@@ -19,5 +52,10 @@ export default css`
 
 .hide {
   display: none;
+}
+
+@keyframes dropdown {
+  from {opacity: 0; position: relative; top: -10px;}
+  to {opacity: 1;  position: initial; top: 0;}
 }
 `

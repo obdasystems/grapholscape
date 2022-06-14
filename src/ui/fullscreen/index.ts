@@ -18,7 +18,7 @@ export default function initFullscreenButton(grapholscape : Grapholscape) {
   fullscreenComponent.style.top = '10px'
   fullscreenComponent.style.right = '10px'
   fullscreenComponent.style.position = 'absolute'
-  //fullscreenComponent.onclick = toggleFullscreen
+  fullscreenComponent.onclick = toggleFullscreen
   fullscreenComponent.title = 'Fullscreen'
 
 

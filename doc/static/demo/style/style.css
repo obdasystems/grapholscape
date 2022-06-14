@@ -81,7 +81,9 @@
 
   --gscape-border-radius: 8px;
   --gscape-border-radius-btn: 6px;
-
+  --gscape-font-size: 14px;
+  font-size: var(--gscape-font-size);
+  color: var(--gscape-color-fg-default);
 }
 
 #grapholscape_container {

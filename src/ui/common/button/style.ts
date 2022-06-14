@@ -11,7 +11,6 @@ export default css`
   user-select: none;
   text-decoration: none;
   text-align: center;
-  color: var(--gscape-color-fg-default);
   background-color: var(--gscape-color-bg-subtle);
   box-shadow: rgba(27, 31, 36, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
   line-height: 20px;
@@ -19,7 +18,7 @@ export default css`
 }
 
 .btn[label] {
-  grid-template-columns: auto auto;
+  grid-template-columns: auto auto auto;
   gap: 8px;
   justify-content: center;
 }
@@ -44,7 +43,7 @@ export default css`
 
 .btn-s {
   font-size: 12px;
-  padding: 2px 3px;
+  padding: 3px 4px;
 }
 
 .btn-s[label] {
@@ -55,7 +54,7 @@ export default css`
 
 .btn-m {
   font-size: 14px;
-  padding: 4px 5px;
+  padding: 5px 6px;
 }
 
 .btn-m[label] {
@@ -65,7 +64,7 @@ export default css`
 
 .btn-l {
   font-size: 16px;
-  padding: 6px 7px;
+  padding: 7px 8px;
 }
 
 .btn-l[label] {
@@ -94,5 +93,9 @@ export default css`
 
 .btn.subtle:hover > .btn-label {
   color: var(--gscape-color-accent-fg);
+}
+
+.btn-label {
+  font-weight: 600;
 }
 `

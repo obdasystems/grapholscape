@@ -9,7 +9,7 @@ import GrapholParser from "./parsing/parser"
  * @param {oject} config 
  * @returns {Promise<Grapholscape>}
  */
-export default function (file, container, config) {
+export default function (file: string | Blob, container: HTMLElement, config): Promise<Grapholscape> {
 
   const savedConfig = loadConfig()
   let lastUsedTheme = savedConfig.theme
@@ -57,7 +57,7 @@ export default function (file, container, config) {
         resolve(gscape)
       } catch (e) { console.error(e) }
     }
-  }).catch(error => console.error(error))
+  })
 
   function getResult(file) {
     return new GrapholParser(file).parseGraphol()

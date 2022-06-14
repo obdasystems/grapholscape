@@ -12,38 +12,42 @@ import initZoomTools from "./zoom-tools";
 import initFitButton from "./fit-button";
 import { widgetEnum, widgetTagNames } from "./util/widget-enum";
 import Grapholscape from "../core/grapholscape";
+import GscapeActionListItem from "./common/list-item/action-list-item";
 
 /**
  * Initialize the UI
  */
-export default function (gscapePromise: Promise<void | Grapholscape>) {
-  gscapePromise.then(grapholscape => {
-    if (!grapholscape) return
+export default function (grapholscape: Grapholscape) {
+  const guiContainer = document.createElement('div')
+  guiContainer.classList.add('gscape-ui')
+  grapholscape.container.appendChild(guiContainer)
 
-    const guiContainer = document.createElement('div')
-    guiContainer.classList.add('gscape-ui')
-    grapholscape.container.appendChild(guiContainer)
+  const buttonsTray = bottomRightContainer()
+  buttonsTray.classList.add('gscape-ui-buttons-tray')
+  guiContainer.appendChild(buttonsTray)
 
-    const buttonsTray = bottomRightContainer()
-    buttonsTray.classList.add('gscape-ui-buttons-tray')
-    guiContainer.appendChild(buttonsTray)
+  initDiagramSelector(grapholscape)
+  initFullscreenButton(grapholscape)
+  initFitButton(grapholscape)
+  initZoomTools(grapholscape)
 
-    initFullscreenButton(grapholscape)
-    initFitButton(grapholscape)
-    initZoomTools(grapholscape)
+  const a = new GscapeActionListItem()
+  a.label = 'Lorem Ipsum'
+
+  guiContainer.appendChild(a)
 
 
-    grapholscape.widgets.forEach((widget, key) => {
-      switch(key) {
-        default:
-          buttonsTray.appendChild(widget)
-          //widget.onToggleBody = () => blurAll(bottomContainer, [widget])
-          break
+  grapholscape.widgets.forEach((widget, key) => {
+    switch(key) {
+      default:
+        buttonsTray.appendChild(widget)
+        //widget.onToggleBody = () => blurAll(bottomContainer, [widget])
+        break
 
-        case 'fullscreen-button':
-          guiContainer.appendChild(widget)
-      }
-    })
+      case 'fullscreen-button':
+      case 'diagram-selector':
+        guiContainer.appendChild(widget)
+    }
   })
   
 

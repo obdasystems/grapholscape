@@ -30,13 +30,13 @@ cytoscape.use(cola)
  * @tutorial Settings
  * @tutorial Themes
  */
-export function fullGrapholscape(file, container, config = {}) {
+export async function fullGrapholscape(file, container, config = {}) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined
   }
   
-  const grapholscape = initGrapholscape(file, container, config)
+  const grapholscape = await initGrapholscape(file, container, config)
   UI.initUI(grapholscape)
   return grapholscape
 }

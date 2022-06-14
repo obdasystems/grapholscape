@@ -1,7 +1,7 @@
 import { html, css } from 'lit'
 import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
-import { explore, arrow_right, arrow_down } from '../assets/icons'
+import { explore, arrow_right, arrowDown } from '../assets/icons'
 import { GrapholTypesEnum } from '../../model/graphol-elems/node-enums'
 
 const TYPE_IMG_TEXT = {}
@@ -172,7 +172,7 @@ export default class GscapeExplorer extends GscapeWidget{
               @click='${this.toggleSubRows}'
             >
               <span class="icon">
-                ${entityData.areSubrowsOpen ? arrow_down : arrow_right}
+                ${entityData.areSubrowsOpen ? arrowDown : arrow_right}
               </span>
               <div>
                 <div class="type-img type-img-${TYPE_IMG_TEXT[entityData.type]}">
