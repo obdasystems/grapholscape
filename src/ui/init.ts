@@ -31,10 +31,6 @@ export default function (grapholscape: Grapholscape) {
   initFitButton(grapholscape)
   initZoomTools(grapholscape)
 
-  const a = new GscapeActionListItem()
-  a.label = 'Lorem Ipsum'
-
-  guiContainer.appendChild(a)
 
 
   grapholscape.widgets.forEach((widget, key) => {
