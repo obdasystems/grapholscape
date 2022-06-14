@@ -1,9 +1,10 @@
 /** @module UI */
-export { default as GscapeButton } from "./common/gscape-button"
-export { default as GscapeToggle } from "./common/gscape-toggle"
-export { default as GscapeDialog } from "./common/dialog"
-export { default as GscapeWidget } from "./common/gscape-widget"
-export { default as GscapeHeader } from "./common/gscape-header"
+export { default as GscapeButton } from "./common/button"
+export { GscapeButtonStyle } from './common/button/'
+// export { default as GscapeToggle } from "./common/gscape-toggle"
+// export { default as GscapeDialog } from "./common/dialog"
+// export { default as GscapeWidget } from "./common/gscape-widget"
+// export { default as GscapeHeader } from "./common/gscape-header"
 // export * from "./diagram-selector"
 // export * from "./entity-details"
 // export * from "./filters";

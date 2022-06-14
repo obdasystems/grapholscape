@@ -1,7 +1,7 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import core from './core'
+import * as UI from './ui'
 import initGrapholscape from './init'
 import { GrapholscapeState } from './model'
 import * as themes from './style/themes'
@@ -35,6 +35,8 @@ export function fullGrapholscape(file, container, config = {}) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined
   }
-
-  return initGrapholscape(file, container, config)
+  
+  const grapholscape = initGrapholscape(file, container, config)
+  UI.initUI(grapholscape)
+  return grapholscape
 }

@@ -19,7 +19,7 @@ export default function (file, container, config) {
   if (config.theme) {
     config.theme.selected = lastUsedTheme && lastUsedTheme === config.theme?.id
   }
-  return new Promise ((resolve, reject) => {
+  return new Promise<Grapholscape>((resolve, reject) => {
     let ontology = null
 
     if (typeof (file) === 'object') {
@@ -34,7 +34,7 @@ export default function (file, container, config) {
 
       reader.readAsText(file)
 
-      setTimeout( () => {
+      setTimeout(() => {
         reject('Error: timeout expired')
       }, 10000)
 
@@ -53,11 +53,11 @@ export default function (file, container, config) {
         // grapholscapeState.theme = GrapholscapeTheme.defaultTheme
         const gscape = new Grapholscape(ontology, container)
         //if (lastUsedTheme) gscape.applyTheme(lastUsedTheme)
-        globalThis['gscape'] = gscape
+        globalThis['gscape'] = gscape // TODO: Remove global reference before release
         resolve(gscape)
-      } catch (e) { console.error(e)}
+      } catch (e) { console.error(e) }
     }
-  }).catch(error => console.error(error) )
+  }).catch(error => console.error(error))
 
   function getResult(file) {
     return new GrapholParser(file).parseGraphol()

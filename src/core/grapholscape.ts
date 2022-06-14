@@ -12,7 +12,7 @@ import LiteRendererState from "./rendering/lite/lite-renderer-state"
 
 export default class Grapholscape {
   renderer: Renderer = new Renderer()
-  container: any = null
+  container: HTMLElement = null
   readonly lifecycle: Lifecycle = new Lifecycle()
   ontology: Ontology
   themeManager: any = null
@@ -21,9 +21,11 @@ export default class Grapholscape {
   private displayedNamesManager = new DisplayedNamesManager(this)
   lite: LiteRendererState
   floaty: FloatyRenderState
+  widgets: Map<string, HTMLElement> = new Map()
 
-  constructor(ontology: Ontology, container: Element) {
+  constructor(ontology: Ontology, container: HTMLElement) {
     this.ontology = ontology
+    this.container = container
     this.renderer.container = container
     this.renderer.lifecycle = this.lifecycle
 
@@ -122,6 +124,11 @@ export default class Grapholscape {
   get language() { return this.displayedNamesManager.language }
   get entityNameType() { return this.displayedNamesManager.entityNameType }
 
-  // ---------------------------- LIFECYCLE ---------------------------- //
+  // ----------------------------- LIFECYCLE ----------------------------- //
   on = this.lifecycle.on
+
+
+  // -------------------------------- UI -------------------------------- //
+  get uiContainer() { return this.container.querySelector('.gscape-ui') }
+  get buttonsTray() { return this.uiContainer.querySelector('.gscape-ui-buttons-tray')}
 }

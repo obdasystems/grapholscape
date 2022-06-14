@@ -13,7 +13,7 @@ import Lifecycle from "../../model/lifecycle"
  * @property {cytoscape} cy - cytoscape headless instance for managing elements
  */
 export default class Renderer {
-  container: Element
+  private _container: HTMLElement
   cy: cytoscape.Core
   private _renderState: RenderState
   filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]))
@@ -74,7 +74,7 @@ export default class Renderer {
    */
   filter = (filter: Filter | DefaultFilterKeyEnum | string) => {
     let _filter: Filter = this.getFilter(filter)
-    
+
     if (!_filter) return
 
     if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState.filterManager.filterActivation(_filter)) {
@@ -88,7 +88,7 @@ export default class Renderer {
       if (filter.shouldFilter(grapholElement)) {
         if (activate)
           this._renderState.filter(grapholElement.id, filter)
-        else 
+        else
           this._renderState.unfilter(grapholElement.id, filter)
       }
     }
@@ -173,7 +173,7 @@ export default class Renderer {
    */
   centerOnElementById(elementId: string, zoom = this.cy.zoom(), select?: boolean) {
     const cyElement = this.cy.$id(elementId)
-    zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom 
+    zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom
     if (cyElement.empty()) {
       console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
     } else {
@@ -255,6 +255,7 @@ export default class Renderer {
   applyTheme() {
     if (this._theme) {
       this.cy.style(this.renderState.getGraphStyle(this._theme))
+      this.container.style.backgroundColor = this.theme.colours.background
     } else {
       console.warn('Cannot render anything, please set a theme')
     }
@@ -290,6 +291,17 @@ export default class Renderer {
   get grapholElements() {
     return this.diagram.representations.get(this._renderState.id).grapholElements
   }
+
+  set container(container: HTMLElement) {
+    this._container = document.createElement('div')
+    this._container.classList.add('grapholscape-graph')
+    this._container.style.width = '100%'
+    this._container.style.height = '100%'
+    this._container.style.position = 'relative'
+    container.appendChild(this.container)
+  }
+
+  get container() { return this._container }
 
   /**
    * Getter
