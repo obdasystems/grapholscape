@@ -1,7 +1,8 @@
 import { BaseFilterManager, Filter, DefaultFilterKeyEnum } from "../../../model"
+import { filter } from "../../../ui/assets/icons"
 
 export default class GrapholFilterManager extends BaseFilterManager {
-  filters: Map<string, Filter>
+  _filters: Map<string, Filter>
 
 
   filterActivation(filter: Filter) {
@@ -32,5 +33,18 @@ export default class GrapholFilterManager extends BaseFilterManager {
     }
 
     return true
+  }
+
+  get filters() { return this._filters }
+  set filters(filters) {
+    this._filters = filters
+
+    filters.forEach(filter => {
+      filter.unlock()
+    })
+
+    if (filters.get(DefaultFilterKeyEnum.DATA_PROPERTY)?.active) {
+      filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)?.lock()
+    }
   }
 }

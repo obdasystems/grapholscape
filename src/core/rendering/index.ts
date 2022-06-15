@@ -39,6 +39,7 @@ export default class Renderer {
     if (this.diagram) {
       this.stopRendering()
       rs.render()
+      this.performAllFilters()
     }
 
     this._lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState.id)
@@ -53,6 +54,7 @@ export default class Renderer {
       this.stopRendering()
       this.diagram = diagram
       this._renderState.render()
+      this.performAllFilters()
       this._lifecycle.trigger(LifecycleEvent.DiagramChange, diagram)
     }
   }
@@ -76,7 +78,7 @@ export default class Renderer {
    * or a string representing the unique key of a defined filter
    */
   filter = (filter: Filter | DefaultFilterKeyEnum | string) => {
-    let _filter: Filter = this.getFilter(filter)
+    let _filter = this.getFilter(filter)
 
     if (!_filter) return
 
@@ -87,16 +89,18 @@ export default class Renderer {
   }
 
   private performFilter(filter: Filter, activate: boolean = true) {
-    for (let grapholElement of this.grapholElements.values()) {
-      if (filter.shouldFilter(grapholElement)) {
-        if (activate)
-          this._renderState.filter(grapholElement.id, filter)
-        else
-          this._renderState.unfilter(grapholElement.id, filter)
+    if (this.grapholElements) {
+      for (let grapholElement of this.grapholElements.values()) {
+        if (filter.shouldFilter(grapholElement)) {
+          if (activate)
+            this._renderState.filter(grapholElement.id, filter)
+          else
+            this._renderState.unfilter(grapholElement.id, filter)
+        }
       }
-    }
 
-    filter.active = activate
+      filter.active = activate
+    }
   }
 
   /**
@@ -119,7 +123,7 @@ export default class Renderer {
   }
 
   private getFilter(filter: Filter | string) {
-    let _filter: Filter
+    let _filter: Filter | undefined
     if (typeof filter === 'string') {
       _filter = this.filters.get(filter)
     } else {
@@ -139,6 +143,15 @@ export default class Renderer {
       if (filter.active) {
         this.performFilter(filter)
       }
+    })
+  }
+
+  private performAllFilters() {
+    /**
+       * Reapply filter when a new renderState is set
+       */
+    this.filters.forEach(filter => {
+      this.performFilter(filter, filter.active)
     })
   }
 
@@ -258,7 +271,8 @@ export default class Renderer {
   applyTheme() {
     if (this._theme) {
       this.cy.style(this.renderState.getGraphStyle(this._theme))
-      this.container.style.backgroundColor = this.theme.colours.background
+      if (this.theme.colours.background)
+        this.container.style.backgroundColor = this.theme.colours.background
     } else {
       console.warn('Cannot render anything, please set a theme')
     }
@@ -292,7 +306,7 @@ export default class Renderer {
   }
 
   get grapholElements() {
-    return this.diagram.representations.get(this._renderState.id).grapholElements
+    return this.diagram.representations.get(this._renderState.id)?.grapholElements
   }
 
   set container(container: HTMLElement) {

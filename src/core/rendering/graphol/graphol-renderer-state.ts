@@ -12,8 +12,10 @@ export default class GrapholRendererState extends BaseRenderer {
 
   render(): void {
     const grapholRepresentation = this.renderer.diagram.representations.get(this.id)
+    if (!grapholRepresentation) return
+
     this.renderer.cy = grapholRepresentation.cy
-    
+
     this.renderer.mount()
     if (!grapholRepresentation.hasEverBeenRendered) {
       this.renderer.fit()

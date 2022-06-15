@@ -12,7 +12,7 @@ import LiteRendererState from "./rendering/lite/lite-renderer-state"
 
 export default class Grapholscape {
   renderer: Renderer = new Renderer()
-  container: HTMLElement = null
+  container: HTMLElement
   readonly lifecycle: Lifecycle = new Lifecycle()
   ontology: Ontology
   themeManager: any = null
@@ -42,7 +42,7 @@ export default class Grapholscape {
     }
 
     const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
-      ?.representations.get(this.renderState).hasEverBeenRendered
+      ?.representations.get(this.renderState)?.hasEverBeenRendered
 
     this.renderer.render(diagram)
     if (shouldUpdateEntities)
@@ -51,7 +51,7 @@ export default class Grapholscape {
 
   setRenderer(newRenderState: RenderState) {
     const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
-      ?.representations.get(this.renderState).hasEverBeenRendered
+      ?.representations.get(this.renderState)?.hasEverBeenRendered
 
     this.renderer.renderState = newRenderState
 
@@ -128,5 +128,5 @@ export default class Grapholscape {
 
   // -------------------------------- UI -------------------------------- //
   get uiContainer() { return this.container.querySelector('.gscape-ui') }
-  get buttonsTray() { return this.uiContainer.querySelector('.gscape-ui-buttons-tray')}
+  get buttonsTray() { return this.uiContainer?.querySelector('.gscape-ui-buttons-tray')}
 }

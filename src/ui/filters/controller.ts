@@ -18,6 +18,7 @@ export default function (filterComponent: GscapeFilters, grapholscape: Grapholsc
     })
 
     filterComponent.filterAll.active = true
+    filterComponent.requestUpdate()
   }
 
   filterComponent.onUnfilterAll = () => {
@@ -26,6 +27,7 @@ export default function (filterComponent: GscapeFilters, grapholscape: Grapholsc
     })
 
     filterComponent.filterAll.active = false
+    filterComponent.requestUpdate()
   }
 
   grapholscape.on(LifecycleEvent.Filter, () => filterComponent.requestUpdate())
