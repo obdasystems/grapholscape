@@ -1,11 +1,39 @@
 import Grapholscape from "../../core/grapholscape"
+import { LifecycleEvent } from "../../model"
+import GscapeFilters from "./gscape-filters"
 
 /**
  * @param {import('./index').default} filterComponent
  * @param {import('../../grapholscape').default} grapholscape 
  */
-export default function (filterComponent, grapholscape: Grapholscape) {
-  filterComponent.filterList = grapholscape.renderer.filters
+export default function (filterComponent: GscapeFilters, grapholscape: Grapholscape) {
+  filterComponent.filters = grapholscape.renderer.filters
+
+  filterComponent.onFilterOff = (filter) => grapholscape.unfilter(filter)
+  filterComponent.onFilterOn = (filter) => grapholscape.filter(filter)
+
+  filterComponent.onFilterAll = () => {
+    grapholscape.renderer.filters.forEach(filter => {
+      grapholscape.filter(filter)
+    })
+
+    filterComponent.filterAll.active = true
+  }
+
+  filterComponent.onUnfilterAll = () => {
+    grapholscape.renderer.filters.forEach(filter => {
+      grapholscape.unfilter(filter)
+    })
+
+    filterComponent.filterAll.active = false
+  }
+
+  grapholscape.on(LifecycleEvent.Filter, () => filterComponent.requestUpdate())
+  grapholscape.on(LifecycleEvent.Unfilter, () => {
+    filterComponent.filterAll.active = false
+    filterComponent.requestUpdate()
+  })
+  grapholscape.on(LifecycleEvent.RendererChange, () => filterComponent.requestUpdate())
 
   // filterComponent.onFilterOn = (filterType) => {
   //   filterComponent.filterList[filterType].active = true

@@ -1,5 +1,7 @@
 import { css } from "lit"
 
+const animationDuration = css`200ms`
+
 
 export default css`
 .gscape-panel {
@@ -14,6 +16,16 @@ export default css`
   z-index: 1;
 }
 
+.gscape-panel-in-tray {
+  position: absolute;
+  right: 100%;
+  bottom: 0;
+  margin-right: 4px;
+  white-space: nowrap;
+  animation-name: drop-left;
+  animation-duration: ${animationDuration};
+}
+
 .slotted-icon {
   line-height: 0;
 }
@@ -22,7 +34,6 @@ export default css`
   border-radius: var(--gscape-border-radius-btn);
   padding: 6px 8px;
   cursor: pointer;
-  width: 100%;
 }
 
 .actionable:hover {
@@ -58,7 +69,7 @@ export default css`
 
 .drop-down {
   animation-name: drop-down;
-  animation-duration: 200ms;
+  animation-duration: ${animationDuration};
 }
 
 @keyframes drop-down {
@@ -68,7 +79,7 @@ export default css`
 
 .drop-left {
   animation-name: drop-left;
-  animation-duration: 200ms;
+  animation-duration: ${animationDuration};
 }
 
 @keyframes drop-left {
@@ -78,7 +89,7 @@ export default css`
 
 .drop-right {
   animation-name: drop-right;
-  animation-duration: 200ms;
+  animation-duration: ${animationDuration};
 }
 
 @keyframes drop-right {
@@ -108,5 +119,22 @@ export default css`
 .blank-slate > .description {
   font-size: 12px;
   color: var(--gscape-color-fg-subtle);
+}
+
+.hr {
+  height:1px;
+  width:90%;
+  margin: 0 auto;
+  background-color: var(--gscape-color-border-subtle)
+}
+
+.header {
+  font-weight: 600;
+  margin: 8px 16px;
+}
+
+.gscape-panel-in-tray > .header {
+  margin-top: 0;
+  text-align: center;
 }
 `

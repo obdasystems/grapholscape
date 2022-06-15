@@ -13,6 +13,7 @@ import initFitButton from "./fit-button";
 import { widgetEnum, widgetTagNames } from "./util/widget-enum";
 import Grapholscape from "../core/grapholscape";
 import GscapeActionListItem from "./common/list-item/action-list-item";
+import GscapeToggle from "./common/toggle/gscape-toggle";
 
 /**
  * Initialize the UI
@@ -31,7 +32,7 @@ export default function (grapholscape: Grapholscape) {
   initFitButton(grapholscape)
   initZoomTools(grapholscape)
   initRendererSelector(grapholscape)
-
+  initFilters(grapholscape)
 
 
   grapholscape.widgets.forEach((widget, key) => {

@@ -17,13 +17,6 @@ export default class GscapeZoomTools extends LitElement {
         border: 1px solid var(--gscape-color-border-subtle);
         background-color: var(--gscape-color-bg-subtle);
       }
-
-      #hr {
-        height:1px;
-        width:90%;
-        margin: 0 auto;
-        background-color: var(--gscape-color-border-subtle)
-      }
     `
   ]
 
@@ -35,7 +28,7 @@ export default class GscapeZoomTools extends LitElement {
   render() {
     return html`
       <gscape-button type="subtle" @click=${this._onZoomIn}>${getIconSlot('icon', plus)}</gscape-button>
-      <div id="hr"></div>
+      <div class="hr"></div>
       <gscape-button type="subtle" @click=${this._onZoomOut}>${getIconSlot('icon', minus)}</gscape-button>
     `
   }

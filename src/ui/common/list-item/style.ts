@@ -6,6 +6,7 @@ export default css`
     gap: 8px;
     line-height: 20px;
     align-items: stretch;
+    width: 100%;
   }
 
   .list-item.selected-item::before {

@@ -30,13 +30,10 @@ export default class GscapeRenderSelector extends LitElement {
         order: 6;
         margin-top:10px;
       }
-    
-      .gscape-panel {
-        position: absolute;
-        right: 100%;
-        top: 10px;
-        margin-right: 4px;
-        white-space: nowrap;
+
+      .gscape-panel-in-tray {
+        top:0;
+        bottom: initial;
       }
     `
   ]
@@ -136,7 +133,7 @@ export default class GscapeRenderSelector extends LitElement {
         <span slot="icon">${this.actualRendererState?.icon}</span>
       </gscape-button>
 
-      <div class="gscape-panel drop-left hide">
+      <div class="gscape-panel gscape-panel-in-tray drop-left hide">
         ${Object.entries(this.rendererStates).map(([key, rendererState]) => html`
           <gscape-action-list-item
             @click=${this.rendererSelectionHandler}

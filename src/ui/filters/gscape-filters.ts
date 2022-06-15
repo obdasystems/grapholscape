@@ -1,110 +1,121 @@
 import { html, css, LitElement } from 'lit'
 import GscapeButton from '../common/button'
 import GscapeWidget from '../common/gscape-widget'
-import GscapeToggle from '../common/gscape-toggle'
+import '../common/toggle/gscape-toggle'
 import { filter as filterIcon } from '../assets/icons'
-import { Filter } from '../../model'
+import { DefaultFilterKeyEnum, Filter } from '../../model'
 import getIconSlot from '../util/get-icon-slot'
+import baseStyle from '../style'
+import GscapeToggle from '../common/toggle/gscape-toggle'
 
 export default class GscapeFilters extends LitElement {
   filters: Map<string, Filter>
+  filterAll: Filter = new Filter('all', () => false)
+  onFilterOn: (filter: Filter) => void = () => { }
+  onFilterOff: (filter: Filter) => void = () => { }
+  onFilterAll: () => void = () => { }
+  onUnfilterAll: () => void = () => { }
 
   static properties = {
-    filters : { type: Object, attribute: false }
+    filters: { type: Object, attribute: false }
   }
 
-  static get styles() {
-    let super_styles = super.styles
-    let colors = super_styles[1]
+  static styles = [
+    baseStyle,
+    css`
+      :host {
+        order: 3;
+        display:inline-block;
+        position: initial;
+        margin-top:10px;
+      }
 
-    return [
-      super_styles[0],
-      css`
-        :host {
-          order: 3;
-          display:inline-block;
-          position: initial;
-          margin-top:10px;
-        }
+      gscape-toggle {
+        padding: 8px;
+      }
 
-        gscape-button{
-          position: static;
-        }
+      gscape-toggle[key ="all"] {
+        margin: 0 auto;
+      }
 
-        gscape-toggle {
-          padding: 8px;
-        }
+      gscape-toggle[first]{
+        justify-content: center;
+        border-bottom: 1px solid var(--gscape-color-border-subtle);
+        margin-bottom: 10px;
+        padding: 10px;
+      }
 
-        gscape-toggle[first]{
-          justify-content: center;
-          border-bottom: 1px solid var(--theme-gscape-borders, ${colors.borders});
-          margin-bottom: 10px;
-          padding: 10px;
-        }
-      `,
-    ]
-  }
+      .filters-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
 
-  constructor(filters = {}) {
-    super()
-    // this.collapsible = true
-    // this.filterList = filters
-
-    // this.btn = new GscapeButton(filter, 'Filters')
-    // this.highlighted = true
-    // this.btn.onClick = this.toggleBody.bind(this)
-    // this.btn.active = false
-
-    // this.onFilterOn = () => {}
-    // this.onFilterOff = () => {}
-  }
+      .hr {
+        margin: 4px 0;
+      }
+    `,
+  ]
 
   render() {
     return html`
-      <gscape-button>
+      <gscape-button @click=${this.togglePanel}>
         ${getIconSlot('icon', filterIcon)}
       </gscape-button>
 
-
-      <!-- <span class="gscape-panel-arrow hide"></span> -->
-      <div class="widget-body hide gscape-panel">
+      <div class="gscape-panel gscape-panel-in-tray hide">
         <div class="header">Filters</div>
 
         <div class="filters-wrapper">
-          ${Array.from(this.filters).map(([key, filter]) => {
-            // let toggle = {}
-
-            /**
-             * filter toggles work in inverse mode
-             *  checked => filter not active
-             *  unchecked => filter active
-             *
-             * we invert the visual behaviour of a toggle passing the last flag setted to true
-             * the active boolean will represent the filter state, not the visual state.
-             */
-            // if (key == 'all') {
-            //   toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, this.toggleFilter.bind(this))
-            //   toggle.setAttribute('first', 'true')
-            // } else {
-            //   toggle = new GscapeToggle(key, filter.active, filter.disabled, filter.label, this.toggleFilter.bind(this), true)
-            // }
-            // toggle.label_pos = 'right'
-            // return html`
-            //   ${toggle}
-            // `
-          })}
+          ${this.filterToggleTemplate(this.filterAll, false)}
+          <div class="hr"></div>
+          ${Array.from(this.filters).map(([_, filter]) => this.filterToggleTemplate(filter))}
         </div>
       </div>
     `
   }
 
-  // toggleFilter(e) {
-  //   let toggle = e.target
-  //   if (toggle.id == 'all')
-  //     toggle.checked ? this.onFilterOn(toggle.id) : this.onFilterOff(toggle.id)
-  //   else
-  //     !toggle.checked ? this.onFilterOn(toggle.id) : this.onFilterOff(toggle.id)
-  // }
+  private filterToggleTemplate(filter: Filter, reverseState = true) {
+    return html`
+      <gscape-toggle
+        class="${!filter.locked ? 'actionable' : null}"
+        @click = ${!filter.locked ? this.toggleFilter : null}
+        key = ${filter.key}
+        label = ${this.getFilterLabel(filter.key)}
+        ?disabled = ${filter.locked}
+        ?checked = ${reverseState ? !filter.active : filter.active}
+      ></gscape-toggle>
+    `
+  }
+
+  private togglePanel() {
+    this.shadowRoot?.querySelector('.gscape-panel')?.classList.toggle('hide')
+  }
+
+  private getFilterLabel(filterKey: string) {
+    let result = Object.keys(DefaultFilterKeyEnum)
+      .find(key => DefaultFilterKeyEnum[key] === filterKey)
+      ?.toLowerCase()
+      .replace('_', ' ')
+
+    if (!result) return ''
+
+    result = result?.charAt(0).toUpperCase() + result?.substring(1)
+    return result
+  }
+
+  private toggleFilter(e) {
+    e.preventDefault()
+    const toggle: GscapeToggle = e.target
+    const filter = this.filters.get(toggle.key)
+
+    if (!filter) {
+      if (toggle.key === this.filterAll.key) {
+        this.filterAll.active ? this.onUnfilterAll() : this.onFilterAll()
+      }
+      return
+    }
+    this.filters.get(toggle.key)?.active ? this.onFilterOff(filter) : this.onFilterOn(filter)
+  }
 
   // updateTogglesState() {
   //   let toggles = this.shadowRoot.querySelectorAll(`gscape-toggle`)
@@ -128,4 +139,4 @@ export default class GscapeFilters extends LitElement {
 
 
 
-// customElements.define('gscape-filters', GscapeFilters)
+customElements.define('gscape-filters', GscapeFilters)
