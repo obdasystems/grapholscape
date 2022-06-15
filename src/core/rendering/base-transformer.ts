@@ -34,8 +34,8 @@ export default abstract class BaseGrapholTransformer implements GrapholTransform
       grapholElement.is(GrapholTypesEnum.RANGE_RESTRICTION)
   }
 
-  protected getGrapholElement(id: string) {
-    return this.result.grapholElements.get(id)
+  protected getGrapholElement(id: string): GrapholElement {
+    return this.result.grapholElements.get(id) as GrapholElement
   }
 
   protected deleteElements(elements: Collection) {

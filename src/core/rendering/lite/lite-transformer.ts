@@ -13,14 +13,20 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
   transform(diagram: Diagram): DiagramRepresentation {
     this.result = new DiagramRepresentation(liteOptions)
-    this.result.grapholElements = new Map(diagram.representations.get(RenderStatesEnum.GRAPHOL).grapholElements)
+    const grapholRepresentation = diagram.representations.get(RenderStatesEnum.GRAPHOL)
 
-    this.newCy.add(diagram.representations.get(RenderStatesEnum.GRAPHOL).cy.elements().clone())
+    if (!grapholRepresentation) {
+      return this.result
+    }
+
+    this.result.grapholElements = new Map(grapholRepresentation.grapholElements)
+
+    this.newCy.add(grapholRepresentation.cy.elements().clone())
     this.newCy.elements().removeClass('filtered') // make all filtered elements not filtered anymore
 
     this.filterByCriterion((node) => {
       const grapholNode = this.getGrapholElement(node.id())
-      if (!grapholNode) return
+      if (!grapholNode) return false
       switch (grapholNode.type) {
         case GrapholTypesEnum.COMPLEMENT:
         case GrapholTypesEnum.VALUE_DOMAIN:
@@ -35,6 +41,9 @@ export default class LiteTransformer extends BaseGrapholTransformer {
             return true
           else
             return false
+
+        default:
+          return false
       }
     })
 
@@ -171,6 +180,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       if (!this.isRestriction(grapholRestrictionNode)) return
 
       const inputGrapholEdge = getInputEdgeFromPropertyToRestriction(restriction)
+      if (!inputGrapholEdge) return
       // Final role edge will be concatenated with this one, 
       // so we need to revert it to make it point to the obj/data property
       this.reverseEdge(inputGrapholEdge)

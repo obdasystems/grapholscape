@@ -7,7 +7,8 @@ export const LABEL_HEIGHT = 23
 
 export default class GrapholNode extends GrapholElement {
 
-  private _position: Position = { x: 0, y: 0 }
+  private _x = 0
+  private _y = 0
   private _shape: Shape
   private _identity: GrapholTypesEnum
   private _height: number
@@ -28,15 +29,16 @@ export default class GrapholNode extends GrapholElement {
   // shape points for nodes with non-standard shapes
   private _shapePoints?: string
 
-  get position() { return this._position }
+  get position() { return { x: this.x, y: this.y } }
   set position(pos: Position) {
-    this._position = pos
+    this._x = pos.x
+    this._y = pos.y
   }
 
-  get x() { return this._position.x }
-  set x(valX: number) { this._position.x = valX }
-  get y() { return this._position.y }
-  set y(valY: number) { this._position.y = valY }
+  get x() { return this._x }
+  set x(valX: number) { this._x = valX }
+  get y() { return this._y }
+  set y(valY: number) { this._y = valY }
 
   get shape() { return this._shape }
   set shape(shape: Shape) {
@@ -67,8 +69,8 @@ export default class GrapholNode extends GrapholElement {
     this._fillColor = fillColor
   }
 
-  get labelXpos() { return this._labelXpos }
-  set labelXpos(labelXpos: number) {
+  get labelXpos(): number | undefined { return this._labelXpos }
+  set labelXpos(labelXpos) {
     this._labelXpos = labelXpos
   }
 
@@ -86,8 +88,8 @@ export default class GrapholNode extends GrapholElement {
     this._labelHeight = value
   }
 
-  get labelYpos() { return this._labelYpos }
-  set labelYpos(labelYpos: number) {
+  get labelYpos(): number | undefined { return this._labelYpos }
+  set labelYpos(labelYpos) {
     this._labelYpos = labelYpos
   }
 
@@ -103,18 +105,18 @@ export default class GrapholNode extends GrapholElement {
   get isLabelXcentered() { return this._labelXcentered }
   get isLabelYcentered() { return this._labelYcentered }
 
-  get fontSize() { return this._fontSize }
-  set fontSize(value: number) {
+  get fontSize(): number | undefined { return this._fontSize }
+  set fontSize(value) {
     this._fontSize = value
   }
 
-  get inputs() { return this._inputs }
-  set inputs(inputs: string[]) {
+  get inputs(): string[] | undefined { return this._inputs }
+  set inputs(inputs) {
     this._inputs = inputs
   }
 
-  get shapePoints() { return this._shapePoints }
-  set shapePoints(shapePoints: string) {
+  get shapePoints(): string | undefined { return this._shapePoints }
+  set shapePoints(shapePoints) {
     this._shapePoints = shapePoints
   }
 
@@ -128,7 +130,7 @@ export default class GrapholNode extends GrapholElement {
   }
 
   getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[] {
-    const fakeNodesCytoscapeRepr = []
+    const fakeNodesCytoscapeRepr: ElementDefinition[] = []
     const thisCytoscapeRepr = super.getCytoscapeRepr(grapholEntity)
 
     thisCytoscapeRepr[0].position = this.position
