@@ -31,8 +31,6 @@ export default class Grapholscape {
 
     this.renderer.renderState = new GrapholRendererState()
     this.renderer.setTheme(this.themes[0])
-    this.lite = new LiteRendererState()
-    this.floaty = new FloatyRenderState()
   }
 
   showDiagram(diagramId: number, viewportState = null) {

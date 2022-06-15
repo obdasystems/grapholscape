@@ -21,6 +21,7 @@ export default class Renderer {
   private _theme: GrapholscapeTheme
   private _lifecycle: Lifecycle
   FOCUS_ZOOM_LEVEL = 1.5
+  renderStateData: { [x: string]: any } = {}
 
   constructor(renderState?: RenderState) {
     if (renderState)
@@ -39,6 +40,8 @@ export default class Renderer {
       this.stopRendering()
       rs.render()
     }
+
+    this._lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState.id)
   }
 
   get renderState() { return this._renderState }

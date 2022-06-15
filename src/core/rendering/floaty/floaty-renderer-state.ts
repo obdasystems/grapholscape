@@ -1,3 +1,4 @@
+import Renderer from "..";
 import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RenderStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
@@ -9,8 +10,16 @@ export default class FloatyRenderState extends BaseRenderer {
   readonly id: RenderStatesEnum = RenderStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
   private _layout: cytoscape.Layouts
-  private _dragAndPing: boolean = false
-  private popperContainers: Map<number, HTMLDivElement> = new Map()
+
+  set renderer(newRenderer: Renderer) {
+    super.renderer = newRenderer
+    if (!newRenderer.renderStateData[this.id]) {
+      newRenderer.renderStateData[this.id] = {}
+      newRenderer.renderStateData[this.id].popperContainers = new Map<number, HTMLDivElement>()
+    }
+  }
+
+  get renderer() { return super.renderer }
 
   runLayout(): void {
     this.stopLayout()
@@ -40,7 +49,9 @@ export default class FloatyRenderState extends BaseRenderer {
       this.setDragAndPinEventHandlers()
     }
 
-    this.renderer.cy.container().appendChild(this.popperContainer)
+    if (this.popperContainer)
+      this.renderer.cy.container()?.appendChild(this.popperContainer)
+
     if (!this.dragAndPin)
       this.unpinAll()
 
@@ -85,7 +96,7 @@ export default class FloatyRenderState extends BaseRenderer {
         this.setPopperStyle(dimension, div)
 
         div.onclick = () => this.unpinNode(node)
-        this.popperContainer.appendChild(div)
+        this.popperContainer?.appendChild(div)
 
         return div
       },
@@ -201,15 +212,19 @@ export default class FloatyRenderState extends BaseRenderer {
     return this.floatyLayoutOptions.infinite ? true : false
   }
 
-  get dragAndPin() { return this._dragAndPing }
+  get dragAndPin() { return this.renderer.renderStateData[this.id].dragAndPing }
 
   set dragAndPin(isActive: boolean) {
-    this._dragAndPing = isActive
+    this.renderer.renderStateData[this.id].dragAndPing = isActive
 
     if (!isActive) this.unpinAll()
   }
 
   private get popperContainer() {
     return this.popperContainers.get(this.renderer.diagram.id)
+  }
+
+  private get popperContainers(): Map<number, HTMLDivElement> {
+    return this.renderer.renderStateData[this.id].popperContainers
   }
 }
