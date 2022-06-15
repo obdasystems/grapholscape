@@ -97,13 +97,13 @@ export default class GscapeButton extends LitElement {
       >
 
       ${this.toggled && this.altIcon
-        ? html`<slot name="alt-icon" class="btn-icon"></slot>`
-        : html`<slot name="icon" class="btn-icon"></slot>`
+        ? html`<slot name="alt-icon" class="slotted-icon"></slot>`
+        : html`<slot name="icon" class="slotted-icon"></slot>`
       }
 
       ${this.label ? html`<span class="btn-label">${this.label}<span>` : ``}
 
-      <slot name="trailing-icon" class="btn-icon"></slot>
+      <slot name="trailing-icon" class="slotted-icon"></slot>
       </button>
     `
   }

@@ -83,7 +83,7 @@ export default class GscapeDiagramSelector extends LitElement {
         ${getIconSlot('trailing-icon', arrowDown)}
       </gscape-button>
 
-      <div class="gscape-panel hide">
+      <div class="gscape-panel drop-down hide">
         ${this.diagrams.length === 1 && this.actualDiagramId === 0
           ? html`
             <div class="blank-slate">
@@ -110,16 +110,16 @@ export default class GscapeDiagramSelector extends LitElement {
             `)
         }
         
-        </div>
-      `
+      </div>
+    `
   }
 
   private togglePanel() {
-    this.shadowRoot.querySelector('.gscape-panel').classList.toggle('hide')
+    this.shadowRoot?.querySelector('.gscape-panel')?.classList.toggle('hide')
   }
 
   private diagramSelectionHandler(e: Event) {
-    const selectedDiagramId = parseInt((e.target as HTMLElement).getAttribute('diagram-id'))
+    const selectedDiagramId = parseInt((e.target as HTMLElement).getAttribute('diagram-id') || '')
     this.onDiagramSelection(selectedDiagramId)
   }
 

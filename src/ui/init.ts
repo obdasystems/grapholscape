@@ -30,6 +30,7 @@ export default function (grapholscape: Grapholscape) {
   initFullscreenButton(grapholscape)
   initFitButton(grapholscape)
   initZoomTools(grapholscape)
+  initRendererSelector(grapholscape)
 
 
 

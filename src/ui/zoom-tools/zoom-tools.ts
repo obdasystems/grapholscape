@@ -12,6 +12,7 @@ export default class GscapeZoomTools extends LitElement {
         order: 1;
         margin-top:10px;
         position: initial;
+        z-index: 10;
         border-radius: var(--gscape-border-radius-btn);
         border: 1px solid var(--gscape-color-border-subtle);
         background-color: var(--gscape-color-bg-subtle);

@@ -15,6 +15,8 @@ export default css`
   box-shadow: rgba(27, 31, 36, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
   line-height: 20px;
   display: grid;
+  position: relative;
+  z-index:10;
 }
 
 .btn[label] {
@@ -70,10 +72,6 @@ export default css`
 .btn-l[label] {
   padding-left: 36px;
   padding-right: 36px;
-}
-
-.btn-icon {
-  line-height: 0;
 }
 
 .btn.primary, .primary-box {
