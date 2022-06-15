@@ -6,10 +6,8 @@ export default css`
   background-color: var(--gscape-color-bg-subtle);
   box-shadow: 0 2px 10px 0 var(--gscape-color-border-default);
   border-radius: var(--gscape-border-radius);
-    border-top-left-radius: ;
-    border-top-right-radius: ;
-    border-bottom-right-radius: ;
-    border-bottom-left-radius: ;
+  width: fit-content;
+  min-width: 100px;
   scrollbar-width: thin;
   padding: 8px;
   animation-name: dropdown;
@@ -57,5 +55,29 @@ export default css`
 @keyframes dropdown {
   from {opacity: 0; position: relative; top: -10px;}
   to {opacity: 1;  position: initial; top: 0;}
+}
+
+.blank-slate {
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 230px;
+  padding: 12px;
+  text-align: center;
+}
+
+.blank-slate > svg {
+  height: 36px;
+  width: 36px;
+  margin-bottom: 12px;
+}
+
+.blank-slate > .header {
+  font-weight: 600;
+}
+
+.blank-slate > .description {
+  font-size: 12px;
+  color: var(--gscape-color-fg-subtle);
 }
 `
