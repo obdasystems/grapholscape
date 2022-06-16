@@ -22,13 +22,9 @@ export default class FloatyRenderState extends BaseRenderer {
   get renderer() { return super.renderer }
 
   runLayout(): void {
-    this.stopLayout()
+    this._layout?.stop()
     this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions)
     this._layout.run()
-
-    if (this.isLayoutInfinite) {
-      setTimeout(() => this.renderer.fit(), 1000)
-    }
   }
 
   render(): void {
@@ -45,6 +41,9 @@ export default class FloatyRenderState extends BaseRenderer {
 
     if (!floatyRepresentation.hasEverBeenRendered) {
       this.runLayout()
+      if (this.isLayoutInfinite) {
+        setTimeout(() => this.renderer.fit(), 1000)
+      }
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers()
     }
@@ -69,6 +68,9 @@ export default class FloatyRenderState extends BaseRenderer {
 
   stopLayout(): void {
     this._layout?.stop()
+    this.floatyLayoutOptions.infinite = false
+    this.floatyLayoutOptions.fit = true
+    console.log('stop')
   }
 
   runLayoutInfinitely() {

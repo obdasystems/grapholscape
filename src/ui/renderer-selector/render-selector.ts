@@ -3,24 +3,24 @@ import GscapeWidget from '../common/gscape-widget'
 import GscapeHeader from '../common/gscape-header'
 import GscapeButton from '../common/button'
 import { tune } from '../assets/icons'
-import * as renderers from '../../rendering/renderers'
 import getIconSlot from '../util/get-icon-slot'
 import baseStyle from '../style'
 import { RenderStatesEnum } from '../../model'
 import { RendererStates, RendererStateViewModel } from './controller'
+import { GscapeLayoutSettings } from './floaty-layout-settings'
+import { DropPanelMixin } from '../common/drop-panel-mixin'
 
 
 
-export default class GscapeRenderSelector extends LitElement {
+export default class GscapeRenderSelector extends DropPanelMixin(LitElement) {
   rendererStates: RendererStates
   actualRendererStateKey: RenderStatesEnum
   onRendererStateSelection: (rendererState: RenderStatesEnum) => void = () => {}
-  private layoutSettingsComponent
+  layoutSettingsComponent: GscapeLayoutSettings
 
   static properties: PropertyDeclarations = {
     actualRendererStateKey: { type: String, attribute: false },
     rendererStates: { type: Object, attribute: false }
-    // layoutSettingsComponent: { type: Object, attribute: false }
   }
 
   static styles?: CSSResultGroup = [
@@ -29,10 +29,13 @@ export default class GscapeRenderSelector extends LitElement {
       :host {
         order: 6;
         margin-top:10px;
+        border-radius: var(--gscape-border-radius-btn);
+        border: 1px solid var(--gscape-color-border-subtle);
+        background-color: var(--gscape-color-bg-subtle);
       }
 
       .gscape-panel-in-tray {
-        top:0;
+        top:10px;
         bottom: initial;
       }
     `
@@ -129,7 +132,18 @@ export default class GscapeRenderSelector extends LitElement {
 
   render() {
     return html`
-      <gscape-button @click="${this.togglePanel}">
+    ${this.actualRendererStateKey === RenderStatesEnum.FLOATY
+      ? html`
+          ${this.layoutSettingsComponent}
+          <div class="hr"></div>
+        `
+      : null
+    }
+
+      <gscape-button 
+        @click="${this.togglePanel}" 
+        type="subtle"
+      >
         <span slot="icon">${this.actualRendererState?.icon}</span>
       </gscape-button>
 
@@ -146,10 +160,6 @@ export default class GscapeRenderSelector extends LitElement {
         `)}
       </div>
     `
-  }
-
-  private togglePanel() {
-    this.shadowRoot?.querySelector('.gscape-panel')?.classList.toggle('hide')
   }
 
   private rendererSelectionHandler(e: Event) {

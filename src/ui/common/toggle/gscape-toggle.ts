@@ -135,10 +135,6 @@ export default class GscapeToggle extends LitElement {
     `
   }
 
-  get labelSpan() {
-    return html``
-  }
-
   // set state(state) {
   //   this._state = state
   //   this.checked = this.inverse ? !state : state

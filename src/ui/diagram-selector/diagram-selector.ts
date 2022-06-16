@@ -6,8 +6,9 @@ import getIconSlot from '../util/get-icon-slot'
 import { Diagram } from '../../model'
 import baseStyle from '../style'
 import '../common/list-item/action-list-item'
+import { DropPanelMixin } from '../common/drop-panel-mixin'
 
-export default class GscapeDiagramSelector extends LitElement {
+export default class GscapeDiagramSelector extends DropPanelMixin(LitElement) {
   diagrams: Diagram[]
   actualDiagramId: number
   onDiagramSelection: (diagramId: number) => void = () => {}
@@ -112,10 +113,6 @@ export default class GscapeDiagramSelector extends LitElement {
         
       </div>
     `
-  }
-
-  private togglePanel() {
-    this.shadowRoot?.querySelector('.gscape-panel')?.classList.toggle('hide')
   }
 
   private diagramSelectionHandler(e: Event) {

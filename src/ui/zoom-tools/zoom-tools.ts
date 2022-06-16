@@ -1,12 +1,14 @@
 import { html, css, LitElement } from 'lit'
 import { minus, plus } from '../assets/icons'
 import getIconSlot from '../util/get-icon-slot'
+import baseStyle from '../style'
 
 export default class GscapeZoomTools extends LitElement {
   private _onZoomIn: () => void
   private _onZoomOut: () => void
 
   static styles = [
+    baseStyle,
     css`
       :host {
         order: 1;

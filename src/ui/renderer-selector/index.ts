@@ -11,7 +11,7 @@ export { GscapeRenderSelector }
 export default function initRendererSelector(grapholscape: Grapholscape) {
   const rendererSelectorComponent = new GscapeRenderSelector()
   init(rendererSelectorComponent, grapholscape)
-  //rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape)
+  rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape)
   rendererSelectorComponent.requestUpdate()
   grapholscape.widgets.set('renderer-selector', rendererSelectorComponent)
 }

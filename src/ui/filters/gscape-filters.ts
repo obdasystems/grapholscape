@@ -7,8 +7,9 @@ import { DefaultFilterKeyEnum, Filter } from '../../model'
 import getIconSlot from '../util/get-icon-slot'
 import baseStyle from '../style'
 import GscapeToggle from '../common/toggle/gscape-toggle'
+import { DropPanelMixin } from '../common/drop-panel-mixin'
 
-export default class GscapeFilters extends LitElement {
+export default class GscapeFilters extends DropPanelMixin(LitElement) {
   filters: Map<string, Filter>
   filterAll: Filter = new Filter('all', () => false)
   onFilterOn: (filter: Filter) => void = () => { }
@@ -51,7 +52,8 @@ export default class GscapeFilters extends LitElement {
       }
 
       .hr {
-        margin: 4px 0;
+        margin-top: 4px;
+        margin-bottom: 4px;
       }
     `,
   ]
@@ -85,10 +87,6 @@ export default class GscapeFilters extends LitElement {
         ?checked = ${reverseState ? !filter.active : filter.active}
       ></gscape-toggle>
     `
-  }
-
-  private togglePanel() {
-    this.shadowRoot?.querySelector('.gscape-panel')?.classList.toggle('hide')
   }
 
   private getFilterLabel(filterKey: string) {
