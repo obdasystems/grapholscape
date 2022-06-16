@@ -10,6 +10,6 @@ export default class Annotation {
    this.property = property
    this.lexicalForm = lexicalForm
    this.language = language || UNDEFINED_LANGUAGE
-   this.datatype = datatype
+   this.datatype = datatype || ''
   }
 }

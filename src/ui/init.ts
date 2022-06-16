@@ -35,6 +35,7 @@ export default function (grapholscape: Grapholscape) {
   initZoomTools(grapholscape)
   initRendererSelector(grapholscape)
   initFilters(grapholscape)
+  initOntologyInfo(grapholscape)
 
 
   grapholscape.widgets.forEach((widget, key) => {
@@ -52,7 +53,7 @@ export default function (grapholscape: Grapholscape) {
       widget.onTogglePanel = () => blurAll([widget])
     }
   })
-  
+
   grapholscape.on(LifecycleEvent.BackgroundClick, blurAll)
 
   function blurAll(widgetsToSkip: HTMLElement[] = []) {

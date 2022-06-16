@@ -10,6 +10,8 @@ export default css`
   border-radius: var(--gscape-border-radius);
   width: fit-content;
   min-width: 130px;
+  max-height: 350px;
+  overflow: scroll;
   scrollbar-width: thin;
   padding: 8px;
   position: relative;
@@ -137,4 +139,10 @@ export default css`
   margin-top: 0;
   text-align: center;
 }
+
+.muted-text {
+  font-size: 10px;
+  color: var(--gscape-color-fg-muted);
+}
+
 `
