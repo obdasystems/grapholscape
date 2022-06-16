@@ -147,11 +147,15 @@ export default class Renderer {
   }
 
   private performAllFilters() {
-    /**
-       * Reapply filter when a new renderState is set
-       */
+    // first unfiler
     this.filters.forEach(filter => {
-      this.performFilter(filter, filter.active)
+      if (!filter.active)
+        this.performFilter(filter, filter.active)
+    })
+
+    this.filters.forEach(filter => {
+      if (filter.active)
+        this.performFilter(filter, filter.active)
     })
   }
 

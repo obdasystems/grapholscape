@@ -15,6 +15,7 @@ export default function (filterComponent: GscapeFilters, grapholscape: Grapholsc
   filterComponent.onFilterAll = () => {
     grapholscape.renderer.filters.forEach(filter => {
       grapholscape.filter(filter)
+      filter.active = true
     })
 
     filterComponent.filterAll.active = true
