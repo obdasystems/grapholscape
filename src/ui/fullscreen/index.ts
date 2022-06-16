@@ -2,6 +2,7 @@ import Grapholscape from "../../core/grapholscape"
 import { enterFullscreen, exitFullscreen } from "../assets/icons"
 import GscapeButton from '../common/button/'
 import getIconSlot from "../util/get-icon-slot"
+import { WidgetEnum } from "../util/widget-enum"
 
 /**
  * @param {import('../../grapholscape').default} grapholscape 
@@ -30,7 +31,7 @@ export default function initFullscreenButton(grapholscape : Grapholscape) {
     doc.webkitCancelFullScreen ||
     doc.msExitFullscreen
 
-  grapholscape.widgets.set('fullscreen-button', fullscreenComponent)
+  grapholscape.widgets.set(WidgetEnum.FULLSCREEN_BUTTON, fullscreenComponent)
 
   const container = grapholscape.container as any
 

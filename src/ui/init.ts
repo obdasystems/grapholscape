@@ -10,10 +10,12 @@ import initSettings from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
 import initZoomTools from "./zoom-tools";
 import initFitButton from "./fit-button";
-import { widgetEnum, widgetTagNames } from "./util/widget-enum";
+import { WidgetEnum, widgetTagNames } from "./util/widget-enum";
 import Grapholscape from "../core/grapholscape";
 import GscapeActionListItem from "./common/list-item/action-list-item";
 import GscapeToggle from "./common/toggle/gscape-toggle";
+import { LifecycleEvent } from "../model";
+import { hasDropPanel } from "./common/drop-panel-mixin";
 
 /**
  * Initialize the UI
@@ -36,19 +38,29 @@ export default function (grapholscape: Grapholscape) {
 
 
   grapholscape.widgets.forEach((widget, key) => {
-    switch(key) {
+    switch (key) {
       default:
         buttonsTray.appendChild(widget)
-        //widget.onToggleBody = () => blurAll(bottomContainer, [widget])
         break
 
       case 'fullscreen-button':
       case 'diagram-selector':
         guiContainer.appendChild(widget)
     }
+
+    if (hasDropPanel(widget)) {
+      widget.onTogglePanel = () => blurAll([widget])
+    }
   })
   
+  grapholscape.on(LifecycleEvent.BackgroundClick, blurAll)
 
+  function blurAll(widgetsToSkip: HTMLElement[] = []) {
+    grapholscape.widgets.forEach(widget => {
+      if (!widgetsToSkip.includes(widget))
+        widget.blur()
+    })
+  }
   // const init = () => {
   //   let gui_container = document.createElement('div')
   //   gui_container.setAttribute('id', 'gscape-ui')
@@ -73,7 +85,7 @@ export default function (grapholscape: Grapholscape) {
 
   //   let bottomContainer = bottomRightContainer()
   //   bottomContainer.setAttribute('id', 'gscape-ui-bottom-container')
-  
+
   //   Object.entries(grapholscape.widgets).forEach(widgetEntry => {
   //     const widget = widgetEntry[1]
   //     const widgetKey = widgetEntry[0]
@@ -101,7 +113,7 @@ export default function (grapholscape: Grapholscape) {
   //           grapholscape.widgets.SETTINGS.requestUpdate()
   //         }
   //       }
-  
+
   //       widget.onDisabled = () => {
   //         const configEntry = grapholscape.config.widgets[widgetEnum[widgetKey]]
   //         if (configEntry) {

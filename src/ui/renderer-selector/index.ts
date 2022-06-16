@@ -2,6 +2,7 @@ import GscapeRenderSelector from "./render-selector";
 import init from "./controller"
 import initLayoutSettings from "./floaty-layout-settings";
 import Grapholscape from "../../core/grapholscape";
+import { WidgetEnum } from "../util/widget-enum";
 
 export { GscapeRenderSelector }
 
@@ -13,5 +14,5 @@ export default function initRendererSelector(grapholscape: Grapholscape) {
   init(rendererSelectorComponent, grapholscape)
   rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape)
   rendererSelectorComponent.requestUpdate()
-  grapholscape.widgets.set('renderer-selector', rendererSelectorComponent)
+  grapholscape.widgets.set(WidgetEnum.RENDERER_SELECTOR, rendererSelectorComponent)
 }

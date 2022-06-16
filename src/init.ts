@@ -1,5 +1,6 @@
 import { loadConfig } from "./config/config-manager"
 import Grapholscape from "./core/grapholscape"
+import Ontology from "./model"
 import GrapholParser from "./parsing/parser"
 
 /**
@@ -20,7 +21,7 @@ export default function (file: string | Blob, container: HTMLElement, config): P
     config.theme.selected = lastUsedTheme && lastUsedTheme === config.theme?.id
   }
   return new Promise<Grapholscape>((resolve, reject) => {
-    let ontology = null
+    let ontology: Ontology
 
     if (typeof (file) === 'object') {
       let reader = new FileReader()

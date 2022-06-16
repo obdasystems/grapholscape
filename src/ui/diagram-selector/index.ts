@@ -1,6 +1,7 @@
 import GscapeDiagramSelector from "./diagram-selector";
 import init from './controller'
 import Grapholscape from "../../core/grapholscape";
+import { WidgetEnum } from "../util/widget-enum";
 
 export { GscapeDiagramSelector }
 
@@ -10,5 +11,5 @@ export { GscapeDiagramSelector }
 export default function initDiagramSelector(grapholscape: Grapholscape) {
   const diagramSelectorComponent = new GscapeDiagramSelector()
   init(diagramSelectorComponent, grapholscape)
-  grapholscape.widgets.set('diagram-selector', diagramSelectorComponent)
+  grapholscape.widgets.set(WidgetEnum.DIAGRAM_SELECTOR, diagramSelectorComponent)
 }
