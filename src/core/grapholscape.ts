@@ -2,6 +2,7 @@ import Ontology from "../model"
 import Lifecycle, { LifecycleEvent } from "../model/lifecycle"
 import RenderState from "../model/renderers/i-render-state"
 import GrapholscapeTheme from "../model/theme"
+import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import Renderer from "./rendering"
@@ -21,7 +22,7 @@ export default class Grapholscape {
   private displayedNamesManager = new DisplayedNamesManager(this)
   lite: LiteRendererState
   floaty: FloatyRenderState
-  widgets: Map<string, HTMLElement> = new Map()
+  widgets: Map<WidgetEnum, HTMLElement> = new Map()
 
   constructor(ontology: Ontology, container: HTMLElement) {
     this.ontology = ontology
@@ -40,6 +41,8 @@ export default class Grapholscape {
       console.warn(`Can't find any diagram with id="${diagramId}"`)
       return
     }
+
+    this.entityNavigator.setGraphEventHandlers(diagram)
 
     const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
       ?.representations.get(this.renderState)?.hasEverBeenRendered
@@ -128,5 +131,5 @@ export default class Grapholscape {
 
   // -------------------------------- UI -------------------------------- //
   get uiContainer() { return this.container.querySelector('.gscape-ui') }
-  get buttonsTray() { return this.uiContainer?.querySelector('.gscape-ui-buttons-tray')}
+  get buttonsTray() { return this.uiContainer?.querySelector('.gscape-ui-buttons-tray') }
 }

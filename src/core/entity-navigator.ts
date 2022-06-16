@@ -2,7 +2,7 @@ import { LifecycleEvent } from "../model/lifecycle"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
 import { isGrapholNode } from "../model/graphol-elems/node"
 import Grapholscape from "./grapholscape"
-import { RenderStatesEnum } from "../model"
+import { Diagram, DiagramRepresentation, RenderStatesEnum } from "../model"
 import { EntityOccurrence } from "../model/graphol-elems/entity"
 
 export default class EntityNavigator {
@@ -33,7 +33,7 @@ export default class EntityNavigator {
 
     // Search any original graphol occurrence in the actual representation
     for (let grapholOccurrence of grapholOccurrences) {
-      if (actualDiagramRepresentation.grapholElements.has(grapholOccurrence.elementId)) {
+      if (actualDiagramRepresentation?.grapholElements.has(grapholOccurrence.elementId)) {
         this._performCenterSelect(grapholOccurrence, select, zoom)
         return
       }
@@ -43,7 +43,7 @@ export default class EntityNavigator {
     // Find first replicated occurrence
     const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState)
 
-    if (replicatedOccurrences.length > 0) {
+    if (replicatedOccurrences && replicatedOccurrences.length > 0) {
       this._performCenterSelect(replicatedOccurrences[0], select, zoom)
     }
   }
@@ -62,6 +62,8 @@ export default class EntityNavigator {
         occurrence.diagramId,
         this._grapholscape.renderState
       )
+
+      if (!grapholElement) return
 
       if (isGrapholNode(grapholElement)) {
         this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement)
@@ -82,7 +84,7 @@ export default class EntityNavigator {
 
         originalOccurrences?.forEach(occurrence => {
           const newOccurrences = replicatedElements.filter(elem =>
-            representation.grapholElements.get(elem.id()).originalId === occurrence.elementId
+            representation.grapholElements.get(elem.id())?.originalId === occurrence.elementId
           )
 
           if (!newOccurrences.empty()) {
@@ -94,5 +96,53 @@ export default class EntityNavigator {
         })
       }
     }
+  }
+
+  setGraphEventHandlers(diagram: Diagram) {
+
+    diagram.representations.forEach(diagramRepresentation => {
+      if (diagramRepresentation.hasEverBeenRendered) return
+
+      const cy = diagramRepresentation.cy
+      const container = diagramRepresentation.cy.container()
+      cy.on('select', e => {
+        const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
+        
+        if (grapholElement) {
+          if (grapholElement.isEntity()) {
+            const grapholEntity = this._grapholscape.ontology.getEntity(e.target.data().iri)
+            if (grapholEntity) {
+              this._grapholscape.lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)
+            }
+          } else {
+            if (isGrapholNode(grapholElement)) {
+              this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement)
+            }
+
+            if (isGrapholEdge(grapholElement)) {
+              this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement)
+            }
+          }
+        }
+      })
+
+      cy.on('tap', evt => {
+        if (evt.target === cy) {
+          this._grapholscape.lifecycle.trigger(LifecycleEvent.BackgroundClick)
+        }
+      })
+      
+      cy.on('mouseover', '*', e => {
+        if (container) {
+          container.style.cursor = 'pointer'
+        }
+      })
+
+      cy.on('mouseout', '*', e => {
+        if (container) {
+          container.style.cursor = 'inherit'
+        }
+      })
+    })
   }
 }

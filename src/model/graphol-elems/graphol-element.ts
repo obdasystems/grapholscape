@@ -61,7 +61,8 @@ export default class GrapholElement {
         id: this.id,
         type: this.type || undefined,
         displayedName: this.displayedName || undefined,
-        originalId: this.originalId || undefined
+        originalId: this.originalId || undefined,
+        iri: grapholEntity?.iri.fullIri,
       }
     }
 

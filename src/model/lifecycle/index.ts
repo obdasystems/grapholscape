@@ -2,6 +2,7 @@ import { Filter } from "..";
 import { Diagram } from "..";
 import GrapholEdge from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
+import GrapholElement from "../graphol-elems/graphol-element";
 import GrapholNode from "../graphol-elems/node";
 import { RenderStatesEnum } from "../renderers/i-render-state";
 import { EntityNameType, Language } from "../state";
@@ -20,10 +21,11 @@ export enum LifecycleEvent {
   Unfilter = 'unfilter',
   FilterRequest = 'filterRequest',
   UnfilterRequest = 'unfilterRequest',
+  BackgroundClick = 'backgroundClick',
 }
 
 interface IonEvent {
-  (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity) => void): void;
+  (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void;
   (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void;
   (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void;
   (event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void;
@@ -34,6 +36,7 @@ interface IonEvent {
   (event: LifecycleEvent.Unfilter, callback: (filter: Filter) => void): void;
   (event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void;
   (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void;
+  (event: LifecycleEvent.BackgroundClick, callback: () => void): void;
 }
 
 export default class Lifecycle {
@@ -49,11 +52,12 @@ export default class Lifecycle {
   private unfilter: ((filter: Filter) => void)[] = []
   private filterRequest: ((filter: Filter) => boolean) = () => true
   private unfilterRequest: ((filter: Filter) => boolean) = () => true
+  private backgroundClick: (() => void)[] = []
 
 
   constructor() { }
 
-  trigger(event: LifecycleEvent.EntitySelection, entity: GrapholEntity): void
+  trigger(event: LifecycleEvent.EntitySelection, entity: GrapholEntity, instance: GrapholElement): void
   trigger(event: LifecycleEvent.NodeSelection, node: GrapholNode): void
   trigger(event: LifecycleEvent.EdgeSelection, edge: GrapholEdge): void
   trigger(event: LifecycleEvent.ThemeChange, theme: GrapholscapeTheme): void
@@ -65,6 +69,7 @@ export default class Lifecycle {
   trigger(event: LifecycleEvent.Unfilter, filter: Filter): void
   trigger(event: LifecycleEvent.FilterRequest, filter: Filter): boolean
   trigger(event: LifecycleEvent.UnfilterRequest, filter: Filter): boolean
+  trigger(event: LifecycleEvent.BackgroundClick): void
   trigger(event: string, ...params: any): any {
 
     if (event === LifecycleEvent.FilterRequest || event === LifecycleEvent.UnfilterRequest) {
