@@ -1,7 +1,7 @@
 import Ontology from '../model'
 import { AnnotationsKind } from '../model/annotated-element'
 import Annotation from '../model/graphol-elems/annotation'
-import { Functionalities } from '../model/graphol-elems/entity'
+import { FunctionalityEnum } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
 
@@ -99,7 +99,7 @@ export function getFacetDisplayedName(element:Element) {
 }
 
 export function getFunctionalities(element: Element, xmlDocument: XMLDocument) {
-  let result: Functionalities[] = []
+  let result: FunctionalityEnum[] = []
   const labelNoBreak = element.getElementsByTagName('label')[0].textContent.replace(/\n/g, '')
 
   // for searching predicates' functionalities in graphol v2
@@ -108,7 +108,7 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument) {
   for (let predicateXml of xmlPredicates) {
     if (labelNoBreak === predicateXml.getAttribute('name') && type === predicateXml.getAttribute('type')) {
 
-      Object.values(Functionalities).forEach(functionalityKind => {
+      Object.values(FunctionalityEnum).forEach(functionalityKind => {
         const value = parseInt(predicateXml.getElementsByTagName(functionalityKind)[0]?.textContent) || 0
 
         if (value !== 0)

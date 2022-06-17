@@ -256,7 +256,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     const inputNodesNotConcepts = node.incomers(`edge`)
       .filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
       .sources()
-      .filter(node => !this.getGrapholElement(node.id()).is(GrapholTypesEnum.CONCEPT))
+      .filter(node => !this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS))
 
     return !inputNodesNotConcepts.empty()
   }
@@ -271,7 +271,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       let allInputClasses = node.cy().collection()
 
       let inputEdges = node.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
-      allInputClasses = allInputClasses.union(inputEdges.sources().filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.CONCEPT)))
+      allInputClasses = allInputClasses.union(inputEdges.sources().filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS)))
 
       inputEdges.sources().difference(allInputClasses).forEach(constructor => {
         allInputClasses = allInputClasses.union(getAllInputClasses(constructor))

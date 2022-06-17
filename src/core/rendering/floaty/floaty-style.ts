@@ -15,7 +15,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[type = "${GrapholTypesEnum.CONCEPT}"]`,
+      selector: `[type = "${GrapholTypesEnum.CLASS}"]`,
       style: {
         'text-margin-x': 0,
         'text-margin-y': 0,

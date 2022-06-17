@@ -263,7 +263,7 @@ export function getGraphStyle(theme: GrapholTheme) {
     },
 
     {
-      selector: `.${GrapholTypesEnum.CONCEPT}`,
+      selector: `.${GrapholTypesEnum.CLASS}`,
       style: {
         'background-color': theme.getColour(ColoursNames.concept),
         'border-color': theme.getColour(ColoursNames.concept_dark),

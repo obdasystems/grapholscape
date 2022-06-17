@@ -5,11 +5,13 @@ const animationDuration = css`200ms`
 
 export default css`
 .gscape-panel {
+  font-size: 12px;
   background-color: var(--gscape-color-bg-subtle);
   box-shadow: 0 2px 10px 0 var(--gscape-color-border-default);
   border-radius: var(--gscape-border-radius);
   width: fit-content;
   min-width: 130px;
+  max-width: 350px;
   max-height: 350px;
   overflow: scroll;
   scrollbar-width: thin;
@@ -49,7 +51,6 @@ export default css`
 .selected-item::before {
   content: '.';
   position: static;
-  line-height: 24px;
   background-color: var(--gscape-color-accent-emphasis);
   color: var(--gscape-color-accent-emphasis);
   border-radius: var(--gscape-border-radius);
@@ -144,5 +145,19 @@ export default css`
   font-size: 10px;
   color: var(--gscape-color-fg-muted);
 }
+
+.ellipsed, .ellipsed * {
+  overflow-x: hidden;
+  text-overflow: ellipsis ellipsis;
+}
+
+.bold-text {
+  font-weight: 600;
+}
+
+select:focus {
+  border-color: var(--gscape-color-accent-fg);
+}
+
 
 `

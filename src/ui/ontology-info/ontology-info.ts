@@ -3,10 +3,11 @@ import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIri
 import { info_outline } from '../assets/icons'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle from '../style'
-import { Namespace } from '../../model'
+import { Annotation, Namespace } from '../../model'
 
 export type OntologyViewModel = ViewItemWithIri & {
   namespaces: Namespace[],
+  annotations: Annotation[],
 }
 
 export default class GscapeOntologyInfo extends DropPanelMixin(LitElement) {
@@ -27,6 +28,7 @@ export default class GscapeOntologyInfo extends DropPanelMixin(LitElement) {
       .gscape-panel {
         padding:0;
         font-size: 12px;
+        min-height: 200px;
       }
 
       .gscape-panel > * {
@@ -52,20 +54,11 @@ export default class GscapeOntologyInfo extends DropPanelMixin(LitElement) {
       }
       
       table > caption {
+        margin-top: 8px;
         font-weight: 600;
       }
     `,
   ]
-
-
-  // constructor(ontology) {
-  //   super()
-  //   this.collapsible = true
-  //   this.ontology = ontology
-
-  //   this.btn = new GscapeButton(info_outline, 'Ontology Info')
-  //   this.btn.onClick = this.toggleBody.bind(this)
-  // }
 
   render() {
     return html`
@@ -73,7 +66,7 @@ export default class GscapeOntologyInfo extends DropPanelMixin(LitElement) {
         <span slot="icon">${info_outline}</span>
       </gscape-button>  
 
-      <div class="gscape-panel gscape-panel-in-tray hide">
+      <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
         <div class="header" style="display: none">Ontology Info</div>
 
         ${itemWithIriTemplate(this.ontology)}
@@ -109,27 +102,6 @@ export default class GscapeOntologyInfo extends DropPanelMixin(LitElement) {
       </table>
     `
   }
-
-  // updated() {
-  //   if (this.ontology.description) {
-  //     let descr_container
-  //     let text
-  //     Object.keys(this.ontology.description).forEach( language => {
-  //       text = ''
-  //       descr_container = this.shadowRoot.querySelector(`[lang = "${language}"] > .descr-text`)
-  //       this.ontology.description[language].forEach((comment, i) => {
-  //         i > 0 ?
-  //           text += '<p>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</p>' :
-  //           text += comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')
-  //       })
-  //       descr_container.innerHTML = text
-  //     })
-  //   }
-  // }
-
-  // show() {
-  //   if (this.isEnabled) this.style.display = 'inline-block'
-  // }
 }
 
 customElements.define('gscape-ontology-info', GscapeOntologyInfo)

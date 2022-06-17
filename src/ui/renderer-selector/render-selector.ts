@@ -147,7 +147,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(LitElement) {
         <span slot="icon">${this.actualRendererState?.icon}</span>
       </gscape-button>
 
-      <div class="gscape-panel gscape-panel-in-tray drop-left hide">
+      <div class="gscape-panel gscape-panel-in-tray drop-left hide" id="drop-panel">
         ${Object.entries(this.rendererStates).map(([key, rendererState]) => html`
           <gscape-action-list-item
             @click=${this.rendererSelectionHandler}

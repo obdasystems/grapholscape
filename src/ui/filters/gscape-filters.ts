@@ -64,7 +64,7 @@ export default class GscapeFilters extends DropPanelMixin(LitElement) {
         ${getIconSlot('icon', filterIcon)}
       </gscape-button>
 
-      <div class="gscape-panel gscape-panel-in-tray hide">
+      <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
         <div class="header">Filters</div>
 
         <div class="filters-wrapper">

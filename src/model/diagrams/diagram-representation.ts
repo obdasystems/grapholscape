@@ -45,7 +45,7 @@ export default class DiagramRepresentation {
   updateElement(element: GrapholElement): void
   updateElement(elementId: string): void
   updateElement(elementIdOrObj: string | GrapholElement) {
-    let grapholElement: GrapholElement
+    let grapholElement: GrapholElement | undefined
     if (typeof elementIdOrObj === 'string') {
       grapholElement = this.grapholElements.get(elementIdOrObj)
     } else {

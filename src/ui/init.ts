@@ -36,6 +36,7 @@ export default function (grapholscape: Grapholscape) {
   initRendererSelector(grapholscape)
   initFilters(grapholscape)
   initOntologyInfo(grapholscape)
+  initEntityDetails(grapholscape)
 
 
   grapholscape.widgets.forEach((widget, key) => {
@@ -44,8 +45,9 @@ export default function (grapholscape: Grapholscape) {
         buttonsTray.appendChild(widget)
         break
 
-      case 'fullscreen-button':
-      case 'diagram-selector':
+      case WidgetEnum.FULLSCREEN_BUTTON:
+      case WidgetEnum.DIAGRAM_SELECTOR:
+      case WidgetEnum.ENTITY_DETAILS:
         guiContainer.appendChild(widget)
     }
 

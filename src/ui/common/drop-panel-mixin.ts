@@ -17,7 +17,7 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
 
   class DropPanelMixinClass extends superClass {
 
-    protected get panel() { return this.shadowRoot?.querySelector('.gscape-panel') }
+    protected get panel() { return this.shadowRoot?.querySelector('#drop-panel') }
 
     protected togglePanel() {
       this.panel?.classList.toggle('hide')

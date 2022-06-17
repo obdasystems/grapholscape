@@ -232,7 +232,7 @@ export default function(theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.CONCEPT}"]`,
+      selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
       style: {
         'background-color': theme.getColour(ColoursNames.concept),
         'border-color': theme.getColour(ColoursNames.concept_dark),

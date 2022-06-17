@@ -6,11 +6,12 @@ export default class GscapeActionListItem extends LitElement {
   label: string
   selected: boolean
   private expanded = false
+  subtle: boolean // do not add left selected mark
   
 
   static properties: PropertyDeclarations = {
     label: { type: String, reflect: true },
-    selectable: { type: Boolean },
+    subtle: { type: Boolean },
     selected: { type: Boolean },
     expanded: { state: true }
   }
@@ -19,10 +20,10 @@ export default class GscapeActionListItem extends LitElement {
 
   render() {
     return html`
-      <li class="list-item ${this.selected ? 'selected-item' : null}" @click=${this.clickHandler}>
+      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null}" @click=${this.clickHandler}>
         <div class="list-item actionable" @click=${this.clickHandler}>
           <slot name="icon" class="slotted-icon" ></slot>
-          <span>${this.label}</span>
+          <span class="list-item-label">${this.label}</span>
           <slot name="trailing-icon" class="slotted-icon" ></slot>
 
           ${this.expanded

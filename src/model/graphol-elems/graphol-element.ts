@@ -1,6 +1,6 @@
 import { ElementDefinition } from "cytoscape"
 import { GrapholTypesEnum } from "./node-enums"
-import GrapholEntity, { Functionalities } from "./entity"
+import GrapholEntity, { FunctionalityEnum } from "./entity"
 
 export default class GrapholElement {
   // The id coming from xml
@@ -45,7 +45,7 @@ export default class GrapholElement {
    */
   isEntity(): boolean {
     switch (this.type) {
-      case GrapholTypesEnum.CONCEPT:
+      case GrapholTypesEnum.CLASS:
       case GrapholTypesEnum.DATA_PROPERTY:
       case GrapholTypesEnum.OBJECT_PROPERTY:
       case GrapholTypesEnum.INDIVIDUAL:
@@ -68,8 +68,8 @@ export default class GrapholElement {
 
     // Set functionality for data/object properties
     if (grapholEntity?.is(GrapholTypesEnum.DATA_PROPERTY) || grapholEntity?.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
-      result.data[Functionalities.functional] = grapholEntity.hasFunctionality(Functionalities.functional)
-      result.data[Functionalities.inverseFunctional] = grapholEntity.hasFunctionality(Functionalities.inverseFunctional)
+      result.data[FunctionalityEnum.functional] = grapholEntity.hasFunctionality(FunctionalityEnum.functional)
+      result.data[FunctionalityEnum.inverseFunctional] = grapholEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)
     }
     return [result]
   }

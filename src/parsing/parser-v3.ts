@@ -2,7 +2,7 @@
 
 import Ontology from '../model'
 import Annotation from '../model/graphol-elems/annotation'
-import { Functionalities } from '../model/graphol-elems/entity'
+import { FunctionalityEnum } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
 import { GrapholTypesEnum } from '../model/graphol-elems/node-enums'
@@ -92,10 +92,10 @@ export function getFacetDisplayedName(element: Element, ontology: Ontology) {
  * Returns an object with annotations, description and the properties (functional, etc..) for DataProperties
  * @param {Element} element 
  * @param {Element} xmlDocument 
- * @returns {Functionalities[]}
+ * @returns {FunctionalityEnum[]}
  */
-export function getFunctionalities(element: Element, xmlDocument: XMLDocument): Functionalities[] {
-  let result: Functionalities[] = []
+export function getFunctionalities(element: Element, xmlDocument: XMLDocument): FunctionalityEnum[] {
+  let result: FunctionalityEnum[] = []
   let actual_iri_elem = getIriElem(element, xmlDocument)
 
   const elementType = element.getAttribute('type')
@@ -103,7 +103,7 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument): 
     if (actual_iri_elem && actual_iri_elem.children) {
       for (let property of actual_iri_elem.children) {
 
-        const functionality = Object.values(Functionalities).find(f => f.toString() === property.tagName)
+        const functionality = Object.values(FunctionalityEnum).find(f => f.toString() === property.tagName)
         if (functionality) {
           result.push(functionality)
         }

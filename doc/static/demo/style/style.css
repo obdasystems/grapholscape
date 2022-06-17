@@ -79,7 +79,17 @@
   --gscape-color-danger-muted: rgba(255, 129, 130, 0.4);
   --gscape-color-danger-subtle: #FFEBE9;
 
-  --gscape-color-concept: #F9F3A6;
+  --gscape-color-class: #F9F3A6;
+  --gscape-color-class-contrast: #B08D00;
+
+  --gscape-color-object-property: #AACDE1;
+  --gscape-color-object-property-contrast: #065A85;
+
+  --gscape-color-data-property: #C7DAAD;
+  --gscape-color-data-property-contrast: #4B7900;
+
+  --gscape-color-individual: #d3b3ef;
+  --gscape-color-individual-contrast: #9875b7;
 
   --gscape-border-radius: 8px;
   --gscape-border-radius-btn: 6px;

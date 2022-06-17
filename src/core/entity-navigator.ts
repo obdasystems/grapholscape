@@ -104,7 +104,7 @@ export default class EntityNavigator {
       if (diagramRepresentation.hasEverBeenRendered) return
 
       const cy = diagramRepresentation.cy
-      const container = diagramRepresentation.cy.container()
+      
       cy.on('select', e => {
         const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
         
@@ -133,12 +133,14 @@ export default class EntityNavigator {
       })
       
       cy.on('mouseover', '*', e => {
+        const container = cy.container()
         if (container) {
           container.style.cursor = 'pointer'
         }
       })
 
       cy.on('mouseout', '*', e => {
+        const container = cy.container()
         if (container) {
           container.style.cursor = 'inherit'
         }

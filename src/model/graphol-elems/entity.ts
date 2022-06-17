@@ -3,7 +3,7 @@ import { RenderStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import { GrapholTypesEnum } from "./node-enums"
 
-export enum Functionalities {
+export enum FunctionalityEnum {
   functional = 'functional',
   inverseFunctional = 'inverseFunctional',
   transitive = 'transitive',
@@ -22,7 +22,7 @@ export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
   private _occurrences: Map<RenderStatesEnum, EntityOccurrence[]> = new Map([[RenderStatesEnum.GRAPHOL, []]])
   private _type: GrapholTypesEnum
-  private _functionalities?: Functionalities[]
+  private _functionalities: FunctionalityEnum[] = []
 
   constructor(iri: Iri, type: GrapholTypesEnum) {
     super()
@@ -35,7 +35,7 @@ export default class GrapholEntity extends AnnotatedElement {
       this.occurrences.set(representationKind, [])
     }
 
-    this.occurrences.get(representationKind).push({
+    this.occurrences.get(representationKind)?.push({
       elementId: occurenceId,
       diagramId: diagramId,
     })
@@ -52,7 +52,10 @@ export default class GrapholEntity extends AnnotatedElement {
   getOccurrencesByDiagramId(diagramId: number, representationKind?: RenderStatesEnum): Map<RenderStatesEnum, EntityOccurrence[]> {
     const result = new Map<RenderStatesEnum, EntityOccurrence[]>()
     if (representationKind) {
-      result.set(representationKind, this.occurrences.get(representationKind).filter(occ => occ.diagramId === diagramId))
+      const occurrences = this.occurrences.get(representationKind)
+      if (occurrences) {
+        result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId))
+      }
     } else {
       for (let [representationKind, occurrences] of this.occurrences) {
         result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId))
@@ -94,13 +97,14 @@ export default class GrapholEntity extends AnnotatedElement {
     this._functionalities = functionalities
   }
 
-  public hasFunctionality(functionalityKind: Functionalities) {
-    return this._functionalities?.includes(functionalityKind)
+  public hasFunctionality(functionalityKind: FunctionalityEnum) {
+    return this._functionalities?.includes(functionalityKind) || false
   }
 
   public hasOccurrenceInDiagram(diagramId: number, representationKind: RenderStatesEnum) {
     if (representationKind) {
-      return this.occurrences.get(representationKind).some(occ => occ.diagramId === diagramId)
+      const result = this.occurrences.get(representationKind)?.some(occ => occ.diagramId === diagramId)
+      return result === true
     }
 
     for (let occurrenceInRepresentation of this.occurrences.values()) {
@@ -108,5 +112,7 @@ export default class GrapholEntity extends AnnotatedElement {
         return true
       }
     }
+
+    return false
   }
 }

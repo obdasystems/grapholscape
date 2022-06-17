@@ -84,7 +84,7 @@ export default class GscapeDiagramSelector extends DropPanelMixin(LitElement) {
         ${getIconSlot('trailing-icon', arrowDown)}
       </gscape-button>
 
-      <div class="gscape-panel drop-down hide">
+      <div class="gscape-panel drop-down hide" id="drop-panel">
         ${this.diagrams.length === 1 && this.actualDiagramId === 0
           ? html`
             <div class="blank-slate">

@@ -1,39 +1,17 @@
 /** 
  * Node types in a Graphol ontology
- * @enum {string}
- * @property {string} CONCEPT concept
- * @property {string} DOMAIN_RESTRICTION domain-restriction
- * @property {string} RANGE_RESTRICTION range-restriction
- * @property {string} OBJECT_PROPERTY role
- * @property {string} DATA_PROPERTY attribute
- * @property {string} UNION union
- * @property {string} DISJOINT_UNION disjoint-union
- * @property {string} COMPLEMENT complement
- * @property {string} INTERSECTION intersection
- * @property {string} ENUMERATION enumeration
- * @property {string} KEY has-key
- * @property {string} ROLE_INVERSE role-inverse
- * @property {string} ROLE_CHAIN role-chain
- * @property {string} DATATYPE_RESTRICTION datatype-restriction
- * @property {string} VALUE_DOMAIN value-domain
- * @property {string} PROPERTY_ASSERTION property-assertion
- * @property {string} LITERAL literal
- * @property {string} INDIVIDUAL individual
- * @property {string} FACET facet
- * @property {string} NEUTRAL neutral
- * @property {string} VALUE value
  */
 export enum GrapholTypesEnum {
-  /** @type {"concept"} */
-  CONCEPT = 'concept',
+  /** @type {"class"} */
+  CLASS = 'class',
   /** @type {"domain-restriction"} */
   DOMAIN_RESTRICTION = 'domain-restriction',
   /** @type {"range-restriction"} */
   RANGE_RESTRICTION = 'range-restriction',
   /** @type {"role"} */
-  OBJECT_PROPERTY = 'role',
-  /** @type {"attribute"} */
-  DATA_PROPERTY = 'attribute',
+  OBJECT_PROPERTY = 'object-property',
+  /** @type {"data property"} */
+  DATA_PROPERTY = 'data-property',
   /** @type {"union"} */
   UNION = 'union',
   /** @type {"disjoint-union"} */
@@ -118,15 +96,15 @@ export const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1'
  * @type {object} 
  */
 export default {
-  CONCEPT : {
-    TYPE : GrapholTypesEnum.CONCEPT,
+  CLASS : {
+    TYPE : GrapholTypesEnum.CLASS,
     SHAPE : Shape.RECTANGLE,
-    IDENTITY : GrapholTypesEnum.CONCEPT
+    IDENTITY : GrapholTypesEnum.CLASS
   },
   DOMAIN_RESTRICTION : {
     TYPE : GrapholTypesEnum.DOMAIN_RESTRICTION,
     SHAPE : Shape.RECTANGLE,
-    IDENTITY : GrapholTypesEnum.CONCEPT,
+    IDENTITY : GrapholTypesEnum.CLASS,
   },
   RANGE_RESTRICTION : {
     TYPE : GrapholTypesEnum.RANGE_RESTRICTION,

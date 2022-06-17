@@ -7,20 +7,19 @@ export default css`
   font-family: inherit;
   white-space: nowrap;
   cursor: pointer;
-  appearance: none;
   user-select: none;
   text-decoration: none;
   text-align: center;
   background-color: var(--gscape-color-bg-subtle);
   box-shadow: rgba(27, 31, 36, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
   line-height: 20px;
-  display: grid;
+  display: inline-flex;
   position: relative;
   z-index:10;
+  color: inherit;
 }
 
 .btn[label] {
-  grid-template-columns: auto auto auto;
   gap: 8px;
   justify-content: center;
 }
@@ -49,8 +48,8 @@ export default css`
 }
 
 .btn-s[label] {
-  padding-left: 4px;
-  padding-right: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 
@@ -70,8 +69,8 @@ export default css`
 }
 
 .btn-l[label] {
-  padding-left: 36px;
-  padding-right: 36px;
+  padding-left: 32px;
+  padding-right: 32px;
 }
 
 .btn.primary, .primary-box {
