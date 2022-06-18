@@ -5,6 +5,8 @@ import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle from '../style'
 import { GscapeButtonStyle } from '../common/button'
 import GscapeSelect from '../common/gscape-select'
+import { infoFilled, minus, plus } from '../assets/icons'
+import { EntityOccurrence } from '../../model/graphol-elems/entity'
 
 type DiagramViewData = { id: number, name: string }
 
@@ -12,11 +14,13 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
   grapholEntity: GrapholEntity
   diagramNames: DiagramViewData[] = []
   language: string
+  onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
 
   static get properties() {
     return {
       grapholEntity: { type: Object, attribute: false },
-      language: { type: String, attribute: false }
+      language: { type: String, attribute: false },
+      _isPanelClosed: { type : Boolean, attribute: false}
     }
   }
 
@@ -66,6 +70,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
 
       .comment {
         margin: 8px 0;
+        display: block;
       }
 
       .section-body {
@@ -75,12 +80,24 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
       .section-header {
         margin-bottom: 4px;
       }
+
+      .top-bar {
+        display: flex;
+        flex-direction: row-reverse;
+        line-height: 1;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+
+      .item-with-iri-info {
+        padding-top: 12px;
+      }
     `
   ]
 
   render() {
     if (!this.grapholEntity) return
-    console.log(this.commentsLanguages)
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
         ${itemWithIriTemplate(this.entityForTemplate)}
@@ -125,6 +142,23 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
           : null
         }
       </div>
+      <div class="top-bar">
+        <gscape-button 
+          id="toggle-panel-button"
+          size="${this.isPanelClosed() ? 'm' : 's'}" 
+          type="${this.isPanelClosed() ? '' : 'subtle'}"
+          @click=${this.togglePanel}
+          label = "${this.isPanelClosed() ? 'Entity Details' : ''}"
+        > 
+          ${this.isPanelClosed()
+            ? html`
+              <span slot="icon">${infoFilled}</span>
+              <span slot="trailing-icon">${plus}</span>
+            `
+            : html`<span slot="icon">${minus}</span>`
+          }
+        </gscape-button>
+      </div>
     `
   }
 
@@ -150,7 +184,12 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
               <div diagram-id="${diagram.id}">
                 <span class="diagram-name">${diagram.name}</span>
                 ${occurrencesIds.map(occurrenceId => html`
-                  <gscape-button label="${occurrenceId}" type="subtle" size="s"></gscape-button>
+                  <gscape-button
+                    label="${occurrenceId}"
+                    type="subtle"
+                    size="s"
+                    @click=${this.nodeNavigationHandler}
+                  ></gscape-button>
                 `)}
               </div>
             `
@@ -160,12 +199,39 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
     `
   }
 
+  show() {
+    this.style.display = 'initial'
+  }
 
+  hide() {
+    this.style.display = 'none'
+  }
+
+  // override blur to avoid collapsing when clicking on cytoscape's canvas
+  blur() { }
+
+  private nodeNavigationHandler(e) {
+    const target = e.target as HTMLElement
+    const diagramId = target.parentElement?.getAttribute('diagram-id')
+    const elementId = target.getAttribute('label')
+
+    if (!diagramId || ! elementId) return
+
+    this.onNodeNavigation({
+      diagramId: parseInt(diagramId),
+      elementId: elementId
+    })
+  }
+
+  protected togglePanel = () => {
+    super.togglePanel()
+    this.requestUpdate()
+  }
   private languageSelectionHandler(e) {
     this.language = e.target.value
   }
 
-  get entityForTemplate() {
+  private get entityForTemplate() {
     const result: ViewItemWithIri = {
       name: this.grapholEntity.iri.remainder,
       typeOrVersion: this.grapholEntity.type.toString(),
@@ -176,6 +242,10 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
 
   private get commentsLanguages() {
     return Array.from(new Set(this.grapholEntity.getComments().map(comment => comment.language)))
+  }
+
+  private get _isPanelClosed() {
+    return this.isPanelClosed()
   }
 
   // constructor() {

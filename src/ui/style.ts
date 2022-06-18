@@ -142,7 +142,6 @@ export default css`
 }
 
 .muted-text {
-  font-size: 10px;
   color: var(--gscape-color-fg-muted);
 }
 

@@ -75,12 +75,12 @@ export default class Grapholscape {
   }
 
   // TODO: Evaluate if this should part of public api
-  // centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
-  //   if (diagramId && this.diagramId !== diagramId)
-  //     this.showDiagram(diagramId)
+  centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
+    if (diagramId && this.diagramId !== diagramId)
+      this.showDiagram(diagramId)
 
-  //   this.renderer.centerOnElementById(elementId, zoom)
-  // }
+    this.renderer.centerOnElementById(elementId, zoom)
+  }
 
   // ------------------------- ENTITY NAVIGATOR ------------------------- //
   /** @borrows this.entityNavigator.centerOnEntity as this.centerOnEntity */

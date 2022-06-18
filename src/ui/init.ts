@@ -1,5 +1,5 @@
 import initDiagramSelector from "./diagram-selector";
-import initEntityDetails from "./entity-details";
+import initEntityDetails, { GscapeEntityDetails } from "./entity-details";
 import initFilters from "./filters";
 import initFullscreenButton from "./fullscreen";
 import initOntologyExplorer from "./ontology-explorer";
@@ -52,16 +52,26 @@ export default function (grapholscape: Grapholscape) {
     }
 
     if (hasDropPanel(widget)) {
-      widget.onTogglePanel = () => blurAll([widget])
+      widget.onTogglePanel = () => {
+        const entityDetailsComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS)
+        if (entityDetailsComponent) {
+          blurAll([widget, entityDetailsComponent])
+        } else {
+          blurAll([widget])
+        }
+      }
     }
   })
 
   grapholscape.on(LifecycleEvent.BackgroundClick, blurAll)
 
   function blurAll(widgetsToSkip: HTMLElement[] = []) {
-    grapholscape.widgets.forEach(widget => {
-      if (!widgetsToSkip.includes(widget))
+    grapholscape.widgets.forEach((widget, key) => {
+      if (key === WidgetEnum.ENTITY_DETAILS && !widgetsToSkip.includes(widget)) {
+        (widget as GscapeEntityDetails).hide()
+      } else if (!widgetsToSkip.includes(widget)) {
         widget.blur()
+      }
     })
   }
   // const init = () => {

@@ -5,11 +5,12 @@ import { LitElement } from "lit";
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 export declare class IDropPanelMixin {
-  protected togglePanel(): () => void
-  protected openPanel(): () => void
-  protected closePanel(): () => void
-  protected get panel(): () => void
+  protected togglePanel: () => void
+  protected openPanel: () => void
+  protected closePanel: () => void
+  protected get panel(): HTMLElement | undefined | null
   onTogglePanel: () => void
+  protected isPanelClosed: () => boolean
 }
 
 
@@ -17,7 +18,7 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
 
   class DropPanelMixinClass extends superClass {
 
-    protected get panel() { return this.shadowRoot?.querySelector('#drop-panel') }
+    protected get panel(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('#drop-panel') }
 
     protected togglePanel() {
       this.panel?.classList.toggle('hide')
@@ -35,6 +36,10 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
     blur() {
       super.blur()
       this.closePanel()
+    }
+
+    protected isPanelClosed() {
+      return this.panel?.classList.contains('hide')
     }
 
     onTogglePanel: () => {}

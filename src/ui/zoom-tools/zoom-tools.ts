@@ -29,9 +29,9 @@ export default class GscapeZoomTools extends LitElement {
 
   render() {
     return html`
-      <gscape-button type="subtle" @click=${this._onZoomIn}>${getIconSlot('icon', plus)}</gscape-button>
+      <gscape-button type="subtle" @click=${this._onZoomIn}><span slot="icon">${plus}</span></gscape-button>
       <div class="hr"></div>
-      <gscape-button type="subtle" @click=${this._onZoomOut}>${getIconSlot('icon', minus)}</gscape-button>
+      <gscape-button type="subtle" @click=${this._onZoomOut}><span slot="icon">${minus}</span></gscape-button>
     `
   }
 

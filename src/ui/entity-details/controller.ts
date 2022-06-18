@@ -10,26 +10,28 @@ import GscapeEntityDetails from './entity-details'
  */
 export default function (entityDetailsComponent: GscapeEntityDetails, grapholscape: Grapholscape) {
   // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
-  // entityDetailsComponent.onNodeNavigation = (nodeID) => grapholscape.centerOnNode(nodeID)
+  entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {
+    grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2)
+  }
   entityDetailsComponent.language = grapholscape.language
   entityDetailsComponent.diagramNames = grapholscape.ontology.diagrams.map(d => { return { 'id': d.id, 'name': d.name } })
-  // entityDetailsComponent.setEntity = setEntity
 
-  grapholscape.on(LifecycleEvent.EntitySelection, entity => entityDetailsComponent.grapholEntity = entity)
+  grapholscape.on(LifecycleEvent.EntitySelection, entity => {
+    entityDetailsComponent.grapholEntity = entity
+    entityDetailsComponent.show()
+  })
 
-  // grapholscape.onNodeSelection(node => {
-  //   let grapholNode = cyToGrapholElem(node)
-  //   if (!grapholNode.isEntity()) entityDetailsComponent.hide()
-  // })
+  grapholscape.on(LifecycleEvent.NodeSelection, _ => {
+    entityDetailsComponent.hide()
+  })
 
-  // grapholscape.onEdgeSelection(edge => {
-  //   let grapholEdge = cyToGrapholElem(edge)
-  //   if (!grapholEdge.isEntity()) entityDetailsComponent.hide()
-  // })
+  grapholscape.on(LifecycleEvent.EdgeSelection, _ => {
+    entityDetailsComponent.hide()
+  })
 
-  // grapholscape.onLanguageChange(language => {
-  //   entityDetailsComponent.languageSelected = language
-  // })
+  grapholscape.on(LifecycleEvent.LanguageChange, language => {
+    entityDetailsComponent.language = language
+  })
 
 //   /**
 //    * 
