@@ -1,6 +1,6 @@
 import { Stylesheet } from "cytoscape"
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config"
-import { BaseRenderer, iFilterManager, RenderStatesEnum, GrapholscapeTheme } from "../../../model"
+import Ontology, { BaseRenderer, iFilterManager, RenderStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
 import grapholStyle from "./graphol-style"
 
@@ -21,6 +21,10 @@ export default class GrapholRendererState extends BaseRenderer {
       this.renderer.fit()
     }
 
+    if (this.renderer.diagram.lastViewportState) {
+      this.renderer.cy?.viewport(this.renderer.diagram.lastViewportState)
+    }
+
     grapholRepresentation.hasEverBeenRendered = true
   }
 
@@ -34,4 +38,6 @@ export default class GrapholRendererState extends BaseRenderer {
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
     return grapholStyle(theme)
   }
+
+  transformOntology(ontology: Ontology): void { }
 }

@@ -67,7 +67,10 @@ export default class DiagramRepresentation {
       })
     }
 
+    const iri = cyElement.data().iri
     cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
+    // iri should be always preserved
+    cyElement.data().iri = iri
   }
 
   get grapholElements() {

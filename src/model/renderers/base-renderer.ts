@@ -1,6 +1,7 @@
 import { Stylesheet } from "cytoscape"
 import Renderer from "../../core/rendering"
 import { cytoscapeFilter, cytoscapeUnfilter } from "../../core/rendering/filtering"
+import Ontology from "../ontology"
 import GrapholscapeTheme from "../theme"
 import Filter from "./filter"
 import FilterManager from "./i-filter-manager"
@@ -15,6 +16,7 @@ export default abstract class BaseRenderer implements RenderState {
   abstract runLayout(): void
   abstract stopLayout(): void
   abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
+  abstract transformOntology(ontology: Ontology): void;
 
   constructor(renderer?: Renderer) {
     if (renderer) this.renderer = renderer
@@ -28,12 +30,14 @@ export default abstract class BaseRenderer implements RenderState {
   get renderer() {
     return this._renderer
   }
-  
+
   filter(elementId: string, filter: Filter) {
-    cytoscapeFilter(elementId, filter.filterTag, this.renderer.cy)
+    if (this.renderer.cy)
+      cytoscapeFilter(elementId, filter.filterTag, this.renderer.cy)
   }
 
   unfilter(elementId: string, filter: Filter) {
-    cytoscapeUnfilter(elementId, filter.filterTag, this.renderer.cy)
+    if (this.renderer.cy)
+      cytoscapeUnfilter(elementId, filter.filterTag, this.renderer.cy)
   }
 }

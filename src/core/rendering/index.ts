@@ -4,7 +4,7 @@ import { isGrapholEdge } from "../../model/graphol-elems/edge"
 import { isGrapholNode } from "../../model/graphol-elems/node"
 import GrapholscapeTheme from "../../model/theme"
 import { getGraphStyle } from "../../style/graph-style"
-import RenderState from "../../model/renderers/i-render-state"
+import RenderState, { RenderStatesEnum } from "../../model/renderers/i-render-state"
 import Lifecycle from "../../model/lifecycle"
 
 /**
@@ -14,7 +14,7 @@ import Lifecycle from "../../model/lifecycle"
  */
 export default class Renderer {
   private _container: HTMLElement
-  cy: cytoscape.Core
+  cy?: cytoscape.Core
   private _renderState: RenderState
   filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]))
   diagram: Diagram
@@ -62,11 +62,11 @@ export default class Renderer {
   mount() {
     this.applyTheme()
 
-    this.cy.mount(this.container)
+    this.cy?.mount(this.container)
   }
 
   addElement(element: ElementDefinition) {
-    this.cy.add(element)
+    this.cy?.add(element)
   }
 
   /**
@@ -160,6 +160,16 @@ export default class Renderer {
   }
 
   stopRendering() {
+    this.unselect()
+
+    if ((this.renderState.id === RenderStatesEnum.GRAPHOL ||
+      this.renderState.id === RenderStatesEnum.GRAPHOL_LITE) && this.cy
+    ) {
+      this.diagram.lastViewportState = {
+        pan: this.cy.pan(),
+        zoom: this.cy.zoom(),
+      }
+    }
     this.cy?.unmount()
   }
 
@@ -169,21 +179,21 @@ export default class Renderer {
    */
   selectElement = (elementId: string) => {
     this.unselect()
-    this.cy.$id(elementId).select()
+    this.cy?.$id(elementId).select()
   }
 
   /**
    * Unselect every selected element in this diagram
    */
   unselect = () => {
-    this.cy.elements(':selected').unselect()
+    this.cy?.elements(':selected').unselect()
   }
 
   /**
    * Fit viewport to diagram
    */
   fit = () => {
-    this.cy.fit()
+    this.cy?.fit()
   }
 
   /**
@@ -192,7 +202,8 @@ export default class Renderer {
    * @param elementId the element's ID
    * @param zoom the zoom level to apply, if not passed, zoom level won't be changed
    */
-  centerOnElementById(elementId: string, zoom = this.cy.zoom(), select?: boolean) {
+  centerOnElementById(elementId: string, zoom = this.cy?.zoom(), select?: boolean) {
+    if (!this.cy || (!zoom && zoom !== 0)) return
     const cyElement = this.cy.$id(elementId)
     zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom
     if (cyElement.empty()) {
@@ -211,12 +222,12 @@ export default class Renderer {
     }
   }
 
-  centerOnElement(element: GrapholElement, zoom = this.cy.zoom(), select?: boolean) {
+  centerOnElement(element: GrapholElement, zoom?: number, select?: boolean) {
     this.centerOnElementById(element.id, zoom, select)
   }
 
-  centerOnModelPosition(xPos: number, yPos: number, zoom = this.cy.zoom()) {
-    const _zoom = zoom || this.cy.zoom()
+  centerOnModelPosition(xPos: number, yPos: number, zoom?: number) {
+    if (!this.cy) return
 
     let offsetX = this.cy.width() / 2
     let offsetY = this.cy.height() / 2
@@ -227,27 +238,27 @@ export default class Renderer {
       y: -yPos
     })
     this.cy.zoom({
-      level: _zoom,
+      level: zoom || this.cy.zoom(),
       renderedPosition: { x: offsetX, y: offsetY }
     })
   }
 
-  centerOnRenderedPosition(xPos: number, yPos: number, zoom = this.cy.zoom()) {
-    this.cy.viewport({
-      zoom: zoom,
+  centerOnRenderedPosition(xPos: number, yPos: number, zoom?: number) {
+    this.cy?.viewport({
+      zoom: zoom || this.cy.zoom(),
       pan: { x: xPos, y: yPos }
     })
   }
 
   zoom = (zoomValue: number) => {
-    if (zoomValue != this.cy.zoom())
-      this.cy.animate({
+    if (zoomValue != this.cy?.zoom())
+      this.cy?.animate({
         zoom: zoomValue,
       })
   }
 
   zoomIn = (zoomValue: number) => {
-    this.cy.animate({
+    this.cy?.animate({
       zoom: {
         level: this.cy.zoom() + zoomValue,
         renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
@@ -256,7 +267,7 @@ export default class Renderer {
   }
 
   zoomOut = (zoomValue: number) => {
-    this.cy.animate({
+    this.cy?.animate({
       zoom: {
         level: this.cy.zoom() - zoomValue,
         renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
@@ -275,7 +286,7 @@ export default class Renderer {
 
   applyTheme() {
     if (this._theme) {
-      this.cy.style(this.renderState.getGraphStyle(this._theme))
+      this.cy?.style(this.renderState.getGraphStyle(this._theme))
       if (this.theme.colours.background)
         this.container.style.backgroundColor = this.theme.colours.background
     } else {
@@ -290,6 +301,7 @@ export default class Renderer {
   // }
 
   updateElement(grapholElement: GrapholElement) {
+    if (!this.cy) return
     const cyElement = this.cy.$id(grapholElement.id)
 
     if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
@@ -307,11 +319,24 @@ export default class Renderer {
   }
 
   get isThemeApplied() {
-    return this.cy.style()
+    return this.cy?.style()
   }
 
   get grapholElements() {
     return this.diagram.representations.get(this._renderState.id)?.grapholElements
+  }
+
+  get selectedElement() {
+    if (this.cy)
+      return this.grapholElements?.get(this.cy.$(':selected')[0]?.id())
+  }
+
+  get viewportState() {
+    if (this.cy)
+      return {
+        zoom: this.cy.zoom(),
+        pan: this.cy.pan(),
+      }
   }
 
   set container(container: HTMLElement) {
@@ -329,13 +354,13 @@ export default class Renderer {
    * Getter
    */
   get nodes() {
-    return this.cy.nodes().jsons()
+    return this.cy?.nodes().jsons()
   }
 
   /**
    * Getter
    */
   get edges() {
-    return this.cy.edges().jsons()
+    return this.cy?.edges().jsons()
   }
 }

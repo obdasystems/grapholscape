@@ -50,8 +50,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     this.result.cy.$('edge').forEach(edge => {
       const grapholEdge = this.getGrapholElement(edge.id()) as GrapholEdge
       grapholEdge.controlpoints = []
-      grapholEdge.targetEndpoint = null
-      grapholEdge.sourceEndpoint = null
+      grapholEdge.targetEndpoint = undefined
+      grapholEdge.sourceEndpoint = undefined
       this.result.updateElement(grapholEdge)
     })
   }
@@ -65,7 +65,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     objectProperties.forEach(objectProperty => {
       let domains = this.getDomainsOfObjectProperty(objectProperty)
       let ranges = this.getRangesOfObjectProperty(objectProperty)
-      this.connectDomainsRanges(domains, ranges, objectProperty)
+      if (domains && ranges)
+        this.connectDomainsRanges(domains, ranges, objectProperty)
     })
 
     //cy.remove(objectProperties)
@@ -103,6 +104,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         newGrapholEdge.originalId = objectProperty.id().toString()
 
         this.result.addElement(newGrapholEdge)
+        const newAddedCyElement = this.newCy.$id(newGrapholEdge.id)
+        newAddedCyElement.data().iri = objectProperty.data().iri
 
         if (newGrapholEdge.sourceId === newGrapholEdge.targetId) {
           let loop_edge = this.newCy.$id(newGrapholEdge.id)
@@ -125,14 +128,16 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     let fathersDomains = this.newCy.collection()
 
     fathers.forEach(father => {
-      fathersDomains = fathersDomains.union(this.getDomainsOfObjectProperty(father))
+      const newDomains = this.getDomainsOfObjectProperty(father)
+      if (newDomains)
+      fathersDomains = fathersDomains.union(newDomains)
     })
 
     return domains.union(fathersDomains)
   }
 
   private getRangesOfObjectProperty(objectProperty: NodeSingular) {
-    if (!objectProperty || objectProperty.empty()) return null
+    if (!objectProperty || objectProperty.empty()) return
     let ranges = objectProperty.incomers(`edge`).filter(edge =>
       this.getGrapholElement(edge.id()).is(GrapholTypesEnum.RANGE_RESTRICTION)
     ).sources()
@@ -142,7 +147,9 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     let fatherRanges = this.newCy.collection()
 
     fathers.forEach(father => {
-      fatherRanges = fatherRanges.union(this.getRangesOfObjectProperty(father))
+      const newRanges = this.getRangesOfObjectProperty(father)
+      if (newRanges)
+        fatherRanges = fatherRanges.union(newRanges)
     })
 
     return ranges.union(fatherRanges)

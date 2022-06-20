@@ -8,17 +8,19 @@ import GscapeSelect from '../common/gscape-select'
 import { infoFilled, minus, plus } from '../assets/icons'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 
-type DiagramViewData = { id: number, name: string }
+export type DiagramViewData = { id: number, name: string }
+export type OccurrenceIdViewData = { originalId: string, realId: string }
 
 export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {  
   grapholEntity: GrapholEntity
-  diagramNames: DiagramViewData[] = []
+  occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   language: string
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
 
   static get properties() {
     return {
       grapholEntity: { type: Object, attribute: false },
+      occurrences: { type: Object, attribute: false },
       language: { type: String, attribute: false },
       _isPanelClosed: { type : Boolean, attribute: false}
     }
@@ -163,29 +165,18 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
   }
 
   private occurrencesTemplate() {
-    const occurrencesForDiagram = new Map<DiagramViewData, string[]>()
-    this.grapholEntity.occurrences.forEach(occurrencesInDiagramRepresentation => {
-      occurrencesInDiagramRepresentation.forEach(occurrence => {
-        let diagram = this.diagramNames.find(d => d.id === occurrence.diagramId)
-        if (!diagram) return
-        if (!occurrencesForDiagram.get(diagram)) {
-          occurrencesForDiagram.set(diagram, [])
-        }
-        occurrencesForDiagram.get(diagram)?.push(occurrence.elementId)
-      })
-    })
-
     return html`
       <div class="section">
         <div class="bold-text section-header">Occurrences</div>
         <div class="section-body">
-          ${Array.from(occurrencesForDiagram).map(([diagram, occurrencesIds]) => {
+          ${Array.from(this.occurrences).map(([diagram, occurrencesIds]) => {
             return html`
               <div diagram-id="${diagram.id}">
                 <span class="diagram-name">${diagram.name}</span>
                 ${occurrencesIds.map(occurrenceId => html`
                   <gscape-button
-                    label="${occurrenceId}"
+                    label="${occurrenceId.originalId || occurrenceId.realId}"
+                    real-id="${occurrenceId.realId}"
                     type="subtle"
                     size="s"
                     @click=${this.nodeNavigationHandler}
@@ -213,7 +204,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
   private nodeNavigationHandler(e) {
     const target = e.target as HTMLElement
     const diagramId = target.parentElement?.getAttribute('diagram-id')
-    const elementId = target.getAttribute('label')
+    const elementId = target.getAttribute('real-id')
 
     if (!diagramId || ! elementId) return
 
@@ -223,7 +214,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
     })
   }
 
-  protected togglePanel = () => {
+  togglePanel = () => {
     super.togglePanel()
     this.requestUpdate()
   }

@@ -69,5 +69,10 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     }
   }
 
-  grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => rendererSelector.actualRendererStateKey = newRendererState)
+  grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
+    rendererSelector.actualRendererStateKey = newRendererState
+
+    if (newRendererState === RenderStatesEnum.FLOATY)
+      rendererSelector.layoutSettingsComponent.openPanel()
+  })
 }

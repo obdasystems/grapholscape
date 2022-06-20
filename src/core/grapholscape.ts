@@ -1,6 +1,6 @@
-import Ontology from "../model"
+import Ontology, { GrapholEntity } from "../model"
 import Lifecycle, { LifecycleEvent } from "../model/lifecycle"
-import RenderState from "../model/renderers/i-render-state"
+import RenderState, { RenderStatesEnum } from "../model/renderers/i-render-state"
 import GrapholscapeTheme from "../model/theme"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -54,10 +54,15 @@ export default class Grapholscape {
 
   setRenderer(newRenderState: RenderState) {
     const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
-      ?.representations.get(this.renderState)?.hasEverBeenRendered
+      ?.representations.get(newRenderState.id)?.hasEverBeenRendered
+
+    if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
+      newRenderState.transformOntology(this.ontology)
+    }
 
     this.renderer.renderState = newRenderState
 
+    this.entityNavigator.setGraphEventHandlers(this.renderer.diagram)
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
   }
@@ -76,7 +81,7 @@ export default class Grapholscape {
 
   // TODO: Evaluate if this should part of public api
   centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
-    if (diagramId && this.diagramId !== diagramId)
+    if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
       this.showDiagram(diagramId)
 
     this.renderer.centerOnElementById(elementId, zoom)
@@ -116,6 +121,13 @@ export default class Grapholscape {
 
   get theme() {
     return this.renderer.theme
+  }
+
+  get selectedEntity() {
+    const selectedElement = this.renderer.selectedElement
+
+    if (selectedElement?.isEntity())
+      return this.ontology.getEntity(this.renderer.cy?.$id(selectedElement.id).data().iri)
   }
 
   // ---------------------- DISPLAYED NAMES MANAGER ---------------------- //

@@ -17,6 +17,7 @@ export enum WidgetEnum {
   ONTOLOGY_INFO= 'ontology-info',
   OWL_VISUALIZER= 'owl-visualizer',
   RENDERER_SELECTOR= 'renderer-selector',
+  LAYOUT_SETTINGS = 'layout-settings',
   SETTINGS= 'settings',
   ZOOM_TOOLS= 'zoom-tools',
 }

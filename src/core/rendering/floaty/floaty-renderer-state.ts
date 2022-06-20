@@ -1,5 +1,5 @@
 import Renderer from "..";
-import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RenderStatesEnum } from "../../../model";
+import Ontology, { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RenderStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
@@ -21,7 +21,15 @@ export default class FloatyRenderState extends BaseRenderer {
 
   get renderer() { return super.renderer }
 
+  transformOntology(ontology: Ontology): void {
+    ontology.diagrams.forEach(diagram => {
+      const liteTransformer = new FloatyTransformer()
+      diagram.representations.set(this.id, liteTransformer.transform(diagram))
+    })
+  }
+
   runLayout(): void {
+    if (!this.renderer.cy) return
     this._layout?.stop()
     this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions)
     this._layout.run()
@@ -80,11 +88,13 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   pinNode(node) {
+    if (!node || !this.renderer.cy) return
     node.lock()
     node.data("pinned", true)
 
     node.unlockButton = node.popper({
       content: () => {
+        if (!this.renderer.cy) return
         let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
         let div = document.createElement('div')
         div.style.background = node.style('border-color')
@@ -109,7 +119,7 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   unpinAll() {
-    this.renderer.cy.$('[?pinned]').each(node => this.unpinNode(node))
+    this.renderer.cy?.$('[?pinned]').each(node => this.unpinNode(node))
   }
 
   private setPopperStyle(dim, popper) {
@@ -135,7 +145,7 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   private updatePopper(node) {
-    if (!node.unlockButton) return
+    if (!node.unlockButton || !this.renderer.cy) return
 
     let unlockButton = node.unlockButton
     let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
@@ -158,9 +168,9 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   private setDragAndPinEventHandlers() {
-    this.renderer.cy.on('grab', this.grabHandler)
+    this.renderer.cy?.on('grab', this.grabHandler)
 
-    this.renderer.cy.on('free', this.freeHandler)
+    this.renderer.cy?.on('free', this.freeHandler)
 
     // this.renderer.cy.$('[?pinned]').each(n => {
     //   //n.on('position', () => this.updatePopper(n))

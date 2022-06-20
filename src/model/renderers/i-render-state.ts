@@ -1,5 +1,6 @@
 import { Stylesheet } from "cytoscape"
 import Renderer from "../../core/rendering"
+import Ontology from "../ontology"
 import GrapholscapeTheme from "../theme"
 import Filter from './filter'
 import FilterManager from "./i-filter-manager"
@@ -21,4 +22,5 @@ export default interface RenderState {
   runLayout(): void
   stopLayout(): void
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
+  transformOntology(ontology: Ontology): void
 }

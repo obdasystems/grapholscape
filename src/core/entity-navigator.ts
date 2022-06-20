@@ -22,29 +22,10 @@ export default class EntityNavigator {
   }
 
   private _centerSelectEntity(iri: string, diagramId?: number, select = false, zoom?: number) {
-    const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)
+    const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagramId || this._grapholscape.diagramId)
 
-    const grapholOccurrences = occurrencesMap.get(RenderStatesEnum.GRAPHOL)
-    // if no graphol occurrence, then cannot appear in any representation
-    if (!grapholOccurrences || grapholOccurrences.length <= 0) return
-
-    const diagram = this._grapholscape.ontology.getDiagram(grapholOccurrences[0].diagramId)
-    const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
-
-    // Search any original graphol occurrence in the actual representation
-    for (let grapholOccurrence of grapholOccurrences) {
-      if (actualDiagramRepresentation?.grapholElements.has(grapholOccurrence.elementId)) {
-        this._performCenterSelect(grapholOccurrence, select, zoom)
-        return
-      }
-    }
-
-    // The original graphol occurrence may not be present in a new representation
-    // Find first replicated occurrence
-    const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState)
-
-    if (replicatedOccurrences && replicatedOccurrences.length > 0) {
-      this._performCenterSelect(replicatedOccurrences[0], select, zoom)
+    if (entityOccurrence) {
+      this._performCenterSelect(entityOccurrence, select, zoom)
     }
   }
 
@@ -70,6 +51,32 @@ export default class EntityNavigator {
       } else if (isGrapholEdge(grapholElement)) {
         this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement)
       }
+    }
+  }
+
+  getEntityOccurrenceInDiagram(iri: string, diagramId: number) {
+    const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)
+
+    const grapholOccurrences = occurrencesMap.get(RenderStatesEnum.GRAPHOL)
+    // if no graphol occurrence, then cannot appear in any representation
+    if (!grapholOccurrences || grapholOccurrences.length <= 0) return
+
+    const diagram = this._grapholscape.ontology.getDiagram(diagramId)
+    const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
+
+    // Search any original graphol occurrence in the actual representation
+    for (let grapholOccurrence of grapholOccurrences) {
+      if (actualDiagramRepresentation?.grapholElements.has(grapholOccurrence.elementId)) {
+        return grapholOccurrence
+      }
+    }
+
+    // The original graphol occurrence may not be present in a new representation
+    // Find first replicated occurrence
+    const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState)
+
+    if (replicatedOccurrences && replicatedOccurrences.length > 0) {
+      return replicatedOccurrences[0]
     }
   }
 
@@ -101,13 +108,11 @@ export default class EntityNavigator {
   setGraphEventHandlers(diagram: Diagram) {
 
     diagram.representations.forEach(diagramRepresentation => {
-      if (diagramRepresentation.hasEverBeenRendered) return
-
       const cy = diagramRepresentation.cy
-      
+      if (cy.scratch('_gscape-graph-handlers-set')) return
+
       cy.on('select', e => {
         const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
-        
         if (grapholElement) {
           if (grapholElement.isEntity()) {
             const grapholEntity = this._grapholscape.ontology.getEntity(e.target.data().iri)
@@ -131,7 +136,7 @@ export default class EntityNavigator {
           this._grapholscape.lifecycle.trigger(LifecycleEvent.BackgroundClick)
         }
       })
-      
+
       cy.on('mouseover', '*', e => {
         const container = cy.container()
         if (container) {
@@ -145,6 +150,8 @@ export default class EntityNavigator {
           container.style.cursor = 'inherit'
         }
       })
+
+      cy.scratch('_gscape-graph-handlers-set', true)
     })
   }
 }

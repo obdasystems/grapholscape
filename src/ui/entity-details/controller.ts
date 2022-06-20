@@ -1,8 +1,8 @@
 import Grapholscape from '../../core/grapholscape'
-import { LifecycleEvent } from '../../model'
+import { GrapholEntity, LifecycleEvent } from '../../model'
 import { entityModelToViewData, cyToGrapholElem } from '../../util/model-obj-transformations'
 import { ViewItemWithIri } from '../common/annotations-template'
-import GscapeEntityDetails from './entity-details'
+import GscapeEntityDetails, { DiagramViewData, OccurrenceIdViewData } from './entity-details'
 
 /**
  * @param {import('./index').default} entityDetailsComponent
@@ -15,10 +15,10 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     grapholscape.selectElement(entityOccurrence.elementId)
   }
   entityDetailsComponent.language = grapholscape.language
-  entityDetailsComponent.diagramNames = grapholscape.ontology.diagrams.map(d => { return { 'id': d.id, 'name': d.name } })
 
   grapholscape.on(LifecycleEvent.EntitySelection, entity => {
     entityDetailsComponent.grapholEntity = entity
+    entityDetailsComponent.occurrences = getEntityViewOccurrences(entity)
     entityDetailsComponent.show()
   })
 
@@ -34,25 +34,42 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     entityDetailsComponent.language = language
   })
 
-//   /**
-//    * 
-//    * @param {import('cytoscape').CollectionReturnValue} entity
-//    */
-//   function entityModelToViewData(entity) {
-//     let entityViewData = entityModelToViewData(entity, grapholscape.languages)
+  grapholscape.on(LifecycleEvent.RendererChange, _ => {
+    if (entityDetailsComponent.grapholEntity)
+      entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity)
+  })
 
-//     entityViewData.occurrences = grapholscape.ontology.getEntityOccurrences(entityViewData.iri.fullIri).map(elem => {
-//       const grapholElem = cyToGrapholElem(elem)
-//       return {
-//         id: grapholElem.data.id,
-//         id_xml: grapholElem.data.id_xml,
-//         diagram_id: grapholElem.data.diagram_id,
-//         diagram_name: grapholscape.ontology.getDiagram(grapholElem.data.diagram_id).name
-//       }
-//     })
+  function getEntityViewOccurrences(grapholEntity: GrapholEntity): Map<DiagramViewData, OccurrenceIdViewData[]> {
+    const result = new Map<DiagramViewData, OccurrenceIdViewData[]>()
 
-//     entityDetailsComponent.entity = entityViewData
-//     entityDetailsComponent.show()
-//   }
+    grapholEntity.occurrences.forEach((occurrencesInDiagramRepresentation, rendererState) => {
+      occurrencesInDiagramRepresentation.forEach(occurrence => {
+        const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId)
+        const cyElement = diagram.representations.get(grapholscape.renderState)?.cy.$id(occurrence.elementId)
+
+        if (diagram && cyElement && !cyElement.empty()) {
+          if (!Array.from(result.keys()).find(d => d.id === diagram.id)) {
+            result.set({ id: diagram.id, name: diagram.name }, [])
+          }
+
+          /**
+           * In case of repositioned or transformed elements, show the original id
+           */
+          const occurrenceIdViewData: OccurrenceIdViewData = {
+            realId: occurrence.elementId,
+            originalId: cyElement.data().originalId,
+          }
+
+          for (let [diagramViewData, occurrencesIdViewData] of result.entries()) {
+            if (diagramViewData.id === diagram.id) {
+              occurrencesIdViewData.push(occurrenceIdViewData)
+              break
+            }
+          }
+        }
+      })
+    })
+    return result
+  }
 
 }

@@ -56,7 +56,7 @@ export default class GscapeLayoutSettings extends DropPanelMixin(LitElement) {
         <span slot="icon">${tune}</span>
       </gscape-button>
 
-      <div class="hide gscape-panel gscape-panel-in-tray">
+      <div id="drop-panel" class="hide gscape-panel gscape-panel-in-tray">
         <div class="header">Layout Settings</div>
         <div class="toggles-wrapper">
 

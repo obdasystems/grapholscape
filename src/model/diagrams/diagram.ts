@@ -1,3 +1,4 @@
+import { Position } from 'cytoscape'
 import GrapholEntity from '../graphol-elems/entity'
 import GrapholElement from '../graphol-elems/graphol-element'
 import { RenderStatesEnum } from '../renderers/i-render-state'
@@ -11,6 +12,10 @@ class Diagram {
   name: string
   id: number
   representations: Map<RenderStatesEnum, DiagramRepresentation> = new Map([[RenderStatesEnum.GRAPHOL, new DiagramRepresentation()]])
+  lastViewportState: {
+    pan: Position,
+    zoom: number,
+  }
   // hasEverBeenRendered: boolean
   // cy = cytoscape(cytoscapeDefaultConfig)
   // grapholElements: Map<string, GrapholElement> = new Map()
@@ -29,8 +34,8 @@ class Diagram {
    * Add a new element (node or edge) to the diagram's representation
    * @param newElement the GrapholElement to add to the diagram
    */
-   addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity) {
-    this.representations.get(RenderStatesEnum.GRAPHOL).addElement(newElement, grapholEntity)
+  addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity) {
+    this.representations.get(RenderStatesEnum.GRAPHOL)?.addElement(newElement, grapholEntity)
   }
 
   // render(container: Element) {

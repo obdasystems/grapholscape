@@ -15,4 +15,5 @@ export default function initRendererSelector(grapholscape: Grapholscape) {
   rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape)
   rendererSelectorComponent.requestUpdate()
   grapholscape.widgets.set(WidgetEnum.RENDERER_SELECTOR, rendererSelectorComponent)
+  grapholscape.widgets.set(WidgetEnum.LAYOUT_SETTINGS, rendererSelectorComponent.layoutSettingsComponent)
 }

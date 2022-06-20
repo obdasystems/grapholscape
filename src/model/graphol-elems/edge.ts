@@ -9,11 +9,11 @@ export default class GrapholEdge extends GrapholElement {
   private _sourceId: string
   private _targetId: string
   private _breakpoints: Breakpoint[] = []
-  private _targetLabel: string
-  private _sourceLabel: string
-  private _sourceEndpoint: Position
-  private _targetEndpoint: Position
-  
+  private _targetLabel?: string
+  private _sourceLabel?: string
+  private _sourceEndpoint?: Position
+  private _targetEndpoint?: Position
+
   constructor(id: string) {
     super(id)
   }
@@ -35,7 +35,7 @@ export default class GrapholEdge extends GrapholElement {
     return this._sourceEndpoint
   }
 
-  set sourceEndpoint(endpoint: Position) {
+  set sourceEndpoint(endpoint: Position | undefined) {
     if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
       this._sourceEndpoint = endpoint
   }
@@ -44,7 +44,7 @@ export default class GrapholEdge extends GrapholElement {
     return this._targetEndpoint
   }
 
-  set targetEndpoint(endpoint: Position) {
+  set targetEndpoint(endpoint: Position | undefined) {
     if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
       this._targetEndpoint = endpoint
   }
@@ -84,14 +84,14 @@ export default class GrapholEdge extends GrapholElement {
   public get targetLabel() {
     return this._targetLabel
   }
-  public set targetLabel(targetLabel: string) {
+  public set targetLabel(targetLabel: string | undefined) {
     this._targetLabel = targetLabel
   }
 
   public get sourceLabel() {
     return this._sourceLabel
   }
-  public set sourceLabel(sourceLabel: string) {
+  public set sourceLabel(sourceLabel: string | undefined) {
     this._sourceLabel = sourceLabel
   }
 
