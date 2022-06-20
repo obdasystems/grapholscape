@@ -164,10 +164,11 @@ export default class Renderer {
   }
 
   /**
-   * Select a node or an edge its unique id
+   * Select a node or an edge in the actual diagram given its unique id
    * @param {string} elementId elem id (node or edge)
    */
-  selectElement(elementId: string) {
+  selectElement = (elementId: string) => {
+    this.unselect()
     this.cy.$id(elementId).select()
   }
 

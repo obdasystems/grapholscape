@@ -91,6 +91,8 @@ export default class Grapholscape {
   // ----------------------------- RENDERER ----------------------------- //
   /** @borrows this.renderer.unselect as this.unselect */
   unselect = this.renderer.unselect
+  /** @borrows this.renderer.selectElement as this.selectElement */
+  selectElement = this.renderer.selectElement
   /** @borrows this.renderer.fit as this.fit */
   fit = this.renderer.fit
   /** @borrows this.renderer.zoom as this.zoom */

@@ -12,6 +12,7 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
   entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {
     grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2)
+    grapholscape.selectElement(entityOccurrence.elementId)
   }
   entityDetailsComponent.language = grapholscape.language
   entityDetailsComponent.diagramNames = grapholscape.ontology.diagrams.map(d => { return { 'id': d.id, 'name': d.name } })
