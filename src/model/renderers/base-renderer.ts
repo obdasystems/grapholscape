@@ -5,11 +5,11 @@ import Ontology from "../ontology"
 import GrapholscapeTheme from "../theme"
 import Filter from "./filter"
 import FilterManager from "./i-filter-manager"
-import RenderState, { RenderStatesEnum } from "./i-render-state"
+import RenderState, { RendererStatesEnum } from "./i-render-state"
 
 export default abstract class BaseRenderer implements RenderState {
   protected _renderer: Renderer
-  abstract id: RenderStatesEnum
+  abstract id: RendererStatesEnum
   abstract filterManager: FilterManager
   abstract layout: cytoscape.Layouts
   abstract render(): void

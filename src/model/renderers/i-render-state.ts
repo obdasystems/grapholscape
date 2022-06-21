@@ -5,14 +5,14 @@ import GrapholscapeTheme from "../theme"
 import Filter from './filter'
 import FilterManager from "./i-filter-manager"
 
-export enum RenderStatesEnum {
+export enum RendererStatesEnum {
   GRAPHOL = 'graphol',
   GRAPHOL_LITE = 'lite',
   FLOATY = 'floaty'
 }
 
 export default interface RenderState {
-  id: RenderStatesEnum
+  id: RendererStatesEnum
   renderer: Renderer
   filterManager: FilterManager
   layout: cytoscape.Layouts

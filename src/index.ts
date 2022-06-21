@@ -1,10 +1,9 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import * as UI from './ui'
+import { GrapholscapeConfig } from './config/config'
 import initGrapholscape from './init'
-import { GrapholscapeState } from './model'
-import * as themes from './style/themes'
+import * as UI from './ui'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -30,7 +29,7 @@ cytoscape.use(cola)
  * @tutorial Settings
  * @tutorial Themes
  */
-export async function fullGrapholscape(file, container, config = {}) {
+export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined

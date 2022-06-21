@@ -1,7 +1,8 @@
-import Ontology, { GrapholEntity } from "../model"
+import { GrapholscapeConfig } from "../config/config"
+import Ontology from "../model"
 import Lifecycle, { LifecycleEvent } from "../model/lifecycle"
-import RenderState, { RenderStatesEnum } from "../model/renderers/i-render-state"
-import GrapholscapeTheme from "../model/theme"
+import RenderState, { RendererStatesEnum } from "../model/renderers/i-render-state"
+import GrapholscapeTheme, { DefaultThemes, DefaultThemesEnum } from "../model/theme"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
@@ -9,6 +10,7 @@ import Renderer from "./rendering"
 import FloatyRenderState from "./rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "./rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "./rendering/lite/lite-renderer-state"
+import ThemeManager from "./themeManager"
 
 
 export default class Grapholscape {
@@ -16,15 +18,13 @@ export default class Grapholscape {
   container: HTMLElement
   readonly lifecycle: Lifecycle = new Lifecycle()
   ontology: Ontology
-  themeManager: any = null
-  themes = [GrapholscapeTheme.defaultTheme, GrapholscapeTheme.darkTheme, GrapholscapeTheme.classicTheme]
+  themes = Object.values(DefaultThemes)
   private entityNavigator = new EntityNavigator(this)
   private displayedNamesManager = new DisplayedNamesManager(this)
-  lite: LiteRendererState
-  floaty: FloatyRenderState
+  private themesManager = new ThemeManager(this)
   widgets: Map<WidgetEnum, HTMLElement> = new Map()
 
-  constructor(ontology: Ontology, container: HTMLElement) {
+  constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig) {
     this.ontology = ontology
     this.container = container
     this.renderer.container = container
@@ -32,6 +32,10 @@ export default class Grapholscape {
 
     this.renderer.renderState = new GrapholRendererState()
     this.renderer.setTheme(this.themes[0])
+
+    if (config) {
+      this.setConfig(config)
+    }
   }
 
   showDiagram(diagramId: number, viewportState = null) {
@@ -67,17 +71,17 @@ export default class Grapholscape {
       this.entityNavigator.updateEntitiesOccurrences()
   }
 
-  setTheme(newTheme: GrapholscapeTheme) {
-    this.renderer.setTheme(newTheme)
-    this.lifecycle.trigger(LifecycleEvent.ThemeChange, newTheme)
-  }
+  // setTheme(newTheme: GrapholscapeTheme) {
+  //   this.renderer.setTheme(newTheme)
+  //   this.lifecycle.trigger(LifecycleEvent.ThemeChange, newTheme)
+  // }
 
-  addTheme(newTheme: GrapholscapeTheme, select?: boolean) {
-    this.themes.push(newTheme)
-    if (select) {
-      this.setTheme(newTheme)
-    }
-  }
+  // addTheme(newTheme: GrapholscapeTheme, select?: boolean) {
+  //   this.themes.push(newTheme)
+  //   if (select) {
+  //     this.setTheme(newTheme)
+  //   }
+  // }
 
   // TODO: Evaluate if this should part of public api
   centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
@@ -146,4 +150,52 @@ export default class Grapholscape {
   // -------------------------------- UI -------------------------------- //
   get uiContainer() { return this.container.querySelector('.gscape-ui') }
   get buttonsTray() { return this.uiContainer?.querySelector('.gscape-ui-buttons-tray') }
+
+
+  // ------------------------------ CONFIG ------------------------------ //
+  setConfig(newConfig: GrapholscapeConfig) {
+    if (newConfig.language) {
+      this.displayedNamesManager.setLanguage(newConfig.language)
+    }
+
+    if (newConfig.entityNameType) {
+      this.displayedNamesManager.setEntityNameType(newConfig.entityNameType)
+    }
+
+    if (newConfig.renderers) {
+      /** 
+       * Just use the first defined renderer state
+       * the other ones will be managed by renderer-selector widget
+       * or manually by the app importing grapholscape
+       */
+      switch (newConfig.renderers[0]) {
+        case RendererStatesEnum.GRAPHOL: {
+          this.setRenderer(new GrapholRendererState())
+          break
+        }
+
+        case RendererStatesEnum.GRAPHOL_LITE: {
+          this.setRenderer(new LiteRendererState())
+          break
+        }
+
+        case RendererStatesEnum.FLOATY: {
+          this.setRenderer(new FloatyRenderState())
+          break
+        }
+      }
+    }
+
+    if (newConfig.themes) {
+      if ((newConfig.themes as DefaultThemesEnum[]).length > 0) {
+        this.themesManager.themes = newConfig.themes.map(themeId => DefaultThemes[themeId as DefaultThemesEnum])
+      } else {
+        this.themesManager.themes = newConfig.themes.map(newTheme => newTheme as GrapholscapeTheme)
+      }
+    }
+
+    if (newConfig.selectedTheme) {
+      this.themesManager.setTheme(newConfig.selectedTheme)
+    }
+  }
 }

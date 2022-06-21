@@ -1,21 +1,16 @@
+import Grapholscape from "../core/grapholscape";
+import { LifecycleEvent } from "../model";
+import { hasDropPanel } from "./common/drop-panel-mixin";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails, { GscapeEntityDetails } from "./entity-details";
 import initFilters from "./filters";
-import initFullscreenButton from "./fullscreen";
-import initOntologyExplorer from "./ontology-explorer";
-import initOntologyInfo from "./ontology-info";
-import initOwlVisualizer from "./owl-visualizer";
-import initRendererSelector from "./renderer-selector";
-import initSettings from "./settings";
-import bottomRightContainer from "./util/bottom-right-container";
-import initZoomTools from "./zoom-tools";
 import initFitButton from "./fit-button";
-import { WidgetEnum, widgetTagNames } from "./util/widget-enum";
-import Grapholscape from "../core/grapholscape";
-import GscapeActionListItem from "./common/list-item/action-list-item";
-import GscapeToggle from "./common/toggle/gscape-toggle";
-import { LifecycleEvent } from "../model";
-import { hasDropPanel } from "./common/drop-panel-mixin";
+import initFullscreenButton from "./fullscreen";
+import initOntologyInfo from "./ontology-info";
+import initRendererSelector from "./renderer-selector";
+import bottomRightContainer from "./util/bottom-right-container";
+import { WidgetEnum } from "./util/widget-enum";
+import initZoomTools from "./zoom-tools";
 
 /**
  * Initialize the UI
@@ -49,6 +44,10 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.DIAGRAM_SELECTOR:
       case WidgetEnum.ENTITY_DETAILS:
         guiContainer.appendChild(widget)
+        break
+
+      case WidgetEnum.LAYOUT_SETTINGS:
+        break
     }
 
     if (hasDropPanel(widget)) {

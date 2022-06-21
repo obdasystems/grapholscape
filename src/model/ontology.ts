@@ -4,7 +4,7 @@ import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
 import GrapholNode from './graphol-elems/node'
 import Iri from './iri'
 import Namespace from './namespace'
-import { RenderStatesEnum } from './renderers/i-render-state'
+import { RendererStatesEnum } from './renderers/i-render-state'
 /**
  * # Ontology
  * Class used as the Model of the whole app.
@@ -102,7 +102,7 @@ class Ontology extends AnnotatedElement {
     return null
   }
 
-  getGrapholElement(elementId: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL) {
+  getGrapholElement(elementId: string, diagramId?: number, renderState = RendererStatesEnum.GRAPHOL) {
     if (diagramId)
       return this.getDiagram(diagramId).representations.get(renderState).grapholElements.get(elementId)
 
@@ -112,7 +112,7 @@ class Ontology extends AnnotatedElement {
     }
   }
 
-  getGrapholNode(nodeId: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL) {
+  getGrapholNode(nodeId: string, diagramId?: number, renderState = RendererStatesEnum.GRAPHOL) {
     try {
       const node = this.getGrapholElement(nodeId, diagramId, renderState) as GrapholNode
       return node
@@ -121,7 +121,7 @@ class Ontology extends AnnotatedElement {
     }
   }
 
-  getGrapholEdge(edgeId: string, diagramId?: number, renderState = RenderStatesEnum.GRAPHOL) {
+  getGrapholEdge(edgeId: string, diagramId?: number, renderState = RendererStatesEnum.GRAPHOL) {
     try {
       const edge = this.getGrapholElement(edgeId, diagramId, renderState) as GrapholNode
       return edge
@@ -158,7 +158,7 @@ class Ontology extends AnnotatedElement {
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns An array of EntityOccurrence objects
    */
-  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RenderStatesEnum): Map<RenderStatesEnum, EntityOccurrence[]> {
+  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> {
     // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
     return diagramId || diagramId === 0 
       ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId, renderState)

@@ -4,8 +4,8 @@ import GrapholEdge from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
 import GrapholNode from "../graphol-elems/node";
-import { RenderStatesEnum } from "../renderers/i-render-state";
-import { EntityNameType, Language } from "../state";
+import { RendererStatesEnum } from "../renderers/i-render-state";
+import { EntityNameType, Language } from "../../config/config";
 import GrapholscapeTheme from "../theme";
 
 export enum LifecycleEvent {
@@ -29,7 +29,7 @@ interface IonEvent {
   (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void;
   (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void;
   (event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void;
-  (event: LifecycleEvent.RendererChange, callback: (renderer: RenderStatesEnum) => void): void;
+  (event: LifecycleEvent.RendererChange, callback: (renderer: RendererStatesEnum) => void): void;
   (event: LifecycleEvent.LanguageChange, callback: (language: string) => void): void
   (event: LifecycleEvent.EntityNameTypeChange, callback: (nameType: EntityNameType) => void): void;
   (event: LifecycleEvent.Filter, callback: (filter: Filter) => void): void;
@@ -62,7 +62,7 @@ export default class Lifecycle {
   trigger(event: LifecycleEvent.EdgeSelection, edge: GrapholEdge): void
   trigger(event: LifecycleEvent.ThemeChange, theme: GrapholscapeTheme): void
   trigger(event: LifecycleEvent.DiagramChange, diagram: Diagram): void
-  trigger(event: LifecycleEvent.RendererChange, renderState: RenderStatesEnum): void
+  trigger(event: LifecycleEvent.RendererChange, renderState: RendererStatesEnum): void
   trigger(event: LifecycleEvent.LanguageChange, language: Language): void
   trigger(event: LifecycleEvent.EntityNameTypeChange, nameType: EntityNameType): void
   trigger(event: LifecycleEvent.Filter, filter: Filter): void

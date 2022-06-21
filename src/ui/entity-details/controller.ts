@@ -19,6 +19,7 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   grapholscape.on(LifecycleEvent.EntitySelection, entity => {
     entityDetailsComponent.grapholEntity = entity
     entityDetailsComponent.occurrences = getEntityViewOccurrences(entity)
+    entityDetailsComponent.language = grapholscape.language
     entityDetailsComponent.show()
   })
 

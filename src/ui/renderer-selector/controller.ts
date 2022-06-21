@@ -4,11 +4,8 @@ import Grapholscape from "../../core/grapholscape"
 import FloatyRenderState from "../../core/rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { GrapholscapeState, LifecycleEvent, RenderStatesEnum } from "../../model"
-import { grapholLiteRenderer } from "../../rendering/renderers"
-import { rendererModelToViewData } from "../../util/model-obj-transformations"
-import { graphol_icon } from "../assets/icons"
-import { bubbles, lite } from "../assets/icons"
+import { LifecycleEvent, RenderStatesEnum } from "../../model"
+import { bubbles, graphol_icon, lite } from "../assets/icons"
 
 export type RendererStateViewModel = {
   name: string,

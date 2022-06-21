@@ -1,3 +1,4 @@
+import { GrapholscapeConfig } from "./config/config"
 import { loadConfig } from "./config/config-manager"
 import Grapholscape from "./core/grapholscape"
 import Ontology from "./model"
@@ -10,16 +11,16 @@ import GrapholParser from "./parsing/parser"
  * @param {oject} config 
  * @returns {Promise<Grapholscape>}
  */
-export default function (file: string | Blob, container: HTMLElement, config): Promise<Grapholscape> {
+export default function (file: string | Blob, container: HTMLElement, config?:GrapholscapeConfig): Promise<Grapholscape> {
 
   const savedConfig = loadConfig()
-  let lastUsedTheme = savedConfig.theme
-  delete savedConfig.theme // we don't need to override theme in config
+  // let lastUsedTheme = savedConfig.theme
+  // delete savedConfig.theme // we don't need to override theme in config
   // copy savedConfig over config
   config = Object.assign(config, savedConfig)
-  if (config.theme) {
-    config.theme.selected = lastUsedTheme && lastUsedTheme === config.theme?.id
-  }
+  // if (config.theme) {
+  //   config.theme.selected = lastUsedTheme && lastUsedTheme === config.theme?.id
+  // }
   return new Promise<Grapholscape>((resolve, reject) => {
     let ontology: Ontology
 
@@ -52,7 +53,7 @@ export default function (file: string | Blob, container: HTMLElement, config): P
         // const grapholscapeState = new GrapholscapeState()
         // grapholscapeState.ontology = ontology
         // grapholscapeState.theme = GrapholscapeTheme.defaultTheme
-        const gscape = new Grapholscape(ontology, container)
+        const gscape = new Grapholscape(ontology, container, config)
         //if (lastUsedTheme) gscape.applyTheme(lastUsedTheme)
         globalThis['gscape'] = gscape // TODO: Remove global reference before release
         resolve(gscape)

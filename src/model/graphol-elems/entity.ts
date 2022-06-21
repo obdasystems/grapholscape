@@ -1,5 +1,5 @@
 import AnnotatedElement from "../annotated-element"
-import { RenderStatesEnum } from "../renderers/i-render-state"
+import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import { GrapholTypesEnum } from "./node-enums"
 
@@ -20,7 +20,7 @@ export type EntityOccurrence = {
 
 export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
-  private _occurrences: Map<RenderStatesEnum, EntityOccurrence[]> = new Map([[RenderStatesEnum.GRAPHOL, []]])
+  private _occurrences: Map<RendererStatesEnum, EntityOccurrence[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
   private _type: GrapholTypesEnum
   private _functionalities: FunctionalityEnum[] = []
 
@@ -30,7 +30,7 @@ export default class GrapholEntity extends AnnotatedElement {
     this.type = type
   }
 
-  public addOccurrence(occurenceId: string, diagramId: number, representationKind = RenderStatesEnum.GRAPHOL) {
+  public addOccurrence(occurenceId: string, diagramId: number, representationKind = RendererStatesEnum.GRAPHOL) {
     if (!this.occurrences.get(representationKind)) {
       this.occurrences.set(representationKind, [])
     }
@@ -49,8 +49,8 @@ export default class GrapholEntity extends AnnotatedElement {
    * @returns A map with the occurrences in the original Graphol representation and other 
    * replicated occurrences in other diagram representations
    */
-  getOccurrencesByDiagramId(diagramId: number, representationKind?: RenderStatesEnum): Map<RenderStatesEnum, EntityOccurrence[]> {
-    const result = new Map<RenderStatesEnum, EntityOccurrence[]>()
+  getOccurrencesByDiagramId(diagramId: number, representationKind?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> {
+    const result = new Map<RendererStatesEnum, EntityOccurrence[]>()
     if (representationKind) {
       const occurrences = this.occurrences.get(representationKind)
       if (occurrences) {
@@ -101,7 +101,7 @@ export default class GrapholEntity extends AnnotatedElement {
     return this._functionalities?.includes(functionalityKind) || false
   }
 
-  public hasOccurrenceInDiagram(diagramId: number, representationKind: RenderStatesEnum) {
+  public hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum) {
     if (representationKind) {
       const result = this.occurrences.get(representationKind)?.some(occ => occ.diagramId === diagramId)
       return result === true

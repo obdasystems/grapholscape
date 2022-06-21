@@ -1,18 +1,14 @@
 import { classicColourMap, ColourMap, ColoursNames, darkColourMap, gscapeColourMap } from "../style/themes"
 
-
 export default class GrapholscapeTheme {
   private _id: string
   private _name: string
   colours: ColourMap
-  static defaultTheme = new GrapholscapeTheme('default', gscapeColourMap, 'Grapholscape')
-  static classicTheme = new GrapholscapeTheme('classic', classicColourMap, 'Classic')
-  static darkTheme = new GrapholscapeTheme('dark', darkColourMap, 'Dark')
 
   constructor(id: string, colours?: ColourMap, name?: string) {
     this._id = id
     this.colours = colours || gscapeColourMap
-    this.name = name
+    this.name = name || ''
   }
 
   get id() { return this._id }
@@ -28,3 +24,14 @@ export default class GrapholscapeTheme {
   }
 }
 
+export enum DefaultThemesEnum {
+  GRAPHOLSCAPE = 'grapholscape',
+  GRAPHOL = 'graphol',
+  DARK = 'dark',
+}
+
+export const DefaultThemes: { [key in DefaultThemesEnum]: GrapholscapeTheme } = {
+  grapholscape: new GrapholscapeTheme('default', gscapeColourMap, 'Grapholscape'),
+  graphol: new GrapholscapeTheme('classic', classicColourMap, 'Graphol'),
+  dark: new GrapholscapeTheme('dark', darkColourMap, 'Dark'),
+}

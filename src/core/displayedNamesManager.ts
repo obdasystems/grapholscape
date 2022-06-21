@@ -1,7 +1,8 @@
 import { LifecycleEvent } from "../model/lifecycle";
 import { GrapholEntity } from "../model";
-import { EntityNameType, Language } from "../model/state";
+import { EntityNameType, Language } from "../config/config";
 import Grapholscape from "./grapholscape";
+import { RendererStatesEnum } from "../model/renderers/i-render-state";
 
 export default class DisplayedNamesManager {
   private _grapholscape: Grapholscape
@@ -15,16 +16,16 @@ export default class DisplayedNamesManager {
   get entityNameType() { return this._entityNameType }
   get language() { return this._language }
 
-  setEntityNameType(newEntityNameType: EntityNameType) {  
+  setEntityNameType(newEntityNameType: EntityNameType) {
     if (newEntityNameType === this._entityNameType) return
-  
+
     if (!Object.values(EntityNameType).includes(newEntityNameType)) {
       console.warn(`"${newEntityNameType}" is not a valid entity name type`)
       return
     }
-  
+
     this._entityNameType = newEntityNameType
-    for(let entity of this._grapholscape.ontology.entities.values()) {
+    for (let entity of this._grapholscape.ontology.entities.values()) {
       this.setDisplayedNames(entity)
     }
 
@@ -34,36 +35,36 @@ export default class DisplayedNamesManager {
   setLanguage(language: Language): void
   setLanguage(language: string): void
   setLanguage(language: string) {
-  const languageValue = language as Language
+    const languageValue = language as Language
 
-  if (!this._grapholscape.ontology.languages.list.includes(language)) {
-    console.warn(`Language ${language} is not supported by this ontology`)
-    return
-  }
-
-  if (languageValue === this._language) {
-    return
-  }
-
-  this._language = languageValue
-
-  if (this._entityNameType === EntityNameType.LABEL) {
-    for (let entity of this._grapholscape.ontology.entities.values()) {
-      this.setDisplayedNames(entity)
+    if (!this._grapholscape.ontology.languages.list.includes(language)) {
+      console.warn(`Language ${language} is not supported by this ontology`)
+      return
     }
+
+    if (languageValue === this._language) {
+      return
+    }
+
+    this._language = languageValue
+
+    if (this._entityNameType === EntityNameType.LABEL) {
+      for (let entity of this._grapholscape.ontology.entities.values()) {
+        this.setDisplayedNames(entity)
+      }
+    }
+
+    this._grapholscape.lifecycle.trigger(LifecycleEvent.LanguageChange, languageValue)
   }
 
-  this._grapholscape.lifecycle.trigger(LifecycleEvent.LanguageChange, languageValue)
-}
-
-  private setDisplayedNames(entity: GrapholEntity) {  
+  private setDisplayedNames(entity: GrapholEntity) {
     entity.occurrences.forEach((entityOccurrencesInRenderState, renderState) => {
-
       entityOccurrencesInRenderState.forEach(entityOccurrence => {
         const grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState)
+        if (!grapholElement) return
 
         let newDisplayedName: string
-        switch(this._entityNameType) {
+        switch (this._entityNameType) {
           case EntityNameType.LABEL:
             newDisplayedName =
               entity.getLabels(this._language)[0]?.lexicalForm ||
@@ -71,20 +72,34 @@ export default class DisplayedNamesManager {
               entity.getLabels()[0]?.lexicalForm ||
               entity.iri.remainder
             break
-          
+
           case EntityNameType.PREFIXED_IRI:
             newDisplayedName = entity.iri.prefixed
             break
-    
-          case EntityNameType.FULL_IRI: 
+
+          case EntityNameType.FULL_IRI:
             newDisplayedName = entity.iri.fullIri
             break
         }
-        
-    
+
+
         if (newDisplayedName !== grapholElement.displayedName) {
           grapholElement.displayedName = newDisplayedName
-          this._grapholscape.renderer.updateElement(grapholElement)
+          const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId)
+
+          /**
+           * Entity Occurrences are not replicated, in entity.occurrences.get('lite') there will
+           * be only replicated/transformed entities. So the occurrences in graphol will be
+           * present also in other representations unless filtered.
+           * So for each occurrence in graphol, we search it in other representations and update them as well
+           */
+          if (renderState === RendererStatesEnum.GRAPHOL) {
+            diagram.representations.forEach(representation => {
+              representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
+            })
+          } else {
+            diagram.representations.get(renderState)?.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
+          }
         }
       })
     })

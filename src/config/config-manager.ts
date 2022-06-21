@@ -1,18 +1,20 @@
+import { GrapholscapeConfig } from "./config"
+
 const NAMESPACE = 'obda-systems.grapholscape'
-const namespacedKey = (key) => `${NAMESPACE}-${key}`
-const valueToStore = (v) => JSON.stringify(v)
-const valueFromStorage = (v) => JSON.parse(v)
+const getNamespacedKey = (key: string) => `${NAMESPACE}-${key}`
+const getKeyWithoutNamespace = (key: string) => key.substring(NAMESPACE.length + 1)
+const valueToStore = (v: any) => JSON.stringify(v)
+const valueFromStorage = (v: any) => JSON.parse(v)
 
 /**
  * Load config from local storage
  */
 export function loadConfig() {
-  const config = {}
-  const key = (key) => key.substring(NAMESPACE.length + 1)
+  const config: GrapholscapeConfig = {}
   if (storageAvailable() && isAnySettingSaved()) {
     Object.keys(window.localStorage)
       .filter(k => k.startsWith(NAMESPACE)) // take only local storage items written by grapholscape
-      .forEach(k => config[key(k)] = valueFromStorage(window.localStorage.getItem(k)))
+      .forEach(k => config[getKeyWithoutNamespace(k)] = valueFromStorage(window.localStorage.getItem(k)))
   }
 
   return config
@@ -21,17 +23,16 @@ export function loadConfig() {
 /**
  * Store a single setting in local storage
  * @param {string} k the key of the setting to store
- * @param {string} value the value of the setting to store
+ * @param {any} value the value of the setting to store
  */
-export function storeConfigEntry(k, value) {
+export function storeConfigEntry(k:string, value: any) {
   if (storageAvailable())
-    window.localStorage.setItem(namespacedKey(k), valueToStore(value))
+    window.localStorage.setItem(getNamespacedKey(k), valueToStore(value))
 }
 
-function storageAvailable(type = 'localStorage') {
-  var storage
+function storageAvailable() {
+  let storage = window.localStorage
   try {
-    storage = window[type]
     var x = '__storage_test__'
     storage.setItem(x, x)
     storage.removeItem(x)

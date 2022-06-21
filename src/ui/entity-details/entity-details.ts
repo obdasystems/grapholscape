@@ -127,8 +127,8 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
                 <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
                   ${this.commentsLanguages.map(language => {
                     return html`
-                      <option value="${language}" selected="${this.language === language ? true : false}">
-                        <span class="muted-text">@</span>${language}
+                      <option value="${language}" ?selected=${this.language === language}>
+                        @${language}
                       </option>
                     `
                   })}
