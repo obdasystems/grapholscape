@@ -17,6 +17,7 @@ export default interface RenderState {
   filterManager: FilterManager
   layout: cytoscape.Layouts
   render(): void
+  stopRendering(): void,
   filter(elementId: string, filter: Filter): void
   unfilter(elementId: string, filter: Filter): void
   runLayout(): void

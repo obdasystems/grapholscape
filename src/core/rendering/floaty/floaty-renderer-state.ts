@@ -63,12 +63,9 @@ export default class FloatyRenderState extends BaseRenderer {
       this.unpinAll()
 
     floatyRepresentation.hasEverBeenRendered = true
-
-    // const incrementalRepresentation = new DiagramRepresentation(floatyOptions)
-    // this.renderer.diagram.representations.set('incremental', incrementalRepresentation)
-    // this.renderer.cy = incrementalRepresentation.cy
-    // this.renderer.mount()
   }
+
+  stopRendering(): void { }
 
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
     return floatyStyle(theme)

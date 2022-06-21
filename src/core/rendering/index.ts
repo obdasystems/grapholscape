@@ -2,10 +2,9 @@ import cytoscape, { ElementDefinition } from "cytoscape"
 import { DefaultFilterKeyEnum, Diagram, Filter, getDefaultFilters, GrapholElement, LifecycleEvent } from "../../model"
 import { isGrapholEdge } from "../../model/graphol-elems/edge"
 import { isGrapholNode } from "../../model/graphol-elems/node"
-import GrapholscapeTheme from "../../model/theme"
-import { getGraphStyle } from "../../style/graph-style"
-import RenderState, { RenderStatesEnum } from "../../model/renderers/i-render-state"
 import Lifecycle from "../../model/lifecycle"
+import RenderState from "../../model/renderers/i-render-state"
+import GrapholscapeTheme from "../../model/theme"
 
 /**
  * @property {string} name - diagram's name
@@ -33,11 +32,18 @@ export default class Renderer {
   }
 
   set renderState(rs: RenderState) {
+    if (this.diagram) {
+      /**
+       * Stop rendering actual diagram before
+       * changing renderer state
+       */
+      this.stopRendering()
+    }
+
     this._renderState = rs
     rs.renderer = this
 
     if (this.diagram) {
-      this.stopRendering()
       rs.render()
       this.performAllFilters()
     }
@@ -161,15 +167,7 @@ export default class Renderer {
 
   stopRendering() {
     this.unselect()
-
-    if ((this.renderState.id === RenderStatesEnum.GRAPHOL ||
-      this.renderState.id === RenderStatesEnum.GRAPHOL_LITE) && this.cy
-    ) {
-      this.diagram.lastViewportState = {
-        pan: this.cy.pan(),
-        zoom: this.cy.zoom(),
-      }
-    }
+    this._renderState.stopRendering()
     this.cy?.unmount()
   }
 

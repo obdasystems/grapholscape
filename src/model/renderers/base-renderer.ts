@@ -13,6 +13,7 @@ export default abstract class BaseRenderer implements RenderState {
   abstract filterManager: FilterManager
   abstract layout: cytoscape.Layouts
   abstract render(): void
+  abstract stopRendering(): void
   abstract runLayout(): void
   abstract stopLayout(): void
   abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
@@ -21,6 +22,7 @@ export default abstract class BaseRenderer implements RenderState {
   constructor(renderer?: Renderer) {
     if (renderer) this.renderer = renderer
   }
+  
 
   set renderer(newRenderer: Renderer) {
     this._renderer = newRenderer

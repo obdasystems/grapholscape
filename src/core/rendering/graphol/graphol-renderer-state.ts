@@ -28,6 +28,17 @@ export default class GrapholRendererState extends BaseRenderer {
     grapholRepresentation.hasEverBeenRendered = true
   }
 
+  stopRendering(): void {
+    if (this.renderer.cy) {
+      this.renderer.diagram.lastViewportState = {
+        pan: this.renderer.cy.pan(),
+        zoom: this.renderer.cy.zoom(),
+      }
+
+      console.log(this.renderer.diagram.lastViewportState)
+    }
+  }
+
   runLayout(): void {
     throw new Error("Method not implemented.")
   }

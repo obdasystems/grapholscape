@@ -47,6 +47,17 @@ export default class LiteRendererState extends BaseRenderer {
     liteRepresentation.hasEverBeenRendered = true
   }
 
+  stopRendering(): void {
+    if (this.renderer.cy) {
+      this.renderer.diagram.lastViewportState = {
+        pan: this.renderer.cy.pan(),
+        zoom: this.renderer.cy.zoom(),
+      }
+
+      console.log(this.renderer.diagram.lastViewportState)
+    }
+  }
+
   stopLayout(): void { }
 
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
