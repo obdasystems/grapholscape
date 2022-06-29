@@ -16,7 +16,7 @@ export default class DisplayedNamesManager {
   get entityNameType() { return this._entityNameType }
   get language() { return this._language }
 
-  setEntityNameType(newEntityNameType: EntityNameType) {
+  setEntityNameType = (newEntityNameType: EntityNameType) => {
     if (newEntityNameType === this._entityNameType) return
 
     if (!Object.values(EntityNameType).includes(newEntityNameType)) {
@@ -32,9 +32,7 @@ export default class DisplayedNamesManager {
     this._grapholscape.lifecycle.trigger(LifecycleEvent.EntityNameTypeChange, newEntityNameType)
   }
 
-  setLanguage(language: Language): void
-  setLanguage(language: string): void
-  setLanguage(language: string) {
+  setLanguage = (language: string) => {
     const languageValue = language as Language
 
     if (!this._grapholscape.ontology.languages.list.includes(language)) {

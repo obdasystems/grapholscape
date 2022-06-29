@@ -27,7 +27,7 @@ export default class GscapeToggle extends LitElement {
     baseStyle,
     css`
       :host {
-        display: inline-block;
+        display: block;
         cursor: pointer;
       }
 
@@ -39,8 +39,9 @@ export default class GscapeToggle extends LitElement {
         white-space: nowrap;
         display: flex;
         align-items: center;
-        justify-content: start;
         cursor: inherit;
+        gap: 15px;
+        justify-content: space-between;
       }
 
       :host([label-position = "right"]) > .toggle-container {
@@ -101,7 +102,7 @@ export default class GscapeToggle extends LitElement {
       }
 
       .toggle-label {
-        margin: 0 15px;
+        flex-grow: 2;
       }
     `
   ]

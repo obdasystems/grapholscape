@@ -9,10 +9,11 @@ import { RenderStatesEnum } from '../../model'
 import { RendererStates, RendererStateViewModel } from './controller'
 import { GscapeLayoutSettings } from './floaty-layout-settings'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin } from '../common/base-widget-mixin'
 
 
 
-export default class GscapeRenderSelector extends DropPanelMixin(LitElement) {
+export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   rendererStates: RendererStates
   actualRendererStateKey: RenderStatesEnum
   onRendererStateSelection: (rendererState: RenderStatesEnum) => void = () => {}

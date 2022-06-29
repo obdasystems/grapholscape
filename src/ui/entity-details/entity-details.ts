@@ -7,11 +7,12 @@ import { GscapeButtonStyle } from '../common/button'
 import GscapeSelect from '../common/gscape-select'
 import { infoFilled, minus, plus } from '../assets/icons'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
+import { BaseMixin } from '../common/base-widget-mixin'
 
 export type DiagramViewData = { id: number, name: string }
 export type OccurrenceIdViewData = { originalId: string, realId: string }
 
-export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {  
+export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {  
   grapholEntity: GrapholEntity
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   language: string
@@ -188,14 +189,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
         </div>
       </div>
     `
-  }
-
-  show() {
-    this.style.display = 'initial'
-  }
-
-  hide() {
-    this.style.display = 'none'
   }
 
   // override blur to avoid collapsing when clicking on cytoscape's canvas

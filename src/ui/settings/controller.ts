@@ -1,0 +1,58 @@
+import GscapeSettings from "./settings";
+import { storeConfigEntry } from "../../config/config-manager";
+import Grapholscape from "../../core/grapholscape";
+import { LifecycleEvent } from "../../model";
+import { IBaseMixin } from "../common/base-widget-mixin";
+
+export default function (settingsComponent: GscapeSettings, grapholscape: Grapholscape) {
+  settingsComponent.languages = grapholscape.ontology.languages.list
+  settingsComponent.selectedLanguage = grapholscape.language
+  settingsComponent.selectedEntityNameType = grapholscape.entityNameType
+  settingsComponent.themes = grapholscape.themeList
+
+  for (let [widgetName, widget] of grapholscape.widgets) {
+    settingsComponent.widgetStates[widgetName] = (widget as unknown as IBaseMixin).enabled
+  }
+  settingsComponent.requestUpdate()
+
+  settingsComponent.onEntityNameTypeChange = (entityNameType) => {
+    grapholscape.setEntityNameType(entityNameType)
+  }
+  settingsComponent.onLanguageChange = (language) => grapholscape.setLanguage(language)
+  settingsComponent.onThemeChange = (themeKey) => grapholscape.setTheme(themeKey)
+  // settingsComponent.onPNGSaveButtonClick = () => grapholscape.exportToPNG()
+  // settingsComponent.onSVGSaveButtonClick = () => grapholscape.exportToSVG()
+
+  // let gui_container = grapholscape.container.querySelector('#gscape-ui')
+  settingsComponent.onWidgetEnabled = (widgetName) => {
+    const widget = grapholscape.widgets.get(widgetName) as unknown as IBaseMixin
+    widget.enable()
+    storeConfigEntry(widgetName, true)
+    settingsComponent.widgetStates[widgetName] = true
+    settingsComponent.requestUpdate()
+  }
+  settingsComponent.onWidgetDisabled = (widgetName) => {
+    const widget = grapholscape.widgets.get(widgetName) as unknown as IBaseMixin
+    widget.disable()
+    storeConfigEntry(widgetName, false)
+    settingsComponent.widgetStates[widgetName] = false
+    settingsComponent.requestUpdate()
+  }
+
+  grapholscape.on(LifecycleEvent.LanguageChange, language => settingsComponent.selectedLanguage = language)
+  grapholscape.on(LifecycleEvent.EntityNameTypeChange, entityNameType => settingsComponent.selectedEntityNameType = entityNameType)
+  // grapholscape.onThemeChange( (_ , themeKey) => updateOnChange('theme', themeKey))
+
+  // function updateOnChange(settingID, newValue) {
+  //   let select = settingsComponent.shadowRoot.querySelector(`#${settingID}`)
+  //   let option = Array.from(select.options)?.find( o => o.value === newValue)
+
+  //   if (option) {
+  //     option.selected = true
+
+  //     let languageSelect = settingsComponent.shadowRoot.querySelector('#language')
+  //     if (select.id == 'entity_name') 
+  //       languageSelect.disabled = (select.value !== 'label')
+  //   }
+  // }
+}

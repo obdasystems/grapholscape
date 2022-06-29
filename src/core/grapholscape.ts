@@ -1,6 +1,6 @@
 import { GrapholscapeConfig } from "../config/config"
 import Ontology from "../model"
-import Lifecycle, { LifecycleEvent } from "../model/lifecycle"
+import Lifecycle from "../model/lifecycle"
 import RenderState, { RendererStatesEnum } from "../model/renderers/i-render-state"
 import GrapholscapeTheme, { DefaultThemes, DefaultThemesEnum } from "../model/theme"
 import { WidgetEnum } from "../ui/util/widget-enum"
@@ -123,10 +123,6 @@ export default class Grapholscape {
     return this.renderer.renderState.id
   }
 
-  get theme() {
-    return this.renderer.theme
-  }
-
   get selectedEntity() {
     const selectedElement = this.renderer.selectedElement
 
@@ -143,9 +139,17 @@ export default class Grapholscape {
   get language() { return this.displayedNamesManager.language }
   get entityNameType() { return this.displayedNamesManager.entityNameType }
 
+  // -------------------------- THEMES MANAGER -------------------------- //
+  /** @borrows this.themesManager.setTheme as this.setTheme */
+  setTheme = this.themesManager.setTheme
+  /** @borrows this.themesManager.addTheme as this.addTheme */
+  addTheme = this.themesManager.addTheme
+
+  get theme() { return this.themesManager.theme }
+  get themeList() { return this.themesManager.themes }
+
   // ----------------------------- LIFECYCLE ----------------------------- //
   on = this.lifecycle.on
-
 
   // -------------------------------- UI -------------------------------- //
   get uiContainer() { return this.container.querySelector('.gscape-ui') }

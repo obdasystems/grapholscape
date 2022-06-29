@@ -3,6 +3,7 @@ import { DropPanelMixin } from "./drop-panel-mixin"
 import baseStyle from '../style'
 import { GscapeButtonStyle } from "./button"
 import { check } from "../assets/icons"
+import { BaseMixin } from "./base-widget-mixin"
 
 export type SelectOption = {
   id: string,
@@ -11,7 +12,7 @@ export type SelectOption = {
   leadingIcon?: SVGTemplateResult,
 }
 
-export default class GscapeSelect extends DropPanelMixin(LitElement) {
+export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) {
   defaultIcon: SVGTemplateResult
   selectedOptionId: number
   options: SelectOption[] = []

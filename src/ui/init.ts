@@ -8,6 +8,7 @@ import initFitButton from "./fit-button";
 import initFullscreenButton from "./fullscreen";
 import initOntologyInfo from "./ontology-info";
 import initRendererSelector from "./renderer-selector";
+import initSettings from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
 import { WidgetEnum } from "./util/widget-enum";
 import initZoomTools from "./zoom-tools";
@@ -32,7 +33,7 @@ export default function (grapholscape: Grapholscape) {
   initFilters(grapholscape)
   initOntologyInfo(grapholscape)
   initEntityDetails(grapholscape)
-
+  initSettings(grapholscape)
 
   grapholscape.widgets.forEach((widget, key) => {
     switch (key) {

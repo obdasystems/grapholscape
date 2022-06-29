@@ -155,6 +155,16 @@ export default css`
   font-weight: 600;
 }
 
+select {
+  background: var(--gscape-color-neutral-subtle);
+  border: solid 1px var(--gscape-color-border-subtle);
+  color: inherit;
+  padding: 8px 12px;
+  font-size: inherit;
+  border-radius: var(--gscape-border-radius);
+  cursor: pointer;
+}
+
 select:focus {
   border-color: var(--gscape-color-accent);
 }

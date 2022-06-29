@@ -6,8 +6,9 @@ import '../../common/button'
 import { tune } from '../../assets/icons'
 import baseStyle from '../../style'
 import { DropPanelMixin } from '../../common/drop-panel-mixin'
+import { BaseMixin } from '../../common/base-widget-mixin'
 
-export default class GscapeLayoutSettings extends DropPanelMixin(LitElement) {
+export default class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(LitElement)) {
   layoutRun = false
   dragAndPin = false
   originalPositions = false

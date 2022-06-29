@@ -4,13 +4,14 @@ import { info_outline } from '../assets/icons'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle from '../style'
 import { Annotation, Namespace } from '../../model'
+import { BaseMixin } from '../common/base-widget-mixin'
 
 export type OntologyViewModel = ViewItemWithIri & {
   namespaces: Namespace[],
   annotations: Annotation[],
 }
 
-export default class GscapeOntologyInfo extends DropPanelMixin(LitElement) {
+export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElement)) {
   ontology: OntologyViewModel
 
   static styles = [

@@ -12,7 +12,7 @@ export default class ThemeManager {
     this._grapholscape = grapholscape
   }
 
-  setTheme(newThemeId: string) {
+  setTheme = (newThemeId: string) => {
     const newTheme = this.themes.find(t => t.id === newThemeId)
 
     if (newTheme) {
@@ -26,7 +26,7 @@ export default class ThemeManager {
     }
   }
 
-  addTheme(newTheme: GrapholscapeTheme): void {
+  addTheme = (newTheme: GrapholscapeTheme) => {
     this.themes.push(newTheme)
   }
 }

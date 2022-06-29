@@ -8,8 +8,9 @@ import getIconSlot from '../util/get-icon-slot'
 import baseStyle from '../style'
 import GscapeToggle from '../common/toggle/gscape-toggle'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin } from '../common/base-widget-mixin'
 
-export default class GscapeFilters extends DropPanelMixin(LitElement) {
+export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement)) {
   filters: Map<string, Filter>
   filterAll: Filter = new Filter('all', () => false)
   onFilterOn: (filter: Filter) => void = () => { }

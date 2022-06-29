@@ -7,8 +7,9 @@ import { Diagram } from '../../model'
 import baseStyle from '../style'
 import '../common/list-item/action-list-item'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin } from '../common/base-widget-mixin'
 
-export default class GscapeDiagramSelector extends DropPanelMixin(LitElement) {
+export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   diagrams: Diagram[]
   actualDiagramId: number
   onDiagramSelection: (diagramId: number) => void = () => {}
