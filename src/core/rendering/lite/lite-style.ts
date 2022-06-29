@@ -50,9 +50,9 @@ export default function (theme: GrapholscapeTheme) {
     { // DOMAIN-RANGE RESTRICTIONS ARE EDGES IN GRAPHOL-LITE
       selector: `[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"], [type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
       style: {
-        'line-color' : theme.getColour(ColoursNames.role_dark),
-        'source-arrow-color': theme.getColour(ColoursNames.role_dark),
-        'target-arrow-color': theme.getColour(ColoursNames.role_dark),
+        'line-color' : theme.getColour(ColoursNames.object_property_contrast),
+        'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'square',
@@ -81,7 +81,7 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `edge[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
       style: {
-        'line-color': theme.getColour(ColoursNames.attribute_dark),
+        'line-color': theme.getColour(ColoursNames.data_property_contrast),
         'source-arrow-shape': 'none',
         'target-arrow-shape': 'none',
       }

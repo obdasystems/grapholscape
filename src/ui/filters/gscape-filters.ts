@@ -39,13 +39,6 @@ export default class GscapeFilters extends DropPanelMixin(LitElement) {
         margin: 0 auto;
       }
 
-      gscape-toggle[first]{
-        justify-content: center;
-        border-bottom: 1px solid var(--gscape-color-border-subtle);
-        margin-bottom: 10px;
-        padding: 10px;
-      }
-
       .filters-wrapper {
         display: flex;
         flex-direction: column;

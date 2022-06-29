@@ -62,9 +62,8 @@ export default class GscapeToggle extends LitElement {
         bottom: 0;
         border-radius: 18px;
         background-color: var(--gscape-color-neutral-muted);
-        border: 1px solid var(--gscape-color-border-default);
+        border: 1px solid var(--gscape-color-border-subtle);
         transition: all 0.2s ease 0s;
-        filter: brightness(80%);
       }
 
       .toggle::before {
@@ -73,7 +72,7 @@ export default class GscapeToggle extends LitElement {
         position: absolute;
         width: 10px;
         height: 10px;
-        background-color: var(--gscape-color-bg-subtle);
+        background-color: var(--gscape-color-bg-default);
         border: solid 1px var(--gscape-color-border-subtle);
         border-radius: 9px;
         bottom: 2px;
@@ -86,7 +85,7 @@ export default class GscapeToggle extends LitElement {
 
       .toggle-wrap input:checked + .toggle {
         background-color: var(--gscape-color-accent-muted);
-        border-color: var(--gscape-color-accent-emphasis);
+        border-color: var(--gscape-color-accent);
         filter: brightness(100%);
       }
 
@@ -94,7 +93,7 @@ export default class GscapeToggle extends LitElement {
         -webkit-transform: translateX(18px);
         -ms-transform: translateX(18px);
         transform: translateX(18px);
-        background-color: var(--gscape-color-accent-emphasis);
+        background-color: var(--gscape-color-accent);
       }
 
       .toggle-wrap input:disabled + .toggle {

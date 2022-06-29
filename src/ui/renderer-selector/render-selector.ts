@@ -31,12 +31,16 @@ export default class GscapeRenderSelector extends DropPanelMixin(LitElement) {
         margin-top:10px;
         border-radius: var(--gscape-border-radius-btn);
         border: 1px solid var(--gscape-color-border-subtle);
-        background-color: var(--gscape-color-bg-subtle);
+        background-color: var(--gscape-color-bg-default);
       }
 
       .gscape-panel-in-tray {
         top:10px;
         bottom: initial;
+      }
+
+      :host(:hover) {
+        border-color: var(--gscape-color-border-default);
       }
     `
   ]

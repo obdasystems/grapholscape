@@ -36,9 +36,9 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
       style: {
-        'line-color': theme.getColour(ColoursNames.role_dark),
-        'source-arrow-color': theme.getColour(ColoursNames.role_dark),
-        'target-arrow-color': theme.getColour(ColoursNames.role_dark),
+        'line-color': theme.getColour(ColoursNames.object_property_contrast),
+        'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'square',
@@ -90,7 +90,7 @@ export default function (theme: GrapholscapeTheme) {
       selector: '[?pinned]',
       style: {
         'border-width': 4,
-        'border-color' : theme.getColour(ColoursNames.secondary),
+        'border-color' : theme.getColour(ColoursNames.accent),
       }
     },
 

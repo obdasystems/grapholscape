@@ -10,8 +10,7 @@ export default css`
   user-select: none;
   text-decoration: none;
   text-align: center;
-  background-color: var(--gscape-color-bg-subtle);
-  box-shadow: rgba(27, 31, 36, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
+  background-color: var(--gscape-color-bg-default);
   line-height: 20px;
   display: inline-flex;
   position: relative;
@@ -25,15 +24,16 @@ export default css`
 }
 
 .btn:hover {
-  filter: brightness(95%);
+  background-color: var(--gscape-color-neutral);
+  border-color: var(--gscape-color-border-default);
 }
 
 .btn:active {
-  filter: brightness(90%);
+  background-color: var(--gscape-color-neutral-muted);
 }
 
 .btn[active] {
-  color: var(--gscape-color-accent-fg);
+  color: var(--gscape-color-accent);
 }
 
 .btn[disabled] {
@@ -74,7 +74,7 @@ export default css`
 }
 
 .btn.primary, .primary-box {
-  background-color: var(--gscape-color-accent-emphasis);
+  background-color: var(--gscape-color-accent);
   color: var(--gscape-color-fg-on-emphasis);
 }
 
@@ -85,11 +85,15 @@ export default css`
 }
 
 .btn.subtle:hover {
-  background-color: var(--gscape-color-neutral-subtle);
+  background-color: var(--gscape-color-neutral);
+}
+
+.btn.subtle:active {
+  background-color: var(--gscape-color-neutral-muted);
 }
 
 .btn.subtle:hover > .btn-label {
-  color: var(--gscape-color-accent-fg);
+  color: var(--gscape-color-accent);
 }
 
 .btn-label {

@@ -10,13 +10,13 @@ export default function(theme: GrapholscapeTheme) {
       style: {
         'height': 'data(height)',
         'width': 'data(width)',
-        'background-color': theme.getColour(ColoursNames.node_bg),
+        'background-color': theme.getColour(ColoursNames.bg_node_light),
         'shape': 'data(shape)',
         'border-width': 1,
-        'border-color': theme.getColour(ColoursNames.node_border),
+        'border-color': theme.getColour(ColoursNames.border_node),
         'border-style': 'solid',
         'font-size': 12,
-        'color': theme.getColour(ColoursNames.label_color),
+        'color': theme.getColour(ColoursNames.label),
       }
     },
 
@@ -61,7 +61,7 @@ export default function(theme: GrapholscapeTheme) {
         'source-arrow-color': theme.getColour(ColoursNames.edge),
         'curve-style': 'bezier',
         'arrow-scale': 1.3,
-        'color': theme.getColour(ColoursNames.label_color),
+        'color': theme.getColour(ColoursNames.label),
       }
     },
 
@@ -132,7 +132,7 @@ export default function(theme: GrapholscapeTheme) {
       selector: '[?functional][!inverseFunctional]',
       style: {
         'border-width': 5,
-        'border-color': theme.getColour(ColoursNames.node_border),
+        'border-color': theme.getColour(ColoursNames.border_node),
         'border-style': 'double'
       }
     },
@@ -141,7 +141,7 @@ export default function(theme: GrapholscapeTheme) {
       selector: '[?inverseFunctional][!functional]',
       style: {
         'border-width': 4,
-        'border-color': theme.getColour(ColoursNames.node_border),
+        'border-color': theme.getColour(ColoursNames.border_node),
         'border-style': 'solid'
       }
     },
@@ -181,7 +181,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
       style: {
-        'text-background-color': theme.getColour(ColoursNames.background),
+        'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
         'text-background-shape': 'roundrectangle',
         'text-background-padding' : 2,
@@ -234,31 +234,31 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
       style: {
-        'background-color': theme.getColour(ColoursNames.concept),
-        'border-color': theme.getColour(ColoursNames.concept_dark),
+        'background-color': theme.getColour(ColoursNames.class),
+        'border-color': theme.getColour(ColoursNames.class_contrast),
       }
     },
 
     {
       selector: `node[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"], .fake-triangle`,
       style: {
-        'background-color': theme.getColour(ColoursNames.role),
-        'border-color': theme.getColour(ColoursNames.role_dark),
+        'background-color': theme.getColour(ColoursNames.object_property),
+        'border-color': theme.getColour(ColoursNames.object_property_contrast),
       }
     },
 
     {
       selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
       style: {
-        'background-color': theme.getColour(ColoursNames.attribute),
-        'border-color': theme.getColour(ColoursNames.attribute_dark),
+        'background-color': theme.getColour(ColoursNames.data_property),
+        'border-color': theme.getColour(ColoursNames.data_property_contrast),
       }
     },
 
     {
       selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]:selected`,
       style: {
-        'text-background-color': theme.getColour(ColoursNames.background),
+        'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
       }
     },
@@ -267,28 +267,28 @@ export default function(theme: GrapholscapeTheme) {
       selector: `node[type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
       style: {
         'background-color': theme.getColour(ColoursNames.individual),
-        'border-color': theme.getColour(ColoursNames.individual_dark),
+        'border-color': theme.getColour(ColoursNames.individual_contrast),
       }
     },
 
     {
       selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"], [type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
       style: {
-        'background-color': theme.getColour(ColoursNames.node_bg_contrast),
+        'background-color': theme.getColour(ColoursNames.bg_node_dark),
       }
     },
 
     { // the right border part of functional && inverseFunctional roles
       selector: '.fake-triangle-right',
       style: {
-        'background-color': theme.getColour(ColoursNames.role_dark) || 'black',
+        'background-color': theme.getColour(ColoursNames.object_property_contrast) || 'black',
       }
     },
 
     {
       selector: `[shape = "${Shape.HEXAGON}"],[type = "${GrapholTypesEnum.VALUE_DOMAIN}"]`,
       style: {
-        'color': theme.getColour(ColoursNames.node_bg_contrast),
+        'color': theme.getColour(ColoursNames.bg_node_dark),
       }
     },
 
@@ -297,7 +297,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: ':selected',
       style: {
-        'overlay-color': theme.getColour(ColoursNames.secondary),
+        'overlay-color': theme.getColour(ColoursNames.accent),
         'overlay-opacity': 0.2,
         'z-index': '100'
       }

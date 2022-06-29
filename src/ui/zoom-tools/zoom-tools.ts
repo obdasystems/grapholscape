@@ -17,7 +17,11 @@ export default class GscapeZoomTools extends LitElement {
         z-index: 10;
         border-radius: var(--gscape-border-radius-btn);
         border: 1px solid var(--gscape-color-border-subtle);
-        background-color: var(--gscape-color-bg-subtle);
+        background-color: var(--gscape-color-bg-default);
+      }
+
+      :host(:hover) {
+        border-color: var(--gscape-color-border-default);
       }
     `
   ]

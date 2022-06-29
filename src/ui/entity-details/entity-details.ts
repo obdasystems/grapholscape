@@ -49,8 +49,8 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
 
       .chip {
         display: inline-block;
-        border: 1px solid var(--gscape-color-accent-emphasis);
-        color: var(--gscape-color-accent-fg);
+        border: 1px solid var(--gscape-color-accent);
+        color: var(--gscape-color-accent);
         border-radius: 16px;
         padding: 0px 6px;
         background: var(--gscape-color-accent-subtle);
@@ -58,7 +58,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(LitElement) {
       }
 
       [diagram-id] > gscape-button {
-        color: var(--gscape-color-accent-fg);
+        color: var(--gscape-color-accent);
       }
 
       #language-select: {

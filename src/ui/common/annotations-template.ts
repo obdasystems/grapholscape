@@ -62,7 +62,7 @@ export function itemWithIriTemplate(item: ViewItemWithIri) {
 export const itemWithIriTemplateStyle = css`
   .item-with-iri-info {
     text-align:center;
-    background-color: var(--gscape-color-neutral-subtle);
+    background-color: var(--gscape-color-bg-inset);
     white-space: nowrap;
   }
 

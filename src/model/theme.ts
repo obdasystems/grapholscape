@@ -3,12 +3,17 @@ import { classicColourMap, ColourMap, ColoursNames, darkColourMap, gscapeColourM
 export default class GrapholscapeTheme {
   private _id: string
   private _name: string
-  colours: ColourMap
+  colours: ColourMap = JSON.parse(JSON.stringify(gscapeColourMap))
 
   constructor(id: string, colours?: ColourMap, name?: string) {
     this._id = id
-    this.colours = colours || gscapeColourMap
     this.name = name || ''
+
+    if (colours) {
+      Object.entries(colours).forEach(([colourName, colour]) => {
+        this.colours[colourName] = colour
+      })
+    }
   }
 
   get id() { return this._id }
@@ -31,7 +36,7 @@ export enum DefaultThemesEnum {
 }
 
 export const DefaultThemes: { [key in DefaultThemesEnum]: GrapholscapeTheme } = {
-  grapholscape: new GrapholscapeTheme('default', gscapeColourMap, 'Grapholscape'),
-  graphol: new GrapholscapeTheme('classic', classicColourMap, 'Graphol'),
-  dark: new GrapholscapeTheme('dark', darkColourMap, 'Dark'),
+  grapholscape: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOLSCAPE, gscapeColourMap, 'Grapholscape'),
+  graphol: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOL, classicColourMap, 'Graphol'),
+  dark: new GrapholscapeTheme(DefaultThemesEnum.DARK, darkColourMap, 'Dark'),
 }

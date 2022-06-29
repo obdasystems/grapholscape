@@ -6,9 +6,10 @@ const animationDuration = css`200ms`
 export default css`
 .gscape-panel {
   font-size: 12px;
-  background-color: var(--gscape-color-bg-subtle);
-  box-shadow: 0 2px 10px 0 var(--gscape-color-border-default);
+  background-color: var(--gscape-color-bg-default);
+  box-shadow: 0 2px 10px 0 var(--gscape-color-shadow);
   border-radius: var(--gscape-border-radius);
+  border: solid 1px var(--gscape-color-border-subtle);
   width: fit-content;
   min-width: 130px;
   max-width: 350px;
@@ -41,7 +42,7 @@ export default css`
 }
 
 .actionable:hover {
-  background-color: var(--gscape-color-neutral-muted);
+  background-color: var(--gscape-color-neutral);
 }
 
 .actionable:active {
@@ -51,19 +52,19 @@ export default css`
 .selected-item::before {
   content: '.';
   position: static;
-  background-color: var(--gscape-color-accent-emphasis);
-  color: var(--gscape-color-accent-emphasis);
+  background-color: var(--gscape-color-accent);
+  color: var(--gscape-color-accent);
   border-radius: var(--gscape-border-radius);
   margin: 4px 0;
 }
 
 .selected-item > .actionable {
-  background-color: var(--gscape-color-neutral-muted);
+  background-color: var(--gscape-color-neutral);
   font-weight: 600;
 }
 
 .primary {
-  color: var(--gscape-color-accent-fg);
+  color: var(--gscape-color-accent);
 }
 
 .hide {
@@ -155,7 +156,7 @@ export default css`
 }
 
 select:focus {
-  border-color: var(--gscape-color-accent-fg);
+  border-color: var(--gscape-color-accent);
 }
 
 
