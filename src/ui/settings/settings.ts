@@ -32,6 +32,8 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
   onThemeChange: (newThemeKey: string) => void = () => { }
   onWidgetEnabled: (widgetKey: WidgetEnum) => void = () => { }
   onWidgetDisabled: (widgetKey: WidgetEnum) => void = () => { }
+  onPngExport: () => void = () => { }
+  onSvgExport: () => void = () => { }
 
   static styles = [
     baseStyle,
@@ -183,7 +185,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
             ${this.getSettingTitleTemplate('Image', 'Save a PNG image of the current diagram on your disk')}
             
             <div class="setting-obj">
-              <gscape-button label="PNG" size="s">
+              <gscape-button label="PNG" size="s" @click=${this.onPngExport}>
                 <span slot="icon">${save}</span>
               </gscape-button>
             </div>
@@ -192,7 +194,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
           <div class="setting">
             ${this.getSettingTitleTemplate('Vectorial', 'Save an SVG of the current diagram on your disk')}
             <div class="setting-obj">
-              <gscape-button label="SVG" size="s">
+              <gscape-button label="SVG" size="s" @click=${this.onSvgExport}>
                 <span slot="icon">${save}</span>
               </gscape-button>
             </div>

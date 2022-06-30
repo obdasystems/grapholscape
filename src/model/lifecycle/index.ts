@@ -1,12 +1,13 @@
-import { Filter } from "..";
-import { Diagram } from "..";
-import GrapholEdge from "../graphol-elems/edge";
-import GrapholEntity from "../graphol-elems/entity";
-import GrapholElement from "../graphol-elems/graphol-element";
-import GrapholNode from "../graphol-elems/node";
-import { RendererStatesEnum } from "../renderers/i-render-state";
-import { EntityNameType, Language } from "../../config/config";
-import GrapholscapeTheme from "../theme";
+import { Filter } from ".."
+import { Diagram } from ".."
+import GrapholEdge from "../graphol-elems/edge"
+import GrapholEntity from "../graphol-elems/entity"
+import GrapholElement from "../graphol-elems/graphol-element"
+import GrapholNode from "../graphol-elems/node"
+import { RendererStatesEnum } from "../renderers/i-render-state"
+import { EntityNameType, Language } from "../../config/config"
+import GrapholscapeTheme from "../theme"
+import Grapholscape from "../../core/grapholscape"
 
 export enum LifecycleEvent {
   DiagramChange = 'diagramChange',
@@ -25,18 +26,19 @@ export enum LifecycleEvent {
 }
 
 interface IonEvent {
-  (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void;
-  (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void;
-  (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void;
-  (event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void;
-  (event: LifecycleEvent.RendererChange, callback: (renderer: RendererStatesEnum) => void): void;
+  (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void
+  (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void
+  (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void
+  (event: LifecycleEvent.ThemeChange, callback: (theme: GrapholscapeTheme) => void): void
+  (event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void
+  (event: LifecycleEvent.RendererChange, callback: (renderer: RendererStatesEnum) => void): void
   (event: LifecycleEvent.LanguageChange, callback: (language: string) => void): void
-  (event: LifecycleEvent.EntityNameTypeChange, callback: (nameType: EntityNameType) => void): void;
-  (event: LifecycleEvent.Filter, callback: (filter: Filter) => void): void;
-  (event: LifecycleEvent.Unfilter, callback: (filter: Filter) => void): void;
-  (event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void;
-  (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void;
-  (event: LifecycleEvent.BackgroundClick, callback: () => void): void;
+  (event: LifecycleEvent.EntityNameTypeChange, callback: (nameType: EntityNameType) => void): void
+  (event: LifecycleEvent.Filter, callback: (filter: Filter) => void): void
+  (event: LifecycleEvent.Unfilter, callback: (filter: Filter) => void): void
+  (event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void
+  (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void
+  (event: LifecycleEvent.BackgroundClick, callback: () => void): void
 }
 
 export default class Lifecycle {

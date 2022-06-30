@@ -20,8 +20,8 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   }
   settingsComponent.onLanguageChange = (language) => grapholscape.setLanguage(language)
   settingsComponent.onThemeChange = (themeKey) => grapholscape.setTheme(themeKey)
-  // settingsComponent.onPNGSaveButtonClick = () => grapholscape.exportToPNG()
-  // settingsComponent.onSVGSaveButtonClick = () => grapholscape.exportToSVG()
+  settingsComponent.onPngExport = () => grapholscape.exportToPng()
+  settingsComponent.onSvgExport = () => grapholscape.exportToSvg()
 
   // let gui_container = grapholscape.container.querySelector('#gscape-ui')
   settingsComponent.onWidgetEnabled = (widgetName) => {
@@ -41,7 +41,7 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
 
   grapholscape.on(LifecycleEvent.LanguageChange, language => settingsComponent.selectedLanguage = language)
   grapholscape.on(LifecycleEvent.EntityNameTypeChange, entityNameType => settingsComponent.selectedEntityNameType = entityNameType)
-  // grapholscape.onThemeChange( (_ , themeKey) => updateOnChange('theme', themeKey))
+  grapholscape.on(LifecycleEvent.ThemeChange, newTheme => settingsComponent.selectedTheme = newTheme.id)
 
   // function updateOnChange(settingID, newValue) {
   //   let select = settingsComponent.shadowRoot.querySelector(`#${settingID}`)

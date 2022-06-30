@@ -1,4 +1,4 @@
-export default (blob, fileName) => {
+export default (blob: Blob, fileName: string) => {
   let a = document.createElement('a')
   document.body.appendChild(a)
   a.style.setProperty('style', 'none')
@@ -7,4 +7,5 @@ export default (blob, fileName) => {
   a.download = fileName
   a.click()
   window.URL.revokeObjectURL(url)
+  a.remove()
 }

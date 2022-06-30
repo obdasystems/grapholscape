@@ -11,6 +11,8 @@ import FloatyRenderState from "./rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "./rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "./rendering/lite/lite-renderer-state"
 import ThemeManager from "./themeManager"
+import * as Exporter from '../exporter'
+import { ColoursNames } from "../style/themes"
 
 
 export default class Grapholscape {
@@ -71,19 +73,6 @@ export default class Grapholscape {
       this.entityNavigator.updateEntitiesOccurrences()
   }
 
-  // setTheme(newTheme: GrapholscapeTheme) {
-  //   this.renderer.setTheme(newTheme)
-  //   this.lifecycle.trigger(LifecycleEvent.ThemeChange, newTheme)
-  // }
-
-  // addTheme(newTheme: GrapholscapeTheme, select?: boolean) {
-  //   this.themes.push(newTheme)
-  //   if (select) {
-  //     this.setTheme(newTheme)
-  //   }
-  // }
-
-  // TODO: Evaluate if this should part of public api
   centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
     if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
       this.showDiagram(diagramId)
@@ -201,5 +190,24 @@ export default class Grapholscape {
     if (newConfig.selectedTheme) {
       this.themesManager.setTheme(newConfig.selectedTheme)
     }
+  }
+
+  // ---------------------------- EXPORTING ---------------------------- //
+  exportToPng(fileName = this.exportFileName) {
+    fileName += '.png'
+    Exporter.toPNG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph))
+  }
+
+  exportToSvg(fileName = this.exportFileName) {
+    fileName += '.svg'
+    Exporter.toSVG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph))
+  }
+
+  /**
+   * Filename for exports
+   * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
+   */
+   get exportFileName() {
+    return `${this.ontology.name}-${this.renderer.diagram.name}-v${this.ontology.version}`
   }
 }
