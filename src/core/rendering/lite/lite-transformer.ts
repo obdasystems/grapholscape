@@ -294,7 +294,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       newAttribute.x = concept.position().x
       newAttribute.y = concept.position().y
       Object.entries(attribute.data()).forEach(([key, value]) => {
-        if (key !== 'id')
+        if (key !== 'id' && key !== 'originalId')
           newAttribute[key] = value
       })
 

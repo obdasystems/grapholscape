@@ -1,6 +1,6 @@
 import { GrapholscapeConfig } from "../config/config"
 import Ontology from "../model"
-import Lifecycle from "../model/lifecycle"
+import Lifecycle, { LifecycleEvent } from "../model/lifecycle"
 import RenderState, { RendererStatesEnum } from "../model/renderers/i-render-state"
 import GrapholscapeTheme, { DefaultThemes, DefaultThemesEnum } from "../model/theme"
 import { WidgetEnum } from "../ui/util/widget-enum"
@@ -50,17 +50,12 @@ export default class Grapholscape {
 
     this.entityNavigator.setGraphEventHandlers(diagram)
 
-    const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
-      ?.representations.get(this.renderState)?.hasEverBeenRendered
-
     this.renderer.render(diagram)
-    if (shouldUpdateEntities)
-      this.entityNavigator.updateEntitiesOccurrences()
   }
 
   setRenderer(newRenderState: RenderState) {
-    const shouldUpdateEntities = !this.ontology.getDiagram(this.diagramId)
-      ?.representations.get(newRenderState.id)?.hasEverBeenRendered
+    const shouldUpdateEntities = this.ontology.getDiagram(this.diagramId)
+      ?.representations.get(newRenderState.id) ? false : true
 
     if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
       newRenderState.transformOntology(this.ontology)
@@ -71,6 +66,8 @@ export default class Grapholscape {
     this.entityNavigator.setGraphEventHandlers(this.renderer.diagram)
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
+
+    this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState)
   }
 
   centerOnElement(elementId: string, diagramId?: number, zoom?: number) {

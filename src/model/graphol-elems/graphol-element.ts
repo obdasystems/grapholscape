@@ -8,6 +8,7 @@ export default class GrapholElement {
   private _type: GrapholTypesEnum
   private _displayedName: string
   private _originalId: string // In case of replicated elements, this is the id of the original node
+  private _iri?: string
 
   constructor(id: string) {
     this.id = id
@@ -30,6 +31,9 @@ export default class GrapholElement {
 
   get originalId() { return this._originalId }
   set originalId(id: string) { this._originalId = id }
+
+  get iri() { return this._iri }
+  set iri(iri: string | undefined) { this._iri = iri }
 
   /**
    * Check if node is of a certain type
@@ -62,7 +66,7 @@ export default class GrapholElement {
         type: this.type || undefined,
         displayedName: this.displayedName || undefined,
         originalId: this.originalId || undefined,
-        iri: grapholEntity?.iri.fullIri,
+        iri: this.iri || grapholEntity?.iri.fullIri,
       }
     }
 

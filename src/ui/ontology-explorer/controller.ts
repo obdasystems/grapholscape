@@ -1,12 +1,11 @@
 import Grapholscape from "../../core/grapholscape";
-import { Annotation, GrapholEntity, Iri } from "../../model";
-import { entityModelToViewData } from "../../util/model-obj-transformations";
-import getEntityViewOccurrences, { DiagramViewData, OccurrenceIdViewData } from "../util/get-entity-view-occurrences";
+import { Annotation, GrapholEntity, Iri, LifecycleEvent } from "../../model";
+import getEntityViewOccurrences from "../util/get-entity-view-occurrences";
 import GscapeExplorer, { EntityViewData } from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
   // let languages = grapholscape.languages
-  const entities = createEntitiesList(grapholscape.ontology.entities)
+  let entities = createEntitiesList(grapholscape.ontology.entities)
 
   // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
   ontologyExplorerComponent.entities = entities
@@ -32,12 +31,9 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     }
   }
 
-
-
-  // grapholscape.onRendererChange(() => {
-  //   closeAllSubRows()
-  //   entities = ontologyExplorerComponent.predicates = createEntitiesList(grapholscape.ontology.entities)
-  // })
+  grapholscape.on(LifecycleEvent.RendererChange, () => {
+    entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape.ontology.entities)
+  })
 
 
   function createEntitiesList(entities: Map<string, GrapholEntity>) {
@@ -48,22 +44,6 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     }))
 
     return result.sort((a, b) => a.value.iri.remainder.localeCompare(b.value.iri.remainder))
-
-    // let result = Object.keys(entities).map(iri => {
-    //   return entities[iri].map( (entity, i) => {
-    //     let entityViewData = entityModelToViewData(entity, languages)
-    //     entityViewData.diagram_name = grapholscape.ontology.getDiagram(entityViewData.diagram_id).name
-
-    //     // the first entity occurrence will have the state of subrows wrapper, open or closed
-    //     if (i === 0) {
-    //       entityViewData.areSubrowsOpen = false
-    //     }
-
-    //     return entityViewData
-    //   })
-    // })
-
-    //   return result.sort((a, b) => a[0].displayed_name.localeCompare(b[0].displayed_name))
   }
 
   /**
@@ -98,21 +78,5 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
 
     function isMatch(value1: string, value2: string) { return value1.toLowerCase().includes(value2.toLowerCase()) }
   }
-
-  // function closeAllSubRows() {
-  //   ontologyExplorerComponent.predicates.forEach( entityOccurr => {
-  //     if (entityOccurr[0].areSubrowsOpen) {
-  //       entityOccurr[0].areSubrowsOpen = false
-  //       const entityRow = ontologyExplorerComponent.shadowRoot
-  //         .querySelector(`.row[iri = '${entityOccurr[0].iri.fullIri}']`)
-
-  //       entityRow.classList.remove('add-shadow')
-  //       entityRow.parentNode
-  //         .querySelector('.sub-rows-wrapper')
-  //         .classList.add('hide')
-  //     }
-  //   })
-  //   ontologyExplorerComponent.requestUpdate()
-  // }
 }
 

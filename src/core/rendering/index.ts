@@ -47,8 +47,6 @@ export default class Renderer {
       rs.render()
       this.performAllFilters()
     }
-
-    this._lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState.id)
   }
 
   get renderState() { return this._renderState }

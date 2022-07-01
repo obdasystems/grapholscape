@@ -81,27 +81,22 @@ export default class EntityNavigator {
   }
 
   updateEntitiesOccurrences() {
-    for (let [id, representation] of this._grapholscape.renderer.diagram.representations) {
-      if (id === RenderStatesEnum.GRAPHOL) continue
+    const diagram = this._grapholscape.renderer.diagram
+    if (this._grapholscape.renderState === RenderStatesEnum.GRAPHOL)
+      return
 
-      const replicatedElements = representation.cy.$("[originalId]")
+    const replicatedElements = this._grapholscape.renderer.cy?.$("[originalId]")
 
-      for (let entity of this._grapholscape.ontology.entities.values()) {
-        const originalOccurrences = entity.getOccurrencesByDiagramId(this._grapholscape.diagramId).get(RenderStatesEnum.GRAPHOL)
+    if (replicatedElements && !replicatedElements.empty()) {
+      replicatedElements.forEach(replicatedElement => {
+        const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'))
 
-        originalOccurrences?.forEach(occurrence => {
-          const newOccurrences = replicatedElements.filter(elem =>
-            representation.grapholElements.get(elem.id())?.originalId === occurrence.elementId
-          )
-
-          if (!newOccurrences.empty()) {
-            newOccurrences.forEach(newOccurrence => {
-              entity.addOccurrence(newOccurrence.id(), occurrence.diagramId, id)
-            })
-          }
-
-        })
-      }
+        if (grapholEntity) {
+          grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState)
+          replicatedElement.data('iri', grapholEntity.iri.fullIri)
+          grapholEntity.addOccurrence(replicatedElement.id(), diagram.id, this._grapholscape.renderState)
+        }
+      })
     }
   }
 
