@@ -1,16 +1,15 @@
-import { html, css, LitElement } from 'lit'
-import GscapeButton from '../common/button'
-import GscapeWidget from '../common/gscape-widget'
-import '../common/toggle/gscape-toggle'
-import { filter as filterIcon } from '../assets/icons'
+import { css, html, LitElement } from 'lit'
 import { DefaultFilterKeyEnum, Filter } from '../../model'
-import getIconSlot from '../util/get-icon-slot'
-import baseStyle from '../style'
-import GscapeToggle from '../common/toggle/gscape-toggle'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { filter as filterIcon } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
+import { DropPanelMixin } from '../common/drop-panel-mixin'
+import '../common/toggle/gscape-toggle'
+import GscapeToggle from '../common/toggle/gscape-toggle'
+import baseStyle from '../style'
+import getIconSlot from '../util/get-icon-slot'
 
 export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement)) {
+  title = "Filters"
   filters: Map<string, Filter>
   filterAll: Filter = new Filter('all', () => false)
   onFilterOn: (filter: Filter) => void = () => { }
@@ -59,7 +58,7 @@ export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement))
       </gscape-button>
 
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-        <div class="header">Filters</div>
+        <div class="header">${this.title}</div>
 
         <div class="content-wrapper">
           ${this.filterToggleTemplate(this.filterAll, false)}
@@ -108,27 +107,6 @@ export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement))
     }
     this.filters.get(toggle.key)?.active ? this.onFilterOff(filter) : this.onFilterOn(filter)
   }
-
-  // updateTogglesState() {
-  //   let toggles = this.shadowRoot.querySelectorAll(`gscape-toggle`)
-  //   let is_activated = false
-
-  //   toggles.forEach(toggle => {
-  //     toggle.state = this.filterList[toggle.key].active
-  //     toggle.disabled = this.filterList[toggle.key].disabled
-  //     if (toggle.state)
-  //       is_activated = true
-  //   })
-
-  //   this.btn.highlighted = is_activated
-  //   this.btn.requestUpdate()
-  // }
-
-  // show() {
-  //   if (this.isEnabled) this.style.display = 'inline-block'
-  // }
 }
-
-
 
 customElements.define('gscape-filters', GscapeFilters)

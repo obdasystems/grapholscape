@@ -1,15 +1,13 @@
-import { html, css, LitElement } from 'lit'
-import GscapeWidget from '../common/gscape-widget'
-import GscapeToggle from '../common/gscape-toggle'
-import { grapholscape as logo} from '../assets/gscape-logo'
-import { save, settings_icon } from '../assets/icons'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { css, html, LitElement } from 'lit'
 import { EntityNameType } from '../../config/config'
-import baseStyle from '../style'
-import { GscapeButtonStyle } from '../common/button'
 import { GrapholscapeTheme } from '../../model'
-import { WidgetEnum } from '../util/widget-enum'
+import { grapholscape as logo } from '../assets/gscape-logo'
+import { save, settings_icon } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
+import { GscapeButtonStyle } from '../common/button'
+import { DropPanelMixin } from '../common/drop-panel-mixin'
+import baseStyle from '../style'
+import { WidgetEnum } from '../util/widget-enum'
 
 type OptionEntry = {
   value: string,
@@ -17,6 +15,7 @@ type OptionEntry = {
 }
 
 export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)) {
+  title = 'Settings'
   languages: string[]
   selectedLanguage: string
 
@@ -141,7 +140,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
       </gscape-button>
 
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-        <div class="header">Settings</div>
+        <div class="header">${this.title}</div>
 
         <div class="settings-wrapper">
 
@@ -272,33 +271,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
     `
   }
 
-  // updated(changedProperties) {
-  //   /**
-  //    * when controller change a property in this.settings, lit element doesn't see it
-  //    * (this.settings should be assigned to a completely new object (new reference)
-  //    * for lit element to notice it).
-  //    * So controller forces the update and in that case litElement will update even if
-  //    * no property has changed.
-  //    * So if it has been updated forcefully from controller, then react to each change
-  //    */
-  //   if( changedProperties.size == 0) {
-  //     this.shadowRoot.querySelectorAll('select').forEach( list => {
-  //       this.onListChange({target: list})
-  //     })
-  //     this.shadowRoot.querySelectorAll('gscape-toggle').forEach( toggle => {
-  //       // onToggleChange uses toggle.id because it gets the <input> elem
-  //       toggle.id = toggle.key
-  //       this.onToggleChange({ target: toggle })
-  //     })
-  //   }
-  // }
-
   private listChangeHandler(e) {
-    // let selection = e.target
-    // let area = selection.getAttribute('area')
-    // this.settings[area][selection.id].selected = selection.value
-    // this.callbacks[selection.id](selection.value)
-
     const selectId = e.target.id
     const newValue = e.target.value
 
@@ -330,39 +303,6 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
       this.onWidgetDisabled(toggle.key) :
       this.onWidgetEnabled(toggle.key)
   }
-
-
-  // set onEntityNameSelection(foo) {
-  //   this.callbacks.entity_name = foo
-  // }
-
-  // set onLanguageSelection(foo) {
-  //   this.callbacks.language = foo
-  // }
-
-  // set onThemeSelection(foo) {
-  //   this.callbacks.theme = foo
-  // }
-
-  // set onWidgetEnabled(foo) {
-  //   this.callbacks.widgetEnable = foo
-  // }
-
-  // set onWidgetDisabled(foo) {
-  //   this.callbacks.widgetDisable = foo
-  // }
-
-  // set onPNGSaveButtonClick(foo) {
-  //   this.savePNGButton.onClick = foo
-  // }
-
-  // set onSVGSaveButtonClick(foo) {
-  //   this.saveSVGButton.onClick = foo
-  // }
-
-  // show() {
-  //   if (this.isEnabled) this.style.display = 'inline-block'
-  // }
 }
 
 customElements.define('gscape-settings', GscapeSettings)

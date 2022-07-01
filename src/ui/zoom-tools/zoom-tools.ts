@@ -1,6 +1,5 @@
-import { html, css, LitElement } from 'lit'
+import { css, html, LitElement } from 'lit'
 import { minus, plus } from '../assets/icons'
-import getIconSlot from '../util/get-icon-slot'
 import baseStyle from '../style'
 
 export default class GscapeZoomTools extends LitElement {
@@ -33,9 +32,9 @@ export default class GscapeZoomTools extends LitElement {
 
   render() {
     return html`
-      <gscape-button type="subtle" @click=${this._onZoomIn}><span slot="icon">${plus}</span></gscape-button>
+      <gscape-button title="Zoom In" type="subtle" @click=${this._onZoomIn}><span slot="icon">${plus}</span></gscape-button>
       <div class="hr"></div>
-      <gscape-button type="subtle" @click=${this._onZoomOut}><span slot="icon">${minus}</span></gscape-button>
+      <gscape-button title="Zoom Out" type="subtle" @click=${this._onZoomOut}><span slot="icon">${minus}</span></gscape-button>
     `
   }
 

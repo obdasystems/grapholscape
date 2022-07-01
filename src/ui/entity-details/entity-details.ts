@@ -1,16 +1,16 @@
 import { css, html, LitElement } from 'lit'
 import { GrapholEntity } from '../../model'
+import { EntityOccurrence } from '../../model/graphol-elems/entity'
+import { infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
+import { BaseMixin } from '../common/base-widget-mixin'
+import { GscapeButtonStyle } from '../common/button'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle from '../style'
-import { GscapeButtonStyle } from '../common/button'
-import GscapeSelect from '../common/gscape-select'
-import { infoFilled, minus, plus } from '../assets/icons'
-import { EntityOccurrence } from '../../model/graphol-elems/entity'
-import { BaseMixin } from '../common/base-widget-mixin'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 
-export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {  
+export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
+  title = 'Entity Details'
   grapholEntity: GrapholEntity
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   language: string
@@ -201,149 +201,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   private get _isPanelClosed() {
     return this.isPanelClosed()
   }
-
-  // constructor() {
-  //   super()
-  //   this.draggable = true
-  //   this.collapsible = true
-
-  //   this.hiddenDefault = true
-  //   this._entity = null
-  //   this.properties = {
-  //     functional : 'Functional',
-  //     inverseFunctional : 'Inverse Functional',
-  //     symmetric : 'Symmetric',
-  //     asymmetric: 'Asymmetric',
-  //     reflexive : 'Reflexive',
-  //     irreflexive : 'Irreflexive',
-  //     transitive : 'Transitive',
-  //   }
-  //   this._languageSelected = ''
-
-  //   this.onNodeNavigation = {}
-  //   this.header = new GscapeHeader('Entity Details', info_filled)
-
-  //   /**
-  //    * @param {import('cytoscape').CollectionReturnValue} entity
-  //    */
-  //   this.setEntity = (entity) => { }
-  // }
-
-  // render() {
-  //   let comment = this.entity?.annotations?.comment
-  //   return html`
-
-  //     <div class="widget-body">
-  //       ${this.entity
-  //         ? html`
-  //           <div class="section">
-  //             <table class="details_table">
-  //               <tr>
-  //                 <th>Name</th>
-  //                 <td class="wiki" @click="${this.wikiClickHandler}">${this.entity.iri.remainingChars}</td>
-  //               </tr>
-  //               <tr>
-  //                 <th>Type</th>
-  //                 <td>${this.entity.type}</td>
-  //               </tr>
-  //               ${this.entity.type != 'individual'
-  //                 ? html`
-  //                   <tr>
-  //                     <th>IRI</th>
-  //                     <td>${this.entity.iri.fullIri}</td>
-  //                   </tr>
-  //                 `
-  //                 : html``
-  //               }
-  //               ${this.entity.datatype
-  //                 ? html`
-  //                 <tr>
-  //                   <th>Datatype</th>
-  //                   <td>${this.entity.datatype.prefixed}</td>
-  //                 </tr>
-  //                 `
-  //                 : html``
-  //               }
-  //             </table>
-  //           </div>
-
-  //           <div class="chips-wrapper">
-  //             ${Object.keys(this.properties).map(property => {
-  //               return this.entity[property]?
-  //                 html`<span class="chip">&#10003; ${this.properties[property]}</span>`
-  //               : html``
-  //             })}
-  //           </div>
-
-  //           ${entityOccurrencesTemplate(this.entity.occurrences, this.handleNodeSelection)}
-  //           ${annotationsTemplate(this.entity)}
-
-  //           ${comment && Object.keys(comment).length > 0 
-  //             ? html`
-  //               <div class="section">
-  //                 <div class="section-header"> Description </div>
-  //                   ${!Object.keys(comment).includes('') 
-  //                     ? html`
-  //                       <select name="language-select" id="language-select" @change=${this._languageChangeHandler}>
-  //                       ${Object.keys(comment).map( language =>
-  //                         html`
-  //                           <option value="${language}" >
-  //                             ${language.toUpperCase()}
-  //                           </option>
-  //                         `
-  //                       )}
-  //                       </select>
-  //                     `
-  //                     : ''
-  //                   }
-  //                   <span class="descr-text"></span>
-  //               </div>
-  //             `
-  //             : html``
-  //           }
-  //         `
-  //         : html``
-  //       }
-  //     </div>
-  //   `
-  // }
-
-  // _languageChangeHandler(e) {
-  //   this.languageSelected = e.target.value
-  // }
-
-  // wikiClickHandler(e) {
-  //   if (this._onWikiClick)
-  //     this._onWikiClick(this.entity.iri.fullIri)
-  // }
-
-  // set onWikiClick(foo) {
-  //   this._onWikiClick = foo
-  // }
-
-  // set entity(entity) {
-  //   let oldval = this.entity
-  //   this._entity = entity
-  //   switch (this._entity.type) {
-  //     case 'concept' :
-  //       this._entity.type = 'Class'
-  //       break;
-
-  //     case 'role' :
-  //       this._entity.type = 'Object Property'
-  //       break;
-
-  //     case 'attribute':
-  //       this._entity.type = 'Data Property'
-  //       break;
-  //   }
-  //   this.requestUpdate('entity', oldval)
-  // }
-
-  // get entity() {
-  //   return this._entity
-  // }
-
+ 
   updated() {
     // let description = this.entity?.annotations?.comment
     const allComments = this.grapholEntity?.getComments()
@@ -353,58 +211,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     if (commentsInActualLanguage.length === 0) {
       this.language = allComments[0].language
     }
-
-
-    // if (this.entity && this.entity.annotations?.comment)
-    //   this.renderDescription(this.entity.annotations.comment)
-
-    // if (this._onWikiClick) {
-    //   this.shadowRoot.querySelectorAll('.wiki').forEach(el => {
-    //     el.classList.add('clickable')
-    //   })
-    // }
   }
-
-
-  // renderDescription (description) {
-  //   let text = ''
-
-  //   description[this.languageSelected].forEach( comment => {
-  //     text += '<span>'+comment.replace(/(href=.)\/predicate\//g, '$1/documentation/predicate/')+'</span>'
-  //   })
-
-  //   if (text.length > 0) 
-  //     this.shadowRoot.querySelector('.descr-text').innerHTML = text
-  // }
-
-  // handleNodeSelection(e) {
-  //   let node_id = e.target.getAttribute('node_id')
-  //   this.onNodeNavigation(node_id)
-  // }
-
-  // firstUpdated() {
-  //   super.firstUpdated()
-  //   this.header.invertIcons()
-  //   this.makeDraggableHeadTitle()
-  // }
-
-  // // override
-  // blur() {
-  //   this.hide()
-  // }
-
-  // set languageSelected(language) {
-  //   this._languageSelected = language
-  //   this.requestUpdate()
-  // }
-
-  // get languageSelected() {
-  //   return this._languageSelected
-  // }
-
-  // get languageSelect() {
-  //   return this.shadowRoot.querySelector('#language-select')
-  // }
 }
 
 customElements.define('gscape-entity-details', GscapeEntityDetails)

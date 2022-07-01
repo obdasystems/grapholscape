@@ -12,6 +12,7 @@ export type OntologyViewModel = ViewItemWithIri & {
 }
 
 export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElement)) {
+  title = "Ontology Info"
   ontology: OntologyViewModel
 
   static styles = [

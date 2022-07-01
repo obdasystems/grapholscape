@@ -1,34 +1,4 @@
 export enum ColoursNames {
-  // primary = 'primary',
-  // on_primary = 'on_primary',
-  // primary_dark = 'primary_dark',
-  // on_primary_dark = 'on_primary_dark',
-  // secondary = 'secondary',
-  // on_secondary = 'on_secondary',
-  // secondary_dark = 'secondary_dark',
-  // on_secondary_dark = 'on_secondary_dark',
-  // shadows = 'shadows',
-  // borders = 'borders',
-  // error = 'error',
-  // on_error = 'on_error',
-  // warning = 'warning',
-  // on_warning = 'on_warning',
-  // background = 'background',
-  // edge = 'edge',
-  // node_bg = 'node_bg',
-  // node_bg_contrast = 'node_bg_contrast',
-  // node_border = 'node_border',
-  // label_color = 'label_color',
-  // label_color_contrast = 'label_color_contrast',
-  // role = 'role',
-  // role_dark = 'role_dark',
-  // attribute = 'attribute',
-  // attribute_dark = 'attribute_dark',
-  // concept = 'concept',
-  // concept_dark = 'concept_dark',
-  // // individual = 'individual',
-  // individual_dark = 'individual_dark',
-
   // foreground
   fg_default = 'fg-default',
   fg_muted = 'fg-muted',
@@ -150,48 +120,6 @@ export const gscapeColourMap: ColourMap = {
   'danger': '#cf222e',
   'danger-muted': 'rgba(255, 129, 130, 0.4)',
   'danger-subtle': '#FFEBE9',
-
-
-  // primary colors
-  // primary: '#fff',
-  // on_primary: '#666',
-  // primary_dark: '#e6e6e6',
-  // on_primary_dark: '#888',
-
-  // // secondary colors
-  // secondary: 'rgb(81,149,199)',
-  // on_secondary: '#fff',
-  // secondary_dark: '#2c6187',
-  // on_secondary_dark: '#fff',
-
-  // // misc
-  // shadows: 'rgba(0,0,0,0.2)',
-  // borders: 'rgba(0,0,0,0.2)',
-  // error: '#cc3b3b',
-  // on_error: '#fff',
-  // warning: '#D39F0A',
-  // on_warning: '#fff',
-
-  // // graph colors
-  // background: '#fafafa',
-  // edge: '#000',
-  // node_bg: '#fcfcfc',
-  // node_bg_contrast: '#000',
-  // node_border: '#000',
-  // label_color: '#000',
-  // label_color_contrast: '#fcfcfc',
-
-  // role: '#AACDE1',
-  // role_dark: '#065A85',
-
-  // attribute: '#C7DAAD',
-  // attribute_dark: '#4B7900',
-
-  // concept: '#F9F3A6',
-  // concept_dark: '#B08D00',
-
-  // individual: '#d3b3ef',
-  // individual_dark: '#9875b7',
 }
 
 export const classicColourMap: ColourMap = {
@@ -217,20 +145,6 @@ export const classicColourMap: ColourMap = {
 }
 
 export const darkColourMap: ColourMap = {
-  // primary: '#222831',
-  // on_primary: '#a0a0a0',
-  // primary_dark: '#1a1a1a',
-  // on_primary_dark: '#a0a0a0',
-
-  // secondary: '#72c1f5',
-  // on_secondary: '#222831',
-  // secondary_dark: '#0099e6',
-  // on_secondary_dark: '#a0a0a0',
-
-  // shadows: 'transparent',
-  // borders: 'rgba(255, 255, 255, 0.25)',
-  // error: '#cc3b3b',
-  // on_error: '#fff',
 
   // graph colors
   "bg-graph": '#0d1117',
@@ -268,8 +182,8 @@ export const darkColourMap: ColourMap = {
   'shadow': '#010409',
 
   'neutral': '#313b48',
-  'neutral-muted': 'rgba(110,118,129,0.4)',
-  'neutral-subtle': 'rgba(110,118,129,0.1)',
+  'neutral-muted': '#343941',
+  'neutral-subtle': '#0c1015',
 
   'accent': '#58a6ff',
   'accent-muted': 'rgba(56,139,253,0.4)',

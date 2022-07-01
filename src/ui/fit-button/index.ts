@@ -12,6 +12,7 @@ export default function initFitButton(grapholscape: Grapholscape) {
   fitButtonComponent.appendChild(getIconSlot('icon', centerDiagram))
   fitButtonComponent.style.order = '2'
   fitButtonComponent.style.marginTop = '10px'
+  fitButtonComponent.title = 'Center Diagram'
   //fitButtonComponent.style.position = 'initial'
   fitButtonComponent.onclick = () => grapholscape.fit()
   grapholscape.widgets.set(WidgetEnum.FIT_BUTTON, fitButtonComponent)
