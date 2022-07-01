@@ -15,6 +15,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   language: string
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
+  onWikiLinkClick: (iri: string) => void
 
   static get properties() {
     return {
@@ -101,7 +102,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
-        ${itemWithIriTemplate(this.entityForTemplate)}
+        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
 
         ${this.grapholEntity.functionalities.length > 0
           ? html`

@@ -20,6 +20,12 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape)
     entityDetailsComponent.language = grapholscape.language
     entityDetailsComponent.show()
+
+    if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
+      entityDetailsComponent.onWikiLinkClick = (iri: string) => {
+        grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri)
+      }
+    }
   })
 
   grapholscape.on(LifecycleEvent.NodeSelection, _ => {

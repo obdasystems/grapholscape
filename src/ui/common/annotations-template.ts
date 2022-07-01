@@ -1,43 +1,6 @@
-import {css, html, SVGTemplateResult} from 'lit'
+import { css, html } from 'lit'
 import { Annotation, GrapholTypesEnum } from '../../model'
 import { entityIcons } from '../assets/icons'
-import style from '../style'
-
-// export default (entity) => {
-//   return html`
-//     ${entity.annotations && Object.keys(entity.annotations).length > 0 ?
-//       html`
-//         <div class="section">
-//           <div class="section-header">Annotations</div>
-//           <table class="details_table annotations">
-//           ${Object.keys(entity.annotations).map( kind => {
-//             if (kind === 'comment') return html``
-//             let annotation = entity.annotations[kind]
-//             return html`
-//               <tbody class="annotation-row">
-//                 ${Object.keys(annotation).map(language  => {
-//                   const numberAnnotationOfThisLanguage = annotation[language].length
-//                   return html`
-//                     ${annotation[language].map((value, count) => {
-//                       return html`
-//                         <tr>
-//                           ${count == 0 ? html`<th rowspan="${numberAnnotationOfThisLanguage}">${kind.charAt(0).toUpperCase() + kind.slice(1)}</th>` : ''}
-//                           <td class="language">${language}</td>
-//                           <td>${value}</td>
-//                         </tr>
-//                       `
-//                     })}
-//                   `
-//                 })}
-//               </tbody>
-//             `
-//           })}
-//           </table>
-//         </div>
-//       ` : ''
-//     }
-//   `
-// }
 
 export type ViewItemWithIri = {
   name: string,
@@ -45,10 +8,21 @@ export type ViewItemWithIri = {
   iri: string
 }
 
-export function itemWithIriTemplate(item: ViewItemWithIri) {
+export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (iri: string) => void) {
+  function wikiClickHandler() {
+    if (onWikiLinkClick) 
+      onWikiLinkClick(item.iri)
+  }
+
   return html`
     <div class="item-with-iri-info ellipsed">
-      <div class="name" title="${item.name}">${item.name}</div>
+      <div 
+        class="name ${onWikiLinkClick ? 'link' : null}" 
+        title="${item.name}"
+        @click=${onWikiLinkClick ? wikiClickHandler : null }
+      >
+        ${item.name}
+      </div>
       <div class="muted-text" title="${item.iri}">${item.iri}</div>
       <div class="muted-text type-or-version">
         ${Object.values(GrapholTypesEnum).includes(item.typeOrVersion as GrapholTypesEnum)

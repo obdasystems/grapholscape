@@ -1,13 +1,11 @@
-import { Filter } from ".."
-import { Diagram } from ".."
+import { Diagram, Filter } from ".."
+import { EntityNameType, Language } from "../../config/config"
 import GrapholEdge from "../graphol-elems/edge"
 import GrapholEntity from "../graphol-elems/entity"
 import GrapholElement from "../graphol-elems/graphol-element"
 import GrapholNode from "../graphol-elems/node"
 import { RendererStatesEnum } from "../renderers/i-render-state"
-import { EntityNameType, Language } from "../../config/config"
 import GrapholscapeTheme from "../theme"
-import Grapholscape from "../../core/grapholscape"
 
 export enum LifecycleEvent {
   DiagramChange = 'diagramChange',
@@ -23,6 +21,7 @@ export enum LifecycleEvent {
   FilterRequest = 'filterRequest',
   UnfilterRequest = 'unfilterRequest',
   BackgroundClick = 'backgroundClick',
+  EntityWikiLinkClick = 'entityWikiLinkClick',
 }
 
 interface IonEvent {
@@ -39,6 +38,7 @@ interface IonEvent {
   (event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void
   (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void
   (event: LifecycleEvent.BackgroundClick, callback: () => void): void
+  (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void
 }
 
 export default class Lifecycle {
@@ -55,6 +55,7 @@ export default class Lifecycle {
   private filterRequest: ((filter: Filter) => boolean) = () => true
   private unfilterRequest: ((filter: Filter) => boolean) = () => true
   private backgroundClick: (() => void)[] = []
+  public entityWikiLinkClick: ((iri: string) => void)[] = []
 
 
   constructor() { }
@@ -72,6 +73,7 @@ export default class Lifecycle {
   trigger(event: LifecycleEvent.FilterRequest, filter: Filter): boolean
   trigger(event: LifecycleEvent.UnfilterRequest, filter: Filter): boolean
   trigger(event: LifecycleEvent.BackgroundClick): void
+  trigger(event: LifecycleEvent.EntityWikiLinkClick, iri: string): void
   trigger(event: string, ...params: any): any {
 
     if (event === LifecycleEvent.FilterRequest || event === LifecycleEvent.UnfilterRequest) {

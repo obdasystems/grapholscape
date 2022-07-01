@@ -194,4 +194,10 @@ input {
   box-sizing: border-box;
   width: 100%;
 }
+
+.link {
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--gscape-color-accent);
+}
 `
