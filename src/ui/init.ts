@@ -6,6 +6,7 @@ import initEntityDetails, { GscapeEntityDetails } from "./entity-details";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import initFullscreenButton from "./fullscreen";
+import initOntologyExplorer from "./ontology-explorer";
 import initOntologyInfo from "./ontology-info";
 import initRendererSelector from "./renderer-selector";
 import initSettings from "./settings";
@@ -33,6 +34,7 @@ export default function (grapholscape: Grapholscape) {
   initFilters(grapholscape)
   initOntologyInfo(grapholscape)
   initEntityDetails(grapholscape)
+  initOntologyExplorer(grapholscape)
   initSettings(grapholscape)
 
   grapholscape.widgets.forEach((widget, key) => {

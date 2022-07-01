@@ -8,9 +8,7 @@ import GscapeSelect from '../common/gscape-select'
 import { infoFilled, minus, plus } from '../assets/icons'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { BaseMixin } from '../common/base-widget-mixin'
-
-export type DiagramViewData = { id: number, name: string }
-export type OccurrenceIdViewData = { originalId: string, realId: string }
+import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {  
   grapholEntity: GrapholEntity
@@ -170,22 +168,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       <div class="section">
         <div class="bold-text section-header">Occurrences</div>
         <div class="section-body">
-          ${Array.from(this.occurrences).map(([diagram, occurrencesIds]) => {
-            return html`
-              <div diagram-id="${diagram.id}">
-                <span class="diagram-name">${diagram.name}</span>
-                ${occurrencesIds.map(occurrenceId => html`
-                  <gscape-button
-                    label="${occurrenceId.originalId || occurrenceId.realId}"
-                    real-id="${occurrenceId.realId}"
-                    type="subtle"
-                    size="s"
-                    @click=${this.nodeNavigationHandler}
-                  ></gscape-button>
-                `)}
-              </div>
-            `
-          })}
+          ${getEntityOccurrencesTemplate(this.occurrences, this.onNodeNavigation)}
         </div>
       </div>
     `
@@ -193,19 +176,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
-
-  private nodeNavigationHandler(e) {
-    const target = e.target as HTMLElement
-    const diagramId = target.parentElement?.getAttribute('diagram-id')
-    const elementId = target.getAttribute('real-id')
-
-    if (!diagramId || ! elementId) return
-
-    this.onNodeNavigation({
-      diagramId: parseInt(diagramId),
-      elementId: elementId
-    })
-  }
 
   togglePanel = () => {
     super.togglePanel()

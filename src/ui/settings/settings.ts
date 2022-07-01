@@ -35,6 +35,14 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
   onPngExport: () => void = () => { }
   onSvgExport: () => void = () => { }
 
+  static properties = {
+    languages: { type: Object, attribute: false, },
+    themes: { type: Object, attribute: false, },
+    widgetStates: { type: Object, attribute: false, },
+    selectedLanguage: { type: String, attribute: false, },
+    selectedTheme: { type: String, attribute: false, },
+  }
+
   static styles = [
     baseStyle,
     GscapeButtonStyle,

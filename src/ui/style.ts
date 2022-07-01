@@ -29,6 +29,18 @@ export default css`
   white-space: nowrap;
   animation-name: drop-left;
   animation-duration: ${animationDuration};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.gscape-panel-in-tray > .content-wrapper {
+  overflow: hidden auto;
+  scrollbar-width: inherit;
+  max-height: 320px;
+  padding: 0px 8px;
+  position: relative;
 }
 
 .slotted-icon {
@@ -165,9 +177,21 @@ select {
   cursor: pointer;
 }
 
-select:focus {
+select:focus, input:focus {
   border-color: var(--gscape-color-accent);
+  box-shadow: var(--gscape-color-accent) 0px 0px 0px 1px inset;
+  outline: currentcolor none 0px;
 }
 
-
+input {
+  line-height: inherit;
+  border: solid 1px var(--gscape-color-border-subtle);
+  padding: 4px 12px;
+  border-radius: var(--gscape-border-radius);
+  background: var(--gscape-color-bg-inset);
+  color: inherit;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+}
 `

@@ -40,7 +40,7 @@ export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement))
         margin: 0 auto;
       }
 
-      .filters-wrapper {
+      .content-wrapper {
         display: flex;
         flex-direction: column;
       }
@@ -61,7 +61,7 @@ export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement))
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
         <div class="header">Filters</div>
 
-        <div class="filters-wrapper">
+        <div class="content-wrapper">
           ${this.filterToggleTemplate(this.filterAll, false)}
           <div class="hr"></div>
           ${Array.from(this.filters).map(([_, filter]) => this.filterToggleTemplate(filter))}
