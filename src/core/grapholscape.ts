@@ -1,6 +1,7 @@
-import { GrapholscapeConfig } from "../config/config"
+import { GrapholscapeConfig, WidgetsConfig } from "../config/config"
 import * as Exporter from '../exporter'
 import Ontology, { ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum } from "../model"
+import { IBaseMixin } from "../ui/common/base-widget-mixin"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
@@ -23,6 +24,7 @@ export default class Grapholscape {
   private displayedNamesManager = new DisplayedNamesManager(this)
   private themesManager = new ThemeManager(this)
   widgets: Map<WidgetEnum, HTMLElement> = new Map()
+  widgetsInitialStates: WidgetsConfig
 
   constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig) {
     this.ontology = ontology
@@ -201,6 +203,10 @@ export default class Grapholscape {
       this.themesManager.setTheme(newConfig.selectedTheme)
     } else if (!this.themeList.includes(this.theme)) {
       this.themesManager.setTheme(this.themeList[0].id)
+    }
+
+    if (newConfig.widgets) {
+      this.widgetsInitialStates = newConfig.widgets
     }
   }
 

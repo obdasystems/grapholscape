@@ -1,5 +1,7 @@
+import { LitElement } from "lit";
 import Grapholscape from "../core/grapholscape";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
+import { IBaseMixin } from "./common/base-widget-mixin";
 import { hasDropPanel } from "./common/drop-panel-mixin";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails, { GscapeEntityDetails } from "./entity-details";
@@ -9,7 +11,7 @@ import initFullscreenButton from "./fullscreen";
 import initOntologyExplorer from "./ontology-explorer";
 import initOntologyInfo from "./ontology-info";
 import initRendererSelector from "./renderer-selector";
-import initSettings from "./settings";
+import initSettings, { GscapeSettings } from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
 import { WidgetEnum } from "./util/widget-enum";
 import initZoomTools from "./zoom-tools";
@@ -37,6 +39,8 @@ export default function (grapholscape: Grapholscape) {
   initOntologyExplorer(grapholscape)
   initSettings(grapholscape)
 
+  const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
+
   grapholscape.widgets.forEach((widget, key) => {
     switch (key) {
       default:
@@ -62,6 +66,19 @@ export default function (grapholscape: Grapholscape) {
           blurAll([widget])
         }
       }
+    }
+
+    const _widget = widget as unknown as IBaseMixin
+
+    _widget.onStateChange = () => {
+      if (settingsComponent) {
+        settingsComponent.widgetStates[key] = _widget.enabled
+        settingsComponent.requestUpdate()
+      }
+    }
+
+    if (grapholscape.widgetsInitialStates[key] === false) {
+      _widget.disable()
     }
   })
 

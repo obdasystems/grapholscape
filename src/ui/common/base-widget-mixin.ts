@@ -7,6 +7,7 @@ export declare class IBaseMixin {
   show(): () => void
   enable(): () => void
   disable(): () => void
+  onStateChange: () => void
   enabled: boolean
 }
 
@@ -16,6 +17,8 @@ export const BaseMixin = <T extends Constructor<LitElement>>(superClass: T) => {
   class BaseMixinClass extends superClass {
     enabled = true
     private display = this.style.display
+
+    onStateChange = () => { }
 
     hide() {
       if (this.enabled && this.style.display !== 'none') {
@@ -33,11 +36,13 @@ export const BaseMixin = <T extends Constructor<LitElement>>(superClass: T) => {
     enable() {
       this.enabled = true
       this.show()
+      this.onStateChange()
     }
 
     disable() {
       this.hide()
       this.enabled = false
+      this.onStateChange()
     }
   }
 

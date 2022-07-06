@@ -27,18 +27,18 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   settingsComponent.onSvgExport = () => grapholscape.exportToSvg()
 
   // let gui_container = grapholscape.container.querySelector('#gscape-ui')
-  settingsComponent.onWidgetEnabled = (widgetName) => {
-    const widget = grapholscape.widgets.get(widgetName) as unknown as IBaseMixin
+  settingsComponent.onWidgetEnabled = (widgetKey) => {
+    const widget = grapholscape.widgets.get(widgetKey) as unknown as IBaseMixin
     widget.enable()
-    storeConfigEntry(widgetName, true)
-    settingsComponent.widgetStates[widgetName] = true
+    storeConfigEntry(widgetKey, true)
+    settingsComponent.widgetStates[widgetKey] = true
     settingsComponent.requestUpdate()
   }
-  settingsComponent.onWidgetDisabled = (widgetName) => {
-    const widget = grapholscape.widgets.get(widgetName) as unknown as IBaseMixin
+  settingsComponent.onWidgetDisabled = (widgetKey) => {
+    const widget = grapholscape.widgets.get(widgetKey) as unknown as IBaseMixin
     widget.disable()
-    storeConfigEntry(widgetName, false)
-    settingsComponent.widgetStates[widgetName] = false
+    storeConfigEntry(widgetKey, false)
+    settingsComponent.widgetStates[widgetKey] = false
     settingsComponent.requestUpdate()
   }
 
