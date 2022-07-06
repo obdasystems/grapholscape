@@ -13,6 +13,9 @@ import ThemeManager from "./themeManager"
 
 export default class Grapholscape {
   renderer: Renderer = new Renderer()
+  private availableRenderers: RendererStatesEnum[] = [
+    RendererStatesEnum.GRAPHOL, RendererStatesEnum.GRAPHOL_LITE, RendererStatesEnum.FLOATY
+  ]
   container: HTMLElement
   readonly lifecycle: Lifecycle = new Lifecycle()
   ontology: Ontology
@@ -50,8 +53,8 @@ export default class Grapholscape {
   }
 
   setRenderer(newRenderState: iRenderState) {
-    const shouldUpdateEntities = this.ontology.getDiagram(this.diagramId)
-      ?.representations.get(newRenderState.id) ? false : true
+    const shouldUpdateEntities = !this.diagramId || !this.ontology.getDiagram(this.diagramId)
+      ?.representations.get(newRenderState.id) ? true : false
 
     if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
       newRenderState.transformOntology(this.ontology)
@@ -59,7 +62,9 @@ export default class Grapholscape {
 
     this.renderer.renderState = newRenderState
 
-    this.entityNavigator.setGraphEventHandlers(this.renderer.diagram)
+    if (this.renderer.diagram)
+      this.entityNavigator.setGraphEventHandlers(this.renderer.diagram)
+
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
 
@@ -112,6 +117,8 @@ export default class Grapholscape {
       return this.ontology.getEntity(this.renderer.cy?.$id(selectedElement.id).data().iri)
   }
 
+  get renderers() { return this.availableRenderers }
+
   // ---------------------- DISPLAYED NAMES MANAGER ---------------------- //
   /** @borrows this.displayedNamesManager.setEntityNameType as this.setEntityNameType */
   setEntityNameType = this.displayedNamesManager.setEntityNameType
@@ -149,6 +156,7 @@ export default class Grapholscape {
     }
 
     if (newConfig.renderers) {
+      this.availableRenderers = newConfig.renderers
       /** 
        * Just use the first defined renderer state
        * the other ones will be managed by renderer-selector widget
@@ -212,6 +220,6 @@ export default class Grapholscape {
    * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
    */
   get exportFileName() {
-    return `${this.ontology.name}-${this.renderer.diagram.name}-v${this.ontology.version}`
+    return `${this.ontology.name}-${this.renderer.diagram?.name}-v${this.ontology.version}`
   }
 }

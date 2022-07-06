@@ -9,6 +9,7 @@ import { bubbles, graphol_icon, lite } from "../assets/icons"
 
 export type RendererStateViewModel = {
   name: string,
+  id: RendererStatesEnum,
   icon: SVGTemplateResult,
 }
 
@@ -16,19 +17,21 @@ export type RendererStates = { [key in RendererStatesEnum]?: RendererStateViewMo
 
 const rendererStates: RendererStates = {}
 
-
-rendererStates.graphol = {
+rendererStates[RendererStatesEnum.GRAPHOL] = {
   name: 'Graphol',
+  id: RendererStatesEnum.GRAPHOL,
   icon: graphol_icon,
 }
 
-rendererStates.lite = {
+rendererStates[RendererStatesEnum.GRAPHOL_LITE] = {
   name: 'Graphol-lite',
+  id: RendererStatesEnum.GRAPHOL_LITE,
   icon: lite,
 }
 
-rendererStates.floaty = {
+rendererStates[RendererStatesEnum.FLOATY] = {
   name: 'Floaty',
+  id: RendererStatesEnum.FLOATY,
   icon: bubbles,
 }
 
@@ -45,7 +48,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   // })
   // rendererSelector.actual_mode = grapholscape.renderer.key
   // 
-  rendererSelector.rendererStates = rendererStates
+  rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
   rendererSelector.actualRendererStateKey = grapholscape.renderState
 
   rendererSelector.onRendererStateSelection = (rendererState) => {

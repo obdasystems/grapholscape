@@ -3,12 +3,12 @@ import { RendererStatesEnum } from '../../model'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle from '../style'
-import { RendererStates } from './controller'
+import { RendererStateViewModel } from './controller'
 import { GscapeLayoutSettings } from './floaty-layout-settings'
 
 export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Renderer Selector'
-  rendererStates: RendererStates
+  rendererStates: (RendererStateViewModel | undefined)[]
   actualRendererStateKey: RendererStatesEnum
   onRendererStateSelection: (rendererState: RendererStatesEnum) => void = () => {}
   layoutSettingsComponent: GscapeLayoutSettings
@@ -60,16 +60,20 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
       <div class="gscape-panel gscape-panel-in-tray drop-left hide" id="drop-panel">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
-          ${Object.entries(this.rendererStates).map(([key, rendererState]) => html`
-            <gscape-action-list-item
-              @click=${this.rendererSelectionHandler}
-              label="${rendererState.name}"
-              renderer-state="${key}"
-              ?selected = "${this.actualRendererState === rendererState}"
-            >
-              <span slot="icon">${rendererState.icon}</span>
-            </gscape-action-list-item>
-          `)}
+          ${this.rendererStates.map(rendererState => {
+            if (rendererState) {
+              return html`
+                <gscape-action-list-item
+                  @click=${this.rendererSelectionHandler}
+                  label="${rendererState.name}"
+                  renderer-state="${rendererState.id}"
+                  ?selected = "${this.actualRendererState === rendererState}"
+                >
+                  <span slot="icon">${rendererState.icon}</span>
+                </gscape-action-list-item>
+              `
+            }
+          })}
         </div>
       </div>
     `
@@ -81,7 +85,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
     this.onRendererStateSelection(rendererState)
   }
 
-  private get actualRendererState() { return this.rendererStates[this.actualRendererStateKey] }
+  private get actualRendererState() { return this.rendererStates.find(r => r?.id === this.actualRendererStateKey) }
 }
 
 customElements.define('gscape-render-selector', GscapeRenderSelector)

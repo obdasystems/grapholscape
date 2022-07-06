@@ -21,11 +21,11 @@ export type ThemeConfig = GrapholscapeTheme | DefaultThemesEnum
 
 
 export type GrapholscapeConfig =
-  WidgetsConfig &
   {
     themes?: ThemeConfig[],
     selectedTheme?: string,
     language?: Language | string,
     entityNameType?: EntityNameType,
     renderers?: RendererStatesEnum[],
+    widgets?: WidgetsConfig,
   }

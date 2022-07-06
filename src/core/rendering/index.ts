@@ -16,7 +16,7 @@ export default class Renderer {
   cy?: cytoscape.Core
   private _renderState: RenderState
   filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]))
-  diagram: Diagram
+  diagram?: Diagram
   private _theme: GrapholscapeTheme
   private _lifecycle: Lifecycle
   FOCUS_ZOOM_LEVEL = 1.5
@@ -319,7 +319,7 @@ export default class Renderer {
   }
 
   get grapholElements() {
-    return this.diagram.representations.get(this._renderState.id)?.grapholElements
+    return this.diagram?.representations.get(this._renderState.id)?.grapholElements
   }
 
   get selectedElement() {

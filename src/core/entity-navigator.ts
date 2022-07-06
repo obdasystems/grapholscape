@@ -22,10 +22,13 @@ export default class EntityNavigator {
   }
 
   private _centerSelectEntity(iri: string, diagramId?: number, select = false, zoom?: number) {
-    const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagramId || this._grapholscape.diagramId)
+    diagramId = diagramId || this._grapholscape.diagramId
+    if (diagramId) {
+      const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagramId)
 
-    if (entityOccurrence) {
-      this._performCenterSelect(entityOccurrence, select, zoom)
+      if (entityOccurrence) {
+        this._performCenterSelect(entityOccurrence, select, zoom)
+      }
     }
   }
 
@@ -81,23 +84,25 @@ export default class EntityNavigator {
   }
 
   updateEntitiesOccurrences() {
-    const diagram = this._grapholscape.renderer.diagram
     if (this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
       return
 
-    const replicatedElements = this._grapholscape.renderer.cy?.$("[originalId]")
+    this._grapholscape.ontology.diagrams.forEach(diagram => {
+      // const diagram = this._grapholscape.renderer.diagram
+      const replicatedElements = diagram.representations.get(this._grapholscape.renderState)?.cy?.$("[originalId]")
 
-    if (replicatedElements && !replicatedElements.empty()) {
-      replicatedElements.forEach(replicatedElement => {
-        const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'))
+      if (replicatedElements && !replicatedElements.empty()) {
+        replicatedElements.forEach(replicatedElement => {
+          const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'))
 
-        if (grapholEntity) {
-          grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState)
-          replicatedElement.data('iri', grapholEntity.iri.fullIri)
-          grapholEntity.addOccurrence(replicatedElement.id(), diagram.id, this._grapholscape.renderState)
-        }
-      })
-    }
+          if (grapholEntity) {
+            grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState)
+            replicatedElement.data('iri', grapholEntity.iri.fullIri)
+            grapholEntity.addOccurrence(replicatedElement.id(), diagram.id, this._grapholscape.renderState)
+          }
+        })
+      }
+    })
   }
 
   setGraphEventHandlers(diagram: Diagram) {
