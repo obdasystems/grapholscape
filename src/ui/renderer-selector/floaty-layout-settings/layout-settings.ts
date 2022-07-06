@@ -1,12 +1,9 @@
-import { html, css, LitElement, PropertyDeclarations, CSSResultGroup } from 'lit'
-import GscapeWidget from '../../common/gscape-widget'
-import GscapeHeader from '../../common/gscape-header'
-import GscapeToggle, { ToggleLabelPosition } from '../../common/toggle/gscape-toggle'
-import '../../common/button'
+import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
 import { tune } from '../../assets/icons'
-import baseStyle from '../../style'
-import { DropPanelMixin } from '../../common/drop-panel-mixin'
 import { BaseMixin } from '../../common/base-widget-mixin'
+import '../../common/button'
+import { DropPanelMixin } from '../../common/drop-panel-mixin'
+import baseStyle from '../../style'
 
 export default class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(LitElement)) {
   layoutRun = false

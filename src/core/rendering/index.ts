@@ -4,7 +4,7 @@ import { isGrapholEdge } from "../../model/graphol-elems/edge"
 import { isGrapholNode } from "../../model/graphol-elems/node"
 import Lifecycle from "../../model/lifecycle"
 import RenderState from "../../model/renderers/i-render-state"
-import GrapholscapeTheme from "../../model/theme"
+import GrapholscapeTheme from "../../model/themes/theme"
 
 /**
  * @property {string} name - diagram's name

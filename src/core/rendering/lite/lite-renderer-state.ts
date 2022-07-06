@@ -1,12 +1,12 @@
 import { CytoscapeOptions } from "cytoscape";
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config";
-import Ontology, { iFilterManager, BaseRenderer, RenderStatesEnum, GrapholscapeTheme } from "../../../model";
+import Ontology, { iFilterManager, BaseRenderer, RendererStatesEnum, GrapholscapeTheme } from "../../../model";
 import LiteFilterManager from "./filter-manager";
 import liteStyle from "./lite-style";
 import LiteTransformer from "./lite-transformer";
 
 export default class LiteRendererState extends BaseRenderer {
-  readonly id: RenderStatesEnum = RenderStatesEnum.GRAPHOL_LITE
+  readonly id: RendererStatesEnum = RendererStatesEnum.GRAPHOL_LITE
   filterManager: iFilterManager = new LiteFilterManager()
   cyConfig: CytoscapeOptions = cytoscapeDefaultConfig
   private _layout: cytoscape.Layouts

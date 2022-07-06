@@ -1,6 +1,5 @@
 import { Stylesheet } from "cytoscape";
-import { GrapholTypesEnum, GrapholscapeTheme } from "../../../model";
-import { ColoursNames } from "../../../style/themes";
+import { GrapholTypesEnum, GrapholscapeTheme, ColoursNames } from "../../../model";
 import grapholStyle from "../graphol/graphol-style";
 
 export default function (theme: GrapholscapeTheme) {

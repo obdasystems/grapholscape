@@ -1,5 +1,5 @@
 import cytoscape, { Collection, CollectionReturnValue, EdgeSingular, NodeSingular, SingularElementReturnValue } from "cytoscape";
-import { Diagram, GrapholEdge, GrapholElement, GrapholNode, GrapholTypesEnum, RenderStatesEnum } from "../../../model";
+import { Diagram, GrapholEdge, GrapholElement, GrapholNode, GrapholTypesEnum, RendererStatesEnum } from "../../../model";
 import DiagramRepresentation from "../../../model/diagrams/diagram-representation";
 import { isGrapholEdge } from "../../../model/graphol-elems/edge";
 import { isGrapholNode } from "../../../model/graphol-elems/node";
@@ -13,7 +13,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
   transform(diagram: Diagram): DiagramRepresentation {
     this.result = new DiagramRepresentation(liteOptions)
-    const grapholRepresentation = diagram.representations.get(RenderStatesEnum.GRAPHOL)
+    const grapholRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL)
 
     if (!grapholRepresentation) {
       return this.result

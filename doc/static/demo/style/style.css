@@ -39,7 +39,7 @@
 */
 
 #grapholscape_container {
-  --gscape-color-fg-default: #24292f;
+  /* --gscape-color-fg-default: #24292f;
   --gscape-color-fg-muted: #57606a;
   --gscape-color-fg-subtle: #6e7781;
   --gscape-color-fg-on-emphasis: #ffffff;
@@ -95,7 +95,7 @@
   --gscape-border-radius-btn: 6px;
   --gscape-font-size: 14px;
   font-size: var(--gscape-font-size);
-  color: var(--gscape-color-fg-default);
+  color: var(--gscape-color-fg-default); */
 }
 
 #grapholscape_container {

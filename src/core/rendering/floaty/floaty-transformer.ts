@@ -1,6 +1,6 @@
 import { NodeCollection, NodeSingular } from "cytoscape";
 import { floatyOptions } from "../../../config/cytoscape-default-config";
-import { Diagram, DiagramRepresentation, GrapholEdge, GrapholNode, GrapholTypesEnum, RenderStatesEnum } from "../../../model";
+import { Diagram, DiagramRepresentation, GrapholEdge, GrapholNode, GrapholTypesEnum, RendererStatesEnum } from "../../../model";
 import BaseGrapholTransformer from "../base-transformer";
 import LiteTransformer from "../lite/lite-transformer";
 
@@ -11,11 +11,11 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
   transform(diagram: Diagram): DiagramRepresentation {
     this.result = new DiagramRepresentation(floatyOptions)
 
-    let liteRepresentation = diagram.representations.get(RenderStatesEnum.GRAPHOL_LITE)
+    let liteRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL_LITE)
 
     if (!liteRepresentation || liteRepresentation.grapholElements.size === 0) {
       liteRepresentation = new LiteTransformer().transform(diagram)
-      diagram.representations.set(RenderStatesEnum.GRAPHOL_LITE, liteRepresentation)
+      diagram.representations.set(RendererStatesEnum.GRAPHOL_LITE, liteRepresentation)
     }
 
     this.result.grapholElements = new Map(liteRepresentation.grapholElements)

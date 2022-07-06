@@ -9,6 +9,7 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   settingsComponent.selectedLanguage = grapholscape.language
   settingsComponent.selectedEntityNameType = grapholscape.entityNameType
   settingsComponent.themes = grapholscape.themeList
+  settingsComponent.selectedTheme = grapholscape.theme.id
 
   for (let [widgetName, widget] of grapholscape.widgets) {
     settingsComponent.widgetStates[widgetName] = (widget as unknown as IBaseMixin).enabled
@@ -19,7 +20,10 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
     grapholscape.setEntityNameType(entityNameType)
   }
   settingsComponent.onLanguageChange = (language) => grapholscape.setLanguage(language)
-  settingsComponent.onThemeChange = (themeKey) => grapholscape.setTheme(themeKey)
+  settingsComponent.onThemeChange = (themeKey) => {
+    grapholscape.setTheme(themeKey)
+    console.log(themeKey)
+  }
   settingsComponent.onPngExport = () => grapholscape.exportToPng()
   settingsComponent.onSvgExport = () => grapholscape.exportToSvg()
 

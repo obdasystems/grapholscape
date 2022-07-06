@@ -1,6 +1,4 @@
-import { RenderStatesEnum } from "../model"
-import { DefaultThemes, DefaultThemesEnum } from "../model/theme"
-import { ColourMap } from "../style/themes"
+import { GrapholscapeTheme, DefaultThemesEnum, RendererStatesEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 
 export enum Language {
@@ -19,11 +17,7 @@ export enum EntityNameType {
 
 export type WidgetsConfig = { [key in WidgetEnum]?: boolean }
 
-export type ThemeConfig = {
-  id: string,
-  name?: string,
-  colours: ColourMap,
-} | DefaultThemesEnum
+export type ThemeConfig = GrapholscapeTheme | DefaultThemesEnum
 
 
 export type GrapholscapeConfig =
@@ -33,5 +27,5 @@ export type GrapholscapeConfig =
     selectedTheme?: string,
     language?: Language | string,
     entityNameType?: EntityNameType,
-    renderers?: RenderStatesEnum[],
+    renderers?: RendererStatesEnum[],
   }

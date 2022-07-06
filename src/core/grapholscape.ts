@@ -1,8 +1,6 @@
 import { GrapholscapeConfig } from "../config/config"
-import Ontology from "../model"
-import Lifecycle, { LifecycleEvent } from "../model/lifecycle"
-import RenderState, { RendererStatesEnum } from "../model/renderers/i-render-state"
-import GrapholscapeTheme, { DefaultThemes, DefaultThemesEnum } from "../model/theme"
+import * as Exporter from '../exporter'
+import Ontology, { ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
@@ -11,8 +9,6 @@ import FloatyRenderState from "./rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "./rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "./rendering/lite/lite-renderer-state"
 import ThemeManager from "./themeManager"
-import * as Exporter from '../exporter'
-import { ColoursNames } from "../style/themes"
 
 
 export default class Grapholscape {
@@ -53,7 +49,7 @@ export default class Grapholscape {
     this.renderer.render(diagram)
   }
 
-  setRenderer(newRenderState: RenderState) {
+  setRenderer(newRenderState: iRenderState) {
     const shouldUpdateEntities = this.ontology.getDiagram(this.diagramId)
       ?.representations.get(newRenderState.id) ? false : true
 
@@ -177,15 +173,26 @@ export default class Grapholscape {
     }
 
     if (newConfig.themes) {
-      if ((newConfig.themes as DefaultThemesEnum[]).length > 0) {
-        this.themesManager.themes = newConfig.themes.map(themeId => DefaultThemes[themeId as DefaultThemesEnum])
-      } else {
-        this.themesManager.themes = newConfig.themes.map(newTheme => newTheme as GrapholscapeTheme)
-      }
+      this.themesManager.removeThemes()
+      newConfig.themes.forEach(newTheme => {
+        const _castedNewTheme = newTheme as GrapholscapeTheme
+
+        // It's a default theme id
+        if (DefaultThemes[newTheme as DefaultThemesEnum]) {
+          this.themesManager.addTheme(DefaultThemes[newTheme as DefaultThemesEnum])
+        }
+
+        // It's a custom theme
+        else if (_castedNewTheme.id) {
+          this.themesManager.addTheme(new GrapholscapeTheme(_castedNewTheme.id, _castedNewTheme.colours, _castedNewTheme.name))
+        }
+      })
     }
 
     if (newConfig.selectedTheme) {
       this.themesManager.setTheme(newConfig.selectedTheme)
+    } else if (!this.themeList.includes(this.theme)) {
+      this.themesManager.setTheme(this.themeList[0].id)
     }
   }
 
@@ -204,7 +211,7 @@ export default class Grapholscape {
    * Filename for exports
    * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
    */
-   get exportFileName() {
+  get exportFileName() {
     return `${this.ontology.name}-${this.renderer.diagram.name}-v${this.ontology.version}`
   }
 }

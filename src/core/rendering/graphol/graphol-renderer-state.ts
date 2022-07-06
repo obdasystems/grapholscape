@@ -1,12 +1,12 @@
 import { Stylesheet } from "cytoscape"
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config"
-import Ontology, { BaseRenderer, iFilterManager, RenderStatesEnum, GrapholscapeTheme } from "../../../model"
+import Ontology, { BaseRenderer, iFilterManager, RendererStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
 import grapholStyle from "./graphol-style"
 
 export default class GrapholRendererState extends BaseRenderer {
   layout: cytoscape.Layouts
-  id: RenderStatesEnum = RenderStatesEnum.GRAPHOL
+  id: RendererStatesEnum = RendererStatesEnum.GRAPHOL
   cyConfig: cytoscape.CytoscapeOptions = cytoscapeDefaultConfig
   filterManager: iFilterManager = new GrapholFilterManager()
 

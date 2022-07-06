@@ -44,7 +44,7 @@ export default class GrapholEntity extends AnnotatedElement {
   /**
    * Get all occurrences of the entity in a given diagram
    * @param diagramId the diagram in which the entity must occurr
-   * @param representationKind the diagram representation identifier ({@link RenderStatesEnum}) 
+   * @param representationKind the diagram representation identifier ({@link RendererStatesEnum}) 
    * if not set, all representations will be considered
    * @returns A map with the occurrences in the original Graphol representation and other 
    * replicated occurrences in other diagram representations

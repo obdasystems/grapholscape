@@ -1,5 +1,5 @@
 import Renderer from "..";
-import Ontology, { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RenderStatesEnum } from "../../../model";
+import Ontology, { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RendererStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
@@ -7,7 +7,7 @@ import FloatyTransformer from "./floaty-transformer";
 
 export default class FloatyRenderState extends BaseRenderer {
   layout: cytoscape.Layouts;
-  readonly id: RenderStatesEnum = RenderStatesEnum.FLOATY
+  readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
   private _layout: cytoscape.Layouts
 

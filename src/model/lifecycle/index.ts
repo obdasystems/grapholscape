@@ -5,7 +5,7 @@ import GrapholEntity from "../graphol-elems/entity"
 import GrapholElement from "../graphol-elems/graphol-element"
 import GrapholNode from "../graphol-elems/node"
 import { RendererStatesEnum } from "../renderers/i-render-state"
-import GrapholscapeTheme from "../theme"
+import GrapholscapeTheme from "../themes/theme"
 
 export enum LifecycleEvent {
   DiagramChange = 'diagramChange',

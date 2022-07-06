@@ -1,5 +1,5 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
-import { RenderStatesEnum } from '../../model'
+import { RendererStatesEnum } from '../../model'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle from '../style'
@@ -9,8 +9,8 @@ import { GscapeLayoutSettings } from './floaty-layout-settings'
 export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Renderer Selector'
   rendererStates: RendererStates
-  actualRendererStateKey: RenderStatesEnum
-  onRendererStateSelection: (rendererState: RenderStatesEnum) => void = () => {}
+  actualRendererStateKey: RendererStatesEnum
+  onRendererStateSelection: (rendererState: RendererStatesEnum) => void = () => {}
   layoutSettingsComponent: GscapeLayoutSettings
 
   static properties: PropertyDeclarations = {
@@ -42,7 +42,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
 
   render() {
     return html`
-    ${this.actualRendererStateKey === RenderStatesEnum.FLOATY
+    ${this.actualRendererStateKey === RendererStatesEnum.FLOATY
       ? html`
           ${this.layoutSettingsComponent}
           <div class="hr"></div>
@@ -77,7 +77,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
 
   private rendererSelectionHandler(e: Event) {
     this.togglePanel()
-    const rendererState = (e.target as HTMLElement).getAttribute('renderer-state') as RenderStatesEnum
+    const rendererState = (e.target as HTMLElement).getAttribute('renderer-state') as RendererStatesEnum
     this.onRendererStateSelection(rendererState)
   }
 

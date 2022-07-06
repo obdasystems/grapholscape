@@ -2,7 +2,7 @@ import { LifecycleEvent } from "../model/lifecycle"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
 import { isGrapholNode } from "../model/graphol-elems/node"
 import Grapholscape from "./grapholscape"
-import { Diagram, DiagramRepresentation, RenderStatesEnum } from "../model"
+import { Diagram, DiagramRepresentation, RendererStatesEnum } from "../model"
 import { EntityOccurrence } from "../model/graphol-elems/entity"
 
 export default class EntityNavigator {
@@ -57,7 +57,7 @@ export default class EntityNavigator {
   getEntityOccurrenceInDiagram(iri: string, diagramId: number) {
     const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)
 
-    const grapholOccurrences = occurrencesMap.get(RenderStatesEnum.GRAPHOL)
+    const grapholOccurrences = occurrencesMap.get(RendererStatesEnum.GRAPHOL)
     // if no graphol occurrence, then cannot appear in any representation
     if (!grapholOccurrences || grapholOccurrences.length <= 0) return
 
@@ -82,7 +82,7 @@ export default class EntityNavigator {
 
   updateEntitiesOccurrences() {
     const diagram = this._grapholscape.renderer.diagram
-    if (this._grapholscape.renderState === RenderStatesEnum.GRAPHOL)
+    if (this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
       return
 
     const replicatedElements = this._grapholscape.renderer.cy?.$("[originalId]")

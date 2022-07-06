@@ -4,7 +4,7 @@ import Grapholscape from "../../core/grapholscape"
 import FloatyRenderState from "../../core/rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { LifecycleEvent, RenderStatesEnum } from "../../model"
+import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { bubbles, graphol_icon, lite } from "../assets/icons"
 
 export type RendererStateViewModel = {
@@ -12,7 +12,7 @@ export type RendererStateViewModel = {
   icon: SVGTemplateResult,
 }
 
-export type RendererStates = { [key in RenderStatesEnum]?: RendererStateViewModel }
+export type RendererStates = { [key in RendererStatesEnum]?: RendererStateViewModel }
 
 const rendererStates: RendererStates = {}
 
@@ -51,15 +51,15 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   rendererSelector.onRendererStateSelection = (rendererState) => {
     if (rendererState !== grapholscape.renderState) {
       switch(rendererState) {
-        case RenderStatesEnum.GRAPHOL:
+        case RendererStatesEnum.GRAPHOL:
           grapholscape.setRenderer(new GrapholRendererState())
           break
 
-        case RenderStatesEnum.GRAPHOL_LITE:
+        case RendererStatesEnum.GRAPHOL_LITE:
           grapholscape.setRenderer(new LiteRendererState())
           break
 
-        case RenderStatesEnum.FLOATY:
+        case RendererStatesEnum.FLOATY:
           grapholscape.setRenderer(new FloatyRenderState())
           break
       }
@@ -69,7 +69,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
     rendererSelector.actualRendererStateKey = newRendererState
 
-    if (newRendererState === RenderStatesEnum.FLOATY)
+    if (newRendererState === RendererStatesEnum.FLOATY)
       rendererSelector.layoutSettingsComponent.openPanel()
   })
 }
