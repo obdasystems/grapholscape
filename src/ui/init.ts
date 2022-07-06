@@ -77,7 +77,7 @@ export default function (grapholscape: Grapholscape) {
       }
     }
 
-    if (grapholscape.widgetsInitialStates[key] === false) {
+    if (grapholscape.widgetsInitialStates && grapholscape.widgetsInitialStates[key] === false) {
       _widget.disable()
     }
   })

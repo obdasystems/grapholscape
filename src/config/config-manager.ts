@@ -1,3 +1,4 @@
+import { WidgetEnum } from "../ui/util/widget-enum"
 import { GrapholscapeConfig } from "./config"
 
 const NAMESPACE = 'obda-systems.grapholscape'
@@ -14,7 +15,19 @@ export function loadConfig() {
   if (storageAvailable() && isAnySettingSaved()) {
     Object.keys(window.localStorage)
       .filter(k => k.startsWith(NAMESPACE)) // take only local storage items written by grapholscape
-      .forEach(k => config[getKeyWithoutNamespace(k)] = valueFromStorage(window.localStorage.getItem(k)))
+      .forEach(k => {
+        const configKey = getKeyWithoutNamespace(k)
+        const value = valueFromStorage(window.localStorage.getItem(k))
+        if (Object.values(WidgetEnum).includes(configKey as WidgetEnum)) {
+          if (!config.widgets)
+            config.widgets = {}
+
+          config.widgets[configKey] = value
+        } else {
+          config[configKey] = value
+        }
+        
+      })
   }
 
   return config

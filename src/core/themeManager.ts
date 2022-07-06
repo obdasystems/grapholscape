@@ -1,3 +1,4 @@
+import { storeConfigEntry } from "../config/config-manager"
 import { ColoursNames, CSS_PROPERTY_NAMESPACE, DefaultThemes, GrapholscapeTheme, gscapeColourMap, LifecycleEvent } from "../model"
 import Grapholscape from "./grapholscape"
 
@@ -23,6 +24,7 @@ export default class ThemeManager {
       this._grapholscape.renderer.setTheme(newTheme)
 
       this._grapholscape.lifecycle.trigger(LifecycleEvent.ThemeChange, newTheme)
+      storeConfigEntry('selectedTheme', newThemeId)
     }
   }
 

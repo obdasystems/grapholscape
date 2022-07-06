@@ -3,6 +3,7 @@ import { GrapholEntity } from "../model";
 import { EntityNameType, Language } from "../config/config";
 import Grapholscape from "./grapholscape";
 import { RendererStatesEnum } from "../model/renderers/i-render-state";
+import { storeConfigEntry } from "../config/config-manager";
 
 export default class DisplayedNamesManager {
   private _grapholscape: Grapholscape
@@ -30,6 +31,7 @@ export default class DisplayedNamesManager {
     }
 
     this._grapholscape.lifecycle.trigger(LifecycleEvent.EntityNameTypeChange, newEntityNameType)
+    storeConfigEntry('entityNameType', newEntityNameType)
   }
 
   setLanguage = (language: string) => {
@@ -53,6 +55,7 @@ export default class DisplayedNamesManager {
     }
 
     this._grapholscape.lifecycle.trigger(LifecycleEvent.LanguageChange, languageValue)
+    storeConfigEntry('language', language)
   }
 
   private setDisplayedNames(entity: GrapholEntity) {
