@@ -22,7 +22,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
     baseStyle,
     css`
       :host {
-        order: 6;
+        order: 7;
         margin-top:10px;
         border-radius: var(--gscape-border-radius-btn);
         border: 1px solid var(--gscape-color-border-subtle);

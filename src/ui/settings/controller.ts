@@ -22,7 +22,6 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   settingsComponent.onLanguageChange = (language) => grapholscape.setLanguage(language)
   settingsComponent.onThemeChange = (themeKey) => {
     grapholscape.setTheme(themeKey)
-    console.log(themeKey)
   }
   settingsComponent.onPngExport = () => grapholscape.exportToPng()
   settingsComponent.onSvgExport = () => grapholscape.exportToSvg()
