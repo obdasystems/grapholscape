@@ -28,12 +28,14 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     }
   })
 
-  grapholscape.on(LifecycleEvent.NodeSelection, _ => {
-    entityDetailsComponent.hide()
+  grapholscape.on(LifecycleEvent.NodeSelection, node => {
+    if (!node.isEntity())
+      entityDetailsComponent.hide()
   })
 
-  grapholscape.on(LifecycleEvent.EdgeSelection, _ => {
-    entityDetailsComponent.hide()
+  grapholscape.on(LifecycleEvent.EdgeSelection, edge => {
+    if (!edge.isEntity())
+      entityDetailsComponent.hide()
   })
 
   grapholscape.on(LifecycleEvent.LanguageChange, language => {

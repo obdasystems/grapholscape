@@ -124,14 +124,14 @@ export default class EntityNavigator {
             if (grapholEntity) {
               this._grapholscape.lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)
             }
-          } else {
-            if (isGrapholNode(grapholElement)) {
-              this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement)
-            }
+          }
+          
+          if (isGrapholNode(grapholElement)) {
+            this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement)
+          }
 
-            if (isGrapholEdge(grapholElement)) {
-              this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement)
-            }
+          if (isGrapholEdge(grapholElement)) {
+            this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement)
           }
         }
       })

@@ -21,7 +21,7 @@ export default class Iri {
 
     if (!this.namespace) {
       console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
-      this.namespace = new Namespace([undefined], undefined)
+      this.namespace = new Namespace(['undefined'], 'undefined')
       this.remainder = iri
     } else {
       this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length)
@@ -36,7 +36,7 @@ export default class Iri {
     return this._remainder
   }
 
-  private set namespace(value: Namespace) {
+  private set namespace(value: Namespace | undefined) {
     this._namespace = value
   }
 
@@ -45,11 +45,11 @@ export default class Iri {
   }
 
   public get prefix() {
-    return this.namespace.prefixes[0]
+    return this.namespace?.prefixes[0]
   }
 
   public get fullIri() {
-    return this.namespace.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
+    return this.namespace?.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
   }
 
   public get prefixed() {
@@ -58,8 +58,9 @@ export default class Iri {
 
   public equals(iriToCheck: string) {
     if (this.fullIri === iriToCheck || this.prefixed === iriToCheck) return true
+    if (!this.namespace) return false
 
-    for(let prefix of this.namespace.prefixes) {
+    for (let prefix of this.namespace.prefixes) {
       if (`${prefix}:${this.remainder}` === iriToCheck) {
         return true
       }
@@ -69,8 +70,8 @@ export default class Iri {
   }
 
   public hasPrefix(prefixToCheck: string) {
-    return this.namespace.hasPrefix(prefixToCheck)
+    return this.namespace?.hasPrefix(prefixToCheck) || false
   }
 
-  
+
 }

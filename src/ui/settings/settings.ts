@@ -1,6 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { EntityNameType } from '../../config/config'
 import { GrapholscapeTheme } from '../../model'
+import capitalizeFirstChar from '../../util/capitalize-first-char'
 import { grapholscape as logo } from '../assets/gscape-logo'
 import { save, settings_icon } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
@@ -148,7 +149,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
             <div class="bold-text">Preferences</div>
             ${this.getListSettingEntryTemplate(
               Object.values(EntityNameType).map(ent => {
-                return { value: ent, label: this.capitalizeFirstLetter(ent) }
+                return { value: ent, label: capitalizeFirstChar(ent) }
               }),
               this.selectedEntityNameType,
               'Entities Name',
@@ -223,10 +224,6 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
     `
   }
 
-  private capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1)
-  }
-
   private getSettingTitleTemplate(title: string, label: string) {
     return html`
     <div class="title-wrap">
@@ -256,7 +253,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
 
   private getToggleSettingEntryTemplate(actualState: boolean, title: string) {
     let labelPieces = title.split('-')
-    const label = labelPieces.map(text => this.capitalizeFirstLetter(text)).join(' ')
+    const label = labelPieces.map(text => capitalizeFirstChar(text)).join(' ')
     return html`
       <div class="toggle-setting-obj">
         <gscape-toggle

@@ -101,8 +101,8 @@ export default function (grapholscape: Grapholscape) {
 
   function blurAll(widgetsToSkip: HTMLElement[] = []) {
     grapholscape.widgets.forEach((widget, key) => {
-      if (key === WidgetEnum.ENTITY_DETAILS && !widgetsToSkip.includes(widget)) {
-        (widget as GscapeEntityDetails).hide()
+      if ((key === WidgetEnum.ENTITY_DETAILS || key === WidgetEnum.OWL_VISUALIZER) && !widgetsToSkip.includes(widget)) {
+        (widget as unknown as IBaseMixin).hide()
       } else if (!widgetsToSkip.includes(widget)) {
         widget.blur()
       }

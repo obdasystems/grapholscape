@@ -22,7 +22,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       grapholEntity: { type: Object, attribute: false },
       occurrences: { type: Object, attribute: false },
       language: { type: String, attribute: false },
-      _isPanelClosed: { type : Boolean, attribute: false}
+      _isPanelClosed: { type: Boolean, attribute: false }
     }
   }
 
@@ -107,9 +107,9 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         ${this.grapholEntity.functionalities.length > 0
           ? html`
               <div class="chips-wrapper section">
-                ${this.grapholEntity.functionalities.map(functionality => {
-                  return html`<span class="chip">&#10003; ${functionality.toString()}</span>`
-                })}
+              ${this.grapholEntity.functionalities.map(functionality => {
+                return html`<span class="chip">&#10003; ${functionality.toString()}</span>`
+              })}
               </div>
             `
           : null
@@ -120,7 +120,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         ${this.occurrencesTemplate()}
 
         ${this.grapholEntity.getComments().length > 0
-          ? html`
+        ? html`
             <div class="section">
               <div>
                 <span id="description-header" class="bold-text section-header">Description</span>
@@ -135,14 +135,14 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                 </select>
               </div>
               <div class="section-body">
-                ${this.grapholEntity.getComments(this.language).map(comment => 
+                ${this.grapholEntity.getComments(this.language).map(comment =>
                   html`<span class="comment">${comment.lexicalForm}</span>`
                 )}
               </div>
             </div>
           `
-          : null
-        }
+        : null
+      }
       </div>
       <div class="top-bar">
         <gscape-button 
@@ -154,9 +154,9 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         > 
           ${this.isPanelClosed()
             ? html`
-              <span slot="icon">${infoFilled}</span>
-              <span slot="trailing-icon">${plus}</span>
-            `
+                <span slot="icon">${infoFilled}</span>
+                <span slot="trailing-icon">${plus}</span>
+              `
             : html`<span slot="icon">${minus}</span>`
           }
         </gscape-button>
@@ -199,10 +199,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     return Array.from(new Set(this.grapholEntity.getComments().map(comment => comment.language)))
   }
 
-  private get _isPanelClosed() {
-    return this.isPanelClosed()
-  }
- 
   updated() {
     // let description = this.entity?.annotations?.comment
     const allComments = this.grapholEntity?.getComments()
