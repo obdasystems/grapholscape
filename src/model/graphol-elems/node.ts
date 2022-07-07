@@ -144,6 +144,7 @@ export default class GrapholNode extends GrapholElement {
       labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,
       labelXcentered: this.isLabelXcentered,
       labelYcentered: this.isLabelYcentered,
+      identity: this.identity,
     })
 
     thisCytoscapeRepr[0].classes = this.type.toString()

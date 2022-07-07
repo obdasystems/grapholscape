@@ -349,7 +349,11 @@ export default class GrapholParser {
     this.ontology.diagrams.forEach(diagram => {
       const cy = diagram.representations.get(RendererStatesEnum.GRAPHOL)?.cy
       cy?.nodes('[identity = "neutral"]').forEach(node => {
-        node.data('identity', findIdentity(node))
+        const newIdentity = findIdentity(node)
+        node.data('identity', newIdentity)
+        const grapholNode = this.ontology.getGrapholNode(node.id(), diagram.id)
+        if (grapholNode)
+          grapholNode.identity = newIdentity
       })
     })
 
