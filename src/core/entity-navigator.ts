@@ -60,11 +60,16 @@ export default class EntityNavigator {
   getEntityOccurrenceInDiagram(iri: string, diagramId: number) {
     const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)
 
+    if (!occurrencesMap) return
+
     const grapholOccurrences = occurrencesMap.get(RendererStatesEnum.GRAPHOL)
     // if no graphol occurrence, then cannot appear in any representation
     if (!grapholOccurrences || grapholOccurrences.length <= 0) return
 
     const diagram = this._grapholscape.ontology.getDiagram(diagramId)
+
+    if (!diagram) return
+
     const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
 
     // Search any original graphol occurrence in the actual representation

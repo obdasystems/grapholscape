@@ -51,7 +51,7 @@ export function getNextSibling(node) {
  */
 export function getNewEndpoint(endpoint: Position, node: GrapholNode, breakpoint: Position) {
   // Calcoliamo le coordinate relative al nodo source (o target)
-  const endpointRelativeToNode: Position = { x: null, y: null }
+  const endpointRelativeToNode: Position = { x: 0, y: 0 }
   endpointRelativeToNode.x = endpoint.x - node.x
   endpointRelativeToNode.y = endpoint.y - node.y
 
@@ -59,7 +59,7 @@ export function getNewEndpoint(endpoint: Position, node: GrapholNode, breakpoint
     // endpoint centrato sul nodo, non c'è bisogno di spostarlo
     return endpointRelativeToNode
 
-  const breakpointRelativeToNode: Position = { x: null, y: null }
+  const breakpointRelativeToNode: Position = { x: 0, y: 0 }
   breakpointRelativeToNode.x = breakpoint.x - node.x
   breakpointRelativeToNode.y = breakpoint.y - node.y
 

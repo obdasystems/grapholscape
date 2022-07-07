@@ -54,7 +54,7 @@ class Ontology extends AnnotatedElement {
    * @param {string} iriValue the IRI assigned to the namespace
    * @returns {Namespace}
    */
-  getNamespace(iriValue: string): Namespace {
+  getNamespace(iriValue: string): Namespace | undefined {
     return this.namespaces.find(ns => ns.toString() === iriValue)
   }
 
@@ -63,7 +63,7 @@ class Ontology extends AnnotatedElement {
    * @param {string} prefix 
    * @returns {Namespace}
    */
-  getNamespaceFromPrefix(prefix: string): Namespace {
+  getNamespaceFromPrefix(prefix: string): Namespace | undefined {
     return this.namespaces.find(ns => ns.hasPrefix(prefix))
   }
 
@@ -77,13 +77,13 @@ class Ontology extends AnnotatedElement {
    * @param {number} index the id of the diagram
    * @returns {Diagram} The diagram object
    */
-  getDiagram(index: number): Diagram {
+  getDiagram(index: number): Diagram | undefined {
     if (index < 0 || index > this.diagrams.length) return
     if (this.diagrams[index])
       return this.diagrams[index]
   }
 
-  getDiagramByName(name: string): Diagram {
+  getDiagramByName(name: string): Diagram | undefined {
     return this.diagrams.find(d => d.name.toLowerCase() === name?.toLowerCase())
   }
 
@@ -104,10 +104,10 @@ class Ontology extends AnnotatedElement {
 
   getGrapholElement(elementId: string, diagramId?: number, renderState = RendererStatesEnum.GRAPHOL) {
     if (diagramId)
-      return this.getDiagram(diagramId).representations.get(renderState).grapholElements.get(elementId)
+      return this.getDiagram(diagramId)?.representations.get(renderState)?.grapholElements.get(elementId)
 
     for(let diagram of this.diagrams) {
-      const elem = diagram.representations.get(renderState).grapholElements.get(elementId)
+      const elem = diagram.representations.get(renderState)?.grapholElements.get(elementId)
       if (elem) return elem
     }
   }
@@ -158,11 +158,11 @@ class Ontology extends AnnotatedElement {
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns An array of EntityOccurrence objects
    */
-  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> {
+  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> | undefined {
     // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
     return diagramId || diagramId === 0 
-      ? this.getEntity(iri).getOccurrencesByDiagramId(diagramId, renderState)
-      : this.getEntity(iri).occurrences
+      ? this.getEntity(iri)?.getOccurrencesByDiagramId(diagramId, renderState)
+      : this.getEntity(iri)?.occurrences
   }
 
   // /**
@@ -219,7 +219,7 @@ class Ontology extends AnnotatedElement {
    * @param {string} prefixedIri a prefixed IRI
    * @returns {string} full IRI
    */
-  prefixedToFullIri(prefixedIri: string): string {
+  prefixedToFullIri(prefixedIri: string): string | undefined{
     if (!prefixedIri || typeof (prefixedIri) !== 'string') return
     for (let namespace of this.namespaces) {
       let prefix = namespace.prefixes.find(p => prefixedIri.includes(p + ':'))

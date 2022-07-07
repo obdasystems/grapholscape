@@ -36,6 +36,8 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   render(): void {
+    if (!this.renderer.diagram) return
+
     let floatyRepresentation = this.renderer.diagram.representations.get(this.id)
 
     if (!floatyRepresentation) {
@@ -230,7 +232,8 @@ export default class FloatyRenderState extends BaseRenderer {
   }
 
   private get popperContainer() {
-    return this.popperContainers.get(this.renderer.diagram.id)
+    if (this.renderer.diagram)
+      return this.popperContainers.get(this.renderer.diagram.id)
   }
 
   private get popperContainers(): Map<number, HTMLDivElement> {

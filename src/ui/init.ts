@@ -10,6 +10,7 @@ import initFitButton from "./fit-button";
 import initFullscreenButton from "./fullscreen";
 import initOntologyExplorer from "./ontology-explorer";
 import initOntologyInfo from "./ontology-info";
+import initOwlVisualizer from "./owl-visualizer";
 import initRendererSelector from "./renderer-selector";
 import initSettings, { GscapeSettings } from "./settings";
 import bottomRightContainer from "./util/bottom-right-container";
@@ -37,6 +38,7 @@ export default function (grapholscape: Grapholscape) {
   initOntologyInfo(grapholscape)
   initEntityDetails(grapholscape)
   initOntologyExplorer(grapholscape)
+  initOwlVisualizer(grapholscape)
   initSettings(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
@@ -50,6 +52,7 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.FULLSCREEN_BUTTON:
       case WidgetEnum.DIAGRAM_SELECTOR:
       case WidgetEnum.ENTITY_DETAILS:
+      case WidgetEnum.OWL_VISUALIZER:
         guiContainer.appendChild(widget)
         break
 

@@ -9,14 +9,10 @@ export let warnings = new Set()
 
 export function getOntologyInfo(xmlDocument: XMLDocument) {
   let xml_ontology_tag = xmlDocument.getElementsByTagName('ontology')[0]
-  let ontology_name = xml_ontology_tag.getElementsByTagName('name')[0].textContent
+  let ontology_name = xml_ontology_tag.getElementsByTagName('name')[0]?.textContent || 'Undefined'
   let ontology_version = ''
 
-  if (xml_ontology_tag.getElementsByTagName('version')[0]) {
-    ontology_version = xml_ontology_tag.getElementsByTagName('version')[0].textContent
-  } else {
-    ontology_version = 'Undefined'
-  }
+  ontology_version = xml_ontology_tag.getElementsByTagName('version')[0]?.textContent || 'Undefined'
 
   return new Ontology(ontology_name, ontology_version)
 }
@@ -26,22 +22,26 @@ export function getNamespaces(xmlDocument: XMLDocument) {
 
   if (xmlDocument.getElementsByTagName('IRI_prefixes_nodes_dict').length === 0) {
     // for old graphol files
-    result.push(new Namespace([''], xmlDocument.getElementsByTagName('iri')[0].textContent, false))
+    result.push(new Namespace([''], xmlDocument.getElementsByTagName('iri')[0].textContent || '', false))
   } else {
     let iri_prefixes: string[]
-    let iri_value: string, is_standard: boolean, prefixes: HTMLCollectionOf<Element>, properties: HTMLCollectionOf<Element>
+    let iri_value: string | null, is_standard: boolean, prefixes: HTMLCollectionOf<Element>, properties: HTMLCollectionOf<Element>
     let iris = xmlDocument.getElementsByTagName('iri')
     // Foreach iri create a Iri object
     for (let iri of iris) {
       iri_value = iri.getAttribute('iri_value')
+      if (!iri_value) continue
+
       is_standard = false
       prefixes = iri.getElementsByTagName('prefix')
       iri_prefixes = []
       for (let prefix of prefixes) {
-        iri_prefixes.push(prefix.getAttribute('prefix_value'))
+        const prefixValue = prefix.getAttribute('prefix_value')
+        if (prefixValue)
+          iri_prefixes.push(prefixValue)
       }
 
-      if(iri_prefixes.length == 0)
+      if (iri_prefixes.length == 0)
         iri_prefixes.push('')
 
       // check if it's a standard iri
@@ -62,7 +62,8 @@ export function getIri(element: Element, ontology: Ontology) {
   if (!labelElement)
     return undefined
 
-  let label = labelElement.textContent.replace(/\n/g, '')
+  let label = labelElement.textContent?.replace(/\n/g, '')
+  if (!label) return
   let splitted_label = label.split(':')
   // if no ':' in label, then use empty prefix
   let node_prefix_iri = splitted_label.length > 1 ? splitted_label[0] : ''
@@ -91,16 +92,15 @@ export function getIri(element: Element, ontology: Ontology) {
   // return iri_infos
 }
 
-export function getFacetDisplayedName(element:Element) {
+export function getFacetDisplayedName(element: Element) {
   if (element.getElementsByTagName('label')[0])
     // language undefined for v2 = ''
-    return element.getElementsByTagName('label')[0].textContent
-  else return undefined
+    return element.getElementsByTagName('label')[0].textContent || undefined
 }
 
 export function getFunctionalities(element: Element, xmlDocument: XMLDocument) {
   let result: FunctionalityEnum[] = []
-  const labelNoBreak = element.getElementsByTagName('label')[0].textContent.replace(/\n/g, '')
+  const labelNoBreak = element.getElementsByTagName('label')[0].textContent?.replace(/\n/g, '')
 
   // for searching predicates' functionalities in graphol v2
   const xmlPredicates = xmlDocument.getElementsByTagName('predicate')
@@ -109,7 +109,7 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument) {
     if (labelNoBreak === predicateXml.getAttribute('name') && type === predicateXml.getAttribute('type')) {
 
       Object.values(FunctionalityEnum).forEach(functionalityKind => {
-        const value = parseInt(predicateXml.getElementsByTagName(functionalityKind)[0]?.textContent) || 0
+        const value = parseInt(predicateXml.getElementsByTagName(functionalityKind)[0]?.textContent || '0')
 
         if (value !== 0)
           result.push(functionalityKind)
@@ -126,24 +126,27 @@ export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument)
   let result: Annotation[] = []
 
   const label = element.getElementsByTagName('label')[0].textContent
-  const labelNoBreak = label.replace(/\n/g, '')
-  // push label annotation
-  result.push(new Annotation(AnnotationsKind.label, label))
 
-  // for searching predicates' description in graphol v2
-  const xmlPredicates = xmlDocument.getElementsByTagName('predicate')
+  if (label) {
+    const labelNoBreak = label.replace(/\n/g, '')
+    // push label annotation
+    result.push(new Annotation(AnnotationsKind.label, label))
 
-  for (let predicateXml of xmlPredicates) {
-    if (labelNoBreak === predicateXml.getAttribute('name') && element.getAttribute('type') === predicateXml.getAttribute('type')) {
-      let description = predicateXml.getElementsByTagName('description')[0]?.textContent?.replace(/font-size:0pt/g, '')
-      if (description) {
-        let bodyStartIndex = description.indexOf('<p')
-        let bodyEndIndex = description.indexOf('</body')
-        description = description.slice(bodyStartIndex, bodyEndIndex)
+    // for searching predicates' description in graphol v2
+    const xmlPredicates = xmlDocument.getElementsByTagName('predicate')
 
-        result.push(new Annotation(AnnotationsKind.comment, description))
+    for (let predicateXml of xmlPredicates) {
+      if (labelNoBreak === predicateXml.getAttribute('name') && element.getAttribute('type') === predicateXml.getAttribute('type')) {
+        let description = predicateXml.getElementsByTagName('description')[0]?.textContent?.replace(/font-size:0pt/g, '')
+        if (description) {
+          let bodyStartIndex = description.indexOf('<p')
+          let bodyEndIndex = description.indexOf('</body')
+          description = description.slice(bodyStartIndex, bodyEndIndex)
+
+          result.push(new Annotation(AnnotationsKind.comment, description))
+        }
+        break
       }
-      break
     }
   }
 

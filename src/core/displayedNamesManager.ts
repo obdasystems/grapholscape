@@ -88,18 +88,20 @@ export default class DisplayedNamesManager {
           grapholElement.displayedName = newDisplayedName
           const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId)
 
-          /**
-           * Entity Occurrences are not replicated, in entity.occurrences.get('lite') there will
-           * be only replicated/transformed entities. So the occurrences in graphol will be
-           * present also in other representations unless filtered.
-           * So for each occurrence in graphol, we search it in other representations and update them as well
-           */
-          if (renderState === RendererStatesEnum.GRAPHOL) {
-            diagram.representations.forEach(representation => {
-              representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
-            })
-          } else {
-            diagram.representations.get(renderState)?.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
+          if (diagram) {
+            /**
+             * Entity Occurrences are not replicated, in entity.occurrences.get('lite') there will
+             * be only replicated/transformed entities. So the occurrences in graphol will be
+             * present also in other representations unless filtered.
+             * So for each occurrence in graphol, we search it in other representations and update them as well
+             */
+            if (renderState === RendererStatesEnum.GRAPHOL) {
+              diagram.representations.forEach(representation => {
+                representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
+              })
+            } else {
+              diagram.representations.get(renderState)?.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
+            }
           }
         }
       })

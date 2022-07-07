@@ -11,6 +11,8 @@ export default class GrapholRendererState extends BaseRenderer {
   filterManager: iFilterManager = new GrapholFilterManager()
 
   render(): void {
+    if (!this.renderer.diagram) return
+
     const grapholRepresentation = this.renderer.diagram.representations.get(this.id)
     if (!grapholRepresentation) return
 
@@ -29,13 +31,11 @@ export default class GrapholRendererState extends BaseRenderer {
   }
 
   stopRendering(): void {
-    if (this.renderer.cy) {
+    if (this.renderer.cy && this.renderer.diagram) {
       this.renderer.diagram.lastViewportState = {
         pan: this.renderer.cy.pan(),
         zoom: this.renderer.cy.zoom(),
       }
-
-      console.log(this.renderer.diagram.lastViewportState)
     }
   }
 

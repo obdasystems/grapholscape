@@ -24,7 +24,7 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
 
   function addOccurrenceViewData(occurrence: EntityOccurrence) {
     const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId)
-    const cyElement = diagram.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
+    const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
 
     if (diagram && cyElement && !cyElement.empty()) {
       if (!Array.from(result.keys()).find(d => d.id === diagram.id)) {

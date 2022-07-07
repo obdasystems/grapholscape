@@ -28,6 +28,8 @@ export default class LiteRendererState extends BaseRenderer {
   }
 
   render(): void {
+    if (!this.renderer.diagram) return
+
     let liteRepresentation = this.renderer.diagram.representations.get(this.id)
 
     if (!liteRepresentation) return
@@ -48,13 +50,11 @@ export default class LiteRendererState extends BaseRenderer {
   }
 
   stopRendering(): void {
-    if (this.renderer.cy) {
+    if (this.renderer.cy && this.renderer.diagram) {
       this.renderer.diagram.lastViewportState = {
         pan: this.renderer.cy.pan(),
         zoom: this.renderer.cy.zoom(),
       }
-
-      console.log(this.renderer.diagram.lastViewportState)
     }
   }
 
