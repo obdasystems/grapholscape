@@ -95,7 +95,21 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument): 
   let result: FunctionalityEnum[] = []
   let actual_iri_elem = getIriElem(element, xmlDocument)
 
-  const elementType = element.getAttribute('type')
+  let elementType: GrapholTypesEnum | undefined
+  switch (element.getAttribute('type')) {
+    case 'concept':
+      elementType = GrapholTypesEnum.CLASS
+      break
+
+    case 'role':
+      elementType = GrapholTypesEnum.OBJECT_PROPERTY
+      break
+
+    case 'attribute':
+      elementType = GrapholTypesEnum.DATA_PROPERTY
+      break
+  }
+
   if (elementType === GrapholTypesEnum.OBJECT_PROPERTY || elementType === GrapholTypesEnum.DATA_PROPERTY) {
     if (actual_iri_elem && actual_iri_elem.children) {
       for (let property of actual_iri_elem.children) {
