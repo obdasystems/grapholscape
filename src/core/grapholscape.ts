@@ -55,7 +55,7 @@ export default class Grapholscape {
   }
 
   setRenderer(newRenderState: iRenderState) {
-    const shouldUpdateEntities = !this.diagramId || !this.ontology.getDiagram(this.diagramId)
+    const shouldUpdateEntities = (this.diagramId !== 0 && !this.diagramId) || !this.ontology.getDiagram(this.diagramId)
       ?.representations.get(newRenderState.id) ? true : false
 
     if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
