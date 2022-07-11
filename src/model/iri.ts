@@ -21,7 +21,6 @@ export default class Iri {
 
     if (!this.namespace) {
       console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
-      this.namespace = new Namespace(['undefined'], 'undefined')
       this.remainder = iri
     } else {
       this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length)

@@ -6,11 +6,12 @@ import * as parserV3 from '../src/parsing/parser-v3'
 import { books3, customOntology } from './input'
 import Ontology from '../src/model/ontology'
 import Namespace from '../src/model/namespace'
-import GrapholEntity, { Functionalities } from '../src/model/graphol-elems/entity'
+import GrapholEntity, { FunctionalityEnum } from '../src/model/graphol-elems/entity'
 import { UNDEFINED_LANGUAGE } from '../src/model/graphol-elems/annotation'
 import GrapholParser from '../src/parsing/parser'
 import GrapholNode from '../src/model/graphol-elems/node'
 import { getNewEndpoint } from '../src/parsing/parser_util'
+import { GrapholTypesEnum, Iri } from '../src/model'
 
 const domParser = new DOMParser()
 const xmlDoc = domParser.parseFromString(customOntology, 'text/xml')
@@ -126,10 +127,14 @@ describe('Test retrieving IRI of a node', () => {
 
   test('it should parse and destructure a node\'s IRI', () => {
     const retrieved_iri = parserV3.getIri(node1_mock_input, ontology)
-    expect(retrieved_iri.fullIri).toEqual(output1.fullIri)
-    expect(retrieved_iri.prefix).toEqual(output1.prefix)
-    expect(retrieved_iri.prefixed).toEqual(output1.prefixed)
-    expect(retrieved_iri.equals(output1.prefixed)).toBe(true)
+
+    expect(retrieved_iri).toBeDefined()
+    if (retrieved_iri) {
+      expect(retrieved_iri.fullIri).toEqual(output1.fullIri)
+      expect(retrieved_iri.prefix).toEqual(output1.prefix)
+      expect(retrieved_iri.prefixed).toEqual(output1.prefixed)
+      expect(retrieved_iri.equals(output1.prefixed)).toBe(true)
+    }
   })
 
   test('if node\'s IRI is not found, assign undefined prefix', () => {
@@ -151,13 +156,17 @@ describe('Test retrieving IRI of a node', () => {
 
 
     const retrieved_iri = parserV3.getIri(node2_mock_input, ontology)
-    expect(retrieved_iri.fullIri).toEqual(output2.fullIri)
-    expect(retrieved_iri.prefix).toEqual(output2.prefix)
-    expect(retrieved_iri.prefixed).toEqual(output2.prefixed)
-    expect(retrieved_iri.equals(output2.prefixed)).toBe(true)
+
+    expect(retrieved_iri).toBeDefined()
+    if (retrieved_iri) {
+      expect(retrieved_iri.fullIri).toEqual(output2.fullIri)
+      expect(retrieved_iri.prefix).toEqual(output2.prefix)
+      expect(retrieved_iri.prefixed).toEqual(output2.prefixed)
+      expect(retrieved_iri.equals(output2.prefixed)).toBe(true)
+    }
   })
 
-  test('it should return null if node doesn\'t have any IRI', () => {
+  test('it should return undefined if node doesn\'t have any IRI', () => {
     const node3_mock_input = parseSingleNode(`
       <node id="n38" color="#fcfcfc" type="range-restriction">
         <geometry width="110" y="180" x="300" height="50"/>
@@ -166,7 +175,7 @@ describe('Test retrieving IRI of a node', () => {
     `)
 
     const retrieved_iri = parserV3.getIri(node3_mock_input, ontology)
-    expect(retrieved_iri).toBeNull()
+    expect(retrieved_iri).toBeUndefined()
   })
 
 })
@@ -181,18 +190,16 @@ describe('Test retrieving annotations', () => {
   `)
 
   const retrievedInfosConcept = parserV3.getEntityAnnotations(node1_mock_input, xmlDoc)
-  const conceptEntity = new GrapholEntity(null, null)
+  const conceptEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode1', ontology.namespaces), GrapholTypesEnum.CLASS)
   conceptEntity.annotations = retrievedInfosConcept
 
   test('it should parse multiple labels for each language, even not defined language', () => {
     const output = {
-      '_': ['label con ritorni\na capo senza lingua', 'label2 senza lingua'],
       'en': ['label inglese', 'label inglese 2'],
       'it': ['label1', 'label2']
     }
     expect(conceptEntity.getLabels('en').map(ann => ann.lexicalForm)).toEqual(output.en)
     expect(conceptEntity.getLabels('it').map(ann => ann.lexicalForm)).toEqual(output.it)
-    expect(conceptEntity.getLabels(UNDEFINED_LANGUAGE).map(ann => ann.lexicalForm)).toEqual(output['_'])
   })
 
   test('it should parse multiple descriptions for multiple languages', () => {
@@ -206,13 +213,13 @@ describe('Test retrieving annotations', () => {
   })
 
   test('it should not parse properties on Concepts', () => {
-    expect(conceptEntity.hasFunctionality(Functionalities.symmetric)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(Functionalities.asymmetric)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(Functionalities.reflexive)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(Functionalities.irreflexive)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(Functionalities.inverseFunctional)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(Functionalities.functional)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(Functionalities.transitive)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.symmetric)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.asymmetric)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.reflexive)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.irreflexive)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.functional)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.transitive)).toBeFalsy()
   })
 })
 
@@ -226,28 +233,28 @@ describe('Test parsing functionalities', () => {
   `)
 
   const retrievedInfosObjectProperty = parserV3.getFunctionalities(node_mock_input, xmlDoc)
-  const objPropertyEntity = new GrapholEntity(null, null)
+  const objPropertyEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode2', ontology.namespaces), GrapholTypesEnum.OBJECT_PROPERTY)
   objPropertyEntity.functionalities = retrievedInfosObjectProperty
 
   // For DataProperties and ObjectProperties
   test('it should parse missing properties as falsy value', () => {
-    expect(objPropertyEntity.hasFunctionality(Functionalities.functional)).toBeFalsy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.functional)).toBeFalsy()
   })
 
   test('it should parse properties on ObjectProperties correctly', () => {
-    expect(objPropertyEntity.hasFunctionality(Functionalities.symmetric)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.asymmetric)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.reflexive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.irreflexive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.reflexive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.transitive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.inverseFunctional)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(Functionalities.functional)).toBeFalsy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.symmetric)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.asymmetric)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.reflexive)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.irreflexive)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.reflexive)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.transitive)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.functional)).toBeFalsy()
   })
 })
 
 describe('Test Facet\'s displayed names', () => {
-  test('facet\'s label in the form [constraining-facet-iri^^"value"]', () => {
+  test('facet\'s label in the form [constraining-facet-iri\n\n"value"^^datatype]', () => {
     const node_mock_input = parseSingleNode(`
     <node id="n6" color="#000000" type="facet">
       <geometry y="146" width="130" height="0" x="429"/>
@@ -262,7 +269,7 @@ describe('Test Facet\'s displayed names', () => {
       </facet>
     </node>`)
 
-    const output = 'xsd:minInclusive^^"1"'
+    const output = 'xsd:minInclusive\n\n"1"^^xsd:integer'
 
     expect(parserV3.getFacetDisplayedName(node_mock_input, ontology)).toBe(output)
   })
@@ -303,7 +310,7 @@ describe('It should parse edges correctly', () => {
   })
 
   test('It should move endpoints on borders correctly', () => {
-    const grapholNode = new GrapholNode(null)
+    const grapholNode = new GrapholNode('0')
     grapholNode.position = { x: 1000, y: 1000 }
     const customEndpoint = { x: 1020, y: 1010 }
 
