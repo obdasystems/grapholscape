@@ -38,7 +38,7 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
   
   render() {
     return html`
-      <gscape-button @click="${this.togglePanel}" label="${this.diagrams[this.actualDiagramId]?.name || 'Select a diagram'}">
+      <gscape-button @click="${this.togglePanel}" label="${this.actualDiagram?.name || 'Select a diagram'}">
         ${getIconSlot('icon', diagramsIcon)}
         ${getIconSlot('trailing-icon', arrowDown)}
       </gscape-button>
@@ -77,6 +77,10 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
   private diagramSelectionHandler(e: Event) {
     const selectedDiagramId = parseInt((e.target as HTMLElement).getAttribute('diagram-id') || '')
     this.onDiagramSelection(selectedDiagramId)
+  }
+
+  private get actualDiagram() {
+    return this.diagrams.find(diagram => diagram.id === this.actualDiagramId)
   }
 }
 

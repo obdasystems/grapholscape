@@ -74,13 +74,11 @@ class Ontology extends AnnotatedElement {
   }
 
   /**
-   * @param {number} index the id of the diagram
-   * @returns {Diagram} The diagram object
+   * Get the diagram with the given id
    */
-  getDiagram(index: number): Diagram | undefined {
-    if (index < 0 || index > this.diagrams.length) return
-    if (this.diagrams[index])
-      return this.diagrams[index]
+  getDiagram(diagramId: number): Diagram | undefined {
+    if (diagramId < 0 || diagramId > this.diagrams.length) return
+    return this.diagrams.find(diagram => diagram.id === diagramId)
   }
 
   getDiagramByName(name: string): Diagram | undefined {
