@@ -46,20 +46,17 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     return result.sort((a, b) => a.value.iri.remainder.localeCompare(b.value.iri.remainder))
   }
 
-  /**
-   * 
-   * @param {string} searchValue
-   * @returns {string[]} array of IRI strings
-   */
   function search(searchValue: string) {
+    const searchWords = searchValue.split(' ')
 
     return entities.filter(entity => {
-      for (const word of searchValue.split(' ')) {
-        if (word.length <= 2) return false
-        return matchInIRI(entity.value.iri, word) ||
-          matchInAnnotations(entity.value.getAnnotations(), word)
+      let isAmatch = true
+      for (const word of searchWords) {
+        if (word.length <= 2) continue
+        isAmatch = isAmatch && (matchInIRI(entity.value.iri, word) ||
+          matchInAnnotations(entity.value.getAnnotations(), word))
       }
-      return false
+      return isAmatch
     })
 
 
