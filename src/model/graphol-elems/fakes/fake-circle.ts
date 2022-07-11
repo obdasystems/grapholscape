@@ -7,7 +7,22 @@ export default class FakeCircle extends FakeGrapholNode {
     super(originalNode)
     
     this.shape = Shape.ELLIPSE
-    this.fillColor = '#fff'
-    this.x = this.position.x + ((this.width - this.height) / 2)
+    this.width = this.height
+  }
+}
+
+export class FakeCircleRight extends FakeCircle {
+  constructor(originalNode: GrapholNode) {
+    super(originalNode)
+
+    this.x = originalNode.x + (originalNode.width / 2) - (this.width / 2)
+  }
+}
+
+export class FakeCircleLeft extends FakeCircle {
+  constructor(originalNode: GrapholNode) {
+    super(originalNode)
+
+    this.x = originalNode.x - (originalNode.width / 2) + (this.width / 2)
   }
 }

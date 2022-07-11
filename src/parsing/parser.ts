@@ -1,8 +1,8 @@
 import Ontology, { Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { FunctionalityEnum } from "../model/graphol-elems/entity"
-import FakeCircle from '../model/graphol-elems/fakes/fake-circle'
-import FakeRectangle from '../model/graphol-elems/fakes/fake-rectangle'
+import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'
+import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/fake-rectangle'
 import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
 import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
 import { LABEL_HEIGHT } from "../model/graphol-elems/node"
@@ -203,17 +203,18 @@ export default class GrapholParser {
     if (grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
       // Add fake nodes
       grapholNode.height -= 1
-      grapholNode.width = grapholNode.width - grapholNode.height
 
       grapholNode.addFakeNode(new FakeRectangle(grapholNode))
 
-      const fakeCircle1 = new FakeCircle(grapholNode)
+      const fakeCircle1 = new FakeCircleRight(grapholNode)
       // fakeCircle1.x = grapholNode.x - ((grapholNode.width - grapholNode.height) / 2)
       grapholNode.addFakeNode(fakeCircle1)
 
-      const fakeCircle2 = new FakeCircle(grapholNode)
+      const fakeCircle2 = new FakeCircleLeft(grapholNode)
       // fakeCircle2.x = grapholNode.x + ((grapholNode.width - grapholNode.height) / 2)
       grapholNode.addFakeNode(fakeCircle2)
+
+      grapholNode.addFakeNode(new FakeRectangleFront(grapholNode))
     }
 
     // if (ParserUtil.isPredicate(element))

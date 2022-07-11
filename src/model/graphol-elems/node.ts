@@ -148,9 +148,6 @@ export default class GrapholNode extends GrapholElement {
     })
 
     thisCytoscapeRepr[0].classes = this.type.toString()
-    if (this.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
-      thisCytoscapeRepr[0].classes += ' no_border'
-    }
 
     if (this.fakeNodes) {
       this.fakeNodes.forEach(fakeNode => {

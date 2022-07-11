@@ -215,6 +215,14 @@ export default function(theme: GrapholscapeTheme) {
     },
 
     {
+      selector: `[type = "${GrapholTypesEnum.PROPERTY_ASSERTION}"][!fake]`,
+      style: {
+        'background-opacity': 0,
+        'border-width': 0,
+      }
+    },
+
+    {
       selector: '.hidden',
       style: {
         'visibility': 'hidden'
