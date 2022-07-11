@@ -17,6 +17,8 @@ class Ontology extends AnnotatedElement {
   languages: {
     list: any[]; default: string
   }
+  iri?: string
+
   private _entities: Map<string, GrapholEntity> = new Map()
 
   /**
@@ -25,7 +27,7 @@ class Ontology extends AnnotatedElement {
    * @param {Namespace[]} namespaces
    * @param {Diagram[]} diagrams
    */
-  constructor(name: string, version: string, namespaces: Namespace[] = [], diagrams: Diagram[] = []) {
+  constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], diagrams: Diagram[] = []) {
     super()
     /** @type {string} */
     this.name = name
@@ -36,6 +38,7 @@ class Ontology extends AnnotatedElement {
     /** @type {Diagram[]} */
     this.diagrams = diagrams
 
+    this.iri = iri
 
     this.languages = {
       /** @type {import('../grapholscape').Language[]}*/

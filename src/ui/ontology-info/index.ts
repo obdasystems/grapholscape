@@ -1,4 +1,4 @@
-import GscapeOntologyInfo from "./ontology-info"
+import GscapeOntologyInfo, { OntologyViewModel } from "./ontology-info"
 import Ontology, { Annotation } from "../../model"
 import { WidgetEnum } from "../util/widget-enum"
 
@@ -14,10 +14,10 @@ export default function initOntologyInfo(grapholscape) {
 }
 
 function ontologyModelToViewData(ontologyModelData: Ontology) {
-  let ontologyViewData = {
+  let ontologyViewData: OntologyViewModel = {
     name: ontologyModelData.name,
     typeOrVersion: ontologyModelData.version,
-    iri: '', // TODO: Evaluate if to parse ontology iri
+    iri: ontologyModelData.iri || '',
     namespaces: ontologyModelData.namespaces,
     annotations: ontologyModelData.annotations,
   }

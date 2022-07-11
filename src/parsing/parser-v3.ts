@@ -20,8 +20,10 @@ export function getOntologyInfo(xmlDocument: XMLDocument) {
     ontology.languages.list = [...ontology_languages].map(lang => lang.textContent) || []
 
   ontology.languages.default = getTag(xmlDocument, 'ontology')?.getAttribute('lang') || ontology.languages.list[0]
-  if (iri)
+  if (iri) {
+    ontology.iri = iri
     ontology.annotations = getIriAnnotations(iri, xmlDocument)
+  }
   return ontology
 }
 
