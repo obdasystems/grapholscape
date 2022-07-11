@@ -7,6 +7,7 @@ export class FakeTopRhomboid extends FakeGrapholNode {
   constructor(originalNode: GrapholNode) {
     super(originalNode)
     this.shapePoints = '-0.9 -1 1 -1 0.95 0 -0.95 0'
+    this.fillColor = '#dedede'
   }
 
   getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[] {

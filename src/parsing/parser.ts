@@ -136,7 +136,7 @@ export default class GrapholParser {
           }
 
           // for domain/range restrictions, cardinalities
-          if (Graphol3.getTagText(nodes[k], 'label')) {
+          if (node.type === GrapholTypesEnum.DOMAIN_RESTRICTION || node.type === GrapholTypesEnum.RANGE_RESTRICTION) {
             node.displayedName = Graphol3.getTagText(nodes[k], 'label') || ''
           }
         }
@@ -193,8 +193,8 @@ export default class GrapholParser {
       grapholNode.fillColor = '#ffffff'
 
       // Add fake nodes
-      grapholNode.displayedName = grapholNode.displayedName.replace('^^', '\n\n')
-      grapholNode.labelYpos = grapholNode.height
+      //grapholNode.displayedName = grapholNode.displayedName.replace('^^', '\n\n')
+      grapholNode.labelYpos = 1
 
       grapholNode.addFakeNode(new FakeTopRhomboid(grapholNode))
       grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode))

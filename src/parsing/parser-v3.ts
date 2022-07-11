@@ -74,13 +74,19 @@ export function getFacetDisplayedName(element: Element, ontology: Ontology) {
       //let constraining_facet = ontology.destructureIri(getTagText(element, 'constrainingFacet'))
       //constraining_facet = constraining_facet.prefix + ':' + constraining_facet.remainingChars
 
-      let value = getTagText(element, 'lexicalForm')
+      const lexicalForm = getTagText(element, 'lexicalForm')
+      const datatype = getTagText(element, 'datatype')
+      if (datatype) {
+        const datatypeIri = new Iri(datatype, ontology.namespaces)
+
+        return `${facetIri.prefixed}\n\n"${lexicalForm}"^^${datatypeIri.prefixed}`
+      }
 
       // unused to be compliant to Graphol-V2
       //let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
       //datatype = datatype.prefix + ':' + datatype.rem_chars
 
-      return `${facetIri.prefixed}^^"${value}"`
+      
     }
   }
 }
