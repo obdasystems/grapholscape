@@ -2,7 +2,10 @@ import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
 import { GrapholscapeConfig } from './config/config'
-import initGrapholscape from './init'
+import { loadConfig } from './config/config-manager'
+import Grapholscape from './core/grapholscape'
+import Ontology from './model'
+import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 
 cytoscape.use(popper)
@@ -30,12 +33,61 @@ cytoscape.use(cola)
  * @tutorial Themes
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
+  const grapholscape = await getGrapholscape(file, container, config)
+  if (grapholscape)
+    UI.initUI(grapholscape)
+  return grapholscape
+}
+
+export function grapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
+  return getGrapholscape(file, container, config)
+}
+
+async function getGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   if (!file || !container) {
     console.error('Please specify an ontology and a container for Grapholscape')
     return undefined
   }
-  
-  const grapholscape = await initGrapholscape(file, container, config)
-  UI.initUI(grapholscape)
-  return grapholscape
+
+  const savedConfig = loadConfig()
+  // copy savedConfig over config
+  config = Object.assign(config, savedConfig)
+  return new Promise<Grapholscape>((resolve, reject) => {
+    let ontology: Ontology
+
+    if (typeof (file) === 'object') {
+      let reader = new FileReader()
+
+      reader.onloadend = () => {
+        try {
+          ontology = getResult(reader.result)
+          init()
+        } catch (error) { reject(error) }
+      }
+
+      reader.readAsText(file)
+
+      setTimeout(() => {
+        reject('Error: timeout expired')
+      }, 10000)
+
+    } else if (typeof (file) === 'string') {
+      ontology = getResult(file)
+      init()
+    } else {
+      reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
+    }
+
+    function init() {
+      try {
+        const gscape = new Grapholscape(ontology, container, config)
+        globalThis['gscape'] = gscape // TODO: Remove global reference before release
+        resolve(gscape)
+      } catch (e) { console.error(e) }
+    }
+  })
+
+  function getResult(file) {
+    return new GrapholParser(file).parseGraphol()
+  }
 }
