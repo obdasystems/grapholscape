@@ -1,5 +1,5 @@
-import { Stylesheet } from "cytoscape";
-import { ColoursNames, GrapholscapeTheme, GrapholTypesEnum, Shape } from "../../../model";
+import { NodeSingular, Stylesheet } from "cytoscape";
+import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, GrapholTypesEnum, Shape } from "../../../model";
 
 export default function(theme: GrapholscapeTheme) {
   return [
@@ -8,7 +8,7 @@ export default function(theme: GrapholscapeTheme) {
       style: {
         'height': 'data(height)',
         'width': 'data(width)',
-        'background-color': theme.getColour(ColoursNames.bg_node_light),
+        'background-color': (node) => getColor(node, ColoursNames.bg_node_light),
         'shape': 'data(shape)',
         'border-width': 1,
         'border-color': theme.getColour(ColoursNames.border_node),
@@ -201,9 +201,16 @@ export default function(theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `.${GrapholTypesEnum.FACET}`,
+      selector: `[type = "${GrapholTypesEnum.FACET}"][!fake], .fake-bottom-rhomboid`,
       style: {
         'background-opacity': 0
+      }
+    },
+
+    {
+      selector: `.fake-top-rhomboid`,
+      style: {
+        'background-color': node => getColor(node, ColoursNames.bg_inset),
       }
     },
 
@@ -232,7 +239,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
       style: {
-        'background-color': theme.getColour(ColoursNames.class),
+        'background-color': node => getColor(node, ColoursNames.class) ,
         'border-color': theme.getColour(ColoursNames.class_contrast),
       }
     },
@@ -240,7 +247,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"], .fake-triangle`,
       style: {
-        'background-color': theme.getColour(ColoursNames.object_property),
+        'background-color': node => getColor(node, ColoursNames.object_property),
         'border-color': theme.getColour(ColoursNames.object_property_contrast),
       }
     },
@@ -248,7 +255,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
       style: {
-        'background-color': theme.getColour(ColoursNames.data_property),
+        'background-color': node => getColor(node, ColoursNames.data_property),
         'border-color': theme.getColour(ColoursNames.data_property_contrast),
       }
     },
@@ -264,7 +271,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
       style: {
-        'background-color': theme.getColour(ColoursNames.individual),
+        'background-color': node => getColor(node, ColoursNames.individual),
         'border-color': theme.getColour(ColoursNames.individual_contrast),
       }
     },
@@ -301,4 +308,15 @@ export default function(theme: GrapholscapeTheme) {
       }
     },
   ] as Stylesheet[]
+
+  function getColor(node: NodeSingular, colour: ColoursNames): string {
+    // take color from parsed XML source file
+    if (theme.id === DefaultThemesEnum.GRAPHOL) {
+      return node.data().fillColor
+    }
+
+    else {
+      return theme.getColour(colour) || node.data().fillColor
+    }
+  }
 }
