@@ -205,11 +205,12 @@ export default class Renderer {
     if (cyElement.empty()) {
       console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
     } else {
-      this.cy.animate({
+      this.cy?.animate({
         center: {
           eles: cyElement
         },
         zoom: zoom,
+        queue: false,
       })
       if (select && this.cy.$(':selected') !== cyElement) {
         this.unselect()
@@ -250,6 +251,7 @@ export default class Renderer {
     if (zoomValue != this.cy?.zoom())
       this.cy?.animate({
         zoom: zoomValue,
+        queue: false
       })
   }
 
@@ -258,7 +260,8 @@ export default class Renderer {
       zoom: {
         level: this.cy.zoom() + zoomValue,
         renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
-      }
+      },
+      queue: false,
     })
   }
 
@@ -267,7 +270,8 @@ export default class Renderer {
       zoom: {
         level: this.cy.zoom() - zoomValue,
         renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
-      }
+      },
+      queue: false,
     })
   }
 
