@@ -258,7 +258,7 @@ export default class Renderer {
   zoomIn = (zoomValue: number) => {
     this.cy?.animate({
       zoom: {
-        level: this.cy.zoom() + zoomValue,
+        level: this.cy.zoom() + zoomValue * this.cy.zoom(),
         renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
       },
       queue: false,
@@ -268,7 +268,7 @@ export default class Renderer {
   zoomOut = (zoomValue: number) => {
     this.cy?.animate({
       zoom: {
-        level: this.cy.zoom() - zoomValue,
+        level: this.cy.zoom() - zoomValue * this.cy.zoom(),
         renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
       },
       queue: false,
