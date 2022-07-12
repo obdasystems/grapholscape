@@ -1,4 +1,3 @@
-import { cyToGrapholElem } from "../../util/model-obj-transformations"
 import Grapholscape from "../../core/grapholscape"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { CollectionReturnValue } from "cytoscape"

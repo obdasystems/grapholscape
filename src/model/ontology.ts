@@ -107,7 +107,7 @@ class Ontology extends AnnotatedElement {
   }
 
   getGrapholElement(elementId: string, diagramId?: number, renderState = RendererStatesEnum.GRAPHOL) {
-    if (diagramId)
+    if (diagramId || diagramId === 0)
       return this.getDiagram(diagramId)?.representations.get(renderState)?.grapholElements.get(elementId)
 
     for (let diagram of this.diagrams) {
