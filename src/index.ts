@@ -81,7 +81,6 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
     function init() {
       try {
         const gscape = new Grapholscape(ontology, container, config)
-        globalThis['gscape'] = gscape // TODO: Remove global reference before release
         resolve(gscape)
       } catch (e) { console.error(e) }
     }
