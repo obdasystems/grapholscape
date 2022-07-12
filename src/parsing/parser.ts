@@ -155,6 +155,7 @@ export default class GrapholParser {
     }
 
     this.getIdentityForNeutralNodes()
+    this.ontology.computeDatatypesOnDataProperties()
     return this.ontology
   }
 

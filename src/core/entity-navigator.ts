@@ -2,8 +2,8 @@ import { LifecycleEvent } from "../model/lifecycle"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
 import { isGrapholNode } from "../model/graphol-elems/node"
 import Grapholscape from "./grapholscape"
-import { Diagram, DiagramRepresentation, RendererStatesEnum } from "../model"
-import { EntityOccurrence } from "../model/graphol-elems/entity"
+import { Diagram, DiagramRepresentation, GrapholTypesEnum, RendererStatesEnum } from "../model"
+import GrapholEntity, { EntityOccurrence } from "../model/graphol-elems/entity"
 
 export default class EntityNavigator {
   private _grapholscape: Grapholscape

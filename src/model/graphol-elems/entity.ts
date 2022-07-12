@@ -22,6 +22,7 @@ export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
   private _occurrences: Map<RendererStatesEnum, EntityOccurrence[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
   private _type: GrapholTypesEnum
+  private _datatype: string
   private _functionalities: FunctionalityEnum[] = []
 
   constructor(iri: Iri, type: GrapholTypesEnum) {
@@ -96,6 +97,9 @@ export default class GrapholEntity extends AnnotatedElement {
   public set functionalities(functionalities) {
     this._functionalities = functionalities
   }
+
+  public get datatype() { return this._datatype }
+  public set datatype(datatype) { this._datatype = datatype }
 
   public hasFunctionality(functionalityKind: FunctionalityEnum) {
     return this._functionalities?.includes(functionalityKind) || false

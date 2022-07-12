@@ -48,13 +48,20 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       }
 
       .chip {
-        display: inline-block;
+        display: inline;
         border: 1px solid var(--gscape-color-accent);
         color: var(--gscape-color-accent);
         border-radius: 16px;
-        padding: 0px 6px;
+        padding: 2px 6px;
         background: var(--gscape-color-accent-subtle);
         margin: 1px 2px;
+      }
+
+      .datatype-chip {
+        color: inherit;
+        background-color: var(--gscape-color-neutral-muted);
+        border-color: var(--gscape-color-border-subtle);
+        padding-top: 1px;
       }
 
       [diagram-id] > gscape-button {
@@ -104,6 +111,15 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       <div class="gscape-panel ellipsed" id="drop-panel">
         ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
 
+        ${this.grapholEntity.datatype
+          ? html`
+            <div style="text-align: center" class="chips-wrapper section">
+              <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
+            </div>
+          `
+          : null
+        }
+
         ${this.grapholEntity.functionalities.length > 0
           ? html`
               <div class="chips-wrapper section">
@@ -120,29 +136,29 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         ${this.occurrencesTemplate()}
 
         ${this.grapholEntity.getComments().length > 0
-        ? html`
-            <div class="section">
-              <div>
-                <span id="description-header" class="bold-text section-header">Description</span>
-                <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
-                  ${this.commentsLanguages.map(language => {
-                    return html`
-                      <option value="${language}" ?selected=${this.language === language}>
-                        @${language}
-                      </option>
-                    `
-                  })}
-                </select>
+          ? html`
+              <div class="section">
+                <div>
+                  <span id="description-header" class="bold-text section-header">Description</span>
+                  <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
+                    ${this.commentsLanguages.map(language => {
+                      return html`
+                        <option value="${language}" ?selected=${this.language === language}>
+                          @${language}
+                        </option>
+                      `
+                    })}
+                  </select>
+                </div>
+                <div class="section-body">
+                  ${this.grapholEntity.getComments(this.language).map(comment =>
+                    html`<span class="comment">${comment.lexicalForm}</span>`
+                  )}
+                </div>
               </div>
-              <div class="section-body">
-                ${this.grapholEntity.getComments(this.language).map(comment =>
-                  html`<span class="comment">${comment.lexicalForm}</span>`
-                )}
-              </div>
-            </div>
-          `
-        : null
-      }
+            `
+          : null
+        }
       </div>
       <div class="top-bar">
         <gscape-button 

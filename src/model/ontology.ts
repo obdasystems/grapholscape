@@ -1,7 +1,10 @@
+import { CollectionReturnValue } from 'cytoscape'
 import AnnotatedElement from './annotated-element'
 import Diagram from './diagrams/diagram'
+import DiagramRepresentation from './diagrams/diagram-representation'
 import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
 import GrapholNode from './graphol-elems/node'
+import { GrapholTypesEnum } from './graphol-elems/node-enums'
 import Iri from './iri'
 import Namespace from './namespace'
 import { RendererStatesEnum } from './renderers/i-render-state'
@@ -93,12 +96,12 @@ class Ontology extends AnnotatedElement {
   }
 
   getEntity(iri: string) {
-    for(let entity of this.entities.values()) {
+    for (let entity of this.entities.values()) {
       if (entity.iri.equals(iri)) {
         return entity
       }
     }
-    
+
     console.warn(`Can't find any entity with iri = "${iri}"`)
     return null
   }
@@ -107,7 +110,7 @@ class Ontology extends AnnotatedElement {
     if (diagramId)
       return this.getDiagram(diagramId)?.representations.get(renderState)?.grapholElements.get(elementId)
 
-    for(let diagram of this.diagrams) {
+    for (let diagram of this.diagrams) {
       const elem = diagram.representations.get(renderState)?.grapholElements.get(elementId)
       if (elem) return elem
     }
@@ -117,7 +120,7 @@ class Ontology extends AnnotatedElement {
     try {
       const node = this.getGrapholElement(nodeId, diagramId, renderState) as GrapholNode
       return node
-    } catch(e) {
+    } catch (e) {
       console.error(e)
     }
   }
@@ -126,7 +129,7 @@ class Ontology extends AnnotatedElement {
     try {
       const edge = this.getGrapholElement(edgeId, diagramId, renderState) as GrapholNode
       return edge
-    } catch(e) {
+    } catch (e) {
       console.error(e)
     }
   }
@@ -161,7 +164,7 @@ class Ontology extends AnnotatedElement {
    */
   getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> | undefined {
     // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
-    return diagramId || diagramId === 0 
+    return diagramId || diagramId === 0
       ? this.getEntity(iri)?.getOccurrencesByDiagramId(diagramId, renderState)
       : this.getEntity(iri)?.occurrences
   }
@@ -220,7 +223,7 @@ class Ontology extends AnnotatedElement {
    * @param {string} prefixedIri a prefixed IRI
    * @returns {string} full IRI
    */
-  prefixedToFullIri(prefixedIri: string): string | undefined{
+  prefixedToFullIri(prefixedIri: string): string | undefined {
     if (!prefixedIri || typeof (prefixedIri) !== 'string') return
     for (let namespace of this.namespaces) {
       let prefix = namespace.prefixes.find(p => prefixedIri.includes(p + ':'))
@@ -231,6 +234,42 @@ class Ontology extends AnnotatedElement {
         return prefixedIri.replace(':', namespace.toString())
       }
     }
+  }
+
+  computeDatatypesOnDataProperties(): void {
+    let cyElement: CollectionReturnValue | undefined, 
+      representation: DiagramRepresentation | undefined,
+      datatypeNode: CollectionReturnValue,
+      datatype: string,
+      occurrences: EntityOccurrence[] | undefined
+
+    this.entities.forEach((dataPropertyEntity, _) => {
+      if (dataPropertyEntity.is(GrapholTypesEnum.DATA_PROPERTY)) {
+        occurrences = dataPropertyEntity.occurrences.get(RendererStatesEnum.GRAPHOL)
+        if (!occurrences)
+          return
+
+        // retrieve datatype for dataproperties
+        occurrences.forEach(occurrence => {
+          representation = this.getDiagram(occurrence.diagramId)
+            ?.representations.get(RendererStatesEnum.GRAPHOL)
+            
+          cyElement = representation?.cy.$id(occurrence.elementId)
+
+          if (cyElement && cyElement.nonempty()) {
+            datatypeNode = cyElement
+              .neighborhood(`node[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`)
+              .neighborhood(`node[type = "${GrapholTypesEnum.VALUE_DOMAIN}"]`)
+
+            if (datatypeNode.nonempty()) {
+              datatype = datatypeNode.first().data('displayedName')
+              dataPropertyEntity.datatype = datatype
+              representation?.updateElement(occurrence.elementId)
+            }
+          }
+        })
+      }
+    })
   }
 
   get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0) }
