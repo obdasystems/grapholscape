@@ -136,7 +136,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
        */
       if (this.isRestriction(edgeOnRestrictionSourceNode) && this.isRestriction(edgeOnRestrictionTargetNode)) {
         this.newCy.remove(`#${edgeOnRestriction.id}`)
-        this.result.grapholElements.delete(edgeOnRestrictionSourceNode.id)
+        this.result.grapholElements.delete(edgeOnRestriction.id)
         return
       }
 
@@ -195,7 +195,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           transformIntoRoleEdge(grapholEdgeToRestriction, inputGrapholEdge, grapholRestrictionNode)
         })
 
-      restriction.addClass('filtered')
+      cytoscapeFilter(restriction.id(), '', this.newCy)
       this.deleteFilteredElements()
     })
 
@@ -237,7 +237,6 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       if (this.isComplexHierarchy(node)) {
         this.replicateAttributes(node)
         cytoscapeFilter(node.id(), '', this.newCy)
-        this.deleteFilteredElements()
       }
     })
 
@@ -313,9 +312,11 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           }
 
           const edgeBetweenAttributes = attribute.edgesTo(inclusion_attribute)[0]
-          addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, edgeBetweenAttributes.data().type, i)
-          inclusion_attribute.addClass('repositioned')
-          allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute)
+          if (edgeBetweenAttributes) {
+            addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, edgeBetweenAttributes.data().type, i)
+            inclusion_attribute.addClass('repositioned')
+            allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute)
+          }
         })
       }
     }
@@ -422,13 +423,20 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       // remove the intersection
       const incomingInclusions = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION))
       const connectedEquivalences = and.connectedEdges().filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.EQUIVALENCE))
-      if (incomingInclusions.empty() && connectedEquivalences.empty()) {
+      const incomingUnionEdges = and.incomers('edge').filter(edge => {
+        const grapholEdge = this.getGrapholElement(edge.id())
+        return grapholEdge.is(GrapholTypesEnum.UNION) || grapholEdge.is(GrapholTypesEnum.DISJOINT_UNION)
+      })
+
+      const edgesToBeReplicated = incomingInclusions.union(connectedEquivalences).union(incomingUnionEdges)
+
+      if (edgesToBeReplicated.empty()) {
         cytoscapeFilter(grapholAndNode.id, '', this.newCy)
       } else {
         const incomingInputs = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
         // process incoming inclusion && connected equivalences
-        incomingInclusions.union(connectedEquivalences).forEach(inEquivInclusion => {
-          const inEqOrInclusionGrapholEdge = this.getGrapholElement(inEquivInclusion.id()) as GrapholEdge
+        edgesToBeReplicated.forEach(edge => {
+          const edgeToBeReplicated = this.getGrapholElement(edge.id()) as GrapholEdge
           /**
            * create a new ISA edge for each input class
            * the new edge will be a concatenation:
@@ -444,28 +452,31 @@ export default class LiteTransformer extends BaseGrapholTransformer {
              * incoming edge in any case and ignore the opposite direction.
              * so if the edge is outgoing from the intersection, we reverse it
              */
-            if (inEqOrInclusionGrapholEdge.is(GrapholTypesEnum.EQUIVALENCE) &&
-              inEqOrInclusionGrapholEdge.sourceId === grapholAndNode.id) {
-              this.reverseEdge(inEqOrInclusionGrapholEdge)
+            if (edgeToBeReplicated.is(GrapholTypesEnum.EQUIVALENCE) &&
+              edgeToBeReplicated.sourceId === grapholAndNode.id) {
+              this.reverseEdge(edgeToBeReplicated)
             }
 
             // Edge concatenation: isa/equilvance + reversed input
             const grapholInputEdge = this.getGrapholElement(input.id()) as GrapholEdge
             this.reverseEdge(grapholInputEdge)
 
-            grapholInputEdge.sourceId = inEqOrInclusionGrapholEdge.sourceId
-            grapholInputEdge.controlpoints.unshift(...inEqOrInclusionGrapholEdge.controlpoints)
+            grapholInputEdge.sourceId = edgeToBeReplicated.sourceId
+            grapholInputEdge.controlpoints.unshift(...edgeToBeReplicated.controlpoints)
 
             const source = this.getGrapholElement(grapholInputEdge.sourceId) as GrapholNode
             const target = this.getGrapholElement(grapholInputEdge.targetId) as GrapholNode
             grapholInputEdge.computeBreakpointsDistancesWeights(source.position, target.position)
-            grapholInputEdge.type = GrapholTypesEnum.INCLUSION
+            grapholInputEdge.targetLabel = edgeToBeReplicated.targetLabel
+            grapholInputEdge.type = edgeToBeReplicated.type
+            this.result.updateElement(grapholInputEdge)
           })
         })
 
         cytoscapeFilter(grapholAndNode.id, '', this.newCy)
       }
       this.deleteFilteredElements()
+      this.deleteElements(edgesToBeReplicated)
     })
   }
 
@@ -474,28 +485,39 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     const restrictionEdges = constructorNode.connectedEdges().filter(edge => this.isRestriction(this.getGrapholElement(edge.id())))
     const inputEdges = constructorNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
 
-    restrictionEdges.forEach(restrictionEdge => {
+    restrictionEdges.forEach((restrictionEdge, i) => {
       const grapholRestrictionEdge = this.getGrapholElement(restrictionEdge.id()) as GrapholEdge
 
       inputEdges.forEach((inputEdge) => {
         const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
-
+        if (!grapholInputEdge) return
+        const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`)
         /**
          * if the connected non input edge is only one (the one we are processing)
          * then the new edge will be the concatenation of the input edge + role edge
          */
-        if (constructorNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT)).size() === 1) {
-          grapholInputEdge.controlpoints = grapholInputEdge.controlpoints.concat(grapholRestrictionEdge.controlpoints)
+        if (i === 0) {
+          newRestrictionEdge.controlpoints = grapholInputEdge.controlpoints.concat(grapholRestrictionEdge.controlpoints)
         } else {
-          grapholInputEdge.controlpoints = grapholRestrictionEdge.controlpoints
+          newRestrictionEdge.controlpoints = [...grapholRestrictionEdge.controlpoints]
         }
 
-        grapholInputEdge.type = grapholRestrictionEdge.type
-        grapholInputEdge.targetId = grapholRestrictionEdge.targetId
-        const sourceNode = this.getGrapholElement(grapholInputEdge.sourceId) as GrapholNode
-        const targetNode = this.getGrapholElement(grapholInputEdge.targetId) as GrapholNode
-        grapholInputEdge.computeBreakpointsDistancesWeights(sourceNode.position, targetNode.position)
-        this.result.updateElement(grapholInputEdge)
+        newRestrictionEdge.type = grapholRestrictionEdge.type
+        newRestrictionEdge.sourceId = grapholInputEdge.sourceId
+
+        newRestrictionEdge.sourceEndpoint = grapholInputEdge.sourceEndpoint
+          ? { x: grapholInputEdge.sourceEndpoint.x, y: grapholInputEdge.sourceEndpoint.y }
+          : undefined
+
+        newRestrictionEdge.targetEndpoint = grapholRestrictionEdge.targetEndpoint
+          ? { x: grapholRestrictionEdge.targetEndpoint.x, y: grapholRestrictionEdge.targetEndpoint.y }
+          : undefined
+
+        newRestrictionEdge.targetId = grapholRestrictionEdge.targetId
+        const sourceNode = this.getGrapholElement(newRestrictionEdge.sourceId) as GrapholNode
+        const targetNode = this.getGrapholElement(newRestrictionEdge.targetId) as GrapholNode
+        newRestrictionEdge.computeBreakpointsDistancesWeights(sourceNode.position, targetNode.position)
+        this.result.addElement(newRestrictionEdge)
       })
 
       this.deleteElement(restrictionEdge)
