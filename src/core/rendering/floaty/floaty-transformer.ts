@@ -74,14 +74,14 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
   }
 
   private connectDomainsRanges(domains: NodeCollection, ranges: NodeCollection, objectProperty: NodeSingular) {
-    let grapholDomainNode: GrapholNode, grapholRangeNode: GrapholNode
-    let newId = `e-${objectProperty.id()}`
-    domains.forEach(domain => {
+    let grapholDomainNode: GrapholNode, grapholRangeNode: GrapholNode, newId: string
+
+    domains.forEach((domain) => {
       grapholDomainNode = this.getGrapholElement(domain.id()) as GrapholNode
       ranges.forEach((range, i) => {
         grapholRangeNode = this.getGrapholElement(range.id()) as GrapholNode
 
-        if (i > 0) newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`
+        newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`
         let newGrapholEdge = new GrapholEdge(newId)
         newGrapholEdge.sourceId = grapholDomainNode.id
         newGrapholEdge.targetId = grapholRangeNode.id
@@ -130,7 +130,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     fathers.forEach(father => {
       const newDomains = this.getDomainsOfObjectProperty(father)
       if (newDomains)
-      fathersDomains = fathersDomains.union(newDomains)
+        fathersDomains = fathersDomains.union(newDomains)
     })
 
     return domains.union(fathersDomains)
