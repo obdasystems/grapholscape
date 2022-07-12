@@ -1,6 +1,6 @@
 import Grapholscape from "../../core/grapholscape"
 import { enterFullscreen, exitFullscreen } from "../assets/icons"
-import GscapeButton from '../common/button/'
+import { GscapeButton } from '../common/button/'
 import getIconSlot from "../util/get-icon-slot"
 import { WidgetEnum } from "../util/widget-enum"
 

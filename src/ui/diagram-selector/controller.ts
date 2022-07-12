@@ -1,6 +1,5 @@
 import Grapholscape from '../../core/grapholscape'
 import { LifecycleEvent } from '../../model'
-import { diagramModelToViewData } from '../../util/model-obj-transformations'
 import GscapeDiagramSelector from './diagram-selector'
 /**
  * 
