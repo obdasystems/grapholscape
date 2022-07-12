@@ -3,6 +3,10 @@ import { GrapholTypesEnum } from '../../model'
 
 export function cytoscapeFilter(elementId: string, filterTag: string, cy: cytoscape.Core) {
   const element = cy.$id(elementId)
+
+  if (element.hasClass('filtered'))
+    return
+
   const classesToAdd = ['filtered', filterTag]
   element.addClass(classesToAdd.join(' '))
   // Filter fake nodes!
@@ -53,6 +57,9 @@ export function cytoscapeFilter(elementId: string, filterTag: string, cy: cytosc
 
 export function cytoscapeUnfilter(elementId: string, filterTag: string, cy: cytoscape.Core) {
   const classToRemove = ['filtered', filterTag]
-  cy.$id(elementId).removeClass(classToRemove.join(' '))
-  cy.$(`.${filterTag}`).removeClass(classToRemove.join(' '))
+  const element = cy.$id(elementId)
+  if (element.hasClass('filtered') && element.hasClass(filterTag)) {
+    cy.$id(elementId).removeClass(classToRemove.join(' '))
+    cy.$(`.${filterTag}`).removeClass(classToRemove.join(' '))
+  }
 }
