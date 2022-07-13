@@ -44,7 +44,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
 
   const savedConfig = loadConfig()
   // copy savedConfig over config
-  config = Object.assign(config, savedConfig)
+  config = Object.assign(config || { }, savedConfig)
   return new Promise<Grapholscape>((resolve, reject) => {
     let ontology: Ontology
 
