@@ -1,9 +1,9 @@
-import { LifecycleEvent } from "../model/lifecycle"
+import { Diagram, RendererStatesEnum } from "../model"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
+import { EntityOccurrence } from "../model/graphol-elems/entity"
 import { isGrapholNode } from "../model/graphol-elems/node"
+import { LifecycleEvent } from "../model/lifecycle"
 import Grapholscape from "./grapholscape"
-import { Diagram, DiagramRepresentation, GrapholTypesEnum, RendererStatesEnum } from "../model"
-import GrapholEntity, { EntityOccurrence } from "../model/graphol-elems/entity"
 
 export default class EntityNavigator {
   private _grapholscape: Grapholscape
@@ -22,12 +22,21 @@ export default class EntityNavigator {
   }
 
   private _centerSelectEntity(iri: string, diagramId?: number, select = false, zoom?: number) {
-    diagramId = diagramId || this._grapholscape.diagramId
-    if (diagramId) {
+    if (diagramId || diagramId === 0) {
       const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagramId)
 
       if (entityOccurrence) {
         this._performCenterSelect(entityOccurrence, select, zoom)
+      }
+    }
+    else {
+      for (let diagram of this._grapholscape.ontology.diagrams) {
+        const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagram.id)
+
+        if (entityOccurrence) {
+          this._performCenterSelect(entityOccurrence, select, zoom)
+          break
+        }
       }
     }
   }

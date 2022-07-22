@@ -1,7 +1,6 @@
 import { GrapholscapeConfig, WidgetsConfig } from "../config/config"
 import * as Exporter from '../exporter'
 import Ontology, { ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum } from "../model"
-import { IBaseMixin } from "../ui/common/base-widget-mixin"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
