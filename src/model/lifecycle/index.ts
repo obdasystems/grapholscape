@@ -24,7 +24,7 @@ export enum LifecycleEvent {
   EntityWikiLinkClick = 'entityWikiLinkClick',
 }
 
-interface IonEvent {
+export interface IonEvent {
   (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void
   (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void
   (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void

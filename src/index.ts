@@ -12,7 +12,9 @@ cytoscape.use(popper)
 cytoscape.use(cola)
 
 export * from './model'
+export * from './config/config'
 export * as ui from './ui'
+export { default as Grapholscape } from './core/grapholscape'
 
 /**
  * Create a bare instance of Grapholscape, only diagrams, no UI

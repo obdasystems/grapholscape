@@ -14,6 +14,7 @@ export { default as Filter } from './renderers/filter'
 export * from './renderers/filter'
 export { default as GrapholElement } from './graphol-elems/graphol-element'
 export { default as GrapholEntity } from './graphol-elems/entity'
+export * from './graphol-elems/entity'
 export { default as GrapholNode } from './graphol-elems/node'
 export { default as GrapholEdge } from './graphol-elems/edge'
 

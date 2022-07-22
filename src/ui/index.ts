@@ -2,7 +2,10 @@
 export * from "./common/button"
 export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
 export * from "./common/list-item"
+export { BaseMixin } from './common/base-widget-mixin'
+export { DropPanelMixin } from './common/drop-panel-mixin'
 export { default as baseStyle } from "./style"
+export { WidgetEnum } from "./util/widget-enum"
 //export { default as GscapeDialog } from "./common/dialog"
 // export * from "./diagram-selector"
 // export * from "./entity-details"
