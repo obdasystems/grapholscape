@@ -15,6 +15,7 @@ export default class ThemeManager {
     const newTheme = this.themes.find(t => t.id === newThemeId)
 
     if (newTheme) {
+      this.setMissingColours(newTheme)
       this.theme = newTheme
 
       Object.entries(newTheme.colours).forEach(([colourName, colour]) => {
@@ -29,16 +30,19 @@ export default class ThemeManager {
   }
 
   addTheme = (newTheme: GrapholscapeTheme) => {
-    // Set default theme colours for missing colours
-    Object.entries(gscapeColourMap).forEach(([colourName, colourValue]) => {
-      const _colourName = colourName as ColoursNames
-      if (!newTheme.getColour(_colourName))
-        newTheme.setColour(_colourName, colourValue)
-    })
     this.themes.push(newTheme)
   }
 
   removeThemes() {
     this.themes = []
+  }
+
+  private setMissingColours(theme: GrapholscapeTheme) {
+    // Set default theme colours for missing colours
+    Object.entries(gscapeColourMap).forEach(([colourName, colourValue]) => {
+      const _colourName = colourName as ColoursNames
+      if (!theme.getColour(_colourName))
+        theme.setColour(_colourName, colourValue)
+    })
   }
 }
