@@ -8,6 +8,7 @@ export declare class IBaseMixin {
   enable(): () => void
   disable(): () => void
   onStateChange: () => void
+  isVisible: boolean
   enabled: boolean
 }
 
@@ -44,6 +45,8 @@ export const BaseMixin = <T extends Constructor<LitElement>>(superClass: T) => {
       this.enabled = false
       this.onStateChange()
     }
+
+    get isVisible() { return this.enabled && this.style.display !== 'none' }
   }
 
   // Cast return type to your mixin's interface intersected with the superClass type

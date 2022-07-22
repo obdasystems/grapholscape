@@ -42,7 +42,7 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
       return this.panel?.classList.contains('hide')
     }
 
-    onTogglePanel: () => {}
+    onTogglePanel = () => {}
   }
 
   // Cast return type to your mixin's interface intersected with the superClass type
