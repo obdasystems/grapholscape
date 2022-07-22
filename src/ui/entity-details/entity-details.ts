@@ -47,16 +47,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         padding: 8px;
       }
 
-      .chip {
-        display: inline;
-        border: 1px solid var(--gscape-color-accent);
-        color: var(--gscape-color-accent);
-        border-radius: 16px;
-        padding: 2px 6px;
-        background: var(--gscape-color-accent-subtle);
-        margin: 1px 2px;
-      }
-
       .datatype-chip {
         color: inherit;
         background-color: var(--gscape-color-neutral-muted);
@@ -80,14 +70,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       .comment {
         margin: 8px 0;
         display: block;
-      }
-
-      .section-body {
-        padding: 0px 8px;
-      }
-
-      .section-header {
-        margin-bottom: 4px;
       }
 
       .top-bar {

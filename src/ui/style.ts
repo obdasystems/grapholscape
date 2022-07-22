@@ -200,4 +200,22 @@ input {
   cursor: pointer;
   color: var(--gscape-color-accent);
 }
+
+.section-body {
+  padding: 0px 8px;
+}
+
+.section-header {
+  margin-bottom: 4px;
+}
+
+.chip {
+  display: inline;
+  border: 1px solid var(--gscape-color-accent);
+  color: var(--gscape-color-accent);
+  border-radius: 16px;
+  padding: 2px 6px;
+  background: var(--gscape-color-accent-subtle);
+  margin: 1px 2px;
+}
 `
