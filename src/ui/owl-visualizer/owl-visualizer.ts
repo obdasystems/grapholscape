@@ -79,7 +79,7 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
         line-height: 1;
       }
 
-      .translated-down {
+      .traslated-down {
         position: absolute;
         right: 0;
       }
@@ -90,7 +90,7 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
   render() {
     if (!this.owlText) return
     return html`
-      <div class="top-bar ${this.isPanelClosed() ? null : 'translated-down' }">
+      <div class="top-bar ${this.isPanelClosed() ? null : 'traslated-down' }">
         <gscape-button 
           id="toggle-panel-button"
           size="${this.isPanelClosed() ? 'm' : 's'}" 
