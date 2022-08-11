@@ -13,9 +13,11 @@ export default class GscapeToggle extends LitElement {
   label: string
   labelPosition = ToggleLabelPosition.RIGHT
 
+  static ToggleLabelPosition = ToggleLabelPosition
+
   static get properties() {
     return {
-      disabled: {type: Boolean},
+      disabled: {type: Boolean, reflect: true },
       label: {type: String, reflect: true },
       labelPosition: { type: String, reflect: true, attribute: 'label-position' },
       key : {type: String, reflect: true },
