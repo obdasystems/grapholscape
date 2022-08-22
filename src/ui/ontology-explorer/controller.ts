@@ -1,6 +1,7 @@
 import Grapholscape from "../../core/grapholscape";
 import { Annotation, GrapholEntity, Iri, LifecycleEvent } from "../../model";
 import getEntityViewOccurrences from "../util/get-entity-view-occurrences";
+import GscapeEntitySearch, { IEntityFilters } from "./entity-search-component";
 import GscapeExplorer, { EntityViewData } from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
@@ -15,21 +16,27 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     grapholscape.selectElement(entityOccurrence.elementId)
   }
 
-  ontologyExplorerComponent.search = e => {
+  ontologyExplorerComponent.searchEntityComponent.onSearch(e => {
+    const inputElement = e.target as HTMLInputElement
+
     // on ESC key press
-    if (e.keyCode == 27) {
-      e.target.blur()
-      e.target.value = null
+    if (e.key === 'Escape') {
+      inputElement.blur();
+      inputElement.value = null
       ontologyExplorerComponent.entities = entities
       return
     }
 
-    if (e.target.value?.length > 2) {
-      ontologyExplorerComponent.entities = search(e.target.value)
+    if (inputElement.value?.length > 2) {
+      ontologyExplorerComponent.entities = search(inputElement.value)
     } else {
       ontologyExplorerComponent.entities = entities
     }
-  }
+  })
+
+  ontologyExplorerComponent.searchEntityComponent.onEntityFilterToggle(() => {
+    entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape.ontology.entities)
+  })
 
   grapholscape.on(LifecycleEvent.RendererChange, () => {
     entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape.ontology.entities)
@@ -38,10 +45,14 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
 
   function createEntitiesList(entities: Map<string, GrapholEntity>) {
     const result: EntityViewData[] = []
-    entities.forEach(entity => result.push({
-      value: entity,
-      viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
-    }))
+    entities.forEach(entity => {
+      if (ontologyExplorerComponent.searchEntityComponent[entity.type] === true) {
+        result.push({
+          value: entity,
+          viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
+        })
+      }
+    })
 
     return result.sort((a, b) => a.value.iri.remainder.localeCompare(b.value.iri.remainder))
   }

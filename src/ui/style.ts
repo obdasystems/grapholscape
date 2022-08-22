@@ -117,7 +117,6 @@ export default css`
   display:flex;
   flex-direction: column;
   align-items: center;
-  max-width: 230px;
   padding: 12px;
   text-align: center;
 }
@@ -210,7 +209,7 @@ input {
 }
 
 .chip {
-  display: inline;
+  display: inline-flex;
   border: 1px solid var(--gscape-color-accent);
   color: var(--gscape-color-accent);
   border-radius: 16px;

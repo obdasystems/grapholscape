@@ -2,7 +2,7 @@ import { css, html, LitElement } from 'lit'
 import { EntityNameType } from '../../config/config'
 import { GrapholscapeTheme } from '../../model'
 import capitalizeFirstChar from '../../util/capitalize-first-char'
-import { grapholscape as logo } from '../assets/gscape-logo'
+import { grapholscapeLogo } from '../assets'
 import { save, settings_icon } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { GscapeButtonStyle } from '../common/button'
@@ -212,7 +212,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
         <div class="area">
           <div class="bold-text">About</div>
           <div id="logo">
-            ${logo}
+            ${grapholscapeLogo}
           </div>
 
           <div id="version" class="muted-text">

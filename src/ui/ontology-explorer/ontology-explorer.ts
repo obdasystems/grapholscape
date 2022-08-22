@@ -7,6 +7,7 @@ import { DropPanelMixin } from '../common/drop-panel-mixin'
 import BaseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 import entityListItemStyle from './entity-list-item-style'
+import GscapeEntitySearch from './entity-search-component'
 
 
 export type EntityViewData = {
@@ -17,8 +18,10 @@ export type EntityViewData = {
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
   entities: EntityViewData[]
+  searchEntityComponent = new GscapeEntitySearch()
 
-  search: (e:any) => void = () => { }
+  // search: (e:any) => void = () => { }
+  // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
 
   static properties = {
@@ -48,7 +51,6 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
       }
 
       .blank-slate {
-        width: 200px;
         white-space: normal;
         transform: translateY(40%);
       }
@@ -68,9 +70,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
     <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
       <div class="header">${this.title}</div>
 
-      <div class="filter-box">
-        <input @keyup=${this.search} type="text" placeholder="Search IRI, labels..."></input>
-      </div>
+      ${this.searchEntityComponent}
 
       <div class="content-wrapper">
 

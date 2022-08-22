@@ -19,5 +19,7 @@ export { WidgetEnum } from "./util/widget-enum"
 // export * from "./settings"
 // export * from "./zoom-tools"
 // export * from "./fit-button"
-export * as icons from "./assets/icons"
+export { entityListItemStyle } from './ontology-explorer'
+export { default as GscapeEntitySearch } from './ontology-explorer/entity-search-component'
+export * as icons from "./assets"
 export { default as initUI } from "./init"

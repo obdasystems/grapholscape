@@ -13,3 +13,5 @@ export default function initOntologyExplorer(grapholscape: Grapholscape) {
   init(ontologyExplorerComponent, grapholscape)
   grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent)
 }
+
+export { default as entityListItemStyle } from './entity-list-item-style'
