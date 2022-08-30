@@ -4,6 +4,10 @@ const animationDuration = css`200ms`
 
 
 export default css`
+*, :host {
+  line-height: initial;
+}
+
 .gscape-panel {
   font-size: 12px;
   background-color: var(--gscape-color-bg-default);
@@ -43,7 +47,7 @@ export default css`
   position: relative;
 }
 
-.slotted-icon {
+.slotted-icon, [slot = "icon"], [slot = "trailing-icon"] {
   line-height: 0;
 }
 
