@@ -35,6 +35,19 @@ export default css`
   z-index: 1;
 }
 
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+::-webkit-scrollbar:hover {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gscape-color-fg-muted);
+  -webkit-border-radius: 1ex;
+}
+
 .gscape-panel-in-tray {
   position: absolute;
   right: 100%;
