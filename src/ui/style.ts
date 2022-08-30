@@ -1,11 +1,21 @@
 import { css } from "lit"
 
 const animationDuration = css`200ms`
-
+export const BOTTOM_RIGHT_WIDGET = css`bottom-right-widget`
 
 export default css`
 *, :host {
   line-height: initial;
+}
+
+:host(.${BOTTOM_RIGHT_WIDGET}) {
+  border-radius: var(--gscape-border-radius-btn);
+  border: 1px solid var(--gscape-color-border-subtle);
+  background-color: var(--gscape-color-bg-default);
+}
+
+:host(.${BOTTOM_RIGHT_WIDGET}:hover) {
+  border-color: var(--gscape-color-border-default);
 }
 
 .gscape-panel {

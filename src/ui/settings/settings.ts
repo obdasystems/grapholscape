@@ -7,7 +7,7 @@ import { save, settings_icon } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { GscapeButtonStyle } from '../common/button'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
-import baseStyle from '../style'
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { WidgetEnum } from '../util/widget-enum'
 
 type OptionEntry = {
@@ -123,20 +123,12 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
 
   constructor() {
     super()
-    // this.settings = settings
-    // this.btn = new GscapeButton(settings_icon, 'Settings')
-    // this.btn.onClick = this.toggleBody.bind(this)
-    // this.callbacks = {}
-
-    // this.savePNGButton = new GscapeButton(save, 'Save')
-    // this.savePNGButton.label = 'PNG'
-    // this.saveSVGButton = new GscapeButton(save, 'Save')
-    // this.saveSVGButton.label = 'SVG'
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
   }
 
   render() {
     return html`
-      <gscape-button @click=${this.togglePanel}>
+      <gscape-button type="subtle" @click=${this.togglePanel}>
         <span slot="icon">${settings_icon}</span>
       </gscape-button>
 

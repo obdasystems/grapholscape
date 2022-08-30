@@ -2,7 +2,7 @@ import { html, css, LitElement } from 'lit'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { info_outline } from '../assets/icons'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
-import baseStyle from '../style'
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { Annotation, Namespace } from '../../model'
 import { BaseMixin } from '../common/base-widget-mixin'
 
@@ -62,9 +62,14 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
     `,
   ]
 
+  constructor() {
+    super()
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
+  }
+
   render() {
     return html`
-      <gscape-button @click="${this.togglePanel}">
+      <gscape-button type="subtle" @click="${this.togglePanel}">
         <span slot="icon">${info_outline}</span>
       </gscape-button>  
 

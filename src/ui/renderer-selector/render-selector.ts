@@ -2,7 +2,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit
 import { RendererStatesEnum } from '../../model'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
-import baseStyle from '../style'
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { RendererStateViewModel } from './controller'
 import { GscapeLayoutSettings } from './floaty-layout-settings'
 
@@ -24,21 +24,19 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
       :host {
         order: 7;
         margin-top:10px;
-        border-radius: var(--gscape-border-radius-btn);
-        border: 1px solid var(--gscape-color-border-subtle);
-        background-color: var(--gscape-color-bg-default);
       }
 
       .gscape-panel-in-tray {
         top:10px;
         bottom: initial;
       }
-
-      :host(:hover) {
-        border-color: var(--gscape-color-border-default);
-      }
     `
   ]
+
+  constructor() {
+    super()
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
+  }
 
   render() {
     return html`

@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { minus, plus } from '../assets/icons'
-import baseStyle from '../style'
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 
 export default class GscapeZoomTools extends LitElement {
   private _onZoomIn: () => void
@@ -14,20 +14,13 @@ export default class GscapeZoomTools extends LitElement {
         margin-top:10px;
         position: initial;
         z-index: 10;
-        border-radius: var(--gscape-border-radius-btn);
-        border: 1px solid var(--gscape-color-border-subtle);
-        background-color: var(--gscape-color-bg-default);
-      }
-
-      :host(:hover) {
-        border-color: var(--gscape-color-border-default);
       }
     `
   ]
 
   constructor() {
     super()
-    this.classList.add('btn')
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
   }
 
   render() {

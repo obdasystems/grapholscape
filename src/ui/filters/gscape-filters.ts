@@ -5,7 +5,7 @@ import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import '../common/toggle/gscape-toggle'
 import GscapeToggle from '../common/toggle/gscape-toggle'
-import baseStyle from '../style'
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import getIconSlot from '../util/get-icon-slot'
 
 export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement)) {
@@ -51,9 +51,14 @@ export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement))
     `,
   ]
 
+  constructor() {
+    super()
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
+  }
+
   render() {
     return html`
-      <gscape-button @click=${this.togglePanel}>
+      <gscape-button type="subtle" @click=${this.togglePanel}>
         ${getIconSlot('icon', filterIcon)}
       </gscape-button>
 

@@ -5,6 +5,7 @@ export * from "./common/list-item"
 export { BaseMixin } from './common/base-widget-mixin'
 export { DropPanelMixin } from './common/drop-panel-mixin'
 export { default as baseStyle } from "./style"
+export { BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS } from './style'
 export { WidgetEnum } from "./util/widget-enum"
 //export { default as GscapeDialog } from "./common/dialog"
 // export * from "./diagram-selector"

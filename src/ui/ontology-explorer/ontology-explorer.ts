@@ -4,7 +4,7 @@ import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { entityIcons, explore, searchOff } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
-import BaseStyle from '../style'
+import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 import entityListItemStyle from './entity-list-item-style'
 import GscapeEntitySearch from './entity-search-component'
@@ -61,9 +61,14 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
     `
   ]
 
+  constructor() {
+    super()
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
+  }
+
   render() {
     return html`
-    <gscape-button @click=${this.togglePanel}>
+    <gscape-button type="subtle" @click=${this.togglePanel}>
       <span slot="icon">${explore}</span>
     </gscape-button>
 
