@@ -8,6 +8,7 @@ import license from 'rollup-plugin-license'
 import path from 'path'
 import json from '@rollup/plugin-json'
 import typescript from '@rollup/plugin-typescript'
+import dts from 'rollup-plugin-dts'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
@@ -58,6 +59,11 @@ const getBabelOptions = () => ({
   ]
 })
 
+const typescriptOptions = {
+  "allowSyntheticDefaultImports": true,
+  "target": "ES6",
+}
+
 const licenseHeaderOptions = {
   sourcemap: true,
   banner: {
@@ -89,10 +95,7 @@ const configs = [
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
-      typescript({
-        allowSyntheticDefaultImports: true,
-        target: 'es6'
-      }),
+      typescript(typescriptOptions),
     ]
   },
   { // production transpiled, minified
@@ -127,6 +130,7 @@ const configs = [
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
+      typescript(typescriptOptions),
       babel(getBabelOptions()),
       sizeSnapshot(),
       terser(),
@@ -144,12 +148,19 @@ const configs = [
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
+      typescript(typescriptOptions),
       license(licenseHeaderOptions)
     ],
     external: dependencies
   }
 ]
 
+const typesRollup = {
+  input: "temp/types/src/index.d.ts",
+  output: [{ file: "dist/index.d.ts", format: "es" }],
+  plugins: [dts()],
+}
+
 // splice(1) removes everything starting at index 1 and returns what he removed
 export default NODE_ENV === 'production'
-  ? configs.splice(1) : configs[0]
+  ? [...configs.splice(1), typesRollup ] : configs[0]
