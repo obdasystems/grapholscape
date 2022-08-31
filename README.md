@@ -25,20 +25,20 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.
 
 ## Usage | [Demo](https://obdasystems.github.io/grapholscape/demo/)
-You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or just clone the repository, `build` and open `./demo/index.html`, then select an example or drop your custom .graphol file in the box on the right side.
+You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [build it locally](#build-it-locally), then select an example or drop your custom .graphol file in the box on the right side.
 
 ### Embed in your project
 
 #### HTML Environment
 If you are using a HTML Environment (without a build system) you can:
 
-- link `grapholscape.min.js` in a `<script>` tag:
+- Download Grapholscape from [dist](https://github.com/obdasystems/grapholscape/tree/master/dist) folder and link for example `grapholscape.min.js` in a `<script>` tag:
 
   ```html
-  <script src="https://obdasystems.github.io/grapholscape/dist/grapholscape.min.js" type="text/javascript" ></script>
+  <script src="./grapholscape.min.js" type="text/javascript" ></script>
   ```
 
-- import Grapholscape as an ES6 module:
+- Use the `.esm.min` version to import Grapholscape as an ES6 module:
 
   ```html
   <script type="module">
@@ -91,7 +91,6 @@ Build in dev/debug mode:
 ```cmd
 npm run start
 ```
-And open `doc/static/demo/index.html`.
 
 ### Build Instructions
 Install `npm` and `Node.js` and run `npm install` before using `npm run`.

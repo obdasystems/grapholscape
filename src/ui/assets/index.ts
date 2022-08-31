@@ -1,0 +1,6 @@
+export * from './icons'
+export { default as classIcon } from './class-icon'
+export { default as objectPropertyIcon } from './object-property-icon'
+export { default as dataPropertyIcon } from './data-property-icon'
+export { default as individualIcon } from './individual-icon'
+export { default as grapholscapeLogo } from './gscape-logo'

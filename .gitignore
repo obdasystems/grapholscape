@@ -8,3 +8,4 @@ coverage/**
 app/graphol/grapholscape.js
 doc/static/demo/js/grapholscape.js
 doc/output/**
+temp/**

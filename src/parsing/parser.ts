@@ -1,0 +1,415 @@
+import { Ontology, Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum } from "../model"
+import Breakpoint from "../model/graphol-elems/breakpoint"
+import { FunctionalityEnum } from "../model/graphol-elems/entity"
+import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'
+import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/fake-rectangle'
+import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
+import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
+import { LABEL_HEIGHT } from "../model/graphol-elems/node"
+import * as Graphol2 from './parser-v2'
+import * as Graphol3 from './parser-v3'
+import * as ParserUtil from './parser_util'
+
+interface Graphol {
+  getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
+  getNamespaces: (xmlDocument: XMLDocument) => Namespace[]
+  getIri: (element: HTMLElement, ontology: Ontology) => Iri | undefined
+  getFacetDisplayedName: (element: Element, ontology: Ontology) => string | undefined
+  getFunctionalities: (element: Element, xmlDocument: XMLDocument) => FunctionalityEnum[]
+  getEntityAnnotations: (element: Element, xmlDocument: XMLDocument) => Annotation[]
+
+}
+
+export default class GrapholParser {
+  xmlDocument: XMLDocument
+  graphol_ver: any
+  graphol: Graphol
+  ontology: Ontology
+  warnings: any[]
+
+  constructor(xmlString) {
+    this.xmlDocument = (xmlString instanceof XMLDocument) ? xmlString : new DOMParser().parseFromString(xmlString, 'text/xml')
+
+    this.graphol_ver = this.xmlDocument.getElementsByTagName('graphol')[0].getAttribute('version') || -1
+
+    if (this.graphol_ver == 2 || this.graphol_ver == -1)
+      this.graphol = Graphol2
+    else if (this.graphol_ver == 3)
+      this.graphol = Graphol3
+    else
+      throw new Error(`Graphol version [${this.graphol_ver}] not supported`)
+  }
+
+  parseGraphol() {
+    this.ontology = this.graphol.getOntologyInfo(this.xmlDocument)
+    this.ontology.namespaces = this.graphol.getNamespaces(this.xmlDocument)
+
+    let i, k, nodes, edges, cnt, array_json_elems
+    let diagrams = this.xmlDocument.getElementsByTagName('diagram')
+    for (i = 0; i < diagrams.length; i++) {
+      const diagram = new Diagram(diagrams[i].getAttribute('name') || '', i)
+      this.ontology.addDiagram(diagram)
+
+      array_json_elems = []
+      nodes = diagrams[i].getElementsByTagName('node')
+      edges = diagrams[i].getElementsByTagName('edge')
+      cnt = 0
+      // Create JSON for each node to be added to the collection
+      for (k = 0; k < nodes.length; k++) {
+        const nodeXmlElement = nodes[k]
+        const grapholNodeType = this.getGrapholNodeType(nodeXmlElement)
+        const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i)
+        let grapholEntity: GrapholEntity | undefined
+
+        if (node.isEntity()) {
+          const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
+          if (iri) {
+            grapholEntity = this.ontology.entities.get(iri.fullIri)
+
+            if (!grapholEntity) {
+              grapholEntity = new GrapholEntity(iri, grapholNodeType.TYPE)
+              this.ontology.addEntity(grapholEntity)
+            }
+
+            grapholEntity.addOccurrence(node.id, diagram.id)
+            grapholEntity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+            grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
+
+            // APPLY DISPLAYED NAME FROM LABELS
+            if (grapholEntity.getLabels().length > 0) {
+              // try to apply default language label as displayed name
+              const labelInDefaultLanguage = grapholEntity.getLabels(this.ontology.languages.default)[0]
+              if (labelInDefaultLanguage) {
+                node.displayedName = labelInDefaultLanguage.lexicalForm
+              } else {
+                // otherwise pick the first language available
+                for (let lang of this.ontology.languages.list) {
+                  const labels = grapholEntity.getLabels(lang)
+                  if (labels?.length > 0) {
+                    node.displayedName = labels[0].lexicalForm
+                    break
+                  }
+                }
+              }
+
+              // if still failing, pick the first label you find
+              if (!node.displayedName) {
+                node.displayedName = grapholEntity.getLabels()[0].lexicalForm
+              }
+
+            } else {
+              // if no labels defined, apply remainingChars from iri as displayed name
+              node.displayedName = grapholEntity.iri.remainder
+            }
+
+            // Add fake nodes
+            if (node.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
+              grapholEntity.hasFunctionality(FunctionalityEnum.functional) &&
+              grapholEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)) {
+              node.addFakeNode(new FakeTriangleRight(node))
+              node.addFakeNode(new FakeTriangleLeft(node))
+              node.height -= 8
+              node.width -= 10
+            }
+          }
+        } else {
+          // not an entity, take label from <label> tag or use those for constructor nodes          
+          switch (node.type) {
+            case GrapholTypesEnum.FACET:
+              node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology) || ''
+              break
+
+            case GrapholTypesEnum.VALUE_DOMAIN:
+              const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
+              node.displayedName = iri?.prefixed || ''
+              break
+
+            default:
+              const labelKey = Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === node.type)
+              if (labelKey) {
+                const constructorLabel = ConstructorLabelsEnum[labelKey]
+                if (constructorLabel) {
+                  node.displayedName = constructorLabel
+                }
+              }
+              break
+          }
+
+          // for domain/range restrictions, cardinalities
+          if (node.type === GrapholTypesEnum.DOMAIN_RESTRICTION || node.type === GrapholTypesEnum.RANGE_RESTRICTION) {
+            node.displayedName = Graphol3.getTagText(nodes[k], 'label') || ''
+          }
+        }
+
+        diagram.addElement(node, grapholEntity)
+      }
+
+      for (k = 0; k < edges.length; k++) {
+        const edgeXmlElement = edges[k]
+        diagram.addElement(this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id))
+      }
+    }
+
+    if (i == 0) {
+      throw new Error("The selected .graphol file has no defined diagram")
+    }
+
+    this.getIdentityForNeutralNodes()
+    this.ontology.computeDatatypesOnDataProperties()
+    return this.ontology
+  }
+
+  getBasicGrapholNodeFromXML(element: Element, diagramId: number) {
+    const nodeInfoBasedOnType = this.getGrapholNodeType(element)
+    let grapholNode = new GrapholNode(element.getAttribute('id') || '')
+
+    grapholNode.type = nodeInfoBasedOnType.TYPE
+    grapholNode.shape = nodeInfoBasedOnType.SHAPE
+    grapholNode.identity = nodeInfoBasedOnType.IDENTITY
+    grapholNode.fillColor = element.getAttribute('color') || ''
+
+    // Parsing the <geometry> child node of node
+    var geometry = element.getElementsByTagName('geometry')[0]
+    grapholNode.width = parseInt(geometry.getAttribute('width') || '')
+    grapholNode.height = parseInt(geometry.getAttribute('height') || '')
+    grapholNode.x = parseInt(geometry.getAttribute('x') || '')
+    grapholNode.y = parseInt(geometry.getAttribute('y') || '')
+
+    if (grapholNode.is(GrapholTypesEnum.ROLE_CHAIN) || grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
+      if (element.getAttribute('inputs') !== '')
+        grapholNode.inputs = element.getAttribute('inputs')?.split(',')
+    }
+
+    let label = element.getElementsByTagName('label')[0]
+    // apply label position and font size
+    if (label != null) {
+      grapholNode.labelHeight = parseInt(label.getAttribute('height') || '12')
+      grapholNode.setLabelXposFromXML(parseInt(label.getAttribute('x') || '12'))
+      grapholNode.setLabelYposFromXML(parseInt(label.getAttribute('y') || '12'))
+      grapholNode.fontSize = parseInt(label.getAttribute('size') || '12')
+    }
+
+    if (grapholNode.is(GrapholTypesEnum.FACET)) {
+      grapholNode.shapePoints = GrapholNodesEnum.FACET.SHAPE_POINTS
+      grapholNode.fillColor = '#ffffff'
+
+      // Add fake nodes
+      //grapholNode.displayedName = grapholNode.displayedName.replace('^^', '\n\n')
+      grapholNode.labelYpos = 1
+
+      grapholNode.addFakeNode(new FakeTopRhomboid(grapholNode))
+      grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode))
+    }
+
+    if (grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
+      // Add fake nodes
+      grapholNode.height -= 1
+
+      grapholNode.addFakeNode(new FakeRectangle(grapholNode))
+
+      const fakeCircle1 = new FakeCircleRight(grapholNode)
+      // fakeCircle1.x = grapholNode.x - ((grapholNode.width - grapholNode.height) / 2)
+      grapholNode.addFakeNode(fakeCircle1)
+
+      const fakeCircle2 = new FakeCircleLeft(grapholNode)
+      // fakeCircle2.x = grapholNode.x + ((grapholNode.width - grapholNode.height) / 2)
+      grapholNode.addFakeNode(fakeCircle2)
+
+      grapholNode.addFakeNode(new FakeRectangleFront(grapholNode))
+    }
+
+    // if (ParserUtil.isPredicate(element))
+    //   nodo.classes += ' predicate'
+    return grapholNode
+  }
+
+  getGrapholEdgeFromXML(edgeXmlElement: Element, diagramId: number) {
+    const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id') || '')
+
+    const sourceId = edgeXmlElement.getAttribute('source')
+    if (sourceId)
+      grapholEdge.sourceId = sourceId
+
+    const targetId = edgeXmlElement.getAttribute('target')
+    if (targetId)
+      grapholEdge.targetId = targetId
+
+    const typeKey = Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === edgeXmlElement.getAttribute('type'))
+    if (typeKey)
+      grapholEdge.type = GrapholTypesEnum[typeKey]
+
+
+    // Prendiamo i nodi source e target
+    var sourceGrapholNode = this.ontology.getGrapholNode(grapholEdge.sourceId, diagramId)
+    var targetGrapholNode = this.ontology.getGrapholNode(grapholEdge.targetId, diagramId)
+    if (sourceGrapholNode && targetGrapholNode) {
+      // Impostiamo le label numeriche per gli archi che entrano nei role-chain
+      // I role-chain hanno un campo <input> con una lista di id di archi all'interno
+      // che sono gli archi che entrano, l'ordine nella sequenza stabilisce la label
+      // numerica che deve avere l'arco
+      // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
+      // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
+      // la target_label in base alla posizione nella sequenza
+      if (targetGrapholNode.is(GrapholTypesEnum.ROLE_CHAIN) || targetGrapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
+
+        if (targetGrapholNode?.inputs) {
+          for (let k = 0; k < targetGrapholNode.inputs.length; k++) {
+            if (targetGrapholNode.inputs[k] === grapholEdge.id) {
+              grapholEdge.targetLabel = (k + 1).toString()
+              break
+            }
+          }
+        }
+      }
+
+
+      // info = <POINT>
+      // Processiamo i breakpoints dell'arco
+      // NOTA: ogni arco ha sempre almeno 2 breakpoints, cioè gli endpoints
+      let point = ParserUtil.getFirstChild(edgeXmlElement)
+      // let breakpoints = []
+      // let segment_weights = []
+      // let segment_distances = []
+      let count = 0
+      for (let j = 0; j < edgeXmlElement.childNodes.length; j++) {
+        // Ignoriamo spazi vuoti, e altri figli di tipo diverso da 1
+        if (edgeXmlElement.childNodes[j].nodeType != 1) { continue }
+
+        const breakpoint = new Breakpoint(parseInt(point.getAttribute('x')), parseInt(point.getAttribute('y')))
+        //breakpoints[count].push(parseInt(point.getAttribute('x')))
+        //breakpoints[count].push(parseInt(point.getAttribute('y')))
+        if (ParserUtil.getNextSibling(point) != null) {
+          point = ParserUtil.getNextSibling(point)
+          // Se il breakpoint in questione non è il primo
+          // e non è l'ultimo, visto che ha un fratello,
+          // allora calcoliamo peso e distanza per questo breakpoint
+          // [Il primo e l'ultimo breakpoint sono gli endpoint e non hanno peso e distanza]
+          if (count > 0) {
+            breakpoint.setSourceTarget(sourceGrapholNode.position, targetGrapholNode.position)
+            // var aux = ParserUtil.getDistanceWeight(targetGrapholNode.position, sourceGrapholNode.position, breakpoints[count])
+            // segment_distances.push(aux[0])
+            // segment_weights.push(aux[1])
+
+          }
+          count++
+        }
+
+        grapholEdge.addBreakPoint(breakpoint)
+      }
+      
+      // Calcoliamo gli endpoints sul source e sul target
+      // Se non sono centrati sul nodo vanno spostati sul bordo del nodo
+      grapholEdge.sourceEndpoint = ParserUtil.getNewEndpoint(
+        grapholEdge.controlpoints[0], // first breakpoint is the one on source
+        sourceGrapholNode,
+        grapholEdge.controlpoints[1]
+      )
+
+      // Facciamo la stessa cosa per il target
+      grapholEdge.targetEndpoint = ParserUtil.getNewEndpoint(
+        grapholEdge.controlpoints[grapholEdge.controlpoints.length - 1], // last endpoint is the one on target
+        targetGrapholNode,
+        grapholEdge.controlpoints[grapholEdge.controlpoints.length - 2]
+      )
+
+      // If we have no control-points and only one endpoint, we need an intermediate breakpoint
+      // why? see: https://github.com/obdasystems/grapholscape/issues/47#issuecomment-987175639
+      let breakpoint: Breakpoint | undefined
+      if (grapholEdge.controlpoints.length === 2) { // 2 breakpoints means only endpoints
+        if ((grapholEdge.sourceEndpoint && !grapholEdge.targetEndpoint)) {
+          /**
+           * we have custom endpoint only on source, get a middle breakpoint 
+           * between the custom endpoint on source (breakpoints[0]) and target position
+           * (we don't have endpoint on target)
+           * 
+           * NOTE: don't use source_endpoint because it contains relative coordinate 
+           * with respect source node position. We need absolute coordinates which are
+           * the ones parsed from .graphol file
+           */
+          breakpoint = ParserUtil.getPointOnEdge(grapholEdge.controlpoints[0], targetGrapholNode.position)
+        }
+
+        if (!grapholEdge.sourceEndpoint && grapholEdge.targetEndpoint) {
+          // same as above but with endpoint on target, which is the last breakpoints (1 since they are just 2)
+          breakpoint = ParserUtil.getPointOnEdge(sourceGrapholNode.position, grapholEdge.controlpoints[1])
+        }
+
+        if (breakpoint) {
+          // now if we have the breakpoint we need, let's get distance and weight for cytoscape
+          // just like any other breakpoint
+          breakpoint.setSourceTarget(sourceGrapholNode.position, targetGrapholNode.position)
+          // insert new breakpoint between the the other two we already have
+          grapholEdge.controlpoints.splice(1, 0, breakpoint)
+        }
+      }
+    
+    }
+    return grapholEdge
+  }
+
+  getIdentityForNeutralNodes() {
+    this.ontology.diagrams.forEach(diagram => {
+      const cy = diagram.representations.get(RendererStatesEnum.GRAPHOL)?.cy
+      cy?.nodes('[identity = "neutral"]').forEach(node => {
+        const newIdentity = findIdentity(node)
+        node.data('identity', newIdentity)
+        const grapholNode = this.ontology.getGrapholNode(node.id(), diagram.id)
+        if (grapholNode)
+          grapholNode.identity = newIdentity
+      })
+    })
+
+    // Recursively traverse first input node and return his identity
+    // if he is neutral => recursive step
+    function findIdentity(node) {
+      var first_input_node = node.incomers('[type = "input"]').sources()
+      var identity = first_input_node.data('identity')
+      if (identity === GrapholTypesEnum.NEUTRAL) { return findIdentity(first_input_node) } else {
+        switch (node.data('type')) {
+          case GrapholTypesEnum.RANGE_RESTRICTION:
+            if (identity === GrapholTypesEnum.OBJECT_PROPERTY) {
+              return GrapholTypesEnum.CLASS
+            } else if (identity === GrapholTypesEnum.DATA_PROPERTY) {
+              return GrapholTypesEnum.VALUE_DOMAIN
+            } else {
+              return identity
+            }
+          case GrapholTypesEnum.ENUMERATION:
+            if (identity === GrapholTypesEnum.INDIVIDUAL) { return GrapholNodesEnum.CLASS.TYPE } else { return identity }
+          default:
+            return identity
+        }
+      }
+    }
+  }
+
+
+  getGrapholNodeType(element: Element) {
+    let elementTypeFromXmL = element.getAttribute('type')
+    if (!elementTypeFromXmL) return
+
+    switch (elementTypeFromXmL) {
+      case 'concept':
+        elementTypeFromXmL = 'class'
+        break
+
+      case 'role':
+        elementTypeFromXmL = 'object-property'
+        break
+
+      case 'attribute':
+        elementTypeFromXmL = 'data-property'
+        break
+    }
+
+
+    let nodeTypeKey = Object.keys(GrapholNodesEnum).find(k => GrapholNodesEnum[k].TYPE === elementTypeFromXmL)
+    if (!nodeTypeKey) return
+
+    return GrapholNodesEnum[nodeTypeKey]
+  }
+
+  getCorrectLabelYpos(labelYpos: number, positionY: number, height: number) {
+    return (labelYpos - positionY) + (height + 2) / 2 + LABEL_HEIGHT / 4
+  }
+}
