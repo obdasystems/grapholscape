@@ -12,14 +12,7 @@ export default class EntityNavigator {
     this._grapholscape = grapholscape
   }
 
-  /**
-   * awdaw
-   * @param iri aa
-   * @param diagramId awda
-   * @param zoom awdawd
-   * @group API
-   */
-  centerOnEntity(iri: string, diagramId?: number, zoom?: number) {
+  centerOnEntity = (iri: string, diagramId?: number, zoom?: number) => {
     this._centerSelectEntity(iri, diagramId, false, zoom)
   }
 
