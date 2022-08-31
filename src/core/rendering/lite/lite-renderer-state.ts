@@ -1,6 +1,6 @@
 import { CytoscapeOptions } from "cytoscape";
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config";
-import Ontology, { iFilterManager, BaseRenderer, RendererStatesEnum, GrapholscapeTheme } from "../../../model";
+import { Ontology, iFilterManager, BaseRenderer, RendererStatesEnum, GrapholscapeTheme } from "../../../model";
 import LiteFilterManager from "./filter-manager";
 import liteStyle from "./lite-style";
 import LiteTransformer from "./lite-transformer";

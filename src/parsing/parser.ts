@@ -1,4 +1,4 @@
-import Ontology, { Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum } from "../model"
+import { Ontology, Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { FunctionalityEnum } from "../model/graphol-elems/entity"
 import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'

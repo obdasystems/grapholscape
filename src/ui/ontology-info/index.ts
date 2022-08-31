@@ -1,5 +1,5 @@
 import GscapeOntologyInfo, { OntologyViewModel } from "./ontology-info"
-import Ontology, { Annotation } from "../../model"
+import { Ontology } from "../../model"
 import { WidgetEnum } from "../util/widget-enum"
 
 export { GscapeOntologyInfo }

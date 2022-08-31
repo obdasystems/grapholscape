@@ -1,6 +1,6 @@
 import { Stylesheet } from "cytoscape"
 import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config"
-import Ontology, { BaseRenderer, iFilterManager, RendererStatesEnum, GrapholscapeTheme } from "../../../model"
+import { Ontology, BaseRenderer, iFilterManager, RendererStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
 import grapholStyle from "./graphol-style"
 

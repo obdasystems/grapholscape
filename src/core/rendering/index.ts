@@ -187,6 +187,8 @@ export default class Renderer {
 
   /**
    * Fit viewport to diagram
+   * 
+   * @group API
    */
   fit = () => {
     this.cy?.fit()

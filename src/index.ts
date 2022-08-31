@@ -4,7 +4,7 @@ import popper from 'cytoscape-popper'
 import { GrapholscapeConfig } from './config/config'
 import { loadConfig } from './config/config-manager'
 import Grapholscape from './core/grapholscape'
-import Ontology from './model'
+import { Ontology } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 

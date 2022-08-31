@@ -1,5 +1,5 @@
 import Renderer from "..";
-import Ontology, { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RendererStatesEnum } from "../../../model";
+import { Ontology, BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RendererStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";

@@ -1,4 +1,4 @@
-import Ontology from '../model'
+import { Ontology } from '../model'
 import { AnnotationsKind } from '../model/annotated-element'
 import Annotation from '../model/graphol-elems/annotation'
 import { FunctionalityEnum } from '../model/graphol-elems/entity'
