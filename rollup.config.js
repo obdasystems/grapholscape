@@ -3,7 +3,6 @@ import commonjs from '@rollup/plugin-commonjs'
 import babel from '@rollup/plugin-babel'
 import replace from '@rollup/plugin-replace'
 import { terser } from 'rollup-plugin-terser'
-import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import license from 'rollup-plugin-license'
 import path from 'path'
 import json from '@rollup/plugin-json'
@@ -132,7 +131,6 @@ const configs = [
       commonjs({ include: '**/node_modules/**' }),
       typescript(typescriptOptions),
       babel(getBabelOptions()),
-      sizeSnapshot(),
       terser(),
       license(licenseHeaderOptions)
     ]
