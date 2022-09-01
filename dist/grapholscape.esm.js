@@ -1799,20 +1799,13 @@ class DisplayedNamesManager {
 
 class EntityNavigator {
     constructor(grapholscape) {
+        this.centerOnEntity = (iri, diagramId, zoom) => {
+            this._centerSelectEntity(iri, diagramId, false, zoom);
+        };
         this.selectEntity = (iri, diagramId, zoom) => {
             this._centerSelectEntity(iri, diagramId, true, zoom);
         };
         this._grapholscape = grapholscape;
-    }
-    /**
-     * awdaw
-     * @param iri aa
-     * @param diagramId awda
-     * @param zoom awdawd
-     * @group API
-     */
-    centerOnEntity(iri, diagramId, zoom) {
-        this._centerSelectEntity(iri, diagramId, false, zoom);
     }
     _centerSelectEntity(iri, diagramId, select = false, zoom) {
         if (diagramId || diagramId === 0) {
@@ -8264,7 +8257,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.0.0"}</span>
+            <span>${"3.0.1"}</span>
           </div>
         </div>
       </div>
