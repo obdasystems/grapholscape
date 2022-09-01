@@ -198,7 +198,7 @@ export default class Grapholscape {
       })
     }
 
-    if (newConfig.selectedTheme) {
+    if (newConfig.selectedTheme && this.themeList.map(theme => theme.id).includes(newConfig.selectedTheme)) {
       this.themesManager.setTheme(newConfig.selectedTheme)
     } else if (!this.themeList.includes(this.theme)) {
       this.themesManager.setTheme(this.themeList[0].id)
