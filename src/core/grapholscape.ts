@@ -1,13 +1,10 @@
 import { GrapholscapeConfig, WidgetsConfig } from "../config/config"
 import * as Exporter from '../exporter'
-import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum } from "../model"
+import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
-import Renderer from "./rendering"
-import FloatyRenderState from "./rendering/floaty/floaty-renderer-state"
-import GrapholRendererState from "./rendering/graphol/graphol-renderer-state"
-import LiteRendererState from "./rendering/lite/lite-renderer-state"
+import { Renderer, GrapholRendererState, LiteRendererState, FloatyRenderState } from "./rendering"
 import ThemeManager from "./themeManager"
 
 
@@ -40,7 +37,13 @@ export default class Grapholscape {
     }
   }
 
-  showDiagram(diagramId: number, viewportState = null) {
+  /**
+   * Show a certain diagram by its ID
+   * @param diagramId the diagram's id to display
+   * @param viewportState set a custom {@link ViewportState}, if not set, last one available will be used
+   * @returns void
+   */
+  showDiagram(diagramId: number, viewportState?: ViewportState) {
     const diagram = this.ontology.getDiagram(diagramId)
 
     if (!diagram) {
@@ -49,10 +52,33 @@ export default class Grapholscape {
     }
 
     this.entityNavigator.setGraphEventHandlers(diagram)
-
+    diagram.lastViewportState = viewportState
     this.renderer.render(diagram)
   }
 
+  /**
+   * Change the actual renderer (Graphol - Lite - Floaty).
+   * 
+   * @remarks 
+   * 
+   * A RendererState is an implementation for the {@link iRenderState} interface
+   * that changes the way the {@link Renderer} performs the main operations on a 
+   * {@link Diagram} such as rendering it and filtering elements in it.
+   * The renderer states included in Grapholscape are: {@link GrapholRendererState},
+   * {@link LiteRendererState} and {@link FloatyRenderState}.
+   * 
+   * @param newRenderState the renderer state instance to set, if you want to reuse
+   * these instances it's totally up to you.
+   * 
+   * 
+   * @example
+   * ```ts
+   * // Setting the floaty renderer state
+   * import { FloatyRendererState } from 'grapholscape'
+   * 
+   * grapholscape.setRenderer(new FloatyRendererState())
+   * ```
+   */
   setRenderer(newRenderState: iRenderState) {
     const shouldUpdateEntities = (this.diagramId !== 0 && !this.diagramId) || !this.ontology.getDiagram(this.diagramId)
       ?.representations.get(newRenderState.id) ? true : false

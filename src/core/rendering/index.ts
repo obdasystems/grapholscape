@@ -6,12 +6,12 @@ import Lifecycle from "../../model/lifecycle"
 import RenderState from "../../model/renderers/i-render-state"
 import GrapholscapeTheme from "../../model/themes/theme"
 
-/**
- * @property {string} name - diagram's name
- * @property {string | number} id - diagram's identifier
- * @property {cytoscape} cy - cytoscape headless instance for managing elements
- */
-export default class Renderer {
+// /**
+//  * @property {string} name - diagram's name
+//  * @property {string | number} id - diagram's identifier
+//  * @property {cytoscape} cy - cytoscape headless instance for managing elements
+//  */
+export class Renderer {
   private _container: HTMLElement
   cy?: cytoscape.Core
   private _renderState: RenderState
@@ -366,3 +366,7 @@ export default class Renderer {
     return this.cy?.edges().jsons()
   }
 }
+
+export { default as GrapholRendererState } from "./graphol/graphol-renderer-state"
+export { default as LiteRendererState } from "./lite/lite-renderer-state"
+export { default as FloatyRenderState } from "./floaty/floaty-renderer-state"

@@ -4,6 +4,11 @@ import GrapholElement from '../graphol-elems/graphol-element'
 import { RendererStatesEnum } from '../renderers/i-render-state'
 import DiagramRepresentation from './diagram-representation'
 
+export type ViewportState = {
+  pan: Position,
+  zoom: number,
+}
+
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
@@ -12,10 +17,7 @@ class Diagram {
   name: string
   id: number
   representations: Map<RendererStatesEnum, DiagramRepresentation> = new Map([[RendererStatesEnum.GRAPHOL, new DiagramRepresentation()]])
-  lastViewportState: {
-    pan: Position,
-    zoom: number,
-  }
+  lastViewportState: ViewportState
   // hasEverBeenRendered: boolean
   // cy = cytoscape(cytoscapeDefaultConfig)
   // grapholElements: Map<string, GrapholElement> = new Map()

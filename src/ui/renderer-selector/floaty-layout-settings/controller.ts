@@ -1,5 +1,5 @@
 import Grapholscape from "../../../core/grapholscape";
-import FloatyRenderState from "../../../core/rendering/floaty/floaty-renderer-state";
+import FloatyRendererState from "../../../core/rendering/floaty/floaty-renderer-state";
 import { LifecycleEvent, RendererStatesEnum } from "../../../model";
 import GscapeLayoutSettings from "./layout-settings";
 
@@ -16,7 +16,7 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
     if (grapholscape.renderState !== RendererStatesEnum.FLOATY)
       return
 
-    const renderer = grapholscape.renderer.renderState as FloatyRenderState
+    const renderer = grapholscape.renderer.renderState as FloatyRendererState
     // if (!grapholscape.renderer.layoutStopped) {
     //   layoutSettingsComponent.useOriginalPositionsToggle.state = false
     //   grapholscape.renderer.useOriginalPositions = false
@@ -34,7 +34,7 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
     if (grapholscape.renderState !== RendererStatesEnum.FLOATY)
       return
 
-    const renderer = grapholscape.renderer.renderState as FloatyRenderState
+    const renderer = grapholscape.renderer.renderState as FloatyRendererState
 
     renderer.dragAndPin = !renderer.dragAndPin
     updateToggles(renderer.id)
@@ -46,7 +46,7 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
 
   function updateToggles(renderState: RendererStatesEnum) {
     if (renderState === RendererStatesEnum.FLOATY) {
-      const renderer = grapholscape.renderer.renderState as FloatyRenderState
+      const renderer = grapholscape.renderer.renderState as FloatyRendererState
       layoutSettingsComponent.layoutRun = renderer.isLayoutInfinite
       layoutSettingsComponent.dragAndPin = renderer.dragAndPin
     }

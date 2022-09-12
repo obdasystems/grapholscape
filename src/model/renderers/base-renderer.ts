@@ -1,5 +1,5 @@
 import { Stylesheet } from "cytoscape"
-import Renderer from "../../core/rendering"
+import { Renderer } from "../../core/rendering"
 import { cytoscapeFilter, cytoscapeUnfilter } from "../../core/rendering/filtering"
 import Ontology from "../ontology"
 import GrapholscapeTheme from "../themes/theme"

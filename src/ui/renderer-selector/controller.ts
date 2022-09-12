@@ -1,7 +1,7 @@
 import { SVGTemplateResult } from "lit"
 import { GscapeRenderSelector } from "."
 import Grapholscape from "../../core/grapholscape"
-import FloatyRenderState from "../../core/rendering/floaty/floaty-renderer-state"
+import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
@@ -63,7 +63,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
           break
 
         case RendererStatesEnum.FLOATY:
-          grapholscape.setRenderer(new FloatyRenderState())
+          grapholscape.setRenderer(new FloatyRendererState())
           break
       }
     }
