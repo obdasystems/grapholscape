@@ -180,6 +180,9 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     super.togglePanel()
     this.requestUpdate()
   }
+
+  setGrapholEntity(entity: GrapholEntity) { }
+
   private languageSelectionHandler(e) {
     this.language = e.target.value
   }

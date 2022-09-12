@@ -1,5 +1,5 @@
 import Grapholscape from '../../core/grapholscape'
-import { LifecycleEvent } from '../../model'
+import { GrapholEntity, LifecycleEvent } from '../../model'
 import getEntityViewOccurrences from '../util/get-entity-view-occurrences'
 import GscapeEntityDetails from './entity-details'
 
@@ -15,18 +15,9 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   }
   entityDetailsComponent.language = grapholscape.language
 
-  grapholscape.on(LifecycleEvent.EntitySelection, entity => {
-    entityDetailsComponent.grapholEntity = entity
-    entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape)
-    entityDetailsComponent.language = grapholscape.language
-    entityDetailsComponent.show()
+  entityDetailsComponent.setGrapholEntity = setGrapholEntity
 
-    if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
-      entityDetailsComponent.onWikiLinkClick = (iri: string) => {
-        grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri)
-      }
-    }
-  })
+  grapholscape.on(LifecycleEvent.EntitySelection, setGrapholEntity)
 
   grapholscape.on(LifecycleEvent.NodeSelection, node => {
     if (!node.isEntity())
@@ -46,4 +37,19 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     if (entityDetailsComponent.grapholEntity)
       entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape)
   })
+
+
+  function setGrapholEntity(entity: GrapholEntity) {
+    entityDetailsComponent.grapholEntity = entity
+    entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape)
+    entityDetailsComponent.language = grapholscape.language
+    entityDetailsComponent.show()
+
+    if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
+      entityDetailsComponent.onWikiLinkClick = (iri: string) => {
+        grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri)
+      }
+    }
+  }
+
 }
