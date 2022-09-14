@@ -1,7 +1,7 @@
 import GscapeRenderSelector from "./render-selector";
 import init from "./controller"
 import initLayoutSettings from "./floaty-layout-settings";
-import Grapholscape from "../../core/grapholscape";
+import Grapholscape from '../../core';
 import { WidgetEnum } from "../util/widget-enum";
 
 export { GscapeRenderSelector }

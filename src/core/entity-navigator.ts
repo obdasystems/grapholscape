@@ -5,6 +5,9 @@ import { isGrapholNode } from "../model/graphol-elems/node"
 import { LifecycleEvent } from "../model/lifecycle"
 import Grapholscape from "./grapholscape"
 
+/**
+ * @internal
+ */
 export default class EntityNavigator {
   private _grapholscape: Grapholscape
 
@@ -12,11 +15,11 @@ export default class EntityNavigator {
     this._grapholscape = grapholscape
   }
 
-  centerOnEntity = (iri: string, diagramId?: number, zoom?: number) => {
+  centerOnEntity(iri: string, diagramId?: number, zoom?: number) {
     this._centerSelectEntity(iri, diagramId, false, zoom)
   }
 
-  selectEntity = (iri: string, diagramId?: number, zoom?: number) => {
+  selectEntity(iri: string, diagramId?: number, zoom?: number) {
     this._centerSelectEntity(iri, diagramId, true, zoom)
   }
 

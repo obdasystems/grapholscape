@@ -5,6 +5,9 @@ import Grapholscape from "./grapholscape";
 import { RendererStatesEnum } from "../model/renderers/i-render-state";
 import { storeConfigEntry } from "../config/config-manager";
 
+/**
+ * @internal
+ */
 export default class DisplayedNamesManager {
   private _grapholscape: Grapholscape
   private _entityNameType = EntityNameType.LABEL
@@ -17,7 +20,7 @@ export default class DisplayedNamesManager {
   get entityNameType() { return this._entityNameType }
   get language() { return this._language }
 
-  setEntityNameType = (newEntityNameType: EntityNameType) => {
+  setEntityNameType(newEntityNameType: EntityNameType) {
     if (newEntityNameType === this._entityNameType) return
 
     if (!Object.values(EntityNameType).includes(newEntityNameType)) {
@@ -34,7 +37,7 @@ export default class DisplayedNamesManager {
     storeConfigEntry('entityNameType', newEntityNameType)
   }
 
-  setLanguage = (language: string) => {
+  setLanguage(language: string | Language) {
     const languageValue = language as Language
 
     if (!this._grapholscape.ontology.languages.list.includes(language)) {

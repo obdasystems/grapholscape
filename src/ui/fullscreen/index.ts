@@ -1,4 +1,4 @@
-import Grapholscape from "../../core/grapholscape"
+import Grapholscape from '../../core'
 import { enterFullscreen, exitFullscreen } from "../assets/icons"
 import { GscapeButton } from '../common/button/'
 import getIconSlot from "../util/get-icon-slot"

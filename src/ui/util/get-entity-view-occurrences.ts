@@ -1,5 +1,5 @@
 import { html } from "lit"
-import Grapholscape from "../../core/grapholscape"
+import Grapholscape from '../../core'
 import { GrapholEntity } from "../../model"
 import { EntityOccurrence } from "../../model/graphol-elems/entity"
 import { RendererStatesEnum } from "../../model/renderers/i-render-state"

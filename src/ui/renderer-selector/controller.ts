@@ -1,6 +1,6 @@
 import { SVGTemplateResult } from "lit"
 import { GscapeRenderSelector } from "."
-import Grapholscape from "../../core/grapholscape"
+import Grapholscape from '../../core'
 import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"

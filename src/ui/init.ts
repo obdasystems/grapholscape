@@ -1,10 +1,9 @@
-import { LitElement } from "lit";
-import Grapholscape from "../core/grapholscape";
+import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
 import { IBaseMixin } from "./common/base-widget-mixin";
 import { hasDropPanel } from "./common/drop-panel-mixin";
 import initDiagramSelector from "./diagram-selector";
-import initEntityDetails, { GscapeEntityDetails } from "./entity-details";
+import initEntityDetails from "./entity-details";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import initFullscreenButton from "./fullscreen";

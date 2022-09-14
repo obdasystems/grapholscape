@@ -1,12 +1,12 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import { GrapholscapeConfig } from './config/config'
-import { loadConfig } from './config/config-manager'
-import Grapholscape from './core/grapholscape'
 import { Ontology } from './model'
+import { loadConfig } from './config/config-manager'
 import GrapholParser from './parsing/parser'
+import { GrapholscapeConfig } from './config/config'
 import * as UI from './ui'
+import Grapholscape from './core'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -14,18 +14,24 @@ cytoscape.use(cola)
 export * from './model'
 export * from './config/config'
 export * as ui from './ui'
-export { default as Grapholscape } from './core/grapholscape'
+export * from './core'
 
 /**
- * Create a bare instance of Grapholscape, only diagrams, no UI
+ * Create a full instance of Grapholscape with diagrams and widgets
+ * 
+ * @remarks
+ * Once the promise is fulfilled, you get a {@link !core.Grapholscape}.
+ * Hence the API you will most likely want to use will be the one of the {@link !core.Grapholscape} class.
+ * You can change diagram, zoom, focus elements, select them, filter them and so on with that class.
+ * 
  * @param file the ontology, can be an object of the 
  * [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) 
  * or a String representing the .graphol file to be displayed
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
- * @returns a promise that will be fulfilled with a Grapholscape object
- * @tutorial Settings
- * @tutorial Themes
+ * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
+ * @see [link 1](https://www.google.it)
+ * @see [link 2](https://www.google.it)
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
@@ -34,6 +40,23 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
   return grapholscape
 }
 
+/**
+ * Create a bare instance of Grapholscape, only diagrams, no widgets
+ * 
+ * @remarks
+ * Once the promise is fulfilled, you get a {@link !core.Grapholscape}.
+ * Hence the API you will most likely want to use will be the one of the {@link !core.Grapholscape} class.
+ * You can change diagram, zoom, focus elements, select them, filter them and so on with that class.
+ * 
+ * @param file the ontology, can be an object of the 
+ * [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) 
+ * or a String representing the .graphol file to be displayed
+ * @param container a DOM element in which the ontology will be rendered in
+ * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+ * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
+ * @see [link 1](https://www.google.it)
+ * @see [link 2](https://www.google.it)
+ */
 export function grapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   return getGrapholscape(file, container, config)
 }

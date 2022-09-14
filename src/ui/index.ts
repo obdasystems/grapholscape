@@ -1,9 +1,10 @@
 /** @module UI */
 export * from "./common/button"
 export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
+export * from "./common/toggle/gscape-toggle"
 export * from "./common/list-item"
-export { BaseMixin } from './common/base-widget-mixin'
-export { DropPanelMixin } from './common/drop-panel-mixin'
+export * from './common/base-widget-mixin'
+export * from './common/drop-panel-mixin'
 export { default as baseStyle } from "./style"
 export { BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS } from './style'
 export { WidgetEnum } from "./util/widget-enum"

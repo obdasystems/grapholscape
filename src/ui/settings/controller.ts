@@ -1,6 +1,6 @@
 import GscapeSettings from "./settings";
 import { storeConfigEntry } from "../../config/config-manager";
-import Grapholscape from "../../core/grapholscape";
+import Grapholscape from '../../core';
 import { LifecycleEvent } from "../../model";
 import { IBaseMixin } from "../common/base-widget-mixin";
 

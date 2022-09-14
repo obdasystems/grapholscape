@@ -1,4 +1,4 @@
-import Grapholscape from "../../../core/grapholscape";
+import Grapholscape from '../../../core';
 import FloatyRendererState from "../../../core/rendering/floaty/floaty-renderer-state";
 import { LifecycleEvent, RendererStatesEnum } from "../../../model";
 import GscapeLayoutSettings from "./layout-settings";

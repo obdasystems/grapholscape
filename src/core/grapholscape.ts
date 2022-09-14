@@ -1,6 +1,6 @@
-import { GrapholscapeConfig, WidgetsConfig } from "../config/config"
+import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config/config"
 import * as Exporter from '../exporter'
-import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState } from "../model"
+import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
@@ -37,11 +37,11 @@ export default class Grapholscape {
     }
   }
 
+  // ----------------------------- RENDERER ----------------------------- //
   /**
    * Show a certain diagram by its ID
    * @param diagramId the diagram's id to display
-   * @param viewportState set a custom {@link ViewportState}, if not set, last one available will be used
-   * @returns void
+   * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
    */
   showDiagram(diagramId: number, viewportState?: ViewportState) {
     const diagram = this.ontology.getDiagram(diagramId)
@@ -59,11 +59,10 @@ export default class Grapholscape {
   /**
    * Change the actual renderer (Graphol - Lite - Floaty).
    * 
-   * @remarks 
-   * 
-   * A RendererState is an implementation for the {@link iRenderState} interface
+   * @remarks
+   * A RendererState is an implementation for the {@link !model.iRenderState} interface
    * that changes the way the {@link Renderer} performs the main operations on a 
-   * {@link Diagram} such as rendering it and filtering elements in it.
+   * {@link !model.Diagram} such as rendering it and filtering elements in it.
    * The renderer states included in Grapholscape are: {@link GrapholRendererState},
    * {@link LiteRendererState} and {@link FloatyRenderState}.
    * 
@@ -98,6 +97,14 @@ export default class Grapholscape {
     this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState)
   }
 
+  /**
+   * Center the viewport on a single element.
+   * @remarks
+   * If you specify a different diagram from the actual one, it will be displayed
+   * @param elementId the element's id (can be a node or an edge)
+   * @param diagramId the diagram's id (**default**: the actual one)
+   * @param zoom the level zoom to apply, do not pass it if you don't want zoom to change
+   */
   centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
     if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
       this.showDiagram(diagramId)
@@ -105,38 +112,77 @@ export default class Grapholscape {
     this.renderer.centerOnElementById(elementId, zoom)
   }
 
-  // ------------------------- ENTITY NAVIGATOR ------------------------- //
-  /** @borrows this.entityNavigator.centerOnEntity as this.centerOnEntity */
-  centerOnEntity = this.entityNavigator.centerOnEntity
-  /** @borrows this.entityNavigator.selectEntity as this.selectEntity */
-  selectEntity = this.entityNavigator.selectEntity
+  /**
+   * Select an element in a diagram.
+   * @remarks
+   * If you specify a different diagram from the actual one, it will be displayed
+   * @param elementId the element's id (can be a node or an edge)
+   * @param diagramId the diagram's id (**default**: the actual one)
+   */
+  selectElement(elementId: string, diagramId?: number) {
+    if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
+      this.showDiagram(diagramId)
 
-  // ----------------------------- RENDERER ----------------------------- //
-  /** @borrows this.renderer.unselect as this.unselect */
-  unselect = this.renderer.unselect
-  /** @borrows this.renderer.selectElement as this.selectElement */
-  selectElement = this.renderer.selectElement
-  /** @borrows this.renderer.fit as this.fit */
-  fit = this.renderer.fit
-  /** @borrows this.renderer.zoom as this.zoom */
-  zoom = this.renderer.zoom
-  /** @borrows this.renderer.zoomIn as this.zoomIn */
-  zoomIn = this.renderer.zoomIn
-  /** @borrows this.renderer.zoomOut as this.zoomOut */
-  zoomOut = this.renderer.zoomOut
-  /** @borrows this.renderer.filter as this.filter */
-  filter = this.renderer.filter
-  /** @borrows this.renderer.unfilter as this.unfilter */
-  unfilter = this.renderer.unfilter
+    this.renderer.selectElement(elementId)
+  }
 
+  /** Unselect any selected element in the actual diagram */
+  unselect() { this.renderer.unselect() }
+  
+  /** Fit viewport to diagram */
+  fit() { this.renderer.fit() }
+
+  /**
+   * Apply a certain level of zoom
+   * @param value level of zoom to set
+   */
+  zoom(value: number) { this.renderer.zoom(value) }
+
+  /**
+   * Increase the zooom level by a certain amount
+   * @param amount the amount of zoom to add
+   */
+  zoomIn(amount: number) { this.renderer.zoomIn(amount) }
+
+  /**
+   * Decrease the zooom level by a certain amount
+   * @param amount the amount of zoom to remove
+   */
+  zoomOut(amount: number) { this.renderer.zoomOut(amount) }
+
+  /**
+   * Filter elements on the diagram.
+   * @remarks
+   * It will be actually applied only if the user defined callback on the event
+   * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+   * allows for the filter to be applied.
+   * @param filter the filter to apply, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
+   * or a string representing the unique key of a defined filter
+   */
+  filter(filter: string | Filter | DefaultFilterKeyEnum ) { this.renderer.filter(filter) }
+
+  /**
+   * Unfilter elements on the diagram.
+   * @remarks
+   * It will be actually deactivated only if the user defined callback on the event
+   * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+   * allows for the filter to be deactivated.
+   * @param filter the filter to disable, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
+   * or a string representing the unique key of a defined filter
+   */
+  unfilter(filter: string | Filter | DefaultFilterKeyEnum ) { this.renderer.unfilter(filter) }
+
+  /** The actual diagram's id */
   get diagramId() {
     return this.renderer.diagram?.id
   }
 
+  /** The actual renderer state */
   get renderState() {
     return this.renderer.renderState.id
   }
 
+  /** The actual selected Entity */
   get selectedEntity() {
     const selectedElement = this.renderer.selectedElement
 
@@ -144,35 +190,126 @@ export default class Grapholscape {
       return this.ontology.getEntity(this.renderer.cy?.$id(selectedElement.id).data().iri)
   }
 
+  /** An array of available renderer's state for this Grapholscape instance */
   get renderers() { return this.availableRenderers }
 
-  // ---------------------- DISPLAYED NAMES MANAGER ---------------------- //
-  /** @borrows this.displayedNamesManager.setEntityNameType as this.setEntityNameType */
-  setEntityNameType = this.displayedNamesManager.setEntityNameType
-  /** @borrows this.displayedNamesManager.setLanguage as this.setLanguage */
-  setLanguage = this.displayedNamesManager.setLanguage
+  // ------------------------- ENTITY NAVIGATOR ------------------------- //
+  /**
+   * Center viewport on a single entity given its IRI
+   * @param iri the iri of the entity to find and center on
+   * @param diagramId the diagram containing.
+   * If not specified, the first entity occurrence in any diagram will be used.
+   * @param zoom the level of zoom to apply.
+   * If not specified, zoom level won't be changed.
+   */
+  centerOnEntity(iri: string, diagramId?: number, zoom?: number) { 
+    this.entityNavigator.centerOnEntity(iri, diagramId, zoom) 
+  }
+  
+  /**
+   * Center viewport on a single entity and selects it given its IRI
+   * @param iri the iri of the entity to find and center on
+   * @param diagramId the diagram containing.
+   * If not specified, the first entity occurrence in any diagram will be used.
+   * @param zoom the level of zoom to apply.
+   * If not specified, zoom level won't be changed.
+   */
+  selectEntity(iri: string, diagramId?: number, zoom?: number) {
+    this.entityNavigator.selectEntity(iri, diagramId, zoom)
+  }
 
+  // ---------------------- DISPLAYED NAMES MANAGER ---------------------- //
+  /**
+   * Change the displayed entity's names. 
+   * @param newEntityNametype the entity name type to set
+   */
+  setEntityNameType(newEntityNametype: EntityNameType) {
+    this.displayedNamesManager.setEntityNameType(newEntityNametype)
+  }
+  
+  /**
+   * Change the language used for the labels and comments
+   * @remarks The language must be supported by the ontology or the first available
+   * language for a given label/comment wil be used as fallback
+   * @param newLanguage the language to set {@link !config.Language}
+   */
+  setLanguage(newLanguage: string) {
+    this.displayedNamesManager.setLanguage(newLanguage)
+  }
+
+  /** The actual selected language */
   get language() { return this.displayedNamesManager.language }
+  /** The actual selected entity name type (label, full iri or prefixed iri) */
   get entityNameType() { return this.displayedNamesManager.entityNameType }
 
   // -------------------------- THEMES MANAGER -------------------------- //
-  /** @borrows this.themesManager.setTheme as this.setTheme */
-  setTheme = this.themesManager.setTheme
-  /** @borrows this.themesManager.addTheme as this.addTheme */
-  addTheme = this.themesManager.addTheme
+  /**
+   * Apply a given theme
+   * @param themeId the theme's ID
+   */
+  setTheme(themeId: string) {
+    this.themesManager.setTheme(themeId)
+  }
 
+  /**
+   * @ignore
+   * // TODO: make this method update settings widget before publishing in docs
+   * Add a new theme in the list of available themes
+   * @param newTheme the new theme
+   */
+  addTheme(newTheme: GrapholscapeTheme) {
+    this.themesManager.addTheme(newTheme)
+  }
+
+  /** The actual theme used by Grapholscape */
   get theme() { return this.themesManager.theme }
+
+  /** The available themes for this Grapholscape instance */
   get themeList() { return this.themesManager.themes }
 
   // ----------------------------- LIFECYCLE ----------------------------- //
+  /**
+   * Register a callback for a given event.
+   * @remarks
+   * Check {@link !model.LifecycleEvent} and {@link !model.IonEvent} for the
+   * full list of events/callbacks types
+   * @param event The event for which register a callback.
+   * @param callback Function to call when the specified event occurs
+   * 
+   * @example reacting to a node selection
+   * ```js
+   *  import { LifecycleEvent } from 'grapholscape'
+   * 
+   *  // ...init grapholscape
+   *  
+   * grapholscape.on(LifecycleEvent.NodeSelection, (selectedNode) => {
+   *  // here you can do whatever you want with selectedNode, like printing its shape
+   *  console.log(selectedNode.shape)
+   * })
+   * ```
+   */
   on = this.lifecycle.on
 
   // -------------------------------- UI -------------------------------- //
+  /** 
+   * The container in which Grapholscape places the UI components.
+   * You can use this container to add new widgets or dialogs if you want to.
+   */
   get uiContainer() { return this.container.querySelector('.gscape-ui') }
+  /** 
+   * The container in which the bottom-right buttons are placed.
+   * You can use this container to add your own Buttons if you want to.
+   */
   get buttonsTray() { return this.uiContainer?.querySelector('.gscape-ui-buttons-tray') }
 
 
   // ------------------------------ CONFIG ------------------------------ //
+  /**
+   * @ignore
+   * // TODO: Be sure this method reflects on UI before publishing it in to the docs
+   * Apply a new custom configuration
+   * @param newConfig the config object to apply
+   */
   setConfig(newConfig: GrapholscapeConfig) {
     if (newConfig.language) {
       this.displayedNamesManager.setLanguage(newConfig.language)
@@ -236,19 +373,27 @@ export default class Grapholscape {
   }
 
   // ---------------------------- EXPORTING ---------------------------- //
+  /**
+   * Export actual diagram and download it as a PNG image.
+   * @param fileName custom file name. Defaults to {@link exportFileName}
+   */
   exportToPng(fileName = this.exportFileName) {
     fileName += '.png'
     Exporter.toPNG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph))
   }
 
+  /**
+   * Export actual diagram and download it as an SVG.
+   * @param fileName custom file name. Defaults to {@link exportFileName}
+   */
   exportToSvg(fileName = this.exportFileName) {
     fileName += '.svg'
     Exporter.toSVG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph))
   }
 
   /**
-   * Filename for exports
-   * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
+   * Filename for exports.
+   * String in the form: "[ontology name]-[diagram name]-v[ontology version]"
    */
   get exportFileName() {
     return `${this.ontology.name}-${this.renderer.diagram?.name}-v${this.ontology.version}`

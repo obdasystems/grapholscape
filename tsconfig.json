@@ -4,5 +4,15 @@
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "lib": ["es5", "es6", "es2020", "dom", "dom.iterable"]
+  },
+  "typedocOptions": {
+    "includeVersion": true,
+    "entryPoints": ["src/core", "src/ui", "src/config", "src/model", "src/index.ts"],
+    "out": "docs",
+    "hideGenerator": true,
+    "name": "Grapholscape",
+    "favicon": "doc/static/assets/img/icon.png",
+    "intentionallyNotExported": ["Constructor", "DisplayedNamesManager", "ThemeManager", "EntityNavigator", "IEntityFilters"],
+    "excludeInternal": true,
   }
 }

@@ -1,5 +1,5 @@
 import { CollectionReturnValue, NodeCollection, NodeSingular } from 'cytoscape'
-import Grapholscape from '../core/grapholscape'
+import Grapholscape from '../core'
 import { GrapholEdge, GrapholNode, GrapholTypesEnum, GrapholTypesEnum as Types, Iri } from '../model'
 import { isGrapholNode } from '../model/graphol-elems/node'
 import capitalizeFirstChar from '../util/capitalize-first-char'

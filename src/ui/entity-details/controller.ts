@@ -1,12 +1,8 @@
-import Grapholscape from '../../core/grapholscape'
+import Grapholscape from '../../core'
 import { GrapholEntity, LifecycleEvent } from '../../model'
 import getEntityViewOccurrences from '../util/get-entity-view-occurrences'
 import GscapeEntityDetails from './entity-details'
 
-/**
- * @param {import('./index').default} entityDetailsComponent
- * @param {import('../../grapholscape').default} grapholscape 
- */
 export default function (entityDetailsComponent: GscapeEntityDetails, grapholscape: Grapholscape) {
   // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
   entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {

@@ -2,6 +2,9 @@ import { storeConfigEntry } from "../config/config-manager"
 import { ColoursNames, CSS_PROPERTY_NAMESPACE, DefaultThemes, GrapholscapeTheme, gscapeColourMap, LifecycleEvent } from "../model"
 import Grapholscape from "./grapholscape"
 
+/**
+ * @internal
+ */
 export default class ThemeManager {
   private _grapholscape: Grapholscape
   theme: GrapholscapeTheme
@@ -11,7 +14,7 @@ export default class ThemeManager {
     this._grapholscape = grapholscape
   }
 
-  setTheme = (newThemeId: string) => {
+  setTheme(newThemeId: string) {
     const newTheme = this.themes.find(t => t.id === newThemeId)
 
     if (newTheme) {
@@ -29,7 +32,7 @@ export default class ThemeManager {
     }
   }
 
-  addTheme = (newTheme: GrapholscapeTheme) => {
+  addTheme(newTheme: GrapholscapeTheme) {
     this.themes.push(newTheme)
   }
 

@@ -1,4 +1,4 @@
-import Grapholscape from "../../core/grapholscape";
+import Grapholscape from '../../core';
 import { Annotation, GrapholEntity, Iri, LifecycleEvent } from "../../model";
 import getEntityViewOccurrences from "../util/get-entity-view-occurrences";
 import GscapeEntitySearch, { IEntityFilters } from "./entity-search-component";

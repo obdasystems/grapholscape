@@ -6,11 +6,7 @@ import Lifecycle from "../../model/lifecycle"
 import RenderState from "../../model/renderers/i-render-state"
 import GrapholscapeTheme from "../../model/themes/theme"
 
-// /**
-//  * @property {string} name - diagram's name
-//  * @property {string | number} id - diagram's identifier
-//  * @property {cytoscape} cy - cytoscape headless instance for managing elements
-//  */
+
 export class Renderer {
   private _container: HTMLElement
   cy?: cytoscape.Core
@@ -173,7 +169,7 @@ export class Renderer {
    * Select a node or an edge in the actual diagram given its unique id
    * @param {string} elementId elem id (node or edge)
    */
-  selectElement = (elementId: string) => {
+  selectElement(elementId: string) {
     this.unselect()
     this.cy?.$id(elementId).select()
   }
@@ -181,16 +177,14 @@ export class Renderer {
   /**
    * Unselect every selected element in this diagram
    */
-  unselect = () => {
+  unselect() {
     this.cy?.elements(':selected').unselect()
   }
 
   /**
    * Fit viewport to diagram
-   * 
-   * @group API
    */
-  fit = () => {
+  fit() {
     this.cy?.fit()
   }
 
@@ -249,7 +243,7 @@ export class Renderer {
     })
   }
 
-  zoom = (zoomValue: number) => {
+  zoom(zoomValue: number) {
     if (zoomValue != this.cy?.zoom())
       this.cy?.animate({
         zoom: zoomValue,
@@ -257,7 +251,7 @@ export class Renderer {
       })
   }
 
-  zoomIn = (zoomValue: number) => {
+  zoomIn(zoomValue: number) {
     this.cy?.animate({
       zoom: {
         level: this.cy.zoom() + zoomValue * this.cy.zoom(),
@@ -267,7 +261,7 @@ export class Renderer {
     })
   }
 
-  zoomOut = (zoomValue: number) => {
+  zoomOut(zoomValue: number) {
     this.cy?.animate({
       zoom: {
         level: this.cy.zoom() - zoomValue * this.cy.zoom(),

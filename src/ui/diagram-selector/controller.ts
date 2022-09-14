@@ -1,4 +1,4 @@
-import Grapholscape from '../../core/grapholscape'
+import Grapholscape from '../../core'
 import { LifecycleEvent } from '../../model'
 import GscapeDiagramSelector from './diagram-selector'
 /**

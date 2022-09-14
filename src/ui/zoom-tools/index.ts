@@ -1,4 +1,4 @@
-import Grapholscape from "../../core/grapholscape";
+import Grapholscape from '../../core';
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeZoomTools from "./zoom-tools";
 

@@ -1,6 +1,6 @@
 import GscapeExplorer from "./ontology-explorer";
 import init from "./controller"
-import Grapholscape from "../../core/grapholscape";
+import Grapholscape from '../../core';
 import { WidgetEnum } from "../util/widget-enum";
 
 export { GscapeExplorer }

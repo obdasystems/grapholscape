@@ -1,4 +1,4 @@
-import Grapholscape from "../../core/grapholscape"
+import Grapholscape from '../../core'
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { CollectionReturnValue } from "cytoscape"
 import GscapeOwlVisualizer from "./owl-visualizer"
