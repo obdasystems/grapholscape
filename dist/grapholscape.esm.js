@@ -52,137 +52,6 @@ function __awaiter(thisArg, _arguments, P, generator) {
     });
 }
 
-var WidgetEnum;
-(function (WidgetEnum) {
-    WidgetEnum["DIAGRAM_SELECTOR"] = "diagram-selector";
-    WidgetEnum["ENTITY_DETAILS"] = "details";
-    WidgetEnum["FILTERS"] = "filters";
-    WidgetEnum["FIT_BUTTON"] = "fit-button";
-    WidgetEnum["FULLSCREEN_BUTTON"] = "fullscreen-button";
-    WidgetEnum["ONTOLOGY_EXPLORER"] = "ontology-explorer";
-    WidgetEnum["ONTOLOGY_INFO"] = "ontology-info";
-    WidgetEnum["OWL_VISUALIZER"] = "owl-visualizer";
-    WidgetEnum["RENDERER_SELECTOR"] = "renderer-selector";
-    WidgetEnum["LAYOUT_SETTINGS"] = "layout-settings";
-    WidgetEnum["SETTINGS"] = "settings";
-    WidgetEnum["ZOOM_TOOLS"] = "zoom-tools";
-})(WidgetEnum || (WidgetEnum = {}));
-
-const NAMESPACE = 'obda-systems.grapholscape';
-const getNamespacedKey = (key) => `${NAMESPACE}-${key}`;
-const getKeyWithoutNamespace = (key) => key.substring(NAMESPACE.length + 1);
-const valueToStore = (v) => JSON.stringify(v);
-const valueFromStorage = (v) => JSON.parse(v);
-/**
- * Load config from local storage
- */
-function loadConfig() {
-    const config = {};
-    if (storageAvailable() && isAnySettingSaved()) {
-        Object.keys(window.localStorage)
-            .filter(k => k.startsWith(NAMESPACE)) // take only local storage items written by grapholscape
-            .forEach(k => {
-            const configKey = getKeyWithoutNamespace(k);
-            const value = valueFromStorage(window.localStorage.getItem(k));
-            if (Object.values(WidgetEnum).includes(configKey)) {
-                if (!config.widgets)
-                    config.widgets = {};
-                config.widgets[configKey] = value;
-            }
-            else {
-                config[configKey] = value;
-            }
-        });
-    }
-    return config;
-}
-/**
- * Store a single setting in local storage
- * @param {string} k the key of the setting to store
- * @param {any} value the value of the setting to store
- */
-function storeConfigEntry(k, value) {
-    if (storageAvailable())
-        window.localStorage.setItem(getNamespacedKey(k), valueToStore(value));
-}
-function storageAvailable() {
-    let storage = window.localStorage;
-    try {
-        var x = '__storage_test__';
-        storage.setItem(x, x);
-        storage.removeItem(x);
-        return true;
-    }
-    catch (e) {
-        return e instanceof DOMException && (
-        // everything except Firefox
-        e.code === 22 ||
-            // Firefox
-            e.code === 1014 ||
-            // test name field too, because code might not be present
-            // everything except Firefox
-            e.name === 'QuotaExceededError' ||
-            // Firefox
-            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
-            // acknowledge QuotaExceededError only if there's something already stored
-            (storage && storage.length !== 0);
-    }
-}
-/**
- * @returns Whether there is any local storage in setting belonging to grapholscape
- */
-function isAnySettingSaved() {
-    if (storageAvailable()) {
-        return Object.keys(window.localStorage).some(k => k.startsWith(NAMESPACE));
-    }
-    return false;
-}
-
-var downloadBlob = (blob, fileName) => {
-    let a = document.createElement('a');
-    document.body.appendChild(a);
-    a.style.setProperty('style', 'none');
-    let url = window.URL.createObjectURL(blob);
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    a.remove();
-};
-
-cytoscape.use(cy_svg);
-let options = {
-    output: 'blob',
-    full: true,
-    bg: '',
-};
-function toPNG(fileName, cy, backgroundColor) {
-    if (!checkParams(fileName, cy))
-        return;
-    options.bg = backgroundColor;
-    if (cy)
-        downloadBlob(cy.png(options), fileName);
-}
-function toSVG(fileName, cy, backgroundColor) {
-    if (!checkParams(fileName, cy))
-        return;
-    options.bg = backgroundColor;
-    let svg_content = cy.svg(options);
-    let blob = new Blob([svg_content], { type: "image/svg+xml;charset=utf-8" });
-    downloadBlob(blob, fileName);
-}
-function checkParams(fileName, cy) {
-    if (!fileName || (typeof (fileName) !== 'string')) {
-        console.error('Unable to export using an undefined file name');
-        return false;
-    }
-    if (!cy) {
-        console.error('Unable to export: cytoscape instance is undefined');
-        return false;
-    }
-    return true;
-}
-
 var AnnotationsKind;
 (function (AnnotationsKind) {
     AnnotationsKind["label"] = "label";
@@ -1316,51 +1185,91 @@ class GrapholscapeTheme {
 var ColoursNames;
 (function (ColoursNames) {
     // foreground
+    /** Foreground color, used for main texts */
     ColoursNames["fg_default"] = "fg-default";
+    /** Foreground muted, should be darker than default. Used for secondary text */
     ColoursNames["fg_muted"] = "fg-muted";
+    /** Foreground muted, should be lighter and softer than default.
+     * Used for placeholders, tips and text used for clarifying UI objects
+     */
     ColoursNames["fg_subtle"] = "fg-subtle";
+    /** Foreground text colour placed on a surface of a emphasy color such as accent, danger, success and so on */
     ColoursNames["fg_on_emphasis"] = "fg-on-emphasis";
     // background
+    /** Main background surface colours used in UI widgets */
     ColoursNames["bg_default"] = "bg-default";
+    /** Background color to create a higher or lower level with respect to bg_default color */
     ColoursNames["bg_inset"] = "bg-inset";
     // borders
+    /** Borders main color */
     ColoursNames["border_default"] = "border-default";
+    /** Softer than default, used for creating softer separations between UI objects */
     ColoursNames["border_subtle"] = "border-subtle";
     ColoursNames["shadow"] = "shadow";
     // neutral
-    ColoursNames["neautral"] = "neutral";
+    /** Used to emphasize secondary elements or texts. Like active elements */
+    ColoursNames["neutral"] = "neutral";
+    /** Emphasize secondary elements, should be darker than default */
     ColoursNames["neutral_muted"] = "neutral-muted";
+    /** Emphasize secondary elements, used for active elements borders */
     ColoursNames["neutral_subtle"] = "neutral-subtle";
     // accent
+    /** Primary color for selected/active elements in diagram or activable elemnts like toggles */
     ColoursNames["accent"] = "accent";
+    /** Primary color in darker tone, used for decorations like surfaces or borders */
     ColoursNames["accent_muted"] = "accent-muted";
+    /** Primary color in lighter tone, used for decorations like toggle's background color */
     ColoursNames["accent_subtle"] = "accent-subtle";
     // role colors
+    /** Color for denoting a successful action */
     ColoursNames["success"] = "success";
+    /** Denote successful action in darker tone, used for texts or borders */
     ColoursNames["success_muted"] = "success-muted";
+    /** Denote successful action in lighter tone, used for backgrounds or surfaces */
     ColoursNames["success_subtle"] = "success-subtle";
+    /** Color for denoting warnings */
     ColoursNames["attention"] = "attention";
+    /** Color for denoting warnings in darker tone, used for texts or borders */
     ColoursNames["attention_muted"] = "attention-muted";
+    /** Color for denoting warnings in lighter tone, used for backgrounds or surfaces */
     ColoursNames["attention_subtle"] = "attention-subtle";
+    /** Color for denoting errors */
     ColoursNames["danger"] = "danger";
+    /** Color for denoting errors in darker tone, used for texts or borders */
     ColoursNames["danger_muted"] = "danger-muted";
+    /** Color for denoting errors in lighter tone, used for backgrounds or surfaces */
     ColoursNames["danger_subtle"] = "danger-subtle";
     // entities
+    /** Color used for classes' nodes bodies */
     ColoursNames["class"] = "class";
+    /** Color used for classes' nodes borders */
     ColoursNames["class_contrast"] = "class-contrast";
+    /** Color used for object properties' nodes bodies */
     ColoursNames["object_property"] = "object-property";
+    /** Color used for object properties' nodes borders */
     ColoursNames["object_property_contrast"] = "object-property-contrast";
+    /** Color used for data properties' nodes bodies */
     ColoursNames["data_property"] = "data-property";
+    /** Color used for data properties' nodes borders */
     ColoursNames["data_property_contrast"] = "data-property-contrast";
+    /** Color used for individual's nodes bodies */
     ColoursNames["individual"] = "individual";
+    /** Color used for individual's nodes borders */
     ColoursNames["individual_contrast"] = "individual-contrast";
     // graph colors
+    /** Background color used in the diagram canvas */
     ColoursNames["bg_graph"] = "bg-graph";
+    /** Body color for nodes that are white in plain Graphol */
     ColoursNames["bg_node_light"] = "bg-node-light";
+    /** Body color for nodes that are black in plain Graphol */
     ColoursNames["bg_node_dark"] = "bg-node-dark";
+    /** Body border color */
     ColoursNames["border_node"] = "border-node";
+    /** Nodes/Edges label color */
     ColoursNames["label"] = "label";
+    /** Opposite color of label */
     ColoursNames["label_contrast"] = "label-contrast";
+    /** Edges lines color */
     ColoursNames["edge"] = "edge";
 })(ColoursNames || (ColoursNames = {}));
 
@@ -1372,98 +1281,98 @@ var DefaultThemesEnum;
 })(DefaultThemesEnum || (DefaultThemesEnum = {}));
 const gscapeColourMap = {
     // graph colours
-    'bg-graph': '#fafafa',
-    'edge': '#000',
-    'bg-node-light': '#fcfcfc',
-    'bg-node-dark': '#000',
-    'border-node': '#000',
-    'label': '#000',
-    'label-contrast': '#fcfcfc',
-    'class': '#F9F3A6',
-    'class-contrast': '#B08D00',
-    'object-property': '#AACDE1',
-    'object-property-contrast': '#065A85',
-    'data-property': '#C7DAAD',
-    'data-property-contrast': '#4B7900',
-    'individual': '#d3b3ef',
-    'individual-contrast': '#9875b7',
+    [ColoursNames.bg_graph]: '#fafafa',
+    [ColoursNames.edge]: '#000',
+    [ColoursNames.bg_node_light]: '#fcfcfc',
+    [ColoursNames.bg_node_dark]: '#000',
+    [ColoursNames.border_node]: '#000',
+    [ColoursNames.label]: '#000',
+    [ColoursNames.label_contrast]: '#fcfcfc',
+    [ColoursNames.class]: '#F9F3A6',
+    [ColoursNames.class_contrast]: '#B08D00',
+    [ColoursNames.object_property]: '#AACDE1',
+    [ColoursNames.object_property_contrast]: '#065A85',
+    [ColoursNames.data_property]: '#C7DAAD',
+    [ColoursNames.data_property_contrast]: '#4B7900',
+    [ColoursNames.individual]: '#d3b3ef',
+    [ColoursNames.individual_contrast]: '#9875b7',
     // UI colours
-    'fg-default': '#24292f',
-    'fg-muted': '#57606a',
-    'fg-subtle': '#6e7781',
-    'fg-on-emphasis': '#ffffff',
-    'bg-default': '#f6f8fa',
-    'bg-inset': '#eff2f5',
-    'border-default': '#d0d7de',
-    'border-subtle': 'rgba(27, 31, 36, 0.15)',
-    'shadow': '#d0d7de',
-    'neutral': '#e8ecef',
-    'neutral-muted': '#dae0e7',
-    'neutral-subtle': '#f3f5f7',
-    'accent': '#0969da',
-    'accent-muted': 'rgba(84, 174, 255, 0.4)',
-    'accent-subtle': '#ddf4ff',
+    [ColoursNames.fg_default]: '#24292f',
+    [ColoursNames.fg_muted]: '#57606a',
+    [ColoursNames.fg_subtle]: '#6e7781',
+    [ColoursNames.fg_on_emphasis]: '#ffffff',
+    [ColoursNames.bg_default]: '#f6f8fa',
+    [ColoursNames.bg_inset]: '#eff2f5',
+    [ColoursNames.border_default]: '#d0d7de',
+    [ColoursNames.border_subtle]: 'rgba(27, 31, 36, 0.15)',
+    [ColoursNames.shadow]: '#d0d7de',
+    [ColoursNames.neutral]: '#e8ecef',
+    [ColoursNames.neutral_muted]: '#dae0e7',
+    [ColoursNames.neutral_subtle]: '#f3f5f7',
+    [ColoursNames.accent]: '#0969da',
+    [ColoursNames.accent_muted]: 'rgba(84, 174, 255, 0.4)',
+    [ColoursNames.accent_subtle]: '#ddf4ff',
     // State Colours
-    'success': '#1a7f37',
-    'success-muted': 'rgba(74, 194, 107, 0.4)',
-    'success-subtle': '#2da44e',
-    'attention': '#9a6700',
-    'attention-muted': 'rgba(212, 167, 44, 0.4)',
-    'attention-subtle': '#fff8c5',
-    'danger': '#cf222e',
-    'danger-muted': 'rgba(255, 129, 130, 0.4)',
-    'danger-subtle': '#FFEBE9',
+    [ColoursNames.success]: '#1a7f37',
+    [ColoursNames.success_muted]: 'rgba(74, 194, 107, 0.4)',
+    [ColoursNames.success_subtle]: '#2da44e',
+    [ColoursNames.attention]: '#9a6700',
+    [ColoursNames.attention_muted]: 'rgba(212, 167, 44, 0.4)',
+    [ColoursNames.attention_subtle]: '#fff8c5',
+    [ColoursNames.danger]: '#cf222e',
+    [ColoursNames.danger_muted]: 'rgba(255, 129, 130, 0.4)',
+    [ColoursNames.danger_subtle]: '#FFEBE9',
 };
 const classicColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap)), {
-    "bg-graph": '#fafafa',
-    'edge': '#000',
-    "bg-node-light": '#fcfcfc',
-    "bg-node-dark": '#000',
-    "border-node": '#000',
-    'label': '#000',
-    "label-contrast": '#fcfcfc',
-    "object-property": '#fcfcfc',
-    "object-property-contrast": '#000',
-    "data-property": '#fcfcfc',
-    "data-property-contrast": '#000',
-    'class': '#fcfcfc',
-    "class-contrast": '#000',
-    'individual': '#fcfcfc',
-    "individual-contrast": '#000',
+    [ColoursNames.bg_graph]: '#fafafa',
+    [ColoursNames.edge]: '#000',
+    [ColoursNames.bg_node_light]: '#fcfcfc',
+    [ColoursNames.bg_node_dark]: '#000',
+    [ColoursNames.border_node]: '#000',
+    [ColoursNames.label]: '#000',
+    [ColoursNames.label_contrast]: '#fcfcfc',
+    [ColoursNames.object_property]: '#fcfcfc',
+    [ColoursNames.object_property_contrast]: '#000',
+    [ColoursNames.data_property]: '#fcfcfc',
+    [ColoursNames.data_property_contrast]: '#000',
+    [ColoursNames.class]: '#fcfcfc',
+    [ColoursNames.class_contrast]: '#000',
+    [ColoursNames.individual]: '#fcfcfc',
+    [ColoursNames.individual_contrast]: '#000',
 });
 const darkColourMap = {
     // graph colors
-    "bg-graph": '#0d1117',
-    'edge': '#a0a0a0',
-    "bg-node-light": '#a0a0a0',
-    "bg-node-dark": '#010101',
-    "border-node": '#a0a0a0',
-    'label': '#a0a0a0',
-    'label-contrast': '#000',
-    "object-property": '#043954',
-    "object-property-contrast": '#7fb3d2',
-    "data-property-contrast": '#C7DAAD',
-    "data-property": '#4B7900',
-    'class-contrast': '#b28f00',
-    'class': '#423500',
-    'individual-contrast': '#9875b7',
-    'individual': '#422D53',
+    [ColoursNames.bg_graph]: '#0d1117',
+    [ColoursNames.edge]: '#a0a0a0',
+    [ColoursNames.bg_node_light]: '#a0a0a0',
+    [ColoursNames.bg_node_dark]: '#010101',
+    [ColoursNames.border_node]: '#a0a0a0',
+    [ColoursNames.label]: '#a0a0a0',
+    [ColoursNames.label_contrast]: '#000',
+    [ColoursNames.object_property]: '#043954',
+    [ColoursNames.object_property_contrast]: '#7fb3d2',
+    [ColoursNames.data_property_contrast]: '#C7DAAD',
+    [ColoursNames.data_property]: '#4B7900',
+    [ColoursNames.class_contrast]: '#b28f00',
+    [ColoursNames.class]: '#423500',
+    [ColoursNames.individual_contrast]: '#9875b7',
+    [ColoursNames.individual]: '#422D53',
     // UI colours
-    'fg-default': '#c9d1d9',
-    'fg-muted': '#8b949e',
-    'fg-subtle': '#6e7681',
-    'fg-on-emphasis': '#ffffff',
-    'bg-default': '#21262d',
-    'bg-inset': '#010409',
-    'border-default': '#8b949e',
-    'border-subtle': 'rgba(240,246,252,0.1)',
-    'shadow': '#010409',
-    'neutral': '#313b48',
-    'neutral-muted': '#343941',
-    'neutral-subtle': '#0c1015',
-    'accent': '#58a6ff',
-    'accent-muted': 'rgba(56,139,253,0.4)',
-    'accent-subtle': 'rgba(56,139,253,0.15)',
+    [ColoursNames.fg_default]: '#c9d1d9',
+    [ColoursNames.fg_muted]: '#8b949e',
+    [ColoursNames.fg_subtle]: '#6e7681',
+    [ColoursNames.fg_on_emphasis]: '#ffffff',
+    [ColoursNames.bg_default]: '#21262d',
+    [ColoursNames.bg_inset]: '#010409',
+    [ColoursNames.border_default]: '#8b949e',
+    [ColoursNames.border_subtle]: 'rgba(240,246,252,0.1)',
+    [ColoursNames.shadow]: '#010409',
+    [ColoursNames.neutral]: '#313b48',
+    [ColoursNames.neutral_muted]: '#343941',
+    [ColoursNames.neutral_subtle]: '#0c1015',
+    [ColoursNames.accent]: '#58a6ff',
+    [ColoursNames.accent_muted]: 'rgba(56,139,253,0.4)',
+    [ColoursNames.accent_subtle]: 'rgba(56,139,253,0.15)',
 };
 const DefaultThemes = {
     grapholscape: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOLSCAPE, gscapeColourMap, 'Grapholscape'),
@@ -1694,1286 +1603,6 @@ class Lifecycle {
     }
 }
 
-var Language;
-(function (Language) {
-    Language["DE"] = "de";
-    Language["EN"] = "en";
-    Language["ES"] = "es";
-    Language["FR"] = "fr";
-    Language["IT"] = "it";
-})(Language || (Language = {}));
-var EntityNameType;
-(function (EntityNameType) {
-    EntityNameType["LABEL"] = "label";
-    EntityNameType["PREFIXED_IRI"] = "prefixedIri";
-    EntityNameType["FULL_IRI"] = "fullIri";
-})(EntityNameType || (EntityNameType = {}));
-
-class DisplayedNamesManager {
-    constructor(grapholscape) {
-        this._entityNameType = EntityNameType.LABEL;
-        this._language = Language.EN;
-        this.setEntityNameType = (newEntityNameType) => {
-            if (newEntityNameType === this._entityNameType)
-                return;
-            if (!Object.values(EntityNameType).includes(newEntityNameType)) {
-                console.warn(`"${newEntityNameType}" is not a valid entity name type`);
-                return;
-            }
-            this._entityNameType = newEntityNameType;
-            for (let entity of this._grapholscape.ontology.entities.values()) {
-                this.setDisplayedNames(entity);
-            }
-            this._grapholscape.lifecycle.trigger(LifecycleEvent.EntityNameTypeChange, newEntityNameType);
-            storeConfigEntry('entityNameType', newEntityNameType);
-        };
-        this.setLanguage = (language) => {
-            const languageValue = language;
-            if (!this._grapholscape.ontology.languages.list.includes(language)) {
-                console.warn(`Language ${language} is not supported by this ontology`);
-                return;
-            }
-            if (languageValue === this._language) {
-                return;
-            }
-            this._language = languageValue;
-            if (this._entityNameType === EntityNameType.LABEL) {
-                for (let entity of this._grapholscape.ontology.entities.values()) {
-                    this.setDisplayedNames(entity);
-                }
-            }
-            this._grapholscape.lifecycle.trigger(LifecycleEvent.LanguageChange, languageValue);
-            storeConfigEntry('language', language);
-        };
-        this._grapholscape = grapholscape;
-    }
-    get entityNameType() { return this._entityNameType; }
-    get language() { return this._language; }
-    setDisplayedNames(entity) {
-        entity.occurrences.forEach((entityOccurrencesInRenderState, renderState) => {
-            entityOccurrencesInRenderState.forEach(entityOccurrence => {
-                var _a, _b, _c, _d;
-                const grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState);
-                if (!grapholElement)
-                    return;
-                let newDisplayedName;
-                switch (this._entityNameType) {
-                    case EntityNameType.LABEL:
-                        newDisplayedName =
-                            ((_a = entity.getLabels(this._language)[0]) === null || _a === void 0 ? void 0 : _a.lexicalForm) ||
-                                ((_b = entity.getLabels(this._grapholscape.ontology.languages.default)[0]) === null || _b === void 0 ? void 0 : _b.lexicalForm) ||
-                                ((_c = entity.getLabels()[0]) === null || _c === void 0 ? void 0 : _c.lexicalForm) ||
-                                entity.iri.remainder;
-                        break;
-                    case EntityNameType.PREFIXED_IRI:
-                        newDisplayedName = entity.iri.prefixed;
-                        break;
-                    case EntityNameType.FULL_IRI:
-                        newDisplayedName = entity.iri.fullIri;
-                        break;
-                }
-                if (newDisplayedName !== grapholElement.displayedName) {
-                    grapholElement.displayedName = newDisplayedName;
-                    const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId);
-                    if (diagram) {
-                        /**
-                         * Entity Occurrences are not replicated, in entity.occurrences.get('lite') there will
-                         * be only replicated/transformed entities. So the occurrences in graphol will be
-                         * present also in other representations unless filtered.
-                         * So for each occurrence in graphol, we search it in other representations and update them as well
-                         */
-                        if (renderState === RendererStatesEnum.GRAPHOL) {
-                            diagram.representations.forEach(representation => {
-                                representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
-                            });
-                        }
-                        else {
-                            (_d = diagram.representations.get(renderState)) === null || _d === void 0 ? void 0 : _d.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
-                        }
-                    }
-                }
-            });
-        });
-    }
-}
-
-class EntityNavigator {
-    constructor(grapholscape) {
-        this.centerOnEntity = (iri, diagramId, zoom) => {
-            this._centerSelectEntity(iri, diagramId, false, zoom);
-        };
-        this.selectEntity = (iri, diagramId, zoom) => {
-            this._centerSelectEntity(iri, diagramId, true, zoom);
-        };
-        this._grapholscape = grapholscape;
-    }
-    _centerSelectEntity(iri, diagramId, select = false, zoom) {
-        if (diagramId || diagramId === 0) {
-            const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagramId);
-            if (entityOccurrence) {
-                this._performCenterSelect(entityOccurrence, select, zoom);
-            }
-        }
-        else {
-            for (let diagram of this._grapholscape.ontology.diagrams) {
-                const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagram.id);
-                if (entityOccurrence) {
-                    this._performCenterSelect(entityOccurrence, select, zoom);
-                    break;
-                }
-            }
-        }
-    }
-    _performCenterSelect(occurrence, select, zoom) {
-        if (this._grapholscape.diagramId !== occurrence.diagramId) {
-            this._grapholscape.showDiagram(occurrence.diagramId);
-        }
-        this._grapholscape.renderer.centerOnElementById(occurrence.elementId, zoom, select);
-        if (select) {
-            const grapholElement = this._grapholscape.ontology.getGrapholElement(occurrence.elementId, occurrence.diagramId, this._grapholscape.renderState);
-            if (!grapholElement)
-                return;
-            if (isGrapholNode(grapholElement)) {
-                this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
-            }
-            else if (isGrapholEdge(grapholElement)) {
-                this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
-            }
-        }
-    }
-    getEntityOccurrenceInDiagram(iri, diagramId) {
-        const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId);
-        if (!occurrencesMap)
-            return;
-        const grapholOccurrences = occurrencesMap.get(RendererStatesEnum.GRAPHOL);
-        // if no graphol occurrence, then cannot appear in any representation
-        if (!grapholOccurrences || grapholOccurrences.length <= 0)
-            return;
-        const diagram = this._grapholscape.ontology.getDiagram(diagramId);
-        if (!diagram)
-            return;
-        const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState);
-        // Search any original graphol occurrence in the actual representation
-        for (let grapholOccurrence of grapholOccurrences) {
-            if (actualDiagramRepresentation === null || actualDiagramRepresentation === void 0 ? void 0 : actualDiagramRepresentation.grapholElements.has(grapholOccurrence.elementId)) {
-                return grapholOccurrence;
-            }
-        }
-        // The original graphol occurrence may not be present in a new representation
-        // Find first replicated occurrence
-        const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState);
-        if (replicatedOccurrences && replicatedOccurrences.length > 0) {
-            return replicatedOccurrences[0];
-        }
-    }
-    updateEntitiesOccurrences() {
-        if (this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
-            return;
-        this._grapholscape.ontology.diagrams.forEach(diagram => {
-            var _a, _b;
-            // const diagram = this._grapholscape.renderer.diagram
-            const replicatedElements = (_b = (_a = diagram.representations.get(this._grapholscape.renderState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$("[originalId]");
-            if (replicatedElements && !replicatedElements.empty()) {
-                replicatedElements.forEach(replicatedElement => {
-                    const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'));
-                    if (grapholEntity) {
-                        grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState);
-                        replicatedElement.data('iri', grapholEntity.iri.fullIri);
-                        grapholEntity.addOccurrence(replicatedElement.id(), diagram.id, this._grapholscape.renderState);
-                    }
-                });
-            }
-        });
-    }
-    setGraphEventHandlers(diagram) {
-        diagram.representations.forEach(diagramRepresentation => {
-            const cy = diagramRepresentation.cy;
-            if (cy.scratch('_gscape-graph-handlers-set'))
-                return;
-            cy.on('select', e => {
-                const grapholElement = diagramRepresentation.grapholElements.get(e.target.id());
-                if (grapholElement) {
-                    if (grapholElement.isEntity()) {
-                        const grapholEntity = this._grapholscape.ontology.getEntity(e.target.data().iri);
-                        if (grapholEntity) {
-                            this._grapholscape.lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement);
-                        }
-                    }
-                    if (isGrapholNode(grapholElement)) {
-                        this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
-                    }
-                    if (isGrapholEdge(grapholElement)) {
-                        this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
-                    }
-                }
-            });
-            cy.on('tap', evt => {
-                if (evt.target === cy) {
-                    this._grapholscape.lifecycle.trigger(LifecycleEvent.BackgroundClick);
-                }
-            });
-            cy.on('mouseover', '*', e => {
-                const container = cy.container();
-                if (container) {
-                    container.style.cursor = 'pointer';
-                }
-            });
-            cy.on('mouseout', '*', e => {
-                const container = cy.container();
-                if (container) {
-                    container.style.cursor = 'inherit';
-                }
-            });
-            cy.scratch('_gscape-graph-handlers-set', true);
-        });
-    }
-}
-
-/**
- * @property {string} name - diagram's name
- * @property {string | number} id - diagram's identifier
- * @property {cytoscape} cy - cytoscape headless instance for managing elements
- */
-class Renderer {
-    constructor(renderState) {
-        this.filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]));
-        this.FOCUS_ZOOM_LEVEL = 1.5;
-        this.renderStateData = {};
-        /**
-         * Filter elements on the diagram.
-         * It will be actually applied only if the user defined callback on the event
-         * {@link LifecycleEvent.FilterRequest} returns true and if the internal logic
-         * allows for the filter to be applied.
-         * @param filter Can be an object of type {@link Filter}, {@link DefaultFilterKeyEnum}
-         * or a string representing the unique key of a defined filter
-         */
-        this.filter = (filter) => {
-            let _filter = this.getFilter(filter);
-            if (!_filter)
-                return;
-            if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState.filterManager.filterActivation(_filter)) {
-                this.performFilter(_filter);
-                this._lifecycle.trigger(LifecycleEvent.Filter, _filter);
-            }
-        };
-        /**
-         * Unfilter elements on the diagram.
-         * It will be actually deactivated only if the user defined callback on the event
-         * {@link LifecycleEvent.FilterRequest} returns true and if the internal logic
-         * allows for the filter to be deactivated.
-         * @param filter Can be an object of type {@link Filter}, {@link DefaultFilterKeyEnum}
-         * or a string representing the unique key of a defined filter
-         */
-        this.unfilter = (filter) => {
-            const _filter = this.getFilter(filter);
-            if (!_filter)
-                return;
-            if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && this._renderState.filterManager.filterDeactivation(_filter)) {
-                this.performFilter(_filter, false);
-                this.applyActiveFilters();
-                this._lifecycle.trigger(LifecycleEvent.Unfilter, _filter);
-            }
-        };
-        /**
-         * Select a node or an edge in the actual diagram given its unique id
-         * @param {string} elementId elem id (node or edge)
-         */
-        this.selectElement = (elementId) => {
-            var _a;
-            this.unselect();
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.$id(elementId).select();
-        };
-        /**
-         * Unselect every selected element in this diagram
-         */
-        this.unselect = () => {
-            var _a;
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.elements(':selected').unselect();
-        };
-        /**
-         * Fit viewport to diagram
-         *
-         * @group API
-         */
-        this.fit = () => {
-            var _a;
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.fit();
-        };
-        this.zoom = (zoomValue) => {
-            var _a, _b;
-            if (zoomValue != ((_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom()))
-                (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
-                    zoom: zoomValue,
-                    queue: false
-                });
-        };
-        this.zoomIn = (zoomValue) => {
-            var _a;
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
-                zoom: {
-                    level: this.cy.zoom() + zoomValue * this.cy.zoom(),
-                    renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
-                },
-                queue: false,
-            });
-        };
-        this.zoomOut = (zoomValue) => {
-            var _a;
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
-                zoom: {
-                    level: this.cy.zoom() - zoomValue * this.cy.zoom(),
-                    renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
-                },
-                queue: false,
-            });
-        };
-        if (renderState)
-            this.renderState = renderState;
-    }
-    set lifecycle(lc) {
-        this._lifecycle = lc;
-    }
-    set renderState(rs) {
-        if (this.diagram) {
-            /**
-             * Stop rendering actual diagram before
-             * changing renderer state
-             */
-            this.stopRendering();
-        }
-        this._renderState = rs;
-        rs.renderer = this;
-        if (this.diagram) {
-            rs.render();
-            this.performAllFilters();
-        }
-    }
-    get renderState() { return this._renderState; }
-    get theme() { return this._theme; }
-    render(diagram) {
-        if (!this.diagram || this.diagram.id !== diagram.id) {
-            this.stopRendering();
-            this.diagram = diagram;
-            this._renderState.render();
-            this.performAllFilters();
-            this._lifecycle.trigger(LifecycleEvent.DiagramChange, diagram);
-        }
-    }
-    mount() {
-        var _a;
-        this.applyTheme();
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.mount(this.container);
-    }
-    addElement(element) {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.add(element);
-    }
-    performFilter(filter, activate = true) {
-        if (this.grapholElements) {
-            for (let grapholElement of this.grapholElements.values()) {
-                if (filter.shouldFilter(grapholElement)) {
-                    if (activate)
-                        this._renderState.filter(grapholElement.id, filter);
-                    else
-                        this._renderState.unfilter(grapholElement.id, filter);
-                }
-            }
-            filter.active = activate;
-        }
-    }
-    getFilter(filter) {
-        let _filter;
-        if (typeof filter === 'string') {
-            _filter = this.filters.get(filter);
-        }
-        else {
-            _filter = filter;
-        }
-        if (!_filter || !this.filters.has(_filter.key)) {
-            console.warn(`Can't find any filter "${filter}"`);
-            return;
-        }
-        return _filter;
-    }
-    applyActiveFilters() {
-        this.filters.forEach(filter => {
-            if (filter.active) {
-                this.performFilter(filter);
-            }
-        });
-    }
-    performAllFilters() {
-        // first unfiler
-        this.filters.forEach(filter => {
-            if (!filter.active)
-                this.performFilter(filter, filter.active);
-        });
-        this.filters.forEach(filter => {
-            if (filter.active)
-                this.performFilter(filter, filter.active);
-        });
-    }
-    stopRendering() {
-        var _a;
-        this.unselect();
-        this._renderState.stopRendering();
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.unmount();
-    }
-    /**
-     * Put a set of elements (nodes and/or edges) at the center of the viewport.
-     * If just one element then the element will be at the center.
-     * @param elementId the element's ID
-     * @param zoom the zoom level to apply, if not passed, zoom level won't be changed
-     */
-    centerOnElementById(elementId, zoom, select) {
-        var _a, _b;
-        if (zoom === void 0) { zoom = (_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom(); }
-        if (!this.cy || (!zoom && zoom !== 0))
-            return;
-        const cyElement = this.cy.$id(elementId);
-        zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom;
-        if (cyElement.empty()) {
-            console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`);
-        }
-        else {
-            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
-                center: {
-                    eles: cyElement
-                },
-                zoom: zoom,
-                queue: false,
-            });
-            if (select && this.cy.$(':selected') !== cyElement) {
-                this.unselect();
-                cyElement.select();
-            }
-        }
-    }
-    centerOnElement(element, zoom, select) {
-        this.centerOnElementById(element.id, zoom, select);
-    }
-    centerOnModelPosition(xPos, yPos, zoom) {
-        if (!this.cy)
-            return;
-        let offsetX = this.cy.width() / 2;
-        let offsetY = this.cy.height() / 2;
-        xPos -= offsetX;
-        yPos -= offsetY;
-        this.cy.pan({
-            x: -xPos,
-            y: -yPos
-        });
-        this.cy.zoom({
-            level: zoom || this.cy.zoom(),
-            renderedPosition: { x: offsetX, y: offsetY }
-        });
-    }
-    centerOnRenderedPosition(xPos, yPos, zoom) {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.viewport({
-            zoom: zoom || this.cy.zoom(),
-            pan: { x: xPos, y: yPos }
-        });
-    }
-    setTheme(theme) {
-        if (theme !== this._theme) {
-            this._theme = theme;
-            if (this.cy) {
-                this.applyTheme();
-            }
-        }
-    }
-    applyTheme() {
-        var _a;
-        if (this._theme) {
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style(this.renderState.getGraphStyle(this._theme));
-            if (this.theme.colours["bg-graph"])
-                this.container.style.backgroundColor = this.theme.colours["bg-graph"];
-        }
-        else {
-            console.warn('Cannot render anything, please set a theme');
-        }
-    }
-    // updateAll() {
-    //   for (let grapholElement of this.grapholElements.values()) {
-    //     this.updateElement(grapholElement.id)
-    //   }
-    // }
-    updateElement(grapholElement) {
-        if (!this.cy)
-            return;
-        const cyElement = this.cy.$id(grapholElement.id);
-        if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-            cyElement.position(grapholElement.position);
-        }
-        if (isGrapholEdge(grapholElement)) {
-            cyElement.move({
-                source: grapholElement.sourceId,
-                target: grapholElement.targetId
-            });
-        }
-        cyElement.data(grapholElement.getCytoscapeRepr()[0].data);
-    }
-    get isThemeApplied() {
-        var _a;
-        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style();
-    }
-    get grapholElements() {
-        var _a, _b;
-        return (_b = (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.representations.get(this._renderState.id)) === null || _b === void 0 ? void 0 : _b.grapholElements;
-    }
-    get selectedElement() {
-        var _a, _b;
-        if (this.cy)
-            return (_a = this.grapholElements) === null || _a === void 0 ? void 0 : _a.get((_b = this.cy.$(':selected')[0]) === null || _b === void 0 ? void 0 : _b.id());
-    }
-    get viewportState() {
-        if (this.cy)
-            return {
-                zoom: this.cy.zoom(),
-                pan: this.cy.pan(),
-            };
-    }
-    set container(container) {
-        this._container = document.createElement('div');
-        this._container.classList.add('grapholscape-graph');
-        this._container.style.width = '100%';
-        this._container.style.height = '100%';
-        this._container.style.position = 'relative';
-        container.appendChild(this.container);
-    }
-    get container() { return this._container; }
-    /**
-     * Getter
-     */
-    get nodes() {
-        var _a;
-        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.nodes().jsons();
-    }
-    /**
-     * Getter
-     */
-    get edges() {
-        var _a;
-        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.edges().jsons();
-    }
-}
-
-/**
- * @license
- * Copyright 2019 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const t$1=window.ShadowRoot&&(void 0===window.ShadyCSS||window.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,e$2=Symbol(),n$3=new Map;class s$3{constructor(t,n){if(this._$cssResult$=!0,n!==e$2)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t;}get styleSheet(){let e=n$3.get(this.cssText);return t$1&&void 0===e&&(n$3.set(this.cssText,e=new CSSStyleSheet),e.replaceSync(this.cssText)),e}toString(){return this.cssText}}const o$3=t=>new s$3("string"==typeof t?t:t+"",e$2),r$2=(t,...n)=>{const o=1===t.length?t[0]:n.reduce(((e,n,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(n)+t[s+1]),t[0]);return new s$3(o,e$2)},i$1=(e,n)=>{t$1?e.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((t=>{const n=document.createElement("style"),s=window.litNonce;void 0!==s&&n.setAttribute("nonce",s),n.textContent=t.cssText,e.appendChild(n);}));},S$1=t$1?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const n of t.cssRules)e+=n.cssText;return o$3(e)})(t):t;
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */var s$2;const e$1=window.reactiveElementPolyfillSupport,r$1={toAttribute(t,i){switch(i){case Boolean:t=t?"":null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},h$1=(t,i)=>i!==t&&(i==i||t==t),o$2={attribute:!0,type:String,converter:r$1,reflect:!1,hasChanged:h$1};class n$2 extends HTMLElement{constructor(){super(),this._$Et=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Ei=null,this.o();}static addInitializer(t){var i;null!==(i=this.l)&&void 0!==i||(this.l=[]),this.l.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Eh(s,i);void 0!==e&&(this._$Eu.set(e,s),t.push(e));})),t}static createProperty(t,i=o$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||o$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Eu=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(S$1(i));}else void 0!==i&&s.push(S$1(i));return s}static _$Eh(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}o(){var t;this._$Ev=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Ep(),this.requestUpdate(),null===(t=this.constructor.l)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$Em)&&void 0!==i?i:this._$Em=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$Em)||void 0===i||i.splice(this._$Em.indexOf(t)>>>0,1);}_$Ep(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Et.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return i$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$Em)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$Em)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$Eg(t,i,s=o$2){var e,h;const n=this.constructor._$Eh(t,s);if(void 0!==n&&!0===s.reflect){const o=(null!==(h=null===(e=s.converter)||void 0===e?void 0:e.toAttribute)&&void 0!==h?h:r$1.toAttribute)(i,s.type);this._$Ei=t,null==o?this.removeAttribute(n):this.setAttribute(n,o),this._$Ei=null;}}_$AK(t,i){var s,e,h;const o=this.constructor,n=o._$Eu.get(t);if(void 0!==n&&this._$Ei!==n){const t=o.getPropertyOptions(n),l=t.converter,a=null!==(h=null!==(e=null===(s=l)||void 0===s?void 0:s.fromAttribute)&&void 0!==e?e:"function"==typeof l?l:null)&&void 0!==h?h:r$1.fromAttribute;this._$Ei=n,this[n]=a(i,t.type),this._$Ei=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||h$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$Ei!==t&&(void 0===this._$ES&&(this._$ES=new Map),this._$ES.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$Ev=this._$EC());}async _$EC(){this.isUpdatePending=!0;try{await this._$Ev;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Et&&(this._$Et.forEach(((t,i)=>this[i]=t)),this._$Et=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$Em)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$EU();}catch(t){throw i=!1,this._$EU(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$Em)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$EU(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$Ev}shouldUpdate(t){return !0}update(t){void 0!==this._$ES&&(this._$ES.forEach(((t,i)=>this._$Eg(i,this[i],t))),this._$ES=void 0),this._$EU();}updated(t){}firstUpdated(t){}}n$2.finalized=!0,n$2.elementProperties=new Map,n$2.elementStyles=[],n$2.shadowRootOptions={mode:"open"},null==e$1||e$1({ReactiveElement:n$2}),(null!==(s$2=globalThis.reactiveElementVersions)&&void 0!==s$2?s$2:globalThis.reactiveElementVersions=[]).push("1.0.1");
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-var t;const i=globalThis.trustedTypes,s$1=i?i.createPolicy("lit-html",{createHTML:t=>t}):void 0,e=`lit$${(Math.random()+"").slice(9)}$`,o$1="?"+e,n$1=`<${o$1}>`,l$1=document,h=(t="")=>l$1.createComment(t),r=t=>null===t||"object"!=typeof t&&"function"!=typeof t,d=Array.isArray,u=t=>{var i;return d(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},c=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,a=/>/g,f=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,_=/'/g,m=/"/g,g=/^(?:script|style|textarea)$/i,$=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),p=$(1),y=$(2),b=Symbol.for("lit-noChange"),T=Symbol.for("lit-nothing"),x=new WeakMap,w=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(h(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},A=l$1.createTreeWalker(l$1,129,null,!1),C=(t,i)=>{const o=t.length-1,l=[];let h,r=2===i?"<svg>":"",d=c;for(let i=0;i<o;i++){const s=t[i];let o,u,$=-1,p=0;for(;p<s.length&&(d.lastIndex=p,u=d.exec(s),null!==u);)p=d.lastIndex,d===c?"!--"===u[1]?d=v:void 0!==u[1]?d=a:void 0!==u[2]?(g.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=f):void 0!==u[3]&&(d=f):d===f?">"===u[0]?(d=null!=h?h:c,$=-1):void 0===u[1]?$=-2:($=d.lastIndex-u[2].length,o=u[1],d=void 0===u[3]?f:'"'===u[3]?m:_):d===m||d===_?d=f:d===v||d===a?d=c:(d=f,h=void 0);const y=d===f&&t[i+1].startsWith("/>")?" ":"";r+=d===c?s+n$1:$>=0?(l.push(o),s.slice(0,$)+"$lit$"+s.slice($)+e+y):s+e+(-2===$?(l.push(void 0),i):y);}const u=r+(t[o]||"<?>")+(2===i?"</svg>":"");return [void 0!==s$1?s$1.createHTML(u):u,l]};class P{constructor({strings:t,_$litType$:s},n){let l;this.parts=[];let r=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C(t,s);if(this.el=P.createElement(v,n),A.currentNode=this.el.content,2===s){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(e)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(e),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:r});}for(const i of t)l.removeAttribute(i);}if(g.test(l.tagName)){const t=l.textContent.split(e),s=t.length-1;if(s>0){l.textContent=i?i.emptyScript:"";for(let i=0;i<s;i++)l.append(t[i],h()),A.nextNode(),c.push({type:2,index:++r});l.append(t[s],h());}}}else if(8===l.nodeType)if(l.data===o$1)c.push({type:2,index:r});else {let t=-1;for(;-1!==(t=l.data.indexOf(e,t+1));)c.push({type:7,index:r}),t+=e.length-1;}r++;}}static createElement(t,i){const s=l$1.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===b)return i;let d=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=r(i)?void 0:i._$litDirective$;return (null==d?void 0:d.constructor)!==u&&(null===(n=null==d?void 0:d._$AO)||void 0===n||n.call(d,!1),void 0===u?d=void 0:(d=new u(t),d._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=d:s._$Cu=d),void 0!==d&&(i=V(t,d._$AS(t,i.values),d,e)),i}class E{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:l$1).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),h=0,r=0,d=e[0];for(;void 0!==d;){if(h===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.v.push(i),d=e[++r];}h!==(null==d?void 0:d.index)&&(n=A.nextNode(),h++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=T,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cg=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cg}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),r(t)?t===T||null==t||""===t?(this._$AH!==T&&this._$AR(),this._$AH=T):t!==this._$AH&&t!==b&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.S(t):u(t)?this.M(t):this.$(t);}A(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}S(t){this._$AH!==t&&(this._$AR(),this._$AH=this.A(t));}$(t){this._$AH!==T&&r(this._$AH)?this._$AA.nextSibling.data=t:this.S(l$1.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new E(o,this),i=t.p(this.options);t.m(s),this.S(i),this._$AH=t;}}_$AC(t){let i=x.get(t.strings);return void 0===i&&x.set(t.strings,i=new P(t)),i}M(t){d(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.A(h()),this.A(h()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cg=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=T,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=T;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!r(t)||t!==this._$AH&&t!==b,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===b&&(h=this._$AH[l]),n||(n=!r(h)||h!==this._$AH[l]),h===T?t=T:t!==T&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.k(t);}k(t){t===T?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}k(t){this.element[this.name]=t===T?void 0:t;}}class k extends S{constructor(){super(...arguments),this.type=4;}k(t){t&&t!==T?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:T)===b)return;const e=this._$AH,o=t===T&&e!==T||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==T&&(e===T||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const R=window.litHtmlPolyfillSupport;null==R||R(P,N),(null!==(t=globalThis.litHtmlVersions)&&void 0!==t?t:globalThis.litHtmlVersions=[]).push("2.0.1");
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */var l,o;class s extends n$2{constructor(){super(...arguments),this.renderOptions={host:this},this._$Dt=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Dt=w(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Dt)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Dt)||void 0===t||t.setConnected(!1);}render(){return b}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.0.1");
-
-var classIcon = y `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="18"
-   height="18"
-   version="1.1"
-   id="svg4"
-   sodipodi:docname="class.svg"
-   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
-  <metadata
-     id="metadata10">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs8" />
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="1853"
-     inkscape:window-height="1025"
-     id="namedview6"
-     showgrid="false"
-     inkscape:zoom="13.111111"
-     inkscape:cx="0.11440678"
-     inkscape:cy="9"
-     inkscape:window-x="67"
-     inkscape:window-y="27"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg4" />
-  <rect
-     x="3"
-     y="6"
-     width="12"
-     height="7"
-     rx="0"
-     ry="0"
-     id="rect2"
-     style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:3" />
-</svg>
-`;
-
-var dataPropertyIcon = y `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-data-property-contrast)" stroke-width="3.5" fill="none"/>
-</svg>
-`;
-
-var individualIcon = y `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (6e3e5246a0, 2020-05-07)"
-   sodipodi:docname="individual.svg"
-   id="svg4"
-   version="1.1"
-   height="18"
-   width="18">
-  <metadata
-     id="metadata10">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs8">
-    <linearGradient
-       osb:paint="solid"
-       id="linearGradient880">
-      <stop
-         id="stop878"
-         offset="0"
-         style="stop-color:#000000;stop-opacity:1;" />
-    </linearGradient>
-  </defs>
-  <sodipodi:namedview
-     inkscape:document-rotation="0"
-     fit-margin-bottom="0"
-     fit-margin-right="0"
-     fit-margin-left="0"
-     fit-margin-top="0"
-     inkscape:current-layer="svg4"
-     inkscape:window-maximized="0"
-     inkscape:window-y="27"
-     inkscape:window-x="993"
-     inkscape:cy="9.677215"
-     inkscape:cx="9.0082925"
-     inkscape:zoom="22.702061"
-     showgrid="false"
-     id="namedview6"
-     inkscape:window-height="1025"
-     inkscape:window-width="927"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     guidetolerance="10"
-     gridtolerance="10"
-     objecttolerance="10"
-     borderopacity="1"
-     bordercolor="#666666"
-     pagecolor="#ffffff" />
-  <g
-     id="g27">
-    <g
-       id="g21">
-      <g
-         id="g16">
-        <g
-           id="g12" />
-      </g>
-    </g>
-  </g>
-  <path
-     transform="matrix(0.9072154,0,0,0.92465409,0.92347539,1.0342853)"
-     d="m 15.868025,11.669896 -4.068749,4.075966 -5.7591839,0.0051 -4.0759657,-4.06875 -0.0051,-5.7591835 4.0687497,-4.0759657 5.7591833,-0.0051 4.075966,4.0687497 z"
-     inkscape:randomized="0"
-     inkscape:rounded="0"
-     inkscape:flatsided="true"
-     sodipodi:arg2="0.78451219"
-     sodipodi:arg1="0.39181311"
-     sodipodi:r2="6.9185686"
-     sodipodi:r1="7.5247387"
-     sodipodi:cy="8.796464"
-     sodipodi:cx="8.9135246"
-     sodipodi:sides="8"
-     id="path51"
-     style="fill:none;fill-rule:evenodd;stroke:var(--gscape-color-individual-contrast);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     sodipodi:type="star" />
-</svg>`;
-
-var objectPropertyIcon = y `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="18"
-   height="18"
-   version="1.1"
-   id="svg4"
-   sodipodi:docname="role.svg"
-   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
-  <metadata
-     id="metadata10">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs8" />
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="927"
-     inkscape:window-height="1025"
-     id="namedview6"
-     showgrid="false"
-     inkscape:zoom="13.111111"
-     inkscape:cx="7.2336581"
-     inkscape:cy="6.7167247"
-     inkscape:window-x="993"
-     inkscape:window-y="27"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="svg4"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0" />
-  <polygon
-     points="125,86.909 146.992,125 125,163.092 103.008,125 "
-     transform="matrix(0.27862408,0,0,0.13179941,-25.774205,-7.2921404)"
-     id="polygon2"
-     style="fill:none;stroke:var(--gscape-color-object-property-contrast);stroke-width:12.02451324;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
-</svg>
-`;
-
-const diagrams = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M6.333 5.438Q5.875 5.438 5.552 5.76Q5.229 6.083 5.229 6.542Q5.229 7 5.552 7.302Q5.875 7.604 6.333 7.604Q6.792 7.604 7.094 7.302Q7.396 7 7.396 6.542Q7.396 6.083 7.094 5.76Q6.792 5.438 6.333 5.438ZM6.333 13.208Q5.875 13.208 5.552 13.51Q5.229 13.812 5.229 14.271Q5.229 14.729 5.552 15.052Q5.875 15.375 6.333 15.375Q6.792 15.375 7.094 15.052Q7.396 14.729 7.396 14.271Q7.396 13.812 7.094 13.51Q6.792 13.208 6.333 13.208ZM3.667 3.167H16.354Q16.667 3.167 16.875 3.375Q17.083 3.583 17.083 3.896V9.104Q17.083 9.458 16.875 9.677Q16.667 9.896 16.354 9.896H3.667Q3.354 9.896 3.135 9.677Q2.917 9.458 2.917 9.104V3.896Q2.917 3.583 3.135 3.375Q3.354 3.167 3.667 3.167ZM4.25 4.5V8.562H15.75V4.5ZM3.667 10.938H16.333Q16.667 10.938 16.875 11.156Q17.083 11.375 17.083 11.708V16.875Q17.083 17.229 16.875 17.448Q16.667 17.667 16.333 17.667H3.688Q3.354 17.667 3.135 17.448Q2.917 17.229 2.917 16.875V11.708Q2.917 11.375 3.125 11.156Q3.333 10.938 3.667 10.938ZM4.25 12.271V16.333H15.75V12.271ZM4.25 4.5V8.562ZM4.25 12.271V16.333Z"/></svg>';
-const triangle_up = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 14l5-5 5 5H7z"/></svg>`;
-const triangle_down = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 10l5 5 5-5H7z"/></svg>`;
-const arrow_right = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`;
-const arrowDown = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M10 12 6 8H14Z"/></svg>';
-const explore = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m5.75 14.25 6.021-2.479L14.25 5.75 8.229 8.229Zm3.542-3.542Q9 10.417 9 10t.292-.708Q9.583 9 10 9t.708.292Q11 9.583 11 10t-.292.708Q10.417 11 10 11t-.708-.292ZM10 18q-1.646 0-3.104-.625-1.458-.625-2.552-1.719t-1.719-2.552Q2 11.646 2 10q0-1.667.625-3.115.625-1.447 1.719-2.541Q5.438 3.25 6.896 2.625T10 2q1.667 0 3.115.625 1.447.625 2.541 1.719 1.094 1.094 1.719 2.541Q18 8.333 18 10q0 1.646-.625 3.104-.625 1.458-1.719 2.552t-2.541 1.719Q11.667 18 10 18Zm0-1.5q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`;
-const info_outline = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.25 14H10.75V9H9.25ZM10 7.5Q10.312 7.5 10.531 7.281Q10.75 7.062 10.75 6.75Q10.75 6.438 10.531 6.219Q10.312 6 10 6Q9.688 6 9.469 6.219Q9.25 6.438 9.25 6.75Q9.25 7.062 9.469 7.281Q9.688 7.5 10 7.5ZM10 16.5Q11.354 16.5 12.531 15.99Q13.708 15.479 14.594 14.594Q15.479 13.708 15.99 12.521Q16.5 11.333 16.5 10Q16.5 8.646 15.99 7.469Q15.479 6.292 14.594 5.406Q13.708 4.521 12.531 4.01Q11.354 3.5 10 3.5Q8.667 3.5 7.479 4.01Q6.292 4.521 5.406 5.406Q4.521 6.292 4.01 7.469Q3.5 8.646 3.5 10Q3.5 11.333 4.01 12.521Q4.521 13.708 5.406 14.594Q6.292 15.479 7.479 15.99Q8.667 16.5 10 16.5ZM10 18Q6.667 18 4.333 15.667Q2 13.333 2 10Q2 6.667 4.333 4.333Q6.667 2 10 2Q13.333 2 15.667 4.333Q18 6.667 18 10Q18 13.333 15.667 15.667Q13.333 18 10 18ZM10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Z"/></svg>`;
-const enterFullscreen = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z"/></svg>';
-const exitFullscreen = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z"/></svg>';
-const centerDiagram = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M10 12.167Q9.104 12.167 8.469 11.531Q7.833 10.896 7.833 10Q7.833 9.104 8.469 8.469Q9.104 7.833 10 7.833Q10.896 7.833 11.531 8.469Q12.167 9.104 12.167 10Q12.167 10.896 11.531 11.531Q10.896 12.167 10 12.167ZM2.917 7.542V4.5Q2.917 3.833 3.375 3.375Q3.833 2.917 4.5 2.917H7.542V4.25H4.5Q4.417 4.25 4.333 4.333Q4.25 4.417 4.25 4.5V7.542ZM7.542 17.083H4.5Q3.833 17.083 3.375 16.625Q2.917 16.167 2.917 15.5V12.458H4.25V15.5Q4.25 15.583 4.333 15.667Q4.417 15.75 4.5 15.75H7.542ZM12.458 17.083V15.75H15.5Q15.583 15.75 15.667 15.667Q15.75 15.583 15.75 15.5V12.458H17.083V15.5Q17.083 16.167 16.625 16.625Q16.167 17.083 15.5 17.083ZM15.75 7.542V4.5Q15.75 4.417 15.667 4.333Q15.583 4.25 15.5 4.25H12.458V2.917H15.5Q16.167 2.917 16.625 3.375Q17.083 3.833 17.083 4.5V7.542ZM10 10.833Q10.354 10.833 10.594 10.594Q10.833 10.354 10.833 10Q10.833 9.646 10.594 9.406Q10.354 9.167 10 9.167Q9.646 9.167 9.406 9.406Q9.167 9.646 9.167 10Q9.167 10.354 9.406 10.594Q9.646 10.833 10 10.833Z"/></svg>';
-const filter = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M8.062 13.979V12.583H11.938V13.979ZM5.104 10.5V9.104H14.875V10.5ZM3.146 7V5.604H16.854V7Z"/></svg>';
-const bubbles = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.021 14.667Q4.75 14.667 3.865 13.781Q2.979 12.896 2.979 11.625Q2.979 10.354 3.865 9.469Q4.75 8.583 6.021 8.583Q7.271 8.583 8.156 9.469Q9.042 10.354 9.042 11.625Q9.042 12.896 8.156 13.781Q7.271 14.667 6.021 14.667ZM13.542 11.458Q11.792 11.458 10.583 10.24Q9.375 9.021 9.375 7.271Q9.375 5.5 10.583 4.292Q11.792 3.083 13.542 3.083Q15.292 3.083 16.521 4.292Q17.75 5.5 17.75 7.271Q17.75 9.021 16.521 10.24Q15.292 11.458 13.542 11.458ZM11.958 16.938Q11.042 16.938 10.396 16.292Q9.75 15.646 9.75 14.708Q9.75 13.792 10.396 13.146Q11.042 12.5 11.958 12.5Q12.896 12.5 13.542 13.146Q14.188 13.792 14.188 14.708Q14.188 15.646 13.542 16.292Q12.896 16.938 11.958 16.938Z"/></svg>`;
-const lite = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.208 16.292Q3 16.083 3 15.792Q3 15.5 3.208 15.292L8.104 10.417Q8.208 10.292 8.365 10.219Q8.521 10.146 8.667 10.146Q8.812 10.146 8.969 10.219Q9.125 10.292 9.229 10.417L12 13.167L17.354 7.104Q17.542 6.875 17.812 6.865Q18.083 6.854 18.292 7.062Q18.479 7.25 18.49 7.51Q18.5 7.771 18.333 7.958L12.583 14.542Q12.479 14.667 12.312 14.74Q12.146 14.812 12 14.812Q11.854 14.812 11.698 14.76Q11.542 14.708 11.417 14.562L8.667 11.833L4.188 16.312Q3.979 16.5 3.698 16.5Q3.417 16.5 3.208 16.292ZM3.354 10.812Q3.229 10.812 3.125 10.75Q3.021 10.688 2.958 10.583L2.688 9.958L2.062 9.688Q1.958 9.625 1.896 9.51Q1.833 9.396 1.833 9.292Q1.833 9.167 1.896 9.062Q1.958 8.958 2.062 8.896L2.688 8.625L2.958 8Q3.021 7.896 3.135 7.823Q3.25 7.75 3.354 7.75Q3.479 7.75 3.583 7.823Q3.688 7.896 3.75 8L4.021 8.625L4.646 8.896Q4.896 9.021 4.896 9.292Q4.896 9.562 4.646 9.688L4.021 9.958L3.75 10.583Q3.688 10.688 3.583 10.75Q3.479 10.812 3.354 10.812ZM12.417 9.146Q12.292 9.146 12.188 9.083Q12.083 9.021 12.021 8.917L11.75 8.292L11.125 8.021Q11.021 7.958 10.958 7.844Q10.896 7.729 10.896 7.625Q10.896 7.5 10.958 7.396Q11.021 7.292 11.125 7.229L11.75 6.958L12.021 6.333Q12.083 6.229 12.198 6.156Q12.312 6.083 12.417 6.083Q12.542 6.083 12.646 6.156Q12.75 6.229 12.812 6.333L13.083 6.958L13.708 7.229Q13.833 7.292 13.885 7.396Q13.938 7.5 13.938 7.625Q13.938 7.75 13.885 7.854Q13.833 7.958 13.708 8.021L13.083 8.292L12.812 8.917Q12.75 9.021 12.646 9.083Q12.542 9.146 12.417 9.146ZM7.062 6.646Q6.938 6.646 6.833 6.573Q6.729 6.5 6.667 6.396L6.271 5.5L5.375 5.104Q5.271 5.042 5.198 4.927Q5.125 4.812 5.125 4.708Q5.125 4.583 5.198 4.479Q5.271 4.375 5.375 4.312L6.271 3.896L6.667 3Q6.729 2.875 6.844 2.823Q6.958 2.771 7.062 2.771Q7.188 2.771 7.292 2.823Q7.396 2.875 7.458 3L7.854 3.896L8.75 4.312Q8.875 4.375 8.938 4.479Q9 4.583 9 4.708Q9 4.833 8.938 4.938Q8.875 5.042 8.75 5.104L7.854 5.5L7.458 6.396Q7.396 6.5 7.292 6.573Q7.188 6.646 7.062 6.646Z"/></svg>`;
-const settings_icon = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m8.021 17.917-.313-2.5q-.27-.125-.625-.334-.354-.208-.625-.395l-2.312.979-1.979-3.438 1.979-1.5q-.021-.167-.031-.364-.011-.198-.011-.365 0-.146.011-.344.01-.198.031-.385l-1.979-1.5 1.979-3.417 2.312.958q.271-.187.615-.385t.635-.344l.313-2.5h3.958l.313 2.5q.312.167.625.344.312.177.604.385l2.333-.958 1.979 3.417-1.979 1.521q.021.187.021.364V10q0 .146-.01.333-.011.188-.011.396l1.958 1.5-1.979 3.438-2.312-.979q-.292.208-.615.395-.323.188-.614.334l-.313 2.5Zm1.937-5.355q1.063 0 1.813-.75t.75-1.812q0-1.062-.75-1.812t-1.813-.75q-1.041 0-1.802.75-.76.75-.76 1.812t.76 1.812q.761.75 1.802.75Zm0-1.333q-.5 0-.864-.364-.365-.365-.365-.865t.365-.865q.364-.364.864-.364t.865.364q.365.365.365.865t-.365.865q-.365.364-.865.364ZM10.021 10Zm-.854 6.583h1.666l.25-2.187q.605-.167 1.136-.49.531-.323 1.031-.802l2.021.875.854-1.375-1.792-1.354q.105-.333.136-.635.031-.303.031-.615 0-.292-.031-.573-.031-.281-.115-.635l1.792-1.396-.834-1.375-2.062.875q-.438-.438-1.021-.781-.583-.344-1.125-.49l-.271-2.208H9.167l-.271 2.208q-.584.146-1.125.458-.542.313-1.042.792l-2.021-.854-.833 1.375 1.75 1.354q-.083.333-.125.646-.042.312-.042.604t.042.594q.042.302.125.635l-1.75 1.375.833 1.375 2.021-.854q.479.458 1.021.771.542.312 1.146.479Z"/></svg>`;
-const infoFilled = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 14.167Q10.354 14.167 10.615 13.906Q10.875 13.646 10.875 13.292V10.021Q10.875 9.667 10.615 9.417Q10.354 9.167 10 9.167Q9.646 9.167 9.385 9.427Q9.125 9.688 9.125 10.042V13.312Q9.125 13.667 9.385 13.917Q9.646 14.167 10 14.167ZM10 7.479Q10.354 7.479 10.615 7.219Q10.875 6.958 10.875 6.604Q10.875 6.25 10.615 5.99Q10.354 5.729 10 5.729Q9.646 5.729 9.385 5.99Q9.125 6.25 9.125 6.604Q9.125 6.958 9.385 7.219Q9.646 7.479 10 7.479ZM10 18.333Q8.271 18.333 6.75 17.677Q5.229 17.021 4.104 15.896Q2.979 14.771 2.323 13.25Q1.667 11.729 1.667 10Q1.667 8.271 2.323 6.75Q2.979 5.229 4.104 4.104Q5.229 2.979 6.75 2.323Q8.271 1.667 10 1.667Q11.729 1.667 13.25 2.323Q14.771 2.979 15.896 4.104Q17.021 5.229 17.677 6.75Q18.333 8.271 18.333 10Q18.333 11.729 17.677 13.25Q17.021 14.771 15.896 15.896Q14.771 17.021 13.25 17.677Q11.729 18.333 10 18.333Z"/></svg>`;
-const plus = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.188 15.083V10.792H4.896V9.167H9.188V4.875H10.812V9.167H15.104V10.792H10.812V15.083Z"/></svg>`;
-const minus = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M4.875 10.792V9.167H15.125V10.792Z"/></svg>`;
-const save = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M17.083 6v9.5q0 .667-.458 1.125-.458.458-1.125.458h-11q-.667 0-1.125-.458-.458-.458-.458-1.125v-11q0-.667.458-1.125.458-.458 1.125-.458H14Zm-1.333.604L13.396 4.25H4.5q-.104 0-.177.073T4.25 4.5v11q0 .104.073.177t.177.073h11q.104 0 .177-.073t.073-.177ZM10 14.312q.896 0 1.531-.645.636-.646.636-1.521 0-.896-.636-1.531-.635-.636-1.531-.636-.896 0-1.531.636-.636.635-.636 1.531 0 .875.636 1.521.635.645 1.531.645Zm-4.667-6.02h6.855V5.333H5.333ZM4.25 6.604v9.146-11.5Z"/></svg>`;
-const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
-const close = y `<svg fillColor="currentColor" style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
-const blankSlateDiagrams = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M14.104 8.521Q13.875 8.312 13.875 8.052Q13.875 7.792 14.083 7.583L15.875 5.792Q16.062 5.604 16.333 5.615Q16.604 5.625 16.792 5.812Q17 6.021 17 6.281Q17 6.542 16.792 6.75L15 8.542Q14.812 8.729 14.552 8.719Q14.292 8.708 14.104 8.521ZM10 6.729Q9.729 6.729 9.531 6.531Q9.333 6.333 9.333 6.062V3.604Q9.333 3.333 9.531 3.135Q9.729 2.938 10 2.938Q10.271 2.938 10.469 3.135Q10.667 3.333 10.667 3.604V6.062Q10.667 6.333 10.469 6.531Q10.271 6.729 10 6.729ZM5 8.521 3.208 6.75Q3 6.562 3.01 6.281Q3.021 6 3.229 5.792Q3.417 5.604 3.688 5.604Q3.958 5.604 4.167 5.792L5.938 7.583Q6.125 7.792 6.125 8.052Q6.125 8.312 5.938 8.521Q5.729 8.708 5.458 8.708Q5.188 8.708 5 8.521ZM3.667 15.75H16.333Q16.417 15.75 16.5 15.667Q16.583 15.583 16.583 15.5V11.896Q16.583 11.812 16.5 11.729Q16.417 11.646 16.333 11.646H13.875Q13.375 12.771 12.302 13.469Q11.229 14.167 10 14.167Q8.771 14.167 7.708 13.469Q6.646 12.771 6.125 11.646H3.667Q3.583 11.646 3.5 11.729Q3.417 11.812 3.417 11.896V15.5Q3.417 15.583 3.5 15.667Q3.583 15.75 3.667 15.75ZM3.667 17.083Q3 17.083 2.542 16.625Q2.083 16.167 2.083 15.5V11.896Q2.083 11.229 2.542 10.771Q3 10.312 3.667 10.312H6.625Q7 10.312 7.083 10.385Q7.167 10.458 7.229 10.708Q7.417 11.5 8.135 12.167Q8.854 12.833 10 12.833Q11.146 12.833 11.865 12.156Q12.583 11.479 12.771 10.708Q12.833 10.458 12.917 10.385Q13 10.312 13.375 10.312H16.333Q17 10.312 17.458 10.771Q17.917 11.229 17.917 11.896V15.5Q17.917 16.167 17.458 16.625Q17 17.083 16.333 17.083ZM3.667 15.75Q3.583 15.75 3.5 15.75Q3.417 15.75 3.417 15.75Q3.417 15.75 3.5 15.75Q3.583 15.75 3.667 15.75H6.125Q6.646 15.75 7.708 15.75Q8.771 15.75 10 15.75Q11.229 15.75 12.302 15.75Q13.375 15.75 13.875 15.75H16.333Q16.417 15.75 16.5 15.75Q16.583 15.75 16.583 15.75Q16.583 15.75 16.5 15.75Q16.417 15.75 16.333 15.75Z"/></svg>`;
-const check = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.229 13.771 5.021 10.542 5.75 9.792 8.229 12.25 14.25 6.25 14.979 7.021Z"/></svg>`;
-const searchOff = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6 16.417q-1.5 0-2.542-1.042-1.041-1.042-1.041-2.542 0-1.5 1.052-2.541Q4.521 9.25 6 9.25q1.5 0 2.542 1.052 1.041 1.052 1.041 2.552 0 1.479-1.052 2.521Q7.479 16.417 6 16.417Zm10.875-.771-5.083-5.084q-.104.105-.261.188-.156.083-.302.146l-.291-.375q-.146-.188-.313-.354.875-.438 1.427-1.261T12.604 7q0-1.5-1.052-2.552T9 3.396q-1.5 0-2.552 1.052T5.396 7q0 .208.042.406.041.198.083.386-.313.02-.563.073-.25.052-.52.135-.042-.229-.084-.479-.042-.25-.042-.521 0-1.938 1.376-3.312Q7.062 2.312 9 2.312q1.938 0 3.312 1.365Q13.688 5.042 13.688 7q0 .833-.282 1.583-.281.75-.739 1.334l4.979 4.958ZM4.812 14.521l1.167-1.167 1.167 1.167.542-.542-1.167-1.167 1.167-1.145-.542-.542-1.167 1.146-1.167-1.146-.541.542 1.167 1.145-1.167 1.167Z"/></svg>`;
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
- */
-const move_bubbles = y `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" /></svg>`;
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
- */
-const owl_icon = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 20px; width: auto" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z"/></svg>`;
-const graphol_icon = y `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: 20px; box-sizing: border-box; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
-const tune = y `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.375 15.625Q3.104 15.625 2.906 15.427Q2.708 15.229 2.708 14.958Q2.708 14.688 2.906 14.49Q3.104 14.292 3.375 14.292H6.792Q7.062 14.292 7.26 14.49Q7.458 14.688 7.458 14.958Q7.458 15.229 7.26 15.427Q7.062 15.625 6.792 15.625ZM3.375 5.708Q3.104 5.708 2.906 5.51Q2.708 5.312 2.708 5.042Q2.708 4.771 2.906 4.573Q3.104 4.375 3.375 4.375H9.896Q10.167 4.375 10.365 4.573Q10.562 4.771 10.562 5.042Q10.562 5.312 10.365 5.51Q10.167 5.708 9.896 5.708ZM10.083 17.292Q9.812 17.292 9.615 17.094Q9.417 16.896 9.417 16.625V13.312Q9.417 13.042 9.615 12.844Q9.812 12.646 10.083 12.646Q10.354 12.646 10.552 12.844Q10.75 13.042 10.75 13.312V14.292H16.625Q16.896 14.292 17.094 14.49Q17.292 14.688 17.292 14.958Q17.292 15.229 17.094 15.427Q16.896 15.625 16.625 15.625H10.75V16.625Q10.75 16.896 10.552 17.094Q10.354 17.292 10.083 17.292ZM6.792 12.333Q6.521 12.333 6.323 12.135Q6.125 11.938 6.125 11.667V10.667H3.375Q3.104 10.667 2.906 10.469Q2.708 10.271 2.708 10Q2.708 9.729 2.906 9.531Q3.104 9.333 3.375 9.333H6.125V8.354Q6.125 8.083 6.323 7.885Q6.521 7.688 6.792 7.688Q7.062 7.688 7.26 7.885Q7.458 8.083 7.458 8.354V11.667Q7.458 11.938 7.26 12.135Q7.062 12.333 6.792 12.333ZM10.083 10.667Q9.812 10.667 9.615 10.469Q9.417 10.271 9.417 10Q9.417 9.729 9.615 9.531Q9.812 9.333 10.083 9.333H16.625Q16.896 9.333 17.094 9.531Q17.292 9.729 17.292 10Q17.292 10.271 17.094 10.469Q16.896 10.667 16.625 10.667ZM13.208 7.354Q12.938 7.354 12.74 7.156Q12.542 6.958 12.542 6.688V3.375Q12.542 3.104 12.74 2.906Q12.938 2.708 13.208 2.708Q13.479 2.708 13.677 2.906Q13.875 3.104 13.875 3.375V4.375H16.625Q16.896 4.375 17.094 4.573Q17.292 4.771 17.292 5.042Q17.292 5.312 17.094 5.51Q16.896 5.708 16.625 5.708H13.875V6.688Q13.875 6.958 13.677 7.156Q13.479 7.354 13.208 7.354Z"/></svg>`;
-const filterOff = y `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M16.021 16.5 2.438 2.917l.77-.771 13.584 13.583ZM3.208 5.417V4.333h1.73v1.084Zm2 3.895V8.229h3.646v1.083Zm3.396-3.895L7.521 4.333h9.271v1.084Zm-.396 7.812v-1.083h3.584v1.083ZM12.5 9.312l-1.083-1.083h3.375v1.083Z"/></svg>`;
-const entityIcons = {};
-entityIcons[GrapholTypesEnum.CLASS] = classIcon;
-entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon;
-entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon;
-entityIcons[GrapholTypesEnum.INDIVIDUAL] = individualIcon;
-
-class FloatyFilterManager extends BaseFilterManager {
-    constructor() {
-        super(...arguments);
-        this.lockedFilters = [
-            DefaultFilterKeyEnum.VALUE_DOMAIN,
-            DefaultFilterKeyEnum.UNIVERSAL_QUANTIFIER,
-            DefaultFilterKeyEnum.COMPLEMENT,
-            DefaultFilterKeyEnum.HAS_KEY,
-        ];
-    }
-    get filters() { return this._filters; }
-    set filters(filters) {
-        this._filters = filters;
-        this.lockedFilters.forEach(lockedFilterKey => {
-            var _a;
-            (_a = this.filters.get(lockedFilterKey)) === null || _a === void 0 ? void 0 : _a.lock();
-        });
-    }
-}
-
-function grapholStyle (theme) {
-    return [
-        {
-            selector: 'node',
-            style: {
-                'height': 'data(height)',
-                'width': 'data(width)',
-                'background-color': (node) => getColor(node, ColoursNames.bg_node_light),
-                'shape': 'data(shape)',
-                'border-width': 1,
-                'border-color': theme.getColour(ColoursNames.border_node),
-                'border-style': 'solid',
-                'font-size': 12,
-                'color': theme.getColour(ColoursNames.label),
-            }
-        },
-        {
-            selector: '[fontSize]',
-            style: {
-                'font-size': 'data(fontSize)',
-            }
-        },
-        {
-            selector: 'node[displayedName]',
-            style: {
-                'label': 'data(displayedName)',
-                'text-margin-x': 'data(labelXpos)',
-                'text-margin-y': 'data(labelYpos)',
-                'text-wrap': 'wrap',
-                'min-zoomed-font-size': '5px',
-            }
-        },
-        {
-            selector: 'node[labelXcentered]',
-            style: {
-                'text-halign': 'center',
-            }
-        },
-        {
-            selector: 'node[labelYcentered]',
-            style: {
-                'text-valign': 'center',
-            }
-        },
-        {
-            selector: 'edge',
-            style: {
-                'width': 2,
-                'line-color': theme.getColour(ColoursNames.edge),
-                'target-arrow-color': theme.getColour(ColoursNames.edge),
-                'source-arrow-color': theme.getColour(ColoursNames.edge),
-                'curve-style': 'bezier',
-                'arrow-scale': 1.3,
-                'color': theme.getColour(ColoursNames.label),
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.INCLUSION}"]`,
-            style: {
-                'line-style': 'solid',
-                'target-arrow-shape': 'triangle',
-                'target-arrow-fill': 'filled'
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.MEMBERSHIP}"]`,
-            style: {
-                'line-style': 'dashed',
-                'line-dash-pattern': [2, 3],
-                'target-arrow-shape': 'triangle',
-                'target-arrow-fill': 'hollow'
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
-            style: {
-                'line-style': 'dashed',
-                'target-arrow-shape': 'diamond',
-                'target-arrow-fill': 'hollow'
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.EQUIVALENCE}"]`,
-            style: {
-                'line-style': 'solid',
-                'source-arrow-shape': 'triangle',
-                'source-arrow-fill': 'filled',
-                'target-arrow-shape': 'triangle',
-                'target-arrow-fill': 'filled',
-            }
-        },
-        {
-            selector: '[segmentDistances]',
-            style: {
-                'curve-style': 'segments',
-                'segment-distances': 'data(segmentDistances)',
-                'segment-weights': 'data(segmentWeights)',
-                'edge-distances': 'node-position'
-            }
-        },
-        {
-            selector: '[sourceEndpoint]',
-            style: {
-                'source-endpoint': 'data(sourceEndpoint)'
-            }
-        },
-        {
-            selector: '[targetEndpoint]',
-            style: {
-                'target-endpoint': 'data(targetEndpoint)'
-            }
-        },
-        {
-            selector: '[?functional][!inverseFunctional]',
-            style: {
-                'border-width': 5,
-                'border-color': theme.getColour(ColoursNames.border_node),
-                'border-style': 'double'
-            }
-        },
-        {
-            selector: '[?inverseFunctional][!functional]',
-            style: {
-                'border-width': 4,
-                'border-color': theme.getColour(ColoursNames.border_node),
-                'border-style': 'solid'
-            }
-        },
-        {
-            selector: 'edge[displayedName]',
-            style: {
-                'label': 'data(displayedName)',
-                'font-size': 10,
-                'text-rotation': 'autorotate',
-                'text-margin-y': -10,
-            }
-        },
-        {
-            selector: '[sourceLabel],[targetLabel]',
-            style: {
-                'font-size': 15,
-                'target-text-offset': 20,
-            }
-        },
-        {
-            selector: '[targetLabel]',
-            style: {
-                'target-label': 'data(targetLabel)',
-            }
-        },
-        {
-            selector: '[sourceLabel]',
-            style: {
-                'source-label': 'data(sourceLabel)',
-            }
-        },
-        {
-            selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
-            style: {
-                'text-background-color': theme.getColour(ColoursNames.bg_graph),
-                'text-background-opacity': 1,
-                'text-background-shape': 'roundrectangle',
-                'text-background-padding': 2,
-            }
-        },
-        {
-            selector: '[shapePoints]',
-            style: {
-                'shape-polygon-points': 'data(shapePoints)'
-            }
-        },
-        {
-            selector: '.filtered',
-            style: {
-                'display': 'none'
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.FACET}"][!fake], .fake-bottom-rhomboid`,
-            style: {
-                'background-opacity': 0
-            }
-        },
-        {
-            selector: `.fake-top-rhomboid`,
-            style: {
-                'background-color': node => getColor(node, ColoursNames.bg_inset),
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.PROPERTY_ASSERTION}"][!fake]`,
-            style: {
-                'background-opacity': 0,
-                'border-width': 0,
-            }
-        },
-        {
-            selector: '.hidden',
-            style: {
-                'visibility': 'hidden'
-            }
-        },
-        {
-            selector: '.no_border',
-            style: {
-                'border-width': 0
-            }
-        },
-        {
-            selector: '.no_overlay',
-            style: {
-                'overlay-opacity': 0,
-                'overlay-padding': 0
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
-            style: {
-                'background-color': node => getColor(node, ColoursNames.class),
-                'border-color': theme.getColour(ColoursNames.class_contrast),
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"], .fake-triangle`,
-            style: {
-                'background-color': node => getColor(node, ColoursNames.object_property),
-                'border-color': theme.getColour(ColoursNames.object_property_contrast),
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
-            style: {
-                'background-color': node => getColor(node, ColoursNames.data_property),
-                'border-color': theme.getColour(ColoursNames.data_property_contrast),
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]:selected`,
-            style: {
-                'text-background-color': theme.getColour(ColoursNames.bg_graph),
-                'text-background-opacity': 1,
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
-            style: {
-                'background-color': node => getColor(node, ColoursNames.individual),
-                'border-color': theme.getColour(ColoursNames.individual_contrast),
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"], [type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'background-color': theme.getColour(ColoursNames.bg_node_dark),
-            }
-        },
-        {
-            selector: '.fake-triangle-right',
-            style: {
-                'background-color': theme.getColour(ColoursNames.object_property_contrast) || 'black',
-            }
-        },
-        {
-            selector: `[shape = "${Shape.HEXAGON}"],[type = "${GrapholTypesEnum.VALUE_DOMAIN}"]`,
-            style: {
-                'color': theme.getColour(ColoursNames.bg_node_dark),
-            }
-        },
-        //-----------------------------------------------------------
-        // selected selector always last
-        {
-            selector: ':selected',
-            style: {
-                'overlay-color': theme.getColour(ColoursNames.accent),
-                'overlay-opacity': 0.2,
-                'z-index': '100'
-            }
-        },
-    ];
-    function getColor(node, colour) {
-        // take color from parsed XML source file
-        if (theme.id === DefaultThemesEnum.GRAPHOL) {
-            return node.data().fillColor;
-        }
-        else {
-            return theme.getColour(colour) || node.data().fillColor;
-        }
-    }
-}
-
-function floatyStyle (theme) {
-    const baseStyle = grapholStyle(theme);
-    const floatyStyle = [
-        {
-            selector: 'node',
-            style: {
-                'shape': 'ellipse',
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.CLASS}"]`,
-            style: {
-                'text-margin-x': 0,
-                'text-margin-y': 0,
-                'text-valign': 'center',
-                'text-halign': 'center',
-                'height': 'data(width)'
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
-            style: {
-                'line-style': 'solid',
-                'target-arrow-shape': 'none',
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
-            style: {
-                'line-color': theme.getColour(ColoursNames.object_property_contrast),
-                'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-                'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-                'target-arrow-shape': 'triangle',
-                'target-arrow-fill': 'filled',
-                'source-arrow-shape': 'square',
-                'source-arrow-fill': 'hollow',
-                'width': 4,
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'width': 35,
-                'height': 35,
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'width': 6,
-                'line-style': 'solid',
-                'target-arrow-shape': 'triangle',
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.UNION}"]`,
-            style: {
-                'target-arrow-fill': 'hollow'
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'target-arrow-fill': 'filled',
-            }
-        },
-        {
-            selector: ':loop',
-            style: {
-                'control-point-step-size': 'data(control_point_step_size)',
-                'control-point-weight': 0.5,
-            }
-        },
-        {
-            selector: '[?pinned]',
-            style: {
-                'border-width': 4,
-                'border-color': theme.getColour(ColoursNames.accent),
-            }
-        },
-    ];
-    return baseStyle.concat(floatyStyle);
-}
-
-class BaseGrapholTransformer {
-    get newCy() { return this.result.cy; }
-    // filter nodes if the criterion function returns true
-    // criterion must be a function returning a boolean value for a given a node
-    filterByCriterion(criterion) {
-        this.newCy.$('*').forEach(node => {
-            if (criterion(node)) {
-                cytoscapeFilter(node.id(), '', this.newCy);
-            }
-        });
-    }
-    deleteFilteredElements() {
-        this.deleteElements(this.newCy.elements('.filtered'));
-    }
-    isRestriction(grapholElement) {
-        if (!grapholElement)
-            return false;
-        return grapholElement.is(GrapholTypesEnum.DOMAIN_RESTRICTION) ||
-            grapholElement.is(GrapholTypesEnum.RANGE_RESTRICTION);
-    }
-    getGrapholElement(id) {
-        return this.result.grapholElements.get(id);
-    }
-    deleteElements(elements) {
-        elements.forEach(elem => {
-            this.deleteElement(elem);
-        });
-    }
-    deleteElement(elem) {
-        this.newCy.remove(elem);
-        this.result.grapholElements.delete(elem.id());
-    }
-}
-
 class Breakpoint {
     constructor(x, y) {
         this.intersectionPoint = { x: null, y: null };
@@ -3085,1267 +1714,6 @@ function getDisance(point1, point2) {
     const deltaX = point1.x - point2.x;
     const deltaY = point1.y - point2.y;
     return Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-}
-
-class LiteTransformer extends BaseGrapholTransformer {
-    constructor() {
-        super(...arguments);
-        this.isQualifiedRestriction = (node) => {
-            const grapholElement = this.getGrapholElement(node.id());
-            if (this.isRestriction(grapholElement)) {
-                return node.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).size() > 1 ? true : false;
-            }
-            return false;
-        };
-        this.isCardinalityRestriction = (node) => {
-            const grapholElement = this.getGrapholElement(node.id());
-            if (this.isRestriction(grapholElement) && grapholElement.displayedName.search(/[0-9]/g) >= 0) {
-                return true;
-            }
-            return false;
-        };
-        this.inputEdgesBetweenRestrictions = (node) => {
-            const grapholElement = this.getGrapholElement(node.id());
-            let outcome = false;
-            if (this.isRestriction(grapholElement)) {
-                node.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).forEach(edge => {
-                    const sourceGrapholElement = this.getGrapholElement(edge.source().id());
-                    if (this.isRestriction(sourceGrapholElement)) {
-                        outcome = true;
-                    }
-                });
-            }
-            return outcome;
-        };
-    }
-    transform(diagram) {
-        this.result = new DiagramRepresentation(liteOptions);
-        const grapholRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL);
-        if (!grapholRepresentation) {
-            return this.result;
-        }
-        this.result.grapholElements = new Map(grapholRepresentation.grapholElements);
-        this.newCy.add(grapholRepresentation.cy.elements().clone());
-        this.newCy.elements().removeClass('filtered'); // make all filtered elements not filtered anymore
-        this.filterByCriterion((node) => {
-            const grapholNode = this.getGrapholElement(node.id());
-            if (!grapholNode)
-                return false;
-            switch (grapholNode.type) {
-                case GrapholTypesEnum.COMPLEMENT:
-                case GrapholTypesEnum.VALUE_DOMAIN:
-                case GrapholTypesEnum.ROLE_CHAIN:
-                case GrapholTypesEnum.ENUMERATION:
-                case GrapholTypesEnum.KEY:
-                    return true;
-                case GrapholTypesEnum.DOMAIN_RESTRICTION:
-                case GrapholTypesEnum.RANGE_RESTRICTION:
-                    if (grapholNode.displayedName == 'forall')
-                        return true;
-                    else
-                        return false;
-                default:
-                    return false;
-            }
-        });
-        this.filterByCriterion(this.isQualifiedRestriction);
-        this.filterByCriterion(this.isCardinalityRestriction);
-        this.filterByCriterion(this.inputEdgesBetweenRestrictions);
-        this.deleteFilteredElements();
-        this.simplifyDomainAndRange();
-        this.simplifyComplexHierarchies();
-        this.simplifyUnions();
-        this.simplifyIntersections();
-        this.simplifyRoleInverse();
-        return this.result;
-    }
-    simplifyDomainAndRange() {
-        /**
-         * Get all input incomers and pick the one coming from a object/data property
-         * @param restriction
-         * @returns the input from object/data property to the given restriction
-         */
-        const getInputEdgeFromPropertyToRestriction = (restriction) => {
-            //let edgeResult: EdgeSingular
-            // source is any obj/data property node connected to restriction by input edge
-            const edgeResult = restriction.incomers('edge')
-                .filter(edge => {
-                const grapholEdge = this.getGrapholElement(edge.id());
-                const grapholSource = this.getGrapholElement(edge.data().source);
-                return grapholEdge.is(GrapholTypesEnum.INPUT) &&
-                    (grapholSource.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholSource.is(GrapholTypesEnum.DATA_PROPERTY));
-            });
-            if (!edgeResult.empty()) {
-                return this.getGrapholElement(edgeResult.id());
-            }
-        };
-        /**
-         * Given a domain/range restriction, we need each edge on the restriction of type != input
-         * to be transformed into a ROLE EDGE going into the object/data property using the
-         * input edge from property -> restriction (here we assume it is already been reversed).
-         * @param edgeOnRestriction an edge connected to the restriction node, will be transformed into a role edge
-         * @param edgeFromProperty the edge from property to restriction (reversed, so it's going from restriction to property)
-         * @param restrictionNode the restriction node, must become a breakpoint
-         */
-        const transformIntoRoleEdge = (edgeOnRestriction, edgeFromProperty, restrictionNode) => {
-            // let edges = []
-            // let new_edge = null
-            let edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId);
-            let edgeOnRestrictionTargetNode = this.getGrapholElement(edgeOnRestriction.targetId);
-            const propertyNode = this.getGrapholElement(edgeFromProperty.targetId);
-            /**
-             * if the edge to restriction is between two existential, remove it and filter the other existential
-             */
-            if (this.isRestriction(edgeOnRestrictionSourceNode) && this.isRestriction(edgeOnRestrictionTargetNode)) {
-                this.newCy.remove(`#${edgeOnRestriction.id}`);
-                this.result.grapholElements.delete(edgeOnRestriction.id);
-                return;
-            }
-            if (edgeOnRestriction.targetId !== restrictionNode.id) {
-                this.reverseEdge(edgeOnRestriction);
-                edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId);
-            }
-            edgeOnRestriction.targetId = propertyNode.id;
-            // move attribute on restriction node position
-            if (propertyNode.is(GrapholTypesEnum.DATA_PROPERTY)) {
-                edgeOnRestriction.type = GrapholTypesEnum.DATA_PROPERTY;
-                propertyNode.x = restrictionNode.position.x;
-                propertyNode.y = restrictionNode.position.y;
-                this.result.updateElement(propertyNode);
-                //new_edge = edges[0]
-            }
-            if (propertyNode.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
-                edgeOnRestriction.type = restrictionNode.type;
-                // restriction node must become a new breakpoint
-                edgeOnRestriction.addBreakPoint(new Breakpoint(restrictionNode.x, restrictionNode.y));
-                // each breakpoint from restriction to property must become a breakpoint for the result edge
-                edgeFromProperty.breakpoints.forEach(breakpoint => {
-                    edgeOnRestriction.addBreakPoint(breakpoint);
-                });
-            }
-            edgeOnRestriction.computeBreakpointsDistancesWeights(edgeOnRestrictionSourceNode.position, propertyNode.position);
-            this.result.updateElement(edgeOnRestriction);
-        };
-        //let eles = cy.$('*')
-        let grapholRestrictionNode;
-        // select domain and range restrictions
-        this.result.cy.nodes().forEach(restriction => {
-            grapholRestrictionNode = this.getGrapholElement(restriction.id());
-            if (!this.isRestriction(grapholRestrictionNode))
-                return;
-            const inputGrapholEdge = getInputEdgeFromPropertyToRestriction(restriction);
-            if (!inputGrapholEdge)
-                return;
-            // Final role edge will be concatenated with this one, 
-            // so we need to revert it to make it point to the obj/data property
-            this.reverseEdge(inputGrapholEdge);
-            // create a new role edge concatenating each edge different from inputs
-            // to the input edge from object/data property to restriction node
-            restriction.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
-                .forEach((edgeToRestriction, i) => {
-                const grapholEdgeToRestriction = this.getGrapholElement(edgeToRestriction.id());
-                if (!isGrapholEdge(grapholEdgeToRestriction) || !isGrapholNode(grapholRestrictionNode))
-                    return;
-                transformIntoRoleEdge(grapholEdgeToRestriction, inputGrapholEdge, grapholRestrictionNode);
-            });
-            cytoscapeFilter(restriction.id(), '', this.newCy);
-            this.deleteFilteredElements();
-        });
-        this.deleteFilteredElements();
-    }
-    reverseEdge(edge) {
-        //let new_edge = edge.json()
-        let sourceIdAux = edge.sourceId;
-        edge.sourceId = edge.targetId;
-        edge.targetId = sourceIdAux;
-        let sourceEndpointAux = edge.sourceEndpoint;
-        edge.sourceEndpoint = edge.targetEndpoint;
-        edge.targetEndpoint = sourceEndpointAux;
-        edge.controlpoints = edge.controlpoints.reverse();
-        edge.breakpoints.forEach(breakpoint => {
-            const source = this.newCy.$id(edge.sourceId);
-            const target = this.newCy.$id(edge.targetId);
-            // update distances and weights
-            breakpoint.setSourceTarget(source.position(), target.position());
-        });
-        // new_edge.data.breakpoints = edge.data('breakpoints').reverse()
-        // if (edge.data('segment_distances')) {
-        //   new_edge.data.segment_distances = []
-        //   new_edge.data.segment_weights = []
-        //   new_edge.data.breakpoints.forEach( breakpoint => {
-        //     let aux = getDistanceWeight(edge.source().position(), edge.target().position(), breakpoint)
-        //     new_edge.data.segment_distances.push(aux[0])
-        //     new_edge.data.segment_weights.push(aux[1])
-        //   })
-        // }
-    }
-    simplifyComplexHierarchies() {
-        this.newCy.nodes().forEach(node => {
-            if (this.isComplexHierarchy(node)) {
-                this.replicateAttributes(node);
-                cytoscapeFilter(node.id(), '', this.newCy);
-            }
-        });
-        this.deleteFilteredElements();
-    }
-    isComplexHierarchy(node) {
-        const grapholNode = this.getGrapholElement(node.id());
-        if (!grapholNode || (!grapholNode.is(GrapholTypesEnum.UNION) &&
-            !grapholNode.is(GrapholTypesEnum.DISJOINT_UNION) &&
-            !grapholNode.is(GrapholTypesEnum.INTERSECTION)))
-            return false;
-        // Complex hierarchy if it has something different from a class as input
-        const inputNodesNotConcepts = node.incomers(`edge`)
-            .filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
-            .sources()
-            .filter(node => !this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS));
-        return !inputNodesNotConcepts.empty();
-    }
-    replicateAttributes(node) {
-        /**
-         * Given a hierarchy node, recursively retrieve all input classes nodes
-         * @param node the hierearchy node
-         * @returns a collection of classes nodes
-         */
-        const getAllInputClasses = (node) => {
-            let allInputClasses = node.cy().collection();
-            let inputEdges = node.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
-            allInputClasses = allInputClasses.union(inputEdges.sources().filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS)));
-            inputEdges.sources().difference(allInputClasses).forEach(constructor => {
-                allInputClasses = allInputClasses.union(getAllInputClasses(constructor));
-            });
-            return allInputClasses;
-        };
-        /**
-         *
-         * @param concept
-         * @param attribute
-         * @param i
-         */
-        const addAttribute = (concept, attribute, edgeType, i) => {
-            const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`);
-            const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`);
-            newAttribute.originalId = attribute.id();
-            newAttribute.x = concept.position().x;
-            newAttribute.y = concept.position().y;
-            Object.entries(attribute.data()).forEach(([key, value]) => {
-                if (key !== 'id' && key !== 'originalId')
-                    newAttribute[key] = value;
-            });
-            newAttributeEdge.sourceId = concept.id();
-            newAttributeEdge.targetId = newAttribute.id;
-            newAttributeEdge.type = edgeType;
-            this.result.addElement(newAttribute);
-            this.result.addElement(newAttributeEdge);
-            this.newCy.$id(newAttribute.id).addClass('repositioned');
-            // recursively add new attributes connected to replicated attributes by inclusions
-            if (!attribute.hasClass('repositioned')) {
-                attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY)).forEach((inclusion_attribute, j) => {
-                    if (allAttributes.contains(inclusion_attribute)) {
-                        return;
-                    }
-                    const edgeBetweenAttributes = attribute.edgesTo(inclusion_attribute)[0];
-                    if (edgeBetweenAttributes) {
-                        addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, edgeBetweenAttributes.data().type, i);
-                        inclusion_attribute.addClass('repositioned');
-                        allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute);
-                    }
-                });
-            }
-        };
-        let allClasses = getAllInputClasses(node);
-        let allAttributes = node.neighborhood(`node`).filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY));
-        let allInclusionAttributes = this.newCy.collection();
-        allAttributes.forEach((attribute) => {
-            allClasses.forEach((concept, j) => {
-                addAttribute(concept, attribute, GrapholTypesEnum.DATA_PROPERTY, j);
-            });
-            attribute.addClass('repositioned');
-            allInclusionAttributes.addClass('repositioned');
-        });
-        this.deleteElements(allAttributes);
-        this.deleteElements(allInclusionAttributes);
-    }
-    simplifyUnions() {
-        this.newCy.nodes().forEach(union => {
-            const grapholUnion = this.getGrapholElement(union.id());
-            if (!grapholUnion || !isGrapholNode(grapholUnion) ||
-                (!grapholUnion.is(GrapholTypesEnum.UNION) && !grapholUnion.is(GrapholTypesEnum.DISJOINT_UNION)))
-                return;
-            //grapholUnion.height = grapholUnion.width = 0.1
-            //makeDummyPoint(union)
-            //union.incomers('edge[type = "input"]').data('type', 'easy_input')
-            // delete incoming inclusions
-            union.incomers('edge').forEach(edge => {
-                const grapholEdge = this.getGrapholElement(edge.id());
-                if (grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
-                    this.deleteElement(edge);
-                }
-            });
-            // process equivalence edges
-            union.connectedEdges('edge').forEach(edge => {
-                const grapholEdge = this.getGrapholElement(edge.id());
-                // if it's equivalence add 'C' and reverse if needed
-                if (grapholEdge.is(GrapholTypesEnum.EQUIVALENCE)) {
-                    grapholEdge.type = grapholUnion.type;
-                    grapholEdge.targetLabel = 'C';
-                    // the edge must have as source the union node
-                    if (grapholEdge.sourceId != grapholUnion.id) {
-                        this.reverseEdge(grapholEdge);
-                    }
-                    this.result.updateElement(grapholEdge);
-                    return;
-                }
-                // if it's outgoing and of type inclusion
-                if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
-                    grapholEdge.type = grapholUnion.type;
-                    this.result.updateElement(grapholEdge);
-                }
-            });
-            // process inclusion edges
-            // union.outgoers('edge').forEach(inclusion => {
-            //   inclusion.addClass('hierarchy')
-            //   if (union.data('type') == GrapholTypesEnum.DISJOINT_UNION)
-            //     inclusion.addClass('disjoint')
-            // })
-            // if (union.data('label'))
-            //   union.data('label', '')
-            //grapholUnion.displayedName = undefined
-            this.replicateAttributes(union);
-            // replicate role tipization on input classes
-            this.replicateRoleTypizations(union);
-            this.result.updateElement(grapholUnion);
-            const numberEdgesNotInput = union.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT)).size();
-            if (numberEdgesNotInput <= 0) {
-                this.deleteElement(union);
-            }
-            // if the union has not any connected non-input edges, then remove it
-            // if (union.connectedEdges('[type !*= "input"]').size() == 0)
-            //   cy.remove(union)
-        });
-    }
-    simplifyIntersections() {
-        this.newCy.nodes().forEach(and => {
-            const grapholAndNode = this.getGrapholElement(and.id());
-            if (!grapholAndNode || !grapholAndNode.is(GrapholTypesEnum.INTERSECTION))
-                return;
-            this.replicateAttributes(and);
-            this.replicateRoleTypizations(and);
-            // if there are no incoming inclusions or equivalence and no equivalences connected,
-            // remove the intersection
-            const incomingInclusions = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION));
-            const connectedEquivalences = and.connectedEdges().filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.EQUIVALENCE));
-            const incomingUnionEdges = and.incomers('edge').filter(edge => {
-                const grapholEdge = this.getGrapholElement(edge.id());
-                return grapholEdge.is(GrapholTypesEnum.UNION) || grapholEdge.is(GrapholTypesEnum.DISJOINT_UNION);
-            });
-            const edgesToBeReplicated = incomingInclusions.union(connectedEquivalences).union(incomingUnionEdges);
-            if (edgesToBeReplicated.empty()) {
-                cytoscapeFilter(grapholAndNode.id, '', this.newCy);
-            }
-            else {
-                const incomingInputs = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
-                // process incoming inclusion && connected equivalences
-                edgesToBeReplicated.forEach(edge => {
-                    const edgeToBeReplicated = this.getGrapholElement(edge.id());
-                    /**
-                     * create a new ISA edge for each input class
-                     * the new edge will be a concatenation:
-                     *  - ISA towards the 'and' node + input edge
-                     *
-                     * the input edge must be reversed
-                     * In case of equivalence edge, we only consider the
-                     * isa towards the 'and' node and discard the other direction
-                     */
-                    incomingInputs.forEach((input, i) => {
-                        /**
-                         * if the edge is an equivalence, we must consider it as an
-                         * incoming edge in any case and ignore the opposite direction.
-                         * so if the edge is outgoing from the intersection, we reverse it
-                         */
-                        if (edgeToBeReplicated.is(GrapholTypesEnum.EQUIVALENCE) &&
-                            edgeToBeReplicated.sourceId === grapholAndNode.id) {
-                            this.reverseEdge(edgeToBeReplicated);
-                        }
-                        // Edge concatenation: isa/equilvance + reversed input
-                        const grapholInputEdge = this.getGrapholElement(input.id());
-                        this.reverseEdge(grapholInputEdge);
-                        grapholInputEdge.sourceId = edgeToBeReplicated.sourceId;
-                        grapholInputEdge.controlpoints.unshift(...edgeToBeReplicated.controlpoints);
-                        const source = this.getGrapholElement(grapholInputEdge.sourceId);
-                        const target = this.getGrapholElement(grapholInputEdge.targetId);
-                        grapholInputEdge.computeBreakpointsDistancesWeights(source.position, target.position);
-                        grapholInputEdge.targetLabel = edgeToBeReplicated.targetLabel;
-                        grapholInputEdge.type = edgeToBeReplicated.type;
-                        this.result.updateElement(grapholInputEdge);
-                    });
-                });
-                cytoscapeFilter(grapholAndNode.id, '', this.newCy);
-            }
-            this.deleteFilteredElements();
-            this.deleteElements(edgesToBeReplicated);
-        });
-    }
-    replicateRoleTypizations(constructorNode) {
-        // replicate role tipization on input classes
-        const restrictionEdges = constructorNode.connectedEdges().filter(edge => this.isRestriction(this.getGrapholElement(edge.id())));
-        const inputEdges = constructorNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
-        restrictionEdges.forEach((restrictionEdge, i) => {
-            const grapholRestrictionEdge = this.getGrapholElement(restrictionEdge.id());
-            inputEdges.forEach((inputEdge) => {
-                const grapholInputEdge = this.getGrapholElement(inputEdge.id());
-                if (!grapholInputEdge)
-                    return;
-                const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`);
-                /**
-                 * if the connected non input edge is only one (the one we are processing)
-                 * then the new edge will be the concatenation of the input edge + role edge
-                 */
-                if (i === 0) {
-                    newRestrictionEdge.controlpoints = grapholInputEdge.controlpoints.concat(grapholRestrictionEdge.controlpoints);
-                }
-                else {
-                    newRestrictionEdge.controlpoints = [...grapholRestrictionEdge.controlpoints];
-                }
-                newRestrictionEdge.type = grapholRestrictionEdge.type;
-                newRestrictionEdge.sourceId = grapholInputEdge.sourceId;
-                newRestrictionEdge.sourceEndpoint = grapholInputEdge.sourceEndpoint
-                    ? { x: grapholInputEdge.sourceEndpoint.x, y: grapholInputEdge.sourceEndpoint.y }
-                    : undefined;
-                newRestrictionEdge.targetEndpoint = grapholRestrictionEdge.targetEndpoint
-                    ? { x: grapholRestrictionEdge.targetEndpoint.x, y: grapholRestrictionEdge.targetEndpoint.y }
-                    : undefined;
-                newRestrictionEdge.targetId = grapholRestrictionEdge.targetId;
-                const sourceNode = this.getGrapholElement(newRestrictionEdge.sourceId);
-                const targetNode = this.getGrapholElement(newRestrictionEdge.targetId);
-                newRestrictionEdge.computeBreakpointsDistancesWeights(sourceNode.position, targetNode.position);
-                this.result.addElement(newRestrictionEdge);
-            });
-            this.deleteElement(restrictionEdge);
-        });
-    }
-    simplifyRoleInverse() {
-        this.newCy.nodes().filter(node => { var _a; return (_a = this.getGrapholElement(node.id())) === null || _a === void 0 ? void 0 : _a.is(GrapholTypesEnum.ROLE_INVERSE); }).forEach(roleInverseNode => {
-            // the input role is only one
-            const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
-            const grapholInputEdge = this.getGrapholElement(inputEdge.id());
-            // the input edge must always be reversed
-            this.reverseEdge(grapholInputEdge);
-            this.getGrapholElement(roleInverseNode.id());
-            // for each other edge connected, create a concatenated edge
-            // the edge is directed towards the input_role
-            roleInverseNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
-                .forEach((edge) => {
-                const roleInverseEdge = this.getGrapholElement(edge.id());
-                roleInverseEdge.type = GrapholTypesEnum.ROLE_INVERSE;
-                roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints);
-                roleInverseEdge.targetId = grapholInputEdge.targetId;
-                const source = this.getGrapholElement(roleInverseEdge.sourceId);
-                const target = this.getGrapholElement(roleInverseEdge.targetId);
-                roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position);
-                roleInverseEdge.displayedName = 'inverse Of';
-                this.result.updateElement(roleInverseEdge);
-            });
-            this.deleteElement(inputEdge);
-            this.deleteElement(roleInverseNode);
-            // if (new_edges_count > 1) {
-            //   cy.remove(inputEdge)
-            //   makeDummyPoint(roleInverseNode)
-            //   roleInverseNode.data('label', 'inverse Of')
-            //   roleInverseNode.data('labelXpos', 0)
-            //   roleInverseNode.data('labelYpos', 0)
-            //   roleInverseNode.data('text_background', true)
-            // } else {
-            //   if (inputEdge.source())
-            //     inputEdge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
-            //   cy.remove(roleInverseNode)
-            // }
-        });
-    }
-}
-
-class FloatyTransformer extends BaseGrapholTransformer {
-    get newCy() { return this.result.cy; }
-    transform(diagram) {
-        this.result = new DiagramRepresentation(floatyOptions);
-        let liteRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL_LITE);
-        if (!liteRepresentation || liteRepresentation.grapholElements.size === 0) {
-            liteRepresentation = new LiteTransformer().transform(diagram);
-            diagram.representations.set(RendererStatesEnum.GRAPHOL_LITE, liteRepresentation);
-        }
-        this.result.grapholElements = new Map(liteRepresentation.grapholElements);
-        this.newCy.add(liteRepresentation.cy.elements().clone());
-        this.newCy.elements().removeClass('filtered'); // make all filtered elements not filtered anymore
-        // remember original positions
-        // this.newCy.$('node').forEach( node => {
-        //   node.data('original-position', JSON.stringify(node.position()))
-        // })
-        this.filterByCriterion(node => {
-            return this.getGrapholElement(node.id()) === undefined;
-        });
-        this.makeEdgesStraight();
-        this.simplifyRolesFloat();
-        // this.simplifyHierarchiesFloat(cy)
-        // this.simplifyAttributesFloat(cy)
-        // cy.edges().removeData('segment_distances')
-        // cy.edges().removeData('segment_weights')
-        // cy.edges().removeData('target_endpoint')
-        // cy.edges().removeData('source_endpoint')
-        //cy.$(`[type = "${GrapholTypesEnum.CONCEPT}"]`).addClass('bubble')
-        this.newCy.elements().unlock();
-        return this.result;
-    }
-    makeEdgesStraight() {
-        this.result.cy.$('edge').forEach(edge => {
-            const grapholEdge = this.getGrapholElement(edge.id());
-            grapholEdge.controlpoints = [];
-            grapholEdge.targetEndpoint = undefined;
-            grapholEdge.sourceEndpoint = undefined;
-            this.result.updateElement(grapholEdge);
-        });
-    }
-    simplifyRolesFloat() {
-        let objectProperties = this.newCy.nodes().filter(node => {
-            const grapholNode = this.getGrapholElement(node.id());
-            return grapholNode && grapholNode.is(GrapholTypesEnum.OBJECT_PROPERTY);
-        });
-        objectProperties.forEach(objectProperty => {
-            let domains = this.getDomainsOfObjectProperty(objectProperty);
-            let ranges = this.getRangesOfObjectProperty(objectProperty);
-            if (domains && ranges)
-                this.connectDomainsRanges(domains, ranges, objectProperty);
-        });
-        //cy.remove(objectProperties)
-        this.deleteElements(objectProperties);
-    }
-    connectDomainsRanges(domains, ranges, objectProperty) {
-        let grapholDomainNode, grapholRangeNode, newId;
-        domains.forEach((domain) => {
-            grapholDomainNode = this.getGrapholElement(domain.id());
-            ranges.forEach((range, i) => {
-                grapholRangeNode = this.getGrapholElement(range.id());
-                newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`;
-                let newGrapholEdge = new GrapholEdge(newId);
-                newGrapholEdge.sourceId = grapholDomainNode.id;
-                newGrapholEdge.targetId = grapholRangeNode.id;
-                Object.entries(objectProperty.data()).forEach(([key, value]) => {
-                    switch (key) {
-                        case 'id':
-                        case 'labelXpos':
-                        case 'labelYpos':
-                        case 'labelXcentered':
-                        case 'labelYcentered':
-                        case 'shape':
-                            break;
-                        default:
-                            newGrapholEdge[key] = value;
-                    }
-                });
-                newGrapholEdge.originalId = objectProperty.id().toString();
-                this.result.addElement(newGrapholEdge);
-                const newAddedCyElement = this.newCy.$id(newGrapholEdge.id);
-                newAddedCyElement.data().iri = objectProperty.data().iri;
-                if (newGrapholEdge.sourceId === newGrapholEdge.targetId) {
-                    let loop_edge = this.newCy.$id(newGrapholEdge.id);
-                    loop_edge.data('control_point_step_size', grapholDomainNode.width);
-                }
-            });
-        });
-    }
-    getDomainsOfObjectProperty(objectProperty) {
-        if (!objectProperty || objectProperty.empty())
-            return null;
-        let domains = objectProperty.incomers(`edge`).filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.DOMAIN_RESTRICTION)).sources();
-        const fathers = this.getFathers(objectProperty);
-        let fathersDomains = this.newCy.collection();
-        fathers.forEach(father => {
-            const newDomains = this.getDomainsOfObjectProperty(father);
-            if (newDomains)
-                fathersDomains = fathersDomains.union(newDomains);
-        });
-        return domains.union(fathersDomains);
-    }
-    getRangesOfObjectProperty(objectProperty) {
-        if (!objectProperty || objectProperty.empty())
-            return;
-        let ranges = objectProperty.incomers(`edge`).filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.RANGE_RESTRICTION)).sources();
-        const fathers = this.getFathers(objectProperty);
-        let fatherRanges = this.newCy.collection();
-        fathers.forEach(father => {
-            const newRanges = this.getRangesOfObjectProperty(father);
-            if (newRanges)
-                fatherRanges = fatherRanges.union(newRanges);
-        });
-        return ranges.union(fatherRanges);
-    }
-    getFathers(node) {
-        return node.outgoers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION)).targets();
-    }
-}
-
-class FloatyRenderState extends BaseRenderer {
-    constructor() {
-        super(...arguments);
-        this.id = RendererStatesEnum.FLOATY;
-        this.filterManager = new FloatyFilterManager();
-        this.grabHandler = (e) => {
-            if (this.dragAndPin)
-                e.target.data('old_pos', JSON.stringify(e.target.position()));
-        };
-        this.freeHandler = (e) => {
-            if (this.dragAndPin) {
-                let actual_pos = JSON.stringify(e.target.position());
-                if (e.target.data('old_pos') !== actual_pos) {
-                    this.pinNode(e.target);
-                }
-                e.target.removeData('old_pos');
-            }
-        };
-        this.floatyLayoutOptions = {
-            name: 'cola',
-            avoidOverlap: false,
-            edgeLength: function (edge) {
-                let crowdnessFactor = edge.target().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length +
-                    edge.source().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length;
-                crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0;
-                if (edge.hasClass('role')) {
-                    return 250 + edge.data('displayedName').length * 4 + crowdnessFactor;
-                }
-                else if (edge.target().data('type') == GrapholTypesEnum.DATA_PROPERTY ||
-                    edge.source().data('type') == GrapholTypesEnum.DATA_PROPERTY)
-                    return 150;
-                else {
-                    return 200 + crowdnessFactor;
-                }
-            },
-            fit: true,
-            maxSimulationTime: 4000,
-            infinite: false,
-            handleDisconnected: true,
-            centerGraph: false,
-        };
-    }
-    set renderer(newRenderer) {
-        super.renderer = newRenderer;
-        if (!newRenderer.renderStateData[this.id]) {
-            newRenderer.renderStateData[this.id] = {};
-            newRenderer.renderStateData[this.id].popperContainers = new Map();
-        }
-    }
-    get renderer() { return super.renderer; }
-    transformOntology(ontology) {
-        ontology.diagrams.forEach(diagram => {
-            const liteTransformer = new FloatyTransformer();
-            diagram.representations.set(this.id, liteTransformer.transform(diagram));
-        });
-    }
-    runLayout() {
-        var _a;
-        if (!this.renderer.cy)
-            return;
-        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
-        this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions);
-        this._layout.run();
-    }
-    render() {
-        var _a;
-        if (!this.renderer.diagram)
-            return;
-        let floatyRepresentation = this.renderer.diagram.representations.get(this.id);
-        if (!floatyRepresentation) {
-            const floatyTransformer = new FloatyTransformer();
-            floatyRepresentation = floatyTransformer.transform(this.renderer.diagram);
-            this.renderer.diagram.representations.set(this.id, floatyRepresentation);
-        }
-        this.renderer.cy = floatyRepresentation.cy;
-        this.renderer.mount();
-        if (!floatyRepresentation.hasEverBeenRendered) {
-            this.runLayout();
-            if (this.isLayoutInfinite) {
-                setTimeout(() => this.renderer.fit(), 1000);
-            }
-            this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
-            this.setDragAndPinEventHandlers();
-        }
-        if (this.popperContainer)
-            (_a = this.renderer.cy.container()) === null || _a === void 0 ? void 0 : _a.appendChild(this.popperContainer);
-        if (!this.dragAndPin)
-            this.unpinAll();
-        floatyRepresentation.hasEverBeenRendered = true;
-    }
-    stopRendering() { }
-    getGraphStyle(theme) {
-        return floatyStyle(theme);
-    }
-    stopLayout() {
-        var _a;
-        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
-        this.floatyLayoutOptions.infinite = false;
-        this.floatyLayoutOptions.fit = true;
-        console.log('stop');
-    }
-    runLayoutInfinitely() {
-        this.floatyLayoutOptions.infinite = true;
-        this.floatyLayoutOptions.fit = false;
-        this.runLayout();
-    }
-    pinNode(node) {
-        if (!node || !this.renderer.cy)
-            return;
-        node.lock();
-        node.data("pinned", true);
-        node.unlockButton = node.popper({
-            content: () => {
-                var _a;
-                if (!this.renderer.cy)
-                    return;
-                let dimension = node.data('width') / 9 * this.renderer.cy.zoom();
-                let div = document.createElement('div');
-                div.style.background = node.style('border-color');
-                div.style.borderRadius = '100%';
-                div.style.padding = '5px';
-                div.style.cursor = 'pointer';
-                div.style.boxSizing = 'content-box';
-                div.setAttribute('title', 'Unlock Node');
-                div.innerHTML = `<span class="popper-icon">${lock_open}</span>`;
-                this.setPopperStyle(dimension, div);
-                div.onclick = () => this.unpinNode(node);
-                (_a = this.popperContainer) === null || _a === void 0 ? void 0 : _a.appendChild(div);
-                return div;
-            },
-        });
-        node.on('position', () => this.updatePopper(node));
-        this.renderer.cy.on('pan zoom resize', () => this.updatePopper(node));
-    }
-    unpinAll() {
-        var _a;
-        (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$('[?pinned]').each(node => this.unpinNode(node));
-    }
-    setPopperStyle(dim, popper) {
-        let icon = popper.querySelector('.popper-icon > svg');
-        icon.style.display = 'inherit';
-        if (dim > 2) {
-            popper.style.width = dim + 'px';
-            popper.style.height = dim + 'px';
-            popper.style.display = 'flex';
-            if (dim > 8) {
-                icon.setAttribute('width', dim + 'px');
-                icon.setAttribute('height', dim + 'px');
-            }
-            else if (dim - 10 > 0) {
-                icon.setAttribute('width', (dim - 10) + 'px');
-                icon.setAttribute('height', (dim - 10) + 'px');
-            }
-            else {
-                icon.style.display = 'none';
-            }
-        }
-        else {
-            icon.style.display = 'none';
-            popper.style.display = 'none';
-        }
-    }
-    updatePopper(node) {
-        if (!node.unlockButton || !this.renderer.cy)
-            return;
-        let unlockButton = node.unlockButton;
-        let dimension = node.data('width') / 9 * this.renderer.cy.zoom();
-        this.setPopperStyle(dimension, unlockButton.state.elements.popper);
-        unlockButton.update();
-    }
-    unpinNode(node) {
-        this.removeUnlockButton(node);
-        node.unlock();
-        node.data("pinned", false);
-    }
-    removeUnlockButton(node) {
-        if (node.unlockButton) {
-            node.unlockButton.state.elements.popper.remove();
-            node.unlockButton.destroy();
-            node.unlockButton = null;
-        }
-    }
-    setDragAndPinEventHandlers() {
-        var _a, _b;
-        (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.on('grab', this.grabHandler);
-        (_b = this.renderer.cy) === null || _b === void 0 ? void 0 : _b.on('free', this.freeHandler);
-        // this.renderer.cy.$('[?pinned]').each(n => {
-        //   //n.on('position', () => this.updatePopper(n))
-        //   this.renderer.cy.on('pan zoom resize', () => this.updatePopper(n))
-        // })
-    }
-    get isLayoutInfinite() {
-        return this.floatyLayoutOptions.infinite ? true : false;
-    }
-    get dragAndPin() { return this.renderer.renderStateData[this.id].dragAndPing; }
-    set dragAndPin(isActive) {
-        this.renderer.renderStateData[this.id].dragAndPing = isActive;
-        if (!isActive)
-            this.unpinAll();
-    }
-    get popperContainer() {
-        if (this.renderer.diagram)
-            return this.popperContainers.get(this.renderer.diagram.id);
-    }
-    get popperContainers() {
-        return this.renderer.renderStateData[this.id].popperContainers;
-    }
-}
-
-class GrapholFilterManager extends BaseFilterManager {
-    filterActivation(filter) {
-        var _a;
-        if (!super.filterActivation(filter))
-            return false;
-        if (filter.locked) {
-            console.warn(`Filter has been locked and cannot be applied at the moment`);
-            return false;
-        }
-        if (filter.key === DefaultFilterKeyEnum.DATA_PROPERTY) {
-            // VALUE DOMAIN filter cannot be changed if data-property filter has been activated
-            (_a = this.filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)) === null || _a === void 0 ? void 0 : _a.lock();
-        }
-        return true;
-    }
-    filterDeactivation(filter) {
-        var _a;
-        if (!super.filterDeactivation(filter))
-            return false;
-        if (filter.key === DefaultFilterKeyEnum.DATA_PROPERTY) {
-            // VALUE DOMAIN filter cannot be changed if data-property filter has been activated
-            (_a = this.filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)) === null || _a === void 0 ? void 0 : _a.unlock();
-        }
-        return true;
-    }
-    get filters() { return this._filters; }
-    set filters(filters) {
-        var _a, _b;
-        this._filters = filters;
-        filters.forEach(filter => {
-            filter.unlock();
-        });
-        if ((_a = filters.get(DefaultFilterKeyEnum.DATA_PROPERTY)) === null || _a === void 0 ? void 0 : _a.active) {
-            (_b = filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)) === null || _b === void 0 ? void 0 : _b.lock();
-        }
-    }
-}
-
-class GrapholRendererState extends BaseRenderer {
-    constructor() {
-        super(...arguments);
-        this.id = RendererStatesEnum.GRAPHOL;
-        this.cyConfig = cytoscapeDefaultConfig;
-        this.filterManager = new GrapholFilterManager();
-    }
-    render() {
-        var _a;
-        if (!this.renderer.diagram)
-            return;
-        const grapholRepresentation = this.renderer.diagram.representations.get(this.id);
-        if (!grapholRepresentation)
-            return;
-        this.renderer.cy = grapholRepresentation.cy;
-        this.renderer.mount();
-        if (!grapholRepresentation.hasEverBeenRendered) {
-            this.renderer.fit();
-        }
-        if (this.renderer.diagram.lastViewportState) {
-            (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(this.renderer.diagram.lastViewportState);
-        }
-        grapholRepresentation.hasEverBeenRendered = true;
-    }
-    stopRendering() {
-        if (this.renderer.cy && this.renderer.diagram) {
-            this.renderer.diagram.lastViewportState = {
-                pan: this.renderer.cy.pan(),
-                zoom: this.renderer.cy.zoom(),
-            };
-        }
-    }
-    runLayout() {
-        throw new Error("Method not implemented.");
-    }
-    stopLayout() {
-        throw new Error("Method not implemented.");
-    }
-    getGraphStyle(theme) {
-        return grapholStyle(theme);
-    }
-    transformOntology(ontology) { }
-}
-
-class LiteFilterManager extends BaseFilterManager {
-    constructor() {
-        super(...arguments);
-        this.lockedFilters = [
-            DefaultFilterKeyEnum.VALUE_DOMAIN,
-            DefaultFilterKeyEnum.UNIVERSAL_QUANTIFIER,
-            DefaultFilterKeyEnum.COMPLEMENT,
-            DefaultFilterKeyEnum.HAS_KEY,
-        ];
-    }
-    get filters() { return this._filters; }
-    set filters(filters) {
-        this._filters = filters;
-        this.lockedFilters.forEach(lockedFilterKey => {
-            var _a;
-            (_a = this.filters.get(lockedFilterKey)) === null || _a === void 0 ? void 0 : _a.lock();
-        });
-    }
-}
-
-function liteStyle (theme) {
-    const baseStyle = grapholStyle(theme);
-    const liteStyle = [
-        {
-            selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
-            style: {
-                'line-style': 'solid',
-                'target-arrow-shape': 'none',
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'label': '',
-                'width': 0.1,
-                'height': 0.1,
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'width': 6,
-                'line-style': 'solid',
-                'target-arrow-shape': 'triangle',
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.UNION}"]`,
-            style: {
-                'target-arrow-fill': 'hollow',
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
-            style: {
-                'target-arrow-fill': 'filled',
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"], [type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
-            style: {
-                'line-color': theme.getColour(ColoursNames.object_property_contrast),
-                'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-                'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-                'target-arrow-shape': 'triangle',
-                'target-arrow-fill': 'filled',
-                'source-arrow-shape': 'square',
-                'source-arrow-fill': 'hollow',
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
-            style: {
-                'target-arrow-shape': 'square',
-                'target-arrow-fill': 'filled',
-                'source-arrow-shape': 'none',
-            }
-        },
-        {
-            selector: `[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"]`,
-            style: {
-                'target-arrow-shape': 'square',
-                'target-arrow-fill': 'hollow',
-                'source-arrow-shape': 'none',
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
-            style: {
-                'line-color': theme.getColour(ColoursNames.data_property_contrast),
-                'source-arrow-shape': 'none',
-                'target-arrow-shape': 'none',
-            }
-        },
-    ];
-    return baseStyle.concat(liteStyle);
-}
-
-class LiteRendererState extends BaseRenderer {
-    constructor() {
-        super(...arguments);
-        this.id = RendererStatesEnum.GRAPHOL_LITE;
-        this.filterManager = new LiteFilterManager();
-        this.cyConfig = cytoscapeDefaultConfig;
-    }
-    runLayout() {
-        var _a;
-        if (!this.renderer.cy)
-            return;
-        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
-        this.renderer.cy.nodes().lock();
-        this._layout = this.renderer.cy.$('.repositioned').closedNeighborhood().closedNeighborhood().layout({
-            name: 'cola',
-            centerGraph: false,
-            refresh: 3,
-            maxSimulationTime: 8000,
-            convergenceThreshold: 0.0000001,
-            fit: false,
-        });
-        this.renderer.cy.$('.repositioned').unlock();
-        this._layout.run();
-    }
-    render() {
-        var _a;
-        if (!this.renderer.diagram)
-            return;
-        let liteRepresentation = this.renderer.diagram.representations.get(this.id);
-        if (!liteRepresentation)
-            return;
-        this.renderer.cy = liteRepresentation.cy;
-        this.renderer.mount();
-        if (!liteRepresentation.hasEverBeenRendered) {
-            this.renderer.fit();
-            this.runLayout();
-        }
-        if (this.renderer.diagram.lastViewportState) {
-            (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(this.renderer.diagram.lastViewportState);
-        }
-        liteRepresentation.hasEverBeenRendered = true;
-    }
-    stopRendering() {
-        if (this.renderer.cy && this.renderer.diagram) {
-            this.renderer.diagram.lastViewportState = {
-                pan: this.renderer.cy.pan(),
-                zoom: this.renderer.cy.zoom(),
-            };
-        }
-    }
-    stopLayout() { }
-    getGraphStyle(theme) {
-        return liteStyle(theme);
-    }
-    transformOntology(ontology) {
-        ontology.diagrams.forEach(diagram => {
-            const liteTransformer = new LiteTransformer();
-            diagram.representations.set(this.id, liteTransformer.transform(diagram));
-        });
-    }
-    get layout() { return this._layout; }
-    set layout(newLayout) { this._layout = newLayout; }
-}
-
-class ThemeManager {
-    constructor(grapholscape) {
-        this.themes = Object.values(DefaultThemes);
-        this.setTheme = (newThemeId) => {
-            const newTheme = this.themes.find(t => t.id === newThemeId);
-            if (newTheme) {
-                this.setMissingColours(newTheme);
-                this.theme = newTheme;
-                Object.entries(newTheme.colours).forEach(([colourName, colour]) => {
-                    this._grapholscape.container.style.setProperty(`${CSS_PROPERTY_NAMESPACE}-${colourName}`, colour);
-                });
-                this._grapholscape.renderer.setTheme(newTheme);
-                this._grapholscape.lifecycle.trigger(LifecycleEvent.ThemeChange, newTheme);
-                storeConfigEntry('selectedTheme', newThemeId);
-            }
-        };
-        this.addTheme = (newTheme) => {
-            this.themes.push(newTheme);
-        };
-        this._grapholscape = grapholscape;
-    }
-    removeThemes() {
-        this.themes = [];
-    }
-    setMissingColours(theme) {
-        // Set default theme colours for missing colours
-        Object.entries(gscapeColourMap).forEach(([colourName, colourValue]) => {
-            const _colourName = colourName;
-            if (!theme.getColour(_colourName))
-                theme.setColour(_colourName, colourValue);
-        });
-    }
-}
-
-class Grapholscape {
-    constructor(ontology, container, config) {
-        this.renderer = new Renderer();
-        this.availableRenderers = [
-            RendererStatesEnum.GRAPHOL, RendererStatesEnum.GRAPHOL_LITE, RendererStatesEnum.FLOATY
-        ];
-        this.lifecycle = new Lifecycle();
-        this.entityNavigator = new EntityNavigator(this);
-        this.displayedNamesManager = new DisplayedNamesManager(this);
-        this.themesManager = new ThemeManager(this);
-        this.widgets = new Map();
-        // ------------------------- ENTITY NAVIGATOR ------------------------- //
-        /** @borrows this.entityNavigator.centerOnEntity as this.centerOnEntity */
-        this.centerOnEntity = this.entityNavigator.centerOnEntity;
-        /** @borrows this.entityNavigator.selectEntity as this.selectEntity */
-        this.selectEntity = this.entityNavigator.selectEntity;
-        // ----------------------------- RENDERER ----------------------------- //
-        /** @borrows this.renderer.unselect as this.unselect */
-        this.unselect = this.renderer.unselect;
-        /** @borrows this.renderer.selectElement as this.selectElement */
-        this.selectElement = this.renderer.selectElement;
-        /** @borrows this.renderer.fit as this.fit */
-        this.fit = this.renderer.fit;
-        /** @borrows this.renderer.zoom as this.zoom */
-        this.zoom = this.renderer.zoom;
-        /** @borrows this.renderer.zoomIn as this.zoomIn */
-        this.zoomIn = this.renderer.zoomIn;
-        /** @borrows this.renderer.zoomOut as this.zoomOut */
-        this.zoomOut = this.renderer.zoomOut;
-        /** @borrows this.renderer.filter as this.filter */
-        this.filter = this.renderer.filter;
-        /** @borrows this.renderer.unfilter as this.unfilter */
-        this.unfilter = this.renderer.unfilter;
-        // ---------------------- DISPLAYED NAMES MANAGER ---------------------- //
-        /** @borrows this.displayedNamesManager.setEntityNameType as this.setEntityNameType */
-        this.setEntityNameType = this.displayedNamesManager.setEntityNameType;
-        /** @borrows this.displayedNamesManager.setLanguage as this.setLanguage */
-        this.setLanguage = this.displayedNamesManager.setLanguage;
-        // -------------------------- THEMES MANAGER -------------------------- //
-        /** @borrows this.themesManager.setTheme as this.setTheme */
-        this.setTheme = this.themesManager.setTheme;
-        /** @borrows this.themesManager.addTheme as this.addTheme */
-        this.addTheme = this.themesManager.addTheme;
-        // ----------------------------- LIFECYCLE ----------------------------- //
-        this.on = this.lifecycle.on;
-        this.ontology = ontology;
-        this.container = container;
-        this.renderer.container = container;
-        this.renderer.lifecycle = this.lifecycle;
-        this.renderer.renderState = new GrapholRendererState();
-        if (!(config === null || config === void 0 ? void 0 : config.selectedTheme)) {
-            this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE);
-        }
-        if (config) {
-            this.setConfig(config);
-        }
-    }
-    showDiagram(diagramId, viewportState = null) {
-        const diagram = this.ontology.getDiagram(diagramId);
-        if (!diagram) {
-            console.warn(`Can't find any diagram with id="${diagramId}"`);
-            return;
-        }
-        this.entityNavigator.setGraphEventHandlers(diagram);
-        this.renderer.render(diagram);
-    }
-    setRenderer(newRenderState) {
-        var _a;
-        const shouldUpdateEntities = (this.diagramId !== 0 && !this.diagramId) || !((_a = this.ontology.getDiagram(this.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(newRenderState.id)) ? true : false;
-        if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
-            newRenderState.transformOntology(this.ontology);
-        }
-        this.renderer.renderState = newRenderState;
-        if (this.renderer.diagram)
-            this.entityNavigator.setGraphEventHandlers(this.renderer.diagram);
-        if (shouldUpdateEntities)
-            this.entityNavigator.updateEntitiesOccurrences();
-        this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState);
-    }
-    centerOnElement(elementId, diagramId, zoom) {
-        if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
-            this.showDiagram(diagramId);
-        this.renderer.centerOnElementById(elementId, zoom);
-    }
-    get diagramId() {
-        var _a;
-        return (_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.id;
-    }
-    get renderState() {
-        return this.renderer.renderState.id;
-    }
-    get selectedEntity() {
-        var _a;
-        const selectedElement = this.renderer.selectedElement;
-        if (selectedElement === null || selectedElement === void 0 ? void 0 : selectedElement.isEntity())
-            return this.ontology.getEntity((_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(selectedElement.id).data().iri);
-    }
-    get renderers() { return this.availableRenderers; }
-    get language() { return this.displayedNamesManager.language; }
-    get entityNameType() { return this.displayedNamesManager.entityNameType; }
-    get theme() { return this.themesManager.theme; }
-    get themeList() { return this.themesManager.themes; }
-    // -------------------------------- UI -------------------------------- //
-    get uiContainer() { return this.container.querySelector('.gscape-ui'); }
-    get buttonsTray() { var _a; return (_a = this.uiContainer) === null || _a === void 0 ? void 0 : _a.querySelector('.gscape-ui-buttons-tray'); }
-    // ------------------------------ CONFIG ------------------------------ //
-    setConfig(newConfig) {
-        if (newConfig.language) {
-            this.displayedNamesManager.setLanguage(newConfig.language);
-        }
-        if (newConfig.entityNameType) {
-            this.displayedNamesManager.setEntityNameType(newConfig.entityNameType);
-        }
-        if (newConfig.renderers) {
-            this.availableRenderers = newConfig.renderers;
-            /**
-             * Just use the first defined renderer state
-             * the other ones will be managed by renderer-selector widget
-             * or manually by the app importing grapholscape
-             */
-            switch (newConfig.renderers[0]) {
-                case RendererStatesEnum.GRAPHOL: {
-                    this.setRenderer(new GrapholRendererState());
-                    break;
-                }
-                case RendererStatesEnum.GRAPHOL_LITE: {
-                    this.setRenderer(new LiteRendererState());
-                    break;
-                }
-                case RendererStatesEnum.FLOATY: {
-                    this.setRenderer(new FloatyRenderState());
-                    break;
-                }
-            }
-        }
-        if (newConfig.themes) {
-            this.themesManager.removeThemes();
-            newConfig.themes.forEach(newTheme => {
-                const _castedNewTheme = newTheme;
-                // It's a default theme id
-                if (DefaultThemes[newTheme]) {
-                    this.themesManager.addTheme(DefaultThemes[newTheme]);
-                }
-                // It's a custom theme
-                else if (_castedNewTheme.id) {
-                    this.themesManager.addTheme(new GrapholscapeTheme(_castedNewTheme.id, _castedNewTheme.colours, _castedNewTheme.name));
-                }
-            });
-        }
-        if (newConfig.selectedTheme) {
-            this.themesManager.setTheme(newConfig.selectedTheme);
-        }
-        else if (!this.themeList.includes(this.theme)) {
-            this.themesManager.setTheme(this.themeList[0].id);
-        }
-        if (newConfig.widgets) {
-            this.widgetsInitialStates = newConfig.widgets;
-        }
-    }
-    // ---------------------------- EXPORTING ---------------------------- //
-    exportToPng(fileName = this.exportFileName) {
-        fileName += '.png';
-        toPNG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph));
-    }
-    exportToSvg(fileName = this.exportFileName) {
-        fileName += '.svg';
-        toSVG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph));
-    }
-    /**
-     * Filename for exports
-     * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
-     */
-    get exportFileName() {
-        var _a;
-        return `${this.ontology.name}-${(_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.name}-v${this.ontology.version}`;
-    }
 }
 
 class FakeGrapholNode extends GrapholNode {
@@ -5232,9 +2600,35 @@ class GrapholParser {
     }
 }
 
-const animationDuration = r$2 `200ms`;
-const BOTTOM_RIGHT_WIDGET = r$2 `bottom-right-widget`;
-var baseStyle = r$2 `
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t$1=window,e$2=t$1.ShadowRoot&&(void 0===t$1.ShadyCSS||t$1.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$3=Symbol(),n$3=new WeakMap;class o$3{constructor(t,e,n){if(this._$cssResult$=!0,n!==s$3)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e;}get styleSheet(){let t=this.o;const s=this.t;if(e$2&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=n$3.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&n$3.set(s,t));}return t}toString(){return this.cssText}}const r$2=t=>new o$3("string"==typeof t?t:t+"",void 0,s$3),i$1=(t,...e)=>{const n=1===t.length?t[0]:e.reduce(((e,s,n)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[n+1]),t[0]);return new o$3(n,t,s$3)},S$1=(s,n)=>{e$2?s.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((e=>{const n=document.createElement("style"),o=t$1.litNonce;void 0!==o&&n.setAttribute("nonce",o),n.textContent=e.cssText,s.appendChild(n);}));},c$1=e$2?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$2(e)})(t):t;
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$2={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$2,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;null!==(i=this.h)&&void 0!==i||(this.h=[]),this.h.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$2).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$2;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.4.1");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+var t;const i=window,s$1=i.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$1="?"+o$1,l$1=`<${n$1}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p=/"/g,$=/^(?:script|style|textarea|title)$/i,g=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g(1),w=g(2),x=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new S(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},E=h.createTreeWalker(h,129,null,!1),C=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p:m):d===p||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class P{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C(t,i);if(this.el=P.createElement(v,e),E.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=E.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?R:"?"===i[1]?H:"@"===i[1]?I:M});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),E.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$1)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===x)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=V(t,r._$AS(t,i.values),r,e)),i}class N{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);E.currentNode=o;let n=E.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=E.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$C_=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$C_}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.k(t):c(t)?this.O(t):this.$(t);}S(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}k(t){this._$AH!==t&&(this._$AR(),this._$AH=this.S(t));}$(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.k(h.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N(o,this),i=t.p(this.options);t.m(s),this.k(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new P(t)),i}O(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S(this.S(r()),this.S(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$C_=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===x&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.P(t);}P(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class R extends M{constructor(){super(...arguments),this.type=3;}P(t){this.element[this.name]=t===b?void 0:t;}}const k=s$1?s$1.emptyScript:"";class H extends M{constructor(){super(...arguments),this.type=4;}P(t){t&&t!==b?this.element.setAttribute(this.name,k):this.element.removeAttribute(this.name);}}class I extends M{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:b)===x)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const Z=i.litHtmlPolyfillSupport;null==Z||Z(P,S),(null!==(t=i.litHtmlVersions)&&void 0!==t?t:i.litHtmlVersions=[]).push("2.3.1");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=A(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
+
+const animationDuration = i$1 `200ms`;
+const BOTTOM_RIGHT_WIDGET = i$1 `bottom-right-widget`;
+var baseStyle = i$1 `
 *, :host {
   line-height: initial;
 }
@@ -5477,7 +2871,7 @@ input {
 }
 `;
 
-var GscapeButtonStyle = r$2 `
+var GscapeButtonStyle = i$1 `
 .btn {
   border-radius: var(--gscape-border-radius-btn);
   border: 1px solid var(--gscape-color-border-subtle);
@@ -5634,7 +3028,7 @@ class GscapeButton extends s {
         this.label = '';
     }
     render() {
-        return p `
+        return y `
       <button
         class="btn btn-${this.size} ${this.type}"
         ?label="${this.label}"
@@ -5644,10 +3038,10 @@ class GscapeButton extends s {
       >
 
       ${this.toggled && this.altIcon
-            ? p `<slot name="alt-icon" class="slotted-icon"></slot>`
-            : p `<slot name="icon" class="slotted-icon"></slot>`}
+            ? y `<slot name="alt-icon" class="slotted-icon"></slot>`
+            : y `<slot name="icon" class="slotted-icon"></slot>`}
 
-      ${this.label ? p `<span class="btn-label">${this.label}<span>` : ``}
+      ${this.label ? y `<span class="btn-label">${this.label}<span>` : ``}
 
       <slot name="trailing-icon" class="slotted-icon"></slot>
       </button>
@@ -5685,27 +3079,6 @@ class GscapeToggle extends s {
     constructor() {
         super(...arguments);
         this.labelPosition = ToggleLabelPosition.RIGHT;
-        // set state(state) {
-        //   this._state = state
-        //   this.checked = this.inverse ? !state : state
-        //   // trying to force an update, doesn't work
-        //   //this.requestUpdate('checked', old_checked_val)
-        // }
-        // get state() {
-        //   return this._state
-        // }
-        // get label_span() {
-        //   return html`<span class="toggle-label">${this.label}</span>`
-        // }
-        // clickHandler(e) {
-        //   this.state = !this.state
-        //   this.onToggle(e)
-        // }
-        // updated(a) {
-        //   // force toggle to change its visual state
-        //   // this should be unnecessary: see issue
-        //   this.shadowRoot.querySelector(`#${this.key}`).checked = this.checked
-        // }
     }
     static get properties() {
         return {
@@ -5716,19 +3089,8 @@ class GscapeToggle extends s {
             checked: { type: Boolean, reflect: true },
         };
     }
-    // constructor(key, state, disabled, label, onToggle, inverse_mode = false) {
-    //   super()
-    //   this.key = key || ''
-    //   // always set inverse before state
-    //   this.inverse = inverse_mode
-    //   this.state = state || false
-    //   this.disabled = disabled || false
-    //   this.onToggle = onToggle || {}
-    //   this.label = label || ''
-    //   this.label_pos = 'left'
-    // }
     render() {
-        return p `
+        return y `
     <label class="toggle-container">
       <span class="toggle-label">${this.label}</span>
       <span class="toggle-wrap">
@@ -5745,7 +3107,7 @@ class GscapeToggle extends s {
 GscapeToggle.ToggleLabelPosition = ToggleLabelPosition;
 GscapeToggle.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         display: block;
         cursor: pointer;
@@ -5828,7 +3190,7 @@ GscapeToggle.styles = [
 ];
 customElements.define('gscape-toggle', GscapeToggle);
 
-var actionItemStyle = r$2 `
+var actionItemStyle = i$1 `
   .list-item {
     display: flex;
     gap: 8px;
@@ -5850,7 +3212,7 @@ class GscapeActionListItem extends s {
         this.expanded = false;
     }
     render() {
-        return p `
+        return y `
       <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null}" @click=${this.clickHandler}>
         <div class="list-item actionable" @click=${this.clickHandler}>
           <slot name="icon" class="slotted-icon" ></slot>
@@ -5858,7 +3220,7 @@ class GscapeActionListItem extends s {
           <slot name="trailing-icon" class="slotted-icon" ></slot>
 
           ${this.expanded
-            ? p `<slot name="hidden-content" class="slotted-icon" ></slot>`
+            ? y `<slot name="hidden-content" class="slotted-icon" ></slot>`
             : null}
         </div>
       </li>
@@ -5951,6 +3313,283 @@ function hasDropPanel(element) {
     return element.togglePanel ? true : false;
 }
 
+var WidgetEnum;
+(function (WidgetEnum) {
+    WidgetEnum["DIAGRAM_SELECTOR"] = "diagram-selector";
+    WidgetEnum["ENTITY_DETAILS"] = "details";
+    WidgetEnum["FILTERS"] = "filters";
+    WidgetEnum["FIT_BUTTON"] = "fit-button";
+    WidgetEnum["FULLSCREEN_BUTTON"] = "fullscreen-button";
+    WidgetEnum["ONTOLOGY_EXPLORER"] = "ontology-explorer";
+    WidgetEnum["ONTOLOGY_INFO"] = "ontology-info";
+    WidgetEnum["OWL_VISUALIZER"] = "owl-visualizer";
+    WidgetEnum["RENDERER_SELECTOR"] = "renderer-selector";
+    WidgetEnum["LAYOUT_SETTINGS"] = "layout-settings";
+    WidgetEnum["SETTINGS"] = "settings";
+    WidgetEnum["ZOOM_TOOLS"] = "zoom-tools";
+})(WidgetEnum || (WidgetEnum = {}));
+
+var classIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="18"
+   height="18"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="class.svg"
+   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1853"
+     inkscape:window-height="1025"
+     id="namedview6"
+     showgrid="false"
+     inkscape:zoom="13.111111"
+     inkscape:cx="0.11440678"
+     inkscape:cy="9"
+     inkscape:window-x="67"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <rect
+     x="3"
+     y="6"
+     width="12"
+     height="7"
+     rx="0"
+     ry="0"
+     id="rect2"
+     style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:3" />
+</svg>
+`;
+
+var dataPropertyIcon = w `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-data-property-contrast)" stroke-width="3.5" fill="none"/>
+</svg>
+`;
+
+var individualIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (6e3e5246a0, 2020-05-07)"
+   sodipodi:docname="individual.svg"
+   id="svg4"
+   version="1.1"
+   height="18"
+   width="18">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8">
+    <linearGradient
+       osb:paint="solid"
+       id="linearGradient880">
+      <stop
+         id="stop878"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     inkscape:document-rotation="0"
+     fit-margin-bottom="0"
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     inkscape:current-layer="svg4"
+     inkscape:window-maximized="0"
+     inkscape:window-y="27"
+     inkscape:window-x="993"
+     inkscape:cy="9.677215"
+     inkscape:cx="9.0082925"
+     inkscape:zoom="22.702061"
+     showgrid="false"
+     id="namedview6"
+     inkscape:window-height="1025"
+     inkscape:window-width="927"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <g
+     id="g27">
+    <g
+       id="g21">
+      <g
+         id="g16">
+        <g
+           id="g12" />
+      </g>
+    </g>
+  </g>
+  <path
+     transform="matrix(0.9072154,0,0,0.92465409,0.92347539,1.0342853)"
+     d="m 15.868025,11.669896 -4.068749,4.075966 -5.7591839,0.0051 -4.0759657,-4.06875 -0.0051,-5.7591835 4.0687497,-4.0759657 5.7591833,-0.0051 4.075966,4.0687497 z"
+     inkscape:randomized="0"
+     inkscape:rounded="0"
+     inkscape:flatsided="true"
+     sodipodi:arg2="0.78451219"
+     sodipodi:arg1="0.39181311"
+     sodipodi:r2="6.9185686"
+     sodipodi:r1="7.5247387"
+     sodipodi:cy="8.796464"
+     sodipodi:cx="8.9135246"
+     sodipodi:sides="8"
+     id="path51"
+     style="fill:none;fill-rule:evenodd;stroke:var(--gscape-color-individual-contrast);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     sodipodi:type="star" />
+</svg>`;
+
+var objectPropertyIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="18"
+   height="18"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="role.svg"
+   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="927"
+     inkscape:window-height="1025"
+     id="namedview6"
+     showgrid="false"
+     inkscape:zoom="13.111111"
+     inkscape:cx="7.2336581"
+     inkscape:cy="6.7167247"
+     inkscape:window-x="993"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg4"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <polygon
+     points="125,86.909 146.992,125 125,163.092 103.008,125 "
+     transform="matrix(0.27862408,0,0,0.13179941,-25.774205,-7.2921404)"
+     id="polygon2"
+     style="fill:none;stroke:var(--gscape-color-object-property-contrast);stroke-width:12.02451324;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
+</svg>
+`;
+
+const diagrams = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M6.333 5.438Q5.875 5.438 5.552 5.76Q5.229 6.083 5.229 6.542Q5.229 7 5.552 7.302Q5.875 7.604 6.333 7.604Q6.792 7.604 7.094 7.302Q7.396 7 7.396 6.542Q7.396 6.083 7.094 5.76Q6.792 5.438 6.333 5.438ZM6.333 13.208Q5.875 13.208 5.552 13.51Q5.229 13.812 5.229 14.271Q5.229 14.729 5.552 15.052Q5.875 15.375 6.333 15.375Q6.792 15.375 7.094 15.052Q7.396 14.729 7.396 14.271Q7.396 13.812 7.094 13.51Q6.792 13.208 6.333 13.208ZM3.667 3.167H16.354Q16.667 3.167 16.875 3.375Q17.083 3.583 17.083 3.896V9.104Q17.083 9.458 16.875 9.677Q16.667 9.896 16.354 9.896H3.667Q3.354 9.896 3.135 9.677Q2.917 9.458 2.917 9.104V3.896Q2.917 3.583 3.135 3.375Q3.354 3.167 3.667 3.167ZM4.25 4.5V8.562H15.75V4.5ZM3.667 10.938H16.333Q16.667 10.938 16.875 11.156Q17.083 11.375 17.083 11.708V16.875Q17.083 17.229 16.875 17.448Q16.667 17.667 16.333 17.667H3.688Q3.354 17.667 3.135 17.448Q2.917 17.229 2.917 16.875V11.708Q2.917 11.375 3.125 11.156Q3.333 10.938 3.667 10.938ZM4.25 12.271V16.333H15.75V12.271ZM4.25 4.5V8.562ZM4.25 12.271V16.333Z"/></svg>';
+const triangle_up = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 14l5-5 5 5H7z"/></svg>`;
+const triangle_down = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 10l5 5 5-5H7z"/></svg>`;
+const arrow_right = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`;
+const arrowDown = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M10 12 6 8H14Z"/></svg>';
+const explore = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m5.75 14.25 6.021-2.479L14.25 5.75 8.229 8.229Zm3.542-3.542Q9 10.417 9 10t.292-.708Q9.583 9 10 9t.708.292Q11 9.583 11 10t-.292.708Q10.417 11 10 11t-.708-.292ZM10 18q-1.646 0-3.104-.625-1.458-.625-2.552-1.719t-1.719-2.552Q2 11.646 2 10q0-1.667.625-3.115.625-1.447 1.719-2.541Q5.438 3.25 6.896 2.625T10 2q1.667 0 3.115.625 1.447.625 2.541 1.719 1.094 1.094 1.719 2.541Q18 8.333 18 10q0 1.646-.625 3.104-.625 1.458-1.719 2.552t-2.541 1.719Q11.667 18 10 18Zm0-1.5q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`;
+const info_outline = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.25 14H10.75V9H9.25ZM10 7.5Q10.312 7.5 10.531 7.281Q10.75 7.062 10.75 6.75Q10.75 6.438 10.531 6.219Q10.312 6 10 6Q9.688 6 9.469 6.219Q9.25 6.438 9.25 6.75Q9.25 7.062 9.469 7.281Q9.688 7.5 10 7.5ZM10 16.5Q11.354 16.5 12.531 15.99Q13.708 15.479 14.594 14.594Q15.479 13.708 15.99 12.521Q16.5 11.333 16.5 10Q16.5 8.646 15.99 7.469Q15.479 6.292 14.594 5.406Q13.708 4.521 12.531 4.01Q11.354 3.5 10 3.5Q8.667 3.5 7.479 4.01Q6.292 4.521 5.406 5.406Q4.521 6.292 4.01 7.469Q3.5 8.646 3.5 10Q3.5 11.333 4.01 12.521Q4.521 13.708 5.406 14.594Q6.292 15.479 7.479 15.99Q8.667 16.5 10 16.5ZM10 18Q6.667 18 4.333 15.667Q2 13.333 2 10Q2 6.667 4.333 4.333Q6.667 2 10 2Q13.333 2 15.667 4.333Q18 6.667 18 10Q18 13.333 15.667 15.667Q13.333 18 10 18ZM10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Z"/></svg>`;
+const enterFullscreen = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z"/></svg>';
+const exitFullscreen = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z"/></svg>';
+const centerDiagram = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M10 12.167Q9.104 12.167 8.469 11.531Q7.833 10.896 7.833 10Q7.833 9.104 8.469 8.469Q9.104 7.833 10 7.833Q10.896 7.833 11.531 8.469Q12.167 9.104 12.167 10Q12.167 10.896 11.531 11.531Q10.896 12.167 10 12.167ZM2.917 7.542V4.5Q2.917 3.833 3.375 3.375Q3.833 2.917 4.5 2.917H7.542V4.25H4.5Q4.417 4.25 4.333 4.333Q4.25 4.417 4.25 4.5V7.542ZM7.542 17.083H4.5Q3.833 17.083 3.375 16.625Q2.917 16.167 2.917 15.5V12.458H4.25V15.5Q4.25 15.583 4.333 15.667Q4.417 15.75 4.5 15.75H7.542ZM12.458 17.083V15.75H15.5Q15.583 15.75 15.667 15.667Q15.75 15.583 15.75 15.5V12.458H17.083V15.5Q17.083 16.167 16.625 16.625Q16.167 17.083 15.5 17.083ZM15.75 7.542V4.5Q15.75 4.417 15.667 4.333Q15.583 4.25 15.5 4.25H12.458V2.917H15.5Q16.167 2.917 16.625 3.375Q17.083 3.833 17.083 4.5V7.542ZM10 10.833Q10.354 10.833 10.594 10.594Q10.833 10.354 10.833 10Q10.833 9.646 10.594 9.406Q10.354 9.167 10 9.167Q9.646 9.167 9.406 9.406Q9.167 9.646 9.167 10Q9.167 10.354 9.406 10.594Q9.646 10.833 10 10.833Z"/></svg>';
+const filter = '<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M8.062 13.979V12.583H11.938V13.979ZM5.104 10.5V9.104H14.875V10.5ZM3.146 7V5.604H16.854V7Z"/></svg>';
+const bubbles = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.021 14.667Q4.75 14.667 3.865 13.781Q2.979 12.896 2.979 11.625Q2.979 10.354 3.865 9.469Q4.75 8.583 6.021 8.583Q7.271 8.583 8.156 9.469Q9.042 10.354 9.042 11.625Q9.042 12.896 8.156 13.781Q7.271 14.667 6.021 14.667ZM13.542 11.458Q11.792 11.458 10.583 10.24Q9.375 9.021 9.375 7.271Q9.375 5.5 10.583 4.292Q11.792 3.083 13.542 3.083Q15.292 3.083 16.521 4.292Q17.75 5.5 17.75 7.271Q17.75 9.021 16.521 10.24Q15.292 11.458 13.542 11.458ZM11.958 16.938Q11.042 16.938 10.396 16.292Q9.75 15.646 9.75 14.708Q9.75 13.792 10.396 13.146Q11.042 12.5 11.958 12.5Q12.896 12.5 13.542 13.146Q14.188 13.792 14.188 14.708Q14.188 15.646 13.542 16.292Q12.896 16.938 11.958 16.938Z"/></svg>`;
+const lite = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.208 16.292Q3 16.083 3 15.792Q3 15.5 3.208 15.292L8.104 10.417Q8.208 10.292 8.365 10.219Q8.521 10.146 8.667 10.146Q8.812 10.146 8.969 10.219Q9.125 10.292 9.229 10.417L12 13.167L17.354 7.104Q17.542 6.875 17.812 6.865Q18.083 6.854 18.292 7.062Q18.479 7.25 18.49 7.51Q18.5 7.771 18.333 7.958L12.583 14.542Q12.479 14.667 12.312 14.74Q12.146 14.812 12 14.812Q11.854 14.812 11.698 14.76Q11.542 14.708 11.417 14.562L8.667 11.833L4.188 16.312Q3.979 16.5 3.698 16.5Q3.417 16.5 3.208 16.292ZM3.354 10.812Q3.229 10.812 3.125 10.75Q3.021 10.688 2.958 10.583L2.688 9.958L2.062 9.688Q1.958 9.625 1.896 9.51Q1.833 9.396 1.833 9.292Q1.833 9.167 1.896 9.062Q1.958 8.958 2.062 8.896L2.688 8.625L2.958 8Q3.021 7.896 3.135 7.823Q3.25 7.75 3.354 7.75Q3.479 7.75 3.583 7.823Q3.688 7.896 3.75 8L4.021 8.625L4.646 8.896Q4.896 9.021 4.896 9.292Q4.896 9.562 4.646 9.688L4.021 9.958L3.75 10.583Q3.688 10.688 3.583 10.75Q3.479 10.812 3.354 10.812ZM12.417 9.146Q12.292 9.146 12.188 9.083Q12.083 9.021 12.021 8.917L11.75 8.292L11.125 8.021Q11.021 7.958 10.958 7.844Q10.896 7.729 10.896 7.625Q10.896 7.5 10.958 7.396Q11.021 7.292 11.125 7.229L11.75 6.958L12.021 6.333Q12.083 6.229 12.198 6.156Q12.312 6.083 12.417 6.083Q12.542 6.083 12.646 6.156Q12.75 6.229 12.812 6.333L13.083 6.958L13.708 7.229Q13.833 7.292 13.885 7.396Q13.938 7.5 13.938 7.625Q13.938 7.75 13.885 7.854Q13.833 7.958 13.708 8.021L13.083 8.292L12.812 8.917Q12.75 9.021 12.646 9.083Q12.542 9.146 12.417 9.146ZM7.062 6.646Q6.938 6.646 6.833 6.573Q6.729 6.5 6.667 6.396L6.271 5.5L5.375 5.104Q5.271 5.042 5.198 4.927Q5.125 4.812 5.125 4.708Q5.125 4.583 5.198 4.479Q5.271 4.375 5.375 4.312L6.271 3.896L6.667 3Q6.729 2.875 6.844 2.823Q6.958 2.771 7.062 2.771Q7.188 2.771 7.292 2.823Q7.396 2.875 7.458 3L7.854 3.896L8.75 4.312Q8.875 4.375 8.938 4.479Q9 4.583 9 4.708Q9 4.833 8.938 4.938Q8.875 5.042 8.75 5.104L7.854 5.5L7.458 6.396Q7.396 6.5 7.292 6.573Q7.188 6.646 7.062 6.646Z"/></svg>`;
+const settings_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m8.021 17.917-.313-2.5q-.27-.125-.625-.334-.354-.208-.625-.395l-2.312.979-1.979-3.438 1.979-1.5q-.021-.167-.031-.364-.011-.198-.011-.365 0-.146.011-.344.01-.198.031-.385l-1.979-1.5 1.979-3.417 2.312.958q.271-.187.615-.385t.635-.344l.313-2.5h3.958l.313 2.5q.312.167.625.344.312.177.604.385l2.333-.958 1.979 3.417-1.979 1.521q.021.187.021.364V10q0 .146-.01.333-.011.188-.011.396l1.958 1.5-1.979 3.438-2.312-.979q-.292.208-.615.395-.323.188-.614.334l-.313 2.5Zm1.937-5.355q1.063 0 1.813-.75t.75-1.812q0-1.062-.75-1.812t-1.813-.75q-1.041 0-1.802.75-.76.75-.76 1.812t.76 1.812q.761.75 1.802.75Zm0-1.333q-.5 0-.864-.364-.365-.365-.365-.865t.365-.865q.364-.364.864-.364t.865.364q.365.365.365.865t-.365.865q-.365.364-.865.364ZM10.021 10Zm-.854 6.583h1.666l.25-2.187q.605-.167 1.136-.49.531-.323 1.031-.802l2.021.875.854-1.375-1.792-1.354q.105-.333.136-.635.031-.303.031-.615 0-.292-.031-.573-.031-.281-.115-.635l1.792-1.396-.834-1.375-2.062.875q-.438-.438-1.021-.781-.583-.344-1.125-.49l-.271-2.208H9.167l-.271 2.208q-.584.146-1.125.458-.542.313-1.042.792l-2.021-.854-.833 1.375 1.75 1.354q-.083.333-.125.646-.042.312-.042.604t.042.594q.042.302.125.635l-1.75 1.375.833 1.375 2.021-.854q.479.458 1.021.771.542.312 1.146.479Z"/></svg>`;
+const infoFilled = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 14.167Q10.354 14.167 10.615 13.906Q10.875 13.646 10.875 13.292V10.021Q10.875 9.667 10.615 9.417Q10.354 9.167 10 9.167Q9.646 9.167 9.385 9.427Q9.125 9.688 9.125 10.042V13.312Q9.125 13.667 9.385 13.917Q9.646 14.167 10 14.167ZM10 7.479Q10.354 7.479 10.615 7.219Q10.875 6.958 10.875 6.604Q10.875 6.25 10.615 5.99Q10.354 5.729 10 5.729Q9.646 5.729 9.385 5.99Q9.125 6.25 9.125 6.604Q9.125 6.958 9.385 7.219Q9.646 7.479 10 7.479ZM10 18.333Q8.271 18.333 6.75 17.677Q5.229 17.021 4.104 15.896Q2.979 14.771 2.323 13.25Q1.667 11.729 1.667 10Q1.667 8.271 2.323 6.75Q2.979 5.229 4.104 4.104Q5.229 2.979 6.75 2.323Q8.271 1.667 10 1.667Q11.729 1.667 13.25 2.323Q14.771 2.979 15.896 4.104Q17.021 5.229 17.677 6.75Q18.333 8.271 18.333 10Q18.333 11.729 17.677 13.25Q17.021 14.771 15.896 15.896Q14.771 17.021 13.25 17.677Q11.729 18.333 10 18.333Z"/></svg>`;
+const plus = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.188 15.083V10.792H4.896V9.167H9.188V4.875H10.812V9.167H15.104V10.792H10.812V15.083Z"/></svg>`;
+const minus = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M4.875 10.792V9.167H15.125V10.792Z"/></svg>`;
+const save = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M17.083 6v9.5q0 .667-.458 1.125-.458.458-1.125.458h-11q-.667 0-1.125-.458-.458-.458-.458-1.125v-11q0-.667.458-1.125.458-.458 1.125-.458H14Zm-1.333.604L13.396 4.25H4.5q-.104 0-.177.073T4.25 4.5v11q0 .104.073.177t.177.073h11q.104 0 .177-.073t.073-.177ZM10 14.312q.896 0 1.531-.645.636-.646.636-1.521 0-.896-.636-1.531-.635-.636-1.531-.636-.896 0-1.531.636-.636.635-.636 1.531 0 .875.636 1.521.635.645 1.531.645Zm-4.667-6.02h6.855V5.333H5.333ZM4.25 6.604v9.146-11.5Z"/></svg>`;
+const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
+const close = w `<svg fillColor="currentColor" style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
+const blankSlateDiagrams = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M14.104 8.521Q13.875 8.312 13.875 8.052Q13.875 7.792 14.083 7.583L15.875 5.792Q16.062 5.604 16.333 5.615Q16.604 5.625 16.792 5.812Q17 6.021 17 6.281Q17 6.542 16.792 6.75L15 8.542Q14.812 8.729 14.552 8.719Q14.292 8.708 14.104 8.521ZM10 6.729Q9.729 6.729 9.531 6.531Q9.333 6.333 9.333 6.062V3.604Q9.333 3.333 9.531 3.135Q9.729 2.938 10 2.938Q10.271 2.938 10.469 3.135Q10.667 3.333 10.667 3.604V6.062Q10.667 6.333 10.469 6.531Q10.271 6.729 10 6.729ZM5 8.521 3.208 6.75Q3 6.562 3.01 6.281Q3.021 6 3.229 5.792Q3.417 5.604 3.688 5.604Q3.958 5.604 4.167 5.792L5.938 7.583Q6.125 7.792 6.125 8.052Q6.125 8.312 5.938 8.521Q5.729 8.708 5.458 8.708Q5.188 8.708 5 8.521ZM3.667 15.75H16.333Q16.417 15.75 16.5 15.667Q16.583 15.583 16.583 15.5V11.896Q16.583 11.812 16.5 11.729Q16.417 11.646 16.333 11.646H13.875Q13.375 12.771 12.302 13.469Q11.229 14.167 10 14.167Q8.771 14.167 7.708 13.469Q6.646 12.771 6.125 11.646H3.667Q3.583 11.646 3.5 11.729Q3.417 11.812 3.417 11.896V15.5Q3.417 15.583 3.5 15.667Q3.583 15.75 3.667 15.75ZM3.667 17.083Q3 17.083 2.542 16.625Q2.083 16.167 2.083 15.5V11.896Q2.083 11.229 2.542 10.771Q3 10.312 3.667 10.312H6.625Q7 10.312 7.083 10.385Q7.167 10.458 7.229 10.708Q7.417 11.5 8.135 12.167Q8.854 12.833 10 12.833Q11.146 12.833 11.865 12.156Q12.583 11.479 12.771 10.708Q12.833 10.458 12.917 10.385Q13 10.312 13.375 10.312H16.333Q17 10.312 17.458 10.771Q17.917 11.229 17.917 11.896V15.5Q17.917 16.167 17.458 16.625Q17 17.083 16.333 17.083ZM3.667 15.75Q3.583 15.75 3.5 15.75Q3.417 15.75 3.417 15.75Q3.417 15.75 3.5 15.75Q3.583 15.75 3.667 15.75H6.125Q6.646 15.75 7.708 15.75Q8.771 15.75 10 15.75Q11.229 15.75 12.302 15.75Q13.375 15.75 13.875 15.75H16.333Q16.417 15.75 16.5 15.75Q16.583 15.75 16.583 15.75Q16.583 15.75 16.5 15.75Q16.417 15.75 16.333 15.75Z"/></svg>`;
+const check = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.229 13.771 5.021 10.542 5.75 9.792 8.229 12.25 14.25 6.25 14.979 7.021Z"/></svg>`;
+const searchOff = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6 16.417q-1.5 0-2.542-1.042-1.041-1.042-1.041-2.542 0-1.5 1.052-2.541Q4.521 9.25 6 9.25q1.5 0 2.542 1.052 1.041 1.052 1.041 2.552 0 1.479-1.052 2.521Q7.479 16.417 6 16.417Zm10.875-.771-5.083-5.084q-.104.105-.261.188-.156.083-.302.146l-.291-.375q-.146-.188-.313-.354.875-.438 1.427-1.261T12.604 7q0-1.5-1.052-2.552T9 3.396q-1.5 0-2.552 1.052T5.396 7q0 .208.042.406.041.198.083.386-.313.02-.563.073-.25.052-.52.135-.042-.229-.084-.479-.042-.25-.042-.521 0-1.938 1.376-3.312Q7.062 2.312 9 2.312q1.938 0 3.312 1.365Q13.688 5.042 13.688 7q0 .833-.282 1.583-.281.75-.739 1.334l4.979 4.958ZM4.812 14.521l1.167-1.167 1.167 1.167.542-.542-1.167-1.167 1.167-1.145-.542-.542-1.167 1.146-1.167-1.146-.541.542 1.167 1.145-1.167 1.167Z"/></svg>`;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
+ */
+const move_bubbles = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" /></svg>`;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
+ */
+const owl_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 20px; width: auto" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z"/></svg>`;
+const graphol_icon = w `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: 20px; box-sizing: border-box; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
+const tune = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.375 15.625Q3.104 15.625 2.906 15.427Q2.708 15.229 2.708 14.958Q2.708 14.688 2.906 14.49Q3.104 14.292 3.375 14.292H6.792Q7.062 14.292 7.26 14.49Q7.458 14.688 7.458 14.958Q7.458 15.229 7.26 15.427Q7.062 15.625 6.792 15.625ZM3.375 5.708Q3.104 5.708 2.906 5.51Q2.708 5.312 2.708 5.042Q2.708 4.771 2.906 4.573Q3.104 4.375 3.375 4.375H9.896Q10.167 4.375 10.365 4.573Q10.562 4.771 10.562 5.042Q10.562 5.312 10.365 5.51Q10.167 5.708 9.896 5.708ZM10.083 17.292Q9.812 17.292 9.615 17.094Q9.417 16.896 9.417 16.625V13.312Q9.417 13.042 9.615 12.844Q9.812 12.646 10.083 12.646Q10.354 12.646 10.552 12.844Q10.75 13.042 10.75 13.312V14.292H16.625Q16.896 14.292 17.094 14.49Q17.292 14.688 17.292 14.958Q17.292 15.229 17.094 15.427Q16.896 15.625 16.625 15.625H10.75V16.625Q10.75 16.896 10.552 17.094Q10.354 17.292 10.083 17.292ZM6.792 12.333Q6.521 12.333 6.323 12.135Q6.125 11.938 6.125 11.667V10.667H3.375Q3.104 10.667 2.906 10.469Q2.708 10.271 2.708 10Q2.708 9.729 2.906 9.531Q3.104 9.333 3.375 9.333H6.125V8.354Q6.125 8.083 6.323 7.885Q6.521 7.688 6.792 7.688Q7.062 7.688 7.26 7.885Q7.458 8.083 7.458 8.354V11.667Q7.458 11.938 7.26 12.135Q7.062 12.333 6.792 12.333ZM10.083 10.667Q9.812 10.667 9.615 10.469Q9.417 10.271 9.417 10Q9.417 9.729 9.615 9.531Q9.812 9.333 10.083 9.333H16.625Q16.896 9.333 17.094 9.531Q17.292 9.729 17.292 10Q17.292 10.271 17.094 10.469Q16.896 10.667 16.625 10.667ZM13.208 7.354Q12.938 7.354 12.74 7.156Q12.542 6.958 12.542 6.688V3.375Q12.542 3.104 12.74 2.906Q12.938 2.708 13.208 2.708Q13.479 2.708 13.677 2.906Q13.875 3.104 13.875 3.375V4.375H16.625Q16.896 4.375 17.094 4.573Q17.292 4.771 17.292 5.042Q17.292 5.312 17.094 5.51Q16.896 5.708 16.625 5.708H13.875V6.688Q13.875 6.958 13.677 7.156Q13.479 7.354 13.208 7.354Z"/></svg>`;
+const filterOff = w `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M16.021 16.5 2.438 2.917l.77-.771 13.584 13.583ZM3.208 5.417V4.333h1.73v1.084Zm2 3.895V8.229h3.646v1.083Zm3.396-3.895L7.521 4.333h9.271v1.084Zm-.396 7.812v-1.083h3.584v1.083ZM12.5 9.312l-1.083-1.083h3.375v1.083Z"/></svg>`;
+const entityIcons = {};
+entityIcons[GrapholTypesEnum.CLASS] = classIcon;
+entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon;
+entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon;
+entityIcons[GrapholTypesEnum.INDIVIDUAL] = individualIcon;
+
 function getEntityViewOccurrences (grapholEntity, grapholscape) {
     var _a, _b;
     const result = new Map();
@@ -6000,12 +3639,12 @@ function getEntityOccurrencesTemplate(occurrences, onNodeNavigation) {
             elementId: elementId
         });
     }
-    return p `
+    return y `
   ${Array.from(occurrences).map(([diagram, occurrencesIds]) => {
-        return p `
+        return y `
       <div diagram-id="${diagram.id}">
         <span class="diagram-name">${diagram.name}</span>
-        ${occurrencesIds.map(occurrenceId => p `
+        ${occurrencesIds.map(occurrenceId => y `
           <gscape-button
             label="${occurrenceId.originalId || occurrenceId.realId}"
             real-id="${occurrenceId.realId}"
@@ -6020,7 +3659,7 @@ function getEntityOccurrencesTemplate(occurrences, onNodeNavigation) {
   `;
 }
 
-var entityListItemStyle = r$2 `
+var entityListItemStyle = i$1 `
   details.entity-list-item > summary::marker {
     display: inline-block;
   }
@@ -6046,7 +3685,7 @@ var entityListItemStyle = r$2 `
   }
 `;
 
-var grapholscapeLogo = p `<?xml version="1.0" encoding="utf-8"?>
+var grapholscapeLogo = y `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 1024 792.6" style="enable-background:new 0 0 1024 792.6;" xml:space="preserve">
 <style type="text/css">
@@ -6203,7 +3842,7 @@ class GscapeEntitySearch extends s {
         this._onEntityFilterToggleCallback = () => { };
     }
     render() {
-        return p `
+        return y `
       <div class="search-box">
         <input @keyup=${this._onSearchCallback} type="text" placeholder="Search IRI, labels...">
         <gscape-button size="s" title="Show/Hide filters" @click=${this.toggleChipsFilters}>
@@ -6244,7 +3883,7 @@ GscapeEntitySearch.properties = {
 };
 GscapeEntitySearch.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         display: block;
         padding: 8px;
@@ -6325,7 +3964,7 @@ class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
-        return p `
+        return y `
     <gscape-button type="subtle" @click=${this.togglePanel}>
       <span slot="icon">${explore}</span>
     </gscape-button>
@@ -6338,7 +3977,7 @@ class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
       <div class="content-wrapper">
 
         ${this.entities.length === 0
-            ? p `
+            ? y `
           <div class="blank-slate">
             ${searchOff}
             <div class="header">Can't find any entity</div>
@@ -6348,7 +3987,7 @@ class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
             : null}
 
         ${this.entities.map(entity => {
-            return p `
+            return y `
           <details class="ellipsed entity-list-item" title="${entity.value.iri.remainder}">
             <summary class="actionable">
               <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
@@ -6371,7 +4010,7 @@ GscapeExplorer.properties = {
 GscapeExplorer.styles = [
     entityListItemStyle,
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         order: 6;
         margin-top:10px;
@@ -6489,7 +4128,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
     }
     render() {
         var _a;
-        return p `
+        return y `
       <gscape-button @click="${this.togglePanel}" label="${((_a = this.actualDiagram) === null || _a === void 0 ? void 0 : _a.name) || 'Select a diagram'}">
         ${getIconSlot('icon', diagrams)}
         ${getIconSlot('trailing-icon', arrowDown)}
@@ -6497,7 +4136,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
         ${this.diagrams.length === 1 && this.actualDiagramId === 0
-            ? p `
+            ? y `
             <div class="blank-slate">
               ${blankSlateDiagrams}
               <div class="header">No more diagrams</div>
@@ -6516,7 +4155,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
                 }
                 return 0;
             })
-                .map(diagram => p `
+                .map(diagram => y `
               <gscape-action-list-item
                 @click="${this.diagramSelectionHandler}"
                 label="${diagram.name}"
@@ -6541,7 +4180,7 @@ GscapeDiagramSelector.properties = {
 };
 GscapeDiagramSelector.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
     :host {
       position: absolute;
       top: 10px;
@@ -6588,7 +4227,7 @@ function itemWithIriTemplate(item, onWikiLinkClick) {
         if (onWikiLinkClick)
             onWikiLinkClick(item.iri);
     }
-    return p `
+    return y `
     <div class="item-with-iri-info ellipsed">
       <div 
         class="name ${onWikiLinkClick ? 'link' : null}" 
@@ -6606,7 +4245,7 @@ function itemWithIriTemplate(item, onWikiLinkClick) {
     </div>
   `;
 }
-const itemWithIriTemplateStyle = r$2 `
+const itemWithIriTemplateStyle = i$1 `
   .item-with-iri-info {
     text-align:center;
     background-color: var(--gscape-color-bg-inset);
@@ -6629,20 +4268,20 @@ function annotationsTemplate(annotations) {
     if (!annotations || annotations.length === 0)
         return null;
     let propertiesAlreadyInserted = [];
-    return p `
+    return y `
     <div class="annotations">
       ${annotations.map(annotation => {
         const property = annotation.property;
         if (annotation.property === 'comment' || propertiesAlreadyInserted.includes(property))
             return null;
         propertiesAlreadyInserted.push(property);
-        return p `
+        return y `
           <div class="annotation">
             <div class="bold-text annotation-property">
               ${property.charAt(0).toUpperCase() + property.slice(1)}
             </div>
             ${annotations.filter(a => a.property === property).map(annotation => {
-            return p `
+            return y `
                 <div class="annotation-row">
                   <span class="language muted-text bold-text">@${annotation.language}</span>
                   <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
@@ -6655,7 +4294,7 @@ function annotationsTemplate(annotations) {
     </div>
   `;
 }
-const annotationsStyle = r$2 `
+const annotationsStyle = i$1 `
   .annotations {
     display: flex;
     flex-direction: column;
@@ -6696,12 +4335,12 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
     render() {
         if (!this.grapholEntity)
             return;
-        return p `
+        return y `
       <div class="gscape-panel ellipsed" id="drop-panel">
         ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
 
         ${this.grapholEntity.datatype
-            ? p `
+            ? y `
             <div style="text-align: center" class="chips-wrapper section">
               <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
             </div>
@@ -6709,10 +4348,10 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
             : null}
 
         ${this.grapholEntity.functionalities.length > 0
-            ? p `
+            ? y `
               <div class="chips-wrapper section">
               ${this.grapholEntity.functionalities.map(functionality => {
-                return p `<span class="chip">&#10003; ${functionality.toString()}</span>`;
+                return y `<span class="chip">&#10003; ${functionality.toString()}</span>`;
             })}
               </div>
             `
@@ -6723,13 +4362,13 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
         ${this.occurrencesTemplate()}
 
         ${this.grapholEntity.getComments().length > 0
-            ? p `
+            ? y `
               <div class="section">
                 <div>
                   <span id="description-header" class="bold-text section-header">Description</span>
                   <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
                     ${this.commentsLanguages.map(language => {
-                return p `
+                return y `
                         <option value="${language}" ?selected=${this.language === language}>
                           @${language}
                         </option>
@@ -6738,7 +4377,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
                   </select>
                 </div>
                 <div class="section-body">
-                  ${this.grapholEntity.getComments(this.language).map(comment => p `<span class="comment">${comment.lexicalForm}</span>`)}
+                  ${this.grapholEntity.getComments(this.language).map(comment => y `<span class="comment">${comment.lexicalForm}</span>`)}
                 </div>
               </div>
             `
@@ -6753,17 +4392,17 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
           label = "${this.isPanelClosed() ? 'Entity Details' : ''}"
         > 
           ${this.isPanelClosed()
-            ? p `
+            ? y `
                 <span slot="icon">${infoFilled}</span>
                 <span slot="trailing-icon">${plus}</span>
               `
-            : p `<span slot="icon">${minus}</span>`}
+            : y `<span slot="icon">${minus}</span>`}
         </gscape-button>
       </div>
     `;
     }
     occurrencesTemplate() {
-        return p `
+        return y `
       <div class="section">
         <div class="bold-text section-header">Occurrences</div>
         <div class="section-body">
@@ -6774,6 +4413,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
     }
     // override blur to avoid collapsing when clicking on cytoscape's canvas
     blur() { }
+    setGrapholEntity(entity) { }
     languageSelectionHandler(e) {
         this.language = e.target.value;
     }
@@ -6806,7 +4446,7 @@ GscapeEntityDetails.styles = [
     itemWithIriTemplateStyle,
     annotationsStyle,
     GscapeButtonStyle,
-    r$2 `
+    i$1 `
       :host {
         position: absolute;
         top:10px;
@@ -6863,10 +4503,6 @@ GscapeEntityDetails.styles = [
 ];
 customElements.define('gscape-entity-details', GscapeEntityDetails);
 
-/**
- * @param {import('./index').default} entityDetailsComponent
- * @param {import('../../grapholscape').default} grapholscape
- */
 function init$6 (entityDetailsComponent, grapholscape) {
     // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
     entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {
@@ -6874,17 +4510,8 @@ function init$6 (entityDetailsComponent, grapholscape) {
         grapholscape.selectElement(entityOccurrence.elementId);
     };
     entityDetailsComponent.language = grapholscape.language;
-    grapholscape.on(LifecycleEvent.EntitySelection, entity => {
-        entityDetailsComponent.grapholEntity = entity;
-        entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape);
-        entityDetailsComponent.language = grapholscape.language;
-        entityDetailsComponent.show();
-        if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
-            entityDetailsComponent.onWikiLinkClick = (iri) => {
-                grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri);
-            };
-        }
-    });
+    entityDetailsComponent.setGrapholEntity = setGrapholEntity;
+    grapholscape.on(LifecycleEvent.EntitySelection, setGrapholEntity);
     grapholscape.on(LifecycleEvent.NodeSelection, node => {
         if (!node.isEntity())
             entityDetailsComponent.hide();
@@ -6900,6 +4527,17 @@ function init$6 (entityDetailsComponent, grapholscape) {
         if (entityDetailsComponent.grapholEntity)
             entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape);
     });
+    function setGrapholEntity(entity) {
+        entityDetailsComponent.grapholEntity = entity;
+        entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape);
+        entityDetailsComponent.language = grapholscape.language;
+        entityDetailsComponent.show();
+        if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
+            entityDetailsComponent.onWikiLinkClick = (iri) => {
+                grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri);
+            };
+        }
+    }
 }
 
 /**
@@ -6923,7 +4561,7 @@ class GscapeFilters extends DropPanelMixin(BaseMixin(s)) {
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
-        return p `
+        return y `
       <gscape-button type="subtle" @click=${this.togglePanel}>
         ${getIconSlot('icon', filter)}
       </gscape-button>
@@ -6940,7 +4578,7 @@ class GscapeFilters extends DropPanelMixin(BaseMixin(s)) {
     `;
     }
     filterToggleTemplate(filter, reverseState = true) {
-        return p `
+        return y `
       <gscape-toggle
         class="${!filter.locked ? 'actionable' : null}"
         @click = ${!filter.locked ? this.toggleFilter : null}
@@ -6979,7 +4617,7 @@ GscapeFilters.properties = {
 };
 GscapeFilters.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         order: 3;
         display:inline-block;
@@ -7172,7 +4810,7 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
-        return p `
+        return y `
       <gscape-button type="subtle" @click="${this.togglePanel}">
         <span slot="icon">${info_outline}</span>
       </gscape-button>  
@@ -7190,18 +4828,18 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
     }
     iriPrefixesTemplate() {
         let numRows;
-        return p `
+        return y `
       <table>
         <caption>Namespace prefixes</caption>
         ${this.ontology.namespaces.map(namespace => {
             numRows = namespace.prefixes.length;
-            return p `
+            return y `
               ${namespace.prefixes.map((prefix, i) => {
-                return p `
+                return y `
                   <tr>
                     <th>${prefix}</th>
                     ${i === 0
-                    ? p `<td rowspan="${numRows}">${namespace.toString()}</td>`
+                    ? y `<td rowspan="${numRows}">${namespace.toString()}</td>`
                     : null}
                   </tr>
                 `;
@@ -7216,7 +4854,7 @@ GscapeOntologyInfo.styles = [
     baseStyle,
     itemWithIriTemplateStyle,
     annotationsStyle,
-    r$2 `
+    i$1 `
       :host {
         order: 4;
         display:inline-block;
@@ -7787,7 +5425,7 @@ class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(s)) {
     render() {
         if (!this.owlText)
             return;
-        return p `
+        return y `
       <div class="top-bar ${this.isPanelClosed() ? null : 'traslated-down'}">
         <gscape-button 
           id="toggle-panel-button"
@@ -7797,11 +5435,11 @@ class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(s)) {
           label = "${this.isPanelClosed() ? this.title : ''}"
         > 
           ${this.isPanelClosed()
-            ? p `
+            ? y `
                 <span slot="icon">${owl_icon}</span>
                 <span slot="trailing-icon">${plus}</span>
               `
-            : p `<span slot="icon">${minus}</span>`}
+            : y `<span slot="icon">${minus}</span>`}
         </gscape-button>
       </div>
 
@@ -7824,7 +5462,7 @@ GscapeOwlVisualizer.properties = {
 };
 GscapeOwlVisualizer.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         bottom: 10px;
         position: absolute;
@@ -7913,9 +5551,9 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
     }
     render() {
         var _a;
-        return p `
+        return y `
     ${this.actualRendererStateKey === RendererStatesEnum.FLOATY
-            ? p `
+            ? y `
           ${this.layoutSettingsComponent}
           <div class="hr"></div>
         `
@@ -7930,7 +5568,7 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
         <div class="content-wrapper">
           ${this.rendererStates.map(rendererState => {
             if (rendererState) {
-                return p `
+                return y `
                 <gscape-action-list-item
                   @click=${this.rendererSelectionHandler}
                   label="${rendererState.name}"
@@ -7959,7 +5597,7 @@ GscapeRenderSelector.properties = {
 };
 GscapeRenderSelector.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         order: 7;
         margin-top:10px;
@@ -7972,6 +5610,1573 @@ GscapeRenderSelector.styles = [
     `
 ];
 customElements.define('gscape-render-selector', GscapeRenderSelector);
+
+class FloatyFilterManager extends BaseFilterManager {
+    constructor() {
+        super(...arguments);
+        this.lockedFilters = [
+            DefaultFilterKeyEnum.VALUE_DOMAIN,
+            DefaultFilterKeyEnum.UNIVERSAL_QUANTIFIER,
+            DefaultFilterKeyEnum.COMPLEMENT,
+            DefaultFilterKeyEnum.HAS_KEY,
+        ];
+    }
+    get filters() { return this._filters; }
+    set filters(filters) {
+        this._filters = filters;
+        this.lockedFilters.forEach(lockedFilterKey => {
+            var _a;
+            (_a = this.filters.get(lockedFilterKey)) === null || _a === void 0 ? void 0 : _a.lock();
+        });
+    }
+}
+
+function grapholStyle (theme) {
+    return [
+        {
+            selector: 'node',
+            style: {
+                'height': 'data(height)',
+                'width': 'data(width)',
+                'background-color': (node) => getColor(node, ColoursNames.bg_node_light),
+                'shape': 'data(shape)',
+                'border-width': 1,
+                'border-color': theme.getColour(ColoursNames.border_node),
+                'border-style': 'solid',
+                'font-size': 12,
+                'color': theme.getColour(ColoursNames.label),
+            }
+        },
+        {
+            selector: '[fontSize]',
+            style: {
+                'font-size': 'data(fontSize)',
+            }
+        },
+        {
+            selector: 'node[displayedName]',
+            style: {
+                'label': 'data(displayedName)',
+                'text-margin-x': 'data(labelXpos)',
+                'text-margin-y': 'data(labelYpos)',
+                'text-wrap': 'wrap',
+                'min-zoomed-font-size': '5px',
+            }
+        },
+        {
+            selector: 'node[labelXcentered]',
+            style: {
+                'text-halign': 'center',
+            }
+        },
+        {
+            selector: 'node[labelYcentered]',
+            style: {
+                'text-valign': 'center',
+            }
+        },
+        {
+            selector: 'edge',
+            style: {
+                'width': 2,
+                'line-color': theme.getColour(ColoursNames.edge),
+                'target-arrow-color': theme.getColour(ColoursNames.edge),
+                'source-arrow-color': theme.getColour(ColoursNames.edge),
+                'curve-style': 'bezier',
+                'arrow-scale': 1.3,
+                'color': theme.getColour(ColoursNames.label),
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.INCLUSION}"]`,
+            style: {
+                'line-style': 'solid',
+                'target-arrow-shape': 'triangle',
+                'target-arrow-fill': 'filled'
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.MEMBERSHIP}"]`,
+            style: {
+                'line-style': 'dashed',
+                'line-dash-pattern': [2, 3],
+                'target-arrow-shape': 'triangle',
+                'target-arrow-fill': 'hollow'
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
+            style: {
+                'line-style': 'dashed',
+                'target-arrow-shape': 'diamond',
+                'target-arrow-fill': 'hollow'
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.EQUIVALENCE}"]`,
+            style: {
+                'line-style': 'solid',
+                'source-arrow-shape': 'triangle',
+                'source-arrow-fill': 'filled',
+                'target-arrow-shape': 'triangle',
+                'target-arrow-fill': 'filled',
+            }
+        },
+        {
+            selector: '[segmentDistances]',
+            style: {
+                'curve-style': 'segments',
+                'segment-distances': 'data(segmentDistances)',
+                'segment-weights': 'data(segmentWeights)',
+                'edge-distances': 'node-position'
+            }
+        },
+        {
+            selector: '[sourceEndpoint]',
+            style: {
+                'source-endpoint': 'data(sourceEndpoint)'
+            }
+        },
+        {
+            selector: '[targetEndpoint]',
+            style: {
+                'target-endpoint': 'data(targetEndpoint)'
+            }
+        },
+        {
+            selector: '[?functional][!inverseFunctional]',
+            style: {
+                'border-width': 5,
+                'border-color': theme.getColour(ColoursNames.border_node),
+                'border-style': 'double'
+            }
+        },
+        {
+            selector: '[?inverseFunctional][!functional]',
+            style: {
+                'border-width': 4,
+                'border-color': theme.getColour(ColoursNames.border_node),
+                'border-style': 'solid'
+            }
+        },
+        {
+            selector: 'edge[displayedName]',
+            style: {
+                'label': 'data(displayedName)',
+                'font-size': 10,
+                'text-rotation': 'autorotate',
+                'text-margin-y': -10,
+            }
+        },
+        {
+            selector: '[sourceLabel],[targetLabel]',
+            style: {
+                'font-size': 15,
+                'target-text-offset': 20,
+            }
+        },
+        {
+            selector: '[targetLabel]',
+            style: {
+                'target-label': 'data(targetLabel)',
+            }
+        },
+        {
+            selector: '[sourceLabel]',
+            style: {
+                'source-label': 'data(sourceLabel)',
+            }
+        },
+        {
+            selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
+            style: {
+                'text-background-color': theme.getColour(ColoursNames.bg_graph),
+                'text-background-opacity': 1,
+                'text-background-shape': 'roundrectangle',
+                'text-background-padding': 2,
+            }
+        },
+        {
+            selector: '[shapePoints]',
+            style: {
+                'shape-polygon-points': 'data(shapePoints)'
+            }
+        },
+        {
+            selector: '.filtered',
+            style: {
+                'display': 'none'
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.FACET}"][!fake], .fake-bottom-rhomboid`,
+            style: {
+                'background-opacity': 0
+            }
+        },
+        {
+            selector: `.fake-top-rhomboid`,
+            style: {
+                'background-color': node => getColor(node, ColoursNames.bg_inset),
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.PROPERTY_ASSERTION}"][!fake]`,
+            style: {
+                'background-opacity': 0,
+                'border-width': 0,
+            }
+        },
+        {
+            selector: '.hidden',
+            style: {
+                'visibility': 'hidden'
+            }
+        },
+        {
+            selector: '.no_border',
+            style: {
+                'border-width': 0
+            }
+        },
+        {
+            selector: '.no_overlay',
+            style: {
+                'overlay-opacity': 0,
+                'overlay-padding': 0
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
+            style: {
+                'background-color': node => getColor(node, ColoursNames.class),
+                'border-color': theme.getColour(ColoursNames.class_contrast),
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"], .fake-triangle`,
+            style: {
+                'background-color': node => getColor(node, ColoursNames.object_property),
+                'border-color': theme.getColour(ColoursNames.object_property_contrast),
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+            style: {
+                'background-color': node => getColor(node, ColoursNames.data_property),
+                'border-color': theme.getColour(ColoursNames.data_property_contrast),
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]:selected`,
+            style: {
+                'text-background-color': theme.getColour(ColoursNames.bg_graph),
+                'text-background-opacity': 1,
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
+            style: {
+                'background-color': node => getColor(node, ColoursNames.individual),
+                'border-color': theme.getColour(ColoursNames.individual_contrast),
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"], [type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'background-color': theme.getColour(ColoursNames.bg_node_dark),
+            }
+        },
+        {
+            selector: '.fake-triangle-right',
+            style: {
+                'background-color': theme.getColour(ColoursNames.object_property_contrast) || 'black',
+            }
+        },
+        {
+            selector: `[shape = "${Shape.HEXAGON}"],[type = "${GrapholTypesEnum.VALUE_DOMAIN}"]`,
+            style: {
+                'color': theme.getColour(ColoursNames.bg_node_dark),
+            }
+        },
+        //-----------------------------------------------------------
+        // selected selector always last
+        {
+            selector: ':selected',
+            style: {
+                'overlay-color': theme.getColour(ColoursNames.accent),
+                'overlay-opacity': 0.2,
+                'z-index': '100'
+            }
+        },
+    ];
+    function getColor(node, colour) {
+        // take color from parsed XML source file
+        if (theme.id === DefaultThemesEnum.GRAPHOL) {
+            return node.data().fillColor;
+        }
+        else {
+            return theme.getColour(colour) || node.data().fillColor;
+        }
+    }
+}
+
+function floatyStyle (theme) {
+    const baseStyle = grapholStyle(theme);
+    const floatyStyle = [
+        {
+            selector: 'node',
+            style: {
+                'shape': 'ellipse',
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.CLASS}"]`,
+            style: {
+                'text-margin-x': 0,
+                'text-margin-y': 0,
+                'text-valign': 'center',
+                'text-halign': 'center',
+                'height': 'data(width)'
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
+            style: {
+                'line-style': 'solid',
+                'target-arrow-shape': 'none',
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
+            style: {
+                'line-color': theme.getColour(ColoursNames.object_property_contrast),
+                'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+                'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+                'target-arrow-shape': 'triangle',
+                'target-arrow-fill': 'filled',
+                'source-arrow-shape': 'square',
+                'source-arrow-fill': 'hollow',
+                'width': 4,
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'width': 35,
+                'height': 35,
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'width': 6,
+                'line-style': 'solid',
+                'target-arrow-shape': 'triangle',
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.UNION}"]`,
+            style: {
+                'target-arrow-fill': 'hollow'
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'target-arrow-fill': 'filled',
+            }
+        },
+        {
+            selector: ':loop',
+            style: {
+                'control-point-step-size': 'data(control_point_step_size)',
+                'control-point-weight': 0.5,
+            }
+        },
+        {
+            selector: '[?pinned]',
+            style: {
+                'border-width': 4,
+                'border-color': theme.getColour(ColoursNames.accent),
+            }
+        },
+    ];
+    return baseStyle.concat(floatyStyle);
+}
+
+class BaseGrapholTransformer {
+    get newCy() { return this.result.cy; }
+    // filter nodes if the criterion function returns true
+    // criterion must be a function returning a boolean value for a given a node
+    filterByCriterion(criterion) {
+        this.newCy.$('*').forEach(node => {
+            if (criterion(node)) {
+                cytoscapeFilter(node.id(), '', this.newCy);
+            }
+        });
+    }
+    deleteFilteredElements() {
+        this.deleteElements(this.newCy.elements('.filtered'));
+    }
+    isRestriction(grapholElement) {
+        if (!grapholElement)
+            return false;
+        return grapholElement.is(GrapholTypesEnum.DOMAIN_RESTRICTION) ||
+            grapholElement.is(GrapholTypesEnum.RANGE_RESTRICTION);
+    }
+    getGrapholElement(id) {
+        return this.result.grapholElements.get(id);
+    }
+    deleteElements(elements) {
+        elements.forEach(elem => {
+            this.deleteElement(elem);
+        });
+    }
+    deleteElement(elem) {
+        this.newCy.remove(elem);
+        this.result.grapholElements.delete(elem.id());
+    }
+}
+
+class LiteTransformer extends BaseGrapholTransformer {
+    constructor() {
+        super(...arguments);
+        this.isQualifiedRestriction = (node) => {
+            const grapholElement = this.getGrapholElement(node.id());
+            if (this.isRestriction(grapholElement)) {
+                return node.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).size() > 1 ? true : false;
+            }
+            return false;
+        };
+        this.isCardinalityRestriction = (node) => {
+            const grapholElement = this.getGrapholElement(node.id());
+            if (this.isRestriction(grapholElement) && grapholElement.displayedName.search(/[0-9]/g) >= 0) {
+                return true;
+            }
+            return false;
+        };
+        this.inputEdgesBetweenRestrictions = (node) => {
+            const grapholElement = this.getGrapholElement(node.id());
+            let outcome = false;
+            if (this.isRestriction(grapholElement)) {
+                node.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).forEach(edge => {
+                    const sourceGrapholElement = this.getGrapholElement(edge.source().id());
+                    if (this.isRestriction(sourceGrapholElement)) {
+                        outcome = true;
+                    }
+                });
+            }
+            return outcome;
+        };
+    }
+    transform(diagram) {
+        this.result = new DiagramRepresentation(liteOptions);
+        const grapholRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL);
+        if (!grapholRepresentation) {
+            return this.result;
+        }
+        this.result.grapholElements = new Map(grapholRepresentation.grapholElements);
+        this.newCy.add(grapholRepresentation.cy.elements().clone());
+        this.newCy.elements().removeClass('filtered'); // make all filtered elements not filtered anymore
+        this.filterByCriterion((node) => {
+            const grapholNode = this.getGrapholElement(node.id());
+            if (!grapholNode)
+                return false;
+            switch (grapholNode.type) {
+                case GrapholTypesEnum.COMPLEMENT:
+                case GrapholTypesEnum.VALUE_DOMAIN:
+                case GrapholTypesEnum.ROLE_CHAIN:
+                case GrapholTypesEnum.ENUMERATION:
+                case GrapholTypesEnum.KEY:
+                    return true;
+                case GrapholTypesEnum.DOMAIN_RESTRICTION:
+                case GrapholTypesEnum.RANGE_RESTRICTION:
+                    if (grapholNode.displayedName == 'forall')
+                        return true;
+                    else
+                        return false;
+                default:
+                    return false;
+            }
+        });
+        this.filterByCriterion(this.isQualifiedRestriction);
+        this.filterByCriterion(this.isCardinalityRestriction);
+        this.filterByCriterion(this.inputEdgesBetweenRestrictions);
+        this.deleteFilteredElements();
+        this.simplifyDomainAndRange();
+        this.simplifyComplexHierarchies();
+        this.simplifyUnions();
+        this.simplifyIntersections();
+        this.simplifyRoleInverse();
+        return this.result;
+    }
+    simplifyDomainAndRange() {
+        /**
+         * Get all input incomers and pick the one coming from a object/data property
+         * @param restriction
+         * @returns the input from object/data property to the given restriction
+         */
+        const getInputEdgeFromPropertyToRestriction = (restriction) => {
+            //let edgeResult: EdgeSingular
+            // source is any obj/data property node connected to restriction by input edge
+            const edgeResult = restriction.incomers('edge')
+                .filter(edge => {
+                const grapholEdge = this.getGrapholElement(edge.id());
+                const grapholSource = this.getGrapholElement(edge.data().source);
+                return grapholEdge.is(GrapholTypesEnum.INPUT) &&
+                    (grapholSource.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholSource.is(GrapholTypesEnum.DATA_PROPERTY));
+            });
+            if (!edgeResult.empty()) {
+                return this.getGrapholElement(edgeResult.id());
+            }
+        };
+        /**
+         * Given a domain/range restriction, we need each edge on the restriction of type != input
+         * to be transformed into a ROLE EDGE going into the object/data property using the
+         * input edge from property -> restriction (here we assume it is already been reversed).
+         * @param edgeOnRestriction an edge connected to the restriction node, will be transformed into a role edge
+         * @param edgeFromProperty the edge from property to restriction (reversed, so it's going from restriction to property)
+         * @param restrictionNode the restriction node, must become a breakpoint
+         */
+        const transformIntoRoleEdge = (edgeOnRestriction, edgeFromProperty, restrictionNode) => {
+            // let edges = []
+            // let new_edge = null
+            let edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId);
+            let edgeOnRestrictionTargetNode = this.getGrapholElement(edgeOnRestriction.targetId);
+            const propertyNode = this.getGrapholElement(edgeFromProperty.targetId);
+            /**
+             * if the edge to restriction is between two existential, remove it and filter the other existential
+             */
+            if (this.isRestriction(edgeOnRestrictionSourceNode) && this.isRestriction(edgeOnRestrictionTargetNode)) {
+                this.newCy.remove(`#${edgeOnRestriction.id}`);
+                this.result.grapholElements.delete(edgeOnRestriction.id);
+                return;
+            }
+            if (edgeOnRestriction.targetId !== restrictionNode.id) {
+                this.reverseEdge(edgeOnRestriction);
+                edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId);
+            }
+            edgeOnRestriction.targetId = propertyNode.id;
+            // move attribute on restriction node position
+            if (propertyNode.is(GrapholTypesEnum.DATA_PROPERTY)) {
+                edgeOnRestriction.type = GrapholTypesEnum.DATA_PROPERTY;
+                propertyNode.x = restrictionNode.position.x;
+                propertyNode.y = restrictionNode.position.y;
+                this.result.updateElement(propertyNode);
+                //new_edge = edges[0]
+            }
+            if (propertyNode.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
+                edgeOnRestriction.type = restrictionNode.type;
+                // restriction node must become a new breakpoint
+                edgeOnRestriction.addBreakPoint(new Breakpoint(restrictionNode.x, restrictionNode.y));
+                // each breakpoint from restriction to property must become a breakpoint for the result edge
+                edgeFromProperty.breakpoints.forEach(breakpoint => {
+                    edgeOnRestriction.addBreakPoint(breakpoint);
+                });
+            }
+            edgeOnRestriction.computeBreakpointsDistancesWeights(edgeOnRestrictionSourceNode.position, propertyNode.position);
+            this.result.updateElement(edgeOnRestriction);
+        };
+        //let eles = cy.$('*')
+        let grapholRestrictionNode;
+        // select domain and range restrictions
+        this.result.cy.nodes().forEach(restriction => {
+            grapholRestrictionNode = this.getGrapholElement(restriction.id());
+            if (!this.isRestriction(grapholRestrictionNode))
+                return;
+            const inputGrapholEdge = getInputEdgeFromPropertyToRestriction(restriction);
+            if (!inputGrapholEdge)
+                return;
+            // Final role edge will be concatenated with this one, 
+            // so we need to revert it to make it point to the obj/data property
+            this.reverseEdge(inputGrapholEdge);
+            // create a new role edge concatenating each edge different from inputs
+            // to the input edge from object/data property to restriction node
+            restriction.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+                .forEach((edgeToRestriction, i) => {
+                const grapholEdgeToRestriction = this.getGrapholElement(edgeToRestriction.id());
+                if (!isGrapholEdge(grapholEdgeToRestriction) || !isGrapholNode(grapholRestrictionNode))
+                    return;
+                transformIntoRoleEdge(grapholEdgeToRestriction, inputGrapholEdge, grapholRestrictionNode);
+            });
+            cytoscapeFilter(restriction.id(), '', this.newCy);
+            this.deleteFilteredElements();
+        });
+        this.deleteFilteredElements();
+    }
+    reverseEdge(edge) {
+        //let new_edge = edge.json()
+        let sourceIdAux = edge.sourceId;
+        edge.sourceId = edge.targetId;
+        edge.targetId = sourceIdAux;
+        let sourceEndpointAux = edge.sourceEndpoint;
+        edge.sourceEndpoint = edge.targetEndpoint;
+        edge.targetEndpoint = sourceEndpointAux;
+        edge.controlpoints = edge.controlpoints.reverse();
+        edge.breakpoints.forEach(breakpoint => {
+            const source = this.newCy.$id(edge.sourceId);
+            const target = this.newCy.$id(edge.targetId);
+            // update distances and weights
+            breakpoint.setSourceTarget(source.position(), target.position());
+        });
+        // new_edge.data.breakpoints = edge.data('breakpoints').reverse()
+        // if (edge.data('segment_distances')) {
+        //   new_edge.data.segment_distances = []
+        //   new_edge.data.segment_weights = []
+        //   new_edge.data.breakpoints.forEach( breakpoint => {
+        //     let aux = getDistanceWeight(edge.source().position(), edge.target().position(), breakpoint)
+        //     new_edge.data.segment_distances.push(aux[0])
+        //     new_edge.data.segment_weights.push(aux[1])
+        //   })
+        // }
+    }
+    simplifyComplexHierarchies() {
+        this.newCy.nodes().forEach(node => {
+            if (this.isComplexHierarchy(node)) {
+                this.replicateAttributes(node);
+                cytoscapeFilter(node.id(), '', this.newCy);
+            }
+        });
+        this.deleteFilteredElements();
+    }
+    isComplexHierarchy(node) {
+        const grapholNode = this.getGrapholElement(node.id());
+        if (!grapholNode || (!grapholNode.is(GrapholTypesEnum.UNION) &&
+            !grapholNode.is(GrapholTypesEnum.DISJOINT_UNION) &&
+            !grapholNode.is(GrapholTypesEnum.INTERSECTION)))
+            return false;
+        // Complex hierarchy if it has something different from a class as input
+        const inputNodesNotConcepts = node.incomers(`edge`)
+            .filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+            .sources()
+            .filter(node => !this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS));
+        return !inputNodesNotConcepts.empty();
+    }
+    replicateAttributes(node) {
+        /**
+         * Given a hierarchy node, recursively retrieve all input classes nodes
+         * @param node the hierearchy node
+         * @returns a collection of classes nodes
+         */
+        const getAllInputClasses = (node) => {
+            let allInputClasses = node.cy().collection();
+            let inputEdges = node.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
+            allInputClasses = allInputClasses.union(inputEdges.sources().filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS)));
+            inputEdges.sources().difference(allInputClasses).forEach(constructor => {
+                allInputClasses = allInputClasses.union(getAllInputClasses(constructor));
+            });
+            return allInputClasses;
+        };
+        /**
+         *
+         * @param concept
+         * @param attribute
+         * @param i
+         */
+        const addAttribute = (concept, attribute, edgeType, i) => {
+            const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`);
+            const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`);
+            newAttribute.originalId = attribute.id();
+            newAttribute.x = concept.position().x;
+            newAttribute.y = concept.position().y;
+            Object.entries(attribute.data()).forEach(([key, value]) => {
+                if (key !== 'id' && key !== 'originalId')
+                    newAttribute[key] = value;
+            });
+            newAttributeEdge.sourceId = concept.id();
+            newAttributeEdge.targetId = newAttribute.id;
+            newAttributeEdge.type = edgeType;
+            this.result.addElement(newAttribute);
+            this.result.addElement(newAttributeEdge);
+            this.newCy.$id(newAttribute.id).addClass('repositioned');
+            // recursively add new attributes connected to replicated attributes by inclusions
+            if (!attribute.hasClass('repositioned')) {
+                attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY)).forEach((inclusion_attribute, j) => {
+                    if (allAttributes.contains(inclusion_attribute)) {
+                        return;
+                    }
+                    const edgeBetweenAttributes = attribute.edgesTo(inclusion_attribute)[0];
+                    if (edgeBetweenAttributes) {
+                        addAttribute(this.newCy.$id(newAttribute.id), inclusion_attribute, edgeBetweenAttributes.data().type, i);
+                        inclusion_attribute.addClass('repositioned');
+                        allInclusionAttributes = allInclusionAttributes.union(inclusion_attribute);
+                    }
+                });
+            }
+        };
+        let allClasses = getAllInputClasses(node);
+        let allAttributes = node.neighborhood(`node`).filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY));
+        let allInclusionAttributes = this.newCy.collection();
+        allAttributes.forEach((attribute) => {
+            allClasses.forEach((concept, j) => {
+                addAttribute(concept, attribute, GrapholTypesEnum.DATA_PROPERTY, j);
+            });
+            attribute.addClass('repositioned');
+            allInclusionAttributes.addClass('repositioned');
+        });
+        this.deleteElements(allAttributes);
+        this.deleteElements(allInclusionAttributes);
+    }
+    simplifyUnions() {
+        this.newCy.nodes().forEach(union => {
+            const grapholUnion = this.getGrapholElement(union.id());
+            if (!grapholUnion || !isGrapholNode(grapholUnion) ||
+                (!grapholUnion.is(GrapholTypesEnum.UNION) && !grapholUnion.is(GrapholTypesEnum.DISJOINT_UNION)))
+                return;
+            //grapholUnion.height = grapholUnion.width = 0.1
+            //makeDummyPoint(union)
+            //union.incomers('edge[type = "input"]').data('type', 'easy_input')
+            // delete incoming inclusions
+            union.incomers('edge').forEach(edge => {
+                const grapholEdge = this.getGrapholElement(edge.id());
+                if (grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
+                    this.deleteElement(edge);
+                }
+            });
+            // process equivalence edges
+            union.connectedEdges('edge').forEach(edge => {
+                const grapholEdge = this.getGrapholElement(edge.id());
+                // if it's equivalence add 'C' and reverse if needed
+                if (grapholEdge.is(GrapholTypesEnum.EQUIVALENCE)) {
+                    grapholEdge.type = grapholUnion.type;
+                    grapholEdge.targetLabel = 'C';
+                    // the edge must have as source the union node
+                    if (grapholEdge.sourceId != grapholUnion.id) {
+                        this.reverseEdge(grapholEdge);
+                    }
+                    this.result.updateElement(grapholEdge);
+                    return;
+                }
+                // if it's outgoing and of type inclusion
+                if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
+                    grapholEdge.type = grapholUnion.type;
+                    this.result.updateElement(grapholEdge);
+                }
+            });
+            // process inclusion edges
+            // union.outgoers('edge').forEach(inclusion => {
+            //   inclusion.addClass('hierarchy')
+            //   if (union.data('type') == GrapholTypesEnum.DISJOINT_UNION)
+            //     inclusion.addClass('disjoint')
+            // })
+            // if (union.data('label'))
+            //   union.data('label', '')
+            //grapholUnion.displayedName = undefined
+            this.replicateAttributes(union);
+            // replicate role tipization on input classes
+            this.replicateRoleTypizations(union);
+            this.result.updateElement(grapholUnion);
+            const numberEdgesNotInput = union.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT)).size();
+            if (numberEdgesNotInput <= 0) {
+                this.deleteElement(union);
+            }
+            // if the union has not any connected non-input edges, then remove it
+            // if (union.connectedEdges('[type !*= "input"]').size() == 0)
+            //   cy.remove(union)
+        });
+    }
+    simplifyIntersections() {
+        this.newCy.nodes().forEach(and => {
+            const grapholAndNode = this.getGrapholElement(and.id());
+            if (!grapholAndNode || !grapholAndNode.is(GrapholTypesEnum.INTERSECTION))
+                return;
+            this.replicateAttributes(and);
+            this.replicateRoleTypizations(and);
+            // if there are no incoming inclusions or equivalence and no equivalences connected,
+            // remove the intersection
+            const incomingInclusions = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION));
+            const connectedEquivalences = and.connectedEdges().filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.EQUIVALENCE));
+            const incomingUnionEdges = and.incomers('edge').filter(edge => {
+                const grapholEdge = this.getGrapholElement(edge.id());
+                return grapholEdge.is(GrapholTypesEnum.UNION) || grapholEdge.is(GrapholTypesEnum.DISJOINT_UNION);
+            });
+            const edgesToBeReplicated = incomingInclusions.union(connectedEquivalences).union(incomingUnionEdges);
+            if (edgesToBeReplicated.empty()) {
+                cytoscapeFilter(grapholAndNode.id, '', this.newCy);
+            }
+            else {
+                const incomingInputs = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
+                // process incoming inclusion && connected equivalences
+                edgesToBeReplicated.forEach(edge => {
+                    const edgeToBeReplicated = this.getGrapholElement(edge.id());
+                    /**
+                     * create a new ISA edge for each input class
+                     * the new edge will be a concatenation:
+                     *  - ISA towards the 'and' node + input edge
+                     *
+                     * the input edge must be reversed
+                     * In case of equivalence edge, we only consider the
+                     * isa towards the 'and' node and discard the other direction
+                     */
+                    incomingInputs.forEach((input, i) => {
+                        /**
+                         * if the edge is an equivalence, we must consider it as an
+                         * incoming edge in any case and ignore the opposite direction.
+                         * so if the edge is outgoing from the intersection, we reverse it
+                         */
+                        if (edgeToBeReplicated.is(GrapholTypesEnum.EQUIVALENCE) &&
+                            edgeToBeReplicated.sourceId === grapholAndNode.id) {
+                            this.reverseEdge(edgeToBeReplicated);
+                        }
+                        // Edge concatenation: isa/equilvance + reversed input
+                        const grapholInputEdge = this.getGrapholElement(input.id());
+                        this.reverseEdge(grapholInputEdge);
+                        grapholInputEdge.sourceId = edgeToBeReplicated.sourceId;
+                        grapholInputEdge.controlpoints.unshift(...edgeToBeReplicated.controlpoints);
+                        const source = this.getGrapholElement(grapholInputEdge.sourceId);
+                        const target = this.getGrapholElement(grapholInputEdge.targetId);
+                        grapholInputEdge.computeBreakpointsDistancesWeights(source.position, target.position);
+                        grapholInputEdge.targetLabel = edgeToBeReplicated.targetLabel;
+                        grapholInputEdge.type = edgeToBeReplicated.type;
+                        this.result.updateElement(grapholInputEdge);
+                    });
+                });
+                cytoscapeFilter(grapholAndNode.id, '', this.newCy);
+            }
+            this.deleteFilteredElements();
+            this.deleteElements(edgesToBeReplicated);
+        });
+    }
+    replicateRoleTypizations(constructorNode) {
+        // replicate role tipization on input classes
+        const restrictionEdges = constructorNode.connectedEdges().filter(edge => this.isRestriction(this.getGrapholElement(edge.id())));
+        const inputEdges = constructorNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
+        restrictionEdges.forEach((restrictionEdge, i) => {
+            const grapholRestrictionEdge = this.getGrapholElement(restrictionEdge.id());
+            inputEdges.forEach((inputEdge) => {
+                const grapholInputEdge = this.getGrapholElement(inputEdge.id());
+                if (!grapholInputEdge)
+                    return;
+                const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`);
+                /**
+                 * if the connected non input edge is only one (the one we are processing)
+                 * then the new edge will be the concatenation of the input edge + role edge
+                 */
+                if (i === 0) {
+                    newRestrictionEdge.controlpoints = grapholInputEdge.controlpoints.concat(grapholRestrictionEdge.controlpoints);
+                }
+                else {
+                    newRestrictionEdge.controlpoints = [...grapholRestrictionEdge.controlpoints];
+                }
+                newRestrictionEdge.type = grapholRestrictionEdge.type;
+                newRestrictionEdge.sourceId = grapholInputEdge.sourceId;
+                newRestrictionEdge.sourceEndpoint = grapholInputEdge.sourceEndpoint
+                    ? { x: grapholInputEdge.sourceEndpoint.x, y: grapholInputEdge.sourceEndpoint.y }
+                    : undefined;
+                newRestrictionEdge.targetEndpoint = grapholRestrictionEdge.targetEndpoint
+                    ? { x: grapholRestrictionEdge.targetEndpoint.x, y: grapholRestrictionEdge.targetEndpoint.y }
+                    : undefined;
+                newRestrictionEdge.targetId = grapholRestrictionEdge.targetId;
+                const sourceNode = this.getGrapholElement(newRestrictionEdge.sourceId);
+                const targetNode = this.getGrapholElement(newRestrictionEdge.targetId);
+                newRestrictionEdge.computeBreakpointsDistancesWeights(sourceNode.position, targetNode.position);
+                this.result.addElement(newRestrictionEdge);
+            });
+            this.deleteElement(restrictionEdge);
+        });
+    }
+    simplifyRoleInverse() {
+        this.newCy.nodes().filter(node => { var _a; return (_a = this.getGrapholElement(node.id())) === null || _a === void 0 ? void 0 : _a.is(GrapholTypesEnum.ROLE_INVERSE); }).forEach(roleInverseNode => {
+            // the input role is only one
+            const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT));
+            const grapholInputEdge = this.getGrapholElement(inputEdge.id());
+            // the input edge must always be reversed
+            this.reverseEdge(grapholInputEdge);
+            this.getGrapholElement(roleInverseNode.id());
+            // for each other edge connected, create a concatenated edge
+            // the edge is directed towards the input_role
+            roleInverseNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+                .forEach((edge) => {
+                const roleInverseEdge = this.getGrapholElement(edge.id());
+                roleInverseEdge.type = GrapholTypesEnum.ROLE_INVERSE;
+                roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints);
+                roleInverseEdge.targetId = grapholInputEdge.targetId;
+                const source = this.getGrapholElement(roleInverseEdge.sourceId);
+                const target = this.getGrapholElement(roleInverseEdge.targetId);
+                roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position);
+                roleInverseEdge.displayedName = 'inverse Of';
+                this.result.updateElement(roleInverseEdge);
+            });
+            this.deleteElement(inputEdge);
+            this.deleteElement(roleInverseNode);
+            // if (new_edges_count > 1) {
+            //   cy.remove(inputEdge)
+            //   makeDummyPoint(roleInverseNode)
+            //   roleInverseNode.data('label', 'inverse Of')
+            //   roleInverseNode.data('labelXpos', 0)
+            //   roleInverseNode.data('labelYpos', 0)
+            //   roleInverseNode.data('text_background', true)
+            // } else {
+            //   if (inputEdge.source())
+            //     inputEdge.source().connectedEdges('edge.inverse-of').data('displayed_name','inverse Of')
+            //   cy.remove(roleInverseNode)
+            // }
+        });
+    }
+}
+
+class FloatyTransformer extends BaseGrapholTransformer {
+    get newCy() { return this.result.cy; }
+    transform(diagram) {
+        this.result = new DiagramRepresentation(floatyOptions);
+        let liteRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL_LITE);
+        if (!liteRepresentation || liteRepresentation.grapholElements.size === 0) {
+            liteRepresentation = new LiteTransformer().transform(diagram);
+            diagram.representations.set(RendererStatesEnum.GRAPHOL_LITE, liteRepresentation);
+        }
+        this.result.grapholElements = new Map(liteRepresentation.grapholElements);
+        this.newCy.add(liteRepresentation.cy.elements().clone());
+        this.newCy.elements().removeClass('filtered'); // make all filtered elements not filtered anymore
+        // remember original positions
+        // this.newCy.$('node').forEach( node => {
+        //   node.data('original-position', JSON.stringify(node.position()))
+        // })
+        this.filterByCriterion(node => {
+            return this.getGrapholElement(node.id()) === undefined;
+        });
+        this.makeEdgesStraight();
+        this.simplifyRolesFloat();
+        // this.simplifyHierarchiesFloat(cy)
+        // this.simplifyAttributesFloat(cy)
+        // cy.edges().removeData('segment_distances')
+        // cy.edges().removeData('segment_weights')
+        // cy.edges().removeData('target_endpoint')
+        // cy.edges().removeData('source_endpoint')
+        //cy.$(`[type = "${GrapholTypesEnum.CONCEPT}"]`).addClass('bubble')
+        this.newCy.elements().unlock();
+        return this.result;
+    }
+    makeEdgesStraight() {
+        this.result.cy.$('edge').forEach(edge => {
+            const grapholEdge = this.getGrapholElement(edge.id());
+            grapholEdge.controlpoints = [];
+            grapholEdge.targetEndpoint = undefined;
+            grapholEdge.sourceEndpoint = undefined;
+            this.result.updateElement(grapholEdge);
+        });
+    }
+    simplifyRolesFloat() {
+        let objectProperties = this.newCy.nodes().filter(node => {
+            const grapholNode = this.getGrapholElement(node.id());
+            return grapholNode && grapholNode.is(GrapholTypesEnum.OBJECT_PROPERTY);
+        });
+        objectProperties.forEach(objectProperty => {
+            let domains = this.getDomainsOfObjectProperty(objectProperty);
+            let ranges = this.getRangesOfObjectProperty(objectProperty);
+            if (domains && ranges)
+                this.connectDomainsRanges(domains, ranges, objectProperty);
+        });
+        //cy.remove(objectProperties)
+        this.deleteElements(objectProperties);
+    }
+    connectDomainsRanges(domains, ranges, objectProperty) {
+        let grapholDomainNode, grapholRangeNode, newId;
+        domains.forEach((domain) => {
+            grapholDomainNode = this.getGrapholElement(domain.id());
+            ranges.forEach((range, i) => {
+                grapholRangeNode = this.getGrapholElement(range.id());
+                newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`;
+                let newGrapholEdge = new GrapholEdge(newId);
+                newGrapholEdge.sourceId = grapholDomainNode.id;
+                newGrapholEdge.targetId = grapholRangeNode.id;
+                Object.entries(objectProperty.data()).forEach(([key, value]) => {
+                    switch (key) {
+                        case 'id':
+                        case 'labelXpos':
+                        case 'labelYpos':
+                        case 'labelXcentered':
+                        case 'labelYcentered':
+                        case 'shape':
+                            break;
+                        default:
+                            newGrapholEdge[key] = value;
+                    }
+                });
+                newGrapholEdge.originalId = objectProperty.id().toString();
+                this.result.addElement(newGrapholEdge);
+                const newAddedCyElement = this.newCy.$id(newGrapholEdge.id);
+                newAddedCyElement.data().iri = objectProperty.data().iri;
+                if (newGrapholEdge.sourceId === newGrapholEdge.targetId) {
+                    let loop_edge = this.newCy.$id(newGrapholEdge.id);
+                    loop_edge.data('control_point_step_size', grapholDomainNode.width);
+                }
+            });
+        });
+    }
+    getDomainsOfObjectProperty(objectProperty) {
+        if (!objectProperty || objectProperty.empty())
+            return null;
+        let domains = objectProperty.incomers(`edge`).filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.DOMAIN_RESTRICTION)).sources();
+        const fathers = this.getFathers(objectProperty);
+        let fathersDomains = this.newCy.collection();
+        fathers.forEach(father => {
+            const newDomains = this.getDomainsOfObjectProperty(father);
+            if (newDomains)
+                fathersDomains = fathersDomains.union(newDomains);
+        });
+        return domains.union(fathersDomains);
+    }
+    getRangesOfObjectProperty(objectProperty) {
+        if (!objectProperty || objectProperty.empty())
+            return;
+        let ranges = objectProperty.incomers(`edge`).filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.RANGE_RESTRICTION)).sources();
+        const fathers = this.getFathers(objectProperty);
+        let fatherRanges = this.newCy.collection();
+        fathers.forEach(father => {
+            const newRanges = this.getRangesOfObjectProperty(father);
+            if (newRanges)
+                fatherRanges = fatherRanges.union(newRanges);
+        });
+        return ranges.union(fatherRanges);
+    }
+    getFathers(node) {
+        return node.outgoers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION)).targets();
+    }
+}
+
+class FloatyRendererState extends BaseRenderer {
+    constructor() {
+        super(...arguments);
+        this.id = RendererStatesEnum.FLOATY;
+        this.filterManager = new FloatyFilterManager();
+        this.grabHandler = (e) => {
+            if (this.dragAndPin)
+                e.target.data('old_pos', JSON.stringify(e.target.position()));
+        };
+        this.freeHandler = (e) => {
+            if (this.dragAndPin) {
+                let actual_pos = JSON.stringify(e.target.position());
+                if (e.target.data('old_pos') !== actual_pos) {
+                    this.pinNode(e.target);
+                }
+                e.target.removeData('old_pos');
+            }
+        };
+        this.floatyLayoutOptions = {
+            name: 'cola',
+            avoidOverlap: false,
+            edgeLength: function (edge) {
+                let crowdnessFactor = edge.target().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length +
+                    edge.source().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length;
+                crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0;
+                if (edge.hasClass('role')) {
+                    return 250 + edge.data('displayedName').length * 4 + crowdnessFactor;
+                }
+                else if (edge.target().data('type') == GrapholTypesEnum.DATA_PROPERTY ||
+                    edge.source().data('type') == GrapholTypesEnum.DATA_PROPERTY)
+                    return 150;
+                else {
+                    return 200 + crowdnessFactor;
+                }
+            },
+            fit: true,
+            maxSimulationTime: 4000,
+            infinite: false,
+            handleDisconnected: true,
+            centerGraph: false,
+        };
+    }
+    set renderer(newRenderer) {
+        super.renderer = newRenderer;
+        if (!newRenderer.renderStateData[this.id]) {
+            newRenderer.renderStateData[this.id] = {};
+            newRenderer.renderStateData[this.id].popperContainers = new Map();
+        }
+    }
+    get renderer() { return super.renderer; }
+    transformOntology(ontology) {
+        ontology.diagrams.forEach(diagram => {
+            const liteTransformer = new FloatyTransformer();
+            diagram.representations.set(this.id, liteTransformer.transform(diagram));
+        });
+    }
+    runLayout() {
+        var _a;
+        if (!this.renderer.cy)
+            return;
+        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
+        this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions);
+        this._layout.run();
+    }
+    render() {
+        var _a;
+        if (!this.renderer.diagram)
+            return;
+        let floatyRepresentation = this.renderer.diagram.representations.get(this.id);
+        if (!floatyRepresentation) {
+            const floatyTransformer = new FloatyTransformer();
+            floatyRepresentation = floatyTransformer.transform(this.renderer.diagram);
+            this.renderer.diagram.representations.set(this.id, floatyRepresentation);
+        }
+        this.renderer.cy = floatyRepresentation.cy;
+        this.renderer.mount();
+        if (!floatyRepresentation.hasEverBeenRendered) {
+            this.runLayout();
+            if (this.isLayoutInfinite) {
+                setTimeout(() => this.renderer.fit(), 1000);
+            }
+            this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
+            this.setDragAndPinEventHandlers();
+        }
+        if (this.popperContainer)
+            (_a = this.renderer.cy.container()) === null || _a === void 0 ? void 0 : _a.appendChild(this.popperContainer);
+        if (!this.dragAndPin)
+            this.unpinAll();
+        floatyRepresentation.hasEverBeenRendered = true;
+    }
+    stopRendering() { }
+    getGraphStyle(theme) {
+        return floatyStyle(theme);
+    }
+    stopLayout() {
+        var _a;
+        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
+        this.floatyLayoutOptions.infinite = false;
+        this.floatyLayoutOptions.fit = true;
+        console.log('stop');
+    }
+    runLayoutInfinitely() {
+        this.floatyLayoutOptions.infinite = true;
+        this.floatyLayoutOptions.fit = false;
+        this.runLayout();
+    }
+    pinNode(node) {
+        if (!node || !this.renderer.cy)
+            return;
+        node.lock();
+        node.data("pinned", true);
+        node.unlockButton = node.popper({
+            content: () => {
+                var _a;
+                if (!this.renderer.cy)
+                    return;
+                let dimension = node.data('width') / 9 * this.renderer.cy.zoom();
+                let div = document.createElement('div');
+                div.style.background = node.style('border-color');
+                div.style.borderRadius = '100%';
+                div.style.padding = '5px';
+                div.style.cursor = 'pointer';
+                div.style.boxSizing = 'content-box';
+                div.setAttribute('title', 'Unlock Node');
+                div.innerHTML = `<span class="popper-icon">${lock_open}</span>`;
+                this.setPopperStyle(dimension, div);
+                div.onclick = () => this.unpinNode(node);
+                (_a = this.popperContainer) === null || _a === void 0 ? void 0 : _a.appendChild(div);
+                return div;
+            },
+        });
+        node.on('position', () => this.updatePopper(node));
+        this.renderer.cy.on('pan zoom resize', () => this.updatePopper(node));
+    }
+    unpinAll() {
+        var _a;
+        (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$('[?pinned]').each(node => this.unpinNode(node));
+    }
+    setPopperStyle(dim, popper) {
+        let icon = popper.querySelector('.popper-icon > svg');
+        icon.style.display = 'inherit';
+        if (dim > 2) {
+            popper.style.width = dim + 'px';
+            popper.style.height = dim + 'px';
+            popper.style.display = 'flex';
+            if (dim > 8) {
+                icon.setAttribute('width', dim + 'px');
+                icon.setAttribute('height', dim + 'px');
+            }
+            else if (dim - 10 > 0) {
+                icon.setAttribute('width', (dim - 10) + 'px');
+                icon.setAttribute('height', (dim - 10) + 'px');
+            }
+            else {
+                icon.style.display = 'none';
+            }
+        }
+        else {
+            icon.style.display = 'none';
+            popper.style.display = 'none';
+        }
+    }
+    updatePopper(node) {
+        if (!node.unlockButton || !this.renderer.cy)
+            return;
+        let unlockButton = node.unlockButton;
+        let dimension = node.data('width') / 9 * this.renderer.cy.zoom();
+        this.setPopperStyle(dimension, unlockButton.state.elements.popper);
+        unlockButton.update();
+    }
+    unpinNode(node) {
+        this.removeUnlockButton(node);
+        node.unlock();
+        node.data("pinned", false);
+    }
+    removeUnlockButton(node) {
+        if (node.unlockButton) {
+            node.unlockButton.state.elements.popper.remove();
+            node.unlockButton.destroy();
+            node.unlockButton = null;
+        }
+    }
+    setDragAndPinEventHandlers() {
+        var _a, _b;
+        (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.on('grab', this.grabHandler);
+        (_b = this.renderer.cy) === null || _b === void 0 ? void 0 : _b.on('free', this.freeHandler);
+        // this.renderer.cy.$('[?pinned]').each(n => {
+        //   //n.on('position', () => this.updatePopper(n))
+        //   this.renderer.cy.on('pan zoom resize', () => this.updatePopper(n))
+        // })
+    }
+    get isLayoutInfinite() {
+        return this.floatyLayoutOptions.infinite ? true : false;
+    }
+    get dragAndPin() { return this.renderer.renderStateData[this.id].dragAndPing; }
+    set dragAndPin(isActive) {
+        this.renderer.renderStateData[this.id].dragAndPing = isActive;
+        if (!isActive)
+            this.unpinAll();
+    }
+    get popperContainer() {
+        if (this.renderer.diagram)
+            return this.popperContainers.get(this.renderer.diagram.id);
+    }
+    get popperContainers() {
+        return this.renderer.renderStateData[this.id].popperContainers;
+    }
+}
+
+const NAMESPACE = 'obda-systems.grapholscape';
+const getNamespacedKey = (key) => `${NAMESPACE}-${key}`;
+const getKeyWithoutNamespace = (key) => key.substring(NAMESPACE.length + 1);
+const valueToStore = (v) => JSON.stringify(v);
+const valueFromStorage = (v) => JSON.parse(v);
+/**
+ * Load config from local storage
+ */
+function loadConfig() {
+    const config = {};
+    if (storageAvailable() && isAnySettingSaved()) {
+        Object.keys(window.localStorage)
+            .filter(k => k.startsWith(NAMESPACE)) // take only local storage items written by grapholscape
+            .forEach(k => {
+            const configKey = getKeyWithoutNamespace(k);
+            const value = valueFromStorage(window.localStorage.getItem(k));
+            if (Object.values(WidgetEnum).includes(configKey)) {
+                if (!config.widgets)
+                    config.widgets = {};
+                config.widgets[configKey] = value;
+            }
+            else {
+                config[configKey] = value;
+            }
+        });
+    }
+    return config;
+}
+/**
+ * Store a single setting in local storage
+ * @param {string} k the key of the setting to store
+ * @param {any} value the value of the setting to store
+ */
+function storeConfigEntry(k, value) {
+    if (storageAvailable())
+        window.localStorage.setItem(getNamespacedKey(k), valueToStore(value));
+}
+function storageAvailable() {
+    let storage = window.localStorage;
+    try {
+        var x = '__storage_test__';
+        storage.setItem(x, x);
+        storage.removeItem(x);
+        return true;
+    }
+    catch (e) {
+        return e instanceof DOMException && (
+        // everything except Firefox
+        e.code === 22 ||
+            // Firefox
+            e.code === 1014 ||
+            // test name field too, because code might not be present
+            // everything except Firefox
+            e.name === 'QuotaExceededError' ||
+            // Firefox
+            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+            // acknowledge QuotaExceededError only if there's something already stored
+            (storage && storage.length !== 0);
+    }
+}
+/**
+ * @returns Whether there is any local storage in setting belonging to grapholscape
+ */
+function isAnySettingSaved() {
+    if (storageAvailable()) {
+        return Object.keys(window.localStorage).some(k => k.startsWith(NAMESPACE));
+    }
+    return false;
+}
+function clearLocalStorage() {
+    Object.keys(window.localStorage)
+        .filter(k => k.startsWith(NAMESPACE))
+        .forEach(k => window.localStorage.removeItem(k));
+}
+
+var Language;
+(function (Language) {
+    Language["DE"] = "de";
+    Language["EN"] = "en";
+    Language["ES"] = "es";
+    Language["FR"] = "fr";
+    Language["IT"] = "it";
+})(Language || (Language = {}));
+var EntityNameType;
+(function (EntityNameType) {
+    EntityNameType["LABEL"] = "label";
+    EntityNameType["PREFIXED_IRI"] = "prefixedIri";
+    EntityNameType["FULL_IRI"] = "fullIri";
+})(EntityNameType || (EntityNameType = {}));
+
+class GrapholFilterManager extends BaseFilterManager {
+    filterActivation(filter) {
+        var _a;
+        if (!super.filterActivation(filter))
+            return false;
+        if (filter.locked) {
+            console.warn(`Filter has been locked and cannot be applied at the moment`);
+            return false;
+        }
+        if (filter.key === DefaultFilterKeyEnum.DATA_PROPERTY) {
+            // VALUE DOMAIN filter cannot be changed if data-property filter has been activated
+            (_a = this.filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)) === null || _a === void 0 ? void 0 : _a.lock();
+        }
+        return true;
+    }
+    filterDeactivation(filter) {
+        var _a;
+        if (!super.filterDeactivation(filter))
+            return false;
+        if (filter.key === DefaultFilterKeyEnum.DATA_PROPERTY) {
+            // VALUE DOMAIN filter cannot be changed if data-property filter has been activated
+            (_a = this.filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)) === null || _a === void 0 ? void 0 : _a.unlock();
+        }
+        return true;
+    }
+    get filters() { return this._filters; }
+    set filters(filters) {
+        var _a, _b;
+        this._filters = filters;
+        filters.forEach(filter => {
+            filter.unlock();
+        });
+        if ((_a = filters.get(DefaultFilterKeyEnum.DATA_PROPERTY)) === null || _a === void 0 ? void 0 : _a.active) {
+            (_b = filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)) === null || _b === void 0 ? void 0 : _b.lock();
+        }
+    }
+}
+
+class GrapholRendererState extends BaseRenderer {
+    constructor() {
+        super(...arguments);
+        this.id = RendererStatesEnum.GRAPHOL;
+        this.cyConfig = cytoscapeDefaultConfig;
+        this.filterManager = new GrapholFilterManager();
+    }
+    render() {
+        var _a;
+        if (!this.renderer.diagram)
+            return;
+        const grapholRepresentation = this.renderer.diagram.representations.get(this.id);
+        if (!grapholRepresentation)
+            return;
+        this.renderer.cy = grapholRepresentation.cy;
+        this.renderer.mount();
+        if (!grapholRepresentation.hasEverBeenRendered) {
+            this.renderer.fit();
+        }
+        if (this.renderer.diagram.lastViewportState) {
+            (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(this.renderer.diagram.lastViewportState);
+        }
+        grapholRepresentation.hasEverBeenRendered = true;
+    }
+    stopRendering() {
+        if (this.renderer.cy && this.renderer.diagram) {
+            this.renderer.diagram.lastViewportState = {
+                pan: this.renderer.cy.pan(),
+                zoom: this.renderer.cy.zoom(),
+            };
+        }
+    }
+    runLayout() {
+        throw new Error("Method not implemented.");
+    }
+    stopLayout() {
+        throw new Error("Method not implemented.");
+    }
+    getGraphStyle(theme) {
+        return grapholStyle(theme);
+    }
+    transformOntology(ontology) { }
+}
+
+class LiteFilterManager extends BaseFilterManager {
+    constructor() {
+        super(...arguments);
+        this.lockedFilters = [
+            DefaultFilterKeyEnum.VALUE_DOMAIN,
+            DefaultFilterKeyEnum.UNIVERSAL_QUANTIFIER,
+            DefaultFilterKeyEnum.COMPLEMENT,
+            DefaultFilterKeyEnum.HAS_KEY,
+        ];
+    }
+    get filters() { return this._filters; }
+    set filters(filters) {
+        this._filters = filters;
+        this.lockedFilters.forEach(lockedFilterKey => {
+            var _a;
+            (_a = this.filters.get(lockedFilterKey)) === null || _a === void 0 ? void 0 : _a.lock();
+        });
+    }
+}
+
+function liteStyle (theme) {
+    const baseStyle = grapholStyle(theme);
+    const liteStyle = [
+        {
+            selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
+            style: {
+                'line-style': 'solid',
+                'target-arrow-shape': 'none',
+            }
+        },
+        {
+            selector: `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'label': '',
+                'width': 0.1,
+                'height': 0.1,
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'width': 6,
+                'line-style': 'solid',
+                'target-arrow-shape': 'triangle',
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.UNION}"]`,
+            style: {
+                'target-arrow-fill': 'hollow',
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+            style: {
+                'target-arrow-fill': 'filled',
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"], [type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
+            style: {
+                'line-color': theme.getColour(ColoursNames.object_property_contrast),
+                'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+                'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+                'target-arrow-shape': 'triangle',
+                'target-arrow-fill': 'filled',
+                'source-arrow-shape': 'square',
+                'source-arrow-fill': 'hollow',
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`,
+            style: {
+                'target-arrow-shape': 'square',
+                'target-arrow-fill': 'filled',
+                'source-arrow-shape': 'none',
+            }
+        },
+        {
+            selector: `[type = "${GrapholTypesEnum.DOMAIN_RESTRICTION}"]`,
+            style: {
+                'target-arrow-shape': 'square',
+                'target-arrow-fill': 'hollow',
+                'source-arrow-shape': 'none',
+            }
+        },
+        {
+            selector: `edge[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+            style: {
+                'line-color': theme.getColour(ColoursNames.data_property_contrast),
+                'source-arrow-shape': 'none',
+                'target-arrow-shape': 'none',
+            }
+        },
+    ];
+    return baseStyle.concat(liteStyle);
+}
+
+class LiteRendererState extends BaseRenderer {
+    constructor() {
+        super(...arguments);
+        this.id = RendererStatesEnum.GRAPHOL_LITE;
+        this.filterManager = new LiteFilterManager();
+        this.cyConfig = cytoscapeDefaultConfig;
+    }
+    runLayout() {
+        var _a;
+        if (!this.renderer.cy)
+            return;
+        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
+        this.renderer.cy.nodes().lock();
+        this._layout = this.renderer.cy.$('.repositioned').closedNeighborhood().closedNeighborhood().layout({
+            name: 'cola',
+            centerGraph: false,
+            refresh: 3,
+            maxSimulationTime: 8000,
+            convergenceThreshold: 0.0000001,
+            fit: false,
+        });
+        this.renderer.cy.$('.repositioned').unlock();
+        this._layout.run();
+    }
+    render() {
+        var _a;
+        if (!this.renderer.diagram)
+            return;
+        let liteRepresentation = this.renderer.diagram.representations.get(this.id);
+        if (!liteRepresentation)
+            return;
+        this.renderer.cy = liteRepresentation.cy;
+        this.renderer.mount();
+        if (!liteRepresentation.hasEverBeenRendered) {
+            this.renderer.fit();
+            this.runLayout();
+        }
+        if (this.renderer.diagram.lastViewportState) {
+            (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(this.renderer.diagram.lastViewportState);
+        }
+        liteRepresentation.hasEverBeenRendered = true;
+    }
+    stopRendering() {
+        if (this.renderer.cy && this.renderer.diagram) {
+            this.renderer.diagram.lastViewportState = {
+                pan: this.renderer.cy.pan(),
+                zoom: this.renderer.cy.zoom(),
+            };
+        }
+    }
+    stopLayout() { }
+    getGraphStyle(theme) {
+        return liteStyle(theme);
+    }
+    transformOntology(ontology) {
+        ontology.diagrams.forEach(diagram => {
+            const liteTransformer = new LiteTransformer();
+            diagram.representations.set(this.id, liteTransformer.transform(diagram));
+        });
+    }
+    get layout() { return this._layout; }
+    set layout(newLayout) { this._layout = newLayout; }
+}
 
 const rendererStates = {};
 rendererStates[RendererStatesEnum.GRAPHOL] = {
@@ -8014,7 +7219,7 @@ function init$3 (rendererSelector, grapholscape) {
                     grapholscape.setRenderer(new LiteRendererState());
                     break;
                 case RendererStatesEnum.FLOATY:
-                    grapholscape.setRenderer(new FloatyRenderState());
+                    grapholscape.setRenderer(new FloatyRendererState());
                     break;
             }
         }
@@ -8037,7 +7242,7 @@ class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(s)) {
         this.onUseOriginalPositions = () => { };
     }
     render() {
-        return p `
+        return y `
       <gscape-button type="subtle" @click="${this.togglePanel}">
         <span slot="icon">${tune}</span>
       </gscape-button>
@@ -8082,7 +7287,7 @@ GscapeLayoutSettings.properties = {
 };
 GscapeLayoutSettings.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         box-shadow: initial;
         position: initial;
@@ -8190,7 +7395,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
-        return p `
+        return y `
       <gscape-button type="subtle" @click=${this.togglePanel}>
         <span slot="icon">${settings_icon}</span>
       </gscape-button>
@@ -8257,14 +7462,14 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.0.1"}</span>
+            <span>${"3.0.2"}</span>
           </div>
         </div>
       </div>
     `;
     }
     getSettingTitleTemplate(title, label) {
-        return p `
+        return y `
     <div class="title-wrap">
       <div class="setting-title">${title}</div>
       <div class="muted-text setting-label">${label}</div>
@@ -8274,14 +7479,14 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
     getListSettingEntryTemplate(options, selectedOption, title, label) {
         if (options.length <= 0)
             return null;
-        return p `
+        return y `
       <div class="setting">
         ${this.getSettingTitleTemplate(title, label)}
         <div class="setting-obj">
           <select id="${title}" @change=${this.listChangeHandler}>
             ${options.map(option => {
             let selected = option.value == selectedOption;
-            return p `<option value="${option.value}" ?selected=${selected}>${option.label}</option>`;
+            return y `<option value="${option.value}" ?selected=${selected}>${option.label}</option>`;
         })}
           </select>
         </div>
@@ -8291,7 +7496,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
     getToggleSettingEntryTemplate(actualState, title) {
         let labelPieces = title.split('-');
         const label = labelPieces.map(text => capitalizeFirstChar(text)).join(' ');
-        return p `
+        return y `
       <div class="toggle-setting-obj">
         <gscape-toggle
           @click=${this.widgetToggleChangeHandler}
@@ -8343,7 +7548,7 @@ GscapeSettings.properties = {
 GscapeSettings.styles = [
     baseStyle,
     GscapeButtonStyle,
-    r$2 `
+    i$1 `
       :host {
         order: 5;
         display:inline-block;
@@ -8495,7 +7700,7 @@ class GscapeZoomTools extends s {
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
-        return p `
+        return y `
       <gscape-button title="Zoom In" type="subtle" @click=${this._onZoomIn}><span slot="icon">${plus}</span></gscape-button>
       <div class="hr"></div>
       <gscape-button title="Zoom Out" type="subtle" @click=${this._onZoomOut}><span slot="icon">${minus}</span></gscape-button>
@@ -8510,7 +7715,7 @@ class GscapeZoomTools extends s {
 }
 GscapeZoomTools.styles = [
     baseStyle,
-    r$2 `
+    i$1 `
       :host {
         order: 1;
         margin-top:10px;
@@ -8615,8 +7820,6 @@ function init (grapholscape) {
 var index = /*#__PURE__*/Object.freeze({
     __proto__: null,
     GscapeToggle: GscapeToggle,
-    BaseMixin: BaseMixin,
-    DropPanelMixin: DropPanelMixin,
     baseStyle: baseStyle,
     BOTTOM_RIGHT_WIDGET_CLASS: BOTTOM_RIGHT_WIDGET,
     get WidgetEnum () { return WidgetEnum; },
@@ -8626,22 +7829,1005 @@ var index = /*#__PURE__*/Object.freeze({
     initUI: init,
     GscapeButton: GscapeButton,
     GscapeButtonStyle: GscapeButtonStyle,
+    get SizeEnum () { return SizeEnum; },
+    get ToggleLabelPosition () { return ToggleLabelPosition; },
     GscapeActionListItem: GscapeActionListItem,
-    GscapeActionListStyle: actionItemStyle
+    GscapeActionListStyle: actionItemStyle,
+    BaseMixin: BaseMixin,
+    DropPanelMixin: DropPanelMixin,
+    hasDropPanel: hasDropPanel
 });
+
+var downloadBlob = (blob, fileName) => {
+    let a = document.createElement('a');
+    document.body.appendChild(a);
+    a.style.setProperty('style', 'none');
+    let url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+};
+
+cytoscape.use(cy_svg);
+let options = {
+    output: 'blob',
+    full: true,
+    bg: '',
+};
+function toPNG(fileName, cy, backgroundColor) {
+    if (!checkParams(fileName, cy))
+        return;
+    options.bg = backgroundColor;
+    if (cy)
+        downloadBlob(cy.png(options), fileName);
+}
+function toSVG(fileName, cy, backgroundColor) {
+    if (!checkParams(fileName, cy))
+        return;
+    options.bg = backgroundColor;
+    let svg_content = cy.svg(options);
+    let blob = new Blob([svg_content], { type: "image/svg+xml;charset=utf-8" });
+    downloadBlob(blob, fileName);
+}
+function checkParams(fileName, cy) {
+    if (!fileName || (typeof (fileName) !== 'string')) {
+        console.error('Unable to export using an undefined file name');
+        return false;
+    }
+    if (!cy) {
+        console.error('Unable to export: cytoscape instance is undefined');
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @internal
+ */
+class DisplayedNamesManager {
+    constructor(grapholscape) {
+        this._entityNameType = EntityNameType.LABEL;
+        this._language = Language.EN;
+        this._grapholscape = grapholscape;
+    }
+    get entityNameType() { return this._entityNameType; }
+    get language() { return this._language; }
+    setEntityNameType(newEntityNameType) {
+        if (newEntityNameType === this._entityNameType)
+            return;
+        if (!Object.values(EntityNameType).includes(newEntityNameType)) {
+            console.warn(`"${newEntityNameType}" is not a valid entity name type`);
+            return;
+        }
+        this._entityNameType = newEntityNameType;
+        for (let entity of this._grapholscape.ontology.entities.values()) {
+            this.setDisplayedNames(entity);
+        }
+        this._grapholscape.lifecycle.trigger(LifecycleEvent.EntityNameTypeChange, newEntityNameType);
+        storeConfigEntry('entityNameType', newEntityNameType);
+    }
+    setLanguage(language) {
+        const languageValue = language;
+        if (!this._grapholscape.ontology.languages.list.includes(language)) {
+            console.warn(`Language ${language} is not supported by this ontology`);
+            return;
+        }
+        if (languageValue === this._language) {
+            return;
+        }
+        this._language = languageValue;
+        if (this._entityNameType === EntityNameType.LABEL) {
+            for (let entity of this._grapholscape.ontology.entities.values()) {
+                this.setDisplayedNames(entity);
+            }
+        }
+        this._grapholscape.lifecycle.trigger(LifecycleEvent.LanguageChange, languageValue);
+        storeConfigEntry('language', language);
+    }
+    setDisplayedNames(entity) {
+        entity.occurrences.forEach((entityOccurrencesInRenderState, renderState) => {
+            entityOccurrencesInRenderState.forEach(entityOccurrence => {
+                var _a, _b, _c, _d;
+                const grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState);
+                if (!grapholElement)
+                    return;
+                let newDisplayedName;
+                switch (this._entityNameType) {
+                    case EntityNameType.LABEL:
+                        newDisplayedName =
+                            ((_a = entity.getLabels(this._language)[0]) === null || _a === void 0 ? void 0 : _a.lexicalForm) ||
+                                ((_b = entity.getLabels(this._grapholscape.ontology.languages.default)[0]) === null || _b === void 0 ? void 0 : _b.lexicalForm) ||
+                                ((_c = entity.getLabels()[0]) === null || _c === void 0 ? void 0 : _c.lexicalForm) ||
+                                entity.iri.remainder;
+                        break;
+                    case EntityNameType.PREFIXED_IRI:
+                        newDisplayedName = entity.iri.prefixed;
+                        break;
+                    case EntityNameType.FULL_IRI:
+                        newDisplayedName = entity.iri.fullIri;
+                        break;
+                }
+                if (newDisplayedName !== grapholElement.displayedName) {
+                    grapholElement.displayedName = newDisplayedName;
+                    const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId);
+                    if (diagram) {
+                        /**
+                         * Entity Occurrences are not replicated, in entity.occurrences.get('lite') there will
+                         * be only replicated/transformed entities. So the occurrences in graphol will be
+                         * present also in other representations unless filtered.
+                         * So for each occurrence in graphol, we search it in other representations and update them as well
+                         */
+                        if (renderState === RendererStatesEnum.GRAPHOL) {
+                            diagram.representations.forEach(representation => {
+                                representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
+                            });
+                        }
+                        else {
+                            (_d = diagram.representations.get(renderState)) === null || _d === void 0 ? void 0 : _d.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
+                        }
+                    }
+                }
+            });
+        });
+    }
+}
+
+/**
+ * @internal
+ */
+class EntityNavigator {
+    constructor(grapholscape) {
+        this._grapholscape = grapholscape;
+    }
+    centerOnEntity(iri, diagramId, zoom) {
+        this._centerSelectEntity(iri, diagramId, false, zoom);
+    }
+    selectEntity(iri, diagramId, zoom) {
+        this._centerSelectEntity(iri, diagramId, true, zoom);
+    }
+    _centerSelectEntity(iri, diagramId, select = false, zoom) {
+        if (diagramId || diagramId === 0) {
+            const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagramId);
+            if (entityOccurrence) {
+                this._performCenterSelect(entityOccurrence, select, zoom);
+            }
+        }
+        else {
+            for (let diagram of this._grapholscape.ontology.diagrams) {
+                const entityOccurrence = this.getEntityOccurrenceInDiagram(iri, diagram.id);
+                if (entityOccurrence) {
+                    this._performCenterSelect(entityOccurrence, select, zoom);
+                    break;
+                }
+            }
+        }
+    }
+    _performCenterSelect(occurrence, select, zoom) {
+        if (this._grapholscape.diagramId !== occurrence.diagramId) {
+            this._grapholscape.showDiagram(occurrence.diagramId);
+        }
+        this._grapholscape.renderer.centerOnElementById(occurrence.elementId, zoom, select);
+        if (select) {
+            const grapholElement = this._grapholscape.ontology.getGrapholElement(occurrence.elementId, occurrence.diagramId, this._grapholscape.renderState);
+            if (!grapholElement)
+                return;
+            if (isGrapholNode(grapholElement)) {
+                this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
+            }
+            else if (isGrapholEdge(grapholElement)) {
+                this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
+            }
+        }
+    }
+    getEntityOccurrenceInDiagram(iri, diagramId) {
+        const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId);
+        if (!occurrencesMap)
+            return;
+        const grapholOccurrences = occurrencesMap.get(RendererStatesEnum.GRAPHOL);
+        // if no graphol occurrence, then cannot appear in any representation
+        if (!grapholOccurrences || grapholOccurrences.length <= 0)
+            return;
+        const diagram = this._grapholscape.ontology.getDiagram(diagramId);
+        if (!diagram)
+            return;
+        const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState);
+        // Search any original graphol occurrence in the actual representation
+        for (let grapholOccurrence of grapholOccurrences) {
+            if (actualDiagramRepresentation === null || actualDiagramRepresentation === void 0 ? void 0 : actualDiagramRepresentation.grapholElements.has(grapholOccurrence.elementId)) {
+                return grapholOccurrence;
+            }
+        }
+        // The original graphol occurrence may not be present in a new representation
+        // Find first replicated occurrence
+        const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState);
+        if (replicatedOccurrences && replicatedOccurrences.length > 0) {
+            return replicatedOccurrences[0];
+        }
+    }
+    updateEntitiesOccurrences() {
+        if (this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
+            return;
+        this._grapholscape.ontology.diagrams.forEach(diagram => {
+            var _a, _b;
+            // const diagram = this._grapholscape.renderer.diagram
+            const replicatedElements = (_b = (_a = diagram.representations.get(this._grapholscape.renderState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$("[originalId]");
+            if (replicatedElements && !replicatedElements.empty()) {
+                replicatedElements.forEach(replicatedElement => {
+                    const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'));
+                    if (grapholEntity) {
+                        grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState);
+                        replicatedElement.data('iri', grapholEntity.iri.fullIri);
+                        grapholEntity.addOccurrence(replicatedElement.id(), diagram.id, this._grapholscape.renderState);
+                    }
+                });
+            }
+        });
+    }
+    setGraphEventHandlers(diagram) {
+        diagram.representations.forEach(diagramRepresentation => {
+            const cy = diagramRepresentation.cy;
+            if (cy.scratch('_gscape-graph-handlers-set'))
+                return;
+            cy.on('select', e => {
+                const grapholElement = diagramRepresentation.grapholElements.get(e.target.id());
+                if (grapholElement) {
+                    if (grapholElement.isEntity()) {
+                        const grapholEntity = this._grapholscape.ontology.getEntity(e.target.data().iri);
+                        if (grapholEntity) {
+                            this._grapholscape.lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement);
+                        }
+                    }
+                    if (isGrapholNode(grapholElement)) {
+                        this._grapholscape.lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
+                    }
+                    if (isGrapholEdge(grapholElement)) {
+                        this._grapholscape.lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
+                    }
+                }
+            });
+            cy.on('tap', evt => {
+                if (evt.target === cy) {
+                    this._grapholscape.lifecycle.trigger(LifecycleEvent.BackgroundClick);
+                }
+            });
+            cy.on('mouseover', '*', e => {
+                const container = cy.container();
+                if (container) {
+                    container.style.cursor = 'pointer';
+                }
+            });
+            cy.on('mouseout', '*', e => {
+                const container = cy.container();
+                if (container) {
+                    container.style.cursor = 'inherit';
+                }
+            });
+            cy.scratch('_gscape-graph-handlers-set', true);
+        });
+    }
+}
+
+class Renderer {
+    constructor(renderState) {
+        this.filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]));
+        this.FOCUS_ZOOM_LEVEL = 1.5;
+        this.renderStateData = {};
+        /**
+         * Filter elements on the diagram.
+         * It will be actually applied only if the user defined callback on the event
+         * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+         * allows for the filter to be applied.
+         * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+         * or a string representing the unique key of a defined filter
+         */
+        this.filter = (filter) => {
+            let _filter = this.getFilter(filter);
+            if (!_filter)
+                return;
+            if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState.filterManager.filterActivation(_filter)) {
+                this.performFilter(_filter);
+                this._lifecycle.trigger(LifecycleEvent.Filter, _filter);
+            }
+        };
+        /**
+         * Unfilter elements on the diagram.
+         * It will be actually deactivated only if the user defined callback on the event
+         * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+         * allows for the filter to be deactivated.
+         * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+         * or a string representing the unique key of a defined filter
+         */
+        this.unfilter = (filter) => {
+            const _filter = this.getFilter(filter);
+            if (!_filter)
+                return;
+            if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && this._renderState.filterManager.filterDeactivation(_filter)) {
+                this.performFilter(_filter, false);
+                this.applyActiveFilters();
+                this._lifecycle.trigger(LifecycleEvent.Unfilter, _filter);
+            }
+        };
+        if (renderState)
+            this.renderState = renderState;
+    }
+    set lifecycle(lc) {
+        this._lifecycle = lc;
+    }
+    set renderState(rs) {
+        if (this.diagram) {
+            /**
+             * Stop rendering actual diagram before
+             * changing renderer state
+             */
+            this.stopRendering();
+        }
+        this._renderState = rs;
+        rs.renderer = this;
+        if (this.diagram) {
+            rs.render();
+            this.performAllFilters();
+        }
+    }
+    get renderState() { return this._renderState; }
+    get theme() { return this._theme; }
+    render(diagram) {
+        if (!this.diagram || this.diagram.id !== diagram.id) {
+            this.stopRendering();
+            this.diagram = diagram;
+            this._renderState.render();
+            this.performAllFilters();
+            this._lifecycle.trigger(LifecycleEvent.DiagramChange, diagram);
+        }
+    }
+    mount() {
+        var _a;
+        this.applyTheme();
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.mount(this.container);
+    }
+    addElement(element) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.add(element);
+    }
+    performFilter(filter, activate = true) {
+        if (this.grapholElements) {
+            for (let grapholElement of this.grapholElements.values()) {
+                if (filter.shouldFilter(grapholElement)) {
+                    if (activate)
+                        this._renderState.filter(grapholElement.id, filter);
+                    else
+                        this._renderState.unfilter(grapholElement.id, filter);
+                }
+            }
+            filter.active = activate;
+        }
+    }
+    getFilter(filter) {
+        let _filter;
+        if (typeof filter === 'string') {
+            _filter = this.filters.get(filter);
+        }
+        else {
+            _filter = filter;
+        }
+        if (!_filter || !this.filters.has(_filter.key)) {
+            console.warn(`Can't find any filter "${filter}"`);
+            return;
+        }
+        return _filter;
+    }
+    applyActiveFilters() {
+        this.filters.forEach(filter => {
+            if (filter.active) {
+                this.performFilter(filter);
+            }
+        });
+    }
+    performAllFilters() {
+        // first unfiler
+        this.filters.forEach(filter => {
+            if (!filter.active)
+                this.performFilter(filter, filter.active);
+        });
+        this.filters.forEach(filter => {
+            if (filter.active)
+                this.performFilter(filter, filter.active);
+        });
+    }
+    stopRendering() {
+        var _a;
+        this.unselect();
+        this._renderState.stopRendering();
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.unmount();
+    }
+    /**
+     * Select a node or an edge in the actual diagram given its unique id
+     * @param {string} elementId elem id (node or edge)
+     */
+    selectElement(elementId) {
+        var _a;
+        this.unselect();
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.$id(elementId).select();
+    }
+    /**
+     * Unselect every selected element in this diagram
+     */
+    unselect() {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.elements(':selected').unselect();
+    }
+    /**
+     * Fit viewport to diagram
+     */
+    fit() {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.fit();
+    }
+    /**
+     * Put a set of elements (nodes and/or edges) at the center of the viewport.
+     * If just one element then the element will be at the center.
+     * @param elementId the element's ID
+     * @param zoom the zoom level to apply, if not passed, zoom level won't be changed
+     */
+    centerOnElementById(elementId, zoom, select) {
+        var _a, _b;
+        if (zoom === void 0) { zoom = (_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom(); }
+        if (!this.cy || (!zoom && zoom !== 0))
+            return;
+        const cyElement = this.cy.$id(elementId);
+        zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom;
+        if (cyElement.empty()) {
+            console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`);
+        }
+        else {
+            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
+                center: {
+                    eles: cyElement
+                },
+                zoom: zoom,
+                queue: false,
+            });
+            if (select && this.cy.$(':selected') !== cyElement) {
+                this.unselect();
+                cyElement.select();
+            }
+        }
+    }
+    centerOnElement(element, zoom, select) {
+        this.centerOnElementById(element.id, zoom, select);
+    }
+    centerOnModelPosition(xPos, yPos, zoom) {
+        if (!this.cy)
+            return;
+        let offsetX = this.cy.width() / 2;
+        let offsetY = this.cy.height() / 2;
+        xPos -= offsetX;
+        yPos -= offsetY;
+        this.cy.pan({
+            x: -xPos,
+            y: -yPos
+        });
+        this.cy.zoom({
+            level: zoom || this.cy.zoom(),
+            renderedPosition: { x: offsetX, y: offsetY }
+        });
+    }
+    centerOnRenderedPosition(xPos, yPos, zoom) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.viewport({
+            zoom: zoom || this.cy.zoom(),
+            pan: { x: xPos, y: yPos }
+        });
+    }
+    zoom(zoomValue) {
+        var _a, _b;
+        if (zoomValue != ((_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom()))
+            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
+                zoom: zoomValue,
+                queue: false
+            });
+    }
+    zoomIn(zoomValue) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
+            zoom: {
+                level: this.cy.zoom() + zoomValue * this.cy.zoom(),
+                renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+            },
+            queue: false,
+        });
+    }
+    zoomOut(zoomValue) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
+            zoom: {
+                level: this.cy.zoom() - zoomValue * this.cy.zoom(),
+                renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+            },
+            queue: false,
+        });
+    }
+    setTheme(theme) {
+        if (theme !== this._theme) {
+            this._theme = theme;
+            if (this.cy) {
+                this.applyTheme();
+            }
+        }
+    }
+    applyTheme() {
+        var _a;
+        if (this._theme) {
+            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style(this.renderState.getGraphStyle(this._theme));
+            if (this.theme.colours["bg-graph"])
+                this.container.style.backgroundColor = this.theme.colours["bg-graph"];
+        }
+        else {
+            console.warn('Cannot render anything, please set a theme');
+        }
+    }
+    // updateAll() {
+    //   for (let grapholElement of this.grapholElements.values()) {
+    //     this.updateElement(grapholElement.id)
+    //   }
+    // }
+    updateElement(grapholElement) {
+        if (!this.cy)
+            return;
+        const cyElement = this.cy.$id(grapholElement.id);
+        if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+            cyElement.position(grapholElement.position);
+        }
+        if (isGrapholEdge(grapholElement)) {
+            cyElement.move({
+                source: grapholElement.sourceId,
+                target: grapholElement.targetId
+            });
+        }
+        cyElement.data(grapholElement.getCytoscapeRepr()[0].data);
+    }
+    get isThemeApplied() {
+        var _a;
+        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style();
+    }
+    get grapholElements() {
+        var _a, _b;
+        return (_b = (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.representations.get(this._renderState.id)) === null || _b === void 0 ? void 0 : _b.grapholElements;
+    }
+    get selectedElement() {
+        var _a, _b;
+        if (this.cy)
+            return (_a = this.grapholElements) === null || _a === void 0 ? void 0 : _a.get((_b = this.cy.$(':selected')[0]) === null || _b === void 0 ? void 0 : _b.id());
+    }
+    get viewportState() {
+        if (this.cy)
+            return {
+                zoom: this.cy.zoom(),
+                pan: this.cy.pan(),
+            };
+    }
+    set container(container) {
+        this._container = document.createElement('div');
+        this._container.classList.add('grapholscape-graph');
+        this._container.style.width = '100%';
+        this._container.style.height = '100%';
+        this._container.style.position = 'relative';
+        container.appendChild(this.container);
+    }
+    get container() { return this._container; }
+    /**
+     * Getter
+     */
+    get nodes() {
+        var _a;
+        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.nodes().jsons();
+    }
+    /**
+     * Getter
+     */
+    get edges() {
+        var _a;
+        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.edges().jsons();
+    }
+}
+
+/**
+ * @internal
+ */
+class ThemeManager {
+    constructor(grapholscape) {
+        this.themes = Object.values(DefaultThemes);
+        this._grapholscape = grapholscape;
+    }
+    setTheme(newThemeId) {
+        const newTheme = this.themes.find(t => t.id === newThemeId);
+        if (newTheme) {
+            this.setMissingColours(newTheme);
+            this.theme = newTheme;
+            Object.entries(newTheme.colours).forEach(([colourName, colour]) => {
+                this._grapholscape.container.style.setProperty(`${CSS_PROPERTY_NAMESPACE}-${colourName}`, colour);
+            });
+            this._grapholscape.renderer.setTheme(newTheme);
+            this._grapholscape.lifecycle.trigger(LifecycleEvent.ThemeChange, newTheme);
+            storeConfigEntry('selectedTheme', newThemeId);
+        }
+    }
+    addTheme(newTheme) {
+        this.themes.push(newTheme);
+    }
+    removeThemes() {
+        this.themes = [];
+    }
+    setMissingColours(theme) {
+        // Set default theme colours for missing colours
+        Object.entries(gscapeColourMap).forEach(([colourName, colourValue]) => {
+            const _colourName = colourName;
+            if (!theme.getColour(_colourName))
+                theme.setColour(_colourName, colourValue);
+        });
+    }
+}
+
+class Grapholscape {
+    constructor(ontology, container, config) {
+        this.renderer = new Renderer();
+        this.availableRenderers = [
+            RendererStatesEnum.GRAPHOL, RendererStatesEnum.GRAPHOL_LITE, RendererStatesEnum.FLOATY
+        ];
+        this.lifecycle = new Lifecycle();
+        this.entityNavigator = new EntityNavigator(this);
+        this.displayedNamesManager = new DisplayedNamesManager(this);
+        this.themesManager = new ThemeManager(this);
+        this.widgets = new Map();
+        // ----------------------------- LIFECYCLE ----------------------------- //
+        /**
+         * Register a callback for a given event.
+         * @remarks
+         * Check {@link !model.LifecycleEvent} and {@link !model.IonEvent} for the
+         * full list of events/callbacks types
+         * @param event The event for which register a callback.
+         * @param callback Function to call when the specified event occurs
+         *
+         * @example reacting to a node selection
+         * ```js
+         *  import { LifecycleEvent } from 'grapholscape'
+         *
+         *  // ...init grapholscape
+         *
+         * grapholscape.on(LifecycleEvent.NodeSelection, (selectedNode) => {
+         *  // here you can do whatever you want with selectedNode, like printing its shape
+         *  console.log(selectedNode.shape)
+         * })
+         * ```
+         */
+        this.on = this.lifecycle.on;
+        this.ontology = ontology;
+        this.container = container;
+        this.renderer.container = container;
+        this.renderer.lifecycle = this.lifecycle;
+        this.renderer.renderState = new GrapholRendererState();
+        if (!(config === null || config === void 0 ? void 0 : config.selectedTheme)) {
+            this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE);
+        }
+        if (config) {
+            this.setConfig(config);
+        }
+    }
+    // ----------------------------- RENDERER ----------------------------- //
+    /**
+     * Show a certain diagram by its ID
+     * @param diagramId the diagram's id to display
+     * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
+     */
+    showDiagram(diagramId, viewportState) {
+        const diagram = this.ontology.getDiagram(diagramId);
+        if (!diagram) {
+            console.warn(`Can't find any diagram with id="${diagramId}"`);
+            return;
+        }
+        this.entityNavigator.setGraphEventHandlers(diagram);
+        diagram.lastViewportState = viewportState;
+        this.renderer.render(diagram);
+    }
+    /**
+     * Change the actual renderer (Graphol - Lite - Floaty).
+     *
+     * @remarks
+     * A RendererState is an implementation for the {@link !model.iRenderState} interface
+     * that changes the way the {@link Renderer} performs the main operations on a
+     * {@link !model.Diagram} such as rendering it and filtering elements in it.
+     * The renderer states included in Grapholscape are: {@link GrapholRendererState},
+     * {@link LiteRendererState} and {@link FloatyRenderState}.
+     *
+     * @param newRenderState the renderer state instance to set, if you want to reuse
+     * these instances it's totally up to you.
+     *
+     *
+     * @example
+     * ```ts
+     * // Setting the floaty renderer state
+     * import { FloatyRendererState } from 'grapholscape'
+     *
+     * grapholscape.setRenderer(new FloatyRendererState())
+     * ```
+     */
+    setRenderer(newRenderState) {
+        var _a;
+        const shouldUpdateEntities = (this.diagramId !== 0 && !this.diagramId) || !((_a = this.ontology.getDiagram(this.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(newRenderState.id)) ? true : false;
+        if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
+            newRenderState.transformOntology(this.ontology);
+        }
+        this.renderer.renderState = newRenderState;
+        if (this.renderer.diagram)
+            this.entityNavigator.setGraphEventHandlers(this.renderer.diagram);
+        if (shouldUpdateEntities)
+            this.entityNavigator.updateEntitiesOccurrences();
+        this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState);
+    }
+    /**
+     * Center the viewport on a single element.
+     * @remarks
+     * If you specify a different diagram from the actual one, it will be displayed
+     * @param elementId the element's id (can be a node or an edge)
+     * @param diagramId the diagram's id (**default**: the actual one)
+     * @param zoom the level zoom to apply, do not pass it if you don't want zoom to change
+     */
+    centerOnElement(elementId, diagramId, zoom) {
+        if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
+            this.showDiagram(diagramId);
+        this.renderer.centerOnElementById(elementId, zoom);
+    }
+    /**
+     * Select an element in a diagram.
+     * @remarks
+     * If you specify a different diagram from the actual one, it will be displayed
+     * @param elementId the element's id (can be a node or an edge)
+     * @param diagramId the diagram's id (**default**: the actual one)
+     */
+    selectElement(elementId, diagramId) {
+        if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
+            this.showDiagram(diagramId);
+        this.renderer.selectElement(elementId);
+    }
+    /** Unselect any selected element in the actual diagram */
+    unselect() { this.renderer.unselect(); }
+    /** Fit viewport to diagram */
+    fit() { this.renderer.fit(); }
+    /**
+     * Apply a certain level of zoom
+     * @param value level of zoom to set
+     */
+    zoom(value) { this.renderer.zoom(value); }
+    /**
+     * Increase the zooom level by a certain amount
+     * @param amount the amount of zoom to add
+     */
+    zoomIn(amount) { this.renderer.zoomIn(amount); }
+    /**
+     * Decrease the zooom level by a certain amount
+     * @param amount the amount of zoom to remove
+     */
+    zoomOut(amount) { this.renderer.zoomOut(amount); }
+    /**
+     * Filter elements on the diagram.
+     * @remarks
+     * It will be actually applied only if the user defined callback on the event
+     * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+     * allows for the filter to be applied.
+     * @param filter the filter to apply, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+     * or a string representing the unique key of a defined filter
+     */
+    filter(filter) { this.renderer.filter(filter); }
+    /**
+     * Unfilter elements on the diagram.
+     * @remarks
+     * It will be actually deactivated only if the user defined callback on the event
+     * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+     * allows for the filter to be deactivated.
+     * @param filter the filter to disable, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+     * or a string representing the unique key of a defined filter
+     */
+    unfilter(filter) { this.renderer.unfilter(filter); }
+    /** The actual diagram's id */
+    get diagramId() {
+        var _a;
+        return (_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.id;
+    }
+    /** The actual renderer state */
+    get renderState() {
+        return this.renderer.renderState.id;
+    }
+    /** The actual selected Entity */
+    get selectedEntity() {
+        var _a;
+        const selectedElement = this.renderer.selectedElement;
+        if (selectedElement === null || selectedElement === void 0 ? void 0 : selectedElement.isEntity())
+            return this.ontology.getEntity((_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(selectedElement.id).data().iri);
+    }
+    /** An array of available renderer's state for this Grapholscape instance */
+    get renderers() { return this.availableRenderers; }
+    // ------------------------- ENTITY NAVIGATOR ------------------------- //
+    /**
+     * Center viewport on a single entity given its IRI
+     * @param iri the iri of the entity to find and center on
+     * @param diagramId the diagram containing.
+     * If not specified, the first entity occurrence in any diagram will be used.
+     * @param zoom the level of zoom to apply.
+     * If not specified, zoom level won't be changed.
+     */
+    centerOnEntity(iri, diagramId, zoom) {
+        this.entityNavigator.centerOnEntity(iri, diagramId, zoom);
+    }
+    /**
+     * Center viewport on a single entity and selects it given its IRI
+     * @param iri the iri of the entity to find and center on
+     * @param diagramId the diagram containing.
+     * If not specified, the first entity occurrence in any diagram will be used.
+     * @param zoom the level of zoom to apply.
+     * If not specified, zoom level won't be changed.
+     */
+    selectEntity(iri, diagramId, zoom) {
+        this.entityNavigator.selectEntity(iri, diagramId, zoom);
+    }
+    // ---------------------- DISPLAYED NAMES MANAGER ---------------------- //
+    /**
+     * Change the displayed entity's names.
+     * @param newEntityNametype the entity name type to set
+     */
+    setEntityNameType(newEntityNametype) {
+        this.displayedNamesManager.setEntityNameType(newEntityNametype);
+    }
+    /**
+     * Change the language used for the labels and comments
+     * @remarks The language must be supported by the ontology or the first available
+     * language for a given label/comment wil be used as fallback
+     * @param newLanguage the language to set {@link !config.Language}
+     */
+    setLanguage(newLanguage) {
+        this.displayedNamesManager.setLanguage(newLanguage);
+    }
+    /** The actual selected language */
+    get language() { return this.displayedNamesManager.language; }
+    /** The actual selected entity name type (label, full iri or prefixed iri) */
+    get entityNameType() { return this.displayedNamesManager.entityNameType; }
+    // -------------------------- THEMES MANAGER -------------------------- //
+    /**
+     * Apply a given theme
+     * @param themeId the theme's ID
+     */
+    setTheme(themeId) {
+        this.themesManager.setTheme(themeId);
+    }
+    /**
+     * @ignore
+     * // TODO: make this method update settings widget before publishing in docs
+     * Add a new theme in the list of available themes
+     * @param newTheme the new theme
+     */
+    addTheme(newTheme) {
+        this.themesManager.addTheme(newTheme);
+    }
+    /** The actual theme used by Grapholscape */
+    get theme() { return this.themesManager.theme; }
+    /** The available themes for this Grapholscape instance */
+    get themeList() { return this.themesManager.themes; }
+    // -------------------------------- UI -------------------------------- //
+    /**
+     * The container in which Grapholscape places the UI components.
+     * You can use this container to add new widgets or dialogs if you want to.
+     */
+    get uiContainer() { return this.container.querySelector('.gscape-ui'); }
+    /**
+     * The container in which the bottom-right buttons are placed.
+     * You can use this container to add your own Buttons if you want to.
+     */
+    get buttonsTray() { var _a; return (_a = this.uiContainer) === null || _a === void 0 ? void 0 : _a.querySelector('.gscape-ui-buttons-tray'); }
+    // ------------------------------ CONFIG ------------------------------ //
+    /**
+     * @ignore
+     * // TODO: Be sure this method reflects on UI before publishing it in to the docs
+     * Apply a new custom configuration
+     * @param newConfig the config object to apply
+     */
+    setConfig(newConfig) {
+        if (newConfig.language) {
+            this.displayedNamesManager.setLanguage(newConfig.language);
+        }
+        if (newConfig.entityNameType) {
+            this.displayedNamesManager.setEntityNameType(newConfig.entityNameType);
+        }
+        if (newConfig.renderers) {
+            this.availableRenderers = newConfig.renderers;
+            /**
+             * Just use the first defined renderer state
+             * the other ones will be managed by renderer-selector widget
+             * or manually by the app importing grapholscape
+             */
+            switch (newConfig.renderers[0]) {
+                case RendererStatesEnum.GRAPHOL: {
+                    this.setRenderer(new GrapholRendererState());
+                    break;
+                }
+                case RendererStatesEnum.GRAPHOL_LITE: {
+                    this.setRenderer(new LiteRendererState());
+                    break;
+                }
+                case RendererStatesEnum.FLOATY: {
+                    this.setRenderer(new FloatyRendererState());
+                    break;
+                }
+            }
+        }
+        if (newConfig.themes) {
+            this.themesManager.removeThemes();
+            newConfig.themes.forEach(newTheme => {
+                const _castedNewTheme = newTheme;
+                // It's a default theme id
+                if (DefaultThemes[newTheme]) {
+                    this.themesManager.addTheme(DefaultThemes[newTheme]);
+                }
+                // It's a custom theme
+                else if (_castedNewTheme.id) {
+                    this.themesManager.addTheme(new GrapholscapeTheme(_castedNewTheme.id, _castedNewTheme.colours, _castedNewTheme.name));
+                }
+            });
+        }
+        if (newConfig.selectedTheme && this.themeList.map(theme => theme.id).includes(newConfig.selectedTheme)) {
+            this.themesManager.setTheme(newConfig.selectedTheme);
+        }
+        else if (!this.themeList.includes(this.theme)) {
+            this.themesManager.setTheme(this.themeList[0].id);
+        }
+        if (newConfig.widgets) {
+            this.widgetsInitialStates = newConfig.widgets;
+        }
+    }
+    // ---------------------------- EXPORTING ---------------------------- //
+    /**
+     * Export actual diagram and download it as a PNG image.
+     * @param fileName custom file name. Defaults to {@link exportFileName}
+     */
+    exportToPng(fileName = this.exportFileName) {
+        fileName += '.png';
+        toPNG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph));
+    }
+    /**
+     * Export actual diagram and download it as an SVG.
+     * @param fileName custom file name. Defaults to {@link exportFileName}
+     */
+    exportToSvg(fileName = this.exportFileName) {
+        fileName += '.svg';
+        toSVG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph));
+    }
+    /**
+     * Filename for exports.
+     * String in the form: "[ontology name]-[diagram name]-v[ontology version]"
+     */
+    get exportFileName() {
+        var _a;
+        return `${this.ontology.name}-${(_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.name}-v${this.ontology.version}`;
+    }
+}
 
 cytoscape.use(popper);
 cytoscape.use(cola);
 /**
- * Create a bare instance of Grapholscape, only diagrams, no UI
+ * Create a full instance of Grapholscape with diagrams and widgets
+ *
+ * @remarks
+ * Once the promise is fulfilled, you get a {@link !core.Grapholscape}.
+ * Hence the API you will most likely want to use will be the one of the {@link !core.Grapholscape} class.
+ * You can change diagram, zoom, focus elements, select them, filter them and so on with that class.
+ *
  * @param file the ontology, can be an object of the
  * [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File)
  * or a String representing the .graphol file to be displayed
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
- * @returns a promise that will be fulfilled with a Grapholscape object
- * @tutorial Settings
- * @tutorial Themes
+ * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 function fullGrapholscape(file, container, config) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -8651,7 +8837,24 @@ function fullGrapholscape(file, container, config) {
         return grapholscape;
     });
 }
-function grapholscape(file, container, config) {
+/**
+ * Create a bare instance of Grapholscape, only diagrams, no widgets
+ *
+ * @remarks
+ * Once the promise is fulfilled, you get a {@link !core.Grapholscape}.
+ * Hence the API you will most likely want to use will be the one of the {@link !core.Grapholscape} class.
+ * You can change diagram, zoom, focus elements, select them, filter them and so on with that class.
+ *
+ * @param file the ontology, can be an object of the
+ * [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File)
+ * or a String representing the .graphol file to be displayed
+ * @param container a DOM element in which the ontology will be rendered in
+ * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+ * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
+ */
+function bareGrapholscape(file, container, config) {
     return getGrapholscape(file, container, config);
 }
 function getGrapholscape(file, container, config) {
@@ -8704,4 +8907,4 @@ function getGrapholscape(file, container, config) {
     });
 }
 
-export { Annotation, BaseFilterManager, BaseRenderer, CSS_PROPERTY_NAMESPACE, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, Filter, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholTypesEnum, Grapholscape, GrapholscapeTheme, Iri, Language, Lifecycle, LifecycleEvent, Namespace, Ontology, POLYGON_POINTS, RendererStatesEnum, Shape, classicColourMap, darkColourMap, fullGrapholscape, getDefaultFilters, grapholscape, gscapeColourMap, index as ui };
+export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, Filter, FloatyRendererState as FloatyRenderState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeTheme, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, liteOptions, loadConfig, storeConfigEntry, index as ui };

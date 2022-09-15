@@ -1,4 +1,6 @@
-import cytoscape$1, { Position, ElementDefinition, Stylesheet } from 'cytoscape';
+/// <reference types="cytoscape" />
+import * as cytoscape$1 from 'cytoscape';
+import cytoscape__default, { Position, ElementDefinition, Stylesheet, CytoscapeOptions } from 'cytoscape';
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement, PropertyDeclarations, CSSResultGroup, SVGTemplateResult } from 'lit';
@@ -115,7 +117,11 @@ declare enum Shape {
     POLYGON = "polygon"
 }
 declare const POLYGON_POINTS = "-0.9 -1 1 -1 0.9 1 -1 1";
-declare const _default$9: {
+/**
+ * Enumeration having `type`, `shape` and `identity` for each Graphol node
+ * @type {object}
+ */
+declare const _default$a: {
     CLASS: {
         TYPE: GrapholTypesEnum;
         SHAPE: Shape;
@@ -390,44 +396,84 @@ declare class GrapholNode extends GrapholElement {
 }
 
 declare enum ColoursNames {
+    /** Foreground color, used for main texts */
     fg_default = "fg-default",
+    /** Foreground muted, should be darker than default. Used for secondary text */
     fg_muted = "fg-muted",
+    /** Foreground muted, should be lighter and softer than default.
+     * Used for placeholders, tips and text used for clarifying UI objects
+     */
     fg_subtle = "fg-subtle",
+    /** Foreground text colour placed on a surface of a emphasy color such as accent, danger, success and so on */
     fg_on_emphasis = "fg-on-emphasis",
+    /** Main background surface colours used in UI widgets */
     bg_default = "bg-default",
+    /** Background color to create a higher or lower level with respect to bg_default color */
     bg_inset = "bg-inset",
+    /** Borders main color */
     border_default = "border-default",
+    /** Softer than default, used for creating softer separations between UI objects */
     border_subtle = "border-subtle",
     shadow = "shadow",
-    neautral = "neutral",
+    /** Used to emphasize secondary elements or texts. Like active elements */
+    neutral = "neutral",
+    /** Emphasize secondary elements, should be darker than default */
     neutral_muted = "neutral-muted",
+    /** Emphasize secondary elements, used for active elements borders */
     neutral_subtle = "neutral-subtle",
+    /** Primary color for selected/active elements in diagram or activable elemnts like toggles */
     accent = "accent",
+    /** Primary color in darker tone, used for decorations like surfaces or borders */
     accent_muted = "accent-muted",
+    /** Primary color in lighter tone, used for decorations like toggle's background color */
     accent_subtle = "accent-subtle",
+    /** Color for denoting a successful action */
     success = "success",
+    /** Denote successful action in darker tone, used for texts or borders */
     success_muted = "success-muted",
+    /** Denote successful action in lighter tone, used for backgrounds or surfaces */
     success_subtle = "success-subtle",
+    /** Color for denoting warnings */
     attention = "attention",
+    /** Color for denoting warnings in darker tone, used for texts or borders */
     attention_muted = "attention-muted",
+    /** Color for denoting warnings in lighter tone, used for backgrounds or surfaces */
     attention_subtle = "attention-subtle",
+    /** Color for denoting errors */
     danger = "danger",
+    /** Color for denoting errors in darker tone, used for texts or borders */
     danger_muted = "danger-muted",
+    /** Color for denoting errors in lighter tone, used for backgrounds or surfaces */
     danger_subtle = "danger-subtle",
+    /** Color used for classes' nodes bodies */
     class = "class",
+    /** Color used for classes' nodes borders */
     class_contrast = "class-contrast",
+    /** Color used for object properties' nodes bodies */
     object_property = "object-property",
+    /** Color used for object properties' nodes borders */
     object_property_contrast = "object-property-contrast",
+    /** Color used for data properties' nodes bodies */
     data_property = "data-property",
+    /** Color used for data properties' nodes borders */
     data_property_contrast = "data-property-contrast",
+    /** Color used for individual's nodes bodies */
     individual = "individual",
+    /** Color used for individual's nodes borders */
     individual_contrast = "individual-contrast",
+    /** Background color used in the diagram canvas */
     bg_graph = "bg-graph",
+    /** Body color for nodes that are white in plain Graphol */
     bg_node_light = "bg-node-light",
+    /** Body color for nodes that are black in plain Graphol */
     bg_node_dark = "bg-node-dark",
+    /** Body border color */
     border_node = "border-node",
+    /** Nodes/Edges label color */
     label = "label",
+    /** Opposite color of label */
     label_contrast = "label-contrast",
+    /** Edges lines color */
     edge = "edge"
 }
 declare type ColourMap = {
@@ -511,14 +557,9 @@ declare class Lifecycle {
     on: IonEvent;
 }
 
-/**
- * @property {string} name - diagram's name
- * @property {string | number} id - diagram's identifier
- * @property {cytoscape} cy - cytoscape headless instance for managing elements
- */
 declare class Renderer {
     private _container;
-    cy?: cytoscape$1.Core;
+    cy?: cytoscape__default.Core;
     private _renderState;
     filters: Map<string, Filter>;
     diagram?: Diagram;
@@ -539,9 +580,9 @@ declare class Renderer {
     /**
      * Filter elements on the diagram.
      * It will be actually applied only if the user defined callback on the event
-     * {@link LifecycleEvent.FilterRequest} returns true and if the internal logic
+     * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
      * allows for the filter to be applied.
-     * @param filter Can be an object of type {@link Filter}, {@link DefaultFilterKeyEnum}
+     * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
      * or a string representing the unique key of a defined filter
      */
     filter: (filter: Filter | DefaultFilterKeyEnum | string) => void;
@@ -549,9 +590,9 @@ declare class Renderer {
     /**
      * Unfilter elements on the diagram.
      * It will be actually deactivated only if the user defined callback on the event
-     * {@link LifecycleEvent.FilterRequest} returns true and if the internal logic
+     * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
      * allows for the filter to be deactivated.
-     * @param filter Can be an object of type {@link Filter}, {@link DefaultFilterKeyEnum}
+     * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
      * or a string representing the unique key of a defined filter
      */
     unfilter: (filter: Filter | DefaultFilterKeyEnum | string) => void;
@@ -563,17 +604,15 @@ declare class Renderer {
      * Select a node or an edge in the actual diagram given its unique id
      * @param {string} elementId elem id (node or edge)
      */
-    selectElement: (elementId: string) => void;
+    selectElement(elementId: string): void;
     /**
      * Unselect every selected element in this diagram
      */
-    unselect: () => void;
+    unselect(): void;
     /**
      * Fit viewport to diagram
-     *
-     * @group API
      */
-    fit: () => void;
+    fit(): void;
     /**
      * Put a set of elements (nodes and/or edges) at the center of the viewport.
      * If just one element then the element will be at the center.
@@ -584,18 +623,18 @@ declare class Renderer {
     centerOnElement(element: GrapholElement, zoom?: number, select?: boolean): void;
     centerOnModelPosition(xPos: number, yPos: number, zoom?: number): void;
     centerOnRenderedPosition(xPos: number, yPos: number, zoom?: number): void;
-    zoom: (zoomValue: number) => void;
-    zoomIn: (zoomValue: number) => void;
-    zoomOut: (zoomValue: number) => void;
+    zoom(zoomValue: number): void;
+    zoomIn(zoomValue: number): void;
+    zoomOut(zoomValue: number): void;
     setTheme(theme: GrapholscapeTheme): void;
     applyTheme(): void;
     updateElement(grapholElement: GrapholElement): void;
-    get isThemeApplied(): cytoscape$1.ElementStylesheetStyle | cytoscape$1.ElementStylesheetCSS;
+    get isThemeApplied(): cytoscape__default.ElementStylesheetStyle | cytoscape__default.ElementStylesheetCSS;
     get grapholElements(): Map<string, GrapholElement>;
     get selectedElement(): GrapholElement;
     get viewportState(): {
         zoom: number;
-        pan: cytoscape$1.Position;
+        pan: cytoscape__default.Position;
     };
     set container(container: HTMLElement);
     get container(): HTMLElement;
@@ -607,6 +646,65 @@ declare class Renderer {
      * Getter
      */
     get edges(): string[];
+}
+
+declare class GrapholRendererState extends BaseRenderer {
+    layout: cytoscape.Layouts;
+    id: RendererStatesEnum;
+    cyConfig: cytoscape.CytoscapeOptions;
+    filterManager: FilterManager;
+    render(): void;
+    stopRendering(): void;
+    runLayout(): void;
+    stopLayout(): void;
+    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
+    transformOntology(ontology: Ontology): void;
+}
+
+declare class LiteRendererState extends BaseRenderer {
+    readonly id: RendererStatesEnum;
+    filterManager: FilterManager;
+    cyConfig: CytoscapeOptions;
+    private _layout;
+    runLayout(): void;
+    render(): void;
+    stopRendering(): void;
+    stopLayout(): void;
+    getGraphStyle(theme: GrapholscapeTheme): cytoscape$1.Stylesheet[];
+    transformOntology(ontology: Ontology): void;
+    get layout(): cytoscape$1.Layouts;
+    set layout(newLayout: cytoscape$1.Layouts);
+}
+
+declare class FloatyRendererState extends BaseRenderer {
+    layout: cytoscape.Layouts;
+    readonly id: RendererStatesEnum;
+    filterManager: FilterManager;
+    private _layout;
+    set renderer(newRenderer: Renderer);
+    get renderer(): Renderer;
+    transformOntology(ontology: Ontology): void;
+    runLayout(): void;
+    render(): void;
+    stopRendering(): void;
+    getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[];
+    stopLayout(): void;
+    runLayoutInfinitely(): void;
+    pinNode(node: any): void;
+    unpinAll(): void;
+    private setPopperStyle;
+    private updatePopper;
+    unpinNode(node: any): void;
+    private removeUnlockButton;
+    private setDragAndPinEventHandlers;
+    private grabHandler;
+    private freeHandler;
+    private floatyLayoutOptions;
+    get isLayoutInfinite(): boolean;
+    get dragAndPin(): boolean;
+    set dragAndPin(isActive: boolean);
+    private get popperContainer();
+    private get popperContainers();
 }
 
 /**
@@ -780,9 +878,9 @@ declare class DiagramRepresentation {
     private _cy;
     private _grapholElements;
     private _hasEverBeenRendered;
-    constructor(cyConfig?: cytoscape$1.CytoscapeOptions);
-    get cy(): cytoscape$1.Core;
-    set cy(newCy: cytoscape$1.Core);
+    constructor(cyConfig?: cytoscape__default.CytoscapeOptions);
+    get cy(): cytoscape__default.Core;
+    set cy(newCy: cytoscape__default.Core);
     get hasEverBeenRendered(): boolean;
     set hasEverBeenRendered(value: boolean);
     /**
@@ -804,6 +902,10 @@ declare class DiagramRepresentation {
     get edges(): string[];
 }
 
+declare type ViewportState = {
+    pan: Position;
+    zoom: number;
+};
 /**
  * @property {string} name - diagram's name
  * @property {string | number} id - diagram's identifier
@@ -812,10 +914,7 @@ declare class Diagram {
     name: string;
     id: number;
     representations: Map<RendererStatesEnum, DiagramRepresentation>;
-    lastViewportState: {
-        pan: Position;
-        zoom: number;
-    };
+    lastViewportState: ViewportState;
     /**
      * @param {string} name
      * @param {number} id
@@ -982,6 +1081,39 @@ declare type GrapholscapeConfig = {
     widgets?: WidgetsConfig;
 };
 
+/**
+ * Load config from local storage
+ */
+declare function loadConfig(): GrapholscapeConfig;
+/**
+ * Store a single setting in local storage
+ * @param {string} k the key of the setting to store
+ * @param {any} value the value of the setting to store
+ */
+declare function storeConfigEntry(k: string, value: any): void;
+declare function clearLocalStorage(): void;
+
+declare const _default$9: CytoscapeOptions;
+
+declare const liteOptions: {
+    layout: {
+        name: string;
+    };
+    autoungrabify: boolean;
+    maxZoom: number;
+    minZoom: number;
+    wheelSensitivity: number;
+};
+declare const floatyOptions: {
+    layout: {
+        name: string;
+    };
+    autoungrabify: boolean;
+    maxZoom: number;
+    minZoom: number;
+    wheelSensitivity: number;
+};
+
 declare class Grapholscape {
     renderer: Renderer;
     private availableRenderers;
@@ -994,54 +1126,200 @@ declare class Grapholscape {
     widgets: Map<WidgetEnum, HTMLElement>;
     widgetsInitialStates: WidgetsConfig;
     constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig);
-    showDiagram(diagramId: number, viewportState?: any): void;
+    /**
+     * Show a certain diagram by its ID
+     * @param diagramId the diagram's id to display
+     * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
+     */
+    showDiagram(diagramId: number, viewportState?: ViewportState): void;
+    /**
+     * Change the actual renderer (Graphol - Lite - Floaty).
+     *
+     * @remarks
+     * A RendererState is an implementation for the {@link !model.iRenderState} interface
+     * that changes the way the {@link Renderer} performs the main operations on a
+     * {@link !model.Diagram} such as rendering it and filtering elements in it.
+     * The renderer states included in Grapholscape are: {@link GrapholRendererState},
+     * {@link LiteRendererState} and {@link FloatyRenderState}.
+     *
+     * @param newRenderState the renderer state instance to set, if you want to reuse
+     * these instances it's totally up to you.
+     *
+     *
+     * @example
+     * ```ts
+     * // Setting the floaty renderer state
+     * import { FloatyRendererState } from 'grapholscape'
+     *
+     * grapholscape.setRenderer(new FloatyRendererState())
+     * ```
+     */
     setRenderer(newRenderState: RenderState): void;
+    /**
+     * Center the viewport on a single element.
+     * @remarks
+     * If you specify a different diagram from the actual one, it will be displayed
+     * @param elementId the element's id (can be a node or an edge)
+     * @param diagramId the diagram's id (**default**: the actual one)
+     * @param zoom the level zoom to apply, do not pass it if you don't want zoom to change
+     */
     centerOnElement(elementId: string, diagramId?: number, zoom?: number): void;
-    /** @borrows this.entityNavigator.centerOnEntity as this.centerOnEntity */
-    centerOnEntity: (iri: string, diagramId?: number, zoom?: number) => void;
-    /** @borrows this.entityNavigator.selectEntity as this.selectEntity */
-    selectEntity: (iri: string, diagramId?: number, zoom?: number) => void;
-    /** @borrows this.renderer.unselect as this.unselect */
-    unselect: () => void;
-    /** @borrows this.renderer.selectElement as this.selectElement */
-    selectElement: (elementId: string) => void;
-    /** @borrows this.renderer.fit as this.fit */
-    fit: () => void;
-    /** @borrows this.renderer.zoom as this.zoom */
-    zoom: (zoomValue: number) => void;
-    /** @borrows this.renderer.zoomIn as this.zoomIn */
-    zoomIn: (zoomValue: number) => void;
-    /** @borrows this.renderer.zoomOut as this.zoomOut */
-    zoomOut: (zoomValue: number) => void;
-    /** @borrows this.renderer.filter as this.filter */
-    filter: (filter: string | Filter) => void;
-    /** @borrows this.renderer.unfilter as this.unfilter */
-    unfilter: (filter: string | Filter) => void;
+    /**
+     * Select an element in a diagram.
+     * @remarks
+     * If you specify a different diagram from the actual one, it will be displayed
+     * @param elementId the element's id (can be a node or an edge)
+     * @param diagramId the diagram's id (**default**: the actual one)
+     */
+    selectElement(elementId: string, diagramId?: number): void;
+    /** Unselect any selected element in the actual diagram */
+    unselect(): void;
+    /** Fit viewport to diagram */
+    fit(): void;
+    /**
+     * Apply a certain level of zoom
+     * @param value level of zoom to set
+     */
+    zoom(value: number): void;
+    /**
+     * Increase the zooom level by a certain amount
+     * @param amount the amount of zoom to add
+     */
+    zoomIn(amount: number): void;
+    /**
+     * Decrease the zooom level by a certain amount
+     * @param amount the amount of zoom to remove
+     */
+    zoomOut(amount: number): void;
+    /**
+     * Filter elements on the diagram.
+     * @remarks
+     * It will be actually applied only if the user defined callback on the event
+     * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+     * allows for the filter to be applied.
+     * @param filter the filter to apply, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+     * or a string representing the unique key of a defined filter
+     */
+    filter(filter: string | Filter | DefaultFilterKeyEnum): void;
+    /**
+     * Unfilter elements on the diagram.
+     * @remarks
+     * It will be actually deactivated only if the user defined callback on the event
+     * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+     * allows for the filter to be deactivated.
+     * @param filter the filter to disable, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+     * or a string representing the unique key of a defined filter
+     */
+    unfilter(filter: string | Filter | DefaultFilterKeyEnum): void;
+    /** The actual diagram's id */
     get diagramId(): number;
+    /** The actual renderer state */
     get renderState(): RendererStatesEnum;
+    /** The actual selected Entity */
     get selectedEntity(): GrapholEntity;
+    /** An array of available renderer's state for this Grapholscape instance */
     get renderers(): RendererStatesEnum[];
-    /** @borrows this.displayedNamesManager.setEntityNameType as this.setEntityNameType */
-    setEntityNameType: (newEntityNameType: EntityNameType) => void;
-    /** @borrows this.displayedNamesManager.setLanguage as this.setLanguage */
-    setLanguage: (language: string) => void;
+    /**
+     * Center viewport on a single entity given its IRI
+     * @param iri the iri of the entity to find and center on
+     * @param diagramId the diagram containing.
+     * If not specified, the first entity occurrence in any diagram will be used.
+     * @param zoom the level of zoom to apply.
+     * If not specified, zoom level won't be changed.
+     */
+    centerOnEntity(iri: string, diagramId?: number, zoom?: number): void;
+    /**
+     * Center viewport on a single entity and selects it given its IRI
+     * @param iri the iri of the entity to find and center on
+     * @param diagramId the diagram containing.
+     * If not specified, the first entity occurrence in any diagram will be used.
+     * @param zoom the level of zoom to apply.
+     * If not specified, zoom level won't be changed.
+     */
+    selectEntity(iri: string, diagramId?: number, zoom?: number): void;
+    /**
+     * Change the displayed entity's names.
+     * @param newEntityNametype the entity name type to set
+     */
+    setEntityNameType(newEntityNametype: EntityNameType): void;
+    /**
+     * Change the language used for the labels and comments
+     * @remarks The language must be supported by the ontology or the first available
+     * language for a given label/comment wil be used as fallback
+     * @param newLanguage the language to set {@link !config.Language}
+     */
+    setLanguage(newLanguage: string): void;
+    /** The actual selected language */
     get language(): Language;
+    /** The actual selected entity name type (label, full iri or prefixed iri) */
     get entityNameType(): EntityNameType;
-    /** @borrows this.themesManager.setTheme as this.setTheme */
-    setTheme: (newThemeId: string) => void;
-    /** @borrows this.themesManager.addTheme as this.addTheme */
-    addTheme: (newTheme: GrapholscapeTheme) => void;
+    /**
+     * Apply a given theme
+     * @param themeId the theme's ID
+     */
+    setTheme(themeId: string): void;
+    /**
+     * @ignore
+     * // TODO: make this method update settings widget before publishing in docs
+     * Add a new theme in the list of available themes
+     * @param newTheme the new theme
+     */
+    addTheme(newTheme: GrapholscapeTheme): void;
+    /** The actual theme used by Grapholscape */
     get theme(): GrapholscapeTheme;
+    /** The available themes for this Grapholscape instance */
     get themeList(): GrapholscapeTheme[];
+    /**
+     * Register a callback for a given event.
+     * @remarks
+     * Check {@link !model.LifecycleEvent} and {@link !model.IonEvent} for the
+     * full list of events/callbacks types
+     * @param event The event for which register a callback.
+     * @param callback Function to call when the specified event occurs
+     *
+     * @example reacting to a node selection
+     * ```js
+     *  import { LifecycleEvent } from 'grapholscape'
+     *
+     *  // ...init grapholscape
+     *
+     * grapholscape.on(LifecycleEvent.NodeSelection, (selectedNode) => {
+     *  // here you can do whatever you want with selectedNode, like printing its shape
+     *  console.log(selectedNode.shape)
+     * })
+     * ```
+     */
     on: IonEvent;
+    /**
+     * The container in which Grapholscape places the UI components.
+     * You can use this container to add new widgets or dialogs if you want to.
+     */
     get uiContainer(): Element;
+    /**
+     * The container in which the bottom-right buttons are placed.
+     * You can use this container to add your own Buttons if you want to.
+     */
     get buttonsTray(): Element;
+    /**
+     * @ignore
+     * // TODO: Be sure this method reflects on UI before publishing it in to the docs
+     * Apply a new custom configuration
+     * @param newConfig the config object to apply
+     */
     setConfig(newConfig: GrapholscapeConfig): void;
+    /**
+     * Export actual diagram and download it as a PNG image.
+     * @param fileName custom file name. Defaults to {@link exportFileName}
+     */
     exportToPng(fileName?: string): void;
+    /**
+     * Export actual diagram and download it as an SVG.
+     * @param fileName custom file name. Defaults to {@link exportFileName}
+     */
     exportToSvg(fileName?: string): void;
     /**
-     * Filename for exports
-     * string in the form: "[ontology name]-[diagram name]-v[ontology version]"
+     * Filename for exports.
+     * String in the form: "[ontology name]-[diagram name]-v[ontology version]"
      */
     get exportFileName(): string;
 }
@@ -1183,6 +1461,7 @@ declare class IDropPanelMixin {
     isPanelClosed: () => boolean;
 }
 declare const DropPanelMixin: <T extends Constructor<LitElement>>(superClass: T) => Constructor<IDropPanelMixin> & T;
+declare function hasDropPanel(element: any): element is IDropPanelMixin;
 
 declare const BOTTOM_RIGHT_WIDGET: lit.CSSResult;
 declare const _default$6: lit.CSSResult;
@@ -1338,21 +1617,28 @@ declare function export_default(grapholscape: Grapholscape): void;
 
 type index_d_GscapeToggle = GscapeToggle;
 declare const index_d_GscapeToggle: typeof GscapeToggle;
-declare const index_d_BaseMixin: typeof BaseMixin;
-declare const index_d_DropPanelMixin: typeof DropPanelMixin;
 type index_d_WidgetEnum = WidgetEnum;
 declare const index_d_WidgetEnum: typeof WidgetEnum;
 type index_d_GscapeEntitySearch = GscapeEntitySearch;
 declare const index_d_GscapeEntitySearch: typeof GscapeEntitySearch;
 type index_d_GscapeButton = GscapeButton;
 declare const index_d_GscapeButton: typeof GscapeButton;
+type index_d_SizeEnum = SizeEnum;
+declare const index_d_SizeEnum: typeof SizeEnum;
+type index_d_ToggleLabelPosition = ToggleLabelPosition;
+declare const index_d_ToggleLabelPosition: typeof ToggleLabelPosition;
 type index_d_GscapeActionListItem = GscapeActionListItem;
 declare const index_d_GscapeActionListItem: typeof GscapeActionListItem;
+type index_d_IBaseMixin = IBaseMixin;
+declare const index_d_IBaseMixin: typeof IBaseMixin;
+declare const index_d_BaseMixin: typeof BaseMixin;
+type index_d_IDropPanelMixin = IDropPanelMixin;
+declare const index_d_IDropPanelMixin: typeof IDropPanelMixin;
+declare const index_d_DropPanelMixin: typeof DropPanelMixin;
+declare const index_d_hasDropPanel: typeof hasDropPanel;
 declare namespace index_d {
   export {
     index_d_GscapeToggle as GscapeToggle,
-    index_d_BaseMixin as BaseMixin,
-    index_d_DropPanelMixin as DropPanelMixin,
     _default$6 as baseStyle,
     BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS,
     index_d_WidgetEnum as WidgetEnum,
@@ -1362,23 +1648,53 @@ declare namespace index_d {
     export_default as initUI,
     index_d_GscapeButton as GscapeButton,
     _default$8 as GscapeButtonStyle,
+    index_d_SizeEnum as SizeEnum,
+    index_d_ToggleLabelPosition as ToggleLabelPosition,
     index_d_GscapeActionListItem as GscapeActionListItem,
     _default$7 as GscapeActionListStyle,
+    index_d_IBaseMixin as IBaseMixin,
+    index_d_BaseMixin as BaseMixin,
+    index_d_IDropPanelMixin as IDropPanelMixin,
+    index_d_DropPanelMixin as DropPanelMixin,
+    index_d_hasDropPanel as hasDropPanel,
   };
 }
 
 /**
- * Create a bare instance of Grapholscape, only diagrams, no UI
+ * Create a full instance of Grapholscape with diagrams and widgets
+ *
+ * @remarks
+ * Once the promise is fulfilled, you get a {@link !core.Grapholscape}.
+ * Hence the API you will most likely want to use will be the one of the {@link !core.Grapholscape} class.
+ * You can change diagram, zoom, focus elements, select them, filter them and so on with that class.
+ *
  * @param file the ontology, can be an object of the
  * [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File)
  * or a String representing the .graphol file to be displayed
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
- * @returns a promise that will be fulfilled with a Grapholscape object
- * @tutorial Settings
- * @tutorial Themes
+ * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 declare function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape>;
-declare function grapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape>;
+/**
+ * Create a bare instance of Grapholscape, only diagrams, no widgets
+ *
+ * @remarks
+ * Once the promise is fulfilled, you get a {@link !core.Grapholscape}.
+ * Hence the API you will most likely want to use will be the one of the {@link !core.Grapholscape} class.
+ * You can change diagram, zoom, focus elements, select them, filter them and so on with that class.
+ *
+ * @param file the ontology, can be an object of the
+ * [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File)
+ * or a String representing the .graphol file to be displayed
+ * @param container a DOM element in which the ontology will be rendered in
+ * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
+ * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
+ */
+declare function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape>;
 
-export { Annotation, BaseFilterManager, BaseRenderer, CSS_PROPERTY_NAMESPACE, ColourMap, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, EntityOccurrence, Filter, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, _default$9 as GrapholNodesEnum, GrapholTypesEnum, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, IonEvent, Iri, Language, Lifecycle, LifecycleEvent, Namespace, Ontology, POLYGON_POINTS, RendererStatesEnum, Shape, ThemeConfig, WidgetsConfig, classicColourMap, darkColourMap, fullGrapholscape, getDefaultFilters, grapholscape, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, index_d as ui };
+export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColourMap, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, EntityOccurrence, Filter, FloatyRendererState as FloatyRenderState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, _default$a as GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, ThemeConfig, ViewportState, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$9 as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, liteOptions, loadConfig, storeConfigEntry, index_d as ui };
