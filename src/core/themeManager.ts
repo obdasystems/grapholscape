@@ -1,4 +1,4 @@
-import { storeConfigEntry } from "../config/config-manager"
+import { storeConfigEntry } from "../config"
 import { ColoursNames, CSS_PROPERTY_NAMESPACE, DefaultThemes, GrapholscapeTheme, gscapeColourMap, LifecycleEvent } from "../model"
 import Grapholscape from "./grapholscape"
 

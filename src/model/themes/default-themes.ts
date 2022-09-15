@@ -1,4 +1,4 @@
-import { ColourMap } from "./colours"
+import { ColourMap, ColoursNames } from "./colours"
 import GrapholscapeTheme from "./theme"
 
 export enum DefaultThemesEnum {
@@ -9,128 +9,128 @@ export enum DefaultThemesEnum {
 
 export const gscapeColourMap: ColourMap = {
   // graph colours
-  'bg-graph': '#fafafa',
-  'edge': '#000',
-  'bg-node-light': '#fcfcfc',
-  'bg-node-dark': '#000',
-  'border-node': '#000',
-  'label': '#000', 
-  'label-contrast': '#fcfcfc',
+  [ColoursNames.bg_graph]: '#fafafa',
+  [ColoursNames.edge]: '#000',
+  [ColoursNames.bg_node_light]: '#fcfcfc',
+  [ColoursNames.bg_node_dark]: '#000',
+  [ColoursNames.border_node]: '#000',
+  [ColoursNames.label]: '#000',
+  [ColoursNames.label_contrast]: '#fcfcfc',
 
-  'class': '#F9F3A6',
-  'class-contrast': '#B08D00',
+  [ColoursNames.class]: '#F9F3A6',
+  [ColoursNames.class_contrast]: '#B08D00',
 
-  'object-property': '#AACDE1',
-  'object-property-contrast': '#065A85',
+  [ColoursNames.object_property]: '#AACDE1',
+  [ColoursNames.object_property_contrast]: '#065A85',
 
-  'data-property': '#C7DAAD',
-  'data-property-contrast': '#4B7900',
+  [ColoursNames.data_property]: '#C7DAAD',
+  [ColoursNames.data_property_contrast]: '#4B7900',
 
-  'individual': '#d3b3ef',
-  'individual-contrast': '#9875b7',
+  [ColoursNames.individual]: '#d3b3ef',
+  [ColoursNames.individual_contrast]: '#9875b7',
 
   // UI colours
-  'fg-default': '#24292f',
-  'fg-muted': '#57606a',
-  'fg-subtle': '#6e7781',
-  'fg-on-emphasis': '#ffffff',
+  [ColoursNames.fg_default]: '#24292f',
+  [ColoursNames.fg_muted]: '#57606a',
+  [ColoursNames.fg_subtle]: '#6e7781',
+  [ColoursNames.fg_on_emphasis]: '#ffffff',
 
-  'bg-default': '#f6f8fa',
-  'bg-inset': '#eff2f5',
+  [ColoursNames.bg_default]: '#f6f8fa',
+  [ColoursNames.bg_inset]: '#eff2f5',
 
-  'border-default': '#d0d7de',
-  'border-subtle': 'rgba(27, 31, 36, 0.15)',
+  [ColoursNames.border_default]: '#d0d7de',
+  [ColoursNames.border_subtle]: 'rgba(27, 31, 36, 0.15)',
 
-  'shadow': '#d0d7de',
+  [ColoursNames.shadow]: '#d0d7de',
 
-  'neutral': '#e8ecef',
-  'neutral-muted': '#dae0e7',
-  'neutral-subtle': '#f3f5f7',
+  [ColoursNames.neutral]: '#e8ecef',
+  [ColoursNames.neutral_muted]: '#dae0e7',
+  [ColoursNames.neutral_subtle]: '#f3f5f7',
 
-  'accent': '#0969da',
-  'accent-muted': 'rgba(84, 174, 255, 0.4)',
-  'accent-subtle': '#ddf4ff',
+  [ColoursNames.accent]: '#0969da',
+  [ColoursNames.accent_muted]: 'rgba(84, 174, 255, 0.4)',
+  [ColoursNames.accent_subtle]: '#ddf4ff',
 
   // State Colours
-  'success': '#1a7f37',
-  'success-muted': 'rgba(74, 194, 107, 0.4)',
-  'success-subtle': '#2da44e',
-  
-  'attention': '#9a6700',
-  'attention-muted': 'rgba(212, 167, 44, 0.4)',
-  'attention-subtle': '#fff8c5',
+  [ColoursNames.success]: '#1a7f37',
+  [ColoursNames.success_muted]: 'rgba(74, 194, 107, 0.4)',
+  [ColoursNames.success_subtle]: '#2da44e',
 
-  'danger': '#cf222e',
-  'danger-muted': 'rgba(255, 129, 130, 0.4)',
-  'danger-subtle': '#FFEBE9',
+  [ColoursNames.attention]: '#9a6700',
+  [ColoursNames.attention_muted]: 'rgba(212, 167, 44, 0.4)',
+  [ColoursNames.attention_subtle]: '#fff8c5',
+
+  [ColoursNames.danger]: '#cf222e',
+  [ColoursNames.danger_muted]: 'rgba(255, 129, 130, 0.4)',
+  [ColoursNames.danger_subtle]: '#FFEBE9',
 }
 
 export const classicColourMap: ColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap)), {
-  "bg-graph": '#fafafa',
-  'edge': '#000',
-  "bg-node-light": '#fcfcfc',
-  "bg-node-dark": '#000',
-  "border-node": '#000',
-  'label': '#000',
-  "label-contrast": '#fcfcfc',
+  [ColoursNames.bg_graph]: '#fafafa',
+  [ColoursNames.edge]: '#000',
+  [ColoursNames.bg_node_light]: '#fcfcfc',
+  [ColoursNames.bg_node_dark]: '#000',
+  [ColoursNames.border_node]: '#000',
+  [ColoursNames.label]: '#000',
+  [ColoursNames.label_contrast]: '#fcfcfc',
 
-  "object-property": '#fcfcfc',
-  "object-property-contrast": '#000',
+  [ColoursNames.object_property]: '#fcfcfc',
+  [ColoursNames.object_property_contrast]: '#000',
 
-  "data-property": '#fcfcfc',
-  "data-property-contrast": '#000',
+  [ColoursNames.data_property]: '#fcfcfc',
+  [ColoursNames.data_property_contrast]: '#000',
 
-  'class': '#fcfcfc',
-  "class-contrast": '#000',
+  [ColoursNames.class]: '#fcfcfc',
+  [ColoursNames.class_contrast]: '#000',
 
-  'individual': '#fcfcfc',
-  "individual-contrast": '#000',
+  [ColoursNames.individual]: '#fcfcfc',
+  [ColoursNames.individual_contrast]: '#000',
 })
 
 export const darkColourMap: ColourMap = {
 
   // graph colors
-  "bg-graph": '#0d1117',
-  'edge': '#a0a0a0',
-  "bg-node-light": '#a0a0a0',
-  "bg-node-dark": '#010101',
-  "border-node": '#a0a0a0',
-  'label': '#a0a0a0',
-  'label-contrast': '#000',
+  [ColoursNames.bg_graph]: '#0d1117',
+  [ColoursNames.edge]: '#a0a0a0',
+  [ColoursNames.bg_node_light]: '#a0a0a0',
+  [ColoursNames.bg_node_dark]: '#010101',
+  [ColoursNames.border_node]: '#a0a0a0',
+  [ColoursNames.label]: '#a0a0a0',
+  [ColoursNames.label_contrast]: '#000',
 
-  "object-property": '#043954',
-  "object-property-contrast": '#7fb3d2',
+  [ColoursNames.object_property]: '#043954',
+  [ColoursNames.object_property_contrast]: '#7fb3d2',
 
-  "data-property-contrast": '#C7DAAD',
-  "data-property": '#4B7900',
+  [ColoursNames.data_property_contrast]: '#C7DAAD',
+  [ColoursNames.data_property]: '#4B7900',
 
-  'class-contrast': '#b28f00',
-  'class': '#423500',
+  [ColoursNames.class_contrast]: '#b28f00',
+  [ColoursNames.class]: '#423500',
 
-  'individual-contrast': '#9875b7',
-  'individual': '#422D53',
+  [ColoursNames.individual_contrast]: '#9875b7',
+  [ColoursNames.individual]: '#422D53',
 
   // UI colours
-  'fg-default': '#c9d1d9',  
-  'fg-muted': '#8b949e',
-  'fg-subtle': '#6e7681',
-  'fg-on-emphasis': '#ffffff',
+  [ColoursNames.fg_default]: '#c9d1d9',
+  [ColoursNames.fg_muted]: '#8b949e',
+  [ColoursNames.fg_subtle]: '#6e7681',
+  [ColoursNames.fg_on_emphasis]: '#ffffff',
 
-  'bg-default': '#21262d',
-  'bg-inset': '#010409',
+  [ColoursNames.bg_default]: '#21262d',
+  [ColoursNames.bg_inset]: '#010409',
 
-  'border-default': '#8b949e',
-  'border-subtle': 'rgba(240,246,252,0.1)',
+  [ColoursNames.border_default]: '#8b949e',
+  [ColoursNames.border_subtle]: 'rgba(240,246,252,0.1)',
 
-  'shadow': '#010409',
+  [ColoursNames.shadow]: '#010409',
 
-  'neutral': '#313b48',
-  'neutral-muted': '#343941',
-  'neutral-subtle': '#0c1015',
+  [ColoursNames.neutral]: '#313b48',
+  [ColoursNames.neutral_muted]: '#343941',
+  [ColoursNames.neutral_subtle]: '#0c1015',
 
-  'accent': '#58a6ff',
-  'accent-muted': 'rgba(56,139,253,0.4)',
-  'accent-subtle': 'rgba(56,139,253,0.15)',
+  [ColoursNames.accent]: '#58a6ff',
+  [ColoursNames.accent_muted]: 'rgba(56,139,253,0.4)',
+  [ColoursNames.accent_subtle]: 'rgba(56,139,253,0.15)',
 }
 
 export const DefaultThemes: { [key in DefaultThemesEnum]: GrapholscapeTheme } = {

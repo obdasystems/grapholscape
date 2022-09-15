@@ -2,17 +2,16 @@ import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
 import { Ontology } from './model'
-import { loadConfig } from './config/config-manager'
 import GrapholParser from './parsing/parser'
-import { GrapholscapeConfig } from './config/config'
 import * as UI from './ui'
 import Grapholscape from './core'
+import { GrapholscapeConfig, loadConfig } from './config'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
 
 export * from './model'
-export * from './config/config'
+export * from './config'
 export * as ui from './ui'
 export * from './core'
 
@@ -30,8 +29,8 @@ export * from './core'
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [link 1](https://www.google.it)
- * @see [link 2](https://www.google.it)
+ * @see [Getting started](../pages/getting-started.html)
+ * @see [Configuration](../pages/configuration.html)
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
@@ -54,10 +53,10 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [link 1](https://www.google.it)
- * @see [link 2](https://www.google.it)
+ * @see [Getting started](../pages/getting-started.html)
+ * @see [Configuration](../pages/configuration.html)
  */
-export function grapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
+export function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   return getGrapholscape(file, container, config)
 }
 

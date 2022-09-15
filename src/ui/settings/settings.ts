@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { EntityNameType } from '../../config/config'
+import { EntityNameType } from '../../config'
 import { GrapholscapeTheme } from '../../model'
 import capitalizeFirstChar from '../../util/capitalize-first-char'
 import { grapholscapeLogo } from '../assets'

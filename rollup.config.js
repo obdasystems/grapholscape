@@ -77,7 +77,7 @@ const configs = [
     input,
     output: [
       {
-        file: 'doc/static/demo/js/grapholscape.js',
+        file: 'docs/static/demo/js/grapholscape.js',
         format: 'iife',
         name,
         sourcemap: 'inline'

@@ -15,13 +15,13 @@
     "not op_mini all"
   ],
   "scripts": {
-    "start": "ws -o -d doc/static & rollup -c -w",
+    "start": "ws -o -d docs/static/demo & rollup -c -w",
     "build": "npm run gen-types & cross-env NODE_ENV=production VERSION=$npm_package_version rollup -c",
     "clean": "rimraf ./dist",
     "app": "rollup -c && electron ./app",
     "app:dist": "electron-packager ./app $npm_package_name --out=./dists --icon=./app/assets/icon --overwrite",
-    "deploy": "cross-env-shell gh-pages -d doc/output/grapholscape/$npm_package_version -m \"$npm_package_version\"",
-    "doc": "",
+    "deploy": "cross-env-shell gh-pages -d docs/generated -m \"$npm_package_version\"",
+    "doc": "npx typedoc && cpy . ../../generated/demo --cwd=docs/static/demo",
     "test": "jest",
     "gen-types": "rimraf ./temp/types && npx tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
     "preversion": "run-s test",
@@ -41,6 +41,7 @@
   "devDependencies": {
     "@babel/core": "^7.18.13",
     "@babel/preset-env": "^7.18.10",
+    "@knodes/typedoc-plugin-pages": "^0.23.1",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^4.1.0",
@@ -49,6 +50,7 @@
     "@rollup/plugin-typescript": "^8.4.0",
     "@types/cytoscape": "^3.19.7",
     "@types/jest": "^28.0.8",
+    "cpy-cli": "^4.2.0",
     "cross-env": "^7.0.3",
     "electron": "^20.1.1",
     "electron-packager": "^16.0.0",

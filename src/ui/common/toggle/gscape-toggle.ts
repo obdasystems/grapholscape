@@ -109,19 +109,6 @@ export default class GscapeToggle extends LitElement {
     `
   ]
 
-  // constructor(key, state, disabled, label, onToggle, inverse_mode = false) {
-  //   super()
-  //   this.key = key || ''
-  //   // always set inverse before state
-  //   this.inverse = inverse_mode
-  //   this.state = state || false
-
-  //   this.disabled = disabled || false
-  //   this.onToggle = onToggle || {}
-  //   this.label = label || ''
-  //   this.label_pos = 'left'
-  // }
-
   render() {
     return html`
     <label class="toggle-container">
@@ -136,34 +123,6 @@ export default class GscapeToggle extends LitElement {
     </label>
     `
   }
-
-  // set state(state) {
-  //   this._state = state
-  //   this.checked = this.inverse ? !state : state
-
-  //   // trying to force an update, doesn't work
-  //   //this.requestUpdate('checked', old_checked_val)
-  // }
-
-  // get state() {
-  //   return this._state
-  // }
-
-  // get label_span() {
-  //   return html`<span class="toggle-label">${this.label}</span>`
-  // }
-
-  // clickHandler(e) {
-  //   this.state = !this.state
-  //   this.onToggle(e)
-  // }
-
-  // updated(a) {
-  //   // force toggle to change its visual state
-  //   // this should be unnecessary: see issue
-  //   this.shadowRoot.querySelector(`#${this.key}`).checked = this.checked
-  // }
-  
 
 }
 

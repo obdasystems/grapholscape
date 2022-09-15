@@ -1,9 +1,8 @@
 import { LifecycleEvent } from "../model/lifecycle";
 import { GrapholEntity } from "../model";
-import { EntityNameType, Language } from "../config/config";
 import Grapholscape from "./grapholscape";
 import { RendererStatesEnum } from "../model/renderers/i-render-state";
-import { storeConfigEntry } from "../config/config-manager";
+import { EntityNameType, Language, storeConfigEntry } from "../config";
 
 /**
  * @internal

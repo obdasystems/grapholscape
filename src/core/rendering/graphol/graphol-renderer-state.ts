@@ -1,5 +1,5 @@
 import { Stylesheet } from "cytoscape"
-import cytoscapeDefaultConfig from "../../../config/cytoscape-default-config"
+import { grapholOptions } from "../../../config"
 import { Ontology, BaseRenderer, iFilterManager, RendererStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
 import grapholStyle from "./graphol-style"
@@ -7,7 +7,7 @@ import grapholStyle from "./graphol-style"
 export default class GrapholRendererState extends BaseRenderer {
   layout: cytoscape.Layouts
   id: RendererStatesEnum = RendererStatesEnum.GRAPHOL
-  cyConfig: cytoscape.CytoscapeOptions = cytoscapeDefaultConfig
+  cyConfig: cytoscape.CytoscapeOptions = grapholOptions
   filterManager: iFilterManager = new GrapholFilterManager()
 
   render(): void {

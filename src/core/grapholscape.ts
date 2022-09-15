@@ -1,4 +1,4 @@
-import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config/config"
+import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"

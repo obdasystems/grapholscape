@@ -1,5 +1,5 @@
 import { Diagram, Filter } from ".."
-import { EntityNameType, Language } from "../../config/config"
+import { EntityNameType, Language } from "../../config"
 import GrapholEdge from "../graphol-elems/edge"
 import GrapholEntity from "../graphol-elems/entity"
 import GrapholElement from "../graphol-elems/graphol-element"
