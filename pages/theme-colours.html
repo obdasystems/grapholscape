@@ -1,0 +1,136 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Theme Colours | Grapholscape - v3.0.2</title><meta name="description" content="Documentation for Grapholscape - v3.0.2"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/>	<link rel="icon" href="../icon.png" />
+</head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">Grapholscape - v3.0.2</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">Grapholscape - v3.0.2</a></li>
+<li><a href="theme-colours.html">Theme Colours</a></li></ul>
+<h1> Theme Colours</h1></div>
+<div class="tsd-panel tsd-typography"><p>A theme in Grapholscape is a set of colours applied to the UI widgets and to the graph.</p>
+
+<a href="#colours" id="colours" style="color: inherit; text-decoration: none;">
+  <h4>Colours</h4>
+</a>
+<ul>
+<li><p>UI colours</p>
+<ul>
+<li><strong><code>primary</code></strong> : used mainly for widgets surface colour</li>
+<li><strong><code>on-secondary</code></strong> : used for text on a surface having <code>primary</code> colour as background</li>
+<li><strong><code>primary-dark</code></strong> and <strong><code>on-primary-dark</code></strong> : used for convey lower z-levels</li>
+<li><strong><code>secondary</code></strong> : used as contrast to the primary for highlighting interactive objects and headers</li>
+<li><strong><code>on-secondary</code></strong> : used for text on a surface having <code>secondary</code> colour as background</li>
+<li><strong><code>secondary-dark</code></strong> and <strong><code>on-secondary-dark</code></strong> : used for convey lower z-levels</li>
+<li><strong><code>shadows</code></strong> : used for shadows and borders</li>
+<li><strong><code>error</code></strong> : used for error messages</li>
+<li><strong><code>on-error</code></strong> : used for text on surfaces having <code>error</code> as background colour</li>
+</ul>
+</li>
+<li><p>Graph colours</p>
+<ul>
+<li><strong><code>background</code></strong>: canvas background</li>
+<li><strong><code>edge</code></strong>: edges colour</li>
+<li><strong><code>node-bg</code></strong>: default nodes background colour</li>
+<li><strong><code>node-bg-contrast</code></strong>: used for nodes that are black in the black/white version of Graphol (i.e. range restrictions)</li>
+<li><strong><code>node-border</code></strong>: border colours for nodes</li>
+<li><strong><code>label-colour</code></strong>: colour for labels</li>
+<li><strong><code>label_colour_contrast</code></strong>: colour for labels opposite to the previous one [not used]</li>
+</ul>
+</li>
+<li><p>Entities colours (optional)</p>
+<ul>
+<li><strong><code>role</code></strong> : used on object properties nodes as background,</li>
+<li><strong><code>role_dark</code></strong> : as border and edges of type role in simplified modes</li>
+<li><strong><code>attribute</code></strong> : used on data properties nodes as background</li>
+<li><strong><code>attribute_dark</code></strong> : as border and edges of type attribute in simplified modes</li>
+<li><strong><code>concept</code></strong> : used on classes nodes as background</li>
+<li><strong><code>concept_dark</code></strong> : as border</li>
+<li><strong><code>individual</code></strong> : used on individual nodes as background</li>
+<li><strong><code>individual_dark</code></strong> : as border</li>
+</ul>
+</li>
+</ul>
+
+<a href="#default-theme-customization" id="default-theme-customization" style="color: inherit; text-decoration: none;">
+  <h2>Default Theme Customization</h2>
+</a>
+<p>It is possible to choose the default theme among the predefined ones or defining a custom one.
+In both cases it is necessary to specify it in the custom default settings. read more about <a href="https://github.com/obdasystems/grapholscape/wiki/Settings#default-settings-customization">default settings customization</a>.</p>
+
+<a href="#setting-predefined-theme-as-default" id="setting-predefined-theme-as-default" style="color: inherit; text-decoration: none;">
+  <h3>Setting predefined theme as default</h3>
+</a>
+<p>Simply specify the name of the predefined theme in custom settings at the key <code>theme</code>.</p>
+
+<a href="#example---dark-theme-as-default-theme" id="example---dark-theme-as-default-theme" style="color: inherit; text-decoration: none;">
+  <h4>Example - dark theme as default theme</h4>
+</a>
+<pre><code class="language-js"><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">defaultSettings</span><span class="hl-1"> = { </span><br/><span class="hl-1">  </span><span class="hl-2">theme :</span><span class="hl-1"> </span><span class="hl-3">&#39;dark&#39;</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">grapholscape</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-6">fullGrapholscape</span><span class="hl-1">(</span><span class="hl-2">grapholFile</span><span class="hl-1">, </span><span class="hl-2">container</span><span class="hl-1">, </span><span class="hl-2">defaultSettings</span><span class="hl-1">)</span>
+</code></pre>
+<p><strong>Predefined Themes</strong> : <code>gscape</code>, <code>dark</code>, <code>classic</code></p>
+
+<a href="#defining-a-new-default-custom-theme" id="defining-a-new-default-custom-theme" style="color: inherit; text-decoration: none;">
+  <h3>Defining a new default custom theme</h3>
+</a>
+<p>It is possible to define new theme specifying each colour in the custom settings at the <code>theme</code> entry.
+This time the value will not be a <code>string</code> but an <code>object</code> whose properties are the colours with their values.
+The new theme will be based on the <code>light</code> theme of Grapholscape, this means that all unspecified colours will not be overwritten.</p>
+<p>You must specify an <strong>unique identifier</strong> for your custom theme:</p>
+<ul>
+<li><strong><code>id</code></strong>(<code>String</code>): the identifier of the new theme
+You can also use two special keys:</li>
+<li><strong><code>name</code></strong>(<code>String</code>): the name that will be displayed to the user in the setting panel.<blockquote>
+<p>Default: <code>name = id</code></p>
+</blockquote>
+</li>
+<li><strong><code>selected</code></strong>(<code>Boolean</code>): for telling Grapholscape whether to apply the theme or not, if false it will be defined and registered in themes list and the user can select it in setting panel.<blockquote>
+<p>Default: <code>selected = true</code></p>
+</blockquote>
+</li>
+</ul>
+
+<a href="#example---using-39red39-as-secondary-colour" id="example---using-39red39-as-secondary-colour" style="color: inherit; text-decoration: none;">
+  <h4>Example - using &#39;red&#39; as secondary colour</h4>
+</a>
+<pre><code class="language-js"><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">defaultSettings</span><span class="hl-1"> = {</span><br/><span class="hl-1">  </span><span class="hl-2">theme :</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">id:</span><span class="hl-1"> </span><span class="hl-3">&#39;1&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">secondary :</span><span class="hl-1"> </span><span class="hl-3">&#39;red&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">name:</span><span class="hl-1"> </span><span class="hl-3">&#39;Red Passion Theme&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">selected:</span><span class="hl-1"> </span><span class="hl-4">true</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">grapholscape</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-6">fullGrapholscape</span><span class="hl-1">(</span><span class="hl-2">grapholFile</span><span class="hl-1">, </span><span class="hl-2">container</span><span class="hl-1">, </span><span class="hl-2">defaultSettings</span><span class="hl-1">)</span>
+</code></pre>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">Grapholscape -<wbr/> v3.0.2</a>
+<ul>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="getting-started.html">Getting <wbr/>Started</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="configuration.html">Configuration</a></li>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-1"><a href="theme-colours.html">Theme <wbr/>Colours</a></li>
+<li class="tsd-kind-module"><a href="../modules/UI.html">UI</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/UI.icons.html">icons</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/config.html">config</a></li>
+<li class="tsd-kind-module"><a href="../modules/core.html">core</a></li>
+<li class="tsd-kind-module"><a href="../modules/index.html">index</a></li>
+<li class="tsd-kind-module"><a href="../modules/model.html">model</a></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky"></nav></div></div>
+<div class="overlay"></div><script src="../assets/main.js"></script></body></html>
