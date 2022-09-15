@@ -112,7 +112,7 @@ const configs = [
         sourcemap: false
       },
       {
-        file: 'doc/static/demo/js/grapholscape.js',
+        file: 'docs/static/demo/js/grapholscape.js',
         format: 'iife',
         name,
         sourcemap: false
