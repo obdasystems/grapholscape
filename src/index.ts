@@ -29,8 +29,8 @@ export * from './core'
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](../pages/getting-started.html)
- * @see [Configuration](../pages/configuration.html)
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
@@ -53,8 +53,8 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](../pages/getting-started.html)
- * @see [Configuration](../pages/configuration.html)
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 export function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   return getGrapholscape(file, container, config)

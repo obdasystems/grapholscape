@@ -61,5 +61,9 @@ grapholscape.showDiagram(0) // show diagram with id = 0
 const diagram = grapholscape.ontology.getDiagramByName('diagramName')
 grapholscape.showDiagram(diagram.id)
 ```
+
+Information about **entities**, **namesapaces** and **diagrams** are stored in [Grapholscape.ontology](https://obdasystems.github.io/grapholscape/classes/core.Grapholscape.html). Read More in [Ontology](https://obdasystems.github.io/grapholscape/classes/model.Ontology.html).
+
+It is possible to pass also a config object to define custom default settings. Read more: [configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html).
 **For the complete api please check [Grapholscape Class API](../classes/core.Grapholscape.html).**
 
