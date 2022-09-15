@@ -45,10 +45,6 @@
           "title": "Configuration",
           "source": "configuration.md"
         },
-        {
-          "title": "Theme Colours",
-          "source": "theme-colours.md"
-        },
       ],
     },
   }

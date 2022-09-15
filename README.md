@@ -41,7 +41,7 @@ grapholscape.showDiagram(0)
 > **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
 
 Once the initialization phase is done, the promise will return a `Grapholscape` object that can be used to perform actions on the tool.
-In the example we saw the method `showDiagram(0)`. **For the complete api please check [Grapholscape Class API](../classes/core.Grapholscape.html).**
+In the example we saw the method `showDiagram(0)`. **For the complete api please check [Grapholscape Class API](https://obdasystems.github.io/grapholscape/classes/core.Grapholscape.html).**
 
 Information about **entities**, **namesapaces** and **diagrams** are stored in [Grapholscape.ontology](https://obdasystems.github.io/grapholscape/classes/core.Grapholscape.html). Read More in [Ontology](https://obdasystems.github.io/grapholscape/classes/model.Ontology.html).
 
