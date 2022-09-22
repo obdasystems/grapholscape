@@ -23,8 +23,8 @@ export default class FloatyRendererState extends BaseRenderer {
 
   transformOntology(ontology: Ontology): void {
     ontology.diagrams.forEach(diagram => {
-      const liteTransformer = new FloatyTransformer()
-      diagram.representations.set(this.id, liteTransformer.transform(diagram))
+      const floatyTransformer = new FloatyTransformer()
+      diagram.representations.set(this.id, floatyTransformer.transform(diagram))
     })
   }
 

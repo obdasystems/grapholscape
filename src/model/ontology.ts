@@ -1,4 +1,5 @@
 import { CollectionReturnValue } from 'cytoscape'
+import { GrapholElement } from '../../dist'
 import AnnotatedElement from './annotated-element'
 import Diagram from './diagrams/diagram'
 import DiagramRepresentation from './diagrams/diagram-representation'
@@ -104,6 +105,21 @@ class Ontology extends AnnotatedElement {
 
     console.warn(`Can't find any entity with iri = "${iri}"`)
     return null
+  }
+
+  getEntityFromOccurrence(entityOccurrence: EntityOccurrence) {
+    const diagram = this.getDiagram(entityOccurrence.diagramId)
+    for (let [_, representation] of diagram.representations) {
+      const cyElement = representation.cy.$id(entityOccurrence.elementId)
+      try {
+        if (cyElement?.data().iri) {
+          return this.getEntity(cyElement.data().iri)
+        }
+      } catch (e) { console.log(entityOccurrence)}
+    }
+
+    console.warn(`Can't find occurrence ${entityOccurrence.toString()} in any diagram's representation`)
+    return undefined
   }
 
   getGrapholElement(elementId: string, diagramId?: number, renderState = RendererStatesEnum.GRAPHOL) {

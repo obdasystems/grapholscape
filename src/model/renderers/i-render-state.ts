@@ -8,7 +8,8 @@ import FilterManager from "./i-filter-manager"
 export enum RendererStatesEnum {
   GRAPHOL = 'graphol',
   GRAPHOL_LITE = 'lite',
-  FLOATY = 'floaty'
+  FLOATY = 'floaty',
+  INCREMENTAL = 'incremental',
 }
 
 export default interface RenderState {

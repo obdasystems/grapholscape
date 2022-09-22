@@ -3,9 +3,11 @@ import { GscapeRenderSelector } from "."
 import Grapholscape from '../../core'
 import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
+import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
+import { addClassNeighbourhood } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
-import { bubbles, graphol_icon, lite } from "../assets/icons"
+import { bubbles, graphol_icon, incremental, lite } from "../assets/icons"
 
 export type RendererStateViewModel = {
   name: string,
@@ -35,19 +37,14 @@ rendererStates[RendererStatesEnum.FLOATY] = {
   icon: bubbles,
 }
 
-/**
- * 
- * @param {import('./index').default} rendererSelector 
- * @param {import('../../grapholscape').default} grapholscape 
- */
+rendererStates[RendererStatesEnum.INCREMENTAL] = {
+  name: 'Incremental',
+  id: RendererStatesEnum.INCREMENTAL,
+  icon: incremental,
+}
+
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
-  // Object.keys(grapholscape.renderersManager.renderers).forEach(key => {
-  //   let renderer = grapholscape.renderersManager.renderers[key]
-  //   rendererSelector.dict[key] = rendererModelToViewData(renderer)
-  //   rendererSelector.dict[key].icon = icons[key]
-  // })
-  // rendererSelector.actual_mode = grapholscape.renderer.key
-  // 
+  
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
   rendererSelector.actualRendererStateKey = grapholscape.renderState
 
@@ -64,6 +61,21 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
 
         case RendererStatesEnum.FLOATY:
           grapholscape.setRenderer(new FloatyRendererState())
+          break
+
+        case RendererStatesEnum.INCREMENTAL:
+          const incrementalRendererState = new IncrementalRendererState()
+          grapholscape.setRenderer(incrementalRendererState)
+          //incrementalRendererState.runLayoutInfinitely()
+          const pizzaEntity = grapholscape.ontology.getEntity('http://www.datiopen.istat.it/Ontologie/RSBL#Cittadinanza')
+          const pizzaOccurrence = grapholscape.ontology.getEntityOccurrences('http://www.datiopen.istat.it/Ontologie/RSBL#Cittadinanza').get(RendererStatesEnum.GRAPHOL)[0]
+          const pizzaGrapholElement = grapholscape.ontology.getGrapholElement(pizzaOccurrence.elementId)
+
+          incrementalRendererState.onEntityExpansion((selectedElement) => {
+            addClassNeighbourhood(selectedElement, grapholscape.ontology, incrementalRendererState)
+          })
+          
+          grapholscape.renderer.diagram.addElement(pizzaGrapholElement, pizzaEntity)
           break
       }
     }

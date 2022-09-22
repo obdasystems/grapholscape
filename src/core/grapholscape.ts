@@ -5,13 +5,18 @@ import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import { Renderer, GrapholRendererState, LiteRendererState, FloatyRenderState } from "./rendering"
+import IncrementalRendererState from "./rendering/incremental/incremental-render-state"
+import setGraphEventHandlers from "./set-graph-event-handlers"
 import ThemeManager from "./themeManager"
 
 
 export default class Grapholscape {
   renderer: Renderer = new Renderer()
   private availableRenderers: RendererStatesEnum[] = [
-    RendererStatesEnum.GRAPHOL, RendererStatesEnum.GRAPHOL_LITE, RendererStatesEnum.FLOATY
+    RendererStatesEnum.GRAPHOL,
+    RendererStatesEnum.GRAPHOL_LITE,
+    RendererStatesEnum.FLOATY,
+    RendererStatesEnum.INCREMENTAL
   ]
   container: HTMLElement
   readonly lifecycle: Lifecycle = new Lifecycle()
@@ -51,7 +56,7 @@ export default class Grapholscape {
       return
     }
 
-    this.entityNavigator.setGraphEventHandlers(diagram)
+    setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
     diagram.lastViewportState = viewportState
     this.renderer.render(diagram)
   }
@@ -89,7 +94,7 @@ export default class Grapholscape {
     this.renderer.renderState = newRenderState
 
     if (this.renderer.diagram)
-      this.entityNavigator.setGraphEventHandlers(this.renderer.diagram)
+      setGraphEventHandlers(this.renderer.diagram, this.lifecycle, this.ontology)
 
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
@@ -128,7 +133,7 @@ export default class Grapholscape {
 
   /** Unselect any selected element in the actual diagram */
   unselect() { this.renderer.unselect() }
-  
+
   /** Fit viewport to diagram */
   fit() { this.renderer.fit() }
 
@@ -159,7 +164,7 @@ export default class Grapholscape {
    * @param filter the filter to apply, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
    * or a string representing the unique key of a defined filter
    */
-  filter(filter: string | Filter | DefaultFilterKeyEnum ) { this.renderer.filter(filter) }
+  filter(filter: string | Filter | DefaultFilterKeyEnum) { this.renderer.filter(filter) }
 
   /**
    * Unfilter elements on the diagram.
@@ -170,7 +175,7 @@ export default class Grapholscape {
    * @param filter the filter to disable, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
    * or a string representing the unique key of a defined filter
    */
-  unfilter(filter: string | Filter | DefaultFilterKeyEnum ) { this.renderer.unfilter(filter) }
+  unfilter(filter: string | Filter | DefaultFilterKeyEnum) { this.renderer.unfilter(filter) }
 
   /** The actual diagram's id */
   get diagramId() {
@@ -202,10 +207,10 @@ export default class Grapholscape {
    * @param zoom the level of zoom to apply.
    * If not specified, zoom level won't be changed.
    */
-  centerOnEntity(iri: string, diagramId?: number, zoom?: number) { 
-    this.entityNavigator.centerOnEntity(iri, diagramId, zoom) 
+  centerOnEntity(iri: string, diagramId?: number, zoom?: number) {
+    this.entityNavigator.centerOnEntity(iri, diagramId, zoom)
   }
-  
+
   /**
    * Center viewport on a single entity and selects it given its IRI
    * @param iri the iri of the entity to find and center on
@@ -226,7 +231,7 @@ export default class Grapholscape {
   setEntityNameType(newEntityNametype: EntityNameType) {
     this.displayedNamesManager.setEntityNameType(newEntityNametype)
   }
-  
+
   /**
    * Change the language used for the labels and comments
    * @remarks The language must be supported by the ontology or the first available
@@ -339,6 +344,11 @@ export default class Grapholscape {
 
         case RendererStatesEnum.FLOATY: {
           this.setRenderer(new FloatyRenderState())
+          break
+        }
+
+        case RendererStatesEnum.INCREMENTAL: {
+          this.setRenderer(new IncrementalRendererState())
           break
         }
       }

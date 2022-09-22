@@ -149,7 +149,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // move attribute on restriction node position
       if (propertyNode.is(GrapholTypesEnum.DATA_PROPERTY)) {
-        edgeOnRestriction.type = GrapholTypesEnum.DATA_PROPERTY
+        edgeOnRestriction.type = 'attribute-edge' as GrapholTypesEnum
         propertyNode.x = restrictionNode.position.x
         propertyNode.y = restrictionNode.position.y
         this.result.updateElement(propertyNode)
@@ -285,7 +285,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
      * @param attribute 
      * @param i 
      */
-    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum, i: number) => {
+    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum | string, i: number) => {
       const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
       const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
 
@@ -299,7 +299,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       newAttributeEdge.sourceId = concept.id()
       newAttributeEdge.targetId = newAttribute.id
-      newAttributeEdge.type = edgeType
+      newAttributeEdge.type = edgeType as GrapholTypesEnum
       this.result.addElement(newAttribute)
       this.result.addElement(newAttributeEdge)
       this.newCy.$id(newAttribute.id).addClass('repositioned')
@@ -327,7 +327,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
     allAttributes.forEach((attribute) => {
       allClasses.forEach((concept, j) => {
-        addAttribute(concept, attribute, GrapholTypesEnum.DATA_PROPERTY, j)
+        addAttribute(concept, attribute, 'attribute-edge', j)
       })
       attribute.addClass('repositioned')
       allInclusionAttributes.addClass('repositioned')
