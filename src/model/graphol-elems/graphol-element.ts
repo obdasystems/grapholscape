@@ -78,4 +78,11 @@ export default class GrapholElement {
     }
     return [result]
   }
+
+  clone() {
+    const cloneObj = new GrapholElement(this.id)
+    Object.assign(cloneObj, this)
+
+    return cloneObj
+  }
 }

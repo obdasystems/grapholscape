@@ -5,7 +5,7 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { addClassNeighbourhood } from "../../incremental"
+import { addClassNeighbourhood, addFirstClassInIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { bubbles, graphol_icon, incremental, lite } from "../assets/icons"
 
@@ -44,13 +44,13 @@ rendererStates[RendererStatesEnum.INCREMENTAL] = {
 }
 
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
-  
+
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
   rendererSelector.actualRendererStateKey = grapholscape.renderState
 
   rendererSelector.onRendererStateSelection = (rendererState) => {
     if (rendererState !== grapholscape.renderState) {
-      switch(rendererState) {
+      switch (rendererState) {
         case RendererStatesEnum.GRAPHOL:
           grapholscape.setRenderer(new GrapholRendererState())
           break
@@ -66,16 +66,12 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
         case RendererStatesEnum.INCREMENTAL:
           const incrementalRendererState = new IncrementalRendererState()
           grapholscape.setRenderer(incrementalRendererState)
-          //incrementalRendererState.runLayoutInfinitely()
-          const pizzaEntity = grapholscape.ontology.getEntity('http://www.datiopen.istat.it/Ontologie/RSBL#Cittadinanza')
-          const pizzaOccurrence = grapholscape.ontology.getEntityOccurrences('http://www.datiopen.istat.it/Ontologie/RSBL#Cittadinanza').get(RendererStatesEnum.GRAPHOL)[0]
-          const pizzaGrapholElement = grapholscape.ontology.getGrapholElement(pizzaOccurrence.elementId)
 
           incrementalRendererState.onEntityExpansion((selectedElement) => {
             addClassNeighbourhood(selectedElement, grapholscape.ontology, incrementalRendererState)
           })
-          
-          grapholscape.renderer.diagram.addElement(pizzaGrapholElement, pizzaEntity)
+
+          addFirstClassInIncremental('http://www.datiopen.istat.it/Ontologie/RSBL#Cittadinanza', grapholscape, incrementalRendererState)
           break
       }
     }
