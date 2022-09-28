@@ -9,7 +9,7 @@ export default class FloatyRendererState extends BaseRenderer {
   layout: cytoscape.Layouts;
   readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
-  private _layout: cytoscape.Layouts
+  protected _layout: cytoscape.Layouts
 
   set renderer(newRenderer: Renderer) {
     super.renderer = newRenderer
@@ -193,7 +193,7 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  private floatyLayoutOptions = {
+  protected floatyLayoutOptions = {
     name: 'cola',
     avoidOverlap: false,
     edgeLength: function (edge) {

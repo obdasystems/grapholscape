@@ -1,9 +1,10 @@
-import { Collection, Layouts, SingularElementReturnValue } from "cytoscape"
+import { Collection, CollectionReturnValue, Layouts, SingularElementReturnValue, Stylesheet } from "cytoscape"
 import { FloatyRenderState } from ".."
 import { floatyOptions } from "../../../config"
-import { Diagram, DiagramRepresentation, GrapholElement, GrapholEntity, iFilterManager, Iri, Ontology, RendererStatesEnum } from "../../../model"
+import { Diagram, DiagramRepresentation, GrapholElement, GrapholEntity, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Iri, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyTransformer from "../floaty/floaty-transformer"
+import incrementalStyle from "./incremental-style"
 
 /**
  * The incremental renderer state is a kind of floaty renderer state in which
@@ -21,14 +22,15 @@ export default class IncrementalRendererState extends FloatyRenderState {
 
   private previousDiagram: Diagram
   private incrementalDiagram: Diagram = new IncrementalDiagram()
-  activeClassIri: Iri
+  protected actualElements?: CollectionReturnValue
+  protected activeClass?: SingularElementReturnValue
 
   private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
 
   constructor() {
     super()
 
-    this.diagramRepresentation.cy.on('dblclick', 'node, edge', (evt) => this.entityExpansionCallback(evt.target))
+    this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
   }
 
   render() {
@@ -62,4 +64,17 @@ export default class IncrementalRendererState extends FloatyRenderState {
   onEntityExpansion(callback: (selectedElement: SingularElementReturnValue) => void) {
     this.entityExpansionCallback = callback
   }
+
+  handleClassExpansion(classElement: SingularElementReturnValue) {
+    this.actualElements = this.renderer.cy.elements()
+    this.activeClass = classElement
+    this.entityExpansionCallback(classElement)
+    this.runLayout()
+  }
+
+
+  getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
+    return incrementalStyle(theme)
+  }
+
 }

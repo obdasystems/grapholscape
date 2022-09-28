@@ -67,6 +67,11 @@ export function addClassNeighbourhood(selectedElement: SingularElementReturnValu
     }
   }
 
+  selectedElement.addClass('incremental-expanded-class')
+  const expandedClasses = rendererState.diagramRepresentation.cy.$('.incremental-expanded-class')
+  const elementsToHide = rendererState.diagramRepresentation.
+    cy.elements().difference(expandedClasses.union(expandedClasses.edgesTo(expandedClasses)))
+  elementsToHide.forEach(element => rendererState.diagramRepresentation.removeElement(element.id()))
   const grapholElement = rendererState.diagramRepresentation.grapholElements.get(selectedElement.id())
 
   if (grapholElement.isEntity() && grapholElement.is(GrapholTypesEnum.CLASS)) {
@@ -80,8 +85,6 @@ export function addClassNeighbourhood(selectedElement: SingularElementReturnValu
     }
 
     occurrences.forEach((occurrence: EntityOccurrence) => processOccurrenceNeighbourhoods(occurrence))
-
-    rendererState.runLayout()
   }
 }
 
@@ -124,4 +127,5 @@ export function addFirstClassInIncremental(iri: string, grapholscape: Grapholsca
   grapholElement.id = `${grapholElement.id}-${entityOccurrence.diagramId}`
   incrementalRendererState.diagramRepresentation.addElement(grapholElement, grapholEntity)
   addClassNeighbourhood(incrementalRendererState.diagramRepresentation.cy.$id(grapholElement.id), grapholscape.ontology, incrementalRendererState)
+  incrementalRendererState.runLayout()
 }
