@@ -5,9 +5,11 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { addClassNeighbourhood, addFirstClassInIncremental } from "../../incremental"
+import { initIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { bubbles, graphol_icon, incremental, lite } from "../assets/icons"
+import { IBaseMixin } from "../common/base-widget-mixin"
+import { WidgetEnum } from "../util/widget-enum"
 
 export type RendererStateViewModel = {
   name: string,
@@ -62,17 +64,21 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
         case RendererStatesEnum.FLOATY:
           grapholscape.setRenderer(new FloatyRendererState())
           break
+      }
 
-        case RendererStatesEnum.INCREMENTAL:
-          const incrementalRendererState = new IncrementalRendererState()
-          grapholscape.setRenderer(incrementalRendererState)
+      if (rendererState === RendererStatesEnum.INCREMENTAL) {
+        const incrementalRendererState = new IncrementalRendererState()
+        grapholscape.setRenderer(incrementalRendererState)
+        initIncremental(incrementalRendererState, grapholscape);
+        (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).hide();
 
-          incrementalRendererState.onEntityExpansion((selectedElement) => {
-            addClassNeighbourhood(selectedElement, grapholscape.ontology, incrementalRendererState)
-          })
+        if (grapholscape.renderer.grapholElements?.size === 0) {
+          (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).show()
+        }
+      } else {
+        (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).show();
+        (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).hide()
 
-          addFirstClassInIncremental('http://www.datiopen.istat.it/Ontologie/RSBL#Cittadinanza', grapholscape, incrementalRendererState)
-          break
       }
     }
   }

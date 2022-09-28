@@ -6,6 +6,8 @@ export const BOTTOM_RIGHT_WIDGET = css`bottom-right-widget`
 export default css`
 *, :host {
   line-height: initial;
+  scrollbar-width: thin;
+  pointer-events: auto;
 }
 
 :host(.${BOTTOM_RIGHT_WIDGET}) {
@@ -29,7 +31,6 @@ export default css`
   max-width: 350px;
   max-height: 350px;
   overflow: scroll;
-  scrollbar-width: thin;
   padding: 8px;
   position: relative;
   z-index: 1;

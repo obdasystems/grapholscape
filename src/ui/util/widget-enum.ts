@@ -4,6 +4,7 @@
 export enum WidgetEnum {
   DIAGRAM_SELECTOR = 'diagram-selector',
   ENTITY_DETAILS = 'details',
+  ENTITY_SELECTOR = 'entity-selector',
   FILTERS = 'filters',
   FIT_BUTTON = 'fit-button',
   FULLSCREEN_BUTTON = 'fullscreen-button',

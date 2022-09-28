@@ -4,6 +4,7 @@ import { IBaseMixin } from "./common/base-widget-mixin";
 import { hasDropPanel } from "./common/drop-panel-mixin";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails from "./entity-details";
+import initEntitySelector from "./entity-selector";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import initFullscreenButton from "./fullscreen";
@@ -22,6 +23,12 @@ import initZoomTools from "./zoom-tools";
 export default function (grapholscape: Grapholscape) {
   const guiContainer = document.createElement('div')
   guiContainer.classList.add('gscape-ui')
+  guiContainer.style.height = '100%'
+  guiContainer.style.width = '100%'
+  guiContainer.style.position = 'absolute'
+  guiContainer.style.top = '0'
+  guiContainer.style.pointerEvents = 'none'
+
   grapholscape.container.appendChild(guiContainer)
 
   const buttonsTray = bottomRightContainer()
@@ -39,6 +46,7 @@ export default function (grapholscape: Grapholscape) {
   initOntologyExplorer(grapholscape)
   initOwlVisualizer(grapholscape)
   initSettings(grapholscape)
+  initEntitySelector(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
 
@@ -52,6 +60,7 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.DIAGRAM_SELECTOR:
       case WidgetEnum.ENTITY_DETAILS:
       case WidgetEnum.OWL_VISUALIZER:
+      case WidgetEnum.ENTITY_SELECTOR:
         guiContainer.appendChild(widget)
         break
 
@@ -62,8 +71,10 @@ export default function (grapholscape: Grapholscape) {
     if (hasDropPanel(widget)) {
       widget.onTogglePanel = () => {
         const entityDetailsComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS)
-        if (entityDetailsComponent) {
-          blurAll([widget, entityDetailsComponent])
+        const entitySelectorComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)
+        const owlVisualizerComponent = grapholscape.widgets.get(WidgetEnum.OWL_VISUALIZER)
+        if (entityDetailsComponent && entitySelectorComponent && owlVisualizerComponent) {
+          blurAll([widget, entityDetailsComponent, entitySelectorComponent, owlVisualizerComponent])
         } else {
           blurAll([widget])
         }
@@ -100,7 +111,9 @@ export default function (grapholscape: Grapholscape) {
 
   function blurAll(widgetsToSkip: HTMLElement[] = []) {
     grapholscape.widgets.forEach((widget, key) => {
-      if ((key === WidgetEnum.ENTITY_DETAILS || key === WidgetEnum.OWL_VISUALIZER) && !widgetsToSkip.includes(widget)) {
+      if (
+        (key === WidgetEnum.ENTITY_DETAILS || key === WidgetEnum.OWL_VISUALIZER || key === WidgetEnum.ENTITY_SELECTOR)
+        && !widgetsToSkip.includes(widget)) {
         (widget as unknown as IBaseMixin).hide()
       } else if (!widgetsToSkip.includes(widget)) {
         widget.blur()

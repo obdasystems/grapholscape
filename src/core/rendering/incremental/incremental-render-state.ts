@@ -1,7 +1,6 @@
-import { Collection, CollectionReturnValue, Layouts, SingularElementReturnValue, Stylesheet } from "cytoscape"
-import { FloatyRenderState } from ".."
-import { floatyOptions } from "../../../config"
-import { Diagram, DiagramRepresentation, GrapholElement, GrapholEntity, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Iri, Ontology, RendererStatesEnum } from "../../../model"
+import { CollectionReturnValue, Layouts, SingularElementReturnValue, Stylesheet } from "cytoscape"
+import { FloatyRenderState, Renderer } from ".."
+import { Diagram, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyTransformer from "../floaty/floaty-transformer"
 import incrementalStyle from "./incremental-style"
@@ -21,25 +20,14 @@ export default class IncrementalRendererState extends FloatyRenderState {
   layout: Layouts
 
   private previousDiagram: Diagram
-  private incrementalDiagram: Diagram = new IncrementalDiagram()
   protected actualElements?: CollectionReturnValue
   protected activeClass?: SingularElementReturnValue
 
   private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
 
-  constructor() {
-    super()
-
-    this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
-  }
-
   render() {
-    if (this.renderer.diagram.id !== -1) {
-      this.previousDiagram = this.renderer.diagram
-      this.renderer.diagram = this.incrementalDiagram
-      this.renderer.cy = this.diagramRepresentation.cy
-      this.renderer.mount()
-    }
+    this.overrideDiagram()
+    this.renderer.mount()
   }
 
   stopRendering(): void {
@@ -57,24 +45,60 @@ export default class IncrementalRendererState extends FloatyRenderState {
     }
   }
 
-  get diagramRepresentation() {
-    return this.incrementalDiagram.representations.get(this.id)
-  }
-
   onEntityExpansion(callback: (selectedElement: SingularElementReturnValue) => void) {
     this.entityExpansionCallback = callback
   }
 
   handleClassExpansion(classElement: SingularElementReturnValue) {
     this.actualElements = this.renderer.cy.elements()
-    this.activeClass = classElement
-    this.entityExpansionCallback(classElement)
-    this.runLayout()
+
+    if (!this.activeClass || this.activeClass.data().iri !== classElement.data().iri) {
+      this.activeClass = classElement
+      this.entityExpansionCallback(classElement)
+      this.runLayout()
+    }
   }
 
 
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
     return incrementalStyle(theme)
+  }
+
+  private overrideDiagram() {
+    if (this.renderer.diagram?.id !== this.incrementalDiagram.id) {
+      this.previousDiagram = this.renderer.diagram
+    }
+
+    this.renderer.stopRendering()
+    
+    this.renderer.diagram = this.incrementalDiagram
+    this.renderer.cy = this.diagramRepresentation.cy
+  }
+
+  createNewDiagram() {
+    this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
+    this.overrideDiagram()
+    this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
+  }
+
+  get diagramRepresentation() {
+    return this.incrementalDiagram.representations.get(this.id)
+  }
+
+  get incrementalDiagram(): IncrementalDiagram { return this.renderer.renderStateData[this.id].diagram }
+
+  set renderer(newRenderer: Renderer) {
+    super.renderer = newRenderer
+    if (!newRenderer.renderStateData[this.id]) {
+      newRenderer.renderStateData[this.id] = {}
+    }
+
+    if (!newRenderer.renderStateData[this.id].diagram)
+      this.createNewDiagram()
+  }
+
+  get renderer(): Renderer {
+    return super.renderer
   }
 
 }

@@ -1,5 +1,6 @@
 import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
+import { initIncremental } from "../incremental"
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -56,7 +57,8 @@ export default class Grapholscape {
       return
     }
 
-    setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
+    if (!diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
+      setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
     diagram.lastViewportState = viewportState
     this.renderer.render(diagram)
   }
@@ -93,7 +95,7 @@ export default class Grapholscape {
 
     this.renderer.renderState = newRenderState
 
-    if (this.renderer.diagram)
+    if (this.renderer.diagram && !this.renderer.diagram?.representations.get(this.renderState)?.hasEverBeenRendered)
       setGraphEventHandlers(this.renderer.diagram, this.lifecycle, this.ontology)
 
     if (shouldUpdateEntities)
@@ -348,7 +350,9 @@ export default class Grapholscape {
         }
 
         case RendererStatesEnum.INCREMENTAL: {
-          this.setRenderer(new IncrementalRendererState())
+          const incrementalRendererState = new IncrementalRendererState()
+          initIncremental(incrementalRendererState, this)
+          this.setRenderer(incrementalRendererState)
           break
         }
       }

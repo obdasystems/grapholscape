@@ -20,10 +20,10 @@ export default class GscapeActionListItem extends LitElement {
 
   render() {
     return html`
-      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null}" @click=${this.clickHandler}>
+      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null} ellipsed" @click=${this.clickHandler}>
         <div class="list-item actionable" @click=${this.clickHandler}>
           <slot name="icon" class="slotted-icon" ></slot>
-          <span class="list-item-label">${this.label}</span>
+          <span class="list-item-label" title=${this.label}>${this.label}</span>
           <slot name="trailing-icon" class="slotted-icon" ></slot>
 
           ${this.expanded
