@@ -1,4 +1,4 @@
-import { SingularElementReturnValue } from "cytoscape";
+import { NodeSingular, SingularElementReturnValue } from "cytoscape";
 import { Grapholscape } from "../core";
 import IncrementalRendererState from "../core/rendering/incremental/incremental-render-state";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
@@ -8,8 +8,7 @@ import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, Gr
  * Given a selected class compute the neighbourhood across all diagrams
  * and merge it all in the single incremental diagram
  * @param selectedElement 
- * @param ontology 
- * @param rendererState 
+ * @param grapholscape
  */
 export function addClassNeighbourhood(selectedElement: SingularElementReturnValue, grapholscape: Grapholscape) {
   /**
@@ -77,9 +76,22 @@ export function addClassNeighbourhood(selectedElement: SingularElementReturnValu
 
   selectedElement.addClass('incremental-expanded-class')
   const expandedClasses = incrementalDiagramRepresentation.cy.$('.incremental-expanded-class')
-  const elementsToHide = incrementalDiagramRepresentation.
+  let elementsToRemove = incrementalDiagramRepresentation.
     cy.elements().difference(expandedClasses.union(expandedClasses.edgesTo(expandedClasses)))
-  elementsToHide.forEach(element => {
+
+  /**
+   * Union nodes with the superclass of the union, must not be removed if
+   * there is a path between two expanded classes through a union.
+   */ 
+  incrementalDiagramRepresentation.cy.nodes('[!iri]').forEach(unionNode => {
+    if (unionNode.edgesWith(expandedClasses).size() >= 2) {
+      elementsToRemove = elementsToRemove
+        .difference(unionNode.union(unionNode.edgesWith(expandedClasses)))
+        .difference(getUnionSuperClass(unionNode))
+    }
+  })
+
+  elementsToRemove.forEach(element => {
     (grapholscape.renderer.renderState as IncrementalRendererState).unpinNode(element)
     incrementalDiagramRepresentation.removeElement(element.id())
   })
@@ -150,4 +162,10 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
   })
 
   setGraphEventHandlers(incrementalRendererState.incrementalDiagram, grapholscape.lifecycle, grapholscape.ontology)
+}
+
+function getUnionSuperClass(unionNode: NodeSingular) {
+  const unionEdge = unionNode.connectedEdges(`[type = "${GrapholTypesEnum.UNION}"],[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`).first()
+
+  return unionEdge.union(unionEdge.target())
 }
