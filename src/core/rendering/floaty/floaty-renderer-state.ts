@@ -1,3 +1,4 @@
+import { Layouts } from "cytoscape";
 import { Renderer } from "..";
 import { Ontology, BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RendererStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
@@ -6,7 +7,6 @@ import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
 
 export default class FloatyRendererState extends BaseRenderer {
-  layout: cytoscape.Layouts;
   readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
   protected _layout: cytoscape.Layouts
@@ -239,5 +239,9 @@ export default class FloatyRendererState extends BaseRenderer {
 
   protected get popperContainers(): Map<number, HTMLDivElement> {
     return this.renderer.renderStateData[this.id].popperContainers
+  }
+
+  get layout() {
+    return this._layout
   }
 }

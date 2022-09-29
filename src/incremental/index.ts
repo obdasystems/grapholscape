@@ -132,7 +132,6 @@ function recomputeSourceTargetEntitiesIds(
 
 export function addFirstClassInIncremental(iri: string, grapholscape: Grapholscape, incrementalDiagramRepresentation: DiagramRepresentation) {
   const grapholEntity = grapholscape.ontology.getEntity(iri)
-  console.log(grapholEntity)
   const entityOccurrence = grapholscape.ontology.getEntityOccurrences(iri).get(RendererStatesEnum.GRAPHOL)[0]
   const floatyDiagramRepresentation = grapholscape.ontology.getDiagram(entityOccurrence.diagramId).representations.get(RendererStatesEnum.FLOATY)
   const grapholElement = floatyDiagramRepresentation.grapholElements.get(entityOccurrence.elementId).clone()
@@ -141,7 +140,7 @@ export function addFirstClassInIncremental(iri: string, grapholscape: Grapholsca
   (grapholscape.renderer.renderState as IncrementalRendererState).pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id))
   addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape)
   grapholscape.renderer.renderState.runLayout()
-  grapholscape.renderer.fit()
+  grapholscape.renderer.renderState.layout.on('layoutstop', () => grapholscape.fit())
 }
 
 export function initIncremental(incrementalRendererState: IncrementalRendererState, grapholscape: Grapholscape) {

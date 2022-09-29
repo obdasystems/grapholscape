@@ -17,13 +17,18 @@ import incrementalStyle from "./incremental-style"
 export default class IncrementalRendererState extends FloatyRenderState {
   readonly id = RendererStatesEnum.INCREMENTAL
   filterManager: iFilterManager
-  layout: Layouts
 
   private previousDiagram: Diagram
   protected actualElements?: CollectionReturnValue
   protected activeClass?: SingularElementReturnValue
 
   private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
+
+  constructor() {
+    super()
+
+    this.floatyLayoutOptions.fit = false
+  }
 
   render() {
     this.overrideDiagram()
@@ -75,7 +80,7 @@ export default class IncrementalRendererState extends FloatyRenderState {
     }
 
     this.renderer.stopRendering()
-    
+
     this.renderer.diagram = this.incrementalDiagram
     this.renderer.cy = this.diagramRepresentation.cy
   }
