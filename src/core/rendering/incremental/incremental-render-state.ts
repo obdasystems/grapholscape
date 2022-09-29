@@ -23,12 +23,6 @@ export default class IncrementalRendererState extends FloatyRenderState {
 
   private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
 
-  constructor() {
-    super()
-
-    this.floatyLayoutOptions.fit = false
-  }
-
   render() {
     this.overrideDiagram()
 
@@ -61,6 +55,7 @@ export default class IncrementalRendererState extends FloatyRenderState {
       this.activeClass = classElement
       this.pinNode(classElement)
       this.entityExpansionCallback(classElement)
+      this.floatyLayoutOptions.fit = false
       this.runLayout()
     }
   }

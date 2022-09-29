@@ -50,6 +50,7 @@ export default class FloatyRendererState extends BaseRenderer {
     this.renderer.mount()
 
     if (!floatyRepresentation.hasEverBeenRendered) {
+      this.floatyLayoutOptions.fit = true
       this.runLayout()
       if (this.isLayoutInfinite) {
         setTimeout(() => this.renderer.fit(), 1000)
@@ -64,6 +65,11 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!this.dragAndPin)
       this.unpinAll()
 
+    if (this.isLayoutInfinite) {
+      this.floatyLayoutOptions.fit = false
+      this.runLayout()
+    }
+
     floatyRepresentation.hasEverBeenRendered = true
   }
 
@@ -76,8 +82,6 @@ export default class FloatyRendererState extends BaseRenderer {
   stopLayout(): void {
     this._layout?.stop()
     this.floatyLayoutOptions.infinite = false
-    this.floatyLayoutOptions.fit = true
-    console.log('stop')
   }
 
   runLayoutInfinitely() {

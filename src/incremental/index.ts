@@ -152,7 +152,6 @@ export function addFirstClassInIncremental(iri: string, grapholscape: Grapholsca
   (grapholscape.renderer.renderState as IncrementalRendererState).pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id))
   addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape)
   grapholscape.renderer.renderState.runLayout()
-  grapholscape.renderer.renderState.layout.on('layoutstop', () => grapholscape.fit())
 }
 
 export function initIncremental(incrementalRendererState: IncrementalRendererState, grapholscape: Grapholscape) {
