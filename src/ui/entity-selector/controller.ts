@@ -1,6 +1,7 @@
 import { Grapholscape } from "../../core";
 import { addFirstClassInIncremental } from "../../incremental";
 import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../model";
+import { createEntitiesList, search } from "../util/search-entities";
 import GscapeEntitySelector from "./entity-selector";
 
 export default function init(entitySelectorComponent: GscapeEntitySelector, grapholscape: Grapholscape) {
@@ -9,11 +10,14 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
   entitySelectorComponent.searchEntityComponent["individual"] = false
 
   // Set class entity list
-  entitySelectorComponent.entityList = Array
-    .from(grapholscape.ontology.entities)
-    .filter(elem => elem[1].type === GrapholTypesEnum.CLASS)
-    .sort((a, b) => a[1].iri.remainder.localeCompare(b[1].iri.remainder))
-    .map(elem => elem[1].iri.prefixed)
+  // const entities = Array
+  //   .from(grapholscape.ontology.entities)
+  //   .filter(elem => elem[1].type === GrapholTypesEnum.CLASS)
+  //   .sort((a, b) => a[1].iri.remainder.localeCompare(b[1].iri.remainder))
+  //   .map(elem => elem[1].iri.prefixed)
+  const entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent)
+
+  entitySelectorComponent.entityList = entities
 
   if (grapholscape.renderState !== RendererStatesEnum.INCREMENTAL) {
     entitySelectorComponent.hide()
@@ -33,5 +37,23 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
     )
 
     entitySelectorComponent.hide()
+  })
+
+  entitySelectorComponent.searchEntityComponent.onSearch(e => {
+    const inputElement = e.target as HTMLInputElement
+
+    // on ESC key press
+    if (e.key === 'Escape') {
+      inputElement.blur()
+      inputElement.value = null
+      entitySelectorComponent.entityList = entities
+      return
+    }
+
+    if (inputElement.value?.length > 2) {
+      entitySelectorComponent.entityList = search(inputElement.value, entities)
+    } else {
+      entitySelectorComponent.entityList = entities
+    }
   })
 }

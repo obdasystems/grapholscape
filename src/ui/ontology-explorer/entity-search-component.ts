@@ -3,13 +3,7 @@ import { GrapholTypesEnum } from "../../model";
 import { classIcon, dataPropertyIcon, filter, filterOff, individualIcon, objectPropertyIcon } from "../assets";
 import baseStyle from "../style";
 import getIconSlot from "../util/get-icon-slot";
-
-export interface IEntityFilters {
-  [GrapholTypesEnum.CLASS]: Boolean
-  [GrapholTypesEnum.DATA_PROPERTY]: Boolean
-  [GrapholTypesEnum.OBJECT_PROPERTY]: Boolean
-  [GrapholTypesEnum.INDIVIDUAL]: Boolean
-}
+import { IEntityFilters } from "../util/search-entities";
 
 export default class GscapeEntitySearch extends LitElement implements IEntityFilters {
   [GrapholTypesEnum.CLASS]: Boolean = true;

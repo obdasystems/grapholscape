@@ -1,19 +1,13 @@
 import { css, html, LitElement } from 'lit'
-import { GrapholEntity } from '../../model'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
+import { EntityViewData } from '../util/search-entities'
 import { entityIcons, explore, searchOff } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
-import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
+import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
 import entityListItemStyle from './entity-list-item-style'
 import GscapeEntitySearch from './entity-search-component'
-
-
-export type EntityViewData = {
-  value: GrapholEntity,
-  viewOccurrences:  Map<DiagramViewData, OccurrenceIdViewData[]>
-}
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'

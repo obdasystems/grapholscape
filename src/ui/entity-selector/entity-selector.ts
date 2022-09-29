@@ -4,10 +4,11 @@ import { GscapeButtonStyle } from '../common/button'
 import { GscapeActionListItem } from '../common/list-item'
 import GscapeEntitySearch from '../ontology-explorer/entity-search-component'
 import baseStyle from '../style'
+import { EntityViewData } from '../util/search-entities'
 
 export default class GscapeEntitySelector extends BaseMixin(LitElement) {
   title = 'Class Selector'
-  entityList: string[] = []
+  entityList: EntityViewData[] = []
   searchEntityComponent = new GscapeEntitySearch()
   private onClassSelectionCallback: (iri: string) => void
 
@@ -70,7 +71,7 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
               return html`
                 <gscape-action-list-item
                   type="subtle"
-                  label=${entityItem}
+                  label=${entityItem.value.iri.prefixed}
                   @click=${this.handleEntitySelection}
                 ></gscape-action-list-item>
               `
