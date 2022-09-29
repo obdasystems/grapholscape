@@ -81,6 +81,7 @@ export default class IncrementalRendererState extends FloatyRenderState {
     this.unpinAll()
     this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
     this.activeClass = null
+    this.floatyLayoutOptions.fit = true
     this.overrideDiagram()
     this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
     this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
