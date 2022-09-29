@@ -87,7 +87,7 @@ export default class FloatyRendererState extends BaseRenderer {
   }
 
   pinNode(node) {
-    if (!node || !this.renderer.cy) return
+    if (!node || !this.renderer.cy || node?.data().pinned) return
     node.lock()
     node.data("pinned", true)
 
