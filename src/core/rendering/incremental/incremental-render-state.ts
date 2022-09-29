@@ -19,7 +19,6 @@ export default class IncrementalRendererState extends FloatyRenderState {
   filterManager: iFilterManager
 
   private previousDiagram: Diagram
-  protected actualElements?: CollectionReturnValue
   protected activeClass?: SingularElementReturnValue
 
   private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
@@ -58,8 +57,6 @@ export default class IncrementalRendererState extends FloatyRenderState {
   }
 
   handleClassExpansion(classElement: SingularElementReturnValue) {
-    this.actualElements = this.renderer.cy.elements()
-
     if (!this.activeClass || this.activeClass.data().iri !== classElement.data().iri) {
       this.activeClass = classElement
       this.pinNode(classElement)
@@ -88,6 +85,7 @@ export default class IncrementalRendererState extends FloatyRenderState {
   createNewDiagram() {
     this.unpinAll()
     this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
+    this.activeClass = null
     this.overrideDiagram()
     this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
     this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
