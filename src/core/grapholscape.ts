@@ -93,10 +93,10 @@ export default class Grapholscape {
       newRenderState.transformOntology(this.ontology)
     }
 
-    this.renderer.renderState = newRenderState
-
-    if (this.renderer.diagram && !this.renderer.diagram?.representations.get(this.renderState)?.hasEverBeenRendered)
+    if (this.renderer.diagram && !this.renderer.diagram?.representations.get(newRenderState.id)?.hasEverBeenRendered)
       setGraphEventHandlers(this.renderer.diagram, this.lifecycle, this.ontology)
+
+    this.renderer.renderState = newRenderState
 
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()

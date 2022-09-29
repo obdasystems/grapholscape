@@ -124,6 +124,7 @@ export default class FloatyRendererState extends BaseRenderer {
   private setPopperStyle(dim, popper) {
     let icon = popper.querySelector('.popper-icon > svg')
     icon.style.display = 'inherit'
+    icon.style.color = 'var(--gscape-color-fg-on-emphasis)'
     if (dim > 2) {
       popper.style.width = dim + 'px'
       popper.style.height = dim + 'px'
@@ -166,7 +167,7 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  private setDragAndPinEventHandlers() {
+  protected setDragAndPinEventHandlers() {
     this.renderer.cy?.on('grab', this.grabHandler)
 
     this.renderer.cy?.on('free', this.freeHandler)
@@ -231,12 +232,12 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!isActive) this.unpinAll()
   }
 
-  private get popperContainer() {
+  protected get popperContainer() {
     if (this.renderer.diagram)
       return this.popperContainers.get(this.renderer.diagram.id)
   }
 
-  private get popperContainers(): Map<number, HTMLDivElement> {
+  protected get popperContainers(): Map<number, HTMLDivElement> {
     return this.renderer.renderStateData[this.id].popperContainers
   }
 }

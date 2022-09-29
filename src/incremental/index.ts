@@ -2,7 +2,7 @@ import { SingularElementReturnValue } from "cytoscape";
 import { Grapholscape } from "../core";
 import IncrementalRendererState from "../core/rendering/incremental/incremental-render-state";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, isGrapholEdge, isGrapholNode, Ontology, RendererStatesEnum } from "../model";
+import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, GrapholTypesEnum, isGrapholEdge, isGrapholNode, RendererStatesEnum } from "../model";
 
 /**
  * Given a selected class compute the neighbourhood across all diagrams
@@ -11,13 +11,13 @@ import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, Gr
  * @param ontology 
  * @param rendererState 
  */
-export function addClassNeighbourhood(selectedElement: SingularElementReturnValue, ontology: Ontology, incrementalDiagramRepresentation: DiagramRepresentation) {
+export function addClassNeighbourhood(selectedElement: SingularElementReturnValue, grapholscape: Grapholscape) {
   /**
    * Add neighbourhood of an entity occurrence to the incremental diagram
    * @param occurrence 
    */
   const processOccurrenceNeighbourhoods = (occurrence: EntityOccurrence) => {
-    const floatyRepr = ontology.getDiagram(occurrence.diagramId).representations.get(RendererStatesEnum.FLOATY)
+    const floatyRepr = grapholscape.ontology.getDiagram(occurrence.diagramId).representations.get(RendererStatesEnum.FLOATY)
     const cyElement = floatyRepr.cy.$id(occurrence.elementId)
 
     /**
@@ -49,7 +49,7 @@ export function addClassNeighbourhood(selectedElement: SingularElementReturnValu
         return
       }
 
-      neighbourGrapholEntity = ontology.getEntity(element.data().iri)
+      neighbourGrapholEntity = grapholscape.ontology.getEntity(element.data().iri)
     }
     /**
      * If it's an edge, must set source and target id to match occurrences in incremental diagram
@@ -68,15 +68,25 @@ export function addClassNeighbourhood(selectedElement: SingularElementReturnValu
     }
   }
 
+  const incrementalDiagramRepresentation = grapholscape
+    .renderer
+    .diagram
+    .representations.get(RendererStatesEnum.INCREMENTAL)
+
+  if (!incrementalDiagramRepresentation) return
+
   selectedElement.addClass('incremental-expanded-class')
   const expandedClasses = incrementalDiagramRepresentation.cy.$('.incremental-expanded-class')
   const elementsToHide = incrementalDiagramRepresentation.
     cy.elements().difference(expandedClasses.union(expandedClasses.edgesTo(expandedClasses)))
-  elementsToHide.forEach(element => incrementalDiagramRepresentation.removeElement(element.id()))
+  elementsToHide.forEach(element => {
+    (grapholscape.renderer.renderState as IncrementalRendererState).unpinNode(element)
+    incrementalDiagramRepresentation.removeElement(element.id())
+  })
   const grapholElement = incrementalDiagramRepresentation.grapholElements.get(selectedElement.id())
 
   if (grapholElement.isEntity() && grapholElement.is(GrapholTypesEnum.CLASS)) {
-    const grapholEntity = ontology.getEntity(selectedElement.data().iri)
+    const grapholEntity = grapholscape.ontology.getEntity(selectedElement.data().iri)
 
     // Get all occurrences for the selected entity + replicated occurrences in floaty
     const occurrences = JSON.parse(JSON.stringify(grapholEntity.occurrences.get(RendererStatesEnum.GRAPHOL)))
@@ -127,22 +137,18 @@ export function addFirstClassInIncremental(iri: string, grapholscape: Grapholsca
   const floatyDiagramRepresentation = grapholscape.ontology.getDiagram(entityOccurrence.diagramId).representations.get(RendererStatesEnum.FLOATY)
   const grapholElement = floatyDiagramRepresentation.grapholElements.get(entityOccurrence.elementId).clone()
   grapholElement.id = `${grapholElement.id}-${entityOccurrence.diagramId}`
-  incrementalDiagramRepresentation.addElement(grapholElement, grapholEntity)
-  addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape.ontology, incrementalDiagramRepresentation)
+  incrementalDiagramRepresentation.addElement(grapholElement, grapholEntity);
+  (grapholscape.renderer.renderState as IncrementalRendererState).pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id))
+  addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape)
   grapholscape.renderer.renderState.runLayout()
   grapholscape.renderer.fit()
 }
 
 export function initIncremental(incrementalRendererState: IncrementalRendererState, grapholscape: Grapholscape) {
   incrementalRendererState.onEntityExpansion((selectedElement) => {
-    addClassNeighbourhood(
-      selectedElement,
-      grapholscape.ontology,
-      incrementalRendererState.diagramRepresentation
-    )
-
+    addClassNeighbourhood(selectedElement, grapholscape)
     incrementalRendererState.runLayout()
   })
 
-  // setGraphEventHandlers(incrementalRendererState.incrementalDiagram, grapholscape.lifecycle, grapholscape.ontology)
+  setGraphEventHandlers(incrementalRendererState.incrementalDiagram, grapholscape.lifecycle, grapholscape.ontology)
 }

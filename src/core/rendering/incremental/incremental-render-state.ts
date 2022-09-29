@@ -28,6 +28,10 @@ export default class IncrementalRendererState extends FloatyRenderState {
   render() {
     this.overrideDiagram()
     this.renderer.mount()
+
+    if (this.popperContainer) {
+      this.renderer.cy.container()?.appendChild(this.popperContainer)
+    }
   }
 
   stopRendering(): void {
@@ -54,6 +58,7 @@ export default class IncrementalRendererState extends FloatyRenderState {
 
     if (!this.activeClass || this.activeClass.data().iri !== classElement.data().iri) {
       this.activeClass = classElement
+      this.pinNode(classElement)
       this.entityExpansionCallback(classElement)
       this.runLayout()
     }
@@ -76,9 +81,12 @@ export default class IncrementalRendererState extends FloatyRenderState {
   }
 
   createNewDiagram() {
+    this.unpinAll()
     this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
     this.overrideDiagram()
     this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
+    this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
+    this.setDragAndPinEventHandlers()
   }
 
   get diagramRepresentation() {
