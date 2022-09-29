@@ -40,7 +40,8 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
 
   render() {
     return html`
-    ${this.actualRendererStateKey === RendererStatesEnum.FLOATY
+    ${this.actualRendererStateKey === RendererStatesEnum.FLOATY || 
+      this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL
       ? html`
           ${this.layoutSettingsComponent}
           <div class="hr"></div>
