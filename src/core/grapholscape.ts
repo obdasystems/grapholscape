@@ -351,8 +351,8 @@ export default class Grapholscape {
 
         case RendererStatesEnum.INCREMENTAL: {
           const incrementalRendererState = new IncrementalRendererState()
-          initIncremental(incrementalRendererState, this)
           this.setRenderer(incrementalRendererState)
+          initIncremental(incrementalRendererState, this)
           break
         }
       }
