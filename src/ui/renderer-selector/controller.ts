@@ -5,6 +5,7 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
+import setGraphEventHandlers from "../../core/set-graph-event-handlers"
 import { initIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { bubbles, graphol_icon, incremental, lite } from "../assets/icons"
@@ -80,6 +81,14 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
         (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).hide()
 
       }
+    }
+  }
+
+  rendererSelector.onIncrementalRefresh = () => {
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      (grapholscape.renderer.renderState as IncrementalRendererState).createNewDiagram();
+      (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).show()
+      setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
     }
   }
 
