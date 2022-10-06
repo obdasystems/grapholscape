@@ -71,7 +71,7 @@ export default css`
   position: relative;
 }
 
-.slotted-icon, [slot = "icon"], [slot = "trailing-icon"] {
+.slotted-icon, [slot = "icon"], [slot = "alt-icon"], [slot = "trailing-icon"] {
   line-height: 0;
 }
 
