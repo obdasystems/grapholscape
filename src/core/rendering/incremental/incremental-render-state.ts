@@ -1,5 +1,5 @@
 import { CollectionReturnValue, Layouts, SingularElementReturnValue, Stylesheet } from "cytoscape"
-import { FloatyRenderState, Renderer } from ".."
+import { FloatyRendererState, Renderer } from ".."
 import { Diagram, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyTransformer from "../floaty/floaty-transformer"
@@ -14,7 +14,7 @@ import incrementalStyle from "./incremental-style"
  * This renderer state is logic agnostic, meaning that it does not control what to show and when.
  * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
  */
-export default class IncrementalRendererState extends FloatyRenderState {
+export default class IncrementalRendererState extends FloatyRendererState {
   readonly id = RendererStatesEnum.INCREMENTAL
   filterManager: iFilterManager
 
@@ -65,7 +65,7 @@ export default class IncrementalRendererState extends FloatyRenderState {
     return incrementalStyle(theme)
   }
 
-  private overrideDiagram() {
+  protected overrideDiagram() {
     if (this.renderer.diagram?.id !== this.incrementalDiagram.id) {
       this.previousDiagram = this.renderer.diagram
     }

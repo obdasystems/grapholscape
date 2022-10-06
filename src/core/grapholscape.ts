@@ -5,7 +5,7 @@ import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeT
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
-import { Renderer, GrapholRendererState, LiteRendererState, FloatyRenderState } from "./rendering"
+import { Renderer, GrapholRendererState, LiteRendererState, FloatyRendererState } from "./rendering"
 import IncrementalRendererState from "./rendering/incremental/incremental-render-state"
 import setGraphEventHandlers from "./set-graph-event-handlers"
 import ThemeManager from "./themeManager"
@@ -71,7 +71,7 @@ export default class Grapholscape {
    * that changes the way the {@link Renderer} performs the main operations on a 
    * {@link !model.Diagram} such as rendering it and filtering elements in it.
    * The renderer states included in Grapholscape are: {@link GrapholRendererState},
-   * {@link LiteRendererState} and {@link FloatyRenderState}.
+   * {@link LiteRendererState} and {@link FloatyRendererState}.
    * 
    * @param newRenderState the renderer state instance to set, if you want to reuse
    * these instances it's totally up to you.
@@ -345,7 +345,7 @@ export default class Grapholscape {
         }
 
         case RendererStatesEnum.FLOATY: {
-          this.setRenderer(new FloatyRenderState())
+          this.setRenderer(new FloatyRendererState())
           break
         }
 
