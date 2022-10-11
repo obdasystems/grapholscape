@@ -38,6 +38,11 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
   const grapholscape = await getGrapholscape(file, container, config)
   if (grapholscape)
     UI.initUI(grapholscape)
+
+  if (config?.initialRendererSelection !== false) {
+    if (!config?.renderers || config?.renderers?.length > 1)
+      grapholscape.container.appendChild(UI.getWelcomeRendererSelector(grapholscape))
+  }
   return grapholscape
 }
 
@@ -70,7 +75,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
 
   const savedConfig = loadConfig()
   // copy savedConfig over config
-  config = Object.assign(config || { }, savedConfig)
+  config = Object.assign(config || {}, savedConfig)
   return new Promise<Grapholscape>((resolve, reject) => {
     let ontology: Ontology
 
