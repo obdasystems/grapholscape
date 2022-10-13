@@ -33,7 +33,6 @@ export default css`
   overflow: scroll;
   padding: 8px;
   position: relative;
-  z-index: 1;
 }
 
 ::-webkit-scrollbar {

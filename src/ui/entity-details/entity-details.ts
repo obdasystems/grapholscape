@@ -143,7 +143,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         }
       </div>
       <div class="top-bar">
-        <gscape-button 
+        <gscape-button style="z-index: 1"
           id="toggle-panel-button"
           size="${this.isPanelClosed() ? 'm' : 's'}" 
           type="${this.isPanelClosed() ? '' : 'subtle'}"

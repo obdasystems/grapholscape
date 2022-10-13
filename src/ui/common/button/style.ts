@@ -14,7 +14,6 @@ export default css`
   line-height: 20px;
   display: inline-flex;
   position: relative;
-  z-index:10;
   color: inherit;
 }
 

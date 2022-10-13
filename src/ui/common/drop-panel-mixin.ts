@@ -5,12 +5,12 @@ import { LitElement } from "lit";
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 export declare class IDropPanelMixin {
-  togglePanel: () => void
-  openPanel: () => void
-  closePanel: () => void
+  togglePanel(): void
+  openPanel(): void
+  closePanel(): void
   protected get panel(): HTMLElement | undefined | null
-  onTogglePanel: () => void
-  isPanelClosed: () => boolean
+  onTogglePanel(): void
+  isPanelClosed(): boolean
 }
 
 
