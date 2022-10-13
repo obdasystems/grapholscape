@@ -39,9 +39,8 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
   if (grapholscape)
     UI.initUI(grapholscape)
 
-  if (config?.initialRendererSelection !== false) {
-    if (!config?.renderers || config?.renderers?.length > 1)
-      grapholscape.container.appendChild(UI.getWelcomeRendererSelector(grapholscape))
+  if (config?.initialRendererSelection === false || config?.renderers?.length < 1) {
+    (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
   }
   return grapholscape
 }

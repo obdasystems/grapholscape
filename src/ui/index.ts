@@ -26,4 +26,4 @@ export { default as GscapeEntitySearch } from './ontology-explorer/entity-search
 export { GscapeEntitySelector } from './entity-selector'
 export * as icons from "./assets"
 export { default as initUI } from "./init"
-export { getWelcomeRendererSelector } from './renderer-selector'
+export * from './full-page-selector'

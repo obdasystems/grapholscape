@@ -1,6 +1,3 @@
-
-
-
 export enum WidgetEnum {
   DIAGRAM_SELECTOR = 'diagram-selector',
   ENTITY_DETAILS = 'details',
@@ -15,4 +12,5 @@ export enum WidgetEnum {
   LAYOUT_SETTINGS = 'layout-settings',
   SETTINGS = 'settings',
   ZOOM_TOOLS = 'zoom-tools',
+  INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
 }

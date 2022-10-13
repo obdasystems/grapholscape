@@ -2,14 +2,14 @@ import { SVGTemplateResult } from "lit"
 import { RendererStatesEnum } from "../../model"
 import { bubbles, graphol_icon, incremental, lite } from "../assets"
 
-export type RendererStateViewModel = {
+export type UiOption = {
   name: string,
-  id: RendererStatesEnum,
+  id: string,
   icon: SVGTemplateResult,
   description?: string,
 }
 
-export type RendererStates = { [key in RendererStatesEnum]?: RendererStateViewModel }
+export type RendererStates = { [key in RendererStatesEnum]?: UiOption }
 
 export const rendererStates: RendererStates = {
   [RendererStatesEnum.GRAPHOL]: {

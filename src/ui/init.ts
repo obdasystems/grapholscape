@@ -7,6 +7,7 @@ import initEntityDetails from "./entity-details";
 import initEntitySelector from "./entity-selector";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
+import { initInitialRendererSelector } from "./full-page-selector";
 import initFullscreenButton from "./fullscreen";
 import initOntologyExplorer from "./ontology-explorer";
 import initOntologyInfo from "./ontology-info";
@@ -47,6 +48,7 @@ export default function (grapholscape: Grapholscape) {
   initOwlVisualizer(grapholscape)
   initSettings(grapholscape)
   initEntitySelector(grapholscape)
+  initInitialRendererSelector(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
 
@@ -65,6 +67,10 @@ export default function (grapholscape: Grapholscape) {
         break
 
       case WidgetEnum.LAYOUT_SETTINGS:
+        break
+      
+      case WidgetEnum.INITIAL_RENDERER_SELECTOR:
+        grapholscape.container.appendChild(widget)
         break
     }
 

@@ -1,16 +1,18 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
-import baseStyle from "../../style"
-import { RendererStatesEnum } from "../../../model";
-import { BaseMixin } from "../../common/base-widget-mixin";
-import { RendererStateViewModel } from "../view-model";
+import baseStyle from "../style"
+import { RendererStatesEnum } from "../../model";
+import { BaseMixin } from "../common/base-widget-mixin";
+import { UiOption } from "../renderer-selector/view-model";
 
-export default class GscapeWelcomeRendererSelector extends BaseMixin(LitElement) {
-  rendererStates: (RendererStateViewModel | undefined)[]
+export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
+  options: (UiOption | undefined)[]
+  title: string = 'Select a rendering mode:'
 
-  onRendererStateSelection: (rendererState: RendererStatesEnum) => void
+  onOptionSelection: (optionId: string) => void
 
   static properties: PropertyDeclarations = {
-    rendererStates: { type: Object, attribute: false }
+    rendererStates: { type: Object, attribute: false },
+    title: { type: String, reflect: true },
   }
 
   static styles: CSSResultGroup = [
@@ -79,14 +81,14 @@ export default class GscapeWelcomeRendererSelector extends BaseMixin(LitElement)
 
   render() {
     return html`
-      <div class="title bold-text">Select a rendering mode:</div>
+      <div class="title bold-text">${this.title}</div>
       <div class="options">
-        ${this.rendererStates.map(rendererState => {
+        ${this.options.map(option => {
           return html`
-            <div class="card" renderer-state=${rendererState.id} @click=${this.handleRendererSelection}>
-              <div class="icon">${rendererState.icon}</div>
-              <div class="title bold-text">${rendererState.name}</div>
-              <div class="description muted-text">${rendererState.description}</div>
+            <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection}>
+              <div class="icon">${option.icon}</div>
+              <div class="title bold-text">${option.name}</div>
+              <div class="description muted-text">${option.description}</div>
             </div>
           `
         })}
@@ -97,9 +99,9 @@ export default class GscapeWelcomeRendererSelector extends BaseMixin(LitElement)
   private handleRendererSelection(evt: MouseEvent) {
     const targetElement = evt.currentTarget as HTMLElement
 
-    this.onRendererStateSelection(targetElement.getAttribute('renderer-state') as RendererStatesEnum)
+    this.onOptionSelection(targetElement.getAttribute('renderer-state') as RendererStatesEnum)
     this.hide()
   }
 }
 
-customElements.define('gscape-welcome-renderer-selector', GscapeWelcomeRendererSelector)
+customElements.define('gscape-welcome-renderer-selector', GscapeFullPageSelector)

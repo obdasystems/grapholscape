@@ -5,11 +5,11 @@ import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { GscapeLayoutSettings } from './floaty-layout-settings'
-import { RendererStateViewModel } from './view-model'
+import { UiOption } from './view-model'
 
 export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Renderer Selector'
-  rendererStates: (RendererStateViewModel | undefined)[]
+  rendererStates: (UiOption | undefined)[]
   actualRendererStateKey: RendererStatesEnum
   onRendererStateSelection: (rendererState: RendererStatesEnum) => void = () => { }
   onIncrementalRefresh?: () => void
