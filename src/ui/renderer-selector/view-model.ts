@@ -16,24 +16,24 @@ export const rendererStates: RendererStates = {
     name: 'Graphol',
     id: RendererStatesEnum.GRAPHOL,
     icon: graphol_icon,
-    description: 'Full ontology representation'
+    // description: 'Full ontology representation'
   },
   [RendererStatesEnum.GRAPHOL_LITE]: {
-    name: 'Graphol-lite',
+    name: 'Entity Diagram',
     id: RendererStatesEnum.GRAPHOL_LITE,
     icon: lite,
-    description: 'E/R like simplified representation'
+    // description: 'E/R like simplified representation'
   },
   [RendererStatesEnum.FLOATY]: {
     name: 'Floaty',
     id: RendererStatesEnum.FLOATY,
     icon: bubbles,
-    description: 'Further simplified representation. Only classes and properties'
+    // description: 'Further simplified representation. Only classes and properties'
   },
   [RendererStatesEnum.INCREMENTAL]: {
-    name: 'Incremental',
+    name: 'Step By Step',
     id: RendererStatesEnum.INCREMENTAL,
     icon: incremental,
-    description: 'Choose a class and explore adding other classe\' information on demand'
+    // description: 'Choose a class and explore adding other classe\' information on demand'
   }
 }
