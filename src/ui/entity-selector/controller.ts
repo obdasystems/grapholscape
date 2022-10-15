@@ -39,21 +39,4 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
     entitySelectorComponent.hide()
   })
 
-  entitySelectorComponent.searchEntityComponent.onSearch(e => {
-    const inputElement = e.target as HTMLInputElement
-
-    // on ESC key press
-    if (e.key === 'Escape') {
-      inputElement.blur()
-      inputElement.value = null
-      entitySelectorComponent.entityList = entities
-      return
-    }
-
-    if (inputElement.value?.length > 2) {
-      entitySelectorComponent.entityList = search(inputElement.value, entities)
-    } else {
-      entitySelectorComponent.entityList = entities
-    }
-  })
 }

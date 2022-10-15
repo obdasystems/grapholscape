@@ -4,11 +4,12 @@ import { GscapeButtonStyle } from '../common/button'
 import { GscapeActionListItem } from '../common/list-item'
 import GscapeEntitySearch from '../ontology-explorer/entity-search-component'
 import baseStyle from '../style'
-import { EntityViewData } from '../util/search-entities'
+import { EntityViewData, search } from '../util/search-entities'
 
 export default class GscapeEntitySelector extends BaseMixin(LitElement) {
   title = 'Class Selector'
-  entityList: EntityViewData[] = []
+  private fullEntityList: EntityViewData[] = []
+  private _entityList: EntityViewData[] = []
   searchEntityComponent = new GscapeEntitySearch()
   private onClassSelectionCallback: (iri: string) => void
 
@@ -59,6 +60,28 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
     `
   ]
 
+  constructor() {
+    super()
+
+    this.searchEntityComponent.onSearch(e => {
+      const inputElement = e.target as HTMLInputElement
+  
+      // on ESC key press
+      if (e.key === 'Escape') {
+        inputElement.blur()
+        inputElement.value = null
+        this.entityList = this.fullEntityList
+        return
+      }
+  
+      if (inputElement.value?.length > 2) {
+        this.entityList = search(inputElement.value, this.fullEntityList)
+      } else {
+        this.entityList = this.fullEntityList
+      }
+    })
+  }
+
   render() {
     return html`
       <div class="gscape-panel ellipsed">
@@ -91,6 +114,19 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
 
   onClassSelection(callback: (iri: string) => void) {
     this.onClassSelectionCallback = callback
+  }
+
+  set entityList(newEntityList) {
+    if (!this.fullEntityList || this.fullEntityList.length === 0) {
+      this.fullEntityList = newEntityList
+    }
+
+    this._entityList = newEntityList
+    this.requestUpdate()
+  }
+
+  get entityList() {
+    return this._entityList
   }
 }
 

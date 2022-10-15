@@ -27,3 +27,4 @@ export { GscapeEntitySelector } from './entity-selector'
 export * as icons from "./assets"
 export { default as initUI } from "./init"
 export * from './full-page-selector'
+export * from './util/search-entities'
