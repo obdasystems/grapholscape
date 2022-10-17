@@ -5,9 +5,9 @@ import { createEntitiesList, search } from "../util/search-entities";
 import GscapeEntitySelector from "./entity-selector";
 
 export default function init(entitySelectorComponent: GscapeEntitySelector, grapholscape: Grapholscape) {
-  entitySelectorComponent.searchEntityComponent["object-property"] = false
-  entitySelectorComponent.searchEntityComponent["data-property"] = false
-  entitySelectorComponent.searchEntityComponent["individual"] = false
+  entitySelectorComponent.searchEntityComponent["object-property"] = undefined
+  entitySelectorComponent.searchEntityComponent["data-property"] = undefined
+  entitySelectorComponent.searchEntityComponent["individual"] = undefined
 
   // Set class entity list
   // const entities = Array

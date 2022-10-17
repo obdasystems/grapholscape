@@ -9,16 +9,17 @@ export type EntityViewData = {
 }
 
 export interface IEntityFilters {
-  [GrapholTypesEnum.CLASS]: Boolean
-  [GrapholTypesEnum.DATA_PROPERTY]: Boolean
-  [GrapholTypesEnum.OBJECT_PROPERTY]: Boolean
-  [GrapholTypesEnum.INDIVIDUAL]: Boolean
+  [GrapholTypesEnum.CLASS]?: Boolean
+  [GrapholTypesEnum.DATA_PROPERTY]?: Boolean
+  [GrapholTypesEnum.OBJECT_PROPERTY]?: Boolean
+  [GrapholTypesEnum.INDIVIDUAL]?: Boolean,
+  areAllFiltersDisabled: boolean,
 }
 
 export function createEntitiesList(grapholscape: Grapholscape, entityFilters: IEntityFilters) {
   const result: EntityViewData[] = []
   grapholscape.ontology.entities.forEach(entity => {
-    if (entityFilters[entity.type] === true) {
+    if (entityFilters[entity.type] !== undefined && (entityFilters[entity.type] || entityFilters.areAllFiltersDisabled)) {
       result.push({
         value: entity,
         viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
