@@ -31,7 +31,7 @@ export const rendererStates: RendererStates = {
     // description: 'Further simplified representation. Only classes and properties'
   },
   [RendererStatesEnum.INCREMENTAL]: {
-    name: 'Step By Step',
+    name: 'Path',
     id: RendererStatesEnum.INCREMENTAL,
     icon: incremental,
     // description: 'Choose a class and explore adding other classe\' information on demand'
