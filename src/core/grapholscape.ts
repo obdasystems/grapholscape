@@ -34,7 +34,7 @@ export default class Grapholscape {
     this.renderer.container = container
     this.renderer.lifecycle = this.lifecycle
 
-    this.renderer.renderState = new GrapholRendererState()
+    //this.renderer.renderState = new GrapholRendererState()
     if (!config?.selectedTheme) {
       this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE)
     }
@@ -186,7 +186,7 @@ export default class Grapholscape {
 
   /** The actual renderer state */
   get renderState() {
-    return this.renderer.renderState.id
+    return this.renderer.renderState?.id
   }
 
   /** The actual selected Entity */
@@ -328,12 +328,26 @@ export default class Grapholscape {
 
     if (newConfig.renderers) {
       this.availableRenderers = newConfig.renderers
-      /** 
-       * Just use the first defined renderer state
-       * the other ones will be managed by renderer-selector widget
-       * or manually by the app importing grapholscape
-       */
-      switch (newConfig.renderers[0]) {
+    }
+
+    let rendererStateToSet: RendererStatesEnum
+    /**
+     * If only one renderer defined, just use it
+     */
+    if (this.availableRenderers.length <= 1) {
+      rendererStateToSet = this.availableRenderers[0]
+    }
+    /** 
+     * If selected renderer is included in the list of renderers, use it.
+     * The other ones will be managed by renderer-selector widget
+     * or manually by the app importing grapholscape.
+     */
+    else if (newConfig.selectedRenderer && this.availableRenderers.includes(newConfig.selectedRenderer)) {
+      rendererStateToSet = newConfig.selectedRenderer
+    }
+    
+    if (rendererStateToSet) {
+      switch (rendererStateToSet) {
         case RendererStatesEnum.GRAPHOL: {
           this.setRenderer(new GrapholRendererState())
           break

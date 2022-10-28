@@ -27,6 +27,7 @@ export type GrapholscapeConfig =
     language?: Language | string,
     entityNameType?: EntityNameType,
     renderers?: RendererStatesEnum[],
+    selectedRenderer?: RendererStatesEnum,
     widgets?: WidgetsConfig,
     initialRendererSelection?: boolean,
   }

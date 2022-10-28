@@ -1,4 +1,5 @@
 import { GscapeRenderSelector } from "."
+import { storeConfigEntry } from "../../config"
 import Grapholscape from '../../core'
 import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-state"
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
@@ -14,7 +15,8 @@ import { rendererStates } from "./view-model"
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
 
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
-  rendererSelector.actualRendererStateKey = grapholscape.renderState
+  if (grapholscape.renderState)
+    rendererSelector.actualRendererStateKey = grapholscape.renderState
 
   rendererSelector.onRendererStateSelection = (rendererState) => rendererStateSelectionCallback(rendererState, grapholscape)
 
@@ -37,17 +39,21 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
 
 export function rendererStateSelectionCallback(rendererState: RendererStatesEnum, grapholscape: Grapholscape) {
   if (rendererState !== grapholscape.renderState) {
+    let isRenderValid = false
     switch (rendererState) {
       case RendererStatesEnum.GRAPHOL:
         grapholscape.setRenderer(new GrapholRendererState())
+        isRenderValid = true
         break
 
       case RendererStatesEnum.GRAPHOL_LITE:
         grapholscape.setRenderer(new LiteRendererState())
+        isRenderValid = true
         break
 
       case RendererStatesEnum.FLOATY:
         grapholscape.setRenderer(new FloatyRendererState())
+        isRenderValid = true
         break
     }
 
@@ -60,10 +66,13 @@ export function rendererStateSelectionCallback(rendererState: RendererStatesEnum
       if (grapholscape.renderer.grapholElements?.size === 0) {
         (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).show()
       }
+      isRenderValid = true
     } else {
       (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).show();
       (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).hide()
-
     }
+
+    if (isRenderValid)
+      storeConfigEntry('selectedRenderer', rendererState)
   }
 }
