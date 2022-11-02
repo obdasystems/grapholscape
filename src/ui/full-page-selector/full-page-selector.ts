@@ -6,7 +6,7 @@ import { UiOption } from "../renderer-selector/view-model";
 
 export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
   options: (UiOption | undefined)[]
-  title: string = 'Select a rendering mode:'
+  private _title: string = 'Select a rendering mode:'
 
   onOptionSelection: (optionId: string) => void
 
@@ -81,7 +81,7 @@ export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
 
   render() {
     return html`
-      <div class="title bold-text">${this.title}</div>
+      <div class="title bold-text">${this._title}</div>
       <div class="options">
         ${this.options.map(option => {
           return html`
