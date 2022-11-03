@@ -118,10 +118,10 @@ export default function (grapholscape: Grapholscape) {
   function blurAll(widgetsToSkip: HTMLElement[] = []) {
     grapholscape.widgets.forEach((widget, key) => {
       if (
-        (key === WidgetEnum.ENTITY_DETAILS || key === WidgetEnum.OWL_VISUALIZER || key === WidgetEnum.ENTITY_SELECTOR)
+        (key === WidgetEnum.ENTITY_DETAILS || key === WidgetEnum.OWL_VISUALIZER)
         && !widgetsToSkip.includes(widget)) {
         (widget as unknown as IBaseMixin).hide()
-      } else if (!widgetsToSkip.includes(widget)) {
+      } else if (!widgetsToSkip.includes(widget) && key !== WidgetEnum.ENTITY_SELECTOR) {
         widget.blur()
       }
     })

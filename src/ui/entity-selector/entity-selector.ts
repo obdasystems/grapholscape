@@ -28,8 +28,9 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
         top: 15%;
         left: 50%;
         transform: translate(-50%);
-        max-height: 50%;
+        max-height: 70%;
         display: flex;
+        width: 25%;
       }
 
       .gscape-panel {
@@ -38,6 +39,9 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
         flex-direction: column;
         padding: 8px 0;
         max-height: unset;
+        max-width: unset;
+        width: 100%;
+        font-size: 14px;
       }
 
       .header {
