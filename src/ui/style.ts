@@ -30,7 +30,7 @@ export default css`
   min-width: 130px;
   max-width: 350px;
   max-height: 350px;
-  overflow: scroll;
+  overflow: auto;
   padding: 8px;
   position: relative;
 }
