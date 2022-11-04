@@ -1,5 +1,5 @@
 <p style="margin:auto; max-width:250px" align="center">
-  <img width="250px" src="https://github.com/obdasystems/grapholscape/raw/develop/app/assets/logo.png">
+  <img width="250px" src="https://raw.githubusercontent.com/obdasystems/grapholscape/develop/app/assets/logo.png">
 </p>
 
 Advanced web viewer for ontologies written in GRAPHOL.[**Try me**](https://obdasystems.github.io/grapholscape/demo/)
@@ -7,10 +7,11 @@ Advanced web viewer for ontologies written in GRAPHOL.[**Try me**](https://obdas
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
 
+* `new` Explore your custom **path** in the ontology graph, start from a single class and explore **incrementally** step by step.
 * Simplify your ontology:
-  * **Graphol-lite**: get to the point with a summarized view avoiding too complex expression
+  * **Graphol-lite**: summarized view avoiding too complex expressions
   * **Floaty Mode**: simplify further obtaining an extremely easy representation of the ontology
-* Search for predicates and their instances through all diagrams contained in the ontology
+* Search for entities and their instances through all diagrams contained in the ontology
 * Re-arrange GUI's modules floating above the diagram
 * Get detailed information about selected element
 * Get the OWL2 translation for selected element
@@ -18,7 +19,7 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 * Multi-diagrammatic inspection that allows you to navigate through all diagrams that builds up the ontology
 
 <p align="center">
-  <img src="https://github.com/obdasystems/grapholscape/blob/master/docs/static/assets/img/demo.gif" />
+  <img src="https://raw.githubusercontent.com/obdasystems/grapholscape/master/docs/static/assets/img/demo.gif" />
 </p>
 
 ## What is Graphol?
