@@ -15,10 +15,10 @@ export default function (owlVisualizerComponent: GscapeOwlVisualizer, grapholsca
 
   // grapholscape.onNodeSelection( node => showOwlTranslation(node))
   // grapholscape.onEdgeSelection( edge => showOwlTranslation(edge))
-  // grapholscape.onRendererChange( rendererKey => {
-  //   if (rendererKey !== 'default')
-  //     owlVisualizerComponent.hide()
-  // })
+  grapholscape.on(LifecycleEvent.RendererChange, rendererKey => {
+    if (rendererKey !== RendererStatesEnum.GRAPHOL)
+      owlVisualizerComponent.hide()
+  })
 
   function showOwlTranslation(elem: CollectionReturnValue | undefined) {
     if (!elem) return

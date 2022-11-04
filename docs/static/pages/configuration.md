@@ -1,6 +1,6 @@
 It is possible to configure some aspects of the grapholscape instance we will create. You can do it passing a configuration object as third parameter to the factory functions ([fullGrapholscape](../functions/index.fullGrapholscape.htmlt) and [bareGrapholscape](../functions/index.bareGrapholscape.htmlt)) we've seen in the [getting started](./getting-started.html) section.
 
-The config object must be of type [GrapholscapeConfig](../types/config.GrapholscapeConfig.html). In the following we will see the purpose of each option and what data is allowed.
+The config object must be of type [GrapholscapeConfig](../types/config.GrapholscapeConfig.html). In the following we will see the purpose of each option and what values are allowed.
 
 Let's start with a plain object that we will pass to the factory function:
 ```ts
@@ -10,6 +10,18 @@ Let's start with a plain object that we will pass to the factory function:
 
   grapholscape = await fullGrapholscape(ontologyFile, container, configObject)
 ```
+
+>**NOTE**:
+>
+>These options will be overwritten by the last options used by the user that are stored in the *local storage* of the browser.\
+>If you want to always use your defined configuration, you can clear the last used one with:
+>```ts
+>import { clearLocalStorage } from 'grapholscape'
+>
+>clearLocalStorage()
+>
+>// ...and then init grapholscape with the new configuration
+>```
 
 ## entityNameType
 set the starting type for displayed names on entities, it can be one of the values of the [**EntityNameType**](../enums/config.EntityNameType.html) enumeration: `label`, `fullIri` and `prefixedIri`.
@@ -27,7 +39,7 @@ const configObject = { entityNameType: EntityNameType.PREFIXED_IRI }
 
 ## language
 Set the starting language preference for entities' labels and comment annotations.
-> **Note**: The ontology must support the language, otherwise the first supported language by the ontology will be used as fallback for any label or comment which is not defined in the specified language.
+> **NOTE**: The ontology must support the language, otherwise the first supported language by the ontology will be used as fallback for any label or comment which is not defined in the specified language.
 
 Assuming we want italian as preferred language:
 ```ts
@@ -35,12 +47,15 @@ const configObject = { language: 'it' }
 ```
 
 ## renderers
-A renderer is the one in charge of displaying the ontology in a certain way, zooming, filtering and so on. As you may know Grapholscape comes with three different renderers:
+A renderer is in charge of displaying the ontology in a certain way, zooming, filtering and so on. Grapholscape comes with four different renderers:
 - `GRAPHOL`: Graphol renderer, the default visualization of Graphol ontologies.
 - `GRAPHOL_LITE`: A simplification of the Graphol language, much more similar to an E/R diagram.
 - `FLOATY`: The most simple simplification of the original ontology, just **classes** (and their hierarchies), **object properties** links between classes and **data properties** on classes.
+- `INCREMENTAL` (or path): lets you explore the ontology starting from a class and proceed following the paths to other classes.
 
-This option accept an array of renderers ([RenderersStatesEnum](../enums/model.RendererStatesEnum.html)) name which will be available for the user. We might be interested only in **Graphol** and **Floaty**, we can set it with:
+This option defines an array of renderers which will be available for the user. Accepted values are those in the [RenderersStatesEnum](../enums/model.RendererStatesEnum.html) enumeration.
+
+We might be interested only in **Graphol** and **Floaty**, then we can set it with:
 
 ```ts
 import { RendererStatesEnum } from 'grapholscape'
@@ -49,7 +64,20 @@ const configObject = {
   renderers: [ RendererStatesEnum.FLOATY, RendererStatesEnum.GRAPHOL ]
 }
 ```
-> **NOTE**: the order of the renderers you specify affects the order in which they will be used in the system. In this example we set `FLOATY` renderer as the default option leaving the user the ability to switch to `GRAPHOL` later on with the settings widget.
+
+## selectedRenderer
+With this option you can decide what renderer you want to set as default at startup.
+The accepted values are those in the [RenderersStatesEnum](../enums/model.RendererStatesEnum.html) enumeration.
+
+For example, to use the **`floaty`** renderer at startup you can use:
+```ts
+import { RendererStatesEnum } from 'grapholscape'
+
+const configObject = { 
+  selectedRenderer: RendererStatesEnum.FLOATY
+}
+```
+> **NOTE**: if you specify an array of renderers in the `renderers` option not including the `selectedRenderer`, then this option will be ignored because you have set a renderer not actually available.
 
 ## themes
 This options lets you choose which themes will be available for the user in the settings panel.

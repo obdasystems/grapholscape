@@ -120,6 +120,13 @@ export default class GrapholEdge extends GrapholElement {
     result[0].classes = this.type.toString()
     return result
   }
+
+  clone() {
+    const cloneObj = new GrapholEdge(this.id)
+    Object.assign(cloneObj, this)
+
+    return cloneObj
+  }
 }
 
 export function isGrapholEdge(elem: GrapholElement): elem is GrapholEdge {

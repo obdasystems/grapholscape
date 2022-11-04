@@ -36,10 +36,13 @@ export default class GrapholEntity extends AnnotatedElement {
       this.occurrences.set(representationKind, [])
     }
 
-    this.occurrences.get(representationKind)?.push({
-      elementId: occurenceId,
-      diagramId: diagramId,
-    })
+    const occurrences = this.occurrences.get(representationKind)
+    if (!occurrences?.find(r => r.elementId === occurenceId && r.diagramId === diagramId)) {
+      occurrences.push({
+        elementId: occurenceId,
+        diagramId: diagramId,
+      })
+    }    
   }
 
   /**

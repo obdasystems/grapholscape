@@ -14,6 +14,8 @@ export * from './model'
 export * from './config'
 export * as ui from './ui'
 export * from './core'
+export * from './incremental'
+export { default as setGraphEventHandlers } from './core/set-graph-event-handlers'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -36,6 +38,10 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
   const grapholscape = await getGrapholscape(file, container, config)
   if (grapholscape)
     UI.initUI(grapholscape)
+
+  if (config?.initialRendererSelection === false || grapholscape.renderState) {
+    (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+  }
   return grapholscape
 }
 
@@ -68,7 +74,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
 
   const savedConfig = loadConfig()
   // copy savedConfig over config
-  config = Object.assign(config || { }, savedConfig)
+  config = Object.assign(config || {}, savedConfig)
   return new Promise<Grapholscape>((resolve, reject) => {
     let ontology: Ontology
 

@@ -13,7 +13,8 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
   updateToggles(grapholscape.renderState)
 
   layoutSettingsComponent.onLayoutRunToggle = () => {
-    if (grapholscape.renderState !== RendererStatesEnum.FLOATY)
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY && 
+      grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
       return
 
     const renderer = grapholscape.renderer.renderState as FloatyRendererState
@@ -31,7 +32,8 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
   }
 
   layoutSettingsComponent.onDragAndPinToggle = () => {
-    if (grapholscape.renderState !== RendererStatesEnum.FLOATY)
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY && 
+      grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
       return
 
     const renderer = grapholscape.renderer.renderState as FloatyRendererState
@@ -45,7 +47,8 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
   })
 
   function updateToggles(renderState: RendererStatesEnum) {
-    if (renderState === RendererStatesEnum.FLOATY) {
+    if (renderState === RendererStatesEnum.FLOATY || 
+      grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       const renderer = grapholscape.renderer.renderState as FloatyRendererState
       layoutSettingsComponent.layoutRun = renderer.isLayoutInfinite
       layoutSettingsComponent.dragAndPin = renderer.dragAndPin

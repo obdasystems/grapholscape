@@ -1,9 +1,7 @@
-
-
-
 export enum WidgetEnum {
   DIAGRAM_SELECTOR = 'diagram-selector',
   ENTITY_DETAILS = 'details',
+  ENTITY_SELECTOR = 'entity-selector',
   FILTERS = 'filters',
   FIT_BUTTON = 'fit-button',
   FULLSCREEN_BUTTON = 'fullscreen-button',
@@ -14,4 +12,5 @@ export enum WidgetEnum {
   LAYOUT_SETTINGS = 'layout-settings',
   SETTINGS = 'settings',
   ZOOM_TOOLS = 'zoom-tools',
+  INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
 }

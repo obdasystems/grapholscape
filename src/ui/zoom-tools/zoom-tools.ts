@@ -13,7 +13,6 @@ export default class GscapeZoomTools extends LitElement {
         order: 1;
         margin-top:10px;
         position: initial;
-        z-index: 10;
       }
     `
   ]

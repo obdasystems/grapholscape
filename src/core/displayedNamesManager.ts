@@ -74,6 +74,10 @@ export default class DisplayedNamesManager {
               entity.getLabels(this._grapholscape.ontology.languages.default)[0]?.lexicalForm ||
               entity.getLabels()[0]?.lexicalForm ||
               entity.iri.remainder
+
+            if (this._grapholscape.renderState === RendererStatesEnum.FLOATY) {
+              newDisplayedName = newDisplayedName.replace(/\r?\n|\r/g, '')
+            }
             break
 
           case EntityNameType.PREFIXED_IRI:

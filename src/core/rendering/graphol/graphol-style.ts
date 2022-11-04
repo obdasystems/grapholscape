@@ -1,7 +1,7 @@
-import { NodeSingular, Stylesheet } from "cytoscape";
+import { NodeSingular, SingularElementArgument, Stylesheet } from "cytoscape";
 import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, GrapholTypesEnum, Shape } from "../../../model";
 
-export default function(theme: GrapholscapeTheme) {
+export default function (theme: GrapholscapeTheme) {
   return [
     {
       selector: 'node',
@@ -21,7 +21,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: '[fontSize]',
       style: {
-        'font-size' : 'data(fontSize)',
+        'font-size': 'data(fontSize)',
       }
     },
 
@@ -32,7 +32,7 @@ export default function(theme: GrapholscapeTheme) {
         'text-margin-x': 'data(labelXpos)',
         'text-margin-y': 'data(labelYpos)',
         'text-wrap': 'wrap',
-        'min-zoomed-font-size' : '5px',
+        'min-zoomed-font-size': '5px',
       }
     },
 
@@ -76,7 +76,7 @@ export default function(theme: GrapholscapeTheme) {
       selector: `edge[type = "${GrapholTypesEnum.MEMBERSHIP}"]`,
       style: {
         'line-style': 'dashed',
-        'line-dash-pattern': [2,3],
+        'line-dash-pattern': [2, 3],
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'hollow'
       }
@@ -174,7 +174,7 @@ export default function(theme: GrapholscapeTheme) {
       style: {
         'source-label': 'data(sourceLabel)',
       }
-    },    
+    },
 
     {
       selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
@@ -182,7 +182,7 @@ export default function(theme: GrapholscapeTheme) {
         'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
         'text-background-shape': 'roundrectangle',
-        'text-background-padding' : 2,
+        'text-background-padding': 2,
       }
     },
 
@@ -247,7 +247,7 @@ export default function(theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
       style: {
-        'background-color': node => getColor(node, ColoursNames.class) ,
+        'background-color': node => getColor(node, ColoursNames.class),
         'border-color': theme.getColour(ColoursNames.class_contrast),
       }
     },
@@ -305,14 +305,26 @@ export default function(theme: GrapholscapeTheme) {
       }
     },
 
+    {
+      selector: ':active',
+      style: {
+        'underlay-color': theme.getColour(ColoursNames.accent),
+        'underlay-opacity': 0.2,
+        'overlay-opacity': 0,
+        'z-index': '100',
+        'underlay-shape': (node: SingularElementArgument) => node.style('shape') === Shape.ELLIPSE ? Shape.ELLIPSE : Shape.ROUND_RECTANGLE
+      },
+    },
+
     //-----------------------------------------------------------
     // selected selector always last
     {
-      selector: ':selected',
+      selector: ':selected, :active',
       style: {
         'overlay-color': theme.getColour(ColoursNames.accent),
         'overlay-opacity': 0.2,
-        'z-index': '100'
+        'z-index': '100',
+        'overlay-shape': (node: SingularElementArgument) => node.style('shape') === Shape.ELLIPSE ? Shape.ELLIPSE : Shape.ROUND_RECTANGLE
       }
     },
   ] as Stylesheet[]

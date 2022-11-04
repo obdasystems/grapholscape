@@ -91,7 +91,7 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
     if (!this.owlText) return
     return html`
       <div class="top-bar ${this.isPanelClosed() ? null : 'traslated-down' }">
-        <gscape-button 
+        <gscape-button style="z-index: 1"
           id="toggle-panel-button"
           size="${this.isPanelClosed() ? 'm' : 's'}" 
           type="${this.isPanelClosed() ? '' : 'subtle'}"

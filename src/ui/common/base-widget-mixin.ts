@@ -3,11 +3,11 @@ import { LitElement } from "lit";
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 export declare class IBaseMixin {
-  hide(): () => void
-  show(): () => void
-  enable(): () => void
-  disable(): () => void
-  onStateChange: () => void
+  hide(): void
+  show(): void
+  enable(): void
+  disable(): void
+  onStateChange(): void
   isVisible: boolean
   enabled: boolean
 }

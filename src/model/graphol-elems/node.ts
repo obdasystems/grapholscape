@@ -158,6 +158,13 @@ export default class GrapholNode extends GrapholElement {
 
     return [...fakeNodesCytoscapeRepr, ...thisCytoscapeRepr]
   }
+
+  clone() {
+    const cloneObj = new GrapholNode(this.id)
+    Object.assign(cloneObj, this)
+
+    return cloneObj
+  }
 }
 
 export function isGrapholNode(elem: GrapholElement): elem is GrapholNode {

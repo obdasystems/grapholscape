@@ -8,6 +8,7 @@ export * from './common/drop-panel-mixin'
 export { default as baseStyle } from "./style"
 export { BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS } from './style'
 export { WidgetEnum } from "./util/widget-enum"
+export { default as emptySearchBlankState } from "./util/empty-search-blank-state"
 //export { default as GscapeDialog } from "./common/dialog"
 // export * from "./diagram-selector"
 // export * from "./entity-details"
@@ -23,5 +24,8 @@ export { WidgetEnum } from "./util/widget-enum"
 // export * from "./fit-button"
 export { entityListItemStyle } from './ontology-explorer'
 export { default as GscapeEntitySearch } from './ontology-explorer/entity-search-component'
+export { GscapeEntitySelector } from './entity-selector'
 export * as icons from "./assets"
 export { default as initUI } from "./init"
+export * from './full-page-selector'
+export * from './util/search-entities'

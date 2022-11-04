@@ -10,7 +10,7 @@ import GrapholscapeTheme from "../../model/themes/theme"
 export default class Renderer {
   private _container: HTMLElement
   cy?: cytoscape.Core
-  private _renderState: RenderState
+  private _renderState?: RenderState
   filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]))
   diagram?: Diagram
   private _theme: GrapholscapeTheme
@@ -53,7 +53,7 @@ export default class Renderer {
     if (!this.diagram || this.diagram.id !== diagram.id) {
       this.stopRendering()
       this.diagram = diagram
-      this._renderState.render()
+      this._renderState?.render()
       this.performAllFilters()
       this._lifecycle.trigger(LifecycleEvent.DiagramChange, diagram)
     }
@@ -82,14 +82,14 @@ export default class Renderer {
 
     if (!_filter) return
 
-    if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState.filterManager.filterActivation(_filter)) {
+    if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState?.filterManager.filterActivation(_filter)) {
       this.performFilter(_filter)
       this._lifecycle.trigger(LifecycleEvent.Filter, _filter)
     }
   }
 
   private performFilter(filter: Filter, activate: boolean = true) {
-    if (this.grapholElements) {
+    if (this.grapholElements && this._renderState) {
       for (let grapholElement of this.grapholElements.values()) {
         if (filter.shouldFilter(grapholElement)) {
           if (activate)
@@ -115,7 +115,7 @@ export default class Renderer {
     const _filter = this.getFilter(filter)
     if (!_filter) return
 
-    if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && this._renderState.filterManager.filterDeactivation(_filter)) {
+    if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && this._renderState?.filterManager.filterDeactivation(_filter)) {
       this.performFilter(_filter, false)
       this.applyActiveFilters()
       this._lifecycle.trigger(LifecycleEvent.Unfilter, _filter)
@@ -161,7 +161,7 @@ export default class Renderer {
 
   stopRendering() {
     this.unselect()
-    this._renderState.stopRendering()
+    this._renderState?.stopRendering()
     this.cy?.unmount()
   }
 
@@ -319,7 +319,7 @@ export default class Renderer {
   }
 
   get grapholElements() {
-    return this.diagram?.representations.get(this._renderState.id)?.grapholElements
+    return this.diagram?.representations.get(this._renderState?.id)?.grapholElements
   }
 
   get selectedElement() {

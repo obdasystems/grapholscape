@@ -1,3 +1,4 @@
+import { Layouts } from "cytoscape";
 import { Renderer } from "..";
 import { Ontology, BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, RendererStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
@@ -6,10 +7,9 @@ import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
 
 export default class FloatyRendererState extends BaseRenderer {
-  layout: cytoscape.Layouts;
   readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
-  private _layout: cytoscape.Layouts
+  protected _layout: cytoscape.Layouts
 
   set renderer(newRenderer: Renderer) {
     super.renderer = newRenderer
@@ -23,8 +23,8 @@ export default class FloatyRendererState extends BaseRenderer {
 
   transformOntology(ontology: Ontology): void {
     ontology.diagrams.forEach(diagram => {
-      const liteTransformer = new FloatyTransformer()
-      diagram.representations.set(this.id, liteTransformer.transform(diagram))
+      const floatyTransformer = new FloatyTransformer()
+      diagram.representations.set(this.id, floatyTransformer.transform(diagram))
     })
   }
 
@@ -50,6 +50,7 @@ export default class FloatyRendererState extends BaseRenderer {
     this.renderer.mount()
 
     if (!floatyRepresentation.hasEverBeenRendered) {
+      this.floatyLayoutOptions.fit = true
       this.runLayout()
       if (this.isLayoutInfinite) {
         setTimeout(() => this.renderer.fit(), 1000)
@@ -64,6 +65,11 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!this.dragAndPin)
       this.unpinAll()
 
+    if (this.isLayoutInfinite) {
+      this.floatyLayoutOptions.fit = false
+      this.runLayout()
+    }
+
     floatyRepresentation.hasEverBeenRendered = true
   }
 
@@ -76,8 +82,6 @@ export default class FloatyRendererState extends BaseRenderer {
   stopLayout(): void {
     this._layout?.stop()
     this.floatyLayoutOptions.infinite = false
-    this.floatyLayoutOptions.fit = true
-    console.log('stop')
   }
 
   runLayoutInfinitely() {
@@ -87,7 +91,7 @@ export default class FloatyRendererState extends BaseRenderer {
   }
 
   pinNode(node) {
-    if (!node || !this.renderer.cy) return
+    if (!node || !this.renderer.cy || node?.data().pinned) return
     node.lock()
     node.data("pinned", true)
 
@@ -124,6 +128,7 @@ export default class FloatyRendererState extends BaseRenderer {
   private setPopperStyle(dim, popper) {
     let icon = popper.querySelector('.popper-icon > svg')
     icon.style.display = 'inherit'
+    icon.style.color = 'var(--gscape-color-fg-on-emphasis)'
     if (dim > 2) {
       popper.style.width = dim + 'px'
       popper.style.height = dim + 'px'
@@ -166,7 +171,7 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  private setDragAndPinEventHandlers() {
+  protected setDragAndPinEventHandlers() {
     this.renderer.cy?.on('grab', this.grabHandler)
 
     this.renderer.cy?.on('free', this.freeHandler)
@@ -193,7 +198,7 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  private floatyLayoutOptions = {
+  protected floatyLayoutOptions = {
     name: 'cola',
     avoidOverlap: false,
     edgeLength: function (edge) {
@@ -231,12 +236,16 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!isActive) this.unpinAll()
   }
 
-  private get popperContainer() {
+  protected get popperContainer() {
     if (this.renderer.diagram)
       return this.popperContainers.get(this.renderer.diagram.id)
   }
 
-  private get popperContainers(): Map<number, HTMLDivElement> {
+  protected get popperContainers(): Map<number, HTMLDivElement> {
     return this.renderer.renderStateData[this.id].popperContainers
+  }
+
+  get layout() {
+    return this._layout
   }
 }

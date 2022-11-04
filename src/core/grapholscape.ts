@@ -1,17 +1,23 @@
 import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
+import { initIncremental } from "../incremental"
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
-import { Renderer, GrapholRendererState, LiteRendererState, FloatyRenderState } from "./rendering"
+import { Renderer, GrapholRendererState, LiteRendererState, FloatyRendererState } from "./rendering"
+import IncrementalRendererState from "./rendering/incremental/incremental-render-state"
+import setGraphEventHandlers from "./set-graph-event-handlers"
 import ThemeManager from "./themeManager"
 
 
 export default class Grapholscape {
   renderer: Renderer = new Renderer()
   private availableRenderers: RendererStatesEnum[] = [
-    RendererStatesEnum.GRAPHOL, RendererStatesEnum.GRAPHOL_LITE, RendererStatesEnum.FLOATY
+    RendererStatesEnum.GRAPHOL,
+    RendererStatesEnum.GRAPHOL_LITE,
+    RendererStatesEnum.FLOATY,
+    RendererStatesEnum.INCREMENTAL
   ]
   container: HTMLElement
   readonly lifecycle: Lifecycle = new Lifecycle()
@@ -28,7 +34,7 @@ export default class Grapholscape {
     this.renderer.container = container
     this.renderer.lifecycle = this.lifecycle
 
-    this.renderer.renderState = new GrapholRendererState()
+    //this.renderer.renderState = new GrapholRendererState()
     if (!config?.selectedTheme) {
       this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE)
     }
@@ -51,7 +57,8 @@ export default class Grapholscape {
       return
     }
 
-    this.entityNavigator.setGraphEventHandlers(diagram)
+    if (!diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
+      setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
     diagram.lastViewportState = viewportState
     this.renderer.render(diagram)
   }
@@ -64,7 +71,7 @@ export default class Grapholscape {
    * that changes the way the {@link Renderer} performs the main operations on a 
    * {@link !model.Diagram} such as rendering it and filtering elements in it.
    * The renderer states included in Grapholscape are: {@link GrapholRendererState},
-   * {@link LiteRendererState} and {@link FloatyRenderState}.
+   * {@link LiteRendererState} and {@link FloatyRendererState}.
    * 
    * @param newRenderState the renderer state instance to set, if you want to reuse
    * these instances it's totally up to you.
@@ -86,10 +93,10 @@ export default class Grapholscape {
       newRenderState.transformOntology(this.ontology)
     }
 
-    this.renderer.renderState = newRenderState
+    if (this.renderer.diagram && !this.renderer.diagram?.representations.get(newRenderState.id)?.hasEverBeenRendered)
+      setGraphEventHandlers(this.renderer.diagram, this.lifecycle, this.ontology)
 
-    if (this.renderer.diagram)
-      this.entityNavigator.setGraphEventHandlers(this.renderer.diagram)
+    this.renderer.renderState = newRenderState
 
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
@@ -128,7 +135,7 @@ export default class Grapholscape {
 
   /** Unselect any selected element in the actual diagram */
   unselect() { this.renderer.unselect() }
-  
+
   /** Fit viewport to diagram */
   fit() { this.renderer.fit() }
 
@@ -159,7 +166,7 @@ export default class Grapholscape {
    * @param filter the filter to apply, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
    * or a string representing the unique key of a defined filter
    */
-  filter(filter: string | Filter | DefaultFilterKeyEnum ) { this.renderer.filter(filter) }
+  filter(filter: string | Filter | DefaultFilterKeyEnum) { this.renderer.filter(filter) }
 
   /**
    * Unfilter elements on the diagram.
@@ -170,7 +177,7 @@ export default class Grapholscape {
    * @param filter the filter to disable, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
    * or a string representing the unique key of a defined filter
    */
-  unfilter(filter: string | Filter | DefaultFilterKeyEnum ) { this.renderer.unfilter(filter) }
+  unfilter(filter: string | Filter | DefaultFilterKeyEnum) { this.renderer.unfilter(filter) }
 
   /** The actual diagram's id */
   get diagramId() {
@@ -179,7 +186,7 @@ export default class Grapholscape {
 
   /** The actual renderer state */
   get renderState() {
-    return this.renderer.renderState.id
+    return this.renderer.renderState?.id
   }
 
   /** The actual selected Entity */
@@ -202,10 +209,10 @@ export default class Grapholscape {
    * @param zoom the level of zoom to apply.
    * If not specified, zoom level won't be changed.
    */
-  centerOnEntity(iri: string, diagramId?: number, zoom?: number) { 
-    this.entityNavigator.centerOnEntity(iri, diagramId, zoom) 
+  centerOnEntity(iri: string, diagramId?: number, zoom?: number) {
+    this.entityNavigator.centerOnEntity(iri, diagramId, zoom)
   }
-  
+
   /**
    * Center viewport on a single entity and selects it given its IRI
    * @param iri the iri of the entity to find and center on
@@ -226,7 +233,7 @@ export default class Grapholscape {
   setEntityNameType(newEntityNametype: EntityNameType) {
     this.displayedNamesManager.setEntityNameType(newEntityNametype)
   }
-  
+
   /**
    * Change the language used for the labels and comments
    * @remarks The language must be supported by the ontology or the first available
@@ -321,12 +328,26 @@ export default class Grapholscape {
 
     if (newConfig.renderers) {
       this.availableRenderers = newConfig.renderers
-      /** 
-       * Just use the first defined renderer state
-       * the other ones will be managed by renderer-selector widget
-       * or manually by the app importing grapholscape
-       */
-      switch (newConfig.renderers[0]) {
+    }
+
+    let rendererStateToSet: RendererStatesEnum
+    /**
+     * If only one renderer defined, just use it
+     */
+    if (this.availableRenderers.length <= 1) {
+      rendererStateToSet = this.availableRenderers[0]
+    }
+    /** 
+     * If selected renderer is included in the list of renderers, use it.
+     * The other ones will be managed by renderer-selector widget
+     * or manually by the app importing grapholscape.
+     */
+    else if (newConfig.selectedRenderer && this.availableRenderers.includes(newConfig.selectedRenderer)) {
+      rendererStateToSet = newConfig.selectedRenderer
+    }
+    
+    if (rendererStateToSet) {
+      switch (rendererStateToSet) {
         case RendererStatesEnum.GRAPHOL: {
           this.setRenderer(new GrapholRendererState())
           break
@@ -338,7 +359,14 @@ export default class Grapholscape {
         }
 
         case RendererStatesEnum.FLOATY: {
-          this.setRenderer(new FloatyRenderState())
+          this.setRenderer(new FloatyRendererState())
+          break
+        }
+
+        case RendererStatesEnum.INCREMENTAL: {
+          const incrementalRendererState = new IncrementalRendererState()
+          this.setRenderer(incrementalRendererState)
+          initIncremental(incrementalRendererState, this)
           break
         }
       }

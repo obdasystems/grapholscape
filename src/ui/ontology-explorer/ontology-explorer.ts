@@ -1,19 +1,14 @@
 import { css, html, LitElement } from 'lit'
-import { GrapholEntity } from '../../model'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
+import { EntityViewData } from '../util/search-entities'
 import { entityIcons, explore, searchOff } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
-import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
+import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
 import entityListItemStyle from './entity-list-item-style'
 import GscapeEntitySearch from './entity-search-component'
-
-
-export type EntityViewData = {
-  value: GrapholEntity,
-  viewOccurrences:  Map<DiagramViewData, OccurrenceIdViewData[]>
-}
+import emptySearchBlankState from '../util/empty-search-blank-state'
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
@@ -50,9 +45,24 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
         min-width: 200px;
       }
 
+      .gscape-panel-in-tray > .content-wrapper {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        max-height: 328px;
+      }
+
       .blank-slate {
         white-space: normal;
         transform: translateY(40%);
+      }
+
+      .list-wrapper {
+        position: relative;
+        overflow: hidden auto;
+        padding: 0px 8px;
+        scrollbar-width: inherit;
+        height: 100%;
       }
 
       .content-wrapper {
@@ -74,35 +84,30 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
     <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
       <div class="header">${this.title}</div>
-
-      ${this.searchEntityComponent}
-
       <div class="content-wrapper">
+        ${this.searchEntityComponent}
 
-        ${this.entities.length === 0
-          ? html`
-          <div class="blank-slate">
-            ${searchOff}
-            <div class="header">Can't find any entity</div>
-            <div class="description">Please try again with another search text.</div>
-          </div>
-          `
-          : null
-        }
+        <div class="list-wrapper">
 
-        ${this.entities.map(entity => {
-          return html`
-          <details class="ellipsed entity-list-item" title="${entity.value.iri.remainder}">
-            <summary class="actionable">
-              <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-              <span class="entity-name">${entity.value.iri.remainder}</span>
-            </summary>
-            <div class="summary-body">
-              ${getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)}
-            </div>
-          </details>
-          `
-        })}
+          ${this.entities.length === 0
+            ? emptySearchBlankState
+            : null
+          }
+
+          ${this.entities.map(entity => {
+            return html`
+            <details class="ellipsed entity-list-item" title="${entity.value.iri.remainder}">
+              <summary class="actionable">
+                <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
+                <span class="entity-name">${entity.value.iri.remainder}</span>
+              </summary>
+              <div class="summary-body">
+                ${getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)}
+              </div>
+            </details>
+            `
+          })}
+        </div>
       </div>
     </div>
     `

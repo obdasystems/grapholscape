@@ -1,6 +1,7 @@
 export { default as Ontology } from "./ontology"
 export { default as Diagram, ViewportState } from "./diagrams/diagram"
 export { default as DiagramRepresentation } from './diagrams/diagram-representation'
+export { default as IncrementalDiagram } from './diagrams/incremental-diagram'
 export { default as Namespace } from './namespace'
 export { default as Iri } from "./iri"
 export { default as Annotation } from './graphol-elems/annotation'
@@ -16,7 +17,9 @@ export { default as GrapholElement } from './graphol-elems/graphol-element'
 export { default as GrapholEntity } from './graphol-elems/entity'
 export * from './graphol-elems/entity'
 export { default as GrapholNode } from './graphol-elems/node'
+export { isGrapholNode } from './graphol-elems/node'
 export { default as GrapholEdge } from './graphol-elems/edge'
+export { isGrapholEdge } from './graphol-elems/edge'
 
 export { default as iFilterManager, BaseFilterManager } from './renderers/i-filter-manager'
 export { default as iRenderState, RendererStatesEnum } from './renderers/i-render-state'
