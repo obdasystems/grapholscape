@@ -63,6 +63,10 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
         scrollbar-width: inherit;
         height: 100%;
       }
+
+      .content-wrapper {
+        height: 100%;
+      }
     `
   ]
 
