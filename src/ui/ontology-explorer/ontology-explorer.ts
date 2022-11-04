@@ -8,6 +8,7 @@ import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
 import entityListItemStyle from './entity-list-item-style'
 import GscapeEntitySearch from './entity-search-component'
+import emptySearchBlankState from '../util/empty-search-blank-state'
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
@@ -89,13 +90,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
         <div class="list-wrapper">
 
           ${this.entities.length === 0
-            ? html`
-            <div class="blank-slate">
-              ${searchOff}
-              <div class="header">Can't find any entity</div>
-              <div class="description">Please try again with another search text.</div>
-            </div>
-            `
+            ? emptySearchBlankState
             : null
           }
 

@@ -4,6 +4,7 @@ import { GscapeButtonStyle } from '../common/button'
 import { GscapeActionListItem } from '../common/list-item'
 import GscapeEntitySearch from '../ontology-explorer/entity-search-component'
 import baseStyle from '../style'
+import emptySearchBlankState from '../util/empty-search-blank-state'
 import { EntityViewData, search } from '../util/search-entities'
 
 export default class GscapeEntitySelector extends BaseMixin(LitElement) {
@@ -103,6 +104,11 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
                 ></gscape-action-list-item>
               `
             })}
+
+            ${this.entityList.length === 0
+              ? emptySearchBlankState
+              : null
+            }
           </div>
         </div>
       </div>
