@@ -1,6 +1,5 @@
-/// <reference types="cytoscape" />
 import * as cytoscape$1 from 'cytoscape';
-import cytoscape__default, { Position, ElementDefinition, Stylesheet, CytoscapeOptions } from 'cytoscape';
+import cytoscape__default, { Position, ElementDefinition, Stylesheet, CytoscapeOptions, Layouts, SingularElementReturnValue } from 'cytoscape';
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement, PropertyDeclarations, CSSResultGroup, SVGTemplateResult } from 'lit';
@@ -121,7 +120,7 @@ declare const POLYGON_POINTS = "-0.9 -1 1 -1 0.9 1 -1 1";
  * Enumeration having `type`, `shape` and `identity` for each Graphol node
  * @type {object}
  */
-declare const _default$a: {
+declare const _default$b: {
     CLASS: {
         TYPE: GrapholTypesEnum;
         SHAPE: Shape;
@@ -302,6 +301,7 @@ declare class GrapholElement {
      */
     isEntity(): boolean;
     getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[];
+    clone(): GrapholElement;
 }
 
 declare class GrapholEdge extends GrapholElement {
@@ -339,7 +339,9 @@ declare class GrapholEdge extends GrapholElement {
     get type(): GrapholTypesEnum;
     set type(newType: GrapholTypesEnum);
     getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[];
+    clone(): GrapholEdge;
 }
+declare function isGrapholEdge(elem: GrapholElement): elem is GrapholEdge;
 
 declare class GrapholNode extends GrapholElement {
     private _x;
@@ -393,7 +395,9 @@ declare class GrapholNode extends GrapholElement {
     get fakeNodes(): GrapholNode[];
     addFakeNode(newFakeNode: GrapholNode): void;
     getCytoscapeRepr(grapholEntity?: GrapholEntity): ElementDefinition[];
+    clone(): GrapholNode;
 }
+declare function isGrapholNode(elem: GrapholElement): elem is GrapholNode;
 
 declare enum ColoursNames {
     /** Foreground color, used for main texts */
@@ -560,7 +564,7 @@ declare class Lifecycle {
 declare class Renderer {
     private _container;
     cy?: cytoscape__default.Core;
-    private _renderState;
+    private _renderState?;
     filters: Map<string, Filter>;
     diagram?: Diagram;
     private _theme;
@@ -677,10 +681,9 @@ declare class LiteRendererState extends BaseRenderer {
 }
 
 declare class FloatyRendererState extends BaseRenderer {
-    layout: cytoscape.Layouts;
     readonly id: RendererStatesEnum;
     filterManager: FilterManager;
-    private _layout;
+    protected _layout: cytoscape.Layouts;
     set renderer(newRenderer: Renderer);
     get renderer(): Renderer;
     transformOntology(ontology: Ontology): void;
@@ -696,15 +699,90 @@ declare class FloatyRendererState extends BaseRenderer {
     private updatePopper;
     unpinNode(node: any): void;
     private removeUnlockButton;
-    private setDragAndPinEventHandlers;
+    protected setDragAndPinEventHandlers(): void;
     private grabHandler;
     private freeHandler;
-    private floatyLayoutOptions;
+    protected floatyLayoutOptions: {
+        name: string;
+        avoidOverlap: boolean;
+        edgeLength: (edge: any) => any;
+        fit: boolean;
+        maxSimulationTime: number;
+        infinite: boolean;
+        handleDisconnected: boolean;
+        centerGraph: boolean;
+    };
     get isLayoutInfinite(): boolean;
     get dragAndPin(): boolean;
     set dragAndPin(isActive: boolean);
-    private get popperContainer();
-    private get popperContainers();
+    protected get popperContainer(): HTMLDivElement;
+    protected get popperContainers(): Map<number, HTMLDivElement>;
+    get layout(): Layouts;
+}
+
+declare class DiagramRepresentation {
+    private _cy;
+    private _grapholElements;
+    private _hasEverBeenRendered;
+    constructor(cyConfig?: cytoscape__default.CytoscapeOptions);
+    get cy(): cytoscape__default.Core;
+    set cy(newCy: cytoscape__default.Core);
+    get hasEverBeenRendered(): boolean;
+    set hasEverBeenRendered(value: boolean);
+    /**
+     * Add a new element (node or edge) to the diagram
+     * @param newElement the GrapholElement to add to the diagram
+     */
+    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
+    removeElement(elementId: string): void;
+    updateElement(element: GrapholElement): void;
+    updateElement(elementId: string): void;
+    get grapholElements(): Map<string, GrapholElement>;
+    set grapholElements(newElementMap: Map<string, GrapholElement>);
+    /**
+     * Getter
+     */
+    get nodes(): string[];
+    /**
+     * Getter
+     */
+    get edges(): string[];
+}
+
+declare class IncrementalDiagram extends Diagram {
+    constructor();
+    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
+    removeElement(elementId: string): void;
+    get representation(): DiagramRepresentation;
+}
+
+/**
+ * The incremental renderer state is a kind of floaty renderer state in which
+ * ontology's diagrams are used only to compute what to show.
+ * There is only a single empty diagram and any render() call just render the same diagram
+ * no matter what was the input diagram.
+ *
+ * This renderer state is logic agnostic, meaning that it does not control what to show and when.
+ * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
+ */
+declare class IncrementalRendererState extends FloatyRendererState {
+    readonly id = RendererStatesEnum.INCREMENTAL;
+    filterManager: FilterManager;
+    private previousDiagram;
+    protected activeClass?: SingularElementReturnValue;
+    private entityExpansionCallback;
+    render(): void;
+    stopRendering(): void;
+    transformOntology(ontology: Ontology): void;
+    onEntityExpansion(callback: (selectedElement: SingularElementReturnValue) => void): void;
+    handleClassExpansion(classElement: SingularElementReturnValue): void;
+    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
+    protected overrideDiagram(): void;
+    createNewDiagram(): void;
+    get diagramRepresentation(): DiagramRepresentation;
+    get incrementalDiagram(): IncrementalDiagram;
+    set renderer(newRenderer: Renderer);
+    get renderer(): Renderer;
 }
 
 /**
@@ -766,7 +844,8 @@ declare abstract class BaseFilterManager implements FilterManager {
 declare enum RendererStatesEnum {
     GRAPHOL = "graphol",
     GRAPHOL_LITE = "lite",
-    FLOATY = "floaty"
+    FLOATY = "floaty",
+    INCREMENTAL = "incremental"
 }
 interface RenderState {
     id: RendererStatesEnum;
@@ -874,34 +953,6 @@ declare class GrapholEntity extends AnnotatedElement {
     hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum): boolean;
 }
 
-declare class DiagramRepresentation {
-    private _cy;
-    private _grapholElements;
-    private _hasEverBeenRendered;
-    constructor(cyConfig?: cytoscape__default.CytoscapeOptions);
-    get cy(): cytoscape__default.Core;
-    set cy(newCy: cytoscape__default.Core);
-    get hasEverBeenRendered(): boolean;
-    set hasEverBeenRendered(value: boolean);
-    /**
-     * Add a new element (node or edge) to the diagram
-     * @param newElement the GrapholElement to add to the diagram
-     */
-    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
-    updateElement(element: GrapholElement): void;
-    updateElement(elementId: string): void;
-    get grapholElements(): Map<string, GrapholElement>;
-    set grapholElements(newElementMap: Map<string, GrapholElement>);
-    /**
-     * Getter
-     */
-    get nodes(): string[];
-    /**
-     * Getter
-     */
-    get edges(): string[];
-}
-
 declare type ViewportState = {
     pan: Position;
     zoom: number;
@@ -972,6 +1023,7 @@ declare class Ontology extends AnnotatedElement {
     getDiagramByName(name: string): Diagram | undefined;
     addEntity(entity: GrapholEntity): void;
     getEntity(iri: string): GrapholEntity;
+    getEntityFromOccurrence(entityOccurrence: EntityOccurrence): GrapholEntity;
     getGrapholElement(elementId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholElement;
     getGrapholNode(nodeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode;
     getGrapholEdge(edgeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode;
@@ -1044,6 +1096,7 @@ declare abstract class BaseRenderer implements RenderState {
 declare enum WidgetEnum {
     DIAGRAM_SELECTOR = "diagram-selector",
     ENTITY_DETAILS = "details",
+    ENTITY_SELECTOR = "entity-selector",
     FILTERS = "filters",
     FIT_BUTTON = "fit-button",
     FULLSCREEN_BUTTON = "fullscreen-button",
@@ -1053,7 +1106,8 @@ declare enum WidgetEnum {
     RENDERER_SELECTOR = "renderer-selector",
     LAYOUT_SETTINGS = "layout-settings",
     SETTINGS = "settings",
-    ZOOM_TOOLS = "zoom-tools"
+    ZOOM_TOOLS = "zoom-tools",
+    INITIAL_RENDERER_SELECTOR = "initial-renderer-selector"
 }
 
 declare enum Language {
@@ -1078,7 +1132,9 @@ declare type GrapholscapeConfig = {
     language?: Language | string;
     entityNameType?: EntityNameType;
     renderers?: RendererStatesEnum[];
+    selectedRenderer?: RendererStatesEnum;
     widgets?: WidgetsConfig;
+    initialRendererSelection?: boolean;
 };
 
 /**
@@ -1093,7 +1149,7 @@ declare function loadConfig(): GrapholscapeConfig;
 declare function storeConfigEntry(k: string, value: any): void;
 declare function clearLocalStorage(): void;
 
-declare const _default$9: CytoscapeOptions;
+declare const _default$a: CytoscapeOptions;
 
 declare const liteOptions: {
     layout: {
@@ -1140,7 +1196,7 @@ declare class Grapholscape {
      * that changes the way the {@link Renderer} performs the main operations on a
      * {@link !model.Diagram} such as rendering it and filtering elements in it.
      * The renderer states included in Grapholscape are: {@link GrapholRendererState},
-     * {@link LiteRendererState} and {@link FloatyRenderState}.
+     * {@link LiteRendererState} and {@link FloatyRendererState}.
      *
      * @param newRenderState the renderer state instance to set, if you want to reuse
      * these instances it's totally up to you.
@@ -1385,7 +1441,7 @@ declare class GscapeButton extends LitElement {
     private get altIcon();
 }
 
-declare const _default$8: lit.CSSResult;
+declare const _default$9: lit.CSSResult;
 
 declare enum ToggleLabelPosition {
     LEFT = "left",
@@ -1437,15 +1493,15 @@ declare class GscapeActionListItem extends LitElement {
     private get hiddenContent();
 }
 
-declare const _default$7: lit.CSSResult;
+declare const _default$8: lit.CSSResult;
 
 declare type Constructor$1<T = {}> = new (...args: any[]) => T;
 declare class IBaseMixin {
-    hide(): () => void;
-    show(): () => void;
-    enable(): () => void;
-    disable(): () => void;
-    onStateChange: () => void;
+    hide(): void;
+    show(): void;
+    enable(): void;
+    disable(): void;
+    onStateChange(): void;
     isVisible: boolean;
     enabled: boolean;
 }
@@ -1453,30 +1509,49 @@ declare const BaseMixin: <T extends Constructor$1<LitElement>>(superClass: T) =>
 
 declare type Constructor<T = {}> = new (...args: any[]) => T;
 declare class IDropPanelMixin {
-    togglePanel: () => void;
-    openPanel: () => void;
-    closePanel: () => void;
+    togglePanel(): void;
+    openPanel(): void;
+    closePanel(): void;
     protected get panel(): HTMLElement | undefined | null;
-    onTogglePanel: () => void;
-    isPanelClosed: () => boolean;
+    onTogglePanel(): void;
+    isPanelClosed(): boolean;
 }
 declare const DropPanelMixin: <T extends Constructor<LitElement>>(superClass: T) => Constructor<IDropPanelMixin> & T;
 declare function hasDropPanel(element: any): element is IDropPanelMixin;
 
 declare const BOTTOM_RIGHT_WIDGET: lit.CSSResult;
-declare const _default$6: lit.CSSResult;
+declare const _default$7: lit.CSSResult;
 
+declare const _default$6: lit_html.TemplateResult<1>;
+
+declare type DiagramViewData = {
+    id: number;
+    name: string;
+};
+declare type OccurrenceIdViewData = {
+    originalId: string;
+    realId: string;
+};
+
+declare type EntityViewData = {
+    value: GrapholEntity;
+    viewOccurrences: Map<DiagramViewData, OccurrenceIdViewData[]>;
+};
 interface IEntityFilters {
-    [GrapholTypesEnum.CLASS]: Boolean;
-    [GrapholTypesEnum.DATA_PROPERTY]: Boolean;
-    [GrapholTypesEnum.OBJECT_PROPERTY]: Boolean;
-    [GrapholTypesEnum.INDIVIDUAL]: Boolean;
+    [GrapholTypesEnum.CLASS]?: Boolean;
+    [GrapholTypesEnum.DATA_PROPERTY]?: Boolean;
+    [GrapholTypesEnum.OBJECT_PROPERTY]?: Boolean;
+    [GrapholTypesEnum.INDIVIDUAL]?: Boolean;
+    areAllFiltersDisabled: boolean;
 }
+declare function createEntitiesList(grapholscape: Grapholscape, entityFilters: IEntityFilters): EntityViewData[];
+declare function search(searchValue: string, entities: EntityViewData[]): EntityViewData[];
+
 declare class GscapeEntitySearch extends LitElement implements IEntityFilters {
-    [GrapholTypesEnum.CLASS]: Boolean;
-    [GrapholTypesEnum.DATA_PROPERTY]: Boolean;
-    [GrapholTypesEnum.OBJECT_PROPERTY]: Boolean;
-    [GrapholTypesEnum.INDIVIDUAL]: Boolean;
+    [GrapholTypesEnum.CLASS]?: boolean;
+    [GrapholTypesEnum.DATA_PROPERTY]?: boolean;
+    [GrapholTypesEnum.OBJECT_PROPERTY]?: boolean;
+    [GrapholTypesEnum.INDIVIDUAL]?: boolean;
     private _onSearchCallback;
     private _onEntityFilterToggleCallback;
     static properties: PropertyDeclarations;
@@ -1486,21 +1561,50 @@ declare class GscapeEntitySearch extends LitElement implements IEntityFilters {
     private toggleChipsFilters;
     onSearch(callback: (e: KeyboardEvent) => void): void;
     onEntityFilterToggle(callback: () => void): void;
+    get areAllFiltersDisabled(): boolean;
+    private get classes();
+    private get objectProperties();
+    private get dataProperties();
+    private get individuals();
+    private get atLeastTwoFilters();
 }
 
 declare const _default$5: lit.CSSResult;
 
-declare const diagrams = "<svg fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" height=\"20\" width=\"20\"><path d=\"M6.333 5.438Q5.875 5.438 5.552 5.76Q5.229 6.083 5.229 6.542Q5.229 7 5.552 7.302Q5.875 7.604 6.333 7.604Q6.792 7.604 7.094 7.302Q7.396 7 7.396 6.542Q7.396 6.083 7.094 5.76Q6.792 5.438 6.333 5.438ZM6.333 13.208Q5.875 13.208 5.552 13.51Q5.229 13.812 5.229 14.271Q5.229 14.729 5.552 15.052Q5.875 15.375 6.333 15.375Q6.792 15.375 7.094 15.052Q7.396 14.729 7.396 14.271Q7.396 13.812 7.094 13.51Q6.792 13.208 6.333 13.208ZM3.667 3.167H16.354Q16.667 3.167 16.875 3.375Q17.083 3.583 17.083 3.896V9.104Q17.083 9.458 16.875 9.677Q16.667 9.896 16.354 9.896H3.667Q3.354 9.896 3.135 9.677Q2.917 9.458 2.917 9.104V3.896Q2.917 3.583 3.135 3.375Q3.354 3.167 3.667 3.167ZM4.25 4.5V8.562H15.75V4.5ZM3.667 10.938H16.333Q16.667 10.938 16.875 11.156Q17.083 11.375 17.083 11.708V16.875Q17.083 17.229 16.875 17.448Q16.667 17.667 16.333 17.667H3.688Q3.354 17.667 3.135 17.448Q2.917 17.229 2.917 16.875V11.708Q2.917 11.375 3.125 11.156Q3.333 10.938 3.667 10.938ZM4.25 12.271V16.333H15.75V12.271ZM4.25 4.5V8.562ZM4.25 12.271V16.333Z\"/></svg>";
+declare const GscapeEntitySelector_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeEntitySelector extends GscapeEntitySelector_base {
+    title: string;
+    private fullEntityList;
+    private _entityList;
+    searchEntityComponent: GscapeEntitySearch;
+    private onClassSelectionCallback;
+    static get properties(): {
+        entityList: {
+            type: ObjectConstructor;
+            attribute: boolean;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor();
+    render(): lit_html.TemplateResult<1>;
+    blur(): void;
+    private handleEntitySelection;
+    onClassSelection(callback: (iri: string) => void): void;
+    set entityList(newEntityList: EntityViewData[]);
+    get entityList(): EntityViewData[];
+}
+
+declare const diagrams: lit_html.TemplateResult<2>;
 declare const triangle_up: lit_html.TemplateResult<2>;
 declare const triangle_down: lit_html.TemplateResult<2>;
 declare const arrow_right: lit_html.TemplateResult<2>;
-declare const arrowDown = "<svg fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" height=\"20\" width=\"20\"><path d=\"M10 12 6 8H14Z\"/></svg>";
+declare const arrowDown: lit_html.TemplateResult<2>;
 declare const explore: lit_html.TemplateResult<2>;
 declare const info_outline: lit_html.TemplateResult<2>;
-declare const enterFullscreen = "<svg fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" height=\"20\" width=\"20\"><path d=\"M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z\"/></svg>";
-declare const exitFullscreen = "<svg fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" height=\"20\" width=\"20\"><path d=\"M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z\"/></svg>";
-declare const centerDiagram = "<svg fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" height=\"20\" width=\"20\"><path d=\"M10 12.167Q9.104 12.167 8.469 11.531Q7.833 10.896 7.833 10Q7.833 9.104 8.469 8.469Q9.104 7.833 10 7.833Q10.896 7.833 11.531 8.469Q12.167 9.104 12.167 10Q12.167 10.896 11.531 11.531Q10.896 12.167 10 12.167ZM2.917 7.542V4.5Q2.917 3.833 3.375 3.375Q3.833 2.917 4.5 2.917H7.542V4.25H4.5Q4.417 4.25 4.333 4.333Q4.25 4.417 4.25 4.5V7.542ZM7.542 17.083H4.5Q3.833 17.083 3.375 16.625Q2.917 16.167 2.917 15.5V12.458H4.25V15.5Q4.25 15.583 4.333 15.667Q4.417 15.75 4.5 15.75H7.542ZM12.458 17.083V15.75H15.5Q15.583 15.75 15.667 15.667Q15.75 15.583 15.75 15.5V12.458H17.083V15.5Q17.083 16.167 16.625 16.625Q16.167 17.083 15.5 17.083ZM15.75 7.542V4.5Q15.75 4.417 15.667 4.333Q15.583 4.25 15.5 4.25H12.458V2.917H15.5Q16.167 2.917 16.625 3.375Q17.083 3.833 17.083 4.5V7.542ZM10 10.833Q10.354 10.833 10.594 10.594Q10.833 10.354 10.833 10Q10.833 9.646 10.594 9.406Q10.354 9.167 10 9.167Q9.646 9.167 9.406 9.406Q9.167 9.646 9.167 10Q9.167 10.354 9.406 10.594Q9.646 10.833 10 10.833Z\"/></svg>";
-declare const filter = "<svg fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" height=\"20\" width=\"20\"><path d=\"M8.062 13.979V12.583H11.938V13.979ZM5.104 10.5V9.104H14.875V10.5ZM3.146 7V5.604H16.854V7Z\"/></svg>";
+declare const enterFullscreen: lit_html.TemplateResult<2>;
+declare const exitFullscreen: lit_html.TemplateResult<2>;
+declare const centerDiagram: lit_html.TemplateResult<2>;
+declare const filter: lit_html.TemplateResult<2>;
 declare const bubbles: lit_html.TemplateResult<2>;
 declare const lite: lit_html.TemplateResult<2>;
 declare const settings_icon: lit_html.TemplateResult<2>;
@@ -1526,6 +1630,8 @@ declare const owl_icon: lit_html.TemplateResult<2>;
 declare const graphol_icon: lit_html.TemplateResult<2>;
 declare const tune: lit_html.TemplateResult<2>;
 declare const filterOff: lit_html.TemplateResult<2>;
+declare const incremental: lit_html.TemplateResult<2>;
+declare const refresh: lit_html.TemplateResult<2>;
 declare const entityIcons: {
     [x: string]: SVGTemplateResult;
 };
@@ -1568,6 +1674,8 @@ declare const index_d$1_owl_icon: typeof owl_icon;
 declare const index_d$1_graphol_icon: typeof graphol_icon;
 declare const index_d$1_tune: typeof tune;
 declare const index_d$1_filterOff: typeof filterOff;
+declare const index_d$1_incremental: typeof incremental;
+declare const index_d$1_refresh: typeof refresh;
 declare const index_d$1_entityIcons: typeof entityIcons;
 declare namespace index_d$1 {
   export {
@@ -1604,6 +1712,8 @@ declare namespace index_d$1 {
     index_d$1_graphol_icon as graphol_icon,
     index_d$1_tune as tune,
     index_d$1_filterOff as filterOff,
+    index_d$1_incremental as incremental,
+    index_d$1_refresh as refresh,
     index_d$1_entityIcons as entityIcons,
   };
 }
@@ -1613,6 +1723,26 @@ declare namespace index_d$1 {
  */
 declare function export_default(grapholscape: Grapholscape): void;
 
+declare type UiOption = {
+    name: string;
+    id: string;
+    icon: SVGTemplateResult;
+    description?: string;
+};
+
+declare const GscapeFullPageSelector_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeFullPageSelector extends GscapeFullPageSelector_base {
+    options: (UiOption | undefined)[];
+    private _title;
+    onOptionSelection: (optionId: string) => void;
+    static properties: PropertyDeclarations;
+    static styles: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private handleRendererSelection;
+}
+
+declare function initInitialRendererSelector(grapholscape: Grapholscape): void;
+
 /** @module UI */
 
 type index_d_GscapeToggle = GscapeToggle;
@@ -1621,6 +1751,8 @@ type index_d_WidgetEnum = WidgetEnum;
 declare const index_d_WidgetEnum: typeof WidgetEnum;
 type index_d_GscapeEntitySearch = GscapeEntitySearch;
 declare const index_d_GscapeEntitySearch: typeof GscapeEntitySearch;
+type index_d_GscapeEntitySelector = GscapeEntitySelector;
+declare const index_d_GscapeEntitySelector: typeof GscapeEntitySelector;
 type index_d_GscapeButton = GscapeButton;
 declare const index_d_GscapeButton: typeof GscapeButton;
 type index_d_SizeEnum = SizeEnum;
@@ -1636,29 +1768,56 @@ type index_d_IDropPanelMixin = IDropPanelMixin;
 declare const index_d_IDropPanelMixin: typeof IDropPanelMixin;
 declare const index_d_DropPanelMixin: typeof DropPanelMixin;
 declare const index_d_hasDropPanel: typeof hasDropPanel;
+type index_d_GscapeFullPageSelector = GscapeFullPageSelector;
+declare const index_d_GscapeFullPageSelector: typeof GscapeFullPageSelector;
+declare const index_d_initInitialRendererSelector: typeof initInitialRendererSelector;
+type index_d_EntityViewData = EntityViewData;
+type index_d_IEntityFilters = IEntityFilters;
+declare const index_d_createEntitiesList: typeof createEntitiesList;
+declare const index_d_search: typeof search;
 declare namespace index_d {
   export {
     index_d_GscapeToggle as GscapeToggle,
-    _default$6 as baseStyle,
+    _default$7 as baseStyle,
     BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS,
     index_d_WidgetEnum as WidgetEnum,
+    _default$6 as emptySearchBlankState,
     _default$5 as entityListItemStyle,
     index_d_GscapeEntitySearch as GscapeEntitySearch,
+    index_d_GscapeEntitySelector as GscapeEntitySelector,
     index_d$1 as icons,
     export_default as initUI,
     index_d_GscapeButton as GscapeButton,
-    _default$8 as GscapeButtonStyle,
+    _default$9 as GscapeButtonStyle,
     index_d_SizeEnum as SizeEnum,
     index_d_ToggleLabelPosition as ToggleLabelPosition,
     index_d_GscapeActionListItem as GscapeActionListItem,
-    _default$7 as GscapeActionListStyle,
+    _default$8 as GscapeActionListStyle,
     index_d_IBaseMixin as IBaseMixin,
     index_d_BaseMixin as BaseMixin,
     index_d_IDropPanelMixin as IDropPanelMixin,
     index_d_DropPanelMixin as DropPanelMixin,
     index_d_hasDropPanel as hasDropPanel,
+    index_d_GscapeFullPageSelector as GscapeFullPageSelector,
+    index_d_initInitialRendererSelector as initInitialRendererSelector,
+    index_d_EntityViewData as EntityViewData,
+    index_d_IEntityFilters as IEntityFilters,
+    index_d_createEntitiesList as createEntitiesList,
+    index_d_search as search,
   };
 }
+
+/**
+ * Given a selected class compute the neighbourhood across all diagrams
+ * and merge it all in the single incremental diagram
+ * @param selectedElement
+ * @param grapholscape
+ */
+declare function addClassNeighbourhood(selectedElement: SingularElementReturnValue, grapholscape: Grapholscape): void;
+declare function addFirstClassInIncremental(iri: string, grapholscape: Grapholscape, incrementalDiagramRepresentation: DiagramRepresentation): void;
+declare function initIncremental(incrementalRendererState: IncrementalRendererState, grapholscape: Grapholscape): void;
+
+declare function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifecycle, ontology: Ontology): void;
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -1697,4 +1856,4 @@ declare function fullGrapholscape(file: string | File, container: HTMLElement, c
  */
 declare function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape>;
 
-export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColourMap, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, EntityOccurrence, Filter, FloatyRendererState as FloatyRenderState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, _default$a as GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, ThemeConfig, ViewportState, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$9 as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, liteOptions, loadConfig, storeConfigEntry, index_d as ui };
+export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColourMap, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, EntityOccurrence, Filter, FloatyRendererState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, _default$b as GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, IncrementalDiagram, IncrementalRendererState, IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, ThemeConfig, ViewportState, WidgetsConfig, addClassNeighbourhood, addFirstClassInIncremental, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$a as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, setGraphEventHandlers, storeConfigEntry, index_d as ui };
