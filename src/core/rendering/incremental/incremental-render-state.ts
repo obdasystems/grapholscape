@@ -1,4 +1,4 @@
-import { CollectionReturnValue, Layouts, SingularElementReturnValue, Stylesheet } from "cytoscape"
+import { NodeSingular, SingularElementReturnValue, Stylesheet } from "cytoscape"
 import { FloatyRendererState, Renderer } from ".."
 import { Diagram, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
@@ -22,6 +22,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
   protected activeClass?: SingularElementReturnValue
 
   private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
+  onContextClickCallback: (target: any) => void
 
   render() {
     this.overrideDiagram()
@@ -84,9 +85,18 @@ export default class IncrementalRendererState extends FloatyRendererState {
     this.floatyLayoutOptions.fit = true
     this.overrideDiagram()
     this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
+
+    this.diagramRepresentation.cy.on('cxttap', `node`, evt => {
+      this.onContextClickCallback(evt.target)
+    })
+
     this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
     this.setDragAndPinEventHandlers()
     this.render()
+  }
+
+  onContextClick(callback: (target: NodeSingular) => void) {
+    this.onContextClickCallback = callback
   }
 
   get diagramRepresentation() {

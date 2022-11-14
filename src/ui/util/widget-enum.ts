@@ -13,4 +13,5 @@ export enum WidgetEnum {
   SETTINGS = 'settings',
   ZOOM_TOOLS = 'zoom-tools',
   INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
+  INCREMENTAL_MENU = 'incremental-menu',
 }

@@ -5,6 +5,7 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 export declare class IBaseMixin {
   hide(): void
   show(): void
+  showInPosition(position?: { x: number, y: number }): void
   enable(): void
   disable(): void
   onStateChange(): void
@@ -32,6 +33,17 @@ export const BaseMixin = <T extends Constructor<LitElement>>(superClass: T) => {
     show() {
       if (this.enabled && this.style.display === 'none')
         this.style.display = this.display
+    }
+
+    showInPosition(position?: { x: number, y: number }) {
+      if (this.style.position !== 'absolute') {
+        console.warn('Grapholscape: showInPosition() has no effect with position different from absolute or relative')
+      }
+      this.show()
+      if(position) {
+        this.style.top = position.y + "px"
+        this.style.left = position.x + "px"
+      }
     }
 
     enable() {

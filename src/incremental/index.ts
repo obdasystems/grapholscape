@@ -3,6 +3,11 @@ import { Grapholscape } from "../core";
 import IncrementalRendererState from "../core/rendering/incremental/incremental-render-state";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, GrapholTypesEnum, isGrapholEdge, isGrapholNode, RendererStatesEnum } from "../model";
+import { WidgetEnum } from "../ui";
+import GscapeIncrementalMenu from "../ui/incremental-menu/incremental-menu";
+import NeighbourhoodFinder from "./neighbourhood-finder";
+import DiagramBuilder from "./diagram-builder";
+import { vKGApiStub as vKGApi } from "./kg-api";
 
 /**
  * Given a selected class compute the neighbourhood across all diagrams
@@ -82,7 +87,7 @@ export function addClassNeighbourhood(selectedElement: SingularElementReturnValu
   /**
    * Union nodes with the superclass of the union, must not be removed if
    * there is a path between two expanded classes through a union.
-   */ 
+   */
   incrementalDiagramRepresentation.cy.nodes('[!iri]').forEach(unionNode => {
     if (unionNode.edgesWith(expandedClasses).size() >= 2) {
       elementsToRemove = elementsToRemove
@@ -150,14 +155,58 @@ export function addFirstClassInIncremental(iri: string, grapholscape: Grapholsca
   grapholElement.id = `${grapholElement.id}-${entityOccurrence.diagramId}`
   incrementalDiagramRepresentation.addElement(grapholElement, grapholEntity);
   (grapholscape.renderer.renderState as IncrementalRendererState).pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id))
-  addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape)
+  //addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape)
   grapholscape.renderer.renderState.runLayout()
 }
 
 export function initIncremental(incrementalRendererState: IncrementalRendererState, grapholscape: Grapholscape) {
+  const neighbourhoodFinder = new NeighbourhoodFinder(grapholscape.ontology)
+  const diagramBuilder = new DiagramBuilder(grapholscape.ontology, incrementalRendererState.incrementalDiagram)
+
   incrementalRendererState.onEntityExpansion((selectedElement) => {
-    addClassNeighbourhood(selectedElement, grapholscape)
+    //addClassNeighbourhood(selectedElement, grapholscape)
     incrementalRendererState.runLayout()
+  })
+
+  incrementalRendererState.onContextClick(target => {
+    diagramBuilder.diagram = grapholscape.renderer.diagram
+    diagramBuilder.referenceNodeId = target.id()
+    const incrementalMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalMenu
+
+    if (incrementalMenu) {
+      const suggestedObjectProperties = neighbourhoodFinder.getObjectProperties(target.data().iri)
+      incrementalMenu.objectProperties = Array.from(suggestedObjectProperties).map(v => { 
+        return { 
+          objectPropertyIri: v[0].iri.prefixed,
+          classesIris: v[1].connectedClasses.map(c => c.iri.prefixed)
+        } 
+      })
+
+      incrementalMenu.attachTo((target as any).popperRef())
+      incrementalMenu.onEntitySelection = (entityIri, objectPropertyIri) => {
+        if (objectPropertyIri) {
+          const objectPropertyEntity = grapholscape.ontology.getEntity(objectPropertyIri)
+          const direct = suggestedObjectProperties.get(objectPropertyEntity).direct
+          diagramBuilder.addEntity(objectPropertyIri, entityIri, direct)
+        }
+        else {
+          diagramBuilder.addEntity(entityIri)
+        }
+
+        incrementalRendererState.runLayout()
+      }
+
+      incrementalMenu.onInstanceSelection = (instanceIri) => {
+        diagramBuilder.addClassInstance(instanceIri)
+        incrementalRendererState.runLayout()
+      }
+
+      incrementalMenu.onShowInstances = () => {
+        incrementalMenu.instances = vKGApi.getInstances(target.data().iri).map(classInstance => {
+          return classInstance.label || classInstance.iri
+        })
+      }
+    }
   })
 
   setGraphEventHandlers(incrementalRendererState.incrementalDiagram, grapholscape.lifecycle, grapholscape.ontology)

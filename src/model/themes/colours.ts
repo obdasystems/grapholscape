@@ -100,7 +100,12 @@ export enum ColoursNames {
   /** Opposite color of label */
   label_contrast = 'label-contrast',
   /** Edges lines color */
-  edge = 'edge'
+  edge = 'edge',
+
+
+  // Instances Colors
+  class_instance = 'class-instance',
+  class_instance_contrast = 'class-instance-contrast'
 }
 
 export type ColourMap = { [key in ColoursNames]?: string }

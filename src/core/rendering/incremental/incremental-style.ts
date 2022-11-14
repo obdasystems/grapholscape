@@ -13,6 +13,24 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    {
+      selector: `node[ type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      style: {
+        backgroundColor: theme.getColour(ColoursNames.class_instance),
+        "border-color": theme.getColour(ColoursNames.class_instance_contrast),
+      }
+    },
+
+    {
+      selector: `edge[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      style: {
+        "target-arrow-shape": 'triangle',
+        'target-arrow-fill': 'filled',
+        'line-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast)
+      }
+    }
+
   ] as Stylesheet[]
 
   return baseStyle.concat(incrementalStyle)

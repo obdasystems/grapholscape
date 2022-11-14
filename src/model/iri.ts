@@ -55,7 +55,10 @@ export default class Iri {
     return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`
   }
 
-  public equals(iriToCheck: string) {
+  public equals(iriToCheck: string | Iri) {
+    if (typeof iriToCheck !== 'string') {
+      iriToCheck = iriToCheck.fullIri
+    }
     if (this.fullIri === iriToCheck || this.prefixed === iriToCheck) return true
     if (!this.namespace) return false
 

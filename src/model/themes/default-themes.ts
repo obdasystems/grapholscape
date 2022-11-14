@@ -63,6 +63,10 @@ export const gscapeColourMap: ColourMap = {
   [ColoursNames.danger]: '#cf222e',
   [ColoursNames.danger_muted]: 'rgba(255, 129, 130, 0.4)',
   [ColoursNames.danger_subtle]: '#FFEBE9',
+
+  // Instance Colours
+  [ColoursNames.class_instance]: '#ffa348',
+  [ColoursNames.class_instance_contrast]: '#c64600'
 }
 
 export const classicColourMap: ColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap)), {

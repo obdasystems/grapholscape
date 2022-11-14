@@ -2,6 +2,7 @@ import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
 import { IBaseMixin } from "./common/base-widget-mixin";
 import { hasDropPanel } from "./common/drop-panel-mixin";
+import initContextMenu from "./incremental-menu";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails from "./entity-details";
 import initEntitySelector from "./entity-selector";
@@ -49,6 +50,7 @@ export default function (grapholscape: Grapholscape) {
   initSettings(grapholscape)
   initEntitySelector(grapholscape)
   initInitialRendererSelector(grapholscape)
+  initContextMenu(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
 
@@ -63,6 +65,7 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.ENTITY_DETAILS:
       case WidgetEnum.OWL_VISUALIZER:
       case WidgetEnum.ENTITY_SELECTOR:
+      case WidgetEnum.INCREMENTAL_MENU:
         guiContainer.appendChild(widget)
         break
 

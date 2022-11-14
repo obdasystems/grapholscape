@@ -59,6 +59,8 @@ export enum GrapholTypesEnum {
   DIFFERENT = 'different',
   /** @type {"membership"} */
   MEMBERSHIP = 'membership',
+  /** @type {"class-instance"} */
+  CLASS_INSTANCE = 'class-instance'
 }
 
 /**
