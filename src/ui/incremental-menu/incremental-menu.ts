@@ -11,16 +11,19 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
   private entitySearchComponent: GscapeEntitySearch
 
   objectProperties?: {
-      objectPropertyIri: string,
-      classesIris: string[],
+    objectPropertyIri: string,
+    classesIris: string[],
   }[]
   instances?: string[]
   dataPropertyEnabled = false
+  showDataPropertyToggle = false
 
   onEntitySelection = (iri: string, objectPropertyIri?: string) => { }
   onShowInstances = () => { }
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
+  onShowSuperClasses = (iri: string) => { }
+  onHideSuperClasses = (iri: string) => { }
 
   constructor() {
     super()
@@ -31,6 +34,7 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     objectProperties: { type: Object, attribute: false },
     instances: { type: Array, attribute: false },
     dataPropertyEnabled: { type: Boolean, attribute: false },
+    showDataPropertyToggle: { type: Boolean, attribute: false },
   }
 
   static styles = [
@@ -42,47 +46,53 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     return html`
     <div class="gscape-panel">
       <div class="header">Menu</div>
-
-      <gscape-toggle 
-        class="actionable"
-        label="Data Properties"
-        ?checked=${this.dataPropertyEnabled}
-        @click=${this.handleDataPropertyToggle}
-      ></gscape-toggle>
-
+      ${this.showDataPropertyToggle
+      ? html`
+      <gscape-toggle class="actionable" label="Data Properties" ?checked=${this.dataPropertyEnabled}
+        @click=${this.handleDataPropertyToggle}>
+      </gscape-toggle>
+      `
+      : null
+      }
+    
+    
+      <gscape-button label="Show super-classes" @click=${this.onShowSuperClasses}></gscape-button>
+      <gscape-button label="Hide super-classes" @click=${this.onHideSuperClasses}></gscape-button>
+    
       ${this.entitySearchComponent}
-
+    
       <div>Instances</div>
       <details class="ellipsed entity-list-item" title="Instances">
         <summary class="actionable" @click=${this.onShowInstances}>
           <span class="entity-type-icon">${classInstanceIcon}</span>
           <span class="entity-type-name">Instances</span>
         </summary>
-      
+    
         <div class="summary-body">
           ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance, GrapholTypesEnum.CLASS_INSTANCE))}
         </div>
       </details>
-
+    
       ${this.objectProperties
-        ? html`<div>Object Properties</div>`
-        : null
+      ? html`<div>Object Properties</div>`
+      : null
       }
       ${this.objectProperties?.map((op) => {
-        return html`
-          <details class="ellipsed entity-list-item" title=${op.objectPropertyIri}>
-            <summary class="actionable">
-              <span class="entity-type-icon">${objectPropertyIcon}</span>
-              <span class="entity-type-name">${op.objectPropertyIri}</span>
-            </summary>
-          
-            <div class="summary-body">
-              ${op.classesIris.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS, op.objectPropertyIri))}
-            </div>
-          </details>
-        `
+      return html`
+      <details class="ellipsed entity-list-item" title=${op.objectPropertyIri}>
+        <summary class="actionable">
+          <span class="entity-type-icon">${objectPropertyIcon}</span>
+          <span class="entity-type-name">${op.objectPropertyIri}</span>
+        </summary>
+    
+        <div class="summary-body">
+          ${op.classesIris.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS,
+          op.objectPropertyIri))}
+        </div>
+      </details>
+      `
       })}
-      
+    
     </div>
     `
   }
@@ -98,13 +108,9 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
 
   private getEntitySuggestionTemplate(entityIri: string, entityType: GrapholTypesEnum, objectPropertyIri?: string) {
     return html`
-      <div
-        title=${entityIri}
-        iri=${entityIri}
-        entity-type="${entityType}"
-        class="ellipsed entity-list-item actionable"
-        @click=${(e: Event) => this.handleEntityClick(e, objectPropertyIri)}
-      >
+      <div title=${entityIri} iri=${entityIri} entity-type="${entityType}" class="ellipsed entity-list-item actionable"
+        @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri)}
+        >
         ${entityIri}
       </div>
     `
@@ -119,7 +125,7 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     } else {
       this.onEntitySelection(iri, objectPropertyIri)
     }
-    
+
   }
 
   private handleDataPropertyToggle(evt: MouseEvent) {

@@ -1,5 +1,6 @@
-import { NodeDefinition } from "cytoscape";
+import cytoscape, { Collection, EdgeCollection, EdgeSingular, NodeDefinition } from "cytoscape";
 import { Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Ontology, RendererStatesEnum, Shape } from "../model";
+import { ClassInIsa, Hierarchy } from "./neighbourhood-finder";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
@@ -54,20 +55,116 @@ export default class DiagramBuilder {
     })
   }
 
+  addHierarchy(hierarchy: Hierarchy) {
+
+    this.diagram.addElement(hierarchy.unionNode)
+
+    // Add inputs
+    hierarchy.inputs.forEach(inputClass => {
+      this.addClass(inputClass)
+
+      const newInputEdge = new GrapholEdge(Date.now().toString())
+      newInputEdge.type = GrapholTypesEnum.INPUT
+      
+      newInputEdge.sourceId = inputClass.iri.prefixed
+      newInputEdge.targetId = hierarchy.unionNode.id
+      this.diagram.addElement(newInputEdge)
+    })
+    
+    // Add super classes
+    hierarchy.superclasses.forEach(superClass => {
+      this.addClass(superClass.class)
+      const newUnionEdge = new GrapholEdge(Date.now().toString())
+      newUnionEdge.type = hierarchy.unionNode.type
+      
+      newUnionEdge.sourceId = hierarchy.unionNode.id
+      newUnionEdge.targetId = superClass.class.iri.prefixed
+      this.diagram.addElement(newUnionEdge)
+    })
+  }
+
+  addClassInIsa(classInIsa: ClassInIsa) {
+
+  }
+
+  addCollection(collection: Collection) {
+    // collection = collection.clone() // avoid side effects
+
+    collection.nodes().forEach(node => {
+      if (this.diagramRepresentation.cy.$id(node.id()).empty()) {
+        if (node.data().iri) {
+          this.addEntity(node.data().iri)
+        } else {
+          this.diagramRepresentation.cy.add(node)
+        }
+      }
+    })
+
+    // this.updateEdgesTargetSourceIdToIris(collection)
+
+    collection.edges().forEach(edge => {
+      if (this.diagramRepresentation.cy.$id(edge.id()).empty()) {
+        let newSource: string, newTarget: string
+        const source = collection.$id(edge.data().source)
+        const target = collection.$id(edge.data().target)
+
+        if (source.nonempty() && source.data().iri)
+          newSource = source.data().iri
+
+        if (target.nonempty() && target.data().iri)
+          newTarget = target.data().iri
+
+
+        const newEdge = edge.data({
+          source: newSource || this.referenceNodeIri,
+          target: newTarget || this.referenceNodeIri
+        })
+
+
+        this.diagramRepresentation.cy.add(newEdge)
+      }
+    })
+  }
+
+  removeCollection(collection: Collection) {
+    collection.forEach(element => {
+      if (this.diagramRepresentation.cy.$id(element.id()).nonempty()) {
+        this.diagramRepresentation.removeElement(element.id())
+      }
+    })
+  }
+
+  // /**
+  //  * Given a set of edges, set source-id and target-id on edges to be the target's and source's iri
+  //  * Reason: In incremental diagram, if a node is an entity, it has its iri as id.
+  //  * @param collection 
+  //  */
+  // private updateEdgesTargetSourceIdToIris(edge: EdgeSingular) {
+  //   const source = collection.$id(edge.data().source)
+  //   const target = collection.$id(edge.data().target)
+
+
+  // }
+
   private addObjectProperty(objectPropertyEntity: GrapholEntity, connectedClassEntity: GrapholEntity, direct: boolean) {
     if (!this.referenceNodeId) return
 
-    const connectedClassNode = this.getEntityElement(connectedClassEntity.iri.fullIri) as GrapholNode
-    connectedClassNode.id = connectedClassEntity.iri.prefixed
+    this.addClass(connectedClassEntity)
+    const connectedClassIri = connectedClassEntity.iri.prefixed 
+    const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${connectedClassIri}`)
+    objectPropertyEdge.type = GrapholTypesEnum.OBJECT_PROPERTY
+    objectPropertyEdge.sourceId = direct ? this.referenceNodeId : connectedClassIri
+    objectPropertyEdge.targetId = direct ? connectedClassIri : this.referenceNodeId
+
+    this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
+  }
+
+  private addClass(classEntity: GrapholEntity) {
+    const connectedClassNode = this.getEntityElement(classEntity.iri.fullIri) as GrapholNode
+    connectedClassNode.id = classEntity.iri.prefixed
     connectedClassNode.position = this.referenceNodePosition
 
-    const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${connectedClassNode.id}`)
-    objectPropertyEdge.type = GrapholTypesEnum.OBJECT_PROPERTY
-    objectPropertyEdge.sourceId = direct ? this.referenceNodeId : connectedClassNode.id
-    objectPropertyEdge.targetId = direct ? connectedClassNode.id : this.referenceNodeId
-
-    this.diagram.addElement(connectedClassNode, connectedClassEntity)
-    this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
+    this.diagram.addElement(connectedClassNode, classEntity)
   }
 
   private addDataProperty(dataPropertyEntity: GrapholEntity) {
@@ -102,6 +199,10 @@ export default class DiagramBuilder {
     return (this.diagram
       .representations.get(RendererStatesEnum.INCREMENTAL)
       .grapholElements.get(this.referenceNodeId) as GrapholNode).position
+  }
+
+  private get referenceNodeIri() {
+    return this.diagramRepresentation.cy.$id(this.referenceNodeId)?.data().iri as string
   }
 
   private get diagramRepresentation() {

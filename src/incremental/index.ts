@@ -5,7 +5,7 @@ import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, GrapholTypesEnum, isGrapholEdge, isGrapholNode, RendererStatesEnum } from "../model";
 import { WidgetEnum } from "../ui";
 import GscapeIncrementalMenu from "../ui/incremental-menu/incremental-menu";
-import NeighbourhoodFinder from "./neighbourhood-finder";
+import NeighbourhoodFinder, { isHierarchy } from "./neighbourhood-finder";
 import DiagramBuilder from "./diagram-builder";
 import { vKGApiStub as vKGApi } from "./kg-api";
 import { dataPropertyIcon } from "../ui/assets";
@@ -177,18 +177,22 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
 
     if (incrementalMenu) {
       const dataProperties = neighbourhoodFinder.getDataProperties(targetIri)
+      incrementalMenu.showDataPropertyToggle = dataProperties.length > 0
       // check if data properties are shown
-      incrementalMenu.dataPropertyEnabled = target.neighborhood(`[iri = "${dataProperties[0].iri.fullIri}"]`).nonempty()
-      incrementalMenu.onDataPropertyToggle = (enabled) => {
-        if (enabled) {
-          dataProperties.forEach(dataProperty => diagramBuilder.addEntity(dataProperty.iri.fullIri))
-        } else {
-          dataProperties.forEach(dataProperty => diagramBuilder.removeEntity(dataProperty.iri.fullIri))
-        }
+      if (dataProperties.length > 0) {
+        incrementalMenu.dataPropertyEnabled = target.neighborhood(`[iri = "${dataProperties[0].iri.fullIri}"]`).nonempty()
+        incrementalMenu.onDataPropertyToggle = (enabled) => {
+          if (enabled) {
+            dataProperties.forEach(dataProperty => diagramBuilder.addEntity(dataProperty.iri.fullIri))
+          } else {
+            dataProperties.forEach(dataProperty => diagramBuilder.removeEntity(dataProperty.iri.fullIri))
+          }
 
-        if (dataProperties.length > 0)
-          incrementalRendererState.runLayout()
+          if (dataProperties.length > 0)
+            incrementalRendererState.runLayout()
+        }
       }
+      
 
       const suggestedObjectProperties = neighbourhoodFinder.getObjectProperties(targetIri)
       incrementalMenu.objectProperties = Array.from(suggestedObjectProperties).map(v => {
@@ -222,6 +226,24 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
           return classInstance.label || classInstance.iri
         })
       }
+
+      incrementalMenu.onShowSuperClasses = () => {
+        neighbourhoodFinder.getSuperClassesHierarchies(targetIri).forEach(superClassHierarchy => {
+          if (isHierarchy(superClassHierarchy)) {
+            diagramBuilder.addHierarchy(superClassHierarchy)
+          } else {
+            diagramBuilder.addClassInIsa(superClassHierarchy)
+          }
+        })
+
+        incrementalRendererState.runLayout()
+      }
+
+      // incrementalMenu.onHideSuperClasses = () => {
+      //   neighbourhoodFinder.getSuperClassesHierarchies(targetIri).forEach(superClassHierarchy => 
+      //     diagramBuilder.removeCollection(superClassHierarchy)
+      //   )
+      // }
     }
   })
 
