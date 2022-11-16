@@ -48,6 +48,12 @@ export default class DiagramBuilder {
     this.diagram.addElement(instanceEdge)
   }
 
+  removeEntity(entityIri: string) {
+    this.diagramRepresentation.cy.$(`[iri = "${entityIri}"]`).forEach(element => {
+      this.diagramRepresentation.removeElement(element.id())
+    })
+  }
+
   private addObjectProperty(objectPropertyEntity: GrapholEntity, connectedClassEntity: GrapholEntity, direct: boolean) {
     if (!this.referenceNodeId) return
 
@@ -96,5 +102,9 @@ export default class DiagramBuilder {
     return (this.diagram
       .representations.get(RendererStatesEnum.INCREMENTAL)
       .grapholElements.get(this.referenceNodeId) as GrapholNode).position
+  }
+
+  private get diagramRepresentation() {
+    return this.diagram.representations.get(RendererStatesEnum.INCREMENTAL)
   }
 }

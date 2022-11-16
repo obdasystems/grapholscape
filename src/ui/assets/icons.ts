@@ -70,10 +70,13 @@ export const filterOff = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20"
 
 export const incremental = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m10 13.458-1.083-2.416L6.5 9.958l2.417-1.083L10 6.458l1.083 2.417L13.5 9.958l-2.417 1.084Zm0 5.084q-2.354 0-4.323-1.188-1.969-1.187-3.177-3.271v2.709H1.417v-4.5h4.479v1.083H3.375q1.021 1.896 2.771 2.99 1.75 1.093 3.854 1.093 2.458 0 4.406-1.458 1.948-1.458 2.74-3.771l1.042.229q-.813 2.73-3.073 4.407-2.261 1.677-5.115 1.677ZM1.458 9.208q.125-1.354.604-2.52.48-1.167 1.355-2.209l.791.75q-.687.875-1.104 1.834-.416.958-.562 2.145ZM5.25 4.167l-.75-.771q1.021-.875 2.24-1.365 1.218-.489 2.51-.593v1.083q-1.083.125-2.104.552Q6.125 3.5 5.25 4.167Zm9.479 0q-.812-.667-1.864-1.105-1.053-.437-2.115-.541V1.438q1.312.083 2.521.583 1.208.5 2.229 1.375Zm2.709 5.041q-.146-1.146-.563-2.146-.417-1-1.104-1.833l.791-.771q.855 1 1.365 2.209.511 1.208.615 2.541Z"/></svg>`
 
-export const refresh = svg`<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px" viewBox="0 0 20 20"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`
+export const refresh = svg`<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`
+
+export const classInstanceIcon = svg`<svg fill="var(--gscape-color-class-instance-contrast)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M10 9q-3.062 0-5.031-.844Q3 7.312 3 6q0-1.229 2.062-2.115Q7.125 3 10 3q2.875 0 4.938.885Q17 4.771 17 6q0 1.312-1.969 2.156Q13.062 9 10 9Zm0 4q-2.979 0-4.99-.865Q3 11.271 3 10V8.042q0 .604.562 1.135.563.531 1.521.938.959.406 2.229.645Q8.583 11 10 11q1.417 0 2.688-.24 1.27-.239 2.229-.645.958-.407 1.521-.938Q17 8.646 17 8.042V10q0 1.271-2.01 2.135Q12.979 13 10 13Zm0 4q-2.917 0-4.958-.906Q3 15.188 3 13.896v-1.958q0 .604.573 1.156.573.552 1.542.979.968.427 2.239.677Q8.625 15 10 15t2.646-.25q1.271-.25 2.239-.677.969-.427 1.542-.979.573-.552.573-1.156v1.958q0 1.292-2.042 2.198Q12.917 17 10 17Z"/></svg>`
 
 export const entityIcons: { [x: string]: SVGTemplateResult } = {}
 entityIcons[GrapholTypesEnum.CLASS] = classIcon
 entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon
 entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon
 entityIcons[GrapholTypesEnum.INDIVIDUAL] = individualIcon
+entityIcons[GrapholTypesEnum.CLASS_INSTANCE] = classInstanceIcon

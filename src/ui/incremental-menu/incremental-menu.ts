@@ -2,7 +2,7 @@
 import { css, CSSResultGroup, html, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../model";
 import capitalizeFirstChar from "../../util/capitalize-first-char";
-import { classIcon, dataPropertyIcon, entityIcons, objectPropertyIcon } from "../assets";
+import { classIcon, classInstanceIcon, dataPropertyIcon, entityIcons, objectPropertyIcon } from "../assets";
 import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
 import style from "./style";
 import GscapeContextMenu from "./context-menu";
@@ -15,10 +15,12 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
       classesIris: string[],
   }[]
   instances?: string[]
-  
+  dataPropertyEnabled = false
+
   onEntitySelection = (iri: string, objectPropertyIri?: string) => { }
   onShowInstances = () => { }
   onInstanceSelection = (iri: string) => { }
+  onDataPropertyToggle = (enabled: boolean) => { }
 
   constructor() {
     super()
@@ -28,6 +30,7 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
   static properties: PropertyDeclarations = {
     objectProperties: { type: Object, attribute: false },
     instances: { type: Array, attribute: false },
+    dataPropertyEnabled: { type: Boolean, attribute: false },
   }
 
   static styles = [
@@ -40,12 +43,19 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     <div class="gscape-panel">
       <div class="header">Menu</div>
 
+      <gscape-toggle 
+        class="actionable"
+        label="Data Properties"
+        ?checked=${this.dataPropertyEnabled}
+        @click=${this.handleDataPropertyToggle}
+      ></gscape-toggle>
+
       ${this.entitySearchComponent}
 
       <div>Instances</div>
       <details class="ellipsed entity-list-item" title="Instances">
         <summary class="actionable" @click=${this.onShowInstances}>
-          <span class="entity-type-icon"></span>
+          <span class="entity-type-icon">${classInstanceIcon}</span>
           <span class="entity-type-name">Instances</span>
         </summary>
       
@@ -110,6 +120,12 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
       this.onEntitySelection(iri, objectPropertyIri)
     }
     
+  }
+
+  private handleDataPropertyToggle(evt: MouseEvent) {
+    evt.preventDefault()
+    this.dataPropertyEnabled = !this.dataPropertyEnabled
+    this.onDataPropertyToggle(this.dataPropertyEnabled)
   }
 
   protected get cxtMenuProps() {

@@ -8,6 +8,7 @@ import GscapeIncrementalMenu from "../ui/incremental-menu/incremental-menu";
 import NeighbourhoodFinder from "./neighbourhood-finder";
 import DiagramBuilder from "./diagram-builder";
 import { vKGApiStub as vKGApi } from "./kg-api";
+import { dataPropertyIcon } from "../ui/assets";
 
 /**
  * Given a selected class compute the neighbourhood across all diagrams
@@ -169,17 +170,32 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
   })
 
   incrementalRendererState.onContextClick(target => {
+    const targetIri = target.data().iri
     diagramBuilder.diagram = grapholscape.renderer.diagram
     diagramBuilder.referenceNodeId = target.id()
     const incrementalMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalMenu
 
     if (incrementalMenu) {
-      const suggestedObjectProperties = neighbourhoodFinder.getObjectProperties(target.data().iri)
-      incrementalMenu.objectProperties = Array.from(suggestedObjectProperties).map(v => { 
-        return { 
+      const dataProperties = neighbourhoodFinder.getDataProperties(targetIri)
+      // check if data properties are shown
+      incrementalMenu.dataPropertyEnabled = target.neighborhood(`[iri = "${dataProperties[0].iri.fullIri}"]`).nonempty()
+      incrementalMenu.onDataPropertyToggle = (enabled) => {
+        if (enabled) {
+          dataProperties.forEach(dataProperty => diagramBuilder.addEntity(dataProperty.iri.fullIri))
+        } else {
+          dataProperties.forEach(dataProperty => diagramBuilder.removeEntity(dataProperty.iri.fullIri))
+        }
+
+        if (dataProperties.length > 0)
+          incrementalRendererState.runLayout()
+      }
+
+      const suggestedObjectProperties = neighbourhoodFinder.getObjectProperties(targetIri)
+      incrementalMenu.objectProperties = Array.from(suggestedObjectProperties).map(v => {
+        return {
           objectPropertyIri: v[0].iri.prefixed,
           classesIris: v[1].connectedClasses.map(c => c.iri.prefixed)
-        } 
+        }
       })
 
       incrementalMenu.attachTo((target as any).popperRef())
@@ -202,7 +218,7 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
       }
 
       incrementalMenu.onShowInstances = () => {
-        incrementalMenu.instances = vKGApi.getInstances(target.data().iri).map(classInstance => {
+        incrementalMenu.instances = vKGApi.getInstances(targetIri).map(classInstance => {
           return classInstance.label || classInstance.iri
         })
       }
