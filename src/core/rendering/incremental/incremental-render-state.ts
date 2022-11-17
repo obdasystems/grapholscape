@@ -3,6 +3,7 @@ import { FloatyRendererState, Renderer } from ".."
 import { Diagram, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyTransformer from "../floaty/floaty-transformer"
+import computeHierarchies from "./compute-hierarchies"
 import incrementalStyle from "./incremental-style"
 
 /**
@@ -44,6 +45,8 @@ export default class IncrementalRendererState extends FloatyRendererState {
         const floatyTransformer = new FloatyTransformer()
         diagram.representations.set(RendererStatesEnum.FLOATY, floatyTransformer.transform(diagram))
       })
+
+      computeHierarchies(ontology)
     }
   }
 

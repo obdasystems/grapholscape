@@ -28,3 +28,5 @@ export { default as Lifecycle } from './lifecycle'
 export * from './lifecycle'
 
 export { default as Breakpoint } from './graphol-elems/breakpoint'
+
+export * from './graph-structures'

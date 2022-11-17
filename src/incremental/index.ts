@@ -2,10 +2,10 @@ import { NodeSingular, SingularElementReturnValue } from "cytoscape";
 import { Grapholscape } from "../core";
 import IncrementalRendererState from "../core/rendering/incremental/incremental-render-state";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, GrapholTypesEnum, isGrapholEdge, isGrapholNode, RendererStatesEnum } from "../model";
+import { DiagramRepresentation, EntityOccurrence, GrapholEdge, GrapholEntity, GrapholTypesEnum, IncrementalDiagram, isGrapholEdge, isGrapholNode, RendererStatesEnum } from "../model";
 import { WidgetEnum } from "../ui";
 import GscapeIncrementalMenu from "../ui/incremental-menu/incremental-menu";
-import NeighbourhoodFinder, { isHierarchy } from "./neighbourhood-finder";
+import NeighbourhoodFinder from "./neighbourhood-finder";
 import DiagramBuilder from "./diagram-builder";
 import { vKGApiStub as vKGApi } from "./kg-api";
 import { dataPropertyIcon } from "../ui/assets";
@@ -148,15 +148,17 @@ function recomputeSourceTargetEntitiesIds(
   }
 }
 
-export function addFirstClassInIncremental(iri: string, grapholscape: Grapholscape, incrementalDiagramRepresentation: DiagramRepresentation) {
-  const grapholEntity = grapholscape.ontology.getEntity(iri)
-  const entityOccurrence = grapholscape.ontology.getEntityOccurrences(iri).get(RendererStatesEnum.GRAPHOL)[0]
-  const floatyDiagramRepresentation = grapholscape.ontology.getDiagram(entityOccurrence.diagramId).representations.get(RendererStatesEnum.FLOATY)
-  const grapholElement = floatyDiagramRepresentation.grapholElements.get(entityOccurrence.elementId).clone()
-  grapholElement.id = `${grapholElement.id}-${entityOccurrence.diagramId}`
-  incrementalDiagramRepresentation.addElement(grapholElement, grapholEntity);
-  (grapholscape.renderer.renderState as IncrementalRendererState).pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id))
+export function addFirstClassInIncremental(iri: string, grapholscape: Grapholscape) {
+  // const grapholEntity = grapholscape.ontology.getEntity(iri)
+  // const entityOccurrence = grapholscape.ontology.getEntityOccurrences(iri).get(RendererStatesEnum.GRAPHOL)[0]
+  // const floatyDiagramRepresentation = grapholscape.ontology.getDiagram(entityOccurrence.diagramId).representations.get(RendererStatesEnum.FLOATY)
+  // const grapholElement = floatyDiagramRepresentation.grapholElements.get(entityOccurrence.elementId).clone()
+  // grapholElement.id = `${grapholElement.id}-${entityOccurrence.diagramId}`
+  // incrementalDiagramRepresentation.addElement(grapholElement, grapholEntity);
+  // (grapholscape.renderer.renderState as IncrementalRendererState).pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id))
   //addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape)
+  const diagramBuilder = new DiagramBuilder(grapholscape.ontology, grapholscape.renderer.diagram as IncrementalDiagram)
+  diagramBuilder.addEntity(iri)
   grapholscape.renderer.renderState.runLayout()
 }
 
@@ -171,7 +173,7 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
 
   incrementalRendererState.onContextClick(target => {
     const targetIri = target.data().iri
-    diagramBuilder.diagram = grapholscape.renderer.diagram
+    diagramBuilder.diagram = incrementalRendererState.incrementalDiagram
     diagramBuilder.referenceNodeId = target.id()
     const incrementalMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalMenu
 
@@ -192,7 +194,7 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
             incrementalRendererState.runLayout()
         }
       }
-      
+
 
       const suggestedObjectProperties = neighbourhoodFinder.getObjectProperties(targetIri)
       incrementalMenu.objectProperties = Array.from(suggestedObjectProperties).map(v => {
@@ -228,12 +230,16 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
       }
 
       incrementalMenu.onShowSuperClasses = () => {
-        neighbourhoodFinder.getSuperClassesHierarchies(targetIri).forEach(superClassHierarchy => {
-          if (isHierarchy(superClassHierarchy)) {
-            diagramBuilder.addHierarchy(superClassHierarchy)
-          } else {
-            diagramBuilder.addClassInIsa(superClassHierarchy)
-          }
+        // neighbourhoodFinder.getSuperClassesHierarchies(targetIri).forEach(superClassHierarchy => {
+        //   if (isHierarchy(superClassHierarchy)) {
+        //     diagramBuilder.addHierarchy(superClassHierarchy)
+        //   } else {
+        //     diagramBuilder.addClassInIsa(superClassHierarchy)
+        //   }
+        // })
+
+        grapholscape.ontology.hierarchiesBySubclassMap.get(targetIri)?.forEach(hierarchy => {
+          diagramBuilder.addHierarchy(hierarchy)
         })
 
         incrementalRendererState.runLayout()

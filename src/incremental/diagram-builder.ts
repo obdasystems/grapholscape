@@ -1,12 +1,11 @@
 import cytoscape, { Collection, EdgeCollection, EdgeSingular, NodeDefinition } from "cytoscape";
-import { Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Ontology, RendererStatesEnum, Shape } from "../model";
-import { ClassInIsa, Hierarchy } from "./neighbourhood-finder";
+import { Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, IncrementalDiagram, Ontology, RendererStatesEnum, Shape } from "../model";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
   referenceNodeId: string | undefined
 
-  constructor(private ontology: Ontology, public diagram: Diagram) { }
+  constructor(private ontology: Ontology, public diagram: IncrementalDiagram) { }
 
   addEntity(entityIri: string, connectedClassIri?: string, directObjectProperty?: boolean) {
     const grapholEntity = this.ontology.getEntity(entityIri)
@@ -21,6 +20,10 @@ export default class DiagramBuilder {
           const connectedClassGrapholEntity = this.ontology.getEntity(connectedClassIri)
           this.addObjectProperty(grapholEntity, connectedClassGrapholEntity, directObjectProperty)
           break
+
+        case GrapholTypesEnum.CLASS:
+          if (!this.diagram.containsEntity(grapholEntity))
+            this.addClass(grapholEntity)
 
         default:
           return
@@ -56,36 +59,54 @@ export default class DiagramBuilder {
   }
 
   addHierarchy(hierarchy: Hierarchy) {
+    const unionNode = hierarchy.getUnionGrapholNode(this.referenceNodePosition)
+    const inputEdges = hierarchy.getInputGrapholEdges()
+    const inclusionEdges = hierarchy.getInclusionEdges()
 
-    this.diagram.addElement(hierarchy.unionNode)
+    if (!unionNode || !inputEdges || !inclusionEdges)
+      return
+
+    this.diagram.addElement(unionNode)
 
     // Add inputs
-    hierarchy.inputs.forEach(inputClass => {
-      this.addClass(inputClass)
+    for (const inputClassIri of hierarchy.inputs) {
+      this.addEntity(inputClassIri)
+    }
 
-      const newInputEdge = new GrapholEdge(Date.now().toString())
-      newInputEdge.type = GrapholTypesEnum.INPUT
-      
-      newInputEdge.sourceId = inputClass.iri.prefixed
-      newInputEdge.targetId = hierarchy.unionNode.id
-      this.diagram.addElement(newInputEdge)
-    })
-    
-    // Add super classes
-    hierarchy.superclasses.forEach(superClass => {
-      this.addClass(superClass.class)
-      const newUnionEdge = new GrapholEdge(Date.now().toString())
-      newUnionEdge.type = hierarchy.unionNode.type
-      
-      newUnionEdge.sourceId = hierarchy.unionNode.id
-      newUnionEdge.targetId = superClass.class.iri.prefixed
-      this.diagram.addElement(newUnionEdge)
-    })
+    for (const superClass of hierarchy.superclasses) {
+      this.addEntity(superClass.classIri)
+    }
+
+    hierarchy.getInputGrapholEdges().forEach(inputEdge => this.diagram.addElement(inputEdge))
+
+    hierarchy.getInclusionEdges().forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
+
+    // hierarchy.inputs.forEach(inputClass => {
+    //   this.addClass(inputClass)
+
+    //   const newInputEdge = new GrapholEdge(Date.now().toString())
+    //   newInputEdge.type = GrapholTypesEnum.INPUT
+
+    //   newInputEdge.sourceId = inputClass.iri.prefixed
+    //   newInputEdge.targetId = hierarchy.unionNode.id
+    //   this.diagram.addElement(newInputEdge)
+    // })
+
+    // // Add super classes
+    // hierarchy.superclasses.forEach(superClass => {
+    //   this.addClass(superClass.class)
+    //   const newUnionEdge = new GrapholEdge(Date.now().toString())
+    //   newUnionEdge.type = hierarchy.unionNode.type
+
+    //   newUnionEdge.sourceId = hierarchy.unionNode.id
+    //   newUnionEdge.targetId = superClass.class.iri.prefixed
+    //   this.diagram.addElement(newUnionEdge)
+    // })
   }
 
-  addClassInIsa(classInIsa: ClassInIsa) {
+  // addClassInIsa(classInIsa: ClassInIsa) {
 
-  }
+  // }
 
   addCollection(collection: Collection) {
     // collection = collection.clone() // avoid side effects
@@ -150,7 +171,7 @@ export default class DiagramBuilder {
     if (!this.referenceNodeId) return
 
     this.addClass(connectedClassEntity)
-    const connectedClassIri = connectedClassEntity.iri.prefixed 
+    const connectedClassIri = connectedClassEntity.iri.prefixed
     const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${connectedClassIri}`)
     objectPropertyEdge.type = GrapholTypesEnum.OBJECT_PROPERTY
     objectPropertyEdge.sourceId = direct ? this.referenceNodeId : connectedClassIri
@@ -160,18 +181,18 @@ export default class DiagramBuilder {
   }
 
   private addClass(classEntity: GrapholEntity) {
-    const connectedClassNode = this.getEntityElement(classEntity.iri.fullIri) as GrapholNode
-    connectedClassNode.id = classEntity.iri.prefixed
-    connectedClassNode.position = this.referenceNodePosition
+    const classNode = this.getEntityElement(classEntity.iri.fullIri) as GrapholNode
+    classNode.id = classEntity.iri.fullIri
+    classNode.position = this.referenceNodePosition || classNode.position
 
-    this.diagram.addElement(connectedClassNode, classEntity)
+    this.diagram.addElement(classNode, classEntity)
   }
 
   private addDataProperty(dataPropertyEntity: GrapholEntity) {
     if (!this.referenceNodeId) return
 
     const dataPropertyNode = this.getEntityElement(dataPropertyEntity.iri.fullIri)
-    dataPropertyNode.id = dataPropertyEntity.iri.prefixed
+    dataPropertyNode.id = dataPropertyEntity.iri.fullIri
 
     const dataPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${dataPropertyNode.id}`)
     dataPropertyEdge.type = GrapholTypesEnum.DATA_PROPERTY
@@ -198,7 +219,7 @@ export default class DiagramBuilder {
   private get referenceNodePosition() {
     return (this.diagram
       .representations.get(RendererStatesEnum.INCREMENTAL)
-      .grapholElements.get(this.referenceNodeId) as GrapholNode).position
+      .grapholElements.get(this.referenceNodeId) as GrapholNode)?.position
   }
 
   private get referenceNodeIri() {

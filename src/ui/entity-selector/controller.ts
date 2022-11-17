@@ -30,11 +30,7 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
   })
 
   entitySelectorComponent.onClassSelection(selectedClassIri => {
-    addFirstClassInIncremental(
-      selectedClassIri,
-      grapholscape,
-      grapholscape.renderer.diagram.representations.get(RendererStatesEnum.INCREMENTAL)
-    )
+    addFirstClassInIncremental(selectedClassIri, grapholscape)
 
     entitySelectorComponent.hide()
   })
