@@ -250,6 +250,20 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
           diagramBuilder.removeHierarchy(hierarchy, [targetIri])
         })
       }
+
+      incrementalMenu.onShowSubClasses = () => {
+        grapholscape.ontology.hierarchiesBySuperclassMap.get(targetIri)?.forEach(hierarchy => {
+          diagramBuilder.addHierarchy(hierarchy)
+        })
+
+        incrementalRendererState.runLayout()
+      }
+
+      incrementalMenu.onHideSubClasses = () => {
+        grapholscape.ontology.hierarchiesBySuperclassMap.get(targetIri)?.forEach(hierarchy => {
+          diagramBuilder.removeHierarchy(hierarchy, [targetIri])
+        })
+      }
     }
   })
 

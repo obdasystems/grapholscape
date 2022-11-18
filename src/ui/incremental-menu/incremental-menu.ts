@@ -1,11 +1,11 @@
 
-import { css, CSSResultGroup, html, PropertyDeclarations } from "lit";
+import { html, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../model";
 import capitalizeFirstChar from "../../util/capitalize-first-char";
-import { classIcon, classInstanceIcon, dataPropertyIcon, entityIcons, objectPropertyIcon } from "../assets";
+import { classInstanceIcon, entityIcons, objectPropertyIcon } from "../assets";
 import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
-import style from "./style";
 import GscapeContextMenu from "./context-menu";
+import style from "./style";
 
 export default class GscapeIncrementalMenu extends GscapeContextMenu {
   private entitySearchComponent: GscapeEntitySearch
@@ -24,6 +24,9 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
   onDataPropertyToggle = (enabled: boolean) => { }
   onShowSuperClasses = (iri: string) => { }
   onHideSuperClasses = (iri: string) => { }
+
+  onShowSubClasses = (iri: string) => { }
+  onHideSubClasses = (iri: string) => { }
 
   constructor() {
     super()
@@ -58,7 +61,12 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     
       <gscape-button label="Show super-classes" @click=${this.onShowSuperClasses}></gscape-button>
       <gscape-button label="Hide super-classes" @click=${this.onHideSuperClasses}></gscape-button>
-    
+
+      <div class="hr"></div>
+      
+      <gscape-button label="Show sub-classes" @click=${this.onShowSubClasses}></gscape-button>
+      <gscape-button label="Hide sub-classes" @click=${this.onHideSubClasses}></gscape-button>
+
       ${this.entitySearchComponent}
     
       <div>Instances</div>
