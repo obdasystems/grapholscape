@@ -245,11 +245,11 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
         incrementalRendererState.runLayout()
       }
 
-      // incrementalMenu.onHideSuperClasses = () => {
-      //   neighbourhoodFinder.getSuperClassesHierarchies(targetIri).forEach(superClassHierarchy => 
-      //     diagramBuilder.removeCollection(superClassHierarchy)
-      //   )
-      // }
+      incrementalMenu.onHideSuperClasses = () => {
+        grapholscape.ontology.hierarchiesBySubclassMap.get(targetIri)?.forEach(hierarchy => {
+          diagramBuilder.removeHierarchy(hierarchy, [targetIri])
+        })
+      }
     }
   })
 

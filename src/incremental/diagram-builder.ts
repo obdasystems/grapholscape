@@ -104,6 +104,39 @@ export default class DiagramBuilder {
     // })
   }
 
+  removeHierarchy(hierarchy: Hierarchy, entitiesTokeep?: string[]) {
+    if (!this.diagramRepresentation.grapholElements.get(hierarchy.id))
+      return
+
+    // remove union node
+    this.diagram.removeElement(hierarchy.id)
+
+    // remove input edges
+    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => {
+      this.diagram.removeElement(inputEdge.id)
+    })
+
+    // remove inclusion edges
+    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
+      this.diagram.removeElement(inclusionEdge.id)
+    })
+
+    // remove input classes or superclasses left with no edges
+    hierarchy.inputs.forEach(inputClassIri => {
+      if (this.diagramRepresentation.cy.$id(inputClassIri).degree(false) === 0 &&
+        !entitiesTokeep?.includes(inputClassIri)) {
+        this.removeEntity(inputClassIri)
+      }
+    })
+
+    hierarchy.superclasses.forEach(superclass => {
+      if (this.diagramRepresentation.cy.$id(superclass.classIri).degree(false) === 0 &&
+      !entitiesTokeep?.includes(superclass.classIri)) {
+        this.removeEntity(superclass.classIri)
+      }
+    })
+  }
+
   // addClassInIsa(classInIsa: ClassInIsa) {
 
   // }
