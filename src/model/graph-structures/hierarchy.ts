@@ -25,7 +25,7 @@ export default class Hierarchy {
   get superclasses() { return this._superclasses }
 
   set id(newId: string) { this._id = newId }
-  get id() { return this.id }
+  get id() { return this._id }
 
   getUnionGrapholNode(position?: Position): GrapholNode | undefined {
     if (!this.isValid()) {
