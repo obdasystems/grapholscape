@@ -28,6 +28,8 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
   onShowSubClasses = (iri: string) => { }
   onHideSubClasses = (iri: string) => { }
 
+  onRemove = (iri: string) => { }
+
   constructor() {
     super()
     this.entitySearchComponent = new GscapeEntitySearch()
@@ -66,6 +68,10 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
       
       <gscape-button label="Show sub-classes" @click=${this.onShowSubClasses}></gscape-button>
       <gscape-button label="Hide sub-classes" @click=${this.onHideSubClasses}></gscape-button>
+
+      <div class="hr"></div>
+
+      <gscape-button label="Remove" @click=${this.onRemove}></gscape-button>
 
       ${this.entitySearchComponent}
     

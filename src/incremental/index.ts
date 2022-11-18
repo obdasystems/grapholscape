@@ -264,6 +264,10 @@ export function initIncremental(incrementalRendererState: IncrementalRendererSta
           diagramBuilder.removeHierarchy(hierarchy, [targetIri])
         })
       }
+
+      incrementalMenu.onRemove = () => {
+        diagramBuilder.removeEntity(targetIri)
+      }
     }
   })
 

@@ -54,6 +54,41 @@ export default class DiagramBuilder {
 
   removeEntity(entityIri: string) {
     this.diagramRepresentation.cy.$(`[iri = "${entityIri}"]`).forEach(element => {
+      if (element.data().type === GrapholTypesEnum.CLASS) {
+        element.neighborhood(`[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`).forEach(classInstanceElement => {
+          // remove nodes only if they have 1 connection, i.e. with the class we want to remove
+          if (classInstanceElement.isNode()) {
+            if (classInstanceElement.degree(false) === 1) {
+              this.diagram.removeElement(classInstanceElement.id())
+            }
+          } else {
+            // edges must be removed anyway
+            // (cytoscape removes them automatically
+            // but we need to update the grapholElements 
+            // map too in diagram representation)
+            this.diagram.removeElement((classInstanceElement as EdgeSingular).id()) // cast should not be needed, maybe error in cytoscape types
+          }
+        })
+
+        element.neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).forEach(dataPropertyElement => {
+          if (dataPropertyElement.isNode()) {
+            if (dataPropertyElement.degree(false) === 1) {
+              this.diagram.removeElement(dataPropertyElement.id())
+            }
+          } else {
+            this.diagram.removeElement((dataPropertyElement as EdgeSingular).id())
+          }
+        })
+
+        this.ontology.hierarchiesBySubclassMap.get(entityIri)?.forEach(hierarchy => {
+          this.removeHierarchy(hierarchy)
+        })
+
+        this.ontology.hierarchiesBySuperclassMap.get(entityIri)?.forEach(hierarchy => {
+          this.removeHierarchy(hierarchy)
+        })
+      }
+
       this.diagramRepresentation.removeElement(element.id())
     })
   }
