@@ -145,6 +145,6 @@ export default class GrapholEntity extends AnnotatedElement {
         break
     }
 
-    return newDisplayedName
+    return newDisplayedName.replace(/\r?\n|\r/g, '')
   }
 }
