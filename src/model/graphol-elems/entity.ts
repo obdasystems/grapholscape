@@ -2,6 +2,7 @@ import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import { GrapholTypesEnum } from "./node-enums"
+import { EntityNameType } from "../../config"
 
 export enum FunctionalityEnum {
   functional = 'functional',
@@ -121,5 +122,29 @@ export default class GrapholEntity extends AnnotatedElement {
     }
 
     return false
+  }
+
+  public getDisplayedName(nameType: EntityNameType, actualLanguage?: string, defaultLanguage?: string) {
+    let newDisplayedName: string
+
+    switch (nameType) {
+      case EntityNameType.LABEL:
+        newDisplayedName =
+          this.getLabels(actualLanguage)[0]?.lexicalForm ||
+          this.getLabels(defaultLanguage)[0]?.lexicalForm ||
+          this.getLabels()[0]?.lexicalForm ||
+          this.iri.remainder
+        break
+
+      case EntityNameType.PREFIXED_IRI:
+        newDisplayedName = this.iri.prefixed
+        break
+
+      case EntityNameType.FULL_IRI:
+        newDisplayedName = this.iri.fullIri
+        break
+    }
+
+    return newDisplayedName
   }
 }

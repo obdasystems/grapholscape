@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { EntityViewData } from '../util/search-entities'
-import { entityIcons, explore, searchOff } from '../assets/icons'
+import { entityIcons, explore } from '../assets/icons'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
 import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
@@ -96,10 +96,10 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
           ${this.entities.map(entity => {
             return html`
-            <details class="ellipsed entity-list-item" title="${entity.value.iri.remainder}">
+            <details class="ellipsed entity-list-item" title="${entity.displayedName}">
               <summary class="actionable">
                 <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-                <span class="entity-name">${entity.value.iri.remainder}</span>
+                <span class="entity-name">${entity.displayedName}</span>
               </summary>
               <div class="summary-body">
                 ${getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)}
