@@ -99,7 +99,8 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
               return html`
                 <gscape-action-list-item
                   type="subtle"
-                  label=${entityItem.value.iri.prefixed}
+                  label=${entityItem.displayedName}
+                  iri=${entityItem.value.iri.prefixed}
                   @click=${this.handleEntitySelection}
                 ></gscape-action-list-item>
               `
@@ -119,7 +120,7 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
   blur() { }
 
   private handleEntitySelection(evt: MouseEvent) {
-    this.onClassSelectionCallback((evt.target as GscapeActionListItem).label)
+    this.onClassSelectionCallback((evt.target as HTMLElement).getAttribute('iri'))
   }
 
   onClassSelection(callback: (iri: string) => void) {

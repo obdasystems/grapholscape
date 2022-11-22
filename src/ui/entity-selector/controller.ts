@@ -10,12 +10,7 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
   entitySelectorComponent.searchEntityComponent["individual"] = undefined
 
   // Set class entity list
-  // const entities = Array
-  //   .from(grapholscape.ontology.entities)
-  //   .filter(elem => elem[1].type === GrapholTypesEnum.CLASS)
-  //   .sort((a, b) => a[1].iri.remainder.localeCompare(b[1].iri.remainder))
-  //   .map(elem => elem[1].iri.prefixed)
-  const entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent)
+  let entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent)
 
   entitySelectorComponent.entityList = entities
 
@@ -27,6 +22,11 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
     if (newRendererState === RendererStatesEnum.INCREMENTAL && grapholscape.renderer.grapholElements.size === 0) {
       entitySelectorComponent.show()
     }
+  })
+
+  grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
+    entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent)
+    entitySelectorComponent.entityList = entities
   })
 
   entitySelectorComponent.onClassSelection(selectedClassIri => {

@@ -66,29 +66,7 @@ export default class DisplayedNamesManager {
         const grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState)
         if (!grapholElement) return
 
-        let newDisplayedName: string
-        switch (this._entityNameType) {
-          case EntityNameType.LABEL:
-            newDisplayedName =
-              entity.getLabels(this._language)[0]?.lexicalForm ||
-              entity.getLabels(this._grapholscape.ontology.languages.default)[0]?.lexicalForm ||
-              entity.getLabels()[0]?.lexicalForm ||
-              entity.iri.remainder
-
-            if (this._grapholscape.renderState === RendererStatesEnum.FLOATY) {
-              newDisplayedName = newDisplayedName.replace(/\r?\n|\r/g, '')
-            }
-            break
-
-          case EntityNameType.PREFIXED_IRI:
-            newDisplayedName = entity.iri.prefixed
-            break
-
-          case EntityNameType.FULL_IRI:
-            newDisplayedName = entity.iri.fullIri
-            break
-        }
-
+        let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language, this._grapholscape.ontology.languages.default)
 
         if (newDisplayedName !== grapholElement.displayedName) {
           grapholElement.displayedName = newDisplayedName

@@ -4,6 +4,7 @@ import getEntityViewOccurrences, { DiagramViewData, OccurrenceIdViewData } from 
 
 
 export type EntityViewData = {
+  displayedName: string,
   value: GrapholEntity,
   viewOccurrences:  Map<DiagramViewData, OccurrenceIdViewData[]>
 }
@@ -19,15 +20,20 @@ export interface IEntityFilters {
 export function createEntitiesList(grapholscape: Grapholscape, entityFilters: IEntityFilters) {
   const result: EntityViewData[] = []
   grapholscape.ontology.entities.forEach(entity => {
-    if (entityFilters[entity.type] !== undefined && (entityFilters[entity.type] || entityFilters.areAllFiltersDisabled)) {
+    if (entityFilters[entity.type] !== undefined && (entityFilters[entity.type] || entityFilters.areAllFiltersDisabled)) {     
       result.push({
+        displayedName: entity.getDisplayedName(
+          grapholscape.entityNameType,
+          grapholscape.language, 
+          grapholscape.ontology.languages.default
+          ),
         value: entity,
         viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
       })
     }
   })
 
-  return result.sort((a, b) => a.value.iri.remainder.localeCompare(b.value.iri.remainder))
+  return result.sort( (a,b) => a.displayedName.localeCompare(b.displayedName))
 }
 
 export function search(searchValue: string, entities: EntityViewData[]) {
