@@ -1,7 +1,7 @@
 import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
-import { GrapholTypesEnum } from "./node-enums"
+import { GrapholTypesEnum } from "./enums"
 import { EntityNameType } from "../../config"
 
 export enum FunctionalityEnum {
@@ -39,7 +39,7 @@ export default class GrapholEntity extends AnnotatedElement {
 
     const occurrences = this.occurrences.get(representationKind)
     if (!occurrences?.find(r => r.elementId === occurenceId && r.diagramId === diagramId)) {
-      occurrences.push({
+      occurrences?.push({
         elementId: occurenceId,
         diagramId: diagramId,
       })

@@ -21,7 +21,7 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     // on ESC key press
     if (e.key === 'Escape') {
       inputElement.blur();
-      inputElement.value = null
+      inputElement.value = ''
       ontologyExplorerComponent.entities = entities
       return
     }

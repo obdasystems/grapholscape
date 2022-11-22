@@ -10,7 +10,7 @@ import GrapholscapeTheme from "../../model/themes/theme"
 export default class Renderer {
   private _container: HTMLElement
   cy?: cytoscape.Core
-  private _renderState?: RenderState
+  private _renderState: RenderState
   filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]))
   diagram?: Diagram
   private _theme: GrapholscapeTheme

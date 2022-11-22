@@ -2,16 +2,13 @@
  * @jest-environment jsdom
  */
 
-import * as parserV3 from '../src/parsing/parser-v3'
-import { books3, customOntology } from './input'
-import Ontology from '../src/model/ontology'
-import Namespace from '../src/model/namespace'
-import GrapholEntity, { FunctionalityEnum } from '../src/model/graphol-elems/entity'
-import { UNDEFINED_LANGUAGE } from '../src/model/graphol-elems/annotation'
-import GrapholParser from '../src/parsing/parser'
-import GrapholNode from '../src/model/graphol-elems/node'
-import { getNewEndpoint } from '../src/parsing/parser_util'
 import { GrapholTypesEnum, Iri } from '../src/model'
+import GrapholEntity, { FunctionalityEnum } from '../src/model/graphol-elems/entity'
+import GrapholNode from '../src/model/graphol-elems/node'
+import GrapholParser from '../src/parsing/parser'
+import * as parserV3 from '../src/parsing/parser-v3'
+import { getNewEndpoint } from '../src/parsing/parser_util'
+import { books3, customOntology } from './input'
 
 const domParser = new DOMParser()
 const xmlDoc = domParser.parseFromString(customOntology, 'text/xml')
@@ -292,25 +289,25 @@ describe('It should parse edges correctly', () => {
   })
 
   test('It should parse breakpoints correctly', () => {
-    expect(grapholEdge.breakpoints).toHaveLength(1)
-    expect(grapholEdge.controlpoints).toHaveLength(3)
-    expect(grapholEdge.controlpoints[0]).toMatchObject({ x: 300, y: -350 })
-    expect(grapholEdge.controlpoints[1]).toMatchObject({ x: 640, y: -350 })
-    expect(grapholEdge.controlpoints[2]).toMatchObject({ x: 640, y: -10 })
-    expect(grapholEdge.breakpoints[0]).toBe(grapholEdge.controlpoints[1])
+    expect(grapholEdge?.breakpoints).toHaveLength(1)
+    expect(grapholEdge?.controlpoints).toHaveLength(3)
+    expect(grapholEdge?.controlpoints[0]).toMatchObject({ x: 300, y: -350 })
+    expect(grapholEdge?.controlpoints[1]).toMatchObject({ x: 640, y: -350 })
+    expect(grapholEdge?.controlpoints[2]).toMatchObject({ x: 640, y: -10 })
+    expect(grapholEdge?.breakpoints[0]).toBe(grapholEdge?.controlpoints[1])
   })
 
   test('It should compute breakpoints distance and weight', () => {
-    expect(grapholEdge.controlpoints[0].distance).toBeUndefined()
-    expect(grapholEdge.controlpoints[0].weight).toBeUndefined()
-    expect(grapholEdge.controlpoints[1].distance.toPrecision(8)).toBe('-240.41631')
-    expect(grapholEdge.controlpoints[1].weight).toBe(0.5)
-    expect(grapholEdge.controlpoints[2].distance).toBeUndefined()
-    expect(grapholEdge.controlpoints[2].distance).toBeUndefined()
+    expect(grapholEdge?.controlpoints[0].distance).toBeUndefined()
+    expect(grapholEdge?.controlpoints[0].weight).toBeUndefined()
+    expect(grapholEdge?.controlpoints[1].distance.toPrecision(8)).toBe('-240.41631')
+    expect(grapholEdge?.controlpoints[1].weight).toBe(0.5)
+    expect(grapholEdge?.controlpoints[2].distance).toBeUndefined()
+    expect(grapholEdge?.controlpoints[2].distance).toBeUndefined()
   })
 
   test('It should move endpoints on borders correctly', () => {
-    const grapholNode = new GrapholNode('0')
+    const grapholNode = new GrapholNode('0', GrapholTypesEnum.CLASS)
     grapholNode.position = { x: 1000, y: 1000 }
     const customEndpoint = { x: 1020, y: 1010 }
 

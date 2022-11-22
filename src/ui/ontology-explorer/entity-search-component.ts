@@ -147,7 +147,7 @@ export default class GscapeEntitySearch extends LitElement implements IEntityFil
   }
 
   private toggleChipsFilters() {
-    this.shadowRoot.querySelector('.chips-filters').classList.toggle('hide')
+    this.shadowRoot?.querySelector('.chips-filters')?.classList.toggle('hide')
   }
 
   public onSearch(callback: (e: KeyboardEvent) => void) {

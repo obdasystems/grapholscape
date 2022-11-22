@@ -1,5 +1,5 @@
 import { entityIriTemplate } from "./iri-template"
-import { GrapholTypesEnum } from "../model/graphol-elems/node-enums"
+import { GrapholTypesEnum } from "../model/graphol-elems/enums"
 import { CollectionReturnValue, NodeCollection } from "cytoscape"
 import { FunctionalityEnum } from "../model/graphol-elems/entity"
 

@@ -71,7 +71,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
   private isCardinalityRestriction = (node: cytoscape.SingularElementReturnValue) => {
     const grapholElement = this.getGrapholElement(node.id())
-    if (this.isRestriction(grapholElement) && grapholElement.displayedName.search(/[0-9]/g) >= 0) {
+    if (this.isRestriction(grapholElement) && grapholElement.displayedName && grapholElement.displayedName.search(/[0-9]/g) >= 0) {
       return true
     }
 
@@ -286,20 +286,19 @@ export default class LiteTransformer extends BaseGrapholTransformer {
      * @param i 
      */
     const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum | string, i: number) => {
-      const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`)
-      const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`)
+      const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`, GrapholTypesEnum.DATA_PROPERTY)
+      const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`, edgeType as GrapholTypesEnum)
 
       newAttribute.originalId = attribute.id()
       newAttribute.x = concept.position().x
       newAttribute.y = concept.position().y
       Object.entries(attribute.data()).forEach(([key, value]) => {
-        if (key !== 'id' && key !== 'originalId')
+        if (key !== 'id' && key !== 'originalId' && key !== 'type')
           newAttribute[key] = value
       })
 
       newAttributeEdge.sourceId = concept.id()
       newAttributeEdge.targetId = newAttribute.id
-      newAttributeEdge.type = edgeType as GrapholTypesEnum
       this.result.addElement(newAttribute)
       this.result.addElement(newAttributeEdge)
       this.newCy.$id(newAttribute.id).addClass('repositioned')
@@ -491,7 +490,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       inputEdges.forEach((inputEdge) => {
         const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
         if (!grapholInputEdge) return
-        const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`)
+        const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`, grapholRestrictionEdge.type)
         /**
          * if the connected non input edge is only one (the one we are processing)
          * then the new edge will be the concatenation of the input edge + role edge
@@ -502,7 +501,6 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           newRestrictionEdge.controlpoints = [...grapholRestrictionEdge.controlpoints]
         }
 
-        newRestrictionEdge.type = grapholRestrictionEdge.type
         newRestrictionEdge.sourceId = grapholInputEdge.sourceId
 
         newRestrictionEdge.sourceEndpoint = grapholInputEdge.sourceEndpoint

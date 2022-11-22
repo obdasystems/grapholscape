@@ -1,7 +1,6 @@
-import { css, html, LitElement, PropertyValueMap } from 'lit'
+import { css, html, LitElement } from 'lit'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { GscapeButtonStyle } from '../common/button'
-import { GscapeActionListItem } from '../common/list-item'
 import GscapeEntitySearch from '../ontology-explorer/entity-search-component'
 import baseStyle from '../style'
 import emptySearchBlankState from '../util/empty-search-blank-state'
@@ -74,7 +73,7 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
       // on ESC key press
       if (e.key === 'Escape') {
         inputElement.blur()
-        inputElement.value = null
+        inputElement.value = ''
         this.entityList = this.fullEntityList
         return
       }
@@ -120,7 +119,9 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) {
   blur() { }
 
   private handleEntitySelection(evt: MouseEvent) {
-    this.onClassSelectionCallback((evt.target as HTMLElement).getAttribute('iri'))
+    const iri = (evt.target as HTMLElement).getAttribute('iri')
+    if (iri)
+      this.onClassSelectionCallback(iri)
   }
 
   onClassSelection(callback: (iri: string) => void) {

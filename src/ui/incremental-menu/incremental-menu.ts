@@ -133,6 +133,7 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
   private handleEntityClick(e: Event, objectPropertyIri?: string) {
     const target = e.target as HTMLElement
     const iri = target.getAttribute('iri')
+    if (!iri) return
 
     if (target.getAttribute('entity-type') === GrapholTypesEnum.CLASS_INSTANCE) {
       this.onInstanceSelection(iri)

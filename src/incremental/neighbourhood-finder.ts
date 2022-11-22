@@ -20,7 +20,7 @@ export default class NeighbourhoodFinder {
         ?.cy.$(`node[iri = "${classIri.fullIri}"]`).forEach(classNode => {
           classNode.neighborhood(dataPropertySelector).forEach(dataPropertyNode => {
             const dataPropertyEntity = this.ontology.getEntity(dataPropertyNode.data().iri)
-            if (!res.includes(dataPropertyEntity)) {
+            if (dataPropertyEntity && !res.includes(dataPropertyEntity)) {
               res.push(dataPropertyEntity)
             }
           })

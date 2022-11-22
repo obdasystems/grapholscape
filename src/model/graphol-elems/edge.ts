@@ -1,5 +1,5 @@
 import { ElementDefinition, Position } from "cytoscape";
-import { GrapholTypesEnum } from "./node-enums";
+import { GrapholTypesEnum } from "./enums";
 import Breakpoint from "./breakpoint";
 import GrapholEntity from "./entity";
 import GrapholElement from "./graphol-element";
@@ -14,8 +14,8 @@ export default class GrapholEdge extends GrapholElement {
   private _sourceEndpoint?: Position
   private _targetEndpoint?: Position
 
-  constructor(id: string) {
-    super(id)
+  constructor(id: string, type: GrapholTypesEnum) {
+    super(id, type)
   }
 
   addBreakPoint(breakpoint: Breakpoint) {
@@ -122,7 +122,7 @@ export default class GrapholEdge extends GrapholElement {
   }
 
   clone() {
-    const cloneObj = new GrapholEdge(this.id)
+    const cloneObj = new GrapholEdge(this.id, this.type)
     Object.assign(cloneObj, this)
 
     return cloneObj

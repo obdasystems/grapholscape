@@ -59,7 +59,10 @@ export default class Grapholscape {
 
     if (!diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
       setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
-    diagram.lastViewportState = viewportState
+    
+    if (viewportState)
+      diagram.lastViewportState = viewportState
+
     this.renderer.render(diagram)
   }
 
@@ -186,7 +189,7 @@ export default class Grapholscape {
 
   /** The actual renderer state */
   get renderState() {
-    return this.renderer.renderState?.id
+    return this.renderer.renderState.id
   }
 
   /** The actual selected Entity */
@@ -330,7 +333,7 @@ export default class Grapholscape {
       this.availableRenderers = newConfig.renderers
     }
 
-    let rendererStateToSet: RendererStatesEnum
+    let rendererStateToSet: RendererStatesEnum | undefined = undefined
     /**
      * If only one renderer defined, just use it
      */

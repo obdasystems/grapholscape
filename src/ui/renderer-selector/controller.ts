@@ -24,7 +24,8 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       (grapholscape.renderer.renderState as IncrementalRendererState).createNewDiagram();
       (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).show()
-      setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+      if (grapholscape.renderer.diagram)
+        setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
     }
   }
 

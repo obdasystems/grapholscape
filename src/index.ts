@@ -36,11 +36,12 @@ export { default as setGraphEventHandlers } from './core/set-graph-event-handler
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
-  if (grapholscape)
+  if (grapholscape) {
     UI.initUI(grapholscape)
 
-  if (config?.initialRendererSelection === false || grapholscape.renderState) {
-    (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+    if (config?.initialRendererSelection === false || grapholscape.renderState) {
+      (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+    }
   }
   return grapholscape
 }

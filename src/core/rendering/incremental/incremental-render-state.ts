@@ -29,7 +29,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
     this.overrideDiagram()
 
     if (this.popperContainer) {
-      this.renderer.cy.container()?.appendChild(this.popperContainer)
+      this.renderer.cy?.container()?.appendChild(this.popperContainer)
     }
   }
 
@@ -70,30 +70,31 @@ export default class IncrementalRendererState extends FloatyRendererState {
   }
 
   protected overrideDiagram() {
-    if (this.renderer.diagram?.id !== this.incrementalDiagram.id) {
+    if (this.renderer.diagram && this.renderer.diagram?.id !== this.incrementalDiagram.id) {
       this.previousDiagram = this.renderer.diagram
     }
 
     this.renderer.stopRendering()
 
     this.renderer.diagram = this.incrementalDiagram
-    this.renderer.cy = this.diagramRepresentation.cy
+    this.renderer.cy = this.diagramRepresentation?.cy
     this.renderer.mount()
   }
 
   createNewDiagram() {
     this.unpinAll()
     this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
-    this.activeClass = null
+    this.activeClass = undefined
     this.floatyLayoutOptions.fit = true
     this.overrideDiagram()
-    this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
+    this.diagramRepresentation?.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
 
-    this.diagramRepresentation.cy.on('cxttap', `node`, evt => {
+    this.diagramRepresentation?.cy.on('cxttap', `node`, evt => {
       this.onContextClickCallback(evt.target)
     })
 
-    this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
+    if (this.renderer.diagram?.id)
+      this.popperContainers.set(this.renderer.diagram?.id, document.createElement('div'))
     this.setDragAndPinEventHandlers()
     this.render()
   }

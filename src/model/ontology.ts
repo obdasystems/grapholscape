@@ -5,7 +5,7 @@ import DiagramRepresentation from './diagrams/diagram-representation'
 import { Hierarchy } from './graph-structures'
 import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
 import GrapholNode from './graphol-elems/node'
-import { GrapholTypesEnum } from './graphol-elems/node-enums'
+import { GrapholTypesEnum } from './graphol-elems/enums'
 import Namespace from './namespace'
 import { RendererStatesEnum } from './renderers/i-render-state'
 /**
@@ -112,6 +112,8 @@ class Ontology extends AnnotatedElement {
 
   getEntityFromOccurrence(entityOccurrence: EntityOccurrence) {
     const diagram = this.getDiagram(entityOccurrence.diagramId)
+    if (!diagram) return
+
     for (let [_, representation] of diagram.representations) {
       const cyElement = representation.cy.$id(entityOccurrence.elementId)
       try {

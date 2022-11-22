@@ -6,7 +6,7 @@ export default function computeHierarchies(ontology: Ontology) {
   const unionEdgeSelector = `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`
 
   for (const diagram of ontology.diagrams) {
-    diagram.representations.get(RendererStatesEnum.FLOATY).cy.$(unionNodeSelector).forEach(unionNode => {
+    diagram.representations.get(RendererStatesEnum.FLOATY)?.cy.$(unionNodeSelector).forEach(unionNode => {
       const hierarchy = new Hierarchy(unionNode.data().type)
       hierarchy.id = `${unionNode.id()}-${diagram.id}`
 
@@ -33,7 +33,7 @@ export default function computeHierarchies(ontology: Ontology) {
           }
 
           hierarchy.addSuperclass(superClass.data().iri, inclusionEdge.data().targetLabel === 'C')
-          ontology.hierarchiesBySuperclassMap.get(superClass.data().iri).push(hierarchy)
+          ontology.hierarchiesBySuperclassMap.get(superClass.data().iri)?.push(hierarchy)
         }
       })
     })

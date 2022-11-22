@@ -3,7 +3,7 @@ import { Position } from "cytoscape";
 import GrapholEdge from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholNode from "../graphol-elems/node";
-import { GrapholTypesEnum, Shape } from "../graphol-elems/node-enums";
+import { GrapholTypesEnum, Shape } from "../graphol-elems/enums";
 
 export default class Hierarchy {
 
@@ -24,7 +24,7 @@ export default class Hierarchy {
   get inputs() { return this._inputs }
   get superclasses() { return this._superclasses }
 
-  set id(newId: string) { this._id = newId }
+  set id(newId: string | undefined) { this._id = newId }
   get id() { return this._id }
 
   getUnionGrapholNode(position?: Position): GrapholNode | undefined {
@@ -33,15 +33,15 @@ export default class Hierarchy {
       return
     }
 
-    const unionNode = new GrapholNode(this._id)
+    const unionNode = new GrapholNode(this._id!, GrapholTypesEnum.CLASS)
     unionNode.type = this.type
     unionNode.identity = GrapholTypesEnum.CLASS
     unionNode.shape = Shape.ELLIPSE
-    unionNode.displayedName = !this.isDisjoint() ? 'or' : null
+    unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined
     unionNode.height = unionNode.width = 30
-    unionNode.position = position
-    unionNode.setLabelXposFromXML(position.x)
-    unionNode.setLabelYposFromXML(position.y)
+    unionNode.position = position!
+    unionNode.setLabelXposFromXML(position!.x)
+    unionNode.setLabelYposFromXML(position!.y)
 
     return unionNode
   }
@@ -52,13 +52,12 @@ export default class Hierarchy {
       return
     }
 
-    const res = []
+    const res: GrapholEdge[] = []
 
     this.inputs.forEach((inputClassIri, i) => {
-      const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`)
-      newInputEdge.type = GrapholTypesEnum.INPUT
+      const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`, GrapholTypesEnum.INPUT)
       newInputEdge.sourceId = inputClassIri
-      newInputEdge.targetId = this._id
+      newInputEdge.targetId = this._id!
       res.push(newInputEdge)
     })
 
@@ -71,11 +70,10 @@ export default class Hierarchy {
       return
     }
 
-    const res = []
+    const res: GrapholEdge[] = []
     this._superclasses.forEach((superclass, i) => {
-      const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`)
-      newInclusionEdge.type = this.type
-      newInclusionEdge.sourceId = this._id
+      const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`, this.type)
+      newInclusionEdge.sourceId = this._id!
       newInclusionEdge.targetId = superclass.classIri
 
       if (superclass.complete) {

@@ -5,7 +5,7 @@ import Annotation from '../model/graphol-elems/annotation'
 import { FunctionalityEnum } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
-import { GrapholTypesEnum } from '../model/graphol-elems/node-enums'
+import { GrapholTypesEnum } from '../model/graphol-elems/enums'
 
 export let warnings = new Set()
 

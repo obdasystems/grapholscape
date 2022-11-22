@@ -84,13 +84,14 @@ export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
       <div class="title bold-text">${this._title}</div>
       <div class="options">
         ${this.options.map(option => {
-          return html`
-            <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection}>
-              <div class="icon">${option.icon}</div>
-              <div class="title bold-text">${option.name}</div>
-              <div class="description muted-text">${option.description}</div>
-            </div>
-          `
+          if (option)
+            return html`
+              <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection}>
+                <div class="icon">${option.icon}</div>
+                <div class="title bold-text">${option.name}</div>
+                <div class="description muted-text">${option.description}</div>
+              </div>
+            `
         })}
       </div>
     `

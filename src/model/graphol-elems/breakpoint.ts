@@ -9,10 +9,10 @@ export default class Breakpoint implements Position {
   private deltaX: number
   private deltaY: number
   private angularCoefficient: number
-  private intersectionPoint: Position = { x: null, y: null }
+  private intersectionPoint: Position = { x: 0, y: 0 }
   private distanceSourceTarget: number
   private distanceIntersectionSource: number
-  private breakpointRelativeToSource: Position = { x: null, y: null }
+  private breakpointRelativeToSource: Position = { x: 0, y: 0 }
 
   constructor(x?: number, y?: number) {
     this.x = x || 0
