@@ -4,29 +4,54 @@ import { GrapholTypesEnum } from "../../model";
 import capitalizeFirstChar from "../../util/capitalize-first-char";
 import { classInstanceIcon, entityIcons, objectPropertyIcon } from "../assets";
 import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
+import { EntityViewData } from "../util/search-entities";
 import GscapeContextMenu from "./context-menu";
 import style from "./style";
 
-export default class GscapeIncrementalMenu extends GscapeContextMenu {
+export interface IIncrementalMenu {
+  // callbacks
+  onDataPropertyToggle: (enabled: boolean) => void
+  onObjectPropertySelection: (iri: string, objectPropertyIri: string, direct: boolean) => void
+  onShowSuperClasses: () => void
+  onShowSubClasses: () => void
+  onHideSuperClasses: () => void
+  onHideSubClasses: () => void
+  onRemove: (iri: string) => void
+
+
+  // populate the menu
+  setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
+  addObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
+  setInstances: (instances: EntityViewData[]) => void
+  addInstances: (instances: EntityViewData[]) => void
+  
+  dataPropertyEnabled: boolean
+  areDataPropertiesPresent: boolean
+}
+
+export type ViewIncrementalObjectProperty = {
+  iri: string,
+  connectedClasses: EntityViewData[],
+  direct: boolean
+}
+
+export default class GscapeIncrementalMenu extends GscapeContextMenu implements IIncrementalMenu {
   private entitySearchComponent: GscapeEntitySearch
 
-  objectProperties?: {
-    objectPropertyIri: string,
-    classesIris: string[],
-  }[]
-  instances?: string[]
+  objectProperties?: ViewIncrementalObjectProperty[]
+  instances?: EntityViewData[]
   dataPropertyEnabled = false
-  showDataPropertyToggle = false
+  areDataPropertiesPresent = false
 
-  onEntitySelection = (iri: string, objectPropertyIri?: string) => { }
+  onObjectPropertySelection = (iri: string, objectPropertyIri: string, direct: boolean) => { }
   onShowInstances = () => { }
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
-  onShowSuperClasses = (iri: string) => { }
-  onHideSuperClasses = (iri: string) => { }
+  onShowSuperClasses = () => { }
+  onHideSuperClasses = () => { }
 
-  onShowSubClasses = (iri: string) => { }
-  onHideSubClasses = (iri: string) => { }
+  onShowSubClasses = () => { }
+  onHideSubClasses = () => { }
 
   onRemove = (iri: string) => { }
 
@@ -51,11 +76,11 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     return html`
     <div class="gscape-panel">
       <div class="header">Menu</div>
-      ${this.showDataPropertyToggle
+      ${this.areDataPropertiesPresent
       ? html`
-      <gscape-toggle class="actionable" label="Data Properties" ?checked=${this.dataPropertyEnabled}
-        @click=${this.handleDataPropertyToggle}>
-      </gscape-toggle>
+        <gscape-toggle class="actionable" label="Data Properties" ?checked=${this.dataPropertyEnabled}
+          @click=${this.handleDataPropertyToggle}>
+        </gscape-toggle>
       `
       : null
       }
@@ -93,15 +118,14 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
       }
       ${this.objectProperties?.map((op) => {
       return html`
-      <details class="ellipsed entity-list-item" title=${op.objectPropertyIri}>
+      <details class="ellipsed entity-list-item" title=${op.iri}>
         <summary class="actionable">
           <span class="entity-type-icon">${objectPropertyIcon}</span>
-          <span class="entity-type-name">${op.objectPropertyIri}</span>
+          <span class="entity-type-name">${op.iri}</span>
         </summary>
     
-        <div class="summary-body">
-          ${op.classesIris.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS,
-          op.objectPropertyIri))}
+        <div class="summary-body" ?isDirect=${op.direct}>
+          ${op.connectedClasses.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS,op.iri))}
         </div>
       </details>
       `
@@ -120,12 +144,12 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     `
   }
 
-  private getEntitySuggestionTemplate(entityIri: string, entityType: GrapholTypesEnum, objectPropertyIri?: string) {
+  private getEntitySuggestionTemplate(entity: EntityViewData, entityType: GrapholTypesEnum,  objectPropertyIri?: string) {
     return html`
-      <div title=${entityIri} iri=${entityIri} entity-type="${entityType}" class="ellipsed entity-list-item actionable"
+      <div title=${entity.displayedName} iri=${entity.value.iri.fullIri} entity-type="${entityType}" class="ellipsed entity-list-item actionable"
         @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri)}
         >
-        ${entityIri}
+        ${entity.displayedName}
       </div>
     `
   }
@@ -133,12 +157,13 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
   private handleEntityClick(e: Event, objectPropertyIri?: string) {
     const target = e.target as HTMLElement
     const iri = target.getAttribute('iri')
+    const direct = target.parentElement?.getAttribute('direct')
     if (!iri) return
 
     if (target.getAttribute('entity-type') === GrapholTypesEnum.CLASS_INSTANCE) {
       this.onInstanceSelection(iri)
-    } else {
-      this.onEntitySelection(iri, objectPropertyIri)
+    } else if (objectPropertyIri) {
+      this.onObjectPropertySelection(iri, objectPropertyIri, direct !== null)
     }
 
   }
@@ -154,6 +179,16 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu {
     cxtMenuProps.placement = 'right'
     return cxtMenuProps
   }
+
+
+  setObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) { this.objectProperties = objectProperties }
+  addObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) {
+    this.objectProperties = (this.objectProperties || []).concat(objectProperties)
+  }
+  setInstances(instances: EntityViewData[]) {
+    this.instances = instances
+  }
+  addInstances: (instances: EntityViewData[]) => void;
 }
 
 customElements.define('gscape-incremental-menu', GscapeIncrementalMenu)

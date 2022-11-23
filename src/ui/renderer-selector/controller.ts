@@ -5,8 +5,8 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import setGraphEventHandlers from "../../core/set-graph-event-handlers"
-import { initIncremental } from "../../incremental"
+import { resetIncremental, startIncremental } from "../../incremental"
+import IncrementalController from "../../incremental/controller"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { IBaseMixin } from "../common/base-widget-mixin"
 import { WidgetEnum } from "../util/widget-enum"
@@ -20,13 +20,8 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
 
   rendererSelector.onRendererStateSelection = (rendererState) => rendererStateSelectionCallback(rendererState, grapholscape)
 
-  rendererSelector.onIncrementalRefresh = () => {
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      (grapholscape.renderer.renderState as IncrementalRendererState).createNewDiagram();
-      (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).show()
-      if (grapholscape.renderer.diagram)
-        setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
-    }
+  rendererSelector.onIncrementalReset = () => {
+    resetIncremental(grapholscape)
   }
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
@@ -36,7 +31,6 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
       rendererSelector.layoutSettingsComponent.openPanel()
   })
 }
-
 
 export function rendererStateSelectionCallback(rendererState: RendererStatesEnum, grapholscape: Grapholscape) {
   if (rendererState !== grapholscape.renderState) {
@@ -61,12 +55,7 @@ export function rendererStateSelectionCallback(rendererState: RendererStatesEnum
     if (rendererState === RendererStatesEnum.INCREMENTAL) {
       const incrementalRendererState = new IncrementalRendererState()
       grapholscape.setRenderer(incrementalRendererState)
-      initIncremental(incrementalRendererState, grapholscape);
-      (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).hide();
-
-      if (grapholscape.renderer.grapholElements?.size === 0) {
-        (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).show()
-      }
+      startIncremental(grapholscape)
       isRenderValid = true
     } else {
       (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).show();

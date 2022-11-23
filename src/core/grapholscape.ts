@@ -1,6 +1,7 @@
 import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
-import { initIncremental } from "../incremental"
+import IncrementalController from "../incremental/controller"
+import { RequestOptions } from "../incremental/queries/model"
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -367,9 +368,7 @@ export default class Grapholscape {
         }
 
         case RendererStatesEnum.INCREMENTAL: {
-          const incrementalRendererState = new IncrementalRendererState()
-          this.setRenderer(incrementalRendererState)
-          initIncremental(incrementalRendererState, this)
+          this.setRenderer(new IncrementalRendererState())
           break
         }
       }
@@ -428,5 +427,17 @@ export default class Grapholscape {
    */
   get exportFileName() {
     return `${this.ontology.name}-${this.renderer.diagram?.name}-v${this.ontology.version}`
+  }
+
+  // ------------------- VIRTUAL KNOWLEDGE NAVIGATION -----------------
+  public mastroRequestOptions: RequestOptions
+  /**
+   * Use this to pass options to build rest calls for querying 
+   * the virtual knowledge graph when embedded in monolith
+   * @internal
+   * @param options 
+   */
+  setMastroRequestOptions(options: RequestOptions) {
+    this.mastroRequestOptions = options
   }
 }

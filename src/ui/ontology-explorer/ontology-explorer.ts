@@ -95,7 +95,8 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
           }
 
           ${this.entities.map(entity => {
-            return html`
+            return entity.viewOccurrences && entity.viewOccurrences.size > 0 ?
+            html`
             <details class="ellipsed entity-list-item" title="${entity.displayedName}">
               <summary class="actionable">
                 <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
@@ -106,6 +107,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
               </div>
             </details>
             `
+            : null
           })}
         </div>
       </div>

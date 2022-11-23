@@ -1,11 +1,12 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import { Ontology } from './model'
+import { Ontology, RendererStatesEnum } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 import Grapholscape from './core'
 import { GrapholscapeConfig, loadConfig } from './config'
+import { startIncremental } from './incremental'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -42,6 +43,10 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
     if (config?.initialRendererSelection === false || grapholscape.renderState) {
       (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
     }
+
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      startIncremental(grapholscape)
+    }
   }
   return grapholscape
 }
@@ -63,8 +68,15 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
  * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
  * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
-export function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
-  return getGrapholscape(file, container, config)
+export async function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
+  const grapholscape = await getGrapholscape(file, container, config)
+
+  if (grapholscape) {
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      startIncremental(grapholscape)
+    }
+  }
+  return grapholscape
 }
 
 async function getGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {

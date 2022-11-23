@@ -6,7 +6,11 @@ import baseStyle from '../style'
 import emptySearchBlankState from '../util/empty-search-blank-state'
 import { EntityViewData, search } from '../util/search-entities'
 
-export default class GscapeEntitySelector extends BaseMixin(LitElement) {
+export interface IEntitySelector {
+  onClassSelection(callback:(iri: string) => void): void
+}
+
+export default class GscapeEntitySelector extends BaseMixin(LitElement) implements IEntitySelector {
   title = 'Class Selector'
   private fullEntityList: EntityViewData[] = []
   private _entityList: EntityViewData[] = []

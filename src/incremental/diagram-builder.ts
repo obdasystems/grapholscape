@@ -156,6 +156,10 @@ export default class DiagramBuilder {
 
   // }
 
+  areDataPropertiesVisibleForClass(classIri: string): boolean {
+    return this.diagramRepresentation?.cy.$id(classIri).neighborhood(`node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).nonempty() || false
+  }
+
   private addObjectProperty(objectPropertyEntity: GrapholEntity, connectedClassEntity: GrapholEntity, direct: boolean) {
     if (!this.referenceNodeId) return
 

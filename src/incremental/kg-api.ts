@@ -9,20 +9,32 @@ export type ObjectPropertyInstance = {
   range: ClassInstance,
 }
 
-export interface VirtualKnowledgeGraphApi {
-  getInstances: (iri: string) => ClassInstance[],
+export interface IVirtualKnowledgeGraphApi {
+  getInstances: (iri: string, onNewResults: () => void, onStop:() => void, searchText?: string) => void,
   getInstancesNumber: (iri: string) => number,
   getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[],
 }
 
-export let vKGApi: VirtualKnowledgeGraphApi | undefined
+export let vKGApi: IVirtualKnowledgeGraphApi | undefined
 
-export function setVirtualKnowledgeGraphApi(virtualKnowledgeGraphApi: VirtualKnowledgeGraphApi) {
+export function setVirtualKnowledgeGraphApi(virtualKnowledgeGraphApi: IVirtualKnowledgeGraphApi) {
   vKGApi = virtualKnowledgeGraphApi
 }
 
+export default class VKGApi implements IVirtualKnowledgeGraphApi{
+
+  constructor(private requestOptions) { }
+
+  getInstancesNumber: (iri: string) => number
+  getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[]
+
+  getInstances(iri: string, onNewResults: () => void, onStop:() => void, searchText?: string) {
+    
+  }
+}
+
 // Stubbed API
-export let vKGApiStub: VirtualKnowledgeGraphApi = {
+export let vKGApiStub: IVirtualKnowledgeGraphApi = {
   getInstances: (iri: string) => {
     return [
       {

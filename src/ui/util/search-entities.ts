@@ -1,12 +1,12 @@
 import Grapholscape from "../../core"
-import { Annotation, GrapholEntity, GrapholTypesEnum, Iri } from "../../model"
+import { AnnotatedElement, Annotation, GrapholEntity, GrapholTypesEnum, Iri } from "../../model"
 import getEntityViewOccurrences, { DiagramViewData, OccurrenceIdViewData } from "./get-entity-view-occurrences"
 
 
 export type EntityViewData = {
   displayedName: string,
-  value: GrapholEntity,
-  viewOccurrences:  Map<DiagramViewData, OccurrenceIdViewData[]>
+  value: { iri: Iri, type: GrapholTypesEnum } & AnnotatedElement, // GrapholEntity is a compatible type
+  viewOccurrences?:  Map<DiagramViewData, OccurrenceIdViewData[]>
 }
 
 export interface IEntityFilters {

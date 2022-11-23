@@ -2,7 +2,6 @@ import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
 import { IBaseMixin } from "./common/base-widget-mixin";
 import { hasDropPanel } from "./common/drop-panel-mixin";
-import initContextMenu from "./incremental-menu";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails from "./entity-details";
 import initEntitySelector from "./entity-selector";
@@ -10,6 +9,7 @@ import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import { initInitialRendererSelector } from "./full-page-selector";
 import initFullscreenButton from "./fullscreen";
+import initIncrementalMenu from "./incremental-menu";
 import initOntologyExplorer from "./ontology-explorer";
 import initOntologyInfo from "./ontology-info";
 import initOwlVisualizer from "./owl-visualizer";
@@ -50,7 +50,7 @@ export default function (grapholscape: Grapholscape) {
   initSettings(grapholscape)
   initEntitySelector(grapholscape)
   initInitialRendererSelector(grapholscape)
-  initContextMenu(grapholscape)
+  initIncrementalMenu(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
 

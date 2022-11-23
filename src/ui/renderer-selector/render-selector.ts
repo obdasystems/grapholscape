@@ -12,7 +12,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
   rendererStates: (UiOption | undefined)[]
   actualRendererStateKey: RendererStatesEnum
   onRendererStateSelection: (rendererState: RendererStatesEnum) => void = () => { }
-  onIncrementalRefresh?: () => void
+  onIncrementalReset?: () => void
   layoutSettingsComponent: GscapeLayoutSettings
 
   static properties: PropertyDeclarations = {
@@ -46,9 +46,9 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
       ${this.actualRendererStateKey === RendererStatesEnum.FLOATY ||
         this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL
         ? html`
-          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalRefresh
+          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
             ? html`
-              <gscape-button @click=${this.onIncrementalRefresh} type="subtle" title="Restart Incremental Exploration">
+              <gscape-button @click=${this.onIncrementalReset} type="subtle" title="Restart Incremental Exploration">
                 <span slot="icon">${refresh}</span>
               </gscape-button>
               <div class="hr"></div>

@@ -1,6 +1,7 @@
 import { NodeSingular, SingularElementReturnValue, Stylesheet } from "cytoscape"
 import { FloatyRendererState, Renderer } from ".."
-import { Diagram, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
+import { floatyOptions } from "../../../config"
+import { Diagram, DiagramRepresentation, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyTransformer from "../floaty/floaty-transformer"
 import computeHierarchies from "./compute-hierarchies"
@@ -83,7 +84,10 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   createNewDiagram() {
     this.unpinAll()
-    this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
+    if (!this.incrementalDiagram)
+      this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
+    else
+      this.incrementalDiagram.representations.set(this.id, new DiagramRepresentation(floatyOptions))
     this.activeClass = undefined
     this.floatyLayoutOptions.fit = true
     this.overrideDiagram()

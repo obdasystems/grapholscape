@@ -1,16 +1,16 @@
-import tippy, { Props } from "tippy.js"
 import { Grapholscape } from "../../core"
-import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../model"
 import { WidgetEnum } from "../util/widget-enum"
 import GscapeIncrementalMenu from "./incremental-menu"
 
-export default function initContextMenu(grapholscape: Grapholscape) {
+export { GscapeIncrementalMenu }
+
+export default function initIncrementalMenu(grapholscape: Grapholscape) {
   const incrementalMenu = new GscapeIncrementalMenu()
 
-  // grapholscape.on(LifecycleEvent.NodeSelection, node => {
-  //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL)
-  //     cxtMenuWidget.attachTo((grapholscape.renderer.cy.$id(node.id) as any).popperRef(), [])
-  // })
+//   // grapholscape.on(LifecycleEvent.NodeSelection, node => {
+//   //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL)
+//   //     cxtMenuWidget.attachTo((grapholscape.renderer.cy.$id(node.id) as any).popperRef(), [])
+//   // })
 
   grapholscape.widgets.set(WidgetEnum.INCREMENTAL_MENU, incrementalMenu)
 }
