@@ -37,7 +37,7 @@ export default class DiagramBuilder {
 
   addClassInstance(iri: string) {
     if (!this.referenceNodeId) return
-    const instanceNode = new GrapholNode(iri, GrapholTypesEnum.CLASS)
+    const instanceNode = new GrapholNode(iri, GrapholTypesEnum.CLASS_INSTANCE)
 
     instanceNode.position = this.referenceNodePosition || { x: 0, y: 0 }
     instanceNode.displayedName = iri
