@@ -1,16 +1,16 @@
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { GrapholEntity, RendererStatesEnum } from "../model";
+import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import { IBaseMixin } from "../ui";
 import { IEntitySelector } from "../ui/entity-selector/entity-selector";
 import { IIncrementalMenu, ViewIncrementalObjectProperty } from "../ui/incremental-menu/incremental-menu";
 import DiagramBuilder from "./diagram-builder";
-import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./kg-api";
+import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder from "./neighbourhood-finder";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
-  private vKGApi?: IVirtualKnowledgeGraphApi
+  private _vKGApi?: IVirtualKnowledgeGraphApi
   private neighbourhoodFinder: NeighbourhoodFinder
 
   constructor(
@@ -21,8 +21,6 @@ export default class IncrementalController {
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
-    if (grapholscape.mastroRequestOptions)
-      this.vKGApi = new VKGApi(grapholscape.mastroRequestOptions)
   }
 
   init() {
@@ -48,6 +46,7 @@ export default class IncrementalController {
   }
 
   private buildMenuForClass(classIri: string) {
+    console.log(classIri)
     if (!this.incrementalMenu) return
 
     // DATA PROPERTIES TOGGLE
@@ -86,11 +85,23 @@ export default class IncrementalController {
       }
     })
 
+    this.incrementalMenu.onShowSuperClasses = () => { }
     this.incrementalMenu.onShowSuperClasses = () => this.showSuperClassesOf(classIri)
+    this.incrementalMenu.onHideSuperClasses = () => { }
     this.incrementalMenu.onHideSuperClasses = () => this.hideSuperClassesOf(classIri)
+    this.incrementalMenu.onShowSubClasses = () => console.log(classIri)
     this.incrementalMenu.onShowSubClasses = () => this.showSubClassesOf(classIri)
+    this.incrementalMenu.onHideSubClasses = () => { }
     this.incrementalMenu.onHideSubClasses = () => this.hideSubClassesOf(classIri)
     this.incrementalMenu.onRemove = () => this.removeEntity(classIri)
+
+    if (this.isReasonerEnabled) {
+      this.incrementalMenu.canShowInstances = true
+      this.incrementalMenu.onGetInstances = () => {
+        this.vKGApi!.getInstances(classIri, this.onNewInstancesForMenu.bind(this))
+      }
+      this.incrementalMenu.onInstanceSelection = this.addInstance.bind(this)
+    }
   }
 
   reset() {
@@ -112,6 +123,10 @@ export default class IncrementalController {
     this.postDiagramEdit()
   }
 
+  addInstance(instanceIri: string) {
+    this.diagramBuilder.addClassInstance(instanceIri)
+    this.postDiagramEdit()
+  }
   /**
    * Called when the user trigger the toggle for showing data properties.
    * Given the state of the toggle and the list of dataproperties it is
@@ -151,8 +166,11 @@ export default class IncrementalController {
    * @param classIri 
    */
   showSuperClassesOf(classIri: string) {
-    this.ontology.hierarchiesBySubclassMap.get(classIri)?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
-    this.postDiagramEdit()
+    const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
+    hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
+
+    if (hierarchies && hierarchies.length > 0)
+      this.postDiagramEdit()
   }
 
   /**
@@ -161,8 +179,11 @@ export default class IncrementalController {
    * @param classIri 
    */
   hideSuperClassesOf(classIri: string) {
-    this.ontology.hierarchiesBySubclassMap.get(classIri)?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
-    this.postDiagramEdit()
+    const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
+    hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
+    
+    if (hierarchies && hierarchies.length > 0)
+      this.postDiagramEdit()
   }
 
   /**
@@ -171,8 +192,11 @@ export default class IncrementalController {
    * @param classIri 
    */
   showSubClassesOf(classIri: string) {
-    this.ontology.hierarchiesBySuperclassMap.get(classIri)?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
-    this.postDiagramEdit()
+    const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
+    hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
+    
+    if (hierarchies && hierarchies.length > 0)
+      this.postDiagramEdit()
   }
 
   /**
@@ -181,15 +205,27 @@ export default class IncrementalController {
    * @param classIri 
    */
   hideSubClassesOf(classIri: string) {
-    this.ontology.hierarchiesBySuperclassMap.get(classIri)?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
-    this.postDiagramEdit()
+    const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
+    hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
+    
+          this.postDiagramEdit()
+      this.postDiagramEdit()
   }
 
   private onNewInstancesForMenu(instances: ClassInstance[]) {
-    if (this.incrementalMenu) {
-      // this.incrementalMenu.instances?.push(...instances.map(instance => instance.label || instance.iri))
-      // this.incrementalMenu.requestUpdate()
-    }
+    this.incrementalMenu.addInstances(instances.map(instance => {
+      let instanceIri = new Iri(instance.iri, this.ontology.namespaces)
+
+      let instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+      if (instance.label) {
+        instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
+      }
+      
+      return {
+        displayedName: instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
+        value: instanceEntity
+      }
+    }))
   }
 
   /**
@@ -221,4 +257,13 @@ export default class IncrementalController {
   private get ontology() { return this.grapholscape.ontology }
   private get diagram() { return this.incrementalRenderer.incrementalDiagram }
   private get isReasonerEnabled() { return this.vKGApi !== undefined }
+  private get vKGApi() {
+    if (this.grapholscape.mastroRequestOptions && !this._vKGApi) {
+      this._vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, {
+        name: 'new_endpoint',
+      })
+    }
+
+    return this._vKGApi
+  }
 }

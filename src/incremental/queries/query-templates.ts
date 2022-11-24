@@ -1,28 +1,20 @@
 const LABEL_AVAILABLE = false
 
-export function getInstances(iri: string, limit = 10, searchText?: string) {
-  return !LABEL_AVAILABLE
-    ? `
-      SELECT DISTINCT ?x
-      WHERE 
-      { 
-        ?x a <${iri}>.
-        FILTER(regex(?x, 'VALORE_NEL_FILTRO_DI_RICERCA'))
-      }
-      LIMIT ${limit}
-    `
-    : `
-      SELECT DISTINCT ?x ?l
-      WHERE 
-      { 
-        ?x a <${iri}>.
-        OPTIONAL {
-          ?x rdf:label ?l
-        }
-        FILTER(regex(?x, '${searchText}') || (regex(?l, '${searchText}') && !isBlank(?l)))
-      }
-      LIMIT ${limit}
-    `
+export function getInstances(iri: string, limit: number, searchText?: string) {
+  const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
+  const where = `?x a <${iri}>.`
+  const filter = searchText ? `regex(?x, '${searchText}')` : ``
+  const optional = LABEL_AVAILABLE ? `?x rdf:label ?l` : ``
+
+  return `
+    SELECT DISTINCT ${select}
+    WHERE {
+      ${where}
+      ${optional}
+      ${filter}
+    }
+    LIMIT ${limit}
+  `
 }
 
 export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIri: string) {

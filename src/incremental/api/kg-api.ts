@@ -1,3 +1,7 @@
+import { MastroEndpoint, RequestOptions } from '../queries/model'
+import QueryManager from '../queries/query-manager'
+import * as QueriesTemplates from '../queries/query-templates'
+
 export type ClassInstance = {
   iri: string,
   label?: string,
@@ -10,27 +14,40 @@ export type ObjectPropertyInstance = {
 }
 
 export interface IVirtualKnowledgeGraphApi {
-  getInstances: (iri: string, onNewResults: () => void, onStop:() => void, searchText?: string) => void,
+  getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
   getInstancesNumber: (iri: string) => number,
   getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[],
 }
 
-export let vKGApi: IVirtualKnowledgeGraphApi | undefined
 
-export function setVirtualKnowledgeGraphApi(virtualKnowledgeGraphApi: IVirtualKnowledgeGraphApi) {
-  vKGApi = virtualKnowledgeGraphApi
-}
 
-export default class VKGApi implements IVirtualKnowledgeGraphApi{
+export default class VKGApi implements IVirtualKnowledgeGraphApi {
+  private readonly LIMIT = 10 // How many results to show?
+  private queryManager: QueryManager
 
-  constructor(private requestOptions) { }
+  constructor(requestOptions: RequestOptions, endpoint: MastroEndpoint) {
+    this.queryManager = new QueryManager(requestOptions, endpoint)
+  }
 
   getInstancesNumber: (iri: string) => number
   getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[]
 
-  getInstances(iri: string, onNewResults: () => void, onStop:() => void, searchText?: string) {
-    
+  async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
+    const queryCode = QueriesTemplates.getInstances(iri, this.LIMIT, searchText)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.LIMIT)
+    queryPoller.start()
+    queryPoller.onNewResults = (result => {
+      onNewResults(result.results.map(res => {
+        return { iri: res[0].value, label: res[1]?.value }
+      }))
+    })
+
+    if (onStop) {
+      queryPoller.onStop = onStop
+    }
   }
+
+  
 }
 
 // Stubbed API

@@ -1,9 +1,9 @@
 export type MastroEndpoint = {
-  description: string
+  description?: string
   name: string
-  mastroID: MastroID
-  needRestart: boolean
-  user: string
+  mastroID?: MastroID
+  needRestart?: boolean
+  user?: string
 }
 
 export type MastroID = {

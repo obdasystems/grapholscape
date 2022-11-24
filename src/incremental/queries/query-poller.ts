@@ -1,4 +1,4 @@
-import { MastroEndpoint } from "./model"
+import { MastroEndpoint, RequestOptions } from "./model"
 
 export type QueryResult = {
   headTerms: string[],
@@ -17,9 +17,6 @@ export enum QueryPollerStatus {
 }
 
 export default class QueryPoller {
-  private endpoint: MastroEndpoint
-  private executionID: string
-  private limit: number
   private interval: NodeJS.Timer
   private lastRequestFulfilled: boolean = true
   private timeout: NodeJS.Timeout
@@ -35,16 +32,22 @@ export default class QueryPoller {
   static readonly TIMEOUT_LENGTH = 5000
   static readonly INTERVAL_LENGTH = 1000
 
-  constructor(endpoint: MastroEndpoint, executionID: string, limit: number) {
-    this.endpoint = endpoint
-    this.executionID = executionID
-    this.limit = limit
-  }
+  constructor(private request: Request, private limit: number) { }
 
   private poll() {
     this.status = QueryPollerStatus.RUNNING
-    fetch(this.queryResultRequestOptions).then((response: Response) => {
-      response.formData().then(value => console.log(value))
+    fetch(this.request).then((response: Response) => {
+      response.json().then((result: QueryResult) => {
+        if (JSON.stringify(this._result) !== JSON.stringify(result)) {
+          this._result = result
+          this.lastRequestFulfilled = true
+          this.onNewResults(result)
+        }
+        
+        if (result.results.length >= this.limit) {
+          this.stop()
+        }
+      })
     })
 
     // handlePromise(axios.request<any>(this.queryResultRequestOptions)).then((result: QueryResult) => {
@@ -77,7 +80,7 @@ export default class QueryPoller {
   stop(timeoutExpired = false) {
     if (timeoutExpired) {
       this.status = QueryPollerStatus.TIMEOUT_EXPIRED
-      console.warn(`Qyery timeout expired for query with id = [${this.executionID}]`)
+      // console.warn(`Qyery timeout expired for query with id = [${this.executionID}]`)
       this.onTimeoutExpiration()
     } else {
       this.status = QueryPollerStatus.DONE
@@ -89,18 +92,18 @@ export default class QueryPoller {
 
   get result() { return this._result }
 
-  private get queryResultRequestOptions() {
-    const queryOptions = {
-      url: localStorage.getItem('mastroUrl') + '/endpoint/' + this.endpoint.name + '/query/' + this.executionID + '/results',
-      method: 'get',
-      params: { pagesize: 10, pagenumber: 1 },
-      headers: JSON.parse(localStorage.getItem('headers') || ''),
-    }
+  // private get queryResultRequestOptions() {
+  //   const queryOptions = {
+  //     url: localStorage.getItem('mastroUrl') + '/endpoint/' + this.endpoint.name + '/query/' + this.executionID + '/results',
+  //     method: 'get',
+  //     params: { pagesize: 10, pagenumber: 1 },
+  //     headers: JSON.parse(localStorage.getItem('headers') || ''),
+  //   }
 
-    return new Request(queryOptions.url, {
-      method: 'get',
-      headers: JSON.parse(localStorage.getItem('headers') || ''),
-      body: JSON.stringify({ pagesize: 10, pagenumber: 1 })
-    })
-  }
+  //   return new Request(queryOptions.url, {
+  //     method: 'get',
+  //     headers: JSON.parse(localStorage.getItem('headers') || ''),
+  //     body: JSON.stringify({ pagesize: 10, pagenumber: 1 })
+  //   })
+  // }
 }

@@ -17,7 +17,8 @@ export interface IIncrementalMenu {
   onHideSuperClasses: () => void
   onHideSubClasses: () => void
   onRemove: (iri: string) => void
-
+  onGetInstances: () => void
+  onInstanceSelection: (iri: string) => void
 
   // populate the menu
   setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
@@ -27,6 +28,7 @@ export interface IIncrementalMenu {
   
   dataPropertyEnabled: boolean
   areDataPropertiesPresent: boolean
+  canShowInstances: boolean
 }
 
 export type ViewIncrementalObjectProperty = {
@@ -42,9 +44,10 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   instances?: EntityViewData[]
   dataPropertyEnabled = false
   areDataPropertiesPresent = false
+  canShowInstances = false
 
   onObjectPropertySelection = (iri: string, objectPropertyIri: string, direct: boolean) => { }
-  onShowInstances = () => { }
+  onGetInstances = () => { }
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
   onShowSuperClasses = () => { }
@@ -63,8 +66,14 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   static properties: PropertyDeclarations = {
     objectProperties: { type: Object, attribute: false },
     instances: { type: Array, attribute: false },
+    areDataPropertiesPresent: { type: Boolean, attribute: false },
     dataPropertyEnabled: { type: Boolean, attribute: false },
     showDataPropertyToggle: { type: Boolean, attribute: false },
+    canShowInstances: { type: Boolean, attribute: false },
+    onShowSuperClasses: { type: Object, attribute: false },
+    onHideSuperClasses: { type: Object, attribute: false },
+    onShowSubClasses: { type: Object, attribute: false },
+    onHideSubClasses: { type: Object, attribute: false },
   }
 
   static styles = [
@@ -99,18 +108,23 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
       <gscape-button label="Remove" @click=${this.onRemove}></gscape-button>
 
       ${this.entitySearchComponent}
-    
-      <div>Instances</div>
-      <details class="ellipsed entity-list-item" title="Instances">
-        <summary class="actionable" @click=${this.onShowInstances}>
-          <span class="entity-type-icon">${classInstanceIcon}</span>
-          <span class="entity-type-name">Instances</span>
-        </summary>
-    
-        <div class="summary-body">
-          ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance, GrapholTypesEnum.CLASS_INSTANCE))}
-        </div>
-      </details>
+      
+      ${this.canShowInstances
+        ? html`
+        <div>Instances</div>
+        <details class="ellipsed entity-list-item" title="Instances">
+          <summary class="actionable" @click=${this.handleShowInstances}>
+            <span class="entity-type-icon">${classInstanceIcon}</span>
+            <span class="entity-type-name">Instances</span>
+          </summary>
+      
+          <div class="summary-body">
+            ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance, GrapholTypesEnum.CLASS_INSTANCE))}
+          </div>
+        </details>
+        `
+        : null
+      }
     
       ${this.objectProperties
       ? html`<div>Object Properties</div>`
@@ -133,6 +147,13 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
     
     </div>
     `
+  }
+
+  private handleShowInstances(evt: MouseEvent) {
+    const target = (evt.target as HTMLElement)?.parentElement as HTMLDetailsElement
+    if (!target.open && (!this.instances || this.instances.length === 0)) {
+      this.onGetInstances()
+    }
   }
 
   private getEntityTypeListWrapperTemplate(entityType: GrapholTypesEnum) {
@@ -188,7 +209,10 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   setInstances(instances: EntityViewData[]) {
     this.instances = instances
   }
-  addInstances: (instances: EntityViewData[]) => void;
+  addInstances(instances: EntityViewData[]) {
+    // concat avoiding duplicates
+    this.instances = [...new Set([...(this.instances || []),...instances])]
+  }
 }
 
 customElements.define('gscape-incremental-menu', GscapeIncrementalMenu)
