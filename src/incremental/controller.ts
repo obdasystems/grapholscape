@@ -46,7 +46,6 @@ export default class IncrementalController {
   }
 
   private buildMenuForClass(classIri: string) {
-    console.log(classIri)
     if (!this.incrementalMenu) return
 
     // DATA PROPERTIES TOGGLE
@@ -85,13 +84,9 @@ export default class IncrementalController {
       }
     })
 
-    this.incrementalMenu.onShowSuperClasses = () => { }
     this.incrementalMenu.onShowSuperClasses = () => this.showSuperClassesOf(classIri)
-    this.incrementalMenu.onHideSuperClasses = () => { }
     this.incrementalMenu.onHideSuperClasses = () => this.hideSuperClassesOf(classIri)
-    this.incrementalMenu.onShowSubClasses = () => console.log(classIri)
     this.incrementalMenu.onShowSubClasses = () => this.showSubClassesOf(classIri)
-    this.incrementalMenu.onHideSubClasses = () => { }
     this.incrementalMenu.onHideSubClasses = () => this.hideSubClassesOf(classIri)
     this.incrementalMenu.onRemove = () => this.removeEntity(classIri)
 

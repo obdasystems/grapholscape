@@ -1,4 +1,4 @@
-import { GrapholEntity, GrapholNode, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
+import { GrapholEntity, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
 
 export type ObjectPropertyConnectedClasses = {
   connectedClasses: GrapholEntity[],
@@ -126,71 +126,6 @@ export default class NeighbourhoodFinder {
 
     return res
   }
-
-  /**
-   * Given a class, find hierarchies in which it participates as a sub class.
-   * The search is performed in all the diagrams in floaty representation.
-   * @param iri the class' iri
-   */
-  // getSuperClassesHierarchies(iri: string) {
-  //   const result: (Hierarchy | ClassInIsa)[] = []
-  //   const unionNodesSelector = `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`
-  //   const unionEdgesSelector = `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`
-  //   const inclusionOrEquivalenceEdgesSelector = `edge[type ="${GrapholTypesEnum.INCLUSION}"], edge[type ="${GrapholTypesEnum.EQUIVALENCE}"]`
-
-  //   this.ontology.diagrams.forEach(diagram => {
-  //     diagram.representations.get(RendererStatesEnum.FLOATY)
-  //       ?.cy.$(`[iri = "${iri}"]`).forEach(classNode => {
-  //         // get neighbour union nodes
-  //         classNode.openNeighborhood(unionNodesSelector).forEach(unionNode => {
-  //           let hierarchy: Hierarchy = {
-  //             inputs: [],
-  //             unionNode: diagram.representations.get(RendererStatesEnum.GRAPHOL).grapholElements.get(unionNode.id()) as GrapholNode,
-  //             superclasses: [],
-  //           }
-
-  //           unionNode.connectedEdges(`[type = "${GrapholTypesEnum.INPUT}"]`).sources().forEach(inputNode => {
-  //             if (inputNode.data().iri)
-  //               hierarchy.inputs.push(this.ontology.getEntity(inputNode.data().iri))
-  //           })
-
-  //           unionNode.connectedEdges(unionEdgesSelector).targets().forEach(superClass => {
-  //             if (superClass.data().iri) {
-  //               hierarchy.superclasses.push({
-  //                 class: this.ontology.getEntity(superClass.data().iri),
-  //               })
-  //             }
-  //           })
-
-  //           result.push(hierarchy)
-  //         })
-
-  //         // get also outgoing inclusions and connected equivalence with their target/source
-  //         classNode.connectedEdges(inclusionOrEquivalenceEdgesSelector).forEach(edge => {
-  //           let superClassIri: string
-
-  //           // if target is different from the starting node, then it's outgoing edge, consider target
-  //           if (edge.target() !== classNode)
-  //             superClassIri = edge.target().data().iri
-
-  //           // otherwise it's incoming edge, consider source but only if it's equivalence (cause we are asking superclasses)
-  //           else if (edge.data().type === GrapholTypesEnum.EQUIVALENCE)
-  //             superClassIri = edge.source().data().iri
-
-  //           if (superClassIri) {
-  //             result.push({
-  //               edgeType: edge.data().type,
-  //               class: this.ontology.getEntity(superClassIri),
-  //               classPosition: edge.target() !== classNode ? 'superclass' : 'subclass'
-  //             })
-  //           }
-            
-  //         })
-  //       })
-  //   })
-
-  //   return result
-  // }
 
   private getIriObject(iri: string): Iri {
     return new Iri(iri, this.ontology.namespaces)

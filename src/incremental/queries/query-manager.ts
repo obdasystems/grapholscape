@@ -66,6 +66,6 @@ export default class QueryManager {
   }
 
   private get prefixesPath() {
-    return `${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/prefixes`
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/prefixes`)
   }
 }

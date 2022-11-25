@@ -1,6 +1,5 @@
 import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
-import IncrementalController from "../incremental/controller"
 import { RequestOptions } from "../incremental/queries/model"
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"

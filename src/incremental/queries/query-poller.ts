@@ -1,5 +1,3 @@
-import { MastroEndpoint, RequestOptions } from "./model"
-
 export type QueryResult = {
   headTerms: string[],
   results: {
@@ -49,15 +47,6 @@ export default class QueryPoller {
         }
       })
     })
-
-    // handlePromise(axios.request<any>(this.queryResultRequestOptions)).then((result: QueryResult) => {
-    //   this._result = result
-    //   this.lastRequestFulfilled = true
-    //   if (result.results.length >= this.limit) {
-    //     this.stop()
-    //   }
-    //   this.onNewResults(result)
-    // })
   }
 
   start() {
@@ -91,19 +80,4 @@ export default class QueryPoller {
   }
 
   get result() { return this._result }
-
-  // private get queryResultRequestOptions() {
-  //   const queryOptions = {
-  //     url: localStorage.getItem('mastroUrl') + '/endpoint/' + this.endpoint.name + '/query/' + this.executionID + '/results',
-  //     method: 'get',
-  //     params: { pagesize: 10, pagenumber: 1 },
-  //     headers: JSON.parse(localStorage.getItem('headers') || ''),
-  //   }
-
-  //   return new Request(queryOptions.url, {
-  //     method: 'get',
-  //     headers: JSON.parse(localStorage.getItem('headers') || ''),
-  //     body: JSON.stringify({ pagesize: 10, pagenumber: 1 })
-  //   })
-  // }
 }
