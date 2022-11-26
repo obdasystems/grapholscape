@@ -1,4 +1,6 @@
-export type QueryResult = {
+export type QueryResult = QueryRecords | number
+
+export type QueryRecords = {
   headTerms: string[],
   results: {
     type: string,
@@ -14,23 +16,25 @@ export enum QueryPollerStatus {
   IDLE = 3,
 }
 
-export default class QueryPoller {
-  private interval: NodeJS.Timer
-  private lastRequestFulfilled: boolean = true
-  private timeout: NodeJS.Timeout
-  private _result: QueryResult
-  
+abstract class QueryPoller {
+  protected interval: NodeJS.Timer
+  protected timeout: NodeJS.Timeout
+  protected lastRequestFulfilled: boolean = true
+  protected abstract _result: QueryResult
+  protected request: Request
+
   // Callbacks
-  onNewResults = (result: QueryResult) => { }
-  onTimeoutExpiration = () => { }
-  onStop = () => { }
+  public onStop: () => void = () => { }
+  public onTimeoutExpiration: () => void = () => { }
+  public abstract onNewResults: (result: QueryResult) => void
 
-  status = QueryPollerStatus.IDLE
+  public status: QueryPollerStatus = QueryPollerStatus.IDLE
 
-  static readonly TIMEOUT_LENGTH = 5000
-  static readonly INTERVAL_LENGTH = 1000
+  protected static readonly TIMEOUT_LENGTH = 5000
+  protected static readonly INTERVAL_LENGTH = 1000
 
-  constructor(private request: Request, private limit: number) { }
+  protected abstract stopCondition(): boolean
+  protected abstract hasAnyResult(): boolean
 
   private poll() {
     this.status = QueryPollerStatus.RUNNING
@@ -41,8 +45,8 @@ export default class QueryPoller {
           this.lastRequestFulfilled = true
           this.onNewResults(result)
         }
-        
-        if (result.results.length >= this.limit) {
+
+        if (this.stopCondition()) {
           this.stop()
         }
       })
@@ -58,7 +62,7 @@ export default class QueryPoller {
     }, QueryPoller.INTERVAL_LENGTH)
 
     this.timeout = setTimeout(() => {
-      if (this.result.results.length === 0) {
+      if (!this.hasAnyResult()) {
         this.stop(true)
       } else {
         this.stop()
@@ -79,5 +83,60 @@ export default class QueryPoller {
     this.onStop()
   }
 
-  get result() { return this._result }
+  abstract get result(): QueryResult
+}
+
+export class QueryResultsPoller extends QueryPoller {
+  public onNewResults: (result: QueryRecords) => void = () => { }
+
+  protected _result: QueryRecords
+
+  constructor(protected request: Request, private limit: number) {
+    super()
+  }
+
+  protected stopCondition(): boolean {
+    return this._result.results.length >= this.limit
+  }
+
+  protected hasAnyResult(): boolean {
+    return this.result.results.length === 0
+  }
+
+  get result(): QueryRecords {
+    return this._result
+  }
+}
+
+/**
+ * Class to perform polling on a count query,
+ * it will stop when the result received is equal
+ * to the QUERY_STATUS_FINISHED constant.
+ */
+export class QueryCountStatePoller extends QueryPoller {
+  /**
+   * Callback called in case the count has finished correctly.
+   */
+  public onNewResults: (result: number) => void = () => { }
+
+  protected _result: number
+
+  private static readonly QUERY_STATUS_FINISHED = 3
+  private static readonly QUERY_STATUS_ERROR = 4
+
+  constructor(protected request: Request) {
+    super()
+  }
+
+  protected stopCondition(): boolean {
+    return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED ||
+      this.result === QueryCountStatePoller.QUERY_STATUS_ERROR
+  }
+  protected hasAnyResult(): boolean {
+    return this.result !== undefined
+  }
+  get result(): QueryResult {
+    return this._result
+  }
+
 }

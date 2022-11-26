@@ -15,26 +15,25 @@ export type ObjectPropertyInstance = {
 
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
-  getInstancesNumber: (iri: string) => number,
+  getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
   getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[],
 }
 
 
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
-  private readonly LIMIT = 10 // How many results to show?
+  private static readonly LIMIT = 10 // How many results to show?
   private queryManager: QueryManager
 
   constructor(requestOptions: RequestOptions, endpoint: MastroEndpoint) {
     this.queryManager = new QueryManager(requestOptions, endpoint)
   }
 
-  getInstancesNumber: (iri: string) => number
   getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[]
 
   async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
-    const queryCode = QueriesTemplates.getInstances(iri, this.LIMIT, searchText)
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.LIMIT)
+    const queryCode = QueriesTemplates.getInstances(iri, VKGApi.LIMIT, searchText)
+    const queryPoller = await this.queryManager.performQuery(queryCode, VKGApi.LIMIT)
     queryPoller.start()
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => {
@@ -47,6 +46,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
   }
 
+  async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
+    const queryCode = QueriesTemplates.getInstances(iri, undefined, searchText)
+    onResult(await this.queryManager.performQueryCount(queryCode))
+  }
   
 }
 

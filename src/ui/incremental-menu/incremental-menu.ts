@@ -23,12 +23,16 @@ export interface IIncrementalMenu {
   // populate the menu
   setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
   addObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
+  /** remove current instances and add the new ones */
   setInstances: (instances: EntityViewData[]) => void
+  /** append new instances to the existing ones */
   addInstances: (instances: EntityViewData[]) => void
   
   dataPropertyEnabled: boolean
   areDataPropertiesPresent: boolean
   canShowInstances: boolean
+  isInstanceCounterLoading: boolean
+  instanceCount: number
 }
 
 export type ViewIncrementalObjectProperty = {
@@ -45,6 +49,8 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   dataPropertyEnabled = false
   areDataPropertiesPresent = false
   canShowInstances = false
+  isInstanceCounterLoading = true
+  instanceCount: number
 
   onObjectPropertySelection = (iri: string, objectPropertyIri: string, direct: boolean) => { }
   onGetInstances = () => { }
@@ -70,6 +76,8 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
     dataPropertyEnabled: { type: Boolean, attribute: false },
     showDataPropertyToggle: { type: Boolean, attribute: false },
     canShowInstances: { type: Boolean, attribute: false },
+    isInstanceCounterLoading: { type: Boolean, attribute: false },
+    instanceCount: { type: Number, attribute: false },
     onShowSuperClasses: { type: Object, attribute: false },
     onHideSuperClasses: { type: Object, attribute: false },
     onShowSubClasses: { type: Object, attribute: false },
@@ -116,6 +124,12 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
           <summary class="actionable" @click=${this.handleShowInstances}>
             <span class="entity-type-icon">${classInstanceIcon}</span>
             <span class="entity-type-name">Instances</span>
+            <span class="counter chip">
+              ${this.isInstanceCounterLoading || this.instanceCount === undefined
+                ? html`...`
+                : this.instanceCount
+              }
+            </span>
           </summary>
       
           <div class="summary-body">

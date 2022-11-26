@@ -1,10 +1,18 @@
 const LABEL_AVAILABLE = false
 
-export function getInstances(iri: string, limit: number, searchText?: string) {
+export function getInstances(iri: string, maxResults?: number, searchText?: string) {
   const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
   const where = `?x a <${iri}>.`
-  const filter = searchText ? `regex(?x, '${searchText}')` : ``
-  const optional = LABEL_AVAILABLE ? `?x rdf:label ?l` : ``
+  let filter: string = ``
+  if (searchText) {
+    filter = `FILTER(regex(?x, '${searchText}')`
+    if (LABEL_AVAILABLE)
+      filter += `|| (regex(?l, '${searchText}') && !isBlank(?l))`
+
+    filter += `)`
+  }
+  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?x rdf:label ?l }` : ``
+  const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `
     SELECT DISTINCT ${select}
@@ -13,7 +21,7 @@ export function getInstances(iri: string, limit: number, searchText?: string) {
       ${optional}
       ${filter}
     }
-    LIMIT ${limit}
+    ${limit}
   `
 }
 

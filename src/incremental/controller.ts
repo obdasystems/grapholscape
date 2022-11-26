@@ -92,6 +92,14 @@ export default class IncrementalController {
 
     if (this.isReasonerEnabled) {
       this.incrementalMenu.canShowInstances = true
+      this.incrementalMenu.isInstanceCounterLoading = true
+
+      // Ask instance number
+      this.vKGApi?.getInstancesNumber(classIri, (count) => {
+        this.incrementalMenu.isInstanceCounterLoading = false
+        this.incrementalMenu.instanceCount = count
+      })
+
       this.incrementalMenu.onGetInstances = () => {
         this.vKGApi!.getInstances(classIri, this.onNewInstancesForMenu.bind(this))
       }
@@ -214,7 +222,7 @@ export default class IncrementalController {
       if (instance.label) {
         instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
       }
-      
+
       return {
         displayedName: instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
         value: instanceEntity
