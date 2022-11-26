@@ -36,7 +36,10 @@
     "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
     "preversion": "run-s test",
     "version": "run-s build doc app:dist version:git-add-all",
-    "git-add-all": "git add -A"
+    "git-add-all": "git add -A",
+    "apigen": "run-s apigen:*",
+    "apigen:clean": "rimraf ./src/incremental/api/swagger",
+    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json"
   },
   "repository": {
     "type": "git",
@@ -53,6 +56,7 @@
     "@babel/core": "^7.18.13",
     "@babel/preset-env": "^7.18.10",
     "@knodes/typedoc-plugin-pages": "^0.23.1",
+    "@openapitools/openapi-generator-cli": "^2.5.2",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^4.1.0",
