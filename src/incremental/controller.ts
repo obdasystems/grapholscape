@@ -176,7 +176,7 @@ export default class IncrementalController {
   hideSuperClassesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
-    
+
     if (hierarchies && hierarchies.length > 0)
       this.postDiagramEdit()
   }
@@ -189,7 +189,7 @@ export default class IncrementalController {
   showSubClassesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
-    
+
     if (hierarchies && hierarchies.length > 0)
       this.postDiagramEdit()
   }
@@ -202,9 +202,8 @@ export default class IncrementalController {
   hideSubClassesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
-    
-          this.postDiagramEdit()
-      this.postDiagramEdit()
+
+    this.postDiagramEdit()
   }
 
   private onNewInstancesForMenu(instances: ClassInstance[]) {
