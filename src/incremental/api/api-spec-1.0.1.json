@@ -1,0 +1,134 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Swagger Sparqling WS",
+    "description": "This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph. \nSparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "info@obdasystems.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7979/sparqling/1.0.0"
+    }
+  ],
+  "tags": [
+    {
+      "name": "OntologyGraph",
+      "description": "Depending on the selected node and the clicked node the ontology graph will change the highlightments. These results will be used essentially by GRAPHOLscape."
+    }
+  ],
+  "paths": {
+    "/highlights": {
+      "get": {
+        "tags": [
+          "OntologyGraph"
+        ],
+        "summary": "Get the IRIs of the ontology entities \"related\" to the clicked and selected.",
+        "description": "This route is used to highlight the negihbours of the selected class. The neighbours can be classes (brother classes or child classes), object properties (the class or one of his father partecipate or are typed to domain/range) or data properties (the class or one of its fathers partecipates or is typed to its domain).",
+        "operationId": "highligths",
+        "parameters": [
+          {
+            "name": "clickedClassIRI",
+            "in": "query",
+            "description": "The IRI of the class just clicked on the GRAPHOLscape ontology graph",
+            "required": true,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "params",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Highlights"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid IRI supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Entity not found",
+            "content": {}
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Highlights": {
+        "type": "object",
+        "properties": {
+          "classes": {
+            "type": "array",
+            "description": "Subclasses or brother classes",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objectProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Branch"
+            }
+          },
+          "dataProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Branch": {
+        "type": "object",
+        "properties": {
+          "objectPropertyIRI": {
+            "type": "string"
+          },
+          "cyclic": {
+            "type": "boolean",
+            "description": "It is true when domain and range are the same class."
+          },
+          "direct": {
+            "type": "boolean"
+          },
+          "relatedClasses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
