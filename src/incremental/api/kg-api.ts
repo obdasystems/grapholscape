@@ -1,9 +1,7 @@
-import { GrapholEntity } from '../../model'
-import { ObjectPropertyConnectedClasses } from '../neighbourhood-finder'
 import { MastroEndpoint, RequestOptions } from '../queries/model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
-import { Branch } from './swagger'
+import { Branch, Highlights, OntologyGraphApi } from './swagger'
 
 export type ClassInstance = {
   iri: string,
@@ -19,7 +17,8 @@ export type ClassInstance = {
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
-  getObjectProperties: (iri: string) => Promise<Branch[]>,
+  // getObjectProperties: (iri: string) => Promise<Branch[]>,
+  getHighlights: (iri: string) => Promise<Highlights>
 }
 
 
@@ -27,15 +26,29 @@ export interface IVirtualKnowledgeGraphApi {
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
   private static readonly LIMIT = 10 // How many results to show?
   private queryManager: QueryManager
+  private lastIriForSuggestions: string // the last class iri for which suggestions has been asked
+  private lastSuggestions: Highlights // last suggestions retrieved
 
   constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint) {
     this.queryManager = new QueryManager(requestOptions, endpoint)
   }
   
-  async getObjectProperties(iri: string) {
-    const suggestions = await this.getSuggestions(iri)
-    return (await suggestions.json())?.objectProperties
-  }
+  // async getObjectProperties(iri: string) {
+  //   if (iri !== this.lastIriForSuggestions) {
+  //     this.lastSuggestions = await (await this.getSuggestions(iri)).json()
+  //   }
+    
+  //   this.lastIriForSuggestions = iri
+  //   return this.lastSuggestions?.objectProperties || []
+  // }
+
+  // async getDataPropertiesList(iri: string) {
+  //   if (iri !== this.lastIriForSuggestions)
+  //     this.lastSuggestions = await (await this.getSuggestions(iri)).json()
+
+  //   this.lastIriForSuggestions = iri
+  //   const suggestions = await this.getSuggestions(iri)
+  // }
 
   async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, VKGApi.LIMIT, searchText)
@@ -57,73 +70,73 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     onResult(await this.queryManager.performQueryCount(queryCode))
   }
 
-  private async getSuggestions(classIri: string) {
+  async getHighlights(classIri: string) {
     const params = new URLSearchParams({ clickedClassIRI: classIri, version: this.requestOptions.version })
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights?${params.toString()}`)
     
-    return await fetch(url, {
+    return await (await fetch(url, {
       method: 'get',
       headers: this.requestOptions.headers
-    })
+    })).json()
   }
   
 }
 
 // Stubbed API
-export let vKGApiStub: IVirtualKnowledgeGraphApi = {
-  getInstances: (iri: string) => {
-    return [
-      {
-        iri: `http://obdm.obdasystems.com/book/1`,
-        label: 'Harry Potter',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/2`,
-        label: 'It',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/3`
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/4`,
-        label: 'Divina Commedia',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/5`,
-        label: 'Promessi Sposi',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/6`,
-        label: 'Songs Of My Nightmares',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/7`,
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/8`,
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/9`,
-        label: 'Losing The Sun',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/10`,
-        label: 'Sailing Into The Void',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/11`,
-        label: 'Calling Myself',
-      },
-      {
-        iri: `http://obdm.obdasystems.com/book/12`,
-        label: 'Bleeding At The Mountains',
-      },
-    ]
-  },
-  getInstancesNumber: function (iri: string, onResult) {
-    onResult(2)
-  },
-  getObjectProperties: function (iri: string): Promise<Branch[]> {
-    throw new Error('Function not implemented.')
-  }
-}
+// export let vKGApiStub: IVirtualKnowledgeGraphApi = {
+//   getInstances: (iri: string) => {
+//     return [
+//       {
+//         iri: `http://obdm.obdasystems.com/book/1`,
+//         label: 'Harry Potter',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/2`,
+//         label: 'It',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/3`
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/4`,
+//         label: 'Divina Commedia',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/5`,
+//         label: 'Promessi Sposi',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/6`,
+//         label: 'Songs Of My Nightmares',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/7`,
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/8`,
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/9`,
+//         label: 'Losing The Sun',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/10`,
+//         label: 'Sailing Into The Void',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/11`,
+//         label: 'Calling Myself',
+//       },
+//       {
+//         iri: `http://obdm.obdasystems.com/book/12`,
+//         label: 'Bleeding At The Mountains',
+//       },
+//     ]
+//   },
+//   getInstancesNumber: function (iri: string, onResult) {
+//     onResult(2)
+//   },
+//   // getObjectProperties: function (iri: string): Promise<Branch[]> {
+//   //   throw new Error('Function not implemented.')
+//   // }
+// }

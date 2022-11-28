@@ -8,11 +8,15 @@ import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
+import { Highlights } from "./api/swagger";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   private _vKGApi?: IVirtualKnowledgeGraphApi
   private neighbourhoodFinder: NeighbourhoodFinder
+
+  private lastHighlights: Promise<Highlights> = new Promise(() => { })
+  private lastIri: string
 
   constructor(
     private grapholscape: Grapholscape,
@@ -50,16 +54,17 @@ export default class IncrementalController {
     if (!this.incrementalMenu) return
 
     // DATA PROPERTIES TOGGLE
-    const dataProperties = this.neighbourhoodFinder.getDataProperties(classIri)
-    this.incrementalMenu.areDataPropertiesPresent = dataProperties.length > 0
+    this.getDataProperties(classIri).then(dataProperties => {
+      this.incrementalMenu.areDataPropertiesPresent = dataProperties.length > 0
 
-    if (dataProperties.length > 0) {
-      this.incrementalMenu.dataPropertyEnabled = this.diagramBuilder.areDataPropertiesVisibleForClass(classIri)
-      this.incrementalMenu.onDataPropertyToggle = (enabled) => this.toggleDataProperties(enabled, dataProperties)
-    } else {
-      // clear previous callback
-      this.incrementalMenu.onDataPropertyToggle = () => { }
-    }
+      if (dataProperties.length > 0) {
+        this.incrementalMenu.dataPropertyEnabled = this.diagramBuilder.areDataPropertiesVisibleForClass(classIri)
+        this.incrementalMenu.onDataPropertyToggle = (enabled) => this.toggleDataProperties(enabled, dataProperties)
+      } else {
+        // clear previous callback
+        this.incrementalMenu.onDataPropertyToggle = () => { }
+      }
+    })
 
     // OBJECT PROPERTIES
     this.getObjectProperties(classIri).then(objectProperties => {
@@ -84,18 +89,23 @@ export default class IncrementalController {
 
     if (this.isReasonerEnabled) {
       this.incrementalMenu.canShowInstances = true
-      this.incrementalMenu.isInstanceCounterLoading = true
-
-      // Ask instance number
-      this.vKGApi?.getInstancesNumber(classIri, (count) => {
-        this.incrementalMenu.isInstanceCounterLoading = false
-        this.incrementalMenu.instanceCount = count
-      })
 
       this.incrementalMenu.onGetInstances = () => {
         this.vKGApi!.getInstances(classIri, this.onNewInstancesForMenu.bind(this))
       }
       this.incrementalMenu.onInstanceSelection = this.addInstance.bind(this)
+
+      if (classIri !== this.lastIri) {
+        this.incrementalMenu.setInstances([])
+        this.incrementalMenu.isInstanceCounterLoading = true
+        // Ask instance number
+        this.vKGApi?.getInstancesNumber(classIri, (count) => {
+          this.incrementalMenu.isInstanceCounterLoading = false
+          this.incrementalMenu.instanceCount = count
+        })
+      }
+
+      this.lastIri = classIri
     }
   }
 
@@ -222,6 +232,12 @@ export default class IncrementalController {
     }))
   }
 
+  private refreshHighlights(classIri: string) {
+    if (this.isReasonerEnabled) {
+      this.lastHighlights = this.vKGApi!.getHighlights(classIri)
+    }
+  }
+
   /**
    * Given the iri of a class, retrieve connected object properties.
    * These object properties are inferred if the reasoner is available.
@@ -232,14 +248,17 @@ export default class IncrementalController {
    */
   private async getObjectProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      const branches = await this.vKGApi?.getObjectProperties(classIri)
+      if (classIri !== this.lastIri) {
+        this.refreshHighlights(classIri)
+      }
+      const branches = (await this.lastHighlights).objectProperties
       const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
 
       branches?.forEach(branch => {
         if (!branch.objectPropertyIRI) return
 
         const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI)
-        
+
         if (!objectPropertyEntity) return
 
         const connectedClasses: ObjectPropertyConnectedClasses = {
@@ -262,6 +281,23 @@ export default class IncrementalController {
 
     } else {
       return this.neighbourhoodFinder.getObjectProperties(classIri)
+    }
+  }
+
+  private async getDataProperties(classIri: string) {
+    if (this.isReasonerEnabled) {
+      if (classIri !== this.lastIri) {
+        this.refreshHighlights(classIri)
+      }
+
+      const dataProperties = (await this.lastHighlights).dataProperties
+      return dataProperties
+        ?.map(dp => this.ontology.getEntity(dp))
+        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+        || []
+
+    } else {
+      return this.neighbourhoodFinder.getDataProperties(classIri)
     }
   }
 
