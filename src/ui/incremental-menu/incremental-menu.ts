@@ -36,7 +36,7 @@ export interface IIncrementalMenu {
 }
 
 export type ViewIncrementalObjectProperty = {
-  iri: string,
+  objectProperty: EntityViewData,
   connectedClasses: EntityViewData[],
   direct: boolean
 }
@@ -146,14 +146,14 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
       }
       ${this.objectProperties?.map((op) => {
       return html`
-      <details class="ellipsed entity-list-item" title=${op.iri}>
+      <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
         <summary class="actionable">
           <span class="entity-type-icon">${objectPropertyIcon}</span>
-          <span class="entity-type-name">${op.iri}</span>
+          <span class="entity-type-name">${op.objectProperty.displayedName}</span>
         </summary>
     
         <div class="summary-body" ?isDirect=${op.direct}>
-          ${op.connectedClasses.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS,op.iri))}
+          ${op.connectedClasses.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS, op.objectProperty.value.iri.fullIri))}
         </div>
       </details>
       `
@@ -192,7 +192,7 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   private handleEntityClick(e: Event, objectPropertyIri?: string) {
     const target = e.target as HTMLElement
     const iri = target.getAttribute('iri')
-    const direct = target.parentElement?.getAttribute('direct')
+    const direct = target.parentElement?.getAttribute('isDirect')
     if (!iri) return
 
     if (target.getAttribute('entity-type') === GrapholTypesEnum.CLASS_INSTANCE) {

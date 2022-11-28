@@ -3,10 +3,11 @@ import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import { IBaseMixin } from "../ui";
 import { IEntitySelector } from "../ui/entity-selector/entity-selector";
-import { IIncrementalMenu, ViewIncrementalObjectProperty } from "../ui/incremental-menu/incremental-menu";
+import { IIncrementalMenu } from "../ui/incremental-menu/incremental-menu";
 import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
+import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -64,22 +65,13 @@ export default class IncrementalController {
     this.getObjectProperties(classIri).then(objectProperties => {
       if (objectProperties) {
         this.incrementalMenu.setObjectProperties(Array.from(objectProperties).map(v => {
-          const res: ViewIncrementalObjectProperty = {
-            iri: v[0].iri.fullIri,
+          return {
+            objectProperty: grapholEntityToEntityViewData(v[0], this.grapholscape),
             connectedClasses: v[1].connectedClasses.map(classEntity => {
-              return {
-                displayedName: classEntity.getDisplayedName(
-                  this.grapholscape.entityNameType,
-                  this.grapholscape.language,
-                  this.ontology.languages.default
-                ),
-                value: classEntity,
-              }
+              return grapholEntityToEntityViewData(classEntity, this.grapholscape)
             }),
             direct: v[1].direct,
           }
-
-          return res
         }))
       }
     })

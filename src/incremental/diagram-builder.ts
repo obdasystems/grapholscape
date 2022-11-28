@@ -1,4 +1,5 @@
 import { EdgeSingular } from "cytoscape";
+import { EntityNameType } from "../config";
 import { GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, IncrementalDiagram, Ontology, RendererStatesEnum, Shape } from "../model";
 
 export default class DiagramBuilder {
@@ -164,8 +165,9 @@ export default class DiagramBuilder {
     if (!this.referenceNodeId) return
 
     this.addClass(connectedClassEntity)
-    const connectedClassIri = connectedClassEntity.iri.prefixed
+    const connectedClassIri = connectedClassEntity.iri.fullIri
     const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${connectedClassIri}`, GrapholTypesEnum.OBJECT_PROPERTY)
+    objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
     objectPropertyEdge.sourceId = direct ? this.referenceNodeId : connectedClassIri
     objectPropertyEdge.targetId = direct ? connectedClassIri : this.referenceNodeId
 
