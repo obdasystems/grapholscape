@@ -1,22 +1,25 @@
+import { GrapholEntity } from '../../model'
+import { ObjectPropertyConnectedClasses } from '../neighbourhood-finder'
 import { MastroEndpoint, RequestOptions } from '../queries/model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
+import { Branch } from './swagger'
 
 export type ClassInstance = {
   iri: string,
   label?: string,
 }
 
-export type ObjectPropertyInstance = {
-  iri: string,
-  domain: ClassInstance,
-  range: ClassInstance,
-}
+// export type ObjectPropertyInstance = {
+//   iri: string,
+//   domain: ClassInstance,
+//   range: ClassInstance,
+// }
 
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
-  getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[],
+  getObjectProperties: (iri: string) => Promise<Branch[]>,
 }
 
 
@@ -25,11 +28,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   private static readonly LIMIT = 10 // How many results to show?
   private queryManager: QueryManager
 
-  constructor(requestOptions: RequestOptions, endpoint: MastroEndpoint) {
+  constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint) {
     this.queryManager = new QueryManager(requestOptions, endpoint)
   }
-
-  getInstanceObjectProperties: (iri: string) => ObjectPropertyInstance[]
+  
+  async getObjectProperties(iri: string) {
+    const suggestions = await this.getSuggestions(iri)
+    return (await suggestions.json())?.objectProperties
+  }
 
   async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, VKGApi.LIMIT, searchText)
@@ -49,6 +55,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, undefined, searchText)
     onResult(await this.queryManager.performQueryCount(queryCode))
+  }
+
+  private async getSuggestions(classIri: string) {
+    const params = new URLSearchParams({ clickedClassIRI: classIri, version: this.requestOptions.version })
+    const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights?${params.toString()}`)
+    
+    return await fetch(url, {
+      method: 'get',
+      headers: this.requestOptions.headers
+    })
   }
   
 }
@@ -104,10 +120,10 @@ export let vKGApiStub: IVirtualKnowledgeGraphApi = {
       },
     ]
   },
-  getInstancesNumber: function (iri: string): number {
-    return 12
+  getInstancesNumber: function (iri: string, onResult) {
+    onResult(2)
   },
-  getInstanceObjectProperties: function (iri: string): ObjectPropertyInstance[] {
-    throw new Error("Function not implemented.")
+  getObjectProperties: function (iri: string): Promise<Branch[]> {
+    throw new Error('Function not implemented.')
   }
 }

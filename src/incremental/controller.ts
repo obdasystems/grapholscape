@@ -6,7 +6,7 @@ import { IEntitySelector } from "../ui/entity-selector/entity-selector";
 import { IIncrementalMenu, ViewIncrementalObjectProperty } from "../ui/incremental-menu/incremental-menu";
 import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
-import NeighbourhoodFinder from "./neighbourhood-finder";
+import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -240,7 +240,34 @@ export default class IncrementalController {
    */
   private async getObjectProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      // HIGHLIGHTS
+      const branches = await this.vKGApi?.getObjectProperties(classIri)
+      const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
+
+      branches?.forEach(branch => {
+        if (!branch.objectPropertyIRI) return
+
+        const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI)
+        
+        if (!objectPropertyEntity) return
+
+        const connectedClasses: ObjectPropertyConnectedClasses = {
+          connectedClasses: [],
+          direct: branch.direct || false,
+        }
+
+        branch.relatedClasses?.forEach(relatedClass => {
+          const relatedClassEntity = this.ontology.getEntity(relatedClass)
+
+          if (relatedClassEntity) {
+            connectedClasses.connectedClasses.push(relatedClassEntity)
+          }
+        })
+
+        objectPropertiesMap.set(objectPropertyEntity, connectedClasses)
+      })
+
+      return objectPropertiesMap
+
     } else {
       return this.neighbourhoodFinder.getObjectProperties(classIri)
     }

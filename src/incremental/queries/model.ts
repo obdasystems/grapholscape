@@ -23,8 +23,8 @@ export enum QueryStatusEnum {
 }
 
 export type RequestOptions = {
-  basePath?: string,
-  version?: string,
-  name?: string,
-  headers?: any,
+  basePath: string,
+  version: string,
+  name: string,
+  headers: any,
 }

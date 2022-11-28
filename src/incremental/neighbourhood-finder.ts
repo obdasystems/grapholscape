@@ -30,7 +30,7 @@ export default class NeighbourhoodFinder {
     return res
   }
 
-  getObjectProperties(classIriString: string): Map<GrapholEntity, { connectedClasses: GrapholEntity[], direct: boolean }> {
+  getObjectProperties(classIriString: string): Map<GrapholEntity, ObjectPropertyConnectedClasses> {
     const res: Map<GrapholEntity, { connectedClasses: GrapholEntity[], direct: boolean }> = new Map()
 
     const classIri = this.getIriObject(classIriString)
