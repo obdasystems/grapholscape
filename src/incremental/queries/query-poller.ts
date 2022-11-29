@@ -121,8 +121,8 @@ export class QueryCountStatePoller extends QueryPoller {
 
   protected _result: number
 
-  private static readonly QUERY_STATUS_FINISHED = 3
-  private static readonly QUERY_STATUS_ERROR = 4
+  public static readonly QUERY_STATUS_FINISHED = 3
+  public static readonly QUERY_STATUS_ERROR = 4
 
   constructor(protected request: Request) {
     super()
@@ -133,7 +133,7 @@ export class QueryCountStatePoller extends QueryPoller {
       this.result === QueryCountStatePoller.QUERY_STATUS_ERROR
   }
   protected hasAnyResult(): boolean {
-    return this.result !== undefined
+    return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED
   }
   get result(): QueryResult {
     return this._result

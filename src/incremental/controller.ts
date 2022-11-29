@@ -3,7 +3,7 @@ import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import { IBaseMixin } from "../ui";
 import { IEntitySelector } from "../ui/entity-selector/entity-selector";
-import { IIncrementalMenu } from "../ui/incremental-menu/incremental-menu";
+import { IIncrementalDetails } from "../ui/incremental-menu/incremental-menu";
 import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -21,7 +21,7 @@ export default class IncrementalController {
   constructor(
     private grapholscape: Grapholscape,
     private incrementalRenderer: IncrementalRendererState,
-    private incrementalMenu: IIncrementalMenu & IBaseMixin,
+    private incrementalMenu: IIncrementalDetails,
     private entitySelector: IEntitySelector & IBaseMixin
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
@@ -29,15 +29,16 @@ export default class IncrementalController {
   }
 
   init() {
-    this.incrementalRenderer.onContextClick(target => {
-      this.diagramBuilder.referenceNodeId = target.id()
-      this.buildMenuForClass(target.data().iri)
-      try {
-        // TODO: make incrementalMenu fixed so there's no need to attach it to a node
-        (this.incrementalMenu as any).attachTo((target as any).popperRef())
-      } catch {
-        console.warn('Grapholscape is unable to show incremental menu')
-      }
+    const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
+    this.incrementalRenderer.diagramRepresentation?.cy.on('tap', classOrInstanceSelector, evt => {
+      this.diagramBuilder.referenceNodeId = evt.target.id()
+      this.buildMenuForClass(evt.target.data().iri)
+      // try {
+      //   // TODO: make incrementalMenu fixed so there's no need to attach it to a node
+      //   (this.incrementalMenu as any).attachTo((target as any).popperRef())
+      // } catch {
+      //   console.warn('Grapholscape is unable to show incremental menu')
+      // }
     })
 
     this.incrementalMenu.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
@@ -55,15 +56,7 @@ export default class IncrementalController {
 
     // DATA PROPERTIES TOGGLE
     this.getDataProperties(classIri).then(dataProperties => {
-      this.incrementalMenu.areDataPropertiesPresent = dataProperties.length > 0
-
-      if (dataProperties.length > 0) {
-        this.incrementalMenu.dataPropertyEnabled = this.diagramBuilder.areDataPropertiesVisibleForClass(classIri)
-        this.incrementalMenu.onDataPropertyToggle = (enabled) => this.toggleDataProperties(enabled, dataProperties)
-      } else {
-        // clear previous callback
-        this.incrementalMenu.onDataPropertyToggle = () => { }
-      }
+      this.incrementalMenu.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)))
     })
 
     // OBJECT PROPERTIES

@@ -1,6 +1,7 @@
 import { svg, SVGTemplateResult } from "lit"
 import { GrapholTypesEnum } from "../../model"
 import classIcon from './class-icon'
+import classInstanceIcon from "./class-instance-icon"
 import dataPropertyIcon from "./data-property-icon"
 import individualIcon from "./individual-icon"
 import objectPropertyIcon from "./object-property-icon"
@@ -72,9 +73,13 @@ export const incremental = svg`<svg fill="currentColor" xmlns="http://www.w3.org
 
 export const refresh = svg`<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`
 
-export const classInstanceIcon = svg`<svg fill="var(--gscape-color-class-instance-contrast)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M10 9q-3.062 0-5.031-.844Q3 7.312 3 6q0-1.229 2.062-2.115Q7.125 3 10 3q2.875 0 4.938.885Q17 4.771 17 6q0 1.312-1.969 2.156Q13.062 9 10 9Zm0 4q-2.979 0-4.99-.865Q3 11.271 3 10V8.042q0 .604.562 1.135.563.531 1.521.938.959.406 2.229.645Q8.583 11 10 11q1.417 0 2.688-.24 1.27-.239 2.229-.645.958-.407 1.521-.938Q17 8.646 17 8.042V10q0 1.271-2.01 2.135Q12.979 13 10 13Zm0 4q-2.917 0-4.958-.906Q3 15.188 3 13.896v-1.958q0 .604.573 1.156.573.552 1.542.979.968.427 2.239.677Q8.625 15 10 15t2.646-.25q1.271-.25 2.239-.677.969-.427 1.542-.979.573-.552.573-1.156v1.958q0 1.292-2.042 2.198Q12.917 17 10 17Z"/></svg>`
+export const instancesIcon = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="padding: 1px;box-sizing: border-box;" height="18" width="18" viewBox="0 0 20 20" ><path d="M10 9q-3.062 0-5.031-.844Q3 7.312 3 6q0-1.229 2.062-2.115Q7.125 3 10 3q2.875 0 4.938.885Q17 4.771 17 6q0 1.312-1.969 2.156Q13.062 9 10 9Zm0 4q-2.979 0-4.99-.865Q3 11.271 3 10V8.042q0 .604.562 1.135.563.531 1.521.938.959.406 2.229.645Q8.583 11 10 11q1.417 0 2.688-.24 1.27-.239 2.229-.645.958-.407 1.521-.938Q17 8.646 17 8.042V10q0 1.271-2.01 2.135Q12.979 13 10 13Zm0 4q-2.917 0-4.958-.906Q3 15.188 3 13.896v-1.958q0 .604.573 1.156.573.552 1.542.979.968.427 2.239.677Q8.625 15 10 15t2.646-.25q1.271-.25 2.239-.677.969-.427 1.542-.979.573-.552.573-1.156v1.958q0 1.292-2.042 2.198Q12.917 17 10 17Z"/></svg>`
 
-export const entityIcons: { [x: string]: SVGTemplateResult } = {}
+export const superHierarchies = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 16q-1.667 0-2.833-1.167Q6 13.667 6 12q0-1.479.927-2.573.927-1.094 2.323-1.365V4.875L8.062 6.062 7 5l3-3 3 3-1.062 1.062-1.188-1.187v3.187q1.396.271 2.323 1.365Q14 10.521 14 12q0 1.667-1.167 2.833Q11.667 16 10 16Zm0-1.5q1.042 0 1.771-.729.729-.729.729-1.771 0-1.042-.729-1.771Q11.042 9.5 10 9.5q-1.042 0-1.771.729Q7.5 10.958 7.5 12q0 1.042.729 1.771.729.729 1.771.729Zm0-2.5Z"/></svg>`
+
+export const subHierarchies = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m10 18-3-3 1.062-1.062 1.188 1.187v-3.187q-1.396-.271-2.323-1.365Q6 9.479 6 8q0-1.667 1.167-2.833Q8.333 4 10 4q1.667 0 2.833 1.167Q14 6.333 14 8q0 1.479-.927 2.573-.927 1.094-2.323 1.365v3.187l1.188-1.187L13 15Zm0-7.5q1.042 0 1.771-.729Q12.5 9.042 12.5 8q0-1.042-.729-1.771Q11.042 5.5 10 5.5q-1.042 0-1.771.729Q7.5 6.958 7.5 8q0 1.042.729 1.771.729.729 1.771.729ZM10 8Z"/></svg>`
+
+export const entityIcons: { [x in GrapholTypesEnum]?: SVGTemplateResult } = {}
 entityIcons[GrapholTypesEnum.CLASS] = classIcon
 entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon
 entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon

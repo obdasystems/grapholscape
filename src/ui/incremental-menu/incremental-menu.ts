@@ -1,16 +1,17 @@
 
-import { html, PropertyDeclarations } from "lit";
+import { html, LitElement, PropertyDeclarations } from "lit";
+import baseStyle from "../style";
 import { GrapholTypesEnum } from "../../model";
 import capitalizeFirstChar from "../../util/capitalize-first-char";
-import { classInstanceIcon, entityIcons, objectPropertyIcon } from "../assets";
+import { instancesIcon, entityIcons, objectPropertyIcon, superHierarchies } from "../assets";
 import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
 import { EntityViewData } from "../util/search-entities";
-import GscapeContextMenu from "./context-menu";
-import style from "./style";
+import incrementalDetailsStyle from "./style";
+import { entityListItemStyle } from "../ontology-explorer";
+import { textSpinner, textSpinnerStyle } from "../common/spinners";
 
-export interface IIncrementalMenu {
+export interface IIncrementalDetails {
   // callbacks
-  onDataPropertyToggle: (enabled: boolean) => void
   onObjectPropertySelection: (iri: string, objectPropertyIri: string, direct: boolean) => void
   onShowSuperClasses: () => void
   onShowSubClasses: () => void
@@ -23,13 +24,14 @@ export interface IIncrementalMenu {
   // populate the menu
   setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
   addObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
+  setDataProperties: (dataProperties: EntityViewData[]) => void
+  addDataProperties: (dataProperties: EntityViewData[]) => void
+
   /** remove current instances and add the new ones */
   setInstances: (instances: EntityViewData[]) => void
   /** append new instances to the existing ones */
   addInstances: (instances: EntityViewData[]) => void
-  
-  dataPropertyEnabled: boolean
-  areDataPropertiesPresent: boolean
+
   canShowInstances: boolean
   isInstanceCounterLoading: boolean
   instanceCount: number
@@ -41,13 +43,12 @@ export type ViewIncrementalObjectProperty = {
   direct: boolean
 }
 
-export default class GscapeIncrementalMenu extends GscapeContextMenu implements IIncrementalMenu {
+export default class GscapeIncrementalDetails extends LitElement implements IIncrementalDetails {
   private entitySearchComponent: GscapeEntitySearch
 
-  objectProperties?: ViewIncrementalObjectProperty[]
-  instances?: EntityViewData[]
-  dataPropertyEnabled = false
-  areDataPropertiesPresent = false
+  private dataProperties?: EntityViewData[]
+  private objectProperties?: ViewIncrementalObjectProperty[]
+  private instances?: EntityViewData[]
   canShowInstances = false
   isInstanceCounterLoading = true
   instanceCount: number
@@ -70,10 +71,9 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   }
 
   static properties: PropertyDeclarations = {
+    dataProperties: { type: Object, attribute: false },
     objectProperties: { type: Object, attribute: false },
     instances: { type: Array, attribute: false },
-    areDataPropertiesPresent: { type: Boolean, attribute: false },
-    dataPropertyEnabled: { type: Boolean, attribute: false },
     showDataPropertyToggle: { type: Boolean, attribute: false },
     canShowInstances: { type: Boolean, attribute: false },
     isInstanceCounterLoading: { type: Boolean, attribute: false },
@@ -84,81 +84,88 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
     onHideSubClasses: { type: Object, attribute: false },
   }
 
-  static styles = [
-    ...super.styles,
-    style
-  ]
+  static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle ]
 
   render() {
     return html`
-    <div class="gscape-panel">
-      <div class="header">Menu</div>
-      ${this.areDataPropertiesPresent
-      ? html`
-        <gscape-toggle class="actionable" label="Data Properties" ?checked=${this.dataPropertyEnabled}
-          @click=${this.handleDataPropertyToggle}>
-        </gscape-toggle>
-      `
-      : null
-      }
-    
-    
-      <gscape-button label="Show super-classes" @click=${this.onShowSuperClasses}></gscape-button>
+    <div class="content-wrapper">   
+      <!-- <gscape-button @click=${this.onShowSuperClasses} size="s" type="subtle" label="Show super classes" title="Show super classes">
+        <span slot="icon">${superHierarchies}</span>
+      </gscape-button>
+
       <gscape-button label="Hide super-classes" @click=${this.onHideSuperClasses}></gscape-button>
 
       <div class="hr"></div>
       
-      <gscape-button label="Show sub-classes" @click=${this.onShowSubClasses}></gscape-button>
+      <gscape-button title="Show sub classes" size="s" @click=${this.onShowSubClasses}>
+      
+      </gscape-button>
       <gscape-button label="Hide sub-classes" @click=${this.onHideSubClasses}></gscape-button>
 
-      <div class="hr"></div>
+      <div class="hr"></div> -->
 
-      <gscape-button label="Remove" @click=${this.onRemove}></gscape-button>
-
-      ${this.entitySearchComponent}
+      <!-- <gscape-button label="Remove" @click=${this.onRemove}></gscape-button> -->
       
       ${this.canShowInstances
         ? html`
-        <div>Instances</div>
-        <details class="ellipsed entity-list-item" title="Instances">
+        <details class="ellipsed entity-list-item" title="Instances" style="position:relative">
           <summary class="actionable" @click=${this.handleShowInstances}>
-            <span class="entity-type-icon">${classInstanceIcon}</span>
-            <span class="entity-type-name">Instances</span>
+            <span class="entity-icon slotted-icon">${instancesIcon}</span>
+            <span class="entity-name">Instances</span>
             <span class="counter chip">
               ${this.isInstanceCounterLoading || this.instanceCount === undefined
-                ? html`...`
+                ? textSpinner()
                 : this.instanceCount
               }
             </span>
           </summary>
       
           <div class="summary-body">
-            ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance, GrapholTypesEnum.CLASS_INSTANCE))}
+            ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
           </div>
         </details>
         `
         : null
       }
-    
-      ${this.objectProperties
-      ? html`<div>Object Properties</div>`
-      : null
+
+      ${this.dataProperties && this.dataProperties.length > 0
+        ? html`
+          <div class="section">
+            <div class="section-header bold-text">Data Properties</div>
+            <div class="section-body" style="padding-left: 0px; padding-right: 0px">
+              ${this.dataProperties?.map(dataProperty => this.getEntitySuggestionTemplate(dataProperty))}
+            </div>
+          </div>
+        `
+        : null
       }
-      ${this.objectProperties?.map((op) => {
-      return html`
-      <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
-        <summary class="actionable">
-          <span class="entity-type-icon">${objectPropertyIcon}</span>
-          <span class="entity-type-name">${op.objectProperty.displayedName}</span>
-        </summary>
-    
-        <div class="summary-body" ?isDirect=${op.direct}>
-          ${op.connectedClasses.map(classIri => this.getEntitySuggestionTemplate(classIri, GrapholTypesEnum.CLASS, op.objectProperty.value.iri.fullIri))}
-        </div>
-      </details>
-      `
-      })}
-    
+
+      ${this.objectProperties && this.objectProperties.length > 0
+        ? html`
+            <div class="section">
+              <div class="section-header bold-text">Object Properties</div>
+              <div class="section-body" style="padding: 0">
+                ${this.objectProperties?.map((op) => {
+                  return html`
+                    <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
+                      <summary class="actionable">
+                        <span class="entity-icon slotted-icon">${objectPropertyIcon}</span>
+                        <span class="entity-name">${op.objectProperty.displayedName}</span>
+                      </summary>
+                  
+                      <div class="summary-body" ?isDirect=${op.direct}>
+                        ${op.connectedClasses.map(classIri =>
+                          this.getEntitySuggestionTemplate(classIri, op.objectProperty.value.iri.fullIri
+                        ))}
+                      </div>
+                    </details>
+                  `
+                })}
+              </div>
+            </div>
+          `
+        : null
+      }    
     </div>
     `
   }
@@ -179,18 +186,25 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
     `
   }
 
-  private getEntitySuggestionTemplate(entity: EntityViewData, entityType: GrapholTypesEnum,  objectPropertyIri?: string) {
+  private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string) {
+    let entityIcon: { _$litType$: 2; strings: TemplateStringsArray; values: unknown[] }
+
     return html`
-      <div title=${entity.displayedName} iri=${entity.value.iri.fullIri} entity-type="${entityType}" class="ellipsed entity-list-item actionable"
+      <div 
+        title=${entity.displayedName}
+        iri=${entity.value.iri.fullIri}
+        entity-type="${entity.value.type}"
+        class="ellipsed entity-list-item ${entity.value.type !== GrapholTypesEnum.DATA_PROPERTY ? 'actionable' : null }"
         @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri)}
-        >
-        ${entity.displayedName}
+      >
+        <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
+        <span class="entity-name">${entity.displayedName}</span>
       </div>
     `
   }
 
   private handleEntityClick(e: Event, objectPropertyIri?: string) {
-    const target = e.target as HTMLElement
+    const target = e.currentTarget as HTMLElement
     const iri = target.getAttribute('iri')
     const direct = target.parentElement?.getAttribute('isDirect')
     if (!iri) return
@@ -203,19 +217,16 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
 
   }
 
-  private handleDataPropertyToggle(evt: MouseEvent) {
-    evt.preventDefault()
-    this.dataPropertyEnabled = !this.dataPropertyEnabled
-    this.onDataPropertyToggle(this.dataPropertyEnabled)
+  // protected get cxtMenuProps() {
+  //   let cxtMenuProps = super.cxtMenuProps
+  //   cxtMenuProps.placement = 'right'
+  //   return cxtMenuProps
+  // }
+
+  setDataProperties(dataProperties: EntityViewData[]) { this.dataProperties = dataProperties }
+  addDataProperties(dataProperties: EntityViewData[]) {
+    this.dataProperties = (this.dataProperties || []).concat(dataProperties)
   }
-
-  protected get cxtMenuProps() {
-    let cxtMenuProps = super.cxtMenuProps
-    cxtMenuProps.placement = 'right'
-    return cxtMenuProps
-  }
-
-
   setObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) { this.objectProperties = objectProperties }
   addObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) {
     this.objectProperties = (this.objectProperties || []).concat(objectProperties)
@@ -229,4 +240,4 @@ export default class GscapeIncrementalMenu extends GscapeContextMenu implements 
   }
 }
 
-customElements.define('gscape-incremental-menu', GscapeIncrementalMenu)
+customElements.define('gscape-incremental-menu', GscapeIncrementalDetails)

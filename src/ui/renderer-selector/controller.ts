@@ -6,9 +6,10 @@ import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
 import { resetIncremental, startIncremental } from "../../incremental"
-import IncrementalController from "../../incremental/controller"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { IBaseMixin } from "../common/base-widget-mixin"
+import { GscapeEntityDetails } from "../entity-details"
+import { GscapeIncrementalMenu } from "../incremental-menu"
 import { WidgetEnum } from "../util/widget-enum"
 import { rendererStates } from "./view-model"
 
@@ -60,6 +61,8 @@ export function rendererStateSelectionCallback(rendererState: RendererStatesEnum
     } else {
       (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).show();
       (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).hide()
+      const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+      entityDetailsWidget.incrementalSection = undefined
     }
 
     if (isRenderValid)

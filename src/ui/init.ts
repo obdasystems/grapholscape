@@ -50,7 +50,6 @@ export default function (grapholscape: Grapholscape) {
   initSettings(grapholscape)
   initEntitySelector(grapholscape)
   initInitialRendererSelector(grapholscape)
-  initIncrementalMenu(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
 

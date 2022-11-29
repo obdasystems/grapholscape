@@ -1,11 +1,11 @@
 import { Grapholscape } from "../../core"
 import { WidgetEnum } from "../util/widget-enum"
-import GscapeIncrementalMenu from "./incremental-menu"
+import GscapeIncrementalDetails from "./incremental-menu"
 
-export { GscapeIncrementalMenu }
+export { GscapeIncrementalDetails as GscapeIncrementalMenu }
 
 export default function initIncrementalMenu(grapholscape: Grapholscape) {
-  const incrementalMenu = new GscapeIncrementalMenu()
+  const incrementalMenu = new GscapeIncrementalDetails()
 
 //   // grapholscape.on(LifecycleEvent.NodeSelection, node => {
 //   //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL)

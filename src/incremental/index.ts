@@ -4,22 +4,30 @@ import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { RendererStatesEnum } from "../model";
 import { GscapeEntitySelector, WidgetEnum } from "../ui";
 import { GscapeDiagramSelector } from "../ui/diagram-selector";
-import GscapeIncrementalMenu from "../ui/incremental-menu/incremental-menu";
+import { GscapeEntityDetails } from "../ui/entity-details";
+import initIncrementalMenu from "../ui/incremental-menu";
+import GscapeIncrementalDetails from "../ui/incremental-menu/incremental-menu";
 import IncrementalController from "./controller";
 
 export { IncrementalController }
 
 export function startIncremental(grapholscape: Grapholscape) {
   const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+  if (!grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU)) {
+    initIncrementalMenu(grapholscape)
+  }
+
   const incrementalController = new IncrementalController(
     grapholscape,
     grapholscape.renderer.renderState as IncrementalRendererState,
-    grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalMenu,
+    grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails,
     entitySelector
   )
   incrementalController.init();
 
   (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as GscapeDiagramSelector).hide()
+  const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+  entityDetailsWidget.incrementalSection = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails
 
   if (grapholscape.renderer.grapholElements?.size === 0) {
     entitySelector.show()

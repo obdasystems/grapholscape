@@ -42,22 +42,24 @@ export default class QueryManager {
     const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionID))
 
     return new Promise((resolve, reject) => {
-      countStatePoller.onNewResults = () => {
-        fetch(`${this.queryCountPath}/${executionID}/result`, {
-          method: 'get',
-          headers: this.requestOptions.headers,
-        })
-        .then(async response => {
-          resolve(await response.json())
-
-          // The count query has finished and result has been processed
-          // Now we need to delete the query execution from mastro.
-          fetch(`${this.queryCountPath}/${executionID}`, {
-            method: 'delete',
+      countStatePoller.onNewResults = (state) => {
+        if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED) {
+          fetch(`${this.queryCountPath}/${executionID}/result`, {
+            method: 'get',
             headers: this.requestOptions.headers,
           })
-        })
-        .catch(reason => reject(reason))
+          .then(async response => {
+            resolve(await response.json())
+
+            // The count query has finished and result has been processed
+            // Now we need to delete the query execution from mastro.
+            fetch(`${this.queryCountPath}/${executionID}`, {
+              method: 'delete',
+              headers: this.requestOptions.headers,
+            })
+          })
+          .catch(reason => reject(reason))
+        }
       }
   
       countStatePoller.start()
