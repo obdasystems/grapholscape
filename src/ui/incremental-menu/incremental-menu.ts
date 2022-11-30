@@ -151,6 +151,10 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
                       <summary class="actionable">
                         <span class="entity-icon slotted-icon">${objectPropertyIcon}</span>
                         <span class="entity-name">${op.objectProperty.displayedName}</span>
+                        ${!op.direct
+                          ? html`<span class="chip" style="line-height: 1">Inverse</span>`
+                          : null
+                        }
                       </summary>
                   
                       <div class="summary-body" ?isDirect=${op.direct}>

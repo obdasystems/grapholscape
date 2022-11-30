@@ -21,4 +21,8 @@ export default css`
   .content-wrapper > * {
     margin: 8px 0;
   }
+
+  details.entity-list-item > .summary-body {
+    white-space: normal;
+  }
 `

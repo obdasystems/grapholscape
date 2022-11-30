@@ -8,6 +8,14 @@ export default css`
     padding: 4px 8px;
   }
 
+  .entity-list-item {
+    white-space: nowrap;
+  }
+
+  div.entity-list-item > .entity-icon {
+    flex-shrink: 0;
+  }
+
   details.entity-list-item > summary::marker {
     display: inline-block;
   }
