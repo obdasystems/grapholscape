@@ -7,6 +7,7 @@ import { GscapeDiagramSelector } from "../ui/diagram-selector";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import initIncrementalMenu from "../ui/incremental-menu";
 import GscapeIncrementalDetails from "../ui/incremental-menu/incremental-menu";
+import { GscapeRenderSelector } from "../ui/renderer-selector";
 import IncrementalController from "./controller";
 
 export { IncrementalController }
@@ -32,13 +33,10 @@ export function startIncremental(grapholscape: Grapholscape) {
   if (grapholscape.renderer.grapholElements?.size === 0) {
     entitySelector.show()
   }
-}
 
-export function resetIncremental(grapholscape: Grapholscape) {
-  if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    (grapholscape.renderer.renderState as IncrementalRendererState).createNewDiagram();
-    (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector).show()
-    if (grapholscape.renderer.diagram)
-      setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+  const rendererSelector = grapholscape.widgets.get(WidgetEnum.RENDERER_SELECTOR) as GscapeRenderSelector
+  rendererSelector.onIncrementalReset = () => {
+    incrementalController.reset()
   }
+
 }

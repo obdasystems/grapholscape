@@ -122,6 +122,11 @@ export default class IncrementalController {
       this.entitySelector.show()
       if (this.grapholscape.renderer.diagram)
         setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology)
+
+      this.setIncrementalEventHandler()
+
+      const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+      entityDetails.hide()
     }
   }
 

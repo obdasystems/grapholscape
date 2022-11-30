@@ -86,8 +86,10 @@ export default class IncrementalRendererState extends FloatyRendererState {
     this.unpinAll()
     if (!this.incrementalDiagram)
       this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
-    else
+    else {
+      this.incrementalDiagram.representation?.cy.destroy()
       this.incrementalDiagram.representations.set(this.id, new DiagramRepresentation(floatyOptions))
+    }
     this.activeClass = undefined
     this.floatyLayoutOptions.fit = true
     this.overrideDiagram()

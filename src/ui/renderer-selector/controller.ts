@@ -5,11 +5,10 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { resetIncremental, startIncremental } from "../../incremental"
+import { startIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { IBaseMixin } from "../common/base-widget-mixin"
 import { GscapeEntityDetails } from "../entity-details"
-import { GscapeIncrementalMenu } from "../incremental-menu"
 import { WidgetEnum } from "../util/widget-enum"
 import { rendererStates } from "./view-model"
 
@@ -20,10 +19,6 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     rendererSelector.actualRendererStateKey = grapholscape.renderState
 
   rendererSelector.onRendererStateSelection = (rendererState) => rendererStateSelectionCallback(rendererState, grapholscape)
-
-  rendererSelector.onIncrementalReset = () => {
-    resetIncremental(grapholscape)
-  }
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
     rendererSelector.actualRendererStateKey = newRendererState
