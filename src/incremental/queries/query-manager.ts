@@ -1,4 +1,4 @@
-import { MastroEndpoint, RequestOptions } from "./model"
+import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "./model"
 import { QueryCountStatePoller, QueryResultsPoller } from "./query-poller"
 
 export default class QueryManager {
@@ -17,15 +17,15 @@ export default class QueryManager {
    * Start the query using the result route.
    * The QueryResultPoller will poll the query results.
    * @param queryCode 
-   * @param limit the maximum number of results to retrieve, you can't perform
-   * a query for results without limit
+   * @param pageSize the maximum number of results to retrieve
+   * @param pageNumber the page number in case you're handling pagination
    * @returns a promise which will be resolved with the query poller, on this
    * object you can set the onNewResults callback to react every time new results
    * are obtained.
    */
-  async performQuery(queryCode: string, limit: number): Promise<QueryResultsPoller> {
+  async performQuery(queryCode: string, pageSize: number, pageNumber = 1): Promise<QueryResultsPoller> {
     const executionID = await this.startQuery(queryCode)
-    return new QueryResultsPoller(this.getQueryResultRequest(executionID, limit), limit)
+    return new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID)
   }
 
   /**
@@ -47,8 +47,7 @@ export default class QueryManager {
           fetch(`${this.queryCountPath}/${executionID}/result`, {
             method: 'get',
             headers: this.requestOptions.headers,
-          })
-          .then(async response => {
+          }).then(async response => {
             resolve(await response.json())
 
             // The count query has finished and result has been processed
@@ -57,13 +56,21 @@ export default class QueryManager {
               method: 'delete',
               headers: this.requestOptions.headers,
             })
-          })
-          .catch(reason => reject(reason))
+          }).catch(reason => reject(reason))
         }
       }
-  
+
       countStatePoller.start()
     })
+  }
+
+  async getQueryStatus(executionID: string): Promise<{ status: QueryStatusEnum, hasError: boolean }> {
+    const request = new Request(new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionID}/status`), {
+      method: 'get',
+      headers: this.requestOptions.headers,
+    })
+
+    return await (await fetch(request)).json()
   }
 
   private async getPrefixes() {
@@ -104,8 +111,8 @@ export default class QueryManager {
   }
 
   // Requests for polling a query
-  private getQueryResultRequest(queryExecutionId: string, limit: number) {
-    const params = new URLSearchParams({ pagesize: limit.toString(), pagenumber: '1' })
+  private getQueryResultRequest(queryExecutionId: string, limit: number, pagenumber = 1) {
+    const params = new URLSearchParams({ pagesize: limit.toString(), pagenumber: pagenumber.toString() })
 
     return new Request(`${this.getQueryResultPath(queryExecutionId)}?${params.toString()}`, {
       method: 'get',

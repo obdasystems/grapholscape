@@ -1,4 +1,4 @@
-import { MastroEndpoint, RequestOptions } from '../queries/model'
+import { MastroEndpoint, QueryStatusEnum, RequestOptions } from '../queries/model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
 import { Branch, Highlights, OntologyGraphApi } from './swagger'
@@ -17,11 +17,9 @@ export type ClassInstance = {
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
-  // getObjectProperties: (iri: string) => Promise<Branch[]>,
-  getHighlights: (iri: string) => Promise<Highlights>
+  getHighlights: (iri: string) => Promise<Highlights>,
+  getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
 }
-
-
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
   private static readonly LIMIT = 10 // How many results to show?
@@ -32,23 +30,6 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint) {
     this.queryManager = new QueryManager(requestOptions, endpoint)
   }
-  
-  // async getObjectProperties(iri: string) {
-  //   if (iri !== this.lastIriForSuggestions) {
-  //     this.lastSuggestions = await (await this.getSuggestions(iri)).json()
-  //   }
-    
-  //   this.lastIriForSuggestions = iri
-  //   return this.lastSuggestions?.objectProperties || []
-  // }
-
-  // async getDataPropertiesList(iri: string) {
-  //   if (iri !== this.lastIriForSuggestions)
-  //     this.lastSuggestions = await (await this.getSuggestions(iri)).json()
-
-  //   this.lastIriForSuggestions = iri
-  //   const suggestions = await this.getSuggestions(iri)
-  // }
 
   async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, VKGApi.LIMIT, searchText)
@@ -78,6 +59,45 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       method: 'get',
       headers: this.requestOptions.headers
     })).json()
+  }
+
+  async getInstanceDataPropertyValues(instanceIri: string, dataPropertyIri: string,
+    onNewResults: (values: string[]) => void,
+    onStop?: (() => void),
+    onError?: (() => void)) {
+
+    const queryCode = QueriesTemplates.getInstanceDataPropertyValue(instanceIri, dataPropertyIri)
+
+    const pollPage = async (pageNumber: number) => {
+      const queryPoller = await this.queryManager.performQuery(queryCode, VKGApi.LIMIT, pageNumber)
+      queryPoller.start()
+      queryPoller.onNewResults = (results) => {
+        onNewResults(results.results.map(res => res[0].value))
+      }
+
+      // If stopped then we received all results for this page
+      // if query has not finished, continue polling for next page
+      // if has finished then return and call onStop
+      queryPoller.onStop = async () => {
+        const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
+
+        if (queryStatus.status === QueryStatusEnum.FINISHED) {
+          if (onStop)
+            onStop()
+          
+          return
+        }
+
+        if (!queryStatus.hasError) {
+          pollPage(pageNumber + 1) // poll for another page
+        } else {
+          if (onError)
+            onError()
+        }
+      }
+    }
+
+    pollPage(1)    
   }
   
 }

@@ -13,6 +13,9 @@ import IncrementalController from "./controller";
 export { IncrementalController }
 
 export function startIncremental(grapholscape: Grapholscape) {
+
+  grapholscape.renderer.unselect()
+
   const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
   if (!grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU)) {
     initIncrementalMenu(grapholscape)
@@ -29,6 +32,7 @@ export function startIncremental(grapholscape: Grapholscape) {
   (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as GscapeDiagramSelector).hide()
   const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
   entityDetailsWidget.incrementalSection = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails
+  entityDetailsWidget.hide()
 
   if (grapholscape.renderer.grapholElements?.size === 0) {
     entitySelector.show()

@@ -6,12 +6,24 @@ export default css`
   }
 
   .counter {
+    position: absolute;
+    margin-left: 18px;
+  }
+
+  .chip {
+    line-height: 1;
+  }
+
+  .chip.data-property-value {
+    color: var(--gscape-color-fg-default);
+    border-color: var(--gscape-color-data-property-contrast);
+    background-color: var(--gscape-color-data-property);
+  }
+
+  .neutral-chip {
     color: var(--gscape-color-fg-default);
     border-color: var(--gscape-color-border-default);
     background-color: var(--gscape-color-neutral-subtle);
-    position: absolute;
-    margin-left: 18px;
-    line-height: 1;
   }
 
   .section-body {

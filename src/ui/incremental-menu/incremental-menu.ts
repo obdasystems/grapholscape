@@ -26,6 +26,9 @@ export interface IIncrementalDetails {
   addObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
   setDataProperties: (dataProperties: EntityViewData[]) => void
   addDataProperties: (dataProperties: EntityViewData[]) => void
+  setDataPropertiesValues: (dataPropertiesValues: Map<string, { values: string[]; loading?: boolean | undefined; }>) => void
+  addDataPropertiesValues: (dataPropertyIri: string, values: string[]) => void
+  setDataPropertyLoading: (dataPropertyIri: string, isLoading: boolean) => void
 
   /** remove current instances and add the new ones */
   setInstances: (instances: EntityViewData[]) => void
@@ -33,6 +36,7 @@ export interface IIncrementalDetails {
   addInstances: (instances: EntityViewData[]) => void
 
   canShowInstances: boolean
+  canShowDataPropertiesValues: boolean
   isInstanceCounterLoading: boolean
   instanceCount: number
 }
@@ -47,9 +51,11 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
   private entitySearchComponent: GscapeEntitySearch
 
   private dataProperties?: EntityViewData[]
+  private dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
   private objectProperties?: ViewIncrementalObjectProperty[]
   private instances?: EntityViewData[]
   canShowInstances = false
+  canShowDataPropertiesValues = false
   isInstanceCounterLoading = true
   instanceCount: number
 
@@ -74,8 +80,8 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
     dataProperties: { type: Object, attribute: false },
     objectProperties: { type: Object, attribute: false },
     instances: { type: Array, attribute: false },
-    showDataPropertyToggle: { type: Boolean, attribute: false },
     canShowInstances: { type: Boolean, attribute: false },
+    canShowDataPropertiesValues: { type: Boolean, attribute: false },
     isInstanceCounterLoading: { type: Boolean, attribute: false },
     instanceCount: { type: Number, attribute: false },
     onShowSuperClasses: { type: Object, attribute: false },
@@ -112,7 +118,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
           <summary class="actionable" @click=${this.handleShowInstances}>
             <span class="entity-icon slotted-icon">${instancesIcon}</span>
             <span class="entity-name">Instances</span>
-            <span class="counter chip">
+            <span class="neutral-chip chip counter">
               ${this.isInstanceCounterLoading || this.instanceCount === undefined
                 ? textSpinner()
                 : this.instanceCount
@@ -191,7 +197,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
   }
 
   private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string) {
-    let entityIcon: { _$litType$: 2; strings: TemplateStringsArray; values: unknown[] }
+    const values = this.dataPropertiesValues?.get(entity.value.iri.fullIri)
 
     return html`
       <div 
@@ -203,6 +209,16 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
       >
         <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
         <span class="entity-name">${entity.displayedName}</span>
+        ${this.canShowDataPropertiesValues && values
+          ? html`
+            ${values.values.map(v => html`<span class="chip data-property-value">${v}</span>`)}
+            ${values.loading
+              ? html`<span class="chip neutral-chip">${textSpinner()}</span>`
+              : null
+            }
+          `
+          : null
+        }
       </div>
     `
   }
@@ -241,6 +257,30 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
   addInstances(instances: EntityViewData[]) {
     // concat avoiding duplicates
     this.instances = [...new Set([...(this.instances || []),...instances])]
+  }
+
+  setDataPropertiesValues(dataPropertiesValues: Map<string, { values: string[]; loading?: boolean | undefined; }>) {
+    this.dataPropertiesValues = dataPropertiesValues
+  }
+
+  addDataPropertiesValues(dataPropertyIri: string, values: string[]) {
+    if (!this.dataPropertiesValues)
+      return
+
+    const dataPropertyValues = this.dataPropertiesValues.get(dataPropertyIri)
+    if (dataPropertyValues) {
+      dataPropertyValues.values = dataPropertyValues?.values.concat(values)
+      this.requestUpdate()
+    }
+  }
+
+  setDataPropertyLoading(dataPropertyIri: string, isLoading: boolean) {
+    const dataPropertiesValues = this.dataPropertiesValues?.get(dataPropertyIri)
+
+    if (dataPropertiesValues) {
+      dataPropertiesValues.loading = isLoading
+      this.requestUpdate()
+    }
   }
 }
 

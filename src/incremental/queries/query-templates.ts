@@ -28,9 +28,8 @@ export function getInstances(iri: string, maxResults?: number, searchText?: stri
 export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIri: string) {
   return `
     SELECT DISTINCT ?y
-    WHERE 
-    { 
-      <${instanceIri}> <${dataPropertyIri}> ?y. 
+    WHERE {
+      <${instanceIri}> <${dataPropertyIri}> ?y.
     }
   `
 }

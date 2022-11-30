@@ -91,7 +91,7 @@ export class QueryResultsPoller extends QueryPoller {
 
   protected _result: QueryRecords
 
-  constructor(protected request: Request, private limit: number) {
+  constructor(protected request: Request, private limit: number, public executionId: string) {
     super()
   }
 

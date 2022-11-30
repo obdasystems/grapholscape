@@ -18,7 +18,8 @@ export default class IncrementalController {
   private neighbourhoodFinder: NeighbourhoodFinder
 
   private lastHighlights: Promise<Highlights> = new Promise(() => { })
-  private lastIri: string
+  private lastClassIri: string
+  private lastInstanceIri: string
 
   private suggestedClassInstances: ClassInstance[] = []
 
@@ -45,15 +46,35 @@ export default class IncrementalController {
     setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology)
   }
 
-  private buildMenuForInstance(instanceIri: string) {
+  private async buildMenuForInstance(instanceIri: string) {
     if (!this.incrementalMenu) return
 
     this.incrementalMenu.canShowInstances = false
-    this.incrementalMenu.setInstances([])
-    
+    this.incrementalMenu.canShowDataPropertiesValues = true
+    // this.incrementalMenu.setInstances([])
+
     const instanceEntity = this.diagram.classInstances?.get(instanceIri)
     if (instanceEntity) {
       this.addPropertiesToIncrementalMenu(instanceEntity.parentClassIri.fullIri)
+
+      if (instanceIri !== this.lastInstanceIri) {
+        // init data properties values
+        const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
+        const dataProperties = (await this.lastHighlights).dataProperties
+        dataProperties?.forEach(dpIri => {
+          dataPropertiesValues.set(dpIri, { values: [], loading: true })
+        })
+
+        this.incrementalMenu.setDataPropertiesValues(dataPropertiesValues)
+
+        dataProperties?.forEach(dpIri => {
+          this.vKGApi?.getInstanceDataPropertyValues(instanceIri, dpIri,
+            (res) => this.incrementalMenu.addDataPropertiesValues(dpIri, res), // onNewResults
+            () => this.onStopDataPropertyValueQuery(dpIri)) // onStop
+        })
+
+        this.lastInstanceIri = instanceIri
+      }
     }
   }
 
@@ -69,6 +90,7 @@ export default class IncrementalController {
     this.incrementalMenu.onRemove = () => this.removeEntity(classIri)
 
     if (this.isReasonerEnabled) {
+      this.incrementalMenu.canShowDataPropertiesValues = false
       this.incrementalMenu.canShowInstances = true
 
       this.incrementalMenu.onGetInstances = () => {
@@ -79,7 +101,7 @@ export default class IncrementalController {
       }
       this.incrementalMenu.onInstanceSelection = this.addInstance.bind(this)
 
-      if (classIri !== this.lastIri) {
+      if (classIri !== this.lastClassIri) {
         this.incrementalMenu.setInstances([])
         this.suggestedClassInstances = []
         this.incrementalMenu.isInstanceCounterLoading = true
@@ -90,7 +112,7 @@ export default class IncrementalController {
         })
       }
 
-      this.lastIri = classIri
+      this.lastClassIri = classIri
     }
   }
 
@@ -149,7 +171,7 @@ export default class IncrementalController {
     if (parentClassEntity) {
       const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
       const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
-      
+
       if (!suggestedClassInstance) return
 
       // Set label as annotation
@@ -294,7 +316,7 @@ export default class IncrementalController {
    */
   private async getObjectProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      if (classIri !== this.lastIri) {
+      if (classIri !== this.lastClassIri) {
         this.refreshHighlights(classIri)
       }
       const branches = (await this.lastHighlights).objectProperties
@@ -332,7 +354,7 @@ export default class IncrementalController {
 
   private async getDataProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      if (classIri !== this.lastIri) {
+      if (classIri !== this.lastClassIri) {
         this.refreshHighlights(classIri)
       }
 
@@ -347,6 +369,10 @@ export default class IncrementalController {
     }
   }
 
+  private onStopDataPropertyValueQuery(dataPropertyIri: string) {
+    this.incrementalMenu.setDataPropertyLoading(dataPropertyIri, false)
+  }
+
   private postDiagramEdit() {
     if (!this.diagram.representation || this.diagram.representation.grapholElements.size === 0) {
       this.entitySelector.show()
@@ -358,7 +384,7 @@ export default class IncrementalController {
   private runLayout() { this.incrementalRenderer.runLayout() }
 
   private setIncrementalEventHandler() {
-    if (this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
+    if (this.diagram.representation?.hasEverBeenRendered && this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
     const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
     this.incrementalRenderer.diagramRepresentation?.cy.on('tap', classOrInstanceSelector, evt => {
