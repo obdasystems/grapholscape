@@ -38,10 +38,16 @@ export default class DiagramBuilder {
 
   addClassInstance(iri: string) {
     if (!this.referenceNodeId) return
+
+    const instanceEntity = this.diagram.classInstances?.get(iri)
+    if (!instanceEntity) {
+      console.error(`Can't find the instance [${iri}] entity`)
+      return
+    }
     const instanceNode = new GrapholNode(iri, GrapholTypesEnum.CLASS_INSTANCE)
 
     instanceNode.position = this.referenceNodePosition || { x: 0, y: 0 }
-    instanceNode.displayedName = iri
+    // instanceNode.displayedName = iri
     instanceNode.height = instanceNode.width = 50
     instanceNode.shape = Shape.ELLIPSE
     instanceNode.labelXpos = 0
@@ -51,7 +57,7 @@ export default class DiagramBuilder {
     instanceEdge.sourceId = instanceNode.id
     instanceEdge.targetId = this.referenceNodeId
 
-    this.diagram.addElement(instanceNode)
+    this.diagram.addElement(instanceNode, instanceEntity)
     this.diagram.addElement(instanceEdge)
   }
 

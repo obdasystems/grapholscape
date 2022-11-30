@@ -51,6 +51,7 @@ export default class GrapholElement {
       case GrapholTypesEnum.DATA_PROPERTY:
       case GrapholTypesEnum.OBJECT_PROPERTY:
       case GrapholTypesEnum.INDIVIDUAL:
+      case GrapholTypesEnum.CLASS_INSTANCE:
         return true
     }
 

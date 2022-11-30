@@ -43,7 +43,7 @@ export default class GrapholEntity extends AnnotatedElement {
         elementId: occurenceId,
         diagramId: diagramId,
       })
-    }    
+    }
   }
 
   /**
