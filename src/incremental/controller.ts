@@ -31,7 +31,7 @@ export default class IncrementalController {
   constructor(
     private grapholscape: Grapholscape,
     private incrementalRenderer: IncrementalRendererState,
-    private incrementalMenu: IIncrementalDetails,
+    private incrementalDetails: IIncrementalDetails & IBaseMixin,
     private entitySelector: IEntitySelector & IBaseMixin
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
@@ -40,9 +40,9 @@ export default class IncrementalController {
   }
 
   init() {
-    this.setIncrementalEventHandler()
+    this.setIncrementalEventHandlers()
 
-    this.incrementalMenu.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
+    this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
     this.entitySelector.onClassSelection((iri: string) => {
       this.entitySelector.hide()
       this.diagramBuilder.addEntity(iri)
@@ -53,10 +53,10 @@ export default class IncrementalController {
   }
 
   private async buildDetailsForInstance(instanceIri: string) {
-    if (!this.incrementalMenu) return
+    if (!this.incrementalDetails) return
 
-    this.incrementalMenu.canShowInstances = false
-    this.incrementalMenu.canShowDataPropertiesValues = true
+    this.incrementalDetails.canShowInstances = false
+    this.incrementalDetails.canShowDataPropertiesValues = true
     // this.incrementalMenu.setInstances([])
 
     const instanceEntity = this.diagram.classInstances?.get(instanceIri)
@@ -71,11 +71,11 @@ export default class IncrementalController {
           dataPropertiesValues.set(dpIri, { values: [], loading: true })
         })
 
-        this.incrementalMenu.setDataPropertiesValues(dataPropertiesValues)
+        this.incrementalDetails.setDataPropertiesValues(dataPropertiesValues)
 
         dataProperties?.forEach(dpIri => {
           this.vKGApi?.getInstanceDataPropertyValues(instanceIri, dpIri,
-            (res) => this.incrementalMenu.addDataPropertiesValues(dpIri, res), // onNewResults
+            (res) => this.incrementalDetails.addDataPropertiesValues(dpIri, res), // onNewResults
             () => this.onStopDataPropertyValueQuery(dpIri)) // onStop
         })
 
@@ -85,43 +85,37 @@ export default class IncrementalController {
   }
 
   private buildDetailsForClass(classIri: string) {
-    if (!this.incrementalMenu) return
+    if (!this.incrementalDetails) return
 
     this.addPropertiesToIncrementalMenu(classIri)
 
-    // this.incrementalMenu.onShowSuperClasses = () => this.showSuperClassesOf(classIri)
-    // this.incrementalMenu.onHideSuperClasses = () => this.hideSuperClassesOf(classIri)
-    // this.incrementalMenu.onShowSubClasses = () => this.showSubClassesOf(classIri)
-    // this.incrementalMenu.onHideSubClasses = () => this.hideSubClassesOf(classIri)
-    // this.incrementalMenu.onRemove = () => this.removeEntity(classIri)
-
     if (this.isReasonerEnabled) {
-      this.incrementalMenu.canShowDataPropertiesValues = false
-      this.incrementalMenu.canShowInstances = true
+      this.incrementalDetails.canShowDataPropertiesValues = false
+      this.incrementalDetails.canShowInstances = true
 
-      this.incrementalMenu.onGetInstances = () => {
+      this.incrementalDetails.onGetInstances = () => {
         this.vKGApi!.getInstances(
           classIri,
           this.onNewInstancesForMenu.bind(this), // onNewResults
-          () => this.incrementalMenu.areInstancesLoading = false // onStop
+          () => this.incrementalDetails.areInstancesLoading = false // onStop
         )
       }
-      this.incrementalMenu.onInstanceSelection = this.addInstance.bind(this)
+      this.incrementalDetails.onInstanceSelection = this.addInstance.bind(this)
 
       if (classIri !== this.lastClassIri) {
-        this.incrementalMenu.setInstances([])
+        this.incrementalDetails.setInstances([])
         this.suggestedClassInstances = []
-        this.incrementalMenu.isInstanceCounterLoading = true
-        this.incrementalMenu.areInstancesLoading = true
+        this.incrementalDetails.isInstanceCounterLoading = true
+        this.incrementalDetails.areInstancesLoading = true
         // Ask instance number
         this.vKGApi?.getInstancesNumber(classIri, (count) => {
-          this.incrementalMenu.isInstanceCounterLoading = false
-          this.incrementalMenu.instanceCount = count
+          this.incrementalDetails.isInstanceCounterLoading = false
+          this.incrementalDetails.instanceCount = count
         })
       }
-
-      this.lastClassIri = classIri
     }
+
+    this.lastClassIri = classIri
   }
 
   private showCommandsForClass(classIri: string) {
@@ -171,13 +165,13 @@ export default class IncrementalController {
   private addPropertiesToIncrementalMenu(classIri) {
     // DATA PROPERTIES TOGGLE
     this.getDataProperties(classIri).then(dataProperties => {
-      this.incrementalMenu.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)))
+      this.incrementalDetails.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)))
     })
 
     // OBJECT PROPERTIES
     this.getObjectProperties(classIri).then(objectProperties => {
       if (objectProperties) {
-        this.incrementalMenu.setObjectProperties(Array.from(objectProperties).map(v => {
+        this.incrementalDetails.setObjectProperties(Array.from(objectProperties).map(v => {
           return {
             objectProperty: grapholEntityToEntityViewData(v[0], this.grapholscape),
             connectedClasses: v[1].connectedClasses.map(classEntity => {
@@ -197,7 +191,7 @@ export default class IncrementalController {
       if (this.grapholscape.renderer.diagram)
         setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology)
 
-      this.setIncrementalEventHandler()
+      this.setIncrementalEventHandlers()
 
       const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
       entityDetails.hide()
@@ -339,7 +333,7 @@ export default class IncrementalController {
   private onNewInstancesForMenu(instances: ClassInstance[]) {
     this.suggestedClassInstances.push(...instances)
 
-    this.incrementalMenu.addInstances(instances.map(instance => {
+    this.incrementalDetails.addInstances(instances.map(instance => {
       let instanceIri = new Iri(instance.iri, this.ontology.namespaces)
 
       let instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
@@ -424,7 +418,7 @@ export default class IncrementalController {
   }
 
   private onStopDataPropertyValueQuery(dataPropertyIri: string) {
-    this.incrementalMenu.setDataPropertyLoading(dataPropertyIri, false)
+    this.incrementalDetails.setDataPropertyLoading(dataPropertyIri, false)
   }
 
   private postDiagramEdit() {
@@ -437,22 +431,30 @@ export default class IncrementalController {
 
   private runLayout() { this.incrementalRenderer.runLayout() }
 
-  private setIncrementalEventHandler() {
+  private setIncrementalEventHandlers() {
     if (this.diagram.representation?.hasEverBeenRendered && this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
-    const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
-    this.incrementalRenderer.diagramRepresentation?.cy.on('tap', classOrInstanceSelector, evt => {
-      this.diagramBuilder.referenceNodeId = evt.target.id()
-      const targetIri = evt.target.data().iri
-      // set class instance entity in entity details widget
-      if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
-        const instanceEntity = this.diagram.classInstances?.get(targetIri)
-        if (instanceEntity) {
-          (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
-          this.buildDetailsForInstance(targetIri)
+    // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
+    this.incrementalRenderer.diagramRepresentation?.cy.on('tap', evt => {
+      const targetType = evt.target.data().type
+
+      if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
+        this.diagramBuilder.referenceNodeId = evt.target.id()
+        const targetIri = evt.target.data().iri
+        // set class instance entity in entity details widget
+        if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+          const instanceEntity = this.diagram.classInstances?.get(targetIri)
+          if (instanceEntity) {
+            (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
+            this.buildDetailsForInstance(targetIri)
+          }
+        } else {
+          this.buildDetailsForClass(targetIri)
         }
+
+        this.incrementalDetails.show()
       } else {
-        this.buildDetailsForClass(targetIri)
+        this.incrementalDetails.hide()
       }
     })
 

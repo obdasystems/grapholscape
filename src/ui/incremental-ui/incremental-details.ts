@@ -1,14 +1,14 @@
 
 import { html, LitElement, PropertyDeclarations } from "lit";
-import baseStyle from "../style";
 import { GrapholTypesEnum } from "../../model";
-import capitalizeFirstChar from "../../util/capitalize-first-char";
-import { instancesIcon, entityIcons, objectPropertyIcon, superHierarchies } from "../assets";
+import { entityIcons, instancesIcon, objectPropertyIcon } from "../assets";
+import { BaseMixin } from "../common/base-widget-mixin";
+import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
+import { entityListItemStyle } from "../ontology-explorer";
 import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
+import baseStyle from "../style";
 import { EntityViewData } from "../util/search-entities";
 import incrementalDetailsStyle from "./style";
-import { entityListItemStyle } from "../ontology-explorer";
-import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 
 export interface IIncrementalDetails {
   // callbacks
@@ -43,7 +43,7 @@ export type ViewIncrementalObjectProperty = {
   direct: boolean
 }
 
-export default class GscapeIncrementalDetails extends LitElement implements IIncrementalDetails {
+export default class GscapeIncrementalDetails extends BaseMixin(LitElement) implements IIncrementalDetails {
   private entitySearchComponent: GscapeEntitySearch
 
   private dataProperties?: EntityViewData[]
