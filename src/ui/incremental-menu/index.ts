@@ -1,6 +1,6 @@
 import { Grapholscape } from "../../core"
 import { WidgetEnum } from "../util/widget-enum"
-import GscapeIncrementalDetails from "./incremental-menu"
+import GscapeIncrementalDetails from "./incremental-details"
 
 export { GscapeIncrementalDetails as GscapeIncrementalMenu }
 

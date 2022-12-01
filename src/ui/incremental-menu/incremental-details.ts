@@ -13,11 +13,6 @@ import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle }
 export interface IIncrementalDetails {
   // callbacks
   onObjectPropertySelection: (iri: string, objectPropertyIri: string, direct: boolean) => void
-  onShowSuperClasses: () => void
-  onShowSubClasses: () => void
-  onHideSuperClasses: () => void
-  onHideSubClasses: () => void
-  onRemove: (iri: string) => void
   onGetInstances: () => void
   onInstanceSelection: (iri: string) => void
 
@@ -65,11 +60,6 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
   onGetInstances = () => { }
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
-  onShowSuperClasses = () => { }
-  onHideSuperClasses = () => { }
-
-  onShowSubClasses = () => { }
-  onHideSubClasses = () => { }
 
   onRemove = (iri: string) => { }
 
@@ -87,34 +77,13 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
     isInstanceCounterLoading: { type: Boolean, attribute: false },
     areInstancesLoading: { type: Boolean, attribute: false },
     instanceCount: { type: Number, attribute: false },
-    onShowSuperClasses: { type: Object, attribute: false },
-    onHideSuperClasses: { type: Object, attribute: false },
-    onShowSubClasses: { type: Object, attribute: false },
-    onHideSubClasses: { type: Object, attribute: false },
   }
 
   static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle ]
 
   render() {
     return html`
-    <div class="content-wrapper">   
-      <!-- <gscape-button @click=${this.onShowSuperClasses} size="s" type="subtle" label="Show super classes" title="Show super classes">
-        <span slot="icon">${superHierarchies}</span>
-      </gscape-button>
-
-      <gscape-button label="Hide super-classes" @click=${this.onHideSuperClasses}></gscape-button>
-
-      <div class="hr"></div>
-      
-      <gscape-button title="Show sub classes" size="s" @click=${this.onShowSubClasses}>
-      
-      </gscape-button>
-      <gscape-button label="Hide sub-classes" @click=${this.onHideSubClasses}></gscape-button>
-
-      <div class="hr"></div> -->
-
-      <!-- <gscape-button label="Remove" @click=${this.onRemove}></gscape-button> -->
-      
+    <div class="content-wrapper">      
       ${this.canShowInstances
         ? html`
         <details class="ellipsed entity-list-item" title="Instances" style="position:relative" ?open="${this.instances && this.instances.length > 0 ? true : false}">

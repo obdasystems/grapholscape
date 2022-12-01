@@ -3,7 +3,7 @@ import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import { IEntitySelector } from "../ui/entity-selector/entity-selector";
-import { IIncrementalDetails } from "../ui/incremental-menu/incremental-menu";
+import { IIncrementalDetails } from "../ui/incremental-menu/incremental-details";
 import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -84,11 +84,11 @@ export default class IncrementalController {
 
     this.addPropertiesToIncrementalMenu(classIri)
 
-    this.incrementalMenu.onShowSuperClasses = () => this.showSuperClassesOf(classIri)
-    this.incrementalMenu.onHideSuperClasses = () => this.hideSuperClassesOf(classIri)
-    this.incrementalMenu.onShowSubClasses = () => this.showSubClassesOf(classIri)
-    this.incrementalMenu.onHideSubClasses = () => this.hideSubClassesOf(classIri)
-    this.incrementalMenu.onRemove = () => this.removeEntity(classIri)
+    // this.incrementalMenu.onShowSuperClasses = () => this.showSuperClassesOf(classIri)
+    // this.incrementalMenu.onHideSuperClasses = () => this.hideSuperClassesOf(classIri)
+    // this.incrementalMenu.onShowSubClasses = () => this.showSubClassesOf(classIri)
+    // this.incrementalMenu.onHideSubClasses = () => this.hideSubClassesOf(classIri)
+    // this.incrementalMenu.onRemove = () => this.removeEntity(classIri)
 
     if (this.isReasonerEnabled) {
       this.incrementalMenu.canShowDataPropertiesValues = false
