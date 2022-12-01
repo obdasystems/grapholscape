@@ -1,14 +1,13 @@
 import { Grapholscape } from "../core";
 import IncrementalRendererState from "../core/rendering/incremental/incremental-render-state";
-import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { RendererStatesEnum } from "../model";
-import { GscapeEntitySelector, WidgetEnum } from "../ui";
+import { WidgetEnum } from "../ui/util/widget-enum";
 import { GscapeDiagramSelector } from "../ui/diagram-selector";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import initIncrementalMenu from "../ui/incremental-menu";
 import GscapeIncrementalDetails from "../ui/incremental-menu/incremental-menu";
 import { GscapeRenderSelector } from "../ui/renderer-selector";
 import IncrementalController from "./controller";
+import { GscapeEntitySelector } from "../ui/entity-selector";
 
 export { IncrementalController }
 

@@ -1,7 +1,7 @@
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
-import { IBaseMixin, WidgetEnum } from "../ui";
+import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
+import { WidgetEnum } from "../ui/util/widget-enum";
 import { IEntitySelector } from "../ui/entity-selector/entity-selector";
 import { IIncrementalDetails } from "../ui/incremental-menu/incremental-menu";
 import DiagramBuilder from "./diagram-builder";
@@ -11,6 +11,7 @@ import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view
 import { Highlights } from "./api/swagger";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeEntityDetails } from "../ui/entity-details";
+import { IBaseMixin } from "../ui/common/base-widget-mixin";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder

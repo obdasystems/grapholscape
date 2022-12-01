@@ -1,4 +1,3 @@
-import { GscapeRenderSelector } from "."
 import { storeConfigEntry } from "../../config"
 import Grapholscape from '../../core'
 import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-state"
@@ -10,6 +9,7 @@ import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { IBaseMixin } from "../common/base-widget-mixin"
 import { GscapeEntityDetails } from "../entity-details"
 import { WidgetEnum } from "../util/widget-enum"
+import GscapeRenderSelector from "./render-selector"
 import { rendererStates } from "./view-model"
 
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {

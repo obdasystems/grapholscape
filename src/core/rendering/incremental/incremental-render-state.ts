@@ -1,11 +1,12 @@
 import { NodeSingular, SingularElementReturnValue, Stylesheet } from "cytoscape"
-import { FloatyRendererState, Renderer } from ".."
+import FloatyRendererState from "../floaty/floaty-renderer-state"
 import { floatyOptions } from "../../../config"
 import { Diagram, DiagramRepresentation, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyTransformer from "../floaty/floaty-transformer"
 import computeHierarchies from "./compute-hierarchies"
 import incrementalStyle from "./incremental-style"
+import Renderer from "../renderer"
 
 /**
  * The incremental renderer state is a kind of floaty renderer state in which
