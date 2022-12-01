@@ -37,4 +37,8 @@ export default css`
   details.entity-list-item > .summary-body {
     white-space: normal;
   }
+
+  .summary-body > .lds-ring {
+    margin: 4px auto 8px;
+  }
 `

@@ -95,10 +95,11 @@ export default class IncrementalController {
       this.incrementalMenu.canShowInstances = true
 
       this.incrementalMenu.onGetInstances = () => {
-        this.vKGApi!.getInstances(classIri, (instances) => {
-          this.suggestedClassInstances.push(...instances)
-          this.onNewInstancesForMenu(instances)
-        })
+        this.vKGApi!.getInstances(
+          classIri,
+          this.onNewInstancesForMenu.bind(this), // onNewResults
+          () => this.incrementalMenu.areInstancesLoading = false // onStop
+        )
       }
       this.incrementalMenu.onInstanceSelection = this.addInstance.bind(this)
 
@@ -106,6 +107,7 @@ export default class IncrementalController {
         this.incrementalMenu.setInstances([])
         this.suggestedClassInstances = []
         this.incrementalMenu.isInstanceCounterLoading = true
+        this.incrementalMenu.areInstancesLoading = true
         // Ask instance number
         this.vKGApi?.getInstancesNumber(classIri, (count) => {
           this.incrementalMenu.isInstanceCounterLoading = false
@@ -286,6 +288,8 @@ export default class IncrementalController {
   }
 
   private onNewInstancesForMenu(instances: ClassInstance[]) {
+    this.suggestedClassInstances.push(...instances)
+
     this.incrementalMenu.addInstances(instances.map(instance => {
       let instanceIri = new Iri(instance.iri, this.ontology.namespaces)
 

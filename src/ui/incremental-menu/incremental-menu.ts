@@ -8,7 +8,7 @@ import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
 import { EntityViewData } from "../util/search-entities";
 import incrementalDetailsStyle from "./style";
 import { entityListItemStyle } from "../ontology-explorer";
-import { textSpinner, textSpinnerStyle } from "../common/spinners";
+import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 
 export interface IIncrementalDetails {
   // callbacks
@@ -38,6 +38,7 @@ export interface IIncrementalDetails {
   canShowInstances: boolean
   canShowDataPropertiesValues: boolean
   isInstanceCounterLoading: boolean
+  areInstancesLoading: boolean
   instanceCount: number
 }
 
@@ -57,6 +58,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
   canShowInstances = false
   canShowDataPropertiesValues = false
   isInstanceCounterLoading = true
+  areInstancesLoading = true
   instanceCount: number
 
   onObjectPropertySelection = (iri: string, objectPropertyIri: string, direct: boolean) => { }
@@ -83,6 +85,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
     canShowInstances: { type: Boolean, attribute: false },
     canShowDataPropertiesValues: { type: Boolean, attribute: false },
     isInstanceCounterLoading: { type: Boolean, attribute: false },
+    areInstancesLoading: { type: Boolean, attribute: false },
     instanceCount: { type: Number, attribute: false },
     onShowSuperClasses: { type: Object, attribute: false },
     onHideSuperClasses: { type: Object, attribute: false },
@@ -90,7 +93,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
     onHideSubClasses: { type: Object, attribute: false },
   }
 
-  static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle ]
+  static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle ]
 
   render() {
     return html`
@@ -114,7 +117,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
       
       ${this.canShowInstances
         ? html`
-        <details class="ellipsed entity-list-item" title="Instances" style="position:relative">
+        <details class="ellipsed entity-list-item" title="Instances" style="position:relative" ?open="${this.instances && this.instances.length > 0 ? true : false}">
           <summary class="actionable" @click=${this.handleShowInstances}>
             <span class="entity-icon slotted-icon">${instancesIcon}</span>
             <span class="entity-name">Instances</span>
@@ -128,6 +131,7 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
       
           <div class="summary-body">
             ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
+            ${this.areInstancesLoading ? getContentSpinner() : null }
           </div>
         </details>
         `
@@ -187,15 +191,6 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
     }
   }
 
-  private getEntityTypeListWrapperTemplate(entityType: GrapholTypesEnum) {
-    let entityIcon = entityIcons[entityType]
-    let title = entityType.split('-').map(w => capitalizeFirstChar(w)).join(' ')
-
-    return html`
-      
-    `
-  }
-
   private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string) {
     const values = this.dataPropertiesValues?.get(entity.value.iri.fullIri)
 
@@ -234,7 +229,6 @@ export default class GscapeIncrementalDetails extends LitElement implements IInc
     } else if (objectPropertyIri) {
       this.onObjectPropertySelection(iri, objectPropertyIri, direct !== null)
     }
-
   }
 
   // protected get cxtMenuProps() {
