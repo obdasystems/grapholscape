@@ -107,7 +107,7 @@ export default css`
 }
 
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .drop-down {
