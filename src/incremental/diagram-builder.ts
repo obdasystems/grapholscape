@@ -198,6 +198,22 @@ export default class DiagramBuilder {
   private addObjectProperty(objectPropertyEntity: GrapholEntity, connectedClassEntity: GrapholEntity, direct: boolean) {
     if (!this.referenceNodeId) return
 
+    // if both object property and range class are already present, do not add them again
+    const connectedClassNode = this.diagramRepresentation?.cy.$id(connectedClassEntity.iri.fullIri)
+    if (connectedClassNode?.nonempty()) {
+      /**
+       * If the set of edges between reference node and the connected class
+       * includes the object property we want to add, then it's already present.
+       */
+      const referenceNode = this.diagramRepresentation?.cy.$id(this.referenceNodeId)
+      if (referenceNode?.nonempty() && connectedClassNode.edgesWith(referenceNode)
+        .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri)
+        .nonempty()
+      ) {
+        return
+      }
+    }
+
     this.addClass(connectedClassEntity)
     const connectedClassIri = connectedClassEntity.iri.fullIri
     const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${connectedClassIri}`, GrapholTypesEnum.OBJECT_PROPERTY)
@@ -209,6 +225,9 @@ export default class DiagramBuilder {
   }
 
   private addClass(classEntity: GrapholEntity) {
+    if (this.diagramRepresentation?.grapholElements.get(classEntity.iri.fullIri))
+      return
+
     const classNode = this.getEntityElement(classEntity.iri.fullIri) as GrapholNode
     classNode.id = classEntity.iri.fullIri
     classNode.position = this.referenceNodePosition || classNode.position
