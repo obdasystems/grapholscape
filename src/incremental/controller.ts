@@ -13,7 +13,7 @@ import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { IBaseMixin } from "../ui/common/base-widget-mixin";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
-import * as IncrementalCommands from "../ui/incremental-ui/commands";
+import { IncrementalCommands } from "../ui/incremental-ui";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -93,14 +93,9 @@ export default class IncrementalController {
       this.incrementalDetails.canShowDataPropertiesValues = false
       this.incrementalDetails.canShowInstances = true
 
-      this.incrementalDetails.onGetInstances = () => {
-        this.vKGApi!.getInstances(
-          classIri,
-          this.onNewInstancesForMenu.bind(this), // onNewResults
-          () => this.incrementalDetails.areInstancesLoading = false // onStop
-        )
-      }
+      this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri)
       this.incrementalDetails.onInstanceSelection = this.addInstance.bind(this)
+      this.incrementalDetails.onEntitySearch = (searchText) => this.onGetInstances(classIri, searchText)
 
       if (classIri !== this.lastClassIri) {
         this.incrementalDetails.setInstances([])
@@ -328,6 +323,21 @@ export default class IncrementalController {
     hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
 
     this.postDiagramEdit()
+  }
+
+  private onGetInstances(classIri: string, searchText?: string) {
+    this.incrementalDetails.areInstancesLoading = true
+
+    // if it's a search, clear instances list
+    if (searchText !== undefined)
+      this.incrementalDetails.setInstances([])
+
+    this.vKGApi!.getInstances(
+      classIri,
+      this.onNewInstancesForMenu.bind(this), // onNewResults
+      () => this.incrementalDetails.areInstancesLoading = false, // onStop
+      searchText
+    )
   }
 
   private onNewInstancesForMenu(instances: ClassInstance[]) {

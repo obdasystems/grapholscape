@@ -15,6 +15,7 @@ export interface IIncrementalDetails {
   onObjectPropertySelection: (iri: string, objectPropertyIri: string, direct: boolean) => void
   onGetInstances: () => void
   onInstanceSelection: (iri: string) => void
+  onEntitySearch: (searchText: string) => void
 
   // populate the menu
   setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
@@ -60,12 +61,31 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   onGetInstances = () => { }
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
+  onEntitySearch = (searchText: string) => { }
 
-  onRemove = (iri: string) => { }
+  private searchTimeout: NodeJS.Timeout
 
   constructor() {
     super()
     this.entitySearchComponent = new GscapeEntitySearch()
+    this.entitySearchComponent[GrapholTypesEnum.CLASS] = undefined
+    this.entitySearchComponent[GrapholTypesEnum.OBJECT_PROPERTY] = undefined
+    this.entitySearchComponent[GrapholTypesEnum.DATA_PROPERTY] = undefined
+
+    this.entitySearchComponent.onSearch(e => {
+      const inputElement = e.target as HTMLInputElement
+      clearTimeout(this.searchTimeout)
+
+      // on ESC key press
+      if (e.key === 'Escape') {
+        inputElement.blur()
+        inputElement.value = ''
+      }
+
+      this.searchTimeout = setTimeout(() => {
+        this.onEntitySearch(inputElement.value)
+      }, 500)
+    })
   }
 
   static properties: PropertyDeclarations = {
@@ -86,7 +106,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     <div class="content-wrapper">      
       ${this.canShowInstances
         ? html`
-        <details class="ellipsed entity-list-item" title="Instances" style="position:relative" ?open="${this.instances && this.instances.length > 0 ? true : false}">
+        <details class="ellipsed entity-list-item" title="Instances" style="position:relative">
           <summary class="actionable" @click=${this.handleShowInstances}>
             <span class="entity-icon slotted-icon">${instancesIcon}</span>
             <span class="entity-name">Instances</span>
@@ -99,6 +119,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
           </summary>
       
           <div class="summary-body">
+            ${this.entitySearchComponent}
             ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
             ${this.areInstancesLoading ? getContentSpinner() : null }
           </div>

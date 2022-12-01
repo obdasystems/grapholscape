@@ -4,6 +4,8 @@ import GscapeIncrementalDetails from "./incremental-details"
 
 export { GscapeIncrementalDetails as GscapeIncrementalMenu }
 
+export * as IncrementalCommands from './commands'
+
 export default function initIncrementalMenu(grapholscape: Grapholscape) {
   const incrementalMenu = new GscapeIncrementalDetails()
 
