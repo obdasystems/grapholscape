@@ -25,7 +25,7 @@ export { default as emptySearchBlankState } from "./util/empty-search-blank-stat
 export { entityListItemStyle } from './ontology-explorer'
 export { default as GscapeEntitySearch } from './ontology-explorer/entity-search-component'
 export { GscapeEntitySelector } from './entity-selector'
-export { GscapeIncrementalMenu } from './incremental-menu'
+export { GscapeIncrementalMenu } from './incremental-ui'
 export * as icons from "./assets"
 export { default as initUI } from "./init"
 export * from './full-page-selector'

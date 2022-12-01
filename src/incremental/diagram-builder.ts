@@ -167,6 +167,34 @@ export default class DiagramBuilder {
     return this.diagramRepresentation?.cy.$id(classIri).neighborhood(`node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).nonempty() || false
   }
 
+  areAllSuperHierarchiesVisibleForClass(classIri: string): boolean {
+    const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
+    if (hierarchies)
+      return this.areAllHierarchiesVisible(hierarchies)
+    else
+      return true
+  }
+
+  areAllSubHierarchiesVisibleForClass(classIri: string): boolean {
+    const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
+    if (hierarchies)
+      return this.areAllHierarchiesVisible(hierarchies)
+    else
+      return true
+  }
+
+  private areAllHierarchiesVisible(hierarchies: Hierarchy[]) {
+    let result = true
+    for(let hierarchy of hierarchies) {
+      if (hierarchy.id && this.diagramRepresentation?.cy.$id(hierarchy.id).empty()) {
+        result = false
+        break
+      }
+    }
+
+    return result
+  }
+
   private addObjectProperty(objectPropertyEntity: GrapholEntity, connectedClassEntity: GrapholEntity, direct: boolean) {
     if (!this.referenceNodeId) return
 

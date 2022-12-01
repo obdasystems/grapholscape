@@ -1,8 +1,7 @@
-import { css, CSSResultArray, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
+import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
 import tippy, { Props } from 'tippy.js'
-import { classIcon, dataPropertyIcon, objectPropertyIcon } from "../assets"
-import { BaseMixin } from "../common/base-widget-mixin"
 import baseStyle from "../style"
+import { BaseMixin } from "./base-widget-mixin"
 
 /**
  * A command for the context menu
@@ -45,14 +44,8 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
         align-items: center;
       }
 
-      .command-icon {
-        width: 19px;
-        height: 19px;
-      }
-
       .command-text {
-        position: relative;
-        top: 2px;
+        line-height: 20px;
       }
 
       .gscape-panel {
@@ -68,7 +61,7 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
       ${this.commands.map((command, id) => {
         return html`
           <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
-            ${command.icon ? html`<span class="command-icon">${command.icon}</span>` : null }
+            ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null }
             <span class="command-text">${command.content}</span>
           <div>
         `
@@ -103,7 +96,7 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
   private handleCommandClick(e: any) {
     this.commands[e.currentTarget.getAttribute('command-id')].select()
     this.onCommandRun()
-    //this.tippyMenu.hide()
+    this.tippyMenu.hide()
   }
 }
 

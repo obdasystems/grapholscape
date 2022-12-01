@@ -3,7 +3,7 @@ import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import { IEntitySelector } from "../ui/entity-selector/entity-selector";
-import { IIncrementalDetails } from "../ui/incremental-menu/incremental-details";
+import { IIncrementalDetails } from "../ui/incremental-ui/incremental-details";
 import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -12,6 +12,8 @@ import { Highlights } from "./api/swagger";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { IBaseMixin } from "../ui/common/base-widget-mixin";
+import GscapeContextMenu, { Command } from "../ui/common/context-menu";
+import * as IncrementalCommands from "../ui/incremental-ui/commands";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -24,6 +26,8 @@ export default class IncrementalController {
 
   private suggestedClassInstances: ClassInstance[] = []
 
+  private commandsWidget = new GscapeContextMenu()
+
   constructor(
     private grapholscape: Grapholscape,
     private incrementalRenderer: IncrementalRendererState,
@@ -32,6 +36,7 @@ export default class IncrementalController {
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
+    this.commandsWidget
   }
 
   init() {
@@ -47,7 +52,7 @@ export default class IncrementalController {
     setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology)
   }
 
-  private async buildMenuForInstance(instanceIri: string) {
+  private async buildDetailsForInstance(instanceIri: string) {
     if (!this.incrementalMenu) return
 
     this.incrementalMenu.canShowInstances = false
@@ -79,7 +84,7 @@ export default class IncrementalController {
     }
   }
 
-  private buildMenuForClass(classIri: string) {
+  private buildDetailsForClass(classIri: string) {
     if (!this.incrementalMenu) return
 
     this.addPropertiesToIncrementalMenu(classIri)
@@ -117,6 +122,50 @@ export default class IncrementalController {
 
       this.lastClassIri = classIri
     }
+  }
+
+  private showCommandsForClass(classIri: string) {
+    const commands: Command[] = []
+
+    const superHierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
+    const subHierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
+
+    if (superHierarchies && superHierarchies.length > 0) {
+      const areAllSuperHierarchiesVisible = this.diagramBuilder.areAllSuperHierarchiesVisibleForClass(classIri)
+
+      commands.push(IncrementalCommands.showHideSuperClasses(
+        areAllSuperHierarchiesVisible,
+        () => {
+          this.diagramBuilder.referenceNodeId = classIri
+          areAllSuperHierarchiesVisible ? this.hideSuperClassesOf(classIri) : this.showSuperClassesOf(classIri)
+        }
+      ))
+    }
+
+    if (subHierarchies && subHierarchies.length > 0) {
+      const areAllSubHierarchiesVisible = this.diagramBuilder.areAllSubHierarchiesVisibleForClass(classIri)
+
+      commands.push(
+        IncrementalCommands.showHideSubClasses(
+          areAllSubHierarchiesVisible,
+          () => {
+            this.diagramBuilder.referenceNodeId = classIri
+            areAllSubHierarchiesVisible ? this.hideSubClassesOf(classIri) : this.showSubClassesOf(classIri)
+          }
+        ),
+      )
+    }
+
+    commands.push(
+      IncrementalCommands.remove(() => this.removeEntity(classIri))
+    )
+
+    try {
+      const htmlNodeReference = (this.diagram.representation?.cy.$id(classIri) as any).popperRef()
+      if (htmlNodeReference && commands.length > 0) {
+        this.commandsWidget.attachTo(htmlNodeReference, commands)
+      }
+    } catch (e) { console.error(e) }
   }
 
   private addPropertiesToIncrementalMenu(classIri) {
@@ -400,14 +449,16 @@ export default class IncrementalController {
         const instanceEntity = this.diagram.classInstances?.get(targetIri)
         if (instanceEntity) {
           (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
-          this.buildMenuForInstance(targetIri)
+          this.buildDetailsForInstance(targetIri)
         }
       } else {
-        this.buildMenuForClass(targetIri)
+        this.buildDetailsForClass(targetIri)
       }
     })
 
     this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
+
+    this.incrementalRenderer.onContextClick(target => this.showCommandsForClass(target.data().iri))
   }
 
   private get ontology() { return this.grapholscape.ontology }

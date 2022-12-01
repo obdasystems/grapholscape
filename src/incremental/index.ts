@@ -3,8 +3,8 @@ import IncrementalRendererState from "../core/rendering/incremental/incremental-
 import { WidgetEnum } from "../ui/util/widget-enum";
 import { GscapeDiagramSelector } from "../ui/diagram-selector";
 import { GscapeEntityDetails } from "../ui/entity-details";
-import initIncrementalMenu from "../ui/incremental-menu";
-import GscapeIncrementalDetails from "../ui/incremental-menu/incremental-details";
+import initIncrementalMenu from "../ui/incremental-ui";
+import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
 import { GscapeRenderSelector } from "../ui/renderer-selector";
 import IncrementalController from "./controller";
 import { GscapeEntitySelector } from "../ui/entity-selector";

@@ -9,7 +9,6 @@ import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import { initInitialRendererSelector } from "./full-page-selector";
 import initFullscreenButton from "./fullscreen";
-import initIncrementalMenu from "./incremental-menu";
 import initOntologyExplorer from "./ontology-explorer";
 import initOntologyInfo from "./ontology-info";
 import initOwlVisualizer from "./owl-visualizer";

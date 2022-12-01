@@ -6,7 +6,7 @@ import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIri
 import { BaseMixin } from '../common/base-widget-mixin'
 import { GscapeButtonStyle } from '../common/button'
 import { DropPanelMixin } from '../common/drop-panel-mixin'
-import { GscapeIncrementalMenu } from '../incremental-menu'
+import { GscapeIncrementalMenu } from '../incremental-ui'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 
