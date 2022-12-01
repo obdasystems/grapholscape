@@ -40,9 +40,9 @@ abstract class QueryPoller {
     this.status = QueryPollerStatus.RUNNING
     fetch(this.request).then((response: Response) => {
       response.json().then((result: QueryResult) => {
+        this.lastRequestFulfilled = true
         if (JSON.stringify(this._result) !== JSON.stringify(result)) {
           this._result = result
-          this.lastRequestFulfilled = true
           this.onNewResults(result)
         }
 
@@ -100,7 +100,7 @@ export class QueryResultsPoller extends QueryPoller {
   }
 
   protected hasAnyResult(): boolean {
-    return this.result.results.length === 0
+    return this.result.results.length > 0
   }
 
   get result(): QueryRecords {
