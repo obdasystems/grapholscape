@@ -22,7 +22,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      selector: `edge[type = "${GrapholTypesEnum.INSTANCE_OF}"]`,
       style: {
         "target-arrow-shape": 'triangle',
         'target-arrow-fill': 'filled',

@@ -53,7 +53,7 @@ export default class DiagramBuilder {
     instanceNode.labelXpos = 0
     instanceNode.labelYpos = 0
 
-    const instanceEdge = new GrapholEdge(`${this.referenceNodeId}-instance-${iri}`, GrapholTypesEnum.CLASS_INSTANCE)
+    const instanceEdge = new GrapholEdge(`${this.referenceNodeId}-instance-${iri}`, GrapholTypesEnum.INSTANCE_OF)
     instanceEdge.sourceId = instanceNode.id
     instanceEdge.targetId = this.referenceNodeId
 
