@@ -8,23 +8,25 @@ import DiagramBuilder from "./diagram-builder";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
-import { Highlights } from "./api/swagger";
+import { Branch, Highlights } from "./api/swagger";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { IBaseMixin } from "../ui/common/base-widget-mixin";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
 import { IncrementalCommands } from "../ui/incremental-ui";
+import { EntityViewData } from "../ui";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   private _vKGApi?: IVirtualKnowledgeGraphApi
   private neighbourhoodFinder: NeighbourhoodFinder
 
-  private lastHighlights: Promise<Highlights> = new Promise(() => { })
+  private highlights: Promise<Highlights> = new Promise(() => { })
   private lastClassIri: string
   private lastInstanceIri: string
 
   private suggestedClassInstances: ClassInstance[] = []
+  private suggestedClassInstancesRanges: ClassInstance[] = []
 
   private commandsWidget = new GscapeContextMenu()
 
@@ -41,6 +43,13 @@ export default class IncrementalController {
 
   init() {
     this.setIncrementalEventHandlers()
+    this.incrementalDetails.setDataProperties([])
+    this.incrementalDetails.setObjectProperties([])
+    this.incrementalDetails.canShowInstances = false
+    this.incrementalDetails.canShowDataPropertiesValues = false
+    this.incrementalDetails.canShowObjectPropertiesRanges = false
+    this.incrementalDetails.setDataPropertiesValues(new Map())
+    this.incrementalDetails.setObjectPropertyRanges(new Map())
 
     this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
     this.entitySelector.onClassSelection((iri: string) => {
@@ -57,16 +66,22 @@ export default class IncrementalController {
 
     this.incrementalDetails.canShowInstances = false
     this.incrementalDetails.canShowDataPropertiesValues = true
-    // this.incrementalMenu.setInstances([])
+    this.incrementalDetails.canShowObjectPropertiesRanges = true
 
     const instanceEntity = this.diagram.classInstances?.get(instanceIri)
     if (instanceEntity) {
-      this.addPropertiesToIncrementalMenu(instanceEntity.parentClassIri.fullIri)
+      this.addDataPropertiesDetails(instanceEntity.parentClassIri.fullIri)
 
       if (instanceIri !== this.lastInstanceIri) {
+
+        if (instanceEntity.parentClassIri.fullIri !== this.lastClassIri) {
+          this.lastClassIri = instanceEntity.parentClassIri.fullIri
+          this.addObjectPropertiesDetails(instanceEntity.parentClassIri.fullIri)
+        }
+
         // init data properties values
         const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
-        const dataProperties = (await this.lastHighlights).dataProperties
+        const dataProperties = (await this.highlights).dataProperties
         dataProperties?.forEach(dpIri => {
           dataPropertiesValues.set(dpIri, { values: [], loading: true })
         })
@@ -79,6 +94,31 @@ export default class IncrementalController {
             () => this.onStopDataPropertyValueQuery(dpIri)) // onStop
         })
 
+        const objectPropertiesRanges = new Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>()
+        let rangeMap: Map<string, { values: EntityViewData[], loading?: boolean}>
+
+        const objectProperties = (await (this.highlights)).objectProperties
+
+        // init ranges map with empty arrays and all loading
+        objectProperties?.forEach(opBranch => {
+          if (opBranch.objectPropertyIRI) {
+            opBranch.relatedClasses?.forEach(rangeClass => {
+              rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean}>()
+              rangeMap.set(rangeClass, { values: [], loading: false })
+
+              objectPropertiesRanges.set(opBranch.objectPropertyIRI!, rangeMap)
+            })
+          }          
+        })
+
+        this.suggestedClassInstancesRanges = []
+        this.incrementalDetails.setObjectPropertyRanges(objectPropertiesRanges)
+        this.incrementalDetails.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => {
+          this.onGetRangeInstances(instanceIri, objectPropertyIri, rangeClassIri)
+        }
+
+        this.incrementalDetails.onInstanceObjectPropertySelection = this.addInstanceObjectProperty.bind(this)
+
         this.lastInstanceIri = instanceIri
       }
     }
@@ -87,10 +127,12 @@ export default class IncrementalController {
   private buildDetailsForClass(classIri: string) {
     if (!this.incrementalDetails) return
 
-    this.addPropertiesToIncrementalMenu(classIri)
+    this.addDataPropertiesDetails(classIri)
+    this.addObjectPropertiesDetails(classIri)
 
     if (this.isReasonerEnabled) {
       this.incrementalDetails.canShowDataPropertiesValues = false
+      this.incrementalDetails.canShowObjectPropertiesRanges = false
       this.incrementalDetails.canShowInstances = true
 
       this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri)
@@ -157,12 +199,13 @@ export default class IncrementalController {
     } catch (e) { console.error(e) }
   }
 
-  private addPropertiesToIncrementalMenu(classIri) {
-    // DATA PROPERTIES TOGGLE
+  private addDataPropertiesDetails(classIri: string) {
     this.getDataProperties(classIri).then(dataProperties => {
       this.incrementalDetails.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)))
     })
+  }
 
+  private addObjectPropertiesDetails(classIri:string) {
     // OBJECT PROPERTIES
     this.getObjectProperties(classIri).then(objectProperties => {
       if (objectProperties) {
@@ -220,7 +263,46 @@ export default class IncrementalController {
         instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
       }
 
-      (await this.lastHighlights).dataProperties?.forEach(dpIri => {
+      // (await this.lastHighlights).dataProperties?.forEach(dpIri => {
+      //   instanceEntity.addDataProperty(dpIri)
+      // })
+
+      if (!this.diagram.classInstances) {
+        this.diagram.classInstances = new Map()
+      }
+
+      this.diagram.classInstances.set(instanceIriString, instanceEntity)
+
+      this.diagramBuilder.addClassInstance(instanceIriString)
+      this.diagramBuilder.addInstanceOfEdge(instanceIriString)
+      const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
+      if (addedInstance) {
+        addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
+        this.diagram.representation?.updateElement(addedInstance)
+      }
+
+      this.postDiagramEdit()
+    }
+  }
+
+  async addInstanceObjectProperty(instanceIriString: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) {
+    if (!this.diagramBuilder.referenceNodeId) return
+
+    const parentClassEntity = this.ontology.getEntity(parentClassIri)
+    const instanceIri = new Iri(instanceIriString, this.ontology.namespaces)
+
+    if (parentClassEntity) {
+      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
+      const suggestedClassInstance = this.suggestedClassInstancesRanges.find(c => c.iri === instanceIriString)
+
+      if (!suggestedClassInstance) return
+
+      // Set label as annotation
+      if (suggestedClassInstance.label) {
+        instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
+      }
+
+      (await this.vKGApi?.getHighlights(parentClassIri))?.dataProperties?.forEach(dpIri => {
         instanceEntity.addDataProperty(dpIri)
       })
 
@@ -230,7 +312,7 @@ export default class IncrementalController {
 
       this.diagram.classInstances.set(instanceIriString, instanceEntity)
 
-      this.diagramBuilder.addClassInstance(instanceIriString)
+      this.diagramBuilder.addInstanceObjectProperty(objectPropertyIri, instanceIriString, direct)
       const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
       if (addedInstance) {
         addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
@@ -334,23 +416,26 @@ export default class IncrementalController {
 
     this.vKGApi!.getInstances(
       classIri,
-      this.onNewInstancesForMenu.bind(this), // onNewResults
+      this.onNewInstancesForDetails.bind(this), // onNewResults
       () => this.incrementalDetails.areInstancesLoading = false, // onStop
       searchText
     )
   }
 
-  private onNewInstancesForMenu(instances: ClassInstance[]) {
+  private onGetRangeInstances(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
+    this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, true)
+
+    this.vKGApi?.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri,
+      (instances) => this.onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri), // onNewResults
+      () => this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, false) // onStop
+    )
+  }
+
+  private onNewInstancesForDetails(instances: ClassInstance[]) {
     this.suggestedClassInstances.push(...instances)
 
     this.incrementalDetails.addInstances(instances.map(instance => {
-      let instanceIri = new Iri(instance.iri, this.ontology.namespaces)
-
-      let instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
-      if (instance.label) {
-        instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
-      }
-
+      let instanceEntity = this.getInstanceEntityFromClassInstance(instance)
       return {
         displayedName: instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
         value: instanceEntity
@@ -360,8 +445,17 @@ export default class IncrementalController {
 
   private refreshHighlights(classIri: string) {
     if (this.isReasonerEnabled) {
-      this.lastHighlights = this.vKGApi!.getHighlights(classIri)
+      this.highlights = this.vKGApi!.getHighlights(classIri)
     }
+  }
+
+  private onNewInstanceRangesForDetails(instances: ClassInstance[], objectPropertyIri: string, rangeClassIri: string) {
+    this.suggestedClassInstancesRanges.push(...instances)
+    const instancesEntities = instances.map(i => 
+      grapholEntityToEntityViewData(this.getInstanceEntityFromClassInstance(i), this.grapholscape)
+    )
+
+    this.incrementalDetails.addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, instancesEntities)
   }
 
   /**
@@ -374,10 +468,7 @@ export default class IncrementalController {
    */
   private async getObjectProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      if (classIri !== this.lastClassIri) {
-        this.refreshHighlights(classIri)
-      }
-      const branches = (await this.lastHighlights).objectProperties
+      const branches = (await this.highlights).objectProperties
       const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
 
       branches?.forEach(branch => {
@@ -412,11 +503,7 @@ export default class IncrementalController {
 
   private async getDataProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      if (classIri !== this.lastClassIri) {
-        this.refreshHighlights(classIri)
-      }
-
-      const dataProperties = (await this.lastHighlights).dataProperties
+      const dataProperties = (await this.highlights).dataProperties
       return dataProperties
         ?.map(dp => this.ontology.getEntity(dp))
         .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
@@ -455,10 +542,12 @@ export default class IncrementalController {
         if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
           const instanceEntity = this.diagram.classInstances?.get(targetIri)
           if (instanceEntity) {
+            this.refreshHighlights(instanceEntity.parentClassIri.fullIri);
             (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
             this.buildDetailsForInstance(targetIri)
           }
         } else {
+          this.refreshHighlights(targetIri)
           this.buildDetailsForClass(targetIri)
         }
 
@@ -484,5 +573,15 @@ export default class IncrementalController {
     }
 
     return this._vKGApi
+  }
+
+  private getInstanceEntityFromClassInstance(classInstance: ClassInstance) {
+    const instanceIri = new Iri(classInstance.iri, this.ontology.namespaces)
+    const instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    if (classInstance.label) {
+      instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, classInstance.label))
+    }
+
+    return instanceEntity
   }
 }

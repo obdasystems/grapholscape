@@ -1,7 +1,7 @@
 
-import { html, LitElement, PropertyDeclarations } from "lit";
+import { html, LitElement, nothing, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../model";
-import { entityIcons, instancesIcon, objectPropertyIcon } from "../assets";
+import { classIcon, entityIcons, instancesIcon, objectPropertyIcon } from "../assets";
 import { BaseMixin } from "../common/base-widget-mixin";
 import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 import { entityListItemStyle } from "../ontology-explorer";
@@ -16,15 +16,24 @@ export interface IIncrementalDetails {
   onGetInstances: () => void
   onInstanceSelection: (iri: string) => void
   onEntitySearch: (searchText: string) => void
+  onInstanceObjectPropertySelection: (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => void
 
   // populate the menu
   setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
   addObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
   setDataProperties: (dataProperties: EntityViewData[]) => void
   addDataProperties: (dataProperties: EntityViewData[]) => void
+
+  // data properties values
   setDataPropertiesValues: (dataPropertiesValues: Map<string, { values: string[]; loading?: boolean | undefined; }>) => void
   addDataPropertiesValues: (dataPropertyIri: string, values: string[]) => void
   setDataPropertyLoading: (dataPropertyIri: string, isLoading: boolean) => void
+
+  // Object properties range instances
+  setObjectPropertyRanges: (objectPropertyRanges: Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>) => void
+  setObjectPropertyLoading: (objectPropertyIri: string, rangeClassIri: string, isLoading: boolean) => void
+  addObjectPropertyRangeInstances: (objectPropertyIri: string, rangeClassIri: string, classInstances: EntityViewData[]) => void
+  onGetRangeInstances: (objectPropertyIri: string, rangeClassIri: string) => void
 
   /** remove current instances and add the new ones */
   setInstances: (instances: EntityViewData[]) => void
@@ -33,6 +42,7 @@ export interface IIncrementalDetails {
 
   canShowInstances: boolean
   canShowDataPropertiesValues: boolean
+  canShowObjectPropertiesRanges: boolean
   isInstanceCounterLoading: boolean
   areInstancesLoading: boolean
   instanceCount: number
@@ -41,6 +51,7 @@ export interface IIncrementalDetails {
 export type ViewIncrementalObjectProperty = {
   objectProperty: EntityViewData,
   connectedClasses: EntityViewData[],
+  loading?:boolean,
   direct: boolean
 }
 
@@ -50,9 +61,11 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   private dataProperties?: EntityViewData[]
   private dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
   private objectProperties?: ViewIncrementalObjectProperty[]
+  private objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean } >>
   private instances?: EntityViewData[]
   canShowInstances = false
   canShowDataPropertiesValues = false
+  canShowObjectPropertiesRanges = false
   isInstanceCounterLoading = true
   areInstancesLoading = true
   instanceCount: number
@@ -62,6 +75,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
   onEntitySearch = (searchText: string) => { }
+  onGetRangeInstances = (objectPropertyIri: string, rangeClassIri: string) => { }
+  onInstanceObjectPropertySelection = (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => { }
 
   private searchTimeout: NodeJS.Timeout
 
@@ -97,6 +112,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     isInstanceCounterLoading: { type: Boolean, attribute: false },
     areInstancesLoading: { type: Boolean, attribute: false },
     instanceCount: { type: Number, attribute: false },
+    // dataPropertiesValues: {type: Object, attribute: false },
+    // objectPropertiesRanges: {type: Object, attribute: false },
   }
 
   static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle ]
@@ -106,8 +123,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     <div class="content-wrapper">      
       ${this.canShowInstances
         ? html`
-        <details class="ellipsed entity-list-item" title="Instances" style="position:relative">
-          <summary class="actionable" @click=${this.handleShowInstances}>
+        <details class="ellipsed entity-list-item" title="Instances" style="position:relative" @click=${this.handleShowInstances}>
+          <summary class="actionable">
             <span class="entity-icon slotted-icon">${instancesIcon}</span>
             <span class="entity-name">Instances</span>
             <span class="neutral-chip chip counter">
@@ -157,10 +174,40 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
                         }
                       </summary>
                   
-                      <div class="summary-body" ?isDirect=${op.direct}>
-                        ${op.connectedClasses.map(classIri =>
-                          this.getEntitySuggestionTemplate(classIri, op.objectProperty.value.iri.fullIri
-                        ))}
+                      <div class="summary-body" ?isDirect=${op.direct}>                        
+                        ${op.connectedClasses.map(classEntity => {
+                          if (this.canShowObjectPropertiesRanges) {
+                            const rangeClassesInstances = this.objectPropertiesRanges
+                              ?.get(op.objectProperty.value.iri.fullIri)
+                              ?.get(classEntity.value.iri.fullIri)
+
+                            if (rangeClassesInstances) {
+                              return html`
+                                <details class="ellipsed entity-list-item" title="${classEntity.displayedName}"
+                                  objectPropertyIri=${op.objectProperty.value.iri.fullIri}
+                                  rangeClassIri=${classEntity.value.iri.fullIri}
+                                  @click=${this.handleShowObjectPropertyRanges}
+                                >
+                                  <summary class="actionable">
+                                    <span class="entity-icon slotted-icon">${classIcon}</span>
+                                    <span class="entity-name">${classEntity.displayedName}</span>
+                                  </summary>
+
+                                  <div class="summary-body">
+                                    ${rangeClassesInstances.values.map(instance => this.getEntitySuggestionTemplate(instance, 
+                                      op.objectProperty.value.iri.fullIri,
+                                      classEntity.value.iri.fullIri,
+                                      op.direct
+                                    ))}
+                                    ${rangeClassesInstances.loading ? getContentSpinner() : null}
+                                  </div>
+                                </details>
+                              `
+                            }
+                          } else {
+                            return this.getEntitySuggestionTemplate(classEntity, op.objectProperty.value.iri.fullIri, undefined, op.direct)
+                          }
+                        })}
                       </div>
                     </details>
                   `
@@ -175,13 +222,27 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   }
 
   private handleShowInstances(evt: MouseEvent) {
-    const target = (evt.target as HTMLElement)?.parentElement as HTMLDetailsElement
+    const target = evt.currentTarget as HTMLDetailsElement
     if (!target.open && (!this.instances || this.instances.length === 0)) {
       this.onGetInstances()
     }
   }
 
-  private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string) {
+  private handleShowObjectPropertyRanges(evt: MouseEvent) {
+    const target = evt.currentTarget as HTMLDetailsElement
+    const objectPropertyIri = target.getAttribute('objectPropertyIri')
+    const rangeClassIri = target.getAttribute('rangeClassIri')
+
+
+    if (objectPropertyIri && rangeClassIri && !target.open) {
+      const actualRangeInstances = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
+      console.log(actualRangeInstances)
+      if (!actualRangeInstances || actualRangeInstances.values.length === 0)
+        this.onGetRangeInstances(objectPropertyIri, rangeClassIri)
+    }
+  }
+
+  private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string, parentClassIri?: string, direct?: boolean) {
     const values = this.dataPropertiesValues?.get(entity.value.iri.fullIri)
 
     return html`
@@ -190,7 +251,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
         iri=${entity.value.iri.fullIri}
         entity-type="${entity.value.type}"
         class="ellipsed entity-list-item ${entity.value.type !== GrapholTypesEnum.DATA_PROPERTY ? 'actionable' : null }"
-        @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri)}
+        @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri, parentClassIri, direct)}
       >
         <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
         <span class="entity-name">${entity.displayedName}</span>
@@ -208,16 +269,25 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     `
   }
 
-  private handleEntityClick(e: Event, objectPropertyIri?: string) {
+  private handleEntityClick(e: Event, objectPropertyIri?: string, parentClassIri?: string, direct = true) {
     const target = e.currentTarget as HTMLElement
     const iri = target.getAttribute('iri')
-    const direct = target.parentElement?.getAttribute('isDirect')
     if (!iri) return
 
-    if (target.getAttribute('entity-type') === GrapholTypesEnum.CLASS_INSTANCE) {
-      this.onInstanceSelection(iri)
-    } else if (objectPropertyIri) {
-      this.onObjectPropertySelection(iri, objectPropertyIri, direct !== null)
+    switch(target.getAttribute('entity-type')) {
+      case GrapholTypesEnum.CLASS:
+        if (objectPropertyIri) {
+          this.onObjectPropertySelection(iri, objectPropertyIri, direct)
+        }
+        break
+      
+      case GrapholTypesEnum.CLASS_INSTANCE:
+        if (objectPropertyIri) {
+          if (parentClassIri) // nested needed
+            this.onInstanceObjectPropertySelection(iri, objectPropertyIri, parentClassIri, direct)
+        } else {
+          this.onInstanceSelection(iri)
+        }
     }
   }
 
@@ -265,6 +335,34 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       dataPropertiesValues.loading = isLoading
       this.requestUpdate()
     }
+  }
+
+  // ---- OBJECT PROPERTIES RANGES ----
+  setObjectPropertyRanges(objectPropertyRanges: Map<string, Map<string, { values: EntityViewData[]; loading?: boolean | undefined; }>>) {
+    this.objectPropertiesRanges = objectPropertyRanges
+  }
+
+  setObjectPropertyLoading(objectPropertyIri: string, rangeClassIri: string, isLoading: boolean) {
+    const objectPropertyRanges = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
+
+    if (objectPropertyRanges) {
+      objectPropertyRanges.loading = isLoading
+      this.requestUpdate()
+    }
+  }
+
+  addObjectPropertyRangeInstances(objectPropertyIri: string, rangeClassIri: string, classInstances: EntityViewData[]) {
+    const objectPropertyRanges = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
+
+    if (objectPropertyRanges) {
+      objectPropertyRanges.values.push(...classInstances)
+      this.requestUpdate()
+    }
+  }
+
+  show() {
+    super.show()
+    this.shadowRoot?.querySelectorAll(`details`)?.forEach(detailsElement => detailsElement.open = false )
   }
 }
 

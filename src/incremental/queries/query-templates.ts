@@ -34,7 +34,32 @@ export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIr
   `
 }
 
-export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri: string, limit = 10, searchText?: string) {
+export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri: string, maxResults?: number, searchText?: string) {
+  const select = LABEL_AVAILABLE ? `?y ?l` : `?y`
+  const where = `<${instanceIri}> <${objectPropertyIri}> ?y.
+    ?y a <${rangeTypeClassIri}>.`
+
+  const optional = LABEL_AVAILABLE ? `?y rdf:label ?l` : ``
+  let filter: string = ``
+  if (searchText) {
+    filter = `FILTER(regex(?y, '${searchText}')`
+    if (LABEL_AVAILABLE)
+      filter += `|| (regex(?l, '${searchText}') && !isBlank(?l))`
+
+    filter += `)`
+  }
+  const limit = maxResults ? `LIMIT ${maxResults}` : ``
+
+  return `
+    SELECT ${select}
+    WHERE {
+      ${where}
+      ${optional}
+      ${filter}
+    }
+    ${limit}
+  `
+
   return !LABEL_AVAILABLE
     ? `
       SELECT DISTINCT ?y

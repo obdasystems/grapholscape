@@ -53,12 +53,7 @@ export default class DiagramBuilder {
     instanceNode.labelXpos = 0
     instanceNode.labelYpos = 0
 
-    const instanceEdge = new GrapholEdge(`${this.referenceNodeId}-instance-${iri}`, GrapholTypesEnum.INSTANCE_OF)
-    instanceEdge.sourceId = instanceNode.id
-    instanceEdge.targetId = this.referenceNodeId
-
     this.diagram.addElement(instanceNode, instanceEntity)
-    this.diagram.addElement(instanceEdge)
   }
 
   removeEntity(entityIri: string) {
@@ -185,7 +180,7 @@ export default class DiagramBuilder {
 
   private areAllHierarchiesVisible(hierarchies: Hierarchy[]) {
     let result = true
-    for(let hierarchy of hierarchies) {
+    for (let hierarchy of hierarchies) {
       if (hierarchy.id && this.diagramRepresentation?.cy.$id(hierarchy.id).empty()) {
         result = false
         break
@@ -222,6 +217,49 @@ export default class DiagramBuilder {
     objectPropertyEdge.targetId = direct ? connectedClassIri : this.referenceNodeId
 
     this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
+  }
+
+  addInstanceObjectProperty(objectPropertyIri: string, classInstanceIri: string, direct: boolean) {
+    if (!this.referenceNodeId) return
+
+    const objectPropertyEntity = this.ontology.getEntity(objectPropertyIri)
+
+    if (!objectPropertyEntity) return
+
+    // if both object property and range class are already present, do not add them again
+    const connectedInstanceNode = this.diagramRepresentation?.cy.$id(classInstanceIri)
+    if (connectedInstanceNode?.nonempty()) {
+      /**
+       * If the set of edges between reference node and the connected class
+       * includes the object property we want to add, then it's already present.
+       */
+      const referenceNode = this.diagramRepresentation?.cy.$id(this.referenceNodeId)
+      if (referenceNode?.nonempty() && connectedInstanceNode.edgesWith(referenceNode)
+        .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri)
+        .nonempty()
+      ) {
+        return
+      }
+    }
+
+    this.addClassInstance(classInstanceIri)
+    const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${classInstanceIri}`, GrapholTypesEnum.OBJECT_PROPERTY)
+    objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
+    objectPropertyEdge.sourceId = direct ? this.referenceNodeId : classInstanceIri
+    objectPropertyEdge.targetId = direct ? classInstanceIri : this.referenceNodeId
+
+    this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
+
+  }
+
+  addInstanceOfEdge(instanceIri: string) {
+    if (!this.referenceNodeId) return
+
+    const instanceEdge = new GrapholEdge(`${this.referenceNodeId}-instance-${instanceIri}`, GrapholTypesEnum.INSTANCE_OF)
+    instanceEdge.sourceId = instanceIri
+    instanceEdge.targetId = this.referenceNodeId
+
+    this.diagram.addElement(instanceEdge)
   }
 
   private addClass(classEntity: GrapholEntity) {

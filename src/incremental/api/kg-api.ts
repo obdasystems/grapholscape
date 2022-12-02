@@ -19,6 +19,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
+  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
 }
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
@@ -54,7 +55,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getHighlights(classIri: string) {
     const params = new URLSearchParams({ clickedClassIRI: classIri, version: this.requestOptions.version })
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights?${params.toString()}`)
-    
+
     return await (await fetch(url, {
       method: 'get',
       headers: this.requestOptions.headers
@@ -84,7 +85,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
         if (queryStatus.status === QueryStatusEnum.FINISHED) {
           if (onStop)
             onStop()
-          
+
           return
         }
 
@@ -97,9 +98,53 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       }
     }
 
-    pollPage(1)    
+    pollPage(1)
   }
-  
+
+
+  async getInstanceObjectPropertyRanges(instanceIri: string, objectPropertyIri: string,
+    rangeClassIri: string,
+    onNewResults: (classInstances: ClassInstance[]) => void,
+    onStop?: (() => void),
+    onError?: (()=> void),
+  ) {
+
+    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, VKGApi.LIMIT)
+
+    const pollPage = async (pageNumber: number) => {
+      const queryPoller = await this.queryManager.performQuery(queryCode, VKGApi.LIMIT, pageNumber)
+      queryPoller.start()
+      queryPoller.onNewResults = (newResult) => {
+        onNewResults(newResult.results.map(res => {
+          return { iri: res[0].value, label: res[1]?.value }
+        }))
+      }
+
+      // If stopped then we received all results for this page
+      // if query has not finished, continue polling for next page
+      // if has finished then return and call onStop
+      queryPoller.onStop = async () => {
+        const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
+
+        if (queryStatus.status === QueryStatusEnum.FINISHED) {
+          if (onStop)
+            onStop()
+
+          return
+        }
+
+        if (!queryStatus.hasError) {
+          pollPage(pageNumber + 1) // poll for another page
+        } else {
+          if (onError)
+            onError()
+        }
+      }
+    }
+
+    pollPage(1)
+  }
+
 }
 
 // Stubbed API
