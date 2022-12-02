@@ -64,14 +64,9 @@ export default class IncrementalController {
     const instanceEntity = this.diagram.classInstances?.get(instanceIri)
     if (instanceEntity) {
       this.addDataPropertiesDetails(instanceEntity.parentClassIri.fullIri)
-
+      this.addObjectPropertiesDetails(instanceEntity.parentClassIri.fullIri)
+      
       if (instanceIri !== this.lastInstanceIri) {
-
-        if (instanceEntity.parentClassIri.fullIri !== this.lastClassIri) {
-          this.lastClassIri = instanceEntity.parentClassIri.fullIri
-          this.addObjectPropertiesDetails(instanceEntity.parentClassIri.fullIri)
-        }
-
         // init data properties values
         const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
         const dataProperties = (await this.highlights).dataProperties
