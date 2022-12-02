@@ -22,8 +22,8 @@ export default class IncrementalController {
   private neighbourhoodFinder: NeighbourhoodFinder
 
   private highlights: Promise<Highlights> = new Promise(() => { })
-  private lastClassIri: string
-  private lastInstanceIri: string
+  private lastClassIri?: string
+  private lastInstanceIri?: string
 
   private suggestedClassInstances: ClassInstance[] = []
   private suggestedClassInstancesRanges: ClassInstance[] = []
@@ -43,14 +43,7 @@ export default class IncrementalController {
 
   init() {
     this.setIncrementalEventHandlers()
-    this.incrementalDetails.setDataProperties([])
-    this.incrementalDetails.setObjectProperties([])
-    this.incrementalDetails.canShowInstances = false
-    this.incrementalDetails.canShowDataPropertiesValues = false
-    this.incrementalDetails.canShowObjectPropertiesRanges = false
-    this.incrementalDetails.setDataPropertiesValues(new Map())
-    this.incrementalDetails.setObjectPropertyRanges(new Map())
-
+    this.incrementalDetails.reset()
     this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
     this.entitySelector.onClassSelection((iri: string) => {
       this.entitySelector.hide()
@@ -230,9 +223,13 @@ export default class IncrementalController {
         setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology)
 
       this.setIncrementalEventHandlers()
-
+      this.incrementalDetails.reset()
       const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
       entityDetails.hide()
+
+      this.lastClassIri = undefined
+      this.lastInstanceIri = undefined
+      this.highlights = new Promise(() => { })
     }
   }
 

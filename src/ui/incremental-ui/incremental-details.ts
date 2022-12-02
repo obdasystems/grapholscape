@@ -40,6 +40,8 @@ export interface IIncrementalDetails {
   /** append new instances to the existing ones */
   addInstances: (instances: EntityViewData[]) => void
 
+  reset: () => void
+
   canShowInstances: boolean
   canShowDataPropertiesValues: boolean
   canShowObjectPropertiesRanges: boolean
@@ -363,6 +365,16 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   show() {
     super.show()
     this.shadowRoot?.querySelectorAll(`details`)?.forEach(detailsElement => detailsElement.open = false )
+  }
+
+  reset() {
+    this.dataProperties = undefined
+    this.objectProperties = undefined
+    this.canShowInstances = false
+    this.canShowDataPropertiesValues = false
+    this.canShowObjectPropertiesRanges = false
+    this.dataPropertiesValues = undefined
+    this.objectPropertiesRanges = undefined
   }
 }
 
