@@ -21,9 +21,14 @@ export default class Iri {
 
     if (!this.namespace) {
       console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
-      const uri = new URL(iri)
-      this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
-      this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
+      try {
+        const uri = new URL(iri)
+        this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
+        this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
+      } catch (e) {
+        this.remainder = iri
+      }
+      
     } else {
       this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length)
     }
