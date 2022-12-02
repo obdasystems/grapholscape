@@ -4,7 +4,7 @@ export type QueryRecords = {
   headTerms: string[],
   results: {
     type: string,
-    shortIri: string,
+    shortIRI: string,
     value: string
   }[][]
 }

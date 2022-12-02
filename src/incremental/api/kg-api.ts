@@ -5,6 +5,7 @@ import { Branch, Highlights, OntologyGraphApi } from './swagger'
 
 export type ClassInstance = {
   iri: string,
+  shortIri?: string,
   label?: string,
 }
 
@@ -38,7 +39,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     queryPoller.start()
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => {
-        return { iri: res[0].value, label: res[1]?.value }
+        return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
       }))
     })
 
@@ -116,7 +117,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       queryPoller.start()
       queryPoller.onNewResults = (newResult) => {
         onNewResults(newResult.results.map(res => {
-          return { iri: res[0].value, label: res[1]?.value }
+          return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
         }))
       }
 

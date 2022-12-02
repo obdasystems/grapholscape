@@ -242,11 +242,11 @@ export default class IncrementalController {
     if (!this.diagramBuilder.referenceNodeId) return
 
     const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
-    const instanceIri = new Iri(instanceIriString, this.ontology.namespaces)
 
     if (parentClassEntity) {
-      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
       const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
+      const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
+      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
 
       if (!suggestedClassInstance) return
 
@@ -281,11 +281,12 @@ export default class IncrementalController {
     if (!this.diagramBuilder.referenceNodeId) return
 
     const parentClassEntity = this.ontology.getEntity(parentClassIri)
-    const instanceIri = new Iri(instanceIriString, this.ontology.namespaces)
 
     if (parentClassEntity) {
-      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
       const suggestedClassInstance = this.suggestedClassInstancesRanges.find(c => c.iri === instanceIriString)
+      const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
+      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
+      
 
       if (!suggestedClassInstance) return
 
@@ -568,7 +569,7 @@ export default class IncrementalController {
   }
 
   private getInstanceEntityFromClassInstance(classInstance: ClassInstance) {
-    const instanceIri = new Iri(classInstance.iri, this.ontology.namespaces)
+    const instanceIri = new Iri(classInstance.iri, this.ontology.namespaces, classInstance.shortIri)
     const instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
     if (classInstance.label) {
       instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, classInstance.label))

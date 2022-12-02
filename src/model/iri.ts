@@ -4,7 +4,7 @@ export default class Iri {
   private _namespace?: Namespace
   private _remainder: string
 
-  constructor(iri: string, namespaces: Namespace[]) {
+  constructor(iri: string, namespaces: Namespace[], remainder?: string) {
     let isPrefixed = false
     this.namespace = namespaces.find(n => {
       if (iri.includes(n.toString()))
@@ -18,19 +18,29 @@ export default class Iri {
       }
     })
 
-
-    if (!this.namespace) {
-      console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
-      try {
-        const uri = new URL(iri)
-        this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
-        this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
-      } catch (e) {
+    if (remainder) {
+      this.remainder = remainder
+      const ns = iri.split(remainder)[0]
+      if (iri === ns.concat(remainder)) {
+        this.namespace = new Namespace([], ns)
+      } else {
         this.remainder = iri
       }
       
     } else {
-      this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length)
+      if (!this.namespace) {
+        console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
+        try {
+          const uri = new URL(iri)
+          this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
+          this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
+        } catch (e) {
+          this.remainder = iri
+        }
+        
+      } else {
+        this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length)
+      }
     }
   }
 
