@@ -429,7 +429,7 @@ export default class Grapholscape {
   }
 
   // ------------------- VIRTUAL KNOWLEDGE NAVIGATION -----------------
-  public mastroRequestOptions: RequestOptions
+  public mastroRequestOptions?: RequestOptions
   /**
    * Use this to pass options to build rest calls for querying 
    * the virtual knowledge graph when embedded in monolith

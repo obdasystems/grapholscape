@@ -8,6 +8,7 @@ import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
 import { GscapeRenderSelector } from "../ui/renderer-selector";
 import IncrementalController from "./controller";
 import { GscapeEntitySelector } from "../ui/entity-selector";
+import { LifecycleEvent, RendererStatesEnum } from "../model";
 
 export { IncrementalController }
 
@@ -41,5 +42,12 @@ export function startIncremental(grapholscape: Grapholscape) {
   rendererSelector.onIncrementalReset = () => {
     incrementalController.reset()
   }
+
+  // TODO: when it will be available, remember to clear previous callbacks if startIncremental is called multiple times
+  grapholscape.on(LifecycleEvent.RendererChange, rendererState => {
+    if (rendererState !== RendererStatesEnum.INCREMENTAL && grapholscape.mastroRequestOptions) {
+      incrementalController.clearState()
+    }
+  })
 
 }

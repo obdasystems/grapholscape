@@ -221,11 +221,14 @@ export default class IncrementalController {
       this.incrementalDetails.reset()
       const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
       entityDetails.hide()
-
-      this.lastClassIri = undefined
-      this.lastInstanceIri = undefined
-      this.highlights = new Promise(() => { })
+      this.clearState()
     }
+  }
+
+  clearState() {
+    this.lastClassIri = undefined
+    this.lastInstanceIri = undefined
+    this.highlights = new Promise(() => { })
   }
 
   /**
