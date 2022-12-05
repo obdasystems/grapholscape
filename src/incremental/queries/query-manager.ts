@@ -2,14 +2,23 @@ import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "./model"
 import { QueryCountStatePoller, QueryResultsPoller } from "./query-poller"
 
 export default class QueryManager {
-  private _prefixes: Promise<Response>
-  private prefixes?: string
+  private _prefixes?: Promise<string> = new Promise(() => { })
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
     this.requestOptions.headers['content-type'] = 'application/json'
-    this._prefixes = fetch(this.prefixesPath, {
-      method: 'get',
-      headers: this.requestOptions.headers,
+    
+    
+    this._prefixes = new Promise((resolve) => {
+      fetch(this.prefixesPath, {
+        method: 'get',
+        headers: this.requestOptions.headers,
+      }).then(async response => {
+        const prefixesResponse = await response.json()
+
+        resolve(prefixesResponse.map((p: { name: any; namespace: any }) =>
+          `PREFIX ${p.name} <${p.namespace}>`).join('\n')
+        )
+      })
     })
   }
 
@@ -74,11 +83,7 @@ export default class QueryManager {
   }
 
   private async getPrefixes() {
-    this.prefixes = this.prefixes || await (await (await (this._prefixes)).json()).map((p: { name: any; namespace: any }) =>
-      `PREFIX ${p.name} <${p.namespace}>`
-    ).join('\n')
-
-    return this.prefixes
+    return this._prefixes
   }
 
   private async startQuery(queryCode: string, isCount?: boolean): Promise<string> {
