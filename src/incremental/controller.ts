@@ -522,7 +522,9 @@ export default class IncrementalController {
   private runLayout() { this.incrementalRenderer.runLayout() }
 
   private setIncrementalEventHandlers() {
-    if (this.diagram.representation?.hasEverBeenRendered && this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
+    this.incrementalRenderer.onContextClick(target => this.showCommandsForClass(target.data().iri))
+
+    if (this.diagram.representation?.hasEverBeenRendered || this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
     // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
     this.incrementalRenderer.diagramRepresentation?.cy.on('tap', evt => {
@@ -551,8 +553,6 @@ export default class IncrementalController {
     })
 
     this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
-
-    this.incrementalRenderer.onContextClick(target => this.showCommandsForClass(target.data().iri))
   }
 
   private get ontology() { return this.grapholscape.ontology }
