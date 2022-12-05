@@ -65,7 +65,7 @@ export default class IncrementalController {
     if (instanceEntity) {
       this.addDataPropertiesDetails(instanceEntity.parentClassIri.fullIri)
       this.addObjectPropertiesDetails(instanceEntity.parentClassIri.fullIri)
-      
+
       if (instanceIri !== this.lastInstanceIri) {
         // init data properties values
         const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
@@ -83,7 +83,7 @@ export default class IncrementalController {
         })
 
         const objectPropertiesRanges = new Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>()
-        let rangeMap: Map<string, { values: EntityViewData[], loading?: boolean}>
+        let rangeMap: Map<string, { values: EntityViewData[], loading?: boolean }>
 
         const objectProperties = (await (this.highlights)).objectProperties
 
@@ -91,12 +91,12 @@ export default class IncrementalController {
         objectProperties?.forEach(opBranch => {
           if (opBranch.objectPropertyIRI) {
             opBranch.relatedClasses?.forEach(rangeClass => {
-              rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean}>()
+              rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean }>()
               rangeMap.set(rangeClass, { values: [], loading: false })
 
               objectPropertiesRanges.set(opBranch.objectPropertyIRI!, rangeMap)
             })
-          }          
+          }
         })
 
         this.suggestedClassInstancesRanges = []
@@ -152,11 +152,11 @@ export default class IncrementalController {
     if (superHierarchies && superHierarchies.length > 0) {
       const areAllSuperHierarchiesVisible = this.diagramBuilder.areAllSuperHierarchiesVisibleForClass(classIri)
 
-      commands.push(IncrementalCommands.showHideSuperClasses(
+      commands.push(IncrementalCommands.showHideSuperHierarchies(
         areAllSuperHierarchiesVisible,
         () => {
           this.diagramBuilder.referenceNodeId = classIri
-          areAllSuperHierarchiesVisible ? this.hideSuperClassesOf(classIri) : this.showSuperClassesOf(classIri)
+          areAllSuperHierarchiesVisible ? this.hideSuperHierarchiesOf(classIri) : this.showSuperHierarchiesOf(classIri)
         }
       ))
     }
@@ -165,13 +165,46 @@ export default class IncrementalController {
       const areAllSubHierarchiesVisible = this.diagramBuilder.areAllSubHierarchiesVisibleForClass(classIri)
 
       commands.push(
-        IncrementalCommands.showHideSubClasses(
+        IncrementalCommands.showHideSubHierarchies(
           areAllSubHierarchiesVisible,
           () => {
             this.diagramBuilder.referenceNodeId = classIri
-            areAllSubHierarchiesVisible ? this.hideSubClassesOf(classIri) : this.showSubClassesOf(classIri)
+            areAllSubHierarchiesVisible ? this.hideSubHierarchiesOf(classIri) : this.showSubHierarchiesOf(classIri)
           }
         ),
+      )
+    }
+
+    const subClasses = this.neighbourhoodFinder.getSubclassesIris(classIri)
+    const superClasses = this.neighbourhoodFinder.getSuperclassesIris(classIri)
+
+    if (subClasses.length > 0) {
+      const areAllSubclassesVisible = this.diagramBuilder.areAllSubclassesVisibleForClass(classIri, subClasses)
+      commands.push(
+        IncrementalCommands.showHideSubClasses(
+          areAllSubclassesVisible,
+          () => {
+            this.diagramBuilder.referenceNodeId = classIri
+            areAllSubclassesVisible
+              ? subClasses.forEach(sc => this.removeEntity(sc, [classIri]))
+              : this.showSubClassesOf(classIri, subClasses)
+          }
+        )
+      )
+    }
+
+    if (superClasses.length > 0) {
+      const areAllSuperclassesVisible = this.diagramBuilder.areAllSuperclassesVisibleForClass(classIri, superClasses)
+      commands.push(
+        IncrementalCommands.showHideSuperClasses(
+          areAllSuperclassesVisible,
+          () => {
+            this.diagramBuilder.referenceNodeId = classIri
+            areAllSuperclassesVisible
+              ? superClasses.forEach(sc => this.removeEntity(sc, [classIri]))
+              : this.showSuperClassesOf(classIri, superClasses)
+          }
+        )
       )
     }
 
@@ -193,7 +226,7 @@ export default class IncrementalController {
     })
   }
 
-  private addObjectPropertiesDetails(classIri:string) {
+  private addObjectPropertiesDetails(classIri: string) {
     // OBJECT PROPERTIES
     this.getObjectProperties(classIri).then(objectProperties => {
       if (objectProperties) {
@@ -236,8 +269,8 @@ export default class IncrementalController {
    * Remove a class, an instance or a data property node from the diagram
    * @param entityIri 
    */
-  removeEntity(entityIri: string) {
-    this.diagramBuilder.removeEntity(entityIri)
+  removeEntity(entityIri: string, entitiesIrisToKeep?: string[]) {
+    this.diagramBuilder.removeEntity(entityIri, entitiesIrisToKeep)
     this.postDiagramEdit()
   }
 
@@ -289,7 +322,7 @@ export default class IncrementalController {
       const suggestedClassInstance = this.suggestedClassInstancesRanges.find(c => c.iri === instanceIriString)
       const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
       const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
-      
+
 
       if (!suggestedClassInstance) return
 
@@ -357,7 +390,7 @@ export default class IncrementalController {
    * Hierarchies are pre-computed, after the floaty-transformation is performed.
    * @param classIri 
    */
-  showSuperClassesOf(classIri: string) {
+  showSuperHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
 
@@ -370,7 +403,7 @@ export default class IncrementalController {
    * Hierarchies are pre-computed, after the floaty-transformation is performed.
    * @param classIri 
    */
-  hideSuperClassesOf(classIri: string) {
+  hideSuperHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
 
@@ -383,7 +416,7 @@ export default class IncrementalController {
    * Hierarchies are pre-computed, after the floaty-transformation is performed.
    * @param classIri 
    */
-  showSubClassesOf(classIri: string) {
+  showSubHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
 
@@ -396,11 +429,29 @@ export default class IncrementalController {
    * Hierarchies are pre-computed, after the floaty-transformation is performed.
    * @param classIri 
    */
-  hideSubClassesOf(classIri: string) {
+  hideSubHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
     hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
 
     this.postDiagramEdit()
+  }
+
+  showSubClassesOf(classIri: string, subclassesIris?: string[]) {
+    if (!subclassesIris) {
+      subclassesIris = this.neighbourhoodFinder.getSubclassesIris(classIri)
+    }
+
+    subclassesIris.forEach(subclassIri => this.diagramBuilder.addSubClass(subclassIri))
+    this.runLayout()
+  }
+
+  showSuperClassesOf(classIri: string, superclassesIris?: string[]) {
+    if (!superclassesIris) {
+      superclassesIris = this.neighbourhoodFinder.getSuperclassesIris(classIri)
+    }
+
+    superclassesIris.forEach(subclassIri => this.diagramBuilder.addSuperClass(subclassIri))
+    this.runLayout()
   }
 
   private onGetInstances(classIri: string, searchText?: string) {
@@ -447,7 +498,7 @@ export default class IncrementalController {
 
   private onNewInstanceRangesForDetails(instances: ClassInstance[], objectPropertyIri: string, rangeClassIri: string) {
     this.suggestedClassInstancesRanges.push(...instances)
-    const instancesEntities = instances.map(i => 
+    const instancesEntities = instances.map(i =>
       grapholEntityToEntityViewData(this.getInstanceEntityFromClassInstance(i), this.grapholscape)
     )
 

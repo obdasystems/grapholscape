@@ -1,4 +1,5 @@
-import { GrapholEntity, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
+import { Diagram, GrapholEntity, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
+import { diagrams } from "../ui/assets";
 
 export type ObjectPropertyConnectedClasses = {
   connectedClasses: GrapholEntity[],
@@ -122,6 +123,58 @@ export default class NeighbourhoodFinder {
             }
           }
         })
+    })
+
+    return res
+  }
+
+  getSubclassesIris(classIri: string): string[] {
+    const res: string[] = []
+
+    let diagram: Diagram | undefined
+    this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)?.forEach(classOccurrences => {
+      classOccurrences.forEach(classOccurrence => {
+        diagram = this.ontology.getDiagram(classOccurrence.diagramId)
+
+        if (diagram) {
+          diagram.representations.get(RendererStatesEnum.FLOATY)
+            ?.cy.$id(classOccurrence.elementId)
+            .edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
+            .filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION) // take only inclusions edges
+            .sources(`[ iri != "${classIri}" ]`) // of these inclusions, take sources different from the class we are considering as superclass
+            .forEach(subClassElement => { // for each element, add its iri to result
+              if (!res.includes(subClassElement.data().iri)) {
+                res.push(subClassElement.data().iri)
+              }
+            })
+        }
+      })
+    })
+
+    return res
+  }
+
+  getSuperclassesIris(classIri: string): string[] {
+    const res: string[] = []
+
+    let diagram: Diagram | undefined
+    this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)?.forEach(classOccurrences => {
+      classOccurrences.forEach(classOccurrence => {
+        diagram = this.ontology.getDiagram(classOccurrence.diagramId)
+
+        if (diagram) {
+          diagram.representations.get(RendererStatesEnum.FLOATY)
+            ?.cy.$id(classOccurrence.elementId)
+            .edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
+            .filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION) // take only inclusions edges
+            .targets(`[ iri != "${classIri}" ]`) // of these inclusions, take targets different from the class we are considering as superclass
+            .forEach(subClassElement => { // for each element, add its iri to result
+              if (!res.includes(subClassElement.data().iri)) {
+                res.push(subClassElement.data().iri)
+              }
+            })
+        }
+      })
     })
 
     return res

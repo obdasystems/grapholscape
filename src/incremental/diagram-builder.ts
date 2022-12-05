@@ -56,31 +56,27 @@ export default class DiagramBuilder {
     this.diagram.addElement(instanceNode, instanceEntity)
   }
 
-  removeEntity(entityIri: string) {
+  removeEntity(entityIri: string, nodesIdToKeep: string[] = []) {
     this.diagramRepresentation?.cy.$(`[iri = "${entityIri}"]`).forEach(element => {
       if (element.data().type === GrapholTypesEnum.CLASS) {
-        element.neighborhood(`[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`).forEach(classInstanceElement => {
-          // remove nodes only if they have 1 connection, i.e. with the class we want to remove
-          if (classInstanceElement.isNode()) {
-            if (classInstanceElement.degree(false) === 1) {
-              this.diagram.removeElement(classInstanceElement.id())
+        element.neighborhood().forEach(neighbourElement => {
+          if (neighbourElement.isNode()) {
+            // remove nodes only if they have 1 connection, i.e. with the class we want to remove
+            if (neighbourElement.degree(false) === 1 && !nodesIdToKeep?.includes(neighbourElement.id())) {
+              if (neighbourElement.data().iri) {
+                // it's an entity, recursively remove entities
+                nodesIdToKeep.push(entityIri) // the entity we are removing must be skipped, otherwise cyclic recursion
+                this.removeEntity(neighbourElement.data().iri, nodesIdToKeep)
+              } else {
+                this.diagram.removeElement(neighbourElement.id())
+              }
             }
           } else {
             // edges must be removed anyway
             // (cytoscape removes them automatically
             // but we need to update the grapholElements 
             // map too in diagram representation)
-            this.diagram.removeElement((classInstanceElement as EdgeSingular).id()) // cast should not be needed, maybe error in cytoscape types
-          }
-        })
-
-        element.neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).forEach(dataPropertyElement => {
-          if (dataPropertyElement.isNode()) {
-            if (dataPropertyElement.degree(false) === 1) {
-              this.diagram.removeElement(dataPropertyElement.id())
-            }
-          } else {
-            this.diagram.removeElement((dataPropertyElement as EdgeSingular).id())
+            this.diagram.removeElement((neighbourElement as EdgeSingular).id())
           }
         })
 
@@ -176,6 +172,61 @@ export default class DiagramBuilder {
       return this.areAllHierarchiesVisible(hierarchies)
     else
       return true
+  }
+
+  /**
+   * Add an inclusion edge between two classes
+   * @param subClassIri 
+   * @param superClassIri 
+   */
+  addIsa(subClassIri: string, superClassIri: string) {
+    if (this.diagramRepresentation?.cy.$id(subClassIri).empty()) {
+      this.addEntity(subClassIri)
+    }
+
+    if (this.diagramRepresentation?.cy.$id(superClassIri).empty()) {
+      this.addEntity(superClassIri)
+    }
+
+    const inclusionEdge = new GrapholEdge(`${subClassIri}-isa-${superClassIri}`, GrapholTypesEnum.INCLUSION)
+    inclusionEdge.sourceId = subClassIri
+    inclusionEdge.targetId = superClassIri
+
+    this.diagram.addElement(inclusionEdge)
+  }
+
+  addSubClass(subClassIri: string) {
+    if (this.referenceNodeIri)
+      this.addIsa(subClassIri, this.referenceNodeIri)
+  }
+
+  addSuperClass(superClassIri: string) {
+    if (this.referenceNodeIri)
+      this.addIsa(this.referenceNodeIri, superClassIri)
+  }
+
+  areAllSubclassesVisibleForClass(classIri: string, subClassesIris: string[]) {
+    for (let subClassIri of subClassesIris) {
+      if (this.diagramRepresentation?.cy.$id(subClassIri)
+        .connectedEdges(`[ type ="${GrapholTypesEnum.INCLUSION}" ]`)
+        .targets(`[id = "${classIri}"]`).empty()
+      )
+        return false
+    }
+
+    return true
+  }
+
+  areAllSuperclassesVisibleForClass(classIri: string, subClassesIris: string[]) {
+    for (let subClassIri of subClassesIris) {
+      if (this.diagramRepresentation?.cy.$id(subClassIri)
+        .connectedEdges(`[ type = "${GrapholTypesEnum.INCLUSION}" ]`)
+        .sources(`[id = "${classIri}"]`).empty()
+      )
+        return false
+    }
+
+    return true
   }
 
   private areAllHierarchiesVisible(hierarchies: Hierarchy[]) {
