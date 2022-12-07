@@ -17,9 +17,6 @@ export default function computeHierarchies(ontology: Ontology) {
           }
 
           hierarchy.addInput(inputNode.data().iri)
-          if (inputNode.data().iri === 'HamTopping') {
-            console.log(ontology.hierarchiesBySubclassMap.get('HamTopping'))
-          }
           ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)?.push(hierarchy)
         }
       })

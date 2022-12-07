@@ -38,8 +38,7 @@ export default class IncrementalController {
   private endpointController?: EndpointController
 
   constructor(
-    private grapholscape: Grapholscape,
-    private incrementalRenderer: IncrementalRendererState,
+    private grapholscape: Grapholscape
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
@@ -71,6 +70,7 @@ export default class IncrementalController {
     this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
     this.entitySelector.onClassSelection((iri: string) => {
       this.entitySelector.hide()
+      this.incrementalRenderer.freezeGraph()
       this.diagramBuilder.addEntity(iri)
       this.postDiagramEdit()
     })
@@ -305,6 +305,7 @@ export default class IncrementalController {
    * @param entityIri 
    */
   removeEntity(entityIri: string, entitiesIrisToKeep?: string[]) {
+    this.incrementalRenderer.freezeGraph()
     this.diagramBuilder.removeEntity(entityIri, entitiesIrisToKeep)
     this.postDiagramEdit()
   }
@@ -336,6 +337,7 @@ export default class IncrementalController {
 
       this.diagram.classInstances.set(instanceIriString, instanceEntity)
 
+      this.incrementalRenderer.freezeGraph()
       this.diagramBuilder.addClassInstance(instanceIriString)
       this.diagramBuilder.addInstanceOfEdge(instanceIriString)
       const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
@@ -375,7 +377,7 @@ export default class IncrementalController {
       }
 
       this.diagram.classInstances.set(instanceIriString, instanceEntity)
-
+      this.incrementalRenderer.freezeGraph()
       this.diagramBuilder.addInstanceObjectProperty(objectPropertyIri, instanceIriString, direct)
       const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
       if (addedInstance) {
@@ -392,7 +394,7 @@ export default class IncrementalController {
    * Given the state of the toggle and the list of dataproperties it is
    * controlling, use diagram builder to add or remove them
    * @param enabled 
-   * @param dataProperties 
+   * @param dataProperties
    */
   toggleDataProperties(enabled: boolean, dataProperties: GrapholEntity[]) {
     if (enabled) {
@@ -416,6 +418,7 @@ export default class IncrementalController {
    * @param direct if true the edge goes from reference class to selected class in menu
    */
   addIntensionalObjectProperty(classIri: string, objectPropertyIri: string, direct: boolean) {
+    this.incrementalRenderer.freezeGraph()
     this.diagramBuilder.addEntity(objectPropertyIri, classIri, direct)
     this.postDiagramEdit()
   }
@@ -427,10 +430,13 @@ export default class IncrementalController {
    */
   showSuperHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
-    hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
 
-    if (hierarchies && hierarchies.length > 0)
+    if (hierarchies && hierarchies.length > 0) {
+      this.incrementalRenderer.freezeGraph()
+      hierarchies.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
       this.postDiagramEdit()
+    }
+          
   }
 
   /**
@@ -440,10 +446,13 @@ export default class IncrementalController {
    */
   hideSuperHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
-    hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
+    
 
-    if (hierarchies && hierarchies.length > 0)
+    if (hierarchies && hierarchies.length > 0) {
+      this.incrementalRenderer.freezeGraph()
+      hierarchies.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
       this.postDiagramEdit()
+    }
   }
 
   /**
@@ -453,10 +462,13 @@ export default class IncrementalController {
    */
   showSubHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
-    hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
+    
 
-    if (hierarchies && hierarchies.length > 0)
+    if (hierarchies && hierarchies.length > 0) {
+      this.incrementalRenderer.freezeGraph()
+      hierarchies.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
       this.postDiagramEdit()
+    }
   }
 
   /**
@@ -466,9 +478,12 @@ export default class IncrementalController {
    */
   hideSubHierarchiesOf(classIri: string) {
     const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
-    hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
 
-    this.postDiagramEdit()
+    if (hierarchies && hierarchies.length > 0) {
+      this.incrementalRenderer.freezeGraph()
+      hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
+      this.postDiagramEdit()
+    }
   }
 
   showSubClassesOf(classIri: string, subclassesIris?: string[]) {
@@ -667,4 +682,6 @@ export default class IncrementalController {
 
     return instanceEntity
   }
+
+  private get incrementalRenderer() { return this.grapholscape.renderer.renderState as IncrementalRendererState }
 }

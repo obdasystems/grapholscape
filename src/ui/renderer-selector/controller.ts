@@ -20,13 +20,13 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     rendererSelector.actualRendererStateKey = grapholscape.renderState
 
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      existingIncrementalController = new IncrementalController(grapholscape, grapholscape.renderer.renderState as IncrementalRendererState)
+      existingIncrementalController = new IncrementalController(grapholscape)
       startIncremental(grapholscape, existingIncrementalController)
     }
   }
 
   rendererSelector.onRendererStateSelection = (rendererState) => {
-    rendererStateSelectionCallback(rendererState, grapholscape, existingIncrementalController)
+    rendererStateSelectionCallback(rendererState, grapholscape)
   }
 
   rendererSelector.onIncrementalReset = () => {
@@ -42,7 +42,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     const filtersWidget = grapholscape.widgets.get(WidgetEnum.FILTERS) as GscapeFilters
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       if (!existingIncrementalController) {
-        existingIncrementalController = new IncrementalController(grapholscape, grapholscape.renderer.renderState as IncrementalRendererState)
+        existingIncrementalController = new IncrementalController(grapholscape)
       }
       startIncremental(grapholscape, existingIncrementalController)
       filtersWidget.hide()
@@ -56,8 +56,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
 
 export function rendererStateSelectionCallback(
   rendererState: RendererStatesEnum,
-  grapholscape: Grapholscape,
-  existingIncrementalController?: IncrementalController) {
+  grapholscape: Grapholscape) {
 
   if (rendererState !== grapholscape.renderState) {
     let isRenderValid = false

@@ -23,9 +23,14 @@ export default class IncrementalRendererState extends FloatyRendererState {
   filterManager: iFilterManager = new IncrementalFilterManager()
 
   private previousDiagram: Diagram
-  protected activeClass?: SingularElementReturnValue
 
-  private entityExpansionCallback: (selectedElement: SingularElementReturnValue) => void
+  constructor() {
+    super()
+
+    this.floatyLayoutOptions.fit = false
+    this.floatyLayoutOptions.maxSimulationTime = 1000
+  }
+
   onContextClickCallback: (target: any) => void
 
   render() {
@@ -34,6 +39,30 @@ export default class IncrementalRendererState extends FloatyRendererState {
     if (this.popperContainer) {
       this.renderer.cy?.container()?.appendChild(this.popperContainer)
     }
+  }
+
+  runLayout() {
+    super.runLayout()
+    if (this.isLayoutInfinite) {
+      this.unFreezeGraph()
+    } else {
+      this.layout.one('layoutstop', () => {
+        if (this.diagramRepresentation?.grapholElements.size === 1)
+          this.renderer.fit()
+          
+        this.unFreezeGraph()
+      })
+    }
+  }
+
+  /** lock all nodes */
+  freezeGraph() {
+    this.renderer.cy?.nodes().lock()
+  }
+
+  /** unlock all nodes that are not pinned (pinned can be unlocked only with unpin) */
+  unFreezeGraph() {
+    this.renderer.cy?.$("[!pinned]:locked").unlock()
   }
 
   stopRendering(): void {
@@ -52,21 +81,6 @@ export default class IncrementalRendererState extends FloatyRendererState {
       computeHierarchies(ontology)
     }
   }
-
-  onEntityExpansion(callback: (selectedElement: SingularElementReturnValue) => void) {
-    this.entityExpansionCallback = callback
-  }
-
-  handleClassExpansion(classElement: SingularElementReturnValue) {
-    if (!this.activeClass || this.activeClass.data().iri !== classElement.data().iri) {
-      this.activeClass = classElement
-      this.pinNode(classElement)
-      this.entityExpansionCallback(classElement)
-      this.floatyLayoutOptions.fit = false
-      this.runLayout()
-    }
-  }
-
 
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
     return incrementalStyle(theme)
@@ -92,10 +106,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
       this.incrementalDiagram.representation?.cy.destroy()
       this.incrementalDiagram.representations.set(this.id, new DiagramRepresentation(floatyOptions))
     }
-    this.activeClass = undefined
-    this.floatyLayoutOptions.fit = true
     this.overrideDiagram()
-    this.diagramRepresentation?.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target))
 
     this.diagramRepresentation?.cy.on('cxttap', `node`, evt => {
       this.onContextClickCallback(evt.target)

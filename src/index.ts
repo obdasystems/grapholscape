@@ -70,7 +70,7 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
 
   if (grapholscape) {
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      const incrementalController = new IncrementalController(grapholscape, grapholscape.renderer.renderState as IncrementalRendererState)
+      const incrementalController = new IncrementalController(grapholscape)
       startIncremental(grapholscape, incrementalController)
     }
   }

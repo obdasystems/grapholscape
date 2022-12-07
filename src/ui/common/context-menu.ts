@@ -71,7 +71,6 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
   }
 
   attachTo(element: HTMLElement, commands?: Command[]) {
-    console.log(element)
     this.tippyMenu.setProps(this.cxtMenuProps)
     this.tippyMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() })
     if (commands)

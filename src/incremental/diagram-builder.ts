@@ -355,10 +355,9 @@ export default class DiagramBuilder {
   }
 
   private get referenceNodePosition() {
-    if (this.referenceNodeId)
-      return (this.diagram
-        .representations.get(RendererStatesEnum.INCREMENTAL)
-        ?.grapholElements.get(this.referenceNodeId) as GrapholNode)?.position
+    if (this.referenceNodeId && this.diagramRepresentation?.cy) {
+      return this.diagramRepresentation?.cy.$id(this.referenceNodeId).position()
+    }
   }
 
   private get referenceNodeIri() {
