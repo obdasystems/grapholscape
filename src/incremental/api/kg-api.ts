@@ -1,4 +1,4 @@
-import { MastroEndpoint, QueryStatusEnum, RequestOptions } from '../queries/model'
+import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
 import { Branch, Highlights, OntologyGraphApi } from './swagger'
@@ -21,16 +21,15 @@ export interface IVirtualKnowledgeGraphApi {
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
   getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
+  setEndpoint: (endpoint: MastroEndpoint) => void,
 }
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
   private static readonly LIMIT = 10 // How many results to show?
   private queryManager: QueryManager
-  private lastIriForSuggestions: string // the last class iri for which suggestions has been asked
-  private lastSuggestions: Highlights // last suggestions retrieved
 
   constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint) {
-    this.queryManager = new QueryManager(requestOptions, endpoint)
+    this.setEndpoint(endpoint)
   }
 
   async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
@@ -146,6 +145,9 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     pollPage(1)
   }
 
+  setEndpoint(endpoint: MastroEndpoint) {
+    this.queryManager = new QueryManager(this.requestOptions, endpoint)
+  }
 }
 
 // Stubbed API

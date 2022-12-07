@@ -1,4 +1,4 @@
-import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "./model"
+import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "../api/model"
 import { QueryCountStatePoller, QueryResultsPoller } from "./query-poller"
 
 export default class QueryManager {

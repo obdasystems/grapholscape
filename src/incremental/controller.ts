@@ -1,24 +1,25 @@
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
-import { WidgetEnum } from "../ui/util/widget-enum";
-import { IEntitySelector } from "../ui/entity-selector/entity-selector";
-import { IIncrementalDetails } from "../ui/incremental-ui/incremental-details";
-import DiagramBuilder from "./diagram-builder";
-import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
-import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
-import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
-import { Branch, Highlights } from "./api/swagger";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
-import { GscapeEntityDetails } from "../ui/entity-details";
+import { EntityViewData } from "../ui";
 import { IBaseMixin } from "../ui/common/base-widget-mixin";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
+import { GscapeEntityDetails } from "../ui/entity-details";
+import { IEntitySelector } from "../ui/entity-selector/entity-selector";
 import { IncrementalCommands } from "../ui/incremental-ui";
-import { EntityViewData } from "../ui";
+import { IIncrementalDetails } from "../ui/incremental-ui/incremental-details";
+import { WidgetEnum } from "../ui/util/widget-enum";
+import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
+import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
+import { Highlights } from "./api/swagger";
+import DiagramBuilder from "./diagram-builder";
+import EndpointController from "./endpoint-controller";
+import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
-  private _vKGApi?: IVirtualKnowledgeGraphApi
+  private vKGApi?: IVirtualKnowledgeGraphApi
   private neighbourhoodFinder: NeighbourhoodFinder
 
   private highlights: Promise<Highlights> = new Promise(() => { })
@@ -30,6 +31,8 @@ export default class IncrementalController {
 
   private commandsWidget = new GscapeContextMenu()
 
+  private endpointController?: EndpointController
+
   constructor(
     private grapholscape: Grapholscape,
     private incrementalRenderer: IncrementalRendererState,
@@ -38,7 +41,23 @@ export default class IncrementalController {
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
-    this.commandsWidget
+
+    this.initEndpointController()
+  }
+
+  initEndpointController() {
+    if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
+      this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions)
+      this.endpointController.updateEndpointList()
+      this.endpointController.onEndpointChange(newEndpoint => {
+        if (!this.vKGApi) {
+          if (this.grapholscape.mastroRequestOptions)
+            this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, newEndpoint)
+        } else {
+          this.vKGApi?.setEndpoint(newEndpoint)
+        }
+      })
+    }
   }
 
   init() {
@@ -262,6 +281,7 @@ export default class IncrementalController {
     this.lastClassIri = undefined
     this.lastInstanceIri = undefined
     this.highlights = new Promise(() => { })
+    this.endpointController?.hideView()
   }
 
   /**
@@ -612,15 +632,16 @@ export default class IncrementalController {
   private get ontology() { return this.grapholscape.ontology }
   private get diagram() { return this.incrementalRenderer.incrementalDiagram }
   private get isReasonerEnabled() { return this.vKGApi !== undefined }
-  private get vKGApi() {
-    if (this.grapholscape.mastroRequestOptions && !this._vKGApi) {
-      this._vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, {
-        name: 'new_endpoint',
-      })
-    }
+  // private get vKGApi() {
+  //   // if (this.grapholscape.mastroRequestOptions && !this._vKGApi) {
+  //   //   if (this.endpointController?.selectedEndpoint)
+  //   //     this._vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, this.endpointController?.selectedEndpoint)
+  //   //   else
+  //   //     this.initEndpointController()
+  //   // }
 
-    return this._vKGApi
-  }
+  //   return this._vKGApi
+  // }
 
   private getInstanceEntityFromClassInstance(classInstance: ClassInstance) {
     const instanceIri = new Iri(classInstance.iri, this.ontology.namespaces, classInstance.shortIri)
