@@ -1,32 +1,33 @@
 import { Grapholscape } from "../core";
-import IncrementalRendererState from "../core/rendering/incremental/incremental-render-state";
-import { WidgetEnum } from "../ui/util/widget-enum";
 import { GscapeDiagramSelector } from "../ui/diagram-selector";
 import { GscapeEntityDetails } from "../ui/entity-details";
+import initEntitySelector, { GscapeEntitySelector } from "../ui/entity-selector";
 import initIncrementalMenu from "../ui/incremental-ui";
 import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
-import { GscapeRenderSelector } from "../ui/renderer-selector";
+import { WidgetEnum } from "../ui/util/widget-enum";
 import IncrementalController from "./controller";
-import { GscapeEntitySelector } from "../ui/entity-selector";
-import { LifecycleEvent, RendererStatesEnum } from "../model";
 
-export { IncrementalController }
+export { IncrementalController };
 
-export function startIncremental(grapholscape: Grapholscape) {
+export function startIncremental(grapholscape: Grapholscape, incrementalController: IncrementalController) {
 
   grapholscape.renderer.unselect()
 
+  if (!grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) {
+    initEntitySelector(grapholscape)
+  }
   const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+
   if (!grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU)) {
     initIncrementalMenu(grapholscape)
   }
 
-  const incrementalController = new IncrementalController(
-    grapholscape,
-    grapholscape.renderer.renderState as IncrementalRendererState,
-    grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails,
-    entitySelector
-  )
+  // const incrementalController = new IncrementalController(
+  //   grapholscape,
+  //   grapholscape.renderer.renderState as IncrementalRendererState,
+  //   grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails,
+  //   entitySelector
+  // )
   incrementalController.init();
 
   (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as GscapeDiagramSelector).hide()
@@ -38,16 +39,11 @@ export function startIncremental(grapholscape: Grapholscape) {
     entitySelector.show()
   }
 
-  const rendererSelector = grapholscape.widgets.get(WidgetEnum.RENDERER_SELECTOR) as GscapeRenderSelector
-  rendererSelector.onIncrementalReset = () => {
-    incrementalController.reset()
-  }
-
-  // TODO: when it will be available, remember to clear previous callbacks if startIncremental is called multiple times
-  grapholscape.on(LifecycleEvent.RendererChange, rendererState => {
-    if (rendererState !== RendererStatesEnum.INCREMENTAL && grapholscape.mastroRequestOptions) {
-      incrementalController.clearState()
-    }
-  })
+  // // TODO: when it will be available, remember to clear previous callbacks if startIncremental is called multiple times
+  // grapholscape.on(LifecycleEvent.RendererChange, rendererState => {
+  //   if (rendererState !== RendererStatesEnum.INCREMENTAL && grapholscape.mastroRequestOptions) {
+  //     incrementalController.clearState()
+  //   }
+  // })
 
 }

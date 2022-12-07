@@ -2,16 +2,17 @@ import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
-import { EntityViewData } from "../ui";
+import { EntityViewData, GscapeEntitySearch } from "../ui";
 import { IBaseMixin } from "../ui/common/base-widget-mixin";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
 import { GscapeEntityDetails } from "../ui/entity-details";
-import { IEntitySelector } from "../ui/entity-selector/entity-selector";
+import GscapeEntitySelector, { IEntitySelector } from "../ui/entity-selector/entity-selector";
 import { IncrementalCommands } from "../ui/incremental-ui";
-import { IIncrementalDetails } from "../ui/incremental-ui/incremental-details";
+import GscapeIncrementalDetails, { IIncrementalDetails } from "../ui/incremental-ui/incremental-details";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
+import { RequestOptions } from "./api/model";
 import { Highlights } from "./api/swagger";
 import DiagramBuilder from "./diagram-builder";
 import EndpointController from "./endpoint-controller";
@@ -21,6 +22,9 @@ export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   private vKGApi?: IVirtualKnowledgeGraphApi
   private neighbourhoodFinder: NeighbourhoodFinder
+
+  private incrementalDetails: GscapeIncrementalDetails
+  private entitySelector: GscapeEntitySelector
 
   private highlights: Promise<Highlights> = new Promise(() => { })
   private lastClassIri?: string
@@ -36,13 +40,9 @@ export default class IncrementalController {
   constructor(
     private grapholscape: Grapholscape,
     private incrementalRenderer: IncrementalRendererState,
-    private incrementalDetails: IIncrementalDetails & IBaseMixin,
-    private entitySelector: IEntitySelector & IBaseMixin
   ) {
     this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
-
-    this.initEndpointController()
   }
 
   initEndpointController() {
@@ -61,6 +61,11 @@ export default class IncrementalController {
   }
 
   init() {
+    this.updateWidget()
+    if (!this.endpointController) {
+      this.initEndpointController()
+    }
+    this.endpointController?.showView()
     this.setIncrementalEventHandlers()
     this.incrementalDetails.reset()
     this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
@@ -71,6 +76,11 @@ export default class IncrementalController {
     })
 
     setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology)
+  }
+
+  private updateWidget() {
+    this.incrementalDetails = this.grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails
+    this.entitySelector = this.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
   }
 
   private async buildDetailsForInstance(instanceIri: string) {
@@ -281,7 +291,12 @@ export default class IncrementalController {
     this.lastClassIri = undefined
     this.lastInstanceIri = undefined
     this.highlights = new Promise(() => { })
+  }
+
+  hideUI() {
+    this.incrementalDetails.hide()
     this.endpointController?.hideView()
+    this.commandsWidget.hide()
   }
 
   /**

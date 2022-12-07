@@ -4,7 +4,7 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { startIncremental } from "../../incremental"
+import { IncrementalController, startIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { IBaseMixin } from "../common/base-widget-mixin"
 import { GscapeEntityDetails } from "../entity-details"
@@ -13,22 +13,48 @@ import GscapeRenderSelector from "./render-selector"
 import { rendererStates } from "./view-model"
 
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
-
+  let existingIncrementalController: IncrementalController
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
-  if (grapholscape.renderState)
+  if (grapholscape.renderState) {
     rendererSelector.actualRendererStateKey = grapholscape.renderState
 
-  rendererSelector.onRendererStateSelection = (rendererState) => rendererStateSelectionCallback(rendererState, grapholscape)
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      existingIncrementalController = new IncrementalController(grapholscape, grapholscape.renderer.renderState as IncrementalRendererState)
+      startIncremental(grapholscape, existingIncrementalController)
+    }
+  }
+
+  rendererSelector.onRendererStateSelection = (rendererState) => {
+    rendererStateSelectionCallback(rendererState, grapholscape, existingIncrementalController)
+  }
+
+  rendererSelector.onIncrementalReset = () => {
+    existingIncrementalController.reset()
+  }
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
     rendererSelector.actualRendererStateKey = newRendererState
 
     if (newRendererState === RendererStatesEnum.FLOATY)
       rendererSelector.layoutSettingsComponent.openPanel()
+
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      if (!existingIncrementalController) {
+        existingIncrementalController = new IncrementalController(grapholscape, grapholscape.renderer.renderState as IncrementalRendererState)
+      }
+      startIncremental(grapholscape, existingIncrementalController)
+    } else {
+      existingIncrementalController.clearState()
+      existingIncrementalController.hideUI()
+    }
   })
 }
 
-export function rendererStateSelectionCallback(rendererState: RendererStatesEnum, grapholscape: Grapholscape) {
+export function rendererStateSelectionCallback(
+  rendererState: RendererStatesEnum,
+  grapholscape: Grapholscape,
+  existingIncrementalController?: IncrementalController) {
+
   if (rendererState !== grapholscape.renderState) {
     let isRenderValid = false
     switch (rendererState) {
@@ -51,7 +77,6 @@ export function rendererStateSelectionCallback(rendererState: RendererStatesEnum
     if (rendererState === RendererStatesEnum.INCREMENTAL) {
       const incrementalRendererState = new IncrementalRendererState()
       grapholscape.setRenderer(incrementalRendererState)
-      startIncremental(grapholscape)
       isRenderValid = true
     } else {
       (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).show();

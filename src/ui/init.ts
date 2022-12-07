@@ -40,14 +40,14 @@ export default function (grapholscape: Grapholscape) {
   initFullscreenButton(grapholscape)
   initFitButton(grapholscape)
   initZoomTools(grapholscape)
-  initRendererSelector(grapholscape)
   initFilters(grapholscape)
   initOntologyInfo(grapholscape)
   initEntityDetails(grapholscape)
   initOntologyExplorer(grapholscape)
   initOwlVisualizer(grapholscape)
   initSettings(grapholscape)
-  initEntitySelector(grapholscape)
+  // initEntitySelector(grapholscape)
+  initRendererSelector(grapholscape)
   initInitialRendererSelector(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
