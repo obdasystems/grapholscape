@@ -5,9 +5,6 @@ import { WidgetEnum } from "../util/widget-enum";
 
 export { GscapeFilters }
 
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
 export default function initFilters(grapholscape: Grapholscape) {
   const filterComponent = new GscapeFilters()
   init(filterComponent, grapholscape)

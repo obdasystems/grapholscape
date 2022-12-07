@@ -7,6 +7,7 @@ import FloatyTransformer from "../floaty/floaty-transformer"
 import computeHierarchies from "./compute-hierarchies"
 import incrementalStyle from "./incremental-style"
 import Renderer from "../renderer"
+import IncrementalFilterManager from "./filter-manager"
 
 /**
  * The incremental renderer state is a kind of floaty renderer state in which
@@ -19,7 +20,7 @@ import Renderer from "../renderer"
  */
 export default class IncrementalRendererState extends FloatyRendererState {
   readonly id = RendererStatesEnum.INCREMENTAL
-  filterManager: iFilterManager
+  filterManager: iFilterManager = new IncrementalFilterManager()
 
   private previousDiagram: Diagram
   protected activeClass?: SingularElementReturnValue

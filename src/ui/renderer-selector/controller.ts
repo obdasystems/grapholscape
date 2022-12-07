@@ -8,12 +8,13 @@ import { IncrementalController, startIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
 import { IBaseMixin } from "../common/base-widget-mixin"
 import { GscapeEntityDetails } from "../entity-details"
+import { GscapeFilters } from "../filters"
 import { WidgetEnum } from "../util/widget-enum"
 import GscapeRenderSelector from "./render-selector"
 import { rendererStates } from "./view-model"
 
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
-  let existingIncrementalController: IncrementalController
+  let existingIncrementalController: IncrementalController | undefined
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
   if (grapholscape.renderState) {
     rendererSelector.actualRendererStateKey = grapholscape.renderState
@@ -29,7 +30,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   }
 
   rendererSelector.onIncrementalReset = () => {
-    existingIncrementalController.reset()
+    existingIncrementalController?.reset()
   }
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
@@ -38,14 +39,17 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     if (newRendererState === RendererStatesEnum.FLOATY)
       rendererSelector.layoutSettingsComponent.openPanel()
 
+    const filtersWidget = grapholscape.widgets.get(WidgetEnum.FILTERS) as GscapeFilters
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       if (!existingIncrementalController) {
         existingIncrementalController = new IncrementalController(grapholscape, grapholscape.renderer.renderState as IncrementalRendererState)
       }
       startIncremental(grapholscape, existingIncrementalController)
+      filtersWidget.hide()
     } else {
-      existingIncrementalController.clearState()
-      existingIncrementalController.hideUI()
+      existingIncrementalController?.clearState()
+      existingIncrementalController?.hideUI()
+      filtersWidget.show()
     }
   })
 }

@@ -17,6 +17,7 @@ export function startIncremental(grapholscape: Grapholscape, incrementalControll
     initEntitySelector(grapholscape)
   }
   const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+  grapholscape.uiContainer?.appendChild(entitySelector)
 
   if (!grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU)) {
     initIncrementalMenu(grapholscape)
