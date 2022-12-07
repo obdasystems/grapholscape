@@ -15,8 +15,10 @@ export default class EndpointController {
 
     this.endpointSelector.onEndpointChange(newEndpointName => {
       const newEndpoint = this.endpoints.find(e => e.name === newEndpointName)
-      if (newEndpoint)
+      if (newEndpoint) {
         this._onEndpointChange(newEndpoint)
+        this.endpointSelector.selectedEndpointName = newEndpoint.name
+      }
     })
 
     this.endpointSelector.onTogglePanel = this.updateEndpointList.bind(this)
