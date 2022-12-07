@@ -28,11 +28,6 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
         order: 7;
         margin-top:10px;
       }
-
-      .gscape-panel-in-tray {
-        top:10px;
-        bottom: initial;
-      }
     `
   ]
 
@@ -65,7 +60,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
         <span slot="icon">${this.actualRendererState?.icon}</span>
       </gscape-button>
 
-      <div class="gscape-panel gscape-panel-in-tray drop-left hide" id="drop-panel">
+      <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
       ${this.rendererStates.map(rendererState => {

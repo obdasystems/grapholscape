@@ -62,6 +62,11 @@ export default css`
   padding-left: 0;
 }
 
+.gscape-panel-in-tray.hanging {
+  bottom: initial;
+  transform: translate(0, calc(-50% - 17px));
+}
+
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
   scrollbar-width: inherit;
