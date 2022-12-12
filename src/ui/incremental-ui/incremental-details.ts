@@ -5,7 +5,6 @@ import { classIcon, entityIcons, instancesIcon, objectPropertyIcon } from "../as
 import { BaseMixin } from "../common/base-widget-mixin";
 import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 import { entityListItemStyle } from "../ontology-explorer";
-import { GscapeEntitySearch } from "../common/text-search";
 import baseStyle from "../style";
 import { EntityViewData } from "../util/search-entities";
 import incrementalDetailsStyle from "./style";
@@ -58,8 +57,6 @@ export type ViewIncrementalObjectProperty = {
 }
 
 export default class GscapeIncrementalDetails extends BaseMixin(LitElement) implements IIncrementalDetails {
-  private entitySearchComponent: GscapeEntitySearch
-
   private dataProperties?: EntityViewData[]
   private dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
   private objectProperties?: ViewIncrementalObjectProperty[]
@@ -81,29 +78,6 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   onInstanceObjectPropertySelection = (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => { }
 
   private searchTimeout: NodeJS.Timeout
-
-  constructor() {
-    super()
-    this.entitySearchComponent = new GscapeEntitySearch()
-    this.entitySearchComponent[GrapholTypesEnum.CLASS] = undefined
-    this.entitySearchComponent[GrapholTypesEnum.OBJECT_PROPERTY] = undefined
-    this.entitySearchComponent[GrapholTypesEnum.DATA_PROPERTY] = undefined
-
-    this.entitySearchComponent.onSearch = (e) => {
-      const inputElement = e.target as HTMLInputElement
-      clearTimeout(this.searchTimeout)
-
-      // on ESC key press
-      if (e.key === 'Escape') {
-        inputElement.blur()
-        inputElement.value = ''
-      }
-
-      this.searchTimeout = setTimeout(() => {
-        this.onEntitySearch(inputElement.value)
-      }, 500)
-    }
-  }
 
   static properties: PropertyDeclarations = {
     dataProperties: { type: Object, attribute: false },
@@ -138,7 +112,13 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
           </summary>
       
           <div class="summary-body">
-            ${this.entitySearchComponent}
+            <div class="search-box">
+              <select>
+                <option default>Filter</option>
+                ${this.dataProperties?.map(dp => html`<option name=${dp.value.iri.fullIri} value=${dp.displayedName}>${dp.displayedName}</option>`)}
+              </select>
+              <input @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
+            </div>
             ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
             ${this.areInstancesLoading ? getContentSpinner() : null }
           </div>
@@ -221,6 +201,21 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       }    
     </div>
     `
+  }
+
+  private handleSearch(e: KeyboardEvent) {
+    const inputElement = e.target as HTMLInputElement
+    clearTimeout(this.searchTimeout)
+
+    // on ESC key press
+    if (e.key === 'Escape') {
+      inputElement.blur()
+      inputElement.value = ''
+    }
+
+    this.searchTimeout = setTimeout(() => {
+      this.onEntitySearch(inputElement.value)
+    }, 500)
   }
 
   private handleShowInstances(evt: MouseEvent) {
