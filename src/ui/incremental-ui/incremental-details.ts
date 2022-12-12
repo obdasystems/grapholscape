@@ -5,7 +5,7 @@ import { classIcon, entityIcons, instancesIcon, objectPropertyIcon } from "../as
 import { BaseMixin } from "../common/base-widget-mixin";
 import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 import { entityListItemStyle } from "../ontology-explorer";
-import GscapeEntitySearch from "../ontology-explorer/entity-search-component";
+import { GscapeEntitySearch } from "../common/text-search";
 import baseStyle from "../style";
 import { EntityViewData } from "../util/search-entities";
 import incrementalDetailsStyle from "./style";
@@ -89,7 +89,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     this.entitySearchComponent[GrapholTypesEnum.OBJECT_PROPERTY] = undefined
     this.entitySearchComponent[GrapholTypesEnum.DATA_PROPERTY] = undefined
 
-    this.entitySearchComponent.onSearch(e => {
+    this.entitySearchComponent.onSearch = (e) => {
       const inputElement = e.target as HTMLInputElement
       clearTimeout(this.searchTimeout)
 
@@ -102,7 +102,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       this.searchTimeout = setTimeout(() => {
         this.onEntitySearch(inputElement.value)
       }, 500)
-    })
+    }
   }
 
   static properties: PropertyDeclarations = {

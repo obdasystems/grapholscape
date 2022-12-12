@@ -1,11 +1,14 @@
 import Grapholscape from '../../core';
 import { LifecycleEvent } from "../../model";
-import { createEntitiesList, search } from '../util/search-entities';
+import { SearchEvent } from '../common/text-search/entity-text-search';
+import { EntityFilterEvent } from '../common/text-search/entity-type-filters';
+import { createEntitiesList, EntityViewData, search } from '../util/search-entities';
 import GscapeExplorer from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
+  let entities: EntityViewData[] = []
   // let languages = grapholscape.languages
-  let entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
+  entities = createEntitiesList(grapholscape)
 
   // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
   ontologyExplorerComponent.entities = entities
@@ -15,26 +18,17 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     grapholscape.selectElement(entityOccurrence.elementId)
   }
 
-  ontologyExplorerComponent.searchEntityComponent.onSearch(e => {
-    const inputElement = e.target as HTMLInputElement
+  ontologyExplorerComponent.addEventListener('onsearch', (e: SearchEvent) => {
 
-    // on ESC key press
-    if (e.key === 'Escape') {
-      inputElement.blur();
-      inputElement.value = ''
-      ontologyExplorerComponent.entities = entities
-      return
-    }
-
-    if (inputElement.value?.length > 2) {
-      ontologyExplorerComponent.entities = search(inputElement.value, entities)
+    if (e.detail.searchText.length > 2) {
+      ontologyExplorerComponent.entities = search(e.detail.searchText, entities)
     } else {
       ontologyExplorerComponent.entities = entities
     }
   })
 
-  ontologyExplorerComponent.searchEntityComponent.onEntityFilterToggle(() => {
-    entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
+  ontologyExplorerComponent.addEventListener('onentityfilterchange', (e: EntityFilterEvent) => {
+    entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail)
   })
 
   grapholscape.on(LifecycleEvent.RendererChange, () => {

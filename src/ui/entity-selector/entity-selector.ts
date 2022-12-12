@@ -1,7 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { BaseMixin } from '../common/base-widget-mixin'
 import { GscapeButtonStyle } from '../common/button'
-import GscapeEntitySearch from '../ontology-explorer/entity-search-component'
 import baseStyle from '../style'
 import emptySearchBlankState from '../util/empty-search-blank-state'
 import { EntityViewData, search } from '../util/search-entities'
@@ -14,7 +13,6 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) implemen
   title = 'Class Selector'
   private fullEntityList: EntityViewData[] = []
   private _entityList: EntityViewData[] = []
-  searchEntityComponent = new GscapeEntitySearch()
   private onClassSelectionCallback: (iri: string) => void
 
   static get properties() {
@@ -65,29 +63,16 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) implemen
       .list-wrapper {
         padding: 0 8px;
       }
+
+      input {
+        margin: 8px 16px;
+        flex-shrink: 0;
+      }
     `
   ]
 
   constructor() {
     super()
-
-    this.searchEntityComponent.onSearch(e => {
-      const inputElement = e.target as HTMLInputElement
-  
-      // on ESC key press
-      if (e.key === 'Escape') {
-        inputElement.blur()
-        inputElement.value = ''
-        this.entityList = this.fullEntityList
-        return
-      }
-  
-      if (inputElement.value?.length > 2) {
-        this.entityList = search(inputElement.value, this.fullEntityList)
-      } else {
-        this.entityList = this.fullEntityList
-      }
-    })
   }
 
   render() {
@@ -95,7 +80,7 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) implemen
       <div class="gscape-panel ellipsed">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
-          ${this.searchEntityComponent}
+        <input @keyup=${this.handleSearch} type="text" placeholder="Search a class by IRI, labels...">
 
           <div class="list-wrapper">
             ${this.entityList.map(entityItem => {
@@ -126,6 +111,25 @@ export default class GscapeEntitySelector extends BaseMixin(LitElement) implemen
     const iri = (evt.target as HTMLElement).getAttribute('iri')
     if (iri)
       this.onClassSelectionCallback(iri)
+  }
+
+  private handleSearch(e: KeyboardEvent) {
+    const inputElement = e.currentTarget as HTMLInputElement
+    if (!inputElement) return
+
+    // on ESC key press
+    if (e.key === 'Escape') {
+      inputElement.blur()
+      inputElement.value = ''
+      this.entityList = this.fullEntityList
+      return
+    }
+
+    if (inputElement.value?.length > 2) {
+      this.entityList = search(inputElement.value, this.fullEntityList)
+    } else {
+      this.entityList = this.fullEntityList
+    }
   }
 
   onClassSelection(callback: (iri: string) => void) {

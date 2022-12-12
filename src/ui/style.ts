@@ -217,13 +217,12 @@ select:focus, input:focus {
 input {
   line-height: inherit;
   border: solid 1px var(--gscape-color-border-subtle);
-  padding: 4px 12px;
+  padding: 6px 12px;
   border-radius: var(--gscape-border-radius);
   background: var(--gscape-color-bg-inset);
   color: inherit;
   display: inline-block;
   box-sizing: border-box;
-  width: 100%;
 }
 
 .link {

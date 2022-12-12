@@ -4,12 +4,8 @@ import { createEntitiesList } from "../util/search-entities";
 import GscapeEntitySelector from "./entity-selector";
 
 export default function init(entitySelectorComponent: GscapeEntitySelector, grapholscape: Grapholscape) {
-  entitySelectorComponent.searchEntityComponent["object-property"] = undefined
-  entitySelectorComponent.searchEntityComponent["data-property"] = undefined
-  entitySelectorComponent.searchEntityComponent["individual"] = undefined
-
   // Set class entity list
-  let entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent)
+  let entities = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false } )
 
   entitySelectorComponent.entityList = entities
 
@@ -24,7 +20,7 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
   // })
 
   grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
-    entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent)
+    entities = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false } )
     entitySelectorComponent.entityList = entities
   })
 
