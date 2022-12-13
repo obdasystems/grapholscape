@@ -2,17 +2,16 @@ import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
-import { EntityViewData, GscapeEntitySearch } from "../ui";
-import { IBaseMixin } from "../ui/common/base-widget-mixin";
+import { createEntitiesList, EntityViewData } from "../ui";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
 import { GscapeEntityDetails } from "../ui/entity-details";
-import GscapeEntitySelector, { IEntitySelector } from "../ui/entity-selector/entity-selector";
+import GscapeEntitySelector from "../ui/entity-selector/entity-selector";
 import { IncrementalCommands } from "../ui/incremental-ui";
-import GscapeIncrementalDetails, { IIncrementalDetails } from "../ui/incremental-ui/incremental-details";
+import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
+import { GscapeExplorer } from "../ui/ontology-explorer";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
-import { RequestOptions } from "./api/model";
 import { Highlights } from "./api/swagger";
 import DiagramBuilder from "./diagram-builder";
 import EndpointController from "./endpoint-controller";
@@ -635,6 +634,10 @@ export default class IncrementalController {
     }
 
     this.runLayout()
+    const ontologyExplorer = this.grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
+    if (ontologyExplorer) {
+      ontologyExplorer.entities = createEntitiesList(this.grapholscape, ontologyExplorer.searchEntityComponent)
+    }
   }
 
   private runLayout() { this.incrementalRenderer.runLayout() }

@@ -96,19 +96,20 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
           }
 
           ${this.entities.map(entity => {
-            return entity.viewOccurrences && entity.viewOccurrences.size > 0 ?
-            html`
-            <details class="ellipsed entity-list-item" title="${entity.displayedName}">
-              <summary class="actionable">
-                <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-                <span class="entity-name">${entity.displayedName}</span>
-              </summary>
-              <div class="summary-body">
-                ${getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)}
-              </div>
-            </details>
+            return html`
+              <details class="ellipsed entity-list-item" title="${entity.displayedName}">
+                <summary class="actionable">
+                  <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
+                  <span class="entity-name">${entity.displayedName}</span>
+                </summary>
+                <div class="summary-body">
+                  ${entity.viewOccurrences && entity.viewOccurrences.size > 0
+                    ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
+                    : null
+                  }
+                </div>
+              </details>
             `
-            : null
           })}
         </div>
       </div>

@@ -9,7 +9,7 @@ import { DropPanelMixin } from "../drop-panel-mixin";
 import GscapeEntityTypeFilters from "./entity-type-filters";
 
 export default class GscapeEntitySearch extends DropPanelMixin(LitElement) implements IEntityFilters {
-  areAllFiltersDisabled: boolean
+  areAllFiltersDisabled: boolean = true;
   [GrapholTypesEnum.CLASS]?: number | undefined = 0;
   [GrapholTypesEnum.DATA_PROPERTY]?: number | undefined = 0;
   [GrapholTypesEnum.OBJECT_PROPERTY]?: number | undefined = 0;

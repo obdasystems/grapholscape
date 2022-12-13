@@ -46,6 +46,15 @@ export default class GrapholEntity extends AnnotatedElement {
     }
   }
 
+  public removeOccurrence(occurrenceId: string, diagramId: number, representationKind: RendererStatesEnum) {
+    const occurrences = this.occurrences.get(representationKind)
+
+    const occurrenceToRemoveIndex = occurrences?.indexOf({ elementId: occurrenceId, diagramId: diagramId })
+    if (occurrenceToRemoveIndex !== undefined) {
+      occurrences?.splice(occurrenceToRemoveIndex, 1)
+    }
+  }
+
   /**
    * Get all occurrences of the entity in a given diagram
    * @param diagramId the diagram in which the entity must occurr
@@ -146,5 +155,12 @@ export default class GrapholEntity extends AnnotatedElement {
     }
 
     return newDisplayedName.replace(/\r?\n|\r/g, '')
+  }
+
+  public getEntityOriginalNodeId() {
+    const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL)
+    if (grapholRepresentationOccurrences) {
+      return grapholRepresentationOccurrences[0].elementId // used in UI to show the original nodeID in graphol
+    }
   }
 }

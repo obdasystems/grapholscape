@@ -91,6 +91,9 @@ export default class DiagramBuilder {
 
       this.diagramRepresentation?.removeElement(element.id())
     })
+
+    const entity = this.ontology.getEntity(entityIri)
+    entity?.removeOccurrence(entityIri, this.diagram.id, RendererStatesEnum.INCREMENTAL)
   }
 
   addHierarchy(hierarchy: Hierarchy) {
@@ -266,6 +269,7 @@ export default class DiagramBuilder {
     objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
     objectPropertyEdge.sourceId = direct ? this.referenceNodeId : connectedClassIri
     objectPropertyEdge.targetId = direct ? connectedClassIri : this.referenceNodeId
+    objectPropertyEdge.originalId = objectPropertyEntity.getEntityOriginalNodeId()
 
     this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
   }
@@ -320,6 +324,9 @@ export default class DiagramBuilder {
     const classNode = this.getEntityElement(classEntity.iri.fullIri) as GrapholNode
     classNode.id = classEntity.iri.fullIri
     classNode.position = this.referenceNodePosition || classNode.position
+    classNode.originalId = classEntity.getEntityOriginalNodeId()
+
+    classEntity.addOccurrence(classNode.id, this.diagram.id, RendererStatesEnum.INCREMENTAL)
 
     this.diagram.addElement(classNode, classEntity)
   }
@@ -332,6 +339,7 @@ export default class DiagramBuilder {
     if (!dataPropertyNode) return
 
     dataPropertyNode.id = dataPropertyEntity.iri.fullIri
+    dataPropertyNode.originalId = dataPropertyEntity.getEntityOriginalNodeId()
 
     const dataPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${dataPropertyNode.id}`, GrapholTypesEnum.DATA_PROPERTY)
     dataPropertyEdge.sourceId = this.referenceNodeId

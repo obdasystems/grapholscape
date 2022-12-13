@@ -23,13 +23,10 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
 
 
   function addOccurrenceViewData(occurrence: EntityOccurrence) {
-    const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId)
+    const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId) || grapholscape.renderer.diagram
     const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
 
     if (diagram && cyElement && !cyElement.empty()) {
-      if (!Array.from(result.keys()).find(d => d.id === diagram.id)) {
-        result.set({ id: diagram.id, name: diagram.name }, [])
-      }
 
       /**
        * In case of repositioned or transformed elements, show the original id
@@ -39,12 +36,21 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
         originalId: cyElement.data().originalId,
       }
 
-      for (let [diagramViewData, occurrencesIdViewData] of result.entries()) {
-        if (diagramViewData.id === diagram.id) {
-          occurrencesIdViewData.push(occurrenceIdViewData)
-          break
-        }
+      const diagramViewData = { id: diagram.id, name: diagram.name }
+
+      if (!result.get(diagramViewData)) {
+        result.set(diagramViewData, [])
       }
+
+      result.get(diagramViewData)?.push(occurrenceIdViewData)
+      
+
+      // for (let [diagramViewData, occurrencesIdViewData] of result.entries()) {
+      //   if (diagramViewData.id === diagram.id) {
+      //     occurrencesIdViewData.push(occurrenceIdViewData)
+      //     break
+      //   }
+      // }
     }
   }
 }
