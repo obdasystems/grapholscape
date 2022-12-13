@@ -15,6 +15,7 @@ export interface IIncrementalDetails {
   onGetInstances: () => void
   onInstanceSelection: (iri: string) => void
   onEntitySearch: (searchText: string) => void
+  onEntitySearchByDataPropertyValue: (dataPropertyIri: string, searchText: string) => void
   onInstanceObjectPropertySelection: (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => void
 
   // populate the menu
@@ -74,6 +75,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   onInstanceSelection = (iri: string) => { }
   onDataPropertyToggle = (enabled: boolean) => { }
   onEntitySearch = (searchText: string) => { }
+  onEntitySearchByDataPropertyValue = (dataPropertyIri: string, searchText: string) => { }
   onGetRangeInstances = (objectPropertyIri: string, rangeClassIri: string) => { }
   onInstanceObjectPropertySelection = (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => { }
 
@@ -113,9 +115,9 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       
           <div class="summary-body">
             <div class="search-box">
-              <select>
+              <select id="data-property-filter">
                 <option default>Filter</option>
-                ${this.dataProperties?.map(dp => html`<option name=${dp.value.iri.fullIri} value=${dp.displayedName}>${dp.displayedName}</option>`)}
+                ${this.dataProperties?.map(dp => html`<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
               </select>
               <input @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
             </div>
@@ -214,7 +216,14 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     }
 
     this.searchTimeout = setTimeout(() => {
-      this.onEntitySearch(inputElement.value)
+      const dataPropertyFilterElem = this.dataPropertyFilter
+      if (dataPropertyFilterElem && dataPropertyFilterElem.options.selectedIndex !== 0) {
+        const dataPropertyIri = dataPropertyFilterElem.options[dataPropertyFilterElem.options.selectedIndex].value
+        this.onEntitySearchByDataPropertyValue(dataPropertyIri, inputElement.value)
+      } else {
+        this.onEntitySearch(inputElement.value)
+      }
+      
     }, 500)
   }
 
@@ -369,6 +378,11 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     this.canShowObjectPropertiesRanges = false
     this.dataPropertiesValues = undefined
     this.objectPropertiesRanges = undefined
+  }
+
+  private get dataPropertyFilter() { 
+    if (this.shadowRoot)
+      return this.shadowRoot.querySelector(`select#data-property-filter`) as HTMLSelectElement 
   }
 }
 

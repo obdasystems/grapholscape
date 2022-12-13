@@ -155,6 +155,7 @@ export default class IncrementalController {
       this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri)
       this.incrementalDetails.onInstanceSelection = this.addInstance.bind(this)
       this.incrementalDetails.onEntitySearch = (searchText) => this.onGetInstances(classIri, searchText)
+      this.incrementalDetails.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => this.onGetInstancesByDataPropertyValue(classIri, dataPropertyIri, searchText)
 
       if (classIri !== this.lastClassIri) {
         this.incrementalDetails.setInstances([])
@@ -516,6 +517,19 @@ export default class IncrementalController {
       this.onNewInstancesForDetails.bind(this), // onNewResults
       () => this.incrementalDetails.areInstancesLoading = false, // onStop
       searchText
+    )
+  }
+
+  private onGetInstancesByDataPropertyValue(classIri: string, dataPropertyIri: string, dataPropertyValue: string) {
+    this.incrementalDetails.areInstancesLoading = true
+    this.incrementalDetails.setInstances([])
+
+    this.vKGApi!.getInstancesByDataPropertyValue(
+      classIri,
+      dataPropertyIri,
+      dataPropertyValue,
+      this.onNewInstancesForDetails.bind(this), // onNewResults
+      () => this.incrementalDetails.areInstancesLoading = false // onStop
     )
   }
 

@@ -25,6 +25,25 @@ export function getInstances(iri: string, maxResults?: number, searchText?: stri
   `
 }
 
+export function getInstancesByDataPropertyValue(classIri: string, dataPropertyIri: string, dataPropertyValue: string, maxResults?:number) {
+  const select = `?x`
+  const where = [
+    `?x a <${classIri}>.`,
+    `?x <${dataPropertyIri}> ?y.`
+  ]
+  let filter = `FILTER(regex(?y, '${dataPropertyValue}'))`
+  const limit = maxResults ? `LIMIT ${maxResults}` : ``
+
+  return `
+    SELECT DISTINCT ${select}
+    WHERE {
+      ${where.join('\n')}
+      ${filter}
+    }
+    ${limit}
+  `
+}
+
 export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIri: string) {
   return `
     SELECT DISTINCT ?y

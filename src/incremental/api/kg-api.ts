@@ -17,6 +17,7 @@ export type ClassInstance = {
 
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
+  getInstancesByDataPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
@@ -46,6 +47,28 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       queryPoller.onStop = onStop
     }
   }
+
+  async getInstancesByDataPropertyValue(
+    classIri: string,
+    dataPropertyIri: string,
+    dataPropertyValue: string,
+    onNewResults: (classInstances: ClassInstance[]) => void,
+    onStop?: (() => void)) {
+
+      const queryCode = QueriesTemplates.getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, VKGApi.LIMIT)
+      const queryPoller = await this.queryManager.performQuery(queryCode, VKGApi.LIMIT)
+      queryPoller.start()
+      queryPoller.onNewResults = (result => {
+        onNewResults(result.results.map(res => {
+          return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
+        }))
+      })
+
+      if (onStop) {
+        queryPoller.onStop = onStop
+      }
+  }
+
 
   async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, undefined, searchText)
@@ -106,7 +129,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     rangeClassIri: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void),
-    onError?: (()=> void),
+    onError?: (() => void),
   ) {
 
     const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, VKGApi.LIMIT)
