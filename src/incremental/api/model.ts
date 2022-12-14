@@ -19,7 +19,9 @@ export type MastroID = {
 export enum QueryStatusEnum {
   FINISHED = 'FINISHED',
   UNAVAILABLE = 'UNAVAILABLE',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
+  RUNNING = 'RUNNING',
+  READY = 'READY',
 }
 
 export type RequestOptions = {

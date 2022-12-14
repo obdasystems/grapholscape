@@ -328,7 +328,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
 
     const dataPropertyValues = this.dataPropertiesValues.get(dataPropertyIri)
     if (dataPropertyValues) {
-      dataPropertyValues.values = dataPropertyValues?.values.concat(values)
+      dataPropertyValues.values = values
       this.requestUpdate()
     }
   }
@@ -360,7 +360,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     const objectPropertyRanges = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
 
     if (objectPropertyRanges) {
-      objectPropertyRanges.values.push(...classInstances)
+      objectPropertyRanges.values = classInstances
       this.requestUpdate()
     }
   }

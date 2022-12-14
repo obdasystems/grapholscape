@@ -16,7 +16,7 @@ export enum QueryPollerStatus {
   IDLE = 3,
 }
 
-abstract class QueryPoller {
+export abstract class QueryPoller {
   protected interval: NodeJS.Timer
   protected timeout: NodeJS.Timeout
   protected lastRequestFulfilled: boolean = true
@@ -41,10 +41,8 @@ abstract class QueryPoller {
     fetch(this.request).then((response: Response) => {
       response.json().then((result: QueryResult) => {
         this.lastRequestFulfilled = true
-        if (JSON.stringify(this._result) !== JSON.stringify(result)) {
-          this._result = result
-          this.onNewResults(result)
-        }
+        this._result = result
+        this.onNewResults(result)
 
         if (this.stopCondition()) {
           this.stop()

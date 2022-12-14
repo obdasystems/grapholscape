@@ -1,8 +1,9 @@
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "../api/model"
-import { QueryCountStatePoller, QueryResultsPoller } from "./query-poller"
+import { QueryCountStatePoller, QueryPoller, QueryResultsPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
+  private _runningQueryPollerByExecutionId: Map<string, QueryPoller> = new Map()
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
     this.requestOptions.headers['content-type'] = 'application/json'
@@ -34,7 +35,9 @@ export default class QueryManager {
    */
   async performQuery(queryCode: string, pageSize: number, pageNumber = 1): Promise<QueryResultsPoller> {
     const executionID = await this.startQuery(queryCode)
-    return new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID)
+    const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID)
+    this._runningQueryPollerByExecutionId.set(executionID, queryResultsPoller)
+    return queryResultsPoller
   }
 
   /**
@@ -80,6 +83,19 @@ export default class QueryManager {
     })
 
     return await (await fetch(request)).json()
+  }
+
+  stopRunningQueries() {
+    this._runningQueryPollerByExecutionId.forEach(async (_ ,executionId) => await this.stopQuery(executionId))
+  }
+
+  stopQuery(executionId: string) {
+    this._runningQueryPollerByExecutionId.get(executionId)?.stop() // stop polling
+    this._runningQueryPollerByExecutionId.delete(executionId)
+    fetch(this.getQueryStopPath(executionId), {
+      method: 'put',
+      headers: this.requestOptions.headers,
+    })
   }
 
   private async getPrefixes() {
@@ -134,6 +150,10 @@ export default class QueryManager {
 
   private get queryStartPath() {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/start`)
+  }
+
+  private getQueryStopPath(executionId: string) {
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/stop`)
   }
 
   private getQueryResultPath(executionId: string) {

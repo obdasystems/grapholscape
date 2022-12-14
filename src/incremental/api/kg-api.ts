@@ -23,6 +23,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
   getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
+  stopAllQueries: () => void,
 }
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
@@ -124,7 +125,6 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     pollPage(1)
   }
 
-
   async getInstanceObjectPropertyRanges(instanceIri: string, objectPropertyIri: string,
     rangeClassIri: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
@@ -166,6 +166,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     pollPage(1)
+  }
+
+  stopAllQueries() {
+    this.queryManager.stopRunningQueries()
   }
 
   setEndpoint(endpoint: MastroEndpoint) {
