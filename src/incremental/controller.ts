@@ -515,7 +515,7 @@ export default class IncrementalController {
     this.vKGApi!.getInstances(
       classIri,
       this.onNewInstancesForDetails.bind(this), // onNewResults
-      () => this.onStopInstanceLoading.bind(this), // onStop
+      () => this.onStopInstanceLoading(classIri), // onStop
       searchText
     )
   }
@@ -529,7 +529,7 @@ export default class IncrementalController {
       dataPropertyIri,
       dataPropertyValue,
       this.onNewInstancesForDetails.bind(this), // onNewResults
-      () => this.onStopInstanceLoading.bind(this) // onStop
+      () => this.onStopInstanceLoading(classIri) // onStop
     )
   }
 
