@@ -8,7 +8,7 @@ import GscapeExplorer from "./ontology-explorer";
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
   let entities: EntityViewData[] = []
   // let languages = grapholscape.languages
-  entities = createEntitiesList(grapholscape)
+  ontologyExplorerComponent.entities = createEntitiesList(grapholscape)
 
   // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
   ontologyExplorerComponent.entities = entities
@@ -18,17 +18,8 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     grapholscape.selectElement(entityOccurrence.elementId)
   }
 
-  ontologyExplorerComponent.addEventListener('onsearch', (e: SearchEvent) => {
-
-    if (e.detail.searchText.length > 2) {
-      ontologyExplorerComponent.entities = search(e.detail.searchText, entities)
-    } else {
-      ontologyExplorerComponent.entities = entities
-    }
-  })
-
   ontologyExplorerComponent.addEventListener('onentityfilterchange', (e: EntityFilterEvent) => {
-    entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail)
+    ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail)
   })
 
   grapholscape.on(LifecycleEvent.RendererChange, () => {
