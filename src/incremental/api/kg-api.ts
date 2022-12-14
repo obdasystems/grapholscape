@@ -1,7 +1,7 @@
-import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
-import { Branch, Highlights, OntologyGraphApi } from './swagger'
+import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
+import { Highlights } from './swagger/models/Highlights'
 
 export type ClassInstance = {
   iri: string,
