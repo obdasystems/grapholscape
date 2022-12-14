@@ -40,6 +40,8 @@ export interface IIncrementalDetails {
   /** append new instances to the existing ones */
   addInstances: (instances: EntityViewData[]) => void
 
+  onLimitChange: (limitValue: number) => void
+
   reset: () => void
 
   canShowInstances: boolean
@@ -63,6 +65,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   private objectProperties?: ViewIncrementalObjectProperty[]
   private objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean } >>
   private instances?: EntityViewData[]
+  private limit: number = 10
   canShowInstances = false
   canShowDataPropertiesValues = false
   canShowObjectPropertiesRanges = false
@@ -78,6 +81,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   onEntitySearchByDataPropertyValue = (dataPropertyIri: string, searchText: string) => { }
   onGetRangeInstances = (objectPropertyIri: string, rangeClassIri: string) => { }
   onInstanceObjectPropertySelection = (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => { }
+  onLimitChange = (limitValue: number) => { }
 
   private searchTimeout: NodeJS.Timeout
 
@@ -90,6 +94,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     isInstanceCounterLoading: { type: Boolean, attribute: false },
     areInstancesLoading: { type: Boolean, attribute: false },
     instanceCount: { type: Number, attribute: false },
+    limit: { type: Number, attribute: false },
     // dataPropertiesValues: {type: Object, attribute: false },
     // objectPropertiesRanges: {type: Object, attribute: false },
   }
@@ -119,8 +124,14 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
                 <option default>Filter</option>
                 ${this.dataProperties?.map(dp => html`<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
               </select>
-              <input @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
+              <input id="instances-search" @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
             </div>
+
+            <div class="limit-box">
+              <label for="instances-limit" class="bold-text">Limit</label>
+              <input id="instances-limit" type="number" value="${this.limit}" min="1" max="100" @change=${this.handleLimitChange}/>
+            </div>
+
             ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
             ${this.areInstancesLoading ? getContentSpinner() : null }
           </div>
@@ -146,6 +157,16 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
             <div class="section">
               <div class="section-header bold-text">Object Properties</div>
               <div class="section-body" style="padding: 0">
+                ${this.canShowDataPropertiesValues
+                  ? html`
+                    <div class="limit-box">
+                      <label for="ranges-limit" class="bold-text">Limit Instances</label>
+                      <input id="ranges-limit" type="number" value="${this.limit}" min="1" max="100" @change=${this.handleLimitChange}/>
+                    </div>
+                  `
+                  : null
+                }
+
                 ${this.objectProperties?.map((op) => {
                   return html`
                     <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
@@ -158,7 +179,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
                         }
                       </summary>
                   
-                      <div class="summary-body" ?isDirect=${op.direct}>                        
+                      <div class="summary-body" ?isDirect=${op.direct}>
                         ${op.connectedClasses.map(classEntity => {
                           if (this.canShowObjectPropertiesRanges) {
                             const rangeClassesInstances = this.objectPropertiesRanges
@@ -203,6 +224,46 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       }    
     </div>
     `
+  }
+
+  private handleLimitChange(e) {
+    const input = e.currentTarget as HTMLInputElement
+
+    if (input.reportValidity()) {
+      this.limit = input.valueAsNumber
+      this.onLimitChange(input.valueAsNumber)
+
+      if (input.id === 'instances-limit') {
+        const textSearch = this.shadowRoot?.querySelector('input#instances-search') as HTMLInputElement
+
+        if (textSearch?.value) {
+
+          if (this.dataPropertyFilter && this.dataPropertyFilter.options.selectedIndex > 0) {
+            this.onEntitySearchByDataPropertyValue(
+              this.dataPropertyFilter.options[this.dataPropertyFilter.options.selectedIndex].value,
+              textSearch.value
+            )
+          } else {
+            this.onEntitySearch(textSearch.value)
+          }
+
+          
+        } else {
+          this.onGetInstances()
+        }
+      } else if (input.id === 'ranges-limit') {
+        const objectPropertiesDetailsOpen = this.shadowRoot?.querySelectorAll('details[rangeClassIri][open]')
+        objectPropertiesDetailsOpen?.forEach(element => {
+          const objectPropertyIri = element.getAttribute('objectPropertyIri')
+          const rangeClassIri = element.getAttribute('rangeClassIri')
+          if (objectPropertyIri && rangeClassIri)
+          this.onGetRangeInstances(
+            objectPropertyIri,
+            rangeClassIri
+          )
+        })
+      }
+    }
   }
 
   private handleSearch(e: KeyboardEvent) {

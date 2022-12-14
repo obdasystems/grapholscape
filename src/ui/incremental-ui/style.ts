@@ -65,4 +65,17 @@ export default css`
     flex-grow: 2;
     flex-shrink: 0;
   }
+
+  .limit-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 0 8px;
+  }
+
+  .limit-box > input {
+    padding: 4px 8px;
+    max-width: 80px;
+  }
 `
