@@ -540,10 +540,11 @@ export default class IncrementalController {
     )
   }
 
-  private onGetRangeInstances(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
+  private async onGetRangeInstances(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
     this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, true)
+    const isDirect = (await this.highlights).objectProperties?.find(op => op.objectPropertyIRI === objectPropertyIri)?.direct || false
 
-    this.vKGApi?.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri,
+    this.vKGApi?.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri,
       (instances) => this.onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri), // onNewResults
       () => this.onStopObjectPropertyRangeValueQuery(instanceIri, objectPropertyIri, rangeClassIri) // onStop
     )

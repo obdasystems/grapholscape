@@ -53,10 +53,10 @@ export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIr
   `
 }
 
-export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri: string, maxResults?: number, searchText?: string) {
+export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri: string, isDirect: boolean, maxResults?: number, searchText?: string) {
   const select = LABEL_AVAILABLE ? `?y ?l` : `?y`
-  const where = `<${instanceIri}> <${objectPropertyIri}> ?y.
-    ?y a <${rangeTypeClassIri}>.`
+  let where = isDirect ? `<${instanceIri}> <${objectPropertyIri}> ?y.` : `?y <${objectPropertyIri}> <${instanceIri}>.`
+    where += `?y a <${rangeTypeClassIri}>.`
 
   const optional = LABEL_AVAILABLE ? `?y rdf:label ?l` : ``
   let filter: string = ``

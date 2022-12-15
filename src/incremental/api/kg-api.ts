@@ -21,7 +21,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
+  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   stopAllQueries: () => void,
 
@@ -128,13 +128,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   }
 
   async getInstanceObjectPropertyRanges(instanceIri: string, objectPropertyIri: string,
+    isDirect: boolean,
     rangeClassIri: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void),
     onError?: (() => void),
   ) {
 
-    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, this.limit)
+    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, this.limit)
 
     const pollPage = async (pageNumber: number) => {
       const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
