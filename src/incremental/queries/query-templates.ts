@@ -70,7 +70,7 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
   const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `
-    SELECT ${select}
+    SELECT DISTINCT ${select}
     WHERE {
       ${where}
       ${optional}
@@ -78,29 +78,4 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
     }
     ${limit}
   `
-
-  return !LABEL_AVAILABLE
-    ? `
-      SELECT DISTINCT ?y
-      WHERE 
-      { 
-        <${instanceIri}> <${objectPropertyIri}> ?y. 
-        ?y a <${rangeTypeClassIri}>.
-        FILTER(regex(?y, '${searchText}'))
-      }
-      LIMIT ${limit}
-    `
-    : `
-      SELECT DISTINCT ?y ?l
-      WHERE 
-      { 
-        <${instanceIri}> <${objectPropertyIri}> ?y. 
-        ?y a <${rangeTypeClassIri}>.
-        OPTIONAL {
-          ?y rdf:label ?l
-        }
-        FILTER(regex(?y, '${searchText}') || (regex(?l, '${searchText}') && !isBlank(?l)))
-      }
-      LIMIT ${limit}
-    `
 }
