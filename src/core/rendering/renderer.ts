@@ -10,7 +10,7 @@ import GrapholscapeTheme from "../../model/themes/theme"
 export default class Renderer {
   private _container: HTMLElement
   cy?: cytoscape.Core
-  private _renderState: RenderState
+  private _renderState?: RenderState
   filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]))
   diagram?: Diagram
   private _theme: GrapholscapeTheme
@@ -27,7 +27,7 @@ export default class Renderer {
     this._lifecycle = lc
   }
 
-  set renderState(rs: RenderState) {
+  set renderState(rs: RenderState | undefined) {
     if (this.diagram) {
       /**
        * Stop rendering actual diagram before
@@ -37,11 +37,14 @@ export default class Renderer {
     }
 
     this._renderState = rs
-    rs.renderer = this
 
-    if (this.diagram) {
-      rs.render()
-      this.performAllFilters()
+    if (rs) {
+      rs.renderer = this
+
+      if (this.diagram) {
+        rs.render()
+        this.performAllFilters()
+      }
     }
   }
 
@@ -281,7 +284,7 @@ export default class Renderer {
   }
 
   applyTheme() {
-    if (this._theme) {
+    if (this._theme && this.renderState) {
       this.cy?.style(this.renderState.getGraphStyle(this._theme))
       if (this.theme.colours["bg-graph"])
         this.container.style.backgroundColor = this.theme.colours["bg-graph"]
@@ -319,7 +322,8 @@ export default class Renderer {
   }
 
   get grapholElements() {
-    return this.diagram?.representations.get(this._renderState?.id)?.grapholElements
+    if (this.renderState)
+      return this.diagram?.representations.get(this.renderState.id)?.grapholElements
   }
 
   get selectedElement() {

@@ -14,7 +14,7 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
     addOccurrenceViewData(occurrence)
   })
 
-  if (grapholscape.renderState !== RendererStatesEnum.GRAPHOL) {
+  if (grapholscape.renderState && grapholscape.renderState !== RendererStatesEnum.GRAPHOL) {
     grapholEntity.occurrences.get(grapholscape.renderState)?.forEach((occurrence) => {
       addOccurrenceViewData(occurrence)
     })
@@ -23,6 +23,9 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
 
 
   function addOccurrenceViewData(occurrence: EntityOccurrence) {
+    if (!grapholscape.renderState)
+      return
+
     const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId) || grapholscape.renderer.diagram
     const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
 

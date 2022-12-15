@@ -10,7 +10,8 @@ import GscapeLayoutSettings from "./layout-settings";
  */
 export default function (layoutSettingsComponent: GscapeLayoutSettings, grapholscape: Grapholscape) {
 
-  updateToggles(grapholscape.renderState)
+  if (grapholscape.renderState)
+    updateToggles(grapholscape.renderState)
 
   layoutSettingsComponent.onLayoutRunToggle = () => {
     if (grapholscape.renderState !== RendererStatesEnum.FLOATY && 

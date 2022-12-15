@@ -57,7 +57,7 @@ export default class Grapholscape {
       return
     }
 
-    if (!diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
+    if (this.renderState && !diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
       setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
     
     if (viewportState)
@@ -104,7 +104,7 @@ export default class Grapholscape {
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
 
-    this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState)
+    this.lifecycle.trigger(LifecycleEvent.RendererChange, newRenderState.id)
   }
 
   /**
@@ -189,7 +189,7 @@ export default class Grapholscape {
 
   /** The actual renderer state */
   get renderState() {
-    return this.renderer.renderState.id
+    return this.renderer.renderState?.id
   }
 
   /** The actual selected Entity */

@@ -1,4 +1,4 @@
-import { Diagram, RendererStatesEnum } from "../model"
+import { RendererStatesEnum } from "../model"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
 import { EntityOccurrence } from "../model/graphol-elems/entity"
 import { isGrapholNode } from "../model/graphol-elems/node"
@@ -79,7 +79,7 @@ export default class EntityNavigator {
 
     const diagram = this._grapholscape.ontology.getDiagram(diagramId)
 
-    if (!diagram) return
+    if (!diagram || !this._grapholscape.renderState) return
 
     const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
 
@@ -100,10 +100,13 @@ export default class EntityNavigator {
   }
 
   updateEntitiesOccurrences() {
-    if (this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
+    if (this._grapholscape.renderState && this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
       return
 
     this._grapholscape.ontology.diagrams.forEach(diagram => {
+      if (!this._grapholscape.renderState)
+        return
+
       // const diagram = this._grapholscape.renderer.diagram
       const replicatedElements = diagram.representations.get(this._grapholscape.renderState)?.cy?.$("[originalId]")
 

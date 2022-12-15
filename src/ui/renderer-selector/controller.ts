@@ -82,10 +82,11 @@ export function rendererStateSelectionCallback(
       grapholscape.setRenderer(incrementalRendererState)
       isRenderValid = true
     } else {
-      (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin).show();
-      (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin).hide()
+      (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin)?.show();
+      (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin)?.hide()
       const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
-      entityDetailsWidget.incrementalSection = undefined
+      if (entityDetailsWidget)
+        entityDetailsWidget.incrementalSection = undefined
     }
 
     if (isRenderValid)
