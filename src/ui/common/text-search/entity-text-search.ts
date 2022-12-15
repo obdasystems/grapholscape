@@ -6,7 +6,6 @@ import getIconSlot from "../../util/get-icon-slot";
 import { IEntityFilters } from "../../util/search-entities";
 import { GscapeButtonStyle } from "../button";
 import { DropPanelMixin } from "../drop-panel-mixin";
-import GscapeEntityTypeFilters from "./entity-type-filters";
 
 export default class GscapeEntitySearch extends DropPanelMixin(LitElement) implements IEntityFilters {
   areAllFiltersDisabled: boolean = true;
@@ -14,9 +13,6 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   [GrapholTypesEnum.DATA_PROPERTY]?: number | undefined = 0;
   [GrapholTypesEnum.OBJECT_PROPERTY]?: number | undefined = 0;
   [GrapholTypesEnum.INDIVIDUAL]?: number | undefined = 0;
-
-  public onSearch: (e: KeyboardEvent) => void = (e) => console.log(e)
-  public onEntityFilterToggle: () => void = ( ) => console.log('filter-toggled')
 
   static properties: PropertyDeclarations = {
     [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
