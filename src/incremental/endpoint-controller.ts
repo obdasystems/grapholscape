@@ -17,7 +17,7 @@ export default class EndpointController {
       const newEndpoint = this.endpoints.find(e => e.name === newEndpointName)
       if (newEndpoint) {
         this._onEndpointChange(newEndpoint)
-        this.endpointSelector.selectedEndpointName = newEndpoint.name
+        //this.endpointSelector.selectedEndpointName = newEndpoint.name
       }
     })
 
@@ -27,14 +27,18 @@ export default class EndpointController {
   async updateEndpointList() {
     this.endpoints = await this.endpointApi.getRunningEndpoints()
     this.endpointSelector.endpoints = this.endpoints.map(e => { return { name: e.name } })
-    if (this.endpoints.length >= 1) {
+    if (this.endpoints.length >= 1 && !this.endpointSelector.selectedEndpointName) {
       this.endpointSelector.selectedEndpointName = this.endpointSelector.endpoints[0].name
-      this.selectedEndpoint ? this._onEndpointChange(this.selectedEndpoint) : null
+      //this.selectedEndpoint ? this._onEndpointChange(this.selectedEndpoint) : null
     }
   }
 
   get selectedEndpoint() {
     return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
+  }
+  set selectedEndpoint(newEndpoint: MastroEndpoint | undefined) {
+    if (newEndpoint)
+      this.endpointSelector.selectedEndpointName = newEndpoint.name
   }
 
   onEndpointChange(callback: (newEndpoint: MastroEndpoint) => void) {

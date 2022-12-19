@@ -17,6 +17,7 @@ import EndpointController from "./endpoint-controller";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import HighlightsManager from "./highlights-manager";
 import { showParentClass } from "../ui/incremental-ui/commands";
+import GscapeConfirmDialog from "../ui/incremental-ui/confirm-dialog";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -49,16 +50,24 @@ export default class IncrementalController {
       this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions)
       this.endpointController.updateEndpointList()
       this.endpointController.onEndpointChange(newEndpoint => {
-        if (!this.vKGApi) {
-          if (this.grapholscape.mastroRequestOptions)
-            this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, newEndpoint)
-          if (this.highlightsManager) {
-            this.highlightsManager.vkgApi = this.vKGApi!
+        const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the actual endpoint, your exploration will be reset.`)
+        this.grapholscape.uiContainer?.appendChild(confirmDialog)
+        confirmDialog.show()
+        confirmDialog.onConfirm = () => {
+          if (!this.vKGApi) {
+            if (this.grapholscape.mastroRequestOptions)
+              this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, newEndpoint)
+            if (this.highlightsManager) {
+              this.highlightsManager.vkgApi = this.vKGApi!
+            } else {
+              this.highlightsManager = new HighlightsManager(this.vKGApi!)
+            }
           } else {
-            this.highlightsManager = new HighlightsManager(this.vKGApi!)
+            this.vKGApi?.setEndpoint(newEndpoint)
           }
-        } else {
-          this.vKGApi?.setEndpoint(newEndpoint)
+          
+          this.endpointController!.selectedEndpoint = newEndpoint
+          this.reset()
         }
       })
     }
