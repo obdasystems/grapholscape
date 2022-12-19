@@ -79,7 +79,7 @@ export default class IncrementalController {
       this.postDiagramEdit()
     })
 
-    this.incrementalDetails.onLimitChange = this.changeInstancesLimit.bind(this)
+    this.endpointController?.onLimitChange(this.changeInstancesLimit.bind(this))
 
     setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology)
   }
@@ -532,8 +532,16 @@ export default class IncrementalController {
   }
 
   changeInstancesLimit(limitValue: number) {
-    if (this.isReasonerEnabled)
+    if (this.isReasonerEnabled) {
       this.vKGApi!.limit = limitValue
+      if (this.incrementalDetails.canShowInstances && this.lastClassIri) {
+        this.buildDetailsForClass(this.lastClassIri)
+      }
+
+      if (this.incrementalDetails.canShowDataPropertiesValues && this.lastInstanceIri) {
+        this.buildDetailsForInstance(this.lastInstanceIri)
+      }
+    }
   }
 
   private onGetInstances(classIri: string, searchText?: string) {

@@ -248,4 +248,12 @@ input {
   background: var(--gscape-color-accent-subtle);
   margin: 1px 2px;
 }
+
+.area {
+  background: var(--gscape-color-bg-inset);
+  border-radius: calc(var(--gscape-border-radius) - 2px);
+  padding: 4px 4px 4px 6px;
+  border: solid 1px var(--gscape-color-border-subtle);
+  margin-bottom: 18px;
+}
 `

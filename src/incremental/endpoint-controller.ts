@@ -1,11 +1,11 @@
-import GscapeEndpointSelector from "../ui/incremental-ui/endpoint-selector";
+import GscapeVKGPreferences from "../ui/incremental-ui/vkg-global-preferences";
 import EndpointApi from "./api/endpoint-api";
 import { MastroEndpoint, RequestOptions } from "./api/model";
 
 export default class EndpointController {
 
   private endpointApi: EndpointApi
-  private endpointSelector: GscapeEndpointSelector = new GscapeEndpointSelector()
+  private endpointSelector: GscapeVKGPreferences = new GscapeVKGPreferences()
   private endpoints: MastroEndpoint[]
   private _onEndpointChange: (newEndpoint: MastroEndpoint) => void = (newEndpoint) => { }
 
@@ -27,18 +27,22 @@ export default class EndpointController {
   async updateEndpointList() {
     this.endpoints = await this.endpointApi.getRunningEndpoints()
     this.endpointSelector.endpoints = this.endpoints.map(e => { return { name: e.name } })
-    if (this.endpoints.length === 1) {
+    if (this.endpoints.length >= 1) {
       this.endpointSelector.selectedEndpointName = this.endpointSelector.endpoints[0].name
       this.selectedEndpoint ? this._onEndpointChange(this.selectedEndpoint) : null
     }
   }
 
-  get selectedEndpoint () {
+  get selectedEndpoint() {
     return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
   }
 
   onEndpointChange(callback: (newEndpoint: MastroEndpoint) => void) {
     this._onEndpointChange = callback
+  }
+
+  onLimitChange(callback: (newLimit: number) => void) {
+    this.endpointSelector.onLimitChange(callback)
   }
 
   hideView() {
@@ -50,4 +54,4 @@ export default class EndpointController {
   }
 }
 
-customElements.define('gscape-endpoint-selector', GscapeEndpointSelector)
+customElements.define('gscape-endpoint-selector', GscapeVKGPreferences)

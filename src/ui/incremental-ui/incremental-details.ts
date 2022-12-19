@@ -127,11 +127,6 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
               <input id="instances-search" @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
             </div>
 
-            <div class="limit-box">
-              <label for="instances-limit" class="bold-text">Limit</label>
-              <input id="instances-limit" type="number" value="${this.limit}" min="1" max="100" @change=${this.handleLimitChange}/>
-            </div>
-
             ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
             ${this.areInstancesLoading ? getContentSpinner() : null }
           </div>
@@ -157,16 +152,6 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
             <div class="section">
               <div class="section-header bold-text">Object Properties</div>
               <div class="section-body" style="padding: 0">
-                ${this.canShowDataPropertiesValues
-                  ? html`
-                    <div class="limit-box">
-                      <label for="ranges-limit" class="bold-text">Limit Instances</label>
-                      <input id="ranges-limit" type="number" value="${this.limit}" min="1" max="100" @change=${this.handleLimitChange}/>
-                    </div>
-                  `
-                  : null
-                }
-
                 ${this.objectProperties?.map((op) => {
                   return html`
                     <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
@@ -224,46 +209,6 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       }    
     </div>
     `
-  }
-
-  private handleLimitChange(e) {
-    const input = e.currentTarget as HTMLInputElement
-
-    if (input.reportValidity()) {
-      this.limit = input.valueAsNumber
-      this.onLimitChange(input.valueAsNumber)
-
-      if (input.id === 'instances-limit') {
-        const textSearch = this.shadowRoot?.querySelector('input#instances-search') as HTMLInputElement
-
-        if (textSearch?.value) {
-
-          if (this.dataPropertyFilter && this.dataPropertyFilter.options.selectedIndex > 0) {
-            this.onEntitySearchByDataPropertyValue(
-              this.dataPropertyFilter.options[this.dataPropertyFilter.options.selectedIndex].value,
-              textSearch.value
-            )
-          } else {
-            this.onEntitySearch(textSearch.value)
-          }
-
-          
-        } else {
-          this.onGetInstances()
-        }
-      } else if (input.id === 'ranges-limit') {
-        const objectPropertiesDetailsOpen = this.shadowRoot?.querySelectorAll('details[rangeClassIri][open]')
-        objectPropertiesDetailsOpen?.forEach(element => {
-          const objectPropertyIri = element.getAttribute('objectPropertyIri')
-          const rangeClassIri = element.getAttribute('rangeClassIri')
-          if (objectPropertyIri && rangeClassIri)
-          this.onGetRangeInstances(
-            objectPropertyIri,
-            rangeClassIri
-          )
-        })
-      }
-    }
   }
 
   private handleSearch(e: KeyboardEvent) {

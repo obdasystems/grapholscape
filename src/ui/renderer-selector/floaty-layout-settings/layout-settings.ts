@@ -1,5 +1,5 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
-import { tune } from '../../assets/icons'
+import { settings_play } from '../../assets/icons'
 import { BaseMixin } from '../../common/base-widget-mixin'
 import '../../common/button'
 import { DropPanelMixin } from '../../common/drop-panel-mixin'
@@ -46,7 +46,7 @@ export default class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(LitEl
   render() {
     return html`
       <gscape-button type="subtle" @click="${this.togglePanel}">
-        <span slot="icon">${tune}</span>
+        <span slot="icon">${settings_play}</span>
       </gscape-button>
 
       <div id="drop-panel" class="hide gscape-panel gscape-panel-in-tray hanging">
