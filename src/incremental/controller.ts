@@ -407,6 +407,7 @@ export default class IncrementalController {
       }
 
       this.postDiagramEdit()
+      this.grapholscape.centerOnElement(instanceIriString)
     }
   }
 
@@ -446,6 +447,7 @@ export default class IncrementalController {
       }
 
       this.postDiagramEdit()
+      this.grapholscape.centerOnElement(instanceIriString)
     }
   }
 
@@ -481,6 +483,7 @@ export default class IncrementalController {
     this.incrementalRenderer.freezeGraph()
     this.diagramBuilder.addEntity(objectPropertyIri, classIri, direct)
     this.postDiagramEdit()
+    this.grapholscape.centerOnElement(classIri)
   }
 
   /**
