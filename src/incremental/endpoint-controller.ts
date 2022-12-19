@@ -8,6 +8,7 @@ export default class EndpointController {
   private endpointSelector: GscapeVKGPreferences = new GscapeVKGPreferences()
   private endpoints: MastroEndpoint[]
   private _onEndpointChange: (newEndpoint: MastroEndpoint) => void = (newEndpoint) => { }
+  private _onAutoEndpointSelection: (newEndpoint: MastroEndpoint) => void = (newEndpoint) => { }
 
   constructor(container: Element, requestOptions: RequestOptions) {
     this.endpointApi = new EndpointApi(requestOptions)
@@ -29,7 +30,7 @@ export default class EndpointController {
     this.endpointSelector.endpoints = this.endpoints.map(e => { return { name: e.name } })
     if (this.endpoints.length >= 1 && !this.endpointSelector.selectedEndpointName) {
       this.endpointSelector.selectedEndpointName = this.endpointSelector.endpoints[0].name
-      //this.selectedEndpoint ? this._onEndpointChange(this.selectedEndpoint) : null
+      this.selectedEndpoint ? this._onAutoEndpointSelection(this.selectedEndpoint) : null
     }
   }
 
@@ -43,6 +44,10 @@ export default class EndpointController {
 
   onEndpointChange(callback: (newEndpoint: MastroEndpoint) => void) {
     this._onEndpointChange = callback
+  }
+
+  onAutoEndpointSelection(callback: (newEndpoint: MastroEndpoint) => void) {
+    this._onAutoEndpointSelection = callback
   }
 
   onLimitChange(callback: (newLimit: number) => void) {
