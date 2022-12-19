@@ -60,10 +60,10 @@ export type ViewIncrementalObjectProperty = {
 }
 
 export default class GscapeIncrementalDetails extends BaseMixin(LitElement) implements IIncrementalDetails {
-  private dataProperties?: EntityViewData[]
-  private dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
-  private objectProperties?: ViewIncrementalObjectProperty[]
-  private objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean } >>
+  dataProperties?: EntityViewData[]
+  dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
+  objectProperties?: ViewIncrementalObjectProperty[]
+  objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean } >>
   private instances?: EntityViewData[]
   private limit: number = 10
   canShowInstances = false

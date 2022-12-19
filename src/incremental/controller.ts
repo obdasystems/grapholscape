@@ -12,10 +12,10 @@ import { GscapeExplorer } from "../ui/ontology-explorer";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
-import { Highlights } from "./api/swagger/models/Highlights";
 import DiagramBuilder from "./diagram-builder";
 import EndpointController from "./endpoint-controller";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
+import HighlightsManager from "./highlights-manager";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -25,7 +25,6 @@ export default class IncrementalController {
   private incrementalDetails: GscapeIncrementalDetails
   private entitySelector: GscapeEntitySelector
 
-  private highlights: Promise<Highlights> = new Promise(() => { })
   private lastClassIri?: string
   private lastInstanceIri?: string
 
@@ -35,6 +34,7 @@ export default class IncrementalController {
   private commandsWidget = new GscapeContextMenu()
 
   private endpointController?: EndpointController
+  private highlightsManager?: HighlightsManager
 
   constructor(
     private grapholscape: Grapholscape
@@ -43,7 +43,7 @@ export default class IncrementalController {
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
   }
 
-  initEndpointController() {
+  private initEndpointController() {
     if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
       this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions)
       this.endpointController.updateEndpointList()
@@ -51,6 +51,11 @@ export default class IncrementalController {
         if (!this.vKGApi) {
           if (this.grapholscape.mastroRequestOptions)
             this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, newEndpoint)
+          if (this.highlightsManager) {
+            this.highlightsManager.vkgApi = this.vKGApi!
+          } else {
+            this.highlightsManager = new HighlightsManager(this.vKGApi!)
+          }
         } else {
           this.vKGApi?.setEndpoint(newEndpoint)
         }
@@ -93,13 +98,29 @@ export default class IncrementalController {
 
     const instanceEntity = this.diagram.classInstances?.get(instanceIri)
     if (instanceEntity) {
-      this.addDataPropertiesDetails(instanceEntity.parentClassIri.fullIri)
-      this.addObjectPropertiesDetails(instanceEntity.parentClassIri.fullIri)
+      let shouldUpdate = false
 
-      if (instanceIri !== this.lastInstanceIri) {
-        // init data properties values
+      instanceEntity.parentClassIris.forEach(parentClassIri => {
+        this.addDataPropertiesDetails(parentClassIri.fullIri)
+        this.addObjectPropertiesDetails(parentClassIri.fullIri)
+      })
+
+      // Check if the last classes used for highlights matches with parentClasses of selected instance
+      // If it matches, no need to update highlights and values
+      for (const parentClassIri of instanceEntity.parentClassIris) {
+        if (!this.highlightsManager?.lastClassIris.includes(parentClassIri.fullIri) &&
+          this.highlightsManager?.lastClassIris.length !== instanceEntity.parentClassIris.size
+        ) {
+          shouldUpdate = true
+          break
+        }
+      }
+
+      if (shouldUpdate || this.lastInstanceIri !== instanceIri) {
+
+        // init data properties values and recalculate them all
         const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
-        const dataProperties = (await this.highlights).dataProperties
+        const dataProperties = await this.highlightsManager?.dataProperties()
         dataProperties?.forEach(dpIri => {
           dataPropertiesValues.set(dpIri, { values: [], loading: true })
         })
@@ -115,7 +136,7 @@ export default class IncrementalController {
         const objectPropertiesRanges = new Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>()
         let rangeMap: Map<string, { values: EntityViewData[], loading?: boolean }>
 
-        const objectProperties = (await (this.highlights)).objectProperties
+        const objectProperties = await this.highlightsManager?.objectProperties()
 
         // init ranges map with empty arrays and all loading
         objectProperties?.forEach(opBranch => {
@@ -292,7 +313,7 @@ export default class IncrementalController {
   clearState() {
     this.lastClassIri = undefined
     this.lastInstanceIri = undefined
-    this.highlights = new Promise(() => { })
+    this.highlightsManager?.clear()
     this.vKGApi?.stopAllQueries()
   }
 
@@ -320,25 +341,29 @@ export default class IncrementalController {
 
     if (parentClassEntity) {
       const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
-      const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
-      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
 
       if (!suggestedClassInstance) return
-
-      // Set label as annotation
-      if (suggestedClassInstance.label) {
-        instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
-      }
-
-      // (await this.lastHighlights).dataProperties?.forEach(dpIri => {
-      //   instanceEntity.addDataProperty(dpIri)
-      // })
 
       if (!this.diagram.classInstances) {
         this.diagram.classInstances = new Map()
       }
 
-      this.diagram.classInstances.set(instanceIriString, instanceEntity)
+      const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
+      let instanceEntity: ClassInstanceEntity | undefined
+
+      instanceEntity = this.diagram.classInstances.get(instanceIriString)
+
+      if (!instanceEntity) {
+        instanceEntity = new ClassInstanceEntity(instanceIri)
+        this.diagram.classInstances.set(instanceIriString, instanceEntity)
+
+        // Set label as annotation
+        if (suggestedClassInstance.label) {
+          instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
+        }
+      }
+
+      instanceEntity.parentClassIris.add(parentClassEntity.iri)
 
       this.incrementalRenderer.freezeGraph()
       this.diagramBuilder.addClassInstance(instanceIriString)
@@ -363,7 +388,6 @@ export default class IncrementalController {
       const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
       const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
 
-
       if (!suggestedClassInstance) return
 
       // Set label as annotation
@@ -371,9 +395,9 @@ export default class IncrementalController {
         instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
       }
 
-      (await this.vKGApi?.getHighlights(parentClassIri))?.dataProperties?.forEach(dpIri => {
-        instanceEntity.addDataProperty(dpIri)
-      })
+      // (await this.vKGApi?.getHighlights(parentClassIri))?.dataProperties?.forEach(dpIri => {
+      //   instanceEntity.addDataProperty(dpIri)
+      // })
 
       if (!this.diagram.classInstances) {
         this.diagram.classInstances = new Map()
@@ -542,7 +566,7 @@ export default class IncrementalController {
 
   private async onGetRangeInstances(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
     this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, true)
-    const isDirect = (await this.highlights).objectProperties?.find(op => op.objectPropertyIRI === objectPropertyIri)?.direct || false
+    const isDirect = (await this.highlightsManager?.objectProperties())?.find(op => op.objectPropertyIRI === objectPropertyIri)?.direct || false
 
     this.vKGApi?.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri,
       (instances) => this.onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri), // onNewResults
@@ -562,9 +586,9 @@ export default class IncrementalController {
     }))
   }
 
-  private refreshHighlights(classIri: string) {
+  private async getHighlights(classIri: string) {
     if (this.isReasonerEnabled) {
-      this.highlights = this.vKGApi!.getHighlights(classIri)
+      return await this.vKGApi!.getHighlights(classIri)
     }
   }
 
@@ -587,7 +611,7 @@ export default class IncrementalController {
    */
   private async getObjectProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      const branches = (await this.highlights).objectProperties
+      const branches = await this.highlightsManager?.objectProperties()
       const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
 
       branches?.forEach(branch => {
@@ -622,7 +646,7 @@ export default class IncrementalController {
 
   private async getDataProperties(classIri: string) {
     if (this.isReasonerEnabled) {
-      const dataProperties = (await this.highlights).dataProperties
+      const dataProperties = await this.highlightsManager?.dataProperties()
       return dataProperties
         ?.map(dp => this.ontology.getEntity(dp))
         .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
@@ -687,12 +711,12 @@ export default class IncrementalController {
         if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
           const instanceEntity = this.diagram.classInstances?.get(targetIri)
           if (instanceEntity) {
-            this.refreshHighlights(instanceEntity.parentClassIri.fullIri);
+            this.highlightsManager?.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
             (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
             this.buildDetailsForInstance(targetIri)
           }
         } else {
-          this.refreshHighlights(targetIri)
+          this.highlightsManager?.computeHighlights(targetIri)
           this.buildDetailsForClass(targetIri)
         }
 
