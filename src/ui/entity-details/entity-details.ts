@@ -138,7 +138,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
           ${annotationsTemplate(this.grapholEntity.getAnnotations())}
           
-          ${this.occurrences.size > 0 ? this.occurrencesTemplate() : null }
+          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null }
 
           ${this.grapholEntity.getComments().length > 0
             ? html`
