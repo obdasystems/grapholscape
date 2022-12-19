@@ -16,6 +16,7 @@ import DiagramBuilder from "./diagram-builder";
 import EndpointController from "./endpoint-controller";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import HighlightsManager from "./highlights-manager";
+import { showParentClass } from "../ui/incremental-ui/commands";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -198,6 +199,21 @@ export default class IncrementalController {
   private showCommandsForClass(classIri: string) {
     const commands: Command[] = []
 
+    const classInstanceEntity = this.diagram.classInstances?.get(classIri)
+
+    if (classInstanceEntity) {
+      commands.push(showParentClass(() => {
+        const oldElemNumbers = this.diagramBuilder.diagram.representation?.grapholElements.size
+        classInstanceEntity.parentClassIris.forEach(parentClassIri => {
+          this.diagramBuilder.addEntity(parentClassIri.fullIri)
+          this.connectInstanceToParentClasses(classInstanceEntity)
+        })
+
+        if (oldElemNumbers !== this.diagramBuilder.diagram.representation?.grapholElements.size)
+          this.postDiagramEdit()
+      }))
+    }
+
     const superHierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
     const subHierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
 
@@ -367,7 +383,7 @@ export default class IncrementalController {
 
       this.incrementalRenderer.freezeGraph()
       this.diagramBuilder.addClassInstance(instanceIriString)
-      this.diagramBuilder.addInstanceOfEdge(instanceIriString)
+      this.connectInstanceToParentClasses(instanceEntity)
       const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
       if (addedInstance) {
         addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
@@ -542,6 +558,12 @@ export default class IncrementalController {
         this.buildDetailsForInstance(this.lastInstanceIri)
       }
     }
+  }
+
+  connectInstanceToParentClasses(instanceEntity: ClassInstanceEntity) {
+    instanceEntity.parentClassIris.forEach(parentClassIri => {
+      this.diagramBuilder.addInstanceOfEdge(instanceEntity.iri.fullIri, parentClassIri.fullIri)
+    })
   }
 
   private onGetInstances(classIri: string, searchText?: string) {

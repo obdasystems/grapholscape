@@ -1,4 +1,4 @@
-import { rubbishBin, subHierarchies, superHierarchies } from "../assets";
+import { classIcon, rubbishBin, subHierarchies, superHierarchies } from "../assets";
 import { Command } from "../common/context-menu";
 
 export function showHideSuperHierarchies(hide: boolean, callback: () => void): Command {
@@ -37,6 +37,14 @@ export function remove(callback: () => void): Command {
   return {
     content: 'Remove',
     icon: rubbishBin,
+    select: callback,
+  }
+}
+
+export function showParentClass(callback: () => void): Command {
+  return {
+    content: 'Show Parent Classes',
+    icon: classIcon,
     select: callback,
   }
 }
