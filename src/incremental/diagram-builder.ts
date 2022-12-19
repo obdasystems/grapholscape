@@ -311,9 +311,10 @@ export default class DiagramBuilder {
     if (!this.referenceNodeId) return
     if (parentClassIri && this.diagramRepresentation?.cy.$id(parentClassIri).empty()) return
 
-    const instanceEdge = new GrapholEdge(`${this.referenceNodeId}-instance-${instanceIri}`, GrapholTypesEnum.INSTANCE_OF)
+    const targetId = parentClassIri || this.referenceNodeId
+    const instanceEdge = new GrapholEdge(`${targetId}-instance-${instanceIri}`, GrapholTypesEnum.INSTANCE_OF)
     instanceEdge.sourceId = instanceIri
-    instanceEdge.targetId = parentClassIri || this.referenceNodeId
+    instanceEdge.targetId = targetId
 
     this.diagram.addElement(instanceEdge)
   }

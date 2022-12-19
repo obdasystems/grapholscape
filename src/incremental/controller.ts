@@ -426,6 +426,7 @@ export default class IncrementalController {
       if (addedInstance) {
         addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
         this.diagram.representation?.updateElement(addedInstance)
+        this.connectInstanceToParentClasses(instanceEntity)
       }
 
       this.postDiagramEdit()
