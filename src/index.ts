@@ -4,10 +4,9 @@ import popper from 'cytoscape-popper'
 import { Ontology, RendererStatesEnum } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
-import Grapholscape, { IncrementalRendererState } from './core'
+import Grapholscape from './core'
 import { GrapholscapeConfig, loadConfig } from './config'
 import { IncrementalController, startIncremental } from './incremental'
-import { RequestOptions } from './incremental/api/model'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -18,6 +17,7 @@ export * as ui from './ui'
 export * from './core'
 export * from './incremental'
 export { default as setGraphEventHandlers } from './core/set-graph-event-handlers'
+export * from './exporter'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
