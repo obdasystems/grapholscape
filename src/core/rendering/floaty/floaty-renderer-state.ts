@@ -1,9 +1,13 @@
+import cytoscape, { NodeSingular } from "cytoscape";
 import { Renderer } from "..";
 import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
+import automove from 'cytoscape-automove'
+
+cytoscape.use(automove)
 
 export default class FloatyRendererState extends BaseRenderer {
   readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
@@ -55,7 +59,9 @@ export default class FloatyRendererState extends BaseRenderer {
         setTimeout(() => this.renderer.fit(), 1000)
       }
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
-      this.setDragAndPinEventHandlers()
+      this.setDragAndPinEventHandlers();
+
+      (this.renderer.cy as any).automove(this.automoveOptions)
     }
 
     if (this.popperContainer)
@@ -221,6 +227,12 @@ export default class FloatyRendererState extends BaseRenderer {
     infinite: false,
     handleDisconnected: true, // if true, avoids disconnected components from overlapping
     centerGraph: false,
+  }
+
+  protected automoveOptions = {
+    nodesMatching: (node: NodeSingular) => this.renderer.cy?.$(':grabbed').neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).has(node),
+    reposition: 'drag',
+    dragWith: `[type ="${GrapholTypesEnum.CLASS}"][iri]`
   }
 
   get isLayoutInfinite() {
