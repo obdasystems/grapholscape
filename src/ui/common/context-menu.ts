@@ -1,4 +1,4 @@
-import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
+import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from "lit"
 import tippy, { Props } from 'tippy.js'
 import baseStyle from "../style"
 import { BaseMixin } from "./base-widget-mixin"
@@ -17,13 +17,17 @@ export interface Command {
 
 export default class GscapeContextMenu extends BaseMixin(LitElement) {
   commands: Command[] = []
+  customElements: (LitElement | HTMLElement | TemplateResult)[] = []
+  showFirst: 'commands' | 'elements' = 'elements'
 
   onCommandRun = () => { }
 
   tippyMenu = tippy(document.createElement('div'))
 
   static properties: PropertyDeclarations = {
-    commands: { attribute: false }
+    commands: { type: Object, attribute: false },
+    customElements: { type: Object, attribute: false },
+    showFirst: { type: String },
   }
 
   static styles: CSSResultArray = [
@@ -48,8 +52,13 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
         line-height: 20px;
       }
 
-      .gscape-panel {
+      .gscape-panel, .custom-elements {
         overflow: unset;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+        align-items: stretch;
       }
     `
   ]
@@ -57,24 +66,30 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
   render() {
     return html`
     <div class="gscape-panel">
-      <div>${this.title}</div>
-      ${this.commands.map((command, id) => {
-        return html`
-          <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
-            ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null }
-            <span class="command-text">${command.content}</span>
-          <div>
-        `
-      })}
+      ${this.title ? html`<div>${this.title}</div>` : null }
+      ${this.showFirst === 'elements' ? this.customElementsTemplate : null }
+      
+      ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
+        ? html`<div class="hr"></div>` : null}
+
+      ${this.commandsTemplate}
+
+      ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
+        ? html`<div class="hr"></div>` : null}
+
+
+      ${this.showFirst === 'commands' ? this.customElementsTemplate : null }
     </div>
     `
   }
 
-  attachTo(element: HTMLElement, commands?: Command[]) {
+  attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]) {
     this.tippyMenu.setProps(this.cxtMenuProps)
     this.tippyMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() })
-    if (commands)
-      this.commands = commands
+    
+    this.commands = commands || []
+    this.customElements = elements || []
+
     this.tippyMenu.show()
   }
 
@@ -93,9 +108,37 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
   
 
   private handleCommandClick(e: any) {
-    this.commands[e.currentTarget.getAttribute('command-id')].select()
-    this.onCommandRun()
-    this.tippyMenu.hide()
+    const command = this.commands[e.currentTarget.getAttribute('command-id')]
+    if (command.select) {
+      command.select()
+      this.onCommandRun()
+      this.tippyMenu.hide()
+    }    
+  }
+
+  private get commandsTemplate() {
+    if (this.commands.length > 0)
+      return html`
+        <div class="commands">
+          ${this.commands.map((command, id) => {
+            return html`
+              <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
+                ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null }
+                <span class="command-text">${command.content}</span>
+              <div>
+            `
+          })}
+        </div>
+      `
+  }
+
+  private get customElementsTemplate() {
+    if (this.customElements.length > 0)
+      return html`
+        <div class="custom-elements">
+          ${this.customElements.map(c => html`<div class="custom-element-wrapper">${c}</div>`)}
+        </div>    
+      `
   }
 }
 

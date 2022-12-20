@@ -32,3 +32,5 @@ export * from './full-page-selector'
 export * from './util/search-entities'
 
 export * from './common/spinners'
+export * from './common/context-menu'
+export { default as ContextMenu } from './common/context-menu'
