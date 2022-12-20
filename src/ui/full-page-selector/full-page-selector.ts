@@ -1,7 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
 import baseStyle from "../style"
 import { RendererStatesEnum } from "../../model";
-import { BaseMixin } from "../common/base-widget-mixin";
+import { BaseMixin } from "../common/mixins";
 import { UiOption } from "../renderer-selector/view-model";
 
 export default class GscapeFullPageSelector extends BaseMixin(LitElement) {

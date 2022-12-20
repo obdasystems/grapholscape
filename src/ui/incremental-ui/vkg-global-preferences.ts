@@ -1,8 +1,7 @@
 import { css, html, LitElement } from "lit";
 import baseStyle from "../style";
 import { searchOff, tune } from "../assets";
-import { BaseMixin } from "../common/base-widget-mixin";
-import { DropPanelMixin } from "../common/drop-panel-mixin";
+import { BaseMixin, DropPanelMixin } from "../common/mixins";
 
 export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitElement)) {
 

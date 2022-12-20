@@ -1,12 +1,10 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../../model";
-import { classIcon, dataPropertyIcon, filter, individualIcon, objectPropertyIcon } from "../../assets";
+import { classIcon, dataPropertyIcon, individualIcon, objectPropertyIcon } from "../../assets";
 import baseStyle from "../../style";
-import getIconSlot from "../../util/get-icon-slot";
 import { IEntityFilters } from "../../util/search-entities";
-import { BaseMixin } from "../base-widget-mixin";
 import { GscapeButtonStyle } from "../button";
-import { DropPanelMixin } from "../drop-panel-mixin";
+import { BaseMixin } from "../mixins";
 
 export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) implements IEntityFilters {
 

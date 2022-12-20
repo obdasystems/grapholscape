@@ -1,3 +1,4 @@
+import { LitElement } from "lit";
 import { IBaseMixin } from "./base-widget-mixin";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -28,7 +29,7 @@ export const ModalMixin = <T extends Constructor<IBaseMixin>>(superClass: T) => 
 
     show() {
       super.show();
-      (this as unknown as HTMLElement).style.zIndex = '2';
+      // (this as unknown as HTMLElement).style.zIndex = '2';
       this.showModalBackground();
     }
 
@@ -39,7 +40,9 @@ export const ModalMixin = <T extends Constructor<IBaseMixin>>(superClass: T) => 
     }
 
     private showModalBackground() {
-      this.modalBackground.style.display = 'initial'
+      this.modalBackground.style.display = 'initial';
+      const thisElem = this as unknown as LitElement
+      thisElem.shadowRoot?.insertBefore(this.modalBackground, thisElem.shadowRoot?.firstElementChild)
     }
     
     private hideModalBackground() {

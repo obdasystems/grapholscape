@@ -2,7 +2,7 @@
 import { html, LitElement, nothing, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../model";
 import { classIcon, entityIcons, instancesIcon, objectPropertyIcon } from "../assets";
-import { BaseMixin } from "../common/base-widget-mixin";
+import { BaseMixin } from "../common/mixins";
 import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 import { entityListItemStyle } from "../ontology-explorer";
 import baseStyle from "../style";

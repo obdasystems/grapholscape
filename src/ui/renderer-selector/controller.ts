@@ -6,7 +6,7 @@ import IncrementalRendererState from "../../core/rendering/incremental/increment
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
 import { IncrementalController, startIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
-import { IBaseMixin } from "../common/base-widget-mixin"
+import { IBaseMixin } from "../common/mixins/base-widget-mixin"
 import { GscapeEntityDetails } from "../entity-details"
 import { GscapeFilters } from "../filters"
 import { WidgetEnum } from "../util/widget-enum"

@@ -5,7 +5,7 @@ import baseStyle from "../../style";
 import getIconSlot from "../../util/get-icon-slot";
 import { IEntityFilters } from "../../util/search-entities";
 import { GscapeButtonStyle } from "../button";
-import { DropPanelMixin } from "../drop-panel-mixin";
+import { DropPanelMixin } from "../mixins";
 
 export default class GscapeEntitySearch extends DropPanelMixin(LitElement) implements IEntityFilters {
   areAllFiltersDisabled: boolean = true;

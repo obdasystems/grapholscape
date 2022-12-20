@@ -1,7 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
 import baseStyle from "../style"
-import { BaseMixin } from "../common/base-widget-mixin"
-import { ModalMixin } from "../common/modal-mixin"
+import { ModalMixin, BaseMixin } from "../common/mixins"
 
 export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement)) {
 
@@ -48,7 +47,6 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
 
   render() {
     return html`
-      ${this.modalBackground}
       <div class="gscape-panel">
         <div class="header">
           ${this.dialogTitle}

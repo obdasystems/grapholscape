@@ -1,10 +1,9 @@
 import { html, css, LitElement } from 'lit'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { info_outline } from '../assets/icons'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { Annotation, Namespace } from '../../model'
-import { BaseMixin } from '../common/base-widget-mixin'
 
 export type OntologyViewModel = ViewItemWithIri & {
   namespaces: Namespace[],

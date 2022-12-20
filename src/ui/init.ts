@@ -1,10 +1,8 @@
 import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
-import { IBaseMixin } from "./common/base-widget-mixin";
-import { hasDropPanel } from "./common/drop-panel-mixin";
+import { hasDropPanel, IBaseMixin } from "./common/mixins";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails from "./entity-details";
-import initEntitySelector from "./entity-selector";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import { initInitialRendererSelector } from "./full-page-selector";

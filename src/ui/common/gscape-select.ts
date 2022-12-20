@@ -1,9 +1,8 @@
 import { html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
-import { DropPanelMixin } from "./drop-panel-mixin"
+import { BaseMixin, DropPanelMixin } from "./mixins"
 import baseStyle from '../style'
 import { GscapeButtonStyle } from "./button"
 import { check } from "../assets/icons"
-import { BaseMixin } from "./base-widget-mixin"
 
 export type SelectOption = {
   id: string,

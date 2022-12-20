@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { BaseMixin } from '../common/base-widget-mixin'
+import { BaseMixin } from '../common/mixins'
 import { GscapeButtonStyle } from '../common/button'
 import baseStyle from '../style'
 import emptySearchBlankState from '../util/empty-search-blank-state'

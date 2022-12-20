@@ -1,8 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
 import { settings_play } from '../../assets/icons'
-import { BaseMixin } from '../../common/base-widget-mixin'
 import '../../common/button'
-import { DropPanelMixin } from '../../common/drop-panel-mixin'
+import { BaseMixin, DropPanelMixin } from '../../common/mixins'
 import baseStyle from '../../style'
 
 export default class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(LitElement)) {

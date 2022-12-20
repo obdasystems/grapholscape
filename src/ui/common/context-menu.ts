@@ -1,7 +1,7 @@
 import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from "lit"
 import tippy, { Props } from 'tippy.js'
 import baseStyle from "../style"
-import { BaseMixin } from "./base-widget-mixin"
+import { BaseMixin } from "./mixins"
 
 /**
  * A command for the context menu
