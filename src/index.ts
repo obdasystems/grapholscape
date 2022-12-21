@@ -10,6 +10,7 @@ import { IncrementalController, startIncremental } from './incremental'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
+cytoscape.warnings(process.env.NODE_ENV !== 'production')
 
 export * from './model'
 export * from './config'
