@@ -6,12 +6,10 @@ import { createEntitiesList, EntityViewData, search } from '../util/search-entit
 import GscapeExplorer from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
-  let entities: EntityViewData[] = []
   // let languages = grapholscape.languages
   ontologyExplorerComponent.entities = createEntitiesList(grapholscape)
 
   // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
-  ontologyExplorerComponent.entities = entities
 
   ontologyExplorerComponent.onNodeNavigation = (entityOccurrence) => {
     grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2)
@@ -23,7 +21,7 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
   })
 
   grapholscape.on(LifecycleEvent.RendererChange, () => {
-    entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
+    ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
   })
 }
 
