@@ -1,4 +1,3 @@
-import { EntityNameType } from "../config"
 import { Ontology, Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum, GrapholNodeInfo, GrapholNodesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { FunctionalityEnum } from "../model/graphol-elems/entity"
@@ -80,7 +79,31 @@ export default class GrapholParser {
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
 
             // APPLY DISPLAYED NAME FROM LABELS
-            node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined, this.ontology.languages.default)
+            if (grapholEntity.getLabels().length > 0) {
+              // try to apply default language label as displayed name
+              const labelInDefaultLanguage = grapholEntity.getLabels(this.ontology.languages.default)[0]
+              if (labelInDefaultLanguage) {
+                node.displayedName = labelInDefaultLanguage.lexicalForm
+              } else {
+                // otherwise pick the first language available
+                for (let lang of this.ontology.languages.list) {
+                  const labels = grapholEntity.getLabels(lang)
+                  if (labels?.length > 0) {
+                    node.displayedName = labels[0].lexicalForm
+                    break
+                  }
+                }
+              }
+
+              // if still failing, pick the first label you find
+              if (!node.displayedName) {
+                node.displayedName = grapholEntity.getLabels()[0].lexicalForm
+              }
+
+            } else {
+              // if no labels defined, apply remainingChars from iri as displayed name
+              node.displayedName = grapholEntity.iri.remainder
+            }
 
             // Add fake nodes
             if (node.is(GrapholTypesEnum.OBJECT_PROPERTY) &&

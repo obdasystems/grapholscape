@@ -102,6 +102,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         })
 
         newGrapholEdge.originalId = objectProperty.id().toString()
+        newGrapholEdge.displayedName = newGrapholEdge.displayedName?.replace(/\r?\n|\r/g, '')
 
         this.result.addElement(newGrapholEdge)
         const newAddedCyElement = this.newCy.$id(newGrapholEdge.id)

@@ -33,8 +33,6 @@ export default function (theme: GrapholscapeTheme) {
         'text-margin-y': 'data(labelYpos)',
         'text-wrap': 'wrap',
         'min-zoomed-font-size': '5px',
-        'text-max-width': (elem) => elem.data().width > 10 ? 'data(width)' : 50,
-        'text-overflow-wrap': 'anywhere',
       }
     },
 
@@ -259,7 +257,6 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         'background-color': node => getColor(node, ColoursNames.object_property),
         'border-color': theme.getColour(ColoursNames.object_property_contrast),
-        'text-max-width': 80,
       }
     },
 
@@ -268,7 +265,6 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         'background-color': node => getColor(node, ColoursNames.data_property),
         'border-color': theme.getColour(ColoursNames.data_property_contrast),
-        'text-max-width': 100,
       }
     },
 
