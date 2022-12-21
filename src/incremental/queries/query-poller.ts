@@ -27,6 +27,7 @@ export abstract class QueryPoller {
   public onStop: () => void = () => { }
   public onTimeoutExpiration: () => void = () => { }
   public abstract onNewResults: (result: QueryResult) => void
+  public onError: (error: any) => void = () => { }
 
   public status: QueryPollerStatus = QueryPollerStatus.IDLE
 
@@ -38,18 +39,26 @@ export abstract class QueryPoller {
 
   private poll() {
     this.status = QueryPollerStatus.RUNNING
-    fetch(this.request).then((response: Response) => {
-      response.json().then((result: QueryResult) => {
-        this.lastRequestFulfilled = true
-        this._result = result
-        this.onNewResults(result)
+    fetch(this.request)
+      .then((response: Response) => {
+        response.json().then((result: QueryResult) => {
+          if (this.isResultError(result)) {
+            this.triggerError(result)
+          } else {
+            this.lastRequestFulfilled = true
+            this._result = result
+            this.onNewResults(result)
 
-        if (this.stopCondition()) {
-          this.stop()
-        }
+            if (this.stopCondition()) {
+              this.stop()
+            }
+          }
+        })
       })
-    })
+      .catch(error => this.triggerError(error))
   }
+
+  protected abstract isResultError(result: any): boolean
 
   start() {
     this.interval = setInterval(() => {
@@ -81,6 +90,11 @@ export abstract class QueryPoller {
     this.onStop()
   }
 
+  private triggerError(result: any) {
+    this.onError(result)
+    this.stop()
+  }
+
   abstract get result(): QueryResult
 }
 
@@ -91,6 +105,10 @@ export class QueryResultsPoller extends QueryPoller {
 
   constructor(protected request: Request, private limit: number, public executionId: string) {
     super()
+  }
+
+  protected isResultError(result: any): boolean {
+    return !result || result.results === undefined || result.type === 'error'
   }
 
   protected stopCondition(): boolean {
@@ -126,10 +144,14 @@ export class QueryCountStatePoller extends QueryPoller {
     super()
   }
 
-  protected stopCondition(): boolean {
-    return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED ||
-      this.result === QueryCountStatePoller.QUERY_STATUS_ERROR
+  protected isResultError(result: any): boolean {
+    return !result || result === QueryCountStatePoller.QUERY_STATUS_ERROR
   }
+
+  protected stopCondition(): boolean {
+    return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED
+  }
+
   protected hasAnyResult(): boolean {
     return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED
   }

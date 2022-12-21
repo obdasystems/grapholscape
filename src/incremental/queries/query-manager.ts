@@ -8,12 +8,13 @@ export default class QueryManager {
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
     this.requestOptions.headers['content-type'] = 'application/json'
     
-    
     this._prefixes = new Promise((resolve) => {
-      fetch(this.prefixesPath, {
-        method: 'get',
-        headers: this.requestOptions.headers,
-      }).then(async response => {
+      this.handleCall(
+        fetch(this.prefixesPath, {
+          method: 'get',
+          headers: this.requestOptions.headers,
+        })
+      ).then(async response => {
         const prefixesResponse = await response.json()
 
         resolve(prefixesResponse.map((p: { name: any; namespace: any }) =>
@@ -37,6 +38,9 @@ export default class QueryManager {
     const executionID = await this.startQuery(queryCode)
     const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID)
     this._runningQueryPollerByExecutionId.set(executionID, queryResultsPoller)
+
+    queryResultsPoller.onError = this.requestOptions.onError
+
     return queryResultsPoller
   }
 
@@ -56,20 +60,25 @@ export default class QueryManager {
     return new Promise((resolve, reject) => {
       countStatePoller.onNewResults = (state) => {
         if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED) {
-          fetch(`${this.queryCountPath}/${executionID}/result`, {
+          this.handleCall(fetch(`${this.queryCountPath}/${executionID}/result`, {
             method: 'get',
             headers: this.requestOptions.headers,
-          }).then(async response => {
+          })).then(async response => {
             resolve(await response.json())
 
             // The count query has finished and result has been processed
             // Now we need to delete the query execution from mastro.
-            fetch(`${this.queryCountPath}/${executionID}`, {
+            this.handleCall(fetch(`${this.queryCountPath}/${executionID}`, {
               method: 'delete',
               headers: this.requestOptions.headers,
-            })
+            }))
           }).catch(reason => reject(reason))
         }
+      }
+
+      countStatePoller.onError = (error) => {
+        reject(error)
+        this.requestOptions.onError(error)
       }
 
       countStatePoller.start()
@@ -82,20 +91,27 @@ export default class QueryManager {
       headers: this.requestOptions.headers,
     })
 
-    return await (await fetch(request)).json()
+    return new Promise((resolve, reject) => {
+      this.handleCall(fetch(request))
+        .then(response => resolve(response.json()))
+        .catch(error => {
+          this.requestOptions.onError(error)
+          reject(error)
+        })
+    })
   }
 
   stopRunningQueries() {
-    this._runningQueryPollerByExecutionId.forEach(async (_ ,executionId) => await this.stopQuery(executionId))
+    this._runningQueryPollerByExecutionId.forEach((_ ,executionId) => this.stopQuery(executionId))
   }
 
   stopQuery(executionId: string) {
     this._runningQueryPollerByExecutionId.get(executionId)?.stop() // stop polling
     this._runningQueryPollerByExecutionId.delete(executionId)
-    fetch(this.getQueryStopPath(executionId), {
+    this.handleCall(fetch(this.getQueryStopPath(executionId), {
       method: 'put',
       headers: this.requestOptions.headers,
-    })
+    }))
   }
 
   private async getPrefixes() {
@@ -108,11 +124,13 @@ export default class QueryManager {
       countURL = this.queryCountPath
     }
 
-    return await (
-      await (
-        await (fetch(await this.getNewQueryRequest(queryCode, countURL)))
-      ).json()
-    ).executionId
+    return new Promise(async (resolve) => {
+      this.handleCall(
+        fetch(await this.getNewQueryRequest(queryCode, countURL))
+      ).then(async response => {
+        resolve((await response.json()).executionId)
+      })
+    })
   }
 
   // Request for starting a query
@@ -166,5 +184,24 @@ export default class QueryManager {
 
   private get queryCountPath() {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/count`)
+  }
+
+  private handleCall(apiCall: Promise<Response>): Promise<Response> {
+    return new Promise((resolve, reject) => {
+      apiCall
+        .then(async response => {
+          if (response.status !== 200) {
+            const result = await response.json()
+            this.requestOptions.onError(result)
+            reject(result)
+          } else {
+            resolve(response)
+          }
+        })
+        .catch(error => {
+          this.requestOptions.onError(error)
+          reject(error)
+        })
+    })
   }
 }

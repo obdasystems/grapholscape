@@ -18,7 +18,7 @@ export type ClassInstance = {
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
   getInstancesByDataPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
-  getInstancesNumber: (iri: string, onResult: (resultCount: number) => void) => void,
+  getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
   getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
@@ -75,7 +75,12 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
   async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, undefined, searchText)
-    onResult(await this.queryManager.performQueryCount(queryCode))
+    this.queryManager.performQueryCount(queryCode)
+      .then(result => onResult(result))
+      .catch(_ => {
+        if (onStop) 
+          onStop()
+      })
   }
 
   async getHighlights(classIri: string) {

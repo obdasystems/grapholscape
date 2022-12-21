@@ -202,10 +202,14 @@ export default class IncrementalController {
         this.incrementalDetails.isInstanceCounterLoading = true
         this.incrementalDetails.areInstancesLoading = true
         // Ask instance number
-        this.vKGApi?.getInstancesNumber(classIri, (count) => {
-          this.incrementalDetails.isInstanceCounterLoading = false
-          this.incrementalDetails.instanceCount = count
-        })
+        this.vKGApi?.getInstancesNumber(
+          classIri,
+          (count) => { // onResult
+            this.incrementalDetails.isInstanceCounterLoading = false
+            this.incrementalDetails.instanceCount = count
+          },
+          () => this.incrementalDetails.isInstanceCounterLoading = false
+        )
       }
     }
 

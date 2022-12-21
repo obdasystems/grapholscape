@@ -29,4 +29,5 @@ export type RequestOptions = {
   version: string,
   name: string,
   headers: any,
+  onError: (errorObject: any) => void
 }

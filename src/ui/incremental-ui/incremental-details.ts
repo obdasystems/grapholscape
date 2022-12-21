@@ -110,10 +110,9 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
           <summary class="actionable">
             <span class="entity-icon slotted-icon">${instancesIcon}</span>
             <span class="entity-name">Instances</span>
-            <span class="neutral-chip chip counter">
-              ${this.isInstanceCounterLoading || this.instanceCount === undefined
-                ? textSpinner()
-                : this.instanceCount
+              ${this.isInstanceCounterLoading
+                ? html`<span class="neutral-chip chip counter">${textSpinner()}</span>`
+                : html`<span class="neutral-chip chip counter">${this.instanceCount ?? '?'}</span>`
               }
             </span>
           </summary>
