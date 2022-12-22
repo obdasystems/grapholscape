@@ -17,9 +17,6 @@
   <a href="#what-is-graphol">What is Graphol?</a> •
   <a href="https://obdasystems.github.io/grapholscape/"><strong>Documentation</strong></a> •
   <a href="#quick-start"><strong>Quick Start</strong></a> •
-  <a href="#build-it-locally">Build it Locally</a> •
-  <a href="#build-instructions">Build Instructions</a> •
-  <a href="#release-instructions">Release Instructions</a> •
   <a href="#credits">Credits</a>
 </p>
 
@@ -30,7 +27,7 @@
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
 
-* `new` Explore your custom **path** in the ontology graph, start from a single class and explore **incrementally** step by step.
+* `new` **Path rendering mode**: explore your custom **path** in the ontology graph, start from a single class and explore **incrementally** step by step.
 * Simplify your ontology:
   * **Graphol-lite**: summarized view avoiding too complex expressions
   * **Floaty Mode**: simplify further obtaining an extremely easy representation of the ontology
@@ -51,7 +48,8 @@ You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [buil
 For a more detailed explanation please check the [documentation](https://obdasystems.github.io/grapholscape/) and the [getting started guide](https://obdasystems.github.io/grapholscape/pages/getting-started.html).
 
 Install it via **npm**: `npm install grapholscape`.
-Basic initialisation with UI widgets.
+
+#### Basic initialisation with UI widgets.
 ```js
 import { fullGrapholscape } from 'grapholscape'
 
