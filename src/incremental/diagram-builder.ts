@@ -271,6 +271,7 @@ export default class DiagramBuilder {
     objectPropertyEdge.targetId = direct ? connectedClassIri : this.referenceNodeId
     objectPropertyEdge.originalId = objectPropertyEntity.getEntityOriginalNodeId()
 
+    objectPropertyEntity.addOccurrence(objectPropertyEdge.id, this.diagram.id, RendererStatesEnum.INCREMENTAL)
     this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
   }
 
