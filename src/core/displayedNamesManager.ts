@@ -1,8 +1,9 @@
 import { LifecycleEvent } from "../model/lifecycle";
-import { GrapholEntity } from "../model";
+import { GrapholElement, GrapholEntity } from "../model";
 import Grapholscape from "./grapholscape";
 import { RendererStatesEnum } from "../model/renderers/i-render-state";
 import { EntityNameType, Language, storeConfigEntry } from "../config";
+import { IncrementalRendererState } from "./rendering";
 
 /**
  * @internal
@@ -63,7 +64,14 @@ export default class DisplayedNamesManager {
   private setDisplayedNames(entity: GrapholEntity) {
     entity.occurrences.forEach((entityOccurrencesInRenderState, renderState) => {
       entityOccurrencesInRenderState.forEach(entityOccurrence => {
-        const grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState)
+        let grapholElement: GrapholElement | undefined
+
+        if (renderState === RendererStatesEnum.INCREMENTAL) {
+          grapholElement = (this._grapholscape.renderer.renderState as IncrementalRendererState).diagramRepresentation?.grapholElements.get(entityOccurrence.elementId)
+        } else {
+          grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState)
+        }
+
         if (!grapholElement) return
 
         let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language, this._grapholscape.ontology.languages.default)
@@ -86,11 +94,14 @@ export default class DisplayedNamesManager {
              */
             if (renderState === RendererStatesEnum.GRAPHOL) {
               diagram.representations.forEach(representation => {
-                representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
+                if (grapholElement)
+                  representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
               })
             } else {
               diagram.representations.get(renderState)?.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
             }
+          } else {
+            this._grapholscape.renderer.diagram?.representations.forEach(representation => representation.updateElement(grapholElement!.id))
           }
         }
       })

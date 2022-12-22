@@ -62,9 +62,9 @@ export default class DiagramRepresentation {
 
     const cyElement = this.cy.$id(grapholElement.id)
 
-    if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-      cyElement.position(grapholElement.position)
-    }
+    // if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+    //   // cyElement.position(grapholElement.position)
+    // }
 
     if (isGrapholEdge(grapholElement)) {
       cyElement.move({
