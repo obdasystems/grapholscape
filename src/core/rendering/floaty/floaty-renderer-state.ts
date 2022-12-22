@@ -19,6 +19,7 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!newRenderer.renderStateData[this.id]) {
       newRenderer.renderStateData[this.id] = {}
       newRenderer.renderStateData[this.id].popperContainers = new Map<number, HTMLDivElement>()
+      this.floatyLayoutOptions = this.defaultLayoutOptions
     }
   }
 
@@ -78,7 +79,9 @@ export default class FloatyRendererState extends BaseRenderer {
     floatyRepresentation.hasEverBeenRendered = true
   }
 
-  stopRendering(): void { }
+  stopRendering(): void {
+    this._layout?.stop()
+  }
 
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
     return floatyStyle(theme)
@@ -203,7 +206,7 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  protected floatyLayoutOptions = {
+  protected defaultLayoutOptions = {
     name: 'cola',
     avoidOverlap: false,
     edgeLength: function (edge) {
@@ -227,6 +230,14 @@ export default class FloatyRendererState extends BaseRenderer {
     infinite: false,
     handleDisconnected: true, // if true, avoids disconnected components from overlapping
     centerGraph: false,
+  }
+
+  get floatyLayoutOptions() {
+    return this.renderer.renderStateData[this.id].layoutOptions
+  }
+
+  set floatyLayoutOptions(newOptions) {
+    this.renderer.renderStateData[this.id].layoutOptions = newOptions
   }
 
   protected automoveOptions = {

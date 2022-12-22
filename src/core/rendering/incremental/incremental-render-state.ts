@@ -24,13 +24,6 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   private previousDiagram: Diagram
 
-  constructor() {
-    super()
-
-    this.floatyLayoutOptions.fit = false
-    this.floatyLayoutOptions.maxSimulationTime = 1000
-  }
-
   onContextClickCallback: (target: any) => void
 
   render() {
@@ -133,6 +126,9 @@ export default class IncrementalRendererState extends FloatyRendererState {
     if (!newRenderer.renderStateData[this.id]) {
       newRenderer.renderStateData[this.id] = {}
     }
+
+    this.floatyLayoutOptions.fit = false
+    this.floatyLayoutOptions.maxSimulationTime = 1000
 
     if (!newRenderer.renderStateData[this.id].diagram)
       this.createNewDiagram()
