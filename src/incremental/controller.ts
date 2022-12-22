@@ -356,7 +356,6 @@ export default class IncrementalController {
   hideUI() {
     this.incrementalDetails.hide()
     this.endpointController?.hideView()
-    this.commandsWidget.hide()
   }
 
   /**
