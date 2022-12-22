@@ -1,5 +1,5 @@
 
-import { html, LitElement, nothing, PropertyDeclarations } from "lit";
+import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../model";
 import { classIcon, entityIcons, instancesIcon, objectPropertyIcon } from "../assets";
 import { BaseMixin } from "../common/mixins";
@@ -99,7 +99,13 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     // objectPropertiesRanges: {type: Object, attribute: false },
   }
 
-  static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle ]
+  static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle,
+    css`
+      div.entity-list-item[entity-type = "data-property"] { 
+        flex-wrap: wrap;
+      }
+    `
+  ]
 
   render() {
     return html`
