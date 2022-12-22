@@ -17,9 +17,6 @@
   <a href="#what-is-graphol">What is Graphol?</a> •
   <a href="https://obdasystems.github.io/grapholscape/"><strong>Documentation</strong></a> •
   <a href="#quick-start"><strong>Quick Start</strong></a> •
-  <a href="#build-it-locally">Build it Locally</a> •
-  <a href="#build-instructions">Build Instructions</a> •
-  <a href="#release-instructions">Release Instructions</a> •
   <a href="#credits">Credits</a>
 </p>
 
