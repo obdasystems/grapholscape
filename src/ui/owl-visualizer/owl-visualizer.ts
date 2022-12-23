@@ -116,11 +116,6 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
 
-  togglePanel = () => {
-    super.togglePanel()
-    this.requestUpdate()
-  }
-
   updated() {
     const owlTextDiv = this.shadowRoot?.querySelector('.owl-text')
 

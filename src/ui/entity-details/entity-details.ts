@@ -45,6 +45,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         max-width: 20%;
         display: flex;
         flex-direction: column;
+        pointer-events: none;
       }
 
       .gscape-panel {
@@ -165,6 +166,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
           }
         </div>
       </div>
+
       <div class="top-bar">
         <gscape-button style="z-index: 1"
           id="toggle-panel-button"
@@ -198,11 +200,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
-
-  togglePanel = () => {
-    super.togglePanel()
-    this.requestUpdate()
-  }
 
   setGrapholEntity(entity: GrapholEntity) { }
 

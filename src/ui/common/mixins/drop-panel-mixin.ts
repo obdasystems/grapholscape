@@ -22,15 +22,18 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
 
     togglePanel() {
       this.panel?.classList.toggle('hide')
+      this.requestUpdate()
       this.onTogglePanel()
     }
 
     openPanel() {
       this.panel?.classList.remove('hide')
+      this.requestUpdate()
     }
 
     closePanel() {
       this.panel?.classList.add('hide')
+      this.requestUpdate()
     }
 
     blur() {
@@ -39,7 +42,7 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
     }
 
     isPanelClosed() {
-      return this.panel?.classList.contains('hide')
+      return this.panel ? this.panel.classList.contains('hide') : false // default open
     }
 
     onTogglePanel = () => {}
