@@ -78,7 +78,14 @@ export default class QueryManager {
 
       countStatePoller.onError = (error) => {
         reject(error)
-        this.requestOptions.onError(error)
+
+        this.handleCall(fetch(`${this.queryCountPath}/${executionID}/error`, {
+          method: 'get',
+          headers: this.requestOptions.headers,
+        })).then(async errorResponse => {
+          this.requestOptions.onError(await errorResponse.text())
+        })
+
       }
 
       countStatePoller.start()
@@ -191,7 +198,7 @@ export default class QueryManager {
       apiCall
         .then(async response => {
           if (response.status !== 200) {
-            const result = await response.json()
+            const result = await (response.json() || response.text())
             this.requestOptions.onError(result)
             reject(result)
           } else {
