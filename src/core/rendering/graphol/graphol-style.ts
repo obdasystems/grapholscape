@@ -37,6 +37,14 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
+      selector: `node[displayedName][type = "${GrapholTypesEnum.CLASS}"], node[displayedName][type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
+      style: {
+        'text-max-width': 'data(width)',
+        'text-overflow-wrap': 'anywhere',
+      }
+    },
+
+    {
       selector: 'node[labelXcentered]',
       style: {
         'text-halign': 'center',

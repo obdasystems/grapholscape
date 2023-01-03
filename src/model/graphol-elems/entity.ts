@@ -154,7 +154,10 @@ export default class GrapholEntity extends AnnotatedElement {
         break
     }
 
-    return newDisplayedName
+    if (this.is(GrapholTypesEnum.CLASS) || this.is(GrapholTypesEnum.INDIVIDUAL))
+      return newDisplayedName.replace(/\r?\n|\r/g, '')
+    else
+      return newDisplayedName
   }
 
   public getEntityOriginalNodeId() {

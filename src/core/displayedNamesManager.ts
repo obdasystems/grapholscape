@@ -76,11 +76,6 @@ export default class DisplayedNamesManager {
 
         let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language, this._grapholscape.ontology.languages.default)
 
-        if (this.entityNameType === EntityNameType.LABEL && this._grapholscape.renderState === RendererStatesEnum.FLOATY) {
-          newDisplayedName = newDisplayedName.replace(/\r?\n|\r/g, '')
-        }
-
-
         if (newDisplayedName !== grapholElement.displayedName) {
           grapholElement.displayedName = newDisplayedName
           const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId)
