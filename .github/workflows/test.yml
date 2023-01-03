@@ -1,4 +1,4 @@
-name: Test Grapholscape
+name: Test
 
 on:
   push:
