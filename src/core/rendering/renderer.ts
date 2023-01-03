@@ -288,8 +288,6 @@ export default class Renderer {
       this.cy?.style(this.renderState.getGraphStyle(this._theme))
       if (this.theme.colours["bg-graph"])
         this.container.style.backgroundColor = this.theme.colours["bg-graph"]
-    } else {
-      console.warn('Cannot render anything, please set a theme')
     }
   }
 
