@@ -50,7 +50,7 @@ export default class IncrementalController {
     if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
       this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions)
       this.endpointController.onEndpointChange(newEndpoint => {
-        const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the actual endpoint, your exploration will be reset.`)
+        const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the current endpoint, your exploration will be reset.`)
         this.grapholscape.uiContainer?.appendChild(confirmDialog)
         confirmDialog.show()
         confirmDialog.onConfirm = () => {
