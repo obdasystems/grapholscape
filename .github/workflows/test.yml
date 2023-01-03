@@ -1,0 +1,23 @@
+name: Test Grapholscape
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+  workflow_dispatch:
+  
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.2.0
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.5.1
+        with:
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
