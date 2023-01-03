@@ -27,7 +27,7 @@ export default class EndpointController {
 
   async updateEndpointList() {
     this.endpoints = await this.endpointApi.getRunningEndpoints()
-    this.endpointSelector.endpoints = this.endpoints.map(e => { return { name: e.name } })
+    this.endpointSelector.endpoints = this.endpoints.map(e => { return { name: e.name } }).sort((a,b) => a.name.localeCompare(b.name))
     if (this.endpoints.length >= 1 && !this.endpointSelector.selectedEndpointName) {
       this.endpointSelector.selectedEndpointName = this.endpointSelector.endpoints[0].name
       this.selectedEndpoint ? this._onAutoEndpointSelection(this.selectedEndpoint) : null
