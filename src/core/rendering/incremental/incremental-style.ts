@@ -14,10 +14,18 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[ type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
       style: {
         backgroundColor: theme.getColour(ColoursNames.class_instance),
         "border-color": theme.getColour(ColoursNames.class_instance_contrast),
+      }
+    },
+
+    {
+      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]:selected`,
+      style: {
+        'text-background-color': theme.getColour(ColoursNames.bg_graph),
+        'text-background-opacity': 1,
       }
     },
 
