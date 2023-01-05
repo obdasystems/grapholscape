@@ -25,11 +25,9 @@
 import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
-import automove from 'cytoscape-automove';
-import tippy from 'tippy.js';
 import cy_svg from 'cytoscape-svg';
 
-/******************************************************************************
+/*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -95,6 +93,7 @@ class AnnotatedElement {
  */
 var GrapholTypesEnum;
 (function (GrapholTypesEnum) {
+    /** @type {"class"} */
     GrapholTypesEnum["CLASS"] = "class";
     /** @type {"domain-restriction"} */
     GrapholTypesEnum["DOMAIN_RESTRICTION"] = "domain-restriction";
@@ -151,8 +150,6 @@ var GrapholTypesEnum;
     GrapholTypesEnum["DIFFERENT"] = "different";
     /** @type {"membership"} */
     GrapholTypesEnum["MEMBERSHIP"] = "membership";
-    /** @type {"class-instance"} */
-    GrapholTypesEnum["CLASS_INSTANCE"] = "class-instance";
 })(GrapholTypesEnum || (GrapholTypesEnum = {}));
 /**
  * Shapes assigned to Graphol nodes. These are [Cytoscape.js shapes](https =//js.cytoscape.org/#style/node-body)
@@ -183,7 +180,11 @@ var Shape;
     Shape["POLYGON"] = "polygon";
 })(Shape || (Shape = {}));
 const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1';
-const GrapholNodesEnum = {
+/**
+ * Enumeration having `type`, `shape` and `identity` for each Graphol node
+ * @type {object}
+ */
+var GrapholNodesEnum = {
     CLASS: {
         TYPE: GrapholTypesEnum.CLASS,
         SHAPE: Shape.RECTANGLE,
@@ -279,11 +280,6 @@ const GrapholNodesEnum = {
         SHAPE: Shape.POLYGON,
         SHAPE_POINTS: POLYGON_POINTS,
         IDENTITY: GrapholTypesEnum.FACET
-    },
-    CLASS_INSTANCE: {
-        TYPE: GrapholTypesEnum.CLASS_INSTANCE,
-        SHAPE: Shape.ELLIPSE,
-        IDENTITY: GrapholTypesEnum.CLASS_INSTANCE,
     }
 };
 /**
@@ -341,9 +337,6 @@ class Ontology extends AnnotatedElement {
         this.namespaces = [];
         this.diagrams = [];
         this._entities = new Map();
-        // computed only in floaty
-        this.hierarchiesBySubclassMap = new Map();
-        this.hierarchiesBySuperclassMap = new Map();
         /** @type {string} */
         this.name = name;
         /** @type {string} */
@@ -408,8 +401,6 @@ class Ontology extends AnnotatedElement {
     }
     getEntityFromOccurrence(entityOccurrence) {
         const diagram = this.getDiagram(entityOccurrence.diagramId);
-        if (!diagram)
-            return;
         for (let [_, representation] of diagram.representations) {
             const cyElement = representation.cy.$id(entityOccurrence.elementId);
             try {
@@ -596,6 +587,499 @@ const floatyOptions = {
     wheelSensitivity: 0.2,
 };
 
+var FunctionalityEnum;
+(function (FunctionalityEnum) {
+    FunctionalityEnum["functional"] = "functional";
+    FunctionalityEnum["inverseFunctional"] = "inverseFunctional";
+    FunctionalityEnum["transitive"] = "transitive";
+    FunctionalityEnum["symmetric"] = "symmetric";
+    FunctionalityEnum["asymmetric"] = "asymmetric";
+    FunctionalityEnum["reflexive"] = "reflexive";
+    FunctionalityEnum["irreflexive"] = "irreflexive";
+})(FunctionalityEnum || (FunctionalityEnum = {}));
+class GrapholEntity extends AnnotatedElement {
+    constructor(iri, type) {
+        super();
+        this._occurrences = new Map([[RendererStatesEnum.GRAPHOL, []]]);
+        this._functionalities = [];
+        this.iri = iri;
+        this.type = type;
+    }
+    addOccurrence(occurenceId, diagramId, representationKind = RendererStatesEnum.GRAPHOL) {
+        if (!this.occurrences.get(representationKind)) {
+            this.occurrences.set(representationKind, []);
+        }
+        const occurrences = this.occurrences.get(representationKind);
+        if (!(occurrences === null || occurrences === void 0 ? void 0 : occurrences.find(r => r.elementId === occurenceId && r.diagramId === diagramId))) {
+            occurrences.push({
+                elementId: occurenceId,
+                diagramId: diagramId,
+            });
+        }
+    }
+    /**
+     * Get all occurrences of the entity in a given diagram
+     * @param diagramId the diagram in which the entity must occurr
+     * @param representationKind the diagram representation identifier ({@link RendererStatesEnum})
+     * if not set, all representations will be considered
+     * @returns A map with the occurrences in the original Graphol representation and other
+     * replicated occurrences in other diagram representations
+     */
+    getOccurrencesByDiagramId(diagramId, representationKind) {
+        const result = new Map();
+        if (representationKind) {
+            const occurrences = this.occurrences.get(representationKind);
+            if (occurrences) {
+                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
+            }
+        }
+        else {
+            for (let [representationKind, occurrences] of this.occurrences) {
+                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
+            }
+        }
+        return result;
+    }
+    get type() { return this._type; }
+    set type(type) {
+        this._type = type;
+    }
+    /**
+     * Check if entity is of a certain type
+     * @param type
+     */
+    is(type) {
+        return this.type === type;
+    }
+    get occurrences() {
+        return this._occurrences;
+    }
+    set iri(val) {
+        this._iri = val;
+    }
+    get iri() {
+        return this._iri;
+    }
+    get functionalities() {
+        return this._functionalities;
+    }
+    set functionalities(functionalities) {
+        this._functionalities = functionalities;
+    }
+    get datatype() { return this._datatype; }
+    set datatype(datatype) { this._datatype = datatype; }
+    hasFunctionality(functionalityKind) {
+        var _a;
+        return ((_a = this._functionalities) === null || _a === void 0 ? void 0 : _a.includes(functionalityKind)) || false;
+    }
+    hasOccurrenceInDiagram(diagramId, representationKind) {
+        var _a;
+        if (representationKind) {
+            const result = (_a = this.occurrences.get(representationKind)) === null || _a === void 0 ? void 0 : _a.some(occ => occ.diagramId === diagramId);
+            return result === true;
+        }
+        for (let occurrenceInRepresentation of this.occurrences.values()) {
+            if (occurrenceInRepresentation.some(occ => occ.diagramId === diagramId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class GrapholElement {
+    constructor(id) {
+        this.id = id;
+    }
+    get id() { return this._id; }
+    set id(value) {
+        this._id = value;
+    }
+    get type() { return this._type; }
+    set type(type) {
+        this._type = type;
+    }
+    get displayedName() { return this._displayedName; }
+    set displayedName(displayedName) {
+        this._displayedName = displayedName;
+    }
+    get originalId() { return this._originalId; }
+    set originalId(id) { this._originalId = id; }
+    get iri() { return this._iri; }
+    set iri(iri) { this._iri = iri; }
+    /**
+     * Check if node is of a certain type
+     * @param type
+     */
+    is(type) {
+        return this.type === type;
+    }
+    /**
+     *
+     * @returns whether node is an entity
+     */
+    isEntity() {
+        switch (this.type) {
+            case GrapholTypesEnum.CLASS:
+            case GrapholTypesEnum.DATA_PROPERTY:
+            case GrapholTypesEnum.OBJECT_PROPERTY:
+            case GrapholTypesEnum.INDIVIDUAL:
+                return true;
+        }
+        return false;
+    }
+    getCytoscapeRepr(grapholEntity) {
+        const result = {
+            data: {
+                id: this.id,
+                type: this.type || undefined,
+                displayedName: this.displayedName || undefined,
+                originalId: this.originalId || undefined,
+                iri: this.iri || (grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.iri.fullIri),
+                datatype: grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.datatype,
+            }
+        };
+        // Set functionality for data/object properties
+        if ((grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.is(GrapholTypesEnum.DATA_PROPERTY)) || (grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.is(GrapholTypesEnum.OBJECT_PROPERTY))) {
+            result.data[FunctionalityEnum.functional] = grapholEntity.hasFunctionality(FunctionalityEnum.functional);
+            result.data[FunctionalityEnum.inverseFunctional] = grapholEntity.hasFunctionality(FunctionalityEnum.inverseFunctional);
+        }
+        return [result];
+    }
+    clone() {
+        const cloneObj = new GrapholElement(this.id);
+        Object.assign(cloneObj, this);
+        return cloneObj;
+    }
+}
+
+class GrapholEdge extends GrapholElement {
+    constructor(id) {
+        super(id);
+        this._breakpoints = [];
+    }
+    addBreakPoint(breakpoint) {
+        if (!this._breakpoints)
+            this._breakpoints = [];
+        this._breakpoints.push(breakpoint);
+    }
+    computeBreakpointsDistancesWeights(sourcePosition, targetPosition) {
+        this.breakpoints.forEach(breakpoint => {
+            breakpoint.setSourceTarget(sourcePosition, targetPosition);
+        });
+    }
+    get sourceEndpoint() {
+        return this._sourceEndpoint;
+    }
+    set sourceEndpoint(endpoint) {
+        if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
+            this._sourceEndpoint = endpoint;
+    }
+    get targetEndpoint() {
+        return this._targetEndpoint;
+    }
+    set targetEndpoint(endpoint) {
+        if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
+            this._targetEndpoint = endpoint;
+    }
+    /**
+     * Returns an array of mid-edge breakpoints (without source/target endpoints)
+     */
+    get breakpoints() {
+        return this._breakpoints.slice(1, -1);
+    }
+    /**
+     * Returns an array of all the breakpoints (including source/target endpoints)
+     */
+    get controlpoints() {
+        return this._breakpoints;
+    }
+    set controlpoints(newControlPoints) {
+        this._breakpoints = newControlPoints;
+    }
+    get sourceId() {
+        return this._sourceId;
+    }
+    set sourceId(sourceId) {
+        this._sourceId = sourceId;
+    }
+    get targetId() {
+        return this._targetId;
+    }
+    set targetId(targetId) {
+        this._targetId = targetId;
+    }
+    get targetLabel() {
+        return this._targetLabel;
+    }
+    set targetLabel(targetLabel) {
+        this._targetLabel = targetLabel;
+    }
+    get sourceLabel() {
+        return this._sourceLabel;
+    }
+    set sourceLabel(sourceLabel) {
+        this._sourceLabel = sourceLabel;
+    }
+    get type() { return super.type; }
+    set type(newType) {
+        super.type = newType;
+        if (this.is(GrapholTypesEnum.SAME) || this.is(GrapholTypesEnum.DIFFERENT))
+            this.displayedName = this.type;
+    }
+    getCytoscapeRepr(grapholEntity) {
+        let result = super.getCytoscapeRepr(grapholEntity);
+        Object.assign(result[0].data, {
+            type: this.type || undefined,
+            source: this.sourceId,
+            target: this.targetId,
+            sourceLabel: this.sourceLabel || undefined,
+            targetLabel: this.targetLabel || undefined,
+            sourceEndpoint: this.sourceEndpoint ? [this.sourceEndpoint.x, this.sourceEndpoint.y] : undefined,
+            targetEndpoint: this.targetEndpoint ? [this.targetEndpoint.x, this.targetEndpoint.y] : undefined,
+            segmentDistances: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.distance) : undefined,
+            segmentWeights: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.weight) : undefined,
+        });
+        result[0].classes = this.type.toString();
+        return result;
+    }
+    clone() {
+        const cloneObj = new GrapholEdge(this.id);
+        Object.assign(cloneObj, this);
+        return cloneObj;
+    }
+}
+function isGrapholEdge(elem) {
+    return elem.sourceId !== undefined;
+}
+
+const LABEL_HEIGHT = 23;
+class GrapholNode extends GrapholElement {
+    constructor() {
+        super(...arguments);
+        this._x = 0;
+        this._y = 0;
+        this._labelHeight = LABEL_HEIGHT;
+    }
+    get position() { return { x: this.x, y: this.y }; }
+    set position(pos) {
+        this._x = pos.x;
+        this._y = pos.y;
+    }
+    get x() { return this._x; }
+    set x(valX) { this._x = valX; }
+    get y() { return this._y; }
+    set y(valY) { this._y = valY; }
+    get shape() { return this._shape; }
+    set shape(shape) {
+        this._shape = shape;
+    }
+    get identity() { return this._identity; }
+    set identity(identity) {
+        this._identity = identity;
+    }
+    get width() { return this._width; }
+    set width(width) {
+        this._width = width >= 0 ? width : -width;
+    }
+    get height() { return this._height; }
+    set height(height) {
+        this._height = height >= 0 ? height : -height;
+        if (this.type === GrapholTypesEnum.FACET) {
+            this._height = 40;
+        }
+    }
+    get fillColor() { return this._fillColor; }
+    set fillColor(fillColor) {
+        this._fillColor = fillColor;
+    }
+    get labelXpos() { return this._labelXpos; }
+    set labelXpos(labelXpos) {
+        this._labelXpos = labelXpos;
+    }
+    setLabelXposFromXML(labelXpos) {
+        if (labelXpos === this.position.x) {
+            this._labelXcentered = true;
+            this.labelXpos = 0;
+        }
+        else {
+            this.labelXpos = labelXpos - this.position.x + 1;
+        }
+    }
+    get labelHeight() { return this._labelHeight; }
+    set labelHeight(value) {
+        this._labelHeight = value;
+    }
+    get labelYpos() { return this._labelYpos; }
+    set labelYpos(labelYpos) {
+        this._labelYpos = labelYpos;
+    }
+    setLabelYposFromXML(labelYpos) {
+        if (labelYpos === this.position.y) {
+            this._labelYcentered = true;
+            this.labelYpos = 0;
+        }
+        else {
+            this.labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4;
+        }
+    }
+    get isLabelXcentered() { return this._labelXcentered; }
+    get isLabelYcentered() { return this._labelYcentered; }
+    get fontSize() { return this._fontSize; }
+    set fontSize(value) {
+        this._fontSize = value;
+    }
+    get inputs() { return this._inputs; }
+    set inputs(inputs) {
+        this._inputs = inputs;
+    }
+    get shapePoints() { return this._shapePoints; }
+    set shapePoints(shapePoints) {
+        this._shapePoints = shapePoints;
+    }
+    get fakeNodes() { return this._fakeNodes; }
+    addFakeNode(newFakeNode) {
+        if (!this._fakeNodes)
+            this._fakeNodes = [];
+        this._fakeNodes.push(newFakeNode);
+    }
+    getCytoscapeRepr(grapholEntity) {
+        const fakeNodesCytoscapeRepr = [];
+        const thisCytoscapeRepr = super.getCytoscapeRepr(grapholEntity);
+        thisCytoscapeRepr[0].position = this.position;
+        Object.assign(thisCytoscapeRepr[0].data, {
+            shape: this.shape || undefined,
+            height: this.height || undefined,
+            width: this.width || undefined,
+            fillColor: this.fillColor || undefined,
+            shapePoints: this.shapePoints || undefined,
+            labelXpos: this.labelXpos || this.labelXpos == 0 ? this.labelXpos : undefined,
+            labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,
+            labelXcentered: this.isLabelXcentered,
+            labelYcentered: this.isLabelYcentered,
+            identity: this.identity,
+        });
+        thisCytoscapeRepr[0].classes = this.type.toString();
+        if (this.fakeNodes) {
+            this.fakeNodes.forEach(fakeNode => {
+                const fakeCyNode = fakeNode.getCytoscapeRepr(grapholEntity);
+                fakeNodesCytoscapeRepr.push(...fakeCyNode);
+            });
+        }
+        return [...fakeNodesCytoscapeRepr, ...thisCytoscapeRepr];
+    }
+    clone() {
+        const cloneObj = new GrapholNode(this.id);
+        Object.assign(cloneObj, this);
+        return cloneObj;
+    }
+}
+function isGrapholNode(elem) {
+    return elem.shape !== undefined;
+}
+
+class DiagramRepresentation {
+    constructor(cyConfig = cytoscapeDefaultConfig) {
+        this._grapholElements = new Map();
+        this._hasEverBeenRendered = false;
+        this.cy = cytoscape(cyConfig);
+    }
+    get cy() {
+        return this._cy;
+    }
+    set cy(newCy) {
+        this._cy = newCy;
+    }
+    get hasEverBeenRendered() {
+        return this._hasEverBeenRendered;
+    }
+    set hasEverBeenRendered(value) {
+        this._hasEverBeenRendered = value;
+    }
+    /**
+     * Add a new element (node or edge) to the diagram
+     * @param newElement the GrapholElement to add to the diagram
+     */
+    addElement(newElement, grapholEntity) {
+        this.grapholElements.set(newElement.id, newElement);
+        // Every elem can have a set of fake elements to build a custom shape
+        const cyElems = newElement.getCytoscapeRepr(grapholEntity);
+        this.cy.add(cyElems);
+    }
+    removeElement(elementId) {
+        this.grapholElements.delete(elementId);
+        this.cy.$id(elementId).remove();
+    }
+    updateElement(elementIdOrObj) {
+        let grapholElement;
+        if (typeof elementIdOrObj === 'string') {
+            grapholElement = this.grapholElements.get(elementIdOrObj);
+        }
+        else {
+            grapholElement = elementIdOrObj;
+        }
+        if (!grapholElement)
+            return;
+        const cyElement = this.cy.$id(grapholElement.id);
+        if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+            cyElement.position(grapholElement.position);
+        }
+        if (isGrapholEdge(grapholElement)) {
+            cyElement.move({
+                source: grapholElement.sourceId,
+                target: grapholElement.targetId
+            });
+        }
+        const iri = cyElement.data().iri;
+        cyElement.data(grapholElement.getCytoscapeRepr()[0].data);
+        // iri should be always preserved
+        cyElement.data().iri = iri;
+    }
+    get grapholElements() {
+        return this._grapholElements;
+    }
+    set grapholElements(newElementMap) {
+        this._grapholElements = newElementMap;
+    }
+    /**
+     * Getter
+     */
+    get nodes() {
+        return this.cy.nodes().jsons();
+    }
+    /**
+     * Getter
+     */
+    get edges() {
+        return this.cy.edges().jsons();
+    }
+}
+
+/**
+ * @property {string} name - diagram's name
+ * @property {string | number} id - diagram's identifier
+ */
+class Diagram {
+    /**
+     * @param {string} name
+     * @param {number} id
+     */
+    constructor(name, id) {
+        this.representations = new Map([[RendererStatesEnum.GRAPHOL, new DiagramRepresentation()]]);
+        this.name = name;
+        this.id = id;
+        this.representations.set(RendererStatesEnum.GRAPHOL, new DiagramRepresentation());
+    }
+    /**
+     * Add a new element (node or edge) to the diagram's representation
+     * @param newElement the GrapholElement to add to the diagram
+     */
+    addElement(newElement, grapholEntity) {
+        var _a;
+        (_a = this.representations.get(RendererStatesEnum.GRAPHOL)) === null || _a === void 0 ? void 0 : _a.addElement(newElement, grapholEntity);
+    }
+}
+
 var WidgetEnum;
 (function (WidgetEnum) {
     WidgetEnum["DIAGRAM_SELECTOR"] = "diagram-selector";
@@ -612,7 +1096,6 @@ var WidgetEnum;
     WidgetEnum["SETTINGS"] = "settings";
     WidgetEnum["ZOOM_TOOLS"] = "zoom-tools";
     WidgetEnum["INITIAL_RENDERER_SELECTOR"] = "initial-renderer-selector";
-    WidgetEnum["INCREMENTAL_MENU"] = "incremental-menu";
 })(WidgetEnum || (WidgetEnum = {}));
 
 const NAMESPACE = 'obda-systems.grapholscape';
@@ -705,427 +1188,6 @@ var EntityNameType;
     EntityNameType["FULL_IRI"] = "fullIri";
 })(EntityNameType || (EntityNameType = {}));
 
-var FunctionalityEnum;
-(function (FunctionalityEnum) {
-    FunctionalityEnum["functional"] = "functional";
-    FunctionalityEnum["inverseFunctional"] = "inverseFunctional";
-    FunctionalityEnum["transitive"] = "transitive";
-    FunctionalityEnum["symmetric"] = "symmetric";
-    FunctionalityEnum["asymmetric"] = "asymmetric";
-    FunctionalityEnum["reflexive"] = "reflexive";
-    FunctionalityEnum["irreflexive"] = "irreflexive";
-})(FunctionalityEnum || (FunctionalityEnum = {}));
-class GrapholEntity extends AnnotatedElement {
-    constructor(iri, type) {
-        super();
-        this._occurrences = new Map([[RendererStatesEnum.GRAPHOL, []]]);
-        this._functionalities = [];
-        this.iri = iri;
-        this.type = type;
-    }
-    addOccurrence(occurenceId, diagramId, representationKind = RendererStatesEnum.GRAPHOL) {
-        if (!this.occurrences.get(representationKind)) {
-            this.occurrences.set(representationKind, []);
-        }
-        const occurrences = this.occurrences.get(representationKind);
-        if (!(occurrences === null || occurrences === void 0 ? void 0 : occurrences.find(r => r.elementId === occurenceId && r.diagramId === diagramId))) {
-            occurrences === null || occurrences === void 0 ? void 0 : occurrences.push({
-                elementId: occurenceId,
-                diagramId: diagramId,
-            });
-        }
-    }
-    removeOccurrence(occurrenceId, diagramId, representationKind) {
-        const occurrences = this.occurrences.get(representationKind);
-        const occurrenceToRemoveIndex = occurrences === null || occurrences === void 0 ? void 0 : occurrences.indexOf({ elementId: occurrenceId, diagramId: diagramId });
-        if (occurrenceToRemoveIndex !== undefined) {
-            occurrences === null || occurrences === void 0 ? void 0 : occurrences.splice(occurrenceToRemoveIndex, 1);
-        }
-    }
-    /**
-     * Get all occurrences of the entity in a given diagram
-     * @param diagramId the diagram in which the entity must occurr
-     * @param representationKind the diagram representation identifier ({@link RendererStatesEnum})
-     * if not set, all representations will be considered
-     * @returns A map with the occurrences in the original Graphol representation and other
-     * replicated occurrences in other diagram representations
-     */
-    getOccurrencesByDiagramId(diagramId, representationKind) {
-        const result = new Map();
-        if (representationKind) {
-            const occurrences = this.occurrences.get(representationKind);
-            if (occurrences) {
-                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
-            }
-        }
-        else {
-            for (let [representationKind, occurrences] of this.occurrences) {
-                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
-            }
-        }
-        return result;
-    }
-    get type() { return this._type; }
-    set type(type) {
-        this._type = type;
-    }
-    /**
-     * Check if entity is of a certain type
-     * @param type
-     */
-    is(type) {
-        return this.type === type;
-    }
-    get occurrences() {
-        return this._occurrences;
-    }
-    set iri(val) {
-        this._iri = val;
-    }
-    get iri() {
-        return this._iri;
-    }
-    get functionalities() {
-        return this._functionalities;
-    }
-    set functionalities(functionalities) {
-        this._functionalities = functionalities;
-    }
-    get datatype() { return this._datatype; }
-    set datatype(datatype) { this._datatype = datatype; }
-    hasFunctionality(functionalityKind) {
-        var _a;
-        return ((_a = this._functionalities) === null || _a === void 0 ? void 0 : _a.includes(functionalityKind)) || false;
-    }
-    hasOccurrenceInDiagram(diagramId, representationKind) {
-        var _a;
-        if (representationKind) {
-            const result = (_a = this.occurrences.get(representationKind)) === null || _a === void 0 ? void 0 : _a.some(occ => occ.diagramId === diagramId);
-            return result === true;
-        }
-        for (let occurrenceInRepresentation of this.occurrences.values()) {
-            if (occurrenceInRepresentation.some(occ => occ.diagramId === diagramId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    getDisplayedName(nameType, actualLanguage, defaultLanguage) {
-        var _a, _b, _c;
-        let newDisplayedName;
-        switch (nameType) {
-            case EntityNameType.LABEL:
-                newDisplayedName =
-                    ((_a = this.getLabels(actualLanguage)[0]) === null || _a === void 0 ? void 0 : _a.lexicalForm) ||
-                        ((_b = this.getLabels(defaultLanguage)[0]) === null || _b === void 0 ? void 0 : _b.lexicalForm) ||
-                        ((_c = this.getLabels()[0]) === null || _c === void 0 ? void 0 : _c.lexicalForm) ||
-                        this.iri.remainder;
-                break;
-            case EntityNameType.PREFIXED_IRI:
-                newDisplayedName = this.iri.prefixed;
-                break;
-            case EntityNameType.FULL_IRI:
-                newDisplayedName = this.iri.fullIri;
-                break;
-        }
-        if (this.is(GrapholTypesEnum.CLASS) || this.is(GrapholTypesEnum.INDIVIDUAL))
-            return newDisplayedName.replace(/\r?\n|\r/g, '');
-        else
-            return newDisplayedName;
-    }
-    getEntityOriginalNodeId() {
-        const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL);
-        if (grapholRepresentationOccurrences) {
-            return grapholRepresentationOccurrences[0].elementId; // used in UI to show the original nodeID in graphol
-        }
-    }
-}
-
-class GrapholElement {
-    constructor(_id, _type) {
-        this._id = _id;
-        this._type = _type;
-    }
-    get id() { return this._id; }
-    set id(value) {
-        this._id = value;
-    }
-    get type() { return this._type; }
-    set type(type) {
-        this._type = type;
-    }
-    get displayedName() { return this._displayedName; }
-    set displayedName(displayedName) {
-        this._displayedName = displayedName;
-    }
-    get originalId() { return this._originalId; }
-    set originalId(id) { this._originalId = id; }
-    get iri() { return this._iri; }
-    set iri(iri) { this._iri = iri; }
-    /**
-     * Check if node is of a certain type
-     * @param type
-     */
-    is(type) {
-        return this.type === type;
-    }
-    /**
-     *
-     * @returns whether node is an entity
-     */
-    isEntity() {
-        switch (this.type) {
-            case GrapholTypesEnum.CLASS:
-            case GrapholTypesEnum.DATA_PROPERTY:
-            case GrapholTypesEnum.OBJECT_PROPERTY:
-            case GrapholTypesEnum.INDIVIDUAL:
-            case GrapholTypesEnum.CLASS_INSTANCE:
-                return true;
-        }
-        return false;
-    }
-    getCytoscapeRepr(grapholEntity) {
-        const result = {
-            data: {
-                id: this.id,
-                type: this.type || undefined,
-                displayedName: this.displayedName || undefined,
-                originalId: this.originalId || undefined,
-                iri: this.iri || (grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.iri.fullIri),
-                datatype: grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.datatype,
-            }
-        };
-        // Set functionality for data/object properties
-        if ((grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.is(GrapholTypesEnum.DATA_PROPERTY)) || (grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.is(GrapholTypesEnum.OBJECT_PROPERTY))) {
-            result.data[FunctionalityEnum.functional] = grapholEntity.hasFunctionality(FunctionalityEnum.functional);
-            result.data[FunctionalityEnum.inverseFunctional] = grapholEntity.hasFunctionality(FunctionalityEnum.inverseFunctional);
-        }
-        return [result];
-    }
-    clone() {
-        const cloneObj = new GrapholElement(this.id, this.type);
-        Object.assign(cloneObj, this);
-        return cloneObj;
-    }
-}
-
-class GrapholEdge extends GrapholElement {
-    constructor(id, type) {
-        super(id, type);
-        this._breakpoints = [];
-    }
-    addBreakPoint(breakpoint) {
-        if (!this._breakpoints)
-            this._breakpoints = [];
-        this._breakpoints.push(breakpoint);
-    }
-    computeBreakpointsDistancesWeights(sourcePosition, targetPosition) {
-        this.breakpoints.forEach(breakpoint => {
-            breakpoint.setSourceTarget(sourcePosition, targetPosition);
-        });
-    }
-    get sourceEndpoint() {
-        return this._sourceEndpoint;
-    }
-    set sourceEndpoint(endpoint) {
-        if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
-            this._sourceEndpoint = endpoint;
-    }
-    get targetEndpoint() {
-        return this._targetEndpoint;
-    }
-    set targetEndpoint(endpoint) {
-        if (!endpoint || endpoint.x !== 0 || endpoint.y !== 0)
-            this._targetEndpoint = endpoint;
-    }
-    /**
-     * Returns an array of mid-edge breakpoints (without source/target endpoints)
-     */
-    get breakpoints() {
-        return this._breakpoints.slice(1, -1);
-    }
-    /**
-     * Returns an array of all the breakpoints (including source/target endpoints)
-     */
-    get controlpoints() {
-        return this._breakpoints;
-    }
-    set controlpoints(newControlPoints) {
-        this._breakpoints = newControlPoints;
-    }
-    get sourceId() {
-        return this._sourceId;
-    }
-    set sourceId(sourceId) {
-        this._sourceId = sourceId;
-    }
-    get targetId() {
-        return this._targetId;
-    }
-    set targetId(targetId) {
-        this._targetId = targetId;
-    }
-    get targetLabel() {
-        return this._targetLabel;
-    }
-    set targetLabel(targetLabel) {
-        this._targetLabel = targetLabel;
-    }
-    get sourceLabel() {
-        return this._sourceLabel;
-    }
-    set sourceLabel(sourceLabel) {
-        this._sourceLabel = sourceLabel;
-    }
-    get type() { return super.type; }
-    set type(newType) {
-        super.type = newType;
-        if (this.is(GrapholTypesEnum.SAME) || this.is(GrapholTypesEnum.DIFFERENT))
-            this.displayedName = this.type;
-    }
-    getCytoscapeRepr(grapholEntity) {
-        let result = super.getCytoscapeRepr(grapholEntity);
-        Object.assign(result[0].data, {
-            type: this.type || undefined,
-            source: this.sourceId,
-            target: this.targetId,
-            sourceLabel: this.sourceLabel || undefined,
-            targetLabel: this.targetLabel || undefined,
-            sourceEndpoint: this.sourceEndpoint ? [this.sourceEndpoint.x, this.sourceEndpoint.y] : undefined,
-            targetEndpoint: this.targetEndpoint ? [this.targetEndpoint.x, this.targetEndpoint.y] : undefined,
-            segmentDistances: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.distance) : undefined,
-            segmentWeights: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.weight) : undefined,
-        });
-        result[0].classes = this.type.toString();
-        return result;
-    }
-    clone() {
-        const cloneObj = new GrapholEdge(this.id, this.type);
-        Object.assign(cloneObj, this);
-        return cloneObj;
-    }
-}
-function isGrapholEdge(elem) {
-    return elem.sourceId !== undefined;
-}
-
-class DiagramRepresentation {
-    constructor(cyConfig = cytoscapeDefaultConfig) {
-        this._grapholElements = new Map();
-        this._hasEverBeenRendered = false;
-        this.cy = cytoscape(cyConfig);
-    }
-    get cy() {
-        return this._cy;
-    }
-    set cy(newCy) {
-        this._cy = newCy;
-    }
-    get hasEverBeenRendered() {
-        return this._hasEverBeenRendered;
-    }
-    set hasEverBeenRendered(value) {
-        this._hasEverBeenRendered = value;
-    }
-    /**
-     * Add a new element (node or edge) to the diagram
-     * @param newElement the GrapholElement to add to the diagram
-     */
-    addElement(newElement, grapholEntity) {
-        this.grapholElements.set(newElement.id, newElement);
-        // Every elem can have a set of fake elements to build a custom shape
-        const cyElems = newElement.getCytoscapeRepr(grapholEntity);
-        this.cy.add(cyElems);
-    }
-    removeElement(elementId) {
-        this.grapholElements.delete(elementId);
-        this.cy.$id(elementId).remove();
-    }
-    updateElement(elementIdOrObj) {
-        let grapholElement;
-        if (typeof elementIdOrObj === 'string') {
-            grapholElement = this.grapholElements.get(elementIdOrObj);
-        }
-        else {
-            grapholElement = elementIdOrObj;
-        }
-        if (!grapholElement)
-            return;
-        const cyElement = this.cy.$id(grapholElement.id);
-        // if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-        //   // cyElement.position(grapholElement.position)
-        // }
-        if (isGrapholEdge(grapholElement)) {
-            cyElement.move({
-                source: grapholElement.sourceId,
-                target: grapholElement.targetId
-            });
-        }
-        const iri = cyElement.data().iri;
-        cyElement.data(grapholElement.getCytoscapeRepr()[0].data);
-        // iri should be always preserved
-        cyElement.data().iri = iri;
-    }
-    containsEntity(iriOrGrapholEntity) {
-        let iri;
-        if (iriOrGrapholEntity.iri !== undefined) {
-            iri = iriOrGrapholEntity.iri;
-        }
-        else {
-            iri = iriOrGrapholEntity;
-        }
-        for (let [_, grapholElement] of this.grapholElements) {
-            if (grapholElement.iri && iri.equals(grapholElement.iri)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    get grapholElements() {
-        return this._grapholElements;
-    }
-    set grapholElements(newElementMap) {
-        this._grapholElements = newElementMap;
-    }
-    /**
-     * Getter
-     */
-    get nodes() {
-        return this.cy.nodes().jsons();
-    }
-    /**
-     * Getter
-     */
-    get edges() {
-        return this.cy.edges().jsons();
-    }
-}
-
-/**
- * @property {string} name - diagram's name
- * @property {string | number} id - diagram's identifier
- */
-class Diagram {
-    /**
-     * @param {string} name
-     * @param {number} id
-     */
-    constructor(name, id) {
-        this.representations = new Map([[RendererStatesEnum.GRAPHOL, new DiagramRepresentation()]]);
-        this.name = name;
-        this.id = id;
-        this.representations.set(RendererStatesEnum.GRAPHOL, new DiagramRepresentation());
-    }
-    /**
-     * Add a new element (node or edge) to the diagram's representation
-     * @param newElement the GrapholElement to add to the diagram
-     */
-    addElement(newElement, grapholEntity) {
-        var _a;
-        (_a = this.representations.get(RendererStatesEnum.GRAPHOL)) === null || _a === void 0 ? void 0 : _a.addElement(newElement, grapholEntity);
-    }
-}
-
 class IncrementalDiagram extends Diagram {
     constructor() {
         super('Incremental', -1);
@@ -1138,10 +1200,6 @@ class IncrementalDiagram extends Diagram {
     removeElement(elementId) {
         var _a;
         (_a = this.representation) === null || _a === void 0 ? void 0 : _a.removeElement(elementId);
-    }
-    containsEntity(iriOrGrapholEntity) {
-        var _a;
-        return (_a = this.representation) === null || _a === void 0 ? void 0 : _a.containsEntity(iriOrGrapholEntity);
     }
     get representation() {
         return this.representations.get(RendererStatesEnum.INCREMENTAL);
@@ -1194,7 +1252,7 @@ class Namespace {
 }
 
 class Iri {
-    constructor(iri, namespaces, remainder) {
+    constructor(iri, namespaces) {
         let isPrefixed = false;
         this.namespace = namespaces.find(n => {
             if (iri.includes(n.toString()))
@@ -1206,31 +1264,12 @@ class Iri {
                 }
             }
         });
-        if (remainder) {
-            this.remainder = remainder;
-            const ns = iri.split(remainder)[0];
-            if (iri === ns.concat(remainder)) {
-                this.namespace = new Namespace([], ns);
-            }
-            else {
-                this.remainder = iri;
-            }
+        if (!this.namespace) {
+            console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`);
+            this.remainder = iri;
         }
         else {
-            if (!this.namespace) {
-                console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`);
-                // try {
-                //   const uri = new URL(iri)
-                //   this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
-                //   this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
-                // } catch (e) {
-                //   this.remainder = iri
-                // }
-                this.remainder = iri;
-            }
-            else {
-                this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length);
-            }
+            this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length);
         }
     }
     set remainder(value) {
@@ -1257,9 +1296,6 @@ class Iri {
         return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`;
     }
     equals(iriToCheck) {
-        if (typeof iriToCheck !== 'string') {
-            iriToCheck = iriToCheck.fullIri;
-        }
         if (this.fullIri === iriToCheck || this.prefixed === iriToCheck)
             return true;
         if (!this.namespace)
@@ -1396,9 +1432,6 @@ var ColoursNames;
     ColoursNames["label_contrast"] = "label-contrast";
     /** Edges lines color */
     ColoursNames["edge"] = "edge";
-    // Instances Colors
-    ColoursNames["class_instance"] = "class-instance";
-    ColoursNames["class_instance_contrast"] = "class-instance-contrast";
 })(ColoursNames || (ColoursNames = {}));
 
 var DefaultThemesEnum;
@@ -1450,9 +1483,6 @@ const gscapeColourMap = {
     [ColoursNames.danger]: '#cf222e',
     [ColoursNames.danger_muted]: 'rgba(255, 129, 130, 0.4)',
     [ColoursNames.danger_subtle]: '#FFEBE9',
-    // Instance Colours
-    [ColoursNames.class_instance]: '#ffa348',
-    [ColoursNames.class_instance_contrast]: '#c64600'
 };
 const classicColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap)), {
     [ColoursNames.bg_graph]: '#fafafa',
@@ -1588,137 +1618,7 @@ const getDefaultFilters = () => {
     };
 };
 
-const LABEL_HEIGHT = 23;
-class GrapholNode extends GrapholElement {
-    constructor() {
-        super(...arguments);
-        this._x = 0;
-        this._y = 0;
-        this._labelHeight = LABEL_HEIGHT;
-    }
-    get position() { return { x: this.x, y: this.y }; }
-    set position(pos) {
-        this._x = pos.x;
-        this._y = pos.y;
-    }
-    get x() { return this._x; }
-    set x(valX) { this._x = valX; }
-    get y() { return this._y; }
-    set y(valY) { this._y = valY; }
-    get shape() { return this._shape; }
-    set shape(shape) {
-        this._shape = shape;
-    }
-    get identity() { return this._identity; }
-    set identity(identity) {
-        this._identity = identity;
-    }
-    get width() { return this._width; }
-    set width(width) {
-        this._width = width >= 0 ? width : -width;
-    }
-    get height() { return this._height; }
-    set height(height) {
-        this._height = height >= 0 ? height : -height;
-        if (this.type === GrapholTypesEnum.FACET) {
-            this._height = 40;
-        }
-    }
-    get fillColor() { return this._fillColor; }
-    set fillColor(fillColor) {
-        this._fillColor = fillColor;
-    }
-    get labelXpos() { return this._labelXpos; }
-    set labelXpos(labelXpos) {
-        this._labelXpos = labelXpos;
-    }
-    setLabelXposFromXML(labelXpos) {
-        if (labelXpos === this.position.x) {
-            this._labelXcentered = true;
-            this.labelXpos = 0;
-        }
-        else {
-            this.labelXpos = labelXpos - this.position.x + 1;
-        }
-    }
-    get labelHeight() { return this._labelHeight; }
-    set labelHeight(value) {
-        this._labelHeight = value;
-    }
-    get labelYpos() { return this._labelYpos; }
-    set labelYpos(labelYpos) {
-        this._labelYpos = labelYpos;
-    }
-    setLabelYposFromXML(labelYpos) {
-        if (labelYpos === this.position.y) {
-            this._labelYcentered = true;
-            this.labelYpos = 0;
-        }
-        else {
-            this.labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4;
-        }
-    }
-    get isLabelXcentered() { return this._labelXcentered; }
-    get isLabelYcentered() { return this._labelYcentered; }
-    get fontSize() { return this._fontSize; }
-    set fontSize(value) {
-        this._fontSize = value;
-    }
-    get inputs() { return this._inputs; }
-    set inputs(inputs) {
-        this._inputs = inputs;
-    }
-    get shapePoints() { return this._shapePoints; }
-    set shapePoints(shapePoints) {
-        this._shapePoints = shapePoints;
-    }
-    get fakeNodes() { return this._fakeNodes; }
-    addFakeNode(newFakeNode) {
-        if (!this._fakeNodes)
-            this._fakeNodes = [];
-        this._fakeNodes.push(newFakeNode);
-    }
-    getCytoscapeRepr(grapholEntity) {
-        const fakeNodesCytoscapeRepr = [];
-        const thisCytoscapeRepr = super.getCytoscapeRepr(grapholEntity);
-        thisCytoscapeRepr[0].position = this.position;
-        Object.assign(thisCytoscapeRepr[0].data, {
-            shape: this.shape || undefined,
-            height: this.height || undefined,
-            width: this.width || undefined,
-            fillColor: this.fillColor || undefined,
-            shapePoints: this.shapePoints || undefined,
-            labelXpos: this.labelXpos || this.labelXpos == 0 ? this.labelXpos : undefined,
-            labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,
-            labelXcentered: this.isLabelXcentered,
-            labelYcentered: this.isLabelYcentered,
-            identity: this.identity,
-        });
-        if (!this.type)
-            console.log(this);
-        thisCytoscapeRepr[0].classes = this.type.toString();
-        if (this.fakeNodes) {
-            this.fakeNodes.forEach(fakeNode => {
-                const fakeCyNode = fakeNode.getCytoscapeRepr(grapholEntity);
-                fakeNodesCytoscapeRepr.push(...fakeCyNode);
-            });
-        }
-        return [...fakeNodesCytoscapeRepr, ...thisCytoscapeRepr];
-    }
-    clone() {
-        const cloneObj = new GrapholNode(this.id, this.type);
-        Object.assign(cloneObj, this);
-        return cloneObj;
-    }
-}
-function isGrapholNode(elem) {
-    return elem.shape !== undefined;
-}
-
 class BaseFilterManager {
-    constructor() {
-        this.lockedFilters = [];
-    }
     filterActivation(filter) {
         if (filter.active) {
             console.warn(`Filter with key = "${filter.key} is already active`);
@@ -1739,16 +1639,6 @@ class BaseFilterManager {
             return false;
         }
         return true;
-    }
-    get filters() { return this._filters; }
-    set filters(filters) {
-        this._filters = filters;
-        filters.forEach(filter => {
-            if (this.lockedFilters.includes(filter.key))
-                filter === null || filter === void 0 ? void 0 : filter.lock();
-            else
-                filter === null || filter === void 0 ? void 0 : filter.unlock();
-        });
     }
 }
 
@@ -1876,8 +1766,8 @@ class Lifecycle {
 
 class Breakpoint {
     constructor(x, y) {
-        this.intersectionPoint = { x: 0, y: 0 };
-        this.breakpointRelativeToSource = { x: 0, y: 0 };
+        this.intersectionPoint = { x: null, y: null };
+        this.breakpointRelativeToSource = { x: null, y: null };
         this.x = x || 0;
         this.y = y || 0;
     }
@@ -1987,80 +1877,9 @@ function getDisance(point1, point2) {
     return Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
 }
 
-class Hierarchy {
-    constructor(type) {
-        this.type = type;
-        this._inputs = [];
-        this._superclasses = [];
-    }
-    addInput(classIri) {
-        this.inputs.push(classIri);
-    }
-    addSuperclass(classIri, complete = false) {
-        this._superclasses.push({ classIri: classIri, complete: complete });
-    }
-    get inputs() { return this._inputs; }
-    get superclasses() { return this._superclasses; }
-    set id(newId) { this._id = newId; }
-    get id() { return this._id; }
-    getUnionGrapholNode(position) {
-        if (!this.isValid()) {
-            console.warn('[Grapholscape] Hierarchy not valid, cannot create the union graphol node - check id, inputs and superclasses');
-            return;
-        }
-        const unionNode = new GrapholNode(this._id, GrapholTypesEnum.CLASS);
-        unionNode.type = this.type;
-        unionNode.identity = GrapholTypesEnum.CLASS;
-        unionNode.shape = Shape.ELLIPSE;
-        unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined;
-        unionNode.height = unionNode.width = 30;
-        unionNode.position = position;
-        unionNode.setLabelXposFromXML(position.x);
-        unionNode.setLabelYposFromXML(position.y);
-        return unionNode;
-    }
-    getInputGrapholEdges() {
-        if (!this.isValid()) {
-            console.warn('[Grapholscape] Hierarchy not valid, cannot create input edges - check id, inputs and superclasses');
-            return;
-        }
-        const res = [];
-        this.inputs.forEach((inputClassIri, i) => {
-            const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`, GrapholTypesEnum.INPUT);
-            newInputEdge.sourceId = inputClassIri;
-            newInputEdge.targetId = this._id;
-            res.push(newInputEdge);
-        });
-        return res;
-    }
-    getInclusionEdges() {
-        if (!this.isValid()) {
-            console.warn('[Grapholscape] Hierarchy not valid, cannot create inclusions edges - check id, inputs and superclasses');
-            return;
-        }
-        const res = [];
-        this._superclasses.forEach((superclass, i) => {
-            const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`, this.type);
-            newInclusionEdge.sourceId = this._id;
-            newInclusionEdge.targetId = superclass.classIri;
-            if (superclass.complete) {
-                newInclusionEdge.targetLabel = 'C';
-            }
-            res.push(newInclusionEdge);
-        });
-        return res;
-    }
-    isDisjoint() {
-        return this.type === GrapholTypesEnum.DISJOINT_UNION;
-    }
-    isValid() {
-        return this._id && this.inputs.length > 0 && this._superclasses.length > 0;
-    }
-}
-
 class FakeGrapholNode extends GrapholNode {
     constructor(originalNode) {
-        super(originalNode.id, originalNode.type);
+        super(originalNode.id);
         Object.assign(this, originalNode);
         this.shape = Shape.POLYGON;
         this._fakeNodes = [];
@@ -2617,7 +2436,6 @@ class GrapholParser {
             throw new Error(`Graphol version [${this.graphol_ver}] not supported`);
     }
     parseGraphol() {
-        var _a;
         this.ontology = this.graphol.getOntologyInfo(this.xmlDocument);
         this.ontology.namespaces = this.graphol.getNamespaces(this.xmlDocument);
         let i, k, nodes, edges;
@@ -2630,24 +2448,46 @@ class GrapholParser {
             // Create JSON for each node to be added to the collection
             for (k = 0; k < nodes.length; k++) {
                 const nodeXmlElement = nodes[k];
-                const grapholNodeType = (_a = this.getGrapholNodeInfo(nodeXmlElement)) === null || _a === void 0 ? void 0 : _a.TYPE;
+                const grapholNodeType = this.getGrapholNodeType(nodeXmlElement);
                 const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i);
-                if (!node)
-                    continue;
                 let grapholEntity;
-                if (node.isEntity() && grapholNodeType) {
+                if (node.isEntity()) {
                     const iri = this.graphol.getIri(nodeXmlElement, this.ontology);
                     if (iri) {
                         grapholEntity = this.ontology.entities.get(iri.fullIri);
                         if (!grapholEntity) {
-                            grapholEntity = new GrapholEntity(iri, grapholNodeType);
+                            grapholEntity = new GrapholEntity(iri, grapholNodeType.TYPE);
                             this.ontology.addEntity(grapholEntity);
                         }
                         grapholEntity.addOccurrence(node.id, diagram.id);
                         grapholEntity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument);
                         grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument);
                         // APPLY DISPLAYED NAME FROM LABELS
-                        node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined, this.ontology.languages.default);
+                        if (grapholEntity.getLabels().length > 0) {
+                            // try to apply default language label as displayed name
+                            const labelInDefaultLanguage = grapholEntity.getLabels(this.ontology.languages.default)[0];
+                            if (labelInDefaultLanguage) {
+                                node.displayedName = labelInDefaultLanguage.lexicalForm;
+                            }
+                            else {
+                                // otherwise pick the first language available
+                                for (let lang of this.ontology.languages.list) {
+                                    const labels = grapholEntity.getLabels(lang);
+                                    if ((labels === null || labels === void 0 ? void 0 : labels.length) > 0) {
+                                        node.displayedName = labels[0].lexicalForm;
+                                        break;
+                                    }
+                                }
+                            }
+                            // if still failing, pick the first label you find
+                            if (!node.displayedName) {
+                                node.displayedName = grapholEntity.getLabels()[0].lexicalForm;
+                            }
+                        }
+                        else {
+                            // if no labels defined, apply remainingChars from iri as displayed name
+                            node.displayedName = grapholEntity.iri.remainder;
+                        }
                         // Add fake nodes
                         if (node.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
                             grapholEntity.hasFunctionality(FunctionalityEnum.functional) &&
@@ -2661,7 +2501,7 @@ class GrapholParser {
                 }
                 else {
                     // not an entity, take label from <label> tag or use those for constructor nodes          
-                    switch (node === null || node === void 0 ? void 0 : node.type) {
+                    switch (node.type) {
                         case GrapholTypesEnum.FACET:
                             node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology) || '';
                             break;
@@ -2688,9 +2528,7 @@ class GrapholParser {
             }
             for (k = 0; k < edges.length; k++) {
                 const edgeXmlElement = edges[k];
-                const grapholEdge = this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id);
-                if (grapholEdge)
-                    diagram.addElement(grapholEdge);
+                diagram.addElement(this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id));
             }
         }
         if (i == 0) {
@@ -2701,13 +2539,10 @@ class GrapholParser {
         return this.ontology;
     }
     getBasicGrapholNodeFromXML(element, diagramId) {
-        var _a, _b;
-        const nodeInfoBasedOnType = this.getGrapholNodeInfo(element);
-        if (!nodeInfoBasedOnType) {
-            console.warn(`[GRAPHOL_PARSER]: ${element.getAttribute('type')} is not a Graphol node type`);
-            return;
-        }
-        let grapholNode = new GrapholNode(element.getAttribute('id') || '', nodeInfoBasedOnType.TYPE);
+        var _a;
+        const nodeInfoBasedOnType = this.getGrapholNodeType(element);
+        let grapholNode = new GrapholNode(element.getAttribute('id') || '');
+        grapholNode.type = nodeInfoBasedOnType.TYPE;
         grapholNode.shape = nodeInfoBasedOnType.SHAPE;
         grapholNode.identity = nodeInfoBasedOnType.IDENTITY;
         grapholNode.fillColor = element.getAttribute('color') || '';
@@ -2730,7 +2565,7 @@ class GrapholParser {
             grapholNode.fontSize = parseInt(label.getAttribute('size') || '12');
         }
         if (grapholNode.is(GrapholTypesEnum.FACET)) {
-            grapholNode.shapePoints = (_b = GrapholNodesEnum.FACET) === null || _b === void 0 ? void 0 : _b.SHAPE_POINTS;
+            grapholNode.shapePoints = GrapholNodesEnum.FACET.SHAPE_POINTS;
             grapholNode.fillColor = '#ffffff';
             // Add fake nodes
             //grapholNode.displayedName = grapholNode.displayedName.replace('^^', '\n\n')
@@ -2755,16 +2590,16 @@ class GrapholParser {
         return grapholNode;
     }
     getGrapholEdgeFromXML(edgeXmlElement, diagramId) {
-        const typeKey = Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === edgeXmlElement.getAttribute('type'));
-        if (!typeKey)
-            return;
-        const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id') || '', GrapholTypesEnum[typeKey]);
+        const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id') || '');
         const sourceId = edgeXmlElement.getAttribute('source');
         if (sourceId)
             grapholEdge.sourceId = sourceId;
         const targetId = edgeXmlElement.getAttribute('target');
         if (targetId)
             grapholEdge.targetId = targetId;
+        const typeKey = Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === edgeXmlElement.getAttribute('type'));
+        if (typeKey)
+            grapholEdge.type = GrapholTypesEnum[typeKey];
         // Prendiamo i nodi source e target
         var sourceGrapholNode = this.ontology.getGrapholNode(grapholEdge.sourceId, diagramId);
         var targetGrapholNode = this.ontology.getGrapholNode(grapholEdge.targetId, diagramId);
@@ -2871,7 +2706,6 @@ class GrapholParser {
         // Recursively traverse first input node and return his identity
         // if he is neutral => recursive step
         function findIdentity(node) {
-            var _a;
             var first_input_node = node.incomers('[type = "input"]').sources();
             var identity = first_input_node.data('identity');
             if (identity === GrapholTypesEnum.NEUTRAL) {
@@ -2891,7 +2725,7 @@ class GrapholParser {
                         }
                     case GrapholTypesEnum.ENUMERATION:
                         if (identity === GrapholTypesEnum.INDIVIDUAL) {
-                            return (_a = GrapholNodesEnum.CLASS) === null || _a === void 0 ? void 0 : _a.TYPE;
+                            return GrapholNodesEnum.CLASS.TYPE;
                         }
                         else {
                             return identity;
@@ -2902,19 +2736,19 @@ class GrapholParser {
             }
         }
     }
-    getGrapholNodeInfo(element) {
+    getGrapholNodeType(element) {
         let elementTypeFromXmL = element.getAttribute('type');
         if (!elementTypeFromXmL)
             return;
         switch (elementTypeFromXmL) {
             case 'concept':
-                elementTypeFromXmL = GrapholTypesEnum.CLASS;
+                elementTypeFromXmL = 'class';
                 break;
             case 'role':
-                elementTypeFromXmL = GrapholTypesEnum.OBJECT_PROPERTY;
+                elementTypeFromXmL = 'object-property';
                 break;
             case 'attribute':
-                elementTypeFromXmL = GrapholTypesEnum.DATA_PROPERTY;
+                elementTypeFromXmL = 'data-property';
                 break;
         }
         let nodeTypeKey = Object.keys(GrapholNodesEnum).find(k => GrapholNodesEnum[k].TYPE === elementTypeFromXmL);
@@ -2938,20 +2772,20 @@ const t$1=window,e$2=t$1.ShadowRoot&&(void 0===t$1.ShadyCSS||t$1.ShadyCSS.native
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$2={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$2,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;this.finalize(),(null!==(i=this.h)&&void 0!==i?i:this.h=[]).push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),void 0!==t.h&&(this.h=[...t.h]),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$2).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$2;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.4.2");
+ */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$2={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$2,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;null!==(i=this.h)&&void 0!==i||(this.h=[]),this.h.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$2).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$2;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.4.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t;const i=window,s$1=i.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$1="?"+o$1,l$1=`<${n$1}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p=/"/g,$=/^(?:script|style|textarea|title)$/i,g=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g(1),w=g(2),x=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p:m):d===p||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class C{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C.createElement(v,e),A.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$1)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P(t,i,s=t,e){var o,n,l,h;if(i===x)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P(this,e[s+l],i,l),h===x&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P(this,t,i,0))&&void 0!==s?s:b)===x)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P(this,t);}}const z=i.litHtmlPolyfillSupport;null==z||z(C,N),(null!==(t=i.litHtmlVersions)&&void 0!==t?t:i.litHtmlVersions=[]).push("2.4.0");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
+var t;const i=window,s$1=i.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$1="?"+o$1,l$1=`<${n$1}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p=/"/g,$=/^(?:script|style|textarea|title)$/i,g=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g(1),w=g(2),x=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new S(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},E=h.createTreeWalker(h,129,null,!1),C=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p:m):d===p||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class P{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C(t,i);if(this.el=P.createElement(v,e),E.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=E.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?R:"?"===i[1]?H:"@"===i[1]?I:M});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),E.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$1)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===x)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=V(t,r._$AS(t,i.values),r,e)),i}class N{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);E.currentNode=o;let n=E.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=E.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$C_=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$C_}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.k(t):c(t)?this.O(t):this.$(t);}S(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}k(t){this._$AH!==t&&(this._$AR(),this._$AH=this.S(t));}$(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.k(h.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N(o,this),i=t.p(this.options);t.m(s),this.k(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new P(t)),i}O(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S(this.S(r()),this.S(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$C_=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===x&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.P(t);}P(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class R extends M{constructor(){super(...arguments),this.type=3;}P(t){this.element[this.name]=t===b?void 0:t;}}const k=s$1?s$1.emptyScript:"";class H extends M{constructor(){super(...arguments),this.type=4;}P(t){t&&t!==b?this.element.setAttribute(this.name,k):this.element.removeAttribute(this.name);}}class I extends M{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:b)===x)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const Z=i.litHtmlPolyfillSupport;null==Z||Z(P,S),(null!==(t=i.litHtmlVersions)&&void 0!==t?t:i.litHtmlVersions=[]).push("2.3.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=Z(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
+ */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=A(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
 const animationDuration = i$1 `200ms`;
 const BOTTOM_RIGHT_WIDGET = i$1 `bottom-right-widget`;
@@ -3014,11 +2848,6 @@ var baseStyle = i$1 `
   padding-left: 0;
 }
 
-.gscape-panel-in-tray.hanging {
-  bottom: initial;
-  transform: translate(0, calc(-50% - 17px));
-}
-
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
   scrollbar-width: inherit;
@@ -3064,7 +2893,7 @@ var baseStyle = i$1 `
 }
 
 .hide {
-  display: none !important;
+  display: none;
 }
 
 .drop-down {
@@ -3169,12 +2998,13 @@ select:focus, input:focus {
 input {
   line-height: inherit;
   border: solid 1px var(--gscape-color-border-subtle);
-  padding: 6px 12px;
+  padding: 4px 12px;
   border-radius: var(--gscape-border-radius);
   background: var(--gscape-color-bg-inset);
   color: inherit;
   display: inline-block;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .link {
@@ -3199,14 +3029,6 @@ input {
   padding: 2px 6px;
   background: var(--gscape-color-accent-subtle);
   margin: 1px 2px;
-}
-
-.area {
-  background: var(--gscape-color-bg-inset);
-  border-radius: calc(var(--gscape-border-radius) - 2px);
-  padding: 4px 4px 4px 6px;
-  border: solid 1px var(--gscape-color-border-subtle);
-  margin-bottom: 18px;
 }
 `;
 
@@ -3598,16 +3420,6 @@ const BaseMixin = (superClass) => {
             if (this.enabled && this.style.display === 'none')
                 this.style.display = this.display;
         }
-        showInPosition(position) {
-            if (this.style.position !== 'absolute') {
-                console.warn('Grapholscape: showInPosition() has no effect with position different from absolute or relative');
-            }
-            this.show();
-            if (position) {
-                this.style.top = position.y + "px";
-                this.style.left = position.x + "px";
-            }
-        }
         enable() {
             this.enabled = true;
             this.show();
@@ -3635,25 +3447,23 @@ const DropPanelMixin = (superClass) => {
         togglePanel() {
             var _a;
             (_a = this.panel) === null || _a === void 0 ? void 0 : _a.classList.toggle('hide');
-            this.requestUpdate();
             this.onTogglePanel();
         }
         openPanel() {
             var _a;
             (_a = this.panel) === null || _a === void 0 ? void 0 : _a.classList.remove('hide');
-            this.requestUpdate();
         }
         closePanel() {
             var _a;
             (_a = this.panel) === null || _a === void 0 ? void 0 : _a.classList.add('hide');
-            this.requestUpdate();
         }
         blur() {
             super.blur();
             this.closePanel();
         }
         isPanelClosed() {
-            return this.panel ? this.panel.classList.contains('hide') : false; // default open
+            var _a;
+            return (_a = this.panel) === null || _a === void 0 ? void 0 : _a.classList.contains('hide');
         }
     }
     // Cast return type to your mixin's interface intersected with the superClass type
@@ -3662,66 +3472,6 @@ const DropPanelMixin = (superClass) => {
 function hasDropPanel(element) {
     return element.togglePanel ? true : false;
 }
-
-const ModalMixin = (superClass) => {
-    class ModalMixinClass extends superClass {
-        constructor(..._) {
-            super();
-            this.modalBackground = document.createElement('div');
-            this.modalBackground.style.cssText = `
-        position: absolute;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: var(--gscape-color-bg-default);
-        opacity: 0.6;
-        display: none;
-      `;
-        }
-        show() {
-            super.show();
-            // (this as unknown as HTMLElement).style.zIndex = '2';
-            this.showModalBackground();
-        }
-        hide() {
-            super.hide();
-            this.style.zIndex = '';
-            this.hideModalBackground();
-        }
-        showModalBackground() {
-            var _a, _b;
-            this.modalBackground.style.display = 'initial';
-            const thisElem = this;
-            (_a = thisElem.shadowRoot) === null || _a === void 0 ? void 0 : _a.insertBefore(this.modalBackground, (_b = thisElem.shadowRoot) === null || _b === void 0 ? void 0 : _b.firstElementChild);
-        }
-        hideModalBackground() {
-            this.modalBackground.style.display = 'none';
-        }
-    }
-    // Cast return type to your mixin's interface intersected with the superClass type
-    return ModalMixinClass;
-};
-
-class GscapeTextSearch extends s {
-    constructor() {
-        super(...arguments);
-        this._onSearchCallback = () => { };
-    }
-    render() {
-        return y `
-      
-    `;
-    }
-    onSearch(callback) {
-        this._onSearchCallback = callback;
-    }
-}
-GscapeTextSearch.properties = {
-    value: { type: String, reflect: true },
-    placeholder: { type: String, reflect: true }
-};
-GscapeTextSearch.styles = [baseStyle, GscapeButtonStyle];
-customElements.define('gscape-text-search', GscapeTextSearch);
 
 var classIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
@@ -3780,11 +3530,6 @@ var classIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
      ry="0"
      id="rect2"
      style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:3" />
-</svg>
-`;
-
-var classInstanceIcon = w `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-class-instance-contrast)" stroke-width="3.5" fill="none"/>
 </svg>
 `;
 
@@ -3954,8 +3699,8 @@ const arrow_right = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/sv
 const arrowDown = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12 6 8H14Z"/></svg>`;
 const explore = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m5.75 14.25 6.021-2.479L14.25 5.75 8.229 8.229Zm3.542-3.542Q9 10.417 9 10t.292-.708Q9.583 9 10 9t.708.292Q11 9.583 11 10t-.292.708Q10.417 11 10 11t-.708-.292ZM10 18q-1.646 0-3.104-.625-1.458-.625-2.552-1.719t-1.719-2.552Q2 11.646 2 10q0-1.667.625-3.115.625-1.447 1.719-2.541Q5.438 3.25 6.896 2.625T10 2q1.667 0 3.115.625 1.447.625 2.541 1.719 1.094 1.094 1.719 2.541Q18 8.333 18 10q0 1.646-.625 3.104-.625 1.458-1.719 2.552t-2.541 1.719Q11.667 18 10 18Zm0-1.5q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`;
 const info_outline = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.25 14H10.75V9H9.25ZM10 7.5Q10.312 7.5 10.531 7.281Q10.75 7.062 10.75 6.75Q10.75 6.438 10.531 6.219Q10.312 6 10 6Q9.688 6 9.469 6.219Q9.25 6.438 9.25 6.75Q9.25 7.062 9.469 7.281Q9.688 7.5 10 7.5ZM10 16.5Q11.354 16.5 12.531 15.99Q13.708 15.479 14.594 14.594Q15.479 13.708 15.99 12.521Q16.5 11.333 16.5 10Q16.5 8.646 15.99 7.469Q15.479 6.292 14.594 5.406Q13.708 4.521 12.531 4.01Q11.354 3.5 10 3.5Q8.667 3.5 7.479 4.01Q6.292 4.521 5.406 5.406Q4.521 6.292 4.01 7.469Q3.5 8.646 3.5 10Q3.5 11.333 4.01 12.521Q4.521 13.708 5.406 14.594Q6.292 15.479 7.479 15.99Q8.667 16.5 10 16.5ZM10 18Q6.667 18 4.333 15.667Q2 13.333 2 10Q2 6.667 4.333 4.333Q6.667 2 10 2Q13.333 2 15.667 4.333Q18 6.667 18 10Q18 13.333 15.667 15.667Q13.333 18 10 18ZM10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Z"/></svg>`;
-const enterFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="1 1 18 18"><path d="M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z"/></svg>`;
-const exitFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="1 1 18 18"><path d="M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z"/></svg>`;
+const enterFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z"/></svg>`;
+const exitFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z"/></svg>`;
 const centerDiagram = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12.167Q9.104 12.167 8.469 11.531Q7.833 10.896 7.833 10Q7.833 9.104 8.469 8.469Q9.104 7.833 10 7.833Q10.896 7.833 11.531 8.469Q12.167 9.104 12.167 10Q12.167 10.896 11.531 11.531Q10.896 12.167 10 12.167ZM2.917 7.542V4.5Q2.917 3.833 3.375 3.375Q3.833 2.917 4.5 2.917H7.542V4.25H4.5Q4.417 4.25 4.333 4.333Q4.25 4.417 4.25 4.5V7.542ZM7.542 17.083H4.5Q3.833 17.083 3.375 16.625Q2.917 16.167 2.917 15.5V12.458H4.25V15.5Q4.25 15.583 4.333 15.667Q4.417 15.75 4.5 15.75H7.542ZM12.458 17.083V15.75H15.5Q15.583 15.75 15.667 15.667Q15.75 15.583 15.75 15.5V12.458H17.083V15.5Q17.083 16.167 16.625 16.625Q16.167 17.083 15.5 17.083ZM15.75 7.542V4.5Q15.75 4.417 15.667 4.333Q15.583 4.25 15.5 4.25H12.458V2.917H15.5Q16.167 2.917 16.625 3.375Q17.083 3.833 17.083 4.5V7.542ZM10 10.833Q10.354 10.833 10.594 10.594Q10.833 10.354 10.833 10Q10.833 9.646 10.594 9.406Q10.354 9.167 10 9.167Q9.646 9.167 9.406 9.406Q9.167 9.646 9.167 10Q9.167 10.354 9.406 10.594Q9.646 10.833 10 10.833Z"/></svg>`;
 const filter = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.062 13.979V12.583H11.938V13.979ZM5.104 10.5V9.104H14.875V10.5ZM3.146 7V5.604H16.854V7Z"/></svg>`;
 const bubbles = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.021 14.667Q4.75 14.667 3.865 13.781Q2.979 12.896 2.979 11.625Q2.979 10.354 3.865 9.469Q4.75 8.583 6.021 8.583Q7.271 8.583 8.156 9.469Q9.042 10.354 9.042 11.625Q9.042 12.896 8.156 13.781Q7.271 14.667 6.021 14.667ZM13.542 11.458Q11.792 11.458 10.583 10.24Q9.375 9.021 9.375 7.271Q9.375 5.5 10.583 4.292Q11.792 3.083 13.542 3.083Q15.292 3.083 16.521 4.292Q17.75 5.5 17.75 7.271Q17.75 9.021 16.521 10.24Q15.292 11.458 13.542 11.458ZM11.958 16.938Q11.042 16.938 10.396 16.292Q9.75 15.646 9.75 14.708Q9.75 13.792 10.396 13.146Q11.042 12.5 11.958 12.5Q12.896 12.5 13.542 13.146Q14.188 13.792 14.188 14.708Q14.188 15.646 13.542 16.292Q12.896 16.938 11.958 16.938Z"/></svg>`;
@@ -3982,21 +3727,14 @@ const move_bubbles = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24">
 const owl_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 20px; width: auto" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z"/></svg>`;
 const graphol_icon = w `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: 20px; box-sizing: border-box; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
 const tune = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.375 15.625Q3.104 15.625 2.906 15.427Q2.708 15.229 2.708 14.958Q2.708 14.688 2.906 14.49Q3.104 14.292 3.375 14.292H6.792Q7.062 14.292 7.26 14.49Q7.458 14.688 7.458 14.958Q7.458 15.229 7.26 15.427Q7.062 15.625 6.792 15.625ZM3.375 5.708Q3.104 5.708 2.906 5.51Q2.708 5.312 2.708 5.042Q2.708 4.771 2.906 4.573Q3.104 4.375 3.375 4.375H9.896Q10.167 4.375 10.365 4.573Q10.562 4.771 10.562 5.042Q10.562 5.312 10.365 5.51Q10.167 5.708 9.896 5.708ZM10.083 17.292Q9.812 17.292 9.615 17.094Q9.417 16.896 9.417 16.625V13.312Q9.417 13.042 9.615 12.844Q9.812 12.646 10.083 12.646Q10.354 12.646 10.552 12.844Q10.75 13.042 10.75 13.312V14.292H16.625Q16.896 14.292 17.094 14.49Q17.292 14.688 17.292 14.958Q17.292 15.229 17.094 15.427Q16.896 15.625 16.625 15.625H10.75V16.625Q10.75 16.896 10.552 17.094Q10.354 17.292 10.083 17.292ZM6.792 12.333Q6.521 12.333 6.323 12.135Q6.125 11.938 6.125 11.667V10.667H3.375Q3.104 10.667 2.906 10.469Q2.708 10.271 2.708 10Q2.708 9.729 2.906 9.531Q3.104 9.333 3.375 9.333H6.125V8.354Q6.125 8.083 6.323 7.885Q6.521 7.688 6.792 7.688Q7.062 7.688 7.26 7.885Q7.458 8.083 7.458 8.354V11.667Q7.458 11.938 7.26 12.135Q7.062 12.333 6.792 12.333ZM10.083 10.667Q9.812 10.667 9.615 10.469Q9.417 10.271 9.417 10Q9.417 9.729 9.615 9.531Q9.812 9.333 10.083 9.333H16.625Q16.896 9.333 17.094 9.531Q17.292 9.729 17.292 10Q17.292 10.271 17.094 10.469Q16.896 10.667 16.625 10.667ZM13.208 7.354Q12.938 7.354 12.74 7.156Q12.542 6.958 12.542 6.688V3.375Q12.542 3.104 12.74 2.906Q12.938 2.708 13.208 2.708Q13.479 2.708 13.677 2.906Q13.875 3.104 13.875 3.375V4.375H16.625Q16.896 4.375 17.094 4.573Q17.292 4.771 17.292 5.042Q17.292 5.312 17.094 5.51Q16.896 5.708 16.625 5.708H13.875V6.688Q13.875 6.958 13.677 7.156Q13.479 7.354 13.208 7.354Z"/></svg>`;
-const settings_play = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M13.54 22H10C9.75 22 9.54 21.82 9.5 21.58L9.13 18.93C8.5 18.68 7.96 18.34 7.44 17.94L4.95 18.95C4.73 19.03 4.46 18.95 4.34 18.73L2.34 15.27C2.21 15.05 2.27 14.78 2.46 14.63L4.57 12.97L4.5 12L4.57 11L2.46 9.37C2.27 9.22 2.21 8.95 2.34 8.73L4.34 5.27C4.46 5.05 4.73 4.96 4.95 5.05L7.44 6.05C7.96 5.66 8.5 5.32 9.13 5.07L9.5 2.42C9.54 2.18 9.75 2 10 2H14C14.25 2 14.46 2.18 14.5 2.42L14.87 5.07C15.5 5.32 16.04 5.66 16.56 6.05L19.05 5.05C19.27 4.96 19.54 5.05 19.66 5.27L21.66 8.73C21.79 8.95 21.73 9.22 21.54 9.37L19.43 11L19.5 12V12.19C19 12.07 18.5 12 18 12C17.83 12 17.66 12 17.5 12.03C17.5 11.41 17.4 10.79 17.2 10.2L19.31 8.65L18.56 7.35L16.15 8.39C15.38 7.5 14.32 6.86 13.12 6.62L12.75 4H11.25L10.88 6.61C9.68 6.86 8.62 7.5 7.85 8.39L5.44 7.35L4.69 8.65L6.8 10.2C6.4 11.37 6.4 12.64 6.8 13.8L4.68 15.36L5.43 16.66L7.86 15.62C8.63 16.5 9.68 17.14 10.87 17.38L11.24 20H12.35C12.61 20.75 13 21.42 13.54 22M15.96 12.36C16 12.24 16 12.12 16 12C16 9.79 14.21 8 12 8S8 9.79 8 12 9.79 16 12 16C12.12 16 12.24 16 12.36 15.96C12.97 14.29 14.29 12.97 15.96 12.36M12 14C10.9 14 10 13.11 10 12S10.9 10 12 10 14 10.9 14 12 13.11 14 12 14M16 15V21L21 18L16 15Z" /></svg>`;
 const filterOff = w `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M16.021 16.5 2.438 2.917l.77-.771 13.584 13.583ZM3.208 5.417V4.333h1.73v1.084Zm2 3.895V8.229h3.646v1.083Zm3.396-3.895L7.521 4.333h9.271v1.084Zm-.396 7.812v-1.083h3.584v1.083ZM12.5 9.312l-1.083-1.083h3.375v1.083Z"/></svg>`;
 const incremental = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m10 13.458-1.083-2.416L6.5 9.958l2.417-1.083L10 6.458l1.083 2.417L13.5 9.958l-2.417 1.084Zm0 5.084q-2.354 0-4.323-1.188-1.969-1.187-3.177-3.271v2.709H1.417v-4.5h4.479v1.083H3.375q1.021 1.896 2.771 2.99 1.75 1.093 3.854 1.093 2.458 0 4.406-1.458 1.948-1.458 2.74-3.771l1.042.229q-.813 2.73-3.073 4.407-2.261 1.677-5.115 1.677ZM1.458 9.208q.125-1.354.604-2.52.48-1.167 1.355-2.209l.791.75q-.687.875-1.104 1.834-.416.958-.562 2.145ZM5.25 4.167l-.75-.771q1.021-.875 2.24-1.365 1.218-.489 2.51-.593v1.083q-1.083.125-2.104.552Q6.125 3.5 5.25 4.167Zm9.479 0q-.812-.667-1.864-1.105-1.053-.437-2.115-.541V1.438q1.312.083 2.521.583 1.208.5 2.229 1.375Zm2.709 5.041q-.146-1.146-.563-2.146-.417-1-1.104-1.833l.791-.771q.855 1 1.365 2.209.511 1.208.615 2.541Z"/></svg>`;
-const refresh = w `<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`;
-const instancesIcon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="padding: 1px;box-sizing: border-box;" height="18" width="18" viewBox="0 0 20 20" ><path d="M10 9q-3.062 0-5.031-.844Q3 7.312 3 6q0-1.229 2.062-2.115Q7.125 3 10 3q2.875 0 4.938.885Q17 4.771 17 6q0 1.312-1.969 2.156Q13.062 9 10 9Zm0 4q-2.979 0-4.99-.865Q3 11.271 3 10V8.042q0 .604.562 1.135.563.531 1.521.938.959.406 2.229.645Q8.583 11 10 11q1.417 0 2.688-.24 1.27-.239 2.229-.645.958-.407 1.521-.938Q17 8.646 17 8.042V10q0 1.271-2.01 2.135Q12.979 13 10 13Zm0 4q-2.917 0-4.958-.906Q3 15.188 3 13.896v-1.958q0 .604.573 1.156.573.552 1.542.979.968.427 2.239.677Q8.625 15 10 15t2.646-.25q1.271-.25 2.239-.677.969-.427 1.542-.979.573-.552.573-1.156v1.958q0 1.292-2.042 2.198Q12.917 17 10 17Z"/></svg>`;
-const superHierarchies = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="3 2 14 18"><path d="M10 16q-1.667 0-2.833-1.167Q6 13.667 6 12q0-1.479.927-2.573.927-1.094 2.323-1.365V4.875L8.062 6.062 7 5l3-3 3 3-1.062 1.062-1.188-1.187v3.187q1.396.271 2.323 1.365Q14 10.521 14 12q0 1.667-1.167 2.833Q11.667 16 10 16Zm0-1.5q1.042 0 1.771-.729.729-.729.729-1.771 0-1.042-.729-1.771Q11.042 9.5 10 9.5q-1.042 0-1.771.729Q7.5 10.958 7.5 12q0 1.042.729 1.771.729.729 1.771.729Zm0-2.5Z"/></svg>`;
-const subHierarchies = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="3 2 14 18"><path d="m10 18-3-3 1.062-1.062 1.188 1.187v-3.187q-1.396-.271-2.323-1.365Q6 9.479 6 8q0-1.667 1.167-2.833Q8.333 4 10 4q1.667 0 2.833 1.167Q14 6.333 14 8q0 1.479-.927 2.573-.927 1.094-2.323 1.365v3.187l1.188-1.187L13 15Zm0-7.5q1.042 0 1.771-.729Q12.5 9.042 12.5 8q0-1.042-.729-1.771Q11.042 5.5 10 5.5q-1.042 0-1.771.729Q7.5 6.958 7.5 8q0 1.042.729 1.771.729.729 1.771.729ZM10 8Z"/></svg>`;
-const rubbishBin = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M6.5 17q-.625 0-1.062-.438Q5 16.125 5 15.5v-10H4V4h4V3h4v1h4v1.5h-1v10q0 .625-.438 1.062Q14.125 17 13.5 17Zm7-11.5h-7v10h7ZM8 14h1.5V7H8Zm2.5 0H12V7h-1.5Zm-4-8.5v10Z"/></svg>`;
-const mastroEndpointIcon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M3.542 9.25q-.563 0-.948-.396-.386-.396-.386-.937V5.542q0-.542.396-.938.396-.396.938-.396H11V9.25Zm0-1.083h6.375V5.292H3.542q-.104 0-.177.073t-.073.177v2.375q0 .104.073.177t.177.073Zm0 7.625q-.542 0-.938-.396-.396-.396-.396-.938v-2.375q0-.541.396-.937t.938-.396H12.5v5.042Zm0-1.084h7.875v-2.875H3.542q-.104 0-.177.073t-.073.177v2.375q0 .104.073.177t.177.073ZM14 15.792V9.25h-1.5V4.208h5.188L16.25 7.854h1.438Zm-9.896-2.021h1v-1h-1Zm0-6.542h1v-1h-1Zm-.812.938V5.292v2.875Zm0 6.541v-2.875 2.875Z"/></svg>`;
+const refresh = w `<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px" viewBox="0 0 20 20"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`;
 const entityIcons = {};
 entityIcons[GrapholTypesEnum.CLASS] = classIcon;
 entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon;
 entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon;
 entityIcons[GrapholTypesEnum.INDIVIDUAL] = individualIcon;
-entityIcons[GrapholTypesEnum.CLASS_INSTANCE] = classInstanceIcon;
 
 var grapholscapeLogo = y `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -4132,17 +3870,114 @@ var index$1 = /*#__PURE__*/Object.freeze({
     owl_icon: owl_icon,
     graphol_icon: graphol_icon,
     tune: tune,
-    settings_play: settings_play,
     filterOff: filterOff,
     incremental: incremental,
     refresh: refresh,
-    instancesIcon: instancesIcon,
-    superHierarchies: superHierarchies,
-    subHierarchies: subHierarchies,
-    rubbishBin: rubbishBin,
-    mastroEndpointIcon: mastroEndpointIcon,
     entityIcons: entityIcons
 });
+
+var emptySearchBlankState = y `
+  <div class="blank-slate">
+    ${searchOff}
+    <div class="header">Can't find any entity</div>
+    <div class="description">Please try again with another search text.</div>
+  </div>
+`;
+
+function getEntityViewOccurrences (grapholEntity, grapholscape) {
+    var _a, _b;
+    const result = new Map();
+    (_a = grapholEntity.occurrences.get(RendererStatesEnum.GRAPHOL)) === null || _a === void 0 ? void 0 : _a.forEach(occurrence => {
+        addOccurrenceViewData(occurrence);
+    });
+    if (grapholscape.renderState !== RendererStatesEnum.GRAPHOL) {
+        (_b = grapholEntity.occurrences.get(grapholscape.renderState)) === null || _b === void 0 ? void 0 : _b.forEach((occurrence) => {
+            addOccurrenceViewData(occurrence);
+        });
+    }
+    return result;
+    function addOccurrenceViewData(occurrence) {
+        var _a, _b;
+        const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId);
+        const cyElement = (_b = (_a = diagram === null || diagram === void 0 ? void 0 : diagram.representations.get(grapholscape.renderState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$id(occurrence.elementId);
+        if (diagram && cyElement && !cyElement.empty()) {
+            if (!Array.from(result.keys()).find(d => d.id === diagram.id)) {
+                result.set({ id: diagram.id, name: diagram.name }, []);
+            }
+            /**
+             * In case of repositioned or transformed elements, show the original id
+             */
+            const occurrenceIdViewData = {
+                realId: occurrence.elementId,
+                originalId: cyElement.data().originalId,
+            };
+            for (let [diagramViewData, occurrencesIdViewData] of result.entries()) {
+                if (diagramViewData.id === diagram.id) {
+                    occurrencesIdViewData.push(occurrenceIdViewData);
+                    break;
+                }
+            }
+        }
+    }
+}
+function getEntityOccurrencesTemplate(occurrences, onNodeNavigation) {
+    function nodeNavigationHandler(e) {
+        var _a;
+        const target = e.target;
+        const diagramId = (_a = target.parentElement) === null || _a === void 0 ? void 0 : _a.getAttribute('diagram-id');
+        const elementId = target.getAttribute('real-id');
+        if (!diagramId || !elementId)
+            return;
+        onNodeNavigation({
+            diagramId: parseInt(diagramId),
+            elementId: elementId
+        });
+    }
+    return y `
+  ${Array.from(occurrences).map(([diagram, occurrencesIds]) => {
+        return y `
+      <div diagram-id="${diagram.id}">
+        <span class="diagram-name">${diagram.name}</span>
+        ${occurrencesIds.map(occurrenceId => y `
+          <gscape-button
+            label="${occurrenceId.originalId || occurrenceId.realId}"
+            real-id="${occurrenceId.realId}"
+            type="subtle"
+            size="s"
+            @click=${nodeNavigationHandler}
+          ></gscape-button>
+        `)}
+      </div>
+    `;
+    })}
+  `;
+}
+
+var entityListItemStyle = i$1 `
+  details.entity-list-item > summary::marker {
+    display: inline-block;
+  }
+
+  details.entity-list-item > summary > .entity-icon {
+    position: absolute;
+  }
+
+  details.entity-list-item > summary > .entity-name {
+    margin-left: 24px;
+  }
+
+  details.entity-list-item > .summary-body {
+    background-color: var(--gscape-color-bg-inset);
+    white-space: normal;
+    padding: 4px 16px;
+  }
+
+  details.entity-list-item[open] {
+    border: solid 1px var(--gscape-color-border-subtle);
+    border-radius: var(--gscape-border-radius);
+    margin-bottom: 8px;
+  }
+`;
 
 function getIconSlot (slotName, icon) {
     const span = document.createElement('span');
@@ -4152,79 +3987,125 @@ function getIconSlot (slotName, icon) {
 }
 
 var _a, _b, _c, _d;
-class GscapeEntitySearch extends DropPanelMixin(s) {
+class GscapeEntitySearch extends s {
     constructor() {
         super(...arguments);
-        this.areAllFiltersDisabled = true;
-        this[_a] = 0;
-        this[_b] = 0;
-        this[_c] = 0;
-        this[_d] = 0;
+        this[_a] = false;
+        this[_b] = false;
+        this[_c] = false;
+        this[_d] = false;
+        this._onSearchCallback = () => { };
+        this._onEntityFilterToggleCallback = () => { };
     }
     render() {
-        var _e, _f, _g, _h;
         return y `
       <div class="search-box">
-        <input @keyup=${this.handleSearch} type="text" placeholder="Search IRI, labels...">
+        <input @keyup=${this._onSearchCallback} type="text" placeholder="Search IRI, labels...">
         ${this.atLeastTwoFilters
             ? y `
-              <gscape-button size="m" title="Show/Hide filters" @click=${this.togglePanel}>
-                ${getIconSlot('icon', filter)}
-              </gscape-button>
-            `
+            <gscape-button size="s" title="Show/Hide filters" @click=${this.toggleChipsFilters}>
+              ${getIconSlot('icon', filter)}
+            </gscape-button>
+          `
             : null}
       </div>
-      <div id="drop-panel" class="hide">
-        <gscape-entity-type-filter
-          class=${(_e = this[GrapholTypesEnum.CLASS]) !== null && _e !== void 0 ? _e : b}
-          object-property=${(_f = this[GrapholTypesEnum.OBJECT_PROPERTY]) !== null && _f !== void 0 ? _f : b}
-          data-property=${(_g = this[GrapholTypesEnum.DATA_PROPERTY]) !== null && _g !== void 0 ? _g : b}
-          individual=${(_h = this[GrapholTypesEnum.INDIVIDUAL]) !== null && _h !== void 0 ? _h : b}
-        ></gscape-entity-type-filter>
-      </div>
-      
+
+      ${this.atLeastTwoFilters
+            ? y `
+          <div class="chips-filters hide">
+            ${this.classes !== undefined
+                ? y `
+                <span class="chip actionable ${this.classes && !this.areAllFiltersDisabled ? null : 'disabled'}" entity-type="class" @click=${this.handleFilterStateChange} >${classIcon} Classes</span>
+              `
+                : null}
+
+            ${this.dataProperties !== undefined
+                ? y `
+                <span class="chip actionable ${this.dataProperties && !this.areAllFiltersDisabled ? null : 'disabled'}" entity-type="data-property" @click=${this.handleFilterStateChange} >${dataPropertyIcon} Data Properties</span>
+              `
+                : null}
+
+            ${this.objectProperties !== undefined
+                ? y `
+                <span class="chip actionable ${this.objectProperties && !this.areAllFiltersDisabled ? null : 'disabled'}" entity-type="object-property" @click=${this.handleFilterStateChange} >${objectPropertyIcon} Object Properties</span>
+              `
+                : null}
+
+            ${this.individuals !== undefined
+                ? y `
+                <span class="chip actionable ${this.individuals && !this.areAllFiltersDisabled ? null : 'disabled'}" entity-type="individual" @click=${this.handleFilterStateChange} >${individualIcon} Individual</span>`
+                : null}
+          </div>
+        `
+            : null}
     `;
     }
-    handleSearch(e) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const inputElement = e.currentTarget;
-            if (!inputElement)
-                return;
-            if (e.key === 'Escape') {
-                inputElement.blur();
-                inputElement.value = '';
-            }
-            yield this.updateComplete;
-            this.dispatchEvent(new CustomEvent('onsearch', {
-                bubbles: true,
-                composed: true,
-                detail: { searchText: inputElement.value }
-            }));
-        });
+    handleFilterStateChange(e) {
+        const entityType = e.target.getAttribute('entity-type');
+        if (this[entityType] !== undefined) {
+            this[entityType] = !this[entityType];
+            this._onEntityFilterToggleCallback();
+        }
+    }
+    toggleChipsFilters() {
+        this.shadowRoot.querySelector('.chips-filters').classList.toggle('hide');
+    }
+    onSearch(callback) {
+        this._onSearchCallback = callback;
+    }
+    onEntityFilterToggle(callback) {
+        this._onEntityFilterToggleCallback = callback;
+    }
+    get areAllFiltersDisabled() {
+        let result = true;
+        if (this.classes !== undefined) {
+            result = result && !this.classes;
+        }
+        if (this.objectProperties !== undefined) {
+            result = result && !this.objectProperties;
+        }
+        if (this.dataProperties !== undefined) {
+            result = result && !this.dataProperties;
+        }
+        if (this.individuals !== undefined) {
+            result = result && !this.individuals;
+        }
+        return result;
+    }
+    get classes() {
+        return this[GrapholTypesEnum.CLASS];
+    }
+    get objectProperties() {
+        return this[GrapholTypesEnum.OBJECT_PROPERTY];
+    }
+    get dataProperties() {
+        return this[GrapholTypesEnum.DATA_PROPERTY];
+    }
+    get individuals() {
+        return this[GrapholTypesEnum.INDIVIDUAL];
     }
     get atLeastTwoFilters() {
         let count = 0;
-        if (this[GrapholTypesEnum.CLASS] !== undefined)
+        if (this.classes !== undefined)
             count++;
-        if (this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined)
+        if (this.objectProperties !== undefined)
             count++;
-        if (this[GrapholTypesEnum.DATA_PROPERTY] !== undefined)
+        if (this.dataProperties !== undefined)
             count++;
-        if (this[GrapholTypesEnum.INDIVIDUAL] !== undefined)
+        if (this.individuals !== undefined)
             count++;
         return count >= 2;
     }
 }
 _a = GrapholTypesEnum.CLASS, _b = GrapholTypesEnum.DATA_PROPERTY, _c = GrapholTypesEnum.OBJECT_PROPERTY, _d = GrapholTypesEnum.INDIVIDUAL;
 GscapeEntitySearch.properties = {
-    [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
-    [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true }
+    [GrapholTypesEnum.CLASS]: { type: Boolean, state: true },
+    [GrapholTypesEnum.DATA_PROPERTY]: { type: Boolean, state: true },
+    [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Boolean, state: true },
+    [GrapholTypesEnum.INDIVIDUAL]: { type: Boolean, state: true }
 };
 GscapeEntitySearch.styles = [
     baseStyle,
-    GscapeButtonStyle,
     i$1 `
       :host {
         display: block;
@@ -4290,340 +4171,11 @@ GscapeEntitySearch.styles = [
 ];
 customElements.define('gscape-entity-search', GscapeEntitySearch);
 
-class GscapeEntityTypeFilters extends BaseMixin(s) {
-    render() {
-        return y `
-      <div class="chips-filters">
-        ${this[GrapholTypesEnum.CLASS] !== undefined
-            ? y `
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.CLASS] && !this.areAllFiltersDisabled ? null : 'disabled'}" 
-                entity-type="class" 
-                @click=${this._handleFilterStateChange}
-              >
-                ${classIcon} Classes
-              </span>
-            `
-            : null}
-
-        ${this[GrapholTypesEnum.DATA_PROPERTY] !== undefined
-            ? y `
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.DATA_PROPERTY] && !this.areAllFiltersDisabled ? null : 'disabled'}"
-                entity-type="data-property"
-                @click=${this._handleFilterStateChange}
-              >
-                ${dataPropertyIcon} Data Properties
-              </span>
-            `
-            : null}
-
-        ${this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined
-            ? y `
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.OBJECT_PROPERTY] && !this.areAllFiltersDisabled ? null : 'disabled'}"
-                entity-type="object-property"
-                @click=${this._handleFilterStateChange}
-              >
-                ${objectPropertyIcon} Object Properties
-              </span>
-            `
-            : null}
-
-        ${this[GrapholTypesEnum.INDIVIDUAL] !== undefined
-            ? y `
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.INDIVIDUAL] && !this.areAllFiltersDisabled ? null : 'disabled'}"
-                entity-type="individual"
-                @click=${this._handleFilterStateChange}
-              >
-                ${individualIcon} Individual
-              </span>`
-            : null}
-      </div>
-    `;
-    }
-    _handleFilterStateChange(e) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const entityType = e.currentTarget.getAttribute('entity-type');
-            if (this[entityType] !== undefined) {
-                this[entityType] = !this[entityType];
-                yield this.updateComplete;
-                this.dispatchEvent(new CustomEvent('onentityfilterchange', {
-                    bubbles: true,
-                    composed: true,
-                    detail: {
-                        [GrapholTypesEnum.CLASS]: this[GrapholTypesEnum.CLASS],
-                        [GrapholTypesEnum.DATA_PROPERTY]: this[GrapholTypesEnum.DATA_PROPERTY],
-                        [GrapholTypesEnum.OBJECT_PROPERTY]: this[GrapholTypesEnum.OBJECT_PROPERTY],
-                        [GrapholTypesEnum.INDIVIDUAL]: this[GrapholTypesEnum.INDIVIDUAL],
-                        areAllFiltersDisabled: this.areAllFiltersDisabled
-                    }
-                }));
-            }
-        });
-    }
-    get areAllFiltersDisabled() {
-        let result = true;
-        if (this[GrapholTypesEnum.CLASS] !== undefined) {
-            result = result && !this[GrapholTypesEnum.CLASS];
-        }
-        if (this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined) {
-            result = result && !this[GrapholTypesEnum.OBJECT_PROPERTY];
-        }
-        if (this[GrapholTypesEnum.DATA_PROPERTY] !== undefined) {
-            result = result && !this[GrapholTypesEnum.DATA_PROPERTY];
-        }
-        if (this[GrapholTypesEnum.INDIVIDUAL] !== undefined) {
-            result = result && !this[GrapholTypesEnum.INDIVIDUAL];
-        }
-        return result;
-    }
-    set [GrapholTypesEnum.CLASS](v) {
-        this._class = v;
-        this.requestUpdate();
-    }
-    get [GrapholTypesEnum.CLASS]() { return this._class; }
-    set [GrapholTypesEnum.DATA_PROPERTY](v) {
-        this._dataproperty = v;
-        this.requestUpdate();
-    }
-    get [GrapholTypesEnum.DATA_PROPERTY]() { return this._dataproperty; }
-    set [GrapholTypesEnum.OBJECT_PROPERTY](v) {
-        this._objectproperty = v;
-        this.requestUpdate();
-    }
-    get [GrapholTypesEnum.OBJECT_PROPERTY]() { return this._objectproperty; }
-    set [GrapholTypesEnum.INDIVIDUAL](v) {
-        this._individual = v;
-        this.requestUpdate();
-    }
-    get [GrapholTypesEnum.INDIVIDUAL]() { return this._individual; }
-}
-GscapeEntityTypeFilters.properties = {
-    [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
-    [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
-    onFilterToggle: { type: Function, reflect: true }
-};
-GscapeEntityTypeFilters.styles = [
-    baseStyle,
-    GscapeButtonStyle,
-    i$1 `
-      .chips-filters {
-        margin-top: 4px;
-        white-space: normal;
-        min-width: 295px;
-      }
-
-      .chip[entity-type = "class"] {
-        color: var(--gscape-color-class-contrast);
-        border-color: var(--gscape-color-class-contrast);
-      }
-
-      .chip[entity-type = "data-property"] {
-        color: var(--gscape-color-data-property-contrast);
-        border-color: var(--gscape-color-data-property-contrast);
-      }
-
-      .chip[entity-type = "object-property"] {
-        color: var(--gscape-color-object-property-contrast);
-        border-color: var(--gscape-color-object-property-contrast);
-      }
-
-      .chip[entity-type = "individual"] {
-        color: var(--gscape-color-individual-contrast);
-        border-color: var(--gscape-color-individual-contrast);
-      }
-
-      .chip {
-        line-height: 0;
-        gap: 4px;
-        align-items: center;
-        background: inherit;
-      }
-
-      .chip.disabled {
-        opacity: 0.4;
-      }
-
-      .chip:hover {
-        opacity: 1;
-      }
-
-      .chip.disabled:hover {
-        opacity: 0.4;
-      }
-    `
-];
-customElements.define('gscape-entity-type-filter', GscapeEntityTypeFilters);
-
-var emptySearchBlankState = y `
-  <div class="blank-slate">
-    ${searchOff}
-    <div class="header">Can't find any entity</div>
-    <div class="description">Please try again with another search text.</div>
-  </div>
-`;
-
-function getEntityViewOccurrences (grapholEntity, grapholscape) {
-    var _a, _b;
-    const result = new Map();
-    (_a = grapholEntity.occurrences.get(RendererStatesEnum.GRAPHOL)) === null || _a === void 0 ? void 0 : _a.forEach(occurrence => {
-        addOccurrenceViewData(occurrence);
-    });
-    if (grapholscape.renderState && grapholscape.renderState !== RendererStatesEnum.GRAPHOL) {
-        (_b = grapholEntity.occurrences.get(grapholscape.renderState)) === null || _b === void 0 ? void 0 : _b.forEach((occurrence) => {
-            addOccurrenceViewData(occurrence);
-        });
-    }
-    return result;
-    function addOccurrenceViewData(occurrence) {
-        var _a, _b, _c;
-        if (!grapholscape.renderState)
-            return;
-        const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId) || grapholscape.renderer.diagram;
-        const cyElement = (_b = (_a = diagram === null || diagram === void 0 ? void 0 : diagram.representations.get(grapholscape.renderState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$id(occurrence.elementId);
-        if (diagram && cyElement && !cyElement.empty()) {
-            /**
-             * In case of repositioned or transformed elements, show the original id
-             */
-            const occurrenceIdViewData = {
-                realId: occurrence.elementId,
-                originalId: cyElement.data().originalId,
-            };
-            const diagramViewData = { id: diagram.id, name: diagram.name };
-            if (!result.get(diagramViewData)) {
-                result.set(diagramViewData, []);
-            }
-            (_c = result.get(diagramViewData)) === null || _c === void 0 ? void 0 : _c.push(occurrenceIdViewData);
-            // for (let [diagramViewData, occurrencesIdViewData] of result.entries()) {
-            //   if (diagramViewData.id === diagram.id) {
-            //     occurrencesIdViewData.push(occurrenceIdViewData)
-            //     break
-            //   }
-            // }
-        }
-    }
-}
-function getEntityOccurrencesTemplate(occurrences, onNodeNavigation) {
-    function nodeNavigationHandler(e) {
-        var _a;
-        const target = e.target;
-        const diagramId = (_a = target.parentElement) === null || _a === void 0 ? void 0 : _a.getAttribute('diagram-id');
-        const elementId = target.getAttribute('real-id');
-        if (!diagramId || !elementId)
-            return;
-        onNodeNavigation({
-            diagramId: parseInt(diagramId),
-            elementId: elementId
-        });
-    }
-    return y `
-  ${Array.from(occurrences).map(([diagram, occurrencesIds]) => {
-        return y `
-      <div diagram-id="${diagram.id}">
-        <span class="diagram-name">${diagram.name}</span>
-        ${occurrencesIds.map(occurrenceId => y `
-          <gscape-button
-            label="${occurrenceId.originalId || occurrenceId.realId}"
-            real-id="${occurrenceId.realId}"
-            type="subtle"
-            size="s"
-            @click=${nodeNavigationHandler}
-          ></gscape-button>
-        `)}
-      </div>
-    `;
-    })}
-  `;
-}
-
-function createEntitiesList(grapholscape, entityFilters) {
-    const result = [];
-    grapholscape.ontology.entities.forEach(entity => {
-        if (!entityFilters || (entityFilters[entity.type] !== undefined && (entityFilters[entity.type] || entityFilters.areAllFiltersDisabled))) {
-            result.push({
-                displayedName: entity.getDisplayedName(grapholscape.entityNameType, grapholscape.language, grapholscape.ontology.languages.default),
-                value: entity,
-                viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
-            });
-        }
-    });
-    return result.sort((a, b) => a.displayedName.localeCompare(b.displayedName));
-}
-function search(searchValue, entities) {
-    const searchWords = searchValue.split(' ');
-    return entities.filter(entity => {
-        let isAmatch = true;
-        for (const word of searchWords) {
-            if (word.length <= 2)
-                continue;
-            isAmatch = isAmatch && (matchInIRI(entity.value.iri, word) ||
-                matchInAnnotations(entity.value.getAnnotations(), word));
-        }
-        return isAmatch;
-    });
-    function matchInIRI(iri, searchValue) {
-        return isMatch(iri.fullIri, searchValue) || isMatch(iri.prefixed, searchValue);
-    }
-    function matchInAnnotations(annotations, searchValue) {
-        // search in labels defined in annotations (only for Graphol v3)
-        for (const annotation of annotations) {
-            return isMatch(annotation.lexicalForm, searchValue);
-        }
-        return false; // only if no language has a match
-    }
-    function isMatch(value1, value2) { return value1.toLowerCase().includes(value2.toLowerCase()); }
-}
-
-var entityListItemStyle = i$1 `
-  div.entity-list-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-  }
-
-  .entity-list-item {
-    white-space: nowrap;
-  }
-
-  div.entity-list-item > .entity-icon {
-    flex-shrink: 0;
-  }
-
-  details.entity-list-item > summary::marker {
-    display: inline-block;
-  }
-
-  details.entity-list-item > summary > .entity-icon {
-    position: absolute;
-  }
-
-  details.entity-list-item > summary > .entity-name {
-    margin-left: 24px;
-    line-height: 18px;
-  }
-
-  details.entity-list-item > .summary-body {
-    background-color: var(--gscape-color-bg-inset);
-    white-space: normal;
-    padding: 4px 8px;
-  }
-
-  details.entity-list-item[open] {
-    border: solid 1px var(--gscape-color-border-subtle);
-    border-radius: var(--gscape-border-radius);
-    margin-bottom: 8px;
-  }
-`;
-
 class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = 'Ontology Explorer';
+        this.searchEntityComponent = new GscapeEntitySearch();
         // search: (e:any) => void = () => { }
         // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
         this.onNodeNavigation = () => { };
@@ -4633,14 +4185,6 @@ class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
             (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('.entity-list-item[open]').forEach(item => item.open = false);
         };
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
-        this.addEventListener('onsearch', (e) => {
-            if (e.detail.searchText.length > 2) {
-                this.shownEntities = search(e.detail.searchText, this.shownEntities);
-            }
-            else {
-                this.shownEntities = this.entities;
-            }
-        });
     }
     render() {
         return y `
@@ -4651,28 +4195,25 @@ class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
     <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
       <div class="header">${this.title}</div>
       <div class="content-wrapper">
-        <gscape-entity-search></gscape-entity-search>
-        <!-- <gscape-entity-type-filter></gscape-entity-type-filter> -->
+        ${this.searchEntityComponent}
 
         <div class="list-wrapper">
 
-          ${this.shownEntities.length === 0
+          ${this.entities.length === 0
             ? emptySearchBlankState
             : null}
 
-          ${this.shownEntities.map(entity => {
+          ${this.entities.map(entity => {
             return y `
-              <details class="ellipsed entity-list-item" title="${entity.displayedName}">
-                <summary class="actionable">
-                  <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-                  <span class="entity-name">${entity.displayedName}</span>
-                </summary>
-                <div class="summary-body">
-                  ${entity.viewOccurrences && entity.viewOccurrences.size > 0
-                ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
-                : null}
-                </div>
-              </details>
+            <details class="ellipsed entity-list-item" title="${entity.value.iri.remainder}">
+              <summary class="actionable">
+                <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
+                <span class="entity-name">${entity.value.iri.remainder}</span>
+              </summary>
+              <div class="summary-body">
+                ${getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)}
+              </div>
+            </details>
             `;
         })}
         </div>
@@ -4680,17 +4221,9 @@ class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
     </div>
     `;
     }
-    get entities() { return this._entities; }
-    set entities(newEntities) {
-        this._entities = this.shownEntities = newEntities;
-    }
-    get searchEntityComponent() { var _a; return (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('gscape-entity-search'); }
 }
-// onSearch: (e: KeyboardEvent) => void
-// onEntityFilterToggle: () => void
 GscapeExplorer.properties = {
-    entities: { type: Object, attribute: false },
-    shownEntities: { type: Object, attribute: false }
+    entities: { type: Object, attribute: false }
 };
 GscapeExplorer.styles = [
     entityListItemStyle,
@@ -4741,19 +4274,74 @@ GscapeExplorer.styles = [
 ];
 customElements.define('gscape-explorer', GscapeExplorer);
 
+function createEntitiesList(grapholscape, entityFilters) {
+    const result = [];
+    grapholscape.ontology.entities.forEach(entity => {
+        if (entityFilters[entity.type] !== undefined && (entityFilters[entity.type] || entityFilters.areAllFiltersDisabled)) {
+            result.push({
+                value: entity,
+                viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
+            });
+        }
+    });
+    return result.sort((a, b) => a.value.iri.remainder.localeCompare(b.value.iri.remainder));
+}
+function search(searchValue, entities) {
+    const searchWords = searchValue.split(' ');
+    return entities.filter(entity => {
+        let isAmatch = true;
+        for (const word of searchWords) {
+            if (word.length <= 2)
+                continue;
+            isAmatch = isAmatch && (matchInIRI(entity.value.iri, word) ||
+                matchInAnnotations(entity.value.getAnnotations(), word));
+        }
+        return isAmatch;
+    });
+    function matchInIRI(iri, searchValue) {
+        return isMatch(iri.fullIri, searchValue) || isMatch(iri.prefixed, searchValue);
+    }
+    function matchInAnnotations(annotations, searchValue) {
+        // search in labels defined in annotations (only for Graphol v3)
+        for (const annotation of annotations) {
+            return isMatch(annotation.lexicalForm, searchValue);
+        }
+        return false; // only if no language has a match
+    }
+    function isMatch(value1, value2) { return value1.toLowerCase().includes(value2.toLowerCase()); }
+}
+
 function init$a (ontologyExplorerComponent, grapholscape) {
     // let languages = grapholscape.languages
-    ontologyExplorerComponent.entities = createEntitiesList(grapholscape);
+    let entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent);
     // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
+    ontologyExplorerComponent.entities = entities;
     ontologyExplorerComponent.onNodeNavigation = (entityOccurrence) => {
         grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2);
         grapholscape.selectElement(entityOccurrence.elementId);
     };
-    ontologyExplorerComponent.addEventListener('onentityfilterchange', (e) => {
-        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail);
+    ontologyExplorerComponent.searchEntityComponent.onSearch(e => {
+        var _a;
+        const inputElement = e.target;
+        // on ESC key press
+        if (e.key === 'Escape') {
+            inputElement.blur();
+            inputElement.value = null;
+            ontologyExplorerComponent.entities = entities;
+            return;
+        }
+        if (((_a = inputElement.value) === null || _a === void 0 ? void 0 : _a.length) > 2) {
+            ontologyExplorerComponent.entities = search(inputElement.value, entities);
+        }
+        else {
+            ontologyExplorerComponent.entities = entities;
+        }
+    });
+    ontologyExplorerComponent.searchEntityComponent.onEntityFilterToggle(() => {
+        entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent);
     });
     grapholscape.on(LifecycleEvent.RendererChange, () => {
-        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent);
+        entities = ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent);
     });
 }
 
@@ -4766,50 +4354,257 @@ function initOntologyExplorer(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent);
 }
 
+function setGraphEventHandlers(diagram, lifecycle, ontology) {
+    diagram.representations.forEach(diagramRepresentation => {
+        const cy = diagramRepresentation.cy;
+        if (cy.scratch('_gscape-graph-handlers-set'))
+            return;
+        cy.on('select', e => {
+            const grapholElement = diagramRepresentation.grapholElements.get(e.target.id());
+            if (grapholElement) {
+                if (grapholElement.isEntity()) {
+                    const grapholEntity = ontology.getEntity(e.target.data().iri);
+                    if (grapholEntity) {
+                        lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement);
+                    }
+                }
+                if (isGrapholNode(grapholElement)) {
+                    lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
+                }
+                if (isGrapholEdge(grapholElement)) {
+                    lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
+                }
+            }
+        });
+        cy.on('tap', evt => {
+            if (evt.target === cy) {
+                lifecycle.trigger(LifecycleEvent.BackgroundClick);
+            }
+        });
+        cy.on('mouseover', '*', e => {
+            const container = cy.container();
+            if (container) {
+                container.style.cursor = 'pointer';
+            }
+        });
+        cy.on('mouseout', '*', e => {
+            const container = cy.container();
+            if (container) {
+                container.style.cursor = 'inherit';
+            }
+        });
+        cy.scratch('_gscape-graph-handlers-set', true);
+    });
+}
+
+/**
+ * Given a selected class compute the neighbourhood across all diagrams
+ * and merge it all in the single incremental diagram
+ * @param selectedElement
+ * @param grapholscape
+ */
+function addClassNeighbourhood(selectedElement, grapholscape) {
+    /**
+     * Add neighbourhood of an entity occurrence to the incremental diagram
+     * @param occurrence
+     */
+    const processOccurrenceNeighbourhoods = (occurrence) => {
+        const floatyRepr = grapholscape.ontology.getDiagram(occurrence.diagramId).representations.get(RendererStatesEnum.FLOATY);
+        const cyElement = floatyRepr.cy.$id(occurrence.elementId);
+        /**
+         * First all nodes, cause we need to know all nodes available before adding edges.
+         * Otherwise we might try to add an edge between two nodes that are not yet present in
+         * the diagram leading to an exception from cytoscape.
+         */
+        cyElement.openNeighborhood('node').forEach(element => addElementFromFloatyToIncremental(element, floatyRepr, occurrence.diagramId));
+        cyElement.openNeighborhood('edge').forEach(element => addElementFromFloatyToIncremental(element, floatyRepr, occurrence.diagramId));
+    };
+    /**
+     * Function adding a single element to incremental diagram.
+     * If element is not an entity then add also its neighbourhood (i.e. hierarchies!)
+     * @param element
+     * @param floatyRepr
+     * @param floatyDiagramId
+     */
+    const addElementFromFloatyToIncremental = (element, floatyRepr, floatyDiagramId) => {
+        const neighbourGrapholElement = floatyRepr.grapholElements.get(element.id()).clone();
+        let neighbourGrapholEntity;
+        if (neighbourGrapholElement.isEntity()) {
+            // Properties can be duplicated, classes instead must be unique
+            if ((neighbourGrapholElement.is(GrapholTypesEnum.CLASS) || neighbourGrapholElement.is(GrapholTypesEnum.INDIVIDUAL)) &&
+                incrementalDiagramRepresentation.cy.$(`[iri = "${element.data().iri}"]`).nonempty()) {
+                return;
+            }
+            neighbourGrapholEntity = grapholscape.ontology.getEntity(element.data().iri);
+        }
+        /**
+         * If it's an edge, must set source and target id to match occurrences in incremental diagram
+         **/
+        if (isGrapholEdge(neighbourGrapholElement)) {
+            // if source and target are entities, we need to find their new IDs in the incremental diagram
+            recomputeSourceTargetEntitiesIds(neighbourGrapholElement, floatyRepr, incrementalDiagramRepresentation, floatyDiagramId);
+        }
+        // make id unique adding the original diagram-id, we are sure there can't be two same IDs in the same diagram
+        neighbourGrapholElement.id = `${neighbourGrapholElement.id}-${floatyDiagramId}`;
+        // Add new element to diagram
+        incrementalDiagramRepresentation.addElement(neighbourGrapholElement, neighbourGrapholEntity);
+        if (!neighbourGrapholElement.isEntity() && isGrapholNode(neighbourGrapholElement)) {
+            processOccurrenceNeighbourhoods({ elementId: element.id(), diagramId: floatyDiagramId });
+        }
+    };
+    const incrementalDiagramRepresentation = grapholscape
+        .renderer
+        .diagram
+        .representations.get(RendererStatesEnum.INCREMENTAL);
+    if (!incrementalDiagramRepresentation)
+        return;
+    selectedElement.addClass('incremental-expanded-class');
+    const expandedClasses = incrementalDiagramRepresentation.cy.$('.incremental-expanded-class');
+    let elementsToRemove = incrementalDiagramRepresentation.
+        cy.elements().difference(expandedClasses.union(expandedClasses.edgesTo(expandedClasses)));
+    /**
+     * Union nodes with the superclass of the union, must not be removed if
+     * there is a path between two expanded classes through a union.
+     */
+    incrementalDiagramRepresentation.cy.nodes('[!iri]').forEach(unionNode => {
+        if (unionNode.edgesWith(expandedClasses).size() >= 2) {
+            elementsToRemove = elementsToRemove
+                .difference(unionNode.union(unionNode.edgesWith(expandedClasses)))
+                .difference(getUnionSuperClass(unionNode));
+        }
+    });
+    elementsToRemove.forEach(element => {
+        grapholscape.renderer.renderState.unpinNode(element);
+        incrementalDiagramRepresentation.removeElement(element.id());
+    });
+    const grapholElement = incrementalDiagramRepresentation.grapholElements.get(selectedElement.id());
+    if (grapholElement.isEntity() && grapholElement.is(GrapholTypesEnum.CLASS)) {
+        const grapholEntity = grapholscape.ontology.getEntity(selectedElement.data().iri);
+        // Get all occurrences for the selected entity + replicated occurrences in floaty
+        const occurrences = JSON.parse(JSON.stringify(grapholEntity.occurrences.get(RendererStatesEnum.GRAPHOL)));
+        const floatyOccurrences = grapholEntity.occurrences.get(RendererStatesEnum.FLOATY);
+        if (floatyOccurrences) {
+            occurrences.push(JSON.parse(JSON.stringify(floatyOccurrences)));
+        }
+        occurrences.forEach((occurrence) => processOccurrenceNeighbourhoods(occurrence));
+    }
+}
+function recomputeSourceTargetEntitiesIds(edge, floatyDiagramRepresentation, incrementalDiagramRepresentation, floatyDiagramId) {
+    const source = floatyDiagramRepresentation.grapholElements.get(edge.sourceId);
+    const target = floatyDiagramRepresentation.grapholElements.get(edge.targetId);
+    if (source && target) {
+        if (source.isEntity()) {
+            const sourceIri = floatyDiagramRepresentation.cy.$id(edge.sourceId).data().iri;
+            const sourceInIncremental = incrementalDiagramRepresentation.cy.$(`[ iri = "${sourceIri}"]`).first();
+            edge.sourceId = sourceInIncremental.id();
+        }
+        else {
+            // Source surely changed its IDs adding diagram id
+            edge.sourceId = `${edge.sourceId}-${floatyDiagramId}`;
+        }
+        if (target.isEntity()) {
+            const targetIri = floatyDiagramRepresentation.cy.$id(edge.targetId).data().iri;
+            const targetInIncremental = incrementalDiagramRepresentation.cy.$(`[ iri = "${targetIri}"]`).first();
+            edge.targetId = targetInIncremental.id();
+        }
+        else {
+            // Target surely changed its IDs adding diagram id
+            edge.targetId = `${edge.targetId}-${floatyDiagramId}`;
+        }
+    }
+}
+function addFirstClassInIncremental(iri, grapholscape, incrementalDiagramRepresentation) {
+    const grapholEntity = grapholscape.ontology.getEntity(iri);
+    const entityOccurrence = grapholscape.ontology.getEntityOccurrences(iri).get(RendererStatesEnum.GRAPHOL)[0];
+    const floatyDiagramRepresentation = grapholscape.ontology.getDiagram(entityOccurrence.diagramId).representations.get(RendererStatesEnum.FLOATY);
+    const grapholElement = floatyDiagramRepresentation.grapholElements.get(entityOccurrence.elementId).clone();
+    grapholElement.id = `${grapholElement.id}-${entityOccurrence.diagramId}`;
+    incrementalDiagramRepresentation.addElement(grapholElement, grapholEntity);
+    grapholscape.renderer.renderState.pinNode(incrementalDiagramRepresentation.cy.$id(grapholElement.id));
+    addClassNeighbourhood(incrementalDiagramRepresentation.cy.$id(grapholElement.id), grapholscape);
+    grapholscape.renderer.renderState.runLayout();
+}
+function initIncremental(incrementalRendererState, grapholscape) {
+    incrementalRendererState.onEntityExpansion((selectedElement) => {
+        addClassNeighbourhood(selectedElement, grapholscape);
+        incrementalRendererState.runLayout();
+    });
+    setGraphEventHandlers(incrementalRendererState.incrementalDiagram, grapholscape.lifecycle, grapholscape.ontology);
+}
+function getUnionSuperClass(unionNode) {
+    const unionEdge = unionNode.connectedEdges(`[type = "${GrapholTypesEnum.UNION}"],[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`).first();
+    return unionEdge.union(unionEdge.target());
+}
+
 function init$9(entitySelectorComponent, grapholscape) {
+    entitySelectorComponent.searchEntityComponent["object-property"] = undefined;
+    entitySelectorComponent.searchEntityComponent["data-property"] = undefined;
+    entitySelectorComponent.searchEntityComponent["individual"] = undefined;
     // Set class entity list
-    let entities = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false });
+    // const entities = Array
+    //   .from(grapholscape.ontology.entities)
+    //   .filter(elem => elem[1].type === GrapholTypesEnum.CLASS)
+    //   .sort((a, b) => a[1].iri.remainder.localeCompare(b[1].iri.remainder))
+    //   .map(elem => elem[1].iri.prefixed)
+    const entities = createEntitiesList(grapholscape, entitySelectorComponent.searchEntityComponent);
     entitySelectorComponent.entityList = entities;
     if (grapholscape.renderState !== RendererStatesEnum.INCREMENTAL) {
         entitySelectorComponent.hide();
     }
-    // grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
-    //   if (newRendererState === RendererStatesEnum.INCREMENTAL && grapholscape.renderer.grapholElements?.size === 0) {
-    //     entitySelectorComponent.show()
-    //   }
-    // })
-    grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
-        entities = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false });
-        entitySelectorComponent.entityList = entities;
+    grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
+        if (newRendererState === RendererStatesEnum.INCREMENTAL && grapholscape.renderer.grapholElements.size === 0) {
+            entitySelectorComponent.show();
+        }
+    });
+    entitySelectorComponent.onClassSelection(selectedClassIri => {
+        addFirstClassInIncremental(selectedClassIri, grapholscape, grapholscape.renderer.diagram.representations.get(RendererStatesEnum.INCREMENTAL));
+        entitySelectorComponent.hide();
     });
 }
 
 class GscapeEntitySelector extends BaseMixin(s) {
-    static get properties() {
-        return {
-            entityList: { type: Object, attribute: false },
-        };
-    }
     constructor() {
         super();
         this.title = 'Class Selector';
         this.fullEntityList = [];
         this._entityList = [];
+        this.searchEntityComponent = new GscapeEntitySearch();
+        this.searchEntityComponent.onSearch(e => {
+            var _a;
+            const inputElement = e.target;
+            // on ESC key press
+            if (e.key === 'Escape') {
+                inputElement.blur();
+                inputElement.value = null;
+                this.entityList = this.fullEntityList;
+                return;
+            }
+            if (((_a = inputElement.value) === null || _a === void 0 ? void 0 : _a.length) > 2) {
+                this.entityList = search(inputElement.value, this.fullEntityList);
+            }
+            else {
+                this.entityList = this.fullEntityList;
+            }
+        });
+    }
+    static get properties() {
+        return {
+            entityList: { type: Object, attribute: false },
+        };
     }
     render() {
         return y `
       <div class="gscape-panel ellipsed">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
-        <input @keyup=${this.handleSearch} type="text" placeholder="Search a class by IRI, labels...">
+          ${this.searchEntityComponent}
 
           <div class="list-wrapper">
             ${this.entityList.map(entityItem => {
             return y `
                 <gscape-action-list-item
                   type="subtle"
-                  label=${entityItem.displayedName}
-                  iri=${entityItem.value.iri.prefixed}
+                  label=${entityItem.value.iri.prefixed}
                   @click=${this.handleEntitySelection}
                 ></gscape-action-list-item>
               `;
@@ -4826,28 +4621,7 @@ class GscapeEntitySelector extends BaseMixin(s) {
     // override blur to avoid collapsing when clicking on cytoscape's canvas
     blur() { }
     handleEntitySelection(evt) {
-        const iri = evt.target.getAttribute('iri');
-        if (iri)
-            this.onClassSelectionCallback(iri);
-    }
-    handleSearch(e) {
-        var _a;
-        const inputElement = e.currentTarget;
-        if (!inputElement)
-            return;
-        // on ESC key press
-        if (e.key === 'Escape') {
-            inputElement.blur();
-            inputElement.value = '';
-            this.entityList = this.fullEntityList;
-            return;
-        }
-        if (((_a = inputElement.value) === null || _a === void 0 ? void 0 : _a.length) > 2) {
-            this.entityList = search(inputElement.value, this.fullEntityList);
-        }
-        else {
-            this.entityList = this.fullEntityList;
-        }
+        this.onClassSelectionCallback(evt.target.label);
     }
     onClassSelection(callback) {
         this.onClassSelectionCallback = callback;
@@ -4905,11 +4679,6 @@ GscapeEntitySelector.styles = [
       .list-wrapper {
         padding: 0 8px;
       }
-
-      input {
-        margin: 8px 16px;
-        flex-shrink: 0;
-      }
     `
 ];
 customElements.define('gscape-entity-selector', GscapeEntitySelector);
@@ -4919,557 +4688,6 @@ function initEntitySelector(grapholscape) {
     init$9(entitySelectorComponent, grapholscape);
     grapholscape.widgets.set(WidgetEnum.ENTITY_SELECTOR, entitySelectorComponent);
 }
-
-const textSpinner = () => y `<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>`;
-const textSpinnerStyle = i$1 `
-  .lds-ellipsis {
-    display: inline-block;
-    position: relative;
-    width: 20px;
-    height: 1em;
-  }
-  .lds-ellipsis div {
-    position: absolute;
-    top: calc(1em / 2);
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--gscape-color-fg-subtle);
-    animation-timing-function: cubic-bezier(0, 1, 1, 0);
-  }
-  .lds-ellipsis div:nth-child(1) {
-    left: 2px;
-    animation: lds-ellipsis1 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(2) {
-    left: 2px;
-    animation: lds-ellipsis2 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(3) {
-    left: 8px;
-    animation: lds-ellipsis2 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(4) {
-    left: 14px;
-    animation: lds-ellipsis3 0.6s infinite;
-  }
-  @keyframes lds-ellipsis1 {
-    0% {
-      transform: scale(0);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  @keyframes lds-ellipsis3 {
-    0% {
-      transform: scale(1);
-    }
-    100% {
-      transform: scale(0);
-    }
-  }
-  @keyframes lds-ellipsis2 {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(6px, 0);
-    }
-  }
-`;
-
-function getContentSpinner() {
-    return y `<div class="lds-ring" title="Sparqling is loading"><div></div><div></div><div></div><div></div></div>`;
-}
-const contentSpinnerStyle = i$1 `
-  .lds-ring {
-    width: 20px;
-    height: 20px;
-  }
-
-  .lds-ring div {
-    box-sizing: border-box;
-    display: block;
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    margin: 2px;
-    border: 2px solid var(--gscape-color-accent);
-    border-radius: 50%;
-    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    border-color: var(--gscape-color-accent) transparent transparent transparent;
-  }
-  .lds-ring div:nth-child(1) {
-    animation-delay: -0.45s;
-  }
-  .lds-ring div:nth-child(2) {
-    animation-delay: -0.3s;
-  }
-  .lds-ring div:nth-child(3) {
-    animation-delay: -0.15s;
-  }
-  @keyframes lds-ring {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-var incrementalDetailsStyle = i$1 `
-  .gscape-panel {
-    overflow: auto;
-  }
-
-  .counter {
-    position: absolute;
-    margin-left: 18px;
-  }
-
-  .chip {
-    line-height: 1;
-  }
-
-  .chip.data-property-value {
-    color: var(--gscape-color-fg-default);
-    border-color: var(--gscape-color-data-property-contrast);
-    background-color: var(--gscape-color-data-property);
-  }
-
-  .neutral-chip {
-    color: var(--gscape-color-fg-default);
-    border-color: var(--gscape-color-border-default);
-    background-color: var(--gscape-color-neutral-subtle);
-  }
-
-  .section-body {
-    position: relative;
-  }
-
-  .content-wrapper > * {
-    margin: 8px 0;
-  }
-
-  details.entity-list-item > .summary-body {
-    white-space: normal;
-  }
-
-  .summary-body > .lds-ring {
-    margin: 4px auto 8px;
-  }
-
-  .search-box {
-    display: flex;
-    align-items: stretch;
-    margin: 4px 0;
-  }
-
-  .search-box > select {
-    max-width: 30%;
-    padding: 8px;
-    border-bottom-right-radius: 0;
-    border-top-right-radius: 0;
-    border-right: none;
-    min-width: 100px;
-  }
-
-  .search-box > input {
-    padding: 8px;
-    min-width: 150px;
-    border-bottom-left-radius: 0;
-    border-top-left-radius: 0;
-    flex-grow: 2;
-    flex-shrink: 0;
-  }
-
-  .limit-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 4px 0 8px;
-  }
-
-  .limit-box > input {
-    padding: 4px 8px;
-    max-width: 80px;
-  }
-`;
-
-class GscapeIncrementalDetails extends BaseMixin(s) {
-    constructor() {
-        super(...arguments);
-        this.limit = 10;
-        this.canShowInstances = false;
-        this.canShowDataPropertiesValues = false;
-        this.canShowObjectPropertiesRanges = false;
-        this.isInstanceCounterLoading = true;
-        this.areInstancesLoading = true;
-        this.onObjectPropertySelection = (iri, objectPropertyIri, direct) => { };
-        this.onGetInstances = () => { };
-        this.onInstanceSelection = (iri) => { };
-        this.onDataPropertyToggle = (enabled) => { };
-        this.onEntitySearch = (searchText) => { };
-        this.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => { };
-        this.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => { };
-        this.onInstanceObjectPropertySelection = (instanceIri, objectPropertyIri, parentClassIri, direct) => { };
-        this.onLimitChange = (limitValue) => { };
-    }
-    render() {
-        var _a, _b, _c, _d, _e;
-        return y `
-    <div class="content-wrapper">      
-      ${this.canShowInstances
-            ? y `
-        <details class="ellipsed entity-list-item" title="Instances" style="position:relative" @click=${this.handleShowInstances}>
-          <summary class="actionable">
-            <span class="entity-icon slotted-icon">${instancesIcon}</span>
-            <span class="entity-name">Instances</span>
-              ${this.isInstanceCounterLoading
-                ? y `<span class="neutral-chip chip counter">${textSpinner()}</span>`
-                : y `<span class="neutral-chip chip counter">${(_a = this.instanceCount) !== null && _a !== void 0 ? _a : '?'}</span>`}
-            </span>
-          </summary>
-      
-          <div class="summary-body">
-            <div class="search-box">
-              <select id="data-property-filter">
-                <option default>Filter</option>
-                ${(_b = this.dataProperties) === null || _b === void 0 ? void 0 : _b.map(dp => y `<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
-              </select>
-              <input id="instances-search" @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
-            </div>
-
-            ${(_c = this.instances) === null || _c === void 0 ? void 0 : _c.map(instance => this.getEntitySuggestionTemplate(instance))}
-            ${this.areInstancesLoading ? getContentSpinner() : null}
-          </div>
-        </details>
-        `
-            : null}
-
-      ${this.dataProperties && this.dataProperties.length > 0
-            ? y `
-          <div class="section">
-            <div class="section-header bold-text">Data Properties</div>
-            <div class="section-body" style="padding-left: 0px; padding-right: 0px">
-              ${(_d = this.dataProperties) === null || _d === void 0 ? void 0 : _d.map(dataProperty => this.getEntitySuggestionTemplate(dataProperty))}
-            </div>
-          </div>
-        `
-            : null}
-
-      ${this.objectProperties && this.objectProperties.length > 0
-            ? y `
-            <div class="section">
-              <div class="section-header bold-text">Object Properties</div>
-              <div class="section-body" style="padding: 0">
-                ${(_e = this.objectProperties) === null || _e === void 0 ? void 0 : _e.map((op) => {
-                return y `
-                    <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
-                      <summary class="actionable">
-                        <span class="entity-icon slotted-icon">${objectPropertyIcon}</span>
-                        <span class="entity-name">${op.objectProperty.displayedName}</span>
-                        ${!op.direct
-                    ? y `<span class="chip" style="line-height: 1">Inverse</span>`
-                    : null}
-                      </summary>
-                  
-                      <div class="summary-body" ?isDirect=${op.direct}>
-                        ${op.connectedClasses.map(classEntity => {
-                    var _a, _b;
-                    if (this.canShowObjectPropertiesRanges) {
-                        const rangeClassesInstances = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(op.objectProperty.value.iri.fullIri)) === null || _b === void 0 ? void 0 : _b.get(classEntity.value.iri.fullIri);
-                        if (rangeClassesInstances) {
-                            return y `
-                                <details class="ellipsed entity-list-item" title="${classEntity.displayedName}"
-                                  objectPropertyIri=${op.objectProperty.value.iri.fullIri}
-                                  rangeClassIri=${classEntity.value.iri.fullIri}
-                                  @click=${this.handleShowObjectPropertyRanges}
-                                >
-                                  <summary class="actionable">
-                                    <span class="entity-icon slotted-icon">${classIcon}</span>
-                                    <span class="entity-name">${classEntity.displayedName}</span>
-                                  </summary>
-
-                                  <div class="summary-body">
-                                    ${rangeClassesInstances.values.map(instance => this.getEntitySuggestionTemplate(instance, op.objectProperty.value.iri.fullIri, classEntity.value.iri.fullIri, op.direct))}
-                                    ${rangeClassesInstances.loading ? getContentSpinner() : null}
-                                  </div>
-                                </details>
-                              `;
-                        }
-                    }
-                    else {
-                        return this.getEntitySuggestionTemplate(classEntity, op.objectProperty.value.iri.fullIri, undefined, op.direct);
-                    }
-                })}
-                      </div>
-                    </details>
-                  `;
-            })}
-              </div>
-            </div>
-          `
-            : null}    
-    </div>
-    `;
-    }
-    handleSearch(e) {
-        const inputElement = e.target;
-        clearTimeout(this.searchTimeout);
-        // on ESC key press
-        if (e.key === 'Escape') {
-            inputElement.blur();
-            inputElement.value = '';
-        }
-        this.searchTimeout = setTimeout(() => {
-            const dataPropertyFilterElem = this.dataPropertyFilter;
-            if (dataPropertyFilterElem && dataPropertyFilterElem.options.selectedIndex !== 0) {
-                const dataPropertyIri = dataPropertyFilterElem.options[dataPropertyFilterElem.options.selectedIndex].value;
-                this.onEntitySearchByDataPropertyValue(dataPropertyIri, inputElement.value);
-            }
-            else {
-                this.onEntitySearch(inputElement.value);
-            }
-        }, 500);
-    }
-    handleShowInstances(evt) {
-        const target = evt.currentTarget;
-        if (!target.open && (!this.instances || this.instances.length === 0)) {
-            this.onGetInstances();
-        }
-    }
-    handleShowObjectPropertyRanges(evt) {
-        var _a, _b;
-        const target = evt.currentTarget;
-        const objectPropertyIri = target.getAttribute('objectPropertyIri');
-        const rangeClassIri = target.getAttribute('rangeClassIri');
-        if (objectPropertyIri && rangeClassIri && !target.open) {
-            const actualRangeInstances = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
-            if (!actualRangeInstances || actualRangeInstances.values.length === 0)
-                this.onGetRangeInstances(objectPropertyIri, rangeClassIri);
-        }
-    }
-    getEntitySuggestionTemplate(entity, objectPropertyIri, parentClassIri, direct) {
-        var _a;
-        const values = (_a = this.dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(entity.value.iri.fullIri);
-        return y `
-      <div 
-        title=${entity.displayedName}
-        iri=${entity.value.iri.fullIri}
-        entity-type="${entity.value.type}"
-        class="ellipsed entity-list-item ${entity.value.type !== GrapholTypesEnum.DATA_PROPERTY ? 'actionable' : null}"
-        @click=${(e) => this.handleEntityClick(e, objectPropertyIri, parentClassIri, direct)}
-      >
-        <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
-        <span class="entity-name">${entity.displayedName}</span>
-        ${this.canShowDataPropertiesValues && values
-            ? y `
-            ${values.values.map(v => y `<span class="chip data-property-value">${v}</span>`)}
-            ${values.loading
-                ? y `<span class="chip neutral-chip">${textSpinner()}</span>`
-                : null}
-          `
-            : null}
-      </div>
-    `;
-    }
-    handleEntityClick(e, objectPropertyIri, parentClassIri, direct = true) {
-        const target = e.currentTarget;
-        const iri = target.getAttribute('iri');
-        if (!iri)
-            return;
-        switch (target.getAttribute('entity-type')) {
-            case GrapholTypesEnum.CLASS:
-                if (objectPropertyIri) {
-                    this.onObjectPropertySelection(iri, objectPropertyIri, direct);
-                }
-                break;
-            case GrapholTypesEnum.CLASS_INSTANCE:
-                if (objectPropertyIri) {
-                    if (parentClassIri) // nested needed
-                        this.onInstanceObjectPropertySelection(iri, objectPropertyIri, parentClassIri, direct);
-                }
-                else {
-                    this.onInstanceSelection(iri);
-                }
-        }
-    }
-    // protected get cxtMenuProps() {
-    //   let cxtMenuProps = super.cxtMenuProps
-    //   cxtMenuProps.placement = 'right'
-    //   return cxtMenuProps
-    // }
-    setDataProperties(dataProperties) { this.dataProperties = dataProperties; }
-    addDataProperties(dataProperties) {
-        this.dataProperties = (this.dataProperties || []).concat(dataProperties);
-    }
-    setObjectProperties(objectProperties) { this.objectProperties = objectProperties; }
-    addObjectProperties(objectProperties) {
-        this.objectProperties = (this.objectProperties || []).concat(objectProperties);
-    }
-    setInstances(instances) {
-        this.instances = instances;
-    }
-    addInstances(instances) {
-        // concat avoiding duplicates
-        this.instances = [...new Set([...(this.instances || []), ...instances])];
-    }
-    setDataPropertiesValues(dataPropertiesValues) {
-        this.dataPropertiesValues = dataPropertiesValues;
-    }
-    addDataPropertiesValues(dataPropertyIri, values) {
-        if (!this.dataPropertiesValues)
-            return;
-        const dataPropertyValues = this.dataPropertiesValues.get(dataPropertyIri);
-        if (dataPropertyValues) {
-            dataPropertyValues.values = values;
-            this.requestUpdate();
-        }
-    }
-    setDataPropertyLoading(dataPropertyIri, isLoading) {
-        var _a;
-        const dataPropertiesValues = (_a = this.dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(dataPropertyIri);
-        if (dataPropertiesValues) {
-            dataPropertiesValues.loading = isLoading;
-            this.requestUpdate();
-        }
-    }
-    // ---- OBJECT PROPERTIES RANGES ----
-    setObjectPropertyRanges(objectPropertyRanges) {
-        this.objectPropertiesRanges = objectPropertyRanges;
-    }
-    setObjectPropertyLoading(objectPropertyIri, rangeClassIri, isLoading) {
-        var _a, _b;
-        const objectPropertyRanges = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
-        if (objectPropertyRanges) {
-            objectPropertyRanges.loading = isLoading;
-            this.requestUpdate();
-        }
-    }
-    addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, classInstances) {
-        var _a, _b;
-        const objectPropertyRanges = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
-        if (objectPropertyRanges) {
-            objectPropertyRanges.values = classInstances;
-            this.requestUpdate();
-        }
-    }
-    show() {
-        var _a, _b;
-        super.show();
-        (_b = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll(`details`)) === null || _b === void 0 ? void 0 : _b.forEach(detailsElement => detailsElement.open = false);
-    }
-    reset() {
-        this.dataProperties = undefined;
-        this.objectProperties = undefined;
-        this.canShowInstances = false;
-        this.canShowDataPropertiesValues = false;
-        this.canShowObjectPropertiesRanges = false;
-        this.dataPropertiesValues = undefined;
-        this.objectPropertiesRanges = undefined;
-    }
-    get dataPropertyFilter() {
-        if (this.shadowRoot)
-            return this.shadowRoot.querySelector(`select#data-property-filter`);
-    }
-}
-GscapeIncrementalDetails.properties = {
-    dataProperties: { type: Object, attribute: false },
-    objectProperties: { type: Object, attribute: false },
-    instances: { type: Array, attribute: false },
-    canShowInstances: { type: Boolean, attribute: false },
-    canShowDataPropertiesValues: { type: Boolean, attribute: false },
-    isInstanceCounterLoading: { type: Boolean, attribute: false },
-    areInstancesLoading: { type: Boolean, attribute: false },
-    instanceCount: { type: Number, attribute: false },
-    limit: { type: Number, attribute: false },
-    // dataPropertiesValues: {type: Object, attribute: false },
-    // objectPropertiesRanges: {type: Object, attribute: false },
-};
-GscapeIncrementalDetails.styles = [baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle,
-    i$1 `
-      div.entity-list-item[entity-type = "data-property"] { 
-        flex-wrap: wrap;
-      }
-    `
-];
-customElements.define('gscape-incremental-menu', GscapeIncrementalDetails);
-
-function showHideSuperHierarchies(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Super Hierarchies`,
-        icon: superHierarchies,
-        select: callback,
-    };
-}
-function showHideSuperClasses(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Super Classes`,
-        icon: superHierarchies,
-        select: callback,
-    };
-}
-function showHideSubHierarchies(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Sub Hierarchies`,
-        icon: subHierarchies,
-        select: callback,
-    };
-}
-function showHideSubClasses(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Sub Classes`,
-        icon: subHierarchies,
-        select: callback,
-    };
-}
-function remove(callback) {
-    return {
-        content: 'Remove',
-        icon: rubbishBin,
-        select: callback,
-    };
-}
-function showParentClass(callback) {
-    return {
-        content: 'Show Parent Classes',
-        icon: classIcon,
-        select: callback,
-    };
-}
-
-function initIncrementalMenu(grapholscape) {
-    const incrementalMenu = new GscapeIncrementalDetails();
-    //   // grapholscape.on(LifecycleEvent.NodeSelection, node => {
-    //   //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL)
-    //   //     cxtMenuWidget.attachTo((grapholscape.renderer.cy.$id(node.id) as any).popperRef(), [])
-    //   // })
-    grapholscape.widgets.set(WidgetEnum.INCREMENTAL_MENU, incrementalMenu);
-}
-// function getCxtMenuProps(cxtMenuWidget: ContextMenuWidget): Partial<Props> {
-//   return {
-//     trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
-//     allowHTML: true,
-//     interactive: true,
-//     placement: "bottom",
-//     appendTo: document.querySelector('.gscape-ui') || undefined,
-//     // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
-//     content: cxtMenuWidget,
-//     hideOnClick: true,
-//     offset: [0, 0],
-//   }
-// }
-// export function attachCxtMenuTo(element: HTMLElement, commands: Command[]) {
-//   cxtMenu.setProps(getCxtMenuProps())
-//   cxtMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() } )
-//   cxtMenuWidget.commands = commands
-//   cxtMenu.show()
-// }
-// cxtMenuWidget.onCommandRun = () => cxtMenu.hide()
 
 class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
@@ -5670,14 +4888,17 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
         super(...arguments);
         this.title = 'Entity Details';
         this.onNodeNavigation = () => { };
+        this.togglePanel = () => {
+            super.togglePanel();
+            this.requestUpdate();
+        };
     }
     static get properties() {
         return {
             grapholEntity: { type: Object, attribute: false },
             occurrences: { type: Object, attribute: false },
             language: { type: String, attribute: false },
-            _isPanelClosed: { type: Boolean, attribute: false },
-            incrementalSection: { type: Object, attribute: false }
+            _isPanelClosed: { type: Boolean, attribute: false }
         };
     }
     render() {
@@ -5687,55 +4908,50 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
       <div class="gscape-panel ellipsed" id="drop-panel">
         ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
 
-        <div class="content-wrapper">
-          ${this.grapholEntity.datatype
+        ${this.grapholEntity.datatype
             ? y `
-              <div style="text-align: center" class="chips-wrapper section">
-                <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
+            <div style="text-align: center" class="chips-wrapper section">
+              <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
+            </div>
+          `
+            : null}
+
+        ${this.grapholEntity.functionalities.length > 0
+            ? y `
+              <div class="chips-wrapper section">
+              ${this.grapholEntity.functionalities.map(functionality => {
+                return y `<span class="chip">&#10003; ${functionality.toString()}</span>`;
+            })}
               </div>
             `
             : null}
 
-          ${this.grapholEntity.functionalities.length > 0
+        ${annotationsTemplate(this.grapholEntity.getAnnotations())}
+        
+        ${this.occurrencesTemplate()}
+
+        ${this.grapholEntity.getComments().length > 0
             ? y `
-                <div class="chips-wrapper section">
-                ${this.grapholEntity.functionalities.map(functionality => {
-                return y `<span class="chip">&#10003; ${functionality.toString()}</span>`;
-            })}
-                </div>
-              `
-            : null}
-
-          ${this.incrementalSection}
-
-          ${annotationsTemplate(this.grapholEntity.getAnnotations())}
-          
-          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
-
-          ${this.grapholEntity.getComments().length > 0
-            ? y `
-                <div class="section">
-                  <div>
-                    <span id="description-header" class="bold-text section-header">Description</span>
-                    <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
-                      ${this.commentsLanguages.map(language => {
+              <div class="section">
+                <div>
+                  <span id="description-header" class="bold-text section-header">Description</span>
+                  <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
+                    ${this.commentsLanguages.map(language => {
                 return y `
-                          <option value="${language}" ?selected=${this.language === language}>
-                            @${language}
-                          </option>
-                        `;
+                        <option value="${language}" ?selected=${this.language === language}>
+                          @${language}
+                        </option>
+                      `;
             })}
-                    </select>
-                  </div>
-                  <div class="section-body">
-                    ${this.grapholEntity.getComments(this.language).map(comment => y `<span class="comment">${comment.lexicalForm}</span>`)}
-                  </div>
+                  </select>
                 </div>
-              `
+                <div class="section-body">
+                  ${this.grapholEntity.getComments(this.language).map(comment => y `<span class="comment">${comment.lexicalForm}</span>`)}
+                </div>
+              </div>
+            `
             : null}
-        </div>
       </div>
-
       <div class="top-bar">
         <gscape-button style="z-index: 1"
           id="toggle-panel-button"
@@ -5804,23 +5020,11 @@ GscapeEntityDetails.styles = [
         position: absolute;
         top:10px;
         right:62px;
-        max-height: 50%;
-        min-height: 200px;
-        min-width: 300px;
-        max-width: 20%;
-        display: flex;
-        flex-direction: column;
-        pointer-events: none;
       }
 
       .gscape-panel {
         padding:0;
-        max-height: inherit;
-        display: flex;
-        flex-direction: column;
-        width: inherit;
-        max-width: unset;
-        min-width: unset;
+        min-width: 200px;
       }
 
       .gscape-panel > * {
@@ -5863,11 +5067,6 @@ GscapeEntityDetails.styles = [
 
       .item-with-iri-info {
         padding-top: 12px;
-        flex-shrink: 0;
-      }
-
-      .content-wrapper > * {
-        margin: 8px 0;
       }
     `
 ];
@@ -6101,6 +5300,9 @@ function init$6 (filterComponent, grapholscape) {
     // }
 }
 
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
 function initFilters(grapholscape) {
     const filterComponent = new GscapeFilters();
     init$6(filterComponent, grapholscape);
@@ -6130,6 +5332,14 @@ class FloatyFilterManager extends BaseFilterManager {
             DefaultFilterKeyEnum.COMPLEMENT,
             DefaultFilterKeyEnum.HAS_KEY,
         ];
+    }
+    get filters() { return this._filters; }
+    set filters(filters) {
+        this._filters = filters;
+        this.lockedFilters.forEach(lockedFilterKey => {
+            var _a;
+            (_a = this.filters.get(lockedFilterKey)) === null || _a === void 0 ? void 0 : _a.lock();
+        });
     }
 }
 
@@ -6163,13 +5373,6 @@ function grapholStyle (theme) {
                 'text-margin-y': 'data(labelYpos)',
                 'text-wrap': 'wrap',
                 'min-zoomed-font-size': '5px',
-            }
-        },
-        {
-            selector: `node[displayedName][type = "${GrapholTypesEnum.CLASS}"], node[displayedName][type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
-            style: {
-                'text-max-width': 'data(width)',
-                'text-overflow-wrap': 'anywhere',
             }
         },
         {
@@ -6571,7 +5774,7 @@ class LiteTransformer extends BaseGrapholTransformer {
         };
         this.isCardinalityRestriction = (node) => {
             const grapholElement = this.getGrapholElement(node.id());
-            if (this.isRestriction(grapholElement) && grapholElement.displayedName && grapholElement.displayedName.search(/[0-9]/g) >= 0) {
+            if (this.isRestriction(grapholElement) && grapholElement.displayedName.search(/[0-9]/g) >= 0) {
                 return true;
             }
             return false;
@@ -6795,17 +5998,18 @@ class LiteTransformer extends BaseGrapholTransformer {
          * @param i
          */
         const addAttribute = (concept, attribute, edgeType, i) => {
-            const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`, GrapholTypesEnum.DATA_PROPERTY);
-            const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`, edgeType);
+            const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`);
+            const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`);
             newAttribute.originalId = attribute.id();
             newAttribute.x = concept.position().x;
             newAttribute.y = concept.position().y;
             Object.entries(attribute.data()).forEach(([key, value]) => {
-                if (key !== 'id' && key !== 'originalId' && key !== 'type')
+                if (key !== 'id' && key !== 'originalId')
                     newAttribute[key] = value;
             });
             newAttributeEdge.sourceId = concept.id();
             newAttributeEdge.targetId = newAttribute.id;
+            newAttributeEdge.type = edgeType;
             this.result.addElement(newAttribute);
             this.result.addElement(newAttributeEdge);
             this.newCy.$id(newAttribute.id).addClass('repositioned');
@@ -6967,7 +6171,7 @@ class LiteTransformer extends BaseGrapholTransformer {
                 const grapholInputEdge = this.getGrapholElement(inputEdge.id());
                 if (!grapholInputEdge)
                     return;
-                const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`, grapholRestrictionEdge.type);
+                const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`);
                 /**
                  * if the connected non input edge is only one (the one we are processing)
                  * then the new edge will be the concatenation of the input edge + role edge
@@ -6978,6 +6182,7 @@ class LiteTransformer extends BaseGrapholTransformer {
                 else {
                     newRestrictionEdge.controlpoints = [...grapholRestrictionEdge.controlpoints];
                 }
+                newRestrictionEdge.type = grapholRestrictionEdge.type;
                 newRestrictionEdge.sourceId = grapholInputEdge.sourceId;
                 newRestrictionEdge.sourceEndpoint = grapholInputEdge.sourceEndpoint
                     ? { x: grapholInputEdge.sourceEndpoint.x, y: grapholInputEdge.sourceEndpoint.y }
@@ -7095,7 +6300,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
             ranges.forEach((range, i) => {
                 grapholRangeNode = this.getGrapholElement(range.id());
                 newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`;
-                let newGrapholEdge = new GrapholEdge(newId, GrapholTypesEnum.OBJECT_PROPERTY);
+                let newGrapholEdge = new GrapholEdge(newId);
                 newGrapholEdge.sourceId = grapholDomainNode.id;
                 newGrapholEdge.targetId = grapholRangeNode.id;
                 Object.entries(objectProperty.data()).forEach(([key, value]) => {
@@ -7112,6 +6317,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
                     }
                 });
                 newGrapholEdge.originalId = objectProperty.id().toString();
+                newGrapholEdge.displayedName = newGrapholEdge.displayedName.replace(/\r?\n|\r/g, '');
                 this.result.addElement(newGrapholEdge);
                 const newAddedCyElement = this.newCy.$id(newGrapholEdge.id);
                 newAddedCyElement.data().iri = objectProperty.data().iri;
@@ -7153,7 +6359,6 @@ class FloatyTransformer extends BaseGrapholTransformer {
     }
 }
 
-cytoscape.use(automove);
 class FloatyRendererState extends BaseRenderer {
     constructor() {
         super(...arguments);
@@ -7172,7 +6377,7 @@ class FloatyRendererState extends BaseRenderer {
                 e.target.removeData('old_pos');
             }
         };
-        this.defaultLayoutOptions = {
+        this.floatyLayoutOptions = {
             name: 'cola',
             avoidOverlap: false,
             edgeLength: function (edge) {
@@ -7195,18 +6400,12 @@ class FloatyRendererState extends BaseRenderer {
             handleDisconnected: true,
             centerGraph: false,
         };
-        this.automoveOptions = {
-            nodesMatching: (node) => { var _a; return (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$(':grabbed').neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).has(node); },
-            reposition: 'drag',
-            dragWith: `[type ="${GrapholTypesEnum.CLASS}"][iri]`
-        };
     }
     set renderer(newRenderer) {
         super.renderer = newRenderer;
         if (!newRenderer.renderStateData[this.id]) {
             newRenderer.renderStateData[this.id] = {};
             newRenderer.renderStateData[this.id].popperContainers = new Map();
-            this.floatyLayoutOptions = this.defaultLayoutOptions;
         }
     }
     get renderer() { return super.renderer; }
@@ -7244,7 +6443,6 @@ class FloatyRendererState extends BaseRenderer {
             }
             this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
             this.setDragAndPinEventHandlers();
-            this.renderer.cy.automove(this.automoveOptions);
         }
         if (this.popperContainer)
             (_a = this.renderer.cy.container()) === null || _a === void 0 ? void 0 : _a.appendChild(this.popperContainer);
@@ -7256,10 +6454,7 @@ class FloatyRendererState extends BaseRenderer {
         }
         floatyRepresentation.hasEverBeenRendered = true;
     }
-    stopRendering() {
-        var _a;
-        (_a = this._layout) === null || _a === void 0 ? void 0 : _a.stop();
-    }
+    stopRendering() { }
     getGraphStyle(theme) {
         return floatyStyle(theme);
     }
@@ -7358,12 +6553,6 @@ class FloatyRendererState extends BaseRenderer {
         //   //n.on('position', () => this.updatePopper(n))
         //   this.renderer.cy.on('pan zoom resize', () => this.updatePopper(n))
         // })
-    }
-    get floatyLayoutOptions() {
-        return this.renderer.renderStateData[this.id].layoutOptions;
-    }
-    set floatyLayoutOptions(newOptions) {
-        this.renderer.renderStateData[this.id].layoutOptions = newOptions;
     }
     get isLayoutInfinite() {
         return this.floatyLayoutOptions.infinite ? true : false;
@@ -7468,196 +6657,329 @@ class GrapholRendererState extends BaseRenderer {
     transformOntology(ontology) { }
 }
 
-function computeHierarchies(ontology) {
-    var _a;
-    const unionNodeSelector = `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`;
-    const unionEdgeSelector = `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`;
-    for (const diagram of ontology.diagrams) {
-        (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$(unionNodeSelector).forEach(unionNode => {
-            const hierarchy = new Hierarchy(unionNode.data().type);
-            hierarchy.id = `${unionNode.id()}-${diagram.id}`;
-            unionNode.connectedEdges(`[type = "${GrapholTypesEnum.INPUT}"]`).sources().forEach(inputNode => {
-                var _a;
-                if (inputNode.data().iri) {
-                    if (!ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)) {
-                        ontology.hierarchiesBySubclassMap.set(inputNode.data().iri, []);
-                    }
-                    hierarchy.addInput(inputNode.data().iri);
-                    (_a = ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)) === null || _a === void 0 ? void 0 : _a.push(hierarchy);
-                }
-            });
-            unionNode.outgoers(unionEdgeSelector).forEach(inclusionEdge => {
-                var _a;
-                const superClass = inclusionEdge.target();
-                if (superClass.data().iri) {
-                    if (!ontology.hierarchiesBySuperclassMap.get(superClass.data().iri)) {
-                        ontology.hierarchiesBySuperclassMap.set(superClass.data().iri, []);
-                    }
-                    hierarchy.addSuperclass(superClass.data().iri, inclusionEdge.data().targetLabel === 'C');
-                    (_a = ontology.hierarchiesBySuperclassMap.get(superClass.data().iri)) === null || _a === void 0 ? void 0 : _a.push(hierarchy);
-                }
-            });
-        });
+class Renderer {
+    constructor(renderState) {
+        this.filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]));
+        this.FOCUS_ZOOM_LEVEL = 1.5;
+        this.renderStateData = {};
+        /**
+         * Filter elements on the diagram.
+         * It will be actually applied only if the user defined callback on the event
+         * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+         * allows for the filter to be applied.
+         * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+         * or a string representing the unique key of a defined filter
+         */
+        this.filter = (filter) => {
+            var _a;
+            let _filter = this.getFilter(filter);
+            if (!_filter)
+                return;
+            if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && ((_a = this._renderState) === null || _a === void 0 ? void 0 : _a.filterManager.filterActivation(_filter))) {
+                this.performFilter(_filter);
+                this._lifecycle.trigger(LifecycleEvent.Filter, _filter);
+            }
+        };
+        /**
+         * Unfilter elements on the diagram.
+         * It will be actually deactivated only if the user defined callback on the event
+         * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
+         * allows for the filter to be deactivated.
+         * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
+         * or a string representing the unique key of a defined filter
+         */
+        this.unfilter = (filter) => {
+            var _a;
+            const _filter = this.getFilter(filter);
+            if (!_filter)
+                return;
+            if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && ((_a = this._renderState) === null || _a === void 0 ? void 0 : _a.filterManager.filterDeactivation(_filter))) {
+                this.performFilter(_filter, false);
+                this.applyActiveFilters();
+                this._lifecycle.trigger(LifecycleEvent.Unfilter, _filter);
+            }
+        };
+        if (renderState)
+            this.renderState = renderState;
     }
-}
-
-function incrementalStyle (theme) {
-    const baseStyle = floatyStyle(theme);
-    const incrementalStyle = [
-        {
-            selector: '.incremental-expanded-class',
-            style: {
-                'border-width': 4,
-                'background-blacken': 0.1,
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
-            style: {
-                backgroundColor: theme.getColour(ColoursNames.class_instance),
-                "border-color": theme.getColour(ColoursNames.class_instance_contrast),
-            }
-        },
-        {
-            selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]:selected`,
-            style: {
-                'text-background-color': theme.getColour(ColoursNames.bg_graph),
-                'text-background-opacity': 1,
-            }
-        },
-        {
-            selector: `edge[type = "${GrapholTypesEnum.INSTANCE_OF}"]`,
-            style: {
-                "target-arrow-shape": 'triangle',
-                'target-arrow-fill': 'filled',
-                'line-color': theme.getColour(ColoursNames.class_instance_contrast),
-                'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast)
-            }
+    set lifecycle(lc) {
+        this._lifecycle = lc;
+    }
+    set renderState(rs) {
+        if (this.diagram) {
+            /**
+             * Stop rendering actual diagram before
+             * changing renderer state
+             */
+            this.stopRendering();
         }
-    ];
-    return baseStyle.concat(incrementalStyle);
-}
-
-/**
- * Incremental should not allow any filter and widgtet should not even be visible
- */
-class IncrementalFilterManager extends BaseFilterManager {
-    constructor() {
-        super(...arguments);
-        this.lockedFilters = Object.keys(DefaultFilterKeyEnum).map(k => DefaultFilterKeyEnum[k]);
-    }
-}
-
-/**
- * The incremental renderer state is a kind of floaty renderer state in which
- * ontology's diagrams are used only to compute what to show.
- * There is only a single empty diagram and any render() call just render the same diagram
- * no matter what was the input diagram.
- *
- * This renderer state is logic agnostic, meaning that it does not control what to show and when.
- * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
- */
-class IncrementalRendererState extends FloatyRendererState {
-    constructor() {
-        super(...arguments);
-        this.id = RendererStatesEnum.INCREMENTAL;
-        this.filterManager = new IncrementalFilterManager();
-    }
-    render() {
-        var _a, _b;
-        this.overrideDiagram();
-        if (this.popperContainer) {
-            (_b = (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.container()) === null || _b === void 0 ? void 0 : _b.appendChild(this.popperContainer);
+        this._renderState = rs;
+        rs.renderer = this;
+        if (this.diagram) {
+            rs.render();
+            this.performAllFilters();
         }
     }
-    runLayout() {
-        super.runLayout();
-        if (this.isLayoutInfinite) {
-            this.unFreezeGraph();
+    get renderState() { return this._renderState; }
+    get theme() { return this._theme; }
+    render(diagram) {
+        var _a;
+        if (!this.diagram || this.diagram.id !== diagram.id) {
+            this.stopRendering();
+            this.diagram = diagram;
+            (_a = this._renderState) === null || _a === void 0 ? void 0 : _a.render();
+            this.performAllFilters();
+            this._lifecycle.trigger(LifecycleEvent.DiagramChange, diagram);
+        }
+    }
+    mount() {
+        var _a;
+        this.applyTheme();
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.mount(this.container);
+    }
+    addElement(element) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.add(element);
+    }
+    performFilter(filter, activate = true) {
+        if (this.grapholElements && this._renderState) {
+            for (let grapholElement of this.grapholElements.values()) {
+                if (filter.shouldFilter(grapholElement)) {
+                    if (activate)
+                        this._renderState.filter(grapholElement.id, filter);
+                    else
+                        this._renderState.unfilter(grapholElement.id, filter);
+                }
+            }
+            filter.active = activate;
+        }
+    }
+    getFilter(filter) {
+        let _filter;
+        if (typeof filter === 'string') {
+            _filter = this.filters.get(filter);
         }
         else {
-            this.layout.one('layoutstop', () => {
-                var _a;
-                if (((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.size) === 1)
-                    this.renderer.fit();
-                this.unFreezeGraph();
-            });
+            _filter = filter;
         }
+        if (!_filter || !this.filters.has(_filter.key)) {
+            console.warn(`Can't find any filter "${filter}"`);
+            return;
+        }
+        return _filter;
     }
-    /** lock all nodes */
-    freezeGraph() {
-        var _a;
-        (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.nodes().lock();
+    applyActiveFilters() {
+        this.filters.forEach(filter => {
+            if (filter.active) {
+                this.performFilter(filter);
+            }
+        });
     }
-    /** unlock all nodes that are not pinned (pinned can be unlocked only with unpin) */
-    unFreezeGraph() {
-        var _a;
-        (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$("[!pinned]:locked").unlock();
+    performAllFilters() {
+        // first unfiler
+        this.filters.forEach(filter => {
+            if (!filter.active)
+                this.performFilter(filter, filter.active);
+        });
+        this.filters.forEach(filter => {
+            if (filter.active)
+                this.performFilter(filter, filter.active);
+        });
     }
     stopRendering() {
-        super.stopRendering();
-        this.renderer.diagram = this.previousDiagram;
-    }
-    transformOntology(ontology) {
-        // Perform floaty transformation if it has not been done yet
-        if (!ontology.diagrams[0].representations.get(RendererStatesEnum.FLOATY)) {
-            ontology.diagrams.forEach(diagram => {
-                const floatyTransformer = new FloatyTransformer();
-                diagram.representations.set(RendererStatesEnum.FLOATY, floatyTransformer.transform(diagram));
-            });
-            computeHierarchies(ontology);
-        }
-    }
-    getGraphStyle(theme) {
-        return incrementalStyle(theme);
-    }
-    overrideDiagram() {
         var _a, _b;
-        if (this.renderer.diagram && ((_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.id) !== this.incrementalDiagram.id) {
-            this.previousDiagram = this.renderer.diagram;
-        }
-        this.renderer.stopRendering();
-        this.renderer.diagram = this.incrementalDiagram;
-        this.renderer.cy = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy;
-        this.renderer.mount();
+        this.unselect();
+        (_a = this._renderState) === null || _a === void 0 ? void 0 : _a.stopRendering();
+        (_b = this.cy) === null || _b === void 0 ? void 0 : _b.unmount();
     }
-    createNewDiagram() {
-        var _a, _b, _c, _d;
-        this.unpinAll();
-        if (!this.incrementalDiagram)
-            this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram();
+    /**
+     * Select a node or an edge in the actual diagram given its unique id
+     * @param {string} elementId elem id (node or edge)
+     */
+    selectElement(elementId) {
+        var _a;
+        this.unselect();
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.$id(elementId).select();
+    }
+    /**
+     * Unselect every selected element in this diagram
+     */
+    unselect() {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.elements(':selected').unselect();
+    }
+    /**
+     * Fit viewport to diagram
+     */
+    fit() {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.fit();
+    }
+    /**
+     * Put a set of elements (nodes and/or edges) at the center of the viewport.
+     * If just one element then the element will be at the center.
+     * @param elementId the element's ID
+     * @param zoom the zoom level to apply, if not passed, zoom level won't be changed
+     */
+    centerOnElementById(elementId, zoom, select) {
+        var _a, _b;
+        if (zoom === void 0) { zoom = (_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom(); }
+        if (!this.cy || (!zoom && zoom !== 0))
+            return;
+        const cyElement = this.cy.$id(elementId);
+        zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom;
+        if (cyElement.empty()) {
+            console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`);
+        }
         else {
-            (_a = this.incrementalDiagram.representation) === null || _a === void 0 ? void 0 : _a.cy.destroy();
-            this.incrementalDiagram.representations.set(this.id, new DiagramRepresentation(floatyOptions));
+            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
+                center: {
+                    eles: cyElement
+                },
+                zoom: zoom,
+                queue: false,
+            });
+            if (select && this.cy.$(':selected') !== cyElement) {
+                this.unselect();
+                cyElement.select();
+            }
         }
-        this.overrideDiagram();
-        (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.on('cxttap', `node`, evt => {
-            this.onContextClickCallback(evt.target);
+    }
+    centerOnElement(element, zoom, select) {
+        this.centerOnElementById(element.id, zoom, select);
+    }
+    centerOnModelPosition(xPos, yPos, zoom) {
+        if (!this.cy)
+            return;
+        let offsetX = this.cy.width() / 2;
+        let offsetY = this.cy.height() / 2;
+        xPos -= offsetX;
+        yPos -= offsetY;
+        this.cy.pan({
+            x: -xPos,
+            y: -yPos
         });
-        if ((_c = this.renderer.diagram) === null || _c === void 0 ? void 0 : _c.id)
-            this.popperContainers.set((_d = this.renderer.diagram) === null || _d === void 0 ? void 0 : _d.id, document.createElement('div'));
-        this.setDragAndPinEventHandlers();
-        this.render();
+        this.cy.zoom({
+            level: zoom || this.cy.zoom(),
+            renderedPosition: { x: offsetX, y: offsetY }
+        });
     }
-    onContextClick(callback) {
-        this.onContextClickCallback = callback;
+    centerOnRenderedPosition(xPos, yPos, zoom) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.viewport({
+            zoom: zoom || this.cy.zoom(),
+            pan: { x: xPos, y: yPos }
+        });
     }
-    get diagramRepresentation() {
-        return this.incrementalDiagram.representations.get(this.id);
+    zoom(zoomValue) {
+        var _a, _b;
+        if (zoomValue != ((_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom()))
+            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
+                zoom: zoomValue,
+                queue: false
+            });
     }
-    get incrementalDiagram() { return this.renderer.renderStateData[this.id].diagram; }
-    set renderer(newRenderer) {
-        super.renderer = newRenderer;
-        if (!newRenderer.renderStateData[this.id]) {
-            newRenderer.renderStateData[this.id] = {};
+    zoomIn(zoomValue) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
+            zoom: {
+                level: this.cy.zoom() + zoomValue * this.cy.zoom(),
+                renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+            },
+            queue: false,
+        });
+    }
+    zoomOut(zoomValue) {
+        var _a;
+        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
+            zoom: {
+                level: this.cy.zoom() - zoomValue * this.cy.zoom(),
+                renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
+            },
+            queue: false,
+        });
+    }
+    setTheme(theme) {
+        if (theme !== this._theme) {
+            this._theme = theme;
+            if (this.cy) {
+                this.applyTheme();
+            }
         }
-        this.floatyLayoutOptions.fit = false;
-        this.floatyLayoutOptions.maxSimulationTime = 1000;
-        if (!newRenderer.renderStateData[this.id].diagram)
-            this.createNewDiagram();
     }
-    get renderer() {
-        return super.renderer;
+    applyTheme() {
+        var _a;
+        if (this._theme) {
+            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style(this.renderState.getGraphStyle(this._theme));
+            if (this.theme.colours["bg-graph"])
+                this.container.style.backgroundColor = this.theme.colours["bg-graph"];
+        }
+        else {
+            console.warn('Cannot render anything, please set a theme');
+        }
+    }
+    // updateAll() {
+    //   for (let grapholElement of this.grapholElements.values()) {
+    //     this.updateElement(grapholElement.id)
+    //   }
+    // }
+    updateElement(grapholElement) {
+        if (!this.cy)
+            return;
+        const cyElement = this.cy.$id(grapholElement.id);
+        if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+            cyElement.position(grapholElement.position);
+        }
+        if (isGrapholEdge(grapholElement)) {
+            cyElement.move({
+                source: grapholElement.sourceId,
+                target: grapholElement.targetId
+            });
+        }
+        cyElement.data(grapholElement.getCytoscapeRepr()[0].data);
+    }
+    get isThemeApplied() {
+        var _a;
+        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style();
+    }
+    get grapholElements() {
+        var _a, _b, _c;
+        return (_c = (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.representations.get((_b = this._renderState) === null || _b === void 0 ? void 0 : _b.id)) === null || _c === void 0 ? void 0 : _c.grapholElements;
+    }
+    get selectedElement() {
+        var _a, _b;
+        if (this.cy)
+            return (_a = this.grapholElements) === null || _a === void 0 ? void 0 : _a.get((_b = this.cy.$(':selected')[0]) === null || _b === void 0 ? void 0 : _b.id());
+    }
+    get viewportState() {
+        if (this.cy)
+            return {
+                zoom: this.cy.zoom(),
+                pan: this.cy.pan(),
+            };
+    }
+    set container(container) {
+        this._container = document.createElement('div');
+        this._container.classList.add('grapholscape-graph');
+        this._container.style.width = '100%';
+        this._container.style.height = '100%';
+        this._container.style.position = 'relative';
+        container.appendChild(this.container);
+    }
+    get container() { return this._container; }
+    /**
+     * Getter
+     */
+    get nodes() {
+        var _a;
+        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.nodes().jsons();
+    }
+    /**
+     * Getter
+     */
+    get edges() {
+        var _a;
+        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.edges().jsons();
     }
 }
 
@@ -7670,6 +6992,14 @@ class LiteFilterManager extends BaseFilterManager {
             DefaultFilterKeyEnum.COMPLEMENT,
             DefaultFilterKeyEnum.HAS_KEY,
         ];
+    }
+    get filters() { return this._filters; }
+    set filters(filters) {
+        this._filters = filters;
+        this.lockedFilters.forEach(lockedFilterKey => {
+            var _a;
+            (_a = this.filters.get(lockedFilterKey)) === null || _a === void 0 ? void 0 : _a.lock();
+        });
     }
 }
 
@@ -7815,2206 +7145,105 @@ class LiteRendererState extends BaseRenderer {
     set layout(newLayout) { this._layout = newLayout; }
 }
 
-function setGraphEventHandlers(diagram, lifecycle, ontology) {
-    diagram.representations.forEach(diagramRepresentation => {
-        const cy = diagramRepresentation.cy;
-        if (cy.scratch('_gscape-graph-handlers-set'))
-            return;
-        cy.on('select', e => {
-            const grapholElement = diagramRepresentation.grapholElements.get(e.target.id());
-            if (grapholElement) {
-                if (grapholElement.isEntity()) {
-                    const grapholEntity = ontology.getEntity(e.target.data().iri);
-                    if (grapholEntity) {
-                        lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement);
-                    }
-                }
-                if (isGrapholNode(grapholElement)) {
-                    lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
-                }
-                if (isGrapholEdge(grapholElement)) {
-                    lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
-                }
+function incrementalStyle (theme) {
+    const baseStyle = floatyStyle(theme);
+    const incrementalStyle = [
+        {
+            selector: '.incremental-expanded-class',
+            style: {
+                'border-width': 4,
+                'background-blacken': 0.1,
             }
-        });
-        cy.on('tap', evt => {
-            if (evt.target === cy) {
-                lifecycle.trigger(LifecycleEvent.BackgroundClick);
-            }
-        });
-        cy.on('mouseover', '*', e => {
-            const container = cy.container();
-            if (container) {
-                container.style.cursor = 'pointer';
-            }
-        });
-        cy.on('mouseout', '*', e => {
-            const container = cy.container();
-            if (container) {
-                container.style.cursor = 'inherit';
-            }
-        });
-        cy.scratch('_gscape-graph-handlers-set', true);
-    });
+        },
+    ];
+    return baseStyle.concat(incrementalStyle);
 }
 
-class ClassInstanceEntity extends GrapholEntity {
-    constructor(iri, parentClassIri) {
-        super(iri, GrapholTypesEnum.CLASS_INSTANCE);
-        this.parentClassIris = new Set;
-        if (parentClassIri)
-            this.parentClassIris.add(parentClassIri);
-    }
-}
-
-class GscapeContextMenu extends BaseMixin(s) {
+/**
+ * The incremental renderer state is a kind of floaty renderer state in which
+ * ontology's diagrams are used only to compute what to show.
+ * There is only a single empty diagram and any render() call just render the same diagram
+ * no matter what was the input diagram.
+ *
+ * This renderer state is logic agnostic, meaning that it does not control what to show and when.
+ * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
+ */
+class IncrementalRendererState extends FloatyRendererState {
     constructor() {
         super(...arguments);
-        this.commands = [];
-        this.customElements = [];
-        this.showFirst = 'elements';
-        this.onCommandRun = () => { };
-        this.tippyMenu = tippy(document.createElement('div'));
+        this.id = RendererStatesEnum.INCREMENTAL;
     }
     render() {
-        return y `
-    <div class="gscape-panel">
-      ${this.title ? y `<div>${this.title}</div>` : null}
-      ${this.showFirst === 'elements' ? this.customElementsTemplate : null}
-      
-      ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
-            ? y `<div class="hr"></div>` : null}
-
-      ${this.commandsTemplate}
-
-      ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
-            ? y `<div class="hr"></div>` : null}
-
-
-      ${this.showFirst === 'commands' ? this.customElementsTemplate : null}
-    </div>
-    `;
-    }
-    attachTo(element, commands, elements) {
-        this.tippyMenu.setProps(this.cxtMenuProps);
-        this.tippyMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() });
-        this.commands = commands || [];
-        this.customElements = elements || [];
-        this.tippyMenu.show();
-    }
-    get cxtMenuProps() {
-        return {
-            trigger: 'manual',
-            allowHTML: true,
-            interactive: true,
-            placement: "bottom",
-            appendTo: document.querySelector('.gscape-ui') || undefined,
-            // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
-            content: this,
-            offset: [0, 0],
-        };
-    }
-    handleCommandClick(e) {
-        const command = this.commands[e.currentTarget.getAttribute('command-id')];
-        if (command.select) {
-            command.select();
-            this.onCommandRun();
-            this.tippyMenu.hide();
-        }
-    }
-    get commandsTemplate() {
-        if (this.commands.length > 0)
-            return y `
-        <div class="commands">
-          ${this.commands.map((command, id) => {
-                return y `
-              <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
-                ${command.icon ? y `<span class="command-icon slotted-icon">${command.icon}</span>` : null}
-                <span class="command-text">${command.content}</span>
-              <div>
-            `;
-            })}
-        </div>
-      `;
-    }
-    get customElementsTemplate() {
-        if (this.customElements.length > 0)
-            return y `
-        <div class="custom-elements">
-          ${this.customElements.map(c => y `<div class="custom-element-wrapper">${c}</div>`)}
-        </div>    
-      `;
-    }
-}
-GscapeContextMenu.properties = {
-    commands: { type: Object, attribute: false },
-    customElements: { type: Object, attribute: false },
-    showFirst: { type: String },
-};
-GscapeContextMenu.styles = [
-    baseStyle,
-    i$1 `
-      :host {
-        display: flex;
-        flex-direction: column;
-        padding: 5px 0;
-      }
-
-      .command-entry {
-        white-space: nowrap;
-        cursor: pointer;
-        padding: 5px 10px;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .command-text {
-        line-height: 20px;
-      }
-
-      .gscape-panel, .custom-elements {
-        overflow: unset;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        justify-content: center;
-        align-items: stretch;
-      }
-    `
-];
-customElements.define('gscape-context-menu', GscapeContextMenu);
-
-function grapholEntityToEntityViewData (grapholEntity, grapholscape) {
-    return {
-        displayedName: grapholEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language, grapholscape.ontology.languages.default),
-        value: grapholEntity
-    };
-}
-
-var QueryPollerStatus;
-(function (QueryPollerStatus) {
-    QueryPollerStatus[QueryPollerStatus["TIMEOUT_EXPIRED"] = 0] = "TIMEOUT_EXPIRED";
-    QueryPollerStatus[QueryPollerStatus["DONE"] = 1] = "DONE";
-    QueryPollerStatus[QueryPollerStatus["RUNNING"] = 2] = "RUNNING";
-    QueryPollerStatus[QueryPollerStatus["IDLE"] = 3] = "IDLE";
-})(QueryPollerStatus || (QueryPollerStatus = {}));
-class QueryPoller {
-    constructor() {
-        this.lastRequestFulfilled = true;
-        // Callbacks
-        this.onStop = () => { };
-        this.onTimeoutExpiration = () => { };
-        this.onError = () => { };
-        this.status = QueryPollerStatus.IDLE;
-    }
-    poll() {
-        this.status = QueryPollerStatus.RUNNING;
-        fetch(this.request)
-            .then((response) => {
-            response.json().then((result) => {
-                if (this.isResultError(result)) {
-                    this.triggerError(result);
-                }
-                else {
-                    this.lastRequestFulfilled = true;
-                    this._result = result;
-                    this.onNewResults(result);
-                    if (this.stopCondition()) {
-                        this.stop();
-                    }
-                }
-            });
-        })
-            .catch(error => this.triggerError(error));
-    }
-    start() {
-        this.interval = setInterval(() => {
-            if (this.lastRequestFulfilled) {
-                this.lastRequestFulfilled = false;
-                this.poll();
-            }
-        }, QueryPoller.INTERVAL_LENGTH);
-        this.timeout = setTimeout(() => {
-            if (!this.hasAnyResult()) {
-                this.stop(true);
-            }
-            else {
-                this.stop();
-            }
-        }, QueryPoller.TIMEOUT_LENGTH);
-    }
-    stop(timeoutExpired = false) {
-        if (timeoutExpired) {
-            this.status = QueryPollerStatus.TIMEOUT_EXPIRED;
-            // console.warn(`Qyery timeout expired for query with id = [${this.executionID}]`)
-            this.onTimeoutExpiration();
-        }
-        else {
-            this.status = QueryPollerStatus.DONE;
-        }
-        clearInterval(this.interval);
-        clearTimeout(this.timeout);
-        this.onStop();
-    }
-    triggerError(result) {
-        this.onError(result);
-        this.stop();
-    }
-}
-QueryPoller.TIMEOUT_LENGTH = 5000;
-QueryPoller.INTERVAL_LENGTH = 1000;
-class QueryResultsPoller extends QueryPoller {
-    constructor(request, limit, executionId) {
-        super();
-        this.request = request;
-        this.limit = limit;
-        this.executionId = executionId;
-        this.onNewResults = () => { };
-    }
-    isResultError(result) {
-        return !result || result.results === undefined || result.type === 'error';
-    }
-    stopCondition() {
-        return this._result.results.length >= this.limit;
-    }
-    hasAnyResult() {
-        return this.result.results.length > 0;
-    }
-    get result() {
-        return this._result;
-    }
-}
-/**
- * Class to perform polling on a count query,
- * it will stop when the result received is equal
- * to the QUERY_STATUS_FINISHED constant.
- */
-class QueryCountStatePoller extends QueryPoller {
-    constructor(request) {
-        super();
-        this.request = request;
-        /**
-         * Callback called in case the count has finished correctly.
-         */
-        this.onNewResults = () => { };
-    }
-    isResultError(result) {
-        return !result || result === QueryCountStatePoller.QUERY_STATUS_ERROR;
-    }
-    stopCondition() {
-        return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED;
-    }
-    hasAnyResult() {
-        return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED;
-    }
-    get result() {
-        return this._result;
-    }
-}
-QueryCountStatePoller.QUERY_STATUS_FINISHED = 3;
-QueryCountStatePoller.QUERY_STATUS_ERROR = 4;
-
-class QueryManager {
-    constructor(requestOptions, endpoint) {
-        this.requestOptions = requestOptions;
-        this.endpoint = endpoint;
-        this._prefixes = new Promise(() => { });
-        this._runningQueryPollerByExecutionId = new Map();
-        this.requestOptions.headers['content-type'] = 'application/json';
-        this._prefixes = new Promise((resolve) => {
-            this.handleCall(fetch(this.prefixesPath, {
-                method: 'get',
-                headers: this.requestOptions.headers,
-            })).then((response) => __awaiter(this, void 0, void 0, function* () {
-                const prefixesResponse = yield response.json();
-                resolve(prefixesResponse.map((p) => `PREFIX ${p.name} <${p.namespace}>`).join('\n'));
-            }));
-        });
-    }
-    /**
-     * Start the query using the result route.
-     * The QueryResultPoller will poll the query results.
-     * @param queryCode
-     * @param pageSize the maximum number of results to retrieve
-     * @param pageNumber the page number in case you're handling pagination
-     * @returns a promise which will be resolved with the query poller, on this
-     * object you can set the onNewResults callback to react every time new results
-     * are obtained.
-     */
-    performQuery(queryCode, pageSize, pageNumber = 1) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const executionID = yield this.startQuery(queryCode);
-            const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID);
-            this._runningQueryPollerByExecutionId.set(executionID, queryResultsPoller);
-            queryResultsPoller.onError = this.requestOptions.onError;
-            return queryResultsPoller;
-        });
-    }
-    /**
-     * Start the query using count route, then QueryCountStatePoller
-     * will poll for the query state, when it receives the finished state,
-     * it yield the result back to the callback onNewResults.
-     * In this callback a fetch to the result route will retrieve the
-     * actual result and resolve the promise.
-     * @param queryCode
-     * @returns a promise which will be resolved with the result
-     */
-    performQueryCount(queryCode) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const executionID = yield this.startQuery(queryCode, true);
-            const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionID));
-            return new Promise((resolve, reject) => {
-                countStatePoller.onNewResults = (state) => {
-                    if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED) {
-                        this.handleCall(fetch(`${this.queryCountPath}/${executionID}/result`, {
-                            method: 'get',
-                            headers: this.requestOptions.headers,
-                        })).then((response) => __awaiter(this, void 0, void 0, function* () {
-                            resolve(yield response.json());
-                            // The count query has finished and result has been processed
-                            // Now we need to delete the query execution from mastro.
-                            this.handleCall(fetch(`${this.queryCountPath}/${executionID}`, {
-                                method: 'delete',
-                                headers: this.requestOptions.headers,
-                            }));
-                        })).catch(reason => reject(reason));
-                    }
-                };
-                countStatePoller.onError = (error) => {
-                    reject(error);
-                    this.handleCall(fetch(`${this.queryCountPath}/${executionID}/error`, {
-                        method: 'get',
-                        headers: this.requestOptions.headers,
-                    })).then((errorResponse) => __awaiter(this, void 0, void 0, function* () {
-                        this.requestOptions.onError(yield errorResponse.text());
-                    }));
-                };
-                countStatePoller.start();
-            });
-        });
-    }
-    getQueryStatus(executionID) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const request = new Request(new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionID}/status`), {
-                method: 'get',
-                headers: this.requestOptions.headers,
-            });
-            return new Promise((resolve, reject) => {
-                this.handleCall(fetch(request))
-                    .then(response => resolve(response.json()))
-                    .catch(error => {
-                    this.requestOptions.onError(error);
-                    reject(error);
-                });
-            });
-        });
-    }
-    stopRunningQueries() {
-        this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId));
-    }
-    stopQuery(executionId) {
         var _a;
-        (_a = this._runningQueryPollerByExecutionId.get(executionId)) === null || _a === void 0 ? void 0 : _a.stop(); // stop polling
-        this._runningQueryPollerByExecutionId.delete(executionId);
-        this.handleCall(fetch(this.getQueryStopPath(executionId), {
-            method: 'put',
-            headers: this.requestOptions.headers,
-        }));
+        this.overrideDiagram();
+        if (this.popperContainer) {
+            (_a = this.renderer.cy.container()) === null || _a === void 0 ? void 0 : _a.appendChild(this.popperContainer);
+        }
     }
-    getPrefixes() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this._prefixes;
-        });
+    stopRendering() {
+        super.stopRendering();
+        this.renderer.diagram = this.previousDiagram;
     }
-    startQuery(queryCode, isCount) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let countURL;
-            if (isCount) {
-                countURL = this.queryCountPath;
-            }
-            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                this.handleCall(fetch(yield this.getNewQueryRequest(queryCode, countURL))).then((response) => __awaiter(this, void 0, void 0, function* () {
-                    resolve((yield response.json()).executionId);
-                }));
-            }));
-        });
-    }
-    // Request for starting a query
-    getNewQueryRequest(queryCode, customURL) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const url = customURL || this.queryStartPath;
-            return new Request(url, {
-                method: 'post',
-                headers: this.requestOptions.headers,
-                body: JSON.stringify({
-                    queryCode: `${yield this.getPrefixes()}\n${queryCode}`,
-                    queryID: Math.random(),
-                    queryDescription: "",
-                    mappingParameters: {},
-                }),
+    transformOntology(ontology) {
+        // Perform floaty transformation if it has not been done yet
+        if (!ontology.diagrams[0].representations.get(RendererStatesEnum.FLOATY)) {
+            ontology.diagrams.forEach(diagram => {
+                const floatyTransformer = new FloatyTransformer();
+                diagram.representations.set(RendererStatesEnum.FLOATY, floatyTransformer.transform(diagram));
             });
-        });
-    }
-    // Requests for polling a query
-    getQueryResultRequest(queryExecutionId, limit, pagenumber = 1) {
-        const params = new URLSearchParams({ pagesize: limit.toString(), pagenumber: pagenumber.toString() });
-        return new Request(`${this.getQueryResultPath(queryExecutionId)}?${params.toString()}`, {
-            method: 'get',
-            headers: this.requestOptions.headers
-        });
-    }
-    getQueryCountStatusRequest(queryExecutionId) {
-        return new Request(`${this.queryCountPath}/${queryExecutionId}/state`, {
-            method: `get`,
-            headers: this.requestOptions.headers,
-        });
-    }
-    get queryStartPath() {
-        return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/start`);
-    }
-    getQueryStopPath(executionId) {
-        return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/stop`);
-    }
-    getQueryResultPath(executionId) {
-        return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/results`);
-    }
-    get prefixesPath() {
-        return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/prefixes`);
-    }
-    get queryCountPath() {
-        return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/count`);
-    }
-    handleCall(apiCall) {
-        return new Promise((resolve, reject) => {
-            apiCall
-                .then((response) => __awaiter(this, void 0, void 0, function* () {
-                if (response.status !== 200) {
-                    const result = yield (response.json() || response.text());
-                    this.requestOptions.onError(result);
-                    reject(result);
-                }
-                else {
-                    resolve(response);
-                }
-            }))
-                .catch(error => {
-                this.requestOptions.onError(error);
-                reject(error);
-            });
-        });
-    }
-}
-
-function getInstances(iri, maxResults, searchText) {
-    const select = `?x`;
-    const where = `?x a <${iri}>.`;
-    let filter = ``;
-    if (searchText) {
-        filter = `FILTER(regex(?x, '${searchText}')`;
-        filter += `)`;
-    }
-    const optional = ``;
-    const limit = maxResults ? `LIMIT ${maxResults}` : ``;
-    return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where}
-      ${optional}
-      ${filter}
-    }
-    ${limit}
-  `;
-}
-function getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, maxResults) {
-    const select = `?x`;
-    const where = [
-        `?x a <${classIri}>.`,
-        `?x <${dataPropertyIri}> ?y.`
-    ];
-    let filter = `FILTER(regex(?y, '${dataPropertyValue}'))`;
-    const limit = maxResults ? `LIMIT ${maxResults}` : ``;
-    return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where.join('\n')}
-      ${filter}
-    }
-    ${limit}
-  `;
-}
-function getInstanceDataPropertyValue(instanceIri, dataPropertyIri) {
-    return `
-    SELECT DISTINCT ?y
-    WHERE {
-      <${instanceIri}> <${dataPropertyIri}> ?y.
-    }
-  `;
-}
-function getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeTypeClassIri, isDirect, maxResults, searchText) {
-    const select = `?y`;
-    let where = isDirect ? `<${instanceIri}> <${objectPropertyIri}> ?y.` : `?y <${objectPropertyIri}> <${instanceIri}>.`;
-    where += `?y a <${rangeTypeClassIri}>.`;
-    const optional = ``;
-    let filter = ``;
-    if (searchText) {
-        filter = `FILTER(regex(?y, '${searchText}')`;
-        filter += `)`;
-    }
-    const limit = maxResults ? `LIMIT ${maxResults}` : ``;
-    return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where}
-      ${optional}
-      ${filter}
-    }
-    ${limit}
-  `;
-}
-
-var QueryStatusEnum;
-(function (QueryStatusEnum) {
-    QueryStatusEnum["FINISHED"] = "FINISHED";
-    QueryStatusEnum["UNAVAILABLE"] = "UNAVAILABLE";
-    QueryStatusEnum["ERROR"] = "ERROR";
-    QueryStatusEnum["RUNNING"] = "RUNNING";
-    QueryStatusEnum["READY"] = "READY";
-})(QueryStatusEnum || (QueryStatusEnum = {}));
-
-class VKGApi {
-    constructor(requestOptions, endpoint) {
-        this.requestOptions = requestOptions;
-        this.limit = 10; // How many results to show?
-        this.setEndpoint(endpoint);
-    }
-    getInstances(iri, onNewResults, onStop, searchText) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const queryCode = getInstances(iri, this.limit, searchText);
-            const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit);
-            queryPoller.start();
-            queryPoller.onNewResults = (result => {
-                onNewResults(result.results.map(res => {
-                    var _a;
-                    return { iri: res[0].value, shortIri: res[0].shortIRI, label: (_a = res[1]) === null || _a === void 0 ? void 0 : _a.value };
-                }));
-            });
-            if (onStop) {
-                queryPoller.onStop = onStop;
-            }
-        });
-    }
-    getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, onNewResults, onStop) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const queryCode = getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, this.limit);
-            const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit);
-            queryPoller.start();
-            queryPoller.onNewResults = (result => {
-                onNewResults(result.results.map(res => {
-                    var _a;
-                    return { iri: res[0].value, shortIri: res[0].shortIRI, label: (_a = res[1]) === null || _a === void 0 ? void 0 : _a.value };
-                }));
-            });
-            if (onStop) {
-                queryPoller.onStop = onStop;
-            }
-        });
-    }
-    getInstancesNumber(iri, onResult, onStop, searchText) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const queryCode = getInstances(iri, undefined, searchText);
-            this.queryManager.performQueryCount(queryCode)
-                .then(result => onResult(result))
-                .catch(_ => {
-                if (onStop)
-                    onStop();
-            });
-        });
-    }
-    getHighlights(classIri) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const params = new URLSearchParams({ clickedClassIRI: classIri, version: this.requestOptions.version });
-            const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights?${params.toString()}`);
-            return yield (yield fetch(url, {
-                method: 'get',
-                headers: this.requestOptions.headers
-            })).json();
-        });
-    }
-    getInstanceDataPropertyValues(instanceIri, dataPropertyIri, onNewResults, onStop, onError) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const queryCode = getInstanceDataPropertyValue(instanceIri, dataPropertyIri);
-            const pollPage = (pageNumber) => __awaiter(this, void 0, void 0, function* () {
-                const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit, pageNumber);
-                queryPoller.start();
-                queryPoller.onNewResults = (results) => {
-                    onNewResults(results.results.map(res => res[0].value));
-                };
-                // If stopped then we received all results for this page
-                // if query has not finished, continue polling for next page
-                // if has finished then return and call onStop
-                queryPoller.onStop = () => __awaiter(this, void 0, void 0, function* () {
-                    const queryStatus = yield this.queryManager.getQueryStatus(queryPoller.executionId);
-                    if (queryStatus.status === QueryStatusEnum.FINISHED) {
-                        if (onStop)
-                            onStop();
-                        return;
-                    }
-                    if (!queryStatus.hasError) {
-                        pollPage(pageNumber + 1); // poll for another page
-                    }
-                    else {
-                        if (onError)
-                            onError();
-                    }
-                });
-            });
-            pollPage(1);
-        });
-    }
-    getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri, onNewResults, onStop, onError) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const queryCode = getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, this.limit);
-            const pollPage = (pageNumber) => __awaiter(this, void 0, void 0, function* () {
-                const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit, pageNumber);
-                queryPoller.start();
-                queryPoller.onNewResults = (newResult) => {
-                    onNewResults(newResult.results.map(res => {
-                        var _a;
-                        return { iri: res[0].value, shortIri: res[0].shortIRI, label: (_a = res[1]) === null || _a === void 0 ? void 0 : _a.value };
-                    }));
-                };
-                // If stopped then we received all results for this page
-                // if query has not finished, continue polling for next page
-                // if has finished then return and call onStop
-                queryPoller.onStop = () => __awaiter(this, void 0, void 0, function* () {
-                    const queryStatus = yield this.queryManager.getQueryStatus(queryPoller.executionId);
-                    if (queryStatus.status === QueryStatusEnum.FINISHED) {
-                        if (onStop)
-                            onStop();
-                        return;
-                    }
-                    if (!queryStatus.hasError) {
-                        pollPage(pageNumber + 1); // poll for another page
-                    }
-                    else {
-                        if (onError)
-                            onError();
-                    }
-                });
-            });
-            pollPage(1);
-        });
-    }
-    stopAllQueries() {
-        this.queryManager.stopRunningQueries();
-    }
-    setEndpoint(endpoint) {
-        this.queryManager = new QueryManager(this.requestOptions, endpoint);
-    }
-}
-// Stubbed API
-// export let vKGApiStub: IVirtualKnowledgeGraphApi = {
-//   getInstances: (iri: string) => {
-//     return [
-//       {
-//         iri: `http://obdm.obdasystems.com/book/1`,
-//         label: 'Harry Potter',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/2`,
-//         label: 'It',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/3`
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/4`,
-//         label: 'Divina Commedia',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/5`,
-//         label: 'Promessi Sposi',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/6`,
-//         label: 'Songs Of My Nightmares',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/7`,
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/8`,
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/9`,
-//         label: 'Losing The Sun',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/10`,
-//         label: 'Sailing Into The Void',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/11`,
-//         label: 'Calling Myself',
-//       },
-//       {
-//         iri: `http://obdm.obdasystems.com/book/12`,
-//         label: 'Bleeding At The Mountains',
-//       },
-//     ]
-//   },
-//   getInstancesNumber: function (iri: string, onResult) {
-//     onResult(2)
-//   },
-//   // getObjectProperties: function (iri: string): Promise<Branch[]> {
-//   //   throw new Error('Function not implemented.')
-//   // }
-// }
-
-class DiagramBuilder {
-    constructor(ontology, diagram) {
-        this.ontology = ontology;
-        this.diagram = diagram;
-    }
-    addEntity(entityIri, connectedClassIri, directObjectProperty = true) {
-        const grapholEntity = this.ontology.getEntity(entityIri);
-        if (grapholEntity) {
-            switch (grapholEntity.type) {
-                case GrapholTypesEnum.DATA_PROPERTY:
-                    this.addDataProperty(grapholEntity);
-                    break;
-                case GrapholTypesEnum.OBJECT_PROPERTY:
-                    if (connectedClassIri) {
-                        const connectedClassGrapholEntity = this.ontology.getEntity(connectedClassIri);
-                        if (connectedClassGrapholEntity)
-                            this.addObjectProperty(grapholEntity, connectedClassGrapholEntity, directObjectProperty);
-                    }
-                    break;
-                case GrapholTypesEnum.CLASS:
-                    if (!this.diagram.containsEntity(grapholEntity))
-                        this.addClass(grapholEntity);
-                default:
-                    return;
-            }
         }
     }
-    addClassInstance(iri) {
+    onEntityExpansion(callback) {
+        this.entityExpansionCallback = callback;
+    }
+    handleClassExpansion(classElement) {
+        if (!this.activeClass || this.activeClass.data().iri !== classElement.data().iri) {
+            this.activeClass = classElement;
+            this.pinNode(classElement);
+            this.entityExpansionCallback(classElement);
+            this.floatyLayoutOptions.fit = false;
+            this.runLayout();
+        }
+    }
+    getGraphStyle(theme) {
+        return incrementalStyle(theme);
+    }
+    overrideDiagram() {
         var _a;
-        if (!this.referenceNodeId)
-            return;
-        const instanceEntity = (_a = this.diagram.classInstances) === null || _a === void 0 ? void 0 : _a.get(iri);
-        if (!instanceEntity) {
-            console.error(`Can't find the instance [${iri}] entity`);
-            return;
+        if (((_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.id) !== this.incrementalDiagram.id) {
+            this.previousDiagram = this.renderer.diagram;
         }
-        const instanceNode = new GrapholNode(iri, GrapholTypesEnum.CLASS_INSTANCE);
-        instanceNode.position = this.referenceNodePosition || { x: 0, y: 0 };
-        // instanceNode.displayedName = iri
-        instanceNode.height = instanceNode.width = 50;
-        instanceNode.shape = Shape.ELLIPSE;
-        instanceNode.labelXpos = 0;
-        instanceNode.labelYpos = 0;
-        this.diagram.addElement(instanceNode, instanceEntity);
+        this.renderer.stopRendering();
+        this.renderer.diagram = this.incrementalDiagram;
+        this.renderer.cy = this.diagramRepresentation.cy;
+        this.renderer.mount();
     }
-    removeEntity(entityIri, nodesIdToKeep = []) {
-        var _a;
-        (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`[iri = "${entityIri}"]`).forEach(element => {
-            var _a, _b, _c;
-            if (element.data().type === GrapholTypesEnum.CLASS) {
-                element.neighborhood().forEach(neighbourElement => {
-                    if (neighbourElement.isNode()) {
-                        // remove nodes only if they have 1 connection, i.e. with the class we want to remove
-                        if (neighbourElement.degree(false) === 1 && !(nodesIdToKeep === null || nodesIdToKeep === void 0 ? void 0 : nodesIdToKeep.includes(neighbourElement.id()))) {
-                            if (neighbourElement.data().iri) {
-                                // it's an entity, recursively remove entities
-                                nodesIdToKeep.push(entityIri); // the entity we are removing must be skipped, otherwise cyclic recursion
-                                this.removeEntity(neighbourElement.data().iri, nodesIdToKeep);
-                            }
-                            else {
-                                this.diagram.removeElement(neighbourElement.id());
-                            }
-                        }
-                    }
-                    else {
-                        // edges must be removed anyway
-                        // (cytoscape removes them automatically
-                        // but we need to update the grapholElements 
-                        // map too in diagram representation)
-                        this.diagram.removeElement(neighbourElement.id());
-                    }
-                });
-                (_a = this.ontology.hierarchiesBySubclassMap.get(entityIri)) === null || _a === void 0 ? void 0 : _a.forEach(hierarchy => {
-                    this.removeHierarchy(hierarchy);
-                });
-                (_b = this.ontology.hierarchiesBySuperclassMap.get(entityIri)) === null || _b === void 0 ? void 0 : _b.forEach(hierarchy => {
-                    this.removeHierarchy(hierarchy);
-                });
-            }
-            (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.removeElement(element.id());
-        });
-        const entity = this.ontology.getEntity(entityIri);
-        entity === null || entity === void 0 ? void 0 : entity.removeOccurrence(entityIri, this.diagram.id, RendererStatesEnum.INCREMENTAL);
-    }
-    addHierarchy(hierarchy) {
-        var _a, _b;
-        const unionNode = hierarchy.getUnionGrapholNode(this.referenceNodePosition);
-        const inputEdges = hierarchy.getInputGrapholEdges();
-        const inclusionEdges = hierarchy.getInclusionEdges();
-        if (!unionNode || !inputEdges || !inclusionEdges)
-            return;
-        this.diagram.addElement(unionNode);
-        // Add inputs
-        for (const inputClassIri of hierarchy.inputs) {
-            this.addEntity(inputClassIri);
-        }
-        for (const superClass of hierarchy.superclasses) {
-            this.addEntity(superClass.classIri);
-        }
-        (_a = hierarchy.getInputGrapholEdges()) === null || _a === void 0 ? void 0 : _a.forEach(inputEdge => this.diagram.addElement(inputEdge));
-        (_b = hierarchy.getInclusionEdges()) === null || _b === void 0 ? void 0 : _b.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge));
-    }
-    removeHierarchy(hierarchy, entitiesTokeep) {
-        var _a, _b, _c;
-        if (!hierarchy.id || (hierarchy.id && !((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(hierarchy.id))))
-            return;
-        // remove union node
-        this.diagram.removeElement(hierarchy.id);
-        // remove input edges
-        (_b = hierarchy.getInputGrapholEdges()) === null || _b === void 0 ? void 0 : _b.forEach(inputEdge => {
-            this.diagram.removeElement(inputEdge.id);
-        });
-        // remove inclusion edges
-        (_c = hierarchy.getInclusionEdges()) === null || _c === void 0 ? void 0 : _c.forEach(inclusionEdge => {
-            this.diagram.removeElement(inclusionEdge.id);
-        });
-        // remove input classes or superclasses left with no edges
-        hierarchy.inputs.forEach(inputClassIri => {
-            var _a;
-            if (((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(inputClassIri).degree(false)) === 0 &&
-                !(entitiesTokeep === null || entitiesTokeep === void 0 ? void 0 : entitiesTokeep.includes(inputClassIri))) {
-                this.removeEntity(inputClassIri);
-            }
-        });
-        hierarchy.superclasses.forEach(superclass => {
-            var _a;
-            if (((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(superclass.classIri).degree(false)) === 0 &&
-                !(entitiesTokeep === null || entitiesTokeep === void 0 ? void 0 : entitiesTokeep.includes(superclass.classIri))) {
-                this.removeEntity(superclass.classIri);
-            }
-        });
-    }
-    // addClassInIsa(classInIsa: ClassInIsa) {
-    // }
-    areDataPropertiesVisibleForClass(classIri) {
-        var _a;
-        return ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(classIri).neighborhood(`node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).nonempty()) || false;
-    }
-    areAllSuperHierarchiesVisibleForClass(classIri) {
-        const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri);
-        if (hierarchies)
-            return this.areAllHierarchiesVisible(hierarchies);
-        else
-            return true;
-    }
-    areAllSubHierarchiesVisibleForClass(classIri) {
-        const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri);
-        if (hierarchies)
-            return this.areAllHierarchiesVisible(hierarchies);
-        else
-            return true;
-    }
-    /**
-     * Add an inclusion edge between two classes
-     * @param subClassIri
-     * @param superClassIri
-     */
-    addIsa(subClassIri, superClassIri) {
-        var _a, _b;
-        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(subClassIri).empty()) {
-            this.addEntity(subClassIri);
-        }
-        if ((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.$id(superClassIri).empty()) {
-            this.addEntity(superClassIri);
-        }
-        const inclusionEdge = new GrapholEdge(`${subClassIri}-isa-${superClassIri}`, GrapholTypesEnum.INCLUSION);
-        inclusionEdge.sourceId = subClassIri;
-        inclusionEdge.targetId = superClassIri;
-        this.diagram.addElement(inclusionEdge);
-    }
-    addSubClass(subClassIri) {
-        if (this.referenceNodeIri)
-            this.addIsa(subClassIri, this.referenceNodeIri);
-    }
-    addSuperClass(superClassIri) {
-        if (this.referenceNodeIri)
-            this.addIsa(this.referenceNodeIri, superClassIri);
-    }
-    areAllSubclassesVisibleForClass(classIri, subClassesIris) {
-        var _a;
-        for (let subClassIri of subClassesIris) {
-            if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(subClassIri).connectedEdges(`[ type ="${GrapholTypesEnum.INCLUSION}" ]`).targets(`[id = "${classIri}"]`).empty())
-                return false;
-        }
-        return true;
-    }
-    areAllSuperclassesVisibleForClass(classIri, subClassesIris) {
-        var _a;
-        for (let subClassIri of subClassesIris) {
-            if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(subClassIri).connectedEdges(`[ type = "${GrapholTypesEnum.INCLUSION}" ]`).sources(`[id = "${classIri}"]`).empty())
-                return false;
-        }
-        return true;
-    }
-    areAllHierarchiesVisible(hierarchies) {
-        var _a;
-        let result = true;
-        for (let hierarchy of hierarchies) {
-            if (hierarchy.id && ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(hierarchy.id).empty())) {
-                result = false;
-                break;
-            }
-        }
-        return result;
-    }
-    addObjectProperty(objectPropertyEntity, connectedClassEntity, direct) {
-        var _a, _b;
-        if (!this.referenceNodeId)
-            return;
-        // if both object property and range class are already present, do not add them again
-        const connectedClassNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(connectedClassEntity.iri.fullIri);
-        if (connectedClassNode === null || connectedClassNode === void 0 ? void 0 : connectedClassNode.nonempty()) {
-            /**
-             * If the set of edges between reference node and the connected class
-             * includes the object property we want to add, then it's already present.
-             */
-            const referenceNode = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.$id(this.referenceNodeId);
-            if ((referenceNode === null || referenceNode === void 0 ? void 0 : referenceNode.nonempty()) && connectedClassNode.edgesWith(referenceNode)
-                .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri)
-                .nonempty()) {
-                return;
-            }
-        }
-        this.addClass(connectedClassEntity);
-        const connectedClassIri = connectedClassEntity.iri.fullIri;
-        const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${connectedClassIri}`, GrapholTypesEnum.OBJECT_PROPERTY);
-        objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL);
-        objectPropertyEdge.sourceId = direct ? this.referenceNodeId : connectedClassIri;
-        objectPropertyEdge.targetId = direct ? connectedClassIri : this.referenceNodeId;
-        objectPropertyEdge.originalId = objectPropertyEntity.getEntityOriginalNodeId();
-        objectPropertyEntity.addOccurrence(objectPropertyEdge.id, this.diagram.id, RendererStatesEnum.INCREMENTAL);
-        this.diagram.addElement(objectPropertyEdge, objectPropertyEntity);
-    }
-    addInstanceObjectProperty(objectPropertyIri, classInstanceIri, direct) {
-        var _a, _b;
-        if (!this.referenceNodeId)
-            return;
-        const objectPropertyEntity = this.ontology.getEntity(objectPropertyIri);
-        if (!objectPropertyEntity)
-            return;
-        // if both object property and range class are already present, do not add them again
-        const connectedInstanceNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(classInstanceIri);
-        if (connectedInstanceNode === null || connectedInstanceNode === void 0 ? void 0 : connectedInstanceNode.nonempty()) {
-            /**
-             * If the set of edges between reference node and the connected class
-             * includes the object property we want to add, then it's already present.
-             */
-            const referenceNode = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.$id(this.referenceNodeId);
-            if ((referenceNode === null || referenceNode === void 0 ? void 0 : referenceNode.nonempty()) && connectedInstanceNode.edgesWith(referenceNode)
-                .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri)
-                .nonempty()) {
-                return;
-            }
-        }
-        this.addClassInstance(classInstanceIri);
-        const objectPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${objectPropertyEntity.iri.prefixed}-${classInstanceIri}`, GrapholTypesEnum.OBJECT_PROPERTY);
-        objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL);
-        objectPropertyEdge.sourceId = direct ? this.referenceNodeId : classInstanceIri;
-        objectPropertyEdge.targetId = direct ? classInstanceIri : this.referenceNodeId;
-        this.diagram.addElement(objectPropertyEdge, objectPropertyEntity);
-    }
-    addInstanceOfEdge(instanceIri, parentClassIri) {
-        var _a;
-        if (!this.referenceNodeId)
-            return;
-        if (parentClassIri && ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(parentClassIri).empty()))
-            return;
-        const targetId = parentClassIri || this.referenceNodeId;
-        const instanceEdge = new GrapholEdge(`${targetId}-instance-${instanceIri}`, GrapholTypesEnum.INSTANCE_OF);
-        instanceEdge.sourceId = instanceIri;
-        instanceEdge.targetId = targetId;
-        this.diagram.addElement(instanceEdge);
-    }
-    addClass(classEntity) {
-        var _a;
-        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(classEntity.iri.fullIri))
-            return;
-        const classNode = this.getEntityElement(classEntity.iri.fullIri);
-        classNode.id = classEntity.iri.fullIri;
-        classNode.position = this.referenceNodePosition || classNode.position;
-        classNode.originalId = classEntity.getEntityOriginalNodeId();
-        classEntity.addOccurrence(classNode.id, this.diagram.id, RendererStatesEnum.INCREMENTAL);
-        this.diagram.addElement(classNode, classEntity);
-    }
-    addDataProperty(dataPropertyEntity) {
-        if (!this.referenceNodeId)
-            return;
-        const dataPropertyNode = this.getEntityElement(dataPropertyEntity.iri.fullIri);
-        if (!dataPropertyNode)
-            return;
-        dataPropertyNode.id = dataPropertyEntity.iri.fullIri;
-        dataPropertyNode.originalId = dataPropertyEntity.getEntityOriginalNodeId();
-        const dataPropertyEdge = new GrapholEdge(`${this.referenceNodeId}-${dataPropertyNode.id}`, GrapholTypesEnum.DATA_PROPERTY);
-        dataPropertyEdge.sourceId = this.referenceNodeId;
-        dataPropertyEdge.targetId = dataPropertyNode.id;
-        this.diagram.addElement(dataPropertyNode, dataPropertyEntity);
-        this.diagram.addElement(dataPropertyEdge);
-    }
-    getEntityElement(entityIri) {
-        var _a, _b, _c, _d;
-        const occurrences = (_a = this.ontology.getEntityOccurrences(entityIri)) === null || _a === void 0 ? void 0 : _a.get(RendererStatesEnum.GRAPHOL);
-        if (occurrences) {
-            const occurrence = occurrences[0];
-            return (_d = (_c = (_b = this.ontology
-                .getDiagram(occurrence.diagramId)) === null || _b === void 0 ? void 0 : _b.representations.get(RendererStatesEnum.FLOATY)) === null || _c === void 0 ? void 0 : _c.grapholElements.get(occurrence.elementId)) === null || _d === void 0 ? void 0 : _d.clone();
-        }
-    }
-    get referenceNodePosition() {
-        var _a, _b;
-        if (this.referenceNodeId && ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy)) {
-            return (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.$id(this.referenceNodeId).position();
-        }
-    }
-    get referenceNodeIri() {
-        var _a, _b;
-        if (this.referenceNodeId)
-            return (_b = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(this.referenceNodeId)) === null || _b === void 0 ? void 0 : _b.data().iri;
+    createNewDiagram() {
+        this.unpinAll();
+        this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram();
+        this.activeClass = null;
+        this.floatyLayoutOptions.fit = true;
+        this.overrideDiagram();
+        this.diagramRepresentation.cy.on('dblclick', `node[type = "${GrapholTypesEnum.CLASS}"]`, (evt) => this.handleClassExpansion(evt.target));
+        this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
+        this.setDragAndPinEventHandlers();
+        this.render();
     }
     get diagramRepresentation() {
-        return this.diagram.representations.get(RendererStatesEnum.INCREMENTAL);
+        return this.incrementalDiagram.representations.get(this.id);
     }
-}
-
-class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(s)) {
-    constructor() {
-        super(...arguments);
-        this.endpoints = [];
-        this._onEndpointChangeCallback = () => { };
-        this._onLimitChangeCallback = () => { };
-    }
-    render() {
-        return y `
-      <gscape-button
-        @click=${this.togglePanel}
-        title="Virtual knowledge graph explorer preferences"
-      >
-        <span slot="icon">${tune}</span>
-      </gscape-button>
-
-
-      <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
-        <div class="header">VKG Preferences</div>
-        <div class="content-wrapper">
-          <div class="area">
-            <span class="bold-text">Endpoint Selection</span>
-            <div class="preference">
-              ${this.endpoints.map(endpoint => {
-            return y `
-                  <gscape-action-list-item
-                    @click=${this.handleEndpointClick}
-                    label="${endpoint.name}"
-                    ?selected = "${this.selectedEndpointName === endpoint.name}"
-                  >
-                  </gscape-action-list-item>
-                `;
-        })}
-
-              ${this.endpoints.length === 0
-            ? y `
-                  <div class="blank-slate">
-                    ${searchOff}
-                    <div class="header">No endpoint available</div>
-                  </div>
-                `
-            : null}
-            </div>
-          </div>
-          <div class="area" style="margin-bottom: 0">
-            <span class="bold-text">Limit Instances</span>
-            <div class="preference">
-              <div class="limit-box">
-                <label for="instances-limit" class="bold-text">Limit</label>
-                <input id="instances-limit" type="number" min="1" max="100" value="10" @change=${this.handleLimitChange}>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    `;
-    }
-    handleEndpointClick(e) {
-        if (e.currentTarget.label && e.currentTarget.label !== this.selectedEndpointName)
-            this._onEndpointChangeCallback(e.currentTarget.label);
-    }
-    handleLimitChange(e) {
-        const input = e.currentTarget;
-        if (input.reportValidity()) {
-            this._onLimitChangeCallback(input.valueAsNumber);
+    get incrementalDiagram() { return this.renderer.renderStateData[this.id].diagram; }
+    set renderer(newRenderer) {
+        super.renderer = newRenderer;
+        if (!newRenderer.renderStateData[this.id]) {
+            newRenderer.renderStateData[this.id] = {};
         }
+        if (!newRenderer.renderStateData[this.id].diagram)
+            this.createNewDiagram();
     }
-    onEndpointChange(callback) {
-        this._onEndpointChangeCallback = callback;
+    get renderer() {
+        return super.renderer;
     }
-    onLimitChange(callback) {
-        this._onLimitChangeCallback = callback;
-    }
-}
-GscapeVKGPreferences.properties = {
-    endpoints: { type: Array, attribute: false },
-    selectedEndpointName: { type: String, reflect: true },
-};
-GscapeVKGPreferences.styles = [baseStyle,
-    i$1 `
-      :host {
-        order: 8;
-      }
-
-      .gscape-panel {
-        min-width: 150px
-      }
-
-      .area > .preference {
-        padding: 8px;
-      }
-    `
-];
-
-class EndpointApi {
-    constructor(requestOptions) {
-        this.requestOptions = requestOptions;
-    }
-    getRunningEndpoints() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const runningEndpoints = (yield (yield fetch(`${this.requestOptions.basePath}/endpoints/running`, {
-                method: 'get',
-                headers: this.requestOptions.headers,
-            })).json()).endpoints;
-            return runningEndpoints.filter(endpoint => {
-                var _a;
-                return ((_a = endpoint.mastroID) === null || _a === void 0 ? void 0 : _a.ontologyID.ontologyName) === this.requestOptions.name &&
-                    endpoint.mastroID.ontologyID.ontologyVersion === this.requestOptions.version;
-            });
-        });
-    }
-}
-
-class EndpointController {
-    constructor(container, requestOptions) {
-        this.endpointSelector = new GscapeVKGPreferences();
-        this._onEndpointChange = (newEndpoint) => { };
-        this._onAutoEndpointSelection = (newEndpoint) => { };
-        this.endpointApi = new EndpointApi(requestOptions);
-        container.appendChild(this.endpointSelector);
-        this.endpointSelector.onEndpointChange(newEndpointName => {
-            const newEndpoint = this.endpoints.find(e => e.name === newEndpointName);
-            if (newEndpoint) {
-                this._onEndpointChange(newEndpoint);
-                //this.endpointSelector.selectedEndpointName = newEndpoint.name
-            }
-        });
-        this.endpointSelector.onTogglePanel = this.updateEndpointList.bind(this);
-    }
-    updateEndpointList() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.endpoints = yield this.endpointApi.getRunningEndpoints();
-            this.endpointSelector.endpoints = this.endpoints.map(e => { return { name: e.name }; }).sort((a, b) => a.name.localeCompare(b.name));
-            if (this.endpoints.length >= 1 && !this.endpointSelector.selectedEndpointName) {
-                this.endpointSelector.selectedEndpointName = this.endpointSelector.endpoints[0].name;
-                this.selectedEndpoint ? this._onAutoEndpointSelection(this.selectedEndpoint) : null;
-            }
-        });
-    }
-    get selectedEndpoint() {
-        var _a;
-        return (_a = this.endpoints) === null || _a === void 0 ? void 0 : _a.find(e => e.name === this.endpointSelector.selectedEndpointName);
-    }
-    set selectedEndpoint(newEndpoint) {
-        if (newEndpoint)
-            this.endpointSelector.selectedEndpointName = newEndpoint.name;
-    }
-    onEndpointChange(callback) {
-        this._onEndpointChange = callback;
-    }
-    onAutoEndpointSelection(callback) {
-        this._onAutoEndpointSelection = callback;
-    }
-    onLimitChange(callback) {
-        this.endpointSelector.onLimitChange(callback);
-    }
-    hideView() {
-        this.endpointSelector.hide();
-    }
-    showView() {
-        this.endpointSelector.show();
-    }
-}
-customElements.define('gscape-endpoint-selector', GscapeVKGPreferences);
-
-class NeighbourhoodFinder {
-    constructor(ontology) {
-        this.ontology = ontology;
-    }
-    getDataProperties(classIriString) {
-        const res = [];
-        const classIri = this.getIriObject(classIriString);
-        const dataPropertySelector = `[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`;
-        this.ontology.diagrams.forEach(diagram => {
-            var _a;
-            (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$(`node[iri = "${classIri.fullIri}"]`).forEach(classNode => {
-                classNode.neighborhood(dataPropertySelector).forEach(dataPropertyNode => {
-                    const dataPropertyEntity = this.ontology.getEntity(dataPropertyNode.data().iri);
-                    if (dataPropertyEntity && !res.includes(dataPropertyEntity)) {
-                        res.push(dataPropertyEntity);
-                    }
-                });
-            });
-        });
-        return res;
-    }
-    getObjectProperties(classIriString) {
-        const res = new Map();
-        const classIri = this.getIriObject(classIriString);
-        const objectPropertyEdgeSelector = `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`;
-        this.ontology.diagrams.forEach(diagram => {
-            var _a;
-            (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$(`node[iri = "${classIri.fullIri}"]`).forEach(classNode => {
-                classNode.connectedEdges(objectPropertyEdgeSelector).forEach(objectPropertyEdge => {
-                    const objectPropertyEntity = this.ontology.getEntity(objectPropertyEdge.data().iri);
-                    let classIriConnected;
-                    let direct = true;
-                    if (objectPropertyEntity) {
-                        // if classIri is the source of the edge (i.e. domain of the object property)
-                        // then add target's iri to results
-                        if (classIri.equals(objectPropertyEdge.source().data().iri)) {
-                            classIriConnected = objectPropertyEdge.target().data().iri;
-                        }
-                        // if classIri is the target of the edge (i.e. range of the object property)
-                        // then add source's iri to results
-                        else if (classIri.equals(objectPropertyEdge.target().data().iri)) {
-                            classIriConnected = objectPropertyEdge.source().data().iri;
-                            direct = false;
-                        }
-                        if (classIriConnected) {
-                            const connectedClassEntity = this.ontology.getEntity(classIriConnected);
-                            if (connectedClassEntity) {
-                                const resEntry = res.get(objectPropertyEntity);
-                                if (resEntry) {
-                                    if (!resEntry.connectedClasses.includes(connectedClassEntity)) // add only new classes
-                                        resEntry.connectedClasses.push(connectedClassEntity);
-                                }
-                                else {
-                                    res.set(objectPropertyEntity, { connectedClasses: [connectedClassEntity], direct: direct });
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        });
-        return res;
-    }
-    /**
-     * Given a class and an object property, get all classes connected to the given class through such an
-     * object property.
-     * @param sourceClassIriString the class' iri involved in the object property
-     * either as domain or range
-     * @param objectPropertyIriString the object property's iri for which to retrieve the connected classes' iris
-     * @returns an array of entities
-     */
-    getClassesConnectedToObjectProperty(sourceClassIriString, objectPropertyIriString) {
-        const res = [];
-        const sourceClassIri = this.getIriObject(sourceClassIriString);
-        const objectPropertyIri = this.getIriObject(objectPropertyIriString);
-        const cyObjectPropertySelector = `edge[iri = "${objectPropertyIri.fullIri}"]`;
-        let classIriConnected;
-        /**
-         * For each diagram in floaty representation, search the object property
-         * and check if it's connected to the source class and if so, get
-         * the other end of the edge.
-         */
-        this.ontology.diagrams.forEach(diagram => {
-            var _a;
-            (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$(cyObjectPropertySelector).forEach(objectPropertyEdge => {
-                // if sourceClass is the source of the edge (i.e. domain of the object property)
-                // then add target's iri to results
-                if (sourceClassIri.equals(objectPropertyEdge.source().data().iri)) {
-                    classIriConnected = objectPropertyEdge.target().data().iri;
-                }
-                // if sourceClass is the target of the edge (i.e. range of the object property)
-                // then add source's iri to results
-                else if (sourceClassIri.equals(objectPropertyEdge.target().data().iri)) {
-                    classIriConnected = objectPropertyEdge.source().data().iri;
-                }
-                if (classIriConnected) {
-                    const entityToAdd = this.ontology.getEntity(classIriConnected);
-                    if (entityToAdd) {
-                        res.push(entityToAdd);
-                    }
-                }
-            });
-        });
-        return res;
-    }
-    getSubclassesIris(classIri) {
-        var _a;
-        const res = [];
-        let diagram;
-        (_a = this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.forEach(classOccurrences => {
-            classOccurrences.forEach(classOccurrence => {
-                var _a;
-                diagram = this.ontology.getDiagram(classOccurrence.diagramId);
-                if (diagram) {
-                    (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$id(classOccurrence.elementId).edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`).filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION).sources(`[ iri != "${classIri}" ]`).forEach(subClassElement => {
-                        if (!res.includes(subClassElement.data().iri)) {
-                            res.push(subClassElement.data().iri);
-                        }
-                    });
-                }
-            });
-        });
-        return res;
-    }
-    getSuperclassesIris(classIri) {
-        var _a;
-        const res = [];
-        let diagram;
-        (_a = this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.forEach(classOccurrences => {
-            classOccurrences.forEach(classOccurrence => {
-                var _a;
-                diagram = this.ontology.getDiagram(classOccurrence.diagramId);
-                if (diagram) {
-                    (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$id(classOccurrence.elementId).edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`).filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION).targets(`[ iri != "${classIri}" ]`).forEach(subClassElement => {
-                        if (!res.includes(subClassElement.data().iri)) {
-                            res.push(subClassElement.data().iri);
-                        }
-                    });
-                }
-            });
-        });
-        return res;
-    }
-    getIriObject(iri) {
-        return new Iri(iri, this.ontology.namespaces);
-    }
-}
-
-class HighlightsManager {
-    constructor(vkgApi) {
-        this.vkgApi = vkgApi;
-        this.highlightsCallsPromises = [];
-        this.lastClassIris = [];
-        this.actualClassIris = [];
-        this._dataProperties = new Set();
-        this._objectProperties = new Map();
-        this.computationPromise = new Promise(() => { });
-    }
-    computeHighlights(classIriStringOrArray) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.lastClassIris = this.actualClassIris;
-            this.actualClassIris = typeof classIriStringOrArray === 'string' ? [classIriStringOrArray] : classIriStringOrArray;
-            this.clear();
-            this.computationPromise = new Promise((resolve, reject) => {
-                for (let classIri of this.actualClassIris) {
-                    this.highlightsCallsPromises.push(this.vkgApi.getHighlights(classIri));
-                }
-                Promise.all(this.highlightsCallsPromises)
-                    .then(results => {
-                    var _a, _b;
-                    for (let highlights of results) {
-                        (_a = highlights.dataProperties) === null || _a === void 0 ? void 0 : _a.forEach(dp => this._dataProperties.add(dp));
-                        (_b = highlights.objectProperties) === null || _b === void 0 ? void 0 : _b.forEach(op => {
-                            if (op.objectPropertyIRI && !this._objectProperties.has(op.objectPropertyIRI)) {
-                                this._objectProperties.set(op.objectPropertyIRI, op);
-                            }
-                        });
-                    }
-                    resolve();
-                });
-            });
-        });
-    }
-    clear() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.highlightsCallsPromises = [];
-            this._dataProperties.clear();
-            this._objectProperties.clear();
-        });
-    }
-    dataProperties() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.computationPromise;
-            return Array.from(this._dataProperties);
-        });
-    }
-    objectProperties() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.computationPromise;
-            return Array.from(this._objectProperties).map(([_, opBranch]) => opBranch);
-        });
-    }
-}
-
-class GscapeConfirmDialog extends ModalMixin(BaseMixin(s)) {
-    constructor(message, dialogTitle = 'Confirm') {
-        super();
-        this.message = message;
-        this.dialogTitle = dialogTitle;
-        this.onConfirm = () => { };
-        this.onCancel = () => { };
-    }
-    render() {
-        return y `
-      <div class="gscape-panel">
-        <div class="header">
-          ${this.dialogTitle}
-        </div>
-        <div class="dialog-message area">
-          ${this.message}
-        </div>
-
-        <div class="buttons">
-          <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-          <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
-        </div>
-      </div>
-    `;
-    }
-    handleConfirm() {
-        this.onConfirm();
-        this.remove();
-    }
-    handleCancel() {
-        this.onCancel();
-        this.remove();
-    }
-}
-GscapeConfirmDialog.properties = {
-    message: { type: String }
-};
-GscapeConfirmDialog.styles = [
-    baseStyle,
-    i$1 `
-      .gscape-panel {
-        position: absolute;
-        top: 100px;
-        left: 50%;
-        transform: translate(-50%);
-        max-width: 400px;
-        min-width: 300px;
-      }
-
-      .header, .dialog-message {
-        margin: 8px;
-      }
-
-      .dialog-message {
-        padding: 8px;
-        margin-bottom: 16px;
-      }
-
-      .buttons {
-        display: flex;
-        align-items: center;
-        justify-content: right;
-        gap: 8px;
-      }
-    `
-];
-customElements.define('gscape-confirm-dialog', GscapeConfirmDialog);
-
-class IncrementalController {
-    constructor(grapholscape) {
-        this.grapholscape = grapholscape;
-        this.suggestedClassInstances = [];
-        this.suggestedClassInstancesRanges = [];
-        this.commandsWidget = new GscapeContextMenu();
-        this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram);
-        this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology);
-    }
-    initEndpointController() {
-        if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
-            this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions);
-            this.endpointController.onEndpointChange(newEndpoint => {
-                var _a;
-                const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the current endpoint, your exploration will be reset.`);
-                (_a = this.grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(confirmDialog);
-                confirmDialog.show();
-                confirmDialog.onConfirm = () => {
-                    this.initApi(newEndpoint);
-                    this.endpointController.selectedEndpoint = newEndpoint;
-                    this.reset();
-                };
-            });
-            this.endpointController.onAutoEndpointSelection(this.initApi.bind(this));
-            this.endpointController.updateEndpointList();
-        }
-    }
-    initApi(endpoint) {
-        var _a;
-        if (!this.vKGApi) {
-            if (this.grapholscape.mastroRequestOptions)
-                this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, endpoint);
-            if (this.highlightsManager) {
-                this.highlightsManager.vkgApi = this.vKGApi;
-            }
-            else {
-                this.highlightsManager = new HighlightsManager(this.vKGApi);
-            }
-        }
-        else {
-            (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.setEndpoint(endpoint);
-        }
-    }
-    init() {
-        var _a, _b;
-        this.updateWidget();
-        if (!this.endpointController) {
-            this.initEndpointController();
-        }
-        (_a = this.endpointController) === null || _a === void 0 ? void 0 : _a.showView();
-        this.setIncrementalEventHandlers();
-        this.incrementalDetails.reset();
-        this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this);
-        this.entitySelector.onClassSelection((iri) => {
-            this.entitySelector.hide();
-            this.incrementalRenderer.freezeGraph();
-            this.diagramBuilder.addEntity(iri);
-            this.postDiagramEdit();
-        });
-        (_b = this.endpointController) === null || _b === void 0 ? void 0 : _b.onLimitChange(this.changeInstancesLimit.bind(this));
-        setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology);
-    }
-    updateWidget() {
-        this.incrementalDetails = this.grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU);
-        this.entitySelector = this.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR);
-    }
-    buildDetailsForInstance(instanceIri) {
-        var _a, _b, _c, _d, _e;
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.incrementalDetails)
-                return;
-            this.incrementalDetails.canShowInstances = false;
-            this.incrementalDetails.canShowDataPropertiesValues = true;
-            this.incrementalDetails.canShowObjectPropertiesRanges = true;
-            const instanceEntity = (_a = this.diagram.classInstances) === null || _a === void 0 ? void 0 : _a.get(instanceIri);
-            if (instanceEntity) {
-                let shouldUpdate = false;
-                instanceEntity.parentClassIris.forEach(parentClassIri => {
-                    this.addDataPropertiesDetails(parentClassIri.fullIri);
-                    this.addObjectPropertiesDetails(parentClassIri.fullIri);
-                });
-                // Check if the last classes used for highlights matches with parentClasses of selected instance
-                // If it matches, no need to update highlights and values
-                for (const parentClassIri of instanceEntity.parentClassIris) {
-                    if (!((_b = this.highlightsManager) === null || _b === void 0 ? void 0 : _b.lastClassIris.includes(parentClassIri.fullIri)) &&
-                        ((_c = this.highlightsManager) === null || _c === void 0 ? void 0 : _c.lastClassIris.length) !== instanceEntity.parentClassIris.size) {
-                        shouldUpdate = true;
-                        break;
-                    }
-                }
-                if (shouldUpdate || this.lastInstanceIri !== instanceIri) {
-                    // init data properties values and recalculate them all
-                    const dataPropertiesValues = new Map();
-                    const dataProperties = yield ((_d = this.highlightsManager) === null || _d === void 0 ? void 0 : _d.dataProperties());
-                    dataProperties === null || dataProperties === void 0 ? void 0 : dataProperties.forEach(dpIri => {
-                        dataPropertiesValues.set(dpIri, { values: [], loading: true });
-                    });
-                    this.incrementalDetails.setDataPropertiesValues(dataPropertiesValues);
-                    dataProperties === null || dataProperties === void 0 ? void 0 : dataProperties.forEach(dpIri => {
-                        var _a;
-                        (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.getInstanceDataPropertyValues(instanceIri, dpIri, (res) => this.incrementalDetails.addDataPropertiesValues(dpIri, res), // onNewResults
-                        () => this.onStopDataPropertyValueQuery(instanceIri, dpIri)); // onStop
-                    });
-                    const objectPropertiesRanges = new Map();
-                    let rangeMap;
-                    const objectProperties = yield ((_e = this.highlightsManager) === null || _e === void 0 ? void 0 : _e.objectProperties());
-                    // init ranges map with empty arrays and all loading
-                    objectProperties === null || objectProperties === void 0 ? void 0 : objectProperties.forEach(opBranch => {
-                        var _a;
-                        if (opBranch.objectPropertyIRI) {
-                            (_a = opBranch.relatedClasses) === null || _a === void 0 ? void 0 : _a.forEach(rangeClass => {
-                                rangeMap = new Map();
-                                rangeMap.set(rangeClass, { values: [], loading: false });
-                                objectPropertiesRanges.set(opBranch.objectPropertyIRI, rangeMap);
-                            });
-                        }
-                    });
-                    this.suggestedClassInstancesRanges = [];
-                    this.incrementalDetails.setObjectPropertyRanges(objectPropertiesRanges);
-                    this.incrementalDetails.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => {
-                        this.onGetRangeInstances(instanceIri, objectPropertyIri, rangeClassIri);
-                    };
-                    this.incrementalDetails.onInstanceObjectPropertySelection = this.addInstanceObjectProperty.bind(this);
-                    this.lastInstanceIri = instanceIri;
-                }
-            }
-        });
-    }
-    buildDetailsForClass(classIri) {
-        var _a;
-        if (!this.incrementalDetails)
-            return;
-        this.addDataPropertiesDetails(classIri);
-        this.addObjectPropertiesDetails(classIri);
-        if (this.isReasonerEnabled) {
-            this.incrementalDetails.canShowDataPropertiesValues = false;
-            this.incrementalDetails.canShowObjectPropertiesRanges = false;
-            this.incrementalDetails.canShowInstances = true;
-            this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri);
-            this.incrementalDetails.onInstanceSelection = this.addInstance.bind(this);
-            this.incrementalDetails.onEntitySearch = (searchText) => this.onGetInstances(classIri, searchText);
-            this.incrementalDetails.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => this.onGetInstancesByDataPropertyValue(classIri, dataPropertyIri, searchText);
-            if (classIri !== this.lastClassIri) {
-                this.incrementalDetails.setInstances([]);
-                this.suggestedClassInstances = [];
-                this.incrementalDetails.isInstanceCounterLoading = true;
-                this.incrementalDetails.areInstancesLoading = true;
-                // Ask instance number
-                (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.getInstancesNumber(classIri, (count) => {
-                    this.incrementalDetails.isInstanceCounterLoading = false;
-                    this.incrementalDetails.instanceCount = count;
-                }, () => this.incrementalDetails.isInstanceCounterLoading = false);
-            }
-        }
-        this.lastClassIri = classIri;
-    }
-    showCommandsForClass(classIri) {
-        var _a, _b;
-        const commands = [];
-        const classInstanceEntity = (_a = this.diagram.classInstances) === null || _a === void 0 ? void 0 : _a.get(classIri);
-        if (classInstanceEntity) {
-            commands.push(showParentClass(() => {
-                var _a, _b;
-                const oldElemNumbers = (_a = this.diagramBuilder.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.size;
-                classInstanceEntity.parentClassIris.forEach(parentClassIri => {
-                    this.diagramBuilder.addEntity(parentClassIri.fullIri);
-                    this.connectInstanceToParentClasses(classInstanceEntity);
-                });
-                if (oldElemNumbers !== ((_b = this.diagramBuilder.diagram.representation) === null || _b === void 0 ? void 0 : _b.grapholElements.size))
-                    this.postDiagramEdit();
-            }));
-        }
-        const superHierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri);
-        const subHierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri);
-        if (superHierarchies && superHierarchies.length > 0) {
-            const areAllSuperHierarchiesVisible = this.diagramBuilder.areAllSuperHierarchiesVisibleForClass(classIri);
-            commands.push(showHideSuperHierarchies(areAllSuperHierarchiesVisible, () => {
-                this.diagramBuilder.referenceNodeId = classIri;
-                areAllSuperHierarchiesVisible ? this.hideSuperHierarchiesOf(classIri) : this.showSuperHierarchiesOf(classIri);
-            }));
-        }
-        if (subHierarchies && subHierarchies.length > 0) {
-            const areAllSubHierarchiesVisible = this.diagramBuilder.areAllSubHierarchiesVisibleForClass(classIri);
-            commands.push(showHideSubHierarchies(areAllSubHierarchiesVisible, () => {
-                this.diagramBuilder.referenceNodeId = classIri;
-                areAllSubHierarchiesVisible ? this.hideSubHierarchiesOf(classIri) : this.showSubHierarchiesOf(classIri);
-            }));
-        }
-        const subClasses = this.neighbourhoodFinder.getSubclassesIris(classIri);
-        const superClasses = this.neighbourhoodFinder.getSuperclassesIris(classIri);
-        if (subClasses.length > 0) {
-            const areAllSubclassesVisible = this.diagramBuilder.areAllSubclassesVisibleForClass(classIri, subClasses);
-            commands.push(showHideSubClasses(areAllSubclassesVisible, () => {
-                this.diagramBuilder.referenceNodeId = classIri;
-                areAllSubclassesVisible
-                    ? subClasses.forEach(sc => this.removeEntity(sc, [classIri]))
-                    : this.showSubClassesOf(classIri, subClasses);
-            }));
-        }
-        if (superClasses.length > 0) {
-            const areAllSuperclassesVisible = this.diagramBuilder.areAllSuperclassesVisibleForClass(classIri, superClasses);
-            commands.push(showHideSuperClasses(areAllSuperclassesVisible, () => {
-                this.diagramBuilder.referenceNodeId = classIri;
-                areAllSuperclassesVisible
-                    ? superClasses.forEach(sc => this.removeEntity(sc, [classIri]))
-                    : this.showSuperClassesOf(classIri, superClasses);
-            }));
-        }
-        commands.push(remove(() => this.removeEntity(classIri)));
-        try {
-            const htmlNodeReference = ((_b = this.diagram.representation) === null || _b === void 0 ? void 0 : _b.cy.$id(classIri)).popperRef();
-            if (htmlNodeReference && commands.length > 0) {
-                this.commandsWidget.attachTo(htmlNodeReference, commands);
-            }
-        }
-        catch (e) {
-            console.error(e);
-        }
-    }
-    addDataPropertiesDetails(classIri) {
-        this.getDataProperties(classIri).then(dataProperties => {
-            this.incrementalDetails.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)));
-        });
-    }
-    addObjectPropertiesDetails(classIri) {
-        // OBJECT PROPERTIES
-        this.getObjectProperties(classIri).then(objectProperties => {
-            if (objectProperties) {
-                this.incrementalDetails.setObjectProperties(Array.from(objectProperties).map(v => {
-                    return {
-                        objectProperty: grapholEntityToEntityViewData(v[0], this.grapholscape),
-                        connectedClasses: v[1].connectedClasses.map(classEntity => {
-                            return grapholEntityToEntityViewData(classEntity, this.grapholscape);
-                        }),
-                        direct: v[1].direct,
-                    };
-                }));
-            }
-        });
-    }
-    reset() {
-        if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-            this.incrementalRenderer.createNewDiagram();
-            this.entitySelector.show();
-            if (this.grapholscape.renderer.diagram)
-                setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology);
-            this.setIncrementalEventHandlers();
-            this.incrementalDetails.reset();
-            const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS);
-            entityDetails.hide();
-            this.clearState();
-        }
-    }
-    clearState() {
-        var _a, _b;
-        this.lastClassIri = undefined;
-        this.lastInstanceIri = undefined;
-        (_a = this.highlightsManager) === null || _a === void 0 ? void 0 : _a.clear();
-        (_b = this.vKGApi) === null || _b === void 0 ? void 0 : _b.stopAllQueries();
-    }
-    hideUI() {
-        var _a;
-        this.incrementalDetails.hide();
-        (_a = this.endpointController) === null || _a === void 0 ? void 0 : _a.hideView();
-    }
-    /**
-     * Called when the user click on the remove button on a entity node
-     * Remove a class, an instance or a data property node from the diagram
-     * @param entityIri
-     */
-    removeEntity(entityIri, entitiesIrisToKeep) {
-        this.incrementalRenderer.freezeGraph();
-        this.diagramBuilder.removeEntity(entityIri, entitiesIrisToKeep);
-        this.postDiagramEdit();
-    }
-    addInstance(instanceIriString) {
-        var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.diagramBuilder.referenceNodeId)
-                return;
-            const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId);
-            if (parentClassEntity) {
-                const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString);
-                if (!suggestedClassInstance)
-                    return;
-                if (!this.diagram.classInstances) {
-                    this.diagram.classInstances = new Map();
-                }
-                const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance === null || suggestedClassInstance === void 0 ? void 0 : suggestedClassInstance.shortIri);
-                let instanceEntity;
-                instanceEntity = this.diagram.classInstances.get(instanceIriString);
-                if (!instanceEntity) {
-                    instanceEntity = new ClassInstanceEntity(instanceIri);
-                    this.diagram.classInstances.set(instanceIriString, instanceEntity);
-                    // Set label as annotation
-                    if (suggestedClassInstance.label) {
-                        instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label));
-                    }
-                }
-                instanceEntity.parentClassIris.add(parentClassEntity.iri);
-                this.incrementalRenderer.freezeGraph();
-                this.diagramBuilder.addClassInstance(instanceIriString);
-                this.connectInstanceToParentClasses(instanceEntity);
-                const addedInstance = (_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(instanceIriString);
-                if (addedInstance) {
-                    addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default);
-                    (_b = this.diagram.representation) === null || _b === void 0 ? void 0 : _b.updateElement(addedInstance);
-                }
-                this.postDiagramEdit();
-                this.grapholscape.centerOnElement(instanceIriString);
-            }
-        });
-    }
-    addInstanceObjectProperty(instanceIriString, objectPropertyIri, parentClassIri, direct) {
-        var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.diagramBuilder.referenceNodeId)
-                return;
-            const parentClassEntity = this.ontology.getEntity(parentClassIri);
-            if (parentClassEntity) {
-                const suggestedClassInstance = this.suggestedClassInstancesRanges.find(c => c.iri === instanceIriString);
-                const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance === null || suggestedClassInstance === void 0 ? void 0 : suggestedClassInstance.shortIri);
-                const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri);
-                if (!suggestedClassInstance)
-                    return;
-                // Set label as annotation
-                if (suggestedClassInstance.label) {
-                    instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label));
-                }
-                // (await this.vKGApi?.getHighlights(parentClassIri))?.dataProperties?.forEach(dpIri => {
-                //   instanceEntity.addDataProperty(dpIri)
-                // })
-                if (!this.diagram.classInstances) {
-                    this.diagram.classInstances = new Map();
-                }
-                this.diagram.classInstances.set(instanceIriString, instanceEntity);
-                this.incrementalRenderer.freezeGraph();
-                this.diagramBuilder.addInstanceObjectProperty(objectPropertyIri, instanceIriString, direct);
-                const addedInstance = (_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(instanceIriString);
-                if (addedInstance) {
-                    addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default);
-                    (_b = this.diagram.representation) === null || _b === void 0 ? void 0 : _b.updateElement(addedInstance);
-                    this.connectInstanceToParentClasses(instanceEntity);
-                }
-                this.postDiagramEdit();
-                this.grapholscape.centerOnElement(instanceIriString);
-            }
-        });
-    }
-    /**
-     * Called when the user trigger the toggle for showing data properties.
-     * Given the state of the toggle and the list of dataproperties it is
-     * controlling, use diagram builder to add or remove them
-     * @param enabled
-     * @param dataProperties
-     */
-    toggleDataProperties(enabled, dataProperties) {
-        if (enabled) {
-            dataProperties.forEach(dataProperty => this.diagramBuilder.addEntity(dataProperty.iri.fullIri));
-        }
-        else {
-            dataProperties.forEach(dataProperty => this.diagramBuilder.removeEntity(dataProperty.iri.fullIri));
-        }
-        if (dataProperties.length > 0)
-            this.postDiagramEdit();
-    }
-    /**
-     * Called when the user select a class connected with the reference class
-     * through an object property from the incremental menu.
-     * Using diagram builder (which knows the actual reference class),
-     * add the object property edge using the right direction
-     * (towards reference class in case of a invereObjectProperty)
-     * @param classIri the class selected in the list
-     * @param objectPropertyIri the object property through which the class has been selected in the list
-     * @param direct if true the edge goes from reference class to selected class in menu
-     */
-    addIntensionalObjectProperty(classIri, objectPropertyIri, direct) {
-        this.incrementalRenderer.freezeGraph();
-        this.diagramBuilder.addEntity(objectPropertyIri, classIri, direct);
-        this.postDiagramEdit();
-        this.grapholscape.centerOnElement(classIri);
-    }
-    /**
-     * Show hierarchies for which the specified class is a subClass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    showSuperHierarchiesOf(classIri) {
-        const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri);
-        if (hierarchies && hierarchies.length > 0) {
-            this.incrementalRenderer.freezeGraph();
-            hierarchies.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy));
-            this.postDiagramEdit();
-        }
-    }
-    /**
-     * Hide hierarchies for which the specified class is a subClass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    hideSuperHierarchiesOf(classIri) {
-        const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri);
-        if (hierarchies && hierarchies.length > 0) {
-            this.incrementalRenderer.freezeGraph();
-            hierarchies.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]));
-            this.postDiagramEdit();
-        }
-    }
-    /**
-     * Show hierarchies for which the specified class is a superclass.
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    showSubHierarchiesOf(classIri) {
-        const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri);
-        if (hierarchies && hierarchies.length > 0) {
-            this.incrementalRenderer.freezeGraph();
-            hierarchies.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy));
-            this.postDiagramEdit();
-        }
-    }
-    /**
-     * Show hierarchies for which the specified class is a superclass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    hideSubHierarchiesOf(classIri) {
-        const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri);
-        if (hierarchies && hierarchies.length > 0) {
-            this.incrementalRenderer.freezeGraph();
-            hierarchies === null || hierarchies === void 0 ? void 0 : hierarchies.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]));
-            this.postDiagramEdit();
-        }
-    }
-    showSubClassesOf(classIri, subclassesIris) {
-        if (!subclassesIris) {
-            subclassesIris = this.neighbourhoodFinder.getSubclassesIris(classIri);
-        }
-        subclassesIris.forEach(subclassIri => this.diagramBuilder.addSubClass(subclassIri));
-        this.runLayout();
-    }
-    showSuperClassesOf(classIri, superclassesIris) {
-        if (!superclassesIris) {
-            superclassesIris = this.neighbourhoodFinder.getSuperclassesIris(classIri);
-        }
-        superclassesIris.forEach(subclassIri => this.diagramBuilder.addSuperClass(subclassIri));
-        this.runLayout();
-    }
-    changeInstancesLimit(limitValue) {
-        if (this.isReasonerEnabled) {
-            this.vKGApi.limit = limitValue;
-            if (this.incrementalDetails.canShowInstances && this.lastClassIri) {
-                this.buildDetailsForClass(this.lastClassIri);
-            }
-            if (this.incrementalDetails.canShowDataPropertiesValues && this.lastInstanceIri) {
-                this.buildDetailsForInstance(this.lastInstanceIri);
-            }
-        }
-    }
-    connectInstanceToParentClasses(instanceEntity) {
-        instanceEntity.parentClassIris.forEach(parentClassIri => {
-            this.diagramBuilder.addInstanceOfEdge(instanceEntity.iri.fullIri, parentClassIri.fullIri);
-        });
-    }
-    onGetInstances(classIri, searchText) {
-        this.incrementalDetails.areInstancesLoading = true;
-        // if it's a search, clear instances list
-        if (searchText !== undefined)
-            this.incrementalDetails.setInstances([]);
-        this.vKGApi.getInstances(classIri, this.onNewInstancesForDetails.bind(this), // onNewResults
-        () => this.onStopInstanceLoading(classIri), // onStop
-        searchText);
-    }
-    onGetInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue) {
-        this.incrementalDetails.areInstancesLoading = true;
-        this.incrementalDetails.setInstances([]);
-        this.vKGApi.getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, this.onNewInstancesForDetails.bind(this), // onNewResults
-        () => this.onStopInstanceLoading(classIri) // onStop
-        );
-    }
-    onGetRangeInstances(instanceIri, objectPropertyIri, rangeClassIri) {
-        var _a, _b, _c, _d;
-        return __awaiter(this, void 0, void 0, function* () {
-            this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, true);
-            const isDirect = ((_c = (_b = (yield ((_a = this.highlightsManager) === null || _a === void 0 ? void 0 : _a.objectProperties()))) === null || _b === void 0 ? void 0 : _b.find(op => op.objectPropertyIRI === objectPropertyIri)) === null || _c === void 0 ? void 0 : _c.direct) || false;
-            (_d = this.vKGApi) === null || _d === void 0 ? void 0 : _d.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri, (instances) => this.onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri), // onNewResults
-            () => this.onStopObjectPropertyRangeValueQuery(instanceIri, objectPropertyIri, rangeClassIri) // onStop
-            );
-        });
-    }
-    onNewInstancesForDetails(instances) {
-        this.suggestedClassInstances = instances;
-        this.incrementalDetails.setInstances(instances.map(instance => {
-            let instanceEntity = this.getInstanceEntityFromClassInstance(instance);
-            return {
-                displayedName: instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
-                value: instanceEntity
-            };
-        }));
-    }
-    getHighlights(classIri) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.isReasonerEnabled) {
-                return yield this.vKGApi.getHighlights(classIri);
-            }
-        });
-    }
-    onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri) {
-        this.suggestedClassInstancesRanges.push(...instances);
-        const instancesEntities = instances.map(i => grapholEntityToEntityViewData(this.getInstanceEntityFromClassInstance(i), this.grapholscape));
-        this.incrementalDetails.addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, instancesEntities);
-    }
-    /**
-     * Given the iri of a class, retrieve connected object properties.
-     * These object properties are inferred if the reasoner is available.
-     * Otherwise only object properties directly asserted in the ontology
-     * will be retrieved.
-     * @param classIri
-     * @returns
-     */
-    getObjectProperties(classIri) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.isReasonerEnabled) {
-                const branches = yield ((_a = this.highlightsManager) === null || _a === void 0 ? void 0 : _a.objectProperties());
-                const objectPropertiesMap = new Map();
-                branches === null || branches === void 0 ? void 0 : branches.forEach(branch => {
-                    var _a;
-                    if (!branch.objectPropertyIRI)
-                        return;
-                    const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI);
-                    if (!objectPropertyEntity)
-                        return;
-                    const connectedClasses = {
-                        connectedClasses: [],
-                        direct: branch.direct || false,
-                    };
-                    (_a = branch.relatedClasses) === null || _a === void 0 ? void 0 : _a.forEach(relatedClass => {
-                        const relatedClassEntity = this.ontology.getEntity(relatedClass);
-                        if (relatedClassEntity) {
-                            connectedClasses.connectedClasses.push(relatedClassEntity);
-                        }
-                    });
-                    objectPropertiesMap.set(objectPropertyEntity, connectedClasses);
-                });
-                return objectPropertiesMap;
-            }
-            else {
-                return this.neighbourhoodFinder.getObjectProperties(classIri);
-            }
-        });
-    }
-    getDataProperties(classIri) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.isReasonerEnabled) {
-                const dataProperties = yield ((_a = this.highlightsManager) === null || _a === void 0 ? void 0 : _a.dataProperties());
-                return (dataProperties === null || dataProperties === void 0 ? void 0 : dataProperties.map(dp => this.ontology.getEntity(dp)).filter(dpEntity => dpEntity !== null))
-                    || [];
-            }
-            else {
-                return this.neighbourhoodFinder.getDataProperties(classIri);
-            }
-        });
-    }
-    onStopDataPropertyValueQuery(instanceIri, dataPropertyIri) {
-        // if there is a new instance iri, loading will be stopped by new requests
-        if (instanceIri === this.lastInstanceIri) {
-            this.incrementalDetails.setDataPropertyLoading(dataPropertyIri, false);
-        }
-    }
-    onStopInstanceLoading(classIri) {
-        if (classIri === this.lastClassIri) {
-            this.incrementalDetails.areInstancesLoading = false;
-        }
-    }
-    onStopObjectPropertyRangeValueQuery(instanceIri, objectPropertyIri, rangeClassIri) {
-        if (instanceIri === this.lastInstanceIri) {
-            this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, false);
-        }
-    }
-    postDiagramEdit() {
-        if (!this.diagram.representation || this.diagram.representation.grapholElements.size === 0) {
-            this.entitySelector.show();
-        }
-        this.runLayout();
-        const ontologyExplorer = this.grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER);
-        if (ontologyExplorer) {
-            ontologyExplorer.entities = createEntitiesList(this.grapholscape, ontologyExplorer.searchEntityComponent);
-        }
-    }
-    runLayout() { this.incrementalRenderer.runLayout(); }
-    setIncrementalEventHandlers() {
-        var _a, _b, _c, _d;
-        this.incrementalRenderer.onContextClick(target => this.showCommandsForClass(target.data().iri));
-        if (((_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.hasEverBeenRendered) || ((_b = this.diagram.representation) === null || _b === void 0 ? void 0 : _b.cy.scratch('_gscape-incremental-graph-handlers-set')))
-            return;
-        // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
-        (_c = this.incrementalRenderer.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.cy.on('tap', evt => {
-            var _a, _b, _c, _d;
-            const targetType = evt.target.data().type;
-            if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
-                if (this.isReasonerEnabled) {
-                    (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.stopAllQueries();
-                }
-                this.diagramBuilder.referenceNodeId = evt.target.id();
-                const targetIri = evt.target.data().iri;
-                // set class instance entity in entity details widget
-                if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
-                    const instanceEntity = (_b = this.diagram.classInstances) === null || _b === void 0 ? void 0 : _b.get(targetIri);
-                    if (instanceEntity) {
-                        (_c = this.highlightsManager) === null || _c === void 0 ? void 0 : _c.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
-                        this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS).setGrapholEntity(instanceEntity);
-                        this.buildDetailsForInstance(targetIri);
-                    }
-                }
-                else {
-                    (_d = this.highlightsManager) === null || _d === void 0 ? void 0 : _d.computeHighlights(targetIri);
-                    this.buildDetailsForClass(targetIri);
-                }
-                this.incrementalDetails.show();
-            }
-            else {
-                this.incrementalDetails.hide();
-            }
-        });
-        (_d = this.diagram.representation) === null || _d === void 0 ? void 0 : _d.cy.scratch('_gscape-incremental-graph-handlers-set', true);
-    }
-    get ontology() { return this.grapholscape.ontology; }
-    get diagram() { return this.incrementalRenderer.incrementalDiagram; }
-    get isReasonerEnabled() { return this.vKGApi !== undefined; }
-    // private get vKGApi() {
-    //   // if (this.grapholscape.mastroRequestOptions && !this._vKGApi) {
-    //   //   if (this.endpointController?.selectedEndpoint)
-    //   //     this._vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, this.endpointController?.selectedEndpoint)
-    //   //   else
-    //   //     this.initEndpointController()
-    //   // }
-    //   return this._vKGApi
-    // }
-    getInstanceEntityFromClassInstance(classInstance) {
-        const instanceIri = new Iri(classInstance.iri, this.ontology.namespaces, classInstance.shortIri);
-        const instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE);
-        if (classInstance.label) {
-            instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, classInstance.label));
-        }
-        return instanceEntity;
-    }
-    get incrementalRenderer() { return this.grapholscape.renderer.renderState; }
-}
-
-function startIncremental(grapholscape, incrementalController) {
-    var _a, _b;
-    grapholscape.renderer.unselect();
-    if (!grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) {
-        initEntitySelector(grapholscape);
-    }
-    const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR);
-    (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(entitySelector);
-    if (!grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU)) {
-        initIncrementalMenu(grapholscape);
-    }
-    // const incrementalController = new IncrementalController(
-    //   grapholscape,
-    //   grapholscape.renderer.renderState as IncrementalRendererState,
-    //   grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails,
-    //   entitySelector
-    // )
-    incrementalController.init();
-    grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR).hide();
-    const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS);
-    entityDetailsWidget.incrementalSection = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU);
-    entityDetailsWidget.hide();
-    if (((_b = grapholscape.renderer.grapholElements) === null || _b === void 0 ? void 0 : _b.size) === 0) {
-        entitySelector.show();
-    }
-    // // TODO: when it will be available, remember to clear previous callbacks if startIncremental is called multiple times
-    // grapholscape.on(LifecycleEvent.RendererChange, rendererState => {
-    //   if (rendererState !== RendererStatesEnum.INCREMENTAL && grapholscape.mastroRequestOptions) {
-    //     incrementalController.clearState()
-    //   }
-    // })
 }
 
 const rendererStates = {
@@ -10045,42 +7274,25 @@ const rendererStates = {
 };
 
 function init$5 (rendererSelector, grapholscape) {
-    let existingIncrementalController;
     rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey]);
-    if (grapholscape.renderState) {
+    if (grapholscape.renderState)
         rendererSelector.actualRendererStateKey = grapholscape.renderState;
+    rendererSelector.onRendererStateSelection = (rendererState) => rendererStateSelectionCallback(rendererState, grapholscape);
+    rendererSelector.onIncrementalRefresh = () => {
         if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-            existingIncrementalController = new IncrementalController(grapholscape);
-            startIncremental(grapholscape, existingIncrementalController);
+            grapholscape.renderer.renderState.createNewDiagram();
+            grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR).show();
+            setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology);
         }
-    }
-    rendererSelector.onRendererStateSelection = (rendererState) => {
-        rendererStateSelectionCallback(rendererState, grapholscape);
-    };
-    rendererSelector.onIncrementalReset = () => {
-        existingIncrementalController === null || existingIncrementalController === void 0 ? void 0 : existingIncrementalController.reset();
     };
     grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
         rendererSelector.actualRendererStateKey = newRendererState;
         if (newRendererState === RendererStatesEnum.FLOATY)
             rendererSelector.layoutSettingsComponent.openPanel();
-        const filtersWidget = grapholscape.widgets.get(WidgetEnum.FILTERS);
-        if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-            if (!existingIncrementalController) {
-                existingIncrementalController = new IncrementalController(grapholscape);
-            }
-            startIncremental(grapholscape, existingIncrementalController);
-            filtersWidget.hide();
-        }
-        else {
-            existingIncrementalController === null || existingIncrementalController === void 0 ? void 0 : existingIncrementalController.clearState();
-            existingIncrementalController === null || existingIncrementalController === void 0 ? void 0 : existingIncrementalController.hideUI();
-            filtersWidget.show();
-        }
     });
 }
 function rendererStateSelectionCallback(rendererState, grapholscape) {
-    var _a, _b;
+    var _a;
     if (rendererState !== grapholscape.renderState) {
         let isRenderValid = false;
         switch (rendererState) {
@@ -10100,14 +7312,16 @@ function rendererStateSelectionCallback(rendererState, grapholscape) {
         if (rendererState === RendererStatesEnum.INCREMENTAL) {
             const incrementalRendererState = new IncrementalRendererState();
             grapholscape.setRenderer(incrementalRendererState);
+            initIncremental(incrementalRendererState, grapholscape);
+            grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR).hide();
+            if (((_a = grapholscape.renderer.grapholElements) === null || _a === void 0 ? void 0 : _a.size) === 0) {
+                grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR).show();
+            }
             isRenderValid = true;
         }
         else {
-            (_a = grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR)) === null || _a === void 0 ? void 0 : _a.show();
-            (_b = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) === null || _b === void 0 ? void 0 : _b.hide();
-            const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS);
-            if (entityDetailsWidget)
-                entityDetailsWidget.incrementalSection = undefined;
+            grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR).show();
+            grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR).hide();
         }
         if (isRenderValid)
             storeConfigEntry('selectedRenderer', rendererState);
@@ -10129,14 +7343,13 @@ class GscapeFullPageSelector extends BaseMixin(s) {
       <div class="title bold-text">${this._title}</div>
       <div class="options">
         ${this.options.map(option => {
-            if (option)
-                return y `
-              <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection}>
-                <div class="icon">${option.icon}</div>
-                <div class="title bold-text">${option.name}</div>
-                <div class="description muted-text">${option.description}</div>
-              </div>
-            `;
+            return y `
+            <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection}>
+              <div class="icon">${option.icon}</div>
+              <div class="title bold-text">${option.name}</div>
+              <div class="description muted-text">${option.description}</div>
+            </div>
+          `;
         })}
       </div>
     `;
@@ -10595,10 +7808,10 @@ class GrapholToOwlTranslator {
             if (grapholNodeEntity === null || grapholNodeEntity === void 0 ? void 0 : grapholNodeEntity.iri) {
                 nodeIri = grapholNodeEntity.iri;
             }
-            else if (grapholNode.is(GrapholTypesEnum.VALUE_DOMAIN) && grapholNode.displayedName) {
+            else if (grapholNode.is(GrapholTypesEnum.VALUE_DOMAIN)) {
                 nodeIri = {
-                    prefix: grapholNode.displayedName.split(':')[0] || '',
-                    remainder: grapholNode.displayedName.split(':')[1] || grapholNode.displayedName,
+                    prefix: grapholNode.displayedName.split(':')[0],
+                    remainder: grapholNode.displayedName.split(':')[1]
                 };
             }
             else
@@ -10885,6 +8098,10 @@ class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(s)) {
         super(...arguments);
         this.title = "OWL 2 Translation";
         this.owlText = '';
+        this.togglePanel = () => {
+            super.togglePanel();
+            this.requestUpdate();
+        };
     }
     render() {
         if (!this.owlText)
@@ -11019,9 +8236,9 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
       ${this.actualRendererStateKey === RendererStatesEnum.FLOATY ||
             this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL
             ? y `
-          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
+          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalRefresh
                 ? y `
-              <gscape-button @click=${this.onIncrementalReset} type="subtle" title="Restart Incremental Exploration">
+              <gscape-button @click=${this.onIncrementalRefresh} type="subtle" title="Restart Incremental Exploration">
                 <span slot="icon">${refresh}</span>
               </gscape-button>
               <div class="hr"></div>
@@ -11036,7 +8253,7 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
         <span slot="icon">${(_a = this.actualRendererState) === null || _a === void 0 ? void 0 : _a.icon}</span>
       </gscape-button>
 
-      <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
+      <div class="gscape-panel gscape-panel-in-tray drop-left hide" id="drop-panel">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
       ${this.rendererStates.map(rendererState => {
@@ -11076,6 +8293,11 @@ GscapeRenderSelector.styles = [
         order: 7;
         margin-top:10px;
       }
+
+      .gscape-panel-in-tray {
+        top:10px;
+        bottom: initial;
+      }
     `
 ];
 customElements.define('gscape-render-selector', GscapeRenderSelector);
@@ -11093,10 +8315,10 @@ class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(s)) {
     render() {
         return y `
       <gscape-button type="subtle" @click="${this.togglePanel}">
-        <span slot="icon">${settings_play}</span>
+        <span slot="icon">${tune}</span>
       </gscape-button>
 
-      <div id="drop-panel" class="hide gscape-panel gscape-panel-in-tray hanging">
+      <div id="drop-panel" class="hide gscape-panel gscape-panel-in-tray">
         <div class="header">Layout Settings</div>
         <div class="toggles-wrapper">
 
@@ -11142,6 +8364,11 @@ GscapeLayoutSettings.styles = [
         position: initial;
       }
 
+      .gscape-panel {
+        bottom:initial;
+        top:10px;
+      }
+
       gscape-toggle {
         padding: 8px;
       }
@@ -11160,8 +8387,7 @@ customElements.define('gscape-layout-settings', GscapeLayoutSettings);
  * @param {import('../../../grapholscape').default} grapholscape
  */
 function init$2 (layoutSettingsComponent, grapholscape) {
-    if (grapholscape.renderState)
-        updateToggles(grapholscape.renderState);
+    updateToggles(grapholscape.renderState);
     layoutSettingsComponent.onLayoutRunToggle = () => {
         if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
             grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
@@ -11310,7 +8536,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.2.0"}</span>
+            <span>${"3.1.0"}</span>
           </div>
         </div>
       </div>
@@ -11419,12 +8645,20 @@ GscapeSettings.styles = [
         padding: 0 8px;
       }
 
+      .area {
+        margin-bottom: 18px;
+        background: var(--gscape-color-bg-inset);
+        border-radius: calc(var(--gscape-border-radius) - 2px);
+        padding: 4px 4px 4px 6px;
+        border: solid 1px var(--gscape-color-border-subtle);
+      }
+
       .area:last-of-type {
         margin-bottom: 0;
       }
 
       .setting {
-        padding: 8px;
+        padding: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -11594,14 +8828,14 @@ function init (grapholscape) {
     initFullscreenButton(grapholscape);
     initFitButton(grapholscape);
     initZoomTools(grapholscape);
+    initRendererSelector(grapholscape);
     initFilters(grapholscape);
     initOntologyInfo(grapholscape);
     initEntityDetails(grapholscape);
     initOntologyExplorer(grapholscape);
     initOwlVisualizer(grapholscape);
     initSettings(grapholscape);
-    // initEntitySelector(grapholscape)
-    initRendererSelector(grapholscape);
+    initEntitySelector(grapholscape);
     initInitialRendererSelector(grapholscape);
     const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS);
     grapholscape.widgets.forEach((widget, key) => {
@@ -11614,7 +8848,6 @@ function init (grapholscape) {
             case WidgetEnum.ENTITY_DETAILS:
             case WidgetEnum.OWL_VISUALIZER:
             case WidgetEnum.ENTITY_SELECTOR:
-            case WidgetEnum.INCREMENTAL_MENU:
                 guiContainer.appendChild(widget);
                 break;
             case WidgetEnum.LAYOUT_SETTINGS:
@@ -11679,11 +8912,10 @@ var index = /*#__PURE__*/Object.freeze({
     get WidgetEnum () { return WidgetEnum; },
     emptySearchBlankState: emptySearchBlankState,
     entityListItemStyle: entityListItemStyle,
+    GscapeEntitySearch: GscapeEntitySearch,
     GscapeEntitySelector: GscapeEntitySelector,
-    GscapeIncrementalMenu: GscapeIncrementalDetails,
     icons: index$1,
     initUI: init,
-    ContextMenu: GscapeContextMenu,
     GscapeButton: GscapeButton,
     GscapeButtonStyle: GscapeButtonStyle,
     get SizeEnum () { return SizeEnum; },
@@ -11693,18 +8925,10 @@ var index = /*#__PURE__*/Object.freeze({
     BaseMixin: BaseMixin,
     DropPanelMixin: DropPanelMixin,
     hasDropPanel: hasDropPanel,
-    ModalMixin: ModalMixin,
-    GscapeTextSearch: GscapeTextSearch,
-    GscapeEntitySearch: GscapeEntitySearch,
-    GscapeEntityTypeFilters: GscapeEntityTypeFilters,
     GscapeFullPageSelector: GscapeFullPageSelector,
     initInitialRendererSelector: initInitialRendererSelector,
     createEntitiesList: createEntitiesList,
-    search: search,
-    textSpinner: textSpinner,
-    textSpinnerStyle: textSpinnerStyle,
-    getContentSpinner: getContentSpinner,
-    contentSpinnerStyle: contentSpinnerStyle
+    search: search
 });
 
 var downloadBlob = (blob, fileName) => {
@@ -11798,17 +9022,29 @@ class DisplayedNamesManager {
     setDisplayedNames(entity) {
         entity.occurrences.forEach((entityOccurrencesInRenderState, renderState) => {
             entityOccurrencesInRenderState.forEach(entityOccurrence => {
-                var _a, _b, _c;
-                let grapholElement;
-                if (renderState === RendererStatesEnum.INCREMENTAL) {
-                    grapholElement = (_a = this._grapholscape.renderer.renderState.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(entityOccurrence.elementId);
-                }
-                else {
-                    grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState);
-                }
+                var _a, _b, _c, _d;
+                const grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState);
                 if (!grapholElement)
                     return;
-                let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language, this._grapholscape.ontology.languages.default);
+                let newDisplayedName;
+                switch (this._entityNameType) {
+                    case EntityNameType.LABEL:
+                        newDisplayedName =
+                            ((_a = entity.getLabels(this._language)[0]) === null || _a === void 0 ? void 0 : _a.lexicalForm) ||
+                                ((_b = entity.getLabels(this._grapholscape.ontology.languages.default)[0]) === null || _b === void 0 ? void 0 : _b.lexicalForm) ||
+                                ((_c = entity.getLabels()[0]) === null || _c === void 0 ? void 0 : _c.lexicalForm) ||
+                                entity.iri.remainder;
+                        if (this._grapholscape.renderState === RendererStatesEnum.FLOATY) {
+                            newDisplayedName = newDisplayedName.replace(/\r?\n|\r/g, '');
+                        }
+                        break;
+                    case EntityNameType.PREFIXED_IRI:
+                        newDisplayedName = entity.iri.prefixed;
+                        break;
+                    case EntityNameType.FULL_IRI:
+                        newDisplayedName = entity.iri.fullIri;
+                        break;
+                }
                 if (newDisplayedName !== grapholElement.displayedName) {
                     grapholElement.displayedName = newDisplayedName;
                     const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId);
@@ -11821,16 +9057,12 @@ class DisplayedNamesManager {
                          */
                         if (renderState === RendererStatesEnum.GRAPHOL) {
                             diagram.representations.forEach(representation => {
-                                if (grapholElement)
-                                    representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
+                                representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
                             });
                         }
                         else {
-                            (_b = diagram.representations.get(renderState)) === null || _b === void 0 ? void 0 : _b.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
+                            (_d = diagram.representations.get(renderState)) === null || _d === void 0 ? void 0 : _d.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName);
                         }
-                    }
-                    else {
-                        (_c = this._grapholscape.renderer.diagram) === null || _c === void 0 ? void 0 : _c.representations.forEach(representation => representation.updateElement(grapholElement.id));
                     }
                 }
             });
@@ -11894,7 +9126,7 @@ class EntityNavigator {
         if (!grapholOccurrences || grapholOccurrences.length <= 0)
             return;
         const diagram = this._grapholscape.ontology.getDiagram(diagramId);
-        if (!diagram || !this._grapholscape.renderState)
+        if (!diagram)
             return;
         const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState);
         // Search any original graphol occurrence in the actual representation
@@ -11911,12 +9143,10 @@ class EntityNavigator {
         }
     }
     updateEntitiesOccurrences() {
-        if (this._grapholscape.renderState && this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
+        if (this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
             return;
         this._grapholscape.ontology.diagrams.forEach(diagram => {
             var _a, _b;
-            if (!this._grapholscape.renderState)
-                return;
             // const diagram = this._grapholscape.renderer.diagram
             const replicatedElements = (_b = (_a = diagram.representations.get(this._grapholscape.renderState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$("[originalId]");
             if (replicatedElements && !replicatedElements.empty()) {
@@ -11930,332 +9160,6 @@ class EntityNavigator {
                 });
             }
         });
-    }
-}
-
-class Renderer {
-    constructor(renderState) {
-        this.filters = new Map(Object.values(getDefaultFilters()).map(filter => [filter.key, filter]));
-        this.FOCUS_ZOOM_LEVEL = 1.5;
-        this.renderStateData = {};
-        /**
-         * Filter elements on the diagram.
-         * It will be actually applied only if the user defined callback on the event
-         * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
-         * allows for the filter to be applied.
-         * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
-         * or a string representing the unique key of a defined filter
-         */
-        this.filter = (filter) => {
-            var _a;
-            let _filter = this.getFilter(filter);
-            if (!_filter)
-                return;
-            if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && ((_a = this._renderState) === null || _a === void 0 ? void 0 : _a.filterManager.filterActivation(_filter))) {
-                this.performFilter(_filter);
-                this._lifecycle.trigger(LifecycleEvent.Filter, _filter);
-            }
-        };
-        /**
-         * Unfilter elements on the diagram.
-         * It will be actually deactivated only if the user defined callback on the event
-         * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
-         * allows for the filter to be deactivated.
-         * @param filter Can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum}
-         * or a string representing the unique key of a defined filter
-         */
-        this.unfilter = (filter) => {
-            var _a;
-            const _filter = this.getFilter(filter);
-            if (!_filter)
-                return;
-            if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && ((_a = this._renderState) === null || _a === void 0 ? void 0 : _a.filterManager.filterDeactivation(_filter))) {
-                this.performFilter(_filter, false);
-                this.applyActiveFilters();
-                this._lifecycle.trigger(LifecycleEvent.Unfilter, _filter);
-            }
-        };
-        if (renderState)
-            this.renderState = renderState;
-    }
-    set lifecycle(lc) {
-        this._lifecycle = lc;
-    }
-    set renderState(rs) {
-        if (this.diagram) {
-            /**
-             * Stop rendering actual diagram before
-             * changing renderer state
-             */
-            this.stopRendering();
-        }
-        this._renderState = rs;
-        if (rs) {
-            rs.renderer = this;
-            if (this.diagram) {
-                rs.render();
-                this.performAllFilters();
-            }
-        }
-    }
-    get renderState() { return this._renderState; }
-    get theme() { return this._theme; }
-    render(diagram) {
-        var _a;
-        if (!this.diagram || this.diagram.id !== diagram.id) {
-            this.stopRendering();
-            this.diagram = diagram;
-            (_a = this._renderState) === null || _a === void 0 ? void 0 : _a.render();
-            this.performAllFilters();
-            this._lifecycle.trigger(LifecycleEvent.DiagramChange, diagram);
-        }
-    }
-    mount() {
-        var _a;
-        this.applyTheme();
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.mount(this.container);
-    }
-    addElement(element) {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.add(element);
-    }
-    performFilter(filter, activate = true) {
-        if (this.grapholElements && this._renderState) {
-            for (let grapholElement of this.grapholElements.values()) {
-                if (filter.shouldFilter(grapholElement)) {
-                    if (activate)
-                        this._renderState.filter(grapholElement.id, filter);
-                    else
-                        this._renderState.unfilter(grapholElement.id, filter);
-                }
-            }
-            filter.active = activate;
-        }
-    }
-    getFilter(filter) {
-        let _filter;
-        if (typeof filter === 'string') {
-            _filter = this.filters.get(filter);
-        }
-        else {
-            _filter = filter;
-        }
-        if (!_filter || !this.filters.has(_filter.key)) {
-            console.warn(`Can't find any filter "${filter}"`);
-            return;
-        }
-        return _filter;
-    }
-    applyActiveFilters() {
-        this.filters.forEach(filter => {
-            if (filter.active) {
-                this.performFilter(filter);
-            }
-        });
-    }
-    performAllFilters() {
-        // first unfiler
-        this.filters.forEach(filter => {
-            if (!filter.active)
-                this.performFilter(filter, filter.active);
-        });
-        this.filters.forEach(filter => {
-            if (filter.active)
-                this.performFilter(filter, filter.active);
-        });
-    }
-    stopRendering() {
-        var _a, _b;
-        this.unselect();
-        (_a = this._renderState) === null || _a === void 0 ? void 0 : _a.stopRendering();
-        (_b = this.cy) === null || _b === void 0 ? void 0 : _b.unmount();
-    }
-    /**
-     * Select a node or an edge in the actual diagram given its unique id
-     * @param {string} elementId elem id (node or edge)
-     */
-    selectElement(elementId) {
-        var _a;
-        this.unselect();
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.$id(elementId).select();
-    }
-    /**
-     * Unselect every selected element in this diagram
-     */
-    unselect() {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.elements(':selected').unselect();
-    }
-    /**
-     * Fit viewport to diagram
-     */
-    fit() {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.fit();
-    }
-    /**
-     * Put a set of elements (nodes and/or edges) at the center of the viewport.
-     * If just one element then the element will be at the center.
-     * @param elementId the element's ID
-     * @param zoom the zoom level to apply, if not passed, zoom level won't be changed
-     */
-    centerOnElementById(elementId, zoom, select) {
-        var _a, _b;
-        if (zoom === void 0) { zoom = (_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom(); }
-        if (!this.cy || (!zoom && zoom !== 0))
-            return;
-        const cyElement = this.cy.$id(elementId);
-        zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom;
-        if (cyElement.empty()) {
-            console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`);
-        }
-        else {
-            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
-                center: {
-                    eles: cyElement
-                },
-                zoom: zoom,
-                queue: false,
-            });
-            if (select && this.cy.$(':selected') !== cyElement) {
-                this.unselect();
-                cyElement.select();
-            }
-        }
-    }
-    centerOnElement(element, zoom, select) {
-        this.centerOnElementById(element.id, zoom, select);
-    }
-    centerOnModelPosition(xPos, yPos, zoom) {
-        if (!this.cy)
-            return;
-        let offsetX = this.cy.width() / 2;
-        let offsetY = this.cy.height() / 2;
-        xPos -= offsetX;
-        yPos -= offsetY;
-        this.cy.pan({
-            x: -xPos,
-            y: -yPos
-        });
-        this.cy.zoom({
-            level: zoom || this.cy.zoom(),
-            renderedPosition: { x: offsetX, y: offsetY }
-        });
-    }
-    centerOnRenderedPosition(xPos, yPos, zoom) {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.viewport({
-            zoom: zoom || this.cy.zoom(),
-            pan: { x: xPos, y: yPos }
-        });
-    }
-    zoom(zoomValue) {
-        var _a, _b;
-        if (zoomValue != ((_a = this.cy) === null || _a === void 0 ? void 0 : _a.zoom()))
-            (_b = this.cy) === null || _b === void 0 ? void 0 : _b.animate({
-                zoom: zoomValue,
-                queue: false
-            });
-    }
-    zoomIn(zoomValue) {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
-            zoom: {
-                level: this.cy.zoom() + zoomValue * this.cy.zoom(),
-                renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
-            },
-            queue: false,
-        });
-    }
-    zoomOut(zoomValue) {
-        var _a;
-        (_a = this.cy) === null || _a === void 0 ? void 0 : _a.animate({
-            zoom: {
-                level: this.cy.zoom() - zoomValue * this.cy.zoom(),
-                renderedPosition: { x: this.cy.width() / 2, y: this.cy.height() / 2 }
-            },
-            queue: false,
-        });
-    }
-    setTheme(theme) {
-        if (theme !== this._theme) {
-            this._theme = theme;
-            if (this.cy) {
-                this.applyTheme();
-            }
-        }
-    }
-    applyTheme() {
-        var _a;
-        if (this._theme && this.renderState) {
-            (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style(this.renderState.getGraphStyle(this._theme));
-            if (this.theme.colours["bg-graph"])
-                this.container.style.backgroundColor = this.theme.colours["bg-graph"];
-        }
-    }
-    // updateAll() {
-    //   for (let grapholElement of this.grapholElements.values()) {
-    //     this.updateElement(grapholElement.id)
-    //   }
-    // }
-    updateElement(grapholElement) {
-        if (!this.cy)
-            return;
-        const cyElement = this.cy.$id(grapholElement.id);
-        if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-            cyElement.position(grapholElement.position);
-        }
-        if (isGrapholEdge(grapholElement)) {
-            cyElement.move({
-                source: grapholElement.sourceId,
-                target: grapholElement.targetId
-            });
-        }
-        cyElement.data(grapholElement.getCytoscapeRepr()[0].data);
-    }
-    get isThemeApplied() {
-        var _a;
-        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.style();
-    }
-    get grapholElements() {
-        var _a, _b;
-        if (this.renderState)
-            return (_b = (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.representations.get(this.renderState.id)) === null || _b === void 0 ? void 0 : _b.grapholElements;
-    }
-    get selectedElement() {
-        var _a, _b;
-        if (this.cy)
-            return (_a = this.grapholElements) === null || _a === void 0 ? void 0 : _a.get((_b = this.cy.$(':selected')[0]) === null || _b === void 0 ? void 0 : _b.id());
-    }
-    get viewportState() {
-        if (this.cy)
-            return {
-                zoom: this.cy.zoom(),
-                pan: this.cy.pan(),
-            };
-    }
-    set container(container) {
-        this._container = document.createElement('div');
-        this._container.classList.add('grapholscape-graph');
-        this._container.style.width = '100%';
-        this._container.style.height = '100%';
-        this._container.style.position = 'relative';
-        container.appendChild(this.container);
-    }
-    get container() { return this._container; }
-    /**
-     * Getter
-     */
-    get nodes() {
-        var _a;
-        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.nodes().jsons();
-    }
-    /**
-     * Getter
-     */
-    get edges() {
-        var _a;
-        return (_a = this.cy) === null || _a === void 0 ? void 0 : _a.edges().jsons();
     }
 }
 
@@ -12357,10 +9261,9 @@ class Grapholscape {
             console.warn(`Can't find any diagram with id="${diagramId}"`);
             return;
         }
-        if (this.renderState && !((_b = (_a = diagram.representations) === null || _a === void 0 ? void 0 : _a.get(this.renderState)) === null || _b === void 0 ? void 0 : _b.hasEverBeenRendered))
+        if (!((_b = (_a = diagram.representations) === null || _a === void 0 ? void 0 : _a.get(this.renderState)) === null || _b === void 0 ? void 0 : _b.hasEverBeenRendered))
             setGraphEventHandlers(diagram, this.lifecycle, this.ontology);
-        if (viewportState)
-            diagram.lastViewportState = viewportState;
+        diagram.lastViewportState = viewportState;
         this.renderer.render(diagram);
     }
     /**
@@ -12396,7 +9299,7 @@ class Grapholscape {
         this.renderer.renderState = newRenderState;
         if (shouldUpdateEntities)
             this.entityNavigator.updateEntitiesOccurrences();
-        this.lifecycle.trigger(LifecycleEvent.RendererChange, newRenderState.id);
+        this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState);
     }
     /**
      * Center the viewport on a single element.
@@ -12574,7 +9477,7 @@ class Grapholscape {
         if (newConfig.renderers) {
             this.availableRenderers = newConfig.renderers;
         }
-        let rendererStateToSet = undefined;
+        let rendererStateToSet;
         /**
          * If only one renderer defined, just use it
          */
@@ -12604,7 +9507,9 @@ class Grapholscape {
                     break;
                 }
                 case RendererStatesEnum.INCREMENTAL: {
-                    this.setRenderer(new IncrementalRendererState());
+                    const incrementalRendererState = new IncrementalRendererState();
+                    this.setRenderer(incrementalRendererState);
+                    initIncremental(incrementalRendererState, this);
                     break;
                 }
             }
@@ -12658,20 +9563,10 @@ class Grapholscape {
         var _a;
         return `${this.ontology.name}-${(_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.name}-v${this.ontology.version}`;
     }
-    /**
-     * Use this to pass options to build rest calls for querying
-     * the virtual knowledge graph when embedded in monolith
-     * @internal
-     * @param options
-     */
-    setMastroRequestOptions(options) {
-        this.mastroRequestOptions = options;
-    }
 }
 
 cytoscape.use(popper);
 cytoscape.use(cola);
-cytoscape.warnings("production" !== 'production');
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
  *
@@ -12692,11 +9587,10 @@ cytoscape.warnings("production" !== 'production');
 function fullGrapholscape(file, container, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const grapholscape = yield getGrapholscape(file, container, config);
-        if (grapholscape) {
+        if (grapholscape)
             init(grapholscape);
-            if ((config === null || config === void 0 ? void 0 : config.initialRendererSelection) === false || grapholscape.renderState) {
-                grapholscape.widgets.get(WidgetEnum.INITIAL_RENDERER_SELECTOR).hide();
-            }
+        if ((config === null || config === void 0 ? void 0 : config.initialRendererSelection) === false || grapholscape.renderState) {
+            grapholscape.widgets.get(WidgetEnum.INITIAL_RENDERER_SELECTOR).hide();
         }
         return grapholscape;
     });
@@ -12719,16 +9613,7 @@ function fullGrapholscape(file, container, config) {
  * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 function bareGrapholscape(file, container, config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const grapholscape = yield getGrapholscape(file, container, config);
-        if (grapholscape) {
-            if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-                const incrementalController = new IncrementalController(grapholscape);
-                startIncremental(grapholscape, incrementalController);
-            }
-        }
-        return grapholscape;
-    });
+    return getGrapholscape(file, container, config);
 }
 function getGrapholscape(file, container, config) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -12780,4 +9665,4 @@ function getGrapholscape(file, container, config) {
     });
 }
 
-export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, Filter, FloatyRendererState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, setGraphEventHandlers, startIncremental, storeConfigEntry, toPNG, toSVG, index as ui };
+export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, Filter, FloatyRendererState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeTheme, IncrementalDiagram, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, addClassNeighbourhood, addFirstClassInIncremental, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, setGraphEventHandlers, storeConfigEntry, index as ui };
