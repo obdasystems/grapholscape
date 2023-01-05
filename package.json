@@ -35,7 +35,7 @@
     "gen-types": "run-s clean:types gen-types:tsc",
     "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
     "preversion": "run-s test",
-    "version": "run-s build doc app:dist version:git-add-all",
+    "version": "run-s build doc app:dist git-add-all",
     "git-add-all": "git add -A",
     "apigen": "run-s apigen:*",
     "apigen:clean": "rimraf ./src/incremental/api/swagger",
