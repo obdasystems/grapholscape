@@ -1,11 +1,15 @@
 import { floatyOptions } from "../../config";
+import ClassInstanceEntity from "../graphol-elems/class-instance-entity";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
+import Iri from "../iri";
 import { RendererStatesEnum } from "../renderers/i-render-state";
 import Diagram from "./diagram";
 import DiagramRepresentation from "./diagram-representation";
 
 export default class IncrementalDiagram extends Diagram {
+
+  public classInstances?: Map<string, ClassInstanceEntity>
 
   constructor() {
     super('Incremental', -1)
@@ -18,6 +22,10 @@ export default class IncrementalDiagram extends Diagram {
 
   removeElement(elementId: string) {
     this.representation?.removeElement(elementId)
+  }
+
+  containsEntity(iriOrGrapholEntity: Iri | GrapholEntity) {
+    return this.representation?.containsEntity(iriOrGrapholEntity)
   }
 
   get representation() {

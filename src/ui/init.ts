@@ -1,10 +1,8 @@
 import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
-import { IBaseMixin } from "./common/base-widget-mixin";
-import { hasDropPanel } from "./common/drop-panel-mixin";
+import { hasDropPanel, IBaseMixin } from "./common/mixins";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails from "./entity-details";
-import initEntitySelector from "./entity-selector";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
 import { initInitialRendererSelector } from "./full-page-selector";
@@ -40,14 +38,14 @@ export default function (grapholscape: Grapholscape) {
   initFullscreenButton(grapholscape)
   initFitButton(grapholscape)
   initZoomTools(grapholscape)
-  initRendererSelector(grapholscape)
   initFilters(grapholscape)
   initOntologyInfo(grapholscape)
   initEntityDetails(grapholscape)
   initOntologyExplorer(grapholscape)
   initOwlVisualizer(grapholscape)
   initSettings(grapholscape)
-  initEntitySelector(grapholscape)
+  // initEntitySelector(grapholscape)
+  initRendererSelector(grapholscape)
   initInitialRendererSelector(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
@@ -63,6 +61,7 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.ENTITY_DETAILS:
       case WidgetEnum.OWL_VISUALIZER:
       case WidgetEnum.ENTITY_SELECTOR:
+      case WidgetEnum.INCREMENTAL_MENU:
         guiContainer.appendChild(widget)
         break
 

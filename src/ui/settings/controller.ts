@@ -2,7 +2,7 @@ import GscapeSettings from "./settings";
 import { storeConfigEntry } from "../../config/config-manager";
 import Grapholscape from '../../core';
 import { LifecycleEvent } from "../../model";
-import { IBaseMixin } from "../common/base-widget-mixin";
+import { IBaseMixin } from "../common/mixins/";
 
 export default function (settingsComponent: GscapeSettings, grapholscape: Grapholscape) {
   settingsComponent.languages = grapholscape.ontology.languages.list

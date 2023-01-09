@@ -62,6 +62,11 @@ export default css`
   padding-left: 0;
 }
 
+.gscape-panel-in-tray.hanging {
+  bottom: initial;
+  transform: translate(0, calc(-50% - 17px));
+}
+
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
   scrollbar-width: inherit;
@@ -107,7 +112,7 @@ export default css`
 }
 
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .drop-down {
@@ -212,13 +217,12 @@ select:focus, input:focus {
 input {
   line-height: inherit;
   border: solid 1px var(--gscape-color-border-subtle);
-  padding: 4px 12px;
+  padding: 6px 12px;
   border-radius: var(--gscape-border-radius);
   background: var(--gscape-color-bg-inset);
   color: inherit;
   display: inline-block;
   box-sizing: border-box;
-  width: 100%;
 }
 
 .link {
@@ -243,5 +247,13 @@ input {
   padding: 2px 6px;
   background: var(--gscape-color-accent-subtle);
   margin: 1px 2px;
+}
+
+.area {
+  background: var(--gscape-color-bg-inset);
+  border-radius: calc(var(--gscape-border-radius) - 2px);
+  padding: 4px 4px 4px 6px;
+  border: solid 1px var(--gscape-color-border-subtle);
+  margin-bottom: 18px;
 }
 `

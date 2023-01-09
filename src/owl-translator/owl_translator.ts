@@ -240,10 +240,10 @@ export default class GrapholToOwlTranslator {
 
       if (grapholNodeEntity?.iri) {
         nodeIri = grapholNodeEntity.iri
-      } else if (grapholNode.is(Types.VALUE_DOMAIN)) {
+      } else if (grapholNode.is(Types.VALUE_DOMAIN) && grapholNode.displayedName) {
         nodeIri = { 
-          prefix: grapholNode.displayedName.split(':')[0], 
-          remainder: grapholNode.displayedName.split(':')[1]
+          prefix: grapholNode.displayedName.split(':')[0] || '', 
+          remainder: grapholNode.displayedName.split(':')[1] || grapholNode.displayedName,
         }
       } else
         return
@@ -278,7 +278,7 @@ export default class GrapholToOwlTranslator {
       let inputs: NodeCollection
       switch (grapholNode.type) {
         case Types.FACET:
-          var remainder = grapholNode.displayedName.replace(/\n/g, '^').split('^^')
+          var remainder = grapholNode.displayedName!.replace(/\n/g, '^').split('^^')
           remainder[0] = remainder[0].slice(4)
           return '<span class="axiom_predicate_prefix">xsd:</span><span class="owl_value-domain">' + remainder[0] + '</span><span class="owl_value">' + remainder[1] + '</span>'
 
@@ -315,7 +315,7 @@ export default class GrapholToOwlTranslator {
 
               default:
                 if (node.data('displayedName').search(/\(([-]|[\d]+),([-]|[\d]+)\)/) != -1) {
-                  var cardinality = grapholNode.displayedName.replace(/\(|\)/g, '').split(/,/)
+                  var cardinality = grapholNode.displayedName!.replace(/\(|\)/g, '').split(/,/)
                   return this.minMaxExactCardinality(input_first, input_other, cardinality, grapholNode.type)
                 }
 

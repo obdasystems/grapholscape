@@ -8,8 +8,7 @@ export { default as Annotation } from './graphol-elems/annotation'
 export { default as AnnotatedElement } from './annotated-element'
 export * from './annotated-element'
 
-export { default as GrapholNodesEnum } from './graphol-elems/node-enums'
-export * from './graphol-elems/node-enums'
+export * from './graphol-elems/enums'
 export * from './themes'
 export { default as Filter } from './renderers/filter'
 export * from './renderers/filter'
@@ -28,3 +27,5 @@ export { default as Lifecycle } from './lifecycle'
 export * from './lifecycle'
 
 export { default as Breakpoint } from './graphol-elems/breakpoint'
+
+export * from './graph-structures'

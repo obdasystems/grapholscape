@@ -44,9 +44,9 @@ export default abstract class BaseGrapholTransformer implements GrapholTransform
     })
   }
 
-  protected deleteElement(elem: EdgeSingular)
-  protected deleteElement(elem: NodeSingular)
-  protected deleteElement(elem: SingularElementReturnValue) {
+  protected deleteElement(elem: EdgeSingular): void
+  protected deleteElement(elem: NodeSingular): void
+  protected deleteElement(elem: SingularElementReturnValue): void {
     this.newCy.remove(elem)
     this.result.grapholElements.delete(elem.id())
   }

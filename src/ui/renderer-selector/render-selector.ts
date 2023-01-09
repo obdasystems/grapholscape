@@ -1,8 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
 import { RendererStatesEnum } from '../../model'
 import { refresh } from '../assets'
-import { BaseMixin } from '../common/base-widget-mixin'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { GscapeLayoutSettings } from './floaty-layout-settings'
 import { UiOption } from './view-model'
@@ -12,7 +11,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
   rendererStates: (UiOption | undefined)[]
   actualRendererStateKey: RendererStatesEnum
   onRendererStateSelection: (rendererState: RendererStatesEnum) => void = () => { }
-  onIncrementalRefresh?: () => void
+  onIncrementalReset?: () => void
   layoutSettingsComponent: GscapeLayoutSettings
 
   static properties: PropertyDeclarations = {
@@ -28,11 +27,6 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
         order: 7;
         margin-top:10px;
       }
-
-      .gscape-panel-in-tray {
-        top:10px;
-        bottom: initial;
-      }
     `
   ]
 
@@ -46,9 +40,9 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
       ${this.actualRendererStateKey === RendererStatesEnum.FLOATY ||
         this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL
         ? html`
-          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalRefresh
+          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
             ? html`
-              <gscape-button @click=${this.onIncrementalRefresh} type="subtle" title="Restart Incremental Exploration">
+              <gscape-button @click=${this.onIncrementalReset} type="subtle" title="Restart Incremental Exploration">
                 <span slot="icon">${refresh}</span>
               </gscape-button>
               <div class="hr"></div>
@@ -65,7 +59,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
         <span slot="icon">${this.actualRendererState?.icon}</span>
       </gscape-button>
 
-      <div class="gscape-panel gscape-panel-in-tray drop-left hide" id="drop-panel">
+      <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
       ${this.rendererStates.map(rendererState => {

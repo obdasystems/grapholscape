@@ -4,6 +4,7 @@ import { isGrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
 import { isGrapholNode } from "../graphol-elems/node";
+import Iri from "../iri";
 
 export default class DiagramRepresentation {
   private _cy: cytoscape.Core
@@ -61,9 +62,9 @@ export default class DiagramRepresentation {
 
     const cyElement = this.cy.$id(grapholElement.id)
 
-    if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-      cyElement.position(grapholElement.position)
-    }
+    // if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+    //   // cyElement.position(grapholElement.position)
+    // }
 
     if (isGrapholEdge(grapholElement)) {
       cyElement.move({
@@ -76,6 +77,23 @@ export default class DiagramRepresentation {
     cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
     // iri should be always preserved
     cyElement.data().iri = iri
+  }
+
+  containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean {
+    let iri: Iri
+    if ((iriOrGrapholEntity as GrapholEntity).iri !== undefined) {
+      iri = (iriOrGrapholEntity as GrapholEntity).iri
+    } else {
+      iri = iriOrGrapholEntity as Iri
+    }
+
+    for (let [_, grapholElement] of this.grapholElements) {
+      if (grapholElement.iri && iri.equals(grapholElement.iri)) {
+        return true
+      }
+    }
+
+    return false
   }
 
   get grapholElements() {

@@ -1,0 +1,71 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Swagger Sparqling WS",
+    "description": "This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph. \nSparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "info@obdasystems.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.1"
+  },
+  "servers": [
+  ],
+  "tags": [
+  ],
+  "paths": {
+  },
+  "components": {
+    "schemas": {
+      "Highlights": {
+        "type": "object",
+        "properties": {
+          "classes": {
+            "type": "array",
+            "description": "Subclasses or brother classes",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objectProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Branch"
+            }
+          },
+          "dataProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Branch": {
+        "type": "object",
+        "properties": {
+          "objectPropertyIRI": {
+            "type": "string"
+          },
+          "cyclic": {
+            "type": "boolean",
+            "description": "It is true when domain and range are the same class."
+          },
+          "direct": {
+            "type": "boolean"
+          },
+          "relatedClasses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

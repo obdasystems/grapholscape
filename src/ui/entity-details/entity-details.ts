@@ -3,9 +3,9 @@ import { GrapholEntity } from '../../model'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
-import { BaseMixin } from '../common/base-widget-mixin'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import { GscapeButtonStyle } from '../common/button'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { GscapeIncrementalMenu } from '../incremental-ui'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 
@@ -17,12 +17,15 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 
+  incrementalSection?: GscapeIncrementalMenu
+
   static get properties() {
     return {
       grapholEntity: { type: Object, attribute: false },
       occurrences: { type: Object, attribute: false },
       language: { type: String, attribute: false },
-      _isPanelClosed: { type: Boolean, attribute: false }
+      _isPanelClosed: { type: Boolean, attribute: false },
+      incrementalSection: {type: Object, attribute: false }
     }
   }
 
@@ -36,11 +39,23 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         position: absolute;
         top:10px;
         right:62px;
+        max-height: 50%;
+        min-height: 200px;
+        min-width: 300px;
+        max-width: 20%;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
       }
 
       .gscape-panel {
         padding:0;
-        min-width: 200px;
+        max-height: inherit;
+        display: flex;
+        flex-direction: column;
+        width: inherit;
+        max-width: unset;
+        min-width: unset;
       }
 
       .gscape-panel > * {
@@ -83,6 +98,11 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
       .item-with-iri-info {
         padding-top: 12px;
+        flex-shrink: 0;
+      }
+
+      .content-wrapper > * {
+        margin: 8px 0;
       }
     `
   ]
@@ -93,55 +113,60 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       <div class="gscape-panel ellipsed" id="drop-panel">
         ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
 
-        ${this.grapholEntity.datatype
-          ? html`
-            <div style="text-align: center" class="chips-wrapper section">
-              <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
-            </div>
-          `
-          : null
-        }
-
-        ${this.grapholEntity.functionalities.length > 0
-          ? html`
-              <div class="chips-wrapper section">
-              ${this.grapholEntity.functionalities.map(functionality => {
-                return html`<span class="chip">&#10003; ${functionality.toString()}</span>`
-              })}
+        <div class="content-wrapper">
+          ${this.grapholEntity.datatype
+            ? html`
+              <div style="text-align: center" class="chips-wrapper section">
+                <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
               </div>
             `
-          : null
-        }
+            : null
+          }
 
-        ${annotationsTemplate(this.grapholEntity.getAnnotations())}
-        
-        ${this.occurrencesTemplate()}
+          ${this.grapholEntity.functionalities.length > 0
+            ? html`
+                <div class="chips-wrapper section">
+                ${this.grapholEntity.functionalities.map(functionality => {
+                  return html`<span class="chip">&#10003; ${functionality.toString()}</span>`
+                })}
+                </div>
+              `
+            : null
+          }
 
-        ${this.grapholEntity.getComments().length > 0
-          ? html`
-              <div class="section">
-                <div>
-                  <span id="description-header" class="bold-text section-header">Description</span>
-                  <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
-                    ${this.commentsLanguages.map(language => {
-                      return html`
-                        <option value="${language}" ?selected=${this.language === language}>
-                          @${language}
-                        </option>
-                      `
-                    })}
-                  </select>
+          ${this.incrementalSection}
+
+          ${annotationsTemplate(this.grapholEntity.getAnnotations())}
+          
+          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null }
+
+          ${this.grapholEntity.getComments().length > 0
+            ? html`
+                <div class="section">
+                  <div>
+                    <span id="description-header" class="bold-text section-header">Description</span>
+                    <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
+                      ${this.commentsLanguages.map(language => {
+                        return html`
+                          <option value="${language}" ?selected=${this.language === language}>
+                            @${language}
+                          </option>
+                        `
+                      })}
+                    </select>
+                  </div>
+                  <div class="section-body">
+                    ${this.grapholEntity.getComments(this.language).map(comment =>
+                      html`<span class="comment">${comment.lexicalForm}</span>`
+                    )}
+                  </div>
                 </div>
-                <div class="section-body">
-                  ${this.grapholEntity.getComments(this.language).map(comment =>
-                    html`<span class="comment">${comment.lexicalForm}</span>`
-                  )}
-                </div>
-              </div>
-            `
-          : null
-        }
+              `
+            : null
+          }
+        </div>
       </div>
+
       <div class="top-bar">
         <gscape-button style="z-index: 1"
           id="toggle-panel-button"
@@ -175,11 +200,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
-
-  togglePanel = () => {
-    super.togglePanel()
-    this.requestUpdate()
-  }
 
   setGrapholEntity(entity: GrapholEntity) { }
 

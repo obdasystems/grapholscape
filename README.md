@@ -1,13 +1,33 @@
-<p style="margin:auto; max-width:250px" align="center">
-  <img width="250px" src="https://raw.githubusercontent.com/obdasystems/grapholscape/develop/app/assets/logo.png">
+<h1 align="center">
+  <a href="https://obdasystems.github.io/grapholscape/">
+    <img height="150" src="docs/static/assets/img/icon.png?raw=true" alt="Grapholscape logo" title="Grapholscape" />
+  </a>
+  <br>
+  Grapholscape
+  </br>
+</h1>
+
+<h4 align="center">
+  Advanced web viewer for ontologies written in GRAPHOL.
+</h4>
+
+<p align="center">
+  <a href="https://obdasystems.github.io/grapholscape/demo/"><strong>Demo</strong></a> •
+  <a href="#features">Features</a> •
+  <a href="#what-is-graphol">What is Graphol?</a> •
+  <a href="https://obdasystems.github.io/grapholscape/"><strong>Documentation</strong></a> •
+  <a href="#quick-start"><strong>Quick Start</strong></a> •
+  <a href="#credits">Credits</a>
 </p>
 
-Advanced web viewer for ontologies written in GRAPHOL.[**Try me**](https://obdasystems.github.io/grapholscape/demo/)
+<a align="center" href="https://obdasystems.github.io/grapholscape/demo/">
+  <img src="docs/static/assets/img/demo.gif?raw=true" />
+</a>
 
 ## Features
 Grapholscape provides advanced and interactive tools to visually inspect all components of the ontology: you can search for predicates, filter elements on the diagram and get information about each element on the screen.
 
-* `new` Explore your custom **path** in the ontology graph, start from a single class and explore **incrementally** step by step.
+* `new` **Path rendering mode**: explore your custom **path** in the ontology graph, start from a single class and explore **incrementally** step by step.
 * Simplify your ontology:
   * **Graphol-lite**: summarized view avoiding too complex expressions
   * **Floaty Mode**: simplify further obtaining an extremely easy representation of the ontology
@@ -17,10 +37,6 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 * Get the OWL2 translation for selected element
 * Filter elements that are not necessary for your analysis
 * Multi-diagrammatic inspection that allows you to navigate through all diagrams that builds up the ontology
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/obdasystems/grapholscape/master/docs/static/assets/img/demo.gif" />
-</p>
 
 ## What is Graphol?
 GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.
@@ -32,7 +48,8 @@ You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [buil
 For a more detailed explanation please check the [documentation](https://obdasystems.github.io/grapholscape/) and the [getting started guide](https://obdasystems.github.io/grapholscape/pages/getting-started.html).
 
 Install it via **npm**: `npm install grapholscape`.
-Basic initialisation with UI widgets.
+
+#### Basic initialisation with UI widgets.
 ```js
 import { fullGrapholscape } from 'grapholscape'
 
@@ -84,8 +101,8 @@ Run `npm run <target>` in the console. The main targets are:
     *Please review built files and try out demo and electron app before proceeding*
 2. Push the release: `git push && git push --tags`
 3. Deploy web version on gh-pages: `npm run deploy`
-4. Publish to npm (To be defined)
+4. Publish to npm
 5. Create a release on Github from the latest tag adding zipped electron packages produced in `./dists`
 
-## Disclaimer
+## Credits
 Based on [cytoscape.js](http://js.cytoscape.org).

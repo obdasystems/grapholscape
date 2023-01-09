@@ -1,6 +1,6 @@
 import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
-import { initIncremental } from "../incremental"
+import { RequestOptions } from "../incremental/api/model"
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -57,9 +57,12 @@ export default class Grapholscape {
       return
     }
 
-    if (!diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
+    if (this.renderState && !diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
       setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
-    diagram.lastViewportState = viewportState
+    
+    if (viewportState)
+      diagram.lastViewportState = viewportState
+
     this.renderer.render(diagram)
   }
 
@@ -101,7 +104,7 @@ export default class Grapholscape {
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
 
-    this.lifecycle.trigger(LifecycleEvent.RendererChange, this.renderState)
+    this.lifecycle.trigger(LifecycleEvent.RendererChange, newRenderState.id)
   }
 
   /**
@@ -330,7 +333,7 @@ export default class Grapholscape {
       this.availableRenderers = newConfig.renderers
     }
 
-    let rendererStateToSet: RendererStatesEnum
+    let rendererStateToSet: RendererStatesEnum | undefined = undefined
     /**
      * If only one renderer defined, just use it
      */
@@ -364,9 +367,7 @@ export default class Grapholscape {
         }
 
         case RendererStatesEnum.INCREMENTAL: {
-          const incrementalRendererState = new IncrementalRendererState()
-          this.setRenderer(incrementalRendererState)
-          initIncremental(incrementalRendererState, this)
+          this.setRenderer(new IncrementalRendererState())
           break
         }
       }
@@ -425,5 +426,17 @@ export default class Grapholscape {
    */
   get exportFileName() {
     return `${this.ontology.name}-${this.renderer.diagram?.name}-v${this.ontology.version}`
+  }
+
+  // ------------------- VIRTUAL KNOWLEDGE NAVIGATION -----------------
+  public mastroRequestOptions?: RequestOptions
+  /**
+   * Use this to pass options to build rest calls for querying 
+   * the virtual knowledge graph when embedded in monolith
+   * @internal
+   * @param options 
+   */
+  setMastroRequestOptions(options: RequestOptions) {
+    this.mastroRequestOptions = options
   }
 }

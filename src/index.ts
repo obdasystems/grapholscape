@@ -1,14 +1,16 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import { Ontology } from './model'
+import { Ontology, RendererStatesEnum } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 import Grapholscape from './core'
 import { GrapholscapeConfig, loadConfig } from './config'
+import { IncrementalController, startIncremental } from './incremental'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
+cytoscape.warnings(process.env.NODE_ENV !== 'production')
 
 export * from './model'
 export * from './config'
@@ -16,6 +18,7 @@ export * as ui from './ui'
 export * from './core'
 export * from './incremental'
 export { default as setGraphEventHandlers } from './core/set-graph-event-handlers'
+export * from './exporter'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -36,11 +39,12 @@ export { default as setGraphEventHandlers } from './core/set-graph-event-handler
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
-  if (grapholscape)
+  if (grapholscape) {
     UI.initUI(grapholscape)
 
-  if (config?.initialRendererSelection === false || grapholscape.renderState) {
-    (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+    if (config?.initialRendererSelection === false || grapholscape.renderState) {
+      (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+    }
   }
   return grapholscape
 }
@@ -62,8 +66,16 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
  * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
  * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
-export function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
-  return getGrapholscape(file, container, config)
+export async function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
+  const grapholscape = await getGrapholscape(file, container, config)
+
+  if (grapholscape) {
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      const incrementalController = new IncrementalController(grapholscape)
+      startIncremental(grapholscape, incrementalController)
+    }
+  }
+  return grapholscape
 }
 
 async function getGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {

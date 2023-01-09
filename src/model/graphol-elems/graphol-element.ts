@@ -1,18 +1,16 @@
 import { ElementDefinition } from "cytoscape"
-import { GrapholTypesEnum } from "./node-enums"
+import { GrapholTypesEnum } from "./enums"
 import GrapholEntity, { FunctionalityEnum } from "./entity"
 
 export default class GrapholElement {
   // The id coming from xml
-  private _id: string
-  private _type: GrapholTypesEnum
-  private _displayedName: string
-  private _originalId: string // In case of replicated elements, this is the id of the original node
+  // private _id: string
+  // private _type: GrapholTypesEnum
+  private _displayedName?: string
+  private _originalId?: string // In case of replicated elements, this is the id of the original node
   private _iri?: string
 
-  constructor(id: string) {
-    this.id = id
-  }
+  constructor(private _id: string, private _type: GrapholTypesEnum) { }
 
   get id() { return this._id }
   set id(value: string) {
@@ -25,12 +23,12 @@ export default class GrapholElement {
   }
 
   get displayedName() { return this._displayedName }
-  set displayedName(displayedName: string) {
+  set displayedName(displayedName: string | undefined) {
     this._displayedName = displayedName
   }
 
   get originalId() { return this._originalId }
-  set originalId(id: string) { this._originalId = id }
+  set originalId(id: string | undefined) { this._originalId = id }
 
   get iri() { return this._iri }
   set iri(iri: string | undefined) { this._iri = iri }
@@ -53,6 +51,7 @@ export default class GrapholElement {
       case GrapholTypesEnum.DATA_PROPERTY:
       case GrapholTypesEnum.OBJECT_PROPERTY:
       case GrapholTypesEnum.INDIVIDUAL:
+      case GrapholTypesEnum.CLASS_INSTANCE:
         return true
     }
 
@@ -80,7 +79,7 @@ export default class GrapholElement {
   }
 
   clone() {
-    const cloneObj = new GrapholElement(this.id)
+    const cloneObj = new GrapholElement(this.id, this.type)
     Object.assign(cloneObj, this)
 
     return cloneObj

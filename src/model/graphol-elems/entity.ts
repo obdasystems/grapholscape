@@ -1,7 +1,8 @@
 import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
-import { GrapholTypesEnum } from "./node-enums"
+import { GrapholTypesEnum } from "./enums"
+import { EntityNameType } from "../../config"
 
 export enum FunctionalityEnum {
   functional = 'functional',
@@ -38,11 +39,20 @@ export default class GrapholEntity extends AnnotatedElement {
 
     const occurrences = this.occurrences.get(representationKind)
     if (!occurrences?.find(r => r.elementId === occurenceId && r.diagramId === diagramId)) {
-      occurrences.push({
+      occurrences?.push({
         elementId: occurenceId,
         diagramId: diagramId,
       })
-    }    
+    }
+  }
+
+  public removeOccurrence(occurrenceId: string, diagramId: number, representationKind: RendererStatesEnum) {
+    const occurrences = this.occurrences.get(representationKind)
+
+    const occurrenceToRemoveIndex = occurrences?.indexOf({ elementId: occurrenceId, diagramId: diagramId })
+    if (occurrenceToRemoveIndex !== undefined) {
+      occurrences?.splice(occurrenceToRemoveIndex, 1)
+    }
   }
 
   /**
@@ -121,5 +131,39 @@ export default class GrapholEntity extends AnnotatedElement {
     }
 
     return false
+  }
+
+  public getDisplayedName(nameType: EntityNameType, actualLanguage?: string, defaultLanguage?: string) {
+    let newDisplayedName: string
+
+    switch (nameType) {
+      case EntityNameType.LABEL:
+        newDisplayedName =
+          this.getLabels(actualLanguage)[0]?.lexicalForm ||
+          this.getLabels(defaultLanguage)[0]?.lexicalForm ||
+          this.getLabels()[0]?.lexicalForm ||
+          this.iri.remainder
+        break
+
+      case EntityNameType.PREFIXED_IRI:
+        newDisplayedName = this.iri.prefixed
+        break
+
+      case EntityNameType.FULL_IRI:
+        newDisplayedName = this.iri.fullIri
+        break
+    }
+
+    if (this.is(GrapholTypesEnum.CLASS) || this.is(GrapholTypesEnum.INDIVIDUAL))
+      return newDisplayedName.replace(/\r?\n|\r/g, '')
+    else
+      return newDisplayedName
+  }
+
+  public getEntityOriginalNodeId() {
+    const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL)
+    if (grapholRepresentationOccurrences) {
+      return grapholRepresentationOccurrences[0].elementId // used in UI to show the original nodeID in graphol
+    }
   }
 }

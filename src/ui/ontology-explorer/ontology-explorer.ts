@@ -1,26 +1,28 @@
 import { css, html, LitElement } from 'lit'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
-import { EntityViewData } from '../util/search-entities'
-import { entityIcons, explore, searchOff } from '../assets/icons'
-import { BaseMixin } from '../common/base-widget-mixin'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { EntityViewData, search } from '../util/search-entities'
+import { entityIcons, explore } from '../assets/icons'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
 import entityListItemStyle from './entity-list-item-style'
-import GscapeEntitySearch from './entity-search-component'
+import { GscapeEntitySearch } from '../common/text-search'
 import emptySearchBlankState from '../util/empty-search-blank-state'
+import { SearchEvent } from '../common/text-search/entity-text-search'
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
-  entities: EntityViewData[]
-  searchEntityComponent = new GscapeEntitySearch()
-
+  private _entities: EntityViewData[]
+  private shownEntities: EntityViewData[]
   // search: (e:any) => void = () => { }
   // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
+  // onSearch: (e: KeyboardEvent) => void
+  // onEntityFilterToggle: () => void
 
   static properties = {
-    entities: { type: Object, attribute: false }
+    entities: { type: Object, attribute: false },
+    shownEntities: { type: Object, attribute: false }
   }
 
   static styles = [
@@ -74,6 +76,14 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
   constructor() {
     super()
     this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
+
+    this.addEventListener('onsearch', (e: SearchEvent) => {
+      if (e.detail.searchText.length > 2) {
+        this.shownEntities = search(e.detail.searchText, this.shownEntities)
+      } else {
+        this.shownEntities = this.entities
+      }
+    })
   }
 
   render() {
@@ -85,26 +95,30 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
     <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
       <div class="header">${this.title}</div>
       <div class="content-wrapper">
-        ${this.searchEntityComponent}
+        <gscape-entity-search></gscape-entity-search>
+        <!-- <gscape-entity-type-filter></gscape-entity-type-filter> -->
 
         <div class="list-wrapper">
 
-          ${this.entities.length === 0
+          ${this.shownEntities.length === 0
             ? emptySearchBlankState
             : null
           }
 
-          ${this.entities.map(entity => {
+          ${this.shownEntities.map(entity => {
             return html`
-            <details class="ellipsed entity-list-item" title="${entity.value.iri.remainder}">
-              <summary class="actionable">
-                <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-                <span class="entity-name">${entity.value.iri.remainder}</span>
-              </summary>
-              <div class="summary-body">
-                ${getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)}
-              </div>
-            </details>
+              <details class="ellipsed entity-list-item" title="${entity.displayedName}">
+                <summary class="actionable">
+                  <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
+                  <span class="entity-name">${entity.displayedName}</span>
+                </summary>
+                <div class="summary-body">
+                  ${entity.viewOccurrences && entity.viewOccurrences.size > 0
+                    ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
+                    : null
+                  }
+                </div>
+              </details>
             `
           })}
         </div>
@@ -119,6 +133,13 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
     this.shadowRoot?.querySelectorAll('.entity-list-item[open]')
       .forEach(item => (item as any).open = false)
   }
+
+  get entities() { return this._entities }
+  set entities(newEntities: EntityViewData[]) {
+    this._entities = this.shownEntities = newEntities
+  }
+
+  get searchEntityComponent() { return this.shadowRoot?.querySelector('gscape-entity-search') as GscapeEntitySearch | undefined }
 }
 
 customElements.define('gscape-explorer', GscapeExplorer)

@@ -1,7 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { minus, owl_icon, plus } from '../assets/icons'
-import { BaseMixin } from '../common/base-widget-mixin'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle from '../style'
 
 export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitElement)) {
@@ -116,11 +115,6 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
 
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
-
-  togglePanel = () => {
-    super.togglePanel()
-    this.requestUpdate()
-  }
 
   updated() {
     const owlTextDiv = this.shadowRoot?.querySelector('.owl-text')

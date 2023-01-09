@@ -1,5 +1,5 @@
 import GrapholElement from "../graphol-elems/graphol-element"
-import { GrapholTypesEnum } from "../graphol-elems/node-enums"
+import { GrapholTypesEnum } from "../graphol-elems/enums"
 
 /** 
  * @typedef {object} Filter

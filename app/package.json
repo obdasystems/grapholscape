@@ -1,9 +1,0 @@
-{
-  "name": "grapholscape-desktop",
-  "productName": "Grapholscape Desktop",
-  "version": "1.0.1",
-  "description": "ontology visualization",
-  "main": "main.js",
-  "author": "OBDA Systems",
-  "license": "MIT"
-}

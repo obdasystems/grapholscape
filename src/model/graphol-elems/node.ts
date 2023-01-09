@@ -1,5 +1,5 @@
 import { ElementDefinition, Position } from "cytoscape"
-import { Shape, GrapholTypesEnum } from "./node-enums"
+import { Shape, GrapholTypesEnum } from "./enums"
 import GrapholEntity from "./entity"
 import GrapholElement from "./graphol-element"
 
@@ -147,6 +147,8 @@ export default class GrapholNode extends GrapholElement {
       identity: this.identity,
     })
 
+    if (!this.type)
+      console.log(this)
     thisCytoscapeRepr[0].classes = this.type.toString()
 
     if (this.fakeNodes) {
@@ -160,7 +162,7 @@ export default class GrapholNode extends GrapholElement {
   }
 
   clone() {
-    const cloneObj = new GrapholNode(this.id)
+    const cloneObj = new GrapholNode(this.id, this.type)
     Object.assign(cloneObj, this)
 
     return cloneObj

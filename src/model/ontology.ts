@@ -1,12 +1,11 @@
 import { CollectionReturnValue } from 'cytoscape'
-import { GrapholElement } from '../../dist'
 import AnnotatedElement from './annotated-element'
 import Diagram from './diagrams/diagram'
 import DiagramRepresentation from './diagrams/diagram-representation'
+import { Hierarchy } from './graph-structures'
 import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
 import GrapholNode from './graphol-elems/node'
-import { GrapholTypesEnum } from './graphol-elems/node-enums'
-import Iri from './iri'
+import { GrapholTypesEnum } from './graphol-elems/enums'
 import Namespace from './namespace'
 import { RendererStatesEnum } from './renderers/i-render-state'
 /**
@@ -24,6 +23,10 @@ class Ontology extends AnnotatedElement {
   iri?: string
 
   private _entities: Map<string, GrapholEntity> = new Map()
+
+  // computed only in floaty
+  hierarchiesBySubclassMap: Map<string, Hierarchy[]> = new Map()
+  hierarchiesBySuperclassMap: Map<string, Hierarchy[]> = new Map()
 
   /**
    * @param {string} name
@@ -109,13 +112,15 @@ class Ontology extends AnnotatedElement {
 
   getEntityFromOccurrence(entityOccurrence: EntityOccurrence) {
     const diagram = this.getDiagram(entityOccurrence.diagramId)
+    if (!diagram) return
+
     for (let [_, representation] of diagram.representations) {
       const cyElement = representation.cy.$id(entityOccurrence.elementId)
       try {
         if (cyElement?.data().iri) {
           return this.getEntity(cyElement.data().iri)
         }
-      } catch (e) { console.log(entityOccurrence)}
+      } catch (e) { console.log(entityOccurrence) }
     }
 
     console.warn(`Can't find occurrence ${entityOccurrence.toString()} in any diagram's representation`)
@@ -253,7 +258,7 @@ class Ontology extends AnnotatedElement {
   }
 
   computeDatatypesOnDataProperties(): void {
-    let cyElement: CollectionReturnValue | undefined, 
+    let cyElement: CollectionReturnValue | undefined,
       representation: DiagramRepresentation | undefined,
       datatypeNode: CollectionReturnValue,
       datatype: string,
@@ -269,7 +274,7 @@ class Ontology extends AnnotatedElement {
         occurrences.forEach(occurrence => {
           representation = this.getDiagram(occurrence.diagramId)
             ?.representations.get(RendererStatesEnum.GRAPHOL)
-            
+
           cyElement = representation?.cy.$id(occurrence.elementId)
 
           if (cyElement && cyElement.nonempty()) {

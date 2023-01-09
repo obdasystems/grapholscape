@@ -1,6 +1,6 @@
 {
   "name": "grapholscape",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "ontology visualization",
   "module": "dist/grapholscape.esm.js",
   "main": "dist/grapholscape.esm.js",
@@ -15,17 +15,28 @@
     "not op_mini all"
   ],
   "scripts": {
-    "start": "ws -o -d docs/static/demo & rollup -c -w",
-    "build": "npm run gen-types & cross-env NODE_ENV=production VERSION=$npm_package_version rollup -c",
-    "clean": "rimraf ./dist",
-    "app": "rollup -c && electron ./app",
-    "app:dist": "electron-packager ./app $npm_package_name --out=./dists --icon=./app/assets/icon --overwrite",
+    "start": "run-p serve watch",
+    "serve": "ws -o -d docs/static/demo",
+    "watch": "rollup -c -w",
+    "build": "run-p gen-types build:*",
+    "build:rollup": "cross-env NODE_ENV=production VERSION=$npm_package_version rollup -c",
+    "rollup": "rollup -c",
+    "clean": "run-s clean:*",
+    "clean:dist": "rimraf ./dist",
+    "clean:types": "rimraf ./temp/types",
     "deploy": "cross-env-shell gh-pages -d docs/generated -m \"$npm_package_version\"",
-    "doc": "npx typedoc && cpy . ../../generated/demo --cwd=docs/static/demo",
+    "doc": "run-s doc:*",
+    "doc:typedoc": "typedoc",
+    "doc:copy-demo-in-doc": "cpy . ../../generated/demo --cwd=docs/static/demo",
     "test": "jest",
-    "gen-types": "rimraf ./temp/types && npx tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
+    "gen-types": "run-s clean:types gen-types:tsc",
+    "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
     "preversion": "run-s test",
-    "version": "run-s build doc app:dist && git add -A"
+    "version": "run-s build doc git-add-all",
+    "git-add-all": "git add -A",
+    "apigen": "run-s apigen:*",
+    "apigen:clean": "rimraf ./src/incremental/api/swagger",
+    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json"
   },
   "repository": {
     "type": "git",
@@ -42,6 +53,7 @@
     "@babel/core": "^7.18.13",
     "@babel/preset-env": "^7.18.10",
     "@knodes/typedoc-plugin-pages": "^0.23.1",
+    "@openapitools/openapi-generator-cli": "^2.5.2",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^4.1.0",
@@ -52,8 +64,6 @@
     "@types/jest": "^28.0.8",
     "cpy-cli": "^4.2.0",
     "cross-env": "^7.0.3",
-    "electron": "^15.2.0",
-    "electron-packager": "^16.0.0",
     "gh-pages": "^4.0.0",
     "jest": "^28.0.8",
     "jest-environment-jsdom": "^29.0.1",
@@ -65,15 +75,18 @@
     "rollup-plugin-license": "^2.8.1",
     "rollup-plugin-terser": "^7.0.2",
     "ts-jest": "^28.0.8",
+    "tslib": "^2.4.1",
     "typedoc": "^0.23.14",
     "typedoc-plugin-extras": "^2.3.0",
     "typescript": "^4.8.2"
   },
   "dependencies": {
     "cytoscape": "^3.22.1",
+    "cytoscape-automove": "^1.10.3",
     "cytoscape-cola": "^2.5.1",
     "cytoscape-popper": "^2.0.0",
     "cytoscape-svg": "^0.4.0",
-    "lit": "^2.3.1"
+    "lit": "^2.3.1",
+    "tippy.js": "^6.3.7"
   }
 }

@@ -4,9 +4,8 @@ import { GrapholscapeTheme } from '../../model'
 import capitalizeFirstChar from '../../util/capitalize-first-char'
 import { grapholscapeLogo } from '../assets'
 import { save, settings_icon } from '../assets/icons'
-import { BaseMixin } from '../common/base-widget-mixin'
 import { GscapeButtonStyle } from '../common/button'
-import { DropPanelMixin } from '../common/drop-panel-mixin'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { WidgetEnum } from '../util/widget-enum'
 
@@ -69,20 +68,12 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
         padding: 0 8px;
       }
 
-      .area {
-        margin-bottom: 18px;
-        background: var(--gscape-color-bg-inset);
-        border-radius: calc(var(--gscape-border-radius) - 2px);
-        padding: 4px 4px 4px 6px;
-        border: solid 1px var(--gscape-color-border-subtle);
-      }
-
       .area:last-of-type {
         margin-bottom: 0;
       }
 
       .setting {
-        padding: 10px;
+        padding: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
