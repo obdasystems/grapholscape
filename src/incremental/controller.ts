@@ -406,7 +406,7 @@ export default class IncrementalController {
       const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
       if (addedInstance) {
         addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-        this.diagram.representation?.updateElement(addedInstance)
+        this.diagram.representation?.updateElement(addedInstance, false)
       }
 
       this.postDiagramEdit()
@@ -445,7 +445,7 @@ export default class IncrementalController {
       const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
       if (addedInstance) {
         addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-        this.diagram.representation?.updateElement(addedInstance)
+        this.diagram.representation?.updateElement(addedInstance, false)
         this.connectInstanceToParentClasses(instanceEntity)
       }
 

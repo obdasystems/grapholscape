@@ -48,9 +48,9 @@ export default class DiagramRepresentation {
     this.cy.$id(elementId).remove()
   }
 
-  updateElement(element: GrapholElement): void
-  updateElement(elementId: string): void
-  updateElement(elementIdOrObj: string | GrapholElement) {
+  updateElement(element: GrapholElement, updatePosition?: boolean): void
+  updateElement(elementId: string, updatePosition?: boolean): void
+  updateElement(elementIdOrObj: string | GrapholElement, updatePosition: boolean = true) {
     let grapholElement: GrapholElement | undefined
     if (typeof elementIdOrObj === 'string') {
       grapholElement = this.grapholElements.get(elementIdOrObj)
@@ -62,9 +62,9 @@ export default class DiagramRepresentation {
 
     const cyElement = this.cy.$id(grapholElement.id)
 
-    // if (isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
-    //   // cyElement.position(grapholElement.position)
-    // }
+    if (updatePosition && isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
+      cyElement.position(grapholElement.position)
+    }
 
     if (isGrapholEdge(grapholElement)) {
       cyElement.move({
