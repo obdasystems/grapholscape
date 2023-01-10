@@ -704,8 +704,8 @@ declare class DiagramRepresentation {
      */
     addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
     removeElement(elementId: string): void;
-    updateElement(element: GrapholElement): void;
-    updateElement(elementId: string): void;
+    updateElement(element: GrapholElement, updatePosition?: boolean): void;
+    updateElement(elementId: string, updatePosition?: boolean): void;
     containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean;
     get grapholElements(): Map<string, GrapholElement>;
     set grapholElements(newElementMap: Map<string, GrapholElement>);
