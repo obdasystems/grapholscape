@@ -33,6 +33,13 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
+      selector: `[displayedName][type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
+      style: {
+        'label': (elem) => elem.data().displayedName.replace(/\r?\n|\r/g, '')
+      }
+    },
+
+    {
       selector: `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
       style: {
         'line-color': theme.getColour(ColoursNames.object_property_contrast),
