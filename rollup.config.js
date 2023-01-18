@@ -5,7 +5,6 @@ import replace from '@rollup/plugin-replace'
 import terser from '@rollup/plugin-terser'
 import license from 'rollup-plugin-license'
 import path from 'path'
-import json from '@rollup/plugin-json'
 import typescript from '@rollup/plugin-typescript'
 import dts from 'rollup-plugin-dts'
 
@@ -22,22 +21,6 @@ const envVariables = {
   'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
   'preventAssignment': true,
 }
-
-const getJsonOptions = () => ({
-  // include: 'src/**',
-  // exclude: [ '**./**' ],
-
-  // for tree-shaking, properties will be declared as
-  // variables, using either `var` or `const`
-  preferConst: true, // Default: false
-
-  // specify indentation for the generated default export —
-  // defaults to '\t'
-  indent: '  ',
-
-  // ignores indent and generates the smallest code
-  compact: true, // Default: false
-})
 
 const getBabelOptions = () => ({
   include: [
@@ -90,7 +73,6 @@ const configs = [
       }
     ],
     plugins: [
-      json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
@@ -125,7 +107,6 @@ const configs = [
       },
     ],
     plugins: [
-      json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
@@ -142,7 +123,6 @@ const configs = [
       format: 'es',
     },
     plugins: [
-      json(getJsonOptions()),
       nodeResolve(),
       replace(envVariables),
       commonjs({ include: '**/node_modules/**' }),
