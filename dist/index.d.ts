@@ -1247,18 +1247,18 @@ declare class Grapholscape {
     /** An array of available renderer's state for this Grapholscape instance */
     get renderers(): RendererStatesEnum[];
     /**
-     * Center viewport on a single entity given its IRI
+     * Center viewport on a single entity occurrence given its IRI
      * @param iri the iri of the entity to find and center on
-     * @param diagramId the diagram containing.
+     * @param diagramId the diagram containing the entity.
      * If not specified, the first entity occurrence in any diagram will be used.
      * @param zoom the level of zoom to apply.
      * If not specified, zoom level won't be changed.
      */
     centerOnEntity(iri: string, diagramId?: number, zoom?: number): void;
     /**
-     * Center viewport on a single entity and selects it given its IRI
+     * Center viewport on a single entity occurrence and selects it given its IRI
      * @param iri the iri of the entity to find and center on
-     * @param diagramId the diagram containing.
+     * @param diagramId the diagram containing the entity.
      * If not specified, the first entity occurrence in any diagram will be used.
      * @param zoom the level of zoom to apply.
      * If not specified, zoom level won't be changed.
@@ -1290,6 +1290,7 @@ declare class Grapholscape {
      * // TODO: make this method update settings widget before publishing in docs
      * Add a new theme in the list of available themes
      * @param newTheme the new theme
+     * @experimental
      */
     addTheme(newTheme: GrapholscapeTheme): void;
     /** The actual theme used by Grapholscape */
@@ -1329,9 +1330,10 @@ declare class Grapholscape {
     get buttonsTray(): Element | null | undefined;
     /**
      * @ignore
-     * // TODO: Be sure this method reflects on UI before publishing it in to the docs
+     * @privateRemarks // TODO: Be sure this method reflects on UI before publishing it in to the docs
      * Apply a new custom configuration
      * @param newConfig the config object to apply
+     * @experimental
      */
     setConfig(newConfig: GrapholscapeConfig): void;
     /**
