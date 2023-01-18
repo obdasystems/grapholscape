@@ -90,11 +90,10 @@ Run `npm run <target>` in the console. The main targets are:
 
 - `start` : builds for development (no transpiled), watch for changes and serve demo on `http://localhost:8000`
 - `build` : builds for production (minified and transpiled with babel)
-- `app` : builds for development and run electron app
-- `app:dist` : create electron app packages for all platforms (win32, darwin, linux)
 - `doc`: generate documentation at `docs/generated` and copy static demo inside it
-- `deploy` : publish whole generated documentation in `docs/generated` folder to `gh-pages` branch from which github page of the project is served
+- `deploy` : publish whole generated documentation in `docs/generated` folder to `gh-pages` branch from which the github page of the project is served
 - `test`: run all test suites
+- `clean`: clean `dist` and `temp` folder
 
 ## Release Instructions
 1. Use `npm version [ver]`
