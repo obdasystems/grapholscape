@@ -1,4 +1,6 @@
-export type QueryResult = QueryRecords | number
+import { QueryStatusEnum } from "../api/model"
+
+export type APICallResult = QueryRecords | number | QueryStatus
 
 export type QueryRecords = {
   headTerms: string[],
@@ -9,24 +11,27 @@ export type QueryRecords = {
   }[][]
 }
 
+export type QueryStatus = {
+  status: QueryStatusEnum,
+  errorMessages: string[],
+  hasError: boolean,
+}
+
 export enum QueryPollerStatus {
-  TIMEOUT_EXPIRED = 0,
-  DONE = 1,
+  STOPPED = 1,
   RUNNING = 2,
   IDLE = 3,
 }
 
 export abstract class QueryPoller {
   protected interval: NodeJS.Timer
-  protected timeout: NodeJS.Timeout
   protected lastRequestFulfilled: boolean = true
-  protected abstract _result: QueryResult
+  protected abstract _result: APICallResult
   protected request: Request
 
   // Callbacks
   public onStop: () => void = () => { }
-  public onTimeoutExpiration: () => void = () => { }
-  public abstract onNewResults: (result: QueryResult) => void
+  public abstract onNewResults: (result: APICallResult) => void
   public onError: (error: any) => void = () => { }
 
   public status: QueryPollerStatus = QueryPollerStatus.IDLE
@@ -35,13 +40,12 @@ export abstract class QueryPoller {
   protected static readonly INTERVAL_LENGTH = 1000
 
   protected abstract stopCondition(): boolean
-  protected abstract hasAnyResult(): boolean
 
   private poll() {
     this.status = QueryPollerStatus.RUNNING
     fetch(this.request)
       .then((response: Response) => {
-        response.json().then((result: QueryResult) => {
+        response.json().then((result: APICallResult) => {
           if (this.isResultError(result)) {
             this.triggerError(result)
           } else {
@@ -67,26 +71,11 @@ export abstract class QueryPoller {
         this.poll()
       }
     }, QueryPoller.INTERVAL_LENGTH)
-
-    this.timeout = setTimeout(() => {
-      if (!this.hasAnyResult()) {
-        this.stop(true)
-      } else {
-        this.stop()
-      }
-    }, QueryPoller.TIMEOUT_LENGTH)
   }
 
-  stop(timeoutExpired = false) {
-    if (timeoutExpired) {
-      this.status = QueryPollerStatus.TIMEOUT_EXPIRED
-      // console.warn(`Qyery timeout expired for query with id = [${this.executionID}]`)
-      this.onTimeoutExpiration()
-    } else {
-      this.status = QueryPollerStatus.DONE
-    }
+  stop() {
+    this.status = QueryPollerStatus.STOPPED
     clearInterval(this.interval)
-    clearTimeout(this.timeout)
     this.onStop()
   }
 
@@ -95,7 +84,7 @@ export abstract class QueryPoller {
     this.stop()
   }
 
-  abstract get result(): QueryResult
+  abstract get result(): APICallResult
 }
 
 export class QueryResultsPoller extends QueryPoller {
@@ -115,13 +104,32 @@ export class QueryResultsPoller extends QueryPoller {
     return this._result.results.length >= this.limit
   }
 
-  protected hasAnyResult(): boolean {
-    return this.result.results.length > 0
-  }
-
   get result(): QueryRecords {
     return this._result
   }
+}
+
+export class QueryStatusPoller extends QueryPoller {
+  protected _result: QueryStatus
+
+  constructor(protected request: Request) {
+    super()
+  }
+
+  public onNewResults: (result: QueryStatus) => void
+
+  protected stopCondition(): boolean {
+    return this.result.status !== QueryStatusEnum.RUNNING
+  }
+
+  protected isResultError(result: QueryStatus): boolean {
+    return !result || result.hasError === true || result.status === QueryStatusEnum.UNAVAILABLE || result.status === QueryStatusEnum.ERROR
+  }
+
+  get result(): QueryStatus {
+    return this._result
+  }
+
 }
 
 /**
@@ -152,10 +160,7 @@ export class QueryCountStatePoller extends QueryPoller {
     return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED
   }
 
-  protected hasAnyResult(): boolean {
-    return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED
-  }
-  get result(): QueryResult {
+  get result(): APICallResult {
     return this._result
   }
 

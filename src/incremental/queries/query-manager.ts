@@ -4,6 +4,7 @@ import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
   private _runningQueryPollerByExecutionId: Map<string, QueryResultsPoller> = new Map()
+  private _runningQueryStatePollerByExecutionId: Map<string, QueryStatusPoller> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
@@ -36,11 +37,28 @@ export default class QueryManager {
    * are obtained.
    */
   async performQuery(queryCode: string, pageSize: number, pageNumber = 1): Promise<QueryResultsPoller> {
-    const executionID = await this.startQuery(queryCode)
-    const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID)
-    this._runningQueryPollerByExecutionId.set(executionID, queryResultsPoller)
+    const executionId = await this.startQuery(queryCode)
+    const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId)
+    this._runningQueryPollerByExecutionId.set(executionId, queryResultsPoller)
 
     queryResultsPoller.onError = this.requestOptions.onError
+
+    const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
+    this._runningQueryStatePollerByExecutionId.set(executionId, queryStatusPoller)
+
+    queryStatusPoller.start()
+    queryStatusPoller.onNewResults = (result) => {
+      if (result.status !== QueryStatusEnum.RUNNING) {
+        queryResultsPoller.stop()
+        queryStatusPoller.stop()
+      }
+    }
+
+    queryStatusPoller.onError = () => {
+      this.requestOptions.onError
+
+      queryResultsPoller.stop()
+    }
 
     return queryResultsPoller
   }
@@ -95,13 +113,8 @@ export default class QueryManager {
   }
 
   async getQueryStatus(executionID: string): Promise<{ status: QueryStatusEnum, hasError: boolean }> {
-    const request = new Request(new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionID}/status`), {
-      method: 'get',
-      headers: this.requestOptions.headers,
-    })
-
     return new Promise((resolve, reject) => {
-      this.handleCall(fetch(request))
+      this.handleCall(fetch(this.getQueryStatusRequest(executionID)))
         .then(response => resolve(response.json()))
         .catch(error => {
           this.requestOptions.onError(error)
@@ -179,6 +192,13 @@ export default class QueryManager {
     })
   }
 
+  private getQueryStatusRequest(queryExecutionId: string) {
+    return new Request(`${this.getQueryStatePath(queryExecutionId)}`, {
+      method: 'get',
+      headers: this.requestOptions.headers
+    })
+  }
+
   private getQueryCountStatusRequest(queryExecutionId: string) {
     return new Request(`${this.queryCountPath}/${queryExecutionId}/state`, {
       method: `get`,
@@ -196,6 +216,10 @@ export default class QueryManager {
 
   private getQueryResultPath(executionId: string) {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/results`)
+  }
+
+  private getQueryStatePath(executionId: string) {
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/status`)
   }
 
   private get prefixesPath() {
