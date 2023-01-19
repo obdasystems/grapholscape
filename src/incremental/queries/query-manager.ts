@@ -1,9 +1,10 @@
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "../api/model"
-import { QueryCountStatePoller, QueryPoller, QueryResultsPoller } from "./query-poller"
+import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
-  private _runningQueryPollerByExecutionId: Map<string, QueryPoller> = new Map()
+  private _runningQueryPollerByExecutionId: Map<string, QueryResultsPoller> = new Map()
+  private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
     this.requestOptions.headers['content-type'] = 'application/json'
@@ -54,13 +55,15 @@ export default class QueryManager {
    * @returns a promise which will be resolved with the result
    */
   async performQueryCount(queryCode: string): Promise<number> {
-    const executionID = await this.startQuery(queryCode, true)
-    const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionID))
+    const executionId = await this.startQuery(queryCode, true)
+    const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId))
+
+    this._runningCountQueryPollerByExecutionId.set(executionId, countStatePoller)
 
     return new Promise((resolve, reject) => {
       countStatePoller.onNewResults = (state) => {
-        if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED) {
-          this.handleCall(fetch(`${this.queryCountPath}/${executionID}/result`, {
+        if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED && this._runningCountQueryPollerByExecutionId.get(executionId)) {
+          this.handleCall(fetch(`${this.queryCountPath}/${executionId}/result`, {
             method: 'get',
             headers: this.requestOptions.headers,
           })).then(async response => {
@@ -68,10 +71,7 @@ export default class QueryManager {
 
             // The count query has finished and result has been processed
             // Now we need to delete the query execution from mastro.
-            this.handleCall(fetch(`${this.queryCountPath}/${executionID}`, {
-              method: 'delete',
-              headers: this.requestOptions.headers,
-            }))
+            this.stopCountQuery(executionId)
           }).catch(reason => reject(reason))
         }
       }
@@ -79,7 +79,9 @@ export default class QueryManager {
       countStatePoller.onError = (error) => {
         reject(error)
 
-        this.handleCall(fetch(`${this.queryCountPath}/${executionID}/error`, {
+        this.stopCountQuery(executionId)
+
+        this.handleCall(fetch(`${this.queryCountPath}/${executionId}/error`, {
           method: 'get',
           headers: this.requestOptions.headers,
         })).then(async errorResponse => {
@@ -110,12 +112,23 @@ export default class QueryManager {
 
   stopRunningQueries() {
     this._runningQueryPollerByExecutionId.forEach((_ ,executionId) => this.stopQuery(executionId))
+    this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId))
   }
 
   stopQuery(executionId: string) {
     this._runningQueryPollerByExecutionId.get(executionId)?.stop() // stop polling
     this._runningQueryPollerByExecutionId.delete(executionId)
     this.handleCall(fetch(this.getQueryStopPath(executionId), {
+      method: 'put',
+      headers: this.requestOptions.headers,
+    }))
+  }
+
+  stopCountQuery(executionId: string) {
+    this._runningCountQueryPollerByExecutionId.get(executionId)?.stop()
+    this._runningCountQueryPollerByExecutionId.delete(executionId)
+
+    this.handleCall(fetch(`${this.queryCountPath}/${executionId}/stop`, {
       method: 'put',
       headers: this.requestOptions.headers,
     }))
