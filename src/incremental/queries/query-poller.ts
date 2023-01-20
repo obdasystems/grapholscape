@@ -18,9 +18,16 @@ export type QueryStatus = {
 }
 
 export enum QueryPollerStatus {
+  /** Stopped manually */
   STOPPED = 1,
+  /** Polling ongoing and waiting for responses */
   RUNNING = 2,
+  /** QueryPoller not started yet */
   IDLE = 3,
+  /** Stopped automatically because stopCondition() === true */
+  FINISHED = 4,
+  /** Error occurred */
+  ERROR = 5,
 }
 
 export abstract class QueryPoller {
@@ -46,8 +53,10 @@ export abstract class QueryPoller {
     fetch(this.request)
       .then((response: Response) => {
         response.json().then((result: APICallResult) => {
-          if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED)
+          if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
+            console.log(this.result)
             return
+          }
 
           if (this.isResultError(result)) {
             this.triggerError(result)
@@ -57,12 +66,18 @@ export abstract class QueryPoller {
             this.onNewResults(result)
 
             if (this.stopCondition()) {
-              this.stop()
+              this.status = QueryPollerStatus.FINISHED
+              this.stopPolling()
             }
           }
         })
       })
       .catch(error => this.triggerError(error))
+  }
+
+  private stopPolling() {
+    clearInterval(this.interval)
+    this.onStop()
   }
 
   protected abstract isResultError(result: any): boolean
@@ -80,13 +95,13 @@ export abstract class QueryPoller {
 
   stop() {
     this.status = QueryPollerStatus.STOPPED
-    clearInterval(this.interval)
-    this.onStop()
+    this.stopPolling()
   }
 
   private triggerError(result: APICallResult) {
+    this.status = QueryPollerStatus.ERROR
+    this.stopPolling()
     this.onError(this.getErrrorMessage(result))
-    this.stop()
   }
 
   protected getErrrorMessage(result: APICallResult): string | string[] {

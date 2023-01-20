@@ -1,4 +1,5 @@
 import QueryManager from '../queries/query-manager'
+import { QueryPollerStatus } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
@@ -102,18 +103,24 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     const pollPage = async (pageNumber: number) => {
       const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
+
+      if (queryPoller.status === QueryPollerStatus.STOPPED) {
+        if (onStop)
+          onStop()
+        return
+      }
       queryPoller.start()
       queryPoller.onNewResults = (results) => {
         onNewResults(results.results.map(res => res[0].value))
       }
 
-      // If stopped then we received all results for this page
-      // if query has not finished, continue polling for next page
-      // if has finished then return and call onStop
+      // If stopped then we need to decide wether to poll next page or not.
+      // if query has not finished and queryPoller has not been stopped, continue polling for next page
+      // if has finished or queryPoller has been stopped, then return and call onStop
       queryPoller.onStop = async () => {
         const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
 
-        if (queryStatus.status === QueryStatusEnum.FINISHED) {
+        if (queryStatus.status === QueryStatusEnum.FINISHED || queryPoller.status === QueryPollerStatus.STOPPED) {
           if (onStop)
             onStop()
 
