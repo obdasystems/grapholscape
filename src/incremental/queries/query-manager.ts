@@ -9,7 +9,7 @@ export default class QueryManager {
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
     this.requestOptions.headers['content-type'] = 'application/json'
-    
+
     this._prefixes = new Promise((resolve) => {
       this.handleCall(
         fetch(this.prefixesPath, {
@@ -48,14 +48,19 @@ export default class QueryManager {
 
     queryStatusPoller.start()
     queryStatusPoller.onNewResults = (result) => {
-      if (result.status !== QueryStatusEnum.RUNNING) {
+      if (result.status === QueryStatusEnum.FINISHED || 
+        result.status === QueryStatusEnum.ERROR ||
+        result.status === QueryStatusEnum.UNAVAILABLE ||
+        result.hasError
+      ) {
         queryResultsPoller.stop()
         queryStatusPoller.stop()
       }
     }
 
-    queryStatusPoller.onError = () => {
-      this.requestOptions.onError
+    queryStatusPoller.onError = (errors) => {
+      for (let error of errors)
+        this.requestOptions.onError(error)
 
       queryResultsPoller.stop()
     }
@@ -72,7 +77,7 @@ export default class QueryManager {
    * @param queryCode 
    * @returns a promise which will be resolved with the result
    */
-  async performQueryCount(queryCode: string): Promise<number> {
+  async performQueryCount(queryCode: string, onStopCallback?: () => void): Promise<number> {
     const executionId = await this.startQuery(queryCode, true)
     const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId))
 
@@ -96,17 +101,19 @@ export default class QueryManager {
 
       countStatePoller.onError = (error) => {
         reject(error)
-
-        this.stopCountQuery(executionId)
-
         this.handleCall(fetch(`${this.queryCountPath}/${executionId}/error`, {
           method: 'get',
           headers: this.requestOptions.headers,
-        })).then(async errorResponse => {
-          this.requestOptions.onError(await errorResponse.text())
-        })
+        }))
+          .then(async errorResponse => {
+            this.requestOptions.onError(await errorResponse.text())
+          })
+          .finally(() => this.stopCountQuery(executionId))
 
       }
+
+      if (onStopCallback)
+        countStatePoller.onStop = onStopCallback
 
       countStatePoller.start()
     })
@@ -124,7 +131,8 @@ export default class QueryManager {
   }
 
   stopRunningQueries() {
-    this._runningQueryPollerByExecutionId.forEach((_ ,executionId) => this.stopQuery(executionId))
+    this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
+    // this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId))
   }
 

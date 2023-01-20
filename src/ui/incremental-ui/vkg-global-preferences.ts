@@ -1,7 +1,9 @@
 import { css, html, LitElement } from "lit";
 import baseStyle from "../style";
-import { searchOff, tune } from "../assets";
+import { searchOff, stopCircle, tune } from "../assets";
 import { BaseMixin, DropPanelMixin } from "../common/mixins";
+import getIconSlot from "../util/get-icon-slot";
+import { SizeEnum } from "../common/button";
 
 export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitElement)) {
 
@@ -31,6 +33,7 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
 
   protected _onEndpointChangeCallback: (newEndpointName: string) => void = () => { }
   protected _onLimitChangeCallback: (newLimit: number) => void = () => { }
+  protected _onStopRequestsCallback: () => void = () => { }
 
   render() {
     return html`
@@ -70,7 +73,7 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
               }
             </div>
           </div>
-          <div class="area" style="margin-bottom: 0">
+          <div class="area">
             <span class="bold-text">Limit Instances</span>
             <div class="preference">
               <div class="limit-box">
@@ -79,6 +82,16 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
               </div>
             </div>
             
+          </div>
+          <div class="area" style="margin-bottom: 0">
+            <gscape-button
+              size=${SizeEnum.S}
+              label='Stop Pending Requests'
+              type='secondary'
+              @click=${this._onStopRequestsCallback}
+            >
+              ${getIconSlot('icon', stopCircle)}
+            </gscape-button>
           </div>
         </div>
       </div>
@@ -104,5 +117,9 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
 
   onLimitChange(callback: (limit: number) => void) {
     this._onLimitChangeCallback = callback
+  }
+
+  onStopRequests(callback: () => void) {
+    this._onStopRequestsCallback = callback
   }
 }

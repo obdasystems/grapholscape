@@ -54,6 +54,10 @@ export default class EndpointController {
     this.endpointSelector.onLimitChange(callback)
   }
 
+  onStopRequests(callback: () => void) {
+    this.endpointSelector.onStopRequests(callback)
+  }
+
   hideView() {
     this.endpointSelector.hide()
   }
