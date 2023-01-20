@@ -204,17 +204,17 @@ export default class IncrementalController {
       if (classIri !== this.lastClassIri) {
         this.incrementalDetails.setInstances([])
         this.suggestedClassInstances = []
-        // this.incrementalDetails.isInstanceCounterLoading = true
+        this.incrementalDetails.isInstanceCounterLoading = true
         this.incrementalDetails.areInstancesLoading = true
         // Ask instance number
-        // this.vKGApi?.getInstancesNumber(
-        //   classIri,
-        //   (count) => { // onResult
-        //     this.incrementalDetails.isInstanceCounterLoading = false
-        //     this.incrementalDetails.instanceCount = count
-        //   },
-        //   () => this.incrementalDetails.isInstanceCounterLoading = false
-        // )
+        this.vKGApi?.getInstancesNumber(
+          classIri,
+          (count) => { // onResult
+            this.incrementalDetails.isInstanceCounterLoading = false
+            this.incrementalDetails.instanceCount = count
+          },
+          () => this.incrementalDetails.isInstanceCounterLoading = false
+        )
       }
     }
 
