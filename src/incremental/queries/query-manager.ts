@@ -48,12 +48,9 @@ export default class QueryManager {
 
     queryStatusPoller.start()
     queryStatusPoller.onNewResults = (result) => {
-      if (result.status === QueryStatusEnum.FINISHED || 
-        result.status === QueryStatusEnum.ERROR ||
-        result.status === QueryStatusEnum.UNAVAILABLE ||
-        result.hasError
-      ) {
+      if (result.status !== QueryStatusEnum.RUNNING) {
         queryResultsPoller.stop()
+        this._runningQueryPollerByExecutionId.delete(executionId)
         queryStatusPoller.stop()
       }
     }
@@ -63,6 +60,11 @@ export default class QueryManager {
         this.requestOptions.onError(error)
 
       queryResultsPoller.stop()
+      this._runningQueryPollerByExecutionId.delete(executionId)
+    }
+
+    queryStatusPoller.onStop = () => {
+      this._runningQueryStatePollerByExecutionId.delete(executionId)
     }
 
     return queryResultsPoller
@@ -132,7 +134,7 @@ export default class QueryManager {
 
   stopRunningQueries() {
     this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
-    // this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
+    this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId))
   }
 

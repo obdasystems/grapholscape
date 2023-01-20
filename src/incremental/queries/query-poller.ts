@@ -140,7 +140,6 @@ export class QueryStatusPoller extends QueryPoller {
   }
 
   protected isResultError(result: QueryStatus): boolean {
-    console.log(result)
     return !result || result.hasError === true || result.status === QueryStatusEnum.UNAVAILABLE || result.status === QueryStatusEnum.ERROR
   }
 
