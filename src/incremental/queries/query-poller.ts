@@ -48,15 +48,14 @@ export abstract class QueryPoller {
 
   protected abstract stopCondition(): boolean
 
-  private poll() {
+  protected poll() {
     this.status = QueryPollerStatus.RUNNING
     fetch(this.request)
       .then((response: Response) => {
         response.json().then((result: APICallResult) => {
-          if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
-            console.log(this.result)
-            return
-          }
+          // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
+          //   return
+          // }
 
           if (this.isResultError(result)) {
             this.triggerError(result)
@@ -118,6 +117,11 @@ export class QueryResultsPoller extends QueryPoller {
 
   constructor(protected request: Request, private limit: number, public executionId: string) {
     super()
+  }
+
+  stop() {
+    super.stop()
+    this.poll()
   }
 
   protected hasAnyResults(): boolean {
