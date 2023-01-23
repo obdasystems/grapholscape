@@ -163,12 +163,12 @@ export default class IncrementalController {
         // init ranges map with empty arrays and all loading
         objectProperties?.forEach(opBranch => {
           if (opBranch.objectPropertyIRI) {
+            rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean }>()
             opBranch.relatedClasses?.forEach(rangeClass => {
-              rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean }>()
               rangeMap.set(rangeClass, { values: [], loading: false })
-
-              objectPropertiesRanges.set(opBranch.objectPropertyIRI!, rangeMap)
             })
+
+            objectPropertiesRanges.set(opBranch.objectPropertyIRI, rangeMap)
           }
         })
 
