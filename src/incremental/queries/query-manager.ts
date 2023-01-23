@@ -4,7 +4,6 @@ import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
   private _runningQueryPollerByExecutionId: Map<string, QueryResultsPoller> = new Map()
-  private _runningQueryStatePollerByExecutionId: Map<string, QueryStatusPoller> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
@@ -44,7 +43,7 @@ export default class QueryManager {
     queryResultsPoller.onError = this.requestOptions.onError
 
     const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
-    this._runningQueryStatePollerByExecutionId.set(executionId, queryStatusPoller)
+    // this._runningQueryStatePollerByExecutionId.set(executionId, queryStatusPoller)
 
     queryStatusPoller.start()
     queryStatusPoller.onNewResults = (result) => {
@@ -63,9 +62,9 @@ export default class QueryManager {
       this._runningQueryPollerByExecutionId.delete(executionId)
     }
 
-    queryStatusPoller.onStop = () => {
-      this._runningQueryStatePollerByExecutionId.delete(executionId)
-    }
+    // queryStatusPoller.onStop = () => {
+    //   this._runningQueryStatePollerByExecutionId.delete(executionId)
+    // }
 
     return queryResultsPoller
   }
@@ -134,7 +133,7 @@ export default class QueryManager {
 
   stopRunningQueries() {
     this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
-    this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
+    // this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId))
   }
 
