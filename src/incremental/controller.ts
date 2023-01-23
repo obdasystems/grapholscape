@@ -139,7 +139,7 @@ export default class IncrementalController {
       }
 
       if (shouldUpdate || this.lastInstanceIri !== instanceIri) {
-
+        this.lastInstanceIri = instanceIri
         // init data properties values and recalculate them all
         const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
         const dataProperties = await this.highlightsManager?.dataProperties()
@@ -151,7 +151,10 @@ export default class IncrementalController {
 
         dataProperties?.forEach(dpIri => {
           this.vKGApi?.getInstanceDataPropertyValues(instanceIri, dpIri,
-            (res) => this.incrementalDetails.addDataPropertiesValues(dpIri, res), // onNewResults
+            (res) => {
+              if (instanceIri === this.lastInstanceIri)
+                this.incrementalDetails.addDataPropertiesValues(dpIri, res)
+            }, // onNewResults
             () => this.onStopDataPropertyValueQuery(instanceIri, dpIri)) // onStop
         })
 
@@ -179,8 +182,6 @@ export default class IncrementalController {
         }
 
         this.incrementalDetails.onInstanceObjectPropertySelection = this.addInstanceObjectProperty.bind(this)
-
-        this.lastInstanceIri = instanceIri
       }
     }
   }
