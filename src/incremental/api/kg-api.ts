@@ -59,18 +59,19 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void)) {
 
-      const queryCode = QueriesTemplates.getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, this.limit)
-      const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
-      queryPoller.start()
-      queryPoller.onNewResults = (result => {
-        onNewResults(result.results.map(res => {
-          return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
-        }))
-      })
+    const queryCode = QueriesTemplates.getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, this.limit)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+    queryPoller.onNewResults = (result => {
+      onNewResults(result.results.map(res => {
+        return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
+      }))
+    })
 
-      if (onStop) {
-        queryPoller.onStop = onStop
-      }
+    if (onStop) {
+      queryPoller.onStop = onStop
+    }
+
+    queryPoller.start()
   }
 
 
@@ -79,7 +80,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     this.queryManager.performQueryCount(queryCode, onStop)
       .then(result => onResult(result))
       .catch(_ => {
-        if (onStop) 
+        if (onStop)
           onStop()
       })
   }
@@ -101,42 +102,53 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     const queryCode = QueriesTemplates.getInstanceDataPropertyValue(instanceIri, dataPropertyIri)
 
-    const pollPage = async (pageNumber: number) => {
-      const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
+    // const pollPage = async (pageNumber: number) => {
+    //   const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
 
-      if (queryPoller.status === QueryPollerStatus.STOPPED) {
-        if (onStop)
-          onStop()
-        return
-      }
-      queryPoller.start()
-      queryPoller.onNewResults = (results) => {
-        onNewResults(results.results.map(res => res[0].value))
-      }
+    //   if (queryPoller.status === QueryPollerStatus.STOPPED) {
+    //     if (onStop)
+    //       onStop()
+    //     return
+    //   }
+    //   queryPoller.start()
+    //   queryPoller.onNewResults = (results) => {
+    //     onNewResults(results.results.map(res => res[0].value))
+    //   }
 
-      // If stopped then we need to decide wether to poll next page or not.
-      // if query has not finished and queryPoller has not been stopped, continue polling for next page
-      // if has finished or queryPoller has been stopped, then return and call onStop
-      queryPoller.onStop = async () => {
-        const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
+    //   // If stopped then we need to decide wether to poll next page or not.
+    //   // if query has not finished and queryPoller has not been stopped, continue polling for next page
+    //   // if has finished or queryPoller has been stopped, then return and call onStop
+    //   queryPoller.onStop = async () => {
+    //     const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
 
-        if (queryStatus.status === QueryStatusEnum.FINISHED || queryPoller.status === QueryPollerStatus.STOPPED) {
-          if (onStop)
-            onStop()
+    //     if (queryStatus.status === QueryStatusEnum.FINISHED || queryPoller.status === QueryPollerStatus.STOPPED) {
+    //       if (onStop)
+    //         onStop()
 
-          return
-        }
+    //       return
+    //     }
 
-        if (!queryStatus.hasError) {
-          pollPage(pageNumber + 1) // poll for another page
-        } else {
-          if (onError)
-            onError()
-        }
-      }
+    //     if (!queryStatus.hasError) {
+    //       pollPage(pageNumber + 1) // poll for another page
+    //     } else {
+    //       if (onError)
+    //         onError()
+    //     }
+    //   }
+    // }
+
+    // pollPage(1)
+
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+    queryPoller.onNewResults = (results) => {
+      onNewResults(results.results.map(res => res[0].value))
     }
 
-    pollPage(1)
+    if (onStop) {
+      queryPoller.onStop = onStop
+    }
+
+    queryPoller.start()
   }
 
   async getInstanceObjectPropertyRanges(instanceIri: string, objectPropertyIri: string,
