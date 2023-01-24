@@ -760,10 +760,6 @@ export default class IncrementalController {
 
       if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
 
-        if (this.isReasonerEnabled) {
-          this.vKGApi?.stopAllQueries()
-        }
-
         this.diagramBuilder.referenceNodeId = evt.target.id()
         const targetIri = evt.target.data().iri
         // set class instance entity in entity details widget
@@ -772,10 +768,18 @@ export default class IncrementalController {
           if (instanceEntity) {
             this.highlightsManager?.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
             (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
+
+            if (targetIri !== this.lastInstanceIri)
+              this.vKGApi?.stopAllQueries()
+
             this.buildDetailsForInstance(targetIri)
           }
         } else {
           this.highlightsManager?.computeHighlights(targetIri)
+
+          if (targetIri !== this.lastClassIri)
+            this.vKGApi?.stopAllQueries()
+
           this.buildDetailsForClass(targetIri)
         }
 
