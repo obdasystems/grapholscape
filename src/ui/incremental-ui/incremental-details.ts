@@ -99,6 +99,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     // objectPropertiesRanges: {type: Object, attribute: false },
   }
 
+  static notAvailableText = 'n/a'
+
   static styles = [ baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle,
     css`
       div.entity-list-item[entity-type = "data-property"] { 
@@ -118,7 +120,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
             <span class="entity-name">Instances</span>
               ${this.isInstanceCounterLoading
                 ? html`<span class="neutral-chip chip counter">${textSpinner()}</span>`
-                : html`<span class="neutral-chip chip counter">${this.instanceCount ?? '?'}</span>`
+                : html`<span class="neutral-chip chip counter">${this.instanceCount ?? GscapeIncrementalDetails.notAvailableText}</span>`
               }
             </span>
           </summary>
@@ -273,6 +275,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
         <span class="entity-name">${entity.displayedName}</span>
         ${this.canShowDataPropertiesValues && values
           ? html`
+            ${!values.loading && values.values.length === 0 ? html`<span class="chip neutral-chip">${GscapeIncrementalDetails.notAvailableText}</span>` : null}
             ${values.values.map(v => html`<span class="chip data-property-value">${v}</span>`)}
             ${values.loading
               ? html`<span class="chip neutral-chip">${textSpinner()}</span>`
