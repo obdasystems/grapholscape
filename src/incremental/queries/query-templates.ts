@@ -5,9 +5,9 @@ export function getInstances(iri: string, maxResults?: number, searchText?: stri
   const where = `?x a <${iri}>.`
   let filter: string = ``
   if (searchText) {
-    filter = `FILTER(regex(?x, '${searchText}')`
+    filter = `FILTER(regex(?x, '${searchText}', 'i')`
     if (LABEL_AVAILABLE)
-      filter += `|| (regex(?l, '${searchText}') && !isBlank(?l))`
+      filter += `|| (regex(?l, '${searchText}', 'i') && !isBlank(?l))`
 
     filter += `)`
   }
@@ -31,7 +31,7 @@ export function getInstancesByDataPropertyValue(classIri: string, dataPropertyIr
     `?x a <${classIri}>.`,
     `?x <${dataPropertyIri}> ?y.`
   ]
-  let filter = `FILTER(regex(?y, '${dataPropertyValue}'))`
+  let filter = `FILTER(regex(?y, '${dataPropertyValue}', 'i'))`
   const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `
@@ -61,9 +61,9 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
   const optional = LABEL_AVAILABLE ? `?y rdf:label ?l` : ``
   let filter: string = ``
   if (searchText) {
-    filter = `FILTER(regex(?y, '${searchText}')`
+    filter = `FILTER(regex(?y, '${searchText}', 'i')`
     if (LABEL_AVAILABLE)
-      filter += `|| (regex(?l, '${searchText}') && !isBlank(?l))`
+      filter += `|| (regex(?l, '${searchText}', 'i') && !isBlank(?l))`
 
     filter += `)`
   }
