@@ -39,6 +39,8 @@ export default class IncrementalController {
   private endpointController?: EndpointController
   private highlightsManager?: HighlightsManager
 
+  private entitySelectionTimeout: NodeJS.Timeout
+
   constructor(
     private grapholscape: Grapholscape
   ) {
@@ -760,28 +762,39 @@ export default class IncrementalController {
 
       if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
 
-        this.diagramBuilder.referenceNodeId = evt.target.id()
-        const targetIri = evt.target.data().iri
-        // set class instance entity in entity details widget
-        if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
-          const instanceEntity = this.diagram.classInstances?.get(targetIri)
-          if (instanceEntity) {
-            this.highlightsManager?.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
-            (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
+        const updateDetails = () => {
+          this.diagramBuilder.referenceNodeId = evt.target.id()
+          const targetIri = evt.target.data().iri
+          // set class instance entity in entity details widget
+          if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+            const instanceEntity = this.diagram.classInstances?.get(targetIri)
+            if (instanceEntity) {
+              this.highlightsManager?.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
+              (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
 
-            if (targetIri !== this.lastInstanceIri)
+              if (targetIri !== this.lastInstanceIri)
+                this.vKGApi?.stopAllQueries()
+
+              this.buildDetailsForInstance(targetIri)
+            }
+          } else {
+            this.highlightsManager?.computeHighlights(targetIri)
+
+            if (targetIri !== this.lastClassIri)
               this.vKGApi?.stopAllQueries()
 
-            this.buildDetailsForInstance(targetIri)
+            this.buildDetailsForClass(targetIri)
           }
-        } else {
-          this.highlightsManager?.computeHighlights(targetIri)
-
-          if (targetIri !== this.lastClassIri)
-            this.vKGApi?.stopAllQueries()
-
-          this.buildDetailsForClass(targetIri)
         }
+
+        // In case of reasoning, perform update only after 500ms of no click by the user
+        // Prevent query flooding
+        if (this.isReasonerEnabled) {
+          clearTimeout(this.entitySelectionTimeout)
+          this.entitySelectionTimeout = setTimeout(updateDetails, 400)
+        } else {
+          updateDetails() // otherwide no http-request will be made
+        }        
 
         this.incrementalDetails.show()
       } else {
