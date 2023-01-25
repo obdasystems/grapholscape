@@ -1,5 +1,5 @@
 import { css, html, LitElement } from "lit";
-import baseStyle from "../style";
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from "../style";
 import { searchOff, stopCircle, tune } from "../assets";
 import { BaseMixin, DropPanelMixin } from "../common/mixins";
 import getIconSlot from "../util/get-icon-slot";
@@ -28,6 +28,14 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
       .area > .preference {
         padding: 8px;
       }
+
+      .area:last-child {
+        margin-bottom: 0;
+        background: unset;
+        border: unset;
+        text-align: center;
+        padding-top: unset;
+      }
     `
   ]
 
@@ -35,9 +43,15 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
   protected _onLimitChangeCallback: (newLimit: number) => void = () => { }
   protected _onStopRequestsCallback: () => void = () => { }
 
+  constructor() {
+    super()
+    this.classList.add(BOTTOM_RIGHT_WIDGET.toString())
+  }
+
   render() {
     return html`
       <gscape-button
+        type="subtle"
         @click=${this.togglePanel}
         title="Virtual knowledge graph explorer preferences"
       >
@@ -83,7 +97,7 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
             </div>
             
           </div>
-          <div class="area" style="margin-bottom: 0">
+          <div class="area">
             <gscape-button
               size=${SizeEnum.S}
               label='Stop Pending Requests'
