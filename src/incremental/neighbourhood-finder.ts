@@ -1,5 +1,5 @@
+import { NodeCollection } from "cytoscape";
 import { Diagram, GrapholEntity, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
-import { diagrams } from "../ui/assets";
 
 export type ObjectPropertyConnectedClasses = {
   connectedClasses: GrapholEntity[],
@@ -128,8 +128,9 @@ export default class NeighbourhoodFinder {
     return res
   }
 
-  getSubclassesIris(classIri: string): string[] {
+  private getConnectedClassesIrisByType(classIri: string, type: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.EQUIVALENCE, inclusionType: 'subclass' | 'superclass' = 'subclass') {
     const res: string[] = []
+    let resultingNodes: NodeCollection
 
     let diagram: Diagram | undefined
     this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)?.forEach(classOccurrences => {
@@ -137,16 +138,26 @@ export default class NeighbourhoodFinder {
         diagram = this.ontology.getDiagram(classOccurrence.diagramId)
 
         if (diagram) {
-          diagram.representations.get(RendererStatesEnum.FLOATY)
+          const inclusionEdges = diagram.representations.get(RendererStatesEnum.FLOATY)
             ?.cy.$id(classOccurrence.elementId)
             .edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
-            .filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION) // take only inclusions edges
-            .sources(`[ iri != "${classIri}" ]`) // of these inclusions, take sources different from the class we are considering as superclass
-            .forEach(subClassElement => { // for each element, add its iri to result
-              if (!res.includes(subClassElement.data().iri)) {
-                res.push(subClassElement.data().iri)
-              }
-            })
+            .filter(edge => edge.data().type === type) // take only inclusions/equivalence edges
+
+          if (!inclusionEdges) return
+
+          if (type === GrapholTypesEnum.EQUIVALENCE) {
+            resultingNodes = inclusionEdges.connectedNodes(`[ iri != "${classIri}" ]`)
+          } else if (inclusionType === 'subclass') {
+            resultingNodes = inclusionEdges.sources(`[ iri != "${classIri}" ]`) // of these inclusions, take sources different from the class we are considering as superclass
+          } else {
+            resultingNodes = inclusionEdges.targets(`[ iri != "${classIri}" ]`) // of these inclusions, take targets different from the class we are considering as superclass
+          }
+
+          resultingNodes.forEach(node => { // for each element, add its iri to result
+            if (!res.includes(node.data().iri)) {
+              res.push(node.data().iri)
+            }
+          })
         }
       })
     })
@@ -154,30 +165,16 @@ export default class NeighbourhoodFinder {
     return res
   }
 
+  getSubclassesIris(classIri: string): string[] {
+    return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.INCLUSION, 'subclass')
+  }
+
+  getEquivalentClassesIris(classIri: string): string[] {
+    return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.EQUIVALENCE)
+  }
+
   getSuperclassesIris(classIri: string): string[] {
-    const res: string[] = []
-
-    let diagram: Diagram | undefined
-    this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)?.forEach(classOccurrences => {
-      classOccurrences.forEach(classOccurrence => {
-        diagram = this.ontology.getDiagram(classOccurrence.diagramId)
-
-        if (diagram) {
-          diagram.representations.get(RendererStatesEnum.FLOATY)
-            ?.cy.$id(classOccurrence.elementId)
-            .edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
-            .filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION) // take only inclusions edges
-            .targets(`[ iri != "${classIri}" ]`) // of these inclusions, take targets different from the class we are considering as superclass
-            .forEach(subClassElement => { // for each element, add its iri to result
-              if (!res.includes(subClassElement.data().iri)) {
-                res.push(subClassElement.data().iri)
-              }
-            })
-        }
-      })
-    })
-
-    return res
+    return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.INCLUSION, 'superclass')
   }
 
   private getIriObject(iri: string): Iri {

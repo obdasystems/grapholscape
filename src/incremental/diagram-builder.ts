@@ -182,7 +182,7 @@ export default class DiagramBuilder {
    * @param subClassIri 
    * @param superClassIri 
    */
-  addIsa(subClassIri: string, superClassIri: string) {
+  addIsa(subClassIri: string, superClassIri: string, type: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.EQUIVALENCE = GrapholTypesEnum.INCLUSION) {
     if (this.diagramRepresentation?.cy.$id(subClassIri).empty()) {
       this.addEntity(subClassIri)
     }
@@ -191,7 +191,7 @@ export default class DiagramBuilder {
       this.addEntity(superClassIri)
     }
 
-    const inclusionEdge = new GrapholEdge(`${subClassIri}-isa-${superClassIri}`, GrapholTypesEnum.INCLUSION)
+    const inclusionEdge = new GrapholEdge(`${subClassIri}-isa-${superClassIri}`, type)
     inclusionEdge.sourceId = subClassIri
     inclusionEdge.targetId = superClassIri
 
@@ -206,6 +206,11 @@ export default class DiagramBuilder {
   addSuperClass(superClassIri: string) {
     if (this.referenceNodeIri)
       this.addIsa(this.referenceNodeIri, superClassIri)
+  }
+
+  addEquivalentClass(equivalentClassIri: string) {
+    if (this.referenceNodeIri)
+      this.addIsa(this.referenceNodeIri, equivalentClassIri, GrapholTypesEnum.EQUIVALENCE)
   }
 
   areAllSubclassesVisibleForClass(classIri: string, subClassesIris: string[]) {
@@ -225,6 +230,18 @@ export default class DiagramBuilder {
       if (this.diagramRepresentation?.cy.$id(subClassIri)
         .connectedEdges(`[ type = "${GrapholTypesEnum.INCLUSION}" ]`)
         .sources(`[id = "${classIri}"]`).empty()
+      )
+        return false
+    }
+
+    return true
+  }
+
+  areAllEquivalentClassesVisibleForClass(classIri: string, equivalentClassesIris: string[]) {
+    for (let equivalentClassIri of equivalentClassesIris) {
+      if (this.diagramRepresentation?.cy.$id(equivalentClassIri)
+        .connectedEdges(`[ type = "${GrapholTypesEnum.EQUIVALENCE}" ]`)
+        .connectedNodes(`[id = "${classIri}"]`).empty()
       )
         return false
     }

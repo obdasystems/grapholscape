@@ -273,6 +273,7 @@ export default class IncrementalController {
 
     const subClasses = this.neighbourhoodFinder.getSubclassesIris(classIri)
     const superClasses = this.neighbourhoodFinder.getSuperclassesIris(classIri)
+    const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(classIri)
 
     if (subClasses.length > 0) {
       const areAllSubclassesVisible = this.diagramBuilder.areAllSubclassesVisibleForClass(classIri, subClasses)
@@ -299,6 +300,21 @@ export default class IncrementalController {
             areAllSuperclassesVisible
               ? superClasses.forEach(sc => this.removeEntity(sc, [classIri]))
               : this.showSuperClassesOf(classIri, superClasses)
+          }
+        )
+      )
+    }
+
+    if (equivalentClasses.length > 0) {
+      const areAllEquivalentClassesVisible = this.diagramBuilder.areAllEquivalentClassesVisibleForClass(classIri, equivalentClasses)
+      commands.push(
+        IncrementalCommands.showHideEquivalentClasses(
+          areAllEquivalentClassesVisible,
+          () => {
+            this.diagramBuilder.referenceNodeId = classIri
+            areAllEquivalentClassesVisible
+              ? equivalentClasses.forEach(sc => this.removeEntity(sc, [classIri]))
+              : this.showEquivalentClassesOf(classIri, equivalentClasses)
           }
         )
       )
@@ -575,6 +591,15 @@ export default class IncrementalController {
     }
 
     superclassesIris.forEach(subclassIri => this.diagramBuilder.addSuperClass(subclassIri))
+    this.runLayout()
+  }
+
+  showEquivalentClassesOf(classIri: string, equivalentClassesIris?: string[]) {
+    if (!equivalentClassesIris) {
+      equivalentClassesIris = this.neighbourhoodFinder.getEquivalentClassesIris(classIri)
+    }
+
+    equivalentClassesIris.forEach(equivalentClassIri => this.diagramBuilder.addEquivalentClass(equivalentClassIri))
     this.runLayout()
   }
 
