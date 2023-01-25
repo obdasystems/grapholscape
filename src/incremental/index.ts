@@ -36,7 +36,7 @@ export function startIncremental(grapholscape: Grapholscape, incrementalControll
   entityDetailsWidget.incrementalSection = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails
   entityDetailsWidget.hide()
 
-  if (grapholscape.renderer.grapholElements?.size === 0) {
+  if (grapholscape.renderer.cy?.elements().empty()) {
     entitySelector.show()
   }
 

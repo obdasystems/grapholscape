@@ -19,6 +19,7 @@ import HighlightsManager from "./highlights-manager";
 import { showParentClass } from "../ui/incremental-ui/commands";
 import GscapeConfirmDialog from "../ui/incremental-ui/confirm-dialog";
 import { MastroEndpoint } from "./api/model";
+import { IBaseMixin } from "../ui";
 
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -763,7 +764,8 @@ export default class IncrementalController {
   }
 
   private postDiagramEdit() {
-    if (!this.diagram.representation || this.diagram.representation.grapholElements.size === 0) {
+    if (!this.diagram.representation || this.diagram.representation.cy.elements().empty()) {
+      (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide()
       this.entitySelector.show()
     }
 
