@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { EntityViewData, search } from '../util/search-entities'
-import { entityIcons, explore } from '../assets/icons'
+import { blankSlateDiagrams, entityIcons, explore } from '../assets/icons'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
@@ -54,7 +54,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
         max-height: 328px;
       }
 
-      .blank-slate {
+      .list-wrapper > .blank-slate {
         white-space: normal;
         transform: translateY(40%);
       }
@@ -115,7 +115,13 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
                 <div class="summary-body">
                   ${entity.viewOccurrences && entity.viewOccurrences.size > 0
                     ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
-                    : null
+                    : html`
+                      <div class="blank-slate">
+                        ${blankSlateDiagrams}
+                        <div class="header">No Occurrences</div>
+                        <div class="description">The entity has no occurrences in this rendering mode.</div>
+                      </div>
+                    `
                   }
                 </div>
               </details>

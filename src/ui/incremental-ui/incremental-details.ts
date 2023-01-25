@@ -1,7 +1,7 @@
 
 import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../model";
-import { classIcon, entityIcons, instancesIcon, objectPropertyIcon } from "../assets";
+import { classIcon, entityIcons, instancesIcon, objectPropertyIcon, searchOff } from "../assets";
 import { BaseMixin } from "../common/mixins";
 import { contentSpinnerStyle, getContentSpinner, textSpinner, textSpinnerStyle } from "../common/spinners";
 import { entityListItemStyle } from "../ontology-explorer";
@@ -135,7 +135,10 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
             </div>
 
             ${this.instances?.map(instance => this.getEntitySuggestionTemplate(instance))}
-            ${this.areInstancesLoading ? getContentSpinner() : null }
+            ${this.areInstancesLoading 
+              ? getContentSpinner() 
+              : html`${!this.instances || this.instances.length === 0 ? this.emptyInstancesBlankSlate : null }`
+            }
           </div>
         </details>
         `
@@ -196,7 +199,9 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
                                       classEntity.value.iri.fullIri,
                                       op.direct
                                     ))}
-                                    ${rangeClassesInstances.loading ? getContentSpinner() : null}
+                                    ${rangeClassesInstances.loading 
+                                      ? getContentSpinner() 
+                                      : html`${rangeClassesInstances.values.length === 0 ? this.emptyInstancesBlankSlate : null}`}
                                   </div>
                                 </details>
                               `
@@ -397,6 +402,15 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   private get dataPropertyFilter() { 
     if (this.shadowRoot)
       return this.shadowRoot.querySelector(`select#data-property-filter`) as HTMLSelectElement 
+  }
+
+  private get emptyInstancesBlankSlate() {
+    return html`
+      <div class="blank-slate">
+        ${searchOff}
+        <div class="header">No Instances Available</div>
+      </div>
+    `
   }
 }
 
