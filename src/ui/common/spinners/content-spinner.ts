@@ -1,7 +1,7 @@
 import { css, html } from "lit";
 
 export function getContentSpinner() {
-  return html`<div class="lds-ring" title="Sparqling is loading"><div></div><div></div><div></div><div></div></div>` 
+  return html`<div class="lds-ring" title="Loading"><div></div><div></div><div></div><div></div></div>` 
 }
 
 export const contentSpinnerStyle = css`

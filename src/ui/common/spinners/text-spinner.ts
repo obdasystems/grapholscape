@@ -1,6 +1,6 @@
 import { css, html } from "lit";
 
-export const textSpinner = () => html`<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>`
+export const textSpinner = () => html`<div title="Loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>`
 
 export const textSpinnerStyle = css`
   .lds-ellipsis {
