@@ -21,14 +21,22 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
     protected get panel(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('#drop-panel') }
 
     togglePanel() {
-      this.panel?.classList.toggle('hide')
-      this.requestUpdate()
+      this.isPanelClosed() ? this.openPanel() : this.closePanel()
       this.onTogglePanel()
     }
 
     openPanel() {
       this.panel?.classList.remove('hide')
       this.requestUpdate()
+
+      // Blur other widgets in bottom-right-buttons-tray, keep only one panel open at time
+      const container = this.parentElement
+      if (container && container.classList.contains('gscape-ui-buttons-tray')) {
+        for (const siblingElement of container.children) {
+          if (siblingElement !== this)
+            (siblingElement as DropPanelMixinClass).blur()
+        }
+      }
     }
 
     closePanel() {
@@ -39,6 +47,16 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
     blur() {
       super.blur()
       this.closePanel()
+    }
+
+    onblur: ((ev: FocusEvent) => any) = (ev) => {
+      ev.stopPropagation()
+      ev.preventDefault()
+      const target = ev.relatedTarget as HTMLElement
+
+      if (target && !this.contains(target)) {
+        this.blur()
+      }
     }
 
     isPanelClosed() {

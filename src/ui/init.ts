@@ -73,19 +73,6 @@ export default function (grapholscape: Grapholscape) {
         break
     }
 
-    if (hasDropPanel(widget)) {
-      widget.onTogglePanel = () => {
-        const entityDetailsComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS)
-        const entitySelectorComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)
-        const owlVisualizerComponent = grapholscape.widgets.get(WidgetEnum.OWL_VISUALIZER)
-        if (entityDetailsComponent && entitySelectorComponent && owlVisualizerComponent) {
-          blurAll([widget, entityDetailsComponent, entitySelectorComponent, owlVisualizerComponent])
-        } else {
-          blurAll([widget])
-        }
-      }
-    }
-
     const _widget = widget as unknown as IBaseMixin
 
     _widget.onStateChange = () => {
