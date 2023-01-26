@@ -20,6 +20,10 @@
   <a href="#credits">Credits</a>
 </p>
 
+<h3 align="center" style="position: relative">
+<pre style="margin:0"><code><img style="position: relative; top: 2px; float: left;" height="21px" src="https://avatars.githubusercontent.com/u/6078720?s=200&v=4" />npm install grapholscape</code></pre>
+</h3>
+
 <a align="center" href="https://obdasystems.github.io/grapholscape/demo/">
   <img src="docs/static/assets/img/demo.gif?raw=true" />
 </a>
@@ -32,14 +36,14 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
   * **Graphol-lite**: summarized view avoiding too complex expressions
   * **Floaty Mode**: simplify further obtaining an extremely easy representation of the ontology
 * Search for entities and their instances through all diagrams contained in the ontology
-* Re-arrange GUI's modules floating above the diagram
 * Get detailed information about selected element
 * Get the OWL2 translation for selected element
 * Filter elements that are not necessary for your analysis
 * Multi-diagrammatic inspection that allows you to navigate through all diagrams that builds up the ontology
 
 ## What is Graphol?
-GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic.
+GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic. [Read more](https://github.com/obdasystems/eddy/wiki/Introduction#graphol)\
+For building ontologies in Graphol please check our visual editor: [Eddy](https://github.com/obdasystems/eddy).
 
 ## [Demo](https://obdasystems.github.io/grapholscape/demo/)
 You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [build it locally](#build-it-locally), then select an example or drop your custom `.graphol` file in the box on the right side.
@@ -47,9 +51,13 @@ You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [buil
 ## Quick Start
 For a more detailed explanation please check the [documentation](https://obdasystems.github.io/grapholscape/) and the [getting started guide](https://obdasystems.github.io/grapholscape/pages/getting-started.html).
 
-Install it via **npm**: `npm install grapholscape`.
+### Install it via **npm**: 
+```cmd
+npm install grapholscape
+```
 
-#### Basic initialisation with UI widgets.
+
+### Basic initialisation with UI widgets.
 ```js
 import { fullGrapholscape } from 'grapholscape'
 
