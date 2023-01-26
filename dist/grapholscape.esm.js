@@ -1,18 +1,18 @@
 /**
  * MIT License
- * 
+ *
  * Copyright (c) 2018-2022 OBDA Systems
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,8 +25,8 @@
 import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
-import automove from 'cytoscape-automove';
 import tippy from 'tippy.js';
+import automove from 'cytoscape-automove';
 import cy_svg from 'cytoscape-svg';
 
 /******************************************************************************
@@ -2953,6 +2953,431 @@ var t;const i=window,s$1=i.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{creat
  * SPDX-License-Identifier: BSD-3-Clause
  */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=Z(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
+var classIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="18"
+   height="18"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="class.svg"
+   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1853"
+     inkscape:window-height="1025"
+     id="namedview6"
+     showgrid="false"
+     inkscape:zoom="13.111111"
+     inkscape:cx="0.11440678"
+     inkscape:cy="9"
+     inkscape:window-x="67"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <rect
+     x="3"
+     y="6"
+     width="12"
+     height="7"
+     rx="0"
+     ry="0"
+     id="rect2"
+     style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:3" />
+</svg>
+`;
+
+var classInstanceIcon = w `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-class-instance-contrast)" stroke-width="3.5" fill="none"/>
+</svg>
+`;
+
+var dataPropertyIcon = w `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-data-property-contrast)" stroke-width="3.5" fill="none"/>
+</svg>
+`;
+
+var individualIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (6e3e5246a0, 2020-05-07)"
+   sodipodi:docname="individual.svg"
+   id="svg4"
+   version="1.1"
+   height="18"
+   width="18">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8">
+    <linearGradient
+       osb:paint="solid"
+       id="linearGradient880">
+      <stop
+         id="stop878"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     inkscape:document-rotation="0"
+     fit-margin-bottom="0"
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     inkscape:current-layer="svg4"
+     inkscape:window-maximized="0"
+     inkscape:window-y="27"
+     inkscape:window-x="993"
+     inkscape:cy="9.677215"
+     inkscape:cx="9.0082925"
+     inkscape:zoom="22.702061"
+     showgrid="false"
+     id="namedview6"
+     inkscape:window-height="1025"
+     inkscape:window-width="927"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <g
+     id="g27">
+    <g
+       id="g21">
+      <g
+         id="g16">
+        <g
+           id="g12" />
+      </g>
+    </g>
+  </g>
+  <path
+     transform="matrix(0.9072154,0,0,0.92465409,0.92347539,1.0342853)"
+     d="m 15.868025,11.669896 -4.068749,4.075966 -5.7591839,0.0051 -4.0759657,-4.06875 -0.0051,-5.7591835 4.0687497,-4.0759657 5.7591833,-0.0051 4.075966,4.0687497 z"
+     inkscape:randomized="0"
+     inkscape:rounded="0"
+     inkscape:flatsided="true"
+     sodipodi:arg2="0.78451219"
+     sodipodi:arg1="0.39181311"
+     sodipodi:r2="6.9185686"
+     sodipodi:r1="7.5247387"
+     sodipodi:cy="8.796464"
+     sodipodi:cx="8.9135246"
+     sodipodi:sides="8"
+     id="path51"
+     style="fill:none;fill-rule:evenodd;stroke:var(--gscape-color-individual-contrast);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     sodipodi:type="star" />
+</svg>`;
+
+var objectPropertyIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="18"
+   height="18"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="role.svg"
+   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="927"
+     inkscape:window-height="1025"
+     id="namedview6"
+     showgrid="false"
+     inkscape:zoom="13.111111"
+     inkscape:cx="7.2336581"
+     inkscape:cy="6.7167247"
+     inkscape:window-x="993"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg4"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <polygon
+     points="125,86.909 146.992,125 125,163.092 103.008,125 "
+     transform="matrix(0.27862408,0,0,0.13179941,-25.774205,-7.2921404)"
+     id="polygon2"
+     style="fill:none;stroke:var(--gscape-color-object-property-contrast);stroke-width:12.02451324;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
+</svg>
+`;
+
+const diagrams = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.333 5.438Q5.875 5.438 5.552 5.76Q5.229 6.083 5.229 6.542Q5.229 7 5.552 7.302Q5.875 7.604 6.333 7.604Q6.792 7.604 7.094 7.302Q7.396 7 7.396 6.542Q7.396 6.083 7.094 5.76Q6.792 5.438 6.333 5.438ZM6.333 13.208Q5.875 13.208 5.552 13.51Q5.229 13.812 5.229 14.271Q5.229 14.729 5.552 15.052Q5.875 15.375 6.333 15.375Q6.792 15.375 7.094 15.052Q7.396 14.729 7.396 14.271Q7.396 13.812 7.094 13.51Q6.792 13.208 6.333 13.208ZM3.667 3.167H16.354Q16.667 3.167 16.875 3.375Q17.083 3.583 17.083 3.896V9.104Q17.083 9.458 16.875 9.677Q16.667 9.896 16.354 9.896H3.667Q3.354 9.896 3.135 9.677Q2.917 9.458 2.917 9.104V3.896Q2.917 3.583 3.135 3.375Q3.354 3.167 3.667 3.167ZM4.25 4.5V8.562H15.75V4.5ZM3.667 10.938H16.333Q16.667 10.938 16.875 11.156Q17.083 11.375 17.083 11.708V16.875Q17.083 17.229 16.875 17.448Q16.667 17.667 16.333 17.667H3.688Q3.354 17.667 3.135 17.448Q2.917 17.229 2.917 16.875V11.708Q2.917 11.375 3.125 11.156Q3.333 10.938 3.667 10.938ZM4.25 12.271V16.333H15.75V12.271ZM4.25 4.5V8.562ZM4.25 12.271V16.333Z"/></svg>`;
+const triangle_up = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 14l5-5 5 5H7z"/></svg>`;
+const triangle_down = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 10l5 5 5-5H7z"/></svg>`;
+const arrow_right = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`;
+const arrowDown = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12 6 8H14Z"/></svg>`;
+const explore = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m5.75 14.25 6.021-2.479L14.25 5.75 8.229 8.229Zm3.542-3.542Q9 10.417 9 10t.292-.708Q9.583 9 10 9t.708.292Q11 9.583 11 10t-.292.708Q10.417 11 10 11t-.708-.292ZM10 18q-1.646 0-3.104-.625-1.458-.625-2.552-1.719t-1.719-2.552Q2 11.646 2 10q0-1.667.625-3.115.625-1.447 1.719-2.541Q5.438 3.25 6.896 2.625T10 2q1.667 0 3.115.625 1.447.625 2.541 1.719 1.094 1.094 1.719 2.541Q18 8.333 18 10q0 1.646-.625 3.104-.625 1.458-1.719 2.552t-2.541 1.719Q11.667 18 10 18Zm0-1.5q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`;
+const info_outline = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.25 14H10.75V9H9.25ZM10 7.5Q10.312 7.5 10.531 7.281Q10.75 7.062 10.75 6.75Q10.75 6.438 10.531 6.219Q10.312 6 10 6Q9.688 6 9.469 6.219Q9.25 6.438 9.25 6.75Q9.25 7.062 9.469 7.281Q9.688 7.5 10 7.5ZM10 16.5Q11.354 16.5 12.531 15.99Q13.708 15.479 14.594 14.594Q15.479 13.708 15.99 12.521Q16.5 11.333 16.5 10Q16.5 8.646 15.99 7.469Q15.479 6.292 14.594 5.406Q13.708 4.521 12.531 4.01Q11.354 3.5 10 3.5Q8.667 3.5 7.479 4.01Q6.292 4.521 5.406 5.406Q4.521 6.292 4.01 7.469Q3.5 8.646 3.5 10Q3.5 11.333 4.01 12.521Q4.521 13.708 5.406 14.594Q6.292 15.479 7.479 15.99Q8.667 16.5 10 16.5ZM10 18Q6.667 18 4.333 15.667Q2 13.333 2 10Q2 6.667 4.333 4.333Q6.667 2 10 2Q13.333 2 15.667 4.333Q18 6.667 18 10Q18 13.333 15.667 15.667Q13.333 18 10 18ZM10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Z"/></svg>`;
+const enterFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="1 1 18 18"><path d="M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z"/></svg>`;
+const exitFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="1 1 18 18"><path d="M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z"/></svg>`;
+const centerDiagram = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12.167Q9.104 12.167 8.469 11.531Q7.833 10.896 7.833 10Q7.833 9.104 8.469 8.469Q9.104 7.833 10 7.833Q10.896 7.833 11.531 8.469Q12.167 9.104 12.167 10Q12.167 10.896 11.531 11.531Q10.896 12.167 10 12.167ZM2.917 7.542V4.5Q2.917 3.833 3.375 3.375Q3.833 2.917 4.5 2.917H7.542V4.25H4.5Q4.417 4.25 4.333 4.333Q4.25 4.417 4.25 4.5V7.542ZM7.542 17.083H4.5Q3.833 17.083 3.375 16.625Q2.917 16.167 2.917 15.5V12.458H4.25V15.5Q4.25 15.583 4.333 15.667Q4.417 15.75 4.5 15.75H7.542ZM12.458 17.083V15.75H15.5Q15.583 15.75 15.667 15.667Q15.75 15.583 15.75 15.5V12.458H17.083V15.5Q17.083 16.167 16.625 16.625Q16.167 17.083 15.5 17.083ZM15.75 7.542V4.5Q15.75 4.417 15.667 4.333Q15.583 4.25 15.5 4.25H12.458V2.917H15.5Q16.167 2.917 16.625 3.375Q17.083 3.833 17.083 4.5V7.542ZM10 10.833Q10.354 10.833 10.594 10.594Q10.833 10.354 10.833 10Q10.833 9.646 10.594 9.406Q10.354 9.167 10 9.167Q9.646 9.167 9.406 9.406Q9.167 9.646 9.167 10Q9.167 10.354 9.406 10.594Q9.646 10.833 10 10.833Z"/></svg>`;
+const filter = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.062 13.979V12.583H11.938V13.979ZM5.104 10.5V9.104H14.875V10.5ZM3.146 7V5.604H16.854V7Z"/></svg>`;
+const bubbles = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.021 14.667Q4.75 14.667 3.865 13.781Q2.979 12.896 2.979 11.625Q2.979 10.354 3.865 9.469Q4.75 8.583 6.021 8.583Q7.271 8.583 8.156 9.469Q9.042 10.354 9.042 11.625Q9.042 12.896 8.156 13.781Q7.271 14.667 6.021 14.667ZM13.542 11.458Q11.792 11.458 10.583 10.24Q9.375 9.021 9.375 7.271Q9.375 5.5 10.583 4.292Q11.792 3.083 13.542 3.083Q15.292 3.083 16.521 4.292Q17.75 5.5 17.75 7.271Q17.75 9.021 16.521 10.24Q15.292 11.458 13.542 11.458ZM11.958 16.938Q11.042 16.938 10.396 16.292Q9.75 15.646 9.75 14.708Q9.75 13.792 10.396 13.146Q11.042 12.5 11.958 12.5Q12.896 12.5 13.542 13.146Q14.188 13.792 14.188 14.708Q14.188 15.646 13.542 16.292Q12.896 16.938 11.958 16.938Z"/></svg>`;
+const lite = w `<svg fill="currentColor" style="padding: 2px; box-sizing: border-box;" width="20" height="20" version="1.1" viewBox="0 0 752 752" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com"><path d="M 375.714 0.009 C 371.042 0.066 366.482 1.447 362.593 3.994 L 156.603 127.708 C 153.518 129.737 150.954 132.436 149.099 135.596 L 12.104 135.596 C 5.422 135.596 0 140.911 0 147.462 L 0 599.375 L 0 599.369 C 0 605.92 5.422 611.236 12.104 611.236 L 139.149 611.236 L 139.149 728.278 L 139.149 728.272 C 139.149 734.568 141.694 740.599 146.235 745.052 C 150.77 749.498 156.93 752 163.343 752 L 588.652 752 C 595.064 752 601.218 749.498 605.76 745.052 C 610.292 740.599 612.846 734.568 612.846 728.272 L 612.846 611.236 L 739.903 611.236 C 746.584 611.236 752 605.92 752 599.369 L 752 147.456 C 752 140.905 746.584 135.59 739.903 135.59 L 602.94 135.59 C 601.08 132.428 598.496 129.73 595.403 127.702 L 389.431 3.988 C 385.371 1.333 380.59 -0.056 375.709 0.001 L 375.714 0.009 Z M 376.014 98.108 L 491.584 157.275 L 376.014 216.436 L 260.427 157.275 L 376.014 98.108 Z M 37.566 178.974 L 149.089 178.974 C 150.949 182.128 153.519 184.821 156.606 186.844 L 362.579 310.545 L 362.584 310.545 C 366.556 313.142 371.23 314.529 376.006 314.529 C 380.781 314.529 385.455 313.142 389.427 310.545 L 595.383 186.844 C 598.463 184.815 601.026 182.122 602.88 178.974 L 714.428 178.974 L 714.428 574.405 L 612.83 574.405 L 612.83 463.926 C 612.83 457.631 610.28 451.599 605.744 447.153 C 601.202 442.701 595.051 440.201 588.631 440.201 L 163.339 440.201 C 156.926 440.201 150.767 442.701 146.232 447.153 C 141.69 451.599 139.146 457.631 139.146 463.926 L 139.146 574.405 L 37.561 574.405 L 37.566 178.974 Z M 242.668 541.701 L 509.325 541.701 L 510.994 652.145 L 240.998 652.145 L 242.668 541.701 Z" fill-rule="evenodd" style=""></path></svg>`;
+const settings_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m8.021 17.917-.313-2.5q-.27-.125-.625-.334-.354-.208-.625-.395l-2.312.979-1.979-3.438 1.979-1.5q-.021-.167-.031-.364-.011-.198-.011-.365 0-.146.011-.344.01-.198.031-.385l-1.979-1.5 1.979-3.417 2.312.958q.271-.187.615-.385t.635-.344l.313-2.5h3.958l.313 2.5q.312.167.625.344.312.177.604.385l2.333-.958 1.979 3.417-1.979 1.521q.021.187.021.364V10q0 .146-.01.333-.011.188-.011.396l1.958 1.5-1.979 3.438-2.312-.979q-.292.208-.615.395-.323.188-.614.334l-.313 2.5Zm1.937-5.355q1.063 0 1.813-.75t.75-1.812q0-1.062-.75-1.812t-1.813-.75q-1.041 0-1.802.75-.76.75-.76 1.812t.76 1.812q.761.75 1.802.75Zm0-1.333q-.5 0-.864-.364-.365-.365-.365-.865t.365-.865q.364-.364.864-.364t.865.364q.365.365.365.865t-.365.865q-.365.364-.865.364ZM10.021 10Zm-.854 6.583h1.666l.25-2.187q.605-.167 1.136-.49.531-.323 1.031-.802l2.021.875.854-1.375-1.792-1.354q.105-.333.136-.635.031-.303.031-.615 0-.292-.031-.573-.031-.281-.115-.635l1.792-1.396-.834-1.375-2.062.875q-.438-.438-1.021-.781-.583-.344-1.125-.49l-.271-2.208H9.167l-.271 2.208q-.584.146-1.125.458-.542.313-1.042.792l-2.021-.854-.833 1.375 1.75 1.354q-.083.333-.125.646-.042.312-.042.604t.042.594q.042.302.125.635l-1.75 1.375.833 1.375 2.021-.854q.479.458 1.021.771.542.312 1.146.479Z"/></svg>`;
+const infoFilled = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 14.167Q10.354 14.167 10.615 13.906Q10.875 13.646 10.875 13.292V10.021Q10.875 9.667 10.615 9.417Q10.354 9.167 10 9.167Q9.646 9.167 9.385 9.427Q9.125 9.688 9.125 10.042V13.312Q9.125 13.667 9.385 13.917Q9.646 14.167 10 14.167ZM10 7.479Q10.354 7.479 10.615 7.219Q10.875 6.958 10.875 6.604Q10.875 6.25 10.615 5.99Q10.354 5.729 10 5.729Q9.646 5.729 9.385 5.99Q9.125 6.25 9.125 6.604Q9.125 6.958 9.385 7.219Q9.646 7.479 10 7.479ZM10 18.333Q8.271 18.333 6.75 17.677Q5.229 17.021 4.104 15.896Q2.979 14.771 2.323 13.25Q1.667 11.729 1.667 10Q1.667 8.271 2.323 6.75Q2.979 5.229 4.104 4.104Q5.229 2.979 6.75 2.323Q8.271 1.667 10 1.667Q11.729 1.667 13.25 2.323Q14.771 2.979 15.896 4.104Q17.021 5.229 17.677 6.75Q18.333 8.271 18.333 10Q18.333 11.729 17.677 13.25Q17.021 14.771 15.896 15.896Q14.771 17.021 13.25 17.677Q11.729 18.333 10 18.333Z"/></svg>`;
+const plus = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.188 15.083V10.792H4.896V9.167H9.188V4.875H10.812V9.167H15.104V10.792H10.812V15.083Z"/></svg>`;
+const minus = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M4.875 10.792V9.167H15.125V10.792Z"/></svg>`;
+const save = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M17.083 6v9.5q0 .667-.458 1.125-.458.458-1.125.458h-11q-.667 0-1.125-.458-.458-.458-.458-1.125v-11q0-.667.458-1.125.458-.458 1.125-.458H14Zm-1.333.604L13.396 4.25H4.5q-.104 0-.177.073T4.25 4.5v11q0 .104.073.177t.177.073h11q.104 0 .177-.073t.073-.177ZM10 14.312q.896 0 1.531-.645.636-.646.636-1.521 0-.896-.636-1.531-.635-.636-1.531-.636-.896 0-1.531.636-.636.635-.636 1.531 0 .875.636 1.521.635.645 1.531.645Zm-4.667-6.02h6.855V5.333H5.333ZM4.25 6.604v9.146-11.5Z"/></svg>`;
+const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
+const close = w `<svg fillColor="currentColor" style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
+const blankSlateDiagrams = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M14.104 8.521Q13.875 8.312 13.875 8.052Q13.875 7.792 14.083 7.583L15.875 5.792Q16.062 5.604 16.333 5.615Q16.604 5.625 16.792 5.812Q17 6.021 17 6.281Q17 6.542 16.792 6.75L15 8.542Q14.812 8.729 14.552 8.719Q14.292 8.708 14.104 8.521ZM10 6.729Q9.729 6.729 9.531 6.531Q9.333 6.333 9.333 6.062V3.604Q9.333 3.333 9.531 3.135Q9.729 2.938 10 2.938Q10.271 2.938 10.469 3.135Q10.667 3.333 10.667 3.604V6.062Q10.667 6.333 10.469 6.531Q10.271 6.729 10 6.729ZM5 8.521 3.208 6.75Q3 6.562 3.01 6.281Q3.021 6 3.229 5.792Q3.417 5.604 3.688 5.604Q3.958 5.604 4.167 5.792L5.938 7.583Q6.125 7.792 6.125 8.052Q6.125 8.312 5.938 8.521Q5.729 8.708 5.458 8.708Q5.188 8.708 5 8.521ZM3.667 15.75H16.333Q16.417 15.75 16.5 15.667Q16.583 15.583 16.583 15.5V11.896Q16.583 11.812 16.5 11.729Q16.417 11.646 16.333 11.646H13.875Q13.375 12.771 12.302 13.469Q11.229 14.167 10 14.167Q8.771 14.167 7.708 13.469Q6.646 12.771 6.125 11.646H3.667Q3.583 11.646 3.5 11.729Q3.417 11.812 3.417 11.896V15.5Q3.417 15.583 3.5 15.667Q3.583 15.75 3.667 15.75ZM3.667 17.083Q3 17.083 2.542 16.625Q2.083 16.167 2.083 15.5V11.896Q2.083 11.229 2.542 10.771Q3 10.312 3.667 10.312H6.625Q7 10.312 7.083 10.385Q7.167 10.458 7.229 10.708Q7.417 11.5 8.135 12.167Q8.854 12.833 10 12.833Q11.146 12.833 11.865 12.156Q12.583 11.479 12.771 10.708Q12.833 10.458 12.917 10.385Q13 10.312 13.375 10.312H16.333Q17 10.312 17.458 10.771Q17.917 11.229 17.917 11.896V15.5Q17.917 16.167 17.458 16.625Q17 17.083 16.333 17.083ZM3.667 15.75Q3.583 15.75 3.5 15.75Q3.417 15.75 3.417 15.75Q3.417 15.75 3.5 15.75Q3.583 15.75 3.667 15.75H6.125Q6.646 15.75 7.708 15.75Q8.771 15.75 10 15.75Q11.229 15.75 12.302 15.75Q13.375 15.75 13.875 15.75H16.333Q16.417 15.75 16.5 15.75Q16.583 15.75 16.583 15.75Q16.583 15.75 16.5 15.75Q16.417 15.75 16.333 15.75Z"/></svg>`;
+const check = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.229 13.771 5.021 10.542 5.75 9.792 8.229 12.25 14.25 6.25 14.979 7.021Z"/></svg>`;
+const searchOff = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6 16.417q-1.5 0-2.542-1.042-1.041-1.042-1.041-2.542 0-1.5 1.052-2.541Q4.521 9.25 6 9.25q1.5 0 2.542 1.052 1.041 1.052 1.041 2.552 0 1.479-1.052 2.521Q7.479 16.417 6 16.417Zm10.875-.771-5.083-5.084q-.104.105-.261.188-.156.083-.302.146l-.291-.375q-.146-.188-.313-.354.875-.438 1.427-1.261T12.604 7q0-1.5-1.052-2.552T9 3.396q-1.5 0-2.552 1.052T5.396 7q0 .208.042.406.041.198.083.386-.313.02-.563.073-.25.052-.52.135-.042-.229-.084-.479-.042-.25-.042-.521 0-1.938 1.376-3.312Q7.062 2.312 9 2.312q1.938 0 3.312 1.365Q13.688 5.042 13.688 7q0 .833-.282 1.583-.281.75-.739 1.334l4.979 4.958ZM4.812 14.521l1.167-1.167 1.167 1.167.542-.542-1.167-1.167 1.167-1.145-.542-.542-1.167 1.146-1.167-1.146-.541.542 1.167 1.145-1.167 1.167Z"/></svg>`;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
+ */
+const move_bubbles = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" /></svg>`;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
+ */
+const owl_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 20px; width: auto" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z"/></svg>`;
+const graphol_icon = w `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: 20px; box-sizing: border-box; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
+const tune = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.375 15.625Q3.104 15.625 2.906 15.427Q2.708 15.229 2.708 14.958Q2.708 14.688 2.906 14.49Q3.104 14.292 3.375 14.292H6.792Q7.062 14.292 7.26 14.49Q7.458 14.688 7.458 14.958Q7.458 15.229 7.26 15.427Q7.062 15.625 6.792 15.625ZM3.375 5.708Q3.104 5.708 2.906 5.51Q2.708 5.312 2.708 5.042Q2.708 4.771 2.906 4.573Q3.104 4.375 3.375 4.375H9.896Q10.167 4.375 10.365 4.573Q10.562 4.771 10.562 5.042Q10.562 5.312 10.365 5.51Q10.167 5.708 9.896 5.708ZM10.083 17.292Q9.812 17.292 9.615 17.094Q9.417 16.896 9.417 16.625V13.312Q9.417 13.042 9.615 12.844Q9.812 12.646 10.083 12.646Q10.354 12.646 10.552 12.844Q10.75 13.042 10.75 13.312V14.292H16.625Q16.896 14.292 17.094 14.49Q17.292 14.688 17.292 14.958Q17.292 15.229 17.094 15.427Q16.896 15.625 16.625 15.625H10.75V16.625Q10.75 16.896 10.552 17.094Q10.354 17.292 10.083 17.292ZM6.792 12.333Q6.521 12.333 6.323 12.135Q6.125 11.938 6.125 11.667V10.667H3.375Q3.104 10.667 2.906 10.469Q2.708 10.271 2.708 10Q2.708 9.729 2.906 9.531Q3.104 9.333 3.375 9.333H6.125V8.354Q6.125 8.083 6.323 7.885Q6.521 7.688 6.792 7.688Q7.062 7.688 7.26 7.885Q7.458 8.083 7.458 8.354V11.667Q7.458 11.938 7.26 12.135Q7.062 12.333 6.792 12.333ZM10.083 10.667Q9.812 10.667 9.615 10.469Q9.417 10.271 9.417 10Q9.417 9.729 9.615 9.531Q9.812 9.333 10.083 9.333H16.625Q16.896 9.333 17.094 9.531Q17.292 9.729 17.292 10Q17.292 10.271 17.094 10.469Q16.896 10.667 16.625 10.667ZM13.208 7.354Q12.938 7.354 12.74 7.156Q12.542 6.958 12.542 6.688V3.375Q12.542 3.104 12.74 2.906Q12.938 2.708 13.208 2.708Q13.479 2.708 13.677 2.906Q13.875 3.104 13.875 3.375V4.375H16.625Q16.896 4.375 17.094 4.573Q17.292 4.771 17.292 5.042Q17.292 5.312 17.094 5.51Q16.896 5.708 16.625 5.708H13.875V6.688Q13.875 6.958 13.677 7.156Q13.479 7.354 13.208 7.354Z"/></svg>`;
+const settings_play = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M13.54 22H10C9.75 22 9.54 21.82 9.5 21.58L9.13 18.93C8.5 18.68 7.96 18.34 7.44 17.94L4.95 18.95C4.73 19.03 4.46 18.95 4.34 18.73L2.34 15.27C2.21 15.05 2.27 14.78 2.46 14.63L4.57 12.97L4.5 12L4.57 11L2.46 9.37C2.27 9.22 2.21 8.95 2.34 8.73L4.34 5.27C4.46 5.05 4.73 4.96 4.95 5.05L7.44 6.05C7.96 5.66 8.5 5.32 9.13 5.07L9.5 2.42C9.54 2.18 9.75 2 10 2H14C14.25 2 14.46 2.18 14.5 2.42L14.87 5.07C15.5 5.32 16.04 5.66 16.56 6.05L19.05 5.05C19.27 4.96 19.54 5.05 19.66 5.27L21.66 8.73C21.79 8.95 21.73 9.22 21.54 9.37L19.43 11L19.5 12V12.19C19 12.07 18.5 12 18 12C17.83 12 17.66 12 17.5 12.03C17.5 11.41 17.4 10.79 17.2 10.2L19.31 8.65L18.56 7.35L16.15 8.39C15.38 7.5 14.32 6.86 13.12 6.62L12.75 4H11.25L10.88 6.61C9.68 6.86 8.62 7.5 7.85 8.39L5.44 7.35L4.69 8.65L6.8 10.2C6.4 11.37 6.4 12.64 6.8 13.8L4.68 15.36L5.43 16.66L7.86 15.62C8.63 16.5 9.68 17.14 10.87 17.38L11.24 20H12.35C12.61 20.75 13 21.42 13.54 22M15.96 12.36C16 12.24 16 12.12 16 12C16 9.79 14.21 8 12 8S8 9.79 8 12 9.79 16 12 16C12.12 16 12.24 16 12.36 15.96C12.97 14.29 14.29 12.97 15.96 12.36M12 14C10.9 14 10 13.11 10 12S10.9 10 12 10 14 10.9 14 12 13.11 14 12 14M16 15V21L21 18L16 15Z" /></svg>`;
+const filterOff = w `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M16.021 16.5 2.438 2.917l.77-.771 13.584 13.583ZM3.208 5.417V4.333h1.73v1.084Zm2 3.895V8.229h3.646v1.083Zm3.396-3.895L7.521 4.333h9.271v1.084Zm-.396 7.812v-1.083h3.584v1.083ZM12.5 9.312l-1.083-1.083h3.375v1.083Z"/></svg>`;
+const incremental = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m10 13.458-1.083-2.416L6.5 9.958l2.417-1.083L10 6.458l1.083 2.417L13.5 9.958l-2.417 1.084Zm0 5.084q-2.354 0-4.323-1.188-1.969-1.187-3.177-3.271v2.709H1.417v-4.5h4.479v1.083H3.375q1.021 1.896 2.771 2.99 1.75 1.093 3.854 1.093 2.458 0 4.406-1.458 1.948-1.458 2.74-3.771l1.042.229q-.813 2.73-3.073 4.407-2.261 1.677-5.115 1.677ZM1.458 9.208q.125-1.354.604-2.52.48-1.167 1.355-2.209l.791.75q-.687.875-1.104 1.834-.416.958-.562 2.145ZM5.25 4.167l-.75-.771q1.021-.875 2.24-1.365 1.218-.489 2.51-.593v1.083q-1.083.125-2.104.552Q6.125 3.5 5.25 4.167Zm9.479 0q-.812-.667-1.864-1.105-1.053-.437-2.115-.541V1.438q1.312.083 2.521.583 1.208.5 2.229 1.375Zm2.709 5.041q-.146-1.146-.563-2.146-.417-1-1.104-1.833l.791-.771q.855 1 1.365 2.209.511 1.208.615 2.541Z"/></svg>`;
+const refresh = w `<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`;
+const instancesIcon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="padding: 1px;box-sizing: border-box;" height="18" width="18" viewBox="0 0 20 20" ><path d="M10 9q-3.062 0-5.031-.844Q3 7.312 3 6q0-1.229 2.062-2.115Q7.125 3 10 3q2.875 0 4.938.885Q17 4.771 17 6q0 1.312-1.969 2.156Q13.062 9 10 9Zm0 4q-2.979 0-4.99-.865Q3 11.271 3 10V8.042q0 .604.562 1.135.563.531 1.521.938.959.406 2.229.645Q8.583 11 10 11q1.417 0 2.688-.24 1.27-.239 2.229-.645.958-.407 1.521-.938Q17 8.646 17 8.042V10q0 1.271-2.01 2.135Q12.979 13 10 13Zm0 4q-2.917 0-4.958-.906Q3 15.188 3 13.896v-1.958q0 .604.573 1.156.573.552 1.542.979.968.427 2.239.677Q8.625 15 10 15t2.646-.25q1.271-.25 2.239-.677.969-.427 1.542-.979.573-.552.573-1.156v1.958q0 1.292-2.042 2.198Q12.917 17 10 17Z"/></svg>`;
+const superHierarchies = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="3 2 14 18"><path d="M10 16q-1.667 0-2.833-1.167Q6 13.667 6 12q0-1.479.927-2.573.927-1.094 2.323-1.365V4.875L8.062 6.062 7 5l3-3 3 3-1.062 1.062-1.188-1.187v3.187q1.396.271 2.323 1.365Q14 10.521 14 12q0 1.667-1.167 2.833Q11.667 16 10 16Zm0-1.5q1.042 0 1.771-.729.729-.729.729-1.771 0-1.042-.729-1.771Q11.042 9.5 10 9.5q-1.042 0-1.771.729Q7.5 10.958 7.5 12q0 1.042.729 1.771.729.729 1.771.729Zm0-2.5Z"/></svg>`;
+const subHierarchies = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="3 2 14 18"><path d="m10 18-3-3 1.062-1.062 1.188 1.187v-3.187q-1.396-.271-2.323-1.365Q6 9.479 6 8q0-1.667 1.167-2.833Q8.333 4 10 4q1.667 0 2.833 1.167Q14 6.333 14 8q0 1.479-.927 2.573-.927 1.094-2.323 1.365v3.187l1.188-1.187L13 15Zm0-7.5q1.042 0 1.771-.729Q12.5 9.042 12.5 8q0-1.042-.729-1.771Q11.042 5.5 10 5.5q-1.042 0-1.771.729Q7.5 6.958 7.5 8q0 1.042.729 1.771.729.729 1.771.729ZM10 8Z"/></svg>`;
+const rubbishBin = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M6.5 17q-.625 0-1.062-.438Q5 16.125 5 15.5v-10H4V4h4V3h4v1h4v1.5h-1v10q0 .625-.438 1.062Q14.125 17 13.5 17Zm7-11.5h-7v10h7ZM8 14h1.5V7H8Zm2.5 0H12V7h-1.5Zm-4-8.5v10Z"/></svg>`;
+const mastroEndpointIcon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M3.542 9.25q-.563 0-.948-.396-.386-.396-.386-.937V5.542q0-.542.396-.938.396-.396.938-.396H11V9.25Zm0-1.083h6.375V5.292H3.542q-.104 0-.177.073t-.073.177v2.375q0 .104.073.177t.177.073Zm0 7.625q-.542 0-.938-.396-.396-.396-.396-.938v-2.375q0-.541.396-.937t.938-.396H12.5v5.042Zm0-1.084h7.875v-2.875H3.542q-.104 0-.177.073t-.073.177v2.375q0 .104.073.177t.177.073ZM14 15.792V9.25h-1.5V4.208h5.188L16.25 7.854h1.438Zm-9.896-2.021h1v-1h-1Zm0-6.542h1v-1h-1Zm-.812.938V5.292v2.875Zm0 6.541v-2.875 2.875Z"/></svg>`;
+const stopCircle = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M7.208 12.792h5.584V7.208H7.208ZM10 17.583q-1.562 0-2.948-.593-1.385-.594-2.417-1.625-1.031-1.032-1.625-2.417-.593-1.386-.593-2.948 0-1.583.593-2.958.594-1.375 1.625-2.407Q5.667 3.604 7.052 3.01 8.438 2.417 10 2.417q1.583 0 2.958.593 1.375.594 2.407 1.625 1.031 1.032 1.625 2.417.593 1.386.593 2.948t-.593 2.948q-.594 1.385-1.625 2.417-1.032 1.031-2.417 1.625-1.386.593-2.948.593Zm0-1.083q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`;
+const equivalentClasses = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="m10 17-3-3 1.062-1.062 1.188 1.187v-8.25L8.062 7.062 7 6l3-3 3 3-1.062 1.062-1.188-1.187v8.25l1.188-1.187L13 14Z"/></svg>`;
+const entityIcons = {};
+entityIcons[GrapholTypesEnum.CLASS] = classIcon;
+entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon;
+entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon;
+entityIcons[GrapholTypesEnum.INDIVIDUAL] = individualIcon;
+entityIcons[GrapholTypesEnum.CLASS_INSTANCE] = classInstanceIcon;
+
+var grapholscapeLogo = y `<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 1024 792.6" style="enable-background:new 0 0 1024 792.6;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#SVGID_1_);}
+	.st1{fill:#FFFFFF;}
+	.st2{enable-background:new    ;}
+	.st3{fill:url(#SVGID_2_);}
+</style>
+<g>
+	<g id="Logo">
+
+			<radialGradient id="SVGID_1_" cx="502.1" cy="894.61" r="662.91" gradientTransform="matrix(1 0 0 1 12.76 -283.3)" gradientUnits="userSpaceOnUse">
+			<stop  offset="0" style="stop-color:#5B86E5"/>
+			<stop  offset="0.34" style="stop-color:#509CE2"/>
+			<stop  offset="1" style="stop-color:#36D1DC"/>
+		</radialGradient>
+		<path class="st0" d="M512,506c-138.1,0-250-111.9-250-250c0-66.3,26.3-129.9,73.2-176.8c97.6-97.6,256-97.6,353.6,0
+			s97.6,256,0,353.6C642,479.8,578.3,506.2,512,506z"/>
+		<path class="st1" d="M512,11.9c134.8,0,244.1,109.3,244.1,244.2c0,98.1-58.7,186.6-149.1,224.8c-124.2,52.5-267.4-5.7-319.9-129.9
+			S292.8,83.6,417,31.1C447.1,18.4,479.4,11.9,512,11.9 M512,0C370.6,0,256,114.6,256,256s114.6,256,256,256s256-114.6,256-256
+			S653.4,0,512,0z"/>
+		<path class="st1" d="M513.6,432c-12.4,0-24.4-4.9-33.1-13.7L344.1,282c-18.3-18.3-18.3-48,0-66.3L513.6,46.2l40.3,40.3
+			L391.6,248.8l122,122l122-122L594.7,208l-81.2,81.1l-40.3-40.3l88.3-88.3c18.3-18.3,48-18.3,66.3,0l55.2,55.2
+			c18.3,18.3,18.3,48,0,66.3L546.7,418.3C537.9,427.1,526,432,513.6,432z"/>
+		<g class="st2">
+			<path d="M83,594.8c5.3,0,10.2,0.3,14.7,0.8s8.9,1.3,13.1,2.2c4.2,1,8.2,2.1,12.1,3.5s7.9,2.9,11.9,4.5v12.6
+				c-3.2-2-6.5-3.9-10.1-5.7s-7.4-3.3-11.6-4.7c-4.1-1.3-8.6-2.4-13.3-3.2c-4.7-0.8-9.8-1.2-15.3-1.2c-11.1,0-20.8,1.2-29.1,3.5
+				s-15.2,5.7-20.6,10c-5.5,4.3-9.6,9.6-12.4,15.8c-2.7,6.2-4.1,13.2-4.1,21c0,7.3,1.3,14,4,20.1s6.8,11.4,12.2,15.8
+				c5.5,4.4,12.3,7.9,20.5,10.4s17.8,3.7,28.9,3.7c4.3,0,8.6-0.2,12.9-0.5c4.2-0.3,8.3-0.8,12-1.3c3.8-0.5,7.2-1.1,10.3-1.7
+				c3.1-0.6,5.7-1.3,7.9-2V664H80.7v-9.7h56.9v50.3c-4.1,1.4-8.3,2.7-12.4,3.8c-4.2,1.1-8.5,2-13,2.8c-4.5,0.7-9.1,1.3-13.9,1.7
+				s-9.8,0.6-15.1,0.6c-10.8,0-20.7-1.2-30-3.6c-9.2-2.4-17.2-6.1-23.9-11s-12-11.1-15.9-18.5c-3.8-7.4-5.7-16.2-5.7-26.2
+				c0-6.7,0.9-12.8,2.7-18.3s4.3-10.5,7.5-14.9s7.2-8.3,11.7-11.5c4.6-3.3,9.7-6,15.2-8.1c5.6-2.1,11.6-3.7,18-4.8
+				C69.3,595.3,76,594.8,83,594.8z"/>
+			<path d="M181.2,662.2v48.9h-10.4V596.8h56.9c8.7,0,16.2,0.7,22.4,2c6.2,1.4,11.3,3.4,15.3,6.2c4,2.7,6.9,6.2,8.7,10.3
+				c1.8,4.1,2.7,8.9,2.7,14.4c0,8.5-2.2,15.4-6.7,20.5s-11.7,8.6-21.7,10.5l39,50.4h-13.1l-36.9-49.3c-1.6,0.1-3.1,0.2-4.7,0.2
+				c-1.6,0.1-3.3,0.1-5,0.1L181.2,662.2L181.2,662.2z M266.1,629.7c0-4.9-0.9-8.8-2.6-11.9c-1.7-3-4.5-5.4-8.4-7s-9-2.8-15.3-3.4
+				c-6.3-0.6-14-0.9-23.2-0.9h-35.5v45.9h35.1c9.2,0,16.9-0.3,23.2-0.8s11.5-1.6,15.4-3.2c3.9-1.6,6.8-3.9,8.5-6.9
+				C265.3,638.6,266.1,634.6,266.1,629.7z"/>
+			<path d="M417.4,711.2L401.7,681h-77.6l-15.7,30.2H297l59.8-114.3H369l59.8,114.3H417.4z M362.9,606.9l-33.8,64.6h67.5
+				L362.9,606.9z"/>
+			<path d="M562.8,632c0,5.7-0.9,10.8-2.8,15.1c-1.9,4.4-4.8,8.1-8.8,11.1s-9.1,5.3-15.4,6.8c-6.3,1.5-13.9,2.3-22.8,2.3h-51.3v43.9
+				h-10.4V596.8H513c8.9,0,16.5,0.8,22.8,2.3s11.4,3.8,15.4,6.7s6.9,6.6,8.8,11C561.8,621.2,562.8,626.2,562.8,632z M552.1,632
+				c0-5.4-0.9-9.8-2.7-13.1s-4.6-5.9-8.3-7.7s-8.5-3-14.2-3.6s-12.6-0.9-20.4-0.9h-44.7v50.9h44.7c3.1,0,6.3,0,9.8,0
+				s6.9-0.1,10.3-0.5c3.4-0.4,6.6-1,9.7-1.9s5.8-2.3,8.2-4.2s4.2-4.4,5.7-7.4C551.4,640.5,552.1,636.6,552.1,632z"/>
+			<path d="M703.6,711.2v-55.6H601.2v55.6h-10.4V596.8h10.4v49.3h102.4v-49.3H714v114.3h-10.4V711.2z"/>
+			<path d="M889.7,654.1c0,10.3-1.9,19.1-5.6,26.6c-3.7,7.5-8.8,13.6-15.3,18.5s-14.1,8.4-23,10.8s-18.3,3.5-28.5,3.5
+				c-10.3,0-19.8-1.2-28.7-3.5s-16.6-5.9-23.1-10.8c-6.5-4.9-11.7-11-15.4-18.5s-5.6-16.3-5.6-26.6c0-6.8,0.9-13,2.6-18.6
+				c1.7-5.6,4.1-10.6,7.2-15c3.1-4.4,6.9-8.2,11.3-11.4c4.4-3.2,9.3-5.9,14.7-8s11.2-3.7,17.4-4.7s12.7-1.5,19.5-1.5
+				c10.2,0,19.7,1.2,28.5,3.5s16.5,5.9,23,10.8c6.5,4.9,11.6,11,15.3,18.5C887.8,635,889.7,643.8,889.7,654.1z M879,654.1
+				c0-8.1-1.3-15.3-4-21.5c-2.6-6.2-6.5-11.4-11.7-15.7c-5.2-4.2-11.6-7.5-19.3-9.7s-16.6-3.3-26.8-3.3s-19.1,1.1-26.9,3.3
+				c-7.7,2.2-14.2,5.5-19.4,9.7s-9.2,9.5-11.8,15.7s-4,13.4-4,21.3c0,8.1,1.3,15.3,4,21.5s6.6,11.4,11.8,15.7
+				c5.2,4.2,11.7,7.5,19.4,9.7s16.7,3.3,26.9,3.3s19.1-1.1,26.8-3.3s14.1-5.4,19.3-9.7c5.2-4.2,9.1-9.5,11.7-15.7
+				C877.7,669.3,879,662.2,879,654.1z"/>
+			<path d="M920.2,711.2V596.8h10.4v104.6h83.5v9.7h-93.9V711.2z"/>
+		</g>
+
+			<radialGradient id="SVGID_2_" cx="513.05" cy="1101.48" r="466.86" gradientTransform="matrix(1 0 0 1 0 -286)" gradientUnits="userSpaceOnUse">
+			<stop  offset="0" style="stop-color:#5B86E5"/>
+			<stop  offset="0.34" style="stop-color:#509CE2"/>
+			<stop  offset="1" style="stop-color:#36D1DC"/>
+		</radialGradient>
+		<path class="st3" d="M389.9,700.8h244.3c16.8,0,30.4,13.6,30.4,30.4v27.4c0,16.8-13.6,30.4-30.4,30.4H389.9
+			c-16.8,0-30.4-13.6-30.4-30.4v-27.4C359.4,714.4,373,700.8,389.9,700.8L389.9,700.8L389.9,700.8z"/>
+		<path class="st1" d="M634.2,704.3c14.8,0,26.8,12,26.8,26.9v27.4c0,14.8-12,26.9-26.9,26.9l0,0H389.9c-14.8,0-26.9-12-26.9-26.9
+			v-27.4c0-14.8,12-26.9,26.9-26.9l0,0H634.2 M634.2,697.2H389.9c-18.8,0-34,15.2-34,34v27.4c0,18.8,15.2,34,34,34h244.3
+			c18.8,0,34-15.2,34-34v-27.4C668.2,712.4,652.9,697.2,634.2,697.2L634.2,697.2z"/>
+		<g class="st2">
+			<path class="st1" d="M385,764.8c-3.7-0.9-6.6-2-8.6-3.3l3-4c2.1,1.2,4.7,2.2,7.8,3c3.1,0.8,6.4,1.2,9.8,1.2
+				c4.5,0,7.9-0.5,10.1-1.6c2.2-1.1,3.3-2.6,3.3-4.5c0-1.4-0.6-2.4-1.8-3.2c-1.2-0.8-2.7-1.4-4.5-1.8c-1.8-0.4-4.2-0.8-7.3-1.2
+				c-4-0.6-7.3-1.1-9.7-1.7c-2.5-0.6-4.5-1.6-6.3-3c-1.7-1.4-2.6-3.4-2.6-5.9c0-3.1,1.7-5.7,5.2-7.7c3.5-2,8.3-3,14.4-3
+				c3.2,0,6.4,0.3,9.6,1c3.2,0.6,5.9,1.5,7.9,2.5l-2.9,4c-4.1-2.1-9-3.2-14.6-3.2c-4.3,0-7.5,0.6-9.7,1.7c-2.2,1.1-3.3,2.6-3.3,4.5
+				c0,1.4,0.6,2.6,1.8,3.4c1.2,0.9,2.8,1.5,4.6,1.9c1.8,0.4,4.3,0.8,7.6,1.2c4,0.6,7.1,1.1,9.5,1.7c2.4,0.6,4.4,1.5,6.1,2.9
+				s2.5,3.3,2.5,5.7c0,3.3-1.8,5.9-5.4,7.8c-3.6,1.9-8.6,2.9-15.1,2.9C392.6,766.1,388.7,765.7,385,764.8z"/>
+			<path class="st1" d="M436.9,763.7c-3.9-1.6-6.9-3.9-9.1-6.8c-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.3-9.8
+				c2.2-2.9,5.2-5.1,9.1-6.7c3.9-1.6,8.3-2.4,13.2-2.4c4.3,0,8.1,0.6,11.5,1.9c3.4,1.3,6,3.1,8,5.5l-5,2.6c-1.6-1.8-3.7-3.2-6.2-4.2
+				c-2.5-0.9-5.3-1.4-8.2-1.4c-3.6,0-6.8,0.6-9.7,1.8c-2.9,1.2-5.1,2.9-6.7,5.1s-2.4,4.8-2.4,7.6c0,2.9,0.8,5.4,2.4,7.6
+				c1.6,2.2,3.8,3.9,6.7,5.1c2.9,1.2,6.1,1.8,9.7,1.8c3,0,5.7-0.4,8.2-1.3c2.5-0.9,4.6-2.3,6.2-4.1l5,2.6c-2,2.4-4.6,4.2-8,5.5
+				c-3.4,1.3-7.2,1.9-11.4,1.9C445.1,766.1,440.7,765.3,436.9,763.7z"/>
+			<path class="st1" d="M514.9,731.8c3.5,2.4,5.2,6,5.2,10.8v23.1h-6.4v-5.8c-1.5,1.9-3.7,3.5-6.7,4.5c-2.9,1.1-6.4,1.6-10.4,1.6
+				c-5.5,0-9.9-1-13.2-3c-3.3-2-4.9-4.6-4.9-7.9c0-3.2,1.5-5.7,4.6-7.7c3.1-1.9,7.9-2.9,14.6-2.9h15.8v-2.3c0-3.2-1.2-5.7-3.6-7.3
+				c-2.4-1.7-5.9-2.5-10.5-2.5c-3.1,0-6.2,0.4-9.1,1.2c-2.9,0.8-5.4,1.9-7.5,3.2l-3-3.8c2.5-1.6,5.5-2.9,9.1-3.7
+				c3.5-0.9,7.2-1.3,11.1-1.3C506.5,728.1,511.5,729.3,514.9,731.8z M507.4,760.2c2.7-1.3,4.7-3.2,6-5.6v-6.1h-15.6
+				c-8.5,0-12.7,2.2-12.7,6.7c0,2.2,1.1,3.9,3.3,5.1c2.2,1.3,5.3,1.9,9.3,1.9C501.4,762.1,504.7,761.5,507.4,760.2z"/>
+			<path class="st1" d="M576.6,730.5c3.8,1.6,6.7,3.8,8.9,6.7c2.1,2.9,3.2,6.2,3.2,9.9c0,3.7-1.1,7.1-3.2,9.9
+				c-2.1,2.9-5.1,5.1-8.8,6.7c-3.7,1.6-8,2.4-12.7,2.4c-4,0-7.7-0.6-10.9-1.9c-3.2-1.3-5.9-3.1-8-5.5v20.8h-6.7v-51.1h6.4v7.4
+				c2-2.5,4.7-4.4,8-5.7s7-2,11.2-2C568.6,728.1,572.8,728.9,576.6,730.5z M572.9,759.8c2.8-1.2,5.1-2.9,6.7-5.1
+				c1.6-2.2,2.4-4.8,2.4-7.6s-0.8-5.4-2.4-7.6c-1.6-2.2-3.8-3.9-6.7-5.1c-2.8-1.2-6-1.8-9.4-1.8c-3.5,0-6.7,0.6-9.5,1.8
+				c-2.8,1.2-5,2.9-6.6,5.1s-2.4,4.7-2.4,7.6s0.8,5.4,2.4,7.6c1.6,2.2,3.8,3.9,6.6,5.1s6,1.8,9.5,1.8
+				C566.9,761.6,570.1,761,572.9,759.8z"/>
+			<path class="st1" d="M645.6,748.6h-41.5c0.4,3.9,2.4,7,5.9,9.4c3.6,2.4,8.1,3.6,13.6,3.6c3.1,0,5.9-0.4,8.5-1.2
+				c2.6-0.8,4.8-2,6.7-3.7l3.8,3.3c-2.2,2-5,3.5-8.3,4.5c-3.3,1-6.9,1.6-10.9,1.6c-5.1,0-9.6-0.8-13.6-2.5c-3.9-1.6-7-3.9-9.2-6.8
+				c-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.2-9.8c2.1-2.9,5-5.1,8.7-6.7c3.7-1.6,7.8-2.4,12.4-2.4c4.6,0,8.7,0.8,12.4,2.4
+				c3.7,1.6,6.5,3.8,8.6,6.7c2.1,2.9,3.1,6.1,3.1,9.8L645.6,748.6z M609.6,735.9c-3.2,2.3-5.1,5.3-5.5,9h35.2
+				c-0.4-3.7-2.3-6.7-5.5-9c-3.2-2.3-7.3-3.4-12.1-3.4C616.8,732.5,612.8,733.6,609.6,735.9z"/>
+		</g>
+	</g>
+</g>
+</svg>`;
+
+var index$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    classIcon: classIcon,
+    objectPropertyIcon: objectPropertyIcon,
+    dataPropertyIcon: dataPropertyIcon,
+    individualIcon: individualIcon,
+    grapholscapeLogo: grapholscapeLogo,
+    diagrams: diagrams,
+    triangle_up: triangle_up,
+    triangle_down: triangle_down,
+    arrow_right: arrow_right,
+    arrowDown: arrowDown,
+    explore: explore,
+    info_outline: info_outline,
+    enterFullscreen: enterFullscreen,
+    exitFullscreen: exitFullscreen,
+    centerDiagram: centerDiagram,
+    filter: filter,
+    bubbles: bubbles,
+    lite: lite,
+    settings_icon: settings_icon,
+    infoFilled: infoFilled,
+    plus: plus,
+    minus: minus,
+    save: save,
+    lock_open: lock_open,
+    close: close,
+    blankSlateDiagrams: blankSlateDiagrams,
+    check: check,
+    searchOff: searchOff,
+    move_bubbles: move_bubbles,
+    owl_icon: owl_icon,
+    graphol_icon: graphol_icon,
+    tune: tune,
+    settings_play: settings_play,
+    filterOff: filterOff,
+    incremental: incremental,
+    refresh: refresh,
+    instancesIcon: instancesIcon,
+    superHierarchies: superHierarchies,
+    subHierarchies: subHierarchies,
+    rubbishBin: rubbishBin,
+    mastroEndpointIcon: mastroEndpointIcon,
+    stopCircle: stopCircle,
+    equivalentClasses: equivalentClasses,
+    entityIcons: entityIcons
+});
+
 const animationDuration = i$1 `200ms`;
 const BOTTOM_RIGHT_WIDGET = i$1 `bottom-right-widget`;
 var baseStyle = i$1 `
@@ -3408,178 +3833,6 @@ GscapeButton.properties = {
 GscapeButton.styles = [baseStyle, GscapeButtonStyle];
 customElements.define('gscape-button', GscapeButton);
 
-var ToggleLabelPosition;
-(function (ToggleLabelPosition) {
-    ToggleLabelPosition["LEFT"] = "left";
-    ToggleLabelPosition["RIGHT"] = "right";
-})(ToggleLabelPosition || (ToggleLabelPosition = {}));
-class GscapeToggle extends s {
-    constructor() {
-        super(...arguments);
-        this.labelPosition = ToggleLabelPosition.RIGHT;
-    }
-    static get properties() {
-        return {
-            disabled: { type: Boolean, reflect: true },
-            label: { type: String, reflect: true },
-            labelPosition: { type: String, reflect: true, attribute: 'label-position' },
-            key: { type: String, reflect: true },
-            checked: { type: Boolean, reflect: true },
-        };
-    }
-    render() {
-        return y `
-    <label class="toggle-container">
-      <span class="toggle-label">${this.label}</span>
-      <span class="toggle-wrap">
-        <input id="${this.key}" type="checkbox"
-          ?checked="${this.checked}"
-          ?disabled="${this.disabled}"
-        />
-        <span class="toggle"></span>
-      </span>
-    </label>
-    `;
-    }
-}
-GscapeToggle.ToggleLabelPosition = ToggleLabelPosition;
-GscapeToggle.styles = [
-    baseStyle,
-    i$1 `
-      :host {
-        display: block;
-        cursor: pointer;
-      }
-
-      :host([disabled]) {
-        cursor: not-allowed;
-      }
-
-      .toggle-container {
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        cursor: inherit;
-        gap: 15px;
-        justify-content: space-between;
-      }
-
-      :host([label-position = "right"]) > .toggle-container {
-        flex-direction: row-reverse;
-      }
-
-      .toggle-wrap {
-        width: 36px;
-        height: 18px;
-        display: inline-block;
-        position: relative;
-      }
-
-      .toggle {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 18px;
-        background-color: var(--gscape-color-neutral-muted);
-        border: 1px solid var(--gscape-color-border-subtle);
-        transition: all 0.2s ease 0s;
-      }
-
-      .toggle::before {
-        content: "";
-        transition: all 0.1s ease 0s;
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background-color: var(--gscape-color-bg-default);
-        border: solid 1px var(--gscape-color-border-subtle);
-        border-radius: 9px;
-        bottom: 2px;
-        left: 2px;
-      }
-
-      .toggle-wrap input {
-        display:none;
-      }
-
-      .toggle-wrap input:checked + .toggle {
-        background-color: var(--gscape-color-accent-muted);
-        border-color: var(--gscape-color-accent);
-        filter: brightness(100%);
-      }
-
-      .toggle-wrap input:checked + .toggle::before {
-        -webkit-transform: translateX(18px);
-        -ms-transform: translateX(18px);
-        transform: translateX(18px);
-        background-color: var(--gscape-color-accent);
-      }
-
-      .toggle-wrap input:disabled + .toggle {
-        opacity:0.5;
-      }
-
-      .toggle-label {
-        flex-grow: 2;
-      }
-    `
-];
-customElements.define('gscape-toggle', GscapeToggle);
-
-var actionItemStyle = i$1 `
-  .list-item {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .list-item.selected-item::before {
-    margin-right: -4px;
-  }
-
-  .list-item-label {
-    align-self: center;
-  }
-`;
-
-class GscapeActionListItem extends s {
-    constructor() {
-        super(...arguments);
-        this.expanded = false;
-    }
-    render() {
-        return y `
-      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null} ellipsed" @click=${this.clickHandler}>
-        <div class="list-item actionable" @click=${this.clickHandler}>
-          <slot name="icon" class="slotted-icon" ></slot>
-          <span class="list-item-label" title=${this.label}>${this.label}</span>
-          <slot name="trailing-icon" class="slotted-icon" ></slot>
-
-          ${this.expanded
-            ? y `<slot name="hidden-content" class="slotted-icon" ></slot>`
-            : null}
-        </div>
-      </li>
-    `;
-    }
-    clickHandler() {
-        if (this.hiddenContent) {
-            this.expanded = !this.expanded;
-        }
-    }
-    get hiddenContent() { return this.querySelector('[slot = "hidden-content"]'); }
-}
-GscapeActionListItem.properties = {
-    label: { type: String, reflect: true },
-    subtle: { type: Boolean },
-    selected: { type: Boolean },
-    expanded: { state: true }
-};
-GscapeActionListItem.styles = [baseStyle, actionItemStyle];
-customElements.define('gscape-action-list-item', GscapeActionListItem);
-
 const BaseMixin = (superClass) => {
     class BaseMixinClass extends superClass {
         constructor() {
@@ -3629,19 +3882,33 @@ const DropPanelMixin = (superClass) => {
     class DropPanelMixinClass extends superClass {
         constructor() {
             super(...arguments);
+            this.onblur = (ev) => {
+                ev.stopPropagation();
+                ev.preventDefault();
+                const target = ev.relatedTarget;
+                if (target && !this.contains(target)) {
+                    this.blur();
+                }
+            };
             this.onTogglePanel = () => { };
         }
         get panel() { var _a; return (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#drop-panel'); }
         togglePanel() {
-            var _a;
-            (_a = this.panel) === null || _a === void 0 ? void 0 : _a.classList.toggle('hide');
-            this.requestUpdate();
+            this.isPanelClosed() ? this.openPanel() : this.closePanel();
             this.onTogglePanel();
         }
         openPanel() {
             var _a;
             (_a = this.panel) === null || _a === void 0 ? void 0 : _a.classList.remove('hide');
             this.requestUpdate();
+            // Blur other widgets in bottom-right-buttons-tray, keep only one panel open at time
+            const container = this.parentElement;
+            if (container && container.classList.contains('gscape-ui-buttons-tray')) {
+                for (const siblingElement of container.children) {
+                    if (siblingElement !== this)
+                        siblingElement.blur();
+                }
+            }
         }
         closePanel() {
             var _a;
@@ -3702,6 +3969,275 @@ const ModalMixin = (superClass) => {
     return ModalMixinClass;
 };
 
+class GscapeContextMenu extends BaseMixin(s) {
+    constructor() {
+        super(...arguments);
+        this.commands = [];
+        this.customElements = [];
+        this.showFirst = 'elements';
+        this.onCommandRun = () => { };
+        this.tippyMenu = tippy(document.createElement('div'));
+    }
+    render() {
+        return y `
+    <div class="gscape-panel">
+      ${this.title ? y `<div>${this.title}</div>` : null}
+      ${this.showFirst === 'elements' ? this.customElementsTemplate : null}
+      
+      ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
+            ? y `<div class="hr"></div>` : null}
+
+      ${this.commandsTemplate}
+
+      ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
+            ? y `<div class="hr"></div>` : null}
+
+
+      ${this.showFirst === 'commands' ? this.customElementsTemplate : null}
+    </div>
+    `;
+    }
+    attachTo(element, commands, elements) {
+        this.tippyMenu.setProps(this.cxtMenuProps);
+        this.tippyMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() });
+        this.commands = commands || [];
+        this.customElements = elements || [];
+        this.tippyMenu.show();
+    }
+    get cxtMenuProps() {
+        return {
+            trigger: 'manual',
+            allowHTML: true,
+            interactive: true,
+            placement: "bottom",
+            appendTo: document.querySelector('.gscape-ui') || undefined,
+            // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
+            content: this,
+            offset: [0, 0],
+        };
+    }
+    handleCommandClick(e) {
+        const command = this.commands[e.currentTarget.getAttribute('command-id')];
+        if (command.select) {
+            command.select();
+            this.onCommandRun();
+            this.tippyMenu.hide();
+        }
+    }
+    get commandsTemplate() {
+        if (this.commands.length > 0)
+            return y `
+        <div class="commands">
+          ${this.commands.map((command, id) => {
+                return y `
+              <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
+                ${command.icon ? y `<span class="command-icon slotted-icon">${command.icon}</span>` : null}
+                <span class="command-text">${command.content}</span>
+              <div>
+            `;
+            })}
+        </div>
+      `;
+    }
+    get customElementsTemplate() {
+        if (this.customElements.length > 0)
+            return y `
+        <div class="custom-elements">
+          ${this.customElements.map(c => y `<div class="custom-element-wrapper">${c}</div>`)}
+        </div>    
+      `;
+    }
+}
+GscapeContextMenu.properties = {
+    commands: { type: Object, attribute: false },
+    customElements: { type: Object, attribute: false },
+    showFirst: { type: String },
+};
+GscapeContextMenu.styles = [
+    baseStyle,
+    i$1 `
+      :host {
+        display: flex;
+        flex-direction: column;
+        padding: 5px 0;
+      }
+
+      .command-entry {
+        white-space: nowrap;
+        cursor: pointer;
+        padding: 5px 10px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .command-text {
+        line-height: 20px;
+      }
+
+      .gscape-panel, .custom-elements {
+        overflow: unset;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+        align-items: stretch;
+      }
+    `
+];
+customElements.define('gscape-context-menu', GscapeContextMenu);
+
+var actionItemStyle = i$1 `
+  .list-item {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .list-item.selected-item::before {
+    margin-right: -4px;
+  }
+
+  .list-item-label {
+    align-self: center;
+  }
+`;
+
+class GscapeActionListItem extends s {
+    constructor() {
+        super(...arguments);
+        this.expanded = false;
+    }
+    render() {
+        return y `
+      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null} ellipsed" @click=${this.clickHandler}>
+        <div class="list-item actionable" @click=${this.clickHandler}>
+          <slot name="icon" class="slotted-icon" ></slot>
+          <span class="list-item-label" title=${this.label}>${this.label}</span>
+          <slot name="trailing-icon" class="slotted-icon" ></slot>
+
+          ${this.expanded
+            ? y `<slot name="hidden-content" class="slotted-icon" ></slot>`
+            : null}
+        </div>
+      </li>
+    `;
+    }
+    clickHandler() {
+        if (this.hiddenContent) {
+            this.expanded = !this.expanded;
+        }
+    }
+    get hiddenContent() { return this.querySelector('[slot = "hidden-content"]'); }
+}
+GscapeActionListItem.properties = {
+    label: { type: String, reflect: true },
+    subtle: { type: Boolean },
+    selected: { type: Boolean },
+    expanded: { state: true }
+};
+GscapeActionListItem.styles = [baseStyle, actionItemStyle];
+customElements.define('gscape-action-list-item', GscapeActionListItem);
+
+const textSpinner = () => y `<div title="Loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>`;
+const textSpinnerStyle = i$1 `
+  .lds-ellipsis {
+    display: inline-block;
+    position: relative;
+    width: 20px;
+    height: 1em;
+  }
+  .lds-ellipsis div {
+    position: absolute;
+    top: calc(1em / 2);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--gscape-color-fg-subtle);
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+  }
+  .lds-ellipsis div:nth-child(1) {
+    left: 2px;
+    animation: lds-ellipsis1 0.6s infinite;
+  }
+  .lds-ellipsis div:nth-child(2) {
+    left: 2px;
+    animation: lds-ellipsis2 0.6s infinite;
+  }
+  .lds-ellipsis div:nth-child(3) {
+    left: 8px;
+    animation: lds-ellipsis2 0.6s infinite;
+  }
+  .lds-ellipsis div:nth-child(4) {
+    left: 14px;
+    animation: lds-ellipsis3 0.6s infinite;
+  }
+  @keyframes lds-ellipsis1 {
+    0% {
+      transform: scale(0);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes lds-ellipsis3 {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+  @keyframes lds-ellipsis2 {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(6px, 0);
+    }
+  }
+`;
+
+function getContentSpinner() {
+    return y `<div class="lds-ring" title="Loading"><div></div><div></div><div></div><div></div></div>`;
+}
+const contentSpinnerStyle = i$1 `
+  .lds-ring {
+    width: 20px;
+    height: 20px;
+  }
+
+  .lds-ring div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin: 2px;
+    border: 2px solid var(--gscape-color-accent);
+    border-radius: 50%;
+    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: var(--gscape-color-accent) transparent transparent transparent;
+  }
+  .lds-ring div:nth-child(1) {
+    animation-delay: -0.45s;
+  }
+  .lds-ring div:nth-child(2) {
+    animation-delay: -0.3s;
+  }
+  .lds-ring div:nth-child(3) {
+    animation-delay: -0.15s;
+  }
+  @keyframes lds-ring {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 class GscapeTextSearch extends s {
     constructor() {
         super(...arguments);
@@ -3722,427 +4258,6 @@ GscapeTextSearch.properties = {
 };
 GscapeTextSearch.styles = [baseStyle, GscapeButtonStyle];
 customElements.define('gscape-text-search', GscapeTextSearch);
-
-var classIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="18"
-   height="18"
-   version="1.1"
-   id="svg4"
-   sodipodi:docname="class.svg"
-   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
-  <metadata
-     id="metadata10">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs8" />
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="1853"
-     inkscape:window-height="1025"
-     id="namedview6"
-     showgrid="false"
-     inkscape:zoom="13.111111"
-     inkscape:cx="0.11440678"
-     inkscape:cy="9"
-     inkscape:window-x="67"
-     inkscape:window-y="27"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg4" />
-  <rect
-     x="3"
-     y="6"
-     width="12"
-     height="7"
-     rx="0"
-     ry="0"
-     id="rect2"
-     style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:3" />
-</svg>
-`;
-
-var classInstanceIcon = w `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-class-instance-contrast)" stroke-width="3.5" fill="none"/>
-</svg>
-`;
-
-var dataPropertyIcon = w `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-<circle cx="9" cy="9" r="5" stroke="var(--gscape-color-data-property-contrast)" stroke-width="3.5" fill="none"/>
-</svg>
-`;
-
-var individualIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (6e3e5246a0, 2020-05-07)"
-   sodipodi:docname="individual.svg"
-   id="svg4"
-   version="1.1"
-   height="18"
-   width="18">
-  <metadata
-     id="metadata10">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs8">
-    <linearGradient
-       osb:paint="solid"
-       id="linearGradient880">
-      <stop
-         id="stop878"
-         offset="0"
-         style="stop-color:#000000;stop-opacity:1;" />
-    </linearGradient>
-  </defs>
-  <sodipodi:namedview
-     inkscape:document-rotation="0"
-     fit-margin-bottom="0"
-     fit-margin-right="0"
-     fit-margin-left="0"
-     fit-margin-top="0"
-     inkscape:current-layer="svg4"
-     inkscape:window-maximized="0"
-     inkscape:window-y="27"
-     inkscape:window-x="993"
-     inkscape:cy="9.677215"
-     inkscape:cx="9.0082925"
-     inkscape:zoom="22.702061"
-     showgrid="false"
-     id="namedview6"
-     inkscape:window-height="1025"
-     inkscape:window-width="927"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     guidetolerance="10"
-     gridtolerance="10"
-     objecttolerance="10"
-     borderopacity="1"
-     bordercolor="#666666"
-     pagecolor="#ffffff" />
-  <g
-     id="g27">
-    <g
-       id="g21">
-      <g
-         id="g16">
-        <g
-           id="g12" />
-      </g>
-    </g>
-  </g>
-  <path
-     transform="matrix(0.9072154,0,0,0.92465409,0.92347539,1.0342853)"
-     d="m 15.868025,11.669896 -4.068749,4.075966 -5.7591839,0.0051 -4.0759657,-4.06875 -0.0051,-5.7591835 4.0687497,-4.0759657 5.7591833,-0.0051 4.075966,4.0687497 z"
-     inkscape:randomized="0"
-     inkscape:rounded="0"
-     inkscape:flatsided="true"
-     sodipodi:arg2="0.78451219"
-     sodipodi:arg1="0.39181311"
-     sodipodi:r2="6.9185686"
-     sodipodi:r1="7.5247387"
-     sodipodi:cy="8.796464"
-     sodipodi:cx="8.9135246"
-     sodipodi:sides="8"
-     id="path51"
-     style="fill:none;fill-rule:evenodd;stroke:var(--gscape-color-individual-contrast);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     sodipodi:type="star" />
-</svg>`;
-
-var objectPropertyIcon = w `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="18"
-   height="18"
-   version="1.1"
-   id="svg4"
-   sodipodi:docname="role.svg"
-   inkscape:version="0.92.4 (f8dce91, 2019-08-02)">
-  <metadata
-     id="metadata10">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs8" />
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="927"
-     inkscape:window-height="1025"
-     id="namedview6"
-     showgrid="false"
-     inkscape:zoom="13.111111"
-     inkscape:cx="7.2336581"
-     inkscape:cy="6.7167247"
-     inkscape:window-x="993"
-     inkscape:window-y="27"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="svg4"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0" />
-  <polygon
-     points="125,86.909 146.992,125 125,163.092 103.008,125 "
-     transform="matrix(0.27862408,0,0,0.13179941,-25.774205,-7.2921404)"
-     id="polygon2"
-     style="fill:none;stroke:var(--gscape-color-object-property-contrast);stroke-width:12.02451324;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
-</svg>
-`;
-
-const diagrams = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.333 5.438Q5.875 5.438 5.552 5.76Q5.229 6.083 5.229 6.542Q5.229 7 5.552 7.302Q5.875 7.604 6.333 7.604Q6.792 7.604 7.094 7.302Q7.396 7 7.396 6.542Q7.396 6.083 7.094 5.76Q6.792 5.438 6.333 5.438ZM6.333 13.208Q5.875 13.208 5.552 13.51Q5.229 13.812 5.229 14.271Q5.229 14.729 5.552 15.052Q5.875 15.375 6.333 15.375Q6.792 15.375 7.094 15.052Q7.396 14.729 7.396 14.271Q7.396 13.812 7.094 13.51Q6.792 13.208 6.333 13.208ZM3.667 3.167H16.354Q16.667 3.167 16.875 3.375Q17.083 3.583 17.083 3.896V9.104Q17.083 9.458 16.875 9.677Q16.667 9.896 16.354 9.896H3.667Q3.354 9.896 3.135 9.677Q2.917 9.458 2.917 9.104V3.896Q2.917 3.583 3.135 3.375Q3.354 3.167 3.667 3.167ZM4.25 4.5V8.562H15.75V4.5ZM3.667 10.938H16.333Q16.667 10.938 16.875 11.156Q17.083 11.375 17.083 11.708V16.875Q17.083 17.229 16.875 17.448Q16.667 17.667 16.333 17.667H3.688Q3.354 17.667 3.135 17.448Q2.917 17.229 2.917 16.875V11.708Q2.917 11.375 3.125 11.156Q3.333 10.938 3.667 10.938ZM4.25 12.271V16.333H15.75V12.271ZM4.25 4.5V8.562ZM4.25 12.271V16.333Z"/></svg>`;
-const triangle_up = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 14l5-5 5 5H7z"/></svg>`;
-const triangle_down = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 10l5 5 5-5H7z"/></svg>`;
-const arrow_right = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`;
-const arrowDown = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12 6 8H14Z"/></svg>`;
-const explore = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m5.75 14.25 6.021-2.479L14.25 5.75 8.229 8.229Zm3.542-3.542Q9 10.417 9 10t.292-.708Q9.583 9 10 9t.708.292Q11 9.583 11 10t-.292.708Q10.417 11 10 11t-.708-.292ZM10 18q-1.646 0-3.104-.625-1.458-.625-2.552-1.719t-1.719-2.552Q2 11.646 2 10q0-1.667.625-3.115.625-1.447 1.719-2.541Q5.438 3.25 6.896 2.625T10 2q1.667 0 3.115.625 1.447.625 2.541 1.719 1.094 1.094 1.719 2.541Q18 8.333 18 10q0 1.646-.625 3.104-.625 1.458-1.719 2.552t-2.541 1.719Q11.667 18 10 18Zm0-1.5q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`;
-const info_outline = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.25 14H10.75V9H9.25ZM10 7.5Q10.312 7.5 10.531 7.281Q10.75 7.062 10.75 6.75Q10.75 6.438 10.531 6.219Q10.312 6 10 6Q9.688 6 9.469 6.219Q9.25 6.438 9.25 6.75Q9.25 7.062 9.469 7.281Q9.688 7.5 10 7.5ZM10 16.5Q11.354 16.5 12.531 15.99Q13.708 15.479 14.594 14.594Q15.479 13.708 15.99 12.521Q16.5 11.333 16.5 10Q16.5 8.646 15.99 7.469Q15.479 6.292 14.594 5.406Q13.708 4.521 12.531 4.01Q11.354 3.5 10 3.5Q8.667 3.5 7.479 4.01Q6.292 4.521 5.406 5.406Q4.521 6.292 4.01 7.469Q3.5 8.646 3.5 10Q3.5 11.333 4.01 12.521Q4.521 13.708 5.406 14.594Q6.292 15.479 7.479 15.99Q8.667 16.5 10 16.5ZM10 18Q6.667 18 4.333 15.667Q2 13.333 2 10Q2 6.667 4.333 4.333Q6.667 2 10 2Q13.333 2 15.667 4.333Q18 6.667 18 10Q18 13.333 15.667 15.667Q13.333 18 10 18ZM10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Q10 10 10 10Z"/></svg>`;
-const enterFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="1 1 18 18"><path d="M4.167 15.833V11.646H5.5V14.5H8.354V15.833ZM4.167 8.354V4.167H8.354V5.5H5.5V8.354ZM11.646 15.833V14.5H14.5V11.646H15.833V15.833ZM14.5 8.354V5.5H11.646V4.167H15.833V8.354Z"/></svg>`;
-const exitFullscreen = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="1 1 18 18"><path d="M7.021 15.833V12.979H4.167V11.646H8.354V15.833ZM4.167 8.354V7.021H7.021V4.167H8.354V8.354ZM11.646 15.833V11.646H15.833V12.979H12.979V15.833ZM11.646 8.354V4.167H12.979V7.021H15.833V8.354Z"/></svg>`;
-const centerDiagram = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12.167Q9.104 12.167 8.469 11.531Q7.833 10.896 7.833 10Q7.833 9.104 8.469 8.469Q9.104 7.833 10 7.833Q10.896 7.833 11.531 8.469Q12.167 9.104 12.167 10Q12.167 10.896 11.531 11.531Q10.896 12.167 10 12.167ZM2.917 7.542V4.5Q2.917 3.833 3.375 3.375Q3.833 2.917 4.5 2.917H7.542V4.25H4.5Q4.417 4.25 4.333 4.333Q4.25 4.417 4.25 4.5V7.542ZM7.542 17.083H4.5Q3.833 17.083 3.375 16.625Q2.917 16.167 2.917 15.5V12.458H4.25V15.5Q4.25 15.583 4.333 15.667Q4.417 15.75 4.5 15.75H7.542ZM12.458 17.083V15.75H15.5Q15.583 15.75 15.667 15.667Q15.75 15.583 15.75 15.5V12.458H17.083V15.5Q17.083 16.167 16.625 16.625Q16.167 17.083 15.5 17.083ZM15.75 7.542V4.5Q15.75 4.417 15.667 4.333Q15.583 4.25 15.5 4.25H12.458V2.917H15.5Q16.167 2.917 16.625 3.375Q17.083 3.833 17.083 4.5V7.542ZM10 10.833Q10.354 10.833 10.594 10.594Q10.833 10.354 10.833 10Q10.833 9.646 10.594 9.406Q10.354 9.167 10 9.167Q9.646 9.167 9.406 9.406Q9.167 9.646 9.167 10Q9.167 10.354 9.406 10.594Q9.646 10.833 10 10.833Z"/></svg>`;
-const filter = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.062 13.979V12.583H11.938V13.979ZM5.104 10.5V9.104H14.875V10.5ZM3.146 7V5.604H16.854V7Z"/></svg>`;
-const bubbles = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6.021 14.667Q4.75 14.667 3.865 13.781Q2.979 12.896 2.979 11.625Q2.979 10.354 3.865 9.469Q4.75 8.583 6.021 8.583Q7.271 8.583 8.156 9.469Q9.042 10.354 9.042 11.625Q9.042 12.896 8.156 13.781Q7.271 14.667 6.021 14.667ZM13.542 11.458Q11.792 11.458 10.583 10.24Q9.375 9.021 9.375 7.271Q9.375 5.5 10.583 4.292Q11.792 3.083 13.542 3.083Q15.292 3.083 16.521 4.292Q17.75 5.5 17.75 7.271Q17.75 9.021 16.521 10.24Q15.292 11.458 13.542 11.458ZM11.958 16.938Q11.042 16.938 10.396 16.292Q9.75 15.646 9.75 14.708Q9.75 13.792 10.396 13.146Q11.042 12.5 11.958 12.5Q12.896 12.5 13.542 13.146Q14.188 13.792 14.188 14.708Q14.188 15.646 13.542 16.292Q12.896 16.938 11.958 16.938Z"/></svg>`;
-const lite = w `<svg fill="currentColor" style="padding: 2px; box-sizing: border-box;" width="20" height="20" version="1.1" viewBox="0 0 752 752" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com"><path d="M 375.714 0.009 C 371.042 0.066 366.482 1.447 362.593 3.994 L 156.603 127.708 C 153.518 129.737 150.954 132.436 149.099 135.596 L 12.104 135.596 C 5.422 135.596 0 140.911 0 147.462 L 0 599.375 L 0 599.369 C 0 605.92 5.422 611.236 12.104 611.236 L 139.149 611.236 L 139.149 728.278 L 139.149 728.272 C 139.149 734.568 141.694 740.599 146.235 745.052 C 150.77 749.498 156.93 752 163.343 752 L 588.652 752 C 595.064 752 601.218 749.498 605.76 745.052 C 610.292 740.599 612.846 734.568 612.846 728.272 L 612.846 611.236 L 739.903 611.236 C 746.584 611.236 752 605.92 752 599.369 L 752 147.456 C 752 140.905 746.584 135.59 739.903 135.59 L 602.94 135.59 C 601.08 132.428 598.496 129.73 595.403 127.702 L 389.431 3.988 C 385.371 1.333 380.59 -0.056 375.709 0.001 L 375.714 0.009 Z M 376.014 98.108 L 491.584 157.275 L 376.014 216.436 L 260.427 157.275 L 376.014 98.108 Z M 37.566 178.974 L 149.089 178.974 C 150.949 182.128 153.519 184.821 156.606 186.844 L 362.579 310.545 L 362.584 310.545 C 366.556 313.142 371.23 314.529 376.006 314.529 C 380.781 314.529 385.455 313.142 389.427 310.545 L 595.383 186.844 C 598.463 184.815 601.026 182.122 602.88 178.974 L 714.428 178.974 L 714.428 574.405 L 612.83 574.405 L 612.83 463.926 C 612.83 457.631 610.28 451.599 605.744 447.153 C 601.202 442.701 595.051 440.201 588.631 440.201 L 163.339 440.201 C 156.926 440.201 150.767 442.701 146.232 447.153 C 141.69 451.599 139.146 457.631 139.146 463.926 L 139.146 574.405 L 37.561 574.405 L 37.566 178.974 Z M 242.668 541.701 L 509.325 541.701 L 510.994 652.145 L 240.998 652.145 L 242.668 541.701 Z" fill-rule="evenodd" style=""></path></svg>`;
-const settings_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m8.021 17.917-.313-2.5q-.27-.125-.625-.334-.354-.208-.625-.395l-2.312.979-1.979-3.438 1.979-1.5q-.021-.167-.031-.364-.011-.198-.011-.365 0-.146.011-.344.01-.198.031-.385l-1.979-1.5 1.979-3.417 2.312.958q.271-.187.615-.385t.635-.344l.313-2.5h3.958l.313 2.5q.312.167.625.344.312.177.604.385l2.333-.958 1.979 3.417-1.979 1.521q.021.187.021.364V10q0 .146-.01.333-.011.188-.011.396l1.958 1.5-1.979 3.438-2.312-.979q-.292.208-.615.395-.323.188-.614.334l-.313 2.5Zm1.937-5.355q1.063 0 1.813-.75t.75-1.812q0-1.062-.75-1.812t-1.813-.75q-1.041 0-1.802.75-.76.75-.76 1.812t.76 1.812q.761.75 1.802.75Zm0-1.333q-.5 0-.864-.364-.365-.365-.365-.865t.365-.865q.364-.364.864-.364t.865.364q.365.365.365.865t-.365.865q-.365.364-.865.364ZM10.021 10Zm-.854 6.583h1.666l.25-2.187q.605-.167 1.136-.49.531-.323 1.031-.802l2.021.875.854-1.375-1.792-1.354q.105-.333.136-.635.031-.303.031-.615 0-.292-.031-.573-.031-.281-.115-.635l1.792-1.396-.834-1.375-2.062.875q-.438-.438-1.021-.781-.583-.344-1.125-.49l-.271-2.208H9.167l-.271 2.208q-.584.146-1.125.458-.542.313-1.042.792l-2.021-.854-.833 1.375 1.75 1.354q-.083.333-.125.646-.042.312-.042.604t.042.594q.042.302.125.635l-1.75 1.375.833 1.375 2.021-.854q.479.458 1.021.771.542.312 1.146.479Z"/></svg>`;
-const infoFilled = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 14.167Q10.354 14.167 10.615 13.906Q10.875 13.646 10.875 13.292V10.021Q10.875 9.667 10.615 9.417Q10.354 9.167 10 9.167Q9.646 9.167 9.385 9.427Q9.125 9.688 9.125 10.042V13.312Q9.125 13.667 9.385 13.917Q9.646 14.167 10 14.167ZM10 7.479Q10.354 7.479 10.615 7.219Q10.875 6.958 10.875 6.604Q10.875 6.25 10.615 5.99Q10.354 5.729 10 5.729Q9.646 5.729 9.385 5.99Q9.125 6.25 9.125 6.604Q9.125 6.958 9.385 7.219Q9.646 7.479 10 7.479ZM10 18.333Q8.271 18.333 6.75 17.677Q5.229 17.021 4.104 15.896Q2.979 14.771 2.323 13.25Q1.667 11.729 1.667 10Q1.667 8.271 2.323 6.75Q2.979 5.229 4.104 4.104Q5.229 2.979 6.75 2.323Q8.271 1.667 10 1.667Q11.729 1.667 13.25 2.323Q14.771 2.979 15.896 4.104Q17.021 5.229 17.677 6.75Q18.333 8.271 18.333 10Q18.333 11.729 17.677 13.25Q17.021 14.771 15.896 15.896Q14.771 17.021 13.25 17.677Q11.729 18.333 10 18.333Z"/></svg>`;
-const plus = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M9.188 15.083V10.792H4.896V9.167H9.188V4.875H10.812V9.167H15.104V10.792H10.812V15.083Z"/></svg>`;
-const minus = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M4.875 10.792V9.167H15.125V10.792Z"/></svg>`;
-const save = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M17.083 6v9.5q0 .667-.458 1.125-.458.458-1.125.458h-11q-.667 0-1.125-.458-.458-.458-.458-1.125v-11q0-.667.458-1.125.458-.458 1.125-.458H14Zm-1.333.604L13.396 4.25H4.5q-.104 0-.177.073T4.25 4.5v11q0 .104.073.177t.177.073h11q.104 0 .177-.073t.073-.177ZM10 14.312q.896 0 1.531-.645.636-.646.636-1.521 0-.896-.636-1.531-.635-.636-1.531-.636-.896 0-1.531.636-.636.635-.636 1.531 0 .875.636 1.521.635.645 1.531.645Zm-4.667-6.02h6.855V5.333H5.333ZM4.25 6.604v9.146-11.5Z"/></svg>`;
-const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>';
-const close = w `<svg fillColor="currentColor" style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>`;
-const blankSlateDiagrams = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M14.104 8.521Q13.875 8.312 13.875 8.052Q13.875 7.792 14.083 7.583L15.875 5.792Q16.062 5.604 16.333 5.615Q16.604 5.625 16.792 5.812Q17 6.021 17 6.281Q17 6.542 16.792 6.75L15 8.542Q14.812 8.729 14.552 8.719Q14.292 8.708 14.104 8.521ZM10 6.729Q9.729 6.729 9.531 6.531Q9.333 6.333 9.333 6.062V3.604Q9.333 3.333 9.531 3.135Q9.729 2.938 10 2.938Q10.271 2.938 10.469 3.135Q10.667 3.333 10.667 3.604V6.062Q10.667 6.333 10.469 6.531Q10.271 6.729 10 6.729ZM5 8.521 3.208 6.75Q3 6.562 3.01 6.281Q3.021 6 3.229 5.792Q3.417 5.604 3.688 5.604Q3.958 5.604 4.167 5.792L5.938 7.583Q6.125 7.792 6.125 8.052Q6.125 8.312 5.938 8.521Q5.729 8.708 5.458 8.708Q5.188 8.708 5 8.521ZM3.667 15.75H16.333Q16.417 15.75 16.5 15.667Q16.583 15.583 16.583 15.5V11.896Q16.583 11.812 16.5 11.729Q16.417 11.646 16.333 11.646H13.875Q13.375 12.771 12.302 13.469Q11.229 14.167 10 14.167Q8.771 14.167 7.708 13.469Q6.646 12.771 6.125 11.646H3.667Q3.583 11.646 3.5 11.729Q3.417 11.812 3.417 11.896V15.5Q3.417 15.583 3.5 15.667Q3.583 15.75 3.667 15.75ZM3.667 17.083Q3 17.083 2.542 16.625Q2.083 16.167 2.083 15.5V11.896Q2.083 11.229 2.542 10.771Q3 10.312 3.667 10.312H6.625Q7 10.312 7.083 10.385Q7.167 10.458 7.229 10.708Q7.417 11.5 8.135 12.167Q8.854 12.833 10 12.833Q11.146 12.833 11.865 12.156Q12.583 11.479 12.771 10.708Q12.833 10.458 12.917 10.385Q13 10.312 13.375 10.312H16.333Q17 10.312 17.458 10.771Q17.917 11.229 17.917 11.896V15.5Q17.917 16.167 17.458 16.625Q17 17.083 16.333 17.083ZM3.667 15.75Q3.583 15.75 3.5 15.75Q3.417 15.75 3.417 15.75Q3.417 15.75 3.5 15.75Q3.583 15.75 3.667 15.75H6.125Q6.646 15.75 7.708 15.75Q8.771 15.75 10 15.75Q11.229 15.75 12.302 15.75Q13.375 15.75 13.875 15.75H16.333Q16.417 15.75 16.5 15.75Q16.583 15.75 16.583 15.75Q16.583 15.75 16.5 15.75Q16.417 15.75 16.333 15.75Z"/></svg>`;
-const check = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M8.229 13.771 5.021 10.542 5.75 9.792 8.229 12.25 14.25 6.25 14.979 7.021Z"/></svg>`;
-const searchOff = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M6 16.417q-1.5 0-2.542-1.042-1.041-1.042-1.041-2.542 0-1.5 1.052-2.541Q4.521 9.25 6 9.25q1.5 0 2.542 1.052 1.041 1.052 1.041 2.552 0 1.479-1.052 2.521Q7.479 16.417 6 16.417Zm10.875-.771-5.083-5.084q-.104.105-.261.188-.156.083-.302.146l-.291-.375q-.146-.188-.313-.354.875-.438 1.427-1.261T12.604 7q0-1.5-1.052-2.552T9 3.396q-1.5 0-2.552 1.052T5.396 7q0 .208.042.406.041.198.083.386-.313.02-.563.073-.25.052-.52.135-.042-.229-.084-.479-.042-.25-.042-.521 0-1.938 1.376-3.312Q7.062 2.312 9 2.312q1.938 0 3.312 1.365Q13.688 5.042 13.688 7q0 .833-.282 1.583-.281.75-.739 1.334l4.979 4.958ZM4.812 14.521l1.167-1.167 1.167 1.167.542-.542-1.167-1.167 1.167-1.145-.542-.542-1.167 1.146-1.167-1.146-.541.542 1.167 1.145-1.167 1.167Z"/></svg>`;
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
- */
-const move_bubbles = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" /></svg>`;
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
- */
-const owl_icon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 20px; width: auto" aria-hidden="true" focusable="false" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 16c.56.84 1.31 1.53 2.2 2L12 20.2L9.8 18c.89-.47 1.65-1.16 2.2-2m5-4.8a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m-10 0a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2m10-2.5a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m-10 0a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4M2.24 1c1.76 3.7.49 6.46-.69 9.2c-.36.8-.55 1.63-.55 2.5a6 6 0 0 0 6 6c.21-.01.42-.02.63-.05l2.96 2.96L12 23l1.41-1.39l2.96-2.96c.21.03.42.04.63.05a6 6 0 0 0 6-6c0-.87-.19-1.7-.55-2.5C21.27 7.46 20 4.7 21.76 1c-2.64 2.06-6.4 3.69-9.76 3.7C8.64 4.69 4.88 3.06 2.24 1z"/></svg>`;
-const graphol_icon = w `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 12 12" fill="currentColor" xml:space="preserve" style="height: 20px; width: 20px; box-sizing: border-box; padding: 2px;"><path id="path847" d="M5.4,11.9c-1.4-0.1-2.7-0.8-3.8-1.8c-0.8-0.8-1.3-1.8-1.6-3C0.1,6.8,0.1,6.7,0.1,6c0-0.7,0-0.8,0.1-1.1 c0.3-1.2,0.8-2.3,1.7-3.1C2.3,1.3,2.7,1,3.3,0.7c1.7-0.9,3.8-0.9,5.5,0c2.4,1.3,3.6,3.9,3.1,6.5c-0.6,2.6-2.8,4.5-5.5,4.7 C5.8,12,5.8,12,5.4,11.9L5.4,11.9z M6.5,10.5c0.2-0.1,0.3-0.1,0.8-0.7c0.3-0.3,1.2-1.2,2-1.9c1.1-1.1,1.3-1.4,1.4-1.5 c0.2-0.4,0.2-0.7,0-1.1c-0.1-0.2-0.2-0.3-1-1.1c-1-1-1.1-1-1.6-1c-0.5,0-0.5,0-1.9,1.4C5.5,5.2,5,5.8,5,5.8c0,0,0.2,0.3,0.5,0.6 L6,6.9l1-1l1-1l0.5,0.5l0.5,0.5L7.6,7.4L6,8.9L4.5,7.4L2.9,5.8L5,3.7c1.1-1.1,2.1-2.1,2.1-2.1c0-0.1-1-1-1-1c0,0-1,1-2.3,2.2 c-2,2-2.3,2.3-2.3,2.4C1.3,5.5,1.3,5.7,1.3,6c0.1,0.4,0,0.4,2.1,2.4c1.1,1.1,1.9,1.9,2,2C5.7,10.6,6.1,10.6,6.5,10.5z"/></svg>`;
-const tune = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M3.375 15.625Q3.104 15.625 2.906 15.427Q2.708 15.229 2.708 14.958Q2.708 14.688 2.906 14.49Q3.104 14.292 3.375 14.292H6.792Q7.062 14.292 7.26 14.49Q7.458 14.688 7.458 14.958Q7.458 15.229 7.26 15.427Q7.062 15.625 6.792 15.625ZM3.375 5.708Q3.104 5.708 2.906 5.51Q2.708 5.312 2.708 5.042Q2.708 4.771 2.906 4.573Q3.104 4.375 3.375 4.375H9.896Q10.167 4.375 10.365 4.573Q10.562 4.771 10.562 5.042Q10.562 5.312 10.365 5.51Q10.167 5.708 9.896 5.708ZM10.083 17.292Q9.812 17.292 9.615 17.094Q9.417 16.896 9.417 16.625V13.312Q9.417 13.042 9.615 12.844Q9.812 12.646 10.083 12.646Q10.354 12.646 10.552 12.844Q10.75 13.042 10.75 13.312V14.292H16.625Q16.896 14.292 17.094 14.49Q17.292 14.688 17.292 14.958Q17.292 15.229 17.094 15.427Q16.896 15.625 16.625 15.625H10.75V16.625Q10.75 16.896 10.552 17.094Q10.354 17.292 10.083 17.292ZM6.792 12.333Q6.521 12.333 6.323 12.135Q6.125 11.938 6.125 11.667V10.667H3.375Q3.104 10.667 2.906 10.469Q2.708 10.271 2.708 10Q2.708 9.729 2.906 9.531Q3.104 9.333 3.375 9.333H6.125V8.354Q6.125 8.083 6.323 7.885Q6.521 7.688 6.792 7.688Q7.062 7.688 7.26 7.885Q7.458 8.083 7.458 8.354V11.667Q7.458 11.938 7.26 12.135Q7.062 12.333 6.792 12.333ZM10.083 10.667Q9.812 10.667 9.615 10.469Q9.417 10.271 9.417 10Q9.417 9.729 9.615 9.531Q9.812 9.333 10.083 9.333H16.625Q16.896 9.333 17.094 9.531Q17.292 9.729 17.292 10Q17.292 10.271 17.094 10.469Q16.896 10.667 16.625 10.667ZM13.208 7.354Q12.938 7.354 12.74 7.156Q12.542 6.958 12.542 6.688V3.375Q12.542 3.104 12.74 2.906Q12.938 2.708 13.208 2.708Q13.479 2.708 13.677 2.906Q13.875 3.104 13.875 3.375V4.375H16.625Q16.896 4.375 17.094 4.573Q17.292 4.771 17.292 5.042Q17.292 5.312 17.094 5.51Q16.896 5.708 16.625 5.708H13.875V6.688Q13.875 6.958 13.677 7.156Q13.479 7.354 13.208 7.354Z"/></svg>`;
-const settings_play = w `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M13.54 22H10C9.75 22 9.54 21.82 9.5 21.58L9.13 18.93C8.5 18.68 7.96 18.34 7.44 17.94L4.95 18.95C4.73 19.03 4.46 18.95 4.34 18.73L2.34 15.27C2.21 15.05 2.27 14.78 2.46 14.63L4.57 12.97L4.5 12L4.57 11L2.46 9.37C2.27 9.22 2.21 8.95 2.34 8.73L4.34 5.27C4.46 5.05 4.73 4.96 4.95 5.05L7.44 6.05C7.96 5.66 8.5 5.32 9.13 5.07L9.5 2.42C9.54 2.18 9.75 2 10 2H14C14.25 2 14.46 2.18 14.5 2.42L14.87 5.07C15.5 5.32 16.04 5.66 16.56 6.05L19.05 5.05C19.27 4.96 19.54 5.05 19.66 5.27L21.66 8.73C21.79 8.95 21.73 9.22 21.54 9.37L19.43 11L19.5 12V12.19C19 12.07 18.5 12 18 12C17.83 12 17.66 12 17.5 12.03C17.5 11.41 17.4 10.79 17.2 10.2L19.31 8.65L18.56 7.35L16.15 8.39C15.38 7.5 14.32 6.86 13.12 6.62L12.75 4H11.25L10.88 6.61C9.68 6.86 8.62 7.5 7.85 8.39L5.44 7.35L4.69 8.65L6.8 10.2C6.4 11.37 6.4 12.64 6.8 13.8L4.68 15.36L5.43 16.66L7.86 15.62C8.63 16.5 9.68 17.14 10.87 17.38L11.24 20H12.35C12.61 20.75 13 21.42 13.54 22M15.96 12.36C16 12.24 16 12.12 16 12C16 9.79 14.21 8 12 8S8 9.79 8 12 9.79 16 12 16C12.12 16 12.24 16 12.36 15.96C12.97 14.29 14.29 12.97 15.96 12.36M12 14C10.9 14 10 13.11 10 12S10.9 10 12 10 14 10.9 14 12 13.11 14 12 14M16 15V21L21 18L16 15Z" /></svg>`;
-const filterOff = w `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M16.021 16.5 2.438 2.917l.77-.771 13.584 13.583ZM3.208 5.417V4.333h1.73v1.084Zm2 3.895V8.229h3.646v1.083Zm3.396-3.895L7.521 4.333h9.271v1.084Zm-.396 7.812v-1.083h3.584v1.083ZM12.5 9.312l-1.083-1.083h3.375v1.083Z"/></svg>`;
-const incremental = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m10 13.458-1.083-2.416L6.5 9.958l2.417-1.083L10 6.458l1.083 2.417L13.5 9.958l-2.417 1.084Zm0 5.084q-2.354 0-4.323-1.188-1.969-1.187-3.177-3.271v2.709H1.417v-4.5h4.479v1.083H3.375q1.021 1.896 2.771 2.99 1.75 1.093 3.854 1.093 2.458 0 4.406-1.458 1.948-1.458 2.74-3.771l1.042.229q-.813 2.73-3.073 4.407-2.261 1.677-5.115 1.677ZM1.458 9.208q.125-1.354.604-2.52.48-1.167 1.355-2.209l.791.75q-.687.875-1.104 1.834-.416.958-.562 2.145ZM5.25 4.167l-.75-.771q1.021-.875 2.24-1.365 1.218-.489 2.51-.593v1.083q-1.083.125-2.104.552Q6.125 3.5 5.25 4.167Zm9.479 0q-.812-.667-1.864-1.105-1.053-.437-2.115-.541V1.438q1.312.083 2.521.583 1.208.5 2.229 1.375Zm2.709 5.041q-.146-1.146-.563-2.146-.417-1-1.104-1.833l.791-.771q.855 1 1.365 2.209.511 1.208.615 2.541Z"/></svg>`;
-const refresh = w `<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>`;
-const instancesIcon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="padding: 1px;box-sizing: border-box;" height="18" width="18" viewBox="0 0 20 20" ><path d="M10 9q-3.062 0-5.031-.844Q3 7.312 3 6q0-1.229 2.062-2.115Q7.125 3 10 3q2.875 0 4.938.885Q17 4.771 17 6q0 1.312-1.969 2.156Q13.062 9 10 9Zm0 4q-2.979 0-4.99-.865Q3 11.271 3 10V8.042q0 .604.562 1.135.563.531 1.521.938.959.406 2.229.645Q8.583 11 10 11q1.417 0 2.688-.24 1.27-.239 2.229-.645.958-.407 1.521-.938Q17 8.646 17 8.042V10q0 1.271-2.01 2.135Q12.979 13 10 13Zm0 4q-2.917 0-4.958-.906Q3 15.188 3 13.896v-1.958q0 .604.573 1.156.573.552 1.542.979.968.427 2.239.677Q8.625 15 10 15t2.646-.25q1.271-.25 2.239-.677.969-.427 1.542-.979.573-.552.573-1.156v1.958q0 1.292-2.042 2.198Q12.917 17 10 17Z"/></svg>`;
-const superHierarchies = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="3 2 14 18"><path d="M10 16q-1.667 0-2.833-1.167Q6 13.667 6 12q0-1.479.927-2.573.927-1.094 2.323-1.365V4.875L8.062 6.062 7 5l3-3 3 3-1.062 1.062-1.188-1.187v3.187q1.396.271 2.323 1.365Q14 10.521 14 12q0 1.667-1.167 2.833Q11.667 16 10 16Zm0-1.5q1.042 0 1.771-.729.729-.729.729-1.771 0-1.042-.729-1.771Q11.042 9.5 10 9.5q-1.042 0-1.771.729Q7.5 10.958 7.5 12q0 1.042.729 1.771.729.729 1.771.729Zm0-2.5Z"/></svg>`;
-const subHierarchies = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="3 2 14 18"><path d="m10 18-3-3 1.062-1.062 1.188 1.187v-3.187q-1.396-.271-2.323-1.365Q6 9.479 6 8q0-1.667 1.167-2.833Q8.333 4 10 4q1.667 0 2.833 1.167Q14 6.333 14 8q0 1.479-.927 2.573-.927 1.094-2.323 1.365v3.187l1.188-1.187L13 15Zm0-7.5q1.042 0 1.771-.729Q12.5 9.042 12.5 8q0-1.042-.729-1.771Q11.042 5.5 10 5.5q-1.042 0-1.771.729Q7.5 6.958 7.5 8q0 1.042.729 1.771.729.729 1.771.729ZM10 8Z"/></svg>`;
-const rubbishBin = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M6.5 17q-.625 0-1.062-.438Q5 16.125 5 15.5v-10H4V4h4V3h4v1h4v1.5h-1v10q0 .625-.438 1.062Q14.125 17 13.5 17Zm7-11.5h-7v10h7ZM8 14h1.5V7H8Zm2.5 0H12V7h-1.5Zm-4-8.5v10Z"/></svg>`;
-const mastroEndpointIcon = w `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M3.542 9.25q-.563 0-.948-.396-.386-.396-.386-.937V5.542q0-.542.396-.938.396-.396.938-.396H11V9.25Zm0-1.083h6.375V5.292H3.542q-.104 0-.177.073t-.073.177v2.375q0 .104.073.177t.177.073Zm0 7.625q-.542 0-.938-.396-.396-.396-.396-.938v-2.375q0-.541.396-.937t.938-.396H12.5v5.042Zm0-1.084h7.875v-2.875H3.542q-.104 0-.177.073t-.073.177v2.375q0 .104.073.177t.177.073ZM14 15.792V9.25h-1.5V4.208h5.188L16.25 7.854h1.438Zm-9.896-2.021h1v-1h-1Zm0-6.542h1v-1h-1Zm-.812.938V5.292v2.875Zm0 6.541v-2.875 2.875Z"/></svg>`;
-const entityIcons = {};
-entityIcons[GrapholTypesEnum.CLASS] = classIcon;
-entityIcons[GrapholTypesEnum.OBJECT_PROPERTY] = objectPropertyIcon;
-entityIcons[GrapholTypesEnum.DATA_PROPERTY] = dataPropertyIcon;
-entityIcons[GrapholTypesEnum.INDIVIDUAL] = individualIcon;
-entityIcons[GrapholTypesEnum.CLASS_INSTANCE] = classInstanceIcon;
-
-var grapholscapeLogo = y `<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 1024 792.6" style="enable-background:new 0 0 1024 792.6;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill:url(#SVGID_1_);}
-	.st1{fill:#FFFFFF;}
-	.st2{enable-background:new    ;}
-	.st3{fill:url(#SVGID_2_);}
-</style>
-<g>
-	<g id="Logo">
-
-			<radialGradient id="SVGID_1_" cx="502.1" cy="894.61" r="662.91" gradientTransform="matrix(1 0 0 1 12.76 -283.3)" gradientUnits="userSpaceOnUse">
-			<stop  offset="0" style="stop-color:#5B86E5"/>
-			<stop  offset="0.34" style="stop-color:#509CE2"/>
-			<stop  offset="1" style="stop-color:#36D1DC"/>
-		</radialGradient>
-		<path class="st0" d="M512,506c-138.1,0-250-111.9-250-250c0-66.3,26.3-129.9,73.2-176.8c97.6-97.6,256-97.6,353.6,0
-			s97.6,256,0,353.6C642,479.8,578.3,506.2,512,506z"/>
-		<path class="st1" d="M512,11.9c134.8,0,244.1,109.3,244.1,244.2c0,98.1-58.7,186.6-149.1,224.8c-124.2,52.5-267.4-5.7-319.9-129.9
-			S292.8,83.6,417,31.1C447.1,18.4,479.4,11.9,512,11.9 M512,0C370.6,0,256,114.6,256,256s114.6,256,256,256s256-114.6,256-256
-			S653.4,0,512,0z"/>
-		<path class="st1" d="M513.6,432c-12.4,0-24.4-4.9-33.1-13.7L344.1,282c-18.3-18.3-18.3-48,0-66.3L513.6,46.2l40.3,40.3
-			L391.6,248.8l122,122l122-122L594.7,208l-81.2,81.1l-40.3-40.3l88.3-88.3c18.3-18.3,48-18.3,66.3,0l55.2,55.2
-			c18.3,18.3,18.3,48,0,66.3L546.7,418.3C537.9,427.1,526,432,513.6,432z"/>
-		<g class="st2">
-			<path d="M83,594.8c5.3,0,10.2,0.3,14.7,0.8s8.9,1.3,13.1,2.2c4.2,1,8.2,2.1,12.1,3.5s7.9,2.9,11.9,4.5v12.6
-				c-3.2-2-6.5-3.9-10.1-5.7s-7.4-3.3-11.6-4.7c-4.1-1.3-8.6-2.4-13.3-3.2c-4.7-0.8-9.8-1.2-15.3-1.2c-11.1,0-20.8,1.2-29.1,3.5
-				s-15.2,5.7-20.6,10c-5.5,4.3-9.6,9.6-12.4,15.8c-2.7,6.2-4.1,13.2-4.1,21c0,7.3,1.3,14,4,20.1s6.8,11.4,12.2,15.8
-				c5.5,4.4,12.3,7.9,20.5,10.4s17.8,3.7,28.9,3.7c4.3,0,8.6-0.2,12.9-0.5c4.2-0.3,8.3-0.8,12-1.3c3.8-0.5,7.2-1.1,10.3-1.7
-				c3.1-0.6,5.7-1.3,7.9-2V664H80.7v-9.7h56.9v50.3c-4.1,1.4-8.3,2.7-12.4,3.8c-4.2,1.1-8.5,2-13,2.8c-4.5,0.7-9.1,1.3-13.9,1.7
-				s-9.8,0.6-15.1,0.6c-10.8,0-20.7-1.2-30-3.6c-9.2-2.4-17.2-6.1-23.9-11s-12-11.1-15.9-18.5c-3.8-7.4-5.7-16.2-5.7-26.2
-				c0-6.7,0.9-12.8,2.7-18.3s4.3-10.5,7.5-14.9s7.2-8.3,11.7-11.5c4.6-3.3,9.7-6,15.2-8.1c5.6-2.1,11.6-3.7,18-4.8
-				C69.3,595.3,76,594.8,83,594.8z"/>
-			<path d="M181.2,662.2v48.9h-10.4V596.8h56.9c8.7,0,16.2,0.7,22.4,2c6.2,1.4,11.3,3.4,15.3,6.2c4,2.7,6.9,6.2,8.7,10.3
-				c1.8,4.1,2.7,8.9,2.7,14.4c0,8.5-2.2,15.4-6.7,20.5s-11.7,8.6-21.7,10.5l39,50.4h-13.1l-36.9-49.3c-1.6,0.1-3.1,0.2-4.7,0.2
-				c-1.6,0.1-3.3,0.1-5,0.1L181.2,662.2L181.2,662.2z M266.1,629.7c0-4.9-0.9-8.8-2.6-11.9c-1.7-3-4.5-5.4-8.4-7s-9-2.8-15.3-3.4
-				c-6.3-0.6-14-0.9-23.2-0.9h-35.5v45.9h35.1c9.2,0,16.9-0.3,23.2-0.8s11.5-1.6,15.4-3.2c3.9-1.6,6.8-3.9,8.5-6.9
-				C265.3,638.6,266.1,634.6,266.1,629.7z"/>
-			<path d="M417.4,711.2L401.7,681h-77.6l-15.7,30.2H297l59.8-114.3H369l59.8,114.3H417.4z M362.9,606.9l-33.8,64.6h67.5
-				L362.9,606.9z"/>
-			<path d="M562.8,632c0,5.7-0.9,10.8-2.8,15.1c-1.9,4.4-4.8,8.1-8.8,11.1s-9.1,5.3-15.4,6.8c-6.3,1.5-13.9,2.3-22.8,2.3h-51.3v43.9
-				h-10.4V596.8H513c8.9,0,16.5,0.8,22.8,2.3s11.4,3.8,15.4,6.7s6.9,6.6,8.8,11C561.8,621.2,562.8,626.2,562.8,632z M552.1,632
-				c0-5.4-0.9-9.8-2.7-13.1s-4.6-5.9-8.3-7.7s-8.5-3-14.2-3.6s-12.6-0.9-20.4-0.9h-44.7v50.9h44.7c3.1,0,6.3,0,9.8,0
-				s6.9-0.1,10.3-0.5c3.4-0.4,6.6-1,9.7-1.9s5.8-2.3,8.2-4.2s4.2-4.4,5.7-7.4C551.4,640.5,552.1,636.6,552.1,632z"/>
-			<path d="M703.6,711.2v-55.6H601.2v55.6h-10.4V596.8h10.4v49.3h102.4v-49.3H714v114.3h-10.4V711.2z"/>
-			<path d="M889.7,654.1c0,10.3-1.9,19.1-5.6,26.6c-3.7,7.5-8.8,13.6-15.3,18.5s-14.1,8.4-23,10.8s-18.3,3.5-28.5,3.5
-				c-10.3,0-19.8-1.2-28.7-3.5s-16.6-5.9-23.1-10.8c-6.5-4.9-11.7-11-15.4-18.5s-5.6-16.3-5.6-26.6c0-6.8,0.9-13,2.6-18.6
-				c1.7-5.6,4.1-10.6,7.2-15c3.1-4.4,6.9-8.2,11.3-11.4c4.4-3.2,9.3-5.9,14.7-8s11.2-3.7,17.4-4.7s12.7-1.5,19.5-1.5
-				c10.2,0,19.7,1.2,28.5,3.5s16.5,5.9,23,10.8c6.5,4.9,11.6,11,15.3,18.5C887.8,635,889.7,643.8,889.7,654.1z M879,654.1
-				c0-8.1-1.3-15.3-4-21.5c-2.6-6.2-6.5-11.4-11.7-15.7c-5.2-4.2-11.6-7.5-19.3-9.7s-16.6-3.3-26.8-3.3s-19.1,1.1-26.9,3.3
-				c-7.7,2.2-14.2,5.5-19.4,9.7s-9.2,9.5-11.8,15.7s-4,13.4-4,21.3c0,8.1,1.3,15.3,4,21.5s6.6,11.4,11.8,15.7
-				c5.2,4.2,11.7,7.5,19.4,9.7s16.7,3.3,26.9,3.3s19.1-1.1,26.8-3.3s14.1-5.4,19.3-9.7c5.2-4.2,9.1-9.5,11.7-15.7
-				C877.7,669.3,879,662.2,879,654.1z"/>
-			<path d="M920.2,711.2V596.8h10.4v104.6h83.5v9.7h-93.9V711.2z"/>
-		</g>
-
-			<radialGradient id="SVGID_2_" cx="513.05" cy="1101.48" r="466.86" gradientTransform="matrix(1 0 0 1 0 -286)" gradientUnits="userSpaceOnUse">
-			<stop  offset="0" style="stop-color:#5B86E5"/>
-			<stop  offset="0.34" style="stop-color:#509CE2"/>
-			<stop  offset="1" style="stop-color:#36D1DC"/>
-		</radialGradient>
-		<path class="st3" d="M389.9,700.8h244.3c16.8,0,30.4,13.6,30.4,30.4v27.4c0,16.8-13.6,30.4-30.4,30.4H389.9
-			c-16.8,0-30.4-13.6-30.4-30.4v-27.4C359.4,714.4,373,700.8,389.9,700.8L389.9,700.8L389.9,700.8z"/>
-		<path class="st1" d="M634.2,704.3c14.8,0,26.8,12,26.8,26.9v27.4c0,14.8-12,26.9-26.9,26.9l0,0H389.9c-14.8,0-26.9-12-26.9-26.9
-			v-27.4c0-14.8,12-26.9,26.9-26.9l0,0H634.2 M634.2,697.2H389.9c-18.8,0-34,15.2-34,34v27.4c0,18.8,15.2,34,34,34h244.3
-			c18.8,0,34-15.2,34-34v-27.4C668.2,712.4,652.9,697.2,634.2,697.2L634.2,697.2z"/>
-		<g class="st2">
-			<path class="st1" d="M385,764.8c-3.7-0.9-6.6-2-8.6-3.3l3-4c2.1,1.2,4.7,2.2,7.8,3c3.1,0.8,6.4,1.2,9.8,1.2
-				c4.5,0,7.9-0.5,10.1-1.6c2.2-1.1,3.3-2.6,3.3-4.5c0-1.4-0.6-2.4-1.8-3.2c-1.2-0.8-2.7-1.4-4.5-1.8c-1.8-0.4-4.2-0.8-7.3-1.2
-				c-4-0.6-7.3-1.1-9.7-1.7c-2.5-0.6-4.5-1.6-6.3-3c-1.7-1.4-2.6-3.4-2.6-5.9c0-3.1,1.7-5.7,5.2-7.7c3.5-2,8.3-3,14.4-3
-				c3.2,0,6.4,0.3,9.6,1c3.2,0.6,5.9,1.5,7.9,2.5l-2.9,4c-4.1-2.1-9-3.2-14.6-3.2c-4.3,0-7.5,0.6-9.7,1.7c-2.2,1.1-3.3,2.6-3.3,4.5
-				c0,1.4,0.6,2.6,1.8,3.4c1.2,0.9,2.8,1.5,4.6,1.9c1.8,0.4,4.3,0.8,7.6,1.2c4,0.6,7.1,1.1,9.5,1.7c2.4,0.6,4.4,1.5,6.1,2.9
-				s2.5,3.3,2.5,5.7c0,3.3-1.8,5.9-5.4,7.8c-3.6,1.9-8.6,2.9-15.1,2.9C392.6,766.1,388.7,765.7,385,764.8z"/>
-			<path class="st1" d="M436.9,763.7c-3.9-1.6-6.9-3.9-9.1-6.8c-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.3-9.8
-				c2.2-2.9,5.2-5.1,9.1-6.7c3.9-1.6,8.3-2.4,13.2-2.4c4.3,0,8.1,0.6,11.5,1.9c3.4,1.3,6,3.1,8,5.5l-5,2.6c-1.6-1.8-3.7-3.2-6.2-4.2
-				c-2.5-0.9-5.3-1.4-8.2-1.4c-3.6,0-6.8,0.6-9.7,1.8c-2.9,1.2-5.1,2.9-6.7,5.1s-2.4,4.8-2.4,7.6c0,2.9,0.8,5.4,2.4,7.6
-				c1.6,2.2,3.8,3.9,6.7,5.1c2.9,1.2,6.1,1.8,9.7,1.8c3,0,5.7-0.4,8.2-1.3c2.5-0.9,4.6-2.3,6.2-4.1l5,2.6c-2,2.4-4.6,4.2-8,5.5
-				c-3.4,1.3-7.2,1.9-11.4,1.9C445.1,766.1,440.7,765.3,436.9,763.7z"/>
-			<path class="st1" d="M514.9,731.8c3.5,2.4,5.2,6,5.2,10.8v23.1h-6.4v-5.8c-1.5,1.9-3.7,3.5-6.7,4.5c-2.9,1.1-6.4,1.6-10.4,1.6
-				c-5.5,0-9.9-1-13.2-3c-3.3-2-4.9-4.6-4.9-7.9c0-3.2,1.5-5.7,4.6-7.7c3.1-1.9,7.9-2.9,14.6-2.9h15.8v-2.3c0-3.2-1.2-5.7-3.6-7.3
-				c-2.4-1.7-5.9-2.5-10.5-2.5c-3.1,0-6.2,0.4-9.1,1.2c-2.9,0.8-5.4,1.9-7.5,3.2l-3-3.8c2.5-1.6,5.5-2.9,9.1-3.7
-				c3.5-0.9,7.2-1.3,11.1-1.3C506.5,728.1,511.5,729.3,514.9,731.8z M507.4,760.2c2.7-1.3,4.7-3.2,6-5.6v-6.1h-15.6
-				c-8.5,0-12.7,2.2-12.7,6.7c0,2.2,1.1,3.9,3.3,5.1c2.2,1.3,5.3,1.9,9.3,1.9C501.4,762.1,504.7,761.5,507.4,760.2z"/>
-			<path class="st1" d="M576.6,730.5c3.8,1.6,6.7,3.8,8.9,6.7c2.1,2.9,3.2,6.2,3.2,9.9c0,3.7-1.1,7.1-3.2,9.9
-				c-2.1,2.9-5.1,5.1-8.8,6.7c-3.7,1.6-8,2.4-12.7,2.4c-4,0-7.7-0.6-10.9-1.9c-3.2-1.3-5.9-3.1-8-5.5v20.8h-6.7v-51.1h6.4v7.4
-				c2-2.5,4.7-4.4,8-5.7s7-2,11.2-2C568.6,728.1,572.8,728.9,576.6,730.5z M572.9,759.8c2.8-1.2,5.1-2.9,6.7-5.1
-				c1.6-2.2,2.4-4.8,2.4-7.6s-0.8-5.4-2.4-7.6c-1.6-2.2-3.8-3.9-6.7-5.1c-2.8-1.2-6-1.8-9.4-1.8c-3.5,0-6.7,0.6-9.5,1.8
-				c-2.8,1.2-5,2.9-6.6,5.1s-2.4,4.7-2.4,7.6s0.8,5.4,2.4,7.6c1.6,2.2,3.8,3.9,6.6,5.1s6,1.8,9.5,1.8
-				C566.9,761.6,570.1,761,572.9,759.8z"/>
-			<path class="st1" d="M645.6,748.6h-41.5c0.4,3.9,2.4,7,5.9,9.4c3.6,2.4,8.1,3.6,13.6,3.6c3.1,0,5.9-0.4,8.5-1.2
-				c2.6-0.8,4.8-2,6.7-3.7l3.8,3.3c-2.2,2-5,3.5-8.3,4.5c-3.3,1-6.9,1.6-10.9,1.6c-5.1,0-9.6-0.8-13.6-2.5c-3.9-1.6-7-3.9-9.2-6.8
-				c-2.2-2.9-3.3-6.2-3.3-9.8c0-3.6,1.1-6.9,3.2-9.8c2.1-2.9,5-5.1,8.7-6.7c3.7-1.6,7.8-2.4,12.4-2.4c4.6,0,8.7,0.8,12.4,2.4
-				c3.7,1.6,6.5,3.8,8.6,6.7c2.1,2.9,3.1,6.1,3.1,9.8L645.6,748.6z M609.6,735.9c-3.2,2.3-5.1,5.3-5.5,9h35.2
-				c-0.4-3.7-2.3-6.7-5.5-9c-3.2-2.3-7.3-3.4-12.1-3.4C616.8,732.5,612.8,733.6,609.6,735.9z"/>
-		</g>
-	</g>
-</g>
-</svg>`;
-
-var index$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    classIcon: classIcon,
-    objectPropertyIcon: objectPropertyIcon,
-    dataPropertyIcon: dataPropertyIcon,
-    individualIcon: individualIcon,
-    grapholscapeLogo: grapholscapeLogo,
-    diagrams: diagrams,
-    triangle_up: triangle_up,
-    triangle_down: triangle_down,
-    arrow_right: arrow_right,
-    arrowDown: arrowDown,
-    explore: explore,
-    info_outline: info_outline,
-    enterFullscreen: enterFullscreen,
-    exitFullscreen: exitFullscreen,
-    centerDiagram: centerDiagram,
-    filter: filter,
-    bubbles: bubbles,
-    lite: lite,
-    settings_icon: settings_icon,
-    infoFilled: infoFilled,
-    plus: plus,
-    minus: minus,
-    save: save,
-    lock_open: lock_open,
-    close: close,
-    blankSlateDiagrams: blankSlateDiagrams,
-    check: check,
-    searchOff: searchOff,
-    move_bubbles: move_bubbles,
-    owl_icon: owl_icon,
-    graphol_icon: graphol_icon,
-    tune: tune,
-    settings_play: settings_play,
-    filterOff: filterOff,
-    incremental: incremental,
-    refresh: refresh,
-    instancesIcon: instancesIcon,
-    superHierarchies: superHierarchies,
-    subHierarchies: subHierarchies,
-    rubbishBin: rubbishBin,
-    mastroEndpointIcon: mastroEndpointIcon,
-    entityIcons: entityIcons
-});
 
 function getIconSlot (slotName, icon) {
     const span = document.createElement('span');
@@ -4459,13 +4574,125 @@ GscapeEntityTypeFilters.styles = [
 ];
 customElements.define('gscape-entity-type-filter', GscapeEntityTypeFilters);
 
-var emptySearchBlankState = y `
-  <div class="blank-slate">
-    ${searchOff}
-    <div class="header">Can't find any entity</div>
-    <div class="description">Please try again with another search text.</div>
-  </div>
-`;
+var ToggleLabelPosition;
+(function (ToggleLabelPosition) {
+    ToggleLabelPosition["LEFT"] = "left";
+    ToggleLabelPosition["RIGHT"] = "right";
+})(ToggleLabelPosition || (ToggleLabelPosition = {}));
+class GscapeToggle extends s {
+    constructor() {
+        super(...arguments);
+        this.labelPosition = ToggleLabelPosition.RIGHT;
+    }
+    static get properties() {
+        return {
+            disabled: { type: Boolean, reflect: true },
+            label: { type: String, reflect: true },
+            labelPosition: { type: String, reflect: true, attribute: 'label-position' },
+            key: { type: String, reflect: true },
+            checked: { type: Boolean, reflect: true },
+        };
+    }
+    render() {
+        return y `
+    <label class="toggle-container">
+      <span class="toggle-label">${this.label}</span>
+      <span class="toggle-wrap">
+        <input id="${this.key}" type="checkbox"
+          ?checked="${this.checked}"
+          ?disabled="${this.disabled}"
+        />
+        <span class="toggle"></span>
+      </span>
+    </label>
+    `;
+    }
+}
+GscapeToggle.ToggleLabelPosition = ToggleLabelPosition;
+GscapeToggle.styles = [
+    baseStyle,
+    i$1 `
+      :host {
+        display: block;
+        cursor: pointer;
+      }
+
+      :host([disabled]) {
+        cursor: not-allowed;
+      }
+
+      .toggle-container {
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        cursor: inherit;
+        gap: 15px;
+        justify-content: space-between;
+      }
+
+      :host([label-position = "right"]) > .toggle-container {
+        flex-direction: row-reverse;
+      }
+
+      .toggle-wrap {
+        width: 36px;
+        height: 18px;
+        display: inline-block;
+        position: relative;
+      }
+
+      .toggle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 18px;
+        background-color: var(--gscape-color-neutral-muted);
+        border: 1px solid var(--gscape-color-border-subtle);
+        transition: all 0.2s ease 0s;
+      }
+
+      .toggle::before {
+        content: "";
+        transition: all 0.1s ease 0s;
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: var(--gscape-color-bg-default);
+        border: solid 1px var(--gscape-color-border-subtle);
+        border-radius: 9px;
+        bottom: 2px;
+        left: 2px;
+      }
+
+      .toggle-wrap input {
+        display:none;
+      }
+
+      .toggle-wrap input:checked + .toggle {
+        background-color: var(--gscape-color-accent-muted);
+        border-color: var(--gscape-color-accent);
+        filter: brightness(100%);
+      }
+
+      .toggle-wrap input:checked + .toggle::before {
+        -webkit-transform: translateX(18px);
+        -ms-transform: translateX(18px);
+        transform: translateX(18px);
+        background-color: var(--gscape-color-accent);
+      }
+
+      .toggle-wrap input:disabled + .toggle {
+        opacity:0.5;
+      }
+
+      .toggle-label {
+        flex-grow: 2;
+      }
+    `
+];
+customElements.define('gscape-toggle', GscapeToggle);
 
 function getEntityViewOccurrences (grapholEntity, grapholscape) {
     var _a, _b;
@@ -4578,195 +4805,7 @@ function search(searchValue, entities) {
     function isMatch(value1, value2) { return value1.toLowerCase().includes(value2.toLowerCase()); }
 }
 
-var entityListItemStyle = i$1 `
-  div.entity-list-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-  }
-
-  .entity-list-item {
-    white-space: nowrap;
-  }
-
-  div.entity-list-item > .entity-icon {
-    flex-shrink: 0;
-  }
-
-  details.entity-list-item > summary::marker {
-    display: inline-block;
-  }
-
-  details.entity-list-item > summary > .entity-icon {
-    position: absolute;
-  }
-
-  details.entity-list-item > summary > .entity-name {
-    margin-left: 24px;
-    line-height: 18px;
-  }
-
-  details.entity-list-item > .summary-body {
-    background-color: var(--gscape-color-bg-inset);
-    white-space: normal;
-    padding: 4px 8px;
-  }
-
-  details.entity-list-item[open] {
-    border: solid 1px var(--gscape-color-border-subtle);
-    border-radius: var(--gscape-border-radius);
-    margin-bottom: 8px;
-  }
-`;
-
-class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
-    constructor() {
-        super();
-        this.title = 'Ontology Explorer';
-        // search: (e:any) => void = () => { }
-        // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
-        this.onNodeNavigation = () => { };
-        this.closePanel = () => {
-            var _a;
-            super.closePanel();
-            (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('.entity-list-item[open]').forEach(item => item.open = false);
-        };
-        this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
-        this.addEventListener('onsearch', (e) => {
-            if (e.detail.searchText.length > 2) {
-                this.shownEntities = search(e.detail.searchText, this.shownEntities);
-            }
-            else {
-                this.shownEntities = this.entities;
-            }
-        });
-    }
-    render() {
-        return y `
-    <gscape-button type="subtle" @click=${this.togglePanel}>
-      <span slot="icon">${explore}</span>
-    </gscape-button>
-
-    <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-      <div class="header">${this.title}</div>
-      <div class="content-wrapper">
-        <gscape-entity-search></gscape-entity-search>
-        <!-- <gscape-entity-type-filter></gscape-entity-type-filter> -->
-
-        <div class="list-wrapper">
-
-          ${this.shownEntities.length === 0
-            ? emptySearchBlankState
-            : null}
-
-          ${this.shownEntities.map(entity => {
-            return y `
-              <details class="ellipsed entity-list-item" title="${entity.displayedName}">
-                <summary class="actionable">
-                  <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-                  <span class="entity-name">${entity.displayedName}</span>
-                </summary>
-                <div class="summary-body">
-                  ${entity.viewOccurrences && entity.viewOccurrences.size > 0
-                ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
-                : null}
-                </div>
-              </details>
-            `;
-        })}
-        </div>
-      </div>
-    </div>
-    `;
-    }
-    get entities() { return this._entities; }
-    set entities(newEntities) {
-        this._entities = this.shownEntities = newEntities;
-    }
-    get searchEntityComponent() { var _a; return (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('gscape-entity-search'); }
-}
-// onSearch: (e: KeyboardEvent) => void
-// onEntityFilterToggle: () => void
-GscapeExplorer.properties = {
-    entities: { type: Object, attribute: false },
-    shownEntities: { type: Object, attribute: false }
-};
-GscapeExplorer.styles = [
-    entityListItemStyle,
-    baseStyle,
-    i$1 `
-      :host {
-        order: 6;
-        margin-top:10px;
-      }      
-
-      [diagram-id] > gscape-button {
-        color: var(--gscape-color-accent);
-      }
-
-      .filter-box {
-        padding: 8px;
-      }
-
-      .gscape-panel-in-tray {
-        height: 350px;
-        min-width: 200px;
-      }
-
-      .gscape-panel-in-tray > .content-wrapper {
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        max-height: 328px;
-      }
-
-      .blank-slate {
-        white-space: normal;
-        transform: translateY(40%);
-      }
-
-      .list-wrapper {
-        position: relative;
-        overflow: hidden auto;
-        padding: 0px 8px;
-        scrollbar-width: inherit;
-        height: 100%;
-      }
-
-      .content-wrapper {
-        height: 100%;
-      }
-    `
-];
-customElements.define('gscape-explorer', GscapeExplorer);
-
-function init$a (ontologyExplorerComponent, grapholscape) {
-    // let languages = grapholscape.languages
-    ontologyExplorerComponent.entities = createEntitiesList(grapholscape);
-    // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
-    ontologyExplorerComponent.onNodeNavigation = (entityOccurrence) => {
-        grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2);
-        grapholscape.selectElement(entityOccurrence.elementId);
-    };
-    ontologyExplorerComponent.addEventListener('onentityfilterchange', (e) => {
-        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail);
-    });
-    grapholscape.on(LifecycleEvent.RendererChange, () => {
-        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent);
-    });
-}
-
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
-function initOntologyExplorer(grapholscape) {
-    const ontologyExplorerComponent = new GscapeExplorer();
-    init$a(ontologyExplorerComponent, grapholscape);
-    grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent);
-}
-
-function init$9(entitySelectorComponent, grapholscape) {
+function init$a(entitySelectorComponent, grapholscape) {
     // Set class entity list
     let entities = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false });
     entitySelectorComponent.entityList = entities;
@@ -4783,6 +4822,14 @@ function init$9(entitySelectorComponent, grapholscape) {
         entitySelectorComponent.entityList = entities;
     });
 }
+
+var emptySearchBlankState = y `
+  <div class="blank-slate">
+    ${searchOff}
+    <div class="header">Can't find any entity</div>
+    <div class="description">Please try again with another search text.</div>
+  </div>
+`;
 
 class GscapeEntitySelector extends BaseMixin(s) {
     static get properties() {
@@ -4916,1209 +4963,8 @@ customElements.define('gscape-entity-selector', GscapeEntitySelector);
 
 function initEntitySelector(grapholscape) {
     const entitySelectorComponent = new GscapeEntitySelector();
-    init$9(entitySelectorComponent, grapholscape);
+    init$a(entitySelectorComponent, grapholscape);
     grapholscape.widgets.set(WidgetEnum.ENTITY_SELECTOR, entitySelectorComponent);
-}
-
-const textSpinner = () => y `<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>`;
-const textSpinnerStyle = i$1 `
-  .lds-ellipsis {
-    display: inline-block;
-    position: relative;
-    width: 20px;
-    height: 1em;
-  }
-  .lds-ellipsis div {
-    position: absolute;
-    top: calc(1em / 2);
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--gscape-color-fg-subtle);
-    animation-timing-function: cubic-bezier(0, 1, 1, 0);
-  }
-  .lds-ellipsis div:nth-child(1) {
-    left: 2px;
-    animation: lds-ellipsis1 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(2) {
-    left: 2px;
-    animation: lds-ellipsis2 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(3) {
-    left: 8px;
-    animation: lds-ellipsis2 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(4) {
-    left: 14px;
-    animation: lds-ellipsis3 0.6s infinite;
-  }
-  @keyframes lds-ellipsis1 {
-    0% {
-      transform: scale(0);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  @keyframes lds-ellipsis3 {
-    0% {
-      transform: scale(1);
-    }
-    100% {
-      transform: scale(0);
-    }
-  }
-  @keyframes lds-ellipsis2 {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(6px, 0);
-    }
-  }
-`;
-
-function getContentSpinner() {
-    return y `<div class="lds-ring" title="Sparqling is loading"><div></div><div></div><div></div><div></div></div>`;
-}
-const contentSpinnerStyle = i$1 `
-  .lds-ring {
-    width: 20px;
-    height: 20px;
-  }
-
-  .lds-ring div {
-    box-sizing: border-box;
-    display: block;
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    margin: 2px;
-    border: 2px solid var(--gscape-color-accent);
-    border-radius: 50%;
-    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    border-color: var(--gscape-color-accent) transparent transparent transparent;
-  }
-  .lds-ring div:nth-child(1) {
-    animation-delay: -0.45s;
-  }
-  .lds-ring div:nth-child(2) {
-    animation-delay: -0.3s;
-  }
-  .lds-ring div:nth-child(3) {
-    animation-delay: -0.15s;
-  }
-  @keyframes lds-ring {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-var incrementalDetailsStyle = i$1 `
-  .gscape-panel {
-    overflow: auto;
-  }
-
-  .counter {
-    position: absolute;
-    margin-left: 18px;
-  }
-
-  .chip {
-    line-height: 1;
-  }
-
-  .chip.data-property-value {
-    color: var(--gscape-color-fg-default);
-    border-color: var(--gscape-color-data-property-contrast);
-    background-color: var(--gscape-color-data-property);
-  }
-
-  .neutral-chip {
-    color: var(--gscape-color-fg-default);
-    border-color: var(--gscape-color-border-default);
-    background-color: var(--gscape-color-neutral-subtle);
-  }
-
-  .section-body {
-    position: relative;
-  }
-
-  .content-wrapper > * {
-    margin: 8px 0;
-  }
-
-  details.entity-list-item > .summary-body {
-    white-space: normal;
-  }
-
-  .summary-body > .lds-ring {
-    margin: 4px auto 8px;
-  }
-
-  .search-box {
-    display: flex;
-    align-items: stretch;
-    margin: 4px 0;
-  }
-
-  .search-box > select {
-    max-width: 30%;
-    padding: 8px;
-    border-bottom-right-radius: 0;
-    border-top-right-radius: 0;
-    border-right: none;
-    min-width: 100px;
-  }
-
-  .search-box > input {
-    padding: 8px;
-    min-width: 150px;
-    border-bottom-left-radius: 0;
-    border-top-left-radius: 0;
-    flex-grow: 2;
-    flex-shrink: 0;
-  }
-
-  .limit-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 4px 0 8px;
-  }
-
-  .limit-box > input {
-    padding: 4px 8px;
-    max-width: 80px;
-  }
-`;
-
-class GscapeIncrementalDetails extends BaseMixin(s) {
-    constructor() {
-        super(...arguments);
-        this.limit = 10;
-        this.canShowInstances = false;
-        this.canShowDataPropertiesValues = false;
-        this.canShowObjectPropertiesRanges = false;
-        this.isInstanceCounterLoading = true;
-        this.areInstancesLoading = true;
-        this.onObjectPropertySelection = (iri, objectPropertyIri, direct) => { };
-        this.onGetInstances = () => { };
-        this.onInstanceSelection = (iri) => { };
-        this.onDataPropertyToggle = (enabled) => { };
-        this.onEntitySearch = (searchText) => { };
-        this.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => { };
-        this.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => { };
-        this.onInstanceObjectPropertySelection = (instanceIri, objectPropertyIri, parentClassIri, direct) => { };
-        this.onLimitChange = (limitValue) => { };
-    }
-    render() {
-        var _a, _b, _c, _d, _e;
-        return y `
-    <div class="content-wrapper">      
-      ${this.canShowInstances
-            ? y `
-        <details class="ellipsed entity-list-item" title="Instances" style="position:relative" @click=${this.handleShowInstances}>
-          <summary class="actionable">
-            <span class="entity-icon slotted-icon">${instancesIcon}</span>
-            <span class="entity-name">Instances</span>
-              ${this.isInstanceCounterLoading
-                ? y `<span class="neutral-chip chip counter">${textSpinner()}</span>`
-                : y `<span class="neutral-chip chip counter">${(_a = this.instanceCount) !== null && _a !== void 0 ? _a : '?'}</span>`}
-            </span>
-          </summary>
-      
-          <div class="summary-body">
-            <div class="search-box">
-              <select id="data-property-filter">
-                <option default>Filter</option>
-                ${(_b = this.dataProperties) === null || _b === void 0 ? void 0 : _b.map(dp => y `<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
-              </select>
-              <input id="instances-search" @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
-            </div>
-
-            ${(_c = this.instances) === null || _c === void 0 ? void 0 : _c.map(instance => this.getEntitySuggestionTemplate(instance))}
-            ${this.areInstancesLoading ? getContentSpinner() : null}
-          </div>
-        </details>
-        `
-            : null}
-
-      ${this.dataProperties && this.dataProperties.length > 0
-            ? y `
-          <div class="section">
-            <div class="section-header bold-text">Data Properties</div>
-            <div class="section-body" style="padding-left: 0px; padding-right: 0px">
-              ${(_d = this.dataProperties) === null || _d === void 0 ? void 0 : _d.map(dataProperty => this.getEntitySuggestionTemplate(dataProperty))}
-            </div>
-          </div>
-        `
-            : null}
-
-      ${this.objectProperties && this.objectProperties.length > 0
-            ? y `
-            <div class="section">
-              <div class="section-header bold-text">Object Properties</div>
-              <div class="section-body" style="padding: 0">
-                ${(_e = this.objectProperties) === null || _e === void 0 ? void 0 : _e.map((op) => {
-                return y `
-                    <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
-                      <summary class="actionable">
-                        <span class="entity-icon slotted-icon">${objectPropertyIcon}</span>
-                        <span class="entity-name">${op.objectProperty.displayedName}</span>
-                        ${!op.direct
-                    ? y `<span class="chip" style="line-height: 1">Inverse</span>`
-                    : null}
-                      </summary>
-                  
-                      <div class="summary-body" ?isDirect=${op.direct}>
-                        ${op.connectedClasses.map(classEntity => {
-                    var _a, _b;
-                    if (this.canShowObjectPropertiesRanges) {
-                        const rangeClassesInstances = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(op.objectProperty.value.iri.fullIri)) === null || _b === void 0 ? void 0 : _b.get(classEntity.value.iri.fullIri);
-                        if (rangeClassesInstances) {
-                            return y `
-                                <details class="ellipsed entity-list-item" title="${classEntity.displayedName}"
-                                  objectPropertyIri=${op.objectProperty.value.iri.fullIri}
-                                  rangeClassIri=${classEntity.value.iri.fullIri}
-                                  @click=${this.handleShowObjectPropertyRanges}
-                                >
-                                  <summary class="actionable">
-                                    <span class="entity-icon slotted-icon">${classIcon}</span>
-                                    <span class="entity-name">${classEntity.displayedName}</span>
-                                  </summary>
-
-                                  <div class="summary-body">
-                                    ${rangeClassesInstances.values.map(instance => this.getEntitySuggestionTemplate(instance, op.objectProperty.value.iri.fullIri, classEntity.value.iri.fullIri, op.direct))}
-                                    ${rangeClassesInstances.loading ? getContentSpinner() : null}
-                                  </div>
-                                </details>
-                              `;
-                        }
-                    }
-                    else {
-                        return this.getEntitySuggestionTemplate(classEntity, op.objectProperty.value.iri.fullIri, undefined, op.direct);
-                    }
-                })}
-                      </div>
-                    </details>
-                  `;
-            })}
-              </div>
-            </div>
-          `
-            : null}    
-    </div>
-    `;
-    }
-    handleSearch(e) {
-        const inputElement = e.target;
-        clearTimeout(this.searchTimeout);
-        // on ESC key press
-        if (e.key === 'Escape') {
-            inputElement.blur();
-            inputElement.value = '';
-        }
-        this.searchTimeout = setTimeout(() => {
-            const dataPropertyFilterElem = this.dataPropertyFilter;
-            if (dataPropertyFilterElem && dataPropertyFilterElem.options.selectedIndex !== 0) {
-                const dataPropertyIri = dataPropertyFilterElem.options[dataPropertyFilterElem.options.selectedIndex].value;
-                this.onEntitySearchByDataPropertyValue(dataPropertyIri, inputElement.value);
-            }
-            else {
-                this.onEntitySearch(inputElement.value);
-            }
-        }, 500);
-    }
-    handleShowInstances(evt) {
-        const target = evt.currentTarget;
-        if (!target.open && (!this.instances || this.instances.length === 0)) {
-            this.onGetInstances();
-        }
-    }
-    handleShowObjectPropertyRanges(evt) {
-        var _a, _b;
-        const target = evt.currentTarget;
-        const objectPropertyIri = target.getAttribute('objectPropertyIri');
-        const rangeClassIri = target.getAttribute('rangeClassIri');
-        if (objectPropertyIri && rangeClassIri && !target.open) {
-            const actualRangeInstances = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
-            if (!actualRangeInstances || actualRangeInstances.values.length === 0)
-                this.onGetRangeInstances(objectPropertyIri, rangeClassIri);
-        }
-    }
-    getEntitySuggestionTemplate(entity, objectPropertyIri, parentClassIri, direct) {
-        var _a;
-        const values = (_a = this.dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(entity.value.iri.fullIri);
-        return y `
-      <div 
-        title=${entity.displayedName}
-        iri=${entity.value.iri.fullIri}
-        entity-type="${entity.value.type}"
-        class="ellipsed entity-list-item ${entity.value.type !== GrapholTypesEnum.DATA_PROPERTY ? 'actionable' : null}"
-        @click=${(e) => this.handleEntityClick(e, objectPropertyIri, parentClassIri, direct)}
-      >
-        <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
-        <span class="entity-name">${entity.displayedName}</span>
-        ${this.canShowDataPropertiesValues && values
-            ? y `
-            ${values.values.map(v => y `<span class="chip data-property-value">${v}</span>`)}
-            ${values.loading
-                ? y `<span class="chip neutral-chip">${textSpinner()}</span>`
-                : null}
-          `
-            : null}
-      </div>
-    `;
-    }
-    handleEntityClick(e, objectPropertyIri, parentClassIri, direct = true) {
-        const target = e.currentTarget;
-        const iri = target.getAttribute('iri');
-        if (!iri)
-            return;
-        switch (target.getAttribute('entity-type')) {
-            case GrapholTypesEnum.CLASS:
-                if (objectPropertyIri) {
-                    this.onObjectPropertySelection(iri, objectPropertyIri, direct);
-                }
-                break;
-            case GrapholTypesEnum.CLASS_INSTANCE:
-                if (objectPropertyIri) {
-                    if (parentClassIri) // nested needed
-                        this.onInstanceObjectPropertySelection(iri, objectPropertyIri, parentClassIri, direct);
-                }
-                else {
-                    this.onInstanceSelection(iri);
-                }
-        }
-    }
-    // protected get cxtMenuProps() {
-    //   let cxtMenuProps = super.cxtMenuProps
-    //   cxtMenuProps.placement = 'right'
-    //   return cxtMenuProps
-    // }
-    setDataProperties(dataProperties) { this.dataProperties = dataProperties; }
-    addDataProperties(dataProperties) {
-        this.dataProperties = (this.dataProperties || []).concat(dataProperties);
-    }
-    setObjectProperties(objectProperties) { this.objectProperties = objectProperties; }
-    addObjectProperties(objectProperties) {
-        this.objectProperties = (this.objectProperties || []).concat(objectProperties);
-    }
-    setInstances(instances) {
-        this.instances = instances;
-    }
-    addInstances(instances) {
-        // concat avoiding duplicates
-        this.instances = [...new Set([...(this.instances || []), ...instances])];
-    }
-    setDataPropertiesValues(dataPropertiesValues) {
-        this.dataPropertiesValues = dataPropertiesValues;
-    }
-    addDataPropertiesValues(dataPropertyIri, values) {
-        if (!this.dataPropertiesValues)
-            return;
-        const dataPropertyValues = this.dataPropertiesValues.get(dataPropertyIri);
-        if (dataPropertyValues) {
-            dataPropertyValues.values = values;
-            this.requestUpdate();
-        }
-    }
-    setDataPropertyLoading(dataPropertyIri, isLoading) {
-        var _a;
-        const dataPropertiesValues = (_a = this.dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(dataPropertyIri);
-        if (dataPropertiesValues) {
-            dataPropertiesValues.loading = isLoading;
-            this.requestUpdate();
-        }
-    }
-    // ---- OBJECT PROPERTIES RANGES ----
-    setObjectPropertyRanges(objectPropertyRanges) {
-        this.objectPropertiesRanges = objectPropertyRanges;
-    }
-    setObjectPropertyLoading(objectPropertyIri, rangeClassIri, isLoading) {
-        var _a, _b;
-        const objectPropertyRanges = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
-        if (objectPropertyRanges) {
-            objectPropertyRanges.loading = isLoading;
-            this.requestUpdate();
-        }
-    }
-    addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, classInstances) {
-        var _a, _b;
-        const objectPropertyRanges = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
-        if (objectPropertyRanges) {
-            objectPropertyRanges.values = classInstances;
-            this.requestUpdate();
-        }
-    }
-    show() {
-        var _a, _b;
-        super.show();
-        (_b = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll(`details`)) === null || _b === void 0 ? void 0 : _b.forEach(detailsElement => detailsElement.open = false);
-    }
-    reset() {
-        this.dataProperties = undefined;
-        this.objectProperties = undefined;
-        this.canShowInstances = false;
-        this.canShowDataPropertiesValues = false;
-        this.canShowObjectPropertiesRanges = false;
-        this.dataPropertiesValues = undefined;
-        this.objectPropertiesRanges = undefined;
-    }
-    get dataPropertyFilter() {
-        if (this.shadowRoot)
-            return this.shadowRoot.querySelector(`select#data-property-filter`);
-    }
-}
-GscapeIncrementalDetails.properties = {
-    dataProperties: { type: Object, attribute: false },
-    objectProperties: { type: Object, attribute: false },
-    instances: { type: Array, attribute: false },
-    canShowInstances: { type: Boolean, attribute: false },
-    canShowDataPropertiesValues: { type: Boolean, attribute: false },
-    isInstanceCounterLoading: { type: Boolean, attribute: false },
-    areInstancesLoading: { type: Boolean, attribute: false },
-    instanceCount: { type: Number, attribute: false },
-    limit: { type: Number, attribute: false },
-    // dataPropertiesValues: {type: Object, attribute: false },
-    // objectPropertiesRanges: {type: Object, attribute: false },
-};
-GscapeIncrementalDetails.styles = [baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle,
-    i$1 `
-      div.entity-list-item[entity-type = "data-property"] { 
-        flex-wrap: wrap;
-      }
-    `
-];
-customElements.define('gscape-incremental-menu', GscapeIncrementalDetails);
-
-function showHideSuperHierarchies(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Super Hierarchies`,
-        icon: superHierarchies,
-        select: callback,
-    };
-}
-function showHideSuperClasses(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Super Classes`,
-        icon: superHierarchies,
-        select: callback,
-    };
-}
-function showHideSubHierarchies(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Sub Hierarchies`,
-        icon: subHierarchies,
-        select: callback,
-    };
-}
-function showHideSubClasses(hide, callback) {
-    return {
-        content: `${hide ? `Hide` : `Show`} Sub Classes`,
-        icon: subHierarchies,
-        select: callback,
-    };
-}
-function remove(callback) {
-    return {
-        content: 'Remove',
-        icon: rubbishBin,
-        select: callback,
-    };
-}
-function showParentClass(callback) {
-    return {
-        content: 'Show Parent Classes',
-        icon: classIcon,
-        select: callback,
-    };
-}
-
-function initIncrementalMenu(grapholscape) {
-    const incrementalMenu = new GscapeIncrementalDetails();
-    //   // grapholscape.on(LifecycleEvent.NodeSelection, node => {
-    //   //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL)
-    //   //     cxtMenuWidget.attachTo((grapholscape.renderer.cy.$id(node.id) as any).popperRef(), [])
-    //   // })
-    grapholscape.widgets.set(WidgetEnum.INCREMENTAL_MENU, incrementalMenu);
-}
-// function getCxtMenuProps(cxtMenuWidget: ContextMenuWidget): Partial<Props> {
-//   return {
-//     trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
-//     allowHTML: true,
-//     interactive: true,
-//     placement: "bottom",
-//     appendTo: document.querySelector('.gscape-ui') || undefined,
-//     // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
-//     content: cxtMenuWidget,
-//     hideOnClick: true,
-//     offset: [0, 0],
-//   }
-// }
-// export function attachCxtMenuTo(element: HTMLElement, commands: Command[]) {
-//   cxtMenu.setProps(getCxtMenuProps())
-//   cxtMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() } )
-//   cxtMenuWidget.commands = commands
-//   cxtMenu.show()
-// }
-// cxtMenuWidget.onCommandRun = () => cxtMenu.hide()
-
-class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
-    constructor() {
-        super(...arguments);
-        this.title = 'Diagram Selector';
-        this.onDiagramSelection = () => { };
-    }
-    render() {
-        var _a;
-        return y `
-      <gscape-button @click="${this.togglePanel}" label="${((_a = this.actualDiagram) === null || _a === void 0 ? void 0 : _a.name) || 'Select a diagram'}">
-        ${getIconSlot('icon', diagrams)}
-        ${getIconSlot('trailing-icon', arrowDown)}
-      </gscape-button>
-
-      <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${this.diagrams.length === 1 && this.actualDiagramId === 0
-            ? y `
-            <div class="blank-slate">
-              ${blankSlateDiagrams}
-              <div class="header">No more diagrams</div>
-              <div class="description">The ontology contains only one diagram, the one displayed.</div>
-            </div>
-          `
-            : this.diagrams
-                .sort(function (a, b) {
-                var x = a.name.toLowerCase();
-                var y = b.name.toLowerCase();
-                if (x < y) {
-                    return -1;
-                }
-                if (x > y) {
-                    return 1;
-                }
-                return 0;
-            })
-                .map(diagram => y `
-              <gscape-action-list-item
-                @click="${this.diagramSelectionHandler}"
-                label="${diagram.name}"
-                diagram-id="${diagram.id}"
-                ?selected = "${this.actualDiagramId === diagram.id}"
-              ></gscape-action-list-item>
-            `)}
-        
-      </div>
-    `;
-    }
-    diagramSelectionHandler(e) {
-        const selectedDiagramId = parseInt(e.target.getAttribute('diagram-id') || '');
-        this.onDiagramSelection(selectedDiagramId);
-    }
-    get actualDiagram() {
-        return this.diagrams.find(diagram => diagram.id === this.actualDiagramId);
-    }
-}
-GscapeDiagramSelector.properties = {
-    actualDiagramId: { type: Number }
-};
-GscapeDiagramSelector.styles = [
-    baseStyle,
-    i$1 `
-    :host {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-    }
-
-    .gscape-panel {
-      margin-top: 4px;
-    }
-
-    gscape-button {
-      font-wright: 600;
-    }
-    `
-];
-customElements.define('gscape-diagram-selector', GscapeDiagramSelector);
-
-/**
- *
- * @param {import('./index').default} diagramSelectorComponent
- * @param {import('../../grapholscape').default} grapholscape
- */
-function init$8 (diagramSelectorComponent, grapholscape) {
-    // const diagramsViewData = grapholscape.ontology.diagrams
-    diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
-    if (grapholscape.diagramId || grapholscape.diagramId === 0) {
-        diagramSelectorComponent.actualDiagramId = grapholscape.diagramId;
-    }
-    diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram);
-    grapholscape.on(LifecycleEvent.DiagramChange, diagram => diagramSelectorComponent.actualDiagramId = diagram.id);
-}
-
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
-function initDiagramSelector(grapholscape) {
-    const diagramSelectorComponent = new GscapeDiagramSelector();
-    init$8(diagramSelectorComponent, grapholscape);
-    grapholscape.widgets.set(WidgetEnum.DIAGRAM_SELECTOR, diagramSelectorComponent);
-}
-
-function itemWithIriTemplate(item, onWikiLinkClick) {
-    function wikiClickHandler() {
-        if (onWikiLinkClick)
-            onWikiLinkClick(item.iri);
-    }
-    return y `
-    <div class="item-with-iri-info ellipsed">
-      <div 
-        class="name ${onWikiLinkClick ? 'link' : null}" 
-        title="${item.name}"
-        @click=${onWikiLinkClick ? wikiClickHandler : null}
-      >
-        ${item.name}
-      </div>
-      <div class="muted-text" title="iri: ${item.iri}">${item.iri}</div>
-      <div class="muted-text type-or-version">
-        ${Object.values(GrapholTypesEnum).includes(item.typeOrVersion)
-        ? entityIcons[item.typeOrVersion] : null}
-        ${item.typeOrVersion || '-'}
-      </div>
-    </div>
-  `;
-}
-const itemWithIriTemplateStyle = i$1 `
-  .item-with-iri-info {
-    text-align:center;
-    background-color: var(--gscape-color-bg-inset);
-    white-space: nowrap;
-  }
-
-  .item-with-iri-info > .type-or-version {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .item-with-iri-info .name {
-    font-size: 14px;
-    font-weight: 600;
-  }
-`;
-function annotationsTemplate(annotations) {
-    if (!annotations || annotations.length === 0)
-        return null;
-    let propertiesAlreadyInserted = [];
-    return y `
-    <div class="annotations">
-      ${annotations.map(annotation => {
-        const property = annotation.property;
-        if (annotation.property === 'comment' || propertiesAlreadyInserted.includes(property))
-            return null;
-        propertiesAlreadyInserted.push(property);
-        return y `
-          <div class="annotation">
-            <div class="bold-text annotation-property">
-              ${property.charAt(0).toUpperCase() + property.slice(1)}
-            </div>
-            ${annotations.filter(a => a.property === property).map(annotation => {
-            return y `
-                <div class="annotation-row">
-                  <span class="language muted-text bold-text">@${annotation.language}</span>
-                  <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
-                </div>
-              `;
-        })}
-          </div>
-        `;
-    })}
-    </div>
-  `;
-}
-const annotationsStyle = i$1 `
-  .annotations {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .annotation-property {
-    margin-bottom: 4px;
-  }
-
-  .annotations .language {
-    margin-right: 6px
-  }
-
-  .annotation-row {
-    padding: 0 8px;
-  }
-`;
-
-class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
-    constructor() {
-        super(...arguments);
-        this.title = 'Entity Details';
-        this.onNodeNavigation = () => { };
-    }
-    static get properties() {
-        return {
-            grapholEntity: { type: Object, attribute: false },
-            occurrences: { type: Object, attribute: false },
-            language: { type: String, attribute: false },
-            _isPanelClosed: { type: Boolean, attribute: false },
-            incrementalSection: { type: Object, attribute: false }
-        };
-    }
-    render() {
-        if (!this.grapholEntity)
-            return;
-        return y `
-      <div class="gscape-panel ellipsed" id="drop-panel">
-        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
-
-        <div class="content-wrapper">
-          ${this.grapholEntity.datatype
-            ? y `
-              <div style="text-align: center" class="chips-wrapper section">
-                <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
-              </div>
-            `
-            : null}
-
-          ${this.grapholEntity.functionalities.length > 0
-            ? y `
-                <div class="chips-wrapper section">
-                ${this.grapholEntity.functionalities.map(functionality => {
-                return y `<span class="chip">&#10003; ${functionality.toString()}</span>`;
-            })}
-                </div>
-              `
-            : null}
-
-          ${this.incrementalSection}
-
-          ${annotationsTemplate(this.grapholEntity.getAnnotations())}
-          
-          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
-
-          ${this.grapholEntity.getComments().length > 0
-            ? y `
-                <div class="section">
-                  <div>
-                    <span id="description-header" class="bold-text section-header">Description</span>
-                    <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
-                      ${this.commentsLanguages.map(language => {
-                return y `
-                          <option value="${language}" ?selected=${this.language === language}>
-                            @${language}
-                          </option>
-                        `;
-            })}
-                    </select>
-                  </div>
-                  <div class="section-body">
-                    ${this.grapholEntity.getComments(this.language).map(comment => y `<span class="comment">${comment.lexicalForm}</span>`)}
-                  </div>
-                </div>
-              `
-            : null}
-        </div>
-      </div>
-
-      <div class="top-bar">
-        <gscape-button style="z-index: 1"
-          id="toggle-panel-button"
-          size="${this.isPanelClosed() ? 'm' : 's'}" 
-          type="${this.isPanelClosed() ? '' : 'subtle'}"
-          @click=${this.togglePanel}
-          label = "${this.isPanelClosed() ? 'Entity Details' : ''}"
-        > 
-          ${this.isPanelClosed()
-            ? y `
-                <span slot="icon">${infoFilled}</span>
-                <span slot="trailing-icon">${plus}</span>
-              `
-            : y `<span slot="icon">${minus}</span>`}
-        </gscape-button>
-      </div>
-    `;
-    }
-    occurrencesTemplate() {
-        return y `
-      <div class="section">
-        <div class="bold-text section-header">Occurrences</div>
-        <div class="section-body">
-          ${getEntityOccurrencesTemplate(this.occurrences, this.onNodeNavigation)}
-        </div>
-      </div>
-    `;
-    }
-    // override blur to avoid collapsing when clicking on cytoscape's canvas
-    blur() { }
-    setGrapholEntity(entity) { }
-    languageSelectionHandler(e) {
-        this.language = e.target.value;
-    }
-    get entityForTemplate() {
-        const result = {
-            name: this.grapholEntity.iri.remainder,
-            typeOrVersion: this.grapholEntity.type.toString(),
-            iri: this.grapholEntity.iri.fullIri,
-        };
-        return result;
-    }
-    get commentsLanguages() {
-        return Array.from(new Set(this.grapholEntity.getComments().map(comment => comment.language)));
-    }
-    updated() {
-        var _a;
-        // let description = this.entity?.annotations?.comment
-        const allComments = (_a = this.grapholEntity) === null || _a === void 0 ? void 0 : _a.getComments();
-        if (!allComments || allComments.length === 0)
-            return;
-        const commentsInActualLanguage = this.grapholEntity.getComments(this.language);
-        // if actual language is not available, select the first available
-        if (commentsInActualLanguage.length === 0) {
-            this.language = allComments[0].language;
-        }
-    }
-}
-GscapeEntityDetails.styles = [
-    baseStyle,
-    itemWithIriTemplateStyle,
-    annotationsStyle,
-    GscapeButtonStyle,
-    i$1 `
-      :host {
-        position: absolute;
-        top:10px;
-        right:62px;
-        max-height: 50%;
-        min-height: 200px;
-        min-width: 300px;
-        max-width: 20%;
-        display: flex;
-        flex-direction: column;
-        pointer-events: none;
-      }
-
-      .gscape-panel {
-        padding:0;
-        max-height: inherit;
-        display: flex;
-        flex-direction: column;
-        width: inherit;
-        max-width: unset;
-        min-width: unset;
-      }
-
-      .gscape-panel > * {
-        padding: 8px;
-      }
-
-      .datatype-chip {
-        color: inherit;
-        background-color: var(--gscape-color-neutral-muted);
-        border-color: var(--gscape-color-border-subtle);
-        padding-top: 1px;
-      }
-
-      [diagram-id] > gscape-button {
-        color: var(--gscape-color-accent);
-      }
-
-      #language-select: {
-        margin: 10px auto;
-        display: block;
-      }
-
-      #description-header {
-        margin-right: 8px;
-      }
-
-      .comment {
-        margin: 8px 0;
-        display: block;
-      }
-
-      .top-bar {
-        display: flex;
-        flex-direction: row-reverse;
-        line-height: 1;
-        position: absolute;
-        top: 0;
-        right: 0;
-      }
-
-      .item-with-iri-info {
-        padding-top: 12px;
-        flex-shrink: 0;
-      }
-
-      .content-wrapper > * {
-        margin: 8px 0;
-      }
-    `
-];
-customElements.define('gscape-entity-details', GscapeEntityDetails);
-
-function init$7 (entityDetailsComponent, grapholscape) {
-    // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
-    entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {
-        grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2);
-        grapholscape.selectElement(entityOccurrence.elementId);
-    };
-    entityDetailsComponent.language = grapholscape.language;
-    entityDetailsComponent.setGrapholEntity = setGrapholEntity;
-    grapholscape.on(LifecycleEvent.EntitySelection, setGrapholEntity);
-    grapholscape.on(LifecycleEvent.NodeSelection, node => {
-        if (!node.isEntity())
-            entityDetailsComponent.hide();
-    });
-    grapholscape.on(LifecycleEvent.EdgeSelection, edge => {
-        if (!edge.isEntity())
-            entityDetailsComponent.hide();
-    });
-    grapholscape.on(LifecycleEvent.LanguageChange, language => {
-        entityDetailsComponent.language = language;
-    });
-    grapholscape.on(LifecycleEvent.RendererChange, _ => {
-        if (entityDetailsComponent.grapholEntity)
-            entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape);
-    });
-    function setGrapholEntity(entity) {
-        entityDetailsComponent.grapholEntity = entity;
-        entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape);
-        entityDetailsComponent.language = grapholscape.language;
-        entityDetailsComponent.show();
-        if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
-            entityDetailsComponent.onWikiLinkClick = (iri) => {
-                grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri);
-            };
-        }
-    }
-}
-
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
-function initEntityDetails(grapholscape) {
-    const entityDetailsComponent = new GscapeEntityDetails();
-    init$7(entityDetailsComponent, grapholscape);
-    grapholscape.widgets.set(WidgetEnum.ENTITY_DETAILS, entityDetailsComponent);
-}
-
-class GscapeFilters extends DropPanelMixin(BaseMixin(s)) {
-    constructor() {
-        super();
-        this.title = "Filters";
-        this.filterAll = new Filter('all', () => false);
-        this.onFilterOn = () => { };
-        this.onFilterOff = () => { };
-        this.onFilterAll = () => { };
-        this.onUnfilterAll = () => { };
-        this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
-    }
-    render() {
-        return y `
-      <gscape-button type="subtle" @click=${this.togglePanel}>
-        ${getIconSlot('icon', filter)}
-      </gscape-button>
-
-      <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-        <div class="header">${this.title}</div>
-
-        <div class="content-wrapper">
-          ${this.filterToggleTemplate(this.filterAll, false)}
-          <div class="hr"></div>
-          ${Array.from(this.filters).map(([_, filter]) => this.filterToggleTemplate(filter))}
-        </div>
-      </div>
-    `;
-    }
-    filterToggleTemplate(filter, reverseState = true) {
-        return y `
-      <gscape-toggle
-        class="${!filter.locked ? 'actionable' : null}"
-        @click = ${!filter.locked ? this.toggleFilter : null}
-        key = ${filter.key}
-        label = ${this.getFilterLabel(filter.key)}
-        ?disabled = ${filter.locked}
-        ?checked = ${reverseState ? !filter.active : filter.active}
-      ></gscape-toggle>
-    `;
-    }
-    getFilterLabel(filterKey) {
-        var _a;
-        let result = (_a = Object.keys(DefaultFilterKeyEnum)
-            .find(key => DefaultFilterKeyEnum[key] === filterKey)) === null || _a === void 0 ? void 0 : _a.toLowerCase().replace('_', ' ');
-        if (!result)
-            return '';
-        result = (result === null || result === void 0 ? void 0 : result.charAt(0).toUpperCase()) + (result === null || result === void 0 ? void 0 : result.substring(1));
-        return result;
-    }
-    toggleFilter(e) {
-        var _a;
-        e.preventDefault();
-        const toggle = e.target;
-        const filter = this.filters.get(toggle.key);
-        if (!filter) {
-            if (toggle.key === this.filterAll.key) {
-                this.filterAll.active ? this.onUnfilterAll() : this.onFilterAll();
-            }
-            return;
-        }
-        ((_a = this.filters.get(toggle.key)) === null || _a === void 0 ? void 0 : _a.active) ? this.onFilterOff(filter) : this.onFilterOn(filter);
-    }
-}
-GscapeFilters.properties = {
-    filters: { type: Object, attribute: false }
-};
-GscapeFilters.styles = [
-    baseStyle,
-    i$1 `
-      :host {
-        order: 3;
-        display:inline-block;
-        position: initial;
-        margin-top:10px;
-      }
-
-      gscape-toggle {
-        padding: 8px;
-      }
-
-      gscape-toggle[key ="all"] {
-        margin: 0 auto;
-      }
-
-      .content-wrapper {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .hr {
-        margin-top: 4px;
-        margin-bottom: 4px;
-      }
-    `,
-];
-customElements.define('gscape-filters', GscapeFilters);
-
-/**
- * @param {import('./index').default} filterComponent
- * @param {import('../../grapholscape').default} grapholscape
- */
-function init$6 (filterComponent, grapholscape) {
-    filterComponent.filters = grapholscape.renderer.filters;
-    filterComponent.onFilterOff = (filter) => grapholscape.unfilter(filter);
-    filterComponent.onFilterOn = (filter) => grapholscape.filter(filter);
-    filterComponent.onFilterAll = () => {
-        grapholscape.renderer.filters.forEach(filter => {
-            grapholscape.filter(filter);
-            filter.active = true;
-        });
-        filterComponent.filterAll.active = true;
-        filterComponent.requestUpdate();
-    };
-    filterComponent.onUnfilterAll = () => {
-        grapholscape.renderer.filters.forEach(filter => {
-            grapholscape.unfilter(filter);
-        });
-        filterComponent.filterAll.active = false;
-        filterComponent.requestUpdate();
-    };
-    grapholscape.on(LifecycleEvent.Filter, () => filterComponent.requestUpdate());
-    grapholscape.on(LifecycleEvent.Unfilter, () => {
-        filterComponent.filterAll.active = false;
-        filterComponent.requestUpdate();
-    });
-    grapholscape.on(LifecycleEvent.RendererChange, () => filterComponent.requestUpdate());
-    // filterComponent.onFilterOn = (filterType) => {
-    //   filterComponent.filterList[filterType].active = true
-    //   onFilterToggle(filterType)
-    // }
-    // filterComponent.onFilterOff = (filterType) => {
-    //   filterComponent.filterList[filterType].active = false
-    //   onFilterToggle(filterType)
-    // }
-    // grapholscape.onFilter(_ => filterComponent.updateTogglesState())
-    // grapholscape.onUnfilter(_ => filterComponent.updateTogglesState())
-    // grapholscape.onRendererChange(() => filterComponent.requestUpdate())
-    // function onFilterToggle(type) {
-    //   if (type == 'attributes' && !grapholscape.renderer.disabledFilters.includes('value_domain')) {
-    //     filterComponent.filterList.value_domain.disabled = filterComponent.filterList.attributes.active
-    //   }
-    //   // if 'all' is toggled, it affect all other filters
-    //   if (type == 'all') {
-    //     Object.keys(filterComponent.filterList).map(key => {
-    //       if (key != 'all' && !filterComponent.filterList[key].disbaled) {
-    //         filterComponent.filterList[key].active = filterComponent.filterList.all.active
-    //         /**
-    //          * if the actual filter is value-domain it means it's not disabled (see previous if condition)
-    //          * but when filter all is active, filter value-domain must be disabled, let's disable it.
-    //          * Basically value-domain filter disabled state must be equal to the active state of the 
-    //          * 'all' filter.
-    //          */
-    //         if (key == 'value_domain' && !grapholscape.renderer.disabledFilters.includes('value_domain'))
-    //           filterComponent.filterList[key].disabled = filterComponent.filterList['all'].active
-    //         executeFilter(key)
-    //       }
-    //     })
-    //   } else if (!filterComponent.filterList[type].active && filterComponent.filterList.all.active) {
-    //     // if one filter get deactivated while the 'all' filter is active
-    //     // then make the 'all' toggle deactivated
-    //     filterComponent.filterList.all.active = false
-    //   }
-    //   executeFilter(type)
-    //   filterComponent.updateTogglesState()
-    // }
-    // function executeFilter(type) {
-    //   if (filterComponent.filterList[type].active) {
-    //     grapholscape.filter(type)
-    //   } else {
-    //     grapholscape.unfilter(type)
-    //     // Re-Apply other active filters to resolve ambiguity
-    //     applyActiveFilters()
-    //   }
-    // }
-    // function applyActiveFilters() {
-    //   Object.keys(filterComponent.filterList).map(key => {
-    //     if (filterComponent.filterList[key].active)
-    //       grapholscape.filter(filterComponent.filterList[key])
-    //   })
-    // }
-}
-
-function initFilters(grapholscape) {
-    const filterComponent = new GscapeFilters();
-    init$6(filterComponent, grapholscape);
-    grapholscape.widgets.set(WidgetEnum.FILTERS, filterComponent);
-}
-
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
-function initFitButton(grapholscape) {
-    const fitButtonComponent = new GscapeButton();
-    fitButtonComponent.appendChild(getIconSlot('icon', centerDiagram));
-    fitButtonComponent.style.order = '2';
-    fitButtonComponent.style.marginTop = '10px';
-    fitButtonComponent.title = 'Center Diagram';
-    //fitButtonComponent.style.position = 'initial'
-    fitButtonComponent.onclick = () => grapholscape.fit();
-    grapholscape.widgets.set(WidgetEnum.FIT_BUTTON, fitButtonComponent);
 }
 
 class FloatyFilterManager extends BaseFilterManager {
@@ -7821,6 +6667,676 @@ class LiteRendererState extends BaseRenderer {
     set layout(newLayout) { this._layout = newLayout; }
 }
 
+var entityListItemStyle = i$1 `
+  div.entity-list-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+  }
+
+  .entity-list-item {
+    white-space: nowrap;
+  }
+
+  div.entity-list-item > .entity-icon {
+    flex-shrink: 0;
+  }
+
+  details.entity-list-item > summary::marker {
+    display: inline-block;
+  }
+
+  details.entity-list-item > summary > .entity-icon {
+    position: absolute;
+  }
+
+  details.entity-list-item > summary > .entity-name {
+    margin-left: 24px;
+    line-height: 18px;
+  }
+
+  details.entity-list-item > .summary-body {
+    background-color: var(--gscape-color-bg-inset);
+    white-space: normal;
+    padding: 4px 8px;
+  }
+
+  details.entity-list-item[open] {
+    border: solid 1px var(--gscape-color-border-subtle);
+    border-radius: var(--gscape-border-radius);
+    margin-bottom: 8px;
+  }
+`;
+
+class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
+    constructor() {
+        super();
+        this.title = 'Ontology Explorer';
+        // search: (e:any) => void = () => { }
+        // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
+        this.onNodeNavigation = () => { };
+        this.closePanel = () => {
+            var _a;
+            super.closePanel();
+            (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('.entity-list-item[open]').forEach(item => item.open = false);
+        };
+        this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
+        this.addEventListener('onsearch', (e) => {
+            if (e.detail.searchText.length > 2) {
+                this.shownEntities = search(e.detail.searchText, this.shownEntities);
+            }
+            else {
+                this.shownEntities = this.entities;
+            }
+        });
+    }
+    render() {
+        return y `
+    <gscape-button type="subtle" @click=${this.togglePanel}>
+      <span slot="icon">${explore}</span>
+    </gscape-button>
+
+    <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
+      <div class="header">${this.title}</div>
+      <div class="content-wrapper">
+        <gscape-entity-search></gscape-entity-search>
+        <!-- <gscape-entity-type-filter></gscape-entity-type-filter> -->
+
+        <div class="list-wrapper">
+
+          ${this.shownEntities.length === 0
+            ? emptySearchBlankState
+            : null}
+
+          ${this.shownEntities.map(entity => {
+            return y `
+              <details class="ellipsed entity-list-item" title="${entity.displayedName}">
+                <summary class="actionable">
+                  <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
+                  <span class="entity-name">${entity.displayedName}</span>
+                </summary>
+                <div class="summary-body">
+                  ${entity.viewOccurrences && entity.viewOccurrences.size > 0
+                ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
+                : y `
+                      <div class="blank-slate">
+                        ${blankSlateDiagrams}
+                        <div class="header">No Occurrences</div>
+                        <div class="description">The entity has no occurrences in this rendering mode.</div>
+                      </div>
+                    `}
+                </div>
+              </details>
+            `;
+        })}
+        </div>
+      </div>
+    </div>
+    `;
+    }
+    get entities() { return this._entities; }
+    set entities(newEntities) {
+        this._entities = this.shownEntities = newEntities;
+    }
+    get searchEntityComponent() { var _a; return (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('gscape-entity-search'); }
+}
+// onSearch: (e: KeyboardEvent) => void
+// onEntityFilterToggle: () => void
+GscapeExplorer.properties = {
+    entities: { type: Object, attribute: false },
+    shownEntities: { type: Object, attribute: false }
+};
+GscapeExplorer.styles = [
+    entityListItemStyle,
+    baseStyle,
+    i$1 `
+      :host {
+        order: 6;
+        margin-top:10px;
+      }      
+
+      [diagram-id] > gscape-button {
+        color: var(--gscape-color-accent);
+      }
+
+      .filter-box {
+        padding: 8px;
+      }
+
+      .gscape-panel-in-tray {
+        height: 350px;
+        min-width: 200px;
+      }
+
+      .gscape-panel-in-tray > .content-wrapper {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        max-height: 328px;
+      }
+
+      .list-wrapper > .blank-slate {
+        white-space: normal;
+        transform: translateY(40%);
+      }
+
+      .list-wrapper {
+        position: relative;
+        overflow: hidden auto;
+        padding: 0px 8px;
+        scrollbar-width: inherit;
+        height: 100%;
+      }
+
+      .content-wrapper {
+        height: 100%;
+      }
+    `
+];
+customElements.define('gscape-explorer', GscapeExplorer);
+
+function init$9 (ontologyExplorerComponent, grapholscape) {
+    // let languages = grapholscape.languages
+    ontologyExplorerComponent.entities = createEntitiesList(grapholscape);
+    // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
+    ontologyExplorerComponent.onNodeNavigation = (entityOccurrence) => {
+        grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2);
+        grapholscape.selectElement(entityOccurrence.elementId);
+    };
+    ontologyExplorerComponent.addEventListener('onentityfilterchange', (e) => {
+        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail);
+    });
+    grapholscape.on(LifecycleEvent.RendererChange, () => {
+        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent);
+    });
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function initOntologyExplorer(grapholscape) {
+    const ontologyExplorerComponent = new GscapeExplorer();
+    init$9(ontologyExplorerComponent, grapholscape);
+    grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent);
+}
+
+var incrementalDetailsStyle = i$1 `
+  .gscape-panel {
+    overflow: auto;
+  }
+
+  .counter {
+    position: absolute;
+    margin-left: 18px;
+  }
+
+  .chip {
+    line-height: 1;
+  }
+
+  .chip.data-property-value {
+    color: var(--gscape-color-fg-default);
+    border-color: var(--gscape-color-data-property-contrast);
+    background-color: var(--gscape-color-data-property);
+  }
+
+  .neutral-chip {
+    color: var(--gscape-color-fg-default);
+    border-color: var(--gscape-color-border-default);
+    background-color: var(--gscape-color-neutral-subtle);
+  }
+
+  .section-body {
+    position: relative;
+  }
+
+  .content-wrapper > * {
+    margin: 8px 0;
+  }
+
+  details.entity-list-item > .summary-body {
+    white-space: normal;
+  }
+
+  .summary-body > .lds-ring {
+    margin: 4px auto 8px;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: stretch;
+    margin: 4px 0;
+  }
+
+  .search-box > select {
+    max-width: 30%;
+    padding: 8px;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    border-right: none;
+    min-width: 100px;
+  }
+
+  .search-box > input {
+    padding: 8px;
+    min-width: 150px;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    flex-grow: 2;
+    flex-shrink: 0;
+  }
+
+  .limit-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 0 8px;
+  }
+
+  .limit-box > input {
+    padding: 4px 8px;
+    max-width: 80px;
+  }
+`;
+
+class GscapeIncrementalDetails extends BaseMixin(s) {
+    constructor() {
+        super(...arguments);
+        /** @internal */
+        this.canShowInstances = false;
+        /** @internal */
+        this.canShowDataPropertiesValues = false;
+        /** @internal */
+        this.canShowObjectPropertiesRanges = false;
+        /** @internal */
+        this.isInstanceCounterLoading = true;
+        /** @internal */
+        this.areInstancesLoading = true;
+        /** @internal */
+        this.onObjectPropertySelection = (iri, objectPropertyIri, direct) => { };
+        /** @internal */
+        this.onGetInstances = () => { };
+        /** @internal */
+        this.onInstanceSelection = (iri) => { };
+        /** @internal */
+        this.onEntitySearch = (searchText) => { };
+        /** @internal */
+        this.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => { };
+        /** @internal */
+        this.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => { };
+        /** @internal */
+        this.onInstanceObjectPropertySelection = (instanceIri, objectPropertyIri, parentClassIri, direct) => { };
+        /** @internal */
+        this.onLimitChange = (limitValue) => { };
+    }
+    render() {
+        var _a, _b, _c, _d, _e;
+        return y `
+    <div class="content-wrapper">      
+      ${this.canShowInstances
+            ? y `
+        <details class="ellipsed entity-list-item" title="Instances" style="position:relative" @click=${this.handleShowInstances}>
+          <summary class="actionable">
+            <span class="entity-icon slotted-icon">${instancesIcon}</span>
+            <span class="entity-name">Instances</span>
+              ${this.isInstanceCounterLoading
+                ? y `<span class="neutral-chip chip counter">${textSpinner()}</span>`
+                : y `<span class="neutral-chip chip counter">${(_a = this.instanceCount) !== null && _a !== void 0 ? _a : GscapeIncrementalDetails.notAvailableText}</span>`}
+            </span>
+          </summary>
+      
+          <div class="summary-body">
+            <div class="search-box">
+              <select id="data-property-filter">
+                <option default>Filter</option>
+                ${(_b = this.dataProperties) === null || _b === void 0 ? void 0 : _b.map(dp => y `<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
+              </select>
+              <input id="instances-search" @keyup=${this.handleSearch} type="text" placeholder="Search instances by IRI, labels ..." />
+            </div>
+
+            ${(_c = this.instances) === null || _c === void 0 ? void 0 : _c.map(instance => this.getEntitySuggestionTemplate(instance))}
+            ${this.areInstancesLoading
+                ? getContentSpinner()
+                : y `${!this.instances || this.instances.length === 0 ? this.emptyInstancesBlankSlate : null}`}
+          </div>
+        </details>
+        `
+            : null}
+
+      ${this.dataProperties && this.dataProperties.length > 0
+            ? y `
+          <div class="section">
+            <div class="section-header bold-text">Data Properties</div>
+            <div class="section-body" style="padding-left: 0px; padding-right: 0px">
+              ${(_d = this.dataProperties) === null || _d === void 0 ? void 0 : _d.map(dataProperty => this.getEntitySuggestionTemplate(dataProperty))}
+            </div>
+          </div>
+        `
+            : null}
+
+      ${this.objectProperties && this.objectProperties.length > 0
+            ? y `
+            <div class="section">
+              <div class="section-header bold-text">Object Properties</div>
+              <div class="section-body" style="padding: 0">
+                ${(_e = this.objectProperties) === null || _e === void 0 ? void 0 : _e.map((op) => {
+                return y `
+                    <details class="ellipsed entity-list-item" title=${op.objectProperty.displayedName}>
+                      <summary class="actionable">
+                        <span class="entity-icon slotted-icon">${objectPropertyIcon}</span>
+                        <span class="entity-name">${op.objectProperty.displayedName}</span>
+                        ${!op.direct
+                    ? y `<span class="chip" style="line-height: 1">Inverse</span>`
+                    : null}
+                      </summary>
+                  
+                      <div class="summary-body" ?isDirect=${op.direct}>
+                        ${op.connectedClasses.map(classEntity => {
+                    var _a, _b;
+                    if (this.canShowObjectPropertiesRanges) {
+                        const rangeClassesInstances = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(op.objectProperty.value.iri.fullIri)) === null || _b === void 0 ? void 0 : _b.get(classEntity.value.iri.fullIri);
+                        if (rangeClassesInstances) {
+                            return y `
+                                <details class="ellipsed entity-list-item" title="${classEntity.displayedName}"
+                                  objectPropertyIri=${op.objectProperty.value.iri.fullIri}
+                                  rangeClassIri=${classEntity.value.iri.fullIri}
+                                  @click=${this.handleShowObjectPropertyRanges}
+                                >
+                                  <summary class="actionable">
+                                    <span class="entity-icon slotted-icon">${classIcon}</span>
+                                    <span class="entity-name">${classEntity.displayedName}</span>
+                                  </summary>
+
+                                  <div class="summary-body">
+                                    ${rangeClassesInstances.values.map(instance => this.getEntitySuggestionTemplate(instance, op.objectProperty.value.iri.fullIri, classEntity.value.iri.fullIri, op.direct))}
+                                    ${rangeClassesInstances.loading
+                                ? getContentSpinner()
+                                : y `${rangeClassesInstances.values.length === 0 ? this.emptyInstancesBlankSlate : null}`}
+                                  </div>
+                                </details>
+                              `;
+                        }
+                    }
+                    else {
+                        return this.getEntitySuggestionTemplate(classEntity, op.objectProperty.value.iri.fullIri, undefined, op.direct);
+                    }
+                })}
+                      </div>
+                    </details>
+                  `;
+            })}
+              </div>
+            </div>
+          `
+            : null}    
+    </div>
+    `;
+    }
+    /** @internal */
+    handleSearch(e) {
+        const inputElement = e.target;
+        clearTimeout(this.searchTimeout);
+        // on ESC key press
+        if (e.key === 'Escape') {
+            inputElement.blur();
+            inputElement.value = '';
+        }
+        this.searchTimeout = setTimeout(() => {
+            const dataPropertyFilterElem = this.dataPropertyFilter;
+            if (dataPropertyFilterElem && dataPropertyFilterElem.options.selectedIndex !== 0) {
+                const dataPropertyIri = dataPropertyFilterElem.options[dataPropertyFilterElem.options.selectedIndex].value;
+                this.onEntitySearchByDataPropertyValue(dataPropertyIri, inputElement.value);
+            }
+            else {
+                this.onEntitySearch(inputElement.value);
+            }
+        }, 500);
+    }
+    /** @internal */
+    handleShowInstances(evt) {
+        const target = evt.currentTarget;
+        if (!target.open && (!this.instances || this.instances.length === 0)) {
+            this.onGetInstances();
+        }
+    }
+    /** @internal */
+    handleShowObjectPropertyRanges(evt) {
+        var _a, _b;
+        const target = evt.currentTarget;
+        const objectPropertyIri = target.getAttribute('objectPropertyIri');
+        const rangeClassIri = target.getAttribute('rangeClassIri');
+        if (objectPropertyIri && rangeClassIri && !target.open) {
+            const actualRangeInstances = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
+            if (!actualRangeInstances || actualRangeInstances.values.length === 0)
+                this.onGetRangeInstances(objectPropertyIri, rangeClassIri);
+        }
+    }
+    getEntitySuggestionTemplate(entity, objectPropertyIri, parentClassIri, direct) {
+        var _a;
+        const values = (_a = this.dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(entity.value.iri.fullIri);
+        return y `
+      <div 
+        title=${entity.displayedName}
+        iri=${entity.value.iri.fullIri}
+        entity-type="${entity.value.type}"
+        class="ellipsed entity-list-item ${entity.value.type !== GrapholTypesEnum.DATA_PROPERTY ? 'actionable' : null}"
+        @click=${(e) => this.handleEntityClick(e, objectPropertyIri, parentClassIri, direct)}
+      >
+        <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
+        <span class="entity-name">${entity.displayedName}</span>
+        ${this.canShowDataPropertiesValues && values
+            ? y `
+            ${!values.loading && values.values.length === 0 ? y `<span class="chip neutral-chip">${GscapeIncrementalDetails.notAvailableText}</span>` : null}
+            ${values.values.map(v => y `<span class="chip data-property-value">${v}</span>`)}
+            ${values.loading
+                ? y `<span class="chip neutral-chip">${textSpinner()}</span>`
+                : null}
+          `
+            : null}
+      </div>
+    `;
+    }
+    handleEntityClick(e, objectPropertyIri, parentClassIri, direct = true) {
+        const target = e.currentTarget;
+        const iri = target.getAttribute('iri');
+        if (!iri)
+            return;
+        switch (target.getAttribute('entity-type')) {
+            case GrapholTypesEnum.CLASS:
+                if (objectPropertyIri) {
+                    this.onObjectPropertySelection(iri, objectPropertyIri, direct);
+                }
+                break;
+            case GrapholTypesEnum.CLASS_INSTANCE:
+                if (objectPropertyIri) {
+                    if (parentClassIri) // nested needed
+                        this.onInstanceObjectPropertySelection(iri, objectPropertyIri, parentClassIri, direct);
+                }
+                else {
+                    this.onInstanceSelection(iri);
+                }
+        }
+    }
+    // protected get cxtMenuProps() {
+    //   let cxtMenuProps = super.cxtMenuProps
+    //   cxtMenuProps.placement = 'right'
+    //   return cxtMenuProps
+    // }
+    setDataProperties(dataProperties) { this.dataProperties = dataProperties; }
+    addDataProperties(dataProperties) {
+        this.dataProperties = (this.dataProperties || []).concat(dataProperties);
+    }
+    setObjectProperties(objectProperties) { this.objectProperties = objectProperties; }
+    addObjectProperties(objectProperties) {
+        this.objectProperties = (this.objectProperties || []).concat(objectProperties);
+    }
+    /** @internal */
+    setInstances(instances) {
+        this.instances = instances;
+    }
+    /** @internal */
+    addInstances(instances) {
+        // concat avoiding duplicates
+        this.instances = [...new Set([...(this.instances || []), ...instances])];
+    }
+    /** @internal */
+    setDataPropertiesValues(dataPropertiesValues) {
+        this.dataPropertiesValues = dataPropertiesValues;
+    }
+    /** @internal */
+    addDataPropertiesValues(dataPropertyIri, values) {
+        if (!this.dataPropertiesValues)
+            return;
+        const dataPropertyValues = this.dataPropertiesValues.get(dataPropertyIri);
+        if (dataPropertyValues) {
+            dataPropertyValues.values = values;
+            this.requestUpdate();
+        }
+    }
+    /** @internal */
+    setDataPropertyLoading(dataPropertyIri, isLoading) {
+        var _a;
+        const dataPropertiesValues = (_a = this.dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(dataPropertyIri);
+        if (dataPropertiesValues) {
+            dataPropertiesValues.loading = isLoading;
+            this.requestUpdate();
+        }
+    }
+    // ---- OBJECT PROPERTIES RANGES ----
+    /** @internal */
+    setObjectPropertyRanges(objectPropertyRanges) {
+        this.objectPropertiesRanges = objectPropertyRanges;
+    }
+    /** @internal */
+    setObjectPropertyLoading(objectPropertyIri, rangeClassIri, isLoading) {
+        var _a, _b;
+        const objectPropertyRanges = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
+        if (objectPropertyRanges) {
+            objectPropertyRanges.loading = isLoading;
+            this.requestUpdate();
+        }
+    }
+    /** @internal */
+    addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, classInstances) {
+        var _a, _b;
+        const objectPropertyRanges = (_b = (_a = this.objectPropertiesRanges) === null || _a === void 0 ? void 0 : _a.get(objectPropertyIri)) === null || _b === void 0 ? void 0 : _b.get(rangeClassIri);
+        if (objectPropertyRanges) {
+            objectPropertyRanges.values = classInstances;
+            this.requestUpdate();
+        }
+    }
+    show() {
+        var _a, _b;
+        super.show();
+        (_b = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll(`details`)) === null || _b === void 0 ? void 0 : _b.forEach(detailsElement => detailsElement.open = false);
+    }
+    reset() {
+        this.dataProperties = undefined;
+        this.objectProperties = undefined;
+        this.canShowInstances = false;
+        this.canShowDataPropertiesValues = false;
+        this.canShowObjectPropertiesRanges = false;
+        this.dataPropertiesValues = undefined;
+        this.objectPropertiesRanges = undefined;
+    }
+    /** @internal */
+    get dataPropertyFilter() {
+        if (this.shadowRoot)
+            return this.shadowRoot.querySelector(`select#data-property-filter`);
+    }
+    get emptyInstancesBlankSlate() {
+        return y `
+      <div class="blank-slate">
+        ${searchOff}
+        <div class="header">No Instances Available</div>
+      </div>
+    `;
+    }
+}
+GscapeIncrementalDetails.properties = {
+    dataProperties: { type: Object, attribute: false },
+    objectProperties: { type: Object, attribute: false },
+    instances: { type: Array, attribute: false },
+    canShowInstances: { type: Boolean, attribute: false },
+    canShowDataPropertiesValues: { type: Boolean, attribute: false },
+    isInstanceCounterLoading: { type: Boolean, attribute: false },
+    areInstancesLoading: { type: Boolean, attribute: false },
+    instanceCount: { type: Number, attribute: false },
+    limit: { type: Number, attribute: false },
+    // dataPropertiesValues: {type: Object, attribute: false },
+    // objectPropertiesRanges: {type: Object, attribute: false },
+};
+GscapeIncrementalDetails.notAvailableText = 'n/a';
+GscapeIncrementalDetails.styles = [baseStyle, entityListItemStyle, incrementalDetailsStyle, textSpinnerStyle, contentSpinnerStyle,
+    i$1 `
+      div.entity-list-item[entity-type = "data-property"] { 
+        flex-wrap: wrap;
+      }
+    `
+];
+customElements.define('gscape-incremental-menu', GscapeIncrementalDetails);
+
+function showHideSuperHierarchies(hide, callback) {
+    return {
+        content: `${hide ? `Hide` : `Show`} Super Hierarchies`,
+        icon: superHierarchies,
+        select: callback,
+    };
+}
+function showHideSuperClasses(hide, callback) {
+    return {
+        content: `${hide ? `Hide` : `Show`} Super Classes`,
+        icon: superHierarchies,
+        select: callback,
+    };
+}
+function showHideSubHierarchies(hide, callback) {
+    return {
+        content: `${hide ? `Hide` : `Show`} Sub Hierarchies`,
+        icon: subHierarchies,
+        select: callback,
+    };
+}
+function showHideSubClasses(hide, callback) {
+    return {
+        content: `${hide ? `Hide` : `Show`} Sub Classes`,
+        icon: subHierarchies,
+        select: callback,
+    };
+}
+function showHideEquivalentClasses(hide, callback) {
+    return {
+        content: `${hide ? `Hide` : `Show`} Equivalent Classes`,
+        icon: equivalentClasses,
+        select: callback
+    };
+}
+function remove(callback) {
+    return {
+        content: 'Remove',
+        icon: rubbishBin,
+        select: callback,
+    };
+}
+function showParentClass(callback) {
+    return {
+        content: 'Show Parent Classes',
+        icon: classIcon,
+        select: callback,
+    };
+}
+
+function initIncrementalMenu(grapholscape) {
+    const incrementalMenu = new GscapeIncrementalDetails();
+    //   // grapholscape.on(LifecycleEvent.NodeSelection, node => {
+    //   //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL)
+    //   //     cxtMenuWidget.attachTo((grapholscape.renderer.cy.$id(node.id) as any).popperRef(), [])
+    //   // })
+    grapholscape.widgets.set(WidgetEnum.INCREMENTAL_MENU, incrementalMenu);
+}
+
 function setGraphEventHandlers(diagram, lifecycle, ontology) {
     diagram.representations.forEach(diagramRepresentation => {
         const cy = diagramRepresentation.cy;
@@ -7864,6 +7380,7 @@ function setGraphEventHandlers(diagram, lifecycle, ontology) {
     });
 }
 
+/** @internal */
 class ClassInstanceEntity extends GrapholEntity {
     constructor(iri, parentClassIri) {
         super(iri, GrapholTypesEnum.CLASS_INSTANCE);
@@ -7873,124 +7390,6 @@ class ClassInstanceEntity extends GrapholEntity {
     }
 }
 
-class GscapeContextMenu extends BaseMixin(s) {
-    constructor() {
-        super(...arguments);
-        this.commands = [];
-        this.customElements = [];
-        this.showFirst = 'elements';
-        this.onCommandRun = () => { };
-        this.tippyMenu = tippy(document.createElement('div'));
-    }
-    render() {
-        return y `
-    <div class="gscape-panel">
-      ${this.title ? y `<div>${this.title}</div>` : null}
-      ${this.showFirst === 'elements' ? this.customElementsTemplate : null}
-      
-      ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
-            ? y `<div class="hr"></div>` : null}
-
-      ${this.commandsTemplate}
-
-      ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
-            ? y `<div class="hr"></div>` : null}
-
-
-      ${this.showFirst === 'commands' ? this.customElementsTemplate : null}
-    </div>
-    `;
-    }
-    attachTo(element, commands, elements) {
-        this.tippyMenu.setProps(this.cxtMenuProps);
-        this.tippyMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() });
-        this.commands = commands || [];
-        this.customElements = elements || [];
-        this.tippyMenu.show();
-    }
-    get cxtMenuProps() {
-        return {
-            trigger: 'manual',
-            allowHTML: true,
-            interactive: true,
-            placement: "bottom",
-            appendTo: document.querySelector('.gscape-ui') || undefined,
-            // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
-            content: this,
-            offset: [0, 0],
-        };
-    }
-    handleCommandClick(e) {
-        const command = this.commands[e.currentTarget.getAttribute('command-id')];
-        if (command.select) {
-            command.select();
-            this.onCommandRun();
-            this.tippyMenu.hide();
-        }
-    }
-    get commandsTemplate() {
-        if (this.commands.length > 0)
-            return y `
-        <div class="commands">
-          ${this.commands.map((command, id) => {
-                return y `
-              <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
-                ${command.icon ? y `<span class="command-icon slotted-icon">${command.icon}</span>` : null}
-                <span class="command-text">${command.content}</span>
-              <div>
-            `;
-            })}
-        </div>
-      `;
-    }
-    get customElementsTemplate() {
-        if (this.customElements.length > 0)
-            return y `
-        <div class="custom-elements">
-          ${this.customElements.map(c => y `<div class="custom-element-wrapper">${c}</div>`)}
-        </div>    
-      `;
-    }
-}
-GscapeContextMenu.properties = {
-    commands: { type: Object, attribute: false },
-    customElements: { type: Object, attribute: false },
-    showFirst: { type: String },
-};
-GscapeContextMenu.styles = [
-    baseStyle,
-    i$1 `
-      :host {
-        display: flex;
-        flex-direction: column;
-        padding: 5px 0;
-      }
-
-      .command-entry {
-        white-space: nowrap;
-        cursor: pointer;
-        padding: 5px 10px;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .command-text {
-        line-height: 20px;
-      }
-
-      .gscape-panel, .custom-elements {
-        overflow: unset;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        justify-content: center;
-        align-items: stretch;
-      }
-    `
-];
-customElements.define('gscape-context-menu', GscapeContextMenu);
-
 function grapholEntityToEntityViewData (grapholEntity, grapholscape) {
     return {
         displayedName: grapholEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language, grapholscape.ontology.languages.default),
@@ -7998,19 +7397,33 @@ function grapholEntityToEntityViewData (grapholEntity, grapholscape) {
     };
 }
 
+var QueryStatusEnum;
+(function (QueryStatusEnum) {
+    QueryStatusEnum["FINISHED"] = "FINISHED";
+    QueryStatusEnum["UNAVAILABLE"] = "UNAVAILABLE";
+    QueryStatusEnum["ERROR"] = "ERROR";
+    QueryStatusEnum["RUNNING"] = "RUNNING";
+    QueryStatusEnum["READY"] = "READY";
+})(QueryStatusEnum || (QueryStatusEnum = {}));
+
 var QueryPollerStatus;
 (function (QueryPollerStatus) {
-    QueryPollerStatus[QueryPollerStatus["TIMEOUT_EXPIRED"] = 0] = "TIMEOUT_EXPIRED";
-    QueryPollerStatus[QueryPollerStatus["DONE"] = 1] = "DONE";
+    /** Stopped manually */
+    QueryPollerStatus[QueryPollerStatus["STOPPED"] = 1] = "STOPPED";
+    /** Polling ongoing and waiting for responses */
     QueryPollerStatus[QueryPollerStatus["RUNNING"] = 2] = "RUNNING";
+    /** QueryPoller not started yet */
     QueryPollerStatus[QueryPollerStatus["IDLE"] = 3] = "IDLE";
+    /** Stopped automatically because stopCondition() === true */
+    QueryPollerStatus[QueryPollerStatus["FINISHED"] = 4] = "FINISHED";
+    /** Error occurred */
+    QueryPollerStatus[QueryPollerStatus["ERROR"] = 5] = "ERROR";
 })(QueryPollerStatus || (QueryPollerStatus = {}));
 class QueryPoller {
     constructor() {
         this.lastRequestFulfilled = true;
         // Callbacks
         this.onStop = () => { };
-        this.onTimeoutExpiration = () => { };
         this.onError = () => { };
         this.status = QueryPollerStatus.IDLE;
     }
@@ -8019,6 +7432,9 @@ class QueryPoller {
         fetch(this.request)
             .then((response) => {
             response.json().then((result) => {
+                // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
+                //   return
+                // }
                 if (this.isResultError(result)) {
                     this.triggerError(result);
                 }
@@ -8027,12 +7443,17 @@ class QueryPoller {
                     this._result = result;
                     this.onNewResults(result);
                     if (this.stopCondition()) {
-                        this.stop();
+                        this.status = QueryPollerStatus.FINISHED;
+                        this.stopPolling();
                     }
                 }
             });
         })
             .catch(error => this.triggerError(error));
+    }
+    stopPolling() {
+        clearInterval(this.interval);
+        this.onStop();
     }
     start() {
         this.interval = setInterval(() => {
@@ -8041,31 +7462,18 @@ class QueryPoller {
                 this.poll();
             }
         }, QueryPoller.INTERVAL_LENGTH);
-        this.timeout = setTimeout(() => {
-            if (!this.hasAnyResult()) {
-                this.stop(true);
-            }
-            else {
-                this.stop();
-            }
-        }, QueryPoller.TIMEOUT_LENGTH);
     }
-    stop(timeoutExpired = false) {
-        if (timeoutExpired) {
-            this.status = QueryPollerStatus.TIMEOUT_EXPIRED;
-            // console.warn(`Qyery timeout expired for query with id = [${this.executionID}]`)
-            this.onTimeoutExpiration();
-        }
-        else {
-            this.status = QueryPollerStatus.DONE;
-        }
-        clearInterval(this.interval);
-        clearTimeout(this.timeout);
-        this.onStop();
+    stop() {
+        this.status = QueryPollerStatus.STOPPED;
+        this.stopPolling();
     }
     triggerError(result) {
-        this.onError(result);
-        this.stop();
+        this.status = QueryPollerStatus.ERROR;
+        this.stopPolling();
+        this.onError(this.getErrrorMessage(result));
+    }
+    getErrrorMessage(result) {
+        return result.toString();
     }
 }
 QueryPoller.TIMEOUT_LENGTH = 5000;
@@ -8078,14 +7486,39 @@ class QueryResultsPoller extends QueryPoller {
         this.executionId = executionId;
         this.onNewResults = () => { };
     }
+    stop() {
+        super.stop();
+        this.poll();
+    }
+    hasAnyResults() {
+        return this.result && this.result.results.length > 0;
+    }
     isResultError(result) {
-        return !result || result.results === undefined || result.type === 'error';
+        return !result || result.results === undefined;
     }
     stopCondition() {
         return this._result.results.length >= this.limit;
     }
-    hasAnyResult() {
-        return this.result.results.length > 0;
+    get result() {
+        return this._result;
+    }
+}
+class QueryStatusPoller extends QueryPoller {
+    constructor(request) {
+        super();
+        this.request = request;
+    }
+    hasAnyResults() {
+        return this.result !== undefined;
+    }
+    stopCondition() {
+        return this.result.status !== QueryStatusEnum.RUNNING;
+    }
+    isResultError(result) {
+        return !result || result.hasError === true || result.status === QueryStatusEnum.UNAVAILABLE || result.status === QueryStatusEnum.ERROR;
+    }
+    getErrrorMessage(result) {
+        return result.errorMessages.map(error => JSON.parse(error));
     }
     get result() {
         return this._result;
@@ -8097,6 +7530,9 @@ class QueryResultsPoller extends QueryPoller {
  * to the QUERY_STATUS_FINISHED constant.
  */
 class QueryCountStatePoller extends QueryPoller {
+    hasAnyResults() {
+        return this.result !== undefined;
+    }
     constructor(request) {
         super();
         this.request = request;
@@ -8109,9 +7545,6 @@ class QueryCountStatePoller extends QueryPoller {
         return !result || result === QueryCountStatePoller.QUERY_STATUS_ERROR;
     }
     stopCondition() {
-        return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED;
-    }
-    hasAnyResult() {
         return this.result === QueryCountStatePoller.QUERY_STATUS_FINISHED;
     }
     get result() {
@@ -8127,6 +7560,7 @@ class QueryManager {
         this.endpoint = endpoint;
         this._prefixes = new Promise(() => { });
         this._runningQueryPollerByExecutionId = new Map();
+        this._runningCountQueryPollerByExecutionId = new Map();
         this.requestOptions.headers['content-type'] = 'application/json';
         this._prefixes = new Promise((resolve) => {
             this.handleCall(fetch(this.prefixesPath, {
@@ -8150,10 +7584,29 @@ class QueryManager {
      */
     performQuery(queryCode, pageSize, pageNumber = 1) {
         return __awaiter(this, void 0, void 0, function* () {
-            const executionID = yield this.startQuery(queryCode);
-            const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionID, pageSize, pageNumber), pageSize, executionID);
-            this._runningQueryPollerByExecutionId.set(executionID, queryResultsPoller);
+            const executionId = yield this.startQuery(queryCode);
+            const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId);
+            this._runningQueryPollerByExecutionId.set(executionId, queryResultsPoller);
             queryResultsPoller.onError = this.requestOptions.onError;
+            const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId));
+            // this._runningQueryStatePollerByExecutionId.set(executionId, queryStatusPoller)
+            queryStatusPoller.start();
+            queryStatusPoller.onNewResults = (result) => {
+                if (result.status !== QueryStatusEnum.RUNNING) {
+                    queryResultsPoller.stop();
+                    this._runningQueryPollerByExecutionId.delete(executionId);
+                    queryStatusPoller.stop();
+                }
+            };
+            queryStatusPoller.onError = (errors) => {
+                for (let error of errors)
+                    this.requestOptions.onError(error);
+                queryResultsPoller.stop();
+                this._runningQueryPollerByExecutionId.delete(executionId);
+            };
+            // queryStatusPoller.onStop = () => {
+            //   this._runningQueryStatePollerByExecutionId.delete(executionId)
+            // }
             return queryResultsPoller;
         });
     }
@@ -8166,48 +7619,46 @@ class QueryManager {
      * @param queryCode
      * @returns a promise which will be resolved with the result
      */
-    performQueryCount(queryCode) {
+    performQueryCount(queryCode, onStopCallback) {
         return __awaiter(this, void 0, void 0, function* () {
-            const executionID = yield this.startQuery(queryCode, true);
-            const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionID));
+            const executionId = yield this.startQuery(queryCode, true);
+            const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId));
+            this._runningCountQueryPollerByExecutionId.set(executionId, countStatePoller);
             return new Promise((resolve, reject) => {
                 countStatePoller.onNewResults = (state) => {
-                    if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED) {
-                        this.handleCall(fetch(`${this.queryCountPath}/${executionID}/result`, {
+                    if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED && this._runningCountQueryPollerByExecutionId.get(executionId)) {
+                        this.handleCall(fetch(`${this.queryCountPath}/${executionId}/result`, {
                             method: 'get',
                             headers: this.requestOptions.headers,
                         })).then((response) => __awaiter(this, void 0, void 0, function* () {
                             resolve(yield response.json());
                             // The count query has finished and result has been processed
                             // Now we need to delete the query execution from mastro.
-                            this.handleCall(fetch(`${this.queryCountPath}/${executionID}`, {
-                                method: 'delete',
-                                headers: this.requestOptions.headers,
-                            }));
+                            this.stopCountQuery(executionId);
                         })).catch(reason => reject(reason));
                     }
                 };
                 countStatePoller.onError = (error) => {
                     reject(error);
-                    this.handleCall(fetch(`${this.queryCountPath}/${executionID}/error`, {
+                    this.handleCall(fetch(`${this.queryCountPath}/${executionId}/error`, {
                         method: 'get',
                         headers: this.requestOptions.headers,
-                    })).then((errorResponse) => __awaiter(this, void 0, void 0, function* () {
+                    }))
+                        .then((errorResponse) => __awaiter(this, void 0, void 0, function* () {
                         this.requestOptions.onError(yield errorResponse.text());
-                    }));
+                    }))
+                        .finally(() => this.stopCountQuery(executionId));
                 };
+                if (onStopCallback)
+                    countStatePoller.onStop = onStopCallback;
                 countStatePoller.start();
             });
         });
     }
     getQueryStatus(executionID) {
         return __awaiter(this, void 0, void 0, function* () {
-            const request = new Request(new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionID}/status`), {
-                method: 'get',
-                headers: this.requestOptions.headers,
-            });
             return new Promise((resolve, reject) => {
-                this.handleCall(fetch(request))
+                this.handleCall(fetch(this.getQueryStatusRequest(executionID)))
                     .then(response => resolve(response.json()))
                     .catch(error => {
                     this.requestOptions.onError(error);
@@ -8218,12 +7669,23 @@ class QueryManager {
     }
     stopRunningQueries() {
         this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId));
+        // this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
+        this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId));
     }
     stopQuery(executionId) {
         var _a;
         (_a = this._runningQueryPollerByExecutionId.get(executionId)) === null || _a === void 0 ? void 0 : _a.stop(); // stop polling
         this._runningQueryPollerByExecutionId.delete(executionId);
         this.handleCall(fetch(this.getQueryStopPath(executionId), {
+            method: 'put',
+            headers: this.requestOptions.headers,
+        }));
+    }
+    stopCountQuery(executionId) {
+        var _a;
+        (_a = this._runningCountQueryPollerByExecutionId.get(executionId)) === null || _a === void 0 ? void 0 : _a.stop();
+        this._runningCountQueryPollerByExecutionId.delete(executionId);
+        this.handleCall(fetch(`${this.queryCountPath}/${executionId}/stop`, {
             method: 'put',
             headers: this.requestOptions.headers,
         }));
@@ -8270,6 +7732,12 @@ class QueryManager {
             headers: this.requestOptions.headers
         });
     }
+    getQueryStatusRequest(queryExecutionId) {
+        return new Request(`${this.getQueryStatePath(queryExecutionId)}`, {
+            method: 'get',
+            headers: this.requestOptions.headers
+        });
+    }
     getQueryCountStatusRequest(queryExecutionId) {
         return new Request(`${this.queryCountPath}/${queryExecutionId}/state`, {
             method: `get`,
@@ -8284,6 +7752,9 @@ class QueryManager {
     }
     getQueryResultPath(executionId) {
         return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/results`);
+    }
+    getQueryStatePath(executionId) {
+        return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/status`);
     }
     get prefixesPath() {
         return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/prefixes`);
@@ -8317,7 +7788,7 @@ function getInstances(iri, maxResults, searchText) {
     const where = `?x a <${iri}>.`;
     let filter = ``;
     if (searchText) {
-        filter = `FILTER(regex(?x, '${searchText}')`;
+        filter = `FILTER(regex(?x, '${searchText}', 'i')`;
         filter += `)`;
     }
     const optional = ``;
@@ -8338,7 +7809,7 @@ function getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataProperty
         `?x a <${classIri}>.`,
         `?x <${dataPropertyIri}> ?y.`
     ];
-    let filter = `FILTER(regex(?y, '${dataPropertyValue}'))`;
+    let filter = `FILTER(regex(?y, '${dataPropertyValue}', 'i'))`;
     const limit = maxResults ? `LIMIT ${maxResults}` : ``;
     return `
     SELECT DISTINCT ${select}
@@ -8364,7 +7835,7 @@ function getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeT
     const optional = ``;
     let filter = ``;
     if (searchText) {
-        filter = `FILTER(regex(?y, '${searchText}')`;
+        filter = `FILTER(regex(?y, '${searchText}', 'i')`;
         filter += `)`;
     }
     const limit = maxResults ? `LIMIT ${maxResults}` : ``;
@@ -8378,15 +7849,6 @@ function getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeT
     ${limit}
   `;
 }
-
-var QueryStatusEnum;
-(function (QueryStatusEnum) {
-    QueryStatusEnum["FINISHED"] = "FINISHED";
-    QueryStatusEnum["UNAVAILABLE"] = "UNAVAILABLE";
-    QueryStatusEnum["ERROR"] = "ERROR";
-    QueryStatusEnum["RUNNING"] = "RUNNING";
-    QueryStatusEnum["READY"] = "READY";
-})(QueryStatusEnum || (QueryStatusEnum = {}));
 
 class VKGApi {
     constructor(requestOptions, endpoint) {
@@ -8414,7 +7876,6 @@ class VKGApi {
         return __awaiter(this, void 0, void 0, function* () {
             const queryCode = getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, this.limit);
             const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit);
-            queryPoller.start();
             queryPoller.onNewResults = (result => {
                 onNewResults(result.results.map(res => {
                     var _a;
@@ -8424,12 +7885,13 @@ class VKGApi {
             if (onStop) {
                 queryPoller.onStop = onStop;
             }
+            queryPoller.start();
         });
     }
     getInstancesNumber(iri, onResult, onStop, searchText) {
         return __awaiter(this, void 0, void 0, function* () {
             const queryCode = getInstances(iri, undefined, searchText);
-            this.queryManager.performQueryCount(queryCode)
+            this.queryManager.performQueryCount(queryCode, onStop)
                 .then(result => onResult(result))
                 .catch(_ => {
                 if (onStop)
@@ -8450,32 +7912,44 @@ class VKGApi {
     getInstanceDataPropertyValues(instanceIri, dataPropertyIri, onNewResults, onStop, onError) {
         return __awaiter(this, void 0, void 0, function* () {
             const queryCode = getInstanceDataPropertyValue(instanceIri, dataPropertyIri);
-            const pollPage = (pageNumber) => __awaiter(this, void 0, void 0, function* () {
-                const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit, pageNumber);
-                queryPoller.start();
-                queryPoller.onNewResults = (results) => {
-                    onNewResults(results.results.map(res => res[0].value));
-                };
-                // If stopped then we received all results for this page
-                // if query has not finished, continue polling for next page
-                // if has finished then return and call onStop
-                queryPoller.onStop = () => __awaiter(this, void 0, void 0, function* () {
-                    const queryStatus = yield this.queryManager.getQueryStatus(queryPoller.executionId);
-                    if (queryStatus.status === QueryStatusEnum.FINISHED) {
-                        if (onStop)
-                            onStop();
-                        return;
-                    }
-                    if (!queryStatus.hasError) {
-                        pollPage(pageNumber + 1); // poll for another page
-                    }
-                    else {
-                        if (onError)
-                            onError();
-                    }
-                });
-            });
-            pollPage(1);
+            // const pollPage = async (pageNumber: number) => {
+            //   const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
+            //   if (queryPoller.status === QueryPollerStatus.STOPPED) {
+            //     if (onStop)
+            //       onStop()
+            //     return
+            //   }
+            //   queryPoller.start()
+            //   queryPoller.onNewResults = (results) => {
+            //     onNewResults(results.results.map(res => res[0].value))
+            //   }
+            //   // If stopped then we need to decide wether to poll next page or not.
+            //   // if query has not finished and queryPoller has not been stopped, continue polling for next page
+            //   // if has finished or queryPoller has been stopped, then return and call onStop
+            //   queryPoller.onStop = async () => {
+            //     const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
+            //     if (queryStatus.status === QueryStatusEnum.FINISHED || queryPoller.status === QueryPollerStatus.STOPPED) {
+            //       if (onStop)
+            //         onStop()
+            //       return
+            //     }
+            //     if (!queryStatus.hasError) {
+            //       pollPage(pageNumber + 1) // poll for another page
+            //     } else {
+            //       if (onError)
+            //         onError()
+            //     }
+            //   }
+            // }
+            // pollPage(1)
+            const queryPoller = yield this.queryManager.performQuery(queryCode, this.limit);
+            queryPoller.onNewResults = (results) => {
+                onNewResults(results.results.map(res => res[0].value));
+            };
+            if (onStop) {
+                queryPoller.onStop = onStop;
+            }
+            queryPoller.start();
         });
     }
     getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri, onNewResults, onStop, onError) {
@@ -8735,7 +8209,7 @@ class DiagramBuilder {
      * @param subClassIri
      * @param superClassIri
      */
-    addIsa(subClassIri, superClassIri) {
+    addIsa(subClassIri, superClassIri, type = GrapholTypesEnum.INCLUSION) {
         var _a, _b;
         if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(subClassIri).empty()) {
             this.addEntity(subClassIri);
@@ -8743,7 +8217,7 @@ class DiagramBuilder {
         if ((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.$id(superClassIri).empty()) {
             this.addEntity(superClassIri);
         }
-        const inclusionEdge = new GrapholEdge(`${subClassIri}-isa-${superClassIri}`, GrapholTypesEnum.INCLUSION);
+        const inclusionEdge = new GrapholEdge(`${subClassIri}-isa-${superClassIri}`, type);
         inclusionEdge.sourceId = subClassIri;
         inclusionEdge.targetId = superClassIri;
         this.diagram.addElement(inclusionEdge);
@@ -8755,6 +8229,10 @@ class DiagramBuilder {
     addSuperClass(superClassIri) {
         if (this.referenceNodeIri)
             this.addIsa(this.referenceNodeIri, superClassIri);
+    }
+    addEquivalentClass(equivalentClassIri) {
+        if (this.referenceNodeIri)
+            this.addIsa(this.referenceNodeIri, equivalentClassIri, GrapholTypesEnum.EQUIVALENCE);
     }
     areAllSubclassesVisibleForClass(classIri, subClassesIris) {
         var _a;
@@ -8768,6 +8246,14 @@ class DiagramBuilder {
         var _a;
         for (let subClassIri of subClassesIris) {
             if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(subClassIri).connectedEdges(`[ type = "${GrapholTypesEnum.INCLUSION}" ]`).sources(`[id = "${classIri}"]`).empty())
+                return false;
+        }
+        return true;
+    }
+    areAllEquivalentClassesVisibleForClass(classIri, equivalentClassesIris) {
+        var _a;
+        for (let equivalentClassIri of equivalentClassesIris) {
+            if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(equivalentClassIri).connectedEdges(`[ type = "${GrapholTypesEnum.EQUIVALENCE}" ]`).connectedNodes(`[id = "${classIri}"]`).empty())
                 return false;
         }
         return true;
@@ -8903,14 +8389,17 @@ class DiagramBuilder {
 
 class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
-        super(...arguments);
+        super();
         this.endpoints = [];
         this._onEndpointChangeCallback = () => { };
         this._onLimitChangeCallback = () => { };
+        this._onStopRequestsCallback = () => { };
+        this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
         return y `
       <gscape-button
+        type="subtle"
         @click=${this.togglePanel}
         title="Virtual knowledge graph explorer preferences"
       >
@@ -8945,7 +8434,7 @@ class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(s)) {
             : null}
             </div>
           </div>
-          <div class="area" style="margin-bottom: 0">
+          <div class="area">
             <span class="bold-text">Limit Instances</span>
             <div class="preference">
               <div class="limit-box">
@@ -8954,6 +8443,16 @@ class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(s)) {
               </div>
             </div>
             
+          </div>
+          <div class="area">
+            <gscape-button
+              size=${SizeEnum.S}
+              label='Stop Pending Requests'
+              type='secondary'
+              @click=${this._onStopRequestsCallback}
+            >
+              ${getIconSlot('icon', stopCircle)}
+            </gscape-button>
           </div>
         </div>
       </div>
@@ -8975,6 +8474,9 @@ class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(s)) {
     onLimitChange(callback) {
         this._onLimitChangeCallback = callback;
     }
+    onStopRequests(callback) {
+        this._onStopRequestsCallback = callback;
+    }
 }
 GscapeVKGPreferences.properties = {
     endpoints: { type: Array, attribute: false },
@@ -8992,6 +8494,14 @@ GscapeVKGPreferences.styles = [baseStyle,
 
       .area > .preference {
         padding: 8px;
+      }
+
+      .area:last-child {
+        margin-bottom: 0;
+        background: unset;
+        border: unset;
+        text-align: center;
+        padding-top: unset;
       }
     `
 ];
@@ -9057,6 +8567,9 @@ class EndpointController {
     }
     onLimitChange(callback) {
         this.endpointSelector.onLimitChange(callback);
+    }
+    onStopRequests(callback) {
+        this.endpointSelector.onStopRequests(callback);
     }
     hideView() {
         this.endpointSelector.hide();
@@ -9172,18 +8685,31 @@ class NeighbourhoodFinder {
         });
         return res;
     }
-    getSubclassesIris(classIri) {
+    getConnectedClassesIrisByType(classIri, type, inclusionType = 'subclass') {
         var _a;
         const res = [];
+        let resultingNodes;
         let diagram;
         (_a = this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.forEach(classOccurrences => {
             classOccurrences.forEach(classOccurrence => {
                 var _a;
                 diagram = this.ontology.getDiagram(classOccurrence.diagramId);
                 if (diagram) {
-                    (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$id(classOccurrence.elementId).edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`).filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION).sources(`[ iri != "${classIri}" ]`).forEach(subClassElement => {
-                        if (!res.includes(subClassElement.data().iri)) {
-                            res.push(subClassElement.data().iri);
+                    const inclusionEdges = (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$id(classOccurrence.elementId).edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`).filter(edge => edge.data().type === type); // take only inclusions/equivalence edges
+                    if (!inclusionEdges)
+                        return;
+                    if (type === GrapholTypesEnum.EQUIVALENCE) {
+                        resultingNodes = inclusionEdges.connectedNodes(`[ iri != "${classIri}" ]`);
+                    }
+                    else if (inclusionType === 'subclass') {
+                        resultingNodes = inclusionEdges.sources(`[ iri != "${classIri}" ]`); // of these inclusions, take sources different from the class we are considering as superclass
+                    }
+                    else {
+                        resultingNodes = inclusionEdges.targets(`[ iri != "${classIri}" ]`); // of these inclusions, take targets different from the class we are considering as superclass
+                    }
+                    resultingNodes.forEach(node => {
+                        if (!res.includes(node.data().iri)) {
+                            res.push(node.data().iri);
                         }
                     });
                 }
@@ -9191,24 +8717,14 @@ class NeighbourhoodFinder {
         });
         return res;
     }
+    getSubclassesIris(classIri) {
+        return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.INCLUSION, 'subclass');
+    }
+    getEquivalentClassesIris(classIri) {
+        return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.EQUIVALENCE);
+    }
     getSuperclassesIris(classIri) {
-        var _a;
-        const res = [];
-        let diagram;
-        (_a = this.ontology.getEntityOccurrences(classIri, undefined, RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.forEach(classOccurrences => {
-            classOccurrences.forEach(classOccurrence => {
-                var _a;
-                diagram = this.ontology.getDiagram(classOccurrence.diagramId);
-                if (diagram) {
-                    (_a = diagram.representations.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.cy.$id(classOccurrence.elementId).edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`).filter(edge => edge.data().type === GrapholTypesEnum.INCLUSION).targets(`[ iri != "${classIri}" ]`).forEach(subClassElement => {
-                        if (!res.includes(subClassElement.data().iri)) {
-                            res.push(subClassElement.data().iri);
-                        }
-                    });
-                }
-            });
-        });
-        return res;
+        return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.INCLUSION, 'superclass');
     }
     getIriObject(iri) {
         return new Iri(iri, this.ontology.namespaces);
@@ -9339,6 +8855,7 @@ GscapeConfirmDialog.styles = [
 ];
 customElements.define('gscape-confirm-dialog', GscapeConfirmDialog);
 
+/** @internal */
 class IncrementalController {
     constructor(grapholscape) {
         this.grapholscape = grapholscape;
@@ -9383,7 +8900,7 @@ class IncrementalController {
         }
     }
     init() {
-        var _a, _b;
+        var _a, _b, _c;
         this.updateWidget();
         if (!this.endpointController) {
             this.initEndpointController();
@@ -9399,6 +8916,12 @@ class IncrementalController {
             this.postDiagramEdit();
         });
         (_b = this.endpointController) === null || _b === void 0 ? void 0 : _b.onLimitChange(this.changeInstancesLimit.bind(this));
+        (_c = this.endpointController) === null || _c === void 0 ? void 0 : _c.onStopRequests(() => {
+            var _a;
+            if (this.isReasonerEnabled) {
+                (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.stopAllQueries();
+            }
+        });
         setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology);
     }
     updateWidget() {
@@ -9430,6 +8953,7 @@ class IncrementalController {
                     }
                 }
                 if (shouldUpdate || this.lastInstanceIri !== instanceIri) {
+                    this.lastInstanceIri = instanceIri;
                     // init data properties values and recalculate them all
                     const dataPropertiesValues = new Map();
                     const dataProperties = yield ((_d = this.highlightsManager) === null || _d === void 0 ? void 0 : _d.dataProperties());
@@ -9439,7 +8963,10 @@ class IncrementalController {
                     this.incrementalDetails.setDataPropertiesValues(dataPropertiesValues);
                     dataProperties === null || dataProperties === void 0 ? void 0 : dataProperties.forEach(dpIri => {
                         var _a;
-                        (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.getInstanceDataPropertyValues(instanceIri, dpIri, (res) => this.incrementalDetails.addDataPropertiesValues(dpIri, res), // onNewResults
+                        (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.getInstanceDataPropertyValues(instanceIri, dpIri, (res) => {
+                            if (instanceIri === this.lastInstanceIri)
+                                this.incrementalDetails.addDataPropertiesValues(dpIri, res);
+                        }, // onNewResults
                         () => this.onStopDataPropertyValueQuery(instanceIri, dpIri)); // onStop
                     });
                     const objectPropertiesRanges = new Map();
@@ -9449,11 +8976,11 @@ class IncrementalController {
                     objectProperties === null || objectProperties === void 0 ? void 0 : objectProperties.forEach(opBranch => {
                         var _a;
                         if (opBranch.objectPropertyIRI) {
+                            rangeMap = new Map();
                             (_a = opBranch.relatedClasses) === null || _a === void 0 ? void 0 : _a.forEach(rangeClass => {
-                                rangeMap = new Map();
                                 rangeMap.set(rangeClass, { values: [], loading: false });
-                                objectPropertiesRanges.set(opBranch.objectPropertyIRI, rangeMap);
                             });
+                            objectPropertiesRanges.set(opBranch.objectPropertyIRI, rangeMap);
                         }
                     });
                     this.suggestedClassInstancesRanges = [];
@@ -9462,7 +8989,6 @@ class IncrementalController {
                         this.onGetRangeInstances(instanceIri, objectPropertyIri, rangeClassIri);
                     };
                     this.incrementalDetails.onInstanceObjectPropertySelection = this.addInstanceObjectProperty.bind(this);
-                    this.lastInstanceIri = instanceIri;
                 }
             }
         });
@@ -9529,6 +9055,7 @@ class IncrementalController {
         }
         const subClasses = this.neighbourhoodFinder.getSubclassesIris(classIri);
         const superClasses = this.neighbourhoodFinder.getSuperclassesIris(classIri);
+        const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(classIri);
         if (subClasses.length > 0) {
             const areAllSubclassesVisible = this.diagramBuilder.areAllSubclassesVisibleForClass(classIri, subClasses);
             commands.push(showHideSubClasses(areAllSubclassesVisible, () => {
@@ -9545,6 +9072,15 @@ class IncrementalController {
                 areAllSuperclassesVisible
                     ? superClasses.forEach(sc => this.removeEntity(sc, [classIri]))
                     : this.showSuperClassesOf(classIri, superClasses);
+            }));
+        }
+        if (equivalentClasses.length > 0) {
+            const areAllEquivalentClassesVisible = this.diagramBuilder.areAllEquivalentClassesVisibleForClass(classIri, equivalentClasses);
+            commands.push(showHideEquivalentClasses(areAllEquivalentClassesVisible, () => {
+                this.diagramBuilder.referenceNodeId = classIri;
+                areAllEquivalentClassesVisible
+                    ? equivalentClasses.forEach(sc => this.removeEntity(sc, [classIri]))
+                    : this.showEquivalentClassesOf(classIri, equivalentClasses);
             }));
         }
         commands.push(remove(() => this.removeEntity(classIri)));
@@ -9787,6 +9323,13 @@ class IncrementalController {
         superclassesIris.forEach(subclassIri => this.diagramBuilder.addSuperClass(subclassIri));
         this.runLayout();
     }
+    showEquivalentClassesOf(classIri, equivalentClassesIris) {
+        if (!equivalentClassesIris) {
+            equivalentClassesIris = this.neighbourhoodFinder.getEquivalentClassesIris(classIri);
+        }
+        equivalentClassesIris.forEach(equivalentClassIri => this.diagramBuilder.addEquivalentClass(equivalentClassIri));
+        this.runLayout();
+    }
     changeInstancesLimit(limitValue) {
         if (this.isReasonerEnabled) {
             this.vKGApi.limit = limitValue;
@@ -9921,7 +9464,9 @@ class IncrementalController {
         }
     }
     postDiagramEdit() {
-        if (!this.diagram.representation || this.diagram.representation.grapholElements.size === 0) {
+        var _a;
+        if (!this.diagram.representation || this.diagram.representation.cy.elements().empty()) {
+            (_a = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS)) === null || _a === void 0 ? void 0 : _a.hide();
             this.entitySelector.show();
         }
         this.runLayout();
@@ -9938,26 +9483,38 @@ class IncrementalController {
             return;
         // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
         (_c = this.incrementalRenderer.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.cy.on('tap', evt => {
-            var _a, _b, _c, _d;
             const targetType = evt.target.data().type;
             if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
-                if (this.isReasonerEnabled) {
-                    (_a = this.vKGApi) === null || _a === void 0 ? void 0 : _a.stopAllQueries();
-                }
-                this.diagramBuilder.referenceNodeId = evt.target.id();
-                const targetIri = evt.target.data().iri;
-                // set class instance entity in entity details widget
-                if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
-                    const instanceEntity = (_b = this.diagram.classInstances) === null || _b === void 0 ? void 0 : _b.get(targetIri);
-                    if (instanceEntity) {
-                        (_c = this.highlightsManager) === null || _c === void 0 ? void 0 : _c.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
-                        this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS).setGrapholEntity(instanceEntity);
-                        this.buildDetailsForInstance(targetIri);
+                const updateDetails = () => {
+                    var _a, _b, _c, _d, _e;
+                    this.diagramBuilder.referenceNodeId = evt.target.id();
+                    const targetIri = evt.target.data().iri;
+                    // set class instance entity in entity details widget
+                    if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+                        const instanceEntity = (_a = this.diagram.classInstances) === null || _a === void 0 ? void 0 : _a.get(targetIri);
+                        if (instanceEntity) {
+                            (_b = this.highlightsManager) === null || _b === void 0 ? void 0 : _b.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
+                            this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS).setGrapholEntity(instanceEntity);
+                            if (targetIri !== this.lastInstanceIri)
+                                (_c = this.vKGApi) === null || _c === void 0 ? void 0 : _c.stopAllQueries();
+                            this.buildDetailsForInstance(targetIri);
+                        }
                     }
+                    else {
+                        (_d = this.highlightsManager) === null || _d === void 0 ? void 0 : _d.computeHighlights(targetIri);
+                        if (targetIri !== this.lastClassIri)
+                            (_e = this.vKGApi) === null || _e === void 0 ? void 0 : _e.stopAllQueries();
+                        this.buildDetailsForClass(targetIri);
+                    }
+                };
+                // In case of reasoning, perform update only after 500ms of no click by the user
+                // Prevent query flooding
+                if (this.isReasonerEnabled) {
+                    clearTimeout(this.entitySelectionTimeout);
+                    this.entitySelectionTimeout = setTimeout(updateDetails, 400);
                 }
                 else {
-                    (_d = this.highlightsManager) === null || _d === void 0 ? void 0 : _d.computeHighlights(targetIri);
-                    this.buildDetailsForClass(targetIri);
+                    updateDetails(); // otherwide no http-request will be made
                 }
                 this.incrementalDetails.show();
             }
@@ -9990,6 +9547,7 @@ class IncrementalController {
     get incrementalRenderer() { return this.grapholscape.renderer.renderState; }
 }
 
+/** @internal */
 function startIncremental(grapholscape, incrementalController) {
     var _a, _b;
     grapholscape.renderer.unselect();
@@ -10012,7 +9570,7 @@ function startIncremental(grapholscape, incrementalController) {
     const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS);
     entityDetailsWidget.incrementalSection = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU);
     entityDetailsWidget.hide();
-    if (((_b = grapholscape.renderer.grapholElements) === null || _b === void 0 ? void 0 : _b.size) === 0) {
+    if ((_b = grapholscape.renderer.cy) === null || _b === void 0 ? void 0 : _b.elements().empty()) {
         entitySelector.show();
     }
     // // TODO: when it will be available, remember to clear previous callbacks if startIncremental is called multiple times
@@ -10050,7 +9608,7 @@ const rendererStates = {
     }
 };
 
-function init$5 (rendererSelector, grapholscape) {
+function init$8 (rendererSelector, grapholscape) {
     let existingIncrementalController;
     rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey]);
     if (grapholscape.renderState) {
@@ -10120,7 +9678,7 @@ function rendererStateSelectionCallback(rendererState, grapholscape) {
     }
 }
 
-function init$4 (welcomeRendererSelector, grapholscape) {
+function init$7 (welcomeRendererSelector, grapholscape) {
     welcomeRendererSelector.options = grapholscape.renderers.map(rendererStateId => rendererStates[rendererStateId]);
     welcomeRendererSelector.onOptionSelection = (optionId) => rendererStateSelectionCallback(optionId, grapholscape);
 }
@@ -10224,8 +9782,658 @@ customElements.define('gscape-welcome-renderer-selector', GscapeFullPageSelector
 
 function initInitialRendererSelector(grapholscape) {
     const rendererSelectorComponent = new GscapeFullPageSelector();
-    init$4(rendererSelectorComponent, grapholscape);
+    init$7(rendererSelectorComponent, grapholscape);
     grapholscape.widgets.set(WidgetEnum.INITIAL_RENDERER_SELECTOR, rendererSelectorComponent);
+}
+
+class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
+    constructor() {
+        super(...arguments);
+        this.title = 'Diagram Selector';
+        this.onDiagramSelection = () => { };
+    }
+    render() {
+        var _a;
+        return y `
+      <gscape-button @click="${this.togglePanel}" label="${((_a = this.actualDiagram) === null || _a === void 0 ? void 0 : _a.name) || 'Select a diagram'}">
+        ${getIconSlot('icon', diagrams)}
+        ${getIconSlot('trailing-icon', arrowDown)}
+      </gscape-button>
+
+      <div class="gscape-panel drop-down hide" id="drop-panel">
+        ${this.diagrams.length === 1 && this.actualDiagramId === 0
+            ? y `
+            <div class="blank-slate">
+              ${blankSlateDiagrams}
+              <div class="header">No more diagrams</div>
+              <div class="description">The ontology contains only one diagram, the one displayed.</div>
+            </div>
+          `
+            : this.diagrams
+                .sort(function (a, b) {
+                var x = a.name.toLowerCase();
+                var y = b.name.toLowerCase();
+                if (x < y) {
+                    return -1;
+                }
+                if (x > y) {
+                    return 1;
+                }
+                return 0;
+            })
+                .map(diagram => y `
+              <gscape-action-list-item
+                @click="${this.diagramSelectionHandler}"
+                label="${diagram.name}"
+                diagram-id="${diagram.id}"
+                ?selected = "${this.actualDiagramId === diagram.id}"
+              ></gscape-action-list-item>
+            `)}
+        
+      </div>
+    `;
+    }
+    diagramSelectionHandler(e) {
+        const selectedDiagramId = parseInt(e.target.getAttribute('diagram-id') || '');
+        this.onDiagramSelection(selectedDiagramId);
+    }
+    get actualDiagram() {
+        return this.diagrams.find(diagram => diagram.id === this.actualDiagramId);
+    }
+}
+GscapeDiagramSelector.properties = {
+    actualDiagramId: { type: Number }
+};
+GscapeDiagramSelector.styles = [
+    baseStyle,
+    i$1 `
+    :host {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+
+    .gscape-panel {
+      margin-top: 4px;
+    }
+
+    gscape-button {
+      font-wright: 600;
+    }
+    `
+];
+customElements.define('gscape-diagram-selector', GscapeDiagramSelector);
+
+/**
+ *
+ * @param {import('./index').default} diagramSelectorComponent
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function init$6 (diagramSelectorComponent, grapholscape) {
+    // const diagramsViewData = grapholscape.ontology.diagrams
+    diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
+    if (grapholscape.diagramId || grapholscape.diagramId === 0) {
+        diagramSelectorComponent.actualDiagramId = grapholscape.diagramId;
+    }
+    diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram);
+    grapholscape.on(LifecycleEvent.DiagramChange, diagram => diagramSelectorComponent.actualDiagramId = diagram.id);
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function initDiagramSelector(grapholscape) {
+    const diagramSelectorComponent = new GscapeDiagramSelector();
+    init$6(diagramSelectorComponent, grapholscape);
+    grapholscape.widgets.set(WidgetEnum.DIAGRAM_SELECTOR, diagramSelectorComponent);
+}
+
+function itemWithIriTemplate(item, onWikiLinkClick) {
+    function wikiClickHandler() {
+        if (onWikiLinkClick)
+            onWikiLinkClick(item.iri);
+    }
+    return y `
+    <div class="item-with-iri-info ellipsed">
+      <div 
+        class="name ${onWikiLinkClick ? 'link' : null}" 
+        title="${item.name}"
+        @click=${onWikiLinkClick ? wikiClickHandler : null}
+      >
+        ${item.name}
+      </div>
+      <div class="muted-text" title="iri: ${item.iri}">${item.iri}</div>
+      <div class="muted-text type-or-version">
+        ${Object.values(GrapholTypesEnum).includes(item.typeOrVersion)
+        ? entityIcons[item.typeOrVersion] : null}
+        ${item.typeOrVersion || '-'}
+      </div>
+    </div>
+  `;
+}
+const itemWithIriTemplateStyle = i$1 `
+  .item-with-iri-info {
+    text-align:center;
+    background-color: var(--gscape-color-bg-inset);
+    white-space: nowrap;
+  }
+
+  .item-with-iri-info > .type-or-version {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .item-with-iri-info .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+`;
+function annotationsTemplate(annotations) {
+    if (!annotations || annotations.length === 0)
+        return null;
+    let propertiesAlreadyInserted = [];
+    return y `
+    <div class="annotations">
+      ${annotations.map(annotation => {
+        const property = annotation.property;
+        if (annotation.property === 'comment' || propertiesAlreadyInserted.includes(property))
+            return null;
+        propertiesAlreadyInserted.push(property);
+        return y `
+          <div class="annotation">
+            <div class="bold-text annotation-property">
+              ${property.charAt(0).toUpperCase() + property.slice(1)}
+            </div>
+            ${annotations.filter(a => a.property === property).map(annotation => {
+            return y `
+                <div class="annotation-row">
+                  <span class="language muted-text bold-text">@${annotation.language}</span>
+                  <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
+                </div>
+              `;
+        })}
+          </div>
+        `;
+    })}
+    </div>
+  `;
+}
+const annotationsStyle = i$1 `
+  .annotations {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .annotation-property {
+    margin-bottom: 4px;
+  }
+
+  .annotations .language {
+    margin-right: 6px
+  }
+
+  .annotation-row {
+    padding: 0 8px;
+  }
+`;
+
+class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
+    constructor() {
+        super(...arguments);
+        this.title = 'Entity Details';
+        this.onNodeNavigation = () => { };
+    }
+    static get properties() {
+        return {
+            grapholEntity: { type: Object, attribute: false },
+            occurrences: { type: Object, attribute: false },
+            language: { type: String, attribute: false },
+            _isPanelClosed: { type: Boolean, attribute: false },
+            incrementalSection: { type: Object, attribute: false }
+        };
+    }
+    render() {
+        if (!this.grapholEntity)
+            return;
+        return y `
+      <div class="gscape-panel ellipsed" id="drop-panel">
+        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
+
+        <div class="content-wrapper">
+          ${this.grapholEntity.datatype
+            ? y `
+              <div style="text-align: center" class="chips-wrapper section">
+                <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
+              </div>
+            `
+            : null}
+
+          ${this.grapholEntity.functionalities.length > 0
+            ? y `
+                <div class="chips-wrapper section">
+                ${this.grapholEntity.functionalities.map(functionality => {
+                return y `<span class="chip">&#10003; ${functionality.toString()}</span>`;
+            })}
+                </div>
+              `
+            : null}
+
+          ${this.incrementalSection}
+
+          ${annotationsTemplate(this.grapholEntity.getAnnotations())}
+          
+          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
+
+          ${this.grapholEntity.getComments().length > 0
+            ? y `
+                <div class="section">
+                  <div>
+                    <span id="description-header" class="bold-text section-header">Description</span>
+                    <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
+                      ${this.commentsLanguages.map(language => {
+                return y `
+                          <option value="${language}" ?selected=${this.language === language}>
+                            @${language}
+                          </option>
+                        `;
+            })}
+                    </select>
+                  </div>
+                  <div class="section-body">
+                    ${this.grapholEntity.getComments(this.language).map(comment => y `<span class="comment">${comment.lexicalForm}</span>`)}
+                  </div>
+                </div>
+              `
+            : null}
+        </div>
+      </div>
+
+      <div class="top-bar">
+        <gscape-button style="z-index: 1"
+          id="toggle-panel-button"
+          size="${this.isPanelClosed() ? 'm' : 's'}" 
+          type="${this.isPanelClosed() ? '' : 'subtle'}"
+          @click=${this.togglePanel}
+          label = "${this.isPanelClosed() ? 'Entity Details' : ''}"
+        > 
+          ${this.isPanelClosed()
+            ? y `
+                <span slot="icon">${infoFilled}</span>
+                <span slot="trailing-icon">${plus}</span>
+              `
+            : y `<span slot="icon">${minus}</span>`}
+        </gscape-button>
+      </div>
+    `;
+    }
+    occurrencesTemplate() {
+        return y `
+      <div class="section">
+        <div class="bold-text section-header">Occurrences</div>
+        <div class="section-body">
+          ${getEntityOccurrencesTemplate(this.occurrences, this.onNodeNavigation)}
+        </div>
+      </div>
+    `;
+    }
+    // override blur to avoid collapsing when clicking on cytoscape's canvas
+    blur() { }
+    setGrapholEntity(entity) { }
+    languageSelectionHandler(e) {
+        this.language = e.target.value;
+    }
+    get entityForTemplate() {
+        const result = {
+            name: this.grapholEntity.iri.remainder,
+            typeOrVersion: this.grapholEntity.type.toString(),
+            iri: this.grapholEntity.iri.fullIri,
+        };
+        return result;
+    }
+    get commentsLanguages() {
+        return Array.from(new Set(this.grapholEntity.getComments().map(comment => comment.language)));
+    }
+    updated() {
+        var _a;
+        // let description = this.entity?.annotations?.comment
+        const allComments = (_a = this.grapholEntity) === null || _a === void 0 ? void 0 : _a.getComments();
+        if (!allComments || allComments.length === 0)
+            return;
+        const commentsInActualLanguage = this.grapholEntity.getComments(this.language);
+        // if actual language is not available, select the first available
+        if (commentsInActualLanguage.length === 0) {
+            this.language = allComments[0].language;
+        }
+    }
+}
+GscapeEntityDetails.styles = [
+    baseStyle,
+    itemWithIriTemplateStyle,
+    annotationsStyle,
+    GscapeButtonStyle,
+    i$1 `
+      :host {
+        position: absolute;
+        top:10px;
+        right:62px;
+        max-height: 50%;
+        min-height: 200px;
+        min-width: 300px;
+        max-width: 20%;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+      }
+
+      .gscape-panel {
+        padding:0;
+        max-height: inherit;
+        display: flex;
+        flex-direction: column;
+        width: inherit;
+        max-width: unset;
+        min-width: unset;
+      }
+
+      .gscape-panel > * {
+        padding: 8px;
+      }
+
+      .datatype-chip {
+        color: inherit;
+        background-color: var(--gscape-color-neutral-muted);
+        border-color: var(--gscape-color-border-subtle);
+        padding-top: 1px;
+      }
+
+      [diagram-id] > gscape-button {
+        color: var(--gscape-color-accent);
+      }
+
+      #language-select: {
+        margin: 10px auto;
+        display: block;
+      }
+
+      #description-header {
+        margin-right: 8px;
+      }
+
+      .comment {
+        margin: 8px 0;
+        display: block;
+      }
+
+      .top-bar {
+        display: flex;
+        flex-direction: row-reverse;
+        line-height: 1;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+
+      .item-with-iri-info {
+        padding-top: 12px;
+        flex-shrink: 0;
+      }
+
+      .content-wrapper > * {
+        margin: 8px 0;
+      }
+    `
+];
+customElements.define('gscape-entity-details', GscapeEntityDetails);
+
+function init$5 (entityDetailsComponent, grapholscape) {
+    // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
+    entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {
+        grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2);
+        grapholscape.selectElement(entityOccurrence.elementId);
+    };
+    entityDetailsComponent.language = grapholscape.language;
+    entityDetailsComponent.setGrapholEntity = setGrapholEntity;
+    grapholscape.on(LifecycleEvent.EntitySelection, setGrapholEntity);
+    grapholscape.on(LifecycleEvent.NodeSelection, node => {
+        if (!node.isEntity())
+            entityDetailsComponent.hide();
+    });
+    grapholscape.on(LifecycleEvent.EdgeSelection, edge => {
+        if (!edge.isEntity())
+            entityDetailsComponent.hide();
+    });
+    grapholscape.on(LifecycleEvent.LanguageChange, language => {
+        entityDetailsComponent.language = language;
+    });
+    grapholscape.on(LifecycleEvent.RendererChange, _ => {
+        if (entityDetailsComponent.grapholEntity)
+            entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape);
+    });
+    function setGrapholEntity(entity) {
+        entityDetailsComponent.grapholEntity = entity;
+        entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape);
+        entityDetailsComponent.language = grapholscape.language;
+        entityDetailsComponent.show();
+        if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
+            entityDetailsComponent.onWikiLinkClick = (iri) => {
+                grapholscape.lifecycle.trigger(LifecycleEvent.EntityWikiLinkClick, iri);
+            };
+        }
+    }
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function initEntityDetails(grapholscape) {
+    const entityDetailsComponent = new GscapeEntityDetails();
+    init$5(entityDetailsComponent, grapholscape);
+    grapholscape.widgets.set(WidgetEnum.ENTITY_DETAILS, entityDetailsComponent);
+}
+
+class GscapeFilters extends DropPanelMixin(BaseMixin(s)) {
+    constructor() {
+        super();
+        this.title = "Filters";
+        this.filterAll = new Filter('all', () => false);
+        this.onFilterOn = () => { };
+        this.onFilterOff = () => { };
+        this.onFilterAll = () => { };
+        this.onUnfilterAll = () => { };
+        this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
+    }
+    render() {
+        return y `
+      <gscape-button type="subtle" @click=${this.togglePanel}>
+        ${getIconSlot('icon', filter)}
+      </gscape-button>
+
+      <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
+        <div class="header">${this.title}</div>
+
+        <div class="content-wrapper">
+          ${this.filterToggleTemplate(this.filterAll, false)}
+          <div class="hr"></div>
+          ${Array.from(this.filters).map(([_, filter]) => this.filterToggleTemplate(filter))}
+        </div>
+      </div>
+    `;
+    }
+    filterToggleTemplate(filter, reverseState = true) {
+        return y `
+      <gscape-toggle
+        class="${!filter.locked ? 'actionable' : null}"
+        @click = ${!filter.locked ? this.toggleFilter : null}
+        key = ${filter.key}
+        label = ${this.getFilterLabel(filter.key)}
+        ?disabled = ${filter.locked}
+        ?checked = ${reverseState ? !filter.active : filter.active}
+      ></gscape-toggle>
+    `;
+    }
+    getFilterLabel(filterKey) {
+        var _a;
+        let result = (_a = Object.keys(DefaultFilterKeyEnum)
+            .find(key => DefaultFilterKeyEnum[key] === filterKey)) === null || _a === void 0 ? void 0 : _a.toLowerCase().replace('_', ' ');
+        if (!result)
+            return '';
+        result = (result === null || result === void 0 ? void 0 : result.charAt(0).toUpperCase()) + (result === null || result === void 0 ? void 0 : result.substring(1));
+        return result;
+    }
+    toggleFilter(e) {
+        var _a;
+        e.preventDefault();
+        const toggle = e.target;
+        const filter = this.filters.get(toggle.key);
+        if (!filter) {
+            if (toggle.key === this.filterAll.key) {
+                this.filterAll.active ? this.onUnfilterAll() : this.onFilterAll();
+            }
+            return;
+        }
+        ((_a = this.filters.get(toggle.key)) === null || _a === void 0 ? void 0 : _a.active) ? this.onFilterOff(filter) : this.onFilterOn(filter);
+    }
+}
+GscapeFilters.properties = {
+    filters: { type: Object, attribute: false }
+};
+GscapeFilters.styles = [
+    baseStyle,
+    i$1 `
+      :host {
+        order: 3;
+        display:inline-block;
+        position: initial;
+        margin-top:10px;
+      }
+
+      gscape-toggle {
+        padding: 8px;
+      }
+
+      gscape-toggle[key ="all"] {
+        margin: 0 auto;
+      }
+
+      .content-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .hr {
+        margin-top: 4px;
+        margin-bottom: 4px;
+      }
+    `,
+];
+customElements.define('gscape-filters', GscapeFilters);
+
+/**
+ * @param {import('./index').default} filterComponent
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function init$4 (filterComponent, grapholscape) {
+    filterComponent.filters = grapholscape.renderer.filters;
+    filterComponent.onFilterOff = (filter) => grapholscape.unfilter(filter);
+    filterComponent.onFilterOn = (filter) => grapholscape.filter(filter);
+    filterComponent.onFilterAll = () => {
+        grapholscape.renderer.filters.forEach(filter => {
+            grapholscape.filter(filter);
+            filter.active = true;
+        });
+        filterComponent.filterAll.active = true;
+        filterComponent.requestUpdate();
+    };
+    filterComponent.onUnfilterAll = () => {
+        grapholscape.renderer.filters.forEach(filter => {
+            grapholscape.unfilter(filter);
+        });
+        filterComponent.filterAll.active = false;
+        filterComponent.requestUpdate();
+    };
+    grapholscape.on(LifecycleEvent.Filter, () => filterComponent.requestUpdate());
+    grapholscape.on(LifecycleEvent.Unfilter, () => {
+        filterComponent.filterAll.active = false;
+        filterComponent.requestUpdate();
+    });
+    grapholscape.on(LifecycleEvent.RendererChange, () => filterComponent.requestUpdate());
+    // filterComponent.onFilterOn = (filterType) => {
+    //   filterComponent.filterList[filterType].active = true
+    //   onFilterToggle(filterType)
+    // }
+    // filterComponent.onFilterOff = (filterType) => {
+    //   filterComponent.filterList[filterType].active = false
+    //   onFilterToggle(filterType)
+    // }
+    // grapholscape.onFilter(_ => filterComponent.updateTogglesState())
+    // grapholscape.onUnfilter(_ => filterComponent.updateTogglesState())
+    // grapholscape.onRendererChange(() => filterComponent.requestUpdate())
+    // function onFilterToggle(type) {
+    //   if (type == 'attributes' && !grapholscape.renderer.disabledFilters.includes('value_domain')) {
+    //     filterComponent.filterList.value_domain.disabled = filterComponent.filterList.attributes.active
+    //   }
+    //   // if 'all' is toggled, it affect all other filters
+    //   if (type == 'all') {
+    //     Object.keys(filterComponent.filterList).map(key => {
+    //       if (key != 'all' && !filterComponent.filterList[key].disbaled) {
+    //         filterComponent.filterList[key].active = filterComponent.filterList.all.active
+    //         /**
+    //          * if the actual filter is value-domain it means it's not disabled (see previous if condition)
+    //          * but when filter all is active, filter value-domain must be disabled, let's disable it.
+    //          * Basically value-domain filter disabled state must be equal to the active state of the 
+    //          * 'all' filter.
+    //          */
+    //         if (key == 'value_domain' && !grapholscape.renderer.disabledFilters.includes('value_domain'))
+    //           filterComponent.filterList[key].disabled = filterComponent.filterList['all'].active
+    //         executeFilter(key)
+    //       }
+    //     })
+    //   } else if (!filterComponent.filterList[type].active && filterComponent.filterList.all.active) {
+    //     // if one filter get deactivated while the 'all' filter is active
+    //     // then make the 'all' toggle deactivated
+    //     filterComponent.filterList.all.active = false
+    //   }
+    //   executeFilter(type)
+    //   filterComponent.updateTogglesState()
+    // }
+    // function executeFilter(type) {
+    //   if (filterComponent.filterList[type].active) {
+    //     grapholscape.filter(type)
+    //   } else {
+    //     grapholscape.unfilter(type)
+    //     // Re-Apply other active filters to resolve ambiguity
+    //     applyActiveFilters()
+    //   }
+    // }
+    // function applyActiveFilters() {
+    //   Object.keys(filterComponent.filterList).map(key => {
+    //     if (filterComponent.filterList[key].active)
+    //       grapholscape.filter(filterComponent.filterList[key])
+    //   })
+    // }
+}
+
+function initFilters(grapholscape) {
+    const filterComponent = new GscapeFilters();
+    init$4(filterComponent, grapholscape);
+    grapholscape.widgets.set(WidgetEnum.FILTERS, filterComponent);
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function initFitButton(grapholscape) {
+    const fitButtonComponent = new GscapeButton();
+    fitButtonComponent.appendChild(getIconSlot('icon', centerDiagram));
+    fitButtonComponent.style.order = '2';
+    fitButtonComponent.style.marginTop = '10px';
+    fitButtonComponent.title = 'Center Diagram';
+    //fitButtonComponent.style.position = 'initial'
+    fitButtonComponent.onclick = () => grapholscape.fit();
+    grapholscape.widgets.set(WidgetEnum.FIT_BUTTON, fitButtonComponent);
 }
 
 /**
@@ -11227,7 +11435,7 @@ function initLayoutSettings(grapholscape) {
  */
 function initRendererSelector(grapholscape) {
     const rendererSelectorComponent = new GscapeRenderSelector();
-    init$5(rendererSelectorComponent, grapholscape);
+    init$8(rendererSelectorComponent, grapholscape);
     rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape);
     rendererSelectorComponent.requestUpdate();
     grapholscape.widgets.set(WidgetEnum.RENDERER_SELECTOR, rendererSelectorComponent);
@@ -11316,7 +11524,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.2.1-beta"}</span>
+            <span>${"3.2.1"}</span>
           </div>
         </div>
       </div>
@@ -11629,19 +11837,6 @@ function init (grapholscape) {
                 grapholscape.container.appendChild(widget);
                 break;
         }
-        if (hasDropPanel(widget)) {
-            widget.onTogglePanel = () => {
-                const entityDetailsComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS);
-                const entitySelectorComponent = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR);
-                const owlVisualizerComponent = grapholscape.widgets.get(WidgetEnum.OWL_VISUALIZER);
-                if (entityDetailsComponent && entitySelectorComponent && owlVisualizerComponent) {
-                    blurAll([widget, entityDetailsComponent, entitySelectorComponent, owlVisualizerComponent]);
-                }
-                else {
-                    blurAll([widget]);
-                }
-            };
-        }
         const _widget = widget;
         _widget.onStateChange = () => {
             if (settingsComponent) {
@@ -11679,38 +11874,39 @@ function init (grapholscape) {
 
 var index = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    icons: index$1,
+    ContextMenu: GscapeContextMenu,
     GscapeToggle: GscapeToggle,
-    baseStyle: baseStyle,
-    BOTTOM_RIGHT_WIDGET_CLASS: BOTTOM_RIGHT_WIDGET,
-    get WidgetEnum () { return WidgetEnum; },
-    emptySearchBlankState: emptySearchBlankState,
-    entityListItemStyle: entityListItemStyle,
     GscapeEntitySelector: GscapeEntitySelector,
     GscapeIncrementalMenu: GscapeIncrementalDetails,
-    icons: index$1,
     initUI: init,
-    ContextMenu: GscapeContextMenu,
+    entityListItemStyle: entityListItemStyle,
+    BOTTOM_RIGHT_WIDGET_CLASS: BOTTOM_RIGHT_WIDGET,
+    baseStyle: baseStyle,
+    emptySearchBlankState: emptySearchBlankState,
+    get WidgetEnum () { return WidgetEnum; },
     GscapeButton: GscapeButton,
     GscapeButtonStyle: GscapeButtonStyle,
     get SizeEnum () { return SizeEnum; },
-    get ToggleLabelPosition () { return ToggleLabelPosition; },
     GscapeActionListItem: GscapeActionListItem,
     GscapeActionListStyle: actionItemStyle,
     BaseMixin: BaseMixin,
     DropPanelMixin: DropPanelMixin,
     hasDropPanel: hasDropPanel,
     ModalMixin: ModalMixin,
-    GscapeTextSearch: GscapeTextSearch,
-    GscapeEntitySearch: GscapeEntitySearch,
-    GscapeEntityTypeFilters: GscapeEntityTypeFilters,
-    GscapeFullPageSelector: GscapeFullPageSelector,
-    initInitialRendererSelector: initInitialRendererSelector,
-    createEntitiesList: createEntitiesList,
-    search: search,
     textSpinner: textSpinner,
     textSpinnerStyle: textSpinnerStyle,
     getContentSpinner: getContentSpinner,
-    contentSpinnerStyle: contentSpinnerStyle
+    contentSpinnerStyle: contentSpinnerStyle,
+    GscapeTextSearch: GscapeTextSearch,
+    GscapeEntitySearch: GscapeEntitySearch,
+    GscapeEntityTypeFilters: GscapeEntityTypeFilters,
+    get ToggleLabelPosition () { return ToggleLabelPosition; },
+    GscapeFullPageSelector: GscapeFullPageSelector,
+    initInitialRendererSelector: initInitialRendererSelector,
+    getEntityOccurrencesTemplate: getEntityOccurrencesTemplate,
+    createEntitiesList: createEntitiesList,
+    search: search
 });
 
 var downloadBlob = (blob, fileName) => {
