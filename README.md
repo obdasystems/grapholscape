@@ -105,11 +105,11 @@ Run `npm run <target>` in the console. The main targets are:
 
 ## Release Instructions
 1. Use `npm version [ver]`
-    *Please review built files and try out demo and electron app before proceeding*
+    *Please review built files and try out demo*
 2. Push the release: `git push && git push --tags`
-3. Deploy web version on gh-pages: `npm run deploy`
-4. Publish to npm
-5. Create a release on Github from the latest tag adding zipped electron packages produced in `./dists`
+3. Deploy documentation and demo on gh-pages: `npm run deploy`
+4. Publish to npm: `npm publish`
+5. Create a release on Github from the latest tag
 
 ## Credits
 Based on [cytoscape.js](http://js.cytoscape.org).
