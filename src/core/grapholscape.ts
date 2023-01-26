@@ -431,6 +431,7 @@ export default class Grapholscape {
   }
 
   // ------------------- VIRTUAL KNOWLEDGE NAVIGATION -----------------
+  /** @internal */
   public mastroRequestOptions?: RequestOptions
   /**
    * Use this to pass options to build rest calls for querying 

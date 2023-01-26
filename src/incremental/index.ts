@@ -9,6 +9,7 @@ import IncrementalController from "./controller";
 
 export { IncrementalController };
 
+/** @internal */
 export function startIncremental(grapholscape: Grapholscape, incrementalController: IncrementalController) {
 
   grapholscape.renderer.unselect()

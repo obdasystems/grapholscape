@@ -9,7 +9,7 @@ export interface IEntitySelector {
   onClassSelection(callback:(iri: string) => void): void
 }
 
-export default class GscapeEntitySelector extends BaseMixin(LitElement) implements IEntitySelector {
+export class GscapeEntitySelector extends BaseMixin(LitElement) implements IEntitySelector {
   title = 'Class Selector'
   private fullEntityList: EntityViewData[] = []
   private _entityList: EntityViewData[] = []

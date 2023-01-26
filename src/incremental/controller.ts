@@ -5,7 +5,7 @@ import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { createEntitiesList, EntityViewData } from "../ui/util/search-entities";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
 import { GscapeEntityDetails } from "../ui/entity-details";
-import GscapeEntitySelector from "../ui/entity-selector/entity-selector";
+import {GscapeEntitySelector} from "../ui/entity-selector";
 import { IncrementalCommands } from "../ui/incremental-ui";
 import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
 import { GscapeExplorer } from "../ui/ontology-explorer";
@@ -21,6 +21,7 @@ import GscapeConfirmDialog from "../ui/incremental-ui/confirm-dialog";
 import { MastroEndpoint } from "./api/model";
 import { IBaseMixin } from "../ui";
 
+/** @internal */
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   private vKGApi?: IVirtualKnowledgeGraphApi

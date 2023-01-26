@@ -16,6 +16,7 @@ export * from './model'
 export * from './config'
 export * as ui from './ui'
 export * from './core'
+/** @internal */
 export * from './incremental'
 export { default as setGraphEventHandlers } from './core/set-graph-event-handlers'
 export * from './exporter'

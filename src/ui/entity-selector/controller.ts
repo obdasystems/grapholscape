@@ -1,7 +1,7 @@
 import { Grapholscape } from "../../core";
 import { LifecycleEvent, RendererStatesEnum } from "../../model";
 import { createEntitiesList } from "../util/search-entities";
-import GscapeEntitySelector from "./entity-selector";
+import { GscapeEntitySelector } from "./entity-selector";
 
 export default function init(entitySelectorComponent: GscapeEntitySelector, grapholscape: Grapholscape) {
   // Set class entity list

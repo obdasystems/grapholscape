@@ -9,6 +9,7 @@ import DiagramRepresentation from "./diagram-representation";
 
 export default class IncrementalDiagram extends Diagram {
 
+  /** @internal */
   public classInstances?: Map<string, ClassInstanceEntity>
 
   constructor() {

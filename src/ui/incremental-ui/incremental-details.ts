@@ -8,81 +8,48 @@ import { entityListItemStyle } from "../ontology-explorer";
 import baseStyle from "../style";
 import { EntityViewData } from "../util/search-entities";
 import incrementalDetailsStyle from "./style";
-
-export interface IIncrementalDetails {
-  // callbacks
-  onObjectPropertySelection: (iri: string, objectPropertyIri: string, direct: boolean) => void
-  onGetInstances: () => void
-  onInstanceSelection: (iri: string) => void
-  onEntitySearch: (searchText: string) => void
-  onEntitySearchByDataPropertyValue: (dataPropertyIri: string, searchText: string) => void
-  onInstanceObjectPropertySelection: (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => void
-
-  // populate the menu
-  setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
-  addObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
-  setDataProperties: (dataProperties: EntityViewData[]) => void
-  addDataProperties: (dataProperties: EntityViewData[]) => void
-
-  // data properties values
-  setDataPropertiesValues: (dataPropertiesValues: Map<string, { values: string[]; loading?: boolean | undefined; }>) => void
-  addDataPropertiesValues: (dataPropertyIri: string, values: string[]) => void
-  setDataPropertyLoading: (dataPropertyIri: string, isLoading: boolean) => void
-
-  // Object properties range instances
-  setObjectPropertyRanges: (objectPropertyRanges: Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>) => void
-  setObjectPropertyLoading: (objectPropertyIri: string, rangeClassIri: string, isLoading: boolean) => void
-  addObjectPropertyRangeInstances: (objectPropertyIri: string, rangeClassIri: string, classInstances: EntityViewData[]) => void
-  onGetRangeInstances: (objectPropertyIri: string, rangeClassIri: string) => void
-
-  /** remove current instances and add the new ones */
-  setInstances: (instances: EntityViewData[]) => void
-  /** append new instances to the existing ones */
-  addInstances: (instances: EntityViewData[]) => void
-
-  onLimitChange: (limitValue: number) => void
-
-  reset: () => void
-
-  canShowInstances: boolean
-  canShowDataPropertiesValues: boolean
-  canShowObjectPropertiesRanges: boolean
-  isInstanceCounterLoading: boolean
-  areInstancesLoading: boolean
-  instanceCount: number
-}
-
-export type ViewIncrementalObjectProperty = {
-  objectProperty: EntityViewData,
-  connectedClasses: EntityViewData[],
-  loading?:boolean,
-  direct: boolean
-}
+import { IIncrementalDetails, ViewIncrementalObjectProperty } from "./view-model";
 
 export default class GscapeIncrementalDetails extends BaseMixin(LitElement) implements IIncrementalDetails {
   dataProperties?: EntityViewData[]
+  /** @internal */
   dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
   objectProperties?: ViewIncrementalObjectProperty[]
+  /** @internal */
   objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean } >>
+  /** @internal */
   private instances?: EntityViewData[]
-  private limit: number = 10
+  /** @internal */
   canShowInstances = false
+  /** @internal */
   canShowDataPropertiesValues = false
+  /** @internal */
   canShowObjectPropertiesRanges = false
+  /** @internal */
   isInstanceCounterLoading = true
+  /** @internal */
   areInstancesLoading = true
+  /** @internal */
   instanceCount: number
 
+  /** @internal */
   onObjectPropertySelection = (iri: string, objectPropertyIri: string, direct: boolean) => { }
+  /** @internal */
   onGetInstances = () => { }
+  /** @internal */
   onInstanceSelection = (iri: string) => { }
-  onDataPropertyToggle = (enabled: boolean) => { }
+  /** @internal */
   onEntitySearch = (searchText: string) => { }
+  /** @internal */
   onEntitySearchByDataPropertyValue = (dataPropertyIri: string, searchText: string) => { }
+  /** @internal */
   onGetRangeInstances = (objectPropertyIri: string, rangeClassIri: string) => { }
+  /** @internal */
   onInstanceObjectPropertySelection = (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => { }
+  /** @internal */
   onLimitChange = (limitValue: number) => { }
 
+  /** @internal */
   private searchTimeout: NodeJS.Timeout
 
   static properties: PropertyDeclarations = {
@@ -223,6 +190,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     `
   }
 
+  /** @internal */
   private handleSearch(e: KeyboardEvent) {
     const inputElement = e.target as HTMLInputElement
     clearTimeout(this.searchTimeout)
@@ -245,6 +213,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     }, 500)
   }
 
+  /** @internal */
   private handleShowInstances(evt: MouseEvent) {
     const target = evt.currentTarget as HTMLDetailsElement
     if (!target.open && (!this.instances || this.instances.length === 0)) {
@@ -252,6 +221,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     }
   }
 
+  /** @internal */
   private handleShowObjectPropertyRanges(evt: MouseEvent) {
     const target = evt.currentTarget as HTMLDetailsElement
     const objectPropertyIri = target.getAttribute('objectPropertyIri')
@@ -329,18 +299,23 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   addObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) {
     this.objectProperties = (this.objectProperties || []).concat(objectProperties)
   }
+
+  /** @internal */
   setInstances(instances: EntityViewData[]) {
     this.instances = instances
   }
+  /** @internal */
   addInstances(instances: EntityViewData[]) {
     // concat avoiding duplicates
     this.instances = [...new Set([...(this.instances || []),...instances])]
   }
 
+  /** @internal */
   setDataPropertiesValues(dataPropertiesValues: Map<string, { values: string[]; loading?: boolean | undefined; }>) {
     this.dataPropertiesValues = dataPropertiesValues
   }
 
+  /** @internal */
   addDataPropertiesValues(dataPropertyIri: string, values: string[]) {
     if (!this.dataPropertiesValues)
       return
@@ -352,6 +327,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     }
   }
 
+  /** @internal */
   setDataPropertyLoading(dataPropertyIri: string, isLoading: boolean) {
     const dataPropertiesValues = this.dataPropertiesValues?.get(dataPropertyIri)
 
@@ -362,10 +338,12 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   }
 
   // ---- OBJECT PROPERTIES RANGES ----
+  /** @internal */
   setObjectPropertyRanges(objectPropertyRanges: Map<string, Map<string, { values: EntityViewData[]; loading?: boolean | undefined; }>>) {
     this.objectPropertiesRanges = objectPropertyRanges
   }
 
+  /** @internal */
   setObjectPropertyLoading(objectPropertyIri: string, rangeClassIri: string, isLoading: boolean) {
     const objectPropertyRanges = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
 
@@ -375,6 +353,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     }
   }
 
+  /** @internal */
   addObjectPropertyRangeInstances(objectPropertyIri: string, rangeClassIri: string, classInstances: EntityViewData[]) {
     const objectPropertyRanges = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
 
@@ -399,6 +378,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     this.objectPropertiesRanges = undefined
   }
 
+  /** @internal */
   private get dataPropertyFilter() { 
     if (this.shadowRoot)
       return this.shadowRoot.querySelector(`select#data-property-filter`) as HTMLSelectElement 

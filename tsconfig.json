@@ -31,7 +31,6 @@
       "DisplayedNamesManager",
       "ThemeManager",
       "EntityNavigator",
-      "IEntityFilters"
     ],
     "excludeInternal": true,
     "excludeExternals": true,

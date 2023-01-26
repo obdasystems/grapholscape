@@ -2,6 +2,7 @@ import Iri from "../iri";
 import GrapholEntity from "./entity";
 import { GrapholTypesEnum } from "./enums";
 
+/** @internal */
 export default class ClassInstanceEntity extends GrapholEntity {
 
   parentClassIris = new Set<Iri>

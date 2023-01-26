@@ -6,6 +6,8 @@ import { WidgetEnum } from "../util/widget-enum";
 
 export { GscapeRenderSelector }
 
+export * from './view-model'
+
 /**
  * @param {import('../../grapholscape').default} grapholscape 
  */
