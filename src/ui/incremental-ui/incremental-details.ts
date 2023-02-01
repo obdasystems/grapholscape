@@ -291,11 +291,16 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   //   return cxtMenuProps
   // }
 
-  setDataProperties(dataProperties: EntityViewData[]) { this.dataProperties = dataProperties }
+  setDataProperties(dataProperties: EntityViewData[]) { 
+    this.dataProperties = dataProperties.sort((a,b) => a.displayedName.localeCompare(b.displayedName))
+  }
   addDataProperties(dataProperties: EntityViewData[]) {
     this.dataProperties = (this.dataProperties || []).concat(dataProperties)
   }
-  setObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) { this.objectProperties = objectProperties }
+  setObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) { 
+    objectProperties.forEach(op => op.connectedClasses.sort((a,b) => a.displayedName.localeCompare(b.displayedName)))
+    this.objectProperties = objectProperties.sort((a,b) => a.objectProperty.displayedName.localeCompare(b.objectProperty.displayedName))
+  }
   addObjectProperties(objectProperties: ViewIncrementalObjectProperty[]) {
     this.objectProperties = (this.objectProperties || []).concat(objectProperties)
   }
