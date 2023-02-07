@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
 import baseStyle from "../style"
-import { ModalMixin, BaseMixin } from "../common/mixins"
+import { ModalMixin, BaseMixin } from "./mixins"
 
 export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement)) {
 

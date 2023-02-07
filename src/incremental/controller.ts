@@ -17,7 +17,7 @@ import EndpointController from "./endpoint-controller";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import HighlightsManager from "./highlights-manager";
 import { showParentClass } from "../ui/incremental-ui/commands";
-import GscapeConfirmDialog from "../ui/incremental-ui/confirm-dialog";
+import GscapeConfirmDialog from "../ui/common/confirm-dialog";
 import { MastroEndpoint } from "./api/model";
 import { IBaseMixin } from "../ui";
 

@@ -8,6 +8,7 @@ export * from './common/mixins'
 export * from './common/spinners'
 export * from './common/text-search'
 export * from "./common/toggle/gscape-toggle"
+export { default as GscapeConfirmDialog } from './common/confirm-dialog'
 export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
 export { GscapeEntitySelector, IEntitySelector } from './entity-selector'
 export * from './full-page-selector'

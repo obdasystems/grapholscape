@@ -18,5 +18,3 @@ export default function initIncrementalMenu(grapholscape: Grapholscape) {
 
   grapholscape.widgets.set(WidgetEnum.INCREMENTAL_MENU, incrementalMenu)
 }
-
-export * from './view-model'
