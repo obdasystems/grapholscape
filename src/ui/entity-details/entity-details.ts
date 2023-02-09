@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { GrapholEntity } from '../../model'
+import { GrapholEntity, GrapholTypesEnum } from '../../model'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
