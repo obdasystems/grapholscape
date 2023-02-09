@@ -4,7 +4,7 @@ import { GrapholTypesEnum, Iri } from "../model";
 
 export function entityIriTemplate(iri: Iri | { remainder: string, prefix: string }, entityType: GrapholTypesEnum){
 
-  if (entityType === GrapholTypesEnum.INDIVIDUAL) {
+  if (entityType === GrapholTypesEnum.FACET) {
     if (iri.remainder.search(/"[\w]+"\^\^[\w]+:/) != -1) {
       var value = iri.remainder.split('^^')[0]
       var datatype = iri.remainder.split(':')[1]
