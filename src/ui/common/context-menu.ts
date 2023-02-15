@@ -1,7 +1,8 @@
 import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from "lit"
-import tippy, { Props } from 'tippy.js'
+import tippy from 'tippy.js'
 import baseStyle from "../style"
 import { BaseMixin } from "./mixins"
+import { ContextualWidgetMixin } from "./mixins/contextual-widget-mixin"
 
 /**
  * A command for the context menu
@@ -15,14 +16,12 @@ export interface Command {
   select: () => void,
 }
 
-export default class GscapeContextMenu extends BaseMixin(LitElement) {
+export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   commands: Command[] = []
   customElements: (LitElement | HTMLElement | TemplateResult)[] = []
   showFirst: 'commands' | 'elements' = 'elements'
 
   onCommandRun = () => { }
-
-  tippyMenu = tippy(document.createElement('div'))
 
   static properties: PropertyDeclarations = {
     commands: { type: Object, attribute: false },
@@ -84,35 +83,17 @@ export default class GscapeContextMenu extends BaseMixin(LitElement) {
   }
 
   attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]) {
-    this.tippyMenu.setProps(this.cxtMenuProps)
-    this.tippyMenu.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() })
-    
+    super.attachTo(element)
     this.commands = commands || []
     this.customElements = elements || []
-
-    this.tippyMenu.show()
-  }
-
-  protected get cxtMenuProps(): Partial<Props> {
-    return {
-      trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
-      allowHTML: true,
-      interactive: true,
-      placement: "bottom",
-      appendTo: document.querySelector('.gscape-ui') || undefined,
-      // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
-      content: this,
-      offset: [0, 0],
-    }
-  }
-  
+  }  
 
   private handleCommandClick(e: any) {
     const command = this.commands[e.currentTarget.getAttribute('command-id')]
     if (command.select) {
       command.select()
       this.onCommandRun()
-      this.tippyMenu.hide()
+      this.hide()
     }    
   }
 
