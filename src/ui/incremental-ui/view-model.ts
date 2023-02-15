@@ -53,6 +53,9 @@ export interface IIncrementalDetails {
   /** @internal */
   onLimitChange: (limitValue: number) => void
 
+  /** @internal */
+  onParentClassSelection: (iri: string) => void
+
   reset: () => void
 
   /** @internal */
@@ -67,6 +70,8 @@ export interface IIncrementalDetails {
   areInstancesLoading: boolean
   /** @internal */
   instanceCount: number
+  /** @internal */
+  parentClasses?: EntityViewData[]
 }
 
 export type ViewIncrementalObjectProperty = {

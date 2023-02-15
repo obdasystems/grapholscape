@@ -6,7 +6,7 @@ import { createEntitiesList, EntityViewData } from "../ui/util/search-entities";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import {GscapeEntitySelector} from "../ui/entity-selector";
-import { IncrementalCommands } from "../ui/incremental-ui";
+import { IIncrementalDetails, IncrementalCommands } from "../ui/incremental-ui";
 import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
 import { GscapeExplorer } from "../ui/ontology-explorer";
 import { WidgetEnum } from "../ui/util/widget-enum";
@@ -27,7 +27,7 @@ export default class IncrementalController {
   private vKGApi?: IVirtualKnowledgeGraphApi
   private neighbourhoodFinder: NeighbourhoodFinder
 
-  private incrementalDetails: GscapeIncrementalDetails
+  private incrementalDetails: IIncrementalDetails & IBaseMixin
   private entitySelector: GscapeEntitySelector
 
   private lastClassIri?: string
@@ -125,11 +125,18 @@ export default class IncrementalController {
     const instanceEntity = this.diagram.classInstances?.get(instanceIri)
     if (instanceEntity) {
       let shouldUpdate = false
-
+      const parentClasses: EntityViewData[] = []
       instanceEntity.parentClassIris.forEach(parentClassIri => {
         this.addDataPropertiesDetails(parentClassIri.fullIri)
         this.addObjectPropertiesDetails(parentClassIri.fullIri)
+
+        const parentClassEntity = this.grapholscape.ontology.getEntity(parentClassIri.fullIri)
+        if (parentClassEntity)
+          parentClasses.push(grapholEntityToEntityViewData(parentClassEntity, this.grapholscape))
       })
+
+      this.incrementalDetails.parentClasses = parentClasses
+      this.incrementalDetails.onParentClassSelection = (parentClassIri: string) => this.addInstanceParentClass(instanceEntity, parentClassIri)
 
       // Check if the last classes used for highlights matches with parentClasses of selected instance
       // If it matches, no need to update highlights and values
@@ -199,6 +206,7 @@ export default class IncrementalController {
     if (this.isReasonerEnabled) {
       this.incrementalDetails.canShowDataPropertiesValues = false
       this.incrementalDetails.canShowObjectPropertiesRanges = false
+      this.incrementalDetails.parentClasses = undefined
       this.incrementalDetails.canShowInstances = true
 
       this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri)
@@ -233,14 +241,7 @@ export default class IncrementalController {
 
     if (classInstanceEntity) {
       commands.push(showParentClass(() => {
-        const oldElemNumbers = this.diagramBuilder.diagram.representation?.grapholElements.size
-        classInstanceEntity.parentClassIris.forEach(parentClassIri => {
-          this.diagramBuilder.addEntity(parentClassIri.fullIri)
-          this.connectInstanceToParentClasses(classInstanceEntity)
-        })
-
-        if (oldElemNumbers !== this.diagramBuilder.diagram.representation?.grapholElements.size)
-          this.postDiagramEdit()
+        classInstanceEntity.parentClassIris.forEach(parentClassIri => this.addInstanceParentClass(classInstanceEntity, parentClassIri.fullIri))
       }))
     }
 
@@ -622,6 +623,17 @@ export default class IncrementalController {
     instanceEntity.parentClassIris.forEach(parentClassIri => {
       this.diagramBuilder.addInstanceOfEdge(instanceEntity.iri.fullIri, parentClassIri.fullIri)
     })
+  }
+
+  addInstanceParentClass(classInstanceEntity: ClassInstanceEntity, parentClassIri: string) {
+    const oldElemNumbers = this.diagramBuilder.diagram.representation?.grapholElements.size
+    this.diagramBuilder.addEntity(parentClassIri)
+    this.connectInstanceToParentClasses(classInstanceEntity)
+
+    if (oldElemNumbers !== this.diagramBuilder.diagram.representation?.grapholElements.size)
+      this.postDiagramEdit()
+
+    this.grapholscape.centerOnElement(parentClassIri)
   }
 
   private onGetInstances(classIri: string, searchText?: string) {

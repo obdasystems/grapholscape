@@ -31,6 +31,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   areInstancesLoading = true
   /** @internal */
   instanceCount: number
+  /** @internal */
+  parentClasses?: EntityViewData[]
 
   /** @internal */
   onObjectPropertySelection = (iri: string, objectPropertyIri: string, direct: boolean) => { }
@@ -48,6 +50,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
   onInstanceObjectPropertySelection = (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => { }
   /** @internal */
   onLimitChange = (limitValue: number) => { }
+  /** @internal */
+  onParentClassSelection = (iri: string) => { }
 
   /** @internal */
   private searchTimeout: NodeJS.Timeout
@@ -62,6 +66,7 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
     areInstancesLoading: { type: Boolean, attribute: false },
     instanceCount: { type: Number, attribute: false },
     limit: { type: Number, attribute: false },
+    parentClasses: { type: Object, attribute: false },
     // dataPropertiesValues: {type: Object, attribute: false },
     // objectPropertiesRanges: {type: Object, attribute: false },
   }
@@ -108,6 +113,18 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
             }
           </div>
         </details>
+        `
+        : null
+      }
+
+      ${this.parentClasses && this.parentClasses.length > 0 
+        ? html`
+          <div class="section">
+            <div class="section-header"><span class="bold-text">Parent Classes</span> - rdf:type</div>
+            <div class="section-body" style="padding-left: 0px; padding-right: 0px">
+              ${this.parentClasses?.map(parentClass => this.getEntitySuggestionTemplate(parentClass))}
+            </div>
+          </div>
         `
         : null
       }
@@ -272,6 +289,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
       case GrapholTypesEnum.CLASS:
         if (objectPropertyIri) {
           this.onObjectPropertySelection(iri, objectPropertyIri, direct)
+        } else {
+          this.onParentClassSelection(iri)
         }
         break
       
