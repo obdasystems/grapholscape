@@ -12,11 +12,12 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
   incrementalController.grapholscape.widgets.set(WidgetEnum.VKG_PREFERENCES, vkgPreferences)
   incrementalController.grapholscape.uiContainer?.querySelector('.gscape-ui-buttons-tray')?.appendChild(vkgPreferences)
 
-  if (incrementalController.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
+  if (incrementalController.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL || !incrementalController.endpointController)
     vkgPreferences.hide()
 
-  // Starting data
-  setEndpointList()
+  if (incrementalController.endpointController)
+    // Starting data
+    setEndpointList()
 
   incrementalController.on(IncrementalEvent.EndpointChange, newEndpoint => {
     vkgPreferences.selectedEndpointName = newEndpoint.name
@@ -24,6 +25,11 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
 
   incrementalController.on(IncrementalEvent.LimitChange, limit => {
     vkgPreferences.limit = limit
+  })
+
+  incrementalController.on(IncrementalEvent.ReasonerSet, () => {
+    vkgPreferences.show()
+    setEndpointList()
   })
 
   vkgPreferences.onTogglePanel = () => setEndpointList()
@@ -34,20 +40,18 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
     confirmDialog.show()
     confirmDialog.onConfirm = async () => {
       incrementalController.reset()
-      const endpoints = await incrementalController.getRunningEndpoints()
-      const newEndpoint = endpoints.find(e => e.name === newEndpointName)
-
-      if (newEndpoint)
-        incrementalController.setEndpoint(newEndpoint)
+      incrementalController.endpointController?.setEndpoint(newEndpointName)
     }
   })
 
   vkgPreferences.onLimitChange(limit => {
-    incrementalController.setLimit(limit)
+    incrementalController.endpointController?.setLimit(limit)
   })
 
+  vkgPreferences.onStopRequests(() => incrementalController.endpointController?.stopRequests())
+
   function setEndpointList() {
-    incrementalController.getRunningEndpoints().then(endpoints => {
+    incrementalController.endpointController?.getRunningEndpoints().then(endpoints => {
       vkgPreferences.endpoints = endpoints.map(e => {
         return {
           name: e.name
@@ -55,7 +59,7 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
       }).sort((a,b) => a.name.localeCompare(b.name))
 
       if (endpoints.length >= 1 && !vkgPreferences.selectedEndpointName) {
-        incrementalController.setEndpoint(endpoints[0])
+        incrementalController.endpointController?.setEndpoint(endpoints[0])
       }
     })
   }

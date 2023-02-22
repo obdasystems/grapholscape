@@ -4,56 +4,27 @@ import FloatyRendererState from "../../core/rendering/floaty/floaty-renderer-sta
 import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-state"
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
-import { IncrementalController, initIncremental } from "../../incremental"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
-import { GscapeFilters } from "../filters"
-import { WidgetEnum } from "../util/widget-enum"
 import GscapeRenderSelector from "./render-selector"
 import { rendererStates } from "./view-model"
 
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
-  let existingIncrementalController: IncrementalController | undefined
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
   if (grapholscape.renderState) {
     rendererSelector.actualRendererStateKey = grapholscape.renderState
-
-    /**
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      existingIncrementalController = new IncrementalController(grapholscape)
-      initIncremental(grapholscape, existingIncrementalController)
-    }
-    */
   }
 
   rendererSelector.onRendererStateSelection = (rendererState) => {
     rendererStateSelectionCallback(rendererState, grapholscape)
   }
 
-  rendererSelector.onIncrementalReset = () => {
-    existingIncrementalController?.reset()
-  }
+  rendererSelector.onIncrementalReset = () => grapholscape.incremental?.reset()
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
     rendererSelector.actualRendererStateKey = newRendererState
 
     if (newRendererState === RendererStatesEnum.FLOATY)
       rendererSelector.layoutSettingsComponent.openPanel()
-
-    const filtersWidget = grapholscape.widgets.get(WidgetEnum.FILTERS) as GscapeFilters
-
-    /**
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      if (!existingIncrementalController) {
-        existingIncrementalController = new IncrementalController(grapholscape)
-      }
-      initIncremental(grapholscape, existingIncrementalController)
-      filtersWidget.hide()
-    } else {
-      existingIncrementalController?.clearState()
-      existingIncrementalController?.hideUI()
-      filtersWidget.show()
-    }
-    */
   })
 }
 
@@ -84,21 +55,6 @@ export function rendererStateSelectionCallback(
         isRenderValid = true
         break
     }
-
-    /**
-
-    if (rendererState === RendererStatesEnum.INCREMENTAL) {
-      const incrementalRendererState = new IncrementalRendererState()
-      grapholscape.setRenderer(incrementalRendererState)
-      isRenderValid = true
-    } else {
-      (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as unknown as IBaseMixin)?.show();
-      (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin)?.hide()
-      const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
-      if (entityDetailsWidget)
-        entityDetailsWidget.incrementalSection = undefined
-    }
-    */
 
     if (isRenderValid)
       storeConfigEntry('selectedRenderer', rendererState)

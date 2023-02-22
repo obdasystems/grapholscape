@@ -16,11 +16,12 @@ import DiagramBuilder from "./diagram-builder";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import HighlightsManager from "./highlights-manager";
 import { showParentClass } from "./ui/commands-widget/commands";
-import { MastroEndpoint } from "./api/model";
+import { MastroEndpoint, RequestOptions } from "./api/model";
 import { IBaseMixin } from "../ui";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import EndpointApi, { IEndpointApi } from "./api/endpoint-api";
 import { EdgeSingular, Position } from "cytoscape";
+import EndpointController from "./endpoint-controller";
 
 /** @internal */
 export default class IncrementalController {
@@ -31,19 +32,13 @@ export default class IncrementalController {
 
   public classInstanceEntities: Map<string, ClassInstanceEntity> = new Map()
 
-  // private incrementalDetails: IIncrementalDetails & IBaseMixin
-  private entitySelector: GscapeEntitySelector
-
   public lastClassIri?: string
   public lastInstanceIri?: string
 
   private suggestedClassInstances: ClassInstance[] = []
   private suggestedClassInstancesRanges: ClassInstance[] = []
 
-  private commandsWidget = new GscapeContextMenu()
-
-  // private endpointController?: EndpointController
-  private highlightsManager?: HighlightsManager
+  endpointController?: EndpointController
 
   private entitySelectionTimeout: NodeJS.Timeout
 
@@ -58,44 +53,33 @@ export default class IncrementalController {
     this.diagramBuilder = new DiagramBuilder(this.diagram)
     this.addEdge = this.diagramBuilder.addEdge
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
-    if (this.grapholscape.mastroRequestOptions) {
-      this.endpointApi = new EndpointApi(this.grapholscape.mastroRequestOptions)
-      this.getRunningEndpoints = this.endpointApi.getRunningEndpoints
-    }
   }
 
   getClassInstanceEntity(classInstanceIri: string) {
     return {} as ClassInstanceEntity
   }
 
-  getRunningEndpoints = async (): Promise<MastroEndpoint[]> => {
-    return []
-  }
+  // getRunningEndpoints = async (): Promise<MastroEndpoint[]> => {
+  //   return []
+  // }
 
-  setEndpoint(endpoint: MastroEndpoint) {
-    if (!this.vKGApi) {
-      if (this.grapholscape.mastroRequestOptions) {
-        this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, endpoint)
+  // setEndpoint(endpoint: MastroEndpoint) {
+  //   if (!this.vKGApi) {
+  //     if (this.grapholscape.mastroRequestOptions) {
+  //       this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, endpoint)
 
-        if (this.highlightsManager) {
-          this.highlightsManager.vkgApi = this.vKGApi
-        } else {
-          this.highlightsManager = new HighlightsManager(this.vKGApi)
-        }
-      }
-    } else {
-      this.vKGApi?.setEndpoint(endpoint)
-    }
+  //       if (this.highlightsManager) {
+  //         this.highlightsManager.vkgApi = this.vKGApi
+  //       } else {
+  //         this.highlightsManager = new HighlightsManager(this.vKGApi)
+  //       }
+  //     }
+  //   } else {
+  //     this.vKGApi?.setEndpoint(endpoint)
+  //   }
 
-    this.lifecycle.trigger(IncrementalEvent.EndpointChange, endpoint)
-  }
-
-  setLimit(limit: number) {
-    if (this.vKGApi) {
-      this.vKGApi.limit = limit
-      this.lifecycle.trigger(IncrementalEvent.LimitChange, limit)
-    }
-  }
+  //   this.lifecycle.trigger(IncrementalEvent.EndpointChange, endpoint)
+  // }
 
   // private initEndpointController() {
   //   if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
@@ -122,11 +106,14 @@ export default class IncrementalController {
    * 
    * Create new EndpointApi object with actual mastro request options
    */
-  updateMastroConnection() {
-    if (this.grapholscape.mastroRequestOptions) {
-      this.endpointApi = new EndpointApi(this.grapholscape.mastroRequestOptions)
-      this.getRunningEndpoints = this.endpointApi.getRunningEndpoints
-    }
+  setMastroConnection(mastroRequestOptions: RequestOptions) {
+    // if (this.grapholscape.mastroRequestOptions) {
+    //   this.endpointApi = new EndpointApi(this.grapholscape.mastroRequestOptions)
+    //   this.getRunningEndpoints = this.endpointApi.getRunningEndpoints
+    // }
+    this.reset()
+    this.endpointController = new EndpointController(mastroRequestOptions, this.lifecycle)
+    this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
   }
 
   // addEntity(entity: GrapholEntity) {
@@ -383,8 +370,7 @@ export default class IncrementalController {
   clearState() {
     // this.lastClassIri = undefined
     // this.lastInstanceIri = undefined
-    this.highlightsManager?.clear()
-    this.vKGApi?.stopAllQueries()
+    this.endpointController?.clear()
   }
 
   /**
@@ -834,66 +820,66 @@ export default class IncrementalController {
    * @param classIri 
    * @returns 
    */
-  private async getObjectProperties(classIri: string) {
-    if (this.isReasonerEnabled) {
-      const branches = await this.highlightsManager?.objectProperties()
-      const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
+  // private async getObjectProperties(classIri: string) {
+  //   if (this.endpointController) {
+  //     const branches = await this.highlightsManager?.objectProperties()
+  //     const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
 
-      branches?.forEach(branch => {
-        if (!branch.objectPropertyIRI) return
+  //     branches?.forEach(branch => {
+  //       if (!branch.objectPropertyIRI) return
 
-        const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI)
+  //       const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI)
 
-        if (!objectPropertyEntity) return
+  //       if (!objectPropertyEntity) return
 
-        const connectedClasses: ObjectPropertyConnectedClasses = {
-          connectedClasses: [],
-          direct: branch.direct || false,
-        }
+  //       const connectedClasses: ObjectPropertyConnectedClasses = {
+  //         connectedClasses: [],
+  //         direct: branch.direct || false,
+  //       }
 
-        branch.relatedClasses?.forEach(relatedClass => {
-          const relatedClassEntity = this.ontology.getEntity(relatedClass)
+  //       branch.relatedClasses?.forEach(relatedClass => {
+  //         const relatedClassEntity = this.ontology.getEntity(relatedClass)
 
-          if (relatedClassEntity) {
-            connectedClasses.connectedClasses.push(relatedClassEntity)
-          }
-        })
+  //         if (relatedClassEntity) {
+  //           connectedClasses.connectedClasses.push(relatedClassEntity)
+  //         }
+  //       })
 
-        objectPropertiesMap.set(objectPropertyEntity, connectedClasses)
-      })
+  //       objectPropertiesMap.set(objectPropertyEntity, connectedClasses)
+  //     })
 
-      return objectPropertiesMap
+  //     return objectPropertiesMap
 
-    } else {
-      return this.neighbourhoodFinder.getObjectProperties(classIri)
-    }
-  }
+  //   } else {
+  //     return this.neighbourhoodFinder.getObjectProperties(classIri)
+  //   }
+  // }
 
-  async getDataPropertiesByClass(classIri: string) {
-    if (this.vKGApi) {
-      const dataProperties = await this.highlightsManager?.dataProperties()
-      return dataProperties
-        ?.map(dp => this.ontology.getEntity(dp))
-        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
-        || []
-    } else {
-      return this.neighbourhoodFinder.getDataProperties(classIri)
-    }
-  }
+  // async getDataPropertiesByClass(classIri: string) {
+  //   if (this.vKGApi) {
+  //     const dataProperties = await this.highlightsManager?.dataProperties()
+  //     return dataProperties
+  //       ?.map(dp => this.ontology.getEntity(dp))
+  //       .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+  //       || []
+  //   } else {
+  //     return this.neighbourhoodFinder.getDataProperties(classIri)
+  //   }
+  // }
 
-  async getDataPropertiesByClassInstance(instanceIri: string) {
-    const instanceEntity = this.classInstanceEntities.get(instanceIri)
+  // async getDataPropertiesByClassInstance(instanceIri: string) {
+  //   const instanceEntity = this.classInstanceEntities.get(instanceIri)
 
-    if (instanceEntity && this.highlightsManager) {
-      this.highlightsManager.computeHighlights(Array.from(instanceEntity.parentClassIris).map(classIri => classIri.fullIri))
+  //   if (instanceEntity && this.highlightsManager) {
+  //     this.highlightsManager.computeHighlights(Array.from(instanceEntity.parentClassIris).map(classIri => classIri.fullIri))
 
-      return (await this.highlightsManager.dataProperties())
-        .map(dp => this.ontology.getEntity(dp))
-        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
-    } else {
-      return []
-    }
-  }
+  //     return (await this.highlightsManager.dataProperties())
+  //       .map(dp => this.ontology.getEntity(dp))
+  //       .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+  //   } else {
+  //     return []
+  //   }
+  // }
 
   private onStopDataPropertyValueQuery(instanceIri: string, dataPropertyIri: string) {
     // if there is a new instance iri, loading will be stopped by new requests

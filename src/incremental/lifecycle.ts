@@ -13,6 +13,7 @@ export enum IncrementalEvent {
   ClassSelection = 'classSelection',
   ContextClick = 'contextClick',
   DiagramUpdated = 'diagramUpdated',
+  ReasonerSet = 'reasonerSet',
 }
 
 export interface IonEvent {
@@ -25,6 +26,7 @@ export interface IonEvent {
   (event: IncrementalEvent.ClassSelection, callback: (classEntity: GrapholEntity) => void): void
   (event: IncrementalEvent.ContextClick, callback: (entity: GrapholEntity) => void): void
   (event: IncrementalEvent.DiagramUpdated, callback: () => void): void
+  (event: IncrementalEvent.ReasonerSet, callback: () => void): void
 }
 
 export default class IncrementalLifecycle {
@@ -37,6 +39,7 @@ export default class IncrementalLifecycle {
   private classSelection: ((classEntity: GrapholEntity) => void)[] = []
   private contextClick: ((entity: GrapholEntity) => void)[] = []
   private diagramUpdated: (() => void)[] = []
+  private reasonerSet: (() => void)[] = []
 
 
   constructor() { }
@@ -50,6 +53,7 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.ClassSelection, classEntity: GrapholEntity): void
   trigger(event: IncrementalEvent.ContextClick, entity: GrapholEntity): void
   trigger(event: IncrementalEvent.DiagramUpdated): void
+  trigger(event: IncrementalEvent.ReasonerSet): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

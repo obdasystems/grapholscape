@@ -75,7 +75,7 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
   const grapholscape = await getGrapholscape(file, container, config)
 
   if (grapholscape?.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-    initIncremental
+    initIncremental(grapholscape)
   }
   return grapholscape
 }

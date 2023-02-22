@@ -19,7 +19,7 @@ export { IncrementalController };
 export function initIncremental(grapholscape: Grapholscape) {
 
   let incrementalController: IncrementalController = new IncrementalController(grapholscape)
-
+  grapholscape.incremental = incrementalController
   // Create and initialize UI components
   IncrementalUI.ClassInstanceDetailsFactory(incrementalController)
   IncrementalUI.VKGPreferencesFactory(incrementalController)
@@ -40,7 +40,8 @@ export function initIncremental(grapholscape: Grapholscape) {
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
     manageWidgetsOnActivation(
       grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-      grapholscape.renderer.cy?.elements().empty()
+      grapholscape.renderer.cy?.elements().empty(),
+      incrementalController.endpointController !== undefined
     )
     incrementalController.setIncrementalEventHandlers()
   } else {
@@ -57,7 +58,8 @@ export function initIncremental(grapholscape: Grapholscape) {
       }
       manageWidgetsOnActivation(
         grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-        grapholscape.renderer.cy?.elements().empty()
+        grapholscape.renderer.cy?.elements().empty(),
+        incrementalController.endpointController !== undefined
       )
     } else {
       // incrementalController?.clearState()
@@ -76,6 +78,12 @@ export function initIncremental(grapholscape: Grapholscape) {
     if (ontologyExplorer) {
       ontologyExplorer.entities = createEntitiesList(grapholscape, ontologyExplorer.searchEntityComponent)
     }
+  })
+
+  incrementalController.on(IncrementalEvent.Reset, () => {
+    (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector)?.show();
+    (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails)?.hide();
+
   })
 
   // grapholscape.renderer.unselect()
@@ -117,7 +125,7 @@ export function initIncremental(grapholscape: Grapholscape) {
 }
 
 
-function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false) {
+function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false, isReasonerAvailable?: boolean) {
   const filtersWidget = widgets.get(WidgetEnum.FILTERS)
   const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
   const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR)
@@ -125,12 +133,13 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
 
   classInstanceDetails?.show()
-  vkgPreferences?.show()
   diagramSelector?.hide()
 
-  if (isCanvasEmpty) {
+  if (isCanvasEmpty)
     entitySelector?.show()
-  }
+
+  if (isReasonerAvailable)
+    vkgPreferences?.show()
 
   filtersWidget?.hide()
 }
