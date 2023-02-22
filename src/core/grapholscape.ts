@@ -1,5 +1,6 @@
 import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
+import { IncrementalController } from "../incremental"
 import { RequestOptions } from "../incremental/api/model"
 import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
@@ -441,5 +442,8 @@ export default class Grapholscape {
    */
   setMastroRequestOptions(options: RequestOptions) {
     this.mastroRequestOptions = options
+    this.incremental?.updateMastroConnection()
   }
+
+  public incremental?: IncrementalController
 }

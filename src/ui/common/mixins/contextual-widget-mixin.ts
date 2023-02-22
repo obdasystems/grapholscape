@@ -14,24 +14,21 @@ export const ContextualWidgetMixin = <T extends Constructor<LitElement>>(superCl
 
   class ContextualWidgetMixinClass extends superClass {
     tippyWidget = tippy(document.createElement('div'))
+    cxtWidgetProps: Partial<Props> = {
+      trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
+      allowHTML: true,
+      interactive: true,
+      placement: "bottom",
+      appendTo: document.querySelector('.gscape-ui') || undefined,
+      // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
+      content: this,
+      offset: [0, 0],
+    }
 
     attachTo(element: HTMLElement) {
       this.tippyWidget.setProps(this.cxtWidgetProps)
       this.tippyWidget.setProps({ getReferenceClientRect: () => element.getBoundingClientRect() })
       this.tippyWidget.show()
-    }
-
-    get cxtWidgetProps(): Partial<Props> {
-      return {
-        trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
-        allowHTML: true,
-        interactive: true,
-        placement: "bottom",
-        appendTo: document.querySelector('.gscape-ui') || undefined,
-        // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
-        content: this,
-        offset: [0, 0],
-      }
     }
 
     hide() {

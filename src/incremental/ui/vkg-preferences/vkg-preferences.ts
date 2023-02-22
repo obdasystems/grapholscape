@@ -1,18 +1,20 @@
-import { css, html, LitElement } from "lit";
-import baseStyle, { BOTTOM_RIGHT_WIDGET } from "../style";
-import { searchOff, stopCircle, tune } from "../assets";
-import { BaseMixin, DropPanelMixin } from "../common/mixins";
-import getIconSlot from "../util/get-icon-slot";
-import { SizeEnum } from "../common/button";
+import { LitElement, css, html } from "lit"
+import { DropPanelMixin, BaseMixin, baseStyle, SizeEnum } from "../../../ui"
+import { tune, searchOff, stopCircle } from "../../../ui/assets"
+import { BOTTOM_RIGHT_WIDGET } from "../../../ui/style"
+import getIconSlot from "../../../ui/util/get-icon-slot"
+
 
 export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitElement)) {
 
   endpoints: { name: string }[] = []
   selectedEndpointName: string
+  limit: number
 
   static properties = {
     endpoints: { type: Array, attribute: false },
     selectedEndpointName: { type: String, reflect: true },
+    limit: { type: Number, reflect: true }
   }
 
   static styles = [ baseStyle, 
@@ -137,3 +139,5 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
     this._onStopRequestsCallback = callback
   }
 }
+
+customElements.define('gscape-vkg-preferences', GscapeVKGPreferences)

@@ -61,7 +61,6 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.ENTITY_DETAILS:
       case WidgetEnum.OWL_VISUALIZER:
       case WidgetEnum.ENTITY_SELECTOR:
-      case WidgetEnum.INCREMENTAL_MENU:
         guiContainer.appendChild(widget)
         break
 

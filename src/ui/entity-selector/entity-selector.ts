@@ -88,7 +88,7 @@ export class GscapeEntitySelector extends BaseMixin(LitElement) implements IEnti
                 <gscape-action-list-item
                   type="subtle"
                   label=${entityItem.displayedName}
-                  iri=${entityItem.value.iri.prefixed}
+                  iri=${entityItem.value.iri.fullIri}
                   @click=${this.handleEntitySelection}
                 ></gscape-action-list-item>
               `

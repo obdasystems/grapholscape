@@ -9,10 +9,6 @@ export default function init(entitySelectorComponent: GscapeEntitySelector, grap
 
   entitySelectorComponent.entityList = entities
 
-  if (grapholscape.renderState !== RendererStatesEnum.INCREMENTAL) {
-    entitySelectorComponent.hide()
-  }
-
   // grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
   //   if (newRendererState === RendererStatesEnum.INCREMENTAL && grapholscape.renderer.grapholElements?.size === 0) {
   //     entitySelectorComponent.show()

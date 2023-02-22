@@ -6,7 +6,7 @@ import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 import Grapholscape from './core'
 import { GrapholscapeConfig, loadConfig } from './config'
-import { IncrementalController, startIncremental } from './incremental'
+import { initIncremental } from './incremental'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -46,6 +46,10 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
     if (config?.initialRendererSelection === false || grapholscape.renderState) {
       (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
     }
+
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
+      initIncremental(grapholscape)
+    }
   }
   return grapholscape
 }
@@ -70,11 +74,8 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
 export async function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
 
-  if (grapholscape) {
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      const incrementalController = new IncrementalController(grapholscape)
-      startIncremental(grapholscape, incrementalController)
-    }
+  if (grapholscape?.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
+    initIncremental
   }
   return grapholscape
 }

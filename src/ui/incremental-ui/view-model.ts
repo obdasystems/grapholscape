@@ -74,6 +74,46 @@ export interface IIncrementalDetails {
   parentClasses?: EntityViewData[]
 }
 
+export interface INavigationMenu {
+  // populate the menu
+  setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void
+
+  // Object properties range instances
+  /** @internal */
+  setObjectPropertyRanges: (objectPropertyRanges: Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>) => void
+  /** @internal */
+  setObjectPropertyLoading: (objectPropertyIri: string, rangeClassIri: string, isLoading: boolean) => void
+  /** @internal */
+  addObjectPropertyRangeInstances: (objectPropertyIri: string, rangeClassIri: string, classInstances: EntityViewData[]) => void
+  // /** @internal */
+  // onGetRangeInstances: (objectPropertyIri: string, rangeClassIri: string) => void
+}
+
+export interface IClassInstancesExplorer {
+  /** 
+   * callback to be called when an instance is selected
+   * @internal */
+  onInstanceSelection: (iri: string) => void
+
+  /** 
+   * callback to be called when a text search is performed
+   * @internal 
+   */
+  onEntitySearch: (searchText: string) => void
+
+  /** 
+   * callback to be called when a text search on a dataProperty is performed
+   * @internal */
+  onEntitySearchByDataPropertyValue: (dataPropertyIri: string, searchText: string) => void
+
+  /** @internal */
+  instances: EntityViewData[]
+  /** @internal */
+  areInstancesLoading: boolean
+  // /** @internal */
+  // areInstancesLoading: boolean
+}
+
 export type ViewIncrementalObjectProperty = {
   objectProperty: EntityViewData,
   connectedClasses: EntityViewData[],

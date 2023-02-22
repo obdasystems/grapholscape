@@ -1,485 +1,531 @@
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../model";
+import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { createEntitiesList, EntityViewData } from "../ui/util/search-entities";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
 import { GscapeEntityDetails } from "../ui/entity-details";
-import {GscapeEntitySelector} from "../ui/entity-selector";
-import { IIncrementalDetails, IncrementalCommands } from "../ui/incremental-ui";
+import { GscapeEntitySelector } from "../ui/entity-selector";
+import { IClassInstancesExplorer, IIncrementalDetails, IncrementalCommands } from "../ui/incremental-ui";
 import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
 import { GscapeExplorer } from "../ui/ontology-explorer";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import grapholEntityToEntityViewData from "../util/graphol-entity-to-entity-view-data";
 import VKGApi, { ClassInstance, IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import DiagramBuilder from "./diagram-builder";
-import EndpointController from "./endpoint-controller";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import HighlightsManager from "./highlights-manager";
-import { showParentClass } from "../ui/incremental-ui/commands";
-import GscapeConfirmDialog from "../ui/common/confirm-dialog";
+import { showParentClass } from "./ui/commands-widget/commands";
 import { MastroEndpoint } from "./api/model";
 import { IBaseMixin } from "../ui";
+import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
+import EndpointApi, { IEndpointApi } from "./api/endpoint-api";
+import { EdgeSingular, Position } from "cytoscape";
 
 /** @internal */
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   private vKGApi?: IVirtualKnowledgeGraphApi
-  private neighbourhoodFinder: NeighbourhoodFinder
+  private endpointApi?: IEndpointApi
+  neighbourhoodFinder: NeighbourhoodFinder
 
-  private incrementalDetails: IIncrementalDetails & IBaseMixin
+  public classInstanceEntities: Map<string, ClassInstanceEntity> = new Map()
+
+  // private incrementalDetails: IIncrementalDetails & IBaseMixin
   private entitySelector: GscapeEntitySelector
 
-  private lastClassIri?: string
-  private lastInstanceIri?: string
+  public lastClassIri?: string
+  public lastInstanceIri?: string
 
   private suggestedClassInstances: ClassInstance[] = []
   private suggestedClassInstancesRanges: ClassInstance[] = []
 
   private commandsWidget = new GscapeContextMenu()
 
-  private endpointController?: EndpointController
+  // private endpointController?: EndpointController
   private highlightsManager?: HighlightsManager
 
   private entitySelectionTimeout: NodeJS.Timeout
 
+  lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
+  on = this.lifecycle.on
+
+  addEdge: (sourceId: string, targetId: string, edgeType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.INPUT | GrapholTypesEnum.EQUIVALENCE | GrapholTypesEnum.INSTANCE_OF) => void;
+
   constructor(
-    private grapholscape: Grapholscape
+    public grapholscape: Grapholscape
   ) {
-    this.diagramBuilder = new DiagramBuilder(this.ontology, this.diagram)
+    this.diagramBuilder = new DiagramBuilder(this.diagram)
+    this.addEdge = this.diagramBuilder.addEdge
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
-  }
-
-  private initEndpointController() {
-    if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
-      this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions)
-      this.endpointController.onEndpointChange(newEndpoint => {
-        const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the current endpoint, your exploration will be reset.`)
-        this.grapholscape.uiContainer?.appendChild(confirmDialog)
-        confirmDialog.show()
-        confirmDialog.onConfirm = () => {
-          this.initApi(newEndpoint)
-          this.endpointController!.selectedEndpoint = newEndpoint
-          this.reset()
-        }
-      })
-
-      this.endpointController.onAutoEndpointSelection(this.initApi.bind(this))
-
-      this.endpointController.updateEndpointList()
+    if (this.grapholscape.mastroRequestOptions) {
+      this.endpointApi = new EndpointApi(this.grapholscape.mastroRequestOptions)
+      this.getRunningEndpoints = this.endpointApi.getRunningEndpoints
     }
   }
 
-  private initApi(endpoint: MastroEndpoint) {
+  getClassInstanceEntity(classInstanceIri: string) {
+    return {} as ClassInstanceEntity
+  }
+
+  getRunningEndpoints = async (): Promise<MastroEndpoint[]> => {
+    return []
+  }
+
+  setEndpoint(endpoint: MastroEndpoint) {
     if (!this.vKGApi) {
-      if (this.grapholscape.mastroRequestOptions)
+      if (this.grapholscape.mastroRequestOptions) {
         this.vKGApi = new VKGApi(this.grapholscape.mastroRequestOptions, endpoint)
-      if (this.highlightsManager) {
-        this.highlightsManager.vkgApi = this.vKGApi!
-      } else {
-        this.highlightsManager = new HighlightsManager(this.vKGApi!)
+
+        if (this.highlightsManager) {
+          this.highlightsManager.vkgApi = this.vKGApi
+        } else {
+          this.highlightsManager = new HighlightsManager(this.vKGApi)
+        }
       }
     } else {
       this.vKGApi?.setEndpoint(endpoint)
     }
+
+    this.lifecycle.trigger(IncrementalEvent.EndpointChange, endpoint)
   }
 
-  init() {
-    this.updateWidget()
-    if (!this.endpointController) {
-      this.initEndpointController()
+  setLimit(limit: number) {
+    if (this.vKGApi) {
+      this.vKGApi.limit = limit
+      this.lifecycle.trigger(IncrementalEvent.LimitChange, limit)
     }
-    this.endpointController?.showView()
-    this.setIncrementalEventHandlers()
-    this.incrementalDetails.reset()
-    this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
-    this.entitySelector.onClassSelection((iri: string) => {
-      this.entitySelector.hide()
-      this.incrementalRenderer.freezeGraph()
-      this.diagramBuilder.addEntity(iri)
-      this.postDiagramEdit()
-    })
+  }
 
-    this.endpointController?.onLimitChange(this.changeInstancesLimit.bind(this))
-    this.endpointController?.onStopRequests(() => {
-      if (this.isReasonerEnabled) {
-        this.vKGApi?.stopAllQueries()
+  // private initEndpointController() {
+  //   if (this.grapholscape.buttonsTray && this.grapholscape.mastroRequestOptions) {
+  //     this.endpointController = new EndpointController(this.grapholscape.buttonsTray, this.grapholscape.mastroRequestOptions)
+  //     this.endpointController.onEndpointChange(newEndpoint => {
+  //       const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the current endpoint, your exploration will be reset.`)
+  //       this.grapholscape.uiContainer?.appendChild(confirmDialog)
+  //       confirmDialog.show()
+  //       confirmDialog.onConfirm = () => {
+  //         this.initApi(newEndpoint)
+  //         this.endpointController!.selectedEndpoint = newEndpoint
+  //         this.reset()
+  //       }
+  //     })
+
+  //     this.endpointController.onAutoEndpointSelection(this.initApi.bind(this))
+
+  //     this.endpointController.updateEndpointList()
+  //   }
+  // }
+
+  /**
+   * @internal
+   * 
+   * Create new EndpointApi object with actual mastro request options
+   */
+  updateMastroConnection() {
+    if (this.grapholscape.mastroRequestOptions) {
+      this.endpointApi = new EndpointApi(this.grapholscape.mastroRequestOptions)
+      this.getRunningEndpoints = this.endpointApi.getRunningEndpoints
+    }
+  }
+
+  // addEntity(entity: GrapholEntity) {
+  //   this.entitySelector.hide()
+  //   this.incrementalRenderer.freezeGraph()
+
+  //   if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && (entity as ClassInstanceEntity).parentClassIris !== undefined) {
+  //     this.classInstanceEntities.set(entity.iri.fullIri, entity as ClassInstanceEntity)
+  //     this.diagramBuilder.addClassInstance(entity.iri.fullIri)
+  //   }
+
+  //   // this.diagramBuilder.addEntity(iri)
+  //   this.postDiagramEdit()
+  // }
+
+  addEntity(iri: string, centerOnIt = true) {
+    const entity = this.grapholscape.ontology.getEntity(iri)
+
+    if (entity && this.diagramBuilder.diagram.representation) {
+      // const oldElemNumbers = this.diagramBuilder.diagram.representation.cy.elements().size()
+      this.diagramBuilder.addEntity(entity)
+      // if (this.diagramBuilder.diagram.representation.cy.elements().size() > oldElemNumbers) {
+      //   this.postDiagramEdit()
+      // }
+
+      if (centerOnIt)
+        this.grapholscape.centerOnElement(iri)
+    }
+  }
+
+  // init() {
+  //   this.updateWidget()
+  //   if (!this.endpointController) {
+  //     // this.initEndpointController()
+  //   }
+  //   this.endpointController?.showView()
+  //   this.setIncrementalEventHandlers()
+  //   this.incrementalDetails.reset()
+  //   this.incrementalDetails.onObjectPropertySelection = this.addIntensionalObjectProperty.bind(this)
+  //   this.entitySelector.onClassSelection((iri: string) => {
+  //     this.entitySelector.hide()
+  //     this.incrementalRenderer.freezeGraph()
+  //     this.diagramBuilder.addEntity(iri)
+  //     this.postDiagramEdit()
+  //   })
+
+  //   this.endpointController?.onLimitChange(this.changeInstancesLimit.bind(this))
+  //   this.endpointController?.onStopRequests(() => {
+  //     if (this.isReasonerEnabled) {
+  //       this.vKGApi?.stopAllQueries()
+  //     }
+  //   })
+
+  //   setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology)
+  // }
+
+  // private updateWidget() {
+  //   this.incrementalDetails = this.grapholscape.widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS) as GscapeIncrementalDetails
+  //   this.entitySelector = this.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+  // }
+
+  // private async buildDetailsForInstance(instanceIri: string) {
+  //   if (!this.incrementalDetails) return
+
+  //   this.incrementalDetails.canShowInstances = false
+  //   this.incrementalDetails.canShowDataPropertiesValues = true
+  //   this.incrementalDetails.canShowObjectPropertiesRanges = true
+
+  //   const instanceEntity = this.diagram.classInstances?.get(instanceIri)
+  //   if (instanceEntity) {
+  //     let shouldUpdate = false
+  //     const parentClasses: EntityViewData[] = []
+  //     instanceEntity.parentClassIris.forEach(parentClassIri => {
+  //       this.addDataPropertiesDetails(parentClassIri.fullIri)
+  //       this.addObjectPropertiesDetails(parentClassIri.fullIri)
+
+  //       const parentClassEntity = this.grapholscape.ontology.getEntity(parentClassIri.fullIri)
+  //       if (parentClassEntity)
+  //         parentClasses.push(grapholEntityToEntityViewData(parentClassEntity, this.grapholscape))
+  //     })
+
+  //     this.incrementalDetails.parentClasses = parentClasses
+  //     this.incrementalDetails.onParentClassSelection = (parentClassIri: string) => this.addInstanceParentClass(instanceEntity, parentClassIri)
+
+  //     // Check if the last classes used for highlights matches with parentClasses of selected instance
+  //     // If it matches, no need to update highlights and values
+  //     for (const parentClassIri of instanceEntity.parentClassIris) {
+  //       if (!this.highlightsManager?.lastClassIris.includes(parentClassIri.fullIri) &&
+  //         this.highlightsManager?.lastClassIris.length !== instanceEntity.parentClassIris.size
+  //       ) {
+  //         shouldUpdate = true
+  //         break
+  //       }
+  //     }
+
+  //     if (shouldUpdate || this.lastInstanceIri !== instanceIri) {
+  //       this.lastInstanceIri = instanceIri
+  //       // init data properties values and recalculate them all
+  //       const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
+  //       const dataProperties = await this.highlightsManager?.dataProperties()
+  //       dataProperties?.forEach(dpIri => {
+  //         dataPropertiesValues.set(dpIri, { values: [], loading: true })
+  //       })
+
+  //       this.incrementalDetails.setDataPropertiesValues(dataPropertiesValues)
+
+  //       dataProperties?.forEach(dpIri => {
+  //         this.vKGApi?.getInstanceDataPropertyValues(instanceIri, dpIri,
+  //           (res) => {
+  //             if (instanceIri === this.lastInstanceIri)
+  //               this.incrementalDetails.addDataPropertiesValues(dpIri, res)
+  //           }, // onNewResults
+  //           () => this.onStopDataPropertyValueQuery(instanceIri, dpIri)) // onStop
+  //       })
+
+  //       const objectPropertiesRanges = new Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>()
+  //       let rangeMap: Map<string, { values: EntityViewData[], loading?: boolean }>
+
+  //       const objectProperties = await this.highlightsManager?.objectProperties()
+
+  //       // init ranges map with empty arrays and all loading
+  //       objectProperties?.forEach(opBranch => {
+  //         if (opBranch.objectPropertyIRI) {
+  //           rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean }>()
+  //           opBranch.relatedClasses?.forEach(rangeClass => {
+  //             rangeMap.set(rangeClass, { values: [], loading: false })
+  //           })
+
+  //           objectPropertiesRanges.set(opBranch.objectPropertyIRI, rangeMap)
+  //         }
+  //       })
+
+  //       this.suggestedClassInstancesRanges = []
+  //       this.incrementalDetails.setObjectPropertyRanges(objectPropertiesRanges)
+  //       this.incrementalDetails.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => {
+  //         this.onGetRangeInstances(instanceIri, objectPropertyIri, rangeClassIri)
+  //       }
+
+  //       this.incrementalDetails.onInstanceObjectPropertySelection = this.addInstanceObjectProperty.bind(this)
+  //     }
+  //   }
+  // }
+
+  // private buildDetailsForClass(classIri: string) {
+  //   if (!this.incrementalDetails) return
+
+  //   this.addDataPropertiesDetails(classIri)
+  //   this.addObjectPropertiesDetails(classIri)
+
+  //   if (this.isReasonerEnabled) {
+  //     this.incrementalDetails.canShowDataPropertiesValues = false
+  //     this.incrementalDetails.canShowObjectPropertiesRanges = false
+  //     this.incrementalDetails.parentClasses = undefined
+  //     this.incrementalDetails.canShowInstances = true
+
+  //     this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri)
+  //     this.incrementalDetails.onInstanceSelection = this.addInstance.bind(this)
+  //     this.incrementalDetails.onEntitySearch = (searchText) => this.onGetInstances(classIri, searchText)
+  //     this.incrementalDetails.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => this.onGetInstancesByDataPropertyValue(classIri, dataPropertyIri, searchText)
+
+  //     if (classIri !== this.lastClassIri) {
+  //       this.incrementalDetails.setInstances([])
+  //       this.suggestedClassInstances = []
+  //       this.incrementalDetails.isInstanceCounterLoading = true
+  //       this.incrementalDetails.areInstancesLoading = true
+  //       // Ask instance number
+  //       this.vKGApi?.getInstancesNumber(
+  //         classIri,
+  //         (count) => { // onResult
+  //           this.incrementalDetails.isInstanceCounterLoading = false
+  //           this.incrementalDetails.instanceCount = count
+  //         },
+  //         () => this.incrementalDetails.isInstanceCounterLoading = false
+  //       )
+  //     }
+  //   }
+
+  //   this.lastClassIri = classIri
+  // }
+
+  areHierarchiesVisible(hierarchies: Hierarchy[]) {
+    let result = true
+    for (let hierarchy of hierarchies) {
+      if (hierarchy.id && this.grapholscape.renderer.cy?.$id(hierarchy.id).empty()) {
+        result = false
+        break
       }
-    })
-
-    setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.ontology)
-  }
-
-  private updateWidget() {
-    this.incrementalDetails = this.grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails
-    this.entitySelector = this.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
-  }
-
-  private async buildDetailsForInstance(instanceIri: string) {
-    if (!this.incrementalDetails) return
-
-    this.incrementalDetails.canShowInstances = false
-    this.incrementalDetails.canShowDataPropertiesValues = true
-    this.incrementalDetails.canShowObjectPropertiesRanges = true
-
-    const instanceEntity = this.diagram.classInstances?.get(instanceIri)
-    if (instanceEntity) {
-      let shouldUpdate = false
-      const parentClasses: EntityViewData[] = []
-      instanceEntity.parentClassIris.forEach(parentClassIri => {
-        this.addDataPropertiesDetails(parentClassIri.fullIri)
-        this.addObjectPropertiesDetails(parentClassIri.fullIri)
-
-        const parentClassEntity = this.grapholscape.ontology.getEntity(parentClassIri.fullIri)
-        if (parentClassEntity)
-          parentClasses.push(grapholEntityToEntityViewData(parentClassEntity, this.grapholscape))
-      })
-
-      this.incrementalDetails.parentClasses = parentClasses
-      this.incrementalDetails.onParentClassSelection = (parentClassIri: string) => this.addInstanceParentClass(instanceEntity, parentClassIri)
-
-      // Check if the last classes used for highlights matches with parentClasses of selected instance
-      // If it matches, no need to update highlights and values
-      for (const parentClassIri of instanceEntity.parentClassIris) {
-        if (!this.highlightsManager?.lastClassIris.includes(parentClassIri.fullIri) &&
-          this.highlightsManager?.lastClassIris.length !== instanceEntity.parentClassIris.size
-        ) {
-          shouldUpdate = true
-          break
-        }
-      }
-
-      if (shouldUpdate || this.lastInstanceIri !== instanceIri) {
-        this.lastInstanceIri = instanceIri
-        // init data properties values and recalculate them all
-        const dataPropertiesValues = new Map<string, { values: string[], loading?: boolean }>();
-        const dataProperties = await this.highlightsManager?.dataProperties()
-        dataProperties?.forEach(dpIri => {
-          dataPropertiesValues.set(dpIri, { values: [], loading: true })
-        })
-
-        this.incrementalDetails.setDataPropertiesValues(dataPropertiesValues)
-
-        dataProperties?.forEach(dpIri => {
-          this.vKGApi?.getInstanceDataPropertyValues(instanceIri, dpIri,
-            (res) => {
-              if (instanceIri === this.lastInstanceIri)
-                this.incrementalDetails.addDataPropertiesValues(dpIri, res)
-            }, // onNewResults
-            () => this.onStopDataPropertyValueQuery(instanceIri, dpIri)) // onStop
-        })
-
-        const objectPropertiesRanges = new Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>()
-        let rangeMap: Map<string, { values: EntityViewData[], loading?: boolean }>
-
-        const objectProperties = await this.highlightsManager?.objectProperties()
-
-        // init ranges map with empty arrays and all loading
-        objectProperties?.forEach(opBranch => {
-          if (opBranch.objectPropertyIRI) {
-            rangeMap = new Map<string, { values: EntityViewData[], loading?: boolean }>()
-            opBranch.relatedClasses?.forEach(rangeClass => {
-              rangeMap.set(rangeClass, { values: [], loading: false })
-            })
-
-            objectPropertiesRanges.set(opBranch.objectPropertyIRI, rangeMap)
-          }
-        })
-
-        this.suggestedClassInstancesRanges = []
-        this.incrementalDetails.setObjectPropertyRanges(objectPropertiesRanges)
-        this.incrementalDetails.onGetRangeInstances = (objectPropertyIri, rangeClassIri) => {
-          this.onGetRangeInstances(instanceIri, objectPropertyIri, rangeClassIri)
-        }
-
-        this.incrementalDetails.onInstanceObjectPropertySelection = this.addInstanceObjectProperty.bind(this)
-      }
     }
+
+    return result
   }
 
-  private buildDetailsForClass(classIri: string) {
-    if (!this.incrementalDetails) return
+  areAllConnectedClassesVisibleForClass(classIri: string, connectedClassesIris: string[], positionType: 'sub' | 'super' | 'equivalent') {
+    for (let subClassIri of connectedClassesIris) {
+      const connectedEdges = this.grapholscape.renderer.cy?.$id(subClassIri)
+        .connectedEdges(`[ type ="${positionType === 'equivalent' ? GrapholTypesEnum.EQUIVALENCE : GrapholTypesEnum.INCLUSION}" ]`)
 
-    this.addDataPropertiesDetails(classIri)
-    this.addObjectPropertiesDetails(classIri)
+      if (connectedEdges) {
+        if (positionType === 'sub' && connectedEdges.targets(`[id = "${classIri}"]`).empty())
+          return false
 
-    if (this.isReasonerEnabled) {
-      this.incrementalDetails.canShowDataPropertiesValues = false
-      this.incrementalDetails.canShowObjectPropertiesRanges = false
-      this.incrementalDetails.parentClasses = undefined
-      this.incrementalDetails.canShowInstances = true
+        if (positionType === 'super' && connectedEdges.sources(`[id = "${classIri}"]`).empty())
+          return false
 
-      this.incrementalDetails.onGetInstances = () => this.onGetInstances(classIri)
-      this.incrementalDetails.onInstanceSelection = this.addInstance.bind(this)
-      this.incrementalDetails.onEntitySearch = (searchText) => this.onGetInstances(classIri, searchText)
-      this.incrementalDetails.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => this.onGetInstancesByDataPropertyValue(classIri, dataPropertyIri, searchText)
-
-      if (classIri !== this.lastClassIri) {
-        this.incrementalDetails.setInstances([])
-        this.suggestedClassInstances = []
-        this.incrementalDetails.isInstanceCounterLoading = true
-        this.incrementalDetails.areInstancesLoading = true
-        // Ask instance number
-        this.vKGApi?.getInstancesNumber(
-          classIri,
-          (count) => { // onResult
-            this.incrementalDetails.isInstanceCounterLoading = false
-            this.incrementalDetails.instanceCount = count
-          },
-          () => this.incrementalDetails.isInstanceCounterLoading = false
-        )
+        if (positionType === 'equivalent' && connectedEdges.connectedNodes(`[id = "${classIri}"]`).empty())
+          return false
       }
     }
 
-    this.lastClassIri = classIri
+    return true
   }
 
-  private showCommandsForClass(classIri: string) {
-    const commands: Command[] = []
 
-    const classInstanceEntity = this.diagram.classInstances?.get(classIri)
+  // private addDataPropertiesDetails(classIri: string) {
+  //   this.getDataPropertiesByClass(classIri).then(dataProperties => {
+  //     this.incrementalDetails.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)))
+  //   })
+  // }
 
-    if (classInstanceEntity) {
-      commands.push(showParentClass(() => {
-        classInstanceEntity.parentClassIris.forEach(parentClassIri => this.addInstanceParentClass(classInstanceEntity, parentClassIri.fullIri))
-      }))
-    }
-
-    const superHierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
-    const subHierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
-
-    if (superHierarchies && superHierarchies.length > 0) {
-      const areAllSuperHierarchiesVisible = this.diagramBuilder.areAllSuperHierarchiesVisibleForClass(classIri)
-
-      commands.push(IncrementalCommands.showHideSuperHierarchies(
-        areAllSuperHierarchiesVisible,
-        () => {
-          this.diagramBuilder.referenceNodeId = classIri
-          areAllSuperHierarchiesVisible ? this.hideSuperHierarchiesOf(classIri) : this.showSuperHierarchiesOf(classIri)
-        }
-      ))
-    }
-
-    if (subHierarchies && subHierarchies.length > 0) {
-      const areAllSubHierarchiesVisible = this.diagramBuilder.areAllSubHierarchiesVisibleForClass(classIri)
-
-      commands.push(
-        IncrementalCommands.showHideSubHierarchies(
-          areAllSubHierarchiesVisible,
-          () => {
-            this.diagramBuilder.referenceNodeId = classIri
-            areAllSubHierarchiesVisible ? this.hideSubHierarchiesOf(classIri) : this.showSubHierarchiesOf(classIri)
-          }
-        ),
-      )
-    }
-
-    const subClasses = this.neighbourhoodFinder.getSubclassesIris(classIri)
-    const superClasses = this.neighbourhoodFinder.getSuperclassesIris(classIri)
-    const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(classIri)
-
-    if (subClasses.length > 0) {
-      const areAllSubclassesVisible = this.diagramBuilder.areAllSubclassesVisibleForClass(classIri, subClasses)
-      commands.push(
-        IncrementalCommands.showHideSubClasses(
-          areAllSubclassesVisible,
-          () => {
-            this.diagramBuilder.referenceNodeId = classIri
-            areAllSubclassesVisible
-              ? subClasses.forEach(sc => this.removeEntity(sc, [classIri]))
-              : this.showSubClassesOf(classIri, subClasses)
-          }
-        )
-      )
-    }
-
-    if (superClasses.length > 0) {
-      const areAllSuperclassesVisible = this.diagramBuilder.areAllSuperclassesVisibleForClass(classIri, superClasses)
-      commands.push(
-        IncrementalCommands.showHideSuperClasses(
-          areAllSuperclassesVisible,
-          () => {
-            this.diagramBuilder.referenceNodeId = classIri
-            areAllSuperclassesVisible
-              ? superClasses.forEach(sc => this.removeEntity(sc, [classIri]))
-              : this.showSuperClassesOf(classIri, superClasses)
-          }
-        )
-      )
-    }
-
-    if (equivalentClasses.length > 0) {
-      const areAllEquivalentClassesVisible = this.diagramBuilder.areAllEquivalentClassesVisibleForClass(classIri, equivalentClasses)
-      commands.push(
-        IncrementalCommands.showHideEquivalentClasses(
-          areAllEquivalentClassesVisible,
-          () => {
-            this.diagramBuilder.referenceNodeId = classIri
-            areAllEquivalentClassesVisible
-              ? equivalentClasses.forEach(sc => this.removeEntity(sc, [classIri]))
-              : this.showEquivalentClassesOf(classIri, equivalentClasses)
-          }
-        )
-      )
-    }
-
-    commands.push(
-      IncrementalCommands.remove(() => this.removeEntity(classIri))
-    )
-
-    try {
-      const htmlNodeReference = (this.diagram.representation?.cy.$id(classIri) as any).popperRef()
-      if (htmlNodeReference && commands.length > 0) {
-        this.commandsWidget.attachTo(htmlNodeReference, commands)
-      }
-    } catch (e) { console.error(e) }
-  }
-
-  private addDataPropertiesDetails(classIri: string) {
-    this.getDataProperties(classIri).then(dataProperties => {
-      this.incrementalDetails.setDataProperties(dataProperties.map(dp => grapholEntityToEntityViewData(dp, this.grapholscape)))
-    })
-  }
-
-  private addObjectPropertiesDetails(classIri: string) {
-    // OBJECT PROPERTIES
-    this.getObjectProperties(classIri).then(objectProperties => {
-      if (objectProperties) {
-        this.incrementalDetails.setObjectProperties(Array.from(objectProperties).map(v => {
-          return {
-            objectProperty: grapholEntityToEntityViewData(v[0], this.grapholscape),
-            connectedClasses: v[1].connectedClasses.map(classEntity => {
-              return grapholEntityToEntityViewData(classEntity, this.grapholscape)
-            }),
-            direct: v[1].direct,
-          }
-        }))
-      }
-    })
-  }
+  // private addObjectPropertiesDetails(classIri: string) {
+  //   // OBJECT PROPERTIES
+  //   this.getObjectProperties(classIri).then(objectProperties => {
+  //     if (objectProperties) {
+  //       this.incrementalDetails.setObjectProperties(Array.from(objectProperties).map(v => {
+  //         return {
+  //           objectProperty: grapholEntityToEntityViewData(v[0], this.grapholscape),
+  //           connectedClasses: v[1].connectedClasses.map(classEntity => {
+  //             return grapholEntityToEntityViewData(classEntity, this.grapholscape)
+  //           }),
+  //           direct: v[1].direct,
+  //         }
+  //       }))
+  //     }
+  //   })
+  // }
 
   reset() {
     if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       this.incrementalRenderer.createNewDiagram()
-      this.entitySelector.show()
+      // this.entitySelector.show()
       if (this.grapholscape.renderer.diagram)
         setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology)
 
       this.setIncrementalEventHandlers()
-      this.incrementalDetails.reset()
-      const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
-      entityDetails.hide()
-      this.clearState()
+      // this.incrementalDetails.reset()
+      // const entityDetails = this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+      // entityDetails.hide()
     }
+
+    this.clearState()
+    this.lifecycle.trigger(IncrementalEvent.Reset)
   }
 
   clearState() {
-    this.lastClassIri = undefined
-    this.lastInstanceIri = undefined
+    // this.lastClassIri = undefined
+    // this.lastInstanceIri = undefined
     this.highlightsManager?.clear()
     this.vKGApi?.stopAllQueries()
   }
 
-  hideUI() {
-    this.incrementalDetails.hide()
-    this.endpointController?.hideView()
-  }
-
   /**
+   * Remove a class, an instance or a data property node from the diagram.
+   * Entities left with no other connections are recurisvely removed too.
    * Called when the user click on the remove button on a entity node
-   * Remove a class, an instance or a data property node from the diagram
    * @param entityIri 
    */
-  removeEntity(entityIri: string, entitiesIrisToKeep?: string[]) {
+  removeEntity(entityIri: GrapholEntity, entitiesIrisToKeep?: string[]): void
+  removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void
+  removeEntity(entityOrIri: string | GrapholEntity, entitiesIrisToKeep: string[] = []) {
+
+    const entity = typeof (entityOrIri) === 'string' ? this.ontology.getEntity(entityOrIri) : entityOrIri
+    if (!entity) return
+
+    const oldElemsNumber = this.numberOfElements
     this.incrementalRenderer.freezeGraph()
-    this.diagramBuilder.removeEntity(entityIri, entitiesIrisToKeep)
-    this.postDiagramEdit()
+
+    this.grapholscape.renderer.cy?.$(`[iri = "${entity.iri.fullIri}"]`).forEach(element => {
+      if (element.data().type === GrapholTypesEnum.CLASS) {
+        element.neighborhood().forEach(neighbourElement => {
+          if (neighbourElement.isNode()) {
+            // remove nodes only if they have 1 connection, i.e. with the class we want to remove
+            if (neighbourElement.degree(false) === 1 && !entitiesIrisToKeep.includes(neighbourElement.id())) {
+              if (neighbourElement.data().iri) {
+                // it's an entity, recursively remove entities
+                entitiesIrisToKeep.push(entity.iri.fullIri) // the entity we are removing must be skipped, otherwise cyclic recursion
+                this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
+              } else {
+                this.diagram.removeElement(neighbourElement.id())
+              }
+            }
+          } else {
+            // edges must be removed anyway
+            // (cytoscape removes them automatically
+            // but we need to update the grapholElements 
+            // map too in diagram representation)
+            this.diagram.removeElement((neighbourElement as EdgeSingular).id())
+          }
+        })
+
+        this.ontology.hierarchiesBySubclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+          this.removeHierarchy(hierarchy)
+        })
+
+        this.ontology.hierarchiesBySuperclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+          this.removeHierarchy(hierarchy)
+        })
+      }
+
+      this.diagram.removeElement(element.id())
+      entity.removeOccurrence(element.id(), this.diagram.id, RendererStatesEnum.INCREMENTAL)
+    })
+
+    this.postDiagramEdit(oldElemsNumber)
   }
 
-  async addInstance(instanceIriString: string) {
-    if (!this.diagramBuilder.referenceNodeId) return
+  // async addInstance(instanceIriString: string) {
+  //   if (!this.diagramBuilder.referenceNodeId) return
 
-    const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
+  //   const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
 
-    if (parentClassEntity) {
-      const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
+  //   if (parentClassEntity) {
+  //     const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
 
-      if (!suggestedClassInstance) return
+  //     if (!suggestedClassInstance) return
 
-      if (!this.diagram.classInstances) {
-        this.diagram.classInstances = new Map()
-      }
+  //     if (!this.diagram.classInstances) {
+  //       this.diagram.classInstances = new Map()
+  //     }
 
-      const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
-      let instanceEntity: ClassInstanceEntity | undefined
+  //     const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
+  //     let instanceEntity: ClassInstanceEntity | undefined
 
-      instanceEntity = this.diagram.classInstances.get(instanceIriString)
+  //     instanceEntity = this.diagram.classInstances.get(instanceIriString)
 
-      if (!instanceEntity) {
-        instanceEntity = new ClassInstanceEntity(instanceIri)
-        this.diagram.classInstances.set(instanceIriString, instanceEntity)
+  //     if (!instanceEntity) {
+  //       instanceEntity = new ClassInstanceEntity(instanceIri)
+  //       this.diagram.classInstances.set(instanceIriString, instanceEntity)
 
-        // Set label as annotation
-        if (suggestedClassInstance.label) {
-          instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
-        }
-      }
+  //       // Set label as annotation
+  //       if (suggestedClassInstance.label) {
+  //         instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
+  //       }
+  //     }
 
-      instanceEntity.parentClassIris.add(parentClassEntity.iri)
+  //     instanceEntity.parentClassIris.add(parentClassEntity.iri)
 
-      this.incrementalRenderer.freezeGraph()
-      this.diagramBuilder.addClassInstance(instanceIriString)
-      this.connectInstanceToParentClasses(instanceEntity)
-      const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
-      if (addedInstance) {
-        addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-        this.diagram.representation?.updateElement(addedInstance, false)
-      }
+  //     this.incrementalRenderer.freezeGraph()
+  //     this.diagramBuilder.addClassInstance(instanceIriString)
+  //     this.connectInstanceToParentClasses(instanceEntity)
+  //     const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
+  //     if (addedInstance) {
+  //       addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
+  //       this.diagram.representation?.updateElement(addedInstance, false)
+  //     }
 
-      this.postDiagramEdit()
-      this.grapholscape.centerOnElement(instanceIriString)
-    }
-  }
+  //     this.postDiagramEdit()
+  //     this.grapholscape.centerOnElement(instanceIriString)
+  //   }
+  // }
 
-  async addInstanceObjectProperty(instanceIriString: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) {
-    if (!this.diagramBuilder.referenceNodeId) return
+  // async addInstanceObjectProperty(instanceIriString: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) {
+  //   if (!this.diagramBuilder.referenceNodeId) return
 
-    const parentClassEntity = this.ontology.getEntity(parentClassIri)
+  //   const parentClassEntity = this.ontology.getEntity(parentClassIri)
 
-    if (parentClassEntity) {
-      const suggestedClassInstance = this.suggestedClassInstancesRanges.find(c => c.iri === instanceIriString)
-      const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
-      const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
+  //   if (parentClassEntity) {
+  //     const suggestedClassInstance = this.suggestedClassInstancesRanges.find(c => c.iri === instanceIriString)
+  //     const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
+  //     const instanceEntity = new ClassInstanceEntity(instanceIri, parentClassEntity.iri)
 
-      if (!suggestedClassInstance) return
+  //     if (!suggestedClassInstance) return
 
-      // Set label as annotation
-      if (suggestedClassInstance.label) {
-        instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
-      }
+  //     // Set label as annotation
+  //     if (suggestedClassInstance.label) {
+  //       instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
+  //     }
 
-      // (await this.vKGApi?.getHighlights(parentClassIri))?.dataProperties?.forEach(dpIri => {
-      //   instanceEntity.addDataProperty(dpIri)
-      // })
+  //     // (await this.vKGApi?.getHighlights(parentClassIri))?.dataProperties?.forEach(dpIri => {
+  //     //   instanceEntity.addDataProperty(dpIri)
+  //     // })
 
-      if (!this.diagram.classInstances) {
-        this.diagram.classInstances = new Map()
-      }
+  //     if (!this.diagram.classInstances) {
+  //       this.diagram.classInstances = new Map()
+  //     }
 
-      this.diagram.classInstances.set(instanceIriString, instanceEntity)
-      this.incrementalRenderer.freezeGraph()
-      this.diagramBuilder.addInstanceObjectProperty(objectPropertyIri, instanceIriString, direct)
-      const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
-      if (addedInstance) {
-        addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-        this.diagram.representation?.updateElement(addedInstance, false)
-        this.connectInstanceToParentClasses(instanceEntity)
-      }
+  //     this.diagram.classInstances.set(instanceIriString, instanceEntity)
+  //     this.incrementalRenderer.freezeGraph()
+  //     this.diagramBuilder.addInstanceObjectProperty(objectPropertyIri, instanceIriString, direct)
+  //     const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
+  //     if (addedInstance) {
+  //       addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
+  //       this.diagram.representation?.updateElement(addedInstance, false)
+  //       this.connectInstanceToParentClasses(instanceEntity)
+  //     }
 
-      this.postDiagramEdit()
-      this.grapholscape.centerOnElement(instanceIriString)
-    }
-  }
+  //     this.postDiagramEdit()
+  //     this.grapholscape.centerOnElement(instanceIriString)
+  //   }
+  // }
 
   /**
    * Called when the user trigger the toggle for showing data properties.
@@ -488,16 +534,16 @@ export default class IncrementalController {
    * @param enabled 
    * @param dataProperties
    */
-  toggleDataProperties(enabled: boolean, dataProperties: GrapholEntity[]) {
-    if (enabled) {
-      dataProperties.forEach(dataProperty => this.diagramBuilder.addEntity(dataProperty.iri.fullIri))
-    } else {
-      dataProperties.forEach(dataProperty => this.diagramBuilder.removeEntity(dataProperty.iri.fullIri))
-    }
+  // toggleDataProperties(enabled: boolean, dataProperties: GrapholEntity[]) {
+  //   if (enabled) {
+  //     dataProperties.forEach(dataProperty => this.diagramBuilder.addEntity(dataProperty.iri.fullIri))
+  //   } else {
+  //     dataProperties.forEach(dataProperty => this.diagramBuilder.removeEntity(dataProperty.iri.fullIri))
+  //   }
 
-    if (dataProperties.length > 0)
-      this.postDiagramEdit()
-  }
+  //   if (dataProperties.length > 0)
+  //     this.postDiagramEdit()
+  // }
 
   /**
    * Called when the user select a class connected with the reference class
@@ -509,27 +555,27 @@ export default class IncrementalController {
    * @param objectPropertyIri the object property through which the class has been selected in the list
    * @param direct if true the edge goes from reference class to selected class in menu
    */
-  addIntensionalObjectProperty(classIri: string, objectPropertyIri: string, direct: boolean) {
-    this.incrementalRenderer.freezeGraph()
-    this.diagramBuilder.addEntity(objectPropertyIri, classIri, direct)
-    this.postDiagramEdit()
-    this.grapholscape.centerOnElement(classIri)
-  }
+  // addIntensionalObjectProperty(classIri: string, objectPropertyIri: string, direct: boolean) {
+  //   this.incrementalRenderer.freezeGraph()
+  //   this.diagramBuilder.addEntity(objectPropertyIri, classIri, direct)
+  //   this.postDiagramEdit()
+  //   this.grapholscape.centerOnElement(classIri)
+  // }
 
   /**
-   * Show hierarchies for which the specified class is a subClass (i.e. an input class).
-   * Hierarchies are pre-computed, after the floaty-transformation is performed.
+   * Show hierarchies for which the specified class is a subclass.
    * @param classIri 
    */
   showSuperHierarchiesOf(classIri: string) {
-    const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
+    this.showOrHideHierarchies(classIri, 'super', 'show')
+  }
 
-    if (hierarchies && hierarchies.length > 0) {
-      this.incrementalRenderer.freezeGraph()
-      hierarchies.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
-      this.postDiagramEdit()
-    }
-
+  /**
+   * Show hierarchies for which the specified class is a superclass.
+   * @param classIri 
+   */
+  showSubHierarchiesOf(classIri: string) {
+    this.showOrHideHierarchies(classIri, 'sub', 'show')
   }
 
   /**
@@ -538,30 +584,7 @@ export default class IncrementalController {
    * @param classIri 
    */
   hideSuperHierarchiesOf(classIri: string) {
-    const hierarchies = this.ontology.hierarchiesBySubclassMap.get(classIri)
-
-
-    if (hierarchies && hierarchies.length > 0) {
-      this.incrementalRenderer.freezeGraph()
-      hierarchies.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
-      this.postDiagramEdit()
-    }
-  }
-
-  /**
-   * Show hierarchies for which the specified class is a superclass.
-   * Hierarchies are pre-computed, after the floaty-transformation is performed.
-   * @param classIri 
-   */
-  showSubHierarchiesOf(classIri: string) {
-    const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
-
-
-    if (hierarchies && hierarchies.length > 0) {
-      this.incrementalRenderer.freezeGraph()
-      hierarchies.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy))
-      this.postDiagramEdit()
-    }
+    this.showOrHideHierarchies(classIri, 'super', 'hide')
   }
 
   /**
@@ -570,120 +593,222 @@ export default class IncrementalController {
    * @param classIri 
    */
   hideSubHierarchiesOf(classIri: string) {
-    const hierarchies = this.ontology.hierarchiesBySuperclassMap.get(classIri)
+    this.showOrHideHierarchies(classIri, 'sub', 'hide')
+  }
+
+  private showOrHideHierarchies(classIri: string, hierarchyType: 'super' | 'sub' | 'any', showORHide: 'show' | 'hide') {
+    const classEntity = this.ontology.getEntity(classIri)
+    if (!classEntity) return
+
+    let hierarchies: Hierarchy[] | undefined
+    const sub = this.ontology.hierarchiesBySuperclassMap.get(classIri) // get hiearchies with class being a superclass => get sub classes
+    const superh = this.ontology.hierarchiesBySubclassMap.get(classIri) // get hierarchies with class being a subclass => get super classes
+    switch (hierarchyType) {
+      case 'super':
+        hierarchies = superh
+        break
+
+      case 'sub':
+        hierarchies = sub
+        break
+
+      case 'any':
+        hierarchies = []
+        if (sub)
+          hierarchies.concat(sub)
+        if (superh)
+          hierarchies.concat(superh)
+
+        break
+
+      default:
+        return
+    }
+
+    const oldElemsNumber = this.numberOfElements
+    this.incrementalRenderer.freezeGraph()
 
     if (hierarchies && hierarchies.length > 0) {
       this.incrementalRenderer.freezeGraph()
-      hierarchies?.forEach(hierarchy => this.diagramBuilder.removeHierarchy(hierarchy, [classIri]))
-      this.postDiagramEdit()
+      const position = this.grapholscape.renderer.cy?.$id(classIri).position()
+      if (showORHide === 'show')
+        hierarchies.forEach(hierarchy => this.addHierarchy(hierarchy, position))
+      else
+        hierarchies.forEach(hierarchy => this.removeHierarchy(hierarchy, [classIri]))
+
+      this.postDiagramEdit(oldElemsNumber)
     }
   }
+
+  private addHierarchy(hierarchy: Hierarchy, position?: Position) {
+    const unionNode = hierarchy.getUnionGrapholNode(position)
+    const inputEdges = hierarchy.getInputGrapholEdges()
+    const inclusionEdges = hierarchy.getInclusionEdges()
+
+    if (!unionNode || !inputEdges || !inclusionEdges)
+      return
+
+    this.diagram.addElement(unionNode)
+
+    // Add inputs
+    for (const inputClassIri of hierarchy.inputs) {
+      this.addEntity(inputClassIri, false)
+    }
+
+    for (const superClass of hierarchy.superclasses) {
+      this.addEntity(superClass.classIri, false)
+    }
+
+    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
+    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
+  }
+
+  private removeHierarchy(hierarchy: Hierarchy, entitiesTokeep: string[] = []) {
+    if (!hierarchy.id || (hierarchy.id && this.grapholscape.renderer.cy?.$id(hierarchy.id).empty()))
+      return
+
+    // remove union node
+    this.diagram.removeElement(hierarchy.id)
+
+    // remove input edges
+    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => {
+      this.diagram.removeElement(inputEdge.id)
+    })
+
+    // remove inclusion edges
+    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
+      this.diagram.removeElement(inclusionEdge.id)
+    })
+
+    let entity: GrapholEntity | null
+
+    // remove input classes or superclasses left with no edges
+    hierarchy.inputs.forEach(inputClassIri => {
+      if (this.grapholscape.renderer.cy?.$id(inputClassIri).degree(false) === 0 &&
+        !entitiesTokeep.includes(inputClassIri)) {
+        entity = this.ontology.getEntity(inputClassIri)
+        if (entity)
+          this.removeEntity(entity)
+      }
+    })
+
+    hierarchy.superclasses.forEach(superclass => {
+      if (this.grapholscape.renderer.cy?.$id(superclass.classIri).degree(false) === 0 &&
+        !entitiesTokeep.includes(superclass.classIri)) {
+        entity = this.ontology.getEntity(superclass.classIri)
+        if (entity)
+          this.removeEntity(entity)
+      }
+    })
+  }
+
+
+  // ------------------------ SHOW CLASSES IN ISA ---------------------------------------
 
   showSubClassesOf(classIri: string, subclassesIris?: string[]) {
     if (!subclassesIris) {
       subclassesIris = this.neighbourhoodFinder.getSubclassesIris(classIri)
     }
-
-    subclassesIris.forEach(subclassIri => this.diagramBuilder.addSubClass(subclassIri))
-    this.runLayout()
+    this.showClassesInIsa(classIri, subclassesIris, GrapholTypesEnum.INCLUSION)
   }
 
   showSuperClassesOf(classIri: string, superclassesIris?: string[]) {
     if (!superclassesIris) {
       superclassesIris = this.neighbourhoodFinder.getSuperclassesIris(classIri)
     }
-
-    superclassesIris.forEach(subclassIri => this.diagramBuilder.addSuperClass(subclassIri))
-    this.runLayout()
+    this.showClassesInIsa(classIri, superclassesIris, GrapholTypesEnum.INCLUSION, 'super')
   }
 
   showEquivalentClassesOf(classIri: string, equivalentClassesIris?: string[]) {
     if (!equivalentClassesIris) {
       equivalentClassesIris = this.neighbourhoodFinder.getEquivalentClassesIris(classIri)
     }
-
-    equivalentClassesIris.forEach(equivalentClassIri => this.diagramBuilder.addEquivalentClass(equivalentClassIri))
-    this.runLayout()
+    this.showClassesInIsa(classIri, equivalentClassesIris, GrapholTypesEnum.EQUIVALENCE)
   }
 
-  changeInstancesLimit(limitValue: number) {
-    if (this.isReasonerEnabled) {
-      this.vKGApi!.limit = limitValue
-      if (this.incrementalDetails.canShowInstances && this.lastClassIri) {
-        this.buildDetailsForClass(this.lastClassIri)
-      }
+  private showClassesInIsa(
+    sourceIri: string,
+    targetsIris: string[],
+    isaType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.EQUIVALENCE,
+    subOrSuper: 'sub' | 'super' = 'sub') {
 
-      if (this.incrementalDetails.canShowDataPropertiesValues && this.lastInstanceIri) {
-        this.buildDetailsForInstance(this.lastInstanceIri)
-      }
-    }
-  }
-
-  connectInstanceToParentClasses(instanceEntity: ClassInstanceEntity) {
-    instanceEntity.parentClassIris.forEach(parentClassIri => {
-      this.diagramBuilder.addInstanceOfEdge(instanceEntity.iri.fullIri, parentClassIri.fullIri)
+    const oldElemsNumber = this.numberOfElements
+    this.incrementalRenderer.freezeGraph()
+    targetsIris.forEach(targetIri => {
+      this.addEntity(targetIri, false)
+      subOrSuper === 'super'
+        ? this.diagramBuilder.addEdge(sourceIri, targetIri, isaType)
+        : this.diagramBuilder.addEdge(targetIri, sourceIri, isaType)
     })
+
+    this.postDiagramEdit(oldElemsNumber)
   }
 
-  addInstanceParentClass(classInstanceEntity: ClassInstanceEntity, parentClassIri: string) {
-    const oldElemNumbers = this.diagramBuilder.diagram.representation?.grapholElements.size
-    this.diagramBuilder.addEntity(parentClassIri)
-    this.connectInstanceToParentClasses(classInstanceEntity)
+  // connectInstanceToParentClasses(instanceEntity: ClassInstanceEntity) {
+  //   instanceEntity.parentClassIris.forEach(parentClassIri => {
+  //     this.diagramBuilder.addInstanceOfEdge(instanceEntity.iri.fullIri, parentClassIri.fullIri)
+  //   })
+  // }
 
-    if (oldElemNumbers !== this.diagramBuilder.diagram.representation?.grapholElements.size)
-      this.postDiagramEdit()
+  // addInstanceParentClass(classInstanceEntity: ClassInstanceEntity, parentClassIri: string) {
+  //   const oldElemNumbers = this.diagramBuilder.diagram.representation?.grapholElements.size
+  //   this.diagramBuilder.addEntity(parentClassIri)
+  //   this.connectInstanceToParentClasses(classInstanceEntity)
 
-    this.grapholscape.centerOnElement(parentClassIri)
-  }
+  //   if (oldElemNumbers !== this.diagramBuilder.diagram.representation?.grapholElements.size)
+  //     this.postDiagramEdit()
 
-  private onGetInstances(classIri: string, searchText?: string) {
-    this.incrementalDetails.areInstancesLoading = true
+  //   this.grapholscape.centerOnElement(parentClassIri)
+  // }
 
-    // if it's a search, clear instances list
-    if (searchText !== undefined)
-      this.incrementalDetails.setInstances([])
+  // private onGetInstances(classIri: string, searchText?: string) {
+  //   this.incrementalDetails.areInstancesLoading = true
 
-    this.vKGApi!.getInstances(
-      classIri,
-      this.onNewInstancesForDetails.bind(this), // onNewResults
-      () => this.onStopInstanceLoading(classIri), // onStop
-      searchText
-    )
-  }
+  //   // if it's a search, clear instances list
+  //   if (searchText !== undefined)
+  //     this.incrementalDetails.setInstances([])
 
-  private onGetInstancesByDataPropertyValue(classIri: string, dataPropertyIri: string, dataPropertyValue: string) {
-    this.incrementalDetails.areInstancesLoading = true
-    this.incrementalDetails.setInstances([])
+  //   this.vKGApi!.getInstances(
+  //     classIri,
+  //     this.onNewInstancesForDetails.bind(this), // onNewResults
+  //     () => this.onStopInstanceLoading(classIri), // onStop
+  //     searchText
+  //   )
+  // }
 
-    this.vKGApi!.getInstancesByDataPropertyValue(
-      classIri,
-      dataPropertyIri,
-      dataPropertyValue,
-      this.onNewInstancesForDetails.bind(this), // onNewResults
-      () => this.onStopInstanceLoading(classIri) // onStop
-    )
-  }
+  // private onGetInstancesByDataPropertyValue(classIri: string, dataPropertyIri: string, dataPropertyValue: string) {
+  //   this.incrementalDetails.areInstancesLoading = true
+  //   this.incrementalDetails.setInstances([])
 
-  private async onGetRangeInstances(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
-    this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, true)
-    const isDirect = (await this.highlightsManager?.objectProperties())?.find(op => op.objectPropertyIRI === objectPropertyIri)?.direct || false
+  //   this.vKGApi!.getInstancesByDataPropertyValue(
+  //     classIri,
+  //     dataPropertyIri,
+  //     dataPropertyValue,
+  //     this.onNewInstancesForDetails.bind(this), // onNewResults
+  //     () => this.onStopInstanceLoading(classIri) // onStop
+  //   )
+  // }
 
-    this.vKGApi?.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri,
-      (instances) => this.onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri), // onNewResults
-      () => this.onStopObjectPropertyRangeValueQuery(instanceIri, objectPropertyIri, rangeClassIri) // onStop
-    )
-  }
+  // private async onGetRangeInstances(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
+  //   this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, true)
+  //   const isDirect = (await this.highlightsManager?.objectProperties())?.find(op => op.objectPropertyIRI === objectPropertyIri)?.direct || false
+
+  //   this.vKGApi?.getInstanceObjectPropertyRanges(instanceIri, objectPropertyIri, isDirect, rangeClassIri,
+  //     (instances) => this.onNewInstanceRangesForDetails(instances, objectPropertyIri, rangeClassIri), // onNewResults
+  //     () => this.onStopObjectPropertyRangeValueQuery(instanceIri, objectPropertyIri, rangeClassIri) // onStop
+  //   )
+  // }
 
   private onNewInstancesForDetails(instances: ClassInstance[]) {
-    this.suggestedClassInstances = instances
+    // this.suggestedClassInstances = instances
 
-    this.incrementalDetails.setInstances(instances.map(instance => {
-      let instanceEntity = this.getInstanceEntityFromClassInstance(instance)
-      return {
-        displayedName: instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
-        value: instanceEntity
-      }
-    }))
+    // this.incrementalDetails.setInstances(instances.map(instance => {
+    //   let instanceEntity = this.getInstanceEntityFromClassInstance(instance)
+    //   return {
+    //     displayedName: instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
+    //     value: instanceEntity
+    //   }
+    // }))
   }
 
   private async getHighlights(classIri: string) {
@@ -692,14 +817,14 @@ export default class IncrementalController {
     }
   }
 
-  private onNewInstanceRangesForDetails(instances: ClassInstance[], objectPropertyIri: string, rangeClassIri: string) {
-    this.suggestedClassInstancesRanges.push(...instances)
-    const instancesEntities = instances.map(i =>
-      grapholEntityToEntityViewData(this.getInstanceEntityFromClassInstance(i), this.grapholscape)
-    )
+  // private onNewInstanceRangesForDetails(instances: ClassInstance[], objectPropertyIri: string, rangeClassIri: string) {
+  //   this.suggestedClassInstancesRanges.push(...instances)
+  //   const instancesEntities = instances.map(i =>
+  //     grapholEntityToEntityViewData(this.getInstanceEntityFromClassInstance(i), this.grapholscape)
+  //   )
 
-    this.incrementalDetails.addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, instancesEntities)
-  }
+  //   this.incrementalDetails.addObjectPropertyRangeInstances(objectPropertyIri, rangeClassIri, instancesEntities)
+  // }
 
   /**
    * Given the iri of a class, retrieve connected object properties.
@@ -744,55 +869,70 @@ export default class IncrementalController {
     }
   }
 
-  private async getDataProperties(classIri: string) {
-    if (this.isReasonerEnabled) {
+  async getDataPropertiesByClass(classIri: string) {
+    if (this.vKGApi) {
       const dataProperties = await this.highlightsManager?.dataProperties()
       return dataProperties
         ?.map(dp => this.ontology.getEntity(dp))
         .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
         || []
-
     } else {
       return this.neighbourhoodFinder.getDataProperties(classIri)
     }
   }
 
+  async getDataPropertiesByClassInstance(instanceIri: string) {
+    const instanceEntity = this.classInstanceEntities.get(instanceIri)
+
+    if (instanceEntity && this.highlightsManager) {
+      this.highlightsManager.computeHighlights(Array.from(instanceEntity.parentClassIris).map(classIri => classIri.fullIri))
+
+      return (await this.highlightsManager.dataProperties())
+        .map(dp => this.ontology.getEntity(dp))
+        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+    } else {
+      return []
+    }
+  }
+
   private onStopDataPropertyValueQuery(instanceIri: string, dataPropertyIri: string) {
     // if there is a new instance iri, loading will be stopped by new requests
-    if (instanceIri === this.lastInstanceIri) {
-      this.incrementalDetails.setDataPropertyLoading(dataPropertyIri, false)
+    // if (instanceIri === this.lastInstanceIri) {
+    //   this.incrementalDetails.setDataPropertyLoading(dataPropertyIri, false)
+    // }
+  }
+
+  // private onStopInstanceLoading(classIri: string) {
+  //   if (classIri === this.lastClassIri) {
+  //     this.incrementalDetails.areInstancesLoading = false
+  //   }
+  // }
+
+  // private onStopObjectPropertyRangeValueQuery(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
+  //   if (instanceIri === this.lastInstanceIri) {
+  //     this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, false)
+  //   }
+  // }
+
+  runLayout() {
+    this.incrementalRenderer.runLayout()
+  }
+
+  postDiagramEdit(oldElemsNumber: number) {
+    if (this.numberOfElements !== oldElemsNumber) {
+      this.runLayout()
+      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
+    } else {
+      this.incrementalRenderer.unFreezeGraph()
     }
   }
 
-  private onStopInstanceLoading(classIri: string) {
-    if (classIri === this.lastClassIri) {
-      this.incrementalDetails.areInstancesLoading = false
-    }
-  }
-
-  private onStopObjectPropertyRangeValueQuery(instanceIri: string, objectPropertyIri: string, rangeClassIri: string) {
-    if (instanceIri === this.lastInstanceIri) {
-      this.incrementalDetails.setObjectPropertyLoading(objectPropertyIri, rangeClassIri, false)
-    }
-  }
-
-  private postDiagramEdit() {
-    if (!this.diagram.representation || this.diagram.representation.cy.elements().empty()) {
-      (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide()
-      this.entitySelector.show()
-    }
-
-    this.runLayout()
-    const ontologyExplorer = this.grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
-    if (ontologyExplorer) {
-      ontologyExplorer.entities = createEntitiesList(this.grapholscape, ontologyExplorer.searchEntityComponent)
-    }
-  }
-
-  private runLayout() { this.incrementalRenderer.runLayout() }
-
-  private setIncrementalEventHandlers() {
-    this.incrementalRenderer.onContextClick(target => this.showCommandsForClass(target.data().iri))
+  setIncrementalEventHandlers() {
+    this.incrementalRenderer.onContextClick(target => {
+      const entity = this.ontology.getEntity(target.data().iri)
+      if (entity)
+        this.lifecycle.trigger(IncrementalEvent.ContextClick, entity)
+    })
 
     if (this.diagram.representation?.hasEverBeenRendered || this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
@@ -802,28 +942,33 @@ export default class IncrementalController {
 
       if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
 
-        const updateDetails = () => {
-          this.diagramBuilder.referenceNodeId = evt.target.id()
+        const triggerSelectionEvent = () => {
+          // this.diagramBuilder.referenceNodeId = evt.target.id()
           const targetIri = evt.target.data().iri
-          // set class instance entity in entity details widget
-          if (evt.target.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
-            const instanceEntity = this.diagram.classInstances?.get(targetIri)
+
+          if (targetType === GrapholTypesEnum.CLASS_INSTANCE) {
+            const instanceEntity = this.classInstanceEntities.get(targetIri)
             if (instanceEntity) {
-              this.highlightsManager?.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
-              (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
+              // this.highlightsManager?.computeHighlights(Array.from(instanceEntity.parentClassIris).map(iri => iri.fullIri));
+              // (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
 
               if (targetIri !== this.lastInstanceIri)
                 this.vKGApi?.stopAllQueries()
 
-              this.buildDetailsForInstance(targetIri)
+              this.lifecycle.trigger(IncrementalEvent.ClassInstanceSelection, instanceEntity)
+              // this.buildDetailsForInstance(targetIri)
             }
           } else {
-            this.highlightsManager?.computeHighlights(targetIri)
+            // this.highlightsManager?.computeHighlights(targetIri)
 
             if (targetIri !== this.lastClassIri)
               this.vKGApi?.stopAllQueries()
 
-            this.buildDetailsForClass(targetIri)
+            const classEntity = this.grapholscape.ontology.getEntity(targetIri)
+
+            if (classEntity)
+              this.lifecycle.trigger(IncrementalEvent.ClassSelection, classEntity)
+            // this.buildDetailsForClass(targetIri)
           }
         }
 
@@ -831,14 +976,14 @@ export default class IncrementalController {
         // Prevent query flooding
         if (this.isReasonerEnabled) {
           clearTimeout(this.entitySelectionTimeout)
-          this.entitySelectionTimeout = setTimeout(updateDetails, 400)
+          this.entitySelectionTimeout = setTimeout(triggerSelectionEvent, 400)
         } else {
-          updateDetails() // otherwide no http-request will be made
-        }        
+          triggerSelectionEvent() // otherwise no http-request will be made
+        }
 
-        this.incrementalDetails.show()
+        // this.incrementalDetails.show()
       } else {
-        this.incrementalDetails.hide()
+        // this.incrementalDetails.hide()
       }
     })
 
@@ -870,4 +1015,6 @@ export default class IncrementalController {
   }
 
   private get incrementalRenderer() { return this.grapholscape.renderer.renderState as IncrementalRendererState }
+
+  get numberOfElements() { return this.grapholscape.renderer.cy?.elements().size() || 0 }
 }

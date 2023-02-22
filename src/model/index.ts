@@ -19,6 +19,7 @@ export { default as GrapholNode } from './graphol-elems/node'
 export { isGrapholNode } from './graphol-elems/node'
 export { default as GrapholEdge } from './graphol-elems/edge'
 export { isGrapholEdge } from './graphol-elems/edge'
+export { default as ClassInstanceEntity } from './graphol-elems/class-instance-entity'
 
 export { default as iFilterManager, BaseFilterManager } from './renderers/i-filter-manager'
 export { default as iRenderState, RendererStatesEnum } from './renderers/i-render-state'

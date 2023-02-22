@@ -1,7 +1,7 @@
-import GscapeVKGPreferences from "../ui/incremental-ui/vkg-global-preferences";
 import EndpointApi from "./api/endpoint-api";
 import { MastroEndpoint, RequestOptions } from "./api/model";
 
+/**
 export default class EndpointController {
 
   private endpointApi: EndpointApi
@@ -68,3 +68,4 @@ export default class EndpointController {
 }
 
 customElements.define('gscape-endpoint-selector', GscapeVKGPreferences)
+*/

@@ -17,7 +17,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 
-  incrementalSection?: GscapeIncrementalMenu
+  incrementalSection?: HTMLElement
 
   static get properties() {
     return {

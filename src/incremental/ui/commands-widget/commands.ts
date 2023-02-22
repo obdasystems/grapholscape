@@ -1,5 +1,5 @@
-import { classIcon, equivalentClasses, rubbishBin, subHierarchies, superHierarchies } from "../assets";
-import { Command } from "../common/context-menu";
+import { classIcon, equivalentClasses, rubbishBin, subHierarchies, superHierarchies } from "../../../ui/assets";
+import { Command } from "../../../ui/common/context-menu";
 
 export function showHideSuperHierarchies(hide: boolean, callback: () => void): Command {
   return {

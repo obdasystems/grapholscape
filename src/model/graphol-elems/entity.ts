@@ -3,6 +3,7 @@ import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import { GrapholTypesEnum } from "./enums"
 import { EntityNameType } from "../../config"
+import ClassInstanceEntity from "./class-instance-entity"
 
 export enum FunctionalityEnum {
   functional = 'functional',
