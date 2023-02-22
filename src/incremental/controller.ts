@@ -26,8 +26,6 @@ import EndpointController from "./endpoint-controller";
 /** @internal */
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
-  private vKGApi?: IVirtualKnowledgeGraphApi
-  private endpointApi?: IEndpointApi
   neighbourhoodFinder: NeighbourhoodFinder
 
   public classInstanceEntities: Map<string, ClassInstanceEntity> = new Map()
@@ -797,12 +795,6 @@ export default class IncrementalController {
     // }))
   }
 
-  private async getHighlights(classIri: string) {
-    if (this.isReasonerEnabled) {
-      return await this.vKGApi!.getHighlights(classIri)
-    }
-  }
-
   // private onNewInstanceRangesForDetails(instances: ClassInstance[], objectPropertyIri: string, rangeClassIri: string) {
   //   this.suggestedClassInstancesRanges.push(...instances)
   //   const instancesEntities = instances.map(i =>
@@ -855,31 +847,34 @@ export default class IncrementalController {
   //   }
   // }
 
-  // async getDataPropertiesByClass(classIri: string) {
-  //   if (this.vKGApi) {
-  //     const dataProperties = await this.highlightsManager?.dataProperties()
-  //     return dataProperties
-  //       ?.map(dp => this.ontology.getEntity(dp))
-  //       .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
-  //       || []
-  //   } else {
-  //     return this.neighbourhoodFinder.getDataProperties(classIri)
-  //   }
-  // }
+  async getDataPropertiesByClass(classIri: string) {
+    if (this.endpointController) {
+      this.endpointController.highlightsManager?.computeHighlights(classIri)
+      const dataProperties = await this.endpointController.highlightsManager?.dataProperties()
+      return dataProperties
+        ?.map(dp => this.ontology.getEntity(dp))
+        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+        || []
+    } else {
+      return this.neighbourhoodFinder.getDataProperties(classIri)
+    }
+  }
 
-  // async getDataPropertiesByClassInstance(instanceIri: string) {
-  //   const instanceEntity = this.classInstanceEntities.get(instanceIri)
+  async getDataPropertiesByClassInstance(instanceIri: string) {
+    const instanceEntity = this.classInstanceEntities.get(instanceIri)
 
-  //   if (instanceEntity && this.highlightsManager) {
-  //     this.highlightsManager.computeHighlights(Array.from(instanceEntity.parentClassIris).map(classIri => classIri.fullIri))
+    if (instanceEntity && this.endpointController?.highlightsManager) {
+      this.endpointController.highlightsManager
+        .computeHighlights(Array.from(instanceEntity.parentClassIris)
+        .map(classIri => classIri.fullIri))
 
-  //     return (await this.highlightsManager.dataProperties())
-  //       .map(dp => this.ontology.getEntity(dp))
-  //       .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
-  //   } else {
-  //     return []
-  //   }
-  // }
+      return (await this.endpointController.highlightsManager.dataProperties())
+        .map(dp => this.ontology.getEntity(dp))
+        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+    } else {
+      return []
+    }
+  }
 
   private onStopDataPropertyValueQuery(instanceIri: string, dataPropertyIri: string) {
     // if there is a new instance iri, loading will be stopped by new requests
@@ -939,7 +934,7 @@ export default class IncrementalController {
               // (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails).setGrapholEntity(instanceEntity)
 
               if (targetIri !== this.lastInstanceIri)
-                this.vKGApi?.stopAllQueries()
+                this.endpointController?.stopRequests()
 
               this.lifecycle.trigger(IncrementalEvent.ClassInstanceSelection, instanceEntity)
               // this.buildDetailsForInstance(targetIri)
@@ -948,7 +943,7 @@ export default class IncrementalController {
             // this.highlightsManager?.computeHighlights(targetIri)
 
             if (targetIri !== this.lastClassIri)
-              this.vKGApi?.stopAllQueries()
+            this.endpointController?.stopRequests()
 
             const classEntity = this.grapholscape.ontology.getEntity(targetIri)
 
@@ -960,7 +955,7 @@ export default class IncrementalController {
 
         // In case of reasoning, perform update only after 500ms of no click by the user
         // Prevent query flooding
-        if (this.isReasonerEnabled) {
+        if (this.endpointController) {
           clearTimeout(this.entitySelectionTimeout)
           this.entitySelectionTimeout = setTimeout(triggerSelectionEvent, 400)
         } else {
@@ -978,7 +973,6 @@ export default class IncrementalController {
 
   private get ontology() { return this.grapholscape.ontology }
   private get diagram() { return this.incrementalRenderer.incrementalDiagram }
-  private get isReasonerEnabled() { return this.vKGApi !== undefined }
   // private get vKGApi() {
   //   // if (this.grapholscape.mastroRequestOptions && !this._vKGApi) {
   //   //   if (this.endpointController?.selectedEndpoint)

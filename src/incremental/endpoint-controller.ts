@@ -11,7 +11,7 @@ export default class EndpointController {
   private endpoints: MastroEndpoint[]
   private selectedEndpoint?: MastroEndpoint
   private vkgApi?: VKGApi
-  private highlightsManager?: HighlightsManager
+  highlightsManager?: HighlightsManager
 
   constructor(private requestOptions: RequestOptions, private lifecycle: IncrementalLifecycle) {
     this.endpointApi = new EndpointApi(this.requestOptions)

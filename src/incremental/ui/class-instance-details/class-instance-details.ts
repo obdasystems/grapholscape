@@ -65,10 +65,9 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
 
                 return html`
                   <gscape-entity-list-item
-                    displayedName=${dataProperty.displayedName}
+                    displayedname=${dataProperty.displayedName}
                     iri=${dataProperty.value.iri.fullIri}
                     type=${dataProperty.value.type}
-                    actionable=${false}
                   >
                     ${this.canShowDataPropertiesValues && values
                       ? html`
@@ -93,6 +92,10 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
       } 
     </div>
     `
+  }
+
+  a() {
+    console.log('ciao')
   }
 
   /**

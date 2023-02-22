@@ -34,8 +34,8 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
 
     entityDetailsWidget?.setGrapholEntity(classInstanceEntity)
 
-    classInstanceDetails.dataProperties = (await incrementalController.getDataPropertiesByClassInstance(classInstanceEntity.iri.fullIri))
-      .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+    // classInstanceDetails.dataProperties = (await incrementalController.getDataPropertiesByClassInstance(classInstanceEntity.iri.fullIri))
+    //   .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
 
 
     classInstanceDetails.parentClasses = Array.from(classInstanceEntity.parentClassIris).map(parentClassIri => {
