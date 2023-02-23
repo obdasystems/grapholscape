@@ -48,7 +48,7 @@ export default class IncrementalController {
   constructor(
     public grapholscape: Grapholscape
   ) {
-    this.diagramBuilder = new DiagramBuilder(this.diagram)
+    this.diagramBuilder = new DiagramBuilder(this.incrementalDiagram)
     this.addEdge = this.diagramBuilder.addEdge
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
   }
@@ -398,7 +398,7 @@ export default class IncrementalController {
                 entitiesIrisToKeep.push(entity.iri.fullIri) // the entity we are removing must be skipped, otherwise cyclic recursion
                 this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
               } else {
-                this.diagram.removeElement(neighbourElement.id())
+                this.incrementalDiagram.removeElement(neighbourElement.id())
               }
             }
           } else {
@@ -406,7 +406,7 @@ export default class IncrementalController {
             // (cytoscape removes them automatically
             // but we need to update the grapholElements 
             // map too in diagram representation)
-            this.diagram.removeElement((neighbourElement as EdgeSingular).id())
+            this.incrementalDiagram.removeElement((neighbourElement as EdgeSingular).id())
           }
         })
 
@@ -419,8 +419,8 @@ export default class IncrementalController {
         })
       }
 
-      this.diagram.removeElement(element.id())
-      entity.removeOccurrence(element.id(), this.diagram.id, RendererStatesEnum.INCREMENTAL)
+      this.incrementalDiagram.removeElement(element.id())
+      entity.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
     })
 
     this.postDiagramEdit(oldElemsNumber)
@@ -632,7 +632,7 @@ export default class IncrementalController {
     if (!unionNode || !inputEdges || !inclusionEdges)
       return
 
-    this.diagram.addElement(unionNode)
+    this.incrementalDiagram.addElement(unionNode)
 
     // Add inputs
     for (const inputClassIri of hierarchy.inputs) {
@@ -643,8 +643,8 @@ export default class IncrementalController {
       this.addEntity(superClass.classIri, false)
     }
 
-    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
-    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
+    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.incrementalDiagram.addElement(inputEdge))
+    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.incrementalDiagram.addElement(inclusionEdge))
   }
 
   private removeHierarchy(hierarchy: Hierarchy, entitiesTokeep: string[] = []) {
@@ -652,16 +652,16 @@ export default class IncrementalController {
       return
 
     // remove union node
-    this.diagram.removeElement(hierarchy.id)
+    this.incrementalDiagram.removeElement(hierarchy.id)
 
     // remove input edges
     hierarchy.getInputGrapholEdges()?.forEach(inputEdge => {
-      this.diagram.removeElement(inputEdge.id)
+      this.incrementalDiagram.removeElement(inputEdge.id)
     })
 
     // remove inclusion edges
     hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
-      this.diagram.removeElement(inclusionEdge.id)
+      this.incrementalDiagram.removeElement(inclusionEdge.id)
     })
 
     let entity: GrapholEntity | null
@@ -915,7 +915,7 @@ export default class IncrementalController {
         this.lifecycle.trigger(IncrementalEvent.ContextClick, entity)
     })
 
-    if (this.diagram.representation?.hasEverBeenRendered || this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
+    if (this.incrementalDiagram.representation?.hasEverBeenRendered || this.incrementalDiagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
     // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
     this.incrementalRenderer.diagramRepresentation?.cy.on('tap', evt => {
@@ -968,11 +968,11 @@ export default class IncrementalController {
       }
     })
 
-    this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
+    this.incrementalDiagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
   }
 
   private get ontology() { return this.grapholscape.ontology }
-  private get diagram() { return this.incrementalRenderer.incrementalDiagram }
+  public get incrementalDiagram() { return this.incrementalRenderer.incrementalDiagram }
   // private get vKGApi() {
   //   // if (this.grapholscape.mastroRequestOptions && !this._vKGApi) {
   //   //   if (this.endpointController?.selectedEndpoint)

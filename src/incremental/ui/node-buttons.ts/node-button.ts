@@ -12,7 +12,8 @@ export default class NodeButton extends ContextualWidgetMixin(GscapeButton) {
     appendTo: document.querySelector('.gscape-ui') || undefined,
     // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
     content: this,
-    offset: (info) => [0, -(info.popper.width / 2)],
+    offset: [0, 0],
+    hideOnClick: false,
   }
 }
 
