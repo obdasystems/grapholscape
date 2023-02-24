@@ -3,7 +3,7 @@ import { BaseMixin, baseStyle, contentSpinnerStyle, entityListItemStyle, EntityV
 import style from "./style"
 
 export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
-  dataProperties?: EntityViewData[]
+  private _dataProperties: EntityViewData[] = []
   /** @internal */
   dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
   /** @internal */
@@ -156,9 +156,19 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
   }
 
   reset() {
-    this.dataProperties = undefined
+    this.dataProperties = []
     this.canShowDataPropertiesValues = false
     this.dataPropertiesValues = undefined
+  }
+
+  get dataProperties() {
+    return this._dataProperties
+  }
+
+  set dataProperties(newDataProperties) {
+    const oldValue = this._dataProperties
+    this._dataProperties = newDataProperties.sort((a,b) => a.displayedName.localeCompare(b.displayedName))
+    this.requestUpdate('dataProperties', oldValue)
   }
 }
 
