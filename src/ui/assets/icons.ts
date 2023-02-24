@@ -14,7 +14,7 @@ export const triangle_down = svg`<svg fill="currentColor" xmlns="http://www.w3.o
 
 export const arrow_right = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`
 
-export const arrowDown = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="M10 12 6 8H14Z"/></svg>`
+export const arrowDown = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480 723 240 483l51-51 189 189 189-189 51 51-240 240Z"/></svg>`
 
 export const explore = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path d="m5.75 14.25 6.021-2.479L14.25 5.75 8.229 8.229Zm3.542-3.542Q9 10.417 9 10t.292-.708Q9.583 9 10 9t.708.292Q11 9.583 11 10t-.292.708Q10.417 11 10 11t-.708-.292ZM10 18q-1.646 0-3.104-.625-1.458-.625-2.552-1.719t-1.719-2.552Q2 11.646 2 10q0-1.667.625-3.115.625-1.447 1.719-2.541Q5.438 3.25 6.896 2.625T10 2q1.667 0 3.115.625 1.447.625 2.541 1.719 1.094 1.094 1.719 2.541Q18 8.333 18 10q0 1.646-.625 3.104-.625 1.458-1.719 2.552t-2.541 1.719Q11.667 18 10 18Zm0-1.5q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`
 
@@ -88,6 +88,10 @@ export const mastroEndpointIcon = svg`<svg fill="currentColor" xmlns="http://www
 export const stopCircle = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M7.208 12.792h5.584V7.208H7.208ZM10 17.583q-1.562 0-2.948-.593-1.385-.594-2.417-1.625-1.031-1.032-1.625-2.417-.593-1.386-.593-2.948 0-1.583.593-2.958.594-1.375 1.625-2.407Q5.667 3.604 7.052 3.01 8.438 2.417 10 2.417q1.583 0 2.958.593 1.375.594 2.407 1.625 1.031 1.032 1.625 2.417.593 1.386.593 2.948t-.593 2.948q-.594 1.385-1.625 2.417-1.032 1.031-2.417 1.625-1.386.593-2.948.593Zm0-1.083q2.708 0 4.604-1.896T16.5 10q0-2.708-1.896-4.604T10 3.5q-2.708 0-4.604 1.896T3.5 10q0 2.708 1.896 4.604T10 16.5Zm0-6.5Z"/></svg>`
 
 export const equivalentClasses = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="m10 17-3-3 1.062-1.062 1.188 1.187v-8.25L8.062 7.062 7 6l3-3 3 3-1.062 1.062-1.188-1.187v8.25l1.188-1.187L13 14Z"/></svg>`
+
+export const search = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M765 912 526 673q-30 22-65.792 34.5T384.035 720Q284 720 214 650t-70-170q0-100 70-170t170-70q100 0 170 70t70 170.035q0 40.381-12.5 76.173T577 622l239 239-51 51ZM384 648q70 0 119-49t49-119q0-70-49-119t-119-49q-70 0-119 49t-49 119q0 70 49 119t119 49Z"/></svg>`
+
+export const insertInGraph = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" width="20"><path d="M4.5 17.083q-.667 0-1.125-.458-.458-.458-.458-1.125V7.833q0-.666.458-1.125.458-.458 1.125-.458h2.896v1.333H4.5q-.083 0-.167.084-.083.083-.083.166V15.5q0 .083.083.167.084.083.167.083h11q.083 0 .167-.083.083-.084.083-.167V7.833q0-.083-.083-.166-.084-.084-.167-.084h-2.896V6.25H15.5q.667 0 1.125.458.458.459.458 1.125V15.5q0 .667-.458 1.125-.458.458-1.125.458Zm5.5-4.041L6.938 9.979l.937-.937L9.333 10.5V.625h1.334V10.5l1.458-1.458.937.937Z"/></svg>`
 
 export const entityIcons: { [x in GrapholTypesEnum.CLASS |
   GrapholTypesEnum.OBJECT_PROPERTY |

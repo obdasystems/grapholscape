@@ -1,8 +1,11 @@
+import { NodeSingular } from "cytoscape";
 import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
-import { icons } from "../../../ui";
+import { icons, WidgetEnum } from "../../../ui";
 import getIconSlot from "../../../ui/util/get-icon-slot";
+import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
+import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import NodeButton from "./node-button";
 
 export function NodeButtonsFactory(incrementalController: IncrementalController) {
@@ -24,8 +27,8 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
     alert('show instances explorer')
   }
 
-  objectPropertyButton.onclick = () => {
-    alert('show navigation menu')
+  objectPropertyButton.onclick = (e) => {
+    handleObjectPropertyButtonClick(e, incrementalController)
   }
 
   if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
@@ -56,6 +59,7 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
 
     if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
       nodeButtons.get(targetType)?.forEach((btn, i) => {
+        // set position relative to default placemente (right)
         btn.cxtWidgetProps.offset = (info) => {
           const btnHeight = info.popper.height + 4
           const btnWidth = info.popper.width
@@ -64,14 +68,51 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
             -btnWidth / 2 // x
           ]
         }
-        btn.attachTo(targetNode.popperRef())
+
+        btn.node = targetNode
+        btn.attachTo(targetNode.popperRef());
       })
     }
   })
 
   cy.on('mouseout', 'node', e => {
-    nodeButtons.forEach((buttons, _) => buttons.forEach(btn => btn.hide()))
+    nodeButtons.forEach((buttons, _) => buttons.forEach(btn => {
+      btn.node = undefined
+      btn.hide()
+    }))
   })
 
   cy.scratch('_gscape-graph-incremental-handlers-set', true)
+}
+
+async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalController: IncrementalController) {
+  const targetButton = e.currentTarget as NodeButton
+  const navigationMenu = incrementalController.grapholscape.widgets.get(WidgetEnum.NAVIGATION_MENU) as GscapeNavigationMenu
+
+  if (!navigationMenu) return
+
+  if (targetButton.node && targetButton.node.data().iri) {
+    const referenceEnity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
+
+    if (targetButton.node.data().type === GrapholTypesEnum.CLASS) {
+      const objectProperties = await incrementalController.getObjectPropertiesByClass(targetButton.node.data().iri)
+      navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
+        return {
+          objectProperty: grapholEntityToEntityViewData(v[0], incrementalController.grapholscape),
+          connectedClasses: v[1].list.map(classEntity => {
+            return grapholEntityToEntityViewData(classEntity, incrementalController.grapholscape)
+          }),
+          direct: v[1].direct,
+        }
+      })
+    }
+
+    if (referenceEnity)
+      navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
+
+    // TODO: check why sometimes here targetButton.node is undefined, happens only few times
+    // it should be defined due to previous initial if
+    if (targetButton.node)
+      navigationMenu.attachTo((targetButton.node as any).popperRef())
+  }
 }

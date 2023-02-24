@@ -530,21 +530,23 @@ export default class IncrementalController {
   // }
 
   /**
-   * Called when the user select a class connected with the reference class
-   * through an object property from the incremental menu.
-   * Using diagram builder (which knows the actual reference class),
-   * add the object property edge using the right direction
-   * (towards reference class in case of a invereObjectProperty)
-   * @param classIri the class selected in the list
-   * @param objectPropertyIri the object property through which the class has been selected in the list
-   * @param direct if true the edge goes from reference class to selected class in menu
+   * Add object property edge between two classes.
+   * @param objectPropertyIri the object property iri to add
+   * @param sourceClassIri
+   * @param targetClassIri
    */
-  // addIntensionalObjectProperty(classIri: string, objectPropertyIri: string, direct: boolean) {
-  //   this.incrementalRenderer.freezeGraph()
-  //   this.diagramBuilder.addEntity(objectPropertyIri, classIri, direct)
-  //   this.postDiagramEdit()
-  //   this.grapholscape.centerOnElement(classIri)
-  // }
+  addIntensionalObjectProperty(objectPropertyIri: string, sourceClassIri: string, targetClassIri: string) {
+    const objectPropertyEntity = this.ontology.getEntity(objectPropertyIri)
+    const sourceClass = this.ontology.getEntity(sourceClassIri)
+    const targetClass = this.ontology.getEntity(targetClassIri)
+
+    if (objectPropertyEntity && sourceClass && targetClass) {
+      const oldElemsNumber = this.numberOfElements
+      this.incrementalRenderer.freezeGraph()
+      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass)
+      this.postDiagramEdit(oldElemsNumber)
+    }
+  }
 
   /**
    * Show hierarchies for which the specified class is a subclass.
@@ -812,40 +814,41 @@ export default class IncrementalController {
    * @param classIri 
    * @returns 
    */
-  // private async getObjectProperties(classIri: string) {
-  //   if (this.endpointController) {
-  //     const branches = await this.highlightsManager?.objectProperties()
-  //     const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
+  async getObjectPropertiesByClass(classIri: string) {
+    if (this.endpointController) {
+      this.endpointController.highlightsManager?.computeHighlights(classIri)
+      const branches = await this.endpointController.highlightsManager?.objectProperties()
+      const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
 
-  //     branches?.forEach(branch => {
-  //       if (!branch.objectPropertyIRI) return
+      branches?.forEach(branch => {
+        if (!branch.objectPropertyIRI) return
 
-  //       const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI)
+        const objectPropertyEntity = this.ontology.getEntity(branch.objectPropertyIRI)
 
-  //       if (!objectPropertyEntity) return
+        if (!objectPropertyEntity) return
 
-  //       const connectedClasses: ObjectPropertyConnectedClasses = {
-  //         connectedClasses: [],
-  //         direct: branch.direct || false,
-  //       }
+        const connectedClasses: ObjectPropertyConnectedClasses = {
+          list: [],
+          direct: branch.direct || false,
+        }
 
-  //       branch.relatedClasses?.forEach(relatedClass => {
-  //         const relatedClassEntity = this.ontology.getEntity(relatedClass)
+        branch.relatedClasses?.forEach(relatedClass => {
+          const relatedClassEntity = this.ontology.getEntity(relatedClass)
 
-  //         if (relatedClassEntity) {
-  //           connectedClasses.connectedClasses.push(relatedClassEntity)
-  //         }
-  //       })
+          if (relatedClassEntity) {
+            connectedClasses.list.push(relatedClassEntity)
+          }
+        })
 
-  //       objectPropertiesMap.set(objectPropertyEntity, connectedClasses)
-  //     })
+        objectPropertiesMap.set(objectPropertyEntity, connectedClasses)
+      })
 
-  //     return objectPropertiesMap
+      return objectPropertiesMap
 
-  //   } else {
-  //     return this.neighbourhoodFinder.getObjectProperties(classIri)
-  //   }
-  // }
+    } else {
+      return this.neighbourhoodFinder.getObjectProperties(classIri)
+    }
+  }
 
   async getDataPropertiesByClass(classIri: string) {
     if (this.endpointController) {

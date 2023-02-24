@@ -2,7 +2,7 @@ import { NodeCollection } from "cytoscape";
 import { Diagram, GrapholEntity, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
 
 export type ObjectPropertyConnectedClasses = {
-  connectedClasses: GrapholEntity[],
+  list: GrapholEntity[],
   direct: boolean,
 }
 
@@ -32,7 +32,7 @@ export default class NeighbourhoodFinder {
   }
 
   getObjectProperties(classIriString: string): Map<GrapholEntity, ObjectPropertyConnectedClasses> {
-    const res: Map<GrapholEntity, { connectedClasses: GrapholEntity[], direct: boolean }> = new Map()
+    const res: Map<GrapholEntity, ObjectPropertyConnectedClasses> = new Map()
 
     const classIri = this.getIriObject(classIriString)
     const objectPropertyEdgeSelector = `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`
@@ -64,10 +64,10 @@ export default class NeighbourhoodFinder {
                 if (connectedClassEntity) {
                   const resEntry = res.get(objectPropertyEntity)
                   if (resEntry) {
-                    if (!resEntry.connectedClasses.includes(connectedClassEntity)) // add only new classes
-                      resEntry.connectedClasses.push(connectedClassEntity)
+                    if (!resEntry.list.includes(connectedClassEntity)) // add only new classes
+                      resEntry.list.push(connectedClassEntity)
                   } else {
-                    res.set(objectPropertyEntity, { connectedClasses: [connectedClassEntity], direct: direct })
+                    res.set(objectPropertyEntity, { list: [connectedClassEntity], direct: direct })
                   }
                 }
               }

@@ -13,9 +13,12 @@ export enum WidgetEnum {
   SETTINGS = 'settings',
   ZOOM_TOOLS = 'zoom-tools',
   INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
+  /** @internal */
   CLASS_INSTANCE_DETAILS = 'class-instance-details',
   /** @internal */
   INSTANCES_EXPLORER = 'instances-explorer',
+  /** @internal */
+  NAVIGATION_MENU = 'naviagtion-menu',
   /** @internal */
   VKG_PREFERENCES = 'vkg-preferences'
 }

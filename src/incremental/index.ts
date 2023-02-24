@@ -26,6 +26,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   IncrementalUI.InstanceExplorerFactory(incrementalController)
   IncrementalUI.CommandsWidgetFactory(incrementalController)
   IncrementalUI.NodeButtonsFactory(incrementalController)
+  IncrementalUI.NavigationMenuFactory(incrementalController)
 
   if (!incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) {
     initEntitySelector(incrementalController.grapholscape)
