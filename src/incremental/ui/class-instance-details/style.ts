@@ -42,30 +42,6 @@ export default css`
     margin: 4px auto 8px;
   }
 
-  .search-box {
-    display: flex;
-    align-items: stretch;
-    margin: 4px 0;
-  }
-
-  .search-box > select {
-    max-width: 30%;
-    padding: 8px;
-    border-bottom-right-radius: 0;
-    border-top-right-radius: 0;
-    border-right: none;
-    min-width: 100px;
-  }
-
-  .search-box > input {
-    padding: 8px;
-    min-width: 150px;
-    border-bottom-left-radius: 0;
-    border-top-left-radius: 0;
-    flex-grow: 2;
-    flex-shrink: 0;
-  }
-
   .limit-box {
     display: flex;
     align-items: center;

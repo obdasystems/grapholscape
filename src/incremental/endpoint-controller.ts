@@ -58,6 +58,24 @@ export default class EndpointController {
     this.vkgApi?.stopAllQueries()
   }
 
+  requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string) {  
+    if (searchText && propertyIriFilter)
+      this.vkgApi?.getInstancesByPropertyValue(
+        classIri,
+        propertyIriFilter,
+        searchText,
+        (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+        () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
+      )
+    else
+      this.vkgApi?.getInstances(
+        classIri,
+        (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+        () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
+        searchText
+      )
+  }
+
   // get selectedEndpoint() {
   //   return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
   // }

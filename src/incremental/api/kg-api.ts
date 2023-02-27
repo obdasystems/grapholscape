@@ -18,7 +18,7 @@ export type ClassInstance = {
 
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
-  getInstancesByDataPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
+  getInstancesByPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
@@ -52,14 +52,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
   }
 
-  async getInstancesByDataPropertyValue(
+  async getInstancesByPropertyValue(
     classIri: string,
-    dataPropertyIri: string,
-    dataPropertyValue: string,
+    propertyIri: string,
+    propertyValue: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void)) {
 
-    const queryCode = QueriesTemplates.getInstancesByDataPropertyValue(classIri, dataPropertyIri, dataPropertyValue, this.limit)
+    const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue, this.limit)
     const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => {

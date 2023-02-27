@@ -1,48 +1,228 @@
-import { LitElement, PropertyDeclarations, CSSResultGroup, css, html } from "lit"
-import incrementalStyle from "../../../core/rendering/incremental/incremental-style"
-import { BaseMixin, IClassInstancesExplorer, EntityViewData, baseStyle } from "../../../ui"
+import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit"
+import { GrapholTypesEnum } from "../../../model"
+import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum } from "../../../ui"
+import { entityIcons, insertInGraph, searchOff } from "../../../ui/assets"
+import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
+import getIconSlot from "../../../ui/util/get-icon-slot"
+import { ClassInstance } from "../../api/kg-api"
+import menuBaseStyle from "../menu-base-style"
 
 
-export default class GscapeInstanceExplorer extends BaseMixin(LitElement) implements IClassInstancesExplorer {
+export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(LitElement)) {
+  popperRef
 
-  onInstanceSelection: (iri: string) => void
-  onEntitySearch: (searchText: string) => void
-  onEntitySearchByDataPropertyValue: (dataPropertyIri: string, searchText: string) => void
   areInstancesLoading: boolean
-  instances: EntityViewData[] = []
+  instances: ClassInstance[] = []
+  searchFilterList: EntityViewData[] = [] 
+  referenceEntity?: EntityViewData
 
+  private searchTimeout:  NodeJS.Timeout
 
   static properties: PropertyDeclarations = {
     areInstancesLoading: { type: Boolean },
-    instances: { type: Object }
+    instances: { type: Object },
+    referenceEntity: { type: Object },
+    searchFilterList: { type: Object },
   }
 
   static styles: CSSResultGroup = [
     baseStyle,
+    menuBaseStyle,
+    contentSpinnerStyle,
     css`
       :host {
-        position: absolute;
-        display: block;
-        max-width: 50%;
-        max-height: 60%;
+        min-height: 450px;
       }
 
-      .gscape-panel {
-        min-width: unset;
-        max-width: unset;
-        min-height: unset;
-        max-height: unset;
-        width: unset;
-        height: 100%;
+      .search-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    
+      .search-box > select {
+        max-width: 30%;
+        padding: 8px;
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+        border-right: none;
+        min-width: 100px;
+      }
+    
+      .search-box > input {
+        flex-shrink: 0;
+        min-width: 0px;
+        flex-grow: 2;
+      }
+
+      gscape-select {
+        max-width: 180px;
       }
     `
   ]
 
+  constructor() {
+    super()
+
+    this.cxtWidgetProps.placement = 'right'
+    this.tippyWidget.setProps({ maxWidth: '' })
+  }
+
   render() {
     return html`
-      <div class="gscape-panel">ok</div>
+      <div class="gscape-panel">
+        <div class="header">
+          <gscape-entity-list-item
+            displayedname=${this.referenceEntity?.displayedName}
+            iri=${this.referenceEntity?.value.iri.fullIri}
+            type=${this.referenceEntity?.value.type}
+          ></gscape-entity-list-item>
+        </div>
+        <div class="search-box">
+          ${this.searchFilterList.length > 0
+            ? html`
+              <!-- <select id="data-property-filter">
+                <option default>Filter</option>
+                ${this.searchFilterList?.map(dp => html`<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
+              </select> -->
+
+              <gscape-select
+                id="filter-select"
+                size=${SizeEnum.S}
+                .options=${this.searchFilterList.map(entity => {
+                  return {
+                    id: entity.value.iri.fullIri,
+                    text: entity.displayedName,
+                    leadingIcon: entityIcons[entity.value.type]
+                  }
+                })}
+                .placeholder=${ {text: 'ID or Label'} }
+                @change=${this.handleFilterChange}
+              >
+            `
+            : null
+          }
+          <input id="instances-search" @keyup=${this.handleFilter} type="text" placeholder="Filter instances" />
+        </div>
+        ${this.instances.length > 0
+          ? html`
+            <div class="entity-list">
+            ${this.instances.map(instance => html`
+              <gscape-entity-list-item
+                displayedname=${instance.label || instance.shortIri || instance.iri}
+                iri=${instance.iri}
+                type=${GrapholTypesEnum.CLASS_INSTANCE}
+              >
+                <div slot="trailing-element" class="hover-btn">
+                  <gscape-button
+                    size="s"
+                    type="subtle"
+                    @click=${this.handleInsertInGraph}
+                  >
+                    ${getIconSlot('icon', insertInGraph)}
+                  </gscape-button>
+                </div>
+              </gscape-entity-list-item>
+            `)}
+            </div>
+          `
+          : !this.areInstancesLoading ? html`
+              <div class="blank-slate">
+                ${searchOff}
+                <div class="header">No Instances Available</div>
+              </div>
+            `
+            : null
+        }
+
+        ${this.areInstancesLoading ? html`<div style="margin: 16px auto 12px;">${getContentSpinner()}</div>` : null}
+      </div>
     `
   }
+
+  handleFilter(e: KeyboardEvent) {
+    const inputElement = e.target as HTMLInputElement
+    clearTimeout(this.searchTimeout)
+
+    // on ESC key press
+    if (e.key === 'Escape') {
+      inputElement.blur()
+      inputElement.value = ''
+    }
+
+    this.searchTimeout = setTimeout(() => {
+      // const dataPropertyFilterElem = this.dataPropertyFilter
+      // if (dataPropertyFilterElem && dataPropertyFilterElem.options.selectedIndex !== 0) {
+      //   const dataPropertyIri = dataPropertyFilterElem.options[dataPropertyFilterElem.options.selectedIndex].value
+      //   this.onEntitySearchByDataPropertyValue(dataPropertyIri, inputElement.value)
+      // } else {
+      //   this.onEntitySearch(inputElement.value)
+      // }
+
+      const event = new CustomEvent('instances-filter', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          filterText: inputElement.value,
+          filterByProperty: undefined,
+        }
+      }) as InstanceFilterEvent
+
+      if (this.filterSelect?.selectedOptionId) {
+        event.detail.filterByProperty = this.filterSelect.selectedOptionId
+      }
+
+
+      this.dispatchEvent(event)
+    }, 500)
+  }
+
+  handleFilterChange() {
+    (this.shadowRoot?.querySelector('#instances-search') as HTMLInputElement)?.focus()
+  }
+
+  handleInsertInGraph(e: MouseEvent) {
+    const targetListItem = (e.currentTarget as HTMLElement).parentElement?.parentElement as GscapeEntityListItem | null
+
+    if (targetListItem) {
+      this.dispatchEvent(new CustomEvent('instanceselection', { 
+        bubbles: true, 
+        composed: true, 
+        detail: {
+          parentClassIris: [this.referenceEntity?.value.iri.fullIri],
+          instance: this.instances.find(i => i.iri === targetListItem.iri)
+        }
+      }) as InstanceSelectionEvent)
+    }
+  }
+
+  clear() {
+    this.instances = []
+    this.areInstancesLoading = false
+    this.searchFilterList = []
+    this.referenceEntity = undefined
+
+    if (this.instancesSearchInput)
+      this.instancesSearchInput.value = ''
+  }
+
+  updated() {
+    if (this.popperRef)
+      this.attachTo(this.popperRef)
+  }
+
+  private get filterSelect() { return this.shadowRoot?.querySelector('#filter-select') as GscapeSelect | undefined }
+  private get instancesSearchInput() { return this.shadowRoot?.querySelector('#instances-search') as HTMLInputElement | undefined }
 }
+
+export type InstanceSelectionEvent = CustomEvent<{
+  parentClassIris: string[],
+  instance: ClassInstance
+}>
+
+export type InstanceFilterEvent = CustomEvent<{
+  filterText: string,
+  filterByProperty: string | undefined,
+}>
 
 customElements.define('gscape-instances-explorer', GscapeInstanceExplorer)

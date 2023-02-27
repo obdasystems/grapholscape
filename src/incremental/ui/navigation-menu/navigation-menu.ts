@@ -2,9 +2,10 @@ import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons, ViewIncrementalObjectProperty } from "../../../ui";
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
 import getIconSlot from "../../../ui/util/get-icon-slot";
-import style from "./style";
+import menuBaseStyle from "../menu-base-style";
 
 export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
+  popperRef: HTMLElement
 
   /** @internal */
   private _objectProperties: ViewIncrementalObjectProperty[] = []
@@ -23,34 +24,12 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
 
   static styles = [
     baseStyle,
-    style,
+    menuBaseStyle,
     css`
-      :host {
-        min-width: 250px;
-        display: block;
-      }
-
       .connected-class-wrapper, .object-property-wrapper {
         display: flex;
         justify-content: space-between;
       }
-
-      gscape-entity-list-item[asaccordion] {
-        --justify-content-summary: space-between;
-      }
-
-      .hover-btn {
-        display: none;
-      }
-
-      gscape-entity-list-item:hover > .hover-btn {
-        display: block;
-      }
-
-      .connected-class-wrapper:hover > .hover-btn {
-        display: block;
-      }
-
     `
   ]
 
@@ -103,7 +82,6 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                         <div slot="accordion-body">
                           ${objectProperty.connectedClasses.map(connectedClass => {
                             return html`
-                              <div class="connected-class-wrapper">
                                 <gscape-entity-list-item
                                   displayedname=${connectedClass.displayedName}
                                   iri=${connectedClass.value.iri.fullIri}
@@ -112,16 +90,16 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                                   type=${connectedClass.value.type}
                                   ?actionable=${false}
                                 >
+                                  <div slot="trailing-element" class="hover-btn">
+                                    <gscape-button
+                                      size="s"
+                                      type="subtle"
+                                      @click=${this.handleInsertInGraphClick}
+                                    >
+                                      ${getIconSlot('icon', icons.insertInGraph)}
+                                    </gscape-button>
+                                  </div>
                                 </gscape-entity-list-item>
-                                <gscape-button
-                                  size="s"
-                                  type="subtle"
-                                  @click=${this.handleInsertInGraphClick}
-                                  class="hover-btn"
-                                >
-                                  ${getIconSlot('icon', icons.insertInGraph)}
-                                </gscape-button>
-                              </div>
                             `
                           })}
                         </div>
@@ -140,7 +118,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   `
 
   private handleInsertInGraphClick(e: MouseEvent) {
-    const targetListItem = (e.currentTarget as HTMLElement).previousElementSibling as GscapeEntityListItem | null
+    const targetListItem = (e.currentTarget as HTMLElement).parentElement?.parentElement as GscapeEntityListItem | null
 
     if (targetListItem) {
       this.dispatchEvent(new CustomEvent('onclassselection', { 
@@ -176,6 +154,11 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
       return op
     }).sort((a,b) => a.objectProperty.displayedName.localeCompare(b.objectProperty.displayedName))
     this.requestUpdate()
+  }
+
+  updated() {
+    if (this.popperRef)
+      this.attachTo(this.popperRef)
   }
 
 }

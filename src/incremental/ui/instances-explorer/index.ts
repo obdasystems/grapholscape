@@ -1,8 +1,9 @@
+import { Annotation, AnnotationsKind, ClassInstanceEntity, GrapholTypesEnum, Iri } from "../../../model"
 import { WidgetEnum } from "../../../ui"
 import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
-import GscapeInstanceExplorer from "./instance-explorer"
+import GscapeInstanceExplorer, { InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
 
 export { default as GscapeInstanceExplorer } from './instance-explorer'
 
@@ -11,25 +12,35 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   const instancesExplorer = new GscapeInstanceExplorer()
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
-  incrementalController.on(IncrementalEvent.NewInstances, newInstances => {
-    instancesExplorer.instances = newInstances.map(instance => 
-      grapholEntityToEntityViewData(incrementalController.getClassInstanceEntity(instance.iri), incrementalController.grapholscape)
-    )
-  })
+  incrementalController.on(IncrementalEvent.NewInstances, newInstances => instancesExplorer.instances = newInstances)
+
+  incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)
 
   incrementalController.on(IncrementalEvent.Reset, () => {
-    instancesExplorer.instances = []
-    instancesExplorer.areInstancesLoading = false
+    instancesExplorer.clear()
+  })
+
+  instancesExplorer.addEventListener('instanceselection', (e: InstanceSelectionEvent) => {
+    incrementalController.performActionWithBlockedGraph(() => {
+      incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris[0])
+      incrementalController.addEdge(e.detail.instance.iri, e.detail.parentClassIris[0], GrapholTypesEnum.INSTANCE_OF)
+    })
   })
 
 
-  instancesExplorer.onEntitySearch = (searchText) => {
-    console.log(searchText)
-  }
+  instancesExplorer.addEventListener('instances-filter', (e: InstanceFilterEvent) => {
+    incrementalController.endpointController?.stopRequests()
+    instancesExplorer.instances = []
+    instancesExplorer.areInstancesLoading = true
 
-  instancesExplorer.onEntitySearchByDataPropertyValue = (dataPropertyIri, searchText) => {
-    console.log(dataPropertyIri, searchText)
-  }
+    if (instancesExplorer.referenceEntity) {
+      incrementalController.endpointController?.requestInstancesForClass(
+        instancesExplorer.referenceEntity?.value.iri.fullIri,
+        e.detail.filterText,
+        e.detail.filterByProperty
+      )
+    }
+  })
 
   return instancesExplorer
 }

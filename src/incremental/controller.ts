@@ -49,12 +49,19 @@ export default class IncrementalController {
     public grapholscape: Grapholscape
   ) {
     this.diagramBuilder = new DiagramBuilder(this.incrementalDiagram)
-    this.addEdge = this.diagramBuilder.addEdge
+    this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
   }
 
-  getClassInstanceEntity(classInstanceIri: string) {
-    return {} as ClassInstanceEntity
+  createClassInstanceEntity(classInstance: ClassInstance) {
+
+  }
+
+  performActionWithBlockedGraph(action: () => void) {
+    const oldElemNumbers = this.numberOfElements
+    this.incrementalRenderer.freezeGraph()
+    action()
+    this.postDiagramEdit(oldElemNumbers)
   }
 
   // getRunningEndpoints = async (): Promise<MastroEndpoint[]> => {
@@ -351,6 +358,7 @@ export default class IncrementalController {
   reset() {
     if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       this.incrementalRenderer.createNewDiagram()
+      this.classInstanceEntities.clear()
       // this.entitySelector.show()
       if (this.grapholscape.renderer.diagram)
         setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology)
@@ -384,92 +392,117 @@ export default class IncrementalController {
     const entity = typeof (entityOrIri) === 'string' ? this.ontology.getEntity(entityOrIri) : entityOrIri
     if (!entity) return
 
-    const oldElemsNumber = this.numberOfElements
-    this.incrementalRenderer.freezeGraph()
-
-    this.grapholscape.renderer.cy?.$(`[iri = "${entity.iri.fullIri}"]`).forEach(element => {
-      if (element.data().type === GrapholTypesEnum.CLASS) {
-        element.neighborhood().forEach(neighbourElement => {
-          if (neighbourElement.isNode()) {
-            // remove nodes only if they have 1 connection, i.e. with the class we want to remove
-            if (neighbourElement.degree(false) === 1 && !entitiesIrisToKeep.includes(neighbourElement.id())) {
-              if (neighbourElement.data().iri) {
-                // it's an entity, recursively remove entities
-                entitiesIrisToKeep.push(entity.iri.fullIri) // the entity we are removing must be skipped, otherwise cyclic recursion
-                this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
-              } else {
-                this.incrementalDiagram.removeElement(neighbourElement.id())
+    this.performActionWithBlockedGraph(() => {
+      this.grapholscape.renderer.cy?.$(`[iri = "${entity.iri.fullIri}"]`).forEach(element => {
+        if (element.data().type === GrapholTypesEnum.CLASS) {
+          element.neighborhood().forEach(neighbourElement => {
+            if (neighbourElement.isNode()) {
+              // remove nodes only if they have 1 connection, i.e. with the class we want to remove
+              if (neighbourElement.degree(false) === 1 && !entitiesIrisToKeep.includes(neighbourElement.id())) {
+                if (neighbourElement.data().iri) {
+                  // it's an entity, recursively remove entities
+                  entitiesIrisToKeep.push(entity.iri.fullIri) // the entity we are removing must be skipped, otherwise cyclic recursion
+                  this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
+                } else {
+                  this.incrementalDiagram.removeElement(neighbourElement.id())
+                }
               }
+            } else {
+              // edges must be removed anyway
+              // (cytoscape removes them automatically
+              // but we need to update the grapholElements 
+              // map too in diagram representation)
+              this.incrementalDiagram.removeElement((neighbourElement as EdgeSingular).id())
             }
-          } else {
-            // edges must be removed anyway
-            // (cytoscape removes them automatically
-            // but we need to update the grapholElements 
-            // map too in diagram representation)
-            this.incrementalDiagram.removeElement((neighbourElement as EdgeSingular).id())
-          }
-        })
-
-        this.ontology.hierarchiesBySubclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
-          this.removeHierarchy(hierarchy)
-        })
-
-        this.ontology.hierarchiesBySuperclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
-          this.removeHierarchy(hierarchy)
-        })
-      }
-
-      this.incrementalDiagram.removeElement(element.id())
-      entity.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
+          })
+  
+          this.ontology.hierarchiesBySubclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+            this.removeHierarchy(hierarchy)
+          })
+  
+          this.ontology.hierarchiesBySuperclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+            this.removeHierarchy(hierarchy)
+          })
+        }
+  
+        this.incrementalDiagram.removeElement(element.id())
+        entity.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
+      })
     })
-
-    this.postDiagramEdit(oldElemsNumber)
   }
 
-  // async addInstance(instanceIriString: string) {
-  //   if (!this.diagramBuilder.referenceNodeId) return
+  async addInstance(instance: ClassInstance, parentClassesIris: string[] | string) {
+    if (this.classInstanceEntities.get(instance.iri)) {
+      return
+    }
 
-  //   const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
+    // if (!this.diagramBuilder.referenceNodeId) return
+    let parentClassEntity: GrapholEntity | null | undefined
 
-  //   if (parentClassEntity) {
-  //     const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
+    if (typeof (parentClassesIris) !== 'string') {
+      // instance checking, get most specific parent class
+      return
+    }
 
-  //     if (!suggestedClassInstance) return
+    parentClassEntity = this.ontology.getEntity(parentClassesIris)
 
-  //     if (!this.diagram.classInstances) {
-  //       this.diagram.classInstances = new Map()
-  //     }
+    if (parentClassEntity) {
+      const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
+      const classInstanceEntity = new ClassInstanceEntity(classInstanceIri, parentClassEntity.iri)
 
-  //     const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
-  //     let instanceEntity: ClassInstanceEntity | undefined
+      if (instance.label) {
+        classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
+      }
 
-  //     instanceEntity = this.diagram.classInstances.get(instanceIriString)
+      const oldElemsNumber = this.numberOfElements
 
-  //     if (!instanceEntity) {
-  //       instanceEntity = new ClassInstanceEntity(instanceIri)
-  //       this.diagram.classInstances.set(instanceIriString, instanceEntity)
+      const addedElement = this.diagramBuilder.addClassInstance(classInstanceEntity)
+      addedElement.displayedName = classInstanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
+      this.incrementalDiagram.representation?.updateElement(addedElement, false)
+      this.classInstanceEntities.set(instance.iri, classInstanceEntity)
+    }
 
-  //       // Set label as annotation
-  //       if (suggestedClassInstance.label) {
-  //         instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
-  //       }
-  //     }
+    // const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
 
-  //     instanceEntity.parentClassIris.add(parentClassEntity.iri)
+    // if (parentClassEntity) {
+    //   const suggestedClassInstance = this.suggestedClassInstances.find(c => c.iri === instanceIriString)
 
-  //     this.incrementalRenderer.freezeGraph()
-  //     this.diagramBuilder.addClassInstance(instanceIriString)
-  //     this.connectInstanceToParentClasses(instanceEntity)
-  //     const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
-  //     if (addedInstance) {
-  //       addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-  //       this.diagram.representation?.updateElement(addedInstance, false)
-  //     }
+    //   if (!suggestedClassInstance) return
 
-  //     this.postDiagramEdit()
-  //     this.grapholscape.centerOnElement(instanceIriString)
-  //   }
-  // }
+    //   if (!this.diagram.classInstances) {
+    //     this.diagram.classInstances = new Map()
+    //   }
+
+    //   const instanceIri = new Iri(instanceIriString, this.ontology.namespaces, suggestedClassInstance?.shortIri)
+    //   let instanceEntity: ClassInstanceEntity | undefined
+
+    //   instanceEntity = this.diagram.classInstances.get(instanceIriString)
+
+    //   if (!instanceEntity) {
+    //     instanceEntity = new ClassInstanceEntity(instanceIri)
+    //     this.diagram.classInstances.set(instanceIriString, instanceEntity)
+
+    //     // Set label as annotation
+    //     if (suggestedClassInstance.label) {
+    //       instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, suggestedClassInstance.label))
+    //     }
+    //   }
+
+    //   instanceEntity.parentClassIris.add(parentClassEntity.iri)
+
+    //   this.incrementalRenderer.freezeGraph()
+    //   this.diagramBuilder.addClassInstance(instanceIriString)
+    //   this.connectInstanceToParentClasses(instanceEntity)
+    //   const addedInstance = this.diagram.representation?.grapholElements.get(instanceIriString)
+    //   if (addedInstance) {
+    //     addedInstance.displayedName = instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
+    //     this.diagram.representation?.updateElement(addedInstance, false)
+    //   }
+
+    //   this.postDiagramEdit()
+    //   this.grapholscape.centerOnElement(instanceIriString)
+    // }
+  }
 
   // async addInstanceObjectProperty(instanceIriString: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) {
   //   if (!this.diagramBuilder.referenceNodeId) return
@@ -541,10 +574,7 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
 
     if (objectPropertyEntity && sourceClass && targetClass) {
-      const oldElemsNumber = this.numberOfElements
-      this.incrementalRenderer.freezeGraph()
-      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass)
-      this.postDiagramEdit(oldElemsNumber)
+      this.performActionWithBlockedGraph(() => this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass))
     }
   }
 
@@ -611,18 +641,14 @@ export default class IncrementalController {
         return
     }
 
-    const oldElemsNumber = this.numberOfElements
-    this.incrementalRenderer.freezeGraph()
-
     if (hierarchies && hierarchies.length > 0) {
-      this.incrementalRenderer.freezeGraph()
-      const position = this.grapholscape.renderer.cy?.$id(classIri).position()
-      if (showORHide === 'show')
-        hierarchies.forEach(hierarchy => this.addHierarchy(hierarchy, position))
-      else
-        hierarchies.forEach(hierarchy => this.removeHierarchy(hierarchy, [classIri]))
-
-      this.postDiagramEdit(oldElemsNumber)
+      this.performActionWithBlockedGraph(() => {
+        const position = this.grapholscape.renderer.cy?.$id(classIri).position()
+        if (showORHide === 'show')
+          hierarchies?.forEach(hierarchy => this.addHierarchy(hierarchy, position))
+        else
+          hierarchies?.forEach(hierarchy => this.removeHierarchy(hierarchy, [classIri]))
+      })
     }
   }
 
@@ -718,16 +744,14 @@ export default class IncrementalController {
     isaType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.EQUIVALENCE,
     subOrSuper: 'sub' | 'super' = 'sub') {
 
-    const oldElemsNumber = this.numberOfElements
-    this.incrementalRenderer.freezeGraph()
-    targetsIris.forEach(targetIri => {
-      this.addEntity(targetIri, false)
-      subOrSuper === 'super'
-        ? this.diagramBuilder.addEdge(sourceIri, targetIri, isaType)
-        : this.diagramBuilder.addEdge(targetIri, sourceIri, isaType)
+    this.performActionWithBlockedGraph(() => {
+      targetsIris.forEach(targetIri => {
+        this.addEntity(targetIri, false)
+        subOrSuper === 'super'
+          ? this.diagramBuilder.addEdge(sourceIri, targetIri, isaType)
+          : this.diagramBuilder.addEdge(targetIri, sourceIri, isaType)
+      })
     })
-
-    this.postDiagramEdit(oldElemsNumber)
   }
 
   // connectInstanceToParentClasses(instanceEntity: ClassInstanceEntity) {
@@ -747,14 +771,16 @@ export default class IncrementalController {
   //   this.grapholscape.centerOnElement(parentClassIri)
   // }
 
-  // private onGetInstances(classIri: string, searchText?: string) {
-  //   this.incrementalDetails.areInstancesLoading = true
+  // requestInstancesForClass(classIri: string, searchText?: string) {
+  //   // this.incrementalDetails.areInstancesLoading = true
 
   //   // if it's a search, clear instances list
-  //   if (searchText !== undefined)
-  //     this.incrementalDetails.setInstances([])
+  //   // if (searchText !== undefined)
+  //   //   this.incrementalDetails.setInstances([])
 
-  //   this.vKGApi!.getInstances(
+  //   if (!this.endpointController) return
+
+  //   this.endpointController.getInstances(
   //     classIri,
   //     this.onNewInstancesForDetails.bind(this), // onNewResults
   //     () => this.onStopInstanceLoading(classIri), // onStop
@@ -869,7 +895,7 @@ export default class IncrementalController {
     if (instanceEntity && this.endpointController?.highlightsManager) {
       this.endpointController.highlightsManager
         .computeHighlights(Array.from(instanceEntity.parentClassIris)
-        .map(classIri => classIri.fullIri))
+          .map(classIri => classIri.fullIri))
 
       return (await this.endpointController.highlightsManager.dataProperties())
         .map(dp => this.ontology.getEntity(dp))
@@ -946,7 +972,7 @@ export default class IncrementalController {
             // this.highlightsManager?.computeHighlights(targetIri)
 
             if (targetIri !== this.lastClassIri)
-            this.endpointController?.stopRequests()
+              this.endpointController?.stopRequests()
 
             const classEntity = this.grapholscape.ontology.getEntity(targetIri)
 

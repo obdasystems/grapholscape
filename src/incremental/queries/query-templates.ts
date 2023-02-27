@@ -25,13 +25,13 @@ export function getInstances(iri: string, maxResults?: number, searchText?: stri
   `
 }
 
-export function getInstancesByDataPropertyValue(classIri: string, dataPropertyIri: string, dataPropertyValue: string, maxResults?:number) {
+export function getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?:number) {
   const select = `?x`
   const where = [
     `?x a <${classIri}>.`,
-    `?x <${dataPropertyIri}> ?y.`
+    `?x <${propertyIri}> ?y.`
   ]
-  let filter = `FILTER(regex(?y, '${dataPropertyValue}', 'i'))`
+  let filter = `FILTER(regex(?y, '${propertyValue}', 'i'))`
   const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `

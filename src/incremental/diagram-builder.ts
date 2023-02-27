@@ -134,6 +134,7 @@ export default class DiagramBuilder {
     instanceNode.labelYpos = 0
 
     this.diagram.addElement(instanceNode, classInstanceEntity)
+    return instanceNode
   }
 
   addEdge(sourceId: string,
