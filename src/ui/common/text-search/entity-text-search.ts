@@ -77,8 +77,8 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
 
       .search-box {
         display: flex;
-        align-items: center;
-        gap: 2px;
+        align-items: stretch;
+        gap: 8px;
       }
 
       input {

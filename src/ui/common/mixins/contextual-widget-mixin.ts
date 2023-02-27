@@ -1,5 +1,5 @@
 import { LitElement } from "lit";
-import tippy, { Props } from "tippy.js";
+import tippy, { Instance, Props } from "tippy.js";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -7,6 +7,7 @@ export declare class IContextualWidgetMixin {
   hide(): void
   attachTo(element: HTMLElement): void
   cxtWidgetProps: Partial<Props>
+  tippyWidget: Instance<Props>
 }
 
 

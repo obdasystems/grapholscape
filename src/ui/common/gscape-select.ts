@@ -1,8 +1,11 @@
-import { html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
-import { BaseMixin, DropPanelMixin } from "./mixins"
+import { css, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
+import { cross, triangle_down } from "../assets/icons"
 import baseStyle from '../style'
-import { GscapeButtonStyle } from "./button"
-import { check } from "../assets/icons"
+import a11yClick from "../util/a11y-click"
+import getIconSlot from "../util/get-icon-slot"
+import { GscapeButtonStyle, SizeEnum } from "./button"
+import { GscapeActionListItem } from "./list-item"
+import { BaseMixin, DropPanelMixin } from "./mixins"
 
 export type SelectOption = {
   id: string,
@@ -12,50 +15,82 @@ export type SelectOption = {
 }
 
 export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) {
+  private readonly PLACEHOLDER_ID = '!PLACEHOLDER!'
   defaultIcon: SVGTemplateResult
-  selectedOptionId: number
+  selectedOptionId?: string
   options: SelectOption[] = []
+  size: SizeEnum = SizeEnum.S
+
+  private _placeholder: SelectOption = {
+    id: this.PLACEHOLDER_ID,
+    text: 'Select'
+  }
   onSelection: (optionId: string) => void = () => { }
   
 
   static properties: PropertyDeclarations = {
     options: { type: Object },
     selectedOptionId: { type: Number, attribute: 'selected-option', reflect: true },
-    placeHolder: { type: String, attribute: 'placeholder' },
-    onSelection: { type: Object, attribute: 'onselection' }
+    placeHolder: { type: Object, attribute: 'placeholder' },
+    onSelection: { type: Object, attribute: 'onselection' },
+    size: { type: String },
   }
 
   static styles = [
     baseStyle,
     GscapeButtonStyle,
+    css`
+      :host {
+        position: relative;
+      }
+
+      gscape-button {
+        max-width: inherit;
+      }
+
+      .option-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .option-wrapper > gscape-action-list-item {
+        flex-grow: 1;
+      }
+    `
   ]
 
   render() {
     return html`
-      <gscape-button @click="${this.togglePanel}" label="${this.selectedOption.text}">
-        ${this.selectedOption.leadingIcon}
-      </gscape-button>
+      ${this.getButton()}
 
-      <div class="gscape-panel hide" id="drop-panel">
+      <div class="gscape-panel hide drop-down" id="drop-panel">
 
-        <slot name="custom-option-list"></slot>
+        <slot name="custom-element"></slot>
 
         ${this.options.map(option => {
           return html`
-            <gscape-action-list-item
-              @click = ${this.onSelection}
-              subtle
-              label="${option.text}"
-              id="${option.id}"
-              ?selected = "${this.selectedOption.id === option.id}"
-            >
-              ${this.selectedOption.id === option.id
+            <div class="option-wrapper">
+              <gscape-action-list-item
+                @click=${this.handleSelection}
+                @keypress=${this.handleSelection}
+                label="${option.text}"
+                title="${option.text}"
+                id="${option.id}"
+                ?selected=${this.selectedOption && this.selectedOption.id === option.id}
+              >
+                ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
+              </gscape-action-list-item>
+              
+              ${this.selectedOption && this.selectedOption.id === option.id
                 ? html`
-                  <span slot="icon">${check}</span>
+                  <gscape-button title="clear" size="s" type="subtle" slot="trailing-icon" @click=${this.clear}>
+                    ${getIconSlot('icon', cross)}
+                  </gscape-button>
                 `
                 : null
               }
-            </gscape-action-list-item>
+            </div>
           `
         })}
       </div>
@@ -63,21 +98,46 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
 
   }
 
-
-  get selectedOption() {
-    if (this.selectedOptionId) {
-      return this.options[this.selectedOptionId]
-    } else {
-      return this.options[-1] || this.options[0]
+  private handleSelection(e: Event) {
+    if (a11yClick(e)) {
+      const targetItem = e.currentTarget as GscapeActionListItem
+      if (targetItem) {
+        this.selectedOptionId = targetItem.id
+        this.closePanel()
+        this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
+      }
     }
   }
 
-  set placeHolder(text: string) {
-    this.options[-1] = {
-      id: '!PLACEHOLDER!',
-      text: text,
-      leadingIcon: this.defaultIcon,
+  private getButton() {
+    const option = this.selectedOption || this.placeholder
+
+    return html`
+      <gscape-button @click="${this.togglePanel}" label="${option.text}" size="${this.size}">
+        ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
+        ${getIconSlot('trailing-icon', triangle_down)}
+      </gscape-button>
+    `
+  }
+
+  clear() {
+    this.selectedOptionId = undefined
+    this.closePanel()
+
+    this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
+  }
+
+  get selectedOption() {
+    if (this.selectedOptionId) {
+      return this.options.find(o => o.id === this.selectedOptionId)
     }
+  }
+
+  get placeholder() { return this._placeholder }
+
+  set placeholder(placeHolder) {
+    this._placeholder = placeHolder
+    this._placeholder.id = this.PLACEHOLDER_ID
   }
 }
 

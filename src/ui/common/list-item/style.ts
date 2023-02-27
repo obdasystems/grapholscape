@@ -14,4 +14,8 @@ export default css`
   .list-item-label {
     align-self: center;
   }
+
+  .list-item.actionable {
+    padding-right: 18px;
+  }
 `

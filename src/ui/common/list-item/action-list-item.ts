@@ -18,6 +18,12 @@ export default class GscapeActionListItem extends LitElement {
 
   static styles?: CSSResultGroup = [baseStyle, actionItemStyle]
 
+  constructor() {
+    super()
+
+    this.tabIndex = 0
+  }
+
   render() {
     return html`
       <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null} ellipsed" @click=${this.clickHandler}>

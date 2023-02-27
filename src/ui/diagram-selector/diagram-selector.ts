@@ -24,14 +24,6 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
       top: 10px;
       left: 10px;
     }
-
-    .gscape-panel {
-      margin-top: 4px;
-    }
-
-    gscape-button {
-      font-wright: 600;
-    }
     `
   ]
   

@@ -116,13 +116,16 @@ export default css`
 }
 
 .drop-down {
+  position:absolute;
+  margin-top: 4px;
+  top: 100%;
   animation-name: drop-down;
   animation-duration: ${animationDuration};
 }
 
 @keyframes drop-down {
   from {opacity: 0; top: -20%;}
-  to {opacity: 1; top: 0;}
+  to {opacity: 1; top: 100%;}
 }
 
 .drop-left {

@@ -12,6 +12,11 @@ export default css`
     white-space: nowrap;
   }
 
+  .entity-list-item:hover {
+    background: var(--gscape-color-neutral-subtle);
+    border-radius: var(--gscape-border-radius-btn);
+  }
+
   div.entity-list-item > .entity-icon {
     flex-shrink: 0;
   }
@@ -22,7 +27,7 @@ export default css`
     gap: 4px;
   }
 
-  details.entity-list-item > summary > .entity-name {
+  .entity-list-item .entity-name {
     flex-grow: 2;
   }
 

@@ -101,7 +101,7 @@ export default class GscapeButton extends LitElement {
         : html`<slot name="icon" class="slotted-icon"></slot>`
       }
 
-      ${this.label ? html`<span class="btn-label">${this.label}<span>` : ``}
+      ${this.label ? html`<span class="btn-label ellipsed">${this.label}<span>` : ``}
 
       <slot name="trailing-icon" class="slotted-icon"></slot>
       </button>

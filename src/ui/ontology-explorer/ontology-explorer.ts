@@ -1,4 +1,4 @@
-import { css, html, LitElement } from 'lit'
+import { css, html, LitElement, nothing } from 'lit'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { EntityViewData, search } from '../util/search-entities'
 import { blankSlateDiagrams, entityIcons, explore } from '../assets/icons'
@@ -9,6 +9,7 @@ import entityListItemStyle from './entity-list-item-style'
 import { GscapeEntitySearch } from '../common/text-search'
 import emptySearchBlankState from '../util/empty-search-blank-state'
 import { SearchEvent } from '../common/text-search/entity-text-search'
+import { GrapholTypesEnum } from '../../../dist'
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'

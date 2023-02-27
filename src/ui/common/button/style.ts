@@ -1,6 +1,10 @@
 import { css } from "lit";
 
 export default css`
+:host {
+  display: inline-block;
+}
+
 .btn {
   border-radius: var(--gscape-border-radius-btn);
   border: 1px solid var(--gscape-color-border-subtle);
@@ -13,13 +17,17 @@ export default css`
   background-color: var(--gscape-color-bg-default);
   line-height: 20px;
   display: inline-flex;
+  align-items: center;
   position: relative;
   color: inherit;
+  width: inherit;
+  max-width: inherit;
+  min-width: inherit;
 }
 
 .btn[label] {
   gap: 8px;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .btn:hover {
@@ -98,5 +106,6 @@ export default css`
 .btn-label {
   font-weight: 600;
   line-height: 20px;
+  flex-shrink: 1;
 }
 `
