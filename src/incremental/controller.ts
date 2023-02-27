@@ -388,12 +388,15 @@ export default class IncrementalController {
   removeEntity(entityIri: GrapholEntity, entitiesIrisToKeep?: string[]): void
   removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void
   removeEntity(entityOrIri: string | GrapholEntity, entitiesIrisToKeep: string[] = []) {
-
-    const entity = typeof (entityOrIri) === 'string' ? this.ontology.getEntity(entityOrIri) : entityOrIri
-    if (!entity) return
+    let entity: GrapholEntity | undefined | null
+    if (typeof (entityOrIri) === 'string') {
+      entity = this.classInstanceEntities.get(entityOrIri) || this.ontology.getEntity(entityOrIri)
+    } else {
+      entity = entityOrIri
+    }
 
     this.performActionWithBlockedGraph(() => {
-      this.grapholscape.renderer.cy?.$(`[iri = "${entity.iri.fullIri}"]`).forEach(element => {
+      this.grapholscape.renderer.cy?.$(`[iri = "${entity?.iri.fullIri}"]`).forEach(element => {
         if (element.data().type === GrapholTypesEnum.CLASS) {
           element.neighborhood().forEach(neighbourElement => {
             if (neighbourElement.isNode()) {
@@ -401,7 +404,7 @@ export default class IncrementalController {
               if (neighbourElement.degree(false) === 1 && !entitiesIrisToKeep.includes(neighbourElement.id())) {
                 if (neighbourElement.data().iri) {
                   // it's an entity, recursively remove entities
-                  entitiesIrisToKeep.push(entity.iri.fullIri) // the entity we are removing must be skipped, otherwise cyclic recursion
+                  entitiesIrisToKeep.push(entity?.iri.fullIri || '') // the entity we are removing must be skipped, otherwise cyclic recursion
                   this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
                 } else {
                   this.incrementalDiagram.removeElement(neighbourElement.id())
@@ -415,18 +418,21 @@ export default class IncrementalController {
               this.incrementalDiagram.removeElement((neighbourElement as EdgeSingular).id())
             }
           })
-  
-          this.ontology.hierarchiesBySubclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+
+          this.ontology.hierarchiesBySubclassMap.get(entity!.iri.fullIri)?.forEach(hierarchy => {
             this.removeHierarchy(hierarchy)
           })
-  
-          this.ontology.hierarchiesBySuperclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+
+          this.ontology.hierarchiesBySuperclassMap.get(entity!.iri.fullIri)?.forEach(hierarchy => {
             this.removeHierarchy(hierarchy)
           })
         }
-  
+
         this.incrementalDiagram.removeElement(element.id())
-        entity.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
+        entity?.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
+
+        if (entity?.is(GrapholTypesEnum.CLASS_INSTANCE))
+          this.classInstanceEntities.delete(entity.iri.fullIri)
       })
     })
   }
@@ -939,7 +945,7 @@ export default class IncrementalController {
 
   setIncrementalEventHandlers() {
     this.incrementalRenderer.onContextClick(target => {
-      const entity = this.ontology.getEntity(target.data().iri)
+      const entity = this.classInstanceEntities.get(target.data().iri) || this.ontology.getEntity(target.data().iri)
       if (entity)
         this.lifecycle.trigger(IncrementalEvent.ContextClick, entity)
     })
