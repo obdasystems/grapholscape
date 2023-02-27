@@ -24,6 +24,7 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     if (grapholEntity.is(GrapholTypesEnum.CLASS)) {
       dataProperties = await incrementalController.getDataPropertiesByClass(grapholEntity.iri.fullIri)
       classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+      classInstanceDetails.parentClasses = undefined
       classInstanceDetails.show()
     } else {
       classInstanceDetails.hide()
