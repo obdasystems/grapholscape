@@ -585,6 +585,28 @@ export default class IncrementalController {
   }
 
   /**
+   * Add object property edge between two instances
+   * @param objectPropertyIri 
+   * @param sourceInstanceIri 
+   * @param targetInstanceIri 
+   */
+  addExtensionalObjectProperty(objectPropertyIri: string, sourceInstanceIri: string, targetInstanceIri: string) {
+    const objectPropertyEntity = this.ontology.getEntity(objectPropertyIri)
+    const sourceInstanceEntity = this.classInstanceEntities.get(sourceInstanceIri)
+    const targetInstanceEntity = this.classInstanceEntities.get(targetInstanceIri)
+
+    if (objectPropertyEntity && sourceInstanceEntity && targetInstanceEntity) {
+      this.performActionWithBlockedGraph(() => {
+        this.diagramBuilder.addObjectProperty(
+          objectPropertyEntity,
+          sourceInstanceEntity,
+          targetInstanceEntity
+        )
+      })
+    }
+  }
+
+  /**
    * Show hierarchies for which the specified class is a subclass.
    * @param classIri 
    */

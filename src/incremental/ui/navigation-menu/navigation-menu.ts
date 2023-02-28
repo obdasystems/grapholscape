@@ -1,11 +1,13 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
+import { GrapholTypesEnum } from "../../../model";
 import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons, ViewIncrementalObjectProperty } from "../../../ui";
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
+import a11yClick from "../../../ui/util/a11y-click";
 import getIconSlot from "../../../ui/util/get-icon-slot";
 import menuBaseStyle from "../menu-base-style";
 
 export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
-  popperRef: HTMLElement
+  popperRef?: HTMLElement
 
   /** @internal */
   private _objectProperties: ViewIncrementalObjectProperty[] = []
@@ -63,20 +65,11 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                     displayedname=${objectProperty.objectProperty.displayedName}
                     iri=${objectProperty.objectProperty.value.iri.fullIri}
                     type=${objectProperty.objectProperty.value.type}
-                    ?actionable=${true}
+                    ?actionable=${!this.canShowObjectPropertiesRanges}
                     ?asaccordion=${this.canShowObjectPropertiesRanges}
+                    @click=${this.handleEntitySelection}
+                    direct=${objectProperty.direct}
                   >
-                  
-                    <span slot="trailing-element" class="hover-btn">
-                      <gscape-button
-                        size="s"
-                        type="subtle"
-                        @click=${this.handleSearchInstancesRange}
-                      >
-                      ${getIconSlot('icon', icons.search)}
-                      </gscape-button>
-                    </span>
-
                     ${this.canShowObjectPropertiesRanges
                       ? html`
                         <div slot="accordion-body">
@@ -117,6 +110,27 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     </div>
   `
 
+  private handleEntitySelection(e: Event) {
+    if (a11yClick(e)) {
+      if (this.popperRef) 
+        this.attachTo(this.popperRef)
+  
+      const targetListItem = e.currentTarget as GscapeEntityListItem | null
+
+      if (targetListItem && this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE) {
+        this.dispatchEvent(new CustomEvent('onobjectpropertyselection', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            referenceClassIri: this.referenceEntity?.value.iri.fullIri,
+            objectPropertyIri: targetListItem.iri,
+            direct: targetListItem.getAttribute('direct') === 'true'
+          }
+        }) as ObjectPropertyNavigationEvent)
+      }
+    }
+  }
+
   private handleInsertInGraphClick(e: MouseEvent) {
     const targetListItem = (e.currentTarget as HTMLElement).parentElement?.parentElement as GscapeEntityListItem | null
 
@@ -137,11 +151,17 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   private handleSearchInstancesRange() {
   }
 
-  attachTo(element: HTMLElement): void {
-    this.shadowRoot
-      ?.querySelectorAll(`gscape-entity-list-item[asaccordion]`)
-      .forEach((listItemAccordion: GscapeEntityListItem) => listItemAccordion.closeAccordion())
-    super.attachTo(element)
+  hide(): void {
+    // wait a bit.
+    // if you don't wait, the user will see all accordions closing before the menu disappear
+    setTimeout(() => {
+      this.shadowRoot
+        ?.querySelectorAll(`gscape-entity-list-item[asaccordion]`)
+        .forEach((listItemAccordion: GscapeEntityListItem) => listItemAccordion.closeAccordion())
+    }, 500);
+    
+
+    super.hide()
   }
 
   get objectProperties() {
@@ -168,7 +188,7 @@ customElements.define('gscape-navigation-menu', GscapeNavigationMenu)
 
 export type ObjectPropertyNavigationEvent = CustomEvent<{
   referenceClassIri: string,
-  rangeClassIri: string,
+  rangeClassIri?: string,
   objectPropertyIri: string,
   direct: boolean,
 }>

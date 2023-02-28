@@ -22,7 +22,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, rangeClassIri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void
+  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   stopAllQueries: () => void,
 
@@ -40,7 +40,6 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
     const queryCode = QueriesTemplates.getInstances(iri, this.limit, searchText)
     const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
-    queryPoller.start()
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => {
         return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
@@ -50,6 +49,8 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     if (onStop) {
       queryPoller.onStop = onStop
     }
+
+    queryPoller.start()
   }
 
   async getInstancesByPropertyValue(
@@ -153,46 +154,27 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
   async getInstanceObjectPropertyRanges(instanceIri: string, objectPropertyIri: string,
     isDirect: boolean,
-    rangeClassIri: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
+    rangeClassIri?: string,
+    textSearch?: string,
     onStop?: (() => void),
     onError?: (() => void),
   ) {
 
-    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, this.limit)
+    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, this.limit, textSearch)
 
-    const pollPage = async (pageNumber: number) => {
-      const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
-      queryPoller.start()
-      queryPoller.onNewResults = (newResult) => {
-        onNewResults(newResult.results.map(res => {
-          return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
-        }))
-      }
-
-      // If stopped then we received all results for this page
-      // if query has not finished, continue polling for next page
-      // if has finished then return and call onStop
-      queryPoller.onStop = async () => {
-        const queryStatus = await this.queryManager.getQueryStatus(queryPoller.executionId)
-
-        if (queryStatus.status === QueryStatusEnum.FINISHED) {
-          if (onStop)
-            onStop()
-
-          return
-        }
-
-        if (!queryStatus.hasError) {
-          pollPage(pageNumber + 1) // poll for another page
-        } else {
-          if (onError)
-            onError()
-        }
-      }
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+    queryPoller.onNewResults = (result) => {
+      onNewResults(result.results.map(res => {
+        return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
+      }))
     }
 
-    pollPage(1)
+    if (onStop) {
+      queryPoller.onStop = onStop
+    }
+
+    queryPoller.start()
   }
 
   stopAllQueries() {

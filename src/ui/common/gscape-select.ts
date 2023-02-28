@@ -1,5 +1,5 @@
 import { css, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
-import { cross, triangle_down } from "../assets/icons"
+import { blankSlateDiagrams, cross, triangle_down } from "../assets/icons"
 import baseStyle from '../style'
 import a11yClick from "../util/a11y-click"
 import getIconSlot from "../util/get-icon-slot"
@@ -68,31 +68,38 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
 
         <slot name="custom-element"></slot>
 
-        ${this.options.map(option => {
-          return html`
-            <div class="option-wrapper">
-              <gscape-action-list-item
-                @click=${this.handleSelection}
-                @keypress=${this.handleSelection}
-                label="${option.text}"
-                title="${option.text}"
-                id="${option.id}"
-                ?selected=${this.selectedOption && this.selectedOption.id === option.id}
-              >
-                ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
-              </gscape-action-list-item>
-              
-              ${this.selectedOption && this.selectedOption.id === option.id
-                ? html`
-                  <gscape-button title="clear" size="s" type="subtle" slot="trailing-icon" @click=${this.clear}>
-                    ${getIconSlot('icon', cross)}
-                  </gscape-button>
-                `
-                : null
-              }
+        ${this.options.length > 0
+          ? this.options.map(option => {
+            return html`
+              <div class="option-wrapper">
+                <gscape-action-list-item
+                  @click=${this.handleSelection}
+                  @keypress=${this.handleSelection}
+                  label="${option.text}"
+                  title="${option.text}"
+                  id="${option.id}"
+                  ?selected=${this.selectedOption && this.selectedOption.id === option.id}
+                >
+                  ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
+                </gscape-action-list-item>
+                
+                ${this.selectedOption && this.selectedOption.id === option.id
+                  ? html`
+                    <gscape-button title="clear" size="s" type="subtle" slot="trailing-icon" @click=${this.clear}>
+                      ${getIconSlot('icon', cross)}
+                    </gscape-button>
+                  `
+                  : null
+                }
+              </div>
+            `})
+          : html`
+            <div class="blank-slate">
+              ${blankSlateDiagrams}
+              <div class="description">No Options</div>
             </div>
           `
-        })}
+        }
       </div>
     `
 

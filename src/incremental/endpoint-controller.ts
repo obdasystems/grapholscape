@@ -76,6 +76,18 @@ export default class EndpointController {
       )
   }
 
+  requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, rangeClassIri?: string, searchText?: string) {
+    this.vkgApi?.getInstanceObjectPropertyRanges(
+      instanceIri,
+      objectPropertyIri,
+      isDirect,
+      (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+      rangeClassIri,
+      searchText,
+      () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished)
+    )
+  }
+
   // get selectedEndpoint() {
   //   return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
   // }
