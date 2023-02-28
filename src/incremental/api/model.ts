@@ -22,6 +22,7 @@ export enum QueryStatusEnum {
   ERROR = 'ERROR',
   RUNNING = 'RUNNING',
   READY = 'READY',
+  STOPPED = 'STOPPED',
 }
 
 export type RequestOptions = {
@@ -30,4 +31,17 @@ export type RequestOptions = {
   name: string,
   headers: any,
   onError: (errorObject: any) => void
+}
+
+export type InstanceCheckingInfo = {
+  startTime: number
+  endTime: number
+  state: QueryStatusEnum
+  percentage: number
+  resultClasses: MWSEntity[]
+  leafClasses?: MWSEntity[]
+}
+
+export type MWSEntity = {
+  entityIRI: string
 }

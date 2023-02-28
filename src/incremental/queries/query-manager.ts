@@ -1,10 +1,12 @@
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "../api/model"
+import InstanceCheckingPoller from "./instance-checking-poller"
 import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
   private _runningQueryPollerByExecutionId: Map<string, QueryResultsPoller> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
+  private _runningInstanceCheckingPollerByThreadId: Map<string, InstanceCheckingPoller> = new Map()
 
   constructor(private requestOptions: RequestOptions, private endpoint: MastroEndpoint) {
     this.requestOptions.headers['content-type'] = 'application/json'
@@ -131,10 +133,33 @@ export default class QueryManager {
     })
   }
 
+  async instanceCheck(instanceIri: string, classesTocheck: string[]) {
+    const params = new URLSearchParams({ instance: instanceIri })
+    const response = await fetch(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/instanceChecking/start?${params.toString()}`, {
+      method: 'post',
+      headers: this.requestOptions.headers,
+      body: JSON.stringify(classesTocheck)
+    })
+    
+    const threadId = await response.json()
+    const instanceCheckingPoller = new InstanceCheckingPoller(new Request(
+      `${this.getInstanceCheckingPath(threadId)}/info`,
+      {
+        method: 'get',
+        headers: this.requestOptions.headers
+      }
+    ))
+
+    this._runningInstanceCheckingPollerByThreadId.set(threadId, instanceCheckingPoller)
+
+    return instanceCheckingPoller
+  }
+
   stopRunningQueries() {
     this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     // this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId))
+    this._runningInstanceCheckingPollerByThreadId.forEach((_, threadId) => this.stopInstanceChecking(threadId))
   }
 
   stopQuery(executionId: string) {
@@ -152,6 +177,16 @@ export default class QueryManager {
 
     this.handleCall(fetch(`${this.queryCountPath}/${executionId}/stop`, {
       method: 'put',
+      headers: this.requestOptions.headers,
+    }))
+  }
+
+  stopInstanceChecking(threadId: string) {
+    this._runningInstanceCheckingPollerByThreadId.get(threadId)?.stop()
+    this._runningInstanceCheckingPollerByThreadId.delete(threadId)
+
+    this.handleCall(fetch(`${this.getInstanceCheckingPath(threadId)}/stop`, {
+      method: 'get',
       headers: this.requestOptions.headers,
     }))
   }
@@ -229,6 +264,10 @@ export default class QueryManager {
 
   private getQueryStatePath(executionId: string) {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/status`)
+  }
+
+  private getInstanceCheckingPath(threadId: string) {
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/instanceChecking/${threadId}`)
   }
 
   private get prefixesPath() {

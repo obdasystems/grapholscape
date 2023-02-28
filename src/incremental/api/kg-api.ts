@@ -24,6 +24,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
   getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
+  instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIri: string) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
 
   limit: number
@@ -175,6 +176,22 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     queryPoller.start()
+  }
+
+  async instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string) => void, onStop?: () => void) {
+    const poller = await this.queryManager.instanceCheck(instanceIri, classesToCheck)
+
+    poller.onNewResults = (result) => {
+      if (result.leafClasses) {
+        onResult(result.leafClasses[0].entityIRI)
+      }
+    }
+
+    if (onStop) {
+      poller.onStop = onStop
+    }
+
+    poller.start()
   }
 
   stopAllQueries() {

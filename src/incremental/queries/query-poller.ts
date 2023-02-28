@@ -1,6 +1,6 @@
-import { QueryStatusEnum } from "../api/model"
+import { InstanceCheckingInfo, QueryStatusEnum } from "../api/model"
 
-export type APICallResult = QueryRecords | number | QueryStatus
+export type APICallResult = QueryRecords | number | QueryStatus | InstanceCheckingInfo
 
 export type QueryRecords = {
   headTerms: string[],

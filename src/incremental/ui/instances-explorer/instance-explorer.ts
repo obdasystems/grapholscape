@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit"
 import { GrapholTypesEnum } from "../../../model"
-import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum } from "../../../ui"
+import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinner, textSpinnerStyle } from "../../../ui"
 import { entityIcons, insertInGraph, searchOff, search } from "../../../ui/assets"
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
 import a11yClick from "../../../ui/util/a11y-click"
@@ -19,6 +19,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   referenceEntity?: EntityViewData
   referencePropertyEntity?: EntityViewData
   isPropertyDirect: boolean = true
+  instancesInProcess: Map<string, boolean> = new Map()
 
   private searchTimeout:  NodeJS.Timeout
 
@@ -35,6 +36,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     baseStyle,
     menuBaseStyle,
     contentSpinnerStyle,
+    textSpinnerStyle,
     css`
       :host {
         min-height: 450px;
@@ -166,14 +168,20 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 iri=${instance.iri}
                 type=${GrapholTypesEnum.CLASS_INSTANCE}
               >
-                <div slot="trailing-element" class="hover-btn">
-                  <gscape-button
-                    size="s"
-                    type="subtle"
-                    @click=${this.handleInsertInGraph}
-                  >
-                    ${getIconSlot('icon', insertInGraph)}
-                  </gscape-button>
+                ${this.instancesInProcess.get(instance.iri)
+                  ? html`<div slot="trailing-element">${textSpinner()}</div>`
+                  : html `
+                    <div slot="trailing-element" class="hover-btn">
+                      <gscape-button
+                        size="s"
+                        type="subtle"
+                        @click=${this.handleInsertInGraph}
+                      >
+                        ${getIconSlot('icon', insertInGraph)}
+                      </gscape-button>
+                    </div>
+                  `
+                }
                 </div>
               </gscape-entity-list-item>
             `)}
@@ -229,12 +237,10 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       inputElement.value = ''
     }
 
-    if (a11yClick(e)) {
-      clearTimeout(this.searchTimeout)
-      this.searchTimeout = setTimeout(() => {
-        this.handleFilter()
-      }, 500)
-    }
+    clearTimeout(this.searchTimeout)
+    this.searchTimeout = setTimeout(() => {
+      this.handleFilter()
+    }, 500)
   }
 
   private handleFilterChange() {
@@ -249,34 +255,50 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.handleFilter(e)
   }
 
-  private handleInsertInGraph(e: MouseEvent) {
+  private async handleInsertInGraph(e: MouseEvent) {
     const targetListItem = (e.currentTarget as HTMLElement).parentElement?.parentElement as GscapeEntityListItem | null
 
     if (targetListItem) {
-      let parentClassIris: string[] = []
-      if (this.referenceEntity?.value.type === GrapholTypesEnum.CLASS) {
-        parentClassIris.push(this.referenceEntity?.value.iri.fullIri)
-      }
+      const instance = this.instances.find(i => i.iri === targetListItem.iri)
 
-      else if (this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE) {
-        if (this.classTypeFilterList?.length === 1) {
-          parentClassIris.push(this.classTypeFilterList[0].value.iri.fullIri)
-        } else if (this.classTypeFilterSelect?.selectedOptionId) {
-          parentClassIris.push(this.classTypeFilterSelect.selectedOptionId)
+      if (instance) {
+        let parentClassIris: string[] | string
+  
+        if (this.referenceEntity?.value.type === GrapholTypesEnum.CLASS) { // if class, take class iri as parent
+          parentClassIris = this.referenceEntity?.value.iri.fullIri
+        } else if (this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE) { // otherwise check selected filter type
+
+          if (this.classTypeFilterList?.length === 1) { 
+            parentClassIris = this.classTypeFilterList[0].value.iri.fullIri // if only one type, take it as parent class
+          } else if (this.classTypeFilterSelect?.selectedOptionId) {
+            parentClassIris = this.classTypeFilterSelect.selectedOptionId // otherwise take the selected one
+          } else if (this.classTypeFilterList) {
+            parentClassIris = this.classTypeFilterList.map(e => e.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
+          } else
+            return
+        } else {
+          return
         }
+
+        this.instancesInProcess.set(instance?.iri, true)
+        this.requestUpdate()
+        await this.updateComplete
+
+        this.dispatchEvent(new CustomEvent('instanceselection', { 
+          bubbles: true, 
+          composed: true, 
+          detail: {
+            parentClassIris: parentClassIris,
+            instance: instance
+          }
+        }) as InstanceSelectionEvent)
       }
-
-      this.dispatchEvent(new CustomEvent('instanceselection', { 
-        bubbles: true, 
-        composed: true, 
-        detail: {
-          parentClassIris: parentClassIris,
-          instance: this.instances.find(i => i.iri === targetListItem.iri)
-        }
-      }) as InstanceSelectionEvent)
-
-      
     }
+  }
+
+  setInstanceAdProcessed(instanceIri: string) {
+    this.instancesInProcess.delete(instanceIri)
+    this.requestUpdate()
   }
 
   clear() {
@@ -287,6 +309,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.referenceEntity = undefined
     this.referencePropertyEntity = undefined
     this.popperRef = undefined
+    this.instancesInProcess.clear()
 
     if (this.instancesSearchInput)
       this.instancesSearchInput.value = ''
@@ -303,7 +326,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 }
 
 export type InstanceSelectionEvent = CustomEvent<{
-  parentClassIris: string[],
+  parentClassIris: string[] | string,
   instance: ClassInstance
 }>
 

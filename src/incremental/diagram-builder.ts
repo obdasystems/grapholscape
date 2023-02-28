@@ -112,12 +112,9 @@ export default class DiagramBuilder {
     const instanceNode = new GrapholNode(classInstanceEntity.iri.fullIri, GrapholTypesEnum.CLASS_INSTANCE)
 
     if (!position) {
-      // check if any parent class is present in diagram
-      for (let parentClassIri of classInstanceEntity.parentClassIris) {
-        if (this.diagramRepresentation?.containsEntity(parentClassIri)) {
-          instanceNode.position = this.diagram.representation?.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
-          break
-        }
+      // check if parent class is present in diagram
+      if (this.diagramRepresentation?.containsEntity(classInstanceEntity.parentClassIri)) {
+        instanceNode.position = this.diagram.representation?.cy.$id(classInstanceEntity.parentClassIri.fullIri).position() || { x: 0, y: 0 }
       }
 
       if (!instanceNode.position) {

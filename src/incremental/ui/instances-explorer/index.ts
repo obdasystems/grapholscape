@@ -20,23 +20,25 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     instancesExplorer.clear()
   })
 
-  instancesExplorer.addEventListener('instanceselection', (e: InstanceSelectionEvent) => {
-    incrementalController.performActionWithBlockedGraph(() => {
-      incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris[0])
-      incrementalController.addEdge(e.detail.instance.iri, e.detail.parentClassIris[0], GrapholTypesEnum.INSTANCE_OF)
-    })
+  instancesExplorer.addEventListener('instanceselection', async (e: InstanceSelectionEvent) => {
+    let addedInstanceEntity: ClassInstanceEntity | undefined
 
-    if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity) { // add object property between instances
-      if (instancesExplorer.referencePropertyEntity && instancesExplorer.referenceEntity) {
-        const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
-        const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
-        if (instancesExplorer.isPropertyDirect)
-          incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, e.detail.instance.iri)
-        else
-          incrementalController.addExtensionalObjectProperty(objPropertyIri,  e.detail.instance.iri, sourceInstanceIri)
-      }
+    addedInstanceEntity = await incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
+    if (addedInstanceEntity) {
+      incrementalController.addEdge(e.detail.instance.iri, addedInstanceEntity.parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
     }
-    
+
+    if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
+      const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
+      const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
+      if (instancesExplorer.isPropertyDirect)
+        incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
+      else
+        incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
+    }
+
+    instancesExplorer.setInstanceAdProcessed(e.detail.instance.iri)
+    incrementalController.runLayout()
   })
 
 

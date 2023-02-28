@@ -38,12 +38,12 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     // classInstanceDetails.dataProperties = (await incrementalController.getDataPropertiesByClassInstance(classInstanceEntity.iri.fullIri))
     //   .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
 
-
-    classInstanceDetails.parentClasses = Array.from(classInstanceEntity.parentClassIris).map(parentClassIri => {
-      const parentClassEntity = incrementalController.grapholscape.ontology.getEntity(parentClassIri.fullIri)
+    if (classInstanceEntity.parentClassIri) {
+      const parentClassEntity = incrementalController.grapholscape.ontology.getEntity(classInstanceEntity.parentClassIri.fullIri)
       if (parentClassEntity)
-        return grapholEntityToEntityViewData(parentClassEntity, incrementalController.grapholscape)
-    }).filter(e => e !== undefined) as []
+        classInstanceDetails.parentClasses = [grapholEntityToEntityViewData(parentClassEntity, incrementalController.grapholscape)]
+    }
+    
 
     classInstanceDetails.show()
   })

@@ -88,6 +88,17 @@ export default class EndpointController {
     )
   }
 
+  async instanceCheck(instanceIri: string, classesToCheck: string[]) {
+    return new Promise((resolve: (value: string) => void, reject) => {
+      this.vkgApi?.instanceCheck(
+        instanceIri,
+        classesToCheck,
+        resolve,
+        reject
+      )
+    })
+  }
+
   // get selectedEndpoint() {
   //   return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
   // }
