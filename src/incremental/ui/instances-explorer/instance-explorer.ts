@@ -93,7 +93,14 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 displayedname=${this.referencePropertyEntity?.displayedName}
                 iri=${this.referencePropertyEntity?.value.iri.fullIri}
                 type=${this.referencePropertyEntity?.value.type}
-              ></gscape-entity-list-item>
+              >
+                ${!this.isPropertyDirect
+                  ? html`
+                    <span slot="trailing-element" class="chip" style="line-height: 1">Inverse</span>
+                  `
+                  : null
+                }
+              </gscape-entity-list-item>
             `
             : null
           }

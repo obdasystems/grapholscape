@@ -99,6 +99,13 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                       `
                       : null
                     }
+
+                    ${!objectProperty.direct
+                      ? html`
+                        <span slot="trailing-element" class="chip" style="line-height: 1">Inverse</span>
+                      `
+                      : null
+                    }
                   </gscape-entity-list-item>
                 `
               })}
