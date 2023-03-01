@@ -35,7 +35,12 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
       const referenceEntity = incrementalController.classInstanceEntities.get(e.detail.referenceClassIri) // must be an instance to be here
       const objectPropertyEntity = incrementalController.grapholscape.ontology.getEntity(e.detail.objectPropertyIri)
 
-      if (referenceEntity && objectPropertyEntity) {
+      if (
+        referenceEntity &&
+        objectPropertyEntity &&
+        !(instancesExplorer.referenceEntity?.value.iri.equals(referenceEntity.iri) &&
+          instancesExplorer.referencePropertyEntity?.value.iri.equals(objectPropertyEntity.iri))
+      ) {
         instancesExplorer.clear()
         instancesExplorer.areInstancesLoading = true
         instancesExplorer.referenceEntity = navigationMenu.referenceEntity
@@ -64,13 +69,12 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
           e.detail.direct,
           e.detail.rangeClassIri
         )
-
-        navigationMenu.hide()
-
-        if (navigationMenu.popperRef)
-          instancesExplorer.attachTo(navigationMenu.popperRef)
       }
 
+      navigationMenu.hide()
+
+      if (navigationMenu.popperRef)
+        instancesExplorer.attachTo(navigationMenu.popperRef)
     }
   })
 
