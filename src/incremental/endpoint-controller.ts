@@ -88,6 +88,15 @@ export default class EndpointController {
     )
   }
 
+  requestDataPropertyValues(instanceIri: string, dataPropertyIri: string) {
+    this.vkgApi?.getInstanceDataPropertyValues(
+      instanceIri,
+      dataPropertyIri,
+      (newValues) => this.lifecycle.trigger(IncrementalEvent.NewDataPropertyValues, instanceIri, dataPropertyIri, newValues),
+      () => this.lifecycle.trigger(IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri, dataPropertyIri)
+    )
+  }
+
   async instanceCheck(instanceIri: string, classesToCheck: string[]) {
     return new Promise((resolve: (value: string) => void, reject) => {
       this.vkgApi?.instanceCheck(

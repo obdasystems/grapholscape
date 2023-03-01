@@ -15,6 +15,8 @@ export enum IncrementalEvent {
   ContextClick = 'contextClick',
   DiagramUpdated = 'diagramUpdated',
   ReasonerSet = 'reasonerSet',
+  NewDataPropertyValues = 'newDataPropertyValues',
+  DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish'
 }
 
 export interface IonEvent {
@@ -29,6 +31,8 @@ export interface IonEvent {
   (event: IncrementalEvent.ContextClick, callback: (entity: GrapholEntity) => void): void
   (event: IncrementalEvent.DiagramUpdated, callback: () => void): void
   (event: IncrementalEvent.ReasonerSet, callback: () => void): void
+  (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void
+  (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void
 }
 
 export default class IncrementalLifecycle {
@@ -43,6 +47,8 @@ export default class IncrementalLifecycle {
   private contextClick: ((entity: GrapholEntity) => void)[] = []
   private diagramUpdated: (() => void)[] = []
   private reasonerSet: (() => void)[] = []
+  private newDataPropertyValues: ((dataPropertyIri: string, newValues: string[]) => void)[] = []
+  private dpvaluesloadfinish: ((dataPropertyIri: string) => void)[] = []
 
 
   constructor() { }
@@ -58,6 +64,8 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.ContextClick, entity: GrapholEntity): void
   trigger(event: IncrementalEvent.DiagramUpdated): void
   trigger(event: IncrementalEvent.ReasonerSet): void
+  trigger(event: IncrementalEvent.NewDataPropertyValues, instanceIri: string, dataPropertyIri: string, newValues: string[]): void
+  trigger(event: IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri: string, dataPropertyIri: string): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

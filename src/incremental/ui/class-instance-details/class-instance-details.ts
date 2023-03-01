@@ -5,7 +5,7 @@ import style from "./style"
 export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
   private _dataProperties: EntityViewData[] = []
   /** @internal */
-  dataPropertiesValues?: Map<string, { values: string[], loading?: boolean }>
+  private _dataPropertiesValues?: Map<string, { values: Set<string>, loading?: boolean }>
   /** @internal */
   canShowDataPropertiesValues = false
   /** @internal */
@@ -25,6 +25,10 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
     css`
       div.entity-list-item[entity-type = "data-property"] { 
         flex-wrap: wrap;
+      }
+
+      gscape-entity-list-item {
+        width: fit-content;
       }
     `
   ]
@@ -61,8 +65,8 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
             <div class="section-body" style="padding-left: 0px; padding-right: 0px">
               ${this.dataProperties.map(dataProperty => {
 
-                const values = this.dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
-
+                const values = this._dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
+                console.log(values)
                 return html`
                   <gscape-entity-list-item
                     displayedname=${dataProperty.displayedName}
@@ -72,8 +76,8 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
                     ${this.canShowDataPropertiesValues && values
                       ? html`
                         <div slot="trailing-element">
-                          ${!values.loading && values.values.length === 0 ? html`<span class="chip neutral-chip">${GscapeClassInstanceDetails.notAvailableText}</span>` : null}
-                          ${values.values.map(v => html`<span class="chip data-property-value">${v}</span>`)}
+                          ${!values.loading && values.values.size === 0 ? html`<span class="chip neutral-chip">${GscapeClassInstanceDetails.notAvailableText}</span>` : null}
+                          ${Array.from(values.values).map(v => html`<span class="chip data-property-value">${v}</span>`)}
                           ${values.loading
                             ? html`<span class="chip neutral-chip">${textSpinner()}</span>`
                             : null
@@ -93,11 +97,6 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
     </div>
     `
   }
-
-  a() {
-    console.log('ciao')
-  }
-
   /**
   private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string, parentClassIri?: string, direct?: boolean) {
     const values = this.dataPropertiesValues?.get(entity.value.iri.fullIri)
@@ -135,21 +134,6 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
     this.onParentClassSelection(iri)
   }
 
-  /** @internal */
-  setDataPropertiesValues(dataPropertiesValues: Map<string, { values: string[]; loading?: boolean | undefined; }>) {
-    this.dataPropertiesValues = dataPropertiesValues
-  }
-
-  /** @internal */
-  setDataPropertyLoading(dataPropertyIri: string, isLoading: boolean) {
-    const dataPropertiesValues = this.dataPropertiesValues?.get(dataPropertyIri)
-
-    if (dataPropertiesValues) {
-      dataPropertiesValues.loading = isLoading
-      this.requestUpdate()
-    }
-  }
-
   show() {
     super.show()
     this.shadowRoot?.querySelectorAll(`details`)?.forEach(detailsElement => detailsElement.open = false )
@@ -158,7 +142,21 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
   reset() {
     this.dataProperties = []
     this.canShowDataPropertiesValues = false
-    this.dataPropertiesValues = undefined
+  }
+
+  addDataPropertyValue(dataPropertyIri: string, value: string) {
+    this._dataPropertiesValues?.get(dataPropertyIri)?.values.add(value)
+    this.requestUpdate()
+  }
+
+  /** @internal */
+  setDataPropertyLoading(dataPropertyIri: string, isLoading: boolean) {
+    const dataPropertyValues = this._dataPropertiesValues?.get(dataPropertyIri)
+
+    if (dataPropertyValues) {
+      dataPropertyValues.loading = isLoading
+      this.requestUpdate()
+    }
   }
 
   get dataProperties() {
@@ -168,6 +166,7 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
   set dataProperties(newDataProperties) {
     const oldValue = this._dataProperties
     this._dataProperties = newDataProperties.sort((a,b) => a.displayedName.localeCompare(b.displayedName))
+    this._dataPropertiesValues = new Map(this._dataProperties.map(dp => [dp.value.iri.fullIri, { values: new Set(), loading: true }]))
     this.requestUpdate('dataProperties', oldValue)
   }
 }
