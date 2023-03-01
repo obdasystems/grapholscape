@@ -1,4 +1,4 @@
-import { GrapholEntity, GrapholTypesEnum, LifecycleEvent } from '../../../model';
+import { GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../../model';
 import { WidgetEnum } from '../../../ui';
 import { GscapeEntityDetails } from '../../../ui/entity-details';
 import grapholEntityToEntityViewData from '../../../util/graphol-entity-to-entity-view-data';
@@ -21,7 +21,8 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
   incrementalController.grapholscape.on(LifecycleEvent.EntitySelection, async grapholEntity => {
     let dataProperties: GrapholEntity[] | undefined
 
-    if (grapholEntity.is(GrapholTypesEnum.CLASS)) {
+
+    if (grapholEntity.is(GrapholTypesEnum.CLASS) && incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       dataProperties = await incrementalController.getDataPropertiesByClass(grapholEntity.iri.fullIri)
       classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
       classInstanceDetails.parentClasses = undefined
@@ -40,8 +41,11 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
 
     if (classInstanceEntity.parentClassIri) {
       const parentClassEntity = incrementalController.grapholscape.ontology.getEntity(classInstanceEntity.parentClassIri.fullIri)
-      if (parentClassEntity)
+      if (parentClassEntity) {
+        const dataProperties = await incrementalController.getDataPropertiesByClass(parentClassEntity.iri.fullIri)
+        classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
         classInstanceDetails.parentClasses = [grapholEntityToEntityViewData(parentClassEntity, incrementalController.grapholscape)]
+      }
     }
     
 
