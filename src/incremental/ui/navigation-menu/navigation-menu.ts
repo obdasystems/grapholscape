@@ -171,6 +171,11 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     super.hide()
   }
 
+  attachTo(element: HTMLElement): void {
+    this.popperRef = element
+    super.attachTo(element)
+  }
+
   get objectProperties() {
     return this._objectProperties
   }

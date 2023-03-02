@@ -1,8 +1,9 @@
-import { Annotation, AnnotationsKind, ClassInstanceEntity, GrapholTypesEnum, Iri } from "../../../model"
+import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model"
 import { WidgetEnum } from "../../../ui"
 import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
+import onHideMenu from "../on-hide-menu"
 import GscapeInstanceExplorer, { InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
 
 export { default as GscapeInstanceExplorer } from './instance-explorer'
@@ -73,7 +74,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   })
 
   instancesExplorer.tippyWidget.setProps({
-    onHide: () => incrementalController.endpointController?.stopRequests()
+    onHide: () => onHideMenu(instancesExplorer, incrementalController)
   })
 
   return instancesExplorer

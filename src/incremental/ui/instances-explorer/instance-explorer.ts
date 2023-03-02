@@ -1,9 +1,8 @@
-import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit"
+import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
 import { GrapholTypesEnum } from "../../../model"
 import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinner, textSpinnerStyle } from "../../../ui"
-import { entityIcons, insertInGraph, searchOff, search } from "../../../ui/assets"
+import { entityIcons, insertInGraph, search, searchOff } from "../../../ui/assets"
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
-import a11yClick from "../../../ui/util/a11y-click"
 import getIconSlot from "../../../ui/util/get-icon-slot"
 import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
@@ -325,6 +324,11 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   updated() {
     if (this.popperRef)
       this.attachTo(this.popperRef)
+  }
+
+  attachTo(element: HTMLElement): void {
+    this.popperRef = element
+    super.attachTo(element)
   }
 
   private get propertyFilterSelect() { return this.shadowRoot?.querySelector('#property-filter-select') as GscapeSelect | undefined }

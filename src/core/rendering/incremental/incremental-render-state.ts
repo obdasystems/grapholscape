@@ -115,6 +115,14 @@ export default class IncrementalRendererState extends FloatyRendererState {
     this.onContextClickCallback = callback
   }
 
+  removeElement(elementId: string) {
+    const element = this.renderer.cy?.$id(elementId)
+    if (element?.data().pinned) {
+      this.unpinNode(element)
+    }
+    this.incrementalDiagram.removeElement(elementId)
+  }
+
   get diagramRepresentation() {
     return this.incrementalDiagram.representations.get(this.id)
   }

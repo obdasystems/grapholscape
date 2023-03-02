@@ -20,7 +20,7 @@ import { MastroEndpoint, RequestOptions } from "./api/model";
 import { IBaseMixin } from "../ui";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import EndpointApi, { IEndpointApi } from "./api/endpoint-api";
-import { EdgeSingular, Position } from "cytoscape";
+import { EdgeSingular, NodeSingular, Position } from "cytoscape";
 import EndpointController from "./endpoint-controller";
 
 /** @internal */
@@ -407,7 +407,7 @@ export default class IncrementalController {
                   entitiesIrisToKeep.push(entity?.iri.fullIri || '') // the entity we are removing must be skipped, otherwise cyclic recursion
                   this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
                 } else {
-                  this.incrementalDiagram.removeElement(neighbourElement.id())
+                  this.incrementalRenderer.removeElement(neighbourElement.id())
                 }
               }
             } else {
@@ -415,7 +415,7 @@ export default class IncrementalController {
               // (cytoscape removes them automatically
               // but we need to update the grapholElements 
               // map too in diagram representation)
-              this.incrementalDiagram.removeElement((neighbourElement as EdgeSingular).id())
+              this.incrementalRenderer.removeElement((neighbourElement as EdgeSingular).id())
             }
           })
 
@@ -428,7 +428,7 @@ export default class IncrementalController {
           })
         }
 
-        this.incrementalDiagram.removeElement(element.id())
+        this.incrementalRenderer.removeElement(element.id())
         entity?.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
 
         if (entity?.is(GrapholTypesEnum.CLASS_INSTANCE))
@@ -713,16 +713,16 @@ export default class IncrementalController {
       return
 
     // remove union node
-    this.incrementalDiagram.removeElement(hierarchy.id)
+    this.incrementalRenderer.removeElement(hierarchy.id)
 
     // remove input edges
     hierarchy.getInputGrapholEdges()?.forEach(inputEdge => {
-      this.incrementalDiagram.removeElement(inputEdge.id)
+      this.incrementalRenderer.removeElement(inputEdge.id)
     })
 
     // remove inclusion edges
     hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
-      this.incrementalDiagram.removeElement(inclusionEdge.id)
+      this.incrementalRenderer.removeElement(inclusionEdge.id)
     })
 
     let entity: GrapholEntity | null
@@ -956,9 +956,9 @@ export default class IncrementalController {
   //   }
   // }
 
-  runLayout() {
-    this.incrementalRenderer.runLayout()
-  }
+  runLayout = () => this.incrementalRenderer.runLayout()
+  pinNode = (node: NodeSingular | string) => this.incrementalRenderer.pinNode(node)
+  unpinNode = (node: NodeSingular | string) => this.incrementalRenderer.unpinNode(node)
 
   postDiagramEdit(oldElemsNumber: number) {
     if (this.numberOfElements !== oldElemsNumber) {

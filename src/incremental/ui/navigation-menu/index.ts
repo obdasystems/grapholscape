@@ -2,6 +2,8 @@ import { WidgetEnum } from "../../../ui";
 import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data";
 import IncrementalController from "../../controller";
 import { GscapeInstanceExplorer } from "../instances-explorer";
+import onHideMenu from "../on-hide-menu";
+import showMenu from "../show-menu";
 import GscapeNavigationMenu, { ObjectPropertyNavigationEvent } from "./navigation-menu";
 
 export function NavigationMenuFactory(incrementalController: IncrementalController) {
@@ -73,9 +75,14 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
 
       navigationMenu.hide()
 
-      if (navigationMenu.popperRef)
-        instancesExplorer.attachTo(navigationMenu.popperRef)
+      if (navigationMenu.popperRef) {
+        showMenu(instancesExplorer, incrementalController)
+      }
     }
+  })
+
+  navigationMenu.tippyWidget.setProps({
+    onHide: () => onHideMenu(navigationMenu, incrementalController),
   })
 
   return navigationMenu

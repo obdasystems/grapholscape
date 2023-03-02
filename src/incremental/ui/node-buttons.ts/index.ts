@@ -8,6 +8,7 @@ import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
+import showMenu from "../show-menu";
 import NodeButton from "./node-button";
 
 export function NodeButtonsFactory(incrementalController: IncrementalController) {
@@ -77,7 +78,6 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
 
   cy.on('mouseout', 'node', e => {
     nodeButtons.forEach((buttons, _) => buttons.forEach(btn => {
-      btn.node = undefined
       btn.hide()
     }))
   })
@@ -132,9 +132,8 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
 
     // TODO: check why sometimes here targetButton.node is undefined, happens only few times
     // it should be defined due to previous initial if
-    if (targetButton.node) {
-      navigationMenu.attachTo((targetButton.node as any).popperRef())
-      navigationMenu.popperRef = (targetButton.node as any).popperRef()
+    if (targetButton.node) {      
+      showMenu(navigationMenu, incrementalController)
     }
   }
 }
@@ -171,8 +170,7 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
     // TODO: check why sometimes here targetButton.node is undefined, happens only few times
     // it should be defined due to previous initial if
     if (targetButton.node) {
-      instanceExplorer.attachTo((targetButton.node as any).popperRef())
-      instanceExplorer.popperRef = (targetButton.node as any).popperRef()
+      showMenu(instanceExplorer, incrementalController)
     }
   }
 }

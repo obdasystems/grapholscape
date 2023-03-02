@@ -98,12 +98,22 @@ export default class FloatyRendererState extends BaseRenderer {
     this.runLayout()
   }
 
-  pinNode(node) {
-    if (!node || !this.renderer.cy || node?.data().pinned) return
-    node.lock()
-    node.data("pinned", true)
+  pinNode(nodeOrId: NodeSingular | string) {
+    if (!nodeOrId || !this.renderer.cy) return
+    let node: NodeSingular
+    if (typeof (nodeOrId) === 'string') {
+      node = this.renderer.cy.$id(nodeOrId)
+    } else {
+      node = nodeOrId
+    }
 
-    node.unlockButton = node.popper({
+    if (node.data().pinner)
+      return
+
+    node.lock()
+    node.data("pinned", true);
+
+    (node as any).unlockButton = (node as any).popper({
       content: () => {
         if (!this.renderer.cy) return
         let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
@@ -165,7 +175,16 @@ export default class FloatyRendererState extends BaseRenderer {
     unlockButton.update()
   }
 
-  unpinNode(node) {
+  unpinNode(nodeOrId: string | NodeSingular) {
+    if (!nodeOrId || !this.renderer.cy) return
+
+    let node: NodeSingular
+    if (typeof (nodeOrId) === 'string') {
+      node = this.renderer.cy.$id(nodeOrId)
+    } else {
+      node = nodeOrId
+    }
+
     this.removeUnlockButton(node)
     node.unlock()
     node.data("pinned", false)
