@@ -62,7 +62,8 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
         // if only one related class for this object property, then retrieve data properties for this related class
         // as it will be selected by default
         if (instancesExplorer.classTypeFilterList?.length === 1) {
-          instancesExplorer.searchFilterList = (await incrementalController.getDataPropertiesByClass(instancesExplorer.classTypeFilterList[0].value.iri.fullIri))
+          instancesExplorer.searchFilterList = (await incrementalController
+            .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].value.iri.fullIri]))
             .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
         }
 

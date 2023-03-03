@@ -10,7 +10,7 @@ export default class InstanceCheckingPoller extends QueryPoller {
   }
 
   protected stopCondition(): boolean {
-    return this.hasAnyResults() || this.result.state === QueryStatusEnum.FINISHED || this.result.state === QueryStatusEnum.STOPPED
+    return this.result.state === QueryStatusEnum.FINISHED || this.result.state === QueryStatusEnum.STOPPED
   }
 
   protected isResultError(result: any): boolean {
@@ -18,7 +18,7 @@ export default class InstanceCheckingPoller extends QueryPoller {
   }
 
   protected hasAnyResults(): boolean {
-    return this.result.leafClasses ? this.result.leafClasses.length > 0 : false
+    return this.result.resultClasses ? this.result.resultClasses.length > 0 : false
   }
 
   get result(): InstanceCheckingInfo {

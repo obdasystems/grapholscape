@@ -39,7 +39,6 @@ export type InstanceCheckingInfo = {
   state: QueryStatusEnum
   percentage: number
   resultClasses: MWSEntity[]
-  leafClasses?: MWSEntity[]
 }
 
 export type MWSEntity = {

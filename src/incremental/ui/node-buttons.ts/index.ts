@@ -48,6 +48,9 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
     }
   })
 
+
+  incrementalController.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => console.log('started' + instanceIri))
+  incrementalController.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => console.log('finished' + instanceIri))
 }
 
 function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<GrapholTypesEnum, NodeButton[]>) {
@@ -105,10 +108,10 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
       navigationMenu.canShowObjectPropertiesRanges = true
       
 
-      objectProperties = await incrementalController.getObjectPropertiesByClass(targetButton.node.data().iri)
+      objectProperties = await incrementalController.getObjectPropertiesByClasses([targetButton.node.data().iri])
     }
 
-    if (targetButton.node.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+    else if (targetButton.node.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
       referenceEnity = incrementalController.classInstanceEntities.get(targetButton.node.data().iri)
       if (!referenceEnity)
         return
@@ -116,8 +119,10 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
       navigationMenu.canShowObjectPropertiesRanges = false
 
-      if ((referenceEnity as ClassInstanceEntity).parentClassIri)
-        objectProperties = await incrementalController.getObjectPropertiesByClass((referenceEnity as ClassInstanceEntity).parentClassIri.fullIri)
+      if ((referenceEnity as ClassInstanceEntity).parentClassIris) {
+        const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
+        objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
+      }        
     }
 
     navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
@@ -154,8 +159,8 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 
         instanceExplorer.areInstancesLoading = true
         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
-        const dataProperties = await incrementalController.getDataPropertiesByClass(referenceEntity.iri.fullIri)
-        const objectPropertiesMap = await incrementalController.getObjectPropertiesByClass(referenceEntity.iri.fullIri)
+        const dataProperties = await incrementalController.getDataPropertiesByClasses([referenceEntity.iri.fullIri])
+        const objectPropertiesMap = await incrementalController.getObjectPropertiesByClasses([referenceEntity.iri.fullIri])
         const objectProperties = Array.from(objectPropertiesMap).map(([opEntity, _]) => opEntity)
 
         instanceExplorer.searchFilterList = dataProperties

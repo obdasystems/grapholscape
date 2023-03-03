@@ -5,11 +5,11 @@ import { GrapholTypesEnum } from "./enums";
 /** @internal */
 export default class ClassInstanceEntity extends GrapholEntity {
 
-  parentClassIri: Iri
+  parentClassIris?: Iri[]
 
-  constructor(iri: Iri, parentClassIri: Iri) {
+  constructor(iri: Iri, parentClassIri: Iri[] = []) {
     super(iri, GrapholTypesEnum.CLASS_INSTANCE)
 
-    this.parentClassIri = parentClassIri
+    this.parentClassIris = parentClassIri
   }
 }

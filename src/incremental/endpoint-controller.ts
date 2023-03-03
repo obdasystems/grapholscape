@@ -110,11 +110,15 @@ export default class EndpointController {
   }
 
   async instanceCheck(instanceIri: string, classesToCheck: string[]) {
-    return new Promise((resolve: (value: string) => void, reject) => {
+    this.lifecycle.trigger(IncrementalEvent.InstanceCheckingStarted, instanceIri)
+    return new Promise((resolve: (value: string[]) => void, reject) => {
       this.vkgApi?.instanceCheck(
         instanceIri,
         classesToCheck,
-        resolve,
+        (res) => {
+          resolve(res)
+          this.lifecycle.trigger(IncrementalEvent.InstanceCheckingFinished, instanceIri)
+        },
         reject
       )
     })

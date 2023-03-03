@@ -28,9 +28,11 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   instancesExplorer.addEventListener('instanceselection', async (e: InstanceSelectionEvent) => {
     let addedInstanceEntity: ClassInstanceEntity | undefined
 
-    addedInstanceEntity = await incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
-    if (addedInstanceEntity) {
-      incrementalController.addEdge(e.detail.instance.iri, addedInstanceEntity.parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
+    addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
+    if (addedInstanceEntity?.parentClassIris) {
+      addedInstanceEntity?.parentClassIris.forEach(parentClassIri => {
+        incrementalController.addEdge(e.detail.instance.iri, parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
+      })
     }
 
     if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
@@ -62,7 +64,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
 
       else if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS_INSTANCE && instancesExplorer.referencePropertyEntity) {
         if (e.detail.filterByType) {
-          instancesExplorer.searchFilterList = (await incrementalController.getDataPropertiesByClass(e.detail.filterByType))
+          instancesExplorer.searchFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
             .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
         }
 

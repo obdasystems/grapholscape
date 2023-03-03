@@ -1,5 +1,5 @@
 import QueryManager from '../queries/query-manager'
-import { QueryPollerStatus } from '../queries/query-poller'
+import { QueryPollerStatus, QueryStatusPoller } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
@@ -24,7 +24,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
   getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
-  instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIri: string) => void, onStop: () => void) => Promise<void>,
+  instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
 
   pageSize: number
@@ -199,12 +199,12 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     return queryPoller.executionId
   }
 
-  async instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string) => void, onStop?: () => void) {
+  async instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string[]) => void, onStop?: () => void) {
     const poller = await this.queryManager.instanceCheck(instanceIri, classesToCheck)
 
     poller.onNewResults = (result) => {
-      if (result.leafClasses) {
-        onResult(result.leafClasses[0].entityIRI)
+      if (result.resultClasses && result.state === QueryStatusEnum.FINISHED) {
+        onResult(result.resultClasses.map(entity => entity.entityIRI))
       }
     }
 

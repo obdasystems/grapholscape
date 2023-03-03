@@ -16,7 +16,9 @@ export enum IncrementalEvent {
   DiagramUpdated = 'diagramUpdated',
   ReasonerSet = 'reasonerSet',
   NewDataPropertyValues = 'newDataPropertyValues',
-  DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish'
+  DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish',
+  InstanceCheckingStarted = 'instanceCheckingStarted',
+  InstanceCheckingFinished = 'instanceCheckingFinished'
 }
 
 export interface IonEvent {
@@ -32,7 +34,9 @@ export interface IonEvent {
   (event: IncrementalEvent.DiagramUpdated, callback: () => void): void
   (event: IncrementalEvent.ReasonerSet, callback: () => void): void
   (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void
-  (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void
+  (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void,
+  (event: IncrementalEvent.InstanceCheckingStarted, callback: (instanceIri: string) => void): void,
+  (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void,
 }
 
 export default class IncrementalLifecycle {
@@ -48,7 +52,9 @@ export default class IncrementalLifecycle {
   private diagramUpdated: (() => void)[] = []
   private reasonerSet: (() => void)[] = []
   private newDataPropertyValues: ((dataPropertyIri: string, newValues: string[]) => void)[] = []
-  private dpvaluesloadfinish: ((dataPropertyIri: string) => void)[] = []
+  private dpvaluesloadfinish: ((instanceIri: string, dataPropertyIri: string) => void)[] = []
+  private instanceCheckingStarted: ((instanceIri: string) => void)[] = []
+  private instanceCheckingFinished: ((instanceIri: string) => void)[] = []
 
 
   constructor() { }
@@ -66,6 +72,8 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.ReasonerSet): void
   trigger(event: IncrementalEvent.NewDataPropertyValues, instanceIri: string, dataPropertyIri: string, newValues: string[]): void
   trigger(event: IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri: string, dataPropertyIri: string): void
+  trigger(event: IncrementalEvent.InstanceCheckingStarted, instanceIri: string): void
+  trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

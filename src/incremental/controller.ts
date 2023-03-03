@@ -437,7 +437,7 @@ export default class IncrementalController {
     })
   }
 
-  async addInstance(instance: ClassInstance, parentClassesIris: string[] | string) {
+  addInstance(instance: ClassInstance, parentClassesIris?: string[] | string) {
     let classInstanceEntity = this.classInstanceEntities.get(instance.iri)
     if (classInstanceEntity) {
       return classInstanceEntity
@@ -445,33 +445,47 @@ export default class IncrementalController {
 
     // if (!this.diagramBuilder.referenceNodeId) return
     let parentClassEntity: GrapholEntity | null | undefined
+    const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
+    
+    classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
+
+    if (instance.label) {
+      classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
+    }
+
+    const addedElement = this.diagramBuilder.addClassInstance(classInstanceEntity)
+    addedElement.displayedName = classInstanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
+    this.incrementalDiagram.representation?.updateElement(addedElement, false)
+    this.classInstanceEntities.set(instance.iri, classInstanceEntity)
 
     if (typeof (parentClassesIris) !== 'string') {
-      const parentClassIriFromInstanceChecking = await this.endpointController?.instanceCheck(instance.iri, parentClassesIris)
-      if (parentClassIriFromInstanceChecking) {
-        parentClassesIris = parentClassIriFromInstanceChecking
-      } else {
-        return
-      }
-    }
 
-    parentClassEntity = this.ontology.getEntity(parentClassesIris)
-
-    if (parentClassEntity) {
-      const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
-      classInstanceEntity = new ClassInstanceEntity(classInstanceIri, parentClassEntity.iri)
-
-      if (instance.label) {
-        classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
+      if(!parentClassesIris) {
+        parentClassesIris = Array.from(this.grapholscape.ontology.entities.entries()).filter(([_, grapholEntity]) => {
+          grapholEntity.is(GrapholTypesEnum.CLASS)
+        }).map(([iri, _]) => iri)
       }
 
-      const addedElement = this.diagramBuilder.addClassInstance(classInstanceEntity)
-      addedElement.displayedName = classInstanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-      this.incrementalDiagram.representation?.updateElement(addedElement, false)
-      this.classInstanceEntities.set(instance.iri, classInstanceEntity)
+      this.endpointController?.instanceCheck(instance.iri, parentClassesIris).then(result => {
+        result.forEach(classIri => {
+          const classEntity = this.ontology.getEntity(classIri)
+          if (classEntity && classInstanceEntity) {
+            if (classInstanceEntity.parentClassIris) {
+              classInstanceEntity.parentClassIris.push(classEntity.iri)
+            } else {
+              classInstanceEntity.parentClassIris = [classEntity.iri]
+            }
+          }
+        })
+      })
 
-      return classInstanceEntity
+    } else {
+      parentClassEntity = this.ontology.getEntity(parentClassesIris)
+      if (parentClassEntity)
+        classInstanceEntity.parentClassIris = [parentClassEntity.iri]
     }
+
+    return classInstanceEntity
 
     // const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
 
@@ -873,9 +887,9 @@ export default class IncrementalController {
    * @param classIri 
    * @returns 
    */
-  async getObjectPropertiesByClass(classIri: string) {
+  async getObjectPropertiesByClasses(classIris: string[]) {
     if (this.endpointController) {
-      this.endpointController.highlightsManager?.computeHighlights(classIri)
+      this.endpointController.highlightsManager?.computeHighlights(classIris)
       const branches = await this.endpointController.highlightsManager?.objectProperties()
       const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
 
@@ -905,29 +919,29 @@ export default class IncrementalController {
       return objectPropertiesMap
 
     } else {
-      return this.neighbourhoodFinder.getObjectProperties(classIri)
+      return this.neighbourhoodFinder.getObjectProperties(classIris[0])
     }
   }
 
-  async getDataPropertiesByClass(classIri: string) {
+  async getDataPropertiesByClasses(classIris: string[]) {
     if (this.endpointController) {
-      this.endpointController.highlightsManager?.computeHighlights(classIri)
+      this.endpointController.highlightsManager?.computeHighlights(classIris)
       const dataProperties = await this.endpointController.highlightsManager?.dataProperties()
       return dataProperties
         ?.map(dp => this.ontology.getEntity(dp))
         .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
         || []
     } else {
-      return this.neighbourhoodFinder.getDataProperties(classIri)
+      return this.neighbourhoodFinder.getDataProperties(classIris[0])
     }
   }
 
   async getDataPropertiesByClassInstance(instanceIri: string) {
     const instanceEntity = this.classInstanceEntities.get(instanceIri)
 
-    if (instanceEntity && this.endpointController?.highlightsManager) {
+    if (instanceEntity?.parentClassIris && this.endpointController?.highlightsManager) {
       this.endpointController.highlightsManager
-        .computeHighlights(instanceEntity.parentClassIri.fullIri)
+        .computeHighlights(instanceEntity.parentClassIris.map(i => i.fullIri))
 
       return (await this.endpointController.highlightsManager.dataProperties())
         .map(dp => this.ontology.getEntity(dp))

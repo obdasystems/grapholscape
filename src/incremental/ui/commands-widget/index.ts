@@ -11,19 +11,23 @@ export function CommandsWidgetFactory(incrementalController: IncrementalControll
   incrementalController.on(IncrementalEvent.ContextClick, entity => {
     const commands: Command[] = []
 
-    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && (entity as ClassInstanceEntity).parentClassIri) {
-      const parentClassIri = (entity as ClassInstanceEntity).parentClassIri!.fullIri
+    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && (entity as ClassInstanceEntity).parentClassIris) {
+      const parentClassIris = (entity as ClassInstanceEntity).parentClassIris
       commands.push(showParentClass(() => {
         incrementalController.performActionWithBlockedGraph(() => {
-          incrementalController.addEntity(parentClassIri, false)
-          incrementalController.addEdge(entity.iri.fullIri,
-            parentClassIri,
-            GrapholTypesEnum.INSTANCE_OF
-          )
+          parentClassIris?.forEach(parentClassIri => {
+            incrementalController.addEntity(parentClassIri.fullIri, false)
+            incrementalController.addEdge(entity.iri.fullIri,
+              parentClassIri.fullIri,
+              GrapholTypesEnum.INSTANCE_OF
+            )
+          })
         })
-        setTimeout(() => {
-          incrementalController.grapholscape.centerOnElement(parentClassIri)
-        }, 250)
+        if (parentClassIris?.length === 1) {
+          setTimeout(() => {
+            incrementalController.grapholscape.centerOnElement(parentClassIris[0].fullIri)
+          }, 250)
+        }
       }))
     }
 

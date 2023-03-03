@@ -203,7 +203,7 @@ export default class QueryManager {
     this._runningQueryPollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     // this._runningQueryStatePollerByExecutionId.forEach((_, executionId) => this.stopQuery(executionId))
     this._runningCountQueryPollerByExecutionId.forEach((_, executionId) => this.stopCountQuery(executionId))
-    this._runningInstanceCheckingPollerByThreadId.forEach((_, threadId) => this.stopInstanceChecking(threadId))
+    // this._runningInstanceCheckingPollerByThreadId.forEach((_, threadId) => this.stopInstanceChecking(threadId))
   }
 
   stopQuery(executionId: string) {
