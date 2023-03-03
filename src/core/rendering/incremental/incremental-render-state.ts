@@ -117,7 +117,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   removeElement(elementId: string) {
     const element = this.renderer.cy?.$id(elementId)
-    if (element?.data().pinned) {
+    if (element?.nonempty() && element?.data().pinned) {
       this.unpinNode(element)
     }
     this.incrementalDiagram.removeElement(elementId)
