@@ -18,6 +18,8 @@ export default css`
   gap: 16px;
   flex-direction: column;
   overflow: unset;
+  padding-right: 0;
+  padding-left: 0;
 }
 
 .header {
@@ -38,6 +40,10 @@ gscape-entity-list-item:hover > .hover-btn {
   overflow: auto;
   display: flex;
   flex-direction: column;
+}
+
+.gscape-panel > * {
+  padding: 0 8px;
 }
 
 `

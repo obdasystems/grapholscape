@@ -220,7 +220,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
             ? html`
               <gscape-button id="show-more-btn" size="s" label="Show More" type="subtle" @click=${this.handleShowMore}></gscape-button>
             `
-            : this.numberOfPagesShown > 1 ? html`<span style="align-self: center" class="bold-text muted-text">No more data</span>` : null
+            : this.numberOfPagesShown > 1 ? html`<span style="align-self: center; margin: 8px 8px 16px" class="bold-text muted-text">No more data</span>` : null
         }
         </div>
       </div>
