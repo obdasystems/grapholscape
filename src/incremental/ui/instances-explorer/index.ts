@@ -61,11 +61,12 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
       }
 
       else if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS_INSTANCE && instancesExplorer.referencePropertyEntity) {
-        if (e.detail.filterByType)
+        if (e.detail.filterByType) {
           instancesExplorer.searchFilterList = (await incrementalController.getDataPropertiesByClass(e.detail.filterByType))
             .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+        }
 
-        incrementalController.endpointController?.requestInstancesForObjectPropertyRange(
+        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForObjectPropertyRange(
           instancesExplorer.referenceEntity.value.iri.fullIri,
           instancesExplorer.referencePropertyEntity.value.iri.fullIri,
           instancesExplorer.isPropertyDirect,

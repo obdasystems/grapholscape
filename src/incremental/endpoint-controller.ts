@@ -80,7 +80,7 @@ export default class EndpointController {
   }
 
   requestNewInstances(requestId: string, pageNumber: number) {
-    return this.vkgApi?.getNewResults(
+    this.vkgApi?.getNewResults(
       requestId,
       pageNumber,
       (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),

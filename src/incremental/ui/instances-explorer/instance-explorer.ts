@@ -252,6 +252,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       event.detail.filterByType = this.classTypeFilterSelect.selectedOptionId
     }
 
+    this.numberOfPagesShown = 1
     this.dispatchEvent(event)
   }
 

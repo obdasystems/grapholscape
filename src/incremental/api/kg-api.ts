@@ -73,7 +73,6 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     queryPoller.start()
-    return queryPoller.executionId
   }
 
   async getInstancesByPropertyValue(

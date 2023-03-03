@@ -43,6 +43,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
         !(instancesExplorer.referenceEntity?.value.iri.equals(referenceEntity.iri) &&
           instancesExplorer.referencePropertyEntity?.value.iri.equals(objectPropertyEntity.iri))
       ) {
+        navigationMenu.hide()
         instancesExplorer.clear()
         instancesExplorer.areInstancesLoading = true
         instancesExplorer.referenceEntity = navigationMenu.referenceEntity
@@ -65,15 +66,13 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
             .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
         }
 
-        incrementalController.endpointController?.requestInstancesForObjectPropertyRange(
+        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForObjectPropertyRange(
           referenceEntity.iri.fullIri,
           e.detail.objectPropertyIri,
           e.detail.direct,
           e.detail.rangeClassIri
         )
       }
-
-      navigationMenu.hide()
 
       if (navigationMenu.popperRef) {
         showMenu(instancesExplorer, incrementalController)
