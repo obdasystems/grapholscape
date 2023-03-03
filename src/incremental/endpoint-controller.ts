@@ -12,10 +12,12 @@ export default class EndpointController {
   private selectedEndpoint?: MastroEndpoint
   private vkgApi?: VKGApi
   highlightsManager?: HighlightsManager
+  limit = 10
 
   constructor(private requestOptions: RequestOptions, private lifecycle: IncrementalLifecycle) {
     this.endpointApi = new EndpointApi(this.requestOptions)
     this.getRunningEndpoints()
+    this.setLimit(this.limit)
   }
 
   async getRunningEndpoints(): Promise<MastroEndpoint[]> {
@@ -31,7 +33,7 @@ export default class EndpointController {
     if (_endpoint) {
       this.selectedEndpoint = _endpoint
       if (!this.vkgApi) {
-        this.vkgApi = new VKGApi(this.requestOptions, _endpoint)
+        this.vkgApi = new VKGApi(this.requestOptions, _endpoint, this.limit)
         this.highlightsManager = new HighlightsManager(this.vkgApi)
       } else {
         this.vkgApi.setEndpoint(_endpoint)
@@ -43,8 +45,9 @@ export default class EndpointController {
   }
 
   setLimit(limit: number) {
+    this.limit = limit
     if (this.vkgApi) {
-      this.vkgApi.limit = limit
+      this.vkgApi.pageSize = limit
       this.lifecycle.trigger(IncrementalEvent.LimitChange, limit)
     }
   }
@@ -60,7 +63,7 @@ export default class EndpointController {
 
   requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string) {  
     if (searchText && propertyIriFilter)
-      this.vkgApi?.getInstancesByPropertyValue(
+      return this.vkgApi?.getInstancesByPropertyValue(
         classIri,
         propertyIriFilter,
         searchText,
@@ -68,7 +71,7 @@ export default class EndpointController {
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
       )
     else
-      this.vkgApi?.getInstances(
+      return this.vkgApi?.getInstances(
         classIri,
         (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
@@ -76,8 +79,17 @@ export default class EndpointController {
       )
   }
 
+  requestNewInstances(requestId: string, pageNumber: number) {
+    return this.vkgApi?.getNewResults(
+      requestId,
+      pageNumber,
+      (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+      () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished)
+    )
+  }
+
   requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, rangeClassIri?: string, searchText?: string) {
-    this.vkgApi?.getInstanceObjectPropertyRanges(
+    return this.vkgApi?.getInstanceObjectPropertyRanges(
       instanceIri,
       objectPropertyIri,
       isDirect,

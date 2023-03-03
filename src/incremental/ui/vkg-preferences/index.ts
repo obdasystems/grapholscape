@@ -15,9 +15,10 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
   if (incrementalController.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL || !incrementalController.endpointController)
     vkgPreferences.hide()
 
-  if (incrementalController.endpointController)
+  if (incrementalController.endpointController) {
     // Starting data
     setEndpointList()
+  }
 
   incrementalController.on(IncrementalEvent.EndpointChange, newEndpoint => {
     vkgPreferences.selectedEndpointName = newEndpoint.name
@@ -30,6 +31,7 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
   incrementalController.on(IncrementalEvent.ReasonerSet, () => {
     vkgPreferences.show()
     setEndpointList()
+    vkgPreferences.limit = incrementalController.endpointController?.limit || 100
   })
 
   vkgPreferences.onTogglePanel = () => setEndpointList()

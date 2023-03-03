@@ -1,6 +1,8 @@
 const LABEL_AVAILABLE = false
 
-export function getInstances(iri: string, maxResults?: number, searchText?: string) {
+const LIMIT = 500
+
+export function getInstances(iri: string, searchText?: string, maxResults?: number) {
   const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
   const where = `?x a <${iri}>.`
   let filter: string = ``
@@ -12,7 +14,6 @@ export function getInstances(iri: string, maxResults?: number, searchText?: stri
     filter += `)`
   }
   const optional = LABEL_AVAILABLE ? `OPTIONAL { ?x rdf:label ?l }` : ``
-  const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `
     SELECT DISTINCT ${select}
@@ -21,18 +22,17 @@ export function getInstances(iri: string, maxResults?: number, searchText?: stri
       ${optional}
       ${filter}
     }
-    ${limit}
+    LIMIT ${maxResults || LIMIT}
   `
 }
 
-export function getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?:number) {
+export function getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
   const select = `?x`
   const where = [
     `?x a <${classIri}>.`,
     `?x <${propertyIri}> ?y.`
   ]
   let filter = `FILTER(regex(?y, '${propertyValue}', 'i'))`
-  const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `
     SELECT DISTINCT ${select}
@@ -40,7 +40,7 @@ export function getInstancesByPropertyValue(classIri: string, propertyIri: strin
       ${where.join('\n')}
       ${filter}
     }
-    ${limit}
+    LIMIT ${maxResults || LIMIT}
   `
 }
 
@@ -53,14 +53,14 @@ export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIr
   `
 }
 
-export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, maxResults?: number, searchText?: string) {
+export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, searchText?: string, maxResults?: number,) {
   const select = LABEL_AVAILABLE ? `?y ?l` : `?y`
   let where = isDirect ? `<${instanceIri}> <${objectPropertyIri}> ?y.` : `?y <${objectPropertyIri}> <${instanceIri}>.`
 
   if (rangeTypeClassIri)
     where += `?y a <${rangeTypeClassIri}>.`
 
-  const optional = LABEL_AVAILABLE ? `?y rdf:label ?l` : ``
+  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdf:label ?l }` : ``
   let filter: string = ``
   if (searchText) {
     filter = `FILTER(regex(?y, '${searchText}', 'i')`
@@ -69,7 +69,6 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
 
     filter += `)`
   }
-  const limit = maxResults ? `LIMIT ${maxResults}` : ``
 
   return `
     SELECT DISTINCT ${select}
@@ -78,6 +77,6 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
       ${optional}
       ${filter}
     }
-    ${limit}
+    LIMIT ${maxResults || LIMIT}
   `
 }

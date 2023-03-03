@@ -27,24 +27,22 @@ export interface IVirtualKnowledgeGraphApi {
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIri: string) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
 
-  limit: number
+  pageSize: number
 }
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
   private queryManager: QueryManager
-  limit = 10 // How many results to show?
 
-  constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint) {
+  constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint, public pageSize: number) {
     this.setEndpoint(endpoint)
   }
 
-  async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) {
-    const queryCode = QueriesTemplates.getInstances(iri, this.limit, searchText)
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+  async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string, pageSize?: number) {
+    const _pageSize = pageSize || this.pageSize
+    const queryCode = QueriesTemplates.getInstances(iri, searchText)
+    const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => {
-        return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
-      }))
+      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
     })
 
     if (onStop) {
@@ -52,6 +50,30 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     queryPoller.start()
+
+    return queryPoller.executionId
+  }
+
+  async getNewResults(executionId: string,
+    pageNumber: number,
+    onNewResults: (classInstances: ClassInstance[]) => void,
+    onStop?: () => void,
+    pageSize?: number) {
+    
+    const _pageSize = pageSize || this.pageSize
+    const queryPoller = await this.queryManager.getQueryResults(executionId, _pageSize, pageNumber)
+
+    queryPoller.onNewResults = (result => {
+      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
+      queryPoller.stop()
+    })
+
+    if (onStop) {
+      queryPoller.onStop = onStop
+    }
+
+    queryPoller.start()
+    return queryPoller.executionId
   }
 
   async getInstancesByPropertyValue(
@@ -59,14 +81,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     propertyIri: string,
     propertyValue: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
-    onStop?: (() => void)) {
+    onStop?: (() => void),
+    limit?: number) {
 
-    const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue, this.limit)
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+    const _limit = limit || this.pageSize
+    const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue, _limit)
+    const queryPoller = await this.queryManager.performQuery(queryCode, _limit)
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => {
-        return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
-      }))
+      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
     })
 
     if (onStop) {
@@ -74,11 +96,13 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     queryPoller.start()
+
+    return queryPoller.executionId
   }
 
 
   async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
-    const queryCode = QueriesTemplates.getInstances(iri, undefined, searchText)
+    const queryCode = QueriesTemplates.getInstances(iri, searchText)
     this.queryManager.performQueryCount(queryCode, onStop)
       .then(result => onResult(result))
       .catch(_ => {
@@ -141,7 +165,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     // pollPage(1)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize)
     queryPoller.onNewResults = (results) => {
       onNewResults(results.results.map(res => res[0].value))
     }
@@ -158,17 +182,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     onNewResults: (classInstances: ClassInstance[]) => void,
     rangeClassIri?: string,
     textSearch?: string,
-    onStop?: (() => void),
-    onError?: (() => void),
+    onStop?: (() => void)
   ) {
 
-    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, this.limit, textSearch)
+    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, textSearch)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.limit)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize)
     queryPoller.onNewResults = (result) => {
-      onNewResults(result.results.map(res => {
-        return { iri: res[0].value, shortIri: res[0].shortIRI, label: res[1]?.value }
-      }))
+      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
     }
 
     if (onStop) {
@@ -176,6 +197,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     queryPoller.start()
+    return queryPoller.executionId
   }
 
   async instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string) => void, onStop?: () => void) {
@@ -200,6 +222,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
   setEndpoint(endpoint: MastroEndpoint) {
     this.queryManager = new QueryManager(this.requestOptions, endpoint)
+  }
+
+  private static getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string }[]): ClassInstance {
+    return { iri: result[0].value, shortIri: result[0].shortIRI, label: result[1]?.value }
   }
 }
 

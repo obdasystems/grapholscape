@@ -119,11 +119,6 @@ export class QueryResultsPoller extends QueryPoller {
     super()
   }
 
-  stop() {
-    super.stop()
-    this.poll()
-  }
-
   protected hasAnyResults(): boolean {
     return this.result && this.result.results.length > 0
   }

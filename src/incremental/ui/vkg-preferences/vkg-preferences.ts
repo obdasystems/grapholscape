@@ -94,7 +94,7 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
             <div class="preference">
               <div class="limit-box">
                 <label for="instances-limit" class="bold-text">Limit</label>
-                <input id="instances-limit" type="number" min="1" max="100" value="10" @change=${this.handleLimitChange}>
+                <input id="instances-limit" type="number" min="1" max="1000" value="${this.limit}" @change=${this.handleLimitChange}>
               </div>
             </div>
             

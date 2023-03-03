@@ -13,7 +13,11 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   const instancesExplorer = new GscapeInstanceExplorer()
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
-  incrementalController.on(IncrementalEvent.NewInstances, newInstances => instancesExplorer.instances = newInstances)
+  incrementalController.on(IncrementalEvent.NewInstances, newInstances => {
+    instancesExplorer.addInstances(newInstances)
+    const minNumberOfInstancesToAskMore = (incrementalController.endpointController?.limit || 10000) * instancesExplorer.numberOfPagesShown
+    instancesExplorer.canShowMore = instancesExplorer.instances.size >= minNumberOfInstancesToAskMore
+  })
 
   incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)
 
@@ -38,19 +42,18 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
     }
 
-    instancesExplorer.setInstanceAdProcessed(e.detail.instance.iri)
+    instancesExplorer.setInstanceAsProcessed(e.detail.instance.iri)
     incrementalController.runLayout()
   })
 
-
   instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {
     incrementalController.endpointController?.stopRequests()
-    instancesExplorer.instances = []
+    instancesExplorer.instances = new Map()
     instancesExplorer.areInstancesLoading = true
 
     if (instancesExplorer.referenceEntity) {
       if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS) {
-        incrementalController.endpointController?.requestInstancesForClass(
+        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
           instancesExplorer.referenceEntity?.value.iri.fullIri,
           e.detail.filterText,
           e.detail.filterByProperty
@@ -70,6 +73,18 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
           e.detail.filterText,
         )
       }
+    }
+  })
+
+  instancesExplorer.addEventListener('showmoreinstances', async (e: CustomEvent) => {
+    incrementalController.endpointController?.stopRequests()
+    instancesExplorer.areInstancesLoading = true
+
+    if (instancesExplorer.requestId) {
+      incrementalController.endpointController?.requestNewInstances(
+        instancesExplorer.requestId,
+        instancesExplorer.numberOfPagesShown + 1
+      )
     }
   })
 

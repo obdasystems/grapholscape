@@ -163,7 +163,7 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
           .concat(objectProperties.map(op => grapholEntityToEntityViewData(op, incrementalController.grapholscape)))
           .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
 
-        incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
+        instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
       }
     }
 

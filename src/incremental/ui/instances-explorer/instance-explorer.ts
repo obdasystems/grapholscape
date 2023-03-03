@@ -12,13 +12,16 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   popperRef?: HTMLElement
 
   areInstancesLoading: boolean
-  instances: ClassInstance[] = []
+  instances: Map<string, ClassInstance> = new Map()
   searchFilterList: EntityViewData[] = []
   classTypeFilterList?: EntityViewData[]
   referenceEntity?: EntityViewData
   referencePropertyEntity?: EntityViewData
   isPropertyDirect: boolean = true
   instancesInProcess: Map<string, boolean> = new Map()
+  requestId?:string
+  numberOfPagesShown = 1
+  canShowMore: boolean = false
 
   private searchTimeout:  NodeJS.Timeout
 
@@ -29,6 +32,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     searchFilterList: { type: Object },
     referencePropertyEntity: { type: Object },
     classTypeFilterList: { type: Object },
+    canShowMore: { type: Boolean },
   }
 
   static styles: CSSResultGroup = [
@@ -64,6 +68,15 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
       gscape-select {
         max-width: 180px;
+      }
+
+      #show-more-btn, #loading-content-spinner {
+        align-self: center;
+        margin: 8px;
+      }
+
+      #loading-content-spinner {
+        position: relative;
       }
     `
   ]
@@ -164,11 +177,11 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
             ${getIconSlot('icon', search)}
           </gscape-button>
         </div>
-
-        ${this.instances.length > 0
+        
+        <div class="entity-list">
+        ${this.instances.size > 0
           ? html`
-            <div class="entity-list">
-            ${this.instances.map(instance => html`
+            ${Array.from(this.instances).map(([_, instance]) => html`
               <gscape-entity-list-item
                 displayedname=${instance.label || instance.shortIri || instance.iri}
                 iri=${instance.iri}
@@ -191,7 +204,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 </div>
               </gscape-entity-list-item>
             `)}
-            </div>
           `
           : !this.areInstancesLoading ? html`
               <div class="blank-slate">
@@ -202,7 +214,15 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
             : null
         }
 
-        ${this.areInstancesLoading ? html`<div style="margin: 16px auto 12px;">${getContentSpinner()}</div>` : null}
+        ${this.areInstancesLoading 
+          ? html`<div id="loading-content-spinner">${getContentSpinner()}</div>` 
+          : this.canShowMore
+            ? html`
+              <gscape-button id="show-more-btn" size="s" label="Show More" type="subtle" @click=${this.handleShowMore}></gscape-button>
+            `
+            : this.numberOfPagesShown > 1 ? html`<span style="align-self: center" class="bold-text muted-text">No more data</span>` : null
+        }
+        </div>
       </div>
     `
   }
@@ -265,7 +285,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     const targetListItem = (e.currentTarget as HTMLElement).parentElement?.parentElement as GscapeEntityListItem | null
 
     if (targetListItem) {
-      const instance = this.instances.find(i => i.iri === targetListItem.iri)
+      const instance = this.instances.get(targetListItem.iri)
 
       if (instance) {
         let parentClassIris: string[] | string
@@ -302,13 +322,31 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     }
   }
 
-  setInstanceAdProcessed(instanceIri: string) {
+  private handleShowMore(e: Event) {
+    this.dispatchEvent(new CustomEvent('showmoreinstances', {
+      bubbles: true,
+      composed: true
+    }))
+    this.numberOfPagesShown += 1
+  }
+
+  addInstances(newInstances: ClassInstance[]) {
+    newInstances.forEach(i => {
+      if (!this.instances.has(i.iri)) {
+        this.instances.set(i.iri, i)
+      }
+    })
+    this.requestUpdate()
+  }
+
+  setInstanceAsProcessed(instanceIri: string) {
     this.instancesInProcess.delete(instanceIri)
     this.requestUpdate()
   }
 
   clear() {
-    this.instances = []
+    this.instances = new Map()
+    this.numberOfPagesShown = 1
     this.areInstancesLoading = false
     this.searchFilterList = []
     this.classTypeFilterList = []

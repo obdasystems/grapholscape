@@ -3,6 +3,7 @@ import { css } from "lit";
 export default css`
 :host {
   min-width: 300px;
+  max-height: 600px;
   display: block;
 }
 
@@ -35,6 +36,8 @@ gscape-entity-list-item:hover > .hover-btn {
 .entity-list {
   min-height: 0;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 `

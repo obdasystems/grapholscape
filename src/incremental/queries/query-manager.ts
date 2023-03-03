@@ -4,7 +4,7 @@ import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
-  private _runningQueryPollerByExecutionId: Map<string, QueryResultsPoller> = new Map()
+  private _runningQueryPollerByExecutionId: Map<string, Set<QueryResultsPoller>> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
   private _runningInstanceCheckingPollerByThreadId: Map<string, InstanceCheckingPoller> = new Map()
 
@@ -39,8 +39,14 @@ export default class QueryManager {
    */
   async performQuery(queryCode: string, pageSize: number, pageNumber = 1): Promise<QueryResultsPoller> {
     const executionId = await this.startQuery(queryCode)
+
+    // return this.getQueryResults(executionId, pageSize, pageNumber)
     const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId)
-    this._runningQueryPollerByExecutionId.set(executionId, queryResultsPoller)
+    if (this._runningQueryPollerByExecutionId.get(executionId)) {
+      this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
+    } else {
+      this._runningQueryPollerByExecutionId.set(executionId, new Set([queryResultsPoller]))
+    }
 
     queryResultsPoller.onError = this.requestOptions.onError
 
@@ -68,6 +74,44 @@ export default class QueryManager {
     //   this._runningQueryStatePollerByExecutionId.delete(executionId)
     // }
 
+    return queryResultsPoller
+  }
+
+  async getQueryResults(executionId: string, pageSize: number, pageNumber: number): Promise<QueryResultsPoller> {
+    const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId)
+
+    if (this._runningQueryPollerByExecutionId.get(executionId)) {
+      this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
+    } else {
+      this._runningQueryPollerByExecutionId.set(executionId, new Set([queryResultsPoller]))
+    }
+
+    queryResultsPoller.onError = this.requestOptions.onError
+
+    // const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
+
+    // queryStatusPoller.onNewResults = (result) => {
+    //   if (result.status !== QueryStatusEnum.RUNNING) {
+    //     // queryResultsPoller.stop()
+    //     // this._runningQueryPollerByExecutionId.get(executionId)?.delete(queryResultsPoller)
+    //     // if (this._runningQueryPollerByExecutionId.get(executionId)?.size === 0) {
+    //     //   this._runningQueryPollerByExecutionId.delete(executionId)
+    //     // }
+
+    //     queryStatusPoller.stop()
+    //   }
+    // }
+
+    // queryStatusPoller.onError = (errors) => {
+    //   for (let error of errors)
+    //     this.requestOptions.onError(error)
+
+    //   queryResultsPoller.stop()
+    //   this._runningQueryPollerByExecutionId.delete(executionId)
+    // }
+
+    // queryStatusPoller.start()
+    
     return queryResultsPoller
   }
 
@@ -163,7 +207,7 @@ export default class QueryManager {
   }
 
   stopQuery(executionId: string) {
-    this._runningQueryPollerByExecutionId.get(executionId)?.stop() // stop polling
+    this._runningQueryPollerByExecutionId.get(executionId)?.forEach(poller => poller.stop()) // stop polling
     this._runningQueryPollerByExecutionId.delete(executionId)
     this.handleCall(fetch(this.getQueryStopPath(executionId), {
       method: 'put',
