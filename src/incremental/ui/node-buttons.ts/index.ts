@@ -24,12 +24,11 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
   objectPropertyButton.title = 'Navigate through object properties'
 
   const nodeButtonsMap = new Map<GrapholTypesEnum, NodeButton[]>()
-  nodeButtonsMap.set(GrapholTypesEnum.CLASS, [instancesButton, objectPropertyButton])
+  nodeButtonsMap.set(GrapholTypesEnum.CLASS, [objectPropertyButton])
   nodeButtonsMap.set(GrapholTypesEnum.CLASS_INSTANCE, [objectPropertyButton])
 
 
   instancesButton.onclick = (e) => handleInstancesButtonClick(e, incrementalController)
-
   objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, incrementalController)
 
   if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
@@ -46,6 +45,10 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
     if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
       setHandlersOnIncrementalCytoscape(incrementalController.incrementalDiagram.representation.cy, nodeButtonsMap)
     }
+  })
+
+  incrementalController.on(IncrementalEvent.ReasonerSet, () => {
+    nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(instancesButton)
   })
 
 
