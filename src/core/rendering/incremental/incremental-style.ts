@@ -38,6 +38,13 @@ export default function (theme: GrapholscapeTheme) {
         'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
         'line-opacity': 0.4,
       }
+    },
+
+    {
+      selector: `.unknown-parent-class`,
+      style: {
+        backgroundColor: theme.getColour(ColoursNames.neutral)
+      }
     }
 
   ] as Stylesheet[]

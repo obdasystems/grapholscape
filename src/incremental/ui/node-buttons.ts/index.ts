@@ -1,4 +1,3 @@
-import { NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
 import { icons, WidgetEnum } from "../../../ui";
 import getIconSlot from "../../../ui/util/get-icon-slot";
@@ -9,6 +8,7 @@ import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
+import LoadingBadge from "./loading-badge";
 import NodeButton from "./node-button";
 
 export function NodeButtonsFactory(incrementalController: IncrementalController) {
@@ -49,8 +49,36 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
   })
 
 
-  incrementalController.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => console.log('started' + instanceIri))
-  incrementalController.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => console.log('finished' + instanceIri))
+  incrementalController.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
+    const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
+    if (cyNode) {
+      const _loadingButton = new LoadingBadge()
+      cyNode.addClass('unknown-parent-class')
+      cyNode.scratch('loading-button', _loadingButton)
+      cyNode.scratch('update-loading-button-position', () => {
+        _loadingButton.attachTo((cyNode as any).popperRef())
+      })
+      _loadingButton.cxtWidgetProps.offset = info => getButtonOffset(info)
+
+      // update badge position on node moving around and on viewport pan state change
+      cyNode.on('position', cyNode.scratch('update-loading-button-position'))
+      cyNode.cy().on('pan', cyNode.scratch('update-loading-button-position'))
+      cyNode.scratch('update-loading-button-position')()
+    }
+  })
+
+  incrementalController.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
+    const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
+
+    if (cyNode && cyNode.scratch('loading-button')) {
+      (cyNode.scratch('loading-button') as NodeButton).remove()
+      cyNode.removeClass('unknown-parent-class')
+      cyNode.removeScratch('loading-button')
+      cyNode.removeListener('position', cyNode.scratch('update-loading-button-positon'))
+      cyNode.cy().removeListener('pan', cyNode.scratch('update-loading-button-position'))
+      cyNode.removeScratch('update-loading-button-position')
+    }
+  })
 }
 
 function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<GrapholTypesEnum, NodeButton[]>) {
@@ -61,18 +89,10 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
     const targetNode = e.target
     const targetType = targetNode.data().type
 
-    if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
+    if (!targetNode.hasClass('unknown-parent-class') && (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE)) {
       nodeButtons.get(targetType)?.forEach((btn, i) => {
         // set position relative to default placemente (right)
-        btn.cxtWidgetProps.offset = (info) => {
-          const btnHeight = info.popper.height + 4
-          const btnWidth = info.popper.width
-          return [
-            -(btnHeight / 2) - (i * btnHeight) + (btnHeight * (nodeButtons.get(targetType)!.length / 2)), // y
-            -btnWidth / 2 // x
-          ]
-        }
-
+        btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
         btn.node = targetNode
         btn.attachTo(targetNode.popperRef());
       })
@@ -106,7 +126,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
 
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
       navigationMenu.canShowObjectPropertiesRanges = true
-      
+
 
       objectProperties = await incrementalController.getObjectPropertiesByClasses([targetButton.node.data().iri])
     }
@@ -122,7 +142,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
       if ((referenceEnity as ClassInstanceEntity).parentClassIris) {
         const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
         objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
-      }        
+      }
     }
 
     navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
@@ -137,7 +157,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
 
     // TODO: check why sometimes here targetButton.node is undefined, happens only few times
     // it should be defined due to previous initial if
-    if (targetButton.node) {      
+    if (targetButton.node) {
       showMenu(navigationMenu, incrementalController)
     }
   }
@@ -178,4 +198,14 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
       showMenu(instanceExplorer, incrementalController)
     }
   }
+}
+
+
+function getButtonOffset(info: { popper: { height: number, width: number } }, buttonIndex = 0, numberOfButtons = 1): [number, number] {
+  const btnHeight = info.popper.height + 4
+  const btnWidth = info.popper.width
+  return [
+    -(btnHeight / 2) - (buttonIndex * btnHeight) + (btnHeight * (numberOfButtons / 2)), // y
+    -btnWidth / 2 // x
+  ]
 }
