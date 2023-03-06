@@ -8,12 +8,11 @@ export { default as GscapeVKGPreferences } from './vkg-preferences'
 
 export function VKGPreferencesFactory(incrementalController: IncrementalController) {
   const vkgPreferences = new GscapeVKGPreferences()
-
   incrementalController.grapholscape.widgets.set(WidgetEnum.VKG_PREFERENCES, vkgPreferences)
   incrementalController.grapholscape.uiContainer?.querySelector('.gscape-ui-buttons-tray')?.appendChild(vkgPreferences)
 
   if (incrementalController.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL || !incrementalController.endpointController)
-    vkgPreferences.hide()
+    vkgPreferences.disable()
 
   if (incrementalController.endpointController) {
     // Starting data
@@ -29,7 +28,10 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
   })
 
   incrementalController.on(IncrementalEvent.ReasonerSet, () => {
-    vkgPreferences.show()
+    if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      vkgPreferences.enable()
+    }
+
     setEndpointList()
     vkgPreferences.limit = incrementalController.endpointController?.limit || 100
   })
@@ -58,7 +60,7 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
         return {
           name: e.name
         }
-      }).sort((a,b) => a.name.localeCompare(b.name))
+      }).sort((a, b) => a.name.localeCompare(b.name))
 
       if (endpoints.length >= 1 && !vkgPreferences.selectedEndpointName) {
         incrementalController.endpointController?.setEndpoint(endpoints[0])

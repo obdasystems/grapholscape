@@ -1,6 +1,6 @@
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../model";
+import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { createEntitiesList, EntityViewData } from "../ui/util/search-entities";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
@@ -51,6 +51,12 @@ export default class IncrementalController {
     this.diagramBuilder = new DiagramBuilder(this.incrementalDiagram)
     this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
+
+    grapholscape.on(LifecycleEvent.RendererChange, newRendererState => {
+      if (newRendererState === RendererStatesEnum.INCREMENTAL) {
+        this.diagramBuilder.diagram = this.incrementalDiagram
+      }
+    })
   }
 
   createClassInstanceEntity(classInstance: ClassInstance) {
@@ -358,6 +364,7 @@ export default class IncrementalController {
   reset() {
     if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       this.incrementalRenderer.createNewDiagram()
+      this.diagramBuilder.diagram = this.incrementalDiagram
       this.classInstanceEntities.clear()
       // this.entitySelector.show()
       if (this.grapholscape.renderer.diagram)

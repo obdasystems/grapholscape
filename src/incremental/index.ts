@@ -32,7 +32,8 @@ export function initIncremental(grapholscape: Grapholscape) {
     initEntitySelector(incrementalController.grapholscape)
     const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
     incrementalController.grapholscape.uiContainer?.appendChild(entitySelector)
-
+    entitySelector.hide()
+  
     entitySelector.onClassSelection(classIri => {
       entitySelector.hide()
       incrementalController.addEntity(classIri)
@@ -83,9 +84,15 @@ export function initIncremental(grapholscape: Grapholscape) {
   })
 
   incrementalController.on(IncrementalEvent.Reset, () => {
-    (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector)?.show();
-    (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails)?.hide();
-
+    if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      manageWidgetsOnActivation(
+        grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
+        grapholscape.renderer.cy?.elements().empty(),
+        incrementalController.endpointController !== undefined
+      )
+    }
+    // (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector)?.show();
+    // (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails)?.hide();
   })
 
   // grapholscape.renderer.unselect()
@@ -134,16 +141,16 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
 
-  classInstanceDetails?.show()
-  diagramSelector?.hide()
+  classInstanceDetails?.enable()
+  diagramSelector?.disable()
 
   if (isCanvasEmpty)
     entitySelector?.show()
 
   if (isReasonerAvailable)
-    vkgPreferences?.show()
+    vkgPreferences?.enable()
 
-  filtersWidget?.hide()
+  filtersWidget?.disable()
 }
 
 function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>) {
@@ -153,9 +160,9 @@ function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLE
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
 
-  classInstanceDetails?.hide()
-  vkgPreferences?.hide()
-  diagramSelector?.show()
+  classInstanceDetails?.disable()
+  vkgPreferences?.disable()
+  diagramSelector?.enable()
   entitySelector?.hide()
-  filtersWidget?.show()
+  filtersWidget?.enable()
 }
