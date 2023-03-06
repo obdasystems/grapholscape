@@ -112,7 +112,12 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
             </div>
           </div>
         `
-        : null
+        : html`
+          <div class="blank-slate" style="padding-bottom: 8px">
+            ${icons.blankSlateDiagrams}
+            <div class="header">No Object Properties Available</div>
+          </div>
+        `
       } 
     </div>
   `
