@@ -1,4 +1,5 @@
 import { Grapholscape } from "../core";
+import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Lifecycle, LifecycleEvent, RendererStatesEnum } from "../model";
 import { BaseMixin, createEntitiesList, IBaseMixin } from "../ui";
 import { GscapeDiagramSelector } from "../ui/diagram-selector";
@@ -33,7 +34,7 @@ export function initIncremental(grapholscape: Grapholscape) {
     const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
     incrementalController.grapholscape.uiContainer?.appendChild(entitySelector)
     entitySelector.hide()
-  
+
     entitySelector.onClassSelection(classIri => {
       entitySelector.hide()
       incrementalController.addEntity(classIri)
@@ -41,12 +42,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   }
 
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    manageWidgetsOnActivation(
-      grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-      grapholscape.renderer.cy?.elements().empty(),
-      incrementalController.endpointController !== undefined
-    )
-    incrementalController.setIncrementalEventHandlers()
+    onIncrementalStartup(grapholscape, incrementalController)
   } else {
     manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
   }
@@ -55,18 +51,8 @@ export function initIncremental(grapholscape: Grapholscape) {
   grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
 
     if (rendererState === RendererStatesEnum.INCREMENTAL) {
-      grapholscape.renderer.unselect()
-      if (!incrementalController) {
-        incrementalController = new IncrementalController(grapholscape)
-      }
-      manageWidgetsOnActivation(
-        grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-        grapholscape.renderer.cy?.elements().empty(),
-        incrementalController.endpointController !== undefined
-      )
+      onIncrementalStartup(grapholscape, incrementalController)
     } else {
-      // incrementalController?.clearState()
-
       manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
     }
   })
@@ -133,6 +119,24 @@ export function initIncremental(grapholscape: Grapholscape) {
 
 }
 
+function onIncrementalStartup(grapholscape: Grapholscape, incrementalController: IncrementalController) {
+  grapholscape.renderer.unselect()
+
+  if (!incrementalController) {
+    incrementalController = new IncrementalController(grapholscape)
+  }
+
+  manageWidgetsOnActivation(
+    grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
+    grapholscape.renderer.cy?.elements().empty(),
+    incrementalController.endpointController !== undefined
+  )
+
+  if (grapholscape.renderer.diagram)
+      setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+
+  incrementalController.setIncrementalEventHandlers()
+}
 
 function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false, isReasonerAvailable?: boolean) {
   const filtersWidget = widgets.get(WidgetEnum.FILTERS)
