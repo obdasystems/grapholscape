@@ -1,4 +1,4 @@
-const LABEL_AVAILABLE = false
+const LABEL_AVAILABLE = true
 
 const LIMIT = 500
 
@@ -13,7 +13,7 @@ export function getInstances(iri: string, searchText?: string, maxResults?: numb
 
     filter += `)`
   }
-  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?x rdf:label ?l }` : ``
+  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?x rdfs:label ?l }` : ``
 
   return `
     SELECT DISTINCT ${select}
@@ -33,11 +33,13 @@ export function getInstancesByPropertyValue(classIri: string, propertyIri: strin
     `?x <${propertyIri}> ?y.`
   ]
   let filter = `FILTER(regex(?y, '${propertyValue}', 'i'))`
+  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdfss:label ?l }` : ``
 
   return `
     SELECT DISTINCT ${select}
     WHERE {
       ${where.join('\n')}
+      ${optional}
       ${filter}
     }
     LIMIT ${maxResults || LIMIT}
@@ -60,7 +62,7 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
   if (rangeTypeClassIri)
     where += `?y a <${rangeTypeClassIri}>.`
 
-  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdf:label ?l }` : ``
+  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdfs:label ?l }` : ``
   let filter: string = ``
   if (searchText) {
     filter = `FILTER(regex(?y, '${searchText}', 'i')`
