@@ -133,7 +133,7 @@ function onIncrementalStartup(grapholscape: Grapholscape, incrementalController:
   )
 
   if (grapholscape.renderer.diagram)
-      setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+    setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
 
   incrementalController.setIncrementalEventHandlers()
 }

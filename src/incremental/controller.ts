@@ -1,6 +1,6 @@
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
+import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { createEntitiesList, EntityViewData } from "../ui/util/search-entities";
 import GscapeContextMenu, { Command } from "../ui/common/context-menu";
@@ -56,6 +56,11 @@ export default class IncrementalController {
       if (newRendererState === RendererStatesEnum.INCREMENTAL) {
         this.diagramBuilder.diagram = this.incrementalDiagram
       }
+    })
+
+    // update instances displayed names
+    grapholscape.on(LifecycleEvent.EntityNameTypeChange, _ => {
+      this.classInstanceEntities.forEach(instanceEntity => this.updateEntityNameType(instanceEntity.iri))
     })
   }
 
@@ -144,12 +149,9 @@ export default class IncrementalController {
     const entity = this.grapholscape.ontology.getEntity(iri)
 
     if (entity && this.diagramBuilder.diagram.representation) {
-      // const oldElemNumbers = this.diagramBuilder.diagram.representation.cy.elements().size()
       this.diagramBuilder.addEntity(entity)
-      // if (this.diagramBuilder.diagram.representation.cy.elements().size() > oldElemNumbers) {
-      //   this.postDiagramEdit()
-      // }
 
+      this.updateEntityNameType(entity.iri)
       if (centerOnIt)
         this.grapholscape.centerOnElement(iri)
     }
@@ -386,6 +388,40 @@ export default class IncrementalController {
     this.endpointController?.clear()
   }
 
+  private updateEntityNameType(entityOrIri: string | Iri) {
+    let entityIri: string
+    if (typeof (entityOrIri) !== 'string') {
+      entityIri = entityOrIri.fullIri
+    } else {
+      entityIri = entityOrIri
+    }
+
+    const entity = this.classInstanceEntities.get(entityIri) || this.ontology.getEntity(entityIri)
+    let entityElement = this.incrementalDiagram.representation?.grapholElements.get(entityIri)
+    let entityElements: GrapholElement[] | undefined
+
+    // can't find element? look for occurrences, not every entity has id=iri
+    if (entity && !entityElement) {
+      entityElements = entity.occurrences.get(this.incrementalRenderer.id)?.map(occurrence => {
+        return this.incrementalDiagram.representation?.grapholElements.get(occurrence.elementId) as GrapholElement
+      }).filter(e => e !== undefined)
+    } else if (entityElement) {
+      entityElements = [entityElement]
+    }
+
+    if (entity && entityElements) {
+      // set the displayed name based on current entity name type
+      entityElements.forEach(element => {
+        element.displayedName = entity.getDisplayedName(
+          this.grapholscape.entityNameType,
+          this.grapholscape.language,
+          this.ontology.languages.default
+        )
+        this.incrementalDiagram.representation?.updateElement(element, false)
+      })
+    }
+  }
+
   /**
    * Remove a class, an instance or a data property node from the diagram.
    * Entities left with no other connections are recurisvely removed too.
@@ -453,21 +489,19 @@ export default class IncrementalController {
     // if (!this.diagramBuilder.referenceNodeId) return
     let parentClassEntity: GrapholEntity | null | undefined
     const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
-    
+
     classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
 
     if (instance.label) {
       classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
     }
 
-    const addedElement = this.diagramBuilder.addClassInstance(classInstanceEntity)
-    addedElement.displayedName = classInstanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language, this.ontology.languages.default)
-    this.incrementalDiagram.representation?.updateElement(addedElement, false)
+    this.diagramBuilder.addClassInstance(classInstanceEntity)
     this.classInstanceEntities.set(instance.iri, classInstanceEntity)
 
     if (typeof (parentClassesIris) !== 'string') {
 
-      if(!parentClassesIris) {
+      if (!parentClassesIris) {
         parentClassesIris = Array.from(this.grapholscape.ontology.entities.entries()).filter(([_, grapholEntity]) => {
           return grapholEntity.is(GrapholTypesEnum.CLASS)
         }).map(([iri, _]) => iri)
@@ -492,6 +526,7 @@ export default class IncrementalController {
         classInstanceEntity.parentClassIris = [parentClassEntity.iri]
     }
 
+    this.updateEntityNameType(classInstanceEntity.iri)
     return classInstanceEntity
 
     // const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)
@@ -606,7 +641,13 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
 
     if (objectPropertyEntity && sourceClass && targetClass) {
-      this.performActionWithBlockedGraph(() => this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass))
+      this.performActionWithBlockedGraph(() => {
+        this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass)
+
+        this.updateEntityNameType(objectPropertyEntity.iri)
+        this.updateEntityNameType(sourceClassIri)
+        this.updateEntityNameType(targetClassIri)
+      })
     }
   }
 
@@ -628,6 +669,10 @@ export default class IncrementalController {
           sourceInstanceEntity,
           targetInstanceEntity
         )
+
+        this.updateEntityNameType(objectPropertyEntity.iri)
+        this.updateEntityNameType(sourceInstanceEntity.iri)
+        this.updateEntityNameType(targetInstanceEntity.iri)
       })
     }
   }
