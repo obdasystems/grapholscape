@@ -1,3 +1,4 @@
+import { NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
 import { icons, WidgetEnum } from "../../../ui";
 import getIconSlot from "../../../ui/util/get-icon-slot";
@@ -47,8 +48,10 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
     }
   })
 
-  incrementalController.on(IncrementalEvent.ReasonerSet, () => {
-    nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(instancesButton)
+  incrementalController.on(IncrementalEvent.EndpointChange, () => {
+    if (!nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.includes(instancesButton)) {
+      nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(instancesButton)
+    }
   })
 
 
@@ -97,14 +100,24 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
         // set position relative to default placemente (right)
         btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
         btn.node = targetNode
-        btn.attachTo(targetNode.popperRef());
+
+        // save the function to attach the button in the scratch for later usage
+        targetNode.scratch(`place-node-button-${i}`, () => btn.attachTo(targetNode.popperRef()))
+        targetNode.on('position', targetNode.scratch(`place-node-button-${i}`)) // on position change, call the function in the scratch
+        btn.attachTo(targetNode.popperRef())
       })
     }
   })
 
   cy.on('mouseout', 'node', e => {
-    nodeButtons.forEach((buttons, _) => buttons.forEach(btn => {
-      btn.hide()
+    const targetNode = e.target as NodeSingular
+    nodeButtons.forEach((buttons, _) => buttons.forEach((btn, i) => {
+      btn.hide();
+      const updatePosFunction = targetNode.scratch(`place-node-button-${i}`)
+      if (updatePosFunction) {
+        targetNode.removeListener('position', undefined, updatePosFunction)
+        targetNode.removeScratch(`place-node-button-${i}`)
+      }
     }))
   })
 

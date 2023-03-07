@@ -16,7 +16,7 @@ export default class NodeButton extends ContextualWidgetMixin(GscapeButton) {
     // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
     content: this,
     offset: [0, 0],
-    hideOnClick: true,
+    hideOnClick: false,
     sticky: 'reference',
   }
 }
