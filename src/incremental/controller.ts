@@ -469,7 +469,7 @@ export default class IncrementalController {
 
       if(!parentClassesIris) {
         parentClassesIris = Array.from(this.grapholscape.ontology.entities.entries()).filter(([_, grapholEntity]) => {
-          grapholEntity.is(GrapholTypesEnum.CLASS)
+          return grapholEntity.is(GrapholTypesEnum.CLASS)
         }).map(([iri, _]) => iri)
       }
 
