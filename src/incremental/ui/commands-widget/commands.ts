@@ -51,7 +51,15 @@ export function remove(callback: () => void): Command {
 
 export function showParentClass(callback: () => void): Command {
   return {
-    content: 'Show Parent Classes',
+    content: 'Show Current Parent Classes',
+    icon: classIcon,
+    select: callback,
+  }
+}
+
+export function performInstanceChecking(callback: () => void): Command {
+  return {
+    content: 'Compute and Show Parent Classes',
     icon: classIcon,
     select: callback,
   }

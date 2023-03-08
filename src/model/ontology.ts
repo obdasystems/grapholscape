@@ -110,6 +110,10 @@ class Ontology extends AnnotatedElement {
     return null
   }
 
+  getEntitiesByType(entityType: GrapholTypesEnum.CLASS | GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.INDIVIDUAL) {
+    return Array.from(this.entities).filter(([_, entity]) => entity.is(entityType)).map(([_, entity]) => entity)
+  }
+
   getEntityFromOccurrence(entityOccurrence: EntityOccurrence) {
     const diagram = this.getDiagram(entityOccurrence.diagramId)
     if (!diagram) return

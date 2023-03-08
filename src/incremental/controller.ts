@@ -502,9 +502,7 @@ export default class IncrementalController {
     if (typeof (parentClassesIris) !== 'string') {
 
       if (!parentClassesIris) {
-        parentClassesIris = Array.from(this.grapholscape.ontology.entities.entries()).filter(([_, grapholEntity]) => {
-          return grapholEntity.is(GrapholTypesEnum.CLASS)
-        }).map(([iri, _]) => iri)
+        parentClassesIris = this.ontology.getEntitiesByType(GrapholTypesEnum.CLASS).map(entity => entity.iri.fullIri)
       }
 
       this.endpointController?.instanceCheck(instance.iri, parentClassesIris).then(result => {

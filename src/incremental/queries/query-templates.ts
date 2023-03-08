@@ -1,4 +1,4 @@
-const LABEL_AVAILABLE = true
+const LABEL_AVAILABLE = false
 
 const LIMIT = 500
 

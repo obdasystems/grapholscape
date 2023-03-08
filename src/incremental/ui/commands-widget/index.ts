@@ -1,7 +1,6 @@
 import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import { IncrementalCommands } from "../../../ui/incremental-ui";
-import { showParentClass } from "./commands";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 
@@ -12,23 +11,29 @@ export function CommandsWidgetFactory(incrementalController: IncrementalControll
     const commands: Command[] = []
 
     if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && (entity as ClassInstanceEntity).parentClassIris) {
-      const parentClassIris = (entity as ClassInstanceEntity).parentClassIris
-      commands.push(showParentClass(() => {
-        incrementalController.performActionWithBlockedGraph(() => {
-          parentClassIris?.forEach(parentClassIri => {
-            incrementalController.addEntity(parentClassIri.fullIri, false)
-            incrementalController.addEdge(entity.iri.fullIri,
-              parentClassIri.fullIri,
-              GrapholTypesEnum.INSTANCE_OF
-            )
-          })
+
+      commands.push(IncrementalCommands.performInstanceChecking(async () => {
+        const allClassesIris = incrementalController
+          .grapholscape
+          .ontology
+          .getEntitiesByType(GrapholTypesEnum.CLASS)
+          .map(e => e.iri.fullIri)
+
+        const instanceCheckingClasses = await incrementalController
+          .endpointController
+          ?.instanceCheck(entity.iri.fullIri, allClassesIris)
+
+        instanceCheckingClasses?.forEach(classIri => {
+          const classEntity = incrementalController.grapholscape.ontology.getEntity(classIri);
+          if (classEntity) {
+            (entity as ClassInstanceEntity).addParentClass(classEntity.iri)
+          }
         })
-        if (parentClassIris?.length === 1) {
-          setTimeout(() => {
-            incrementalController.grapholscape.centerOnElement(parentClassIris[0].fullIri)
-          }, 250)
-        }
+
+        showParentClass(incrementalController, entity as ClassInstanceEntity)
       }))
+
+      commands.push(IncrementalCommands.showParentClass(() => showParentClass(incrementalController, entity as ClassInstanceEntity)))
     }
 
     const classIri = entity.iri.fullIri
@@ -119,4 +124,22 @@ export function CommandsWidgetFactory(incrementalController: IncrementalControll
       }
     } catch (e) { console.error(e) }
   })
+}
+
+function showParentClass(incrementalController: IncrementalController, instanceEntity: ClassInstanceEntity) {
+  const parentClassIris = instanceEntity.parentClassIris
+  incrementalController.performActionWithBlockedGraph(() => {
+    parentClassIris?.forEach(parentClassIri => {
+      incrementalController.addEntity(parentClassIri.fullIri, false)
+      incrementalController.addEdge(instanceEntity.iri.fullIri,
+        parentClassIri.fullIri,
+        GrapholTypesEnum.INSTANCE_OF
+      )
+    })
+  })
+  if (parentClassIris?.length === 1) {
+    setTimeout(() => {
+      incrementalController.grapholscape.centerOnElement(parentClassIris[0].fullIri)
+    }, 250)
+  }
 }
