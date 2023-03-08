@@ -85,7 +85,7 @@ export default css`
   cursor: pointer;
 }
 
-.actionable:hover {
+.actionable:hover, .actionable:focus, .actionable:focus-visible {
   background-color: var(--gscape-color-neutral);
 }
 

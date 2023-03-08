@@ -36,8 +36,9 @@ export function initIncremental(grapholscape: Grapholscape) {
     entitySelector.hide()
 
     entitySelector.onClassSelection(classIri => {
-      entitySelector.hide()
       incrementalController.addEntity(classIri)
+      grapholscape.selectElement(classIri)
+      IncrementalUI.moveUpLeft(entitySelector)
     })
   }
 
@@ -60,7 +61,12 @@ export function initIncremental(grapholscape: Grapholscape) {
   incrementalController.on(IncrementalEvent.DiagramUpdated, () => {
     if (grapholscape.renderer.cy?.elements().empty()) {
       (grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide();
-      (grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as IBaseMixin)?.show()
+
+      const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as HTMLElement & IBaseMixin | undefined
+      if (entitySelector) {
+        entitySelector.show()
+        IncrementalUI.restorePosition(entitySelector)
+      }
     }
 
     const ontologyExplorer = grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
@@ -148,8 +154,10 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   classInstanceDetails?.enable()
   diagramSelector?.disable()
 
-  if (isCanvasEmpty)
-    entitySelector?.show()
+  if (isCanvasEmpty && entitySelector) {
+    entitySelector.show()
+    IncrementalUI.restorePosition(entitySelector)
+  }
 
   if (isReasonerAvailable)
     vkgPreferences?.enable()

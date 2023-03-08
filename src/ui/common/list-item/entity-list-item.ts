@@ -2,7 +2,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit
 import baseStyle from "../../style";
 import { GrapholTypesEnum } from "../../../model";
 import { arrowDown, arrow_right, entityIcons } from "../../assets";
-import { entityListItemStyle } from "../../ontology-explorer";
+import entityListItemStyle from "./entity-list-item-style";
 
 export default class GscapeEntityListItem extends LitElement {
 
