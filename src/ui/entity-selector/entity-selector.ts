@@ -143,6 +143,11 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
 
+  async focusInputSearch() {
+    await this.updateComplete
+    this.shadowRoot?.querySelector('input')?.focus()
+  }
+
   private handleEntitySelection(evt: MouseEvent) {
     const iri = (evt.currentTarget as HTMLElement).parentElement?.parentElement?.getAttribute('iri')
     if (iri)

@@ -527,6 +527,7 @@ export default class IncrementalController {
     }
 
     this.updateEntityNameType(classInstanceEntity.iri)
+    this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     return classInstanceEntity
 
     // const parentClassEntity = this.ontology.getEntity(this.diagramBuilder.referenceNodeId)

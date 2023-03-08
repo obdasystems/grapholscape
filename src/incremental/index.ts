@@ -1,18 +1,13 @@
 import { Grapholscape } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Lifecycle, LifecycleEvent, RendererStatesEnum } from "../model";
-import { BaseMixin, createEntitiesList, IBaseMixin } from "../ui";
-import { GscapeDiagramSelector } from "../ui/diagram-selector";
-import { GscapeEntityDetails } from "../ui/entity-details";
+import { LifecycleEvent, RendererStatesEnum } from "../model";
+import { createEntitiesList, IBaseMixin } from "../ui";
 import initEntitySelector, { GscapeEntitySelector } from "../ui/entity-selector";
-import { GscapeFilters } from "../ui/filters";
-import initIncrementalMenu from "../ui/incremental-ui";
-import GscapeIncrementalDetails from "../ui/incremental-ui/incremental-details";
 import { GscapeExplorer } from "../ui/ontology-explorer";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import IncrementalController from "./controller";
 import { IncrementalEvent } from "./lifecycle";
-import * as IncrementalUI from './ui'
+import * as IncrementalUI from './ui';
 
 export { IncrementalController };
 
@@ -39,6 +34,7 @@ export function initIncremental(grapholscape: Grapholscape) {
       incrementalController.addEntity(classIri)
       grapholscape.selectElement(classIri)
       IncrementalUI.moveUpLeft(entitySelector)
+      entitySelector.closePanel()
     })
   }
 
@@ -59,15 +55,20 @@ export function initIncremental(grapholscape: Grapholscape) {
   })
 
   incrementalController.on(IncrementalEvent.DiagramUpdated, () => {
+    const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as GscapeEntitySelector | undefined
     if (grapholscape.renderer.cy?.elements().empty()) {
       (grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide();
 
-      const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as unknown as HTMLElement & IBaseMixin | undefined
       if (entitySelector) {
-        entitySelector.show()
         IncrementalUI.restorePosition(entitySelector)
+        entitySelector.focusInputSearch()
+      }
+    } else {
+      if (entitySelector) {
+        IncrementalUI.moveUpLeft(entitySelector)
       }
     }
+
 
     const ontologyExplorer = grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
     if (ontologyExplorer) {
@@ -156,7 +157,8 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
 
   if (isCanvasEmpty && entitySelector) {
     entitySelector.show()
-    IncrementalUI.restorePosition(entitySelector)
+    IncrementalUI.restorePosition(entitySelector);
+    (entitySelector as GscapeEntitySelector).focusInputSearch()
   }
 
   if (isReasonerAvailable)
