@@ -45,6 +45,11 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
   incrementalController.on(IncrementalEvent.Reset, () => {
     if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
       setHandlersOnIncrementalCytoscape(incrementalController.incrementalDiagram.representation.cy, nodeButtonsMap)
+      incrementalController
+        .grapholscape
+        .container
+        .querySelectorAll('[data-tippy-root]') // take all the tippy widgets (loading badges basically)
+        .forEach(tippy => tippy.remove())
     }
   })
 
@@ -70,19 +75,15 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       cyNode.on('position', cyNode.scratch('update-loading-button-position'))
       cyNode.cy().on('pan', cyNode.scratch('update-loading-button-position'))
       cyNode.scratch('update-loading-button-position')()
+
+      cyNode.on('remove', (e) => removeLoadingBadge(e.target))
     }
   })
 
   incrementalController.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
     const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
-
     if (cyNode && cyNode.scratch('loading-button')) {
-      (cyNode.scratch('loading-button') as NodeButton).remove()
-      cyNode.removeClass('unknown-parent-class')
-      cyNode.removeScratch('loading-button')
-      cyNode.removeListener('position', cyNode.scratch('update-loading-button-positon'))
-      cyNode.cy().removeListener('pan', cyNode.scratch('update-loading-button-position'))
-      cyNode.removeScratch('update-loading-button-position')
+      removeLoadingBadge(cyNode)
     }
   })
 }
@@ -224,4 +225,13 @@ function getButtonOffset(info: { popper: { height: number, width: number } }, bu
     -(btnHeight / 2) - (buttonIndex * btnHeight) + (btnHeight * (numberOfButtons / 2)), // y
     -btnWidth / 2 // x
   ]
+}
+
+export function removeLoadingBadge(cyNode: NodeSingular) {
+  (cyNode.scratch('loading-button') as NodeButton).tippyWidget.destroy()
+  cyNode.removeClass('unknown-parent-class')
+  cyNode.removeScratch('loading-button')
+  cyNode.removeListener('position', cyNode.scratch('update-loading-button-positon'))
+  cyNode.cy().removeListener('pan', cyNode.scratch('update-loading-button-position'))
+  cyNode.removeScratch('update-loading-button-position')
 }
