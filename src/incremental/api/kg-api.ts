@@ -224,7 +224,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   }
 
   private static getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string }[]): ClassInstance {
-    return { iri: result[0].value, shortIri: result[0].shortIRI, label: result[1]?.value }
+    return { iri: result[0].value, shortIri: result[0].shortIRI, label: result[1]?.value !== 'null' ? result[1]?.value : undefined }
   }
 }
 
