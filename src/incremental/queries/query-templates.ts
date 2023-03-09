@@ -33,7 +33,7 @@ export function getInstancesByPropertyValue(classIri: string, propertyIri: strin
     `?x <${propertyIri}> ?y.`
   ]
   let filter = `FILTER(regex(?y, '${propertyValue}', 'i'))`
-  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdfss:label ?l }` : ``
+  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdfs:label ?l }` : ``
 
   return `
     SELECT DISTINCT ${select}
