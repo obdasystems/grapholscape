@@ -156,10 +156,8 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
       navigationMenu.canShowObjectPropertiesRanges = false
 
-      if ((referenceEnity as ClassInstanceEntity).parentClassIris) {
-        const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
-        objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
-      }
+      const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
+      objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
     }
 
     navigationMenu.objectProperties = Array.from(objectProperties).map(v => {

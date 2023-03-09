@@ -10,7 +10,7 @@ export function CommandsWidgetFactory(incrementalController: IncrementalControll
   incrementalController.on(IncrementalEvent.ContextClick, entity => {
     const commands: Command[] = []
 
-    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && (entity as ClassInstanceEntity).parentClassIris) {
+    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && !(entity as ClassInstanceEntity).isRDFTypeUnknown) {
 
       commands.push(IncrementalCommands.performInstanceChecking(async () => {
         const allClassesIris = incrementalController

@@ -113,12 +113,10 @@ export default class DiagramBuilder {
 
     if (!position) {
       // check if parent class is present in diagram
-      if (classInstanceEntity.parentClassIris) {
-        for (let parentClassIri of classInstanceEntity.parentClassIris) {
-          if (this.diagramRepresentation?.containsEntity(parentClassIri)) {
-            instanceNode.position = this.diagram.representation?.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
-            break
-          }
+      for (let parentClassIri of classInstanceEntity.parentClassIris) {
+        if (this.diagramRepresentation?.containsEntity(parentClassIri)) {
+          instanceNode.position = this.diagram.representation?.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
+          break
         }
       }
 

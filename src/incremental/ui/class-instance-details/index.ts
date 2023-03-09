@@ -37,21 +37,19 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     if (!entityDetailsWidget?.grapholEntity || !entityDetailsWidget?.grapholEntity.iri.equals(classInstanceEntity.iri)) {
       incrementalController.endpointController?.stopRequests()
 
-      if (classInstanceEntity.parentClassIris) {
-        const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
-        const dataProperties = await incrementalController.getDataPropertiesByClasses(parentClassesIris)
-        classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+      const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
+      const dataProperties = await incrementalController.getDataPropertiesByClasses(parentClassesIris)
+      classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
 
-        classInstanceDetails.parentClasses = parentClassesIris.map(parentClassIri => {
-          const parentClassEntity = incrementalController.grapholscape.ontology.getEntity(parentClassIri)
-          if (parentClassEntity)
-            return grapholEntityToEntityViewData(parentClassEntity, incrementalController.grapholscape)
-        }).filter(entity => entity !== undefined) as EntityViewData[]
+      classInstanceDetails.parentClasses = parentClassesIris.map(parentClassIri => {
+        const parentClassEntity = incrementalController.grapholscape.ontology.getEntity(parentClassIri)
+        if (parentClassEntity)
+          return grapholEntityToEntityViewData(parentClassEntity, incrementalController.grapholscape)
+      }).filter(entity => entity !== undefined) as EntityViewData[]
 
-        dataProperties.forEach(dp => {
-          incrementalController.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dp.iri.fullIri)
-        })
-      }
+      dataProperties.forEach(dp => {
+        incrementalController.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dp.iri.fullIri)
+      })
     }
 
     classInstanceDetails.canShowDataPropertiesValues = true

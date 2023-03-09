@@ -495,23 +495,23 @@ export default class IncrementalController {
 
   addInstance(instance: ClassInstance, parentClassesIris?: string[] | string) {
     let classInstanceEntity = this.classInstanceEntities.get(instance.iri)
-    if (classInstanceEntity) {
-      return classInstanceEntity
+
+    // if not already present, then build classInstanceEntity and add it to diagram
+    if (!classInstanceEntity) {
+      const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
+
+      classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
+
+      if (instance.label) {
+        classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
+      }
+
+      this.diagramBuilder.addClassInstance(classInstanceEntity)
+      this.classInstanceEntities.set(instance.iri, classInstanceEntity)
     }
 
-    // if (!this.diagramBuilder.referenceNodeId) return
-    let parentClassEntity: GrapholEntity | null | undefined
-    const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
 
-    classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
-
-    if (instance.label) {
-      classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
-    }
-
-    this.diagramBuilder.addClassInstance(classInstanceEntity)
-    this.classInstanceEntities.set(instance.iri, classInstanceEntity)
-
+    // update parent class Iri
     if (typeof (parentClassesIris) !== 'string') {
 
       if (!parentClassesIris) {
@@ -522,19 +522,15 @@ export default class IncrementalController {
         result.forEach(classIri => {
           const classEntity = this.ontology.getEntity(classIri)
           if (classEntity && classInstanceEntity) {
-            if (classInstanceEntity.parentClassIris) {
-              classInstanceEntity.parentClassIris.push(classEntity.iri)
-            } else {
-              classInstanceEntity.parentClassIris = [classEntity.iri]
-            }
+            classInstanceEntity.addParentClass(classEntity.iri)
           }
         })
       })
 
     } else {
-      parentClassEntity = this.ontology.getEntity(parentClassesIris)
+      const parentClassEntity = this.ontology.getEntity(parentClassesIris)
       if (parentClassEntity)
-        classInstanceEntity.parentClassIris = [parentClassEntity.iri]
+        classInstanceEntity.addParentClass(parentClassEntity.iri)
     }
 
     this.updateEntityNameType(classInstanceEntity.iri)
@@ -1003,7 +999,7 @@ export default class IncrementalController {
   async getDataPropertiesByClassInstance(instanceIri: string) {
     const instanceEntity = this.classInstanceEntities.get(instanceIri)
 
-    if (instanceEntity?.parentClassIris && this.endpointController?.highlightsManager) {
+    if (instanceEntity && this.endpointController?.highlightsManager) {
       this.endpointController.highlightsManager
         .computeHighlights(instanceEntity.parentClassIris.map(i => i.fullIri))
 

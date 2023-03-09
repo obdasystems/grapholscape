@@ -5,12 +5,12 @@ import { GrapholTypesEnum } from "./enums";
 /** @internal */
 export default class ClassInstanceEntity extends GrapholEntity {
 
-  parentClassIris?: Iri[]
+  private _parentClassIris: Iri[] = []
 
-  constructor(iri: Iri, parentClassIri: Iri[] = []) {
+  constructor(iri: Iri, parentClassIris: Iri[] = []) {
     super(iri, GrapholTypesEnum.CLASS_INSTANCE)
 
-    this.parentClassIris = parentClassIri
+    this._parentClassIris = parentClassIris
   }
 
   /**
@@ -20,7 +20,7 @@ export default class ClassInstanceEntity extends GrapholEntity {
    */
   addParentClass(parentClassIri: Iri) {
     if (!this.hasParentClassIri(parentClassIri)) {
-      this.parentClassIris?.push(parentClassIri)
+      this._parentClassIris?.push(parentClassIri)
     }
   }
 
@@ -30,6 +30,9 @@ export default class ClassInstanceEntity extends GrapholEntity {
    * @returns 
    */
   hasParentClassIri(parentClassIri: string | Iri) {
-    return this.parentClassIris?.find(iri => iri.equals(parentClassIri))
+    return this._parentClassIris.find(iri => iri.equals(parentClassIri))
   }
+
+  get isRDFTypeUnknown() { return this._parentClassIris.length === 0 }
+  get parentClassIris() { return Array.from(this._parentClassIris) }
 }

@@ -29,11 +29,9 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     let addedInstanceEntity: ClassInstanceEntity | undefined
 
     addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
-    if (addedInstanceEntity?.parentClassIris) {
-      addedInstanceEntity?.parentClassIris.forEach(parentClassIri => {
-        incrementalController.addEdge(e.detail.instance.iri, parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
-      })
-    }
+    addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
+      incrementalController.addEdge(e.detail.instance.iri, parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
+    })
 
     if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
       const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
