@@ -1,5 +1,4 @@
 import QueryManager from '../queries/query-manager'
-import { QueryPollerStatus, QueryStatusPoller } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
@@ -22,7 +21,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, propertyFilterIri? :string, textSearch?: string, onStop?: () => void) => void
+  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, propertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
@@ -59,7 +58,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: () => void,
     pageSize?: number) {
-    
+
     const _pageSize = pageSize || this.pageSize
     const queryPoller = await this.queryManager.getQueryResults(executionId, _pageSize, pageNumber)
 
@@ -81,11 +80,11 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     propertyValue: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void),
-    limit?: number) {
+    pageSize?: number) {
 
-    const _limit = limit || this.pageSize
-    const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue, _limit)
-    const queryPoller = await this.queryManager.performQuery(queryCode, _limit)
+    const _pageSize = pageSize || this.pageSize
+    const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue)
+    const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
     })
