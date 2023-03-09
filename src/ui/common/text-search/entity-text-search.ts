@@ -13,12 +13,14 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   [GrapholTypesEnum.DATA_PROPERTY]?: number | undefined = 0;
   [GrapholTypesEnum.OBJECT_PROPERTY]?: number | undefined = 0;
   [GrapholTypesEnum.INDIVIDUAL]?: number | undefined = 0;
+  [GrapholTypesEnum.CLASS_INSTANCE]?: number | undefined = 0;
 
   static properties: PropertyDeclarations = {
     [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
     [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
     [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true }
+    [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
+    [GrapholTypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
   }
 
   static styles?: CSSResultGroup = [
@@ -28,51 +30,6 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
       :host {
         display: block;
         padding: 8px;
-      }
-
-      .chips-filters {
-        margin-top: 4px;
-        white-space: normal;
-        min-width: 295px;
-      }
-
-      .chip[entity-type = "class"] {
-        color: var(--gscape-color-class-contrast);
-        border-color: var(--gscape-color-class-contrast);
-      }
-
-      .chip[entity-type = "data-property"] {
-        color: var(--gscape-color-data-property-contrast);
-        border-color: var(--gscape-color-data-property-contrast);
-      }
-
-      .chip[entity-type = "object-property"] {
-        color: var(--gscape-color-object-property-contrast);
-        border-color: var(--gscape-color-object-property-contrast);
-      }
-
-      .chip[entity-type = "individual"] {
-        color: var(--gscape-color-individual-contrast);
-        border-color: var(--gscape-color-individual-contrast);
-      }
-
-      .chip {
-        line-height: 0;
-        gap: 4px;
-        align-items: center;
-        background: inherit;
-      }
-
-      .chip.disabled {
-        opacity: 0.4;
-      }
-
-      .chip:hover {
-        opacity: 1;
-      }
-
-      .chip.disabled:hover {
-        opacity: 0.4;
       }
 
       .search-box {
@@ -107,6 +64,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
           object-property=${this[GrapholTypesEnum.OBJECT_PROPERTY] ?? nothing}
           data-property=${this[GrapholTypesEnum.DATA_PROPERTY] ?? nothing}
           individual=${this[GrapholTypesEnum.INDIVIDUAL] ?? nothing}
+          class-instance=${this[GrapholTypesEnum.CLASS_INSTANCE] ?? nothing}
         ></gscape-entity-type-filter>
       </div>
       

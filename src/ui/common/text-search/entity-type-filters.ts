@@ -1,6 +1,7 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../../model";
-import { classIcon, dataPropertyIcon, individualIcon, objectPropertyIcon } from "../../assets";
+import capitalizeFirstChar from "../../../util/capitalize-first-char";
+import { classIcon, dataPropertyIcon, entityIcons, individualIcon, objectPropertyIcon } from "../../assets";
 import baseStyle from "../../style";
 import { IEntityFilters } from "../../util/search-entities";
 import { GscapeButtonStyle } from "../button";
@@ -13,6 +14,7 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
     [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
     [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
     [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
+    [GrapholTypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
     onFilterToggle: { type: Function, reflect: true }
   }
 
@@ -46,6 +48,11 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
         border-color: var(--gscape-color-individual-contrast);
       }
 
+      .chip[entity-type = "class-instance"] {
+        color: var(--gscape-color-class-instance-contrast);
+        border-color: var(--gscape-color-class-instance-contrast);
+      }
+
       .chip {
         line-height: 0;
         gap: 4px;
@@ -67,65 +74,55 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
     `
   ];
 
-  _class: number | undefined;
-  _dataproperty: number | undefined;
-  _objectproperty: number | undefined;
-  _individual: number | undefined;
+  _class?: number
+  _dataproperty?: number
+  _objectproperty?: number
+  _individual?: number
+  _classInstance?: number
 
   render() {
     return html`
       <div class="chips-filters">
         ${this[GrapholTypesEnum.CLASS] !== undefined
-          ? html`
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.CLASS] && !this.areAllFiltersDisabled ? null : 'disabled'}" 
-                entity-type="class" 
-                @click=${this._handleFilterStateChange}
-              >
-                ${classIcon} Classes
-              </span>
-            `
+          ? this.getChipTemplate(GrapholTypesEnum.CLASS)
           : null
         }
 
         ${this[GrapholTypesEnum.DATA_PROPERTY] !== undefined
-          ? html`
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.DATA_PROPERTY] && !this.areAllFiltersDisabled ? null : 'disabled'}"
-                entity-type="data-property"
-                @click=${this._handleFilterStateChange}
-              >
-                ${dataPropertyIcon} Data Properties
-              </span>
-            `
+          ? this.getChipTemplate(GrapholTypesEnum.DATA_PROPERTY)
           : null
         }
 
         ${this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined
-          ? html`
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.OBJECT_PROPERTY] && !this.areAllFiltersDisabled ? null : 'disabled'}"
-                entity-type="object-property"
-                @click=${this._handleFilterStateChange}
-              >
-                ${objectPropertyIcon} Object Properties
-              </span>
-            `
+          ? this.getChipTemplate(GrapholTypesEnum.OBJECT_PROPERTY)
           : null
         }
 
         ${this[GrapholTypesEnum.INDIVIDUAL] !== undefined
-          ? html`
-              <span 
-                class="chip actionable ${this[GrapholTypesEnum.INDIVIDUAL] && !this.areAllFiltersDisabled ? null : 'disabled'}"
-                entity-type="individual"
-                @click=${this._handleFilterStateChange}
-              >
-                ${individualIcon} Individual
-              </span>`
+          ? this.getChipTemplate(GrapholTypesEnum.INDIVIDUAL)
+          : null
+        }
+
+        ${this[GrapholTypesEnum.CLASS_INSTANCE] !== undefined
+          ? this.getChipTemplate(GrapholTypesEnum.CLASS_INSTANCE)
           : null
         }
       </div>
+    `
+  }
+
+  private getChipTemplate(type: GrapholTypesEnum) {
+    const labels = type.split('-')
+    labels.forEach(l => capitalizeFirstChar(l))
+    const label = labels.join(' ')
+    return html`
+      <span 
+        class="chip actionable ${this[type] && !this.areAllFiltersDisabled ? null : 'disabled'}"
+        entity-type=${type}
+        @click=${this._handleFilterStateChange}
+      >
+        ${entityIcons[type]} ${label}
+      </span>
     `
   }
 
@@ -144,6 +141,7 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
           [GrapholTypesEnum.DATA_PROPERTY]: this[GrapholTypesEnum.DATA_PROPERTY],
           [GrapholTypesEnum.OBJECT_PROPERTY]: this[GrapholTypesEnum.OBJECT_PROPERTY],
           [GrapholTypesEnum.INDIVIDUAL]: this[GrapholTypesEnum.INDIVIDUAL],
+          [GrapholTypesEnum.CLASS_INSTANCE]: this[GrapholTypesEnum.CLASS_INSTANCE],
           areAllFiltersDisabled: this.areAllFiltersDisabled
         } as IEntityFilters
       }))
@@ -167,6 +165,10 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
 
     if (this[GrapholTypesEnum.INDIVIDUAL] !== undefined) {
       result = result && !this[GrapholTypesEnum.INDIVIDUAL]
+    }
+
+    if (this[GrapholTypesEnum.CLASS_INSTANCE] !== undefined) {
+      result = result && !this[GrapholTypesEnum.CLASS_INSTANCE]
     }
 
     return result
@@ -195,6 +197,12 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
     this.requestUpdate()
   }
   get [GrapholTypesEnum.INDIVIDUAL]() { return this._individual }
+
+  set [GrapholTypesEnum.CLASS_INSTANCE](v: number | undefined) {
+    this._classInstance = v
+    this.requestUpdate()
+  }
+  get [GrapholTypesEnum.CLASS_INSTANCE]() { return this._classInstance }
 }
 
 export type EntityFilterEvent = CustomEvent<IEntityFilters>

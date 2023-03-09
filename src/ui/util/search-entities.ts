@@ -1,12 +1,13 @@
 import Grapholscape from "../../core"
-import { AnnotatedElement, Annotation, GrapholEntity, GrapholTypesEnum, Iri } from "../../model"
+import { AnnotatedElement, Annotation, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../../model"
+import grapholEntityToEntityViewData from "../../util/graphol-entity-to-entity-view-data"
 import getEntityViewOccurrences, { DiagramViewData, OccurrenceIdViewData } from "./get-entity-view-occurrences"
 
 
 export type EntityViewData = {
   displayedName: string,
   value: { iri: Iri, type: GrapholTypesEnum } & AnnotatedElement, // GrapholEntity is a compatible type
-  viewOccurrences?:  Map<DiagramViewData, OccurrenceIdViewData[]>
+  viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>
 }
 
 export interface IEntityFilters { // use numbers to work as DOM attributes
@@ -20,20 +21,49 @@ export interface IEntityFilters { // use numbers to work as DOM attributes
 export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: IEntityFilters) {
   const result: EntityViewData[] = []
   grapholscape.ontology.entities.forEach(entity => {
-    if (!entityFilters || (entityFilters[entity.type] !== undefined && (entityFilters[entity.type] || entityFilters.areAllFiltersDisabled))) {     
+    if (!shouldFilterEntity(entity, entityFilters)) {
       result.push({
         displayedName: entity.getDisplayedName(
           grapholscape.entityNameType,
-          grapholscape.language, 
+          grapholscape.language,
           grapholscape.ontology.languages.default
-          ),
+        ),
         value: entity,
         viewOccurrences: getEntityViewOccurrences(entity, grapholscape)
       })
     }
   })
 
-  return result.sort( (a,b) => a.displayedName.localeCompare(b.displayedName))
+  if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    grapholscape.incremental?.classInstanceEntities.forEach(classInstanceEntity => {
+      if (grapholscape.renderer.diagram && !shouldFilterEntity(classInstanceEntity, entityFilters)) {
+        const viewClassInstanceEntity = grapholEntityToEntityViewData(classInstanceEntity, grapholscape)
+        viewClassInstanceEntity.viewOccurrences = new Map()
+        viewClassInstanceEntity.viewOccurrences.set(
+          {
+            id: grapholscape.renderer.diagram?.id,
+            name: grapholscape.renderer.diagram?.name
+          },
+          [
+            {
+              originalId: viewClassInstanceEntity.value.iri.prefixed,
+              realId: viewClassInstanceEntity.value.iri.fullIri
+            }
+          ]
+        )
+
+        result.push(viewClassInstanceEntity)
+      }
+    })
+  }
+
+  return result.sort((a, b) => a.displayedName.localeCompare(b.displayedName))
+}
+
+function shouldFilterEntity(entity: GrapholEntity, entityFilters?: IEntityFilters) {
+  if (!entityFilters) return false
+
+  return !entityFilters.areAllFiltersDisabled && entityFilters[entity.type] !== 1 && entityFilters[entity.type] !== true
 }
 
 export function search(searchValue: string, entities: EntityViewData[]) {
