@@ -9,6 +9,7 @@ export default class GscapeEntityListItem extends LitElement {
   type: GrapholTypesEnum.CLASS |
     GrapholTypesEnum.DATA_PROPERTY |
     GrapholTypesEnum.OBJECT_PROPERTY |
+    GrapholTypesEnum.INDIVIDUAL |
     GrapholTypesEnum.CLASS_INSTANCE
     = GrapholTypesEnum.CLASS
 

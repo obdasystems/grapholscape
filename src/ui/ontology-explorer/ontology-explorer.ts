@@ -1,15 +1,14 @@
-import { css, html, LitElement, nothing } from 'lit'
+import { css, html, LitElement } from 'lit'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
-import { EntityViewData, search } from '../util/search-entities'
 import { blankSlateDiagrams, entityIcons, explore } from '../assets/icons'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
-import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
-import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
-import entityListItemStyle from './entity-list-item-style'
 import { GscapeEntitySearch } from '../common/text-search'
-import emptySearchBlankState from '../util/empty-search-blank-state'
 import { SearchEvent } from '../common/text-search/entity-text-search'
-import { GrapholTypesEnum } from '../../../dist'
+import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
+import emptySearchBlankState from '../util/empty-search-blank-state'
+import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
+import { EntityViewData, search } from '../util/search-entities'
+import entityListItemStyle from './entity-list-item-style'
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
@@ -108,24 +107,25 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
           ${this.shownEntities.map(entity => {
             return html`
-              <details class="ellipsed entity-list-item" title="${entity.displayedName}">
-                <summary class="actionable">
-                  <span class="entity-icon" title="${entity.value.type}">${entityIcons[entity.value.type]}</span>
-                  <span class="entity-name">${entity.displayedName}</span>
-                </summary>
-                <div class="summary-body">
-                  ${entity.viewOccurrences && entity.viewOccurrences.size > 0
-                    ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
-                    : html`
-                      <div class="blank-slate">
-                        ${blankSlateDiagrams}
-                        <div class="header">No Occurrences</div>
-                        <div class="description">The entity has no occurrences in this rendering mode.</div>
-                      </div>
-                    `
-                  }
+              <gscape-entity-list-item
+                ?asaccordion=${true}
+                displayedname=${entity.displayedName}
+                type=${entity.value.type}
+                iri=${entity.value.iri.fullIri}
+              >
+                <div slot="accordion-body">
+                ${entity.viewOccurrences && entity.viewOccurrences.size > 0
+                  ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
+                  : html`
+                    <div class="blank-slate">
+                      ${blankSlateDiagrams}
+                      <div class="header">No Occurrences</div>
+                      <div class="description">The entity has no occurrences in this rendering mode.</div>
+                    </div>
+                  `
+                }
                 </div>
-              </details>
+              </gscape-entity-list-item>
             `
           })}
         </div>
