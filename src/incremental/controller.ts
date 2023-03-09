@@ -440,6 +440,19 @@ export default class IncrementalController {
 
     this.performActionWithBlockedGraph(() => {
       this.grapholscape.renderer.cy?.$(`[iri = "${entity?.iri.fullIri}"]`).forEach(element => {
+        // start from object properties connected to this entity, remove their occurrences from ontology entities
+        const edges = element.connectedEdges(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`)
+        edges.forEach(objectPropertyEdge => {
+          const objectPropertyEntity = this.ontology.getEntity(objectPropertyEdge.data().iri)
+          if (objectPropertyEntity) {
+            objectPropertyEntity.removeOccurrence(
+              objectPropertyEdge.id(), 
+              this.incrementalDiagram.id, 
+              RendererStatesEnum.INCREMENTAL
+            )
+          }
+        })
+
         if (element.data().type === GrapholTypesEnum.CLASS) {
           element.neighborhood().forEach(neighbourElement => {
             if (neighbourElement.isNode()) {
