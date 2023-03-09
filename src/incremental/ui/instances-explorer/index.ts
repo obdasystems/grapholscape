@@ -73,6 +73,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
           instancesExplorer.referencePropertyEntity.value.iri.fullIri,
           instancesExplorer.isPropertyDirect,
           e.detail.filterByType,
+          e.detail.filterByProperty,
           e.detail.filterText,
         )
       }

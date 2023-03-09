@@ -5,42 +5,31 @@ const LIMIT = 500
 export function getInstances(iri: string, searchText?: string, maxResults?: number) {
   const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
   const where = `?x a <${iri}>.`
-  let filter: string = ``
-  if (searchText) {
-    filter = `FILTER(regex(?x, '${searchText}', 'i')`
-    if (LABEL_AVAILABLE)
-      filter += `|| (regex(?l, '${searchText}', 'i') && !isBlank(?l))`
-
-    filter += `)`
-  }
-  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?x rdfs:label ?l }` : ``
 
   return `
     SELECT DISTINCT ${select}
     WHERE {
       ${where}
-      ${optional}
-      ${filter}
+      ${getOptionalLabel('?x', '?l')}
+      ${getFilterOnIriOrLabel('?x', '?l', searchText)}
     }
     LIMIT ${maxResults || LIMIT}
   `
 }
 
 export function getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
-  const select = `?x`
+  const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
   const where = [
     `?x a <${classIri}>.`,
     `?x <${propertyIri}> ?y.`
   ]
-  let filter = `FILTER(regex(?y, '${propertyValue}', 'i'))`
-  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdfs:label ?l }` : ``
 
   return `
     SELECT DISTINCT ${select}
     WHERE {
       ${where.join('\n')}
-      ${optional}
-      ${filter}
+      ${getOptionalLabel('?x', '?l')}
+      FILTER (regex(?y, "${propertyValue}", "i"))
     }
     LIMIT ${maxResults || LIMIT}
   `
@@ -55,30 +44,46 @@ export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIr
   `
 }
 
-export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, searchText?: string, maxResults?: number,) {
+export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, propertyIriFilter?: string, searchText?: string, maxResults?: number,) {
   const select = LABEL_AVAILABLE ? `?y ?l` : `?y`
   let where = isDirect ? `<${instanceIri}> <${objectPropertyIri}> ?y.` : `?y <${objectPropertyIri}> <${instanceIri}>.`
 
   if (rangeTypeClassIri)
     where += `?y a <${rangeTypeClassIri}>.`
 
-  const optional = LABEL_AVAILABLE ? `OPTIONAL { ?y rdfs:label ?l }` : ``
-  let filter: string = ``
-  if (searchText) {
-    filter = `FILTER(regex(?y, '${searchText}', 'i')`
-    if (LABEL_AVAILABLE)
-      filter += `|| (regex(?l, '${searchText}', 'i') && !isBlank(?l))`
-
-    filter += `)`
+  if (propertyIriFilter) {
+    where += `?y <${propertyIriFilter}> ?z`
   }
+  
+  // if there is a filter on a data/object property, use search text on this value
+  // otherwise use searchtext to filter on iri or label
+  let filter = propertyIriFilter
+    ? `FILTER(regex(?z, "${searchText}", "i"))`
+    : getFilterOnIriOrLabel('?y', '?l', searchText)
 
   return `
     SELECT DISTINCT ${select}
     WHERE {
       ${where}
-      ${optional}
+      ${getOptionalLabel("?y", "?l")}
       ${filter}
     }
     LIMIT ${maxResults || LIMIT}
   `
+}
+
+function getFilterOnIriOrLabel(subjectVariable: string, labelVariable: string, filterValue?: string): string {
+  if (!filterValue) return ''
+
+  let filter = `FILTER(regex(${subjectVariable}, '${filterValue}', 'i')`
+  if (LABEL_AVAILABLE)
+    filter += `|| (regex(${labelVariable}, '${filterValue}', 'i') && !isBlank(${labelVariable}))`
+
+  filter += `)`
+
+  return filter
+}
+
+function getOptionalLabel(subjectVariable: string, labelVariable: string) {
+  return LABEL_AVAILABLE ? `OPTIONAL { ${subjectVariable} rdfs:label ${labelVariable} }` : ``
 }

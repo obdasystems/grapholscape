@@ -235,13 +235,13 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       bubbles: true,
       composed: true,
       detail: {
-        filterText: inputElement.value,
+        filterText: inputElement.value.length > 0 ? inputElement.value : undefined,
         filterByProperty: undefined,
         filterByType: undefined,
       }
     }) as InstanceFilterEvent
 
-    if (this.propertyFilterSelect?.selectedOptionId) {
+    if (this.propertyFilterSelect?.selectedOptionId && event.detail.filterText) {
       event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionId
     }
 

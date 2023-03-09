@@ -22,7 +22,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, textSearch?: string, onStop?: () => void) => void
+  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, propertyFilterIri? :string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
@@ -180,11 +180,12 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     isDirect: boolean,
     onNewResults: (classInstances: ClassInstance[]) => void,
     rangeClassIri?: string,
+    propertyIriFilter?: string,
     textSearch?: string,
     onStop?: (() => void)
   ) {
 
-    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, textSearch)
+    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, propertyIriFilter, textSearch)
 
     const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize)
     queryPoller.onNewResults = (result) => {

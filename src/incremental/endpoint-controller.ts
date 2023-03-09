@@ -88,13 +88,14 @@ export default class EndpointController {
     )
   }
 
-  requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, rangeClassIri?: string, searchText?: string) {
+  requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, rangeClassIri?: string, propertyIriFilter?: string, searchText?: string) {
     return this.vkgApi?.getInstanceObjectPropertyRanges(
       instanceIri,
       objectPropertyIri,
       isDirect,
       (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
       rangeClassIri,
+      propertyIriFilter,
       searchText,
       () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished)
     )
