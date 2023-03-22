@@ -42,7 +42,6 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
     }
 
-    instancesExplorer.setInstanceAsProcessed(e.detail.instance.iri)
     incrementalController.runLayout()
   })
 

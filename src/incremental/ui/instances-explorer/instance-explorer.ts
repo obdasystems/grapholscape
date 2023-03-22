@@ -18,7 +18,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   referenceEntity?: EntityViewData
   referencePropertyEntity?: EntityViewData
   isPropertyDirect: boolean = true
-  instancesInProcess: Map<string, boolean> = new Map()
   requestId?:string
   numberOfPagesShown = 1
   canShowMore: boolean = false
@@ -187,21 +186,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 iri=${instance.iri}
                 type=${GrapholTypesEnum.CLASS_INSTANCE}
               >
-                ${this.instancesInProcess.get(instance.iri)
-                  ? html`<div slot="trailing-element">${textSpinner()}</div>`
-                  : html `
-                    <div slot="trailing-element" class="hover-btn">
-                      <gscape-button
-                        size="s"
-                        type="subtle"
-                        @click=${this.handleInsertInGraph}
-                      >
-                        ${getIconSlot('icon', insertInGraph)}
-                      </gscape-button>
-                    </div>
-                  `
-                }
-                </div>
               </gscape-entity-list-item>
             `)}
           `
@@ -307,7 +291,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
           return
         }
 
-        this.instancesInProcess.set(instance?.iri, true)
         this.requestUpdate()
         await this.updateComplete
 
@@ -340,11 +323,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.requestUpdate()
   }
 
-  setInstanceAsProcessed(instanceIri: string) {
-    this.instancesInProcess.delete(instanceIri)
-    this.requestUpdate()
-  }
-
   clear() {
     this.instances = new Map()
     this.numberOfPagesShown = 1
@@ -354,7 +332,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.referenceEntity = undefined
     this.referencePropertyEntity = undefined
     this.popperRef = undefined
-    this.instancesInProcess.clear()
 
     if (this.instancesSearchInput)
       this.instancesSearchInput.value = ''
