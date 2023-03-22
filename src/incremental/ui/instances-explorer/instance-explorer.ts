@@ -186,6 +186,15 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 iri=${instance.iri}
                 type=${GrapholTypesEnum.CLASS_INSTANCE}
               >
+                <div slot="trailing-element" class="hover-btn">
+                  <gscape-button
+                    size="s"
+                    type="subtle"
+                    @click=${this.handleInsertInGraph}
+                  >
+                    ${getIconSlot('icon', insertInGraph)}
+                  </gscape-button>
+                </div>
               </gscape-entity-list-item>
             `)}
           `
