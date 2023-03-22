@@ -10,7 +10,7 @@ export function getInstances(iri: string, searchText?: string, maxResults?: numb
     SELECT DISTINCT ${select}
     WHERE {
       ${where}
-      ${getOptionalLabel('?x', '?l')}
+      ${getOptionalLabel('?x', '?l', where)}
       ${getFilterOnIriOrLabel('?x', '?l', searchText)}
     }
     LIMIT ${maxResults || LIMIT}
@@ -28,7 +28,7 @@ export function getInstancesByPropertyValue(classIri: string, propertyIri: strin
     SELECT DISTINCT ${select}
     WHERE {
       ${where.join('\n')}
-      ${getOptionalLabel('?x', '?l')}
+      ${getOptionalLabel('?x', '?l', where.join('\n'))}
       FILTER (regex(?y, "${propertyValue}", "i"))
     }
     LIMIT ${maxResults || LIMIT}
@@ -52,9 +52,9 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
     where += `?y a <${rangeTypeClassIri}>.`
 
   if (propertyIriFilter) {
-    where += `?y <${propertyIriFilter}> ?z`
+    where += `?y <${propertyIriFilter}> ?z.`
   }
-  
+
   // if there is a filter on a data/object property, use search text on this value
   // otherwise use searchtext to filter on iri or label
   let filter = propertyIriFilter
@@ -65,7 +65,7 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
     SELECT DISTINCT ${select}
     WHERE {
       ${where}
-      ${getOptionalLabel("?y", "?l")}
+      ${getOptionalLabel("?y", "?l", where)}
       ${filter}
     }
     LIMIT ${maxResults || LIMIT}
@@ -84,6 +84,9 @@ function getFilterOnIriOrLabel(subjectVariable: string, labelVariable: string, f
   return filter
 }
 
-function getOptionalLabel(subjectVariable: string, labelVariable: string) {
-  return LABEL_AVAILABLE ? `OPTIONAL { ${subjectVariable} rdfs:label ${labelVariable} }` : ``
+function getOptionalLabel(subjectVariable: string, labelVariable: string, where: string) {
+  return LABEL_AVAILABLE ? `OPTIONAL { 
+    ${where}
+    ${subjectVariable} rdfs:label ${labelVariable} 
+  }` : ``
 }
