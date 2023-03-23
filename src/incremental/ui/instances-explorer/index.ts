@@ -9,14 +9,13 @@ import GscapeInstanceExplorer, { InstanceFilterEvent, InstanceSelectionEvent } f
 export { default as GscapeInstanceExplorer } from './instance-explorer'
 
 export function InstanceExplorerFactory(incrementalController: IncrementalController) {
-
   const instancesExplorer = new GscapeInstanceExplorer()
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
   incrementalController.on(IncrementalEvent.NewInstances, newInstances => {
     instancesExplorer.addInstances(newInstances)
     const minNumberOfInstancesToAskMore = (incrementalController.endpointController?.limit || 10000) * instancesExplorer.numberOfPagesShown
-    instancesExplorer.canShowMore = instancesExplorer.instances.size >= minNumberOfInstancesToAskMore
+    instancesExplorer.canShowMore = instancesExplorer.numberOfInstancesReceived >= minNumberOfInstancesToAskMore
   })
 
   incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)

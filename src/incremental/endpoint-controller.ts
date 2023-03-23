@@ -134,6 +134,11 @@ export default class EndpointController {
     })
   }
 
+  setLanguage(lang: string) {
+    if (this.vkgApi)
+      this.vkgApi.language = lang
+  }
+
   // get selectedEndpoint() {
   //   return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
   // }

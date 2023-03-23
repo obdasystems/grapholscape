@@ -22,6 +22,7 @@ import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import EndpointApi, { IEndpointApi } from "./api/endpoint-api";
 import { EdgeSingular, NodeSingular, Position } from "cytoscape";
 import EndpointController from "./endpoint-controller";
+import { EntityNameType } from "../config";
 
 /** @internal */
 export default class IncrementalController {
@@ -61,6 +62,14 @@ export default class IncrementalController {
     // update instances displayed names
     grapholscape.on(LifecycleEvent.EntityNameTypeChange, _ => {
       this.classInstanceEntities.forEach(instanceEntity => this.updateEntityNameType(instanceEntity.iri))
+    })
+
+    grapholscape.on(LifecycleEvent.LanguageChange, newLang => {
+      this.endpointController?.setLanguage(newLang)
+
+      // update labels language only if they are actually visible
+      if (grapholscape.entityNameType === EntityNameType.LABEL)
+        this.classInstanceEntities.forEach(instanceEntity => this.updateEntityNameType(instanceEntity.iri))
     })
   }
 
@@ -129,6 +138,7 @@ export default class IncrementalController {
     // }
     this.reset()
     this.endpointController = new EndpointController(mastroRequestOptions, this.lifecycle)
+    this.endpointController.setLanguage(this.grapholscape.language)
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
   }
 

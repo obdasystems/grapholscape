@@ -35,6 +35,7 @@ export interface IVirtualKnowledgeGraphApi {
 
 export default class VKGApi implements IVirtualKnowledgeGraphApi {
   private queryManager: QueryManager
+  public language: string
 
   constructor(private requestOptions: RequestOptions, endpoint: MastroEndpoint, public pageSize: number) {
     this.setEndpoint(endpoint)
@@ -45,7 +46,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const queryCode = QueriesTemplates.getInstances(iri, searchText)
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
+      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
     })
 
     if (onStop) {
@@ -67,7 +68,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const queryPoller = await this.queryManager.getQueryResults(executionId, _pageSize, pageNumber)
 
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
+      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
       queryPoller.stop()
     })
 
@@ -90,7 +91,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue)
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
+      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
     })
 
     if (onStop) {
@@ -192,7 +193,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize)
     queryPoller.onNewResults = (result) => {
-      onNewResults(result.results.map(res => VKGApi.getClassInstanceFromQueryResult(res)))
+      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
     }
 
     if (onStop) {
@@ -230,7 +231,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getInstanceLabels(instanceIri: string, onResult: (result: { value: string, language?: string }[]) => void) {
     const queryCode = QueriesTemplates.getInstanceLabels(instanceIri)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, 100)
+    const queryPoller = await this.queryManager.performQuery(queryCode, 100, 1, true)
     queryPoller.onNewResults = (result) => {
       onResult(result.results.map(r => {
         return {
@@ -243,17 +244,17 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     queryPoller.start()
   }
 
-  private static getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string, lang?: string }[]): ClassInstance {
-    return { 
-      iri: result[0].value, 
-      shortIri: result[0].shortIRI, 
-      label: result[1]?.value !== 'null'
+  private getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string, lang?: string }[]): ClassInstance {
+    return {
+      iri: result[0].value,
+      shortIri: result[0].shortIRI,
+      label: result[1]?.value !== 'null' && result[1]?.lang === this.language
         ? {
           language: result[1].lang,
           value: result[1]?.value
         }
         : undefined
-      }
+    }
   }
 }
 

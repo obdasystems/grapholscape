@@ -45,6 +45,7 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
     confirmDialog.onConfirm = async () => {
       incrementalController.reset()
       incrementalController.endpointController?.setEndpoint(newEndpointName)
+      incrementalController.endpointController?.setLanguage(incrementalController.grapholscape.language)
     }
   })
 
@@ -64,6 +65,7 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
 
       if (endpoints.length >= 1 && !vkgPreferences.selectedEndpointName) {
         incrementalController.endpointController?.setEndpoint(endpoints[0])
+        incrementalController.endpointController?.setLanguage(incrementalController.grapholscape.language)
       }
     })
   }

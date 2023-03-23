@@ -20,6 +20,11 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   isPropertyDirect: boolean = true
   requestId?:string
   numberOfPagesShown = 1
+  /**
+   * Not all received instances are shown, no duplicates allowed.
+   * i.e. different results for different labels but same instance.
+   */
+  numberOfInstancesReceived = 0
   canShowMore: boolean = false
 
   private searchTimeout:  NodeJS.Timeout
@@ -324,9 +329,15 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   }
 
   addInstances(newInstances: ClassInstance[]) {
+    this.numberOfInstancesReceived += newInstances.length
     newInstances.forEach(i => {
       if (!this.instances.has(i.iri)) {
         this.instances.set(i.iri, i)
+      } else if (i.label) { // override duplicate only if it has label
+        const instance = this.instances.get(i.iri)
+        if (instance && !instance.label) {
+          this.instances.set(i.iri, i)
+        }
       }
     })
     this.requestUpdate()
@@ -335,6 +346,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   clear() {
     this.instances = new Map()
     this.numberOfPagesShown = 1
+    this.numberOfInstancesReceived = 0
     this.areInstancesLoading = false
     this.searchFilterList = []
     this.classTypeFilterList = []

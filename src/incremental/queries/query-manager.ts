@@ -33,19 +33,22 @@ export default class QueryManager {
    * @param queryCode 
    * @param pageSize the maximum number of results to retrieve
    * @param pageNumber the page number in case you're handling pagination
+   * @param keepAlive keep query running even if stopRunningQueries gets invoked
    * @returns a promise which will be resolved with the query poller, on this
    * object you can set the onNewResults callback to react every time new results
    * are obtained.
    */
-  async performQuery(queryCode: string, pageSize: number, pageNumber = 1): Promise<QueryResultsPoller> {
+  async performQuery(queryCode: string, pageSize: number, pageNumber = 1, keepAlive = false): Promise<QueryResultsPoller> {
     const executionId = await this.startQuery(queryCode)
 
     // return this.getQueryResults(executionId, pageSize, pageNumber)
     const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId)
-    if (this._runningQueryPollerByExecutionId.get(executionId)) {
-      this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
-    } else {
-      this._runningQueryPollerByExecutionId.set(executionId, new Set([queryResultsPoller]))
+    if (!keepAlive) {
+      if (this._runningQueryPollerByExecutionId.get(executionId)) {
+        this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
+      } else {
+        this._runningQueryPollerByExecutionId.set(executionId, new Set([queryResultsPoller]))
+      }
     }
 
     queryResultsPoller.onError = this.requestOptions.onError
