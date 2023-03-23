@@ -5,7 +5,6 @@ import { Highlights } from "./api/swagger/models/Highlights";
 export default class HighlightsManager {
 
   private _dataProperties: Set<string>
-  // private _objectProperties: Set<string>
   private _objectProperties: Map<string, Branch>
 
   private highlightsCallsPromises: Promise<Highlights>[] = []

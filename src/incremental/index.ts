@@ -84,46 +84,7 @@ export function initIncremental(grapholscape: Grapholscape) {
         incrementalController.endpointController !== undefined
       )
     }
-    // (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector)?.show();
-    // (incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails)?.hide();
   })
-
-  // grapholscape.renderer.unselect()
-
-  // if (!grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) {
-  //   initEntitySelector(grapholscape)
-  // }
-  // const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
-  // grapholscape.uiContainer?.appendChild(entitySelector)
-
-  // if (!grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU)) {
-  //   initIncrementalMenu(grapholscape)
-  // }
-
-  // const incrementalController = new IncrementalController(
-  //   grapholscape,
-  //   grapholscape.renderer.renderState as IncrementalRendererState,
-  //   grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails,
-  //   entitySelector
-  // )
-  // incrementalController.init();
-
-  // (grapholscape.widgets.get(WidgetEnum.DIAGRAM_SELECTOR) as GscapeDiagramSelector).hide()
-  // const entityDetailsWidget = grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
-  // entityDetailsWidget.incrementalSection = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_MENU) as GscapeIncrementalDetails
-  // entityDetailsWidget.hide()
-
-  // if (grapholscape.renderer.cy?.elements().empty()) {
-  //   entitySelector.show()
-  // }
-
-  // // TODO: when it will be available, remember to clear previous callbacks if startIncremental is called multiple times
-  // grapholscape.on(LifecycleEvent.RendererChange, rendererState => {
-  //   if (rendererState !== RendererStatesEnum.INCREMENTAL && grapholscape.mastroRequestOptions) {
-  //     incrementalController.clearState()
-  //   }
-  // })
-
 }
 
 function onIncrementalStartup(grapholscape: Grapholscape, incrementalController: IncrementalController) {

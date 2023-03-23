@@ -138,22 +138,4 @@ export default class EndpointController {
     if (this.vkgApi)
       this.vkgApi.language = lang
   }
-
-  // get selectedEndpoint() {
-  //   return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
-  // }
-  // set selectedEndpoint(newEndpoint: MastroEndpoint | undefined) {
-  //   if (newEndpoint)
-  //     this.endpointSelector.selectedEndpointName = newEndpoint.name
-  // }
-
-  // onEndpointChange(callback: (newEndpoint: MastroEndpoint) => void) {
-  //   this._onEndpointChange = callback
-  // }
-
-  // onAutoEndpointSelection(callback: (newEndpoint: MastroEndpoint) => void) {
-  //   this._onAutoEndpointSelection = callback
-  // }
-
-
 }
