@@ -80,11 +80,15 @@ export default class IncrementalController {
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
   }
 
-  addEntity(iri: string, centerOnIt = true) {
+  addEntity(iri: string, centerOnIt = true, position?: Position) {
     const entity = this.grapholscape.ontology.getEntity(iri)
 
     if (entity && this.diagramBuilder.diagram.representation) {
-      this.diagramBuilder.addEntity(entity)
+      if (position && entity.is(GrapholTypesEnum.CLASS)) {
+        this.diagramBuilder.addClass(entity, position)
+      } else {
+        this.diagramBuilder.addEntity(entity)
+      }
 
       this.updateEntityNameType(entity.iri)
       if (centerOnIt)

@@ -31,7 +31,11 @@ export function initIncremental(grapholscape: Grapholscape) {
     entitySelector.hide()
 
     entitySelector.onClassSelection(classIri => {
-      incrementalController.addEntity(classIri)
+      const randomPos = {
+        x: Math.random() * 200,
+        y: Math.random() * 200
+      }
+      incrementalController.addEntity(classIri, true, randomPos)
       grapholscape.selectElement(classIri)
       IncrementalUI.moveUpLeft(entitySelector)
       entitySelector.closePanel()
