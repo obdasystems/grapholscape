@@ -134,15 +134,13 @@ export default class GrapholEntity extends AnnotatedElement {
     return false
   }
 
-  public getDisplayedName(nameType: EntityNameType, actualLanguage?: string, defaultLanguage?: string) {
+  public getDisplayedName(nameType: EntityNameType, actualLanguage?: string) {
     let newDisplayedName: string
 
     switch (nameType) {
       case EntityNameType.LABEL:
         newDisplayedName =
           this.getLabels(actualLanguage)[0]?.lexicalForm ||
-          this.getLabels(defaultLanguage)[0]?.lexicalForm ||
-          this.getLabels()[0]?.lexicalForm ||
           this.iri.remainder
         break
 

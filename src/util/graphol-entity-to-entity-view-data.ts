@@ -4,7 +4,7 @@ import { EntityViewData } from "../ui";
 
 export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscape): EntityViewData {
   return {
-    displayedName: grapholEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language, grapholscape.ontology.languages.default),
+    displayedName: grapholEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language),
     value: grapholEntity
   }
 }

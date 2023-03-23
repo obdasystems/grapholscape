@@ -25,8 +25,7 @@ export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: I
       result.push({
         displayedName: entity.getDisplayedName(
           grapholscape.entityNameType,
-          grapholscape.language,
-          grapholscape.ontology.languages.default
+          grapholscape.language
         ),
         value: entity,
         viewOccurrences: getEntityViewOccurrences(entity, grapholscape)

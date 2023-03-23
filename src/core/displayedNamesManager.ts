@@ -74,7 +74,7 @@ export default class DisplayedNamesManager {
 
         if (!grapholElement) return
 
-        let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language, this._grapholscape.ontology.languages.default)
+        let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language)
 
         if (newDisplayedName !== grapholElement.displayedName) {
           grapholElement.displayedName = newDisplayedName

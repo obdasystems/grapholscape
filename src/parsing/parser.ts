@@ -80,7 +80,7 @@ export default class GrapholParser {
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
 
             // APPLY DISPLAYED NAME FROM LABELS
-            node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined, this.ontology.languages.default)
+            node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined)
 
             // Add fake nodes
             if (node.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
