@@ -6,7 +6,10 @@ import { Highlights } from './swagger/models/Highlights'
 export type ClassInstance = {
   iri: string,
   shortIri?: string,
-  label?: string,
+  label?: {
+    language?: string,
+    value: string,
+  },
 }
 
 // export type ObjectPropertyInstance = {
@@ -25,6 +28,7 @@ export interface IVirtualKnowledgeGraphApi {
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
+  getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
 
   pageSize: number
 }
@@ -223,8 +227,33 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     this.queryManager = new QueryManager(this.requestOptions, endpoint)
   }
 
-  private static getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string }[]): ClassInstance {
-    return { iri: result[0].value, shortIri: result[0].shortIRI, label: result[1]?.value !== 'null' ? result[1]?.value : undefined }
+  async getInstanceLabels(instanceIri: string, onResult: (result: { value: string, language?: string }[]) => void) {
+    const queryCode = QueriesTemplates.getInstanceLabels(instanceIri)
+
+    const queryPoller = await this.queryManager.performQuery(queryCode, 100)
+    queryPoller.onNewResults = (result) => {
+      onResult(result.results.map(r => {
+        return {
+          value: r[0].value,
+          language: r[0].lang
+        }
+      }))
+    }
+
+    queryPoller.start()
+  }
+
+  private static getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string, lang?: string }[]): ClassInstance {
+    return { 
+      iri: result[0].value, 
+      shortIri: result[0].shortIRI, 
+      label: result[1]?.value !== 'null'
+        ? {
+          language: result[1].lang,
+          value: result[1]?.value
+        }
+        : undefined
+      }
   }
 }
 

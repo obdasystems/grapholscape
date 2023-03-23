@@ -182,7 +182,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
           ? html`
             ${Array.from(this.instances).map(([_, instance]) => html`
               <gscape-entity-list-item
-                displayedname=${instance.label || instance.shortIri || instance.iri}
+                displayedname=${instance.label?.value || instance.shortIri || instance.iri}
                 iri=${instance.iri}
                 type=${GrapholTypesEnum.CLASS_INSTANCE}
               >

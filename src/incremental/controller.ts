@@ -503,8 +503,19 @@ export default class IncrementalController {
       classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
 
       if (instance.label) {
-        classInstanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, instance.label))
+        classInstanceEntity?.addAnnotation(
+          new Annotation(AnnotationsKind.label, instance.label.value, instance.label.language)
+        )
       }
+
+      this.endpointController?.requestLabels(instance.iri).then(labels => {
+        labels?.forEach(label => {
+          classInstanceEntity?.addAnnotation(
+            new Annotation(AnnotationsKind.label, label.value, label.language)
+          )
+        })
+      })
+      
 
       this.diagramBuilder.addClassInstance(classInstanceEntity)
       this.classInstanceEntities.set(instance.iri, classInstanceEntity)
@@ -1118,16 +1129,6 @@ export default class IncrementalController {
 
   //   return this._vKGApi
   // }
-
-  private getInstanceEntityFromClassInstance(classInstance: ClassInstance) {
-    const instanceIri = new Iri(classInstance.iri, this.ontology.namespaces, classInstance.shortIri)
-    const instanceEntity = new GrapholEntity(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
-    if (classInstance.label) {
-      instanceEntity.addAnnotation(new Annotation(AnnotationsKind.label, classInstance.label))
-    }
-
-    return instanceEntity
-  }
 
   private get incrementalRenderer() { return this.grapholscape.renderer.renderState as IncrementalRendererState }
 

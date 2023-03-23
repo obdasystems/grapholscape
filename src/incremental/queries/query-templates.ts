@@ -72,6 +72,16 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
   `
 }
 
+export function getInstanceLabels(instanceIri: string) {  
+  return `
+    SELECT DISTINCT ?l
+    WHERE {
+      ?x rdfs:label ?l
+      FILTER(?x = <${instanceIri}>)
+    }
+  `
+}
+
 function getFilterOnIriOrLabel(subjectVariable: string, labelVariable: string, filterValue?: string): string {
   if (!filterValue) return ''
 

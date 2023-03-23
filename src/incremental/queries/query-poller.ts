@@ -7,7 +7,8 @@ export type QueryRecords = {
   results: {
     type: string,
     shortIRI: string,
-    value: string
+    value: string,
+    lang?: string,
   }[][]
 }
 

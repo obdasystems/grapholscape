@@ -125,6 +125,15 @@ export default class EndpointController {
     })
   }
 
+  async requestLabels(instanceIri: string) {
+    return new Promise((resolve: (result: { value: string, language?: string }[]) => void, reject) => {
+      this.vkgApi?.getInstanceLabels(
+        instanceIri,
+        (res) => resolve(res)
+      )
+    })
+  }
+
   // get selectedEndpoint() {
   //   return this.endpoints?.find(e => e.name === this.endpointSelector.selectedEndpointName)
   // }
