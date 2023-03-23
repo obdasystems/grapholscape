@@ -116,8 +116,9 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   classInstanceDetails?.enable()
   diagramSelector?.disable()
 
+  entitySelector?.show()
+
   if (isCanvasEmpty && entitySelector) {
-    entitySelector.show()
     IncrementalUI.restorePosition(entitySelector);
     (entitySelector as GscapeEntitySelector).focusInputSearch()
   }
