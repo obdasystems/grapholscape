@@ -16,8 +16,13 @@ export default class AnnotatedElement {
     this._annotations = annotations
   }
 
-  public addAnnotation(annotation: Annotation) {
-    this._annotations.push(annotation)
+  public addAnnotation(newAnnotation: Annotation) {
+    for (let annotation of this._annotations) {
+      if (annotation.equals(newAnnotation)) {
+        return
+      }
+    }
+    this._annotations.push(newAnnotation)
   }
 
   public getAnnotations(language?: string, kind?: AnnotationsKind) {
