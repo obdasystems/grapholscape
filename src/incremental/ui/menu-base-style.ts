@@ -46,4 +46,8 @@ gscape-entity-list-item:hover > .hover-btn {
   padding: 0 8px;
 }
 
+.section {
+  overflow: auto;
+}
+
 `
