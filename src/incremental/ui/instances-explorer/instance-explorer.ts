@@ -134,7 +134,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                     return {
                       id: entity.entityViewData.value.iri.fullIri,
                       text: entity.entityViewData.displayedName,
-                      leadingIcon: entityIcons[entity.entityViewData.value.type]
+                      leadingIcon: entityIcons[entity.entityViewData.value.type],
+                      disabled: !entity.hasUnfolding
                     }
                   })}
                   .placeholder=${ {text: 'Filter by type'} }
@@ -160,7 +161,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                   return {
                     id: entity.entityViewData.value.iri.fullIri,
                     text: entity.entityViewData.displayedName,
-                    leadingIcon: entityIcons[entity.entityViewData.value.type]
+                    leadingIcon: entityIcons[entity.entityViewData.value.type],
+                    disabled: !entity.hasUnfolding
                   }
                 })}
                 .placeholder=${ {text: 'ID or Label'} }

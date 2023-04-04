@@ -7,13 +7,15 @@ export default class GscapeActionListItem extends LitElement {
   selected: boolean
   private expanded = false
   subtle: boolean // do not add left selected mark
+  disabled: boolean = false
   
 
   static properties: PropertyDeclarations = {
     label: { type: String, reflect: true },
     subtle: { type: Boolean },
     selected: { type: Boolean },
-    expanded: { state: true }
+    expanded: { state: true },
+    disabled: { type: Boolean }
   }
 
   static styles?: CSSResultGroup = [baseStyle, actionItemStyle]
@@ -26,7 +28,7 @@ export default class GscapeActionListItem extends LitElement {
 
   render() {
     return html`
-      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null} ellipsed" @click=${this.clickHandler}>
+      <li class="list-item ${this.selected && !this.subtle ? 'selected-item' : null} ellipsed" @click=${this.clickHandler} ?disabled=${this.disabled}>
         <div class="list-item actionable" @click=${this.clickHandler}>
           <slot name="icon" class="slotted-icon" ></slot>
           <span class="list-item-label" title=${this.label}>${this.label}</span>

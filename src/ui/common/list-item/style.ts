@@ -18,4 +18,9 @@ export default css`
   .list-item.actionable {
     padding-right: 18px;
   }
+
+  .list-item[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `

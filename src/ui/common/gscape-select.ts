@@ -12,6 +12,7 @@ export type SelectOption = {
   text: string,
   trailingIcon?: SVGTemplateResult,
   leadingIcon?: SVGTemplateResult,
+  disabled?: boolean,
 }
 
 export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) {
@@ -79,6 +80,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
                   title="${option.text}"
                   id="${option.id}"
                   ?selected=${this.selectedOption && this.selectedOption.id === option.id}
+                  ?disabled=${option.disabled !== undefined && option.disabled}
                 >
                   ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
                 </gscape-action-list-item>
@@ -108,7 +110,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   private handleSelection(e: Event) {
     if (a11yClick(e)) {
       const targetItem = e.currentTarget as GscapeActionListItem
-      if (targetItem) {
+      if (targetItem && !targetItem.disabled) {
         this.selectedOptionId = targetItem.id
         this.closePanel()
         this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
