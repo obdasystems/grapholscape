@@ -9,6 +9,8 @@ import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
+import { getEntityViewDataIncremental } from "../utils";
+import { ViewIncrementalObjectProperty } from "../view-model";
 import LoadingBadge from "./loading-badge";
 import NodeButton from "./node-button";
 
@@ -161,13 +163,14 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
     }
 
     navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
-      return {
-        objectProperty: grapholEntityToEntityViewData(v[0], incrementalController.grapholscape),
-        connectedClasses: v[1].list.map(classEntity => {
-          return grapholEntityToEntityViewData(classEntity, incrementalController.grapholscape)
-        }),
-        direct: v[1].direct,
-      }
+      const newV = getEntityViewDataIncremental(v[0], incrementalController)
+      const viewIncrementalObjProp = newV as ViewIncrementalObjectProperty
+      viewIncrementalObjProp.connectedClasses = v[1].list.map(classEntity => {
+        return getEntityViewDataIncremental(classEntity, incrementalController)
+      })
+      viewIncrementalObjProp.direct = v[1].direct
+
+      return viewIncrementalObjProp
     })
 
     // TODO: check why sometimes here targetButton.node is undefined, happens only few times
@@ -198,10 +201,10 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
         const objectPropertiesMap = await incrementalController.getObjectPropertiesByClasses([referenceEntity.iri.fullIri])
         const objectProperties = Array.from(objectPropertiesMap).map(([opEntity, _]) => opEntity)
 
-        instanceExplorer.searchFilterList = dataProperties
-          .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
-          .concat(objectProperties.map(op => grapholEntityToEntityViewData(op, incrementalController.grapholscape)))
-          .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
+        instanceExplorer.propertiesFilterList = dataProperties
+          .map(dp => getEntityViewDataIncremental(dp, incrementalController))
+          .concat(objectProperties.map(op => getEntityViewDataIncremental(op, incrementalController)))
+          .sort((a, b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
 
         instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
       }

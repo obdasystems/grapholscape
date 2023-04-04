@@ -1,10 +1,11 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../../model";
-import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons, ViewIncrementalObjectProperty } from "../../../ui";
+import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons } from "../../../ui";
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
 import a11yClick from "../../../ui/util/a11y-click";
 import getIconSlot from "../../../ui/util/get-icon-slot";
 import menuBaseStyle from "../menu-base-style";
+import { ViewIncrementalObjectProperty } from "../view-model";
 
 export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   popperRef?: HTMLElement
@@ -59,16 +60,18 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
               ${this.objectProperties.map(objectProperty => {
 
                 // const values = this.dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
-
+                const disabled = !this.canShowObjectPropertiesRanges && objectProperty.hasUnfolding === false
                 return html`
                   <gscape-entity-list-item
-                    displayedname=${objectProperty.objectProperty.displayedName}
-                    iri=${objectProperty.objectProperty.value.iri.fullIri}
-                    type=${objectProperty.objectProperty.value.type}
+                    displayedname=${objectProperty.entityViewData.displayedName}
+                    iri=${objectProperty.entityViewData.value.iri.fullIri}
+                    type=${objectProperty.entityViewData.value.type}
                     ?actionable=${!this.canShowObjectPropertiesRanges}
                     ?asaccordion=${this.canShowObjectPropertiesRanges}
+                    ?disabled=${disabled}
                     @click=${this.handleEntitySelection}
                     direct=${objectProperty.direct}
+                    title=${disabled ? 'Property not mapped to data' : objectProperty.entityViewData.displayedName}
                   >
                     ${this.canShowObjectPropertiesRanges
                       ? html`
@@ -76,11 +79,11 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                           ${objectProperty.connectedClasses.map(connectedClass => {
                             return html`
                                 <gscape-entity-list-item
-                                  displayedname=${connectedClass.displayedName}
-                                  iri=${connectedClass.value.iri.fullIri}
-                                  objpropertyiri=${objectProperty.objectProperty.value.iri.fullIri}
+                                  displayedname=${connectedClass.entityViewData.displayedName}
+                                  iri=${connectedClass.entityViewData.value.iri.fullIri}
+                                  objpropertyiri=${objectProperty.entityViewData.value.iri.fullIri}
                                   direct=${objectProperty.direct}
-                                  type=${connectedClass.value.type}
+                                  type=${connectedClass.entityViewData.value.type}
                                   ?actionable=${false}
                                 >
                                   <div slot="trailing-element" class="hover-btn">
@@ -129,7 +132,9 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   
       const targetListItem = e.currentTarget as GscapeEntityListItem | null
 
-      if (targetListItem && this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE) {
+      if (targetListItem &&
+        this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE &&
+        !targetListItem.disabled) {
         this.dispatchEvent(new CustomEvent('onobjectpropertyselection', {
           bubbles: true,
           composed: true,
@@ -187,9 +192,9 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
 
   set objectProperties(newObjectProperties) {
     this._objectProperties = newObjectProperties.map(op => {
-      op.connectedClasses.sort((a,b) => a.displayedName.localeCompare(b.displayedName))
+      op.connectedClasses.sort((a,b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
       return op
-    }).sort((a,b) => a.objectProperty.displayedName.localeCompare(b.objectProperty.displayedName))
+    }).sort((a,b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
     this.requestUpdate()
   }
 

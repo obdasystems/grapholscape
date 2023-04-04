@@ -17,6 +17,7 @@ export default class GscapeEntityListItem extends LitElement {
   iri: string = ''
   actionable: boolean = false
   asAccordion: boolean = false
+  disabled: boolean = false
   private isAccordionOpen = false
 
   static properties: PropertyDeclarations = {
@@ -24,6 +25,7 @@ export default class GscapeEntityListItem extends LitElement {
     displayedName: { type: String, reflect: true },
     actionable: { type: Boolean },
     asAccordion: { type: Boolean },
+    disabled: { type: Boolean },
     isAccordionOpen: { type: Boolean, attribute: false },
     iri: { type: String, reflect: true },
   }
@@ -41,7 +43,7 @@ export default class GscapeEntityListItem extends LitElement {
   render() {
     return this.asAccordion
       ? html`
-        <details class="ellipsed entity-list-item" ?open=${this.isAccordionOpen || false}>
+        <details class="ellipsed entity-list-item" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
           <summary class="actionable" @click=${this.handleDetailsClick}>
             ${this.iconNameSlotTemplate()}
           </summary>
@@ -50,7 +52,7 @@ export default class GscapeEntityListItem extends LitElement {
         </details>
       `
       : html`
-        <div class="ellipsed entity-list-item ${this.actionable ? 'actionable' : null}">
+        <div class="ellipsed entity-list-item ${this.actionable ? 'actionable' : null}" ?disabled=${this.disabled}>
           ${this.iconNameSlotTemplate()}
         </div>
       `

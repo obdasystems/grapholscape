@@ -52,4 +52,9 @@ export default css`
     white-space: normal;
     padding: 4px 8px;
   }
+
+  .entity-list-item[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `

@@ -25,19 +25,22 @@ export default class EndpointController {
     return this.endpoints
   }
 
-  setEndpoint(endpoint: MastroEndpoint): void
-  setEndpoint(endpointName: string): void
-  setEndpoint(endpoint: string | MastroEndpoint) {
+  async setEndpoint(endpoint: MastroEndpoint): Promise<void>
+  async setEndpoint(endpointName: string): Promise<void>
+  async setEndpoint(endpoint: string | MastroEndpoint) {
     const _endpoint = typeof(endpoint) === 'string' ? this.endpoints.find(e => e.name === endpoint) : endpoint
 
     if (_endpoint) {
       this.selectedEndpoint = _endpoint
       if (!this.vkgApi) {
         this.vkgApi = new VKGApi(this.requestOptions, _endpoint, this.limit)
-        this.highlightsManager = new HighlightsManager(this.vkgApi)
       } else {
         this.vkgApi.setEndpoint(_endpoint)
       }
+
+      const emptyUnfoldingEntities = await this.vkgApi.getEntitiesEmptyUnfoldings(_endpoint)
+      this.highlightsManager = new HighlightsManager(this.vkgApi, emptyUnfoldingEntities)
+
       this.lifecycle.trigger(IncrementalEvent.EndpointChange, _endpoint)
     } else {
       console.warn(`[VKG-API] The endpoint you tried to set cannot be found`)

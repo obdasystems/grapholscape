@@ -4,6 +4,7 @@ import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entit
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
 import onHideMenu from "../on-hide-menu"
+import { getEntityViewDataIncremental } from "../utils"
 import GscapeInstanceExplorer, { InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
 
 export { default as GscapeInstanceExplorer } from './instance-explorer'
@@ -60,8 +61,8 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
 
       else if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS_INSTANCE && instancesExplorer.referencePropertyEntity) {
         if (e.detail.filterByType) {
-          instancesExplorer.searchFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
-            .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+          instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
+            .map(dp => getEntityViewDataIncremental(dp, incrementalController))
         }
 
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForObjectPropertyRange(

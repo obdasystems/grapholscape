@@ -1,4 +1,6 @@
+import { GrapholTypesEnum } from "../model";
 import { IVirtualKnowledgeGraphApi } from "./api/kg-api";
+import { EmptyUnfoldingEntities } from "./api/model";
 import { Branch } from "./api/swagger/models/Branch";
 import { Highlights } from "./api/swagger/models/Highlights";
 
@@ -13,10 +15,17 @@ export default class HighlightsManager {
   public lastClassIris: string[] = []
   private actualClassIris: string[] = []
 
-  constructor(public vkgApi: IVirtualKnowledgeGraphApi) {
+  private emptyUnfoldingsDataProperties: string[] = []
+  private emptyUnfoldingsObjectProperties: string[] = []
+  private emptyUnfoldingsClasses: string[] = []
+
+  constructor(public vkgApi: IVirtualKnowledgeGraphApi, private emptyUnfoldingEntities: EmptyUnfoldingEntities) {
     this._dataProperties = new Set()
     this._objectProperties = new Map()
     this.computationPromise = new Promise(() => { })
+    this.emptyUnfoldingsDataProperties = this.emptyUnfoldingEntities.emptyUnfoldingDataProperties.map(e => e.entityIRI)
+    this.emptyUnfoldingsObjectProperties = this.emptyUnfoldingEntities.emptyUnfoldingObjectProperties.map(e => e.entityIRI)
+    this.emptyUnfoldingsClasses = this.emptyUnfoldingEntities.emptyUnfoldingClasses.map(e => e.entityIRI)
   }
 
   async computeHighlights(classesIri: string[]): Promise<void>
@@ -62,5 +71,21 @@ export default class HighlightsManager {
     await this.computationPromise
 
     return Array.from(this._objectProperties).map(([_, opBranch]) => opBranch)
+  }
+
+  public hasUnfoldings(entityIri: string, entityType: GrapholTypesEnum) {
+    switch (entityType) {
+      case GrapholTypesEnum.DATA_PROPERTY:
+        return !this.emptyUnfoldingsDataProperties.includes(entityIri)
+
+        case GrapholTypesEnum.OBJECT_PROPERTY:
+          return !this.emptyUnfoldingsObjectProperties.includes(entityIri)
+
+        case GrapholTypesEnum.CLASS:
+          return !this.emptyUnfoldingsClasses.includes(entityIri)
+
+      default:
+        return false
+    }
   }
 }

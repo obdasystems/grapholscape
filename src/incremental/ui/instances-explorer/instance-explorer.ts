@@ -1,11 +1,12 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
 import { GrapholTypesEnum } from "../../../model"
-import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinner, textSpinnerStyle } from "../../../ui"
+import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinnerStyle } from "../../../ui"
 import { entityIcons, insertInGraph, search, searchOff } from "../../../ui/assets"
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
 import getIconSlot from "../../../ui/util/get-icon-slot"
 import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
+import { ViewIncrementalEntityData } from "../view-model"
 
 
 export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(LitElement)) {
@@ -13,8 +14,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
   areInstancesLoading: boolean
   instances: Map<string, ClassInstance> = new Map()
-  searchFilterList: EntityViewData[] = []
-  classTypeFilterList?: EntityViewData[]
+  propertiesFilterList: ViewIncrementalEntityData[] = []
+  classTypeFilterList?: ViewIncrementalEntityData[]
   referenceEntity?: EntityViewData
   referencePropertyEntity?: EntityViewData
   isPropertyDirect: boolean = true
@@ -131,9 +132,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                   size=${SizeEnum.S}
                   .options=${this.classTypeFilterList.map(entity => {
                     return {
-                      id: entity.value.iri.fullIri,
-                      text: entity.displayedName,
-                      leadingIcon: entityIcons[entity.value.type]
+                      id: entity.entityViewData.value.iri.fullIri,
+                      text: entity.entityViewData.displayedName,
+                      leadingIcon: entityIcons[entity.entityViewData.value.type]
                     }
                   })}
                   .placeholder=${ {text: 'Filter by type'} }
@@ -142,29 +143,24 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
               `
               : html`
                 <gscape-entity-list-item
-                  displayedname=${this.classTypeFilterList[0].displayedName}
-                  iri=${this.classTypeFilterList[0].value.iri.fullIri}
-                  type=${this.classTypeFilterList[0].value.type}
+                  displayedname=${this.classTypeFilterList[0].entityViewData.displayedName}
+                  iri=${this.classTypeFilterList[0].entityViewData.value.iri.fullIri}
+                  type=${this.classTypeFilterList[0].entityViewData.value.type}
                 ></gscape-entity-list-item>
               `
             : null
           }
 
-          ${this.searchFilterList
+          ${this.propertiesFilterList
             ? html`
-              <!-- <select id="data-property-filter">
-                <option default>Filter</option>
-                ${this.searchFilterList?.map(dp => html`<option value=${dp.value.iri.fullIri}>${dp.displayedName}</option>`)}
-              </select> -->
-
               <gscape-select
                 id="property-filter-select"
                 size=${SizeEnum.S}
-                .options=${this.searchFilterList.map(entity => {
+                .options=${this.propertiesFilterList.map(entity => {
                   return {
-                    id: entity.value.iri.fullIri,
-                    text: entity.displayedName,
-                    leadingIcon: entityIcons[entity.value.type]
+                    id: entity.entityViewData.value.iri.fullIri,
+                    text: entity.entityViewData.displayedName,
+                    leadingIcon: entityIcons[entity.entityViewData.value.type]
                   }
                 })}
                 .placeholder=${ {text: 'ID or Label'} }
@@ -245,7 +241,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
     // if only one class type, then use it, there is not select element
     if (this.classTypeFilterList?.length === 1) {
-      event.detail.filterByType = this.classTypeFilterList[0].value.iri.fullIri
+      event.detail.filterByType = this.classTypeFilterList[0].entityViewData.value.iri.fullIri
     } else if (this.classTypeFilterSelect) { // otherwise check selected option
       event.detail.filterByType = this.classTypeFilterSelect.selectedOptionId
     }
@@ -274,7 +270,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
   private handleClassTypeFilterChange(e: Event) {
     if (!this.classTypeFilterSelect?.selectedOptionId) {
-      this.searchFilterList = []
+      this.propertiesFilterList = []
     }
 
     this.handleFilter(e)
@@ -294,11 +290,11 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         } else if (this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE) { // otherwise check selected filter type
 
           if (this.classTypeFilterList?.length === 1) { 
-            parentClassIris = this.classTypeFilterList[0].value.iri.fullIri // if only one type, take it as parent class
+            parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class
           } else if (this.classTypeFilterSelect?.selectedOptionId) {
             parentClassIris = this.classTypeFilterSelect.selectedOptionId // otherwise take the selected one
           } else if (this.classTypeFilterList) {
-            parentClassIris = this.classTypeFilterList.map(e => e.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
+            parentClassIris = this.classTypeFilterList.map(e => e.entityViewData.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
           } else
             return
         } else {
@@ -348,7 +344,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.numberOfPagesShown = 1
     this.numberOfInstancesReceived = 0
     this.areInstancesLoading = false
-    this.searchFilterList = []
+    this.propertiesFilterList = []
     this.classTypeFilterList = []
     this.referenceEntity = undefined
     this.referencePropertyEntity = undefined

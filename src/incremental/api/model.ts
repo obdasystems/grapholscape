@@ -42,5 +42,15 @@ export type InstanceCheckingInfo = {
 }
 
 export type MWSEntity = {
-  entityIRI: string
+  entityIRI: string,
+  entityID: string,
+  entityPrefixIRI: string,
+  entityRemainder: string,
+  entityType: string,
+}
+
+export type EmptyUnfoldingEntities = {
+  emptyUnfoldingClasses: MWSEntity[],
+  emptyUnfoldingDataProperties: MWSEntity[],
+  emptyUnfoldingObjectProperties: MWSEntity[],
 }

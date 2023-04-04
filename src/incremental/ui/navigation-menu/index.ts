@@ -4,6 +4,7 @@ import IncrementalController from "../../controller";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import onHideMenu from "../on-hide-menu";
 import showMenu from "../show-menu";
+import { getEntityViewDataIncremental } from "../utils";
 import GscapeNavigationMenu, { ObjectPropertyNavigationEvent } from "./navigation-menu";
 
 export function NavigationMenuFactory(incrementalController: IncrementalController) {
@@ -56,15 +57,15 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
         //   .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
 
         instancesExplorer.classTypeFilterList = navigationMenu.objectProperties
-          .find(op => op.objectProperty.value.iri.equals(e.detail.objectPropertyIri))
+          .find(op => op.entityViewData.value.iri.equals(e.detail.objectPropertyIri))
           ?.connectedClasses
 
         // if only one related class for this object property, then retrieve data properties for this related class
         // as it will be selected by default
         if (instancesExplorer.classTypeFilterList?.length === 1) {
-          instancesExplorer.searchFilterList = (await incrementalController
-            .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].value.iri.fullIri]))
-            .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+          instancesExplorer.propertiesFilterList = (await incrementalController
+            .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].entityViewData.value.iri.fullIri]))
+            .map(dp => getEntityViewDataIncremental(dp, incrementalController))
         }
 
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForObjectPropertyRange(

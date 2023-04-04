@@ -1,6 +1,6 @@
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
-import { MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
+import { EmptyUnfoldingEntities, MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
 
 export type ClassInstance = {
@@ -23,6 +23,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstancesByPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
+  getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
   getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, propertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
@@ -122,6 +123,27 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       method: 'get',
       headers: this.requestOptions.headers
     })).json()
+  }
+
+  async getEntitiesEmptyUnfoldings(endpoint: MastroEndpoint) {
+    return new Promise((resolve: (v: EmptyUnfoldingEntities) => void, reject) => {
+      fetch(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/emptyUnfoldingEntities`, {
+        method: 'get',
+        headers: this.requestOptions.headers,
+      }).then(async response => {
+        if (response.status !== 200) {
+          const result = await (response.json() || response.text())
+          this.requestOptions.onError(result)
+          reject(result)
+        } else {
+          resolve(await response.json() as EmptyUnfoldingEntities)
+        }
+      })
+      .catch(error => {
+        this.requestOptions.onError(error)
+        reject(error)
+      })
+    })
   }
 
   async getInstanceDataPropertyValues(instanceIri: string, dataPropertyIri: string,
