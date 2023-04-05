@@ -204,13 +204,24 @@ export default class Renderer {
     if (cyElement.empty()) {
       console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
     } else {
-      this.cy?.animate({
-        center: {
-          eles: cyElement
-        },
-        zoom: zoom,
-        queue: false,
+      const performPanZoom = () => {
+        this.cy?.animate({
+          center: {
+            eles: cyElement
+          },
+          zoom: zoom,
+          queue: false,
+        })
+      }
+
+      this.renderState?.layout?.one('layoutstop', () => {
+        cyElement.removeListener('position', undefined, performPanZoom)
       })
+
+      performPanZoom()
+      if (this.renderState?.layout) {
+        cyElement.on('position', performPanZoom) // keep element centered while layout runs
+      }
       if (select && this.cy.$(':selected') !== cyElement) {
         this.unselect()
         cyElement.select()
