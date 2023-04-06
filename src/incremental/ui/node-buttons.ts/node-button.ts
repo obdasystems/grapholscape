@@ -36,7 +36,7 @@ export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitEleme
       .gscape-panel {
         padding: 4px;
         min-width: 20px;
-        text-align: center;
+        justify-content: center;
       }
     `
   ]

@@ -12,7 +12,6 @@ import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
-import NodeButton from "./ui/node-buttons.ts/node-button";
 
 /** @internal */
 export default class IncrementalController {
@@ -28,6 +27,7 @@ export default class IncrementalController {
 
   private entitySelectionTimeout: NodeJS.Timeout
   public counts: Map<string, number> = new Map()
+  public countersEnabled: boolean = true
 
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
   on = this.lifecycle.on
@@ -624,6 +624,7 @@ export default class IncrementalController {
   }
 
   addClassInstanceCount(classIri: string) {
+    if (!this.countersEnabled) return
     const node = this.incrementalDiagram.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
 
@@ -637,7 +638,10 @@ export default class IncrementalController {
         const instanceCountBadge = addBadge(node, this.counts.get(classIri)!, 'instance-count', 'bottom')
         
         setTimeout(() => instanceCountBadge.hide(), 1000)
-        node.on('mouseover', () => instanceCountBadge.tippyWidget.show())
+        node.on('mouseover', () => {
+          if (this.countersEnabled)
+            instanceCountBadge.tippyWidget.show()
+        })
         node.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
       }
     }

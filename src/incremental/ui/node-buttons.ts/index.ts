@@ -82,7 +82,10 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       instanceCountBadge.content = count !== undefined ? count : 'n/a'
 
       setTimeout(() => instanceCountBadge.hide(), 1000)
-      cyNode.on('mouseover', () => instanceCountBadge.tippyWidget.show())
+      cyNode.on('mouseover', () => {
+        if (incrementalController.countersEnabled)
+          instanceCountBadge.tippyWidget.show()
+      })
       cyNode.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
 
       if (count !== undefined)

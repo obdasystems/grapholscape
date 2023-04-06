@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit"
-import { DropPanelMixin, BaseMixin, baseStyle, SizeEnum } from "../../../ui"
+import { DropPanelMixin, BaseMixin, baseStyle, SizeEnum, GscapeToggle } from "../../../ui"
 import { tune, searchOff, stopCircle } from "../../../ui/assets"
+import settingsStyle from "../../../ui/settings/settings-style"
 import { BOTTOM_RIGHT_WIDGET } from "../../../ui/style"
 import getIconSlot from "../../../ui/util/get-icon-slot"
 
@@ -10,14 +11,16 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
   endpoints: { name: string }[] = []
   selectedEndpointName: string
   limit: number
+  showCounters: boolean
 
   static properties = {
     endpoints: { type: Array, attribute: false },
     selectedEndpointName: { type: String, reflect: true },
-    limit: { type: Number, reflect: true }
+    limit: { type: Number, reflect: true },
+    showCounters: { type: Boolean, reflect: true }
   }
 
-  static styles = [ baseStyle, 
+  static styles = [ baseStyle, settingsStyle, 
     css`
       :host {
         order: 8;
@@ -27,16 +30,26 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
         min-width: 150px
       }
 
-      .area > .preference {
-        padding: 8px;
-      }
-
       .area:last-child {
-        margin-bottom: 0;
         background: unset;
         border: unset;
         text-align: center;
         padding-top: unset;
+      }
+
+      .setting-obj {
+        max-width: 200px;
+        min-width: 150px;
+      }
+
+      .endpoint-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: stretch;
+      }
+
+      input {
+        width: 100%;
       }
     `
   ]
@@ -44,6 +57,7 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
   protected _onEndpointChangeCallback: (newEndpointName: string) => void = () => { }
   protected _onLimitChangeCallback: (newLimit: number) => void = () => { }
   protected _onStopRequestsCallback: () => void = () => { }
+  protected _onShowCountersChangeCallback: (state: boolean) => void = () => { }
 
   constructor() {
     super()
@@ -65,40 +79,66 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
         <div class="header">VKG Preferences</div>
         <div class="content-wrapper">
           <div class="area">
-            <span class="bold-text">Endpoint Selection</span>
-            <div class="preference">
-              ${this.endpoints.map(endpoint => {
-                return html`
-                  <gscape-action-list-item
-                    @click=${this.handleEndpointClick}
-                    label="${endpoint.name}"
-                    ?selected = "${this.selectedEndpointName === endpoint.name}"
-                  >
-                  </gscape-action-list-item>
-                `
-              })}
+            <span class="bold-text">Endpoint Settings</span>
+            <div class="setting">
+              <div class="title-wrap">
+                <div class="setting-title">Endpoint list</div>
+                <div class="setting-label muted-text">
+                  select one of the currently running endpoints
+                </div>
+              </div>
+              <div class="setting-obj endpoint-list">
+                ${this.endpoints.map(endpoint => {
+                  return html`
+                    <gscape-action-list-item
+                      @click=${this.handleEndpointClick}
+                      label="${endpoint.name}"
+                      ?selected = "${this.selectedEndpointName === endpoint.name}"
+                    >
+                    </gscape-action-list-item>
+                  `
+                })}
 
-              ${this.endpoints.length === 0
-                ? html`
-                  <div class="blank-slate">
-                    ${searchOff}
-                    <div class="header">No endpoint available</div>
-                  </div>
-                `
-                : null
-              }
+                ${this.endpoints.length === 0
+                  ? html`
+                    <div class="blank-slate">
+                      ${searchOff}
+                      <div class="header">No endpoint available</div>
+                    </div>
+                  `
+                  : null
+                }
+              </div>
             </div>
-          </div>
-          <div class="area">
-            <span class="bold-text">Limit Instances</span>
-            <div class="preference">
-              <div class="limit-box">
-                <label for="instances-limit" class="bold-text">Limit</label>
+            <div class="setting">
+              <div class="title-wrap">
+                <div class="setting-title">Limit Instances</div>
+                <div class="setting-label muted-text">
+                  Choose how many instances to retrieve for each search
+                </div>
+              </div>
+              <div class="setting-obj">
                 <input id="instances-limit" type="number" min="1" max="1000" value="${this.limit}" @change=${this.handleLimitChange}>
               </div>
             </div>
-            
           </div>
+
+          <div class="area">
+            <span class="bold-text">Graph Settings</span>
+            <div class="setting">
+              <div class="setting-obj" style="width: 100%; max-width: unset;">
+                <gscape-toggle
+                  @click=${this.handleShowCountersChange}
+                  label="Show Counters on Classes"
+                  label-position="left"
+                  class="actionable"
+                  key = 'show-counts'
+                  ?checked = ${this.showCounters}
+                ></gscape-toggle>
+              </div>
+            </div>
+          </div>
+
           <div class="area">
             <gscape-button
               size=${SizeEnum.S}
@@ -127,12 +167,23 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
     }
   }
 
+  protected handleShowCountersChange(e) {
+    e.preventDefault()
+    const toggle = e.currentTarget as GscapeToggle
+    toggle.checked = !toggle.checked
+    this._onShowCountersChangeCallback(toggle.checked)
+  }
+
   onEndpointChange(callback: (newEndpointName: string) => void) {
     this._onEndpointChangeCallback = callback
   }
 
   onLimitChange(callback: (limit: number) => void) {
     this._onLimitChangeCallback = callback
+  }
+
+  onShowCountersChange(callback: (state: boolean) => void) {
+    this._onShowCountersChangeCallback = callback
   }
 
   onStopRequests(callback: () => void) {

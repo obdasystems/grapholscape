@@ -8,6 +8,7 @@ export { default as GscapeVKGPreferences } from './vkg-preferences'
 
 export function VKGPreferencesFactory(incrementalController: IncrementalController) {
   const vkgPreferences = new GscapeVKGPreferences()
+  vkgPreferences.showCounters = incrementalController.countersEnabled
   incrementalController.grapholscape.widgets.set(WidgetEnum.VKG_PREFERENCES, vkgPreferences)
   incrementalController.grapholscape.uiContainer?.querySelector('.gscape-ui-buttons-tray')?.appendChild(vkgPreferences)
 
@@ -51,6 +52,10 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
 
   vkgPreferences.onLimitChange(limit => {
     incrementalController.endpointController?.setLimit(limit)
+  })
+
+  vkgPreferences.onShowCountersChange(state => {
+    incrementalController.countersEnabled = state
   })
 
   vkgPreferences.onStopRequests(() => incrementalController.endpointController?.stopRequests())
