@@ -66,7 +66,6 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
               ${this.dataProperties.map(dataProperty => {
 
                 const values = this._dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
-                console.log(values)
                 return html`
                   <gscape-entity-list-item
                     displayedname=${dataProperty.displayedName}

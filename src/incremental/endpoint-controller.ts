@@ -113,6 +113,14 @@ export default class EndpointController {
     )
   }
 
+  requestCountForClass(classIri: string) {
+    this.vkgApi?.getInstancesNumber(
+      classIri,
+      (result) => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri, result),
+      () => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri)
+    )
+  }
+
   async instanceCheck(instanceIri: string, classesToCheck: string[]) {
     this.lifecycle.trigger(IncrementalEvent.InstanceCheckingStarted, instanceIri)
     return new Promise((resolve: (value: string[]) => void, reject) => {

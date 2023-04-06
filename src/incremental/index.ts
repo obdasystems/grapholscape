@@ -24,23 +24,25 @@ export function initIncremental(grapholscape: Grapholscape) {
   IncrementalUI.NodeButtonsFactory(incrementalController)
   IncrementalUI.NavigationMenuFactory(incrementalController)
 
+  let entitySelector: GscapeEntitySelector
   if (!incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) {
     initEntitySelector(incrementalController.grapholscape)
-    const entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
-    incrementalController.grapholscape.uiContainer?.appendChild(entitySelector)
-    entitySelector.hide()
-
-    entitySelector.onClassSelection(classIri => {
-      const randomPos = {
-        x: Math.random() * 200,
-        y: Math.random() * 200
-      }
-      incrementalController.addEntity(classIri, true, randomPos)
-      grapholscape.selectElement(classIri)
-      IncrementalUI.moveUpLeft(entitySelector)
-      entitySelector.closePanel()
-    })
   }
+
+  entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+  incrementalController.grapholscape.uiContainer?.appendChild(entitySelector)
+  entitySelector.hide()
+
+  entitySelector.onClassSelection(classIri => {
+    const randomPos = {
+      x: Math.random() * 200,
+      y: Math.random() * 200
+    }
+    incrementalController.addEntity(classIri, true, randomPos)
+    grapholscape.selectElement(classIri)
+    IncrementalUI.moveUpLeft(entitySelector)
+    entitySelector.closePanel()
+  })
 
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
     onIncrementalStartup(grapholscape, incrementalController)

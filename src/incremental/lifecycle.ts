@@ -18,7 +18,8 @@ export enum IncrementalEvent {
   NewDataPropertyValues = 'newDataPropertyValues',
   DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish',
   InstanceCheckingStarted = 'instanceCheckingStarted',
-  InstanceCheckingFinished = 'instanceCheckingFinished'
+  InstanceCheckingFinished = 'instanceCheckingFinished',
+  NewCountResult = 'newCountResult',
 }
 
 export interface IonEvent {
@@ -37,6 +38,7 @@ export interface IonEvent {
   (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void,
   (event: IncrementalEvent.InstanceCheckingStarted, callback: (instanceIri: string) => void): void,
   (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void,
+  (event: IncrementalEvent.NewCountResult, callback: (classIri: string, result?: number) => void): void,
 }
 
 export default class IncrementalLifecycle {
@@ -55,6 +57,7 @@ export default class IncrementalLifecycle {
   private dpvaluesloadfinish: ((instanceIri: string, dataPropertyIri: string) => void)[] = []
   private instanceCheckingStarted: ((instanceIri: string) => void)[] = []
   private instanceCheckingFinished: ((instanceIri: string) => void)[] = []
+  private newCountResult: ((classIri: string, result?: number) => void)[] = []
 
 
   constructor() { }
@@ -74,6 +77,7 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri: string, dataPropertyIri: string): void
   trigger(event: IncrementalEvent.InstanceCheckingStarted, instanceIri: string): void
   trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void
+  trigger(event: IncrementalEvent.NewCountResult, classIri: string, result?: number): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

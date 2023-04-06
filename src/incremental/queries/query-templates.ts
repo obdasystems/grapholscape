@@ -2,7 +2,7 @@ const LABEL_AVAILABLE = true
 
 const LIMIT = 500
 
-export function getInstances(iri: string, searchText?: string, maxResults?: number) {
+export function getInstances(iri: string, searchText?: string, maxResults?: number | 'unlimited') {
   const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
   const where = `?x a <${iri}>.`
 
@@ -13,7 +13,7 @@ export function getInstances(iri: string, searchText?: string, maxResults?: numb
       ${getOptionalLabel('?x', '?l', where)}
       ${getFilterOnIriOrLabel('?x', '?l', searchText)}
     }
-    LIMIT ${maxResults || LIMIT}
+    ${maxResults !== 'unlimited' ? `LIMIT ${maxResults || LIMIT}` : ''}
   `
 }
 

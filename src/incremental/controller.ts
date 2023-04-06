@@ -4,12 +4,15 @@ import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
+import { textSpinner } from "../ui";
 import { ClassInstance } from "./api/kg-api";
 import { RequestOptions } from "./api/model";
 import DiagramBuilder from "./diagram-builder";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
+import { addBadge } from "./ui";
+import NodeButton from "./ui/node-buttons.ts/node-button";
 
 /** @internal */
 export default class IncrementalController {
@@ -24,6 +27,7 @@ export default class IncrementalController {
   endpointController?: EndpointController
 
   private entitySelectionTimeout: NodeJS.Timeout
+  public counts: Map<string, number> = new Map()
 
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
   on = this.lifecycle.on
@@ -55,10 +59,6 @@ export default class IncrementalController {
       if (grapholscape.entityNameType === EntityNameType.LABEL)
         this.classInstanceEntities.forEach(instanceEntity => this.updateEntityNameType(instanceEntity.iri))
     })
-  }
-
-  createClassInstanceEntity(classInstance: ClassInstance) {
-
   }
 
   async performActionWithBlockedGraph(action: () => void | Promise<void>) {
@@ -93,6 +93,9 @@ export default class IncrementalController {
       this.updateEntityNameType(entity.iri)
       if (centerOnIt)
         this.grapholscape.centerOnElement(iri)
+
+      if (entity.is(GrapholTypesEnum.CLASS))
+        this.addClassInstanceCount(iri)
     }
   }
 
@@ -190,6 +193,7 @@ export default class IncrementalController {
   removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void
   removeEntity(entityOrIri: string | GrapholEntity, entitiesIrisToKeep: string[] = []) {
     let entity: GrapholEntity | undefined | null
+
     if (typeof (entityOrIri) === 'string') {
       entity = this.classInstanceEntities.get(entityOrIri) || this.ontology.getEntity(entityOrIri)
     } else {
@@ -204,8 +208,8 @@ export default class IncrementalController {
           const objectPropertyEntity = this.ontology.getEntity(objectPropertyEdge.data().iri)
           if (objectPropertyEntity) {
             objectPropertyEntity.removeOccurrence(
-              objectPropertyEdge.id(), 
-              this.incrementalDiagram.id, 
+              objectPropertyEdge.id(),
+              this.incrementalDiagram.id,
               RendererStatesEnum.INCREMENTAL
             )
           }
@@ -273,7 +277,7 @@ export default class IncrementalController {
           )
         })
       })
-      
+
 
       this.diagramBuilder.addClassInstance(classInstanceEntity)
       this.classInstanceEntities.set(instance.iri, classInstanceEntity)
@@ -326,6 +330,9 @@ export default class IncrementalController {
         this.updateEntityNameType(sourceClassIri)
         this.updateEntityNameType(targetClassIri)
       })
+
+      this.addClassInstanceCount(sourceClassIri)
+      this.addClassInstanceCount(targetClassIri)
     }
   }
 
@@ -613,6 +620,26 @@ export default class IncrementalController {
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     } else {
       this.incrementalRenderer.unFreezeGraph()
+    }
+  }
+
+  addClassInstanceCount(classIri: string) {
+    const node = this.incrementalDiagram.representation?.cy.$id(classIri)
+    if (!node || node.empty()) return
+
+    if (this.counts.get(classIri) === undefined) {
+      if (!node.scratch('instance-count')) {
+        addBadge(node, textSpinner(), 'instance-count', 'bottom')
+        this.endpointController?.requestCountForClass(classIri)
+      }
+    } else {
+      if (!node.scratch('instance-count')) {
+        const instanceCountBadge = addBadge(node, this.counts.get(classIri)!, 'instance-count', 'bottom')
+        
+        setTimeout(() => instanceCountBadge.hide(), 1000)
+        node.on('mouseover', () => instanceCountBadge.tippyWidget.show())
+        node.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
+      }
     }
   }
 

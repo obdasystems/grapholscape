@@ -1,7 +1,7 @@
 import { NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
-import { icons, WidgetEnum } from "../../../ui";
-import getIconSlot from "../../../ui/util/get-icon-slot";
+import { WidgetEnum, textSpinner } from "../../../ui";
+import { classInstanceIcon, objectPropertyIcon } from "../../../ui/assets";
 import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
@@ -11,19 +11,16 @@ import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
 import { getEntityViewDataIncremental } from "../utils";
 import { ViewIncrementalObjectProperty } from "../view-model";
-import LoadingBadge from "./loading-badge";
 import NodeButton from "./node-button";
+import { Placement } from "tippy.js";
+import { SVGTemplateResult, TemplateResult } from "lit";
 
 export function NodeButtonsFactory(incrementalController: IncrementalController) {
 
-  const instancesButton = new NodeButton()
-  instancesButton.appendChild(getIconSlot('icon', icons.entityIcons["class-instance"]))
-  instancesButton.style.setProperty('--gscape-border-radius-btn', '50%')
+  const instancesButton = new NodeButton(classInstanceIcon)
   instancesButton.title = 'Search instances'
 
-  const objectPropertyButton = new NodeButton()
-  objectPropertyButton.appendChild(getIconSlot('icon', icons.entityIcons["object-property"]))
-  objectPropertyButton.style.setProperty('--gscape-border-radius-btn', '50%')
+  const objectPropertyButton = new NodeButton(objectPropertyIcon)
   objectPropertyButton.title = 'Navigate through object properties'
 
   const nodeButtonsMap = new Map<GrapholTypesEnum, NodeButton[]>()
@@ -65,27 +62,31 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
   incrementalController.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
     const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
     if (cyNode) {
-      const _loadingButton = new LoadingBadge()
       cyNode.addClass('unknown-parent-class')
-      cyNode.scratch('loading-button', _loadingButton)
-      cyNode.scratch('update-loading-button-position', () => {
-        _loadingButton.attachTo((cyNode as any).popperRef())
-      })
-      _loadingButton.cxtWidgetProps.offset = info => getButtonOffset(info)
-
-      // update badge position on node moving around and on viewport pan state change
-      cyNode.on('position', cyNode.scratch('update-loading-button-position'))
-      cyNode.cy().on('pan', cyNode.scratch('update-loading-button-position'))
-      cyNode.scratch('update-loading-button-position')()
-
-      cyNode.on('remove', (e) => removeLoadingBadge(e.target))
+      addBadge(cyNode, textSpinner(), 'loading-badge')
     }
   })
 
   incrementalController.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
     const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
-    if (cyNode && cyNode.scratch('loading-button')) {
-      removeLoadingBadge(cyNode)
+    if (cyNode && cyNode.scratch('loading-badge')) {
+      removeBadge(cyNode, 'loading-badge')
+    }
+  })
+
+  incrementalController.on(IncrementalEvent.NewCountResult, (classIri, count) => {
+    const cyNode = incrementalController.grapholscape.renderer.cy?.$id(classIri)
+    if (cyNode && cyNode.nonempty()) {
+      const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
+      instanceCountBadge.contentType = 'template';
+      instanceCountBadge.content = count !== undefined ? count : 'n/a'
+
+      setTimeout(() => instanceCountBadge.hide(), 1000)
+      cyNode.on('mouseover', () => instanceCountBadge.tippyWidget.show())
+      cyNode.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
+
+      if (count !== undefined)
+        incrementalController.counts.set(classIri, count)
     }
   })
 }
@@ -228,11 +229,41 @@ function getButtonOffset(info: { popper: { height: number, width: number } }, bu
   ]
 }
 
-export function removeLoadingBadge(cyNode: NodeSingular) {
-  (cyNode.scratch('loading-button') as NodeButton).tippyWidget.destroy()
+export function removeBadge(cyNode: NodeSingular, name: string) {
+  (cyNode.scratch(name) as NodeButton).tippyWidget.destroy()
   cyNode.removeClass('unknown-parent-class')
-  cyNode.removeScratch('loading-button')
-  cyNode.removeListener('position', cyNode.scratch('update-loading-button-positon'))
-  cyNode.cy().removeListener('pan', cyNode.scratch('update-loading-button-position'))
-  cyNode.removeScratch('update-loading-button-position')
+  cyNode.removeScratch(name)
+  cyNode.removeAllListeners()
+  cyNode.cy().removeListener('pan', cyNode.scratch(`update-${name}-position`))
+  cyNode.removeScratch(`update-${name}-position`)
+}
+
+export function addBadge(
+  node: NodeSingular,
+  content: string | number | TemplateResult | SVGTemplateResult,
+  name: string,
+  placement: Placement = 'bottom',
+  isIcon = false,
+) {
+
+  const badge = isIcon
+    ? new NodeButton(content)
+    : new NodeButton(content, 'template')
+
+  badge.cxtWidgetProps.placement = placement
+
+  node.scratch(name, badge)
+  node.scratch(`update-${name}-position`, () => {
+    badge.attachToSilently((node as any).popperRef())
+  })
+  badge.cxtWidgetProps.offset = info => getButtonOffset(info)
+  badge.attachTo((node as any).popperRef())
+  // update badge position on node moving around and on viewport pan state change
+  node.on('position', node.scratch(`update-${name}-position`))
+  node.cy().on('pan', node.scratch(`update-${name}-position`))
+  node.scratch(`update-${name}-position`)
+
+  node.on('remove', (e) => removeBadge(e.target, name))
+
+  return badge
 }
