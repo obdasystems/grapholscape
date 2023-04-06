@@ -214,13 +214,13 @@ export default class Renderer {
         })
       }
 
-      this.renderState?.layout?.one('layoutstop', () => {
-        cyElement.removeListener('position', undefined, performPanZoom)
-      })
-
       performPanZoom()
-      if (this.renderState?.layout) {
+      if (this.renderState?.layoutRunning) {
         cyElement.on('position', performPanZoom) // keep element centered while layout runs
+
+        this.renderState?.layout?.one('layoutstop', () => {
+          cyElement.removeListener('position', undefined, performPanZoom)
+        })
       }
       if (select && this.cy.$(':selected') !== cyElement) {
         this.unselect()

@@ -19,6 +19,8 @@ export default abstract class BaseRenderer implements RenderState {
   abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
   abstract transformOntology(ontology: Ontology): void;
 
+  layoutRunning: boolean = false
+
   constructor(renderer?: Renderer) {
     if (renderer) this.renderer = renderer
   }

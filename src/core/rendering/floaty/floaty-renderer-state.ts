@@ -1,11 +1,11 @@
 import cytoscape, { NodeSingular } from "cytoscape";
+import automove from 'cytoscape-automove';
 import { Renderer } from "..";
 import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
-import automove from 'cytoscape-automove'
 
 cytoscape.use(automove)
 
@@ -36,7 +36,9 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!this.renderer.cy) return
     this._layout?.stop()
     this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions)
+    this._layout.one('layoutstop', () => this.layoutRunning = false)
     this._layout.run()
+    this.layoutRunning = true
   }
 
   render(): void {
@@ -101,6 +103,7 @@ export default class FloatyRendererState extends BaseRenderer {
   pinNode(nodeOrId: NodeSingular | string) {
     if (!nodeOrId || !this.renderer.cy) return
     let node: NodeSingular
+
     if (typeof (nodeOrId) === 'string') {
       node = this.renderer.cy.$id(nodeOrId)
     } else {
@@ -112,8 +115,8 @@ export default class FloatyRendererState extends BaseRenderer {
 
     node.lock()
     node.data("pinned", true);
-
-    (node as any).unlockButton = (node as any).popper({
+    let n = node as any
+    n.unlockButton = (node as any).popper({
       content: () => {
         if (!this.renderer.cy) return
         let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
