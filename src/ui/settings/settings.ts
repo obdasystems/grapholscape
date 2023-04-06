@@ -8,6 +8,7 @@ import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { WidgetEnum } from '../util/widget-enum'
+import settingsStyle from './settings-style'
 
 type OptionEntry = {
   value: string,
@@ -45,6 +46,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
   static styles = [
     baseStyle,
     GscapeButtonStyle,
+    settingsStyle,
     css`
       :host {
         order: 5;
@@ -58,34 +60,6 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
         text-overflow: ellipsis;
         padding-right: 0;
         padding-left: 0;
-      }
-
-      .settings-wrapper {
-        overflow-y: auto;
-        scrollbar-width: inherit;
-        max-height: 320px;
-        overflow-x: hidden;
-        padding: 0 8px;
-      }
-
-      .area:last-of-type {
-        margin-bottom: 0;
-      }
-
-      .setting {
-        padding: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .setting-label {
-        font-size: 10px;
-      }
-
-      .title-wrap {
-        white-space: normal;
-        width: 220px;
       }
 
       #logo {
