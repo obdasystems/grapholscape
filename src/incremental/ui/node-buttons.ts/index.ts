@@ -1,6 +1,8 @@
 import { NodeSingular } from "cytoscape";
+import { SVGTemplateResult, TemplateResult } from "lit";
+import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
-import { WidgetEnum, textSpinner } from "../../../ui";
+import { textSpinner, WidgetEnum } from "../../../ui";
 import { classInstanceIcon, objectPropertyIcon } from "../../../ui/assets";
 import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data";
 import IncrementalController from "../../controller";
@@ -12,8 +14,6 @@ import showMenu from "../show-menu";
 import { getEntityViewDataIncremental } from "../utils";
 import { ViewIncrementalObjectProperty } from "../view-model";
 import NodeButton from "./node-button";
-import { Placement } from "tippy.js";
-import { SVGTemplateResult, TemplateResult } from "lit";
 
 export function NodeButtonsFactory(incrementalController: IncrementalController) {
 
@@ -77,20 +77,30 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
   incrementalController.on(IncrementalEvent.CountStarted, classIri => {
     const node = incrementalController.incrementalDiagram.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
-    const instanceCountBadge = node.scratch('instance-count')
-    if (!instanceCountBadge) {
-      addBadge(node, textSpinner(), 'instance-count', 'bottom')
-    } else {
-      instanceCountBadge.content = textSpinner()
-    }
+
+    removeBadge(node, 'instance-count')
+    addBadge(node, textSpinner(), 'instance-count', 'bottom')
   })
 
   incrementalController.on(IncrementalEvent.NewCountResult, (classIri, count) => {
     const cyNode = incrementalController.grapholscape.renderer.cy?.$id(classIri)
-    if (cyNode && cyNode.nonempty()) {
+    if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
       const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
       instanceCountBadge.contentType = 'template';
-      instanceCountBadge.content = count !== undefined ? count : 'n/a'
+
+      if (count !== undefined) {
+        instanceCountBadge.content = count.value
+      } else if (instanceCountBadge.content === undefined) {
+        instanceCountBadge.content = 'n/a'
+      }
+
+      instanceCountBadge.highlighted = !count?.materialized
+      if (count?.date) {
+        instanceCountBadge.title = `Date: ${count.date}`
+      } else {
+        instanceCountBadge.title = 'Fresh Value'
+      }
+      
 
       const updateFun = cyNode.scratch('update-instance-count-position')
       if (updateFun) updateFun()
@@ -102,7 +112,7 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       })
       cyNode.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
 
-      if (count !== undefined)
+      if (count && !count.materialized) // update only if it's a fresh value
         incrementalController.counts.set(classIri, count)
     }
   })

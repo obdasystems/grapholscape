@@ -1,6 +1,6 @@
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
-import { EmptyUnfoldingEntities, MastroEndpoint, QueryStatusEnum, RequestOptions } from './model'
+import { EmptyUnfoldingEntities, MastroEndpoint, MaterializedCounts, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
 
 export type ClassInstance = {
@@ -139,10 +139,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
           resolve(await response.json() as EmptyUnfoldingEntities)
         }
       })
-      .catch(error => {
-        this.requestOptions.onError(error)
-        reject(error)
-      })
+        .catch(error => {
+          this.requestOptions.onError(error)
+          reject(error)
+        })
     })
   }
 
@@ -240,6 +240,32 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     poller.start()
+  }
+
+  async getMaterializedCounts(endpoint: MastroEndpoint) {
+    const url = new URL(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/countClassInstances/info`)
+    return new Promise((resolve: (r: MaterializedCounts) => void, reject) => {
+      fetch(url,
+        {
+          method: 'get',
+          headers: this.requestOptions.headers
+        }).then(async response => {
+          if (response.status !== 200) {
+            const result = await (response.json() || response.text())
+            this.requestOptions.onError(result)
+            reject(result)
+          } else {
+            const result = await response.json()
+            result.countsMap = new Map(Object.entries(result.countsMap))
+            resolve(result)
+          }
+        })
+        .catch(error => {
+          this.requestOptions.onError(error)
+          reject(error)
+        })
+    })
+
   }
 
   stopAllQueries() {

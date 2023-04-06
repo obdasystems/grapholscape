@@ -8,6 +8,7 @@ import getIconSlot from "../../../ui/util/get-icon-slot";
 export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitElement)) {
 
   node?: NodeSingular
+  highlighted?: boolean
 
   cxtWidgetProps: Partial<Props> = {
     trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
@@ -25,6 +26,7 @@ export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitEleme
   static properties: PropertyDeclarations = {
     content: { type: Object },
     contentType: { type: String, reflect: true },
+    highlighted: { type: Boolean, reflect: true },
   }
 
   static styles = [
@@ -38,6 +40,10 @@ export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitEleme
         min-width: 20px;
         justify-content: center;
       }
+
+      .highlighted {
+        border-color: var(--gscape-color-accent);
+      }
     `
   ]
 
@@ -50,7 +56,7 @@ export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitEleme
   render() {
     return html`
       <div
-        class="gscape-panel btn"
+        class="gscape-panel btn ${this.highlighted ? 'primary' : ''}"
         style="${this.contentType === 'icon' ? 'border-radius: 50%;' : ''}"
       >
       ${this.contentType === 'icon'

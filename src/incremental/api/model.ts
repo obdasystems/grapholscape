@@ -54,3 +54,18 @@ export type EmptyUnfoldingEntities = {
   emptyUnfoldingDataProperties: MWSEntity[],
   emptyUnfoldingObjectProperties: MWSEntity[],
 }
+
+export type MaterializedCounts = {
+  countsMap: Map<string, CountEntry>,
+  endTime: number,
+  percentage: number,
+  startTime: number,
+  state: QueryStatusEnum,
+}
+
+export type CountEntry = {
+  count: number,
+  error?: string,
+  state: QueryStatusEnum,
+  entity: MWSEntity,
+}

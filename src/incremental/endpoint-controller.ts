@@ -1,6 +1,6 @@
 import EndpointApi from "./api/endpoint-api";
 import VKGApi from "./api/kg-api";
-import { MastroEndpoint, MastroID, RequestOptions } from "./api/model";
+import { MastroEndpoint, RequestOptions } from "./api/model";
 import HighlightsManager from "./highlights-manager";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 
@@ -117,9 +117,14 @@ export default class EndpointController {
     this.lifecycle.trigger(IncrementalEvent.CountStarted, classIri)
     this.vkgApi?.getInstancesNumber(
       classIri,
-      (result) => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri, result),
+      (result) => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri, { value: result, materialized: false }),
       () => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri)
     )
+  }
+
+  async getMaterializedCounts() {
+    if (this.selectedEndpoint)
+      return await this.vkgApi?.getMaterializedCounts(this.selectedEndpoint)
   }
 
   async instanceCheck(instanceIri: string, classesToCheck: string[]) {

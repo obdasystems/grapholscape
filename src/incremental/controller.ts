@@ -4,14 +4,14 @@ import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
-import { textSpinner } from "../ui";
 import { ClassInstance } from "./api/kg-api";
-import { RequestOptions } from "./api/model";
+import { QueryStatusEnum, RequestOptions } from "./api/model";
 import DiagramBuilder from "./diagram-builder";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
+import NodeButton from "./ui/node-buttons.ts/node-button";
 
 /** @internal */
 export default class IncrementalController {
@@ -26,7 +26,7 @@ export default class IncrementalController {
   endpointController?: EndpointController
 
   private entitySelectionTimeout: NodeJS.Timeout
-  public counts: Map<string, number> = new Map()
+  public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
   public countersEnabled: boolean = true
 
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
@@ -152,6 +152,7 @@ export default class IncrementalController {
 
   private updateEntityNameType(entityOrIri: string | Iri) {
     let entityIri: string
+
     if (typeof (entityOrIri) !== 'string') {
       entityIri = entityOrIri.fullIri
     } else {
@@ -623,17 +624,21 @@ export default class IncrementalController {
     }
   }
 
-  countInstancesForClass(classIri: string) {
+  async countInstancesForClass(classIri: string) {
     if (!this.countersEnabled) return
     const node = this.incrementalDiagram.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
 
+    await this.updateMaterializedCounts()
+
     if (this.counts.get(classIri) === undefined) {
       this.endpointController?.requestCountForClass(classIri)
-    } else {
+    } else { // Value already present
+      let instanceCountBadge: NodeButton
+      const countEntry = this.counts.get(classIri)!
+
       if (!node.scratch('instance-count')) {
-        const instanceCountBadge = addBadge(node, this.counts.get(classIri)!, 'instance-count', 'bottom')
-        
+        instanceCountBadge = addBadge(node, countEntry.value, 'instance-count', 'bottom')
         setTimeout(() => instanceCountBadge.hide(), 1000)
         node.on('mouseover', () => {
           if (this.countersEnabled)
@@ -641,8 +646,42 @@ export default class IncrementalController {
         })
         node.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
       } else {
-        node.scratch('instance-count').content = this.counts.get(classIri)
+        instanceCountBadge = node.scratch('instance-count') as NodeButton
+        instanceCountBadge.content = countEntry.value
       }
+
+      if (countEntry.materialized) {
+        instanceCountBadge.highlighted = false
+        instanceCountBadge.title = `Date: ${countEntry.date}`
+      } else {
+        instanceCountBadge.highlighted = true
+        instanceCountBadge.title = 'Fresh Value'
+      }
+    }
+  }
+
+  async updateMaterializedCounts() {
+    const materializedCounts = await this.endpointController?.getMaterializedCounts()
+    if (materializedCounts) {
+      materializedCounts.countsMap.forEach(countEntry => {
+        if (countEntry.state === QueryStatusEnum.FINISHED) {
+          const currentCount = this.counts.get(countEntry.entity.entityIRI)
+          if (!currentCount || currentCount.materialized) {
+            this.counts.set(countEntry.entity.entityIRI, {
+              value: countEntry.count,
+              materialized: true,
+              date: materializedCounts.endTime !== 0
+                ? new Date(materializedCounts.endTime).toDateString()
+                : new Date(materializedCounts.startTime).toDateString()
+            })
+
+            this.lifecycle.trigger(IncrementalEvent.NewCountResult, countEntry.entity.entityIRI, {
+              value: countEntry.count,
+              materialized: true,
+            })
+          }
+        }
+      })
     }
   }
 
