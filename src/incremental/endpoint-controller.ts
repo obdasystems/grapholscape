@@ -114,6 +114,7 @@ export default class EndpointController {
   }
 
   requestCountForClass(classIri: string) {
+    this.lifecycle.trigger(IncrementalEvent.CountStarted, classIri)
     this.vkgApi?.getInstancesNumber(
       classIri,
       (result) => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri, result),

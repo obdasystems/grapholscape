@@ -1,4 +1,5 @@
 import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model";
+import { counter } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import { IncrementalCommands } from "../../../ui/incremental-ui";
 import IncrementalController from "../../controller";
@@ -111,6 +112,17 @@ export function CommandsWidgetFactory(incrementalController: IncrementalControll
           )
         )
       }
+
+      if (incrementalController.endpointController && incrementalController.countersEnabled) {
+        commands.push({
+          icon: counter,
+          content: 'Count Instances',
+          select: () => {
+            incrementalController.endpointController?.requestCountForClass(entity.iri.fullIri)
+          }
+        })
+      }
+      
     }
 
     commands.push(

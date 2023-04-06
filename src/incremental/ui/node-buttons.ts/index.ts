@@ -74,12 +74,26 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
     }
   })
 
+  incrementalController.on(IncrementalEvent.CountStarted, classIri => {
+    const node = incrementalController.incrementalDiagram.representation?.cy.$id(classIri)
+    if (!node || node.empty()) return
+    const instanceCountBadge = node.scratch('instance-count')
+    if (!instanceCountBadge) {
+      addBadge(node, textSpinner(), 'instance-count', 'bottom')
+    } else {
+      instanceCountBadge.content = textSpinner()
+    }
+  })
+
   incrementalController.on(IncrementalEvent.NewCountResult, (classIri, count) => {
     const cyNode = incrementalController.grapholscape.renderer.cy?.$id(classIri)
     if (cyNode && cyNode.nonempty()) {
       const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
       instanceCountBadge.contentType = 'template';
       instanceCountBadge.content = count !== undefined ? count : 'n/a'
+
+      const updateFun = cyNode.scratch('update-instance-count-position')
+      if (updateFun) updateFun()
 
       setTimeout(() => instanceCountBadge.hide(), 1000)
       cyNode.on('mouseover', () => {

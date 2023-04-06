@@ -95,7 +95,7 @@ export default class IncrementalController {
         this.grapholscape.centerOnElement(iri)
 
       if (entity.is(GrapholTypesEnum.CLASS))
-        this.addClassInstanceCount(iri)
+        this.countInstancesForClass(iri)
     }
   }
 
@@ -331,8 +331,8 @@ export default class IncrementalController {
         this.updateEntityNameType(targetClassIri)
       })
 
-      this.addClassInstanceCount(sourceClassIri)
-      this.addClassInstanceCount(targetClassIri)
+      this.countInstancesForClass(sourceClassIri)
+      this.countInstancesForClass(targetClassIri)
     }
   }
 
@@ -623,16 +623,13 @@ export default class IncrementalController {
     }
   }
 
-  addClassInstanceCount(classIri: string) {
+  countInstancesForClass(classIri: string) {
     if (!this.countersEnabled) return
     const node = this.incrementalDiagram.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
 
     if (this.counts.get(classIri) === undefined) {
-      if (!node.scratch('instance-count')) {
-        addBadge(node, textSpinner(), 'instance-count', 'bottom')
-        this.endpointController?.requestCountForClass(classIri)
-      }
+      this.endpointController?.requestCountForClass(classIri)
     } else {
       if (!node.scratch('instance-count')) {
         const instanceCountBadge = addBadge(node, this.counts.get(classIri)!, 'instance-count', 'bottom')
@@ -643,6 +640,8 @@ export default class IncrementalController {
             instanceCountBadge.tippyWidget.show()
         })
         node.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
+      } else {
+        node.scratch('instance-count').content = this.counts.get(classIri)
       }
     }
   }
