@@ -113,7 +113,7 @@ export function CommandsWidgetFactory(incrementalController: IncrementalControll
         )
       }
 
-      if (incrementalController.endpointController && incrementalController.countersEnabled) {
+      if (incrementalController.endpointController?.isReasonerAvailable() && incrementalController.countersEnabled) {
         commands.push({
           icon: counter,
           content: 'Count Instances',

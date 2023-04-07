@@ -548,7 +548,7 @@ export default class IncrementalController {
    * @returns 
    */
   async getObjectPropertiesByClasses(classIris: string[]) {
-    if (this.endpointController) {
+    if (this.endpointController?.isReasonerAvailable()) {
       this.endpointController.highlightsManager?.computeHighlights(classIris)
       const branches = await this.endpointController.highlightsManager?.objectProperties()
       const objectPropertiesMap = new Map<GrapholEntity, ObjectPropertyConnectedClasses>()
@@ -584,7 +584,7 @@ export default class IncrementalController {
   }
 
   async getDataPropertiesByClasses(classIris: string[]) {
-    if (this.endpointController) {
+    if (this.endpointController?.isReasonerAvailable()) {
       this.endpointController.highlightsManager?.computeHighlights(classIris)
       const dataProperties = await this.endpointController.highlightsManager?.dataProperties()
       return dataProperties
@@ -625,7 +625,7 @@ export default class IncrementalController {
   }
 
   async countInstancesForClass(classIri: string) {
-    if (!this.countersEnabled) return
+    if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
     const node = this.incrementalDiagram.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
 

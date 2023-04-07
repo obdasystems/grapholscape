@@ -155,4 +155,8 @@ export default class EndpointController {
     if (this.vkgApi)
       this.vkgApi.language = lang
   }
+
+  isReasonerAvailable() {
+    return this.selectedEndpoint !== undefined
+  }
 }
