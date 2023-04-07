@@ -678,6 +678,7 @@ export default class IncrementalController {
             this.lifecycle.trigger(IncrementalEvent.NewCountResult, countEntry.entity.entityIRI, {
               value: countEntry.count,
               materialized: true,
+              date: this.counts.get(countEntry.entity.entityIRI)?.date
             })
           }
         }
