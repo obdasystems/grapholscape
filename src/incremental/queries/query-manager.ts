@@ -260,8 +260,9 @@ export default class QueryManager {
   // Request for starting a query
   private async getNewQueryRequest(queryCode: string, customURL?: URL): Promise<Request> {
     const url: URL = customURL || this.queryStartPath
+    const params = new URLSearchParams({ useReplaceForUrlEncoding: 'false' })
 
-    return new Request(url, {
+    return new Request(new URL(url.toString().concat(`?${params.toString()}`)), {
       method: 'post',
       headers: this.requestOptions.headers,
       body: JSON.stringify({
