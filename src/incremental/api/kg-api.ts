@@ -106,7 +106,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
 
   async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
-    const queryCode = QueriesTemplates.getInstances(iri, searchText, 'unlimited')
+    const queryCode = QueriesTemplates.getInstances(iri, searchText, 'unlimited', false)
     this.queryManager.performQueryCount(queryCode, onStop)
       .then(result => onResult(result))
       .catch(_ => {

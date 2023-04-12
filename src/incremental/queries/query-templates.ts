@@ -2,8 +2,8 @@ const LABEL_AVAILABLE = true
 
 const LIMIT = 500
 
-export function getInstances(iri: string, searchText?: string, maxResults?: number | 'unlimited') {
-  const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
+export function getInstances(iri: string, searchText?: string, maxResults?: number | 'unlimited', includeLabels = true) {
+  const select = LABEL_AVAILABLE && includeLabels ? `?x ?l` : `?x`
   const where = `?x a <${iri}>.`
 
   return `
