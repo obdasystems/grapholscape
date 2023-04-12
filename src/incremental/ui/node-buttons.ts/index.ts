@@ -257,6 +257,8 @@ function getButtonOffset(info: { popper: { height: number, width: number } }, bu
 }
 
 export function removeBadge(cyNode: NodeSingular, name: string) {
+  if (!cyNode.scratch(name)) return
+
   (cyNode.scratch(name) as NodeButton).tippyWidget.destroy()
   cyNode.removeClass('unknown-parent-class')
   cyNode.removeScratch(name)
