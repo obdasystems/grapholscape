@@ -292,7 +292,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     return {
       iri: result[0].value,
       shortIri: result[0].shortIRI,
-      label: label.value && label?.language === this.language ? this.parseLabel(result[1].value) : undefined
+      label: label.value && label?.language === this.language ? label : undefined
     }
   }
 
