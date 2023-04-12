@@ -281,27 +281,34 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     const queryPoller = await this.queryManager.performQuery(queryCode, 100, 1, true)
     queryPoller.onNewResults = (result) => {
-      onResult(result.results.map(r => {
-        return {
-          value: r[0].value,
-          language: r[0].lang
-        }
-      }))
+      onResult(result.results.map(r => this.parseLabel(r[0].value)).filter(l => l.value !== 'null'))
     }
 
     queryPoller.start()
   }
 
   private getClassInstanceFromQueryResult(result: { value: string, shortIRI?: string, lang?: string }[]): ClassInstance {
+    const label = this.parseLabel(result[1].value)
     return {
       iri: result[0].value,
       shortIri: result[0].shortIRI,
-      label: result[1]?.value !== 'null' && result[1]?.lang === this.language
-        ? {
-          language: result[1].lang,
-          value: result[1]?.value
-        }
-        : undefined
+      label: label.value && label?.language === this.language ? this.parseLabel(result[1].value) : undefined
+    }
+  }
+
+  private parseLabel(labelWithLang: string) {
+    let label: string[] | null | string = null
+    let lang: string[] | null | string | undefined = undefined
+
+    if (labelWithLang !== 'null') {
+      const atIndex = labelWithLang.lastIndexOf('@')
+      label = labelWithLang.substring(1, atIndex - 1)
+      lang = labelWithLang.substring(atIndex + 1)
+    }
+
+    return {
+      value: label || 'null',
+      language: lang || undefined
     }
   }
 }
