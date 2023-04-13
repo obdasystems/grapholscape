@@ -3,7 +3,7 @@ import { GscapeInstanceExplorer } from "./instances-explorer";
 import GscapeNavigationMenu from "./navigation-menu/navigation-menu";
 
 export default function(menu: GscapeNavigationMenu | GscapeInstanceExplorer, incrementalController: IncrementalController) {
-    incrementalController.endpointController?.stopRequests()
+    incrementalController.endpointController?.stopRequests('instances')
     
     if (menu.referenceEntity) {
       const refNode = incrementalController

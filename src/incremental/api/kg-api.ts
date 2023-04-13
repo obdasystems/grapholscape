@@ -272,6 +272,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     this.queryManager.stopRunningQueries()
   }
 
+  stopCountsQueries() {
+    this.queryManager.stopCountsQueries()
+  }
+
+  stopInstancesQueries() {
+    this.queryManager.stopInstancesQueries()
+  }
+
   setEndpoint(endpoint: MastroEndpoint) {
     this.queryManager = new QueryManager(this.requestOptions, endpoint)
   }

@@ -46,7 +46,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   })
 
   instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {
-    incrementalController.endpointController?.stopRequests()
+    incrementalController.endpointController?.stopRequests('instances')
     instancesExplorer.instances = new Map()
     instancesExplorer.areInstancesLoading = true
 
@@ -78,7 +78,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   })
 
   instancesExplorer.addEventListener('showmoreinstances', async (e: CustomEvent) => {
-    incrementalController.endpointController?.stopRequests()
+    incrementalController.endpointController?.stopRequests('instances')
     instancesExplorer.areInstancesLoading = true
 
     if (instancesExplorer.requestId) {

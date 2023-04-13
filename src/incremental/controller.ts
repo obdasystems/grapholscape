@@ -709,13 +709,13 @@ export default class IncrementalController {
             const instanceEntity = this.classInstanceEntities.get(targetIri)
             if (instanceEntity) {
               if (targetIri !== this.lastInstanceIri)
-                this.endpointController?.stopRequests()
+                this.endpointController?.stopRequests('instances')
 
               this.lifecycle.trigger(IncrementalEvent.ClassInstanceSelection, instanceEntity)
             }
           } else {
             if (targetIri !== this.lastClassIri)
-              this.endpointController?.stopRequests()
+              this.endpointController?.stopRequests('instances')
 
             const classEntity = this.grapholscape.ontology.getEntity(targetIri)
 

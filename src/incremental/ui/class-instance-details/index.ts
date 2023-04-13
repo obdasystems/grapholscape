@@ -35,7 +35,7 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
 
   incrementalController.on(IncrementalEvent.ClassInstanceSelection, async classInstanceEntity => {
     if (!entityDetailsWidget?.grapholEntity || !entityDetailsWidget?.grapholEntity.iri.equals(classInstanceEntity.iri)) {
-      incrementalController.endpointController?.stopRequests()
+      incrementalController.endpointController?.stopRequests('instances')
 
       const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
       const dataProperties = await incrementalController.getDataPropertiesByClasses(parentClassesIris)

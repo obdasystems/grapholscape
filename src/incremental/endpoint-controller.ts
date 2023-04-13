@@ -60,8 +60,20 @@ export default class EndpointController {
     this.stopRequests()
   }
 
-  stopRequests() {
-    this.vkgApi?.stopAllQueries()
+  stopRequests(requestType: 'instances' | 'counts' | 'all' = 'all') {
+    switch(requestType) {
+      case 'instances':
+        this.vkgApi?.stopInstancesQueries()
+        break
+
+      case 'counts':
+        this.vkgApi?.stopCountsQueries()
+        break
+
+      case 'all':
+        this.vkgApi?.stopAllQueries()
+        break
+    }
   }
 
   requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string) {  

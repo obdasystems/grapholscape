@@ -88,11 +88,8 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
       instanceCountBadge.contentType = 'template';
 
-      if (count !== undefined) {
-        instanceCountBadge.content = count.value
-      } else if (instanceCountBadge.content === undefined) {
-        instanceCountBadge.content = 'n/a'
-      }
+      count = count || incrementalController.counts.get(classIri)
+      instanceCountBadge.content = count?.value || 'n/a'
 
       instanceCountBadge.highlighted = !count?.materialized
       if (count?.date) {
