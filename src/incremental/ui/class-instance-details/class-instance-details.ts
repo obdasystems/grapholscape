@@ -23,12 +23,9 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
 
   static styles = [ baseStyle, entityListItemStyle, style, textSpinnerStyle, contentSpinnerStyle,
     css`
-      div.entity-list-item[entity-type = "data-property"] { 
-        flex-wrap: wrap;
-      }
-
       gscape-entity-list-item {
         width: fit-content;
+        --custom-wrap: wrap;
       }
     `
   ]

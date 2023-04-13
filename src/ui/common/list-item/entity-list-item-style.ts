@@ -6,6 +6,7 @@ export default css`
     align-items: center;
     gap: 6px;
     padding: 4px 8px;
+    flex-wrap: var(--custom-wrap, initial);
   }
 
   .entity-list-item {
