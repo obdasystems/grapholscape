@@ -198,35 +198,7 @@ export default class Renderer {
    * @param zoom the zoom level to apply, if not passed, zoom level won't be changed
    */
   centerOnElementById(elementId: string, zoom = this.cy?.zoom(), select?: boolean) {
-    if (!this.cy || (!zoom && zoom !== 0)) return
-    const cyElement = this.cy.$id(elementId)
-    zoom = zoom > this.cy.maxZoom() ? this.cy.maxZoom() : zoom
-    if (cyElement.empty()) {
-      console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
-    } else {
-      const performPanZoom = () => {
-        this.cy?.animate({
-          center: {
-            eles: cyElement
-          },
-          zoom: zoom,
-          queue: false,
-        })
-      }
-
-      performPanZoom()
-      if (this.renderState?.layoutRunning) {
-        cyElement.on('position', performPanZoom) // keep element centered while layout runs
-
-        this.renderState?.layout?.one('layoutstop', () => {
-          cyElement.removeListener('position', undefined, performPanZoom)
-        })
-      }
-      if (select && this.cy.$(':selected') !== cyElement) {
-        this.unselect()
-        cyElement.select()
-      }
-    }
+    this.renderState?.centerOnElementById(elementId, zoom, select)
   }
 
   centerOnElement(element: GrapholElement, zoom?: number, select?: boolean) {

@@ -257,6 +257,63 @@ export default class FloatyRendererState extends BaseRenderer {
     centerGraph: false,
   }
 
+  centerOnElementById(elementId: string, zoom?: number, select?: boolean): void {
+    const cy = this.renderer.cy
+    if (!cy || (!zoom && zoom !== 0)) return
+    
+    const cyElement = cy.$id(elementId).first()
+    zoom = zoom > cy.maxZoom() ? cy.maxZoom() : zoom
+    if (cyElement.empty()) {
+      console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
+    } else {
+      const previousFitValue = this.defaultLayoutOptions.fit
+
+      if (this.layoutRunning) {
+
+        // run layout not fitting it, avoid conflict with fitting view on element
+        this.floatyLayoutOptions.fit = false
+        this.runLayout()
+        // keep element centered while layout runs
+        cyElement.isNode() ? cyElement.lock() : cyElement.connectedNodes().lock()
+
+        if (this.isLayoutInfinite) {
+          // if layout is infinite, do not wait for it to stop
+          // just wait 5 seconds and restore previous conditions
+          setTimeout(() => {
+            cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
+            if (this.floatyLayoutOptions.fit !== previousFitValue && this.layoutRunning) {
+              this.floatyLayoutOptions.fit = previousFitValue
+              this.runLayout()
+            }
+          }, 5000)
+        } else {
+          // if layout is finite, wait for it to stop and restore previous conditions
+          this.layout.one('layoutstop', (layoutEvent) => {
+            if (layoutEvent.layout === this.layout) {
+              cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
+              this.floatyLayoutOptions.fit = previousFitValue
+            } else {
+              this.centerOnElementById(elementId, zoom, select)
+            }
+          })
+        }
+      }
+
+      cy.animate({
+        center: {
+          eles: cyElement
+        },
+        zoom: zoom,
+        queue: false,
+      })
+
+      if (select && cy.$(':selected') !== cyElement) {
+        this.renderer.unselect()
+        cyElement.select()
+      }
+    }
+  }
+
   get floatyLayoutOptions() {
     return this.renderer.renderStateData[this.id].layoutOptions
   }

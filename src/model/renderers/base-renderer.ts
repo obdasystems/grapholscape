@@ -24,6 +24,30 @@ export default abstract class BaseRenderer implements RenderState {
   constructor(renderer?: Renderer) {
     if (renderer) this.renderer = renderer
   }
+
+  centerOnElementById(elementId: string, zoom?: number, select?: boolean): void {
+    const cy = this.renderer.cy
+    if (!cy || (!zoom && zoom !== 0)) return
+    
+    const cyElement = cy.$id(elementId)
+    zoom = zoom > cy.maxZoom() ? cy.maxZoom() : zoom
+    if (cyElement.empty()) {
+      console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
+    } else {
+      cy.animate({
+        center: {
+          eles: cyElement
+        },
+        zoom: zoom,
+        queue: false,
+      })
+
+      if (select && cy.$(':selected') !== cyElement) {
+        this.renderer.unselect()
+        cyElement.select()
+      }
+    }
+  }
   
 
   set renderer(newRenderer: Renderer) {

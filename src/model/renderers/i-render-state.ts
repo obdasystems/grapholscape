@@ -26,4 +26,5 @@ export default interface RenderState {
   stopLayout(): void
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
   transformOntology(ontology: Ontology): void
+  centerOnElementById(elementId: string, zoom?: number, select?: boolean): void
 }
