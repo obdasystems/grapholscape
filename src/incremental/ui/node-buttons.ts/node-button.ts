@@ -15,7 +15,9 @@ export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitEleme
     allowHTML: true,
     interactive: true,
     placement: "right",
-    appendTo: document.querySelector('.gscape-ui') || undefined,
+    appendTo: ((ref) => {
+      return document.querySelector('.gscape-ui') || ref
+    }) || undefined,
     // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
     content: this,
     offset: [0, 0],
