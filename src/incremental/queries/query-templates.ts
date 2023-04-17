@@ -10,14 +10,14 @@ export function getInstances(iri: string, searchText?: string, maxResults?: numb
     SELECT DISTINCT ${select}
     WHERE {
       ${where}
-      ${getOptionalLabel('?x', '?l', where)}
-      ${getFilterOnIriOrLabel('?x', '?l', searchText)}
+      ?x rdfs:label ?l.
+      ${searchText ? `FILTER(regex(?l, '${searchText}', 'i'))` : ''}
     }
     ${maxResults !== 'unlimited' ? `LIMIT ${maxResults || LIMIT}` : ''}
   `
 }
 
-export function getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
+export function getInstancesByObjectProperty(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
   const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
   const where = [
     `?x a <${classIri}>.`,
@@ -28,7 +28,26 @@ export function getInstancesByPropertyValue(classIri: string, propertyIri: strin
     SELECT DISTINCT ${select}
     WHERE {
       ${where.join('\n')}
-      ${getOptionalLabel('?x', '?l', where.join('\n'))}
+      ?x rdfs:label ?l.
+      ?y rdfs:label ?ly.
+      FILTER (regex(?ly, "${propertyValue}", "i"))
+    }
+    LIMIT ${maxResults || LIMIT}
+  `
+}
+
+export function getInstancesByDataPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
+  const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
+  const where = [
+    `?x a <${classIri}>.`,
+    `?x <${propertyIri}> ?y.`
+  ]
+
+  return `
+    SELECT DISTINCT ${select}
+    WHERE {
+      ${where.join('\n')}
+      ?x rdfs:label ?l.
       FILTER (regex(?y, "${propertyValue}", "i"))
     }
     LIMIT ${maxResults || LIMIT}
@@ -65,7 +84,7 @@ export function getInstancesObjectPropertyRanges(instanceIri: string, objectProp
     SELECT DISTINCT ${select}
     WHERE {
       ${where}
-      ${getOptionalLabel("?y", "?l", where)}
+      ?y rdfs:label ?l.
       ${filter}
     }
     LIMIT ${maxResults || LIMIT}
@@ -76,8 +95,7 @@ export function getInstanceLabels(instanceIri: string) {
   return `
     SELECT DISTINCT ?l
     WHERE {
-      ?x rdfs:label ?l
-      FILTER(?x = <${instanceIri}>)
+      <${instanceIri}> rdfs:label ?l
     }
   `
 }

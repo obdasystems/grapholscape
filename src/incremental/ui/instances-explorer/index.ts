@@ -55,7 +55,8 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
           instancesExplorer.referenceEntity?.value.iri.fullIri,
           e.detail.filterText,
-          e.detail.filterByProperty
+          e.detail.filterByProperty,
+          e.detail.propertyType
         )
       }
 

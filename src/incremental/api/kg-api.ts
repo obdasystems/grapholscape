@@ -1,3 +1,4 @@
+import { GrapholTypesEnum } from '../../model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
 import { EmptyUnfoldingEntities, MastroEndpoint, MaterializedCounts, QueryStatusEnum, RequestOptions } from './model'
@@ -20,7 +21,7 @@ export type ClassInstance = {
 
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
-  getInstancesByPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
+  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
@@ -83,13 +84,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getInstancesByPropertyValue(
     classIri: string,
     propertyIri: string,
+    propertyType: string,
     propertyValue: string,
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void),
     pageSize?: number) {
 
     const _pageSize = pageSize || this.pageSize
-    const queryCode = QueriesTemplates.getInstancesByPropertyValue(classIri, propertyIri, propertyValue)
+    const queryCode = propertyType === GrapholTypesEnum.OBJECT_PROPERTY
+      ? QueriesTemplates.getInstancesByObjectProperty(classIri, propertyIri, propertyValue)
+      : QueriesTemplates.getInstancesByDataPropertyValue(classIri, propertyIri, propertyValue)
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
@@ -310,8 +314,12 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     if (labelWithLang !== 'null') {
       const atIndex = labelWithLang.lastIndexOf('@')
-      label = labelWithLang.substring(1, atIndex - 1)
-      lang = labelWithLang.substring(atIndex + 1)
+      if (atIndex > 0) {
+        lang = labelWithLang.substring(atIndex + 1)
+        label = labelWithLang.substring(1, atIndex - 1)
+      } else {
+        label = labelWithLang
+      }
     }
 
     return {

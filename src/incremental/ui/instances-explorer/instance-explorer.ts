@@ -239,6 +239,13 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
     if (this.propertyFilterSelect?.selectedOptionId && event.detail.filterText) {
       event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionId
+      const propertyType = this.propertiesFilterList.find(p => {
+        return this.propertyFilterSelect?.selectedOptionId &&
+          p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionId)
+      })?.entityViewData.value.type
+
+      if (propertyType)
+      event.detail.propertyType = propertyType as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
     }
 
     // if only one class type, then use it, there is not select element
@@ -379,6 +386,7 @@ export type InstanceSelectionEvent = CustomEvent<{
 export type InstanceFilterEvent = CustomEvent<{
   filterText: string,
   filterByProperty: string | undefined,
+  propertyType: GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY,
   filterByType: string | undefined,
 }>
 

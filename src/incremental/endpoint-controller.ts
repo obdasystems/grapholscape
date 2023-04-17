@@ -1,3 +1,4 @@
+import { GrapholTypesEnum } from "../model";
 import EndpointApi from "./api/endpoint-api";
 import VKGApi from "./api/kg-api";
 import { MastroEndpoint, RequestOptions } from "./api/model";
@@ -76,11 +77,12 @@ export default class EndpointController {
     }
   }
 
-  requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string) {  
-    if (searchText && propertyIriFilter)
+  requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string, propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY) {  
+    if (searchText && propertyIriFilter && propertyType)
       return this.vkgApi?.getInstancesByPropertyValue(
         classIri,
         propertyIriFilter,
+        propertyType,
         searchText,
         (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
