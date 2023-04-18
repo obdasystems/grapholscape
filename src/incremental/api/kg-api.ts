@@ -310,8 +310,12 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     if (labelWithLang !== 'null') {
       const atIndex = labelWithLang.lastIndexOf('@')
-      label = labelWithLang.substring(1, atIndex - 1)
-      lang = labelWithLang.substring(atIndex + 1)
+      if (atIndex > 0) {
+        lang = labelWithLang.substring(atIndex + 1)
+        label = labelWithLang.substring(1, atIndex - 1)
+      } else {
+        label = labelWithLang
+      }
     }
 
     return {
