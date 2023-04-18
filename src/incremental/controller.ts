@@ -75,6 +75,9 @@ export default class IncrementalController {
    */
   setMastroConnection(mastroRequestOptions: RequestOptions) {
     this.reset()
+    if (!mastroRequestOptions.onError) {
+      mastroRequestOptions.onError = (error) => console.error(error)
+    }
     this.endpointController = new EndpointController(mastroRequestOptions, this.lifecycle)
     this.endpointController.setLanguage(this.grapholscape.language)
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
