@@ -1,10 +1,10 @@
 import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
-import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
+import { QueryCountStatePoller, QueryPoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
-  private _runningQueryPollerByExecutionId: Map<string, Set<QueryResultsPoller>> = new Map()
+  private _runningQueryPollerByExecutionId: Map<string, Set<QueryPoller>> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
   private _runningInstanceCheckingPollerByThreadId: Map<string, InstanceCheckingPoller> = new Map()
 
@@ -54,7 +54,7 @@ export default class QueryManager {
     queryResultsPoller.onError = this.requestOptions.onError
 
     const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
-    // this._runningQueryStatePollerByExecutionId.set(executionId, queryStatusPoller)
+    this._runningQueryPollerByExecutionId.get(executionId)?.add(queryStatusPoller)
 
     queryStatusPoller.start()
     queryStatusPoller.onNewResults = (result) => {
