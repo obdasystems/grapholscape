@@ -268,7 +268,7 @@ export default class QueryManager {
   // Request for starting a query
   private async getNewQueryRequest(queryCode: string, customURL?: URL): Promise<Request> {
     const url: URL = customURL || this.queryStartPath
-    const params = new URLSearchParams({ useReplaceForUrlEncoding: 'false', querySemantics: 'cq', advanced: 'true', reasoning: 'true' })
+    const params = new URLSearchParams({ useReplaceForUrlEncoding: 'false' })
 
     return new Request(new URL(url.toString().concat(`?${params.toString()}`)), {
       method: 'post',
