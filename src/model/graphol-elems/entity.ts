@@ -141,6 +141,7 @@ export default class GrapholEntity extends AnnotatedElement {
       case EntityNameType.LABEL:
         newDisplayedName =
           this.getLabels(actualLanguage)[0]?.lexicalForm ||
+          this.getLabels()[0]?.lexicalForm ||
           this.iri.remainder
         break
 
