@@ -79,7 +79,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
     this.addEventListener('onsearch', (e: SearchEvent) => {
       if (e.detail.searchText.length > 2) {
-        this.shownEntities = search(e.detail.searchText, this.shownEntities)
+        this.shownEntities = search(e.detail.searchText, this.entities)
       } else {
         this.shownEntities = this.entities
       }
