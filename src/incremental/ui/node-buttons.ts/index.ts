@@ -217,7 +217,9 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
 
     if (referenceEntity && referenceEntity.type === GrapholTypesEnum.CLASS) {
-      if (!instanceExplorer.referenceEntity || !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri)) {
+      if (!instanceExplorer.referenceEntity || 
+        !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
+        instanceExplorer.numberOfInstancesReceived === 0) {
         instanceExplorer.clear()
 
         instanceExplorer.areInstancesLoading = true

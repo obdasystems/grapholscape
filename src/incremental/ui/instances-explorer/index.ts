@@ -1,6 +1,5 @@
 import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model"
 import { WidgetEnum } from "../../../ui"
-import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
 import onHideMenu from "../on-hide-menu"
@@ -48,6 +47,8 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {
     incrementalController.endpointController?.stopRequests('instances')
     instancesExplorer.instances = new Map()
+    instancesExplorer.numberOfInstancesReceived = 0
+    instancesExplorer.numberOfPagesShown = 1
     instancesExplorer.areInstancesLoading = true
 
     if (instancesExplorer.referenceEntity) {
@@ -90,7 +91,10 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   })
 
   instancesExplorer.tippyWidget.setProps({
-    onHide: () => onHideMenu(instancesExplorer, incrementalController)
+    onHide: () => {
+      instancesExplorer.hide()
+      onHideMenu(instancesExplorer, incrementalController)
+    }
   })
 
   return instancesExplorer
