@@ -74,7 +74,7 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                   name: newdocumentation
-            - run: tar -xf newdocumentation.tar ./docs -C ./docs
+            - run: tar -xf newdocumentation.tar ./docs/generated -C ./docs
 
             - name: commit
               run: |
