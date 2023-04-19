@@ -52,7 +52,7 @@ jobs:
               run: npm run doc #set up 'docs' build script in your package.json
 
             - name: tar the new docs
-              run: tar -cvf newdocumentation.tar ./docs
+              run: tar -cvf newdocumentation.tar ./docs/generated
 
             - name: create a new document artifact
               uses: actions/upload-artifact@v3
