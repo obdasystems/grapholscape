@@ -13,7 +13,7 @@ export default class HighlightsManager {
   private computationPromise: Promise<void>
 
   public lastClassIris: string[] = []
-  private actualClassIris: string[] = []
+  private currentClassIris: string[] = []
 
   private emptyUnfoldingsDataProperties: string[] = []
   private emptyUnfoldingsObjectProperties: string[] = []
@@ -31,12 +31,12 @@ export default class HighlightsManager {
   async computeHighlights(classesIri: string[]): Promise<void>
   async computeHighlights(classIri: string): Promise<void>
   async computeHighlights(classIriStringOrArray: string | string[]): Promise<void> {
-    this.lastClassIris = this.actualClassIris
-    this.actualClassIris = typeof classIriStringOrArray === 'string' ? [classIriStringOrArray] : classIriStringOrArray
+    this.lastClassIris = this.currentClassIris
+    this.currentClassIris = typeof classIriStringOrArray === 'string' ? [classIriStringOrArray] : classIriStringOrArray
     this.clear()
 
     this.computationPromise = new Promise((resolve, reject) => {
-      for (let classIri of this.actualClassIris) {
+      for (let classIri of this.currentClassIris) {
         this.highlightsCallsPromises.push(this.vkgApi.getHighlights(classIri))
       }
 

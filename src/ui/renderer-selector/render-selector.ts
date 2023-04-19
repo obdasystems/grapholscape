@@ -9,13 +9,13 @@ import { UiOption } from './view-model'
 export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Renderer Selector'
   rendererStates: (UiOption | undefined)[]
-  actualRendererStateKey: RendererStatesEnum
+  currentRendererStateKey: RendererStatesEnum
   onRendererStateSelection: (rendererState: RendererStatesEnum) => void = () => { }
   onIncrementalReset?: () => void
   layoutSettingsComponent: GscapeLayoutSettings
 
   static properties: PropertyDeclarations = {
-    actualRendererStateKey: { type: String, attribute: false },
+    currentRendererStateKey: { type: String, attribute: false },
     rendererStates: { type: Object, attribute: false },
     onIncrementalRefresh: { type: Object, attribute: false }
   }
@@ -37,10 +37,10 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
 
   render() {
     return html`
-      ${this.actualRendererStateKey === RendererStatesEnum.FLOATY ||
-        this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL
+      ${this.currentRendererStateKey === RendererStatesEnum.FLOATY ||
+        this.currentRendererStateKey === RendererStatesEnum.INCREMENTAL
         ? html`
-          ${this.actualRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
+          ${this.currentRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
             ? html`
               <gscape-button @click=${this.onIncrementalReset} type="subtle" title="Restart Incremental Exploration">
                 <span slot="icon">${refresh}</span>
@@ -56,7 +56,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
       }
 
       <gscape-button @click="${this.togglePanel}" type="subtle">
-        <span slot="icon">${this.actualRendererState?.icon}</span>
+        <span slot="icon">${this.currentRendererState?.icon}</span>
       </gscape-button>
 
       <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
@@ -69,7 +69,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
                   @click=${this.rendererSelectionHandler}
                   label="${rendererState.name}"
                   renderer-state="${rendererState.id}"
-                  ?selected = "${this.actualRendererState === rendererState}"
+                  ?selected = "${this.currentRendererState === rendererState}"
                 >
                   <span slot="icon">${rendererState.icon}</span>
                 </gscape-action-list-item>
@@ -87,7 +87,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
     this.onRendererStateSelection(rendererState)
   }
 
-  private get actualRendererState() { return this.rendererStates.find(r => r?.id === this.actualRendererStateKey) }
+  private get currentRendererState() { return this.rendererStates.find(r => r?.id === this.currentRendererStateKey) }
 }
 
 customElements.define('gscape-render-selector', GscapeRenderSelector)

@@ -81,11 +81,11 @@ export default class EntityNavigator {
 
     if (!diagram || !this._grapholscape.renderState) return
 
-    const actualDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
+    const currentDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
 
-    // Search any original graphol occurrence in the actual representation
+    // Search any original graphol occurrence in the current representation
     for (let grapholOccurrence of grapholOccurrences) {
-      if (actualDiagramRepresentation?.grapholElements.has(grapholOccurrence.elementId)) {
+      if (currentDiagramRepresentation?.grapholElements.has(grapholOccurrence.elementId)) {
         return grapholOccurrence
       }
     }

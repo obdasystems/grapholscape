@@ -222,8 +222,8 @@ export default class FloatyRendererState extends BaseRenderer {
 
   private freeHandler = (e: cytoscape.EventObject) => {
     if (this.dragAndPin) {
-      let actual_pos = JSON.stringify(e.target.position())
-      if (e.target.data('old_pos') !== actual_pos) {
+      let current_pos = JSON.stringify(e.target.position())
+      if (e.target.data('old_pos') !== current_pos) {
         this.pinNode(e.target)
       }
 

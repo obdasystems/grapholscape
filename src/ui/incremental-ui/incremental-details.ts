@@ -246,8 +246,8 @@ export default class GscapeIncrementalDetails extends BaseMixin(LitElement) impl
 
 
     if (objectPropertyIri && rangeClassIri && !target.open) {
-      const actualRangeInstances = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
-      if (!actualRangeInstances || actualRangeInstances.values.length === 0)
+      const currentRangeInstances = this.objectPropertiesRanges?.get(objectPropertyIri)?.get(rangeClassIri)
+      if (!currentRangeInstances || currentRangeInstances.values.length === 0)
         this.onGetRangeInstances(objectPropertyIri, rangeClassIri)
     }
   }

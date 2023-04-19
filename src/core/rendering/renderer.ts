@@ -30,7 +30,7 @@ export default class Renderer {
   set renderState(rs: RenderState | undefined) {
     if (this.diagram) {
       /**
-       * Stop rendering actual diagram before
+       * Stop rendering current diagram before
        * changing renderer state
        */
       this.stopRendering()
@@ -169,7 +169,7 @@ export default class Renderer {
   }
 
   /**
-   * Select a node or an edge in the actual diagram given its unique id
+   * Select a node or an edge in the current diagram given its unique id
    * @param {string} elementId elem id (node or edge)
    */
   selectElement(elementId: string) {

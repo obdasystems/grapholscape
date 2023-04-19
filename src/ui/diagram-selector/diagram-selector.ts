@@ -9,11 +9,11 @@ import getIconSlot from '../util/get-icon-slot'
 export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Diagram Selector'
   diagrams: Diagram[]
-  actualDiagramId: number
+  currentDiagramId: number
   onDiagramSelection: (diagramId: number) => void = () => {}
 
   static properties: PropertyDeclarations = {
-    actualDiagramId: { type: Number }
+    currentDiagramId: { type: Number }
   }
 
   static styles?: CSSResultGroup = [
@@ -29,13 +29,13 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
   
   render() {
     return html`
-      <gscape-button @click="${this.togglePanel}" label="${this.actualDiagram?.name || 'Select a diagram'}">
+      <gscape-button @click="${this.togglePanel}" label="${this.currentDiagram?.name || 'Select a diagram'}">
         ${getIconSlot('icon', diagramsIcon)}
         ${getIconSlot('trailing-icon', arrowDown)}
       </gscape-button>
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${this.diagrams.length === 1 && this.actualDiagramId === 0
+        ${this.diagrams.length === 1 && this.currentDiagramId === 0
           ? html`
             <div class="blank-slate">
               ${blankSlateDiagrams}
@@ -56,7 +56,7 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
                 @click="${this.diagramSelectionHandler}"
                 label="${diagram.name}"
                 diagram-id="${diagram.id}"
-                ?selected = "${this.actualDiagramId === diagram.id}"
+                ?selected = "${this.currentDiagramId === diagram.id}"
               ></gscape-action-list-item>
             `)
         }
@@ -70,8 +70,8 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
     this.onDiagramSelection(selectedDiagramId)
   }
 
-  private get actualDiagram() {
-    return this.diagrams.find(diagram => diagram.id === this.actualDiagramId)
+  private get currentDiagram() {
+    return this.diagrams.find(diagram => diagram.id === this.currentDiagramId)
   }
 }
 

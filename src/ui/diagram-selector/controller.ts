@@ -10,11 +10,11 @@ export default function(diagramSelectorComponent: GscapeDiagramSelector, graphol
   // const diagramsViewData = grapholscape.ontology.diagrams
   diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams
   if (grapholscape.diagramId || grapholscape.diagramId === 0) {
-    diagramSelectorComponent.actualDiagramId = grapholscape.diagramId
+    diagramSelectorComponent.currentDiagramId = grapholscape.diagramId
   }
   diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram)
 
   grapholscape.on(LifecycleEvent.DiagramChange, diagram => 
-    diagramSelectorComponent.actualDiagramId = diagram.id
+    diagramSelectorComponent.currentDiagramId = diagram.id
   )
 }

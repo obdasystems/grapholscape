@@ -227,9 +227,9 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     // let description = this.entity?.annotations?.comment
     const allComments = this.grapholEntity?.getComments()
     if (!allComments || allComments.length === 0) return
-    const commentsInActualLanguage = this.grapholEntity.getComments(this.language)
-    // if actual language is not available, select the first available
-    if (commentsInActualLanguage.length === 0) {
+    const commentsInCurrentLanguage = this.grapholEntity.getComments(this.language)
+    // if current language is not available, select the first available
+    if (commentsInCurrentLanguage.length === 0) {
       this.language = allComments[0].language
     }
   }
