@@ -208,7 +208,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
     `
   }
 
-  private getToggleSettingEntryTemplate(actualState: boolean, title: string) {
+  private getToggleSettingEntryTemplate(currentState: boolean, title: string) {
     let labelPieces = title.split('-')
     const label = labelPieces.map(text => capitalizeFirstChar(text)).join(' ')
     return html`
@@ -219,7 +219,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
           label-position="left"
           class="actionable"
           key = ${title}
-          ?checked = ${actualState}
+          ?checked = ${currentState}
         ></gscape-toggle>
       </div>
     `

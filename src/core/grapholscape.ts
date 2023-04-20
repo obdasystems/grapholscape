@@ -68,7 +68,7 @@ export default class Grapholscape {
   }
 
   /**
-   * Change the actual renderer (Graphol - Lite - Floaty).
+   * Change the current renderer (Graphol - Lite - Floaty).
    * 
    * @remarks
    * A RendererState is an implementation for the {@link !model.iRenderState} interface
@@ -111,9 +111,9 @@ export default class Grapholscape {
   /**
    * Center the viewport on a single element.
    * @remarks
-   * If you specify a different diagram from the actual one, it will be displayed
+   * If you specify a different diagram from the current one, it will be displayed
    * @param elementId the element's id (can be a node or an edge)
-   * @param diagramId the diagram's id (**default**: the actual one)
+   * @param diagramId the diagram's id (**default**: the current one)
    * @param zoom the level zoom to apply, do not pass it if you don't want zoom to change
    */
   centerOnElement(elementId: string, diagramId?: number, zoom?: number) {
@@ -126,9 +126,9 @@ export default class Grapholscape {
   /**
    * Select an element in a diagram.
    * @remarks
-   * If you specify a different diagram from the actual one, it will be displayed
+   * If you specify a different diagram from the current one, it will be displayed
    * @param elementId the element's id (can be a node or an edge)
-   * @param diagramId the diagram's id (**default**: the actual one)
+   * @param diagramId the diagram's id (**default**: the current one)
    */
   selectElement(elementId: string, diagramId?: number) {
     if ((diagramId || diagramId === 0) && this.diagramId !== diagramId)
@@ -137,7 +137,7 @@ export default class Grapholscape {
     this.renderer.selectElement(elementId)
   }
 
-  /** Unselect any selected element in the actual diagram */
+  /** Unselect any selected element in the current diagram */
   unselect() { this.renderer.unselect() }
 
   /** Fit viewport to diagram */
@@ -164,7 +164,7 @@ export default class Grapholscape {
   /**
    * Filter elements on the diagram.
    * @remarks
-   * It will be actually applied only if the user defined callback on the event
+   * It will be currently applied only if the user defined callback on the event
    * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
    * allows for the filter to be applied.
    * @param filter the filter to apply, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
@@ -175,7 +175,7 @@ export default class Grapholscape {
   /**
    * Unfilter elements on the diagram.
    * @remarks
-   * It will be actually deactivated only if the user defined callback on the event
+   * It will be currently deactivated only if the user defined callback on the event
    * {@link !model.LifecycleEvent.FilterRequest} returns true and if the internal logic
    * allows for the filter to be deactivated.
    * @param filter the filter to disable, can be an object of type {@link !model.Filter}, {@link !model.DefaultFilterKeyEnum} 
@@ -183,17 +183,17 @@ export default class Grapholscape {
    */
   unfilter(filter: string | Filter | DefaultFilterKeyEnum) { this.renderer.unfilter(filter) }
 
-  /** The actual diagram's id */
+  /** The current diagram's id */
   get diagramId() {
     return this.renderer.diagram?.id
   }
 
-  /** The actual renderer state */
+  /** The current renderer state */
   get renderState() {
     return this.renderer.renderState?.id
   }
 
-  /** The actual selected Entity */
+  /** The current selected Entity */
   get selectedEntity() {
     const selectedElement = this.renderer.selectedElement
 
@@ -248,9 +248,9 @@ export default class Grapholscape {
     this.displayedNamesManager.setLanguage(newLanguage)
   }
 
-  /** The actual selected language */
+  /** The current selected language */
   get language() { return this.displayedNamesManager.language }
-  /** The actual selected entity name type (label, full iri or prefixed iri) */
+  /** The current selected entity name type (label, full iri or prefixed iri) */
   get entityNameType() { return this.displayedNamesManager.entityNameType }
 
   // -------------------------- THEMES MANAGER -------------------------- //
@@ -273,7 +273,7 @@ export default class Grapholscape {
     this.themesManager.addTheme(newTheme)
   }
 
-  /** The actual theme used by Grapholscape */
+  /** The current theme used by Grapholscape */
   get theme() { return this.themesManager.theme }
 
   /** The available themes for this Grapholscape instance */
@@ -406,7 +406,7 @@ export default class Grapholscape {
 
   // ---------------------------- EXPORTING ---------------------------- //
   /**
-   * Export actual diagram and download it as a PNG image.
+   * Export current diagram and download it as a PNG image.
    * @param fileName custom file name. Defaults to {@link exportFileName}
    */
   exportToPng(fileName = this.exportFileName) {
@@ -415,7 +415,7 @@ export default class Grapholscape {
   }
 
   /**
-   * Export actual diagram and download it as an SVG.
+   * Export current diagram and download it as an SVG.
    * @param fileName custom file name. Defaults to {@link exportFileName}
    */
   exportToSvg(fileName = this.exportFileName) {

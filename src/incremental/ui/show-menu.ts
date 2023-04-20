@@ -19,8 +19,10 @@ export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, in
             queue: false,
             complete: () => menu.attachTo((node as any).popperRef())
           })
-        else
+        else {
           menu.attachTo((node as any).popperRef())
+          menu.show()
+        }
 
         if (!node.data().pinned) {
           node.scratch('should-unpin', true)

@@ -376,6 +376,11 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   private get propertyFilterSelect() { return this.shadowRoot?.querySelector('#property-filter-select') as GscapeSelect | undefined }
   private get classTypeFilterSelect() { return this.shadowRoot?.querySelector('#classtype-filter-select') as GscapeSelect | undefined }
   private get instancesSearchInput() { return this.shadowRoot?.querySelector('#instances-search') as HTMLInputElement | undefined }
+
+  hide(): void {
+    this.style.display = 'none'
+  }
+
 }
 
 export type InstanceSelectionEvent = CustomEvent<{

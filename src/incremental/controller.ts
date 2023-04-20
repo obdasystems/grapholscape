@@ -13,7 +13,6 @@ import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbour
 import { addBadge } from "./ui";
 import NodeButton from "./ui/node-buttons.ts/node-button";
 
-/** @internal */
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   neighbourhoodFinder: NeighbourhoodFinder
@@ -71,10 +70,13 @@ export default class IncrementalController {
   /**
    * @internal
    * 
-   * Create new EndpointApi object with actual mastro request options
+   * Create new EndpointApi object with current mastro request options
    */
   setMastroConnection(mastroRequestOptions: RequestOptions) {
     this.reset()
+    if (!mastroRequestOptions.onError) {
+      mastroRequestOptions.onError = (error) => console.error(error)
+    }
     this.endpointController = new EndpointController(mastroRequestOptions, this.lifecycle)
     this.endpointController.setLanguage(this.grapholscape.language)
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)

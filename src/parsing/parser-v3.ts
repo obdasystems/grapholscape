@@ -101,7 +101,7 @@ export function getFacetDisplayedName(element: Element, ontology: Ontology) {
  */
 export function getFunctionalities(element: Element, xmlDocument: XMLDocument): FunctionalityEnum[] {
   let result: FunctionalityEnum[] = []
-  let actual_iri_elem = getIriElem(element, xmlDocument)
+  let current_iri_elem = getIriElem(element, xmlDocument)
 
   let elementType: GrapholTypesEnum | undefined
   switch (element.getAttribute('type')) {
@@ -119,8 +119,8 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument): 
   }
 
   if (elementType === GrapholTypesEnum.OBJECT_PROPERTY || elementType === GrapholTypesEnum.DATA_PROPERTY) {
-    if (actual_iri_elem && actual_iri_elem.children) {
-      for (let property of actual_iri_elem.children) {
+    if (current_iri_elem && current_iri_elem.children) {
+      for (let property of current_iri_elem.children) {
 
         const functionality = Object.values(FunctionalityEnum).find(f => f.toString() === property.tagName)
         if (functionality) {

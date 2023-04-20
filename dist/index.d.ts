@@ -3,8 +3,7 @@ import cytoscape__default, { Position, ElementDefinition, Stylesheet, CytoscapeO
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { SVGTemplateResult, LitElement, TemplateResult, PropertyDeclarations, CSSResultArray, CSSResultGroup } from 'lit';
-import * as tippy_js from 'tippy.js';
-import { Props } from 'tippy.js';
+import { Props, Instance } from 'tippy.js';
 
 declare class Annotation {
     property: string;
@@ -12,6 +11,7 @@ declare class Annotation {
     language: string;
     datatype: string;
     constructor(property: string, lexicalForm: string, language?: string, datatype?: string);
+    equals(annotation: Annotation): boolean;
 }
 
 declare enum AnnotationsKind {
@@ -23,7 +23,7 @@ declare class AnnotatedElement {
     private _annotations;
     constructor();
     set annotations(annotations: Annotation[]);
-    addAnnotation(annotation: Annotation): void;
+    addAnnotation(newAnnotation: Annotation): void;
     getAnnotations(language?: string, kind?: AnnotationsKind): Annotation[];
     getLabels(language?: string): Annotation[];
     getComments(language?: string): Annotation[];
@@ -426,7 +426,7 @@ declare enum LifecycleEvent {
     BackgroundClick = "backgroundClick",
     EntityWikiLinkClick = "entityWikiLinkClick"
 }
-interface IonEvent {
+interface IonEvent$1 {
     (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void;
     (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void;
     (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void;
@@ -472,7 +472,7 @@ declare class Lifecycle {
     trigger(event: LifecycleEvent.UnfilterRequest, filter: Filter): boolean;
     trigger(event: LifecycleEvent.BackgroundClick): void;
     trigger(event: LifecycleEvent.EntityWikiLinkClick, iri: string): void;
-    on: IonEvent;
+    on: IonEvent$1;
 }
 
 declare class Renderer {
@@ -607,11 +607,11 @@ declare class FloatyRendererState extends BaseRenderer {
     getGraphStyle(theme: GrapholscapeTheme): cytoscape__default.Stylesheet[];
     stopLayout(): void;
     runLayoutInfinitely(): void;
-    pinNode(node: any): void;
+    pinNode(nodeOrId: NodeSingular | string): void;
     unpinAll(): void;
     private setPopperStyle;
     private updatePopper;
-    unpinNode(node: any): void;
+    unpinNode(nodeOrId: string | NodeSingular): void;
     private removeUnlockButton;
     protected setDragAndPinEventHandlers(): void;
     private grabHandler;
@@ -626,6 +626,7 @@ declare class FloatyRendererState extends BaseRenderer {
         handleDisconnected: boolean;
         centerGraph: boolean;
     };
+    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
     get floatyLayoutOptions(): any;
     set floatyLayoutOptions(newOptions: any);
     protected automoveOptions: {
@@ -686,8 +687,22 @@ declare class Iri {
 
 /** @internal */
 declare class ClassInstanceEntity extends GrapholEntity {
-    parentClassIris: Set<Iri>;
-    constructor(iri: Iri, parentClassIri?: Iri);
+    private _parentClassIris;
+    constructor(iri: Iri, parentClassIris?: Iri[]);
+    /**
+     * Set the instance to be instance of a particular Class.
+     * If it is already instance of such a class, no changes will be made.
+     * @param parentClassIri the IRI of the Class
+     */
+    addParentClass(parentClassIri: Iri): void;
+    /**
+     * Check if the instance is instance of a class with such an IRI
+     * @param parentClassIri
+     * @returns
+     */
+    hasParentClassIri(parentClassIri: string | Iri): Iri | undefined;
+    get isRDFTypeUnknown(): boolean;
+    get parentClassIris(): Iri[];
 }
 
 declare class DiagramRepresentation {
@@ -756,6 +771,7 @@ declare class IncrementalRendererState extends FloatyRendererState {
     protected overrideDiagram(): void;
     createNewDiagram(): void;
     onContextClick(callback: (target: NodeSingular) => void): void;
+    removeElement(elementId: string): void;
     get diagramRepresentation(): DiagramRepresentation | undefined;
     get incrementalDiagram(): IncrementalDiagram;
     set renderer(newRenderer: Renderer);
@@ -832,6 +848,7 @@ interface RenderState {
     renderer: Renderer;
     filterManager: FilterManager;
     layout: cytoscape.Layouts;
+    layoutRunning: boolean;
     render(): void;
     stopRendering(): void;
     filter(elementId: string, filter: Filter): void;
@@ -840,6 +857,7 @@ interface RenderState {
     stopLayout(): void;
     getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
     transformOntology(ontology: Ontology): void;
+    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
 }
 
 declare enum FunctionalityEnum {
@@ -889,7 +907,7 @@ declare class GrapholEntity extends AnnotatedElement {
     set datatype(datatype: string);
     hasFunctionality(functionalityKind: FunctionalityEnum): boolean;
     hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum): boolean;
-    getDisplayedName(nameType: EntityNameType, actualLanguage?: string, defaultLanguage?: string): string;
+    getDisplayedName(nameType: EntityNameType, actualLanguage?: string): string;
     getEntityOriginalNodeId(): string | undefined;
 }
 
@@ -987,6 +1005,7 @@ declare class Ontology extends AnnotatedElement {
     getDiagramByName(name: string): Diagram | undefined;
     addEntity(entity: GrapholEntity): void;
     getEntity(iri: string): GrapholEntity | null;
+    getEntitiesByType(entityType: GrapholTypesEnum.CLASS | GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.INDIVIDUAL): GrapholEntity[];
     getEntityFromOccurrence(entityOccurrence: EntityOccurrence): GrapholEntity | null | undefined;
     getGrapholElement(elementId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholElement | undefined;
     getGrapholNode(nodeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
@@ -1050,7 +1069,9 @@ declare abstract class BaseRenderer implements RenderState {
     abstract stopLayout(): void;
     abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
     abstract transformOntology(ontology: Ontology): void;
+    layoutRunning: boolean;
     constructor(renderer?: Renderer);
+    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
     set renderer(newRenderer: Renderer);
     get renderer(): Renderer;
     filter(elementId: string, filter: Filter): void;
@@ -1072,7 +1093,14 @@ declare enum WidgetEnum {
     SETTINGS = "settings",
     ZOOM_TOOLS = "zoom-tools",
     INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
-    INCREMENTAL_MENU = "incremental-menu"
+    /** @internal */
+    CLASS_INSTANCE_DETAILS = "class-instance-details",
+    /** @internal */
+    INSTANCES_EXPLORER = "instances-explorer",
+    /** @internal */
+    NAVIGATION_MENU = "naviagtion-menu",
+    /** @internal */
+    VKG_PREFERENCES = "vkg-preferences"
 }
 
 declare enum Language {
@@ -1114,7 +1142,7 @@ declare function loadConfig(): GrapholscapeConfig;
 declare function storeConfigEntry(k: string, value: any): void;
 declare function clearLocalStorage(): void;
 
-declare const _default$a: CytoscapeOptions;
+declare const _default$b: CytoscapeOptions;
 
 declare const liteOptions: {
     layout: {
@@ -1135,6 +1163,30 @@ declare const floatyOptions: {
     wheelSensitivity: number;
 };
 
+type MastroEndpoint = {
+    description?: string;
+    name: string;
+    mastroID?: MastroID;
+    needRestart?: boolean;
+    user?: string;
+};
+type MastroID = {
+    avpID: string;
+    datasourceID: string;
+    mappingID: string;
+    ontologyID: {
+        ontologyName: string;
+        ontologyVersion: string;
+    };
+};
+declare enum QueryStatusEnum {
+    FINISHED = "FINISHED",
+    UNAVAILABLE = "UNAVAILABLE",
+    ERROR = "ERROR",
+    RUNNING = "RUNNING",
+    READY = "READY",
+    STOPPED = "STOPPED"
+}
 type RequestOptions = {
     basePath: string;
     version: string;
@@ -1142,6 +1194,412 @@ type RequestOptions = {
     headers: any;
     onError: (errorObject: any) => void;
 };
+type MWSEntity = {
+    entityIRI: string;
+    entityID: string;
+    entityPrefixIRI: string;
+    entityRemainder: string;
+    entityType: string;
+};
+type EmptyUnfoldingEntities = {
+    emptyUnfoldingClasses: MWSEntity[];
+    emptyUnfoldingDataProperties: MWSEntity[];
+    emptyUnfoldingObjectProperties: MWSEntity[];
+};
+type MaterializedCounts = {
+    countsMap: Map<string, CountEntry>;
+    endTime: number;
+    percentage: number;
+    startTime: number;
+    state: QueryStatusEnum;
+};
+type CountEntry = {
+    count: number;
+    error?: string;
+    state: QueryStatusEnum;
+    entity: MWSEntity;
+};
+
+/**
+ * Swagger Sparqling WS
+ * This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph.  Sparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).
+ *
+ * The version of the OpenAPI document: 1.0.1
+ * Contact: info@obdasystems.com
+ *
+ * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
+ * https://openapi-generator.tech
+ * Do not edit the class manually.
+ */
+/**
+ *
+ * @export
+ * @interface Branch
+ */
+interface Branch {
+    /**
+     *
+     * @type {string}
+     * @memberof Branch
+     */
+    objectPropertyIRI?: string;
+    /**
+     * It is true when domain and range are the same class.
+     * @type {boolean}
+     * @memberof Branch
+     */
+    cyclic?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Branch
+     */
+    direct?: boolean;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof Branch
+     */
+    relatedClasses?: Array<string>;
+}
+
+/**
+ * Swagger Sparqling WS
+ * This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph.  Sparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).
+ *
+ * The version of the OpenAPI document: 1.0.1
+ * Contact: info@obdasystems.com
+ *
+ * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
+ * https://openapi-generator.tech
+ * Do not edit the class manually.
+ */
+
+/**
+ *
+ * @export
+ * @interface Highlights
+ */
+interface Highlights {
+    /**
+     * Subclasses or brother classes
+     * @type {Array<string>}
+     * @memberof Highlights
+     */
+    classes?: Array<string>;
+    /**
+     *
+     * @type {Array<Branch>}
+     * @memberof Highlights
+     */
+    objectProperties?: Array<Branch>;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof Highlights
+     */
+    dataProperties?: Array<string>;
+}
+
+type ClassInstance = {
+    iri: string;
+    shortIri?: string;
+    label?: {
+        language?: string;
+        value: string;
+    };
+};
+interface IVirtualKnowledgeGraphApi {
+    getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void;
+    getInstancesByPropertyValue: (classIri: string, dataPropertyIri: string, dataPropertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void;
+    getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void;
+    getHighlights: (iri: string) => Promise<Highlights>;
+    getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>;
+    getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void;
+    getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, propertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void;
+    setEndpoint: (endpoint: MastroEndpoint) => void;
+    instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>;
+    stopAllQueries: () => void;
+    getInstanceLabels: (instanceIri: string, onResult: (result: {
+        value: string;
+        lang?: string;
+    }[]) => void) => Promise<void>;
+    pageSize: number;
+}
+
+declare enum IncrementalEvent {
+    RequestStopped = "requestStopped",
+    NewInstances = "newInstances",
+    InstancesSearchFinished = "instancesSearchFinished",
+    LimitChange = "limitChange",
+    EndpointChange = "endpointChange",
+    Reset = "reset",
+    ClassInstanceSelection = "classInstanceSselection",
+    ClassSelection = "classSelection",
+    ContextClick = "contextClick",
+    DiagramUpdated = "diagramUpdated",
+    ReasonerSet = "reasonerSet",
+    NewDataPropertyValues = "newDataPropertyValues",
+    DataPropertyValuesLoadingFinished = "dpvaluesloadfinish",
+    InstanceCheckingStarted = "instanceCheckingStarted",
+    InstanceCheckingFinished = "instanceCheckingFinished",
+    CountStarted = "countStarted",
+    NewCountResult = "newCountResult"
+}
+interface IonEvent {
+    (event: IncrementalEvent.RequestStopped, callback: () => void): void;
+    (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[]) => void): void;
+    (event: IncrementalEvent.InstancesSearchFinished, callback: () => void): void;
+    (event: IncrementalEvent.LimitChange, callback: (limit: number) => void): void;
+    (event: IncrementalEvent.EndpointChange, callback: (endpoint: MastroEndpoint) => void): void;
+    (event: IncrementalEvent.Reset, callback: () => void): void;
+    (event: IncrementalEvent.ClassInstanceSelection, callback: (classInstanceEntity: ClassInstanceEntity) => void): void;
+    (event: IncrementalEvent.ClassSelection, callback: (classEntity: GrapholEntity) => void): void;
+    (event: IncrementalEvent.ContextClick, callback: (entity: GrapholEntity) => void): void;
+    (event: IncrementalEvent.DiagramUpdated, callback: () => void): void;
+    (event: IncrementalEvent.ReasonerSet, callback: () => void): void;
+    (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void;
+    (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void;
+    (event: IncrementalEvent.InstanceCheckingStarted, callback: (instanceIri: string) => void): void;
+    (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void;
+    (event: IncrementalEvent.NewCountResult, callback: (classIri: string, result?: {
+        value: number;
+        materialized: boolean;
+        date?: string;
+    }) => void): void;
+    (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void;
+}
+declare class IncrementalLifecycle {
+    private requestStopped;
+    private newInstances;
+    private instancesSearchFinished;
+    private limitChange;
+    private endpointChange;
+    private reset;
+    private classInstanceSselection;
+    private classSelection;
+    private contextClick;
+    private diagramUpdated;
+    private reasonerSet;
+    private newDataPropertyValues;
+    private dpvaluesloadfinish;
+    private instanceCheckingStarted;
+    private instanceCheckingFinished;
+    private newCountResult;
+    private countStarted;
+    constructor();
+    trigger(event: IncrementalEvent.RequestStopped): void;
+    trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[]): void;
+    trigger(event: IncrementalEvent.InstancesSearchFinished): void;
+    trigger(event: IncrementalEvent.LimitChange, limit: number): void;
+    trigger(event: IncrementalEvent.EndpointChange, endpoint: MastroEndpoint): void;
+    trigger(event: IncrementalEvent.Reset): void;
+    trigger(event: IncrementalEvent.ClassInstanceSelection, classInstanceEntity: ClassInstanceEntity): void;
+    trigger(event: IncrementalEvent.ClassSelection, classEntity: GrapholEntity): void;
+    trigger(event: IncrementalEvent.ContextClick, entity: GrapholEntity): void;
+    trigger(event: IncrementalEvent.DiagramUpdated): void;
+    trigger(event: IncrementalEvent.ReasonerSet): void;
+    trigger(event: IncrementalEvent.NewDataPropertyValues, instanceIri: string, dataPropertyIri: string, newValues: string[]): void;
+    trigger(event: IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri: string, dataPropertyIri: string): void;
+    trigger(event: IncrementalEvent.InstanceCheckingStarted, instanceIri: string): void;
+    trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void;
+    trigger(event: IncrementalEvent.NewCountResult, classIri: string, result?: {
+        value: number;
+        materialized: boolean;
+        date?: string;
+    }): void;
+    trigger(event: IncrementalEvent.CountStarted, classIri: string): void;
+    on: IonEvent;
+}
+
+declare class HighlightsManager {
+    vkgApi: IVirtualKnowledgeGraphApi;
+    private emptyUnfoldingEntities;
+    private _dataProperties;
+    private _objectProperties;
+    private highlightsCallsPromises;
+    private computationPromise;
+    lastClassIris: string[];
+    private actualClassIris;
+    private emptyUnfoldingsDataProperties;
+    private emptyUnfoldingsObjectProperties;
+    private emptyUnfoldingsClasses;
+    constructor(vkgApi: IVirtualKnowledgeGraphApi, emptyUnfoldingEntities: EmptyUnfoldingEntities);
+    computeHighlights(classesIri: string[]): Promise<void>;
+    computeHighlights(classIri: string): Promise<void>;
+    clear(): Promise<void>;
+    dataProperties(): Promise<string[]>;
+    objectProperties(): Promise<Branch[]>;
+    hasUnfoldings(entityIri: string, entityType: GrapholTypesEnum): boolean;
+}
+
+declare class EndpointController {
+    private requestOptions;
+    private lifecycle;
+    private endpointApi;
+    private endpoints;
+    private selectedEndpoint?;
+    private vkgApi?;
+    highlightsManager?: HighlightsManager;
+    limit: number;
+    constructor(requestOptions: RequestOptions, lifecycle: IncrementalLifecycle);
+    getRunningEndpoints(): Promise<MastroEndpoint[]>;
+    setEndpoint(endpoint: MastroEndpoint): Promise<void>;
+    setEndpoint(endpointName: string): Promise<void>;
+    setLimit(limit: number): void;
+    clear(): void;
+    stopRequests(requestType?: 'instances' | 'counts' | 'all'): void;
+    requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string): Promise<string> | undefined;
+    requestNewInstances(requestId: string, pageNumber: number): void;
+    requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect?: boolean, rangeClassIri?: string, propertyIriFilter?: string, searchText?: string): Promise<string> | undefined;
+    requestDataPropertyValues(instanceIri: string, dataPropertyIri: string): void;
+    requestCountForClass(classIri: string): void;
+    getMaterializedCounts(): Promise<MaterializedCounts | undefined>;
+    instanceCheck(instanceIri: string, classesToCheck: string[]): Promise<string[]>;
+    requestLabels(instanceIri: string): Promise<{
+        value: string;
+        language?: string | undefined;
+    }[]>;
+    setLanguage(lang: string): void;
+    isReasonerAvailable(): boolean;
+}
+
+type ObjectPropertyConnectedClasses = {
+    list: GrapholEntity[];
+    direct: boolean;
+};
+declare class NeighbourhoodFinder {
+    private ontology;
+    constructor(ontology: Ontology);
+    getDataProperties(classIriString: string): GrapholEntity[];
+    getObjectProperties(classIriString: string): Map<GrapholEntity, ObjectPropertyConnectedClasses>;
+    /**
+     * Given a class and an object property, get all classes connected to the given class through such an
+     * object property.
+     * @param sourceClassIriString the class' iri involved in the object property
+     * either as domain or range
+     * @param objectPropertyIriString the object property's iri for which to retrieve the connected classes' iris
+     * @returns an array of entities
+     */
+    getClassesConnectedToObjectProperty(sourceClassIriString: string, objectPropertyIriString: string): GrapholEntity[];
+    private getConnectedClassesIrisByType;
+    getSubclassesIris(classIri: string): string[];
+    getEquivalentClassesIris(classIri: string): string[];
+    getSuperclassesIris(classIri: string): string[];
+    private getIriObject;
+}
+
+/** @internal */
+declare class IncrementalController {
+    grapholscape: Grapholscape;
+    private diagramBuilder;
+    neighbourhoodFinder: NeighbourhoodFinder;
+    classInstanceEntities: Map<string, ClassInstanceEntity>;
+    lastClassIri?: string;
+    lastInstanceIri?: string;
+    endpointController?: EndpointController;
+    private entitySelectionTimeout;
+    counts: Map<string, {
+        value: number;
+        materialized: boolean;
+        date?: string;
+    }>;
+    countersEnabled: boolean;
+    lifecycle: IncrementalLifecycle;
+    on: IonEvent;
+    addEdge: (sourceId: string, targetId: string, edgeType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.INPUT | GrapholTypesEnum.EQUIVALENCE | GrapholTypesEnum.INSTANCE_OF) => void;
+    constructor(grapholscape: Grapholscape);
+    performActionWithBlockedGraph(action: () => void | Promise<void>): Promise<void>;
+    /**
+     * @internal
+     *
+     * Create new EndpointApi object with actual mastro request options
+     */
+    setMastroConnection(mastroRequestOptions: RequestOptions): void;
+    addEntity(iri: string, centerOnIt?: boolean, position?: Position): void;
+    areHierarchiesVisible(hierarchies: Hierarchy[]): boolean;
+    areAllConnectedClassesVisibleForClass(classIri: string, connectedClassesIris: string[], positionType: 'sub' | 'super' | 'equivalent'): boolean;
+    reset(): void;
+    clearState(): void;
+    private updateEntityNameType;
+    /**
+     * Remove a class, an instance or a data property node from the diagram.
+     * Entities left with no other connections are recurisvely removed too.
+     * Called when the user click on the remove button on a entity node
+     * @param entityIri
+     */
+    removeEntity(entityIri: GrapholEntity, entitiesIrisToKeep?: string[]): void;
+    removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void;
+    addInstance(instance: ClassInstance, parentClassesIris?: string[] | string): ClassInstanceEntity;
+    /**
+     * Add object property edge between two classes.
+     * @param objectPropertyIri the object property iri to add
+     * @param sourceClassIri
+     * @param targetClassIri
+     */
+    addIntensionalObjectProperty(objectPropertyIri: string, sourceClassIri: string, targetClassIri: string): void;
+    /**
+     * Add object property edge between two instances
+     * @param objectPropertyIri
+     * @param sourceInstanceIri
+     * @param targetInstanceIri
+     */
+    addExtensionalObjectProperty(objectPropertyIri: string, sourceInstanceIri: string, targetInstanceIri: string): void;
+    /**
+     * Show hierarchies for which the specified class is a subclass.
+     * @param classIri
+     */
+    showSuperHierarchiesOf(classIri: string): void;
+    /**
+     * Show hierarchies for which the specified class is a superclass.
+     * @param classIri
+     */
+    showSubHierarchiesOf(classIri: string): void;
+    /**
+     * Hide hierarchies for which the specified class is a subClass (i.e. an input class).
+     * Hierarchies are pre-computed, after the floaty-transformation is performed.
+     * @param classIri
+     */
+    hideSuperHierarchiesOf(classIri: string): void;
+    /**
+     * Show hierarchies for which the specified class is a superclass (i.e. an input class).
+     * Hierarchies are pre-computed, after the floaty-transformation is performed.
+     * @param classIri
+     */
+    hideSubHierarchiesOf(classIri: string): void;
+    private showOrHideHierarchies;
+    private addHierarchy;
+    private removeHierarchy;
+    showSubClassesOf(classIri: string, subclassesIris?: string[]): void;
+    showSuperClassesOf(classIri: string, superclassesIris?: string[]): void;
+    showEquivalentClassesOf(classIri: string, equivalentClassesIris?: string[]): void;
+    private showClassesInIsa;
+    /**
+     * Given the iri of a class, retrieve connected object properties.
+     * These object properties are inferred if the reasoner is available.
+     * Otherwise only object properties directly asserted in the ontology
+     * will be retrieved.
+     * @param classIri
+     * @returns
+     */
+    getObjectPropertiesByClasses(classIris: string[]): Promise<Map<GrapholEntity, ObjectPropertyConnectedClasses>>;
+    getDataPropertiesByClasses(classIris: string[]): Promise<GrapholEntity[]>;
+    getDataPropertiesByClassInstance(instanceIri: string): Promise<GrapholEntity[]>;
+    runLayout: () => void;
+    pinNode: (node: NodeSingular | string) => void;
+    unpinNode: (node: NodeSingular | string) => void;
+    postDiagramEdit(oldElemsNumber: number): void;
+    countInstancesForClass(classIri: string): Promise<void>;
+    updateMaterializedCounts(): Promise<void>;
+    setIncrementalEventHandlers(): void;
+    private get ontology();
+    get incrementalDiagram(): IncrementalDiagram;
+    private get incrementalRenderer();
+    get numberOfElements(): number;
+}
+
+/** @internal */
+declare function initIncremental(grapholscape: Grapholscape): void;
 
 declare class Grapholscape {
     renderer: Renderer;
@@ -1319,7 +1777,7 @@ declare class Grapholscape {
      * })
      * ```
      */
-    on: IonEvent;
+    on: IonEvent$1;
     /**
      * The container in which Grapholscape places the UI components.
      * You can use this container to add new widgets or dialogs if you want to.
@@ -1353,15 +1811,7 @@ declare class Grapholscape {
      * String in the form: "[ontology name]-[diagram name]-v[ontology version]"
      */
     get exportFileName(): string;
-    /** @internal */
-    mastroRequestOptions?: RequestOptions;
-    /**
-     * Use this to pass options to build rest calls for querying
-     * the virtual knowledge graph when embedded in monolith
-     * @internal
-     * @param options
-     */
-    setMastroRequestOptions(options: RequestOptions): void;
+    incremental?: IncrementalController;
 }
 
 declare const diagrams: lit_html.TemplateResult<2>;
@@ -1410,9 +1860,15 @@ declare const rubbishBin: lit_html.TemplateResult<2>;
 declare const mastroEndpointIcon: lit_html.TemplateResult<2>;
 declare const stopCircle: lit_html.TemplateResult<2>;
 declare const equivalentClasses: lit_html.TemplateResult<2>;
+declare const search$1: lit_html.TemplateResult<2>;
+declare const insertInGraph: lit_html.TemplateResult<2>;
+declare const cross: lit_html.TemplateResult<2>;
+declare const counter: lit_html.TemplateResult<2>;
 declare const entityIcons: {
-    [x in GrapholTypesEnum]?: SVGTemplateResult;
+    [x in GrapholTypesEnum.CLASS | GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.INDIVIDUAL | GrapholTypesEnum.CLASS_INSTANCE]: SVGTemplateResult;
 };
+
+declare const _default$a: lit_html.TemplateResult<2>;
 
 declare const _default$9: lit_html.TemplateResult<2>;
 
@@ -1462,13 +1918,17 @@ declare const index_d$1_rubbishBin: typeof rubbishBin;
 declare const index_d$1_mastroEndpointIcon: typeof mastroEndpointIcon;
 declare const index_d$1_stopCircle: typeof stopCircle;
 declare const index_d$1_equivalentClasses: typeof equivalentClasses;
+declare const index_d$1_insertInGraph: typeof insertInGraph;
+declare const index_d$1_cross: typeof cross;
+declare const index_d$1_counter: typeof counter;
 declare const index_d$1_entityIcons: typeof entityIcons;
 declare namespace index_d$1 {
   export {
-    _default$9 as classIcon,
-    _default$8 as objectPropertyIcon,
-    _default$7 as dataPropertyIcon,
-    _default$6 as individualIcon,
+    _default$a as classIcon,
+    _default$9 as objectPropertyIcon,
+    _default$8 as dataPropertyIcon,
+    _default$7 as individualIcon,
+    _default$6 as classInstanceIcon,
     _default$5 as grapholscapeLogo,
     index_d$1_diagrams as diagrams,
     index_d$1_triangle_up as triangle_up,
@@ -1508,6 +1968,10 @@ declare namespace index_d$1 {
     index_d$1_mastroEndpointIcon as mastroEndpointIcon,
     index_d$1_stopCircle as stopCircle,
     index_d$1_equivalentClasses as equivalentClasses,
+    search$1 as search,
+    index_d$1_insertInGraph as insertInGraph,
+    index_d$1_cross as cross,
+    index_d$1_counter as counter,
     index_d$1_entityIcons as entityIcons,
   };
 }
@@ -1575,7 +2039,7 @@ declare class GscapeButton extends LitElement {
 
 declare const _default$4: lit.CSSResult;
 
-type Constructor$2<T = {}> = new (...args: any[]) => T;
+type Constructor$3<T = {}> = new (...args: any[]) => T;
 declare class IBaseMixin {
     hide(): void;
     show(): void;
@@ -1589,9 +2053,9 @@ declare class IBaseMixin {
     isVisible: boolean;
     enabled: boolean;
 }
-declare const BaseMixin: <T extends Constructor$2<LitElement>>(superClass: T) => Constructor$2<IBaseMixin> & T;
+declare const BaseMixin: <T extends Constructor$3<LitElement>>(superClass: T) => Constructor$3<IBaseMixin> & T;
 
-type Constructor$1<T = {}> = new (...args: any[]) => T;
+type Constructor$2<T = {}> = new (...args: any[]) => T;
 declare class IDropPanelMixin {
     togglePanel(): void;
     openPanel(): void;
@@ -1600,16 +2064,34 @@ declare class IDropPanelMixin {
     onTogglePanel(): void;
     isPanelClosed(): boolean;
 }
-declare const DropPanelMixin: <T extends Constructor$1<LitElement>>(superClass: T) => Constructor$1<IDropPanelMixin> & T;
+declare const DropPanelMixin: <T extends Constructor$2<LitElement>>(superClass: T) => Constructor$2<IDropPanelMixin> & T;
 declare function hasDropPanel(element: any): element is IDropPanelMixin;
 
-type Constructor<T = {}> = new (...args: any[]) => T;
+type Constructor$1<T = {}> = new (...args: any[]) => T;
 declare class IModalMixin {
     hide(): void;
     show(): void;
     protected modalBackground: HTMLDivElement;
 }
-declare const ModalMixin: <T extends Constructor<IBaseMixin>>(superClass: T) => Constructor<IModalMixin> & T;
+declare const ModalMixin: <T extends Constructor$1<IBaseMixin>>(superClass: T) => Constructor$1<IModalMixin> & T;
+
+type Constructor<T = {}> = new (...args: any[]) => T;
+declare class IContextualWidgetMixin {
+    hide(): void;
+    /**
+     * Attach cxt widget and show it
+     * @param element the target html elment
+     */
+    attachTo(element: HTMLElement): void;
+    /**
+     * Attach cxt widget and do not show it, if it was visible it stays visible
+     * @param element the target html element
+     */
+    attachToSilently(element: HTMLElement): void;
+    cxtWidgetProps: Partial<Props>;
+    tippyWidget: Instance<Props>;
+}
+declare const ContextualWidgetMixin: <T extends Constructor<LitElement>>(superClass: T) => Constructor<IContextualWidgetMixin> & T;
 
 /**
  * A command for the context menu
@@ -1622,18 +2104,16 @@ interface Command {
     /** callback to execute on selection */
     select: () => void;
 }
-declare const GscapeContextMenu_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare const GscapeContextMenu_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeContextMenu extends GscapeContextMenu_base {
     commands: Command[];
     customElements: (LitElement | HTMLElement | TemplateResult)[];
     showFirst: 'commands' | 'elements';
     onCommandRun: () => void;
-    tippyMenu: tippy_js.Instance<Props>;
     static properties: PropertyDeclarations;
     static styles: CSSResultArray;
     render(): TemplateResult<1>;
     attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]): void;
-    protected get cxtMenuProps(): Partial<Props>;
     private handleCommandClick;
     private get commandsTemplate();
     private get customElementsTemplate();
@@ -1644,14 +2124,33 @@ declare class GscapeActionListItem extends LitElement {
     selected: boolean;
     private expanded;
     subtle: boolean;
+    disabled: boolean;
     static properties: PropertyDeclarations;
     static styles?: CSSResultGroup;
+    constructor();
     render(): lit_html.TemplateResult<1>;
     private clickHandler;
     private get hiddenContent();
 }
 
 declare const _default$3: lit.CSSResult;
+
+declare class GscapeEntityListItem extends LitElement {
+    type: GrapholTypesEnum.CLASS | GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.INDIVIDUAL | GrapholTypesEnum.CLASS_INSTANCE;
+    displayedName: string;
+    iri: string;
+    actionable: boolean;
+    asAccordion: boolean;
+    disabled: boolean;
+    private isAccordionOpen;
+    static properties: PropertyDeclarations;
+    static styles: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private iconNameSlotTemplate;
+    private handleDetailsClick;
+    openAccordion(): void;
+    closeAccordion(): void;
+}
 
 declare const textSpinner: () => lit_html.TemplateResult<1>;
 declare const textSpinnerStyle: lit.CSSResult;
@@ -1702,6 +2201,7 @@ declare class GscapeEntitySearch extends GscapeEntitySearch_base implements IEnt
     [GrapholTypesEnum.DATA_PROPERTY]?: number | undefined;
     [GrapholTypesEnum.OBJECT_PROPERTY]?: number | undefined;
     [GrapholTypesEnum.INDIVIDUAL]?: number | undefined;
+    [GrapholTypesEnum.CLASS_INSTANCE]?: number | undefined;
     static properties: PropertyDeclarations;
     static styles?: CSSResultGroup;
     render(): lit_html.TemplateResult<1>;
@@ -1716,11 +2216,13 @@ declare const GscapeEntityTypeFilters_base: (new (...args: any[]) => IBaseMixin)
 declare class GscapeEntityTypeFilters extends GscapeEntityTypeFilters_base implements IEntityFilters {
     static properties: PropertyDeclarations;
     static styles: lit.CSSResult[];
-    _class: number | undefined;
-    _dataproperty: number | undefined;
-    _objectproperty: number | undefined;
-    _individual: number | undefined;
+    _class?: number;
+    _dataproperty?: number;
+    _objectproperty?: number;
+    _individual?: number;
+    _classInstance?: number;
     render(): lit_html.TemplateResult<1>;
+    private getChipTemplate;
     private _handleFilterStateChange;
     get areAllFiltersDisabled(): boolean;
     set [GrapholTypesEnum.CLASS](v: number | undefined);
@@ -1731,6 +2233,8 @@ declare class GscapeEntityTypeFilters extends GscapeEntityTypeFilters_base imple
     get [GrapholTypesEnum.OBJECT_PROPERTY](): number | undefined;
     set [GrapholTypesEnum.INDIVIDUAL](v: number | undefined);
     get [GrapholTypesEnum.INDIVIDUAL](): number | undefined;
+    set [GrapholTypesEnum.CLASS_INSTANCE](v: number | undefined);
+    get [GrapholTypesEnum.CLASS_INSTANCE](): number | undefined;
 }
 type EntityFilterEvent = CustomEvent<IEntityFilters>;
 
@@ -1772,10 +2276,51 @@ declare class GscapeToggle extends LitElement {
     render(): lit_html.TemplateResult<1>;
 }
 
+declare const GscapeConfirmDialog_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeConfirmDialog extends GscapeConfirmDialog_base {
+    message?: string | undefined;
+    dialogTitle: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+    constructor(message?: string | undefined, dialogTitle?: string);
+    static properties: PropertyDeclarations;
+    static styles: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private handleConfirm;
+    private handleCancel;
+}
+
+type SelectOption = {
+    id: string;
+    text: string;
+    trailingIcon?: SVGTemplateResult;
+    leadingIcon?: SVGTemplateResult;
+    disabled?: boolean;
+};
+declare const GscapeSelect_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeSelect extends GscapeSelect_base {
+    private readonly PLACEHOLDER_ID;
+    defaultIcon: SVGTemplateResult;
+    selectedOptionId?: string;
+    options: SelectOption[];
+    size: SizeEnum;
+    private _placeholder;
+    onSelection: (optionId: string) => void;
+    static properties: PropertyDeclarations;
+    static styles: lit.CSSResult[];
+    render(): lit_html.TemplateResult<1>;
+    private handleSelection;
+    private getButton;
+    clear(): void;
+    get selectedOption(): SelectOption | undefined;
+    get placeholder(): SelectOption;
+    set placeholder(placeHolder: SelectOption);
+}
+
 interface IEntitySelector {
     onClassSelection(callback: (iri: string) => void): void;
 }
-declare const GscapeEntitySelector_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare const GscapeEntitySelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeEntitySelector extends GscapeEntitySelector_base implements IEntitySelector {
     title: string;
     private fullEntityList;
@@ -1791,7 +2336,9 @@ declare class GscapeEntitySelector extends GscapeEntitySelector_base implements 
     constructor();
     render(): lit_html.TemplateResult<1>;
     blur(): void;
+    focusInputSearch(): Promise<void>;
     private handleEntitySelection;
+    private handleKeyPressOnEntry;
     private handleSearch;
     onClassSelection(callback: (iri: string) => void): void;
     set entityList(newEntityList: EntityViewData[]);
@@ -1867,6 +2414,8 @@ interface IIncrementalDetails {
     addInstances: (instances: EntityViewData[]) => void;
     /** @internal */
     onLimitChange: (limitValue: number) => void;
+    /** @internal */
+    onParentClassSelection: (iri: string) => void;
     reset: () => void;
     /** @internal */
     canShowInstances: boolean;
@@ -1880,6 +2429,39 @@ interface IIncrementalDetails {
     areInstancesLoading: boolean;
     /** @internal */
     instanceCount: number;
+    /** @internal */
+    parentClasses?: EntityViewData[];
+}
+interface INavigationMenu {
+    setObjectProperties: (objectProperties: ViewIncrementalObjectProperty[]) => void;
+    /** @internal */
+    setObjectPropertyRanges: (objectPropertyRanges: Map<string, Map<string, {
+        values: EntityViewData[];
+        loading?: boolean;
+    }>>) => void;
+    /** @internal */
+    setObjectPropertyLoading: (objectPropertyIri: string, rangeClassIri: string, isLoading: boolean) => void;
+    /** @internal */
+    addObjectPropertyRangeInstances: (objectPropertyIri: string, rangeClassIri: string, classInstances: EntityViewData[]) => void;
+}
+interface IClassInstancesExplorer {
+    /**
+     * callback to be called when an instance is selected
+     * @internal */
+    onInstanceSelection: (iri: string) => void;
+    /**
+     * callback to be called when a text search is performed
+     * @internal
+     */
+    onEntitySearch: (searchText: string) => void;
+    /**
+     * callback to be called when a text search on a dataProperty is performed
+     * @internal */
+    onEntitySearchByDataPropertyValue: (dataPropertyIri: string, searchText: string) => void;
+    /** @internal */
+    instances: EntityViewData[];
+    /** @internal */
+    areInstancesLoading: boolean;
 }
 type ViewIncrementalObjectProperty = {
     objectProperty: EntityViewData;
@@ -1917,6 +2499,8 @@ declare class GscapeIncrementalDetails extends GscapeIncrementalDetails_base imp
     /** @internal */
     instanceCount: number;
     /** @internal */
+    parentClasses?: EntityViewData[];
+    /** @internal */
     onObjectPropertySelection: (iri: string, objectPropertyIri: string, direct: boolean) => void;
     /** @internal */
     onGetInstances: () => void;
@@ -1932,6 +2516,8 @@ declare class GscapeIncrementalDetails extends GscapeIncrementalDetails_base imp
     onInstanceObjectPropertySelection: (instanceIri: string, objectPropertyIri: string, parentClassIri: string, direct: boolean) => void;
     /** @internal */
     onLimitChange: (limitValue: number) => void;
+    /** @internal */
+    onParentClassSelection: (iri: string) => void;
     /** @internal */
     private searchTimeout;
     static properties: PropertyDeclarations;
@@ -1991,16 +2577,35 @@ declare const _default$1: lit.CSSResult;
 
 declare const _default: lit_html.TemplateResult<1>;
 
+declare const NodeButton_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class NodeButton extends NodeButton_base {
+    content: TemplateResult | SVGTemplateResult | string | number;
+    contentType: 'icon' | 'template';
+    node?: NodeSingular;
+    highlighted?: boolean;
+    cxtWidgetProps: Partial<Props>;
+    static properties: PropertyDeclarations;
+    static styles: lit.CSSResult[];
+    constructor(content: TemplateResult | SVGTemplateResult | string | number, contentType?: 'icon' | 'template');
+    render(): TemplateResult<1>;
+}
+
 /** @module UI */
 
+type index_d_GscapeConfirmDialog = GscapeConfirmDialog;
+declare const index_d_GscapeConfirmDialog: typeof GscapeConfirmDialog;
 type index_d_GscapeToggle = GscapeToggle;
 declare const index_d_GscapeToggle: typeof GscapeToggle;
+type index_d_GscapeSelect = GscapeSelect;
+declare const index_d_GscapeSelect: typeof GscapeSelect;
 type index_d_GscapeEntitySelector = GscapeEntitySelector;
 declare const index_d_GscapeEntitySelector: typeof GscapeEntitySelector;
 type index_d_IEntitySelector = IEntitySelector;
 type index_d_UiOption = UiOption;
 type index_d_WidgetEnum = WidgetEnum;
 declare const index_d_WidgetEnum: typeof WidgetEnum;
+type index_d_NodeButton = NodeButton;
+declare const index_d_NodeButton: typeof NodeButton;
 type index_d_GscapeButton = GscapeButton;
 declare const index_d_GscapeButton: typeof GscapeButton;
 type index_d_SizeEnum = SizeEnum;
@@ -2008,6 +2613,8 @@ declare const index_d_SizeEnum: typeof SizeEnum;
 type index_d_Command = Command;
 type index_d_GscapeActionListItem = GscapeActionListItem;
 declare const index_d_GscapeActionListItem: typeof GscapeActionListItem;
+type index_d_GscapeEntityListItem = GscapeEntityListItem;
+declare const index_d_GscapeEntityListItem: typeof GscapeEntityListItem;
 type index_d_IBaseMixin = IBaseMixin;
 declare const index_d_IBaseMixin: typeof IBaseMixin;
 declare const index_d_BaseMixin: typeof BaseMixin;
@@ -2018,6 +2625,9 @@ declare const index_d_hasDropPanel: typeof hasDropPanel;
 type index_d_IModalMixin = IModalMixin;
 declare const index_d_IModalMixin: typeof IModalMixin;
 declare const index_d_ModalMixin: typeof ModalMixin;
+type index_d_IContextualWidgetMixin = IContextualWidgetMixin;
+declare const index_d_IContextualWidgetMixin: typeof IContextualWidgetMixin;
+declare const index_d_ContextualWidgetMixin: typeof ContextualWidgetMixin;
 declare const index_d_textSpinner: typeof textSpinner;
 declare const index_d_textSpinnerStyle: typeof textSpinnerStyle;
 declare const index_d_getContentSpinner: typeof getContentSpinner;
@@ -2036,6 +2646,8 @@ type index_d_GscapeFullPageSelector = GscapeFullPageSelector;
 declare const index_d_GscapeFullPageSelector: typeof GscapeFullPageSelector;
 declare const index_d_initInitialRendererSelector: typeof initInitialRendererSelector;
 type index_d_IIncrementalDetails = IIncrementalDetails;
+type index_d_INavigationMenu = INavigationMenu;
+type index_d_IClassInstancesExplorer = IClassInstancesExplorer;
 type index_d_ViewIncrementalObjectProperty = ViewIncrementalObjectProperty;
 type index_d_DiagramViewData = DiagramViewData;
 type index_d_OccurrenceIdViewData = OccurrenceIdViewData;
@@ -2048,7 +2660,9 @@ declare namespace index_d {
   export {
     index_d$1 as icons,
     GscapeContextMenu as ContextMenu,
+    index_d_GscapeConfirmDialog as GscapeConfirmDialog,
     index_d_GscapeToggle as GscapeToggle,
+    index_d_GscapeSelect as GscapeSelect,
     index_d_GscapeEntitySelector as GscapeEntitySelector,
     index_d_IEntitySelector as IEntitySelector,
     GscapeIncrementalDetails as GscapeIncrementalMenu,
@@ -2059,12 +2673,14 @@ declare namespace index_d {
     _default$1 as baseStyle,
     _default as emptySearchBlankState,
     index_d_WidgetEnum as WidgetEnum,
+    index_d_NodeButton as NodeButton,
     index_d_GscapeButton as GscapeButton,
     _default$4 as GscapeButtonStyle,
     index_d_SizeEnum as SizeEnum,
     index_d_Command as Command,
     index_d_GscapeActionListItem as GscapeActionListItem,
     _default$3 as GscapeActionListStyle,
+    index_d_GscapeEntityListItem as GscapeEntityListItem,
     index_d_IBaseMixin as IBaseMixin,
     index_d_BaseMixin as BaseMixin,
     index_d_IDropPanelMixin as IDropPanelMixin,
@@ -2072,6 +2688,8 @@ declare namespace index_d {
     index_d_hasDropPanel as hasDropPanel,
     index_d_IModalMixin as IModalMixin,
     index_d_ModalMixin as ModalMixin,
+    index_d_IContextualWidgetMixin as IContextualWidgetMixin,
+    index_d_ContextualWidgetMixin as ContextualWidgetMixin,
     index_d_textSpinner as textSpinner,
     index_d_textSpinnerStyle as textSpinnerStyle,
     index_d_getContentSpinner as getContentSpinner,
@@ -2085,6 +2703,8 @@ declare namespace index_d {
     index_d_GscapeFullPageSelector as GscapeFullPageSelector,
     index_d_initInitialRendererSelector as initInitialRendererSelector,
     index_d_IIncrementalDetails as IIncrementalDetails,
+    index_d_INavigationMenu as INavigationMenu,
+    index_d_IClassInstancesExplorer as IClassInstancesExplorer,
     index_d_ViewIncrementalObjectProperty as ViewIncrementalObjectProperty,
     index_d_DiagramViewData as DiagramViewData,
     index_d_OccurrenceIdViewData as OccurrenceIdViewData,
@@ -2095,123 +2715,6 @@ declare namespace index_d {
     index_d_search as search,
   };
 }
-
-/** @internal */
-declare class IncrementalController {
-    private grapholscape;
-    private diagramBuilder;
-    private vKGApi?;
-    private neighbourhoodFinder;
-    private incrementalDetails;
-    private entitySelector;
-    private lastClassIri?;
-    private lastInstanceIri?;
-    private suggestedClassInstances;
-    private suggestedClassInstancesRanges;
-    private commandsWidget;
-    private endpointController?;
-    private highlightsManager?;
-    private entitySelectionTimeout;
-    constructor(grapholscape: Grapholscape);
-    private initEndpointController;
-    private initApi;
-    init(): void;
-    private updateWidget;
-    private buildDetailsForInstance;
-    private buildDetailsForClass;
-    private showCommandsForClass;
-    private addDataPropertiesDetails;
-    private addObjectPropertiesDetails;
-    reset(): void;
-    clearState(): void;
-    hideUI(): void;
-    /**
-     * Called when the user click on the remove button on a entity node
-     * Remove a class, an instance or a data property node from the diagram
-     * @param entityIri
-     */
-    removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void;
-    addInstance(instanceIriString: string): Promise<void>;
-    addInstanceObjectProperty(instanceIriString: string, objectPropertyIri: string, parentClassIri: string, direct: boolean): Promise<void>;
-    /**
-     * Called when the user trigger the toggle for showing data properties.
-     * Given the state of the toggle and the list of dataproperties it is
-     * controlling, use diagram builder to add or remove them
-     * @param enabled
-     * @param dataProperties
-     */
-    toggleDataProperties(enabled: boolean, dataProperties: GrapholEntity[]): void;
-    /**
-     * Called when the user select a class connected with the reference class
-     * through an object property from the incremental menu.
-     * Using diagram builder (which knows the actual reference class),
-     * add the object property edge using the right direction
-     * (towards reference class in case of a invereObjectProperty)
-     * @param classIri the class selected in the list
-     * @param objectPropertyIri the object property through which the class has been selected in the list
-     * @param direct if true the edge goes from reference class to selected class in menu
-     */
-    addIntensionalObjectProperty(classIri: string, objectPropertyIri: string, direct: boolean): void;
-    /**
-     * Show hierarchies for which the specified class is a subClass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    showSuperHierarchiesOf(classIri: string): void;
-    /**
-     * Hide hierarchies for which the specified class is a subClass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    hideSuperHierarchiesOf(classIri: string): void;
-    /**
-     * Show hierarchies for which the specified class is a superclass.
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    showSubHierarchiesOf(classIri: string): void;
-    /**
-     * Show hierarchies for which the specified class is a superclass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    hideSubHierarchiesOf(classIri: string): void;
-    showSubClassesOf(classIri: string, subclassesIris?: string[]): void;
-    showSuperClassesOf(classIri: string, superclassesIris?: string[]): void;
-    showEquivalentClassesOf(classIri: string, equivalentClassesIris?: string[]): void;
-    changeInstancesLimit(limitValue: number): void;
-    connectInstanceToParentClasses(instanceEntity: ClassInstanceEntity): void;
-    private onGetInstances;
-    private onGetInstancesByDataPropertyValue;
-    private onGetRangeInstances;
-    private onNewInstancesForDetails;
-    private getHighlights;
-    private onNewInstanceRangesForDetails;
-    /**
-     * Given the iri of a class, retrieve connected object properties.
-     * These object properties are inferred if the reasoner is available.
-     * Otherwise only object properties directly asserted in the ontology
-     * will be retrieved.
-     * @param classIri
-     * @returns
-     */
-    private getObjectProperties;
-    private getDataProperties;
-    private onStopDataPropertyValueQuery;
-    private onStopInstanceLoading;
-    private onStopObjectPropertyRangeValueQuery;
-    private postDiagramEdit;
-    private runLayout;
-    private setIncrementalEventHandlers;
-    private get ontology();
-    private get diagram();
-    private get isReasonerEnabled();
-    private getInstanceEntityFromClassInstance;
-    private get incrementalRenderer();
-}
-
-/** @internal */
-declare function startIncremental(grapholscape: Grapholscape, incrementalController: IncrementalController): void;
 
 declare function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifecycle, ontology: Ontology): void;
 
@@ -2255,4 +2758,4 @@ declare function fullGrapholscape(file: string | File, container: HTMLElement, c
  */
 declare function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
 
-export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ColourMap, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, EntityOccurrence, Filter, FloatyRendererState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, ThemeConfig, ViewportState, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$a as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, setGraphEventHandlers, startIncremental, storeConfigEntry, toPNG, toSVG, index_d as ui };
+export { AnnotatedElement, Annotation, AnnotationsKind, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, ConstructorLabelsEnum, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, EntityNameType, EntityOccurrence, Filter, FloatyRendererState, FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, GrapholTypesEnum, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, ThemeConfig, ViewportState, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d as ui };

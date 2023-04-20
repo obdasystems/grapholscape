@@ -11,7 +11,7 @@ import { rendererStates } from "./view-model"
 export default function (rendererSelector: GscapeRenderSelector, grapholscape: Grapholscape) {
   rendererSelector.rendererStates = grapholscape.renderers.map(rendererStateKey => rendererStates[rendererStateKey])
   if (grapholscape.renderState) {
-    rendererSelector.actualRendererStateKey = grapholscape.renderState
+    rendererSelector.currentRendererStateKey = grapholscape.renderState
   }
 
   rendererSelector.onRendererStateSelection = (rendererState) => {
@@ -21,7 +21,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   rendererSelector.onIncrementalReset = () => grapholscape.incremental?.reset()
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
-    rendererSelector.actualRendererStateKey = newRendererState
+    rendererSelector.currentRendererStateKey = newRendererState
 
     if (newRendererState === RendererStatesEnum.FLOATY)
       rendererSelector.layoutSettingsComponent.openPanel()
