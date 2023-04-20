@@ -63,22 +63,22 @@ export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIr
   `
 }
 
-export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, propertyIriFilter?: string, searchText?: string, maxResults?: number,) {
+export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, dataPropertyIriFilter?: string, searchText?: string, maxResults?: number,) {
   const select = LABEL_AVAILABLE ? `?y ?l` : `?y`
   let where = isDirect ? `<${instanceIri}> <${objectPropertyIri}> ?y.` : `?y <${objectPropertyIri}> <${instanceIri}>.`
 
   if (rangeTypeClassIri)
     where += `?y a <${rangeTypeClassIri}>.`
 
-  if (propertyIriFilter) {
-    where += `?y <${propertyIriFilter}> ?z.`
+  if (dataPropertyIriFilter) {
+    where += `?y <${dataPropertyIriFilter}> ?z.`
   }
 
-  // if there is a filter on a data/object property, use search text on this value
-  // otherwise use searchtext to filter on iri or label
-  let filter = propertyIriFilter
+  // if there is a filter on a data property, use search text on this value
+  // otherwise use searchtext to filter on label
+  let filter = dataPropertyIriFilter
     ? `FILTER(regex(?z, "${searchText}", "i"))`
-    : getFilterOnIriOrLabel('?y', '?l', searchText)
+    : `FILTER(regex(?l, "${searchText}", "i"))`
 
   return `
     SELECT DISTINCT ${select}
