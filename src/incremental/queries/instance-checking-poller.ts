@@ -13,8 +13,8 @@ export default class InstanceCheckingPoller extends QueryPoller {
     return this.result.state === QueryStatusEnum.FINISHED || this.result.state === QueryStatusEnum.STOPPED
   }
 
-  protected isResultError(result: any): boolean {
-    return false
+  protected isResultError(result: InstanceCheckingInfo): boolean {
+    return result.state === QueryStatusEnum.ERROR
   }
 
   protected hasAnyResults(): boolean {
