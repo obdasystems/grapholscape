@@ -1,120 +1,283 @@
-const LABEL_AVAILABLE = true
+const LIMIT = 1000
 
-const LIMIT = 500
+const getLimit = (customLimit?: number | 'unlimited') => customLimit !== 'unlimited' ? `LIMIT ${customLimit || LIMIT}` : ''
 
-export function getInstances(iri: string, searchText?: string, maxResults?: number | 'unlimited', includeLabels = true) {
-  const select = LABEL_AVAILABLE && includeLabels ? `?x ?l` : `?x`
-  const where = `?x a <${iri}>.`
-
+/**
+ * 1-2
+ * Fetch instances of a given type
+ * @param classIRI class type of the instances
+ * @param includeLabels retrieve labels or not, default: true
+ * @param maxResults if 'unlimited', no limit is set. default: 1000
+ * @returns 
+ */
+export function getInstances(classIRI: string, includeLabels = true, maxResults?: number | 'unlimited') {
   return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where}
-      ?x rdfs:label ?l.
-      ${searchText ? `FILTER(regex(?l, '${searchText}', 'i'))` : ''}
-    }
-    ${maxResults !== 'unlimited' ? `LIMIT ${maxResults || LIMIT}` : ''}
-  `
-}
-
-export function getInstancesByObjectProperty(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
-  const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
-  const where = [
-    `?x a <${classIri}>.`,
-    `?x <${propertyIri}> ?y.`
-  ]
-
-  return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where.join('\n')}
-      ?x rdfs:label ?l.
-      ?y rdfs:label ?ly.
-      FILTER (regex(?ly, "${propertyValue}", "i"))
-    }
-    LIMIT ${maxResults || LIMIT}
-  `
-}
-
-export function getInstancesByDataPropertyValue(classIri: string, propertyIri: string, propertyValue: string, maxResults?: number) {
-  const select = LABEL_AVAILABLE ? `?x ?l` : `?x`
-  const where = [
-    `?x a <${classIri}>.`,
-    `?x <${propertyIri}> ?y.`
-  ]
-
-  return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where.join('\n')}
-      ?x rdfs:label ?l.
-      FILTER (regex(?y, "${propertyValue}", "i"))
-    }
-    LIMIT ${maxResults || LIMIT}
-  `
-}
-
-export function getInstanceDataPropertyValue(instanceIri: string, dataPropertyIri: string) {
-  return `
-    SELECT DISTINCT ?y
-    WHERE {
-      <${instanceIri}> <${dataPropertyIri}> ?y.
-    }
-  `
-}
-
-export function getInstancesObjectPropertyRanges(instanceIri: string, objectPropertyIri: string, rangeTypeClassIri?: string, isDirect: boolean = true, dataPropertyIriFilter?: string, searchText?: string, maxResults?: number,) {
-  const select = LABEL_AVAILABLE ? `?y ?l` : `?y`
-  let where = isDirect ? `<${instanceIri}> <${objectPropertyIri}> ?y.` : `?y <${objectPropertyIri}> <${instanceIri}>.`
-
-  if (rangeTypeClassIri)
-    where += `?y a <${rangeTypeClassIri}>.`
-
-  if (dataPropertyIriFilter) {
-    where += `?y <${dataPropertyIriFilter}> ?z.`
+  SELECT DISTINCT ${includeLabels ? '?x ?l' : '?x'}
+  WHERE {
+    ?x a <${encodeURI(classIRI)}>;
+       ${includeLabels ? `rdfs:label ?l` : ``}
   }
-
-  // if there is a filter on a data property, use search text on this value
-  // otherwise use searchtext to filter on label
-  let filter = dataPropertyIriFilter
-    ? `FILTER(regex(?z, "${searchText}", "i"))`
-    : `FILTER(regex(?l, "${searchText}", "i"))`
-
-  return `
-    SELECT DISTINCT ${select}
-    WHERE {
-      ${where}
-      ?y rdfs:label ?l.
-      ${filter}
-    }
-    LIMIT ${maxResults || LIMIT}
+  ${getLimit(maxResults)}
   `
 }
 
-export function getInstanceLabels(instanceIri: string) {  
+/**
+ * 3
+ * 
+ * Fetch instances of a given type, filtering by their label
+ * @param classIRI class type of the instances
+ * @param searchText the text to search in labels
+ * @param maxResults if 'unlimited', no limit is set. default: 1000
+ * @returns 
+ */
+export function getInstancesByLabel(classIRI: string, searchText: string, maxResults?: number | 'unlimited') {
+  return `
+  SELECT DISTINCT ?x ?l
+  WHERE {
+    ?x a <${encodeURI(classIRI)}>;
+       rdfs:label ?l.
+    FILTER(regex(?l, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 4
+ * 
+ * Fetch instances of a given type, filtering by their IRI
+ * @param classIRI class type of the instances
+ * @param searchText the text to search in IRIs
+ * @param maxResults if 'unlimited', no limit is set. default: 1000
+ * @returns  
+ */
+export function getInstancesByIRI(classIRI: string, searchText: string, maxResults?: number | 'unlimited') {
+  return `
+  SELECT DISTINCT ?x
+  WHERE {
+    ?x a <${encodeURI(classIRI)}>.
+    FILTER(regex(?x, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 5-6
+ * 
+ * Fetch instances of a given type and filter by the value of a given data property.
+ * @param classIRI class type of the instances
+ * @param dataPropertyIRI the data property on which the filter must be done
+ * @param searchText the text to search in the values of the data property
+ * @param includeLabels retrieve labels or not, default: true
+ * @param maxResults if 'unlimited', no limit is set. default: 1000
+ * @returns 
+ */
+export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: string, searchText: string, includeLabels = true, maxResults?: number | 'unlimited') {
+  return `
+  SELECT DISTINCT ${includeLabels ? '?x ?l ?y' : '?x ?y'}
+  WHERE {
+    ?x a <${encodeURI(classIRI)}>;
+       <${encodeURI(dataPropertyIRI)}> ?y;
+       ${includeLabels ? `rdfs:label ?l` : ``}
+    FILTER(regex(?y, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 7-8
+ * 
+ * Fetch instances of a given type such that they participate in a object property with
+ * another instance whose label contains a given search text.
+ * 
+ * @param classIri class type of the instances
+ * @param objectPropertyIRI the object property on which the filter must be done
+ * @param searchText the text to search in the label of the instances participating in the object property
+ * @param isInverse whether the object property is inverse or not
+ * @param includeLabels retrieve labels or not, default: true
+ * @param maxResults if 'unlimited', no limit is set. default: 1000
+ * @returns 
+ */
+export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI: string, searchText: string, isInverse = false, includeLabels = true, maxResults?: number) {
+  return `
+  SELECT DISTINCT ${includeLabels ? '?x ?lx ?y ?ly' : '?x ?y ?ly'}
+  WHERE {
+    ?x a <${encodeURI(classIri)}>;
+       ${includeLabels ? 'rdfs:label ?lx' : ''}.
+       
+    ${isInverse
+      ? `?y <${encodeURI(objectPropertyIRI)}> ?x.`
+      : `?x <${encodeURI(objectPropertyIRI)}> ?y.`
+    }
+       
+    ?y a <iri>;
+      rdfs:label ?ly
+    FILTER(regex(?ly, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 9
+ * 
+ * Get values of a data property for a given instance
+ * @param instanceIRI
+ * @param dataPropertyIRI
+ * @returns 
+ */
+export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyIRI: string) {
+  return `
+  SELECT DISTINCT ?y
+  WHERE {
+    <${encodeURI(instanceIRI)}> <${encodeURI(dataPropertyIRI)}> ?y
+  }
+  LIMIT 10
+  `
+}
+
+/**
+ * 10-11
+ * 
+ * Get instances of a given type participating to an object property with a given instance
+ * @param instanceIRI the starting instance
+ * @param objectPropertyIRI the object property connecting the instances
+ * @param rangeTypeClassIri the type of instances to retrieve 
+ * @param isInverse whether the object property is inverse or not, default: false
+ * @param includeLabels retrieve labels or not, default: true
+ * @param maxResults default: 1000
+ * @returns 
+ */
+export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassIri?: string, isInverse = false, includeLabels = true, maxResults?: number) {
+  return `
+  SELECT DISTINCT ?y ${includeLabels ? 'ly' : ''}
+  WHERE {
+    ${isInverse
+      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+    }
+    
+    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
+    ${includeLabels ? '?y rdfs:label ?ly' : ''}
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 12
+ * 
+ * Get instances of a given type participating to an object property with a given instance,
+ * filtering by their label
+ * @param instanceIRI the starting instance
+ * @param objectPropertyIRI the object property connecting the instances
+ * @param searchText the text to search in the label of results
+ * @param rangeTypeClassIri the type of instances to retrieve
+ * @param isInverse whether the object property is inverse or not, default: false
+ * @param maxResults default: 1000
+ * @returns 
+ */
+export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isInverse = false, maxResults?: number) {
+  return `
+  SELECT DISTINCT ?y ?ly
+  WHERE {
+    ${isInverse
+      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+    }
+    
+    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
+    ?y rdfs:label ?ly.
+    FILTER(regex(?ly, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 13
+ * 
+ * Get instances of a given type participating to an object property with a given instance,
+ * filtering by their IRI
+ * @param instanceIRI the starting instance
+ * @param objectPropertyIRI the object property connecting the instances
+ * @param searchText the text to search in the IRIs of results
+ * @param rangeTypeClassIri the type of instances to retrieve
+ * @param isInverse whether the object property is inverse or not, default: false
+ * @param maxResults default: 1000
+ * @returns 
+ */
+export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isInverse = false, maxResults?: number) {
+  return `
+  SELECT DISTINCT ?y
+  WHERE {
+    ${isInverse
+      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+    }
+    
+    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
+    FILTER(regex(?y, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * 14-15
+ * Get instances of a given type, participating in the object property (domain/range)
+ * with a given instance and participating in a data property with a value matching
+ * the searchText.
+ * 
+ * @param instanceIRI starting instance
+ * @param objectPropertyIRI object properties connecting the instances
+ * @param rangeTypeClassIRI the type of instances to search
+ * @param dataPropertyFilterIRI the data property on which the filter must be done
+ * @param searchText the value to search in the data property range (attribute value)
+ * @param isInverse whether the object property is inverse or not, default: false
+ * @param includeLabels whether to include the label of retrieved instances or not, default: true
+ * @param maxResults max number of results, default: 1000
+ * @returns the SPARQL query code
+ */
+export function getInstancesThroughOPByDP(
+  instanceIRI: string,
+  objectPropertyIRI: string,
+  rangeTypeClassIRI: string,
+  dataPropertyFilterIRI: string,
+  searchText: string,
+  isInverse = false,
+  includeLabels = true,
+  maxResults?: number) {
+
+  return `
+  SELECT DISTINCT ${includeLabels ? '?y ?ly ?dp' : '?y ?dp'}
+  WHERE {
+    ${isInverse
+      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+    }
+    
+    ?y a <${encodeURI(rangeTypeClassIRI)}>;
+       ${includeLabels ? 'rdfs:label ?ly;' : ''}
+       <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+    FILTER(regex(?dp, '${searchText}', 'i'))
+  }
+  ${getLimit(maxResults)}
+  `
+}
+
+/**
+ * Get all the labels defined on a instance
+ * @param instanceIri 
+ * @returns 
+ */
+export function getInstanceLabels(instanceIri: string) {
   return `
     SELECT DISTINCT ?l
     WHERE {
-      <${instanceIri}> rdfs:label ?l
+      <${encodeURI(instanceIri)}> rdfs:label ?l
     }
   `
-}
-
-function getFilterOnIriOrLabel(subjectVariable: string, labelVariable: string, filterValue?: string): string {
-  if (!filterValue) return ''
-
-  let filter = `FILTER(regex(${subjectVariable}, '${filterValue}', 'i')`
-  if (LABEL_AVAILABLE)
-    filter += `|| (regex(${labelVariable}, '${filterValue}', 'i') && !isBlank(${labelVariable}))`
-
-  filter += `)`
-
-  return filter
-}
-
-function getOptionalLabel(subjectVariable: string, labelVariable: string, where: string) {
-  return LABEL_AVAILABLE ? `OPTIONAL { 
-    ${where}
-    ${subjectVariable} rdfs:label ${labelVariable} 
-  }` : ``
 }

@@ -1,4 +1,4 @@
-import { MastroEndpoint, QueryStatusEnum, RequestOptions } from "../api/model"
+import { MastroEndpoint, QuerySemantics, QueryStatusEnum, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
 import { QueryCountStatePoller, QueryPoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
@@ -32,17 +32,17 @@ export default class QueryManager {
    * The QueryResultPoller will poll the query results.
    * @param queryCode 
    * @param pageSize the maximum number of results to retrieve
-   * @param pageNumber the page number in case you're handling pagination
-   * @param keepAlive keep query running even if stopRunningQueries gets invoked
+   * @param querySemantics either use conjunctive queries evaluation or full SPARQL. default: **CQ**
+   * @param keepAlive keep query running even if stopRunningQueries gets invoked. default: **False**
    * @returns a promise which will be resolved with the query poller, on this
    * object you can set the onNewResults callback to react every time new results
    * are obtained.
    */
-  async performQuery(queryCode: string, pageSize: number, pageNumber = 1, keepAlive = false): Promise<QueryResultsPoller> {
-    const executionId = await this.startQuery(queryCode)
+  async performQuery(queryCode: string, pageSize: number, querySemantics: QuerySemantics = QuerySemantics.CQ, keepAlive = false): Promise<QueryResultsPoller> {
+    const executionId = await this.startQuery(queryCode, querySemantics)
 
     // return this.getQueryResults(executionId, pageSize, pageNumber)
-    const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId)
+    const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, 1), pageSize, executionId)
     if (!keepAlive) {
       if (this._runningQueryPollerByExecutionId.get(executionId)) {
         this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
@@ -114,7 +114,7 @@ export default class QueryManager {
     // }
 
     // queryStatusPoller.start()
-    
+
     return queryResultsPoller
   }
 
@@ -128,7 +128,7 @@ export default class QueryManager {
    * @returns a promise which will be resolved with the result
    */
   async performQueryCount(queryCode: string, onStopCallback?: () => void): Promise<number> {
-    const executionId = await this.startQuery(queryCode, true)
+    const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, true)
     const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId))
 
     this._runningCountQueryPollerByExecutionId.set(executionId, countStatePoller)
@@ -187,7 +187,6 @@ export default class QueryManager {
       headers: this.requestOptions.headers,
       body: JSON.stringify(classesTocheck)
     })
-    
     const threadId = await response.json()
     const instanceCheckingPoller = new InstanceCheckingPoller(new Request(
       `${this.getInstanceCheckingPath(threadId)}/info`,
@@ -198,6 +197,8 @@ export default class QueryManager {
     ))
 
     this._runningInstanceCheckingPollerByThreadId.set(threadId, instanceCheckingPoller)
+
+    instanceCheckingPoller.onError((error: any) => this.requestOptions.onError(error))
 
     return instanceCheckingPoller
   }
@@ -250,7 +251,7 @@ export default class QueryManager {
     return this._prefixes
   }
 
-  private async startQuery(queryCode: string, isCount?: boolean): Promise<string> {
+  private async startQuery(queryCode: string, querySemantics: QuerySemantics, isCount?: boolean): Promise<string> {
     let countURL: URL | undefined
     if (isCount) {
       countURL = this.queryCountPath
@@ -258,17 +259,29 @@ export default class QueryManager {
 
     return new Promise(async (resolve) => {
       this.handleCall(
-        fetch(await this.getNewQueryRequest(queryCode, countURL))
+        fetch(await this.getNewQueryRequest(queryCode, querySemantics, countURL))
       ).then(async response => {
         resolve((await response.json()).executionId)
       })
     })
   }
 
-  // Request for starting a query
-  private async getNewQueryRequest(queryCode: string, customURL?: URL): Promise<Request> {
+  /**
+   * Request for starting a query
+   * @param queryCode the code of the query
+   * @param querySemantics Conjunctive queries or FULL SPARQL
+   * @param customURL URL to use, if not specified this.queryStartPath will be used
+   * @returns the request object to send
+   */
+  private async getNewQueryRequest(queryCode: string, querySemantics: QuerySemantics, customURL?: URL): Promise<Request> {
     const url: URL = customURL || this.queryStartPath
-    const params = new URLSearchParams({ useReplaceForUrlEncoding: 'false', querySemantics: 'cq', advanced: 'true', reasoning: 'true'  })
+    const params = new URLSearchParams({
+      useReplaceForUrlEncoding: 'false',
+      querySemantics: querySemantics,
+      advanced: 'true',
+      reasoning: 'true',
+      expandSparqlTables: 'true'
+    })
 
     return new Request(new URL(url.toString().concat(`?${params.toString()}`)), {
       method: 'post',

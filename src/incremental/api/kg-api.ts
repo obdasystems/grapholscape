@@ -1,7 +1,7 @@
 import { GrapholTypesEnum } from '../../model'
 import QueryManager from '../queries/query-manager'
 import * as QueriesTemplates from '../queries/query-templates'
-import { EmptyUnfoldingEntities, MastroEndpoint, MaterializedCounts, QueryStatusEnum, RequestOptions } from './model'
+import { EmptyUnfoldingEntities, MastroEndpoint, MaterializedCounts, QuerySemantics, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
 
 export type ClassInstance = {
@@ -20,13 +20,13 @@ export type ClassInstance = {
 // }
 
 export interface IVirtualKnowledgeGraphApi {
-  getInstances: (iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
-  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
+  getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string) => void,
+  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstanceObjectPropertyRanges: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, propertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
+  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[]) => void, rangeClassIri?: string, dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
@@ -43,10 +43,23 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     this.setEndpoint(endpoint)
   }
 
-  async getInstances(iri: string, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string, pageSize?: number) {
+  async getInstances(iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[]) => void, onStop?: () => void, searchText?: string, pageSize?: number) {
     const _pageSize = pageSize || this.pageSize
-    const queryCode = QueriesTemplates.getInstances(iri, searchText)
-    const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
+    let querySemantics: QuerySemantics, queryCode: string
+
+    if (searchText) {
+      querySemantics = QuerySemantics.FULL_SPARQL
+      if (includeLabels) {
+        queryCode = QueriesTemplates.getInstancesByLabel(iri, searchText)
+      } else {
+        queryCode = QueriesTemplates.getInstancesByIRI(iri, searchText)
+      }
+    } else {
+      querySemantics = QuerySemantics.CQ
+      queryCode = QueriesTemplates.getInstances(iri, includeLabels)
+    }
+
+    const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize, querySemantics)
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
     })
@@ -70,7 +83,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const queryPoller = await this.queryManager.getQueryResults(executionId, _pageSize, pageNumber)
 
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
+      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res,)))
       queryPoller.stop()
     })
 
@@ -86,15 +99,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     propertyIri: string,
     propertyType: string,
     propertyValue: string,
+    includeLabels: boolean,
     onNewResults: (classInstances: ClassInstance[]) => void,
     onStop?: (() => void),
     pageSize?: number) {
 
     const _pageSize = pageSize || this.pageSize
     const queryCode = propertyType === GrapholTypesEnum.OBJECT_PROPERTY
-      ? QueriesTemplates.getInstancesByObjectProperty(classIri, propertyIri, propertyValue)
-      : QueriesTemplates.getInstancesByDataPropertyValue(classIri, propertyIri, propertyValue)
-    const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize)
+      ? QueriesTemplates.getInstancesByObjectProperty(classIri, propertyIri, propertyValue, includeLabels)
+      : QueriesTemplates.getInstancesByDataProperty(classIri, propertyIri, propertyValue, includeLabels)
+    const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize, QuerySemantics.FULL_SPARQL)
     queryPoller.onNewResults = (result => {
       onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
     })
@@ -108,9 +122,8 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     return queryPoller.executionId
   }
 
-
-  async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void, searchText?: string) {
-    const queryCode = QueriesTemplates.getInstances(iri, searchText, 'unlimited', false)
+  async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void) {
+    const queryCode = QueriesTemplates.getInstances(iri, false, 'unlimited')
     this.queryManager.performQueryCount(queryCode, onStop)
       .then(result => onResult(result))
       .catch(_ => {
@@ -155,7 +168,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     onStop?: (() => void),
     onError?: (() => void)) {
 
-    const queryCode = QueriesTemplates.getInstanceDataPropertyValue(instanceIri, dataPropertyIri)
+    const queryCode = QueriesTemplates.getInstanceDataPropertyValues(instanceIri, dataPropertyIri)
 
     // const pollPage = async (pageNumber: number) => {
     //   const queryPoller = await this.queryManager.performQuery(queryCode, this.limit, pageNumber)
@@ -194,7 +207,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     // pollPage(1)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.CQ)
     queryPoller.onNewResults = (results) => {
       onNewResults(results.results.map(res => res[0].value))
     }
@@ -206,18 +219,48 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     queryPoller.start()
   }
 
-  async getInstanceObjectPropertyRanges(instanceIri: string, objectPropertyIri: string,
+  async getInstancesThroughObjectProperty(
+    instanceIri: string,
+    objectPropertyIri: string,
     isDirect: boolean,
+    includeLabels: boolean,
     onNewResults: (classInstances: ClassInstance[]) => void,
     rangeClassIri?: string,
-    propertyIriFilter?: string,
+    dataPropertyIriFilter?: string,
     textSearch?: string,
     onStop?: (() => void)
   ) {
 
-    const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, propertyIriFilter, textSearch)
+    let querySemantics: QuerySemantics, queryCode: string
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize)
+    if (textSearch) {
+      querySemantics = QuerySemantics.FULL_SPARQL
+      if (rangeClassIri && dataPropertyIriFilter) {
+        queryCode = QueriesTemplates.getInstancesThroughOPByDP(
+          instanceIri,
+          objectPropertyIri,
+          rangeClassIri,
+          dataPropertyIriFilter,
+          textSearch,
+          isDirect,
+          includeLabels
+        )
+      } else {
+        if (includeLabels)
+          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassIri, isDirect)
+        else
+          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassIri, isDirect)
+      }
+
+    } else {
+      querySemantics = QuerySemantics.CQ
+      queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassIri, isDirect, includeLabels)
+    }
+
+
+    // const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, dataPropertyIriFilter, textSearch)
+    // const querySemantics = textSearch ? QuerySemantics.FULL_SPARQL : QuerySemantics.CQ
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, querySemantics)
     queryPoller.onNewResults = (result) => {
       onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res)))
     }
@@ -291,7 +334,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getInstanceLabels(instanceIri: string, onResult: (result: { value: string, language?: string }[]) => void) {
     const queryCode = QueriesTemplates.getInstanceLabels(instanceIri)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, 100, 1, true)
+    const queryPoller = await this.queryManager.performQuery(queryCode, 100, QuerySemantics.CQ, true)
     queryPoller.onNewResults = (result) => {
       onResult(result.results.map(r => this.parseLabel(r[0].value)).filter(l => l.value !== 'null'))
     }

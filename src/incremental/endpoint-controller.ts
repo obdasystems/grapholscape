@@ -29,7 +29,7 @@ export default class EndpointController {
   async setEndpoint(endpoint: MastroEndpoint): Promise<void>
   async setEndpoint(endpointName: string): Promise<void>
   async setEndpoint(endpoint: string | MastroEndpoint) {
-    const _endpoint = typeof(endpoint) === 'string' ? this.endpoints.find(e => e.name === endpoint) : endpoint
+    const _endpoint = typeof (endpoint) === 'string' ? this.endpoints.find(e => e.name === endpoint) : endpoint
 
     if (_endpoint) {
       this.selectedEndpoint = _endpoint
@@ -62,7 +62,7 @@ export default class EndpointController {
   }
 
   stopRequests(requestType: 'instances' | 'counts' | 'all' = 'all') {
-    switch(requestType) {
+    switch (requestType) {
       case 'instances':
         this.vkgApi?.stopInstancesQueries()
         break
@@ -77,19 +77,28 @@ export default class EndpointController {
     }
   }
 
-  requestInstancesForClass(classIri: string, searchText?: string, propertyIriFilter?: string, propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY) {  
+  requestInstancesForClass(
+    classIri: string,
+    includeLabels: boolean,
+    searchText?: string,
+    propertyIriFilter?: string,
+    propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY
+  ) {
+
     if (searchText && propertyIriFilter && propertyType)
       return this.vkgApi?.getInstancesByPropertyValue(
         classIri,
         propertyIriFilter,
         propertyType,
         searchText,
+        includeLabels,
         (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
       )
     else
       return this.vkgApi?.getInstances(
         classIri,
+        includeLabels,
         (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
         searchText
@@ -105,11 +114,12 @@ export default class EndpointController {
     )
   }
 
-  requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, rangeClassIri?: string, propertyIriFilter?: string, searchText?: string) {
-    return this.vkgApi?.getInstanceObjectPropertyRanges(
+  requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, includeLabels: boolean, rangeClassIri?: string, propertyIriFilter?: string, searchText?: string) {
+    return this.vkgApi?.getInstancesThroughObjectProperty(
       instanceIri,
       objectPropertyIri,
       isDirect,
+      includeLabels,
       (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
       rangeClassIri,
       propertyIriFilter,
@@ -143,7 +153,7 @@ export default class EndpointController {
 
   async instanceCheck(instanceIri: string, classesToCheck: string[]) {
     this.lifecycle.trigger(IncrementalEvent.InstanceCheckingStarted, instanceIri)
-    return new Promise((resolve: (value: string[]) => void, reject) => {
+    return new Promise((resolve: (value: string[]) => void) => {
       this.vkgApi?.instanceCheck(
         instanceIri,
         classesToCheck,
@@ -151,7 +161,7 @@ export default class EndpointController {
           resolve(res)
           this.lifecycle.trigger(IncrementalEvent.InstanceCheckingFinished, instanceIri)
         },
-        reject
+        () => this.lifecycle.trigger(IncrementalEvent.InstanceCheckingFinished, instanceIri)
       )
     })
   }

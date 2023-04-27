@@ -25,6 +25,11 @@ export enum QueryStatusEnum {
   STOPPED = 'STOPPED',
 }
 
+export enum QuerySemantics {
+  CQ = 'cq',
+  FULL_SPARQL = 'eql'
+}
+
 export type RequestOptions = {
   basePath: string,
   version: string,
