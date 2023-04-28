@@ -89,7 +89,9 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       instanceCountBadge.contentType = 'template';
 
       count = count || incrementalController.counts.get(classIri)
-      instanceCountBadge.content = count?.value || 'n/a'
+      instanceCountBadge.content = count?.value !== undefined 
+        ? new Intl.NumberFormat().format(count.value)
+        : 'n/a'
 
       instanceCountBadge.highlighted = !count?.materialized
       if (count?.date) {
