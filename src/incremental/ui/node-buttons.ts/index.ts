@@ -242,9 +242,16 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
             .endpointController
             ?.shouldQueryUseLabels(instanceExplorer.requestId)
             ?.then(async shouldAskForLabels => {
-              instanceExplorer.shouldAskForLabels = shouldAskForLabels
-              instanceExplorer.areInstancesLoading = true
-              instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri, shouldAskForLabels)
+              if (!shouldAskForLabels) {
+                instanceExplorer.shouldAskForLabels = shouldAskForLabels
+                instanceExplorer.areInstancesLoading = true
+                instanceExplorer.requestId = await incrementalController.endpointController
+                  ?.requestInstancesForClass(
+                    referenceEntity.iri.fullIri,
+                    shouldAskForLabels
+                  )
+              }
+
             })
         }
       }

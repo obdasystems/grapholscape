@@ -72,8 +72,29 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
           referenceEntity.iri.fullIri,
           e.detail.objectPropertyIri,
           e.detail.direct,
+          true,
           e.detail.rangeClassIri
         )
+
+        if (instancesExplorer.requestId) {
+          incrementalController
+            .endpointController
+            ?.shouldQueryUseLabels(instancesExplorer.requestId)
+            ?.then(async shouldAskForLabels => {
+              if (!shouldAskForLabels) {
+                instancesExplorer.shouldAskForLabels = shouldAskForLabels
+                instancesExplorer.areInstancesLoading = true
+                instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
+                  referenceEntity.iri.fullIri,
+                  e.detail.objectPropertyIri,
+                  e.detail.direct,
+                  shouldAskForLabels,
+                  e.detail.rangeClassIri
+                )
+              }
+              
+            })
+        }
       }
 
       if (navigationMenu.popperRef) {
