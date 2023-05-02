@@ -180,6 +180,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                   }
                 }))}
                 selected-option=${this.shouldAskForLabels !== false ? 'label' : 'id'}
+                ?clearable=${false}
                 @change=${this.handleFilterChange}
               >
             `

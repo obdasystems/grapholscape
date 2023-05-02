@@ -21,6 +21,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   selectedOptionId?: string
   options: SelectOption[] = []
   size: SizeEnum = SizeEnum.S
+  clearable: boolean = false
 
   private _placeholder: SelectOption = {
     id: this.PLACEHOLDER_ID,
@@ -35,6 +36,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     placeHolder: { type: Object, attribute: 'placeholder' },
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },
+    clearable: { type: Boolean },
   }
 
   static styles = [
@@ -85,7 +87,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
                   ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
                 </gscape-action-list-item>
                 
-                ${this.selectedOption && this.selectedOption.id === option.id
+                ${this.clearable && this.selectedOption && this.selectedOption.id === option.id
                   ? html`
                     <gscape-button title="clear" size="s" type="subtle" slot="trailing-icon" @click=${this.clear}>
                       ${getIconSlot('icon', cross)}
