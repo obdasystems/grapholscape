@@ -356,8 +356,8 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       const columnType = getHeadType(headTerms[i])
       if (columnType === HeadTypes.OBJECT) {
         instance = {
-          iri: resultColumn.value,
-          shortIri: resultColumn.shortIRI,
+          iri: decodeURI(resultColumn.value),
+          shortIri: decodeURI(resultColumn.shortIRI),
         }
 
         let nextColumnType = getHeadType(headTerms[i + 1])
