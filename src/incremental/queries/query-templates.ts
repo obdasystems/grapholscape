@@ -95,19 +95,19 @@ export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: st
  * @param classIri class type of the instances
  * @param objectPropertyIRI the object property on which the filter must be done
  * @param searchText the text to search in the label of the instances participating in the object property
- * @param isInverse whether the object property is inverse or not
+ * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param includeLabels retrieve labels or not, default: true
  * @param maxResults if 'unlimited', no limit is set. default: 1000
  * @returns 
  */
-export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI: string, searchText: string, isInverse = false, includeLabels = true, maxResults?: number) {
+export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI: string, searchText: string, isDirect = true, includeLabels = true, maxResults?: number) {
   return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx ?y ?ly' : '?x ?y ?ly'}
   WHERE {
     ?x a <${encodeURI(classIri)}>;
        ${includeLabels ? 'rdfs:label ?lx' : ''}.
        
-    ${isInverse
+    ${isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> ?x.`
       : `?x <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -145,16 +145,16 @@ export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyI
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
  * @param rangeTypeClassIri the type of instances to retrieve 
- * @param isInverse whether the object property is inverse or not, default: false
+ * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param includeLabels retrieve labels or not, default: true
  * @param maxResults default: 1000
  * @returns 
  */
-export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassIri?: string, isInverse = false, includeLabels = true, maxResults?: number) {
+export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassIri?: string, isDirect = true, includeLabels = true, maxResults?: number) {
   return `
   SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
   WHERE {
-    ${isInverse
+    ${isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -175,15 +175,15 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
  * @param objectPropertyIRI the object property connecting the instances
  * @param searchText the text to search in the label of results
  * @param rangeTypeClassIri the type of instances to retrieve
- * @param isInverse whether the object property is inverse or not, default: false
+ * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param maxResults default: 1000
  * @returns 
  */
-export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isInverse = false, maxResults?: number) {
+export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isDirect = true, maxResults?: number) {
   return `
   SELECT DISTINCT ?y ?ly
   WHERE {
-    ${isInverse
+    ${isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -205,15 +205,15 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
  * @param objectPropertyIRI the object property connecting the instances
  * @param searchText the text to search in the IRIs of results
  * @param rangeTypeClassIri the type of instances to retrieve
- * @param isInverse whether the object property is inverse or not, default: false
+ * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param maxResults default: 1000
  * @returns 
  */
-export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isInverse = false, maxResults?: number) {
+export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isDirect = true, maxResults?: number) {
   return `
   SELECT DISTINCT ?y
   WHERE {
-    ${isInverse
+    ${isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -236,7 +236,7 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
  * @param rangeTypeClassIRI the type of instances to search
  * @param dataPropertyFilterIRI the data property on which the filter must be done
  * @param searchText the value to search in the data property range (attribute value)
- * @param isInverse whether the object property is inverse or not, default: false
+ * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param includeLabels whether to include the label of retrieved instances or not, default: true
  * @param maxResults max number of results, default: 1000
  * @returns the SPARQL query code
@@ -247,14 +247,14 @@ export function getInstancesThroughOPByDP(
   rangeTypeClassIRI: string,
   dataPropertyFilterIRI: string,
   searchText: string,
-  isInverse = false,
+  isDirect = true,
   includeLabels = true,
   maxResults?: number) {
 
   return `
   SELECT DISTINCT ${includeLabels ? '?y ?ly ?dp' : '?y ?dp'}
   WHERE {
-    ${isInverse
+    ${isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
