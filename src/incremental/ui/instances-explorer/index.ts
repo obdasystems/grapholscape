@@ -13,7 +13,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
   incrementalController.on(IncrementalEvent.NewInstances, newInstances => {
-    instancesExplorer.addInstances(newInstances)
+    instancesExplorer.addInstances(newInstances.map(i => i[0]))
     const minNumberOfInstancesToAskMore = (incrementalController.endpointController?.limit || 10000) * instancesExplorer.numberOfPagesShown
     instancesExplorer.canShowMore = instancesExplorer.numberOfInstancesReceived >= minNumberOfInstancesToAskMore
   })
@@ -55,6 +55,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
       if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS) {
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
           instancesExplorer.referenceEntity?.value.iri.fullIri,
+          instancesExplorer.shouldAskForLabels,
           e.detail.filterText,
           e.detail.filterByProperty,
           e.detail.propertyType
@@ -62,20 +63,21 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
       }
 
       else if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS_INSTANCE && instancesExplorer.referencePropertyEntity) {
-        if (e.detail.filterByType) {
-          instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
-            .map(dp => getEntityViewDataIncremental(dp, incrementalController))
-        }
+        // if (e.detail.filterByType) {
+        //   instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
+        //     .map(dp => getEntityViewDataIncremental(dp, incrementalController))
+        // }
 
-        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForObjectPropertyRange(
+        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
           instancesExplorer.referenceEntity.value.iri.fullIri,
           instancesExplorer.referencePropertyEntity.value.iri.fullIri,
           instancesExplorer.isPropertyDirect,
+          instancesExplorer.shouldAskForLabels,
           e.detail.filterByType,
           e.detail.filterByProperty,
           e.detail.filterText,
         )
-      }
+      }      
     }
   })
 

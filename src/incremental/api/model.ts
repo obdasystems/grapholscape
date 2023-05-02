@@ -74,3 +74,8 @@ export type CountEntry = {
   state: QueryStatusEnum,
   entity: MWSEntity,
 }
+
+export enum HeadTypes {
+  OBJECT = 'OBJECT',
+  VALUE = 'VALUE',
+}

@@ -12,10 +12,10 @@ const getLimit = (customLimit?: number | 'unlimited') => customLimit !== 'unlimi
  */
 export function getInstances(classIRI: string, includeLabels = true, maxResults?: number | 'unlimited') {
   return `
-  SELECT DISTINCT ${includeLabels ? '?x ?l' : '?x'}
+  SELECT DISTINCT ${includeLabels ? '?x ?lx' : '?x'}
   WHERE {
     ?x a <${encodeURI(classIRI)}>;
-       ${includeLabels ? `rdfs:label ?l` : ``}
+       ${includeLabels ? `rdfs:label ?lx` : ``}
   }
   ${getLimit(maxResults)}
   `
@@ -32,11 +32,11 @@ export function getInstances(classIRI: string, includeLabels = true, maxResults?
  */
 export function getInstancesByLabel(classIRI: string, searchText: string, maxResults?: number | 'unlimited') {
   return `
-  SELECT DISTINCT ?x ?l
+  SELECT DISTINCT ?x ?lx
   WHERE {
     ?x a <${encodeURI(classIRI)}>;
-       rdfs:label ?l.
-    FILTER(regex(?l, '${searchText}', 'i'))
+       rdfs:label ?lx.
+    FILTER(regex(?lx, '${searchText}', 'i'))
   }
   ${getLimit(maxResults)}
   `
@@ -75,11 +75,11 @@ export function getInstancesByIRI(classIRI: string, searchText: string, maxResul
  */
 export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: string, searchText: string, includeLabels = true, maxResults?: number | 'unlimited') {
   return `
-  SELECT DISTINCT ${includeLabels ? '?x ?l ?y' : '?x ?y'}
+  SELECT DISTINCT ${includeLabels ? '?x ?lx ?y' : '?x ?y'}
   WHERE {
     ?x a <${encodeURI(classIRI)}>;
        <${encodeURI(dataPropertyIRI)}> ?y;
-       ${includeLabels ? `rdfs:label ?l` : ``}
+       ${includeLabels ? `rdfs:label ?lx` : ``}
     FILTER(regex(?y, '${searchText}', 'i'))
   }
   ${getLimit(maxResults)}
@@ -152,7 +152,7 @@ export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyI
  */
 export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassIri?: string, isInverse = false, includeLabels = true, maxResults?: number) {
   return `
-  SELECT DISTINCT ?y ${includeLabels ? 'ly' : ''}
+  SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
   WHERE {
     ${isInverse
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`

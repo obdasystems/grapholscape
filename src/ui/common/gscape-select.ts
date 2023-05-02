@@ -31,7 +31,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
 
   static properties: PropertyDeclarations = {
     options: { type: Object },
-    selectedOptionId: { type: Number, attribute: 'selected-option', reflect: true },
+    selectedOptionId: { type: String, attribute: 'selected-option', reflect: true },
     placeHolder: { type: Object, attribute: 'placeholder' },
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },

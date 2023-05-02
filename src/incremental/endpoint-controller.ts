@@ -79,7 +79,7 @@ export default class EndpointController {
 
   requestInstancesForClass(
     classIri: string,
-    includeLabels: boolean,
+    includeLabels = true,
     searchText?: string,
     propertyIriFilter?: string,
     propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY
@@ -114,7 +114,15 @@ export default class EndpointController {
     )
   }
 
-  requestInstancesForObjectPropertyRange(instanceIri: string, objectPropertyIri: string, isDirect = true, includeLabels: boolean, rangeClassIri?: string, propertyIriFilter?: string, searchText?: string) {
+  requestInstancesThroughObjectProperty(
+    instanceIri: string,
+    objectPropertyIri: string,
+    isDirect = true,
+    includeLabels = true,
+    rangeClassIri?: string,
+    propertyIriFilter?: string,
+    searchText?: string) {
+
     return this.vkgApi?.getInstancesThroughObjectProperty(
       instanceIri,
       objectPropertyIri,
@@ -144,6 +152,10 @@ export default class EndpointController {
       (result) => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri, { value: result, materialized: false }),
       () => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri)
     )
+  }
+
+  shouldQueryUseLabels(queryExecutionId: string) {
+    return this.vkgApi?.shouldQueryUseLabels(queryExecutionId)
   }
 
   async getMaterializedCounts() {

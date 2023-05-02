@@ -1,21 +1,30 @@
-import { InstanceCheckingInfo, QueryStatusEnum } from "../api/model"
+import { HeadTypes, InstanceCheckingInfo, QueryStatusEnum } from "../api/model"
 
 export type APICallResult = QueryRecords | number | QueryStatus | InstanceCheckingInfo
 
 export type QueryRecords = {
   headTerms: string[],
-  results: {
-    type: string,
-    shortIRI: string,
-    value: string,
-    lang?: string,
-  }[][]
+  headTypes: {[x: string]: HeadTypes},
+  results: ResultRecord[]
 }
+
+export type ResultRecord = {
+  type: string,
+  shortIRI: string,
+  value: string,
+  lang?: string,
+}[]
 
 export type QueryStatus = {
   status: QueryStatusEnum,
   errorMessages: string[],
   hasError: boolean,
+  percentage: number,
+  numOntologyRewritings: number,
+  numHighLevelQueries: number,
+  numLowLevelQueries: number,
+  executionTime: 14,
+  numResults: 32,
 }
 
 export enum QueryPollerStatus {
@@ -34,7 +43,7 @@ export enum QueryPollerStatus {
 export abstract class QueryPoller {
   protected interval: NodeJS.Timer
   protected lastRequestFulfilled: boolean = true
-  protected abstract _result: APICallResult
+  protected abstract _result?: APICallResult
   protected request: Request
 
   // Callbacks
@@ -108,7 +117,7 @@ export abstract class QueryPoller {
     return result.toString()
   }
 
-  abstract get result(): APICallResult
+  abstract get result(): APICallResult | undefined
 }
 
 export class QueryResultsPoller extends QueryPoller {
@@ -138,7 +147,7 @@ export class QueryResultsPoller extends QueryPoller {
 }
 
 export class QueryStatusPoller extends QueryPoller {
-  protected _result: QueryStatus
+  protected _result?: QueryStatus
 
   constructor(protected request: Request) {
     super()
@@ -151,7 +160,7 @@ export class QueryStatusPoller extends QueryPoller {
   }
 
   protected stopCondition(): boolean {
-    return this.result.status !== QueryStatusEnum.RUNNING
+    return this.result?.status !== QueryStatusEnum.RUNNING
   }
 
   protected isResultError(result: QueryStatus): boolean {
@@ -162,7 +171,7 @@ export class QueryStatusPoller extends QueryPoller {
     return result.errorMessages.map(error => JSON.parse(error))
   }
 
-  get result(): QueryStatus {
+  get result(): QueryStatus | undefined {
     return this._result
   }
 

@@ -89,7 +89,7 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       instanceCountBadge.contentType = 'template';
 
       count = count || incrementalController.counts.get(classIri)
-      instanceCountBadge.content = count?.value !== undefined 
+      instanceCountBadge.content = count?.value !== undefined
         ? new Intl.NumberFormat().format(count.value)
         : 'n/a'
 
@@ -99,7 +99,7 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
       } else {
         instanceCountBadge.title = 'Fresh Value'
       }
-      
+
 
       const updateFun = cyNode.scratch('update-instance-count-position')
       if (updateFun) updateFun()
@@ -219,7 +219,7 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
 
     if (referenceEntity && referenceEntity.type === GrapholTypesEnum.CLASS) {
-      if (!instanceExplorer.referenceEntity || 
+      if (!instanceExplorer.referenceEntity ||
         !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
         instanceExplorer.numberOfInstancesReceived === 0) {
         instanceExplorer.clear()
@@ -236,6 +236,17 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
           .sort((a, b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
 
         instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
+
+        if (instanceExplorer.requestId) {
+          incrementalController
+            .endpointController
+            ?.shouldQueryUseLabels(instanceExplorer.requestId)
+            ?.then(async shouldAskForLabels => {
+              instanceExplorer.shouldAskForLabels = shouldAskForLabels
+              instanceExplorer.areInstancesLoading = true
+              instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri, shouldAskForLabels)
+            })
+        }
       }
     }
 

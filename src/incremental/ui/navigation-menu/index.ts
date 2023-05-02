@@ -68,7 +68,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
             .map(dp => getEntityViewDataIncremental(dp, incrementalController))
         }
 
-        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForObjectPropertyRange(
+        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
           referenceEntity.iri.fullIri,
           e.detail.objectPropertyIri,
           e.detail.direct,

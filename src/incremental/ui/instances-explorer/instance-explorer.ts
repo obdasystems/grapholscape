@@ -27,6 +27,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
    */
   numberOfInstancesReceived = 0
   canShowMore: boolean = false
+  shouldAskForLabels?: boolean
 
   private searchTimeout:  NodeJS.Timeout
 
@@ -157,15 +158,28 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
               <gscape-select
                 id="property-filter-select"
                 size=${SizeEnum.S}
-                .options=${this.propertiesFilterList.map(entity => {
+                .options=${[
+                  {
+                    id: 'label',
+                    text: 'Label',
+                    disabled: this.shouldAskForLabels === false, // if undefined then allow for it
+                    leadingIcon: undefined,
+                  },
+                  {
+                    id: 'id',
+                    text: 'ID',
+                    disabled: false,
+                    leadingIcon: undefined,
+                  },
+                ].concat(this.propertiesFilterList.map(entity => {
                   return {
                     id: entity.entityViewData.value.iri.fullIri,
                     text: entity.entityViewData.displayedName,
                     leadingIcon: entityIcons[entity.entityViewData.value.type],
                     disabled: !entity.hasUnfolding
                   }
-                })}
-                .placeholder=${ {text: 'ID or Label'} }
+                }))}
+                selected-option=${this.shouldAskForLabels !== false ? 'label' : 'id'}
                 @change=${this.handleFilterChange}
               >
             `
@@ -358,6 +372,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.referenceEntity = undefined
     this.referencePropertyEntity = undefined
     this.popperRef = undefined
+    this.shouldAskForLabels = undefined
 
     if (this.instancesSearchInput)
       this.instancesSearchInput.value = ''

@@ -25,7 +25,7 @@ export enum IncrementalEvent {
 
 export interface IonEvent {
   (event: IncrementalEvent.RequestStopped, callback: () => void): void
-  (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[]) => void): void
+  (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][]) => void): void
   (event: IncrementalEvent.InstancesSearchFinished, callback: () => void): void
   (event: IncrementalEvent.LimitChange, callback: (limit: number) => void): void
   (event: IncrementalEvent.EndpointChange, callback: (endpoint: MastroEndpoint) => void): void
@@ -66,7 +66,7 @@ export default class IncrementalLifecycle {
   constructor() { }
 
   trigger(event: IncrementalEvent.RequestStopped): void
-  trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[]): void
+  trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][]): void
   trigger(event: IncrementalEvent.InstancesSearchFinished): void
   trigger(event: IncrementalEvent.LimitChange, limit: number): void
   trigger(event: IncrementalEvent.EndpointChange, endpoint: MastroEndpoint): void

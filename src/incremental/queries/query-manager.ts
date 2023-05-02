@@ -4,7 +4,7 @@ import { QueryCountStatePoller, QueryPoller, QueryResultsPoller, QueryStatusPoll
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
-  private _runningQueryPollerByExecutionId: Map<string, Set<QueryPoller>> = new Map()
+  private _runningQueryPollerByExecutionId: Map<string, { resultPollers: Set<QueryResultsPoller>, statusPollers: Set<QueryStatusPoller> }> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
   private _runningInstanceCheckingPollerByThreadId: Map<string, InstanceCheckingPoller> = new Map()
 
@@ -44,17 +44,21 @@ export default class QueryManager {
     // return this.getQueryResults(executionId, pageSize, pageNumber)
     const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, 1), pageSize, executionId)
     if (!keepAlive) {
-      if (this._runningQueryPollerByExecutionId.get(executionId)) {
-        this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
+      const pollers = this._runningQueryPollerByExecutionId.get(executionId)
+      if (pollers) {
+        pollers.resultPollers.add(queryResultsPoller)
       } else {
-        this._runningQueryPollerByExecutionId.set(executionId, new Set([queryResultsPoller]))
+        this._runningQueryPollerByExecutionId.set(executionId, {
+          resultPollers: new Set([queryResultsPoller]),
+          statusPollers: new Set(),
+        })
       }
     }
 
     queryResultsPoller.onError = this.requestOptions.onError
 
     const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
-    this._runningQueryPollerByExecutionId.get(executionId)?.add(queryStatusPoller)
+    this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
 
     queryStatusPoller.start()
     queryStatusPoller.onNewResults = (result) => {
@@ -83,10 +87,14 @@ export default class QueryManager {
   async getQueryResults(executionId: string, pageSize: number, pageNumber: number): Promise<QueryResultsPoller> {
     const queryResultsPoller = new QueryResultsPoller(this.getQueryResultRequest(executionId, pageSize, pageNumber), pageSize, executionId)
 
-    if (this._runningQueryPollerByExecutionId.get(executionId)) {
-      this._runningQueryPollerByExecutionId.get(executionId)?.add(queryResultsPoller)
+    const pollers = this._runningQueryPollerByExecutionId.get(executionId)
+    if (pollers) {
+      pollers.resultPollers.add(queryResultsPoller)
     } else {
-      this._runningQueryPollerByExecutionId.set(executionId, new Set([queryResultsPoller]))
+      this._runningQueryPollerByExecutionId.set(executionId, {
+        resultPollers: new Set([queryResultsPoller]),
+        statusPollers: new Set(),
+      })
     }
 
     queryResultsPoller.onError = this.requestOptions.onError
@@ -219,7 +227,11 @@ export default class QueryManager {
   }
 
   stopQuery(executionId: string) {
-    this._runningQueryPollerByExecutionId.get(executionId)?.forEach(poller => poller.stop()) // stop polling
+    // stop polling
+    const pollers = this._runningQueryPollerByExecutionId.get(executionId)
+    pollers?.resultPollers.forEach(poller => poller.stop())
+    pollers?.statusPollers.forEach(poller => poller.stop())
+
     this._runningQueryPollerByExecutionId.delete(executionId)
     this.handleCall(fetch(this.getQueryStopPath(executionId), {
       method: 'put',
@@ -245,6 +257,30 @@ export default class QueryManager {
       method: 'get',
       headers: this.requestOptions.headers,
     }))
+  }
+
+  async shouldQueryUseLabels(executionId: string) {
+    const queryPollers = this._runningQueryPollerByExecutionId.get(executionId)
+    return new Promise((resolve: (value: boolean) => void) => {
+      if (queryPollers) {
+        for(let statusPoller of queryPollers.statusPollers) {
+          if (statusPoller.result?.status == QueryStatusEnum.FINISHED || statusPoller.result?.status == QueryStatusEnum.RUNNING) {
+            resolve(statusPoller.result.numHighLevelQueries > 0)
+          } else {
+            const oldCallback = statusPoller.onNewResults
+
+            // check at every new result without overriding previous callback
+            statusPoller.onNewResults = (result) => {
+              oldCallback(result)
+              if (result.status == QueryStatusEnum.FINISHED || result.status == QueryStatusEnum.RUNNING) {
+                resolve(result.numHighLevelQueries > 0)
+              }
+            }
+          }
+          break
+        }
+      }
+    })
   }
 
   private async getPrefixes() {
