@@ -37,10 +37,12 @@ export default css`
 
 ::-webkit-scrollbar {
   width: 2px;
+  height: 2px;
 }
 
 ::-webkit-scrollbar:hover {
   width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
