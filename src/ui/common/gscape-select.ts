@@ -19,6 +19,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   private readonly PLACEHOLDER_ID = '!PLACEHOLDER!'
   defaultIcon: SVGTemplateResult
   selectedOptionId?: string
+  defaultOptionId?: string
   options: SelectOption[] = []
   size: SizeEnum = SizeEnum.S
   clearable: boolean = false
@@ -33,6 +34,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   static properties: PropertyDeclarations = {
     options: { type: Object },
     selectedOptionId: { type: String, attribute: 'selected-option', reflect: true },
+    defaultOptionId: { type: String, attribute: 'default-option' },
     placeHolder: { type: Object, attribute: 'placeholder' },
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },
@@ -81,7 +83,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
                   label="${option.text}"
                   title="${option.text}"
                   id="${option.id}"
-                  ?selected=${this.selectedOption && this.selectedOption.id === option.id}
+                  ?selected=${(this.selectedOption && this.selectedOption.id === option.id) || (!this.selectedOption && this.defaultOptionId === option.id)}
                   ?disabled=${option.disabled !== undefined && option.disabled}
                 >
                   ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
@@ -121,7 +123,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   }
 
   private getButton() {
-    const option = this.selectedOption || this.placeholder
+    const option = this.selectedOption || this.defaultOption
 
     return html`
       <gscape-button @click="${this.togglePanel}" label="${option.text}" size="${this.size}">
@@ -142,6 +144,10 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     if (this.selectedOptionId) {
       return this.options.find(o => o.id === this.selectedOptionId)
     }
+  }
+
+  get defaultOption() {
+    return this.options.find(o => o.id === this.defaultOptionId) || this.placeholder
   }
 
   get placeholder() { return this._placeholder }
