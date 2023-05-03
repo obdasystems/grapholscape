@@ -107,7 +107,7 @@ export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI
     ?x a <${encodeURI(classIri)}>;
        ${includeLabels ? 'rdfs:label ?lx' : ''}.
        
-    ${isDirect
+    ${!isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> ?x.`
       : `?x <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -154,7 +154,7 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
   return `
   SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
   WHERE {
-    ${isDirect
+    ${!isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -183,7 +183,7 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
   return `
   SELECT DISTINCT ?y ?ly
   WHERE {
-    ${isDirect
+    ${!isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -213,7 +213,7 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
   return `
   SELECT DISTINCT ?y
   WHERE {
-    ${isDirect
+    ${!isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
@@ -254,7 +254,7 @@ export function getInstancesThroughOPByDP(
   return `
   SELECT DISTINCT ${includeLabels ? '?y ?ly ?dp' : '?y ?dp'}
   WHERE {
-    ${isDirect
+    ${!isDirect
       ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
