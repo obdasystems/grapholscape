@@ -81,6 +81,7 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
       input {
         flex-grow: 2;
         padding: 12px 24px;
+        width: 100%;
       }
 
       @keyframes drop-down {
