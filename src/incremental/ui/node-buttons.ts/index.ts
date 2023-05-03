@@ -228,11 +228,21 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
         const dataProperties = await incrementalController.getDataPropertiesByClasses([referenceEntity.iri.fullIri])
         const objectPropertiesMap = await incrementalController.getObjectPropertiesByClasses([referenceEntity.iri.fullIri])
-        const objectProperties = Array.from(objectPropertiesMap).map(([opEntity, _]) => opEntity)
+        const objectProperties = Array.from(objectPropertiesMap).map(([opEntity, connectedClasses]) => {
+          let opViewDataIncremental = getEntityViewDataIncremental(opEntity, incrementalController)
+
+          return {
+            entityViewData: opViewDataIncremental.entityViewData,
+            loading: opViewDataIncremental.loading,
+            hasUnfolding: opViewDataIncremental.hasUnfolding,
+            connectedClasses: [],
+            direct: connectedClasses.direct,
+          } as ViewIncrementalObjectProperty
+        })
 
         instanceExplorer.propertiesFilterList = dataProperties
           .map(dp => getEntityViewDataIncremental(dp, incrementalController))
-          .concat(objectProperties.map(op => getEntityViewDataIncremental(op, incrementalController)))
+          .concat(objectProperties)
           .sort((a, b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
 
         instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)

@@ -6,7 +6,7 @@ import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widg
 import getIconSlot from "../../../ui/util/get-icon-slot"
 import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
-import { ViewIncrementalEntityData } from "../view-model"
+import { ViewIncrementalEntityData, ViewIncrementalObjectProperty } from "../view-model"
 
 
 export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(LitElement)) {
@@ -140,6 +140,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                     }
                   })}
                   .placeholder=${ {text: 'Filter by type'} }
+                  ?clearable=${true}
                   @change=${this.handleClassTypeFilterChange}
                 >
               `
@@ -179,7 +180,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                     disabled: !entity.hasUnfolding
                   }
                 }))}
-                selected-option=${this.shouldAskForLabels !== false ? 'label' : 'id'}
+                default-option=${this.shouldAskForLabels !== false ? 'label' : 'id'}
                 ?clearable=${false}
                 @change=${this.handleFilterChange}
               >
@@ -252,15 +253,20 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       }
     }) as InstanceFilterEvent
 
-    if (this.propertyFilterSelect?.selectedOptionId && event.detail.filterText) {
+    if (this.propertyFilterSelect?.selectedOptionId && this.propertyFilterSelect.selectedOptionId !== 'id' && event.detail.filterText) {
       event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionId
-      const propertyType = this.propertiesFilterList.find(p => {
+      const property = this.propertiesFilterList.find(p => {
         return this.propertyFilterSelect?.selectedOptionId &&
           p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionId)
-      })?.entityViewData.value.type
+      })
 
-      if (propertyType)
-      event.detail.propertyType = propertyType as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
+      if (property) {
+        event.detail.propertyType = property.entityViewData.value.type as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
+
+        if (property.entityViewData.value.type === GrapholTypesEnum.OBJECT_PROPERTY) {
+          event.detail.direct = (property as ViewIncrementalObjectProperty).direct
+        }
+      }
     }
 
     // if only one class type, then use it, there is not select element
@@ -269,6 +275,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     } else if (this.classTypeFilterSelect) { // otherwise check selected option
       event.detail.filterByType = this.classTypeFilterSelect.selectedOptionId
     }
+
+    if (this.shouldAskForLabels !== undefined)
+      event.detail.shouldAskForLabels = this.shouldAskForLabels && this.propertyFilterSelect?.selectedOptionId !== 'id'
 
     this.numberOfPagesShown = 1
     this.dispatchEvent(event)
@@ -408,7 +417,9 @@ export type InstanceFilterEvent = CustomEvent<{
   filterText: string,
   filterByProperty: string | undefined,
   propertyType: GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY,
+  direct: boolean,
   filterByType: string | undefined,
+  shouldAskForLabels: boolean,
 }>
 
 customElements.define('gscape-instances-explorer', GscapeInstanceExplorer)

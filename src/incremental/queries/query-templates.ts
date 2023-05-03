@@ -112,8 +112,7 @@ export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI
       : `?x <${encodeURI(objectPropertyIRI)}> ?y.`
     }
        
-    ?y a <iri>;
-      rdfs:label ?ly
+    ?y rdfs:label ?ly.
     FILTER(regex(?ly, '${searchText}', 'i'))
   }
   ${getLimit(maxResults)}

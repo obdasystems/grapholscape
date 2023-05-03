@@ -23,7 +23,7 @@ export type ClassInstance = {
 
 export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, onStop?: () => void, searchText?: string) => void,
-  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, onStop?: () => void) => void,
+  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, isDirect?: boolean, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
@@ -103,12 +103,13 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     propertyValue: string,
     includeLabels: boolean,
     onNewResults: (classInstances: ClassInstance[][]) => void,
+    isDirect?: boolean,
     onStop?: (() => void),
     pageSize?: number) {
 
     const _pageSize = pageSize || this.pageSize
     const queryCode = propertyType === GrapholTypesEnum.OBJECT_PROPERTY
-      ? QueriesTemplates.getInstancesByObjectProperty(classIri, propertyIri, propertyValue, includeLabels)
+      ? QueriesTemplates.getInstancesByObjectProperty(classIri, propertyIri, propertyValue, isDirect, includeLabels)
       : QueriesTemplates.getInstancesByDataProperty(classIri, propertyIri, propertyValue, includeLabels)
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize, QuerySemantics.FULL_SPARQL)
     queryPoller.onNewResults = (result => {
@@ -364,7 +365,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
         let nextColumn = results[i + 1]
         // next column referes to this class instance only if it's a value
         if (headTerms[i + 1] && nextColumnType !== HeadTypes.OBJECT) {
-          if (headTerms[i + 1] === `?l${headTerms[i].charAt(1)}`) {
+          if (headTerms[i + 1] === `l${headTerms[i]}`) {
             const label = nextColumn.value ? this.parseLabel(nextColumn.value) : undefined
             instance.label = label?.value !== 'null' ? label : undefined
           } else {
@@ -386,7 +387,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     return result
 
     function getHeadType(headTerm: string | undefined) {
-      if (headTerm)
+      if (headTerm && headTypes[headTerm])
         return headTypes[headTerm][0]
     }
   }

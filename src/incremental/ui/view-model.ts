@@ -4,7 +4,6 @@ export type ViewIncrementalObjectProperty = ViewIncrementalEntityData & {
   // objectProperty: EntityViewData,
   connectedClasses: ViewIncrementalEntityData[],
   direct: boolean,
-  hasUnfolding?: boolean,
 }
 
 export type ViewIncrementalEntityData = {

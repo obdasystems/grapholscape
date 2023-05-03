@@ -55,10 +55,11 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
       if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS) {
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
           instancesExplorer.referenceEntity?.value.iri.fullIri,
-          instancesExplorer.shouldAskForLabels,
+          e.detail.shouldAskForLabels,
           e.detail.filterText,
           e.detail.filterByProperty,
-          e.detail.propertyType
+          e.detail.propertyType,
+          e.detail.direct,
         )
       }
 
@@ -72,7 +73,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
           instancesExplorer.referenceEntity.value.iri.fullIri,
           instancesExplorer.referencePropertyEntity.value.iri.fullIri,
           instancesExplorer.isPropertyDirect,
-          instancesExplorer.shouldAskForLabels,
+          e.detail.shouldAskForLabels,
           e.detail.filterByType,
           e.detail.filterByProperty,
           e.detail.filterText,

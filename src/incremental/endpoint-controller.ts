@@ -82,7 +82,8 @@ export default class EndpointController {
     includeLabels = true,
     searchText?: string,
     propertyIriFilter?: string,
-    propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY
+    propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY,
+    isDirect?: boolean,
   ) {
 
     if (searchText && propertyIriFilter && propertyType)
@@ -93,6 +94,7 @@ export default class EndpointController {
         searchText,
         includeLabels,
         (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+        isDirect,
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
       )
     else
