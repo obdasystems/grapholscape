@@ -7,6 +7,7 @@ export default css`
     gap: 6px;
     padding: 4px 8px;
     flex-wrap: var(--custom-wrap, initial);
+    min-height: var(--custom-min-height, unset);
   }
 
   .entity-list-item {

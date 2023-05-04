@@ -1,7 +1,7 @@
 import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model";
 import { counter } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
-import { IncrementalCommands } from "../../../ui/incremental-ui";
+import * as IncrementalCommands from "./commands";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 

@@ -1,7 +1,7 @@
 import { GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../../model';
 import { EntityViewData, WidgetEnum } from '../../../ui';
 import { GscapeEntityDetails } from '../../../ui/entity-details';
-import grapholEntityToEntityViewData from '../../../util/graphol-entity-to-entity-view-data';
+import { grapholEntityToEntityViewData } from '../../../util';
 import IncrementalController from '../../controller';
 import { IncrementalEvent } from '../../lifecycle';
 import GscapeClassInstanceDetails from './class-instance-details';

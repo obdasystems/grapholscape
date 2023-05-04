@@ -13,8 +13,7 @@ export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
 export { default as GscapeSelect } from "./common/gscape-select"
 export { GscapeEntitySelector, IEntitySelector } from './entity-selector'
 export * from './full-page-selector'
-export { GscapeIncrementalMenu } from './incremental-ui'
-export * from './incremental-ui/view-model'
+export * from './view-model'
 export { default as initUI } from "./init"
 export { entityListItemStyle } from './ontology-explorer'
 export { UiOption } from './renderer-selector/view-model'

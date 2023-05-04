@@ -4,15 +4,14 @@ import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
 import { textSpinner, WidgetEnum } from "../../../ui";
 import { classInstanceIcon, objectPropertyIcon } from "../../../ui/assets";
-import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data";
+import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
-import { getEntityViewDataIncremental } from "../utils";
-import { ViewIncrementalObjectProperty } from "../view-model";
+import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import NodeButton from "./node-button";
 
 export function NodeButtonsFactory(incrementalController: IncrementalController) {
@@ -189,11 +188,15 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
       objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
     }
 
+    const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
+      incrementalController.endpointController?.highlightsManager
+    )
+
     navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
-      const newV = getEntityViewDataIncremental(v[0], incrementalController)
-      const viewIncrementalObjProp = newV as ViewIncrementalObjectProperty
+      const newV = getEntityViewDataUnfolding(v[0], incrementalController.grapholscape, hasUnfoldings)
+      const viewIncrementalObjProp = newV as ViewObjectPropertyUnfolding
       viewIncrementalObjProp.connectedClasses = v[1].list.map(classEntity => {
-        return getEntityViewDataIncremental(classEntity, incrementalController)
+        return getEntityViewDataUnfolding(classEntity, incrementalController.grapholscape, hasUnfoldings)
       })
       viewIncrementalObjProp.direct = v[1].direct
 
@@ -226,10 +229,15 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 
         instanceExplorer.areInstancesLoading = true
         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
+
+        const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
+          incrementalController.endpointController?.highlightsManager
+        )
+
         const dataProperties = await incrementalController.getDataPropertiesByClasses([referenceEntity.iri.fullIri])
         const objectPropertiesMap = await incrementalController.getObjectPropertiesByClasses([referenceEntity.iri.fullIri])
         const objectProperties = Array.from(objectPropertiesMap).map(([opEntity, connectedClasses]) => {
-          let opViewDataIncremental = getEntityViewDataIncremental(opEntity, incrementalController)
+          let opViewDataIncremental = getEntityViewDataUnfolding(opEntity, incrementalController.grapholscape, hasUnfoldings)
 
           return {
             entityViewData: opViewDataIncremental.entityViewData,
@@ -237,11 +245,11 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
             hasUnfolding: opViewDataIncremental.hasUnfolding,
             connectedClasses: [],
             direct: connectedClasses.direct,
-          } as ViewIncrementalObjectProperty
+          } as ViewObjectPropertyUnfolding
         })
 
         instanceExplorer.propertiesFilterList = dataProperties
-          .map(dp => getEntityViewDataIncremental(dp, incrementalController))
+          .map(dp => getEntityViewDataUnfolding(dp, incrementalController.grapholscape, hasUnfoldings))
           .concat(objectProperties)
           .sort((a, b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
 

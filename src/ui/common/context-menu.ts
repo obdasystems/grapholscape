@@ -1,5 +1,4 @@
 import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from "lit"
-import tippy from 'tippy.js'
 import baseStyle from "../style"
 import { BaseMixin } from "./mixins"
 import { ContextualWidgetMixin } from "./mixins/contextual-widget-mixin"

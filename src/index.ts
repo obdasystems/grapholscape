@@ -20,6 +20,7 @@ export * from './core'
 export * from './incremental'
 export { default as setGraphEventHandlers } from './core/set-graph-event-handlers'
 export * from './exporter'
+export * as util from './util'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets

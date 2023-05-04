@@ -5,7 +5,6 @@ import { infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import { GscapeButtonStyle } from '../common/button'
-import { GscapeIncrementalMenu } from '../incremental-ui'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 

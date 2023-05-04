@@ -3,11 +3,12 @@ import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import { GscapeButtonStyle, SizeEnum } from '../common/button'
 import baseStyle from '../style'
 import emptySearchBlankState from '../util/empty-search-blank-state'
-import { EntityViewData, search } from '../util/search-entities'
+import { search } from '../util/search-entities'
 import getIconSlot from '../util/get-icon-slot'
 import { arrowDown, insertInGraph } from '../assets'
 import a11yClick from '../util/a11y-click'
 import { GscapeEntityListItem } from '../common/list-item'
+import { EntityViewData } from '../view-model'
 
 export interface IEntitySelector {
   onClassSelection(callback:(iri: string) => void): void
@@ -62,12 +63,16 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
         max-height: unset;
       }
 
+      gscape-entity-list-item {
+        --custom-min-height: 26.5px;
+      }
+
       .hover-btn {
-        visibility: hidden;
+        display: none;
       }
       
       gscape-entity-list-item:hover > .hover-btn {
-        visibility: visible;
+        display: initial;
       }
 
       gscape-entity-search {

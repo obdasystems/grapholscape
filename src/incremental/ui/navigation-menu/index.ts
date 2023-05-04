@@ -1,10 +1,9 @@
 import { WidgetEnum } from "../../../ui";
-import grapholEntityToEntityViewData from "../../../util/graphol-entity-to-entity-view-data";
+import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import onHideMenu from "../on-hide-menu";
 import showMenu from "../show-menu";
-import { getEntityViewDataIncremental } from "../utils";
 import GscapeNavigationMenu, { ObjectPropertyNavigationEvent } from "./navigation-menu";
 
 export function NavigationMenuFactory(incrementalController: IncrementalController) {
@@ -63,9 +62,12 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
         // if only one related class for this object property, then retrieve data properties for this related class
         // as it will be selected by default
         if (instancesExplorer.classTypeFilterList?.length === 1) {
+          const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
+            incrementalController.endpointController.highlightsManager
+          )
           instancesExplorer.propertiesFilterList = (await incrementalController
             .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].entityViewData.value.iri.fullIri]))
-            .map(dp => getEntityViewDataIncremental(dp, incrementalController))
+            .map(dp => getEntityViewDataUnfolding(dp, incrementalController.grapholscape, hasUnfoldings))
         }
 
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(

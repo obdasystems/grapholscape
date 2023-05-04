@@ -1,9 +1,9 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../../model";
 import capitalizeFirstChar from "../../../util/capitalize-first-char";
-import { classIcon, dataPropertyIcon, entityIcons, individualIcon, objectPropertyIcon } from "../../assets";
+import { entityIcons } from "../../assets";
 import baseStyle from "../../style";
-import { IEntityFilters } from "../../util/search-entities";
+import { IEntityFilters } from "../../view-model";
 import { GscapeButtonStyle } from "../button";
 import { BaseMixin } from "../mixins";
 
@@ -25,7 +25,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
       .chips-filters {
         margin-top: 4px;
         white-space: normal;
-        min-width: 295px;
       }
 
       .chip[entity-type = "class"] {

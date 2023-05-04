@@ -1,5 +1,5 @@
 import { Grapholscape } from "../../core";
-import { LifecycleEvent, RendererStatesEnum } from "../../model";
+import { LifecycleEvent } from "../../model";
 import { createEntitiesList } from "../util/search-entities";
 import { GscapeEntitySelector } from "./entity-selector";
 

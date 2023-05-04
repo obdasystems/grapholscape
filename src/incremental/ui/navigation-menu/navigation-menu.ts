@@ -5,13 +5,13 @@ import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widg
 import a11yClick from "../../../ui/util/a11y-click";
 import getIconSlot from "../../../ui/util/get-icon-slot";
 import menuBaseStyle from "../menu-base-style";
-import { ViewIncrementalObjectProperty } from "../view-model";
+import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 
 export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   popperRef?: HTMLElement
 
   /** @internal */
-  private _objectProperties: ViewIncrementalObjectProperty[] = []
+  private _objectProperties: ViewObjectPropertyUnfolding[] = []
   /** @internal */
   objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>
   /** @internal */

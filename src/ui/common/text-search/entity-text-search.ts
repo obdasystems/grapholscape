@@ -3,17 +3,17 @@ import { GrapholTypesEnum } from "../../../model";
 import { filter } from "../../assets";
 import baseStyle from "../../style";
 import getIconSlot from "../../util/get-icon-slot";
-import { IEntityFilters } from "../../util/search-entities";
+import { IEntityFilters } from "../../view-model";
 import { GscapeButtonStyle } from "../button";
 import { DropPanelMixin } from "../mixins";
 
 export default class GscapeEntitySearch extends DropPanelMixin(LitElement) implements IEntityFilters {
   areAllFiltersDisabled: boolean = true;
-  [GrapholTypesEnum.CLASS]?: number | undefined = 0;
-  [GrapholTypesEnum.DATA_PROPERTY]?: number | undefined = 0;
-  [GrapholTypesEnum.OBJECT_PROPERTY]?: number | undefined = 0;
-  [GrapholTypesEnum.INDIVIDUAL]?: number | undefined = 0;
-  [GrapholTypesEnum.CLASS_INSTANCE]?: number | undefined = 0;
+  [GrapholTypesEnum.CLASS]?: number
+  [GrapholTypesEnum.DATA_PROPERTY]?: number
+  [GrapholTypesEnum.OBJECT_PROPERTY]?: number
+  [GrapholTypesEnum.INDIVIDUAL]?: number
+  [GrapholTypesEnum.CLASS_INSTANCE]?: number
 
   static properties: PropertyDeclarations = {
     [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },

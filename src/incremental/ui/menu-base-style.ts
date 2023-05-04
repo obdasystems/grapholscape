@@ -27,12 +27,16 @@ export default css`
   margin: 0 auto;
 }
 
+gscape-entity-list-item {
+  --custom-min-height: 26.5px;
+}
+
 .hover-btn {
-  visibility: hidden;
+  display: none;
 }
 
 gscape-entity-list-item:hover > .hover-btn {
-  visibility: visible;
+  display: initial;
 }
 
 .entity-list {

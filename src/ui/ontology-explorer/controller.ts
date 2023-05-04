@@ -1,8 +1,7 @@
 import Grapholscape from '../../core';
 import { LifecycleEvent } from "../../model";
-import { SearchEvent } from '../common/text-search/entity-text-search';
 import { EntityFilterEvent } from '../common/text-search/entity-type-filters';
-import { createEntitiesList, EntityViewData, search } from '../util/search-entities';
+import { createEntitiesList } from '../util/search-entities';
 import GscapeExplorer from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {

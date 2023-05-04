@@ -1,6 +1,6 @@
 import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
-import { hasDropPanel, IBaseMixin } from "./common/mixins";
+import { IBaseMixin } from "./common/mixins";
 import initDiagramSelector from "./diagram-selector";
 import initEntityDetails from "./entity-details";
 import initFilters from "./filters";

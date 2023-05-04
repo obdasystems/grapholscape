@@ -3,7 +3,6 @@ import { WidgetEnum } from "../../../ui"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
 import onHideMenu from "../on-hide-menu"
-import { getEntityViewDataIncremental } from "../utils"
 import GscapeInstanceExplorer, { InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
 
 export { default as GscapeInstanceExplorer } from './instance-explorer'

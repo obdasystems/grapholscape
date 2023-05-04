@@ -6,7 +6,7 @@ import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widg
 import getIconSlot from "../../../ui/util/get-icon-slot"
 import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
-import { ViewIncrementalEntityData, ViewIncrementalObjectProperty } from "../view-model"
+import { EntityViewDataUnfolding, ViewObjectPropertyUnfolding } from "../../../ui/view-model"
 
 
 export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(LitElement)) {
@@ -14,8 +14,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
   areInstancesLoading: boolean
   instances: Map<string, ClassInstance> = new Map()
-  propertiesFilterList: ViewIncrementalEntityData[] = []
-  classTypeFilterList?: ViewIncrementalEntityData[]
+  propertiesFilterList: EntityViewDataUnfolding[] = []
+  classTypeFilterList?: EntityViewDataUnfolding[]
   referenceEntity?: EntityViewData
   referencePropertyEntity?: EntityViewData
   isPropertyDirect: boolean = true
@@ -264,7 +264,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         event.detail.propertyType = property.entityViewData.value.type as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
 
         if (property.entityViewData.value.type === GrapholTypesEnum.OBJECT_PROPERTY) {
-          event.detail.direct = (property as ViewIncrementalObjectProperty).direct
+          event.detail.direct = (property as ViewObjectPropertyUnfolding).direct
         }
       }
     }

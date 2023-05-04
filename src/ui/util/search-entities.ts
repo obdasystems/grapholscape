@@ -1,22 +1,8 @@
 import Grapholscape from "../../core"
-import { AnnotatedElement, Annotation, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../../model"
-import grapholEntityToEntityViewData from "../../util/graphol-entity-to-entity-view-data"
-import getEntityViewOccurrences, { DiagramViewData, OccurrenceIdViewData } from "./get-entity-view-occurrences"
-
-
-export type EntityViewData = {
-  displayedName: string,
-  value: { iri: Iri, type: GrapholTypesEnum } & AnnotatedElement, // GrapholEntity is a compatible type
-  viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>
-}
-
-export interface IEntityFilters { // use numbers to work as DOM attributes
-  [GrapholTypesEnum.CLASS]?: number
-  [GrapholTypesEnum.DATA_PROPERTY]?: number
-  [GrapholTypesEnum.OBJECT_PROPERTY]?: number
-  [GrapholTypesEnum.INDIVIDUAL]?: number
-  areAllFiltersDisabled: boolean
-}
+import { Annotation, GrapholEntity, Iri, RendererStatesEnum } from "../../model"
+import { grapholEntityToEntityViewData } from "../../util"
+import { EntityViewData, IEntityFilters } from "../view-model"
+import getEntityViewOccurrences from "./get-entity-view-occurrences"
 
 export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: IEntityFilters) {
   const result: EntityViewData[] = []

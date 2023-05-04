@@ -1,4 +1,4 @@
-import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
+import { CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
 import baseStyle from "../../style";
 import { GscapeButtonStyle } from "../button";
 
