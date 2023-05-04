@@ -15,7 +15,16 @@ export const ModalMixin = <T extends Constructor<IBaseMixin>>(superClass: T) => 
     protected modalBackground = document.createElement('div')
 
     constructor(..._: any) {
-      super()
+      super();
+
+      (this as unknown as HTMLElement).style.cssText = `
+        z-index: 100;
+        position: relative;
+        height: 100%;
+        width: 100%;
+        display: block;
+      `
+
       this.modalBackground.style.cssText = `
         position: absolute;
         top: 0;
