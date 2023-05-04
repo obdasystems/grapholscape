@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { GrapholEntity, GrapholTypesEnum } from '../../model'
 import { EntityOccurrence } from '../../model/graphol-elems/entity'
-import { infoFilled, minus, plus } from '../assets/icons'
+import { commentIcon, infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import { GscapeButtonStyle } from '../common/button'
@@ -77,10 +77,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         display: block;
       }
 
-      #description-header {
-        margin-right: 8px;
-      }
-
       .comment {
         margin: 8px 0;
         display: block;
@@ -100,8 +96,22 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         flex-shrink: 0;
       }
 
+      .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow: auto;
+      }
+
       .content-wrapper > * {
-        margin: 8px 0;
+        flex-shrink: 0;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
       }
     `
   ]
@@ -145,8 +155,11 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
           ${this.grapholEntity.getComments().length > 0
             ? html`
                 <div class="section">
-                  <div>
-                    <span id="description-header" class="bold-text section-header">Description</span>
+                  <div id="description-header" class="section-header">
+                    <span class="slotted-icon">${commentIcon}</span>
+                    <span class="bold-text">
+                      Description
+                    </span>
                     <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
                       ${this.commentsLanguages.map(language => {
                         return html`

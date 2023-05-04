@@ -32,7 +32,7 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
 
   render() {
     return html`
-    <div class="content-wrapper">
+    <div>
       ${this.parentClasses && this.parentClasses.length > 0 
         ? html`
           <div class="section">

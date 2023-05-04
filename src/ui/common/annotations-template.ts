@@ -1,6 +1,6 @@
-import { css, html } from 'lit'
-import { Annotation, GrapholTypesEnum } from '../../model'
-import { entityIcons } from '../assets/icons'
+import { css, html, nothing } from 'lit'
+import { Annotation, AnnotationsKind, GrapholTypesEnum } from '../../model'
+import { annotationIcons, authorIcon, commentIcon, entityIcons, labelIcon } from '../assets/icons'
 
 export type ViewItemWithIri = {
   name: string,
@@ -62,14 +62,15 @@ export function annotationsTemplate(annotations: Annotation[]) {
         
         const property = annotation.property
         
-        if (annotation.property === 'comment' || propertiesAlreadyInserted.includes(property)) return null
+        if (property === 'comment' || propertiesAlreadyInserted.includes(property)) return null
         
         propertiesAlreadyInserted.push(property)
         
         return html`
           <div class="annotation">
             <div class="bold-text annotation-property">
-              ${property.charAt(0).toUpperCase() + property.slice(1)}
+              <span class="slotted-icon">${annotationIcons[property] ?? nothing}</span>
+              <span>${property.charAt(0).toUpperCase() + property.slice(1)}</span>
             </div>
             ${annotations.filter(a => a.property === property).map(annotation => {
               return html`
@@ -94,7 +95,9 @@ export const annotationsStyle = css`
   }
 
   .annotation-property {
-    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .annotations .language {
@@ -102,6 +105,6 @@ export const annotationsStyle = css`
   }
 
   .annotation-row {
-    padding: 0 8px;
+    padding: 4px 8px;
   }
 `

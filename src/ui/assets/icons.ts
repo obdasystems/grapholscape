@@ -1,5 +1,5 @@
 import { svg, SVGTemplateResult } from "lit"
-import { GrapholTypesEnum } from "../../model"
+import { AnnotationsKind, GrapholTypesEnum } from "../../model"
 import classIcon from './class-icon'
 import classInstanceIcon from "./class-instance-icon"
 import dataPropertyIcon from "./data-property-icon"
@@ -98,6 +98,12 @@ export const cross = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/
 // https://materialdesignicons.com/icon/counter
 export const counter = svg`<svg fill="currentColor" viewBox="0 0 24 24" height="20px" width="20px"><path d="M4,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M4,6V18H11V6H4M20,18V6H18.76C19,6.54 18.95,7.07 18.95,7.13C18.88,7.8 18.41,8.5 18.24,8.75L15.91,11.3L19.23,11.28L19.24,12.5L14.04,12.47L14,11.47C14,11.47 17.05,8.24 17.2,7.95C17.34,7.67 17.91,6 16.5,6C15.27,6.05 15.41,7.3 15.41,7.3L13.87,7.31C13.87,7.31 13.88,6.65 14.25,6H13V18H15.58L15.57,17.14L16.54,17.13C16.54,17.13 17.45,16.97 17.46,16.08C17.5,15.08 16.65,15.08 16.5,15.08C16.37,15.08 15.43,15.13 15.43,15.95H13.91C13.91,15.95 13.95,13.89 16.5,13.89C19.1,13.89 18.96,15.91 18.96,15.91C18.96,15.91 19,17.16 17.85,17.63L18.37,18H20M8.92,16H7.42V10.2L5.62,10.76V9.53L8.76,8.41H8.92V16Z" /></svg>`
 
+export const labelIcon = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m806.5 576-165 205q-10.833 13-25.205 20-14.371 7-30.795 7h-317q-27.637 0-47.319-19.681Q201.5 768.638 201.5 741V411q0-27.638 19.681-47.319Q240.863 344 268.5 344h317q16.727 0 30.983 7t25.017 20l165 205Zm-86 0L587.596 411H268.5v330h319l133-165Zm-452 0v165-330 165Z"/></svg>`
+
+export const commentIcon = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20" style="padding: 2px; box-sizing: border-box;"><path d="M246 650h468v-79H246v79Zm0-116h468v-79H246v79Zm0-116h468v-79H246v79Zm624 543L716 807H169q-32.587 0-55.794-23.206Q90 760.588 90 728V264q0-32.588 23.206-55.794Q136.413 185 169 185h622q32.588 0 55.794 23.206Q870 231.412 870 264v697ZM169 264v464h580l42 42V264H169Zm0 0v506-506Z"/></svg>`
+
+export const authorIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><rect x="0" y="0" width="24" height="24" fill="rgba(255, 255, 255, 0)" /><path fill="currentColor" d="M2 17v3h8v-1.89H3.9V17c0-.64 3.13-2.1 6.1-2.1c.96.01 1.91.14 2.83.38l1.52-1.52c-1.4-.47-2.85-.73-4.35-.76c-2.67 0-8 1.33-8 4m8-13C7.79 4 6 5.79 6 8s1.79 4 4 4s4-1.79 4-4s-1.79-4-4-4m0 6c-1.1 0-2-.89-2-2s.9-2 2-2s2 .9 2 2s-.89 2-2 2m11.7 3.35l-1 1l-2.05-2l1-1a.55.55 0 0 1 .77 0l1.28 1.28c.21.21.21.56 0 .77M12 18.94l6.06-6.06l2.05 2l-6 6.07H12v-2.01"/></svg>`
+
 export const entityIcons: { [x in GrapholTypesEnum.CLASS |
   GrapholTypesEnum.OBJECT_PROPERTY |
   GrapholTypesEnum.DATA_PROPERTY |
@@ -112,3 +118,8 @@ export const entityIcons: { [x in GrapholTypesEnum.CLASS |
   [GrapholTypesEnum.CLASS_INSTANCE]: classInstanceIcon,
 }
 
+export const annotationIcons: { [x in AnnotationsKind]: SVGTemplateResult } = {
+  [AnnotationsKind.label]: labelIcon,
+  [AnnotationsKind.comment]: commentIcon,
+  [AnnotationsKind.author]: authorIcon,
+}
