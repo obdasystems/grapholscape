@@ -5,7 +5,7 @@ import baseStyle from '../style'
 import emptySearchBlankState from '../util/empty-search-blank-state'
 import { search } from '../util/search-entities'
 import getIconSlot from '../util/get-icon-slot'
-import { arrowDown, insertInGraph } from '../assets'
+import { arrowDown, cross, insertInGraph, search as searchIcon } from '../assets'
 import a11yClick from '../util/a11y-click'
 import { GscapeEntityListItem } from '../common/list-item'
 import { EntityViewData } from '../view-model'
@@ -20,9 +20,12 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   private _entityList: EntityViewData[] = []
   private onClassSelectionCallback: (iri: string) => void
 
+  private isSearchTextEmpty: boolean = true
+
   static get properties() {
     return {
       entityList: { type: Object, attribute: false },
+      isSearchTextEmpty: { type: Boolean, state: true },
     }
   }
 
@@ -83,10 +86,28 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
         padding: 0 8px;
       }
 
-      input {
+      #input-wrapper {
+        position: relative;
         flex-grow: 2;
-        padding: 12px 24px;
+      }
+
+      #input-wrapper > .slotted-icon {
+        position: absolute;
+        left: 8px;
+        top: 11px;
+      }
+
+      input {
         width: 100%;
+        height: 100%;
+        padding: 12px 24px;
+        padding-left: 38px;
+      }
+
+      #clear-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
       }
 
       @keyframes drop-down {
@@ -103,7 +124,19 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   render() {
     return html`
       <div class="gscape-panel widget-body">
-        <input @keyup=${this.handleSearch} type="text" placeholder="Search a class by IRI, labels...">
+        <div id="input-wrapper">
+          <span class="slotted-icon muted-text">${searchIcon}</span>
+          <input @keyup=${this.handleSearch} type="text" placeholder="Search a class by IRI, labels...">
+          ${!this.isSearchTextEmpty
+            ? html`
+              <gscape-button id="clear-btn" size="s" type="subtle" title="Clear search" @click=${this.clearSearch}>
+                ${getIconSlot('icon', cross)}
+              </gscape-button>
+            `
+            : null
+          }
+        </div>
+        
         <gscape-button 
           type="secondary"
           @click=${this.togglePanel}
@@ -175,15 +208,26 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
       inputElement.blur()
       inputElement.value = ''
       this.entityList = this.fullEntityList
+      this.isSearchTextEmpty = true
       this.closePanel()
       return
     }
+
+    this.isSearchTextEmpty = inputElement.value.length <= 0
 
     if (inputElement.value?.length > 2) {
       this.entityList = search(inputElement.value, this.fullEntityList)
       this.openPanel()
     } else {
       this.entityList = this.fullEntityList
+    }
+  }
+
+  clearSearch() {
+    if (this.input) {
+      this.input.value = ''
+      this.entityList = this.fullEntityList
+      this.isSearchTextEmpty = true
     }
   }
 
@@ -203,6 +247,8 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   get entityList() {
     return this._entityList
   }
+
+  private get input() { return this.shadowRoot?.querySelector('input') }
 }
 
 customElements.define('gscape-entity-selector', GscapeEntitySelector)

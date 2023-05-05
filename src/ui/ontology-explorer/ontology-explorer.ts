@@ -60,6 +60,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
       .list-wrapper {
         padding: 0px 8px;
         overflow: auto;
+        flex-grow: 2;
       }
 
       .content-wrapper {

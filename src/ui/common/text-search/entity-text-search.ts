@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit";
 import { GrapholTypesEnum } from "../../../model";
-import { filter } from "../../assets";
+import { cross, filter, search } from "../../assets";
 import baseStyle from "../../style";
 import getIconSlot from "../../util/get-icon-slot";
 import { IEntityFilters } from "../../view-model";
@@ -15,12 +15,15 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   [GrapholTypesEnum.INDIVIDUAL]?: number
   [GrapholTypesEnum.CLASS_INSTANCE]?: number
 
+  private isSearchTextEmpty: boolean = true
+
   static properties: PropertyDeclarations = {
     [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
     [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
     [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
     [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
     [GrapholTypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
+    isSearchTextEmpty: { type: Boolean, state: true },
   }
 
   static styles?: CSSResultGroup = [
@@ -38,9 +41,27 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
         gap: 8px;
       }
 
-      input {
-        width: unset;
+      #input-wrapper > .slotted-icon {
+        position: absolute;
+        left: 6px;
+        top: 6px;
+      }
+
+      #input-wrapper {
+        position: relative;
         flex-grow: 2;
+      }
+
+      input {
+        width: 100%;
+        height: 100%;
+        padding-left: 32px;
+      }
+
+      #clear-btn {
+        position: absolute;
+        top: 3px;
+        right: 4px;
       }
     `
   ]
@@ -48,7 +69,19 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   public render() {
     return html`
       <div class="search-box">
-        <input @keyup=${this.handleSearch} type="text" placeholder="Search IRI, labels...">
+        <div id="input-wrapper" style="position:relative">
+          <span class="slotted-icon muted-text">${search}</span>
+          <input @keyup=${this.handleSearch} type="text" placeholder="Search IRI, labels...">
+          ${!this.isSearchTextEmpty
+            ? html`
+              <gscape-button id="clear-btn" size="s" type="subtle" title="Clear search" @click=${this.clearSearch}>
+                ${getIconSlot('icon', cross)}
+              </gscape-button>
+            `
+            : nothing
+          }
+        </div>
+        
         ${this.atLeastTwoFilters
           ? html`
               <gscape-button size="m" title="Show/Hide filters" @click=${this.togglePanel}>
@@ -87,8 +120,22 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
       composed: true,
       detail: { searchText: inputElement.value }
     }))
+
+    this.isSearchTextEmpty = inputElement.value.length <= 0
   }
 
+  clearSearch() {
+    if (this.input) {
+      this.input.value = ''
+      this.dispatchEvent(new CustomEvent('onsearch', {
+        bubbles: true,
+        composed: true,
+        detail: { searchText: '' }
+      }))
+
+      this.isSearchTextEmpty = true
+    }
+  }
 
   private get atLeastTwoFilters() {
     let count = 0
@@ -107,6 +154,8 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
 
     return count >= 2
   }
+
+  private get input() { return this.shadowRoot?.querySelector('input') }
 }
 
 export type SearchEvent = CustomEvent<{
