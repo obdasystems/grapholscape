@@ -152,13 +152,13 @@ export default class IncrementalController {
     this.endpointController?.clear()
   }
 
-  private updateEntityNameType(entityOrIri: string | Iri) {
+  private updateEntityNameType(iri: string | Iri) {
     let entityIri: string
 
-    if (typeof (entityOrIri) !== 'string') {
-      entityIri = entityOrIri.fullIri
+    if (typeof (iri) !== 'string') {
+      entityIri = iri.fullIri
     } else {
-      entityIri = entityOrIri
+      entityIri = iri
     }
 
     const entity = this.classInstanceEntities.get(entityIri) || this.ontology.getEntity(entityIri)
@@ -268,17 +268,19 @@ export default class IncrementalController {
       classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
 
       if (instance.label) {
-        classInstanceEntity?.addAnnotation(
+        classInstanceEntity.addAnnotation(
           new Annotation(AnnotationsKind.label, instance.label.value, instance.label.language)
         )
       }
 
       this.endpointController?.requestLabels(instance.iri).then(labels => {
         labels?.forEach(label => {
-          classInstanceEntity?.addAnnotation(
+          classInstanceEntity!.addAnnotation(
             new Annotation(AnnotationsKind.label, label.value, label.language)
           )
         })
+
+        this.updateEntityNameType(classInstanceEntity!.iri)
       })
 
 
