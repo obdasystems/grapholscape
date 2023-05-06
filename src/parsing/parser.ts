@@ -10,6 +10,7 @@ import { LABEL_HEIGHT } from "../model/graphol-elems/node"
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
 import * as ParserUtil from './parser_util'
+import chroma from 'chroma-js'
 
 interface Graphol {
   getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
@@ -150,7 +151,10 @@ export default class GrapholParser {
     let grapholNode = new GrapholNode(element.getAttribute('id') || '', nodeInfoBasedOnType.TYPE)
     grapholNode.shape = nodeInfoBasedOnType.SHAPE
     grapholNode.identity = nodeInfoBasedOnType.IDENTITY
-    grapholNode.fillColor = element.getAttribute('color') || ''
+    grapholNode.fillColor = element.getAttribute('color') || undefined
+
+    if (grapholNode.type === GrapholTypesEnum.CLASS)
+      grapholNode.automaticFillColor = chroma.brewer.Pastel2[Math.floor(Math.random() * chroma.brewer.Pastel2.length)]
 
     // Parsing the <geometry> child node of node
     var geometry = element.getElementsByTagName('geometry')[0]

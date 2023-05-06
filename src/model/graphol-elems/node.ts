@@ -13,7 +13,8 @@ export default class GrapholNode extends GrapholElement {
   private _identity: GrapholTypesEnum
   private _height: number
   private _width: number
-  private _fillColor: string
+  private _fillColor?: string
+  private _automaticFillColor?: string
   private _labelHeight: number = LABEL_HEIGHT
 
   private _labelXpos?: number
@@ -65,8 +66,13 @@ export default class GrapholNode extends GrapholElement {
   }
 
   get fillColor() { return this._fillColor }
-  set fillColor(fillColor: string) {
+  set fillColor(fillColor: string | undefined) {
     this._fillColor = fillColor
+  }
+
+  get automaticFillColor() { return this._automaticFillColor }
+  set automaticFillColor(automaticFillColor: string | undefined) {
+    this._automaticFillColor = automaticFillColor
   }
 
   get labelXpos(): number | undefined { return this._labelXpos }
@@ -139,6 +145,7 @@ export default class GrapholNode extends GrapholElement {
       height: this.height || undefined,
       width: this.width || undefined,
       fillColor: this.fillColor || undefined,
+      automaticFillColor: this.automaticFillColor || undefined,
       shapePoints: this.shapePoints || undefined,
       labelXpos: this.labelXpos || this.labelXpos == 0 ? this.labelXpos : undefined,
       labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,

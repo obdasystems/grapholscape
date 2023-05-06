@@ -3,6 +3,7 @@ import GrapholscapeTheme from "./theme"
 
 export enum DefaultThemesEnum {
   GRAPHOLSCAPE = 'grapholscape',
+  COLORFUL = 'colorful',
   GRAPHOL = 'graphol',
   DARK = 'dark',
 }
@@ -78,21 +79,21 @@ export const classicColourMap: ColourMap = Object.assign(JSON.parse(JSON.stringi
   [ColoursNames.label]: '#000',
   [ColoursNames.label_contrast]: '#fcfcfc',
 
-  [ColoursNames.object_property]: '#fcfcfc',
-  [ColoursNames.object_property_contrast]: '#000',
+  // [ColoursNames.object_property]: '#fcfcfc',
+  // [ColoursNames.object_property_contrast]: '#000',
 
-  [ColoursNames.data_property]: '#fcfcfc',
-  [ColoursNames.data_property_contrast]: '#000',
+  // [ColoursNames.data_property]: '#fcfcfc',
+  // [ColoursNames.data_property_contrast]: '#000',
 
-  [ColoursNames.class]: '#fcfcfc',
-  [ColoursNames.class_contrast]: '#000',
+  // [ColoursNames.class]: '#fcfcfc',
+  // [ColoursNames.class_contrast]: '#000',
 
-  [ColoursNames.individual]: '#fcfcfc',
-  [ColoursNames.individual_contrast]: '#000',
+  // [ColoursNames.individual]: '#fcfcfc',
+  // [ColoursNames.individual_contrast]: '#000',
 
-  // Instance Colours
-  [ColoursNames.class_instance]: '#fcfcfc',
-  [ColoursNames.class_instance_contrast]: '#000'
+  // // Instance Colours
+  // [ColoursNames.class_instance]: '#fcfcfc',
+  // [ColoursNames.class_instance_contrast]: '#000'
 })
 
 export const darkColourMap: ColourMap = {
@@ -145,8 +146,11 @@ export const darkColourMap: ColourMap = {
   [ColoursNames.accent_subtle]: 'rgba(56,139,253,0.15)',
 }
 
+export const colorfulColourMap: ColourMap = { }
+
 export const DefaultThemes: { [key in DefaultThemesEnum]: GrapholscapeTheme } = {
   grapholscape: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOLSCAPE, gscapeColourMap, 'Grapholscape'),
+  colorful: new GrapholscapeTheme(DefaultThemesEnum.COLORFUL, colorfulColourMap, 'Colorful'),
   graphol: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOL, classicColourMap, 'Graphol'),
   dark: new GrapholscapeTheme(DefaultThemesEnum.DARK, darkColourMap, 'Dark'),
 }
