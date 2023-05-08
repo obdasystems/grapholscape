@@ -253,7 +253,10 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       }
     }) as InstanceFilterEvent
 
-    if (this.propertyFilterSelect?.selectedOptionId && this.propertyFilterSelect.selectedOptionId !== 'id' && event.detail.filterText) {
+    if (this.propertyFilterSelect?.selectedOptionId && 
+      this.propertyFilterSelect.selectedOptionId !== 'id' &&
+      this.propertyFilterSelect.selectedOptionId !== 'label' &&
+      event.detail.filterText) {
       event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionId
       const property = this.propertiesFilterList.find(p => {
         return this.propertyFilterSelect?.selectedOptionId &&
