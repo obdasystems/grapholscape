@@ -1,3 +1,4 @@
+import handleApiCall from "../api/handle-api-call"
 import { HeadTypes, InstanceCheckingInfo, QueryStatusEnum } from "../api/model"
 
 export type APICallResult = QueryRecords | number | QueryStatus | InstanceCheckingInfo
@@ -60,7 +61,7 @@ export abstract class QueryPoller {
 
   protected poll() {
     this.status = QueryPollerStatus.RUNNING
-    fetch(this.request)
+    handleApiCall(fetch(this.request), () => {})
       .then((response: Response) => {
         response.json().then((result: APICallResult) => {
           // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {

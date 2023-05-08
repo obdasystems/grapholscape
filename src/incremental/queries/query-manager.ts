@@ -1,6 +1,7 @@
+import handleApiCall from "../api/handle-api-call"
 import { MastroEndpoint, QuerySemantics, QueryStatusEnum, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
-import { QueryCountStatePoller, QueryPoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
+import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
@@ -12,11 +13,12 @@ export default class QueryManager {
     this.requestOptions.headers['content-type'] = 'application/json'
 
     this._prefixes = new Promise((resolve) => {
-      this.handleCall(
+      handleApiCall(
         fetch(this.prefixesPath, {
           method: 'get',
           headers: this.requestOptions.headers,
-        })
+        }),
+        this.onError
       ).then(async response => {
         const prefixesResponse = await response.json()
 
@@ -144,10 +146,10 @@ export default class QueryManager {
     return new Promise((resolve, reject) => {
       countStatePoller.onNewResults = (state) => {
         if (state === QueryCountStatePoller.QUERY_STATUS_FINISHED && this._runningCountQueryPollerByExecutionId.get(executionId)) {
-          this.handleCall(fetch(`${this.queryCountPath}/${executionId}/result`, {
+          handleApiCall(fetch(`${this.queryCountPath}/${executionId}/result`, {
             method: 'get',
             headers: this.requestOptions.headers,
-          })).then(async response => {
+          }), this.onError).then(async response => {
             resolve(await response.json())
 
             // The count query has finished and result has been processed
@@ -159,10 +161,10 @@ export default class QueryManager {
 
       countStatePoller.onError = (error) => {
         reject(error)
-        this.handleCall(fetch(`${this.queryCountPath}/${executionId}/error`, {
+        handleApiCall(fetch(`${this.queryCountPath}/${executionId}/error`, {
           method: 'get',
           headers: this.requestOptions.headers,
-        }))
+        }), this.onError)
           .then(async errorResponse => {
             this.requestOptions.onError(await errorResponse.text())
           })
@@ -179,7 +181,7 @@ export default class QueryManager {
 
   async getQueryStatus(executionID: string): Promise<{ status: QueryStatusEnum, hasError: boolean }> {
     return new Promise((resolve, reject) => {
-      this.handleCall(fetch(this.getQueryStatusRequest(executionID)))
+      handleApiCall(fetch(this.getQueryStatusRequest(executionID)), this.onError)
         .then(response => resolve(response.json()))
         .catch(error => {
           this.requestOptions.onError(error)
@@ -233,37 +235,37 @@ export default class QueryManager {
     pollers?.statusPollers.forEach(poller => poller.stop())
 
     this._runningQueryPollerByExecutionId.delete(executionId)
-    this.handleCall(fetch(this.getQueryStopPath(executionId), {
+    handleApiCall(fetch(this.getQueryStopPath(executionId), {
       method: 'put',
       headers: this.requestOptions.headers,
-    }))
+    }), this.onError)
   }
 
   stopCountQuery(executionId: string) {
     this._runningCountQueryPollerByExecutionId.get(executionId)?.stop()
     this._runningCountQueryPollerByExecutionId.delete(executionId)
 
-    this.handleCall(fetch(`${this.queryCountPath}/${executionId}/stop`, {
+    handleApiCall(fetch(`${this.queryCountPath}/${executionId}/stop`, {
       method: 'put',
       headers: this.requestOptions.headers,
-    }))
+    }), this.requestOptions.onError)
   }
 
   stopInstanceChecking(threadId: string) {
     this._runningInstanceCheckingPollerByThreadId.get(threadId)?.stop()
     this._runningInstanceCheckingPollerByThreadId.delete(threadId)
 
-    this.handleCall(fetch(`${this.getInstanceCheckingPath(threadId)}/stop`, {
+    handleApiCall(fetch(`${this.getInstanceCheckingPath(threadId)}/stop`, {
       method: 'get',
       headers: this.requestOptions.headers,
-    }))
+    }), this.onError)
   }
 
   async shouldQueryUseLabels(executionId: string) {
     const queryPollers = this._runningQueryPollerByExecutionId.get(executionId)
     return new Promise((resolve: (value: boolean) => void) => {
       if (queryPollers) {
-        for(let statusPoller of queryPollers.statusPollers) {
+        for (let statusPoller of queryPollers.statusPollers) {
           if (statusPoller.result?.status == QueryStatusEnum.FINISHED || statusPoller.result?.status == QueryStatusEnum.RUNNING) {
             resolve(statusPoller.result.numHighLevelQueries > 0)
           } else {
@@ -294,8 +296,9 @@ export default class QueryManager {
     }
 
     return new Promise(async (resolve) => {
-      this.handleCall(
-        fetch(await this.getNewQueryRequest(queryCode, querySemantics, countURL))
+      handleApiCall(
+        fetch(await this.getNewQueryRequest(queryCode, querySemantics, countURL)),
+        this.onError
       ).then(async response => {
         resolve((await response.json()).executionId)
       })
@@ -375,30 +378,15 @@ export default class QueryManager {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/instanceChecking/${threadId}`)
   }
 
+  private get onError() {
+    return this.requestOptions.onError
+  }
+
   private get prefixesPath() {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/prefixes`)
   }
 
   private get queryCountPath() {
     return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/count`)
-  }
-
-  private handleCall(apiCall: Promise<Response>): Promise<Response> {
-    return new Promise((resolve, reject) => {
-      apiCall
-        .then(async response => {
-          if (response.status !== 200) {
-            const result = await (response.json() || response.text())
-            this.requestOptions.onError(result)
-            reject(result)
-          } else {
-            resolve(response)
-          }
-        })
-        .catch(error => {
-          this.requestOptions.onError(error)
-          reject(error)
-        })
-    })
   }
 }

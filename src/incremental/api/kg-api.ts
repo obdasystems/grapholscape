@@ -2,6 +2,7 @@ import { GrapholTypesEnum } from '../../model'
 import QueryManager from '../queries/query-manager'
 import { ResultRecord } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
+import handleApiCall from './handle-api-call'
 import { EmptyUnfoldingEntities, HeadTypes, MastroEndpoint, MaterializedCounts, QuerySemantics, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
 
@@ -139,30 +140,25 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const params = new URLSearchParams({ clickedClassIRI: classIri, version: this.requestOptions.version })
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights?${params.toString()}`)
 
-    return await (await fetch(url, {
-      method: 'get',
-      headers: this.requestOptions.headers
-    })).json()
+    return await (await handleApiCall(
+      fetch(url, {
+        method: 'get',
+        headers: this.requestOptions.headers
+      }),
+      this.requestOptions.onError
+    )).json()
   }
 
   async getEntitiesEmptyUnfoldings(endpoint: MastroEndpoint) {
     return new Promise((resolve: (v: EmptyUnfoldingEntities) => void, reject) => {
-      fetch(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/emptyUnfoldingEntities`, {
-        method: 'get',
-        headers: this.requestOptions.headers,
-      }).then(async response => {
-        if (response.status !== 200) {
-          const result = await (response.json() || response.text())
-          this.requestOptions.onError(result)
-          reject(result)
-        } else {
-          resolve(await response.json() as EmptyUnfoldingEntities)
-        }
-      })
-        .catch(error => {
-          this.requestOptions.onError(error)
-          reject(error)
-        })
+      handleApiCall(
+        fetch(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/emptyUnfoldingEntities`, {
+          method: 'get',
+          headers: this.requestOptions.headers,
+        }),
+        this.requestOptions.onError
+      ).then(async response => resolve(await response.json() as EmptyUnfoldingEntities))
+        .catch(err => reject(err))
     })
   }
 
