@@ -1,6 +1,5 @@
 import { NodeSingular, SingularElementArgument, Stylesheet } from "cytoscape";
 import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, GrapholTypesEnum, Shape } from "../../../model";
-import chroma from 'chroma-js'
 
 export default function (theme: GrapholscapeTheme) {
   return [
@@ -342,10 +341,6 @@ export default function (theme: GrapholscapeTheme) {
     // take color from parsed XML source file
     if (theme.id === DefaultThemesEnum.GRAPHOL) {
       return node.data().fillColor
-    }
-
-    if (theme.id === DefaultThemesEnum.COLORFUL) {
-      return node.data().automaticFillColor || theme.getColour(colour) || node.data().fillColor
     }
 
     else {
