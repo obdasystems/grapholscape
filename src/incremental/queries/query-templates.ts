@@ -1,3 +1,5 @@
+import escapeRegex from "../../util/escape-regex"
+
 const LIMIT = 1000
 
 const getLimit = (customLimit?: number | 'unlimited') => customLimit !== 'unlimited' ? `LIMIT ${customLimit || LIMIT}` : ''
@@ -36,7 +38,7 @@ export function getInstancesByLabel(classIRI: string, searchText: string, maxRes
   WHERE {
     ?x a <${encodeURI(classIRI)}>;
        rdfs:label ?lx.
-    FILTER(regex(?lx, '${searchText}', 'i'))
+    ${getSearchFilters('?lx', searchText)}
   }
   ${getLimit(maxResults)}
   `
@@ -56,7 +58,7 @@ export function getInstancesByIRI(classIRI: string, searchText: string, maxResul
   SELECT DISTINCT ?x
   WHERE {
     ?x a <${encodeURI(classIRI)}>.
-    FILTER(regex(?x, '${searchText}', 'i'))
+    ${getSearchFilters('?x', searchText)}
   }
   ${getLimit(maxResults)}
   `
@@ -80,7 +82,7 @@ export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: st
     ?x a <${encodeURI(classIRI)}>;
        <${encodeURI(dataPropertyIRI)}> ?y;
        ${includeLabels ? `rdfs:label ?lx` : ``}
-    FILTER(regex(?y, '${searchText}', 'i'))
+    ${getSearchFilters('?y', searchText)}
   }
   ${getLimit(maxResults)}
   `
@@ -113,7 +115,7 @@ export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI
     }
        
     ?y rdfs:label ?ly.
-    FILTER(regex(?ly, '${searchText}', 'i'))
+    ${getSearchFilters('?ly', searchText)}
   }
   ${getLimit(maxResults)}
   `
@@ -189,7 +191,7 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
     
     ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
     ?y rdfs:label ?ly.
-    FILTER(regex(?ly, '${searchText}', 'i'))
+    ${getSearchFilters('?ly', searchText)}
   }
   ${getLimit(maxResults)}
   `
@@ -218,7 +220,7 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
     }
     
     ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
-    FILTER(regex(?y, '${searchText}', 'i'))
+    ${getSearchFilters('?y', searchText)}
   }
   ${getLimit(maxResults)}
   `
@@ -261,10 +263,20 @@ export function getInstancesThroughOPByDP(
     ?y a <${encodeURI(rangeTypeClassIRI)}>;
        ${includeLabels ? 'rdfs:label ?ly;' : ''}
        <${encodeURI(dataPropertyFilterIRI)}> ?dp.
-    FILTER(regex(?dp, '${searchText}', 'i'))
+    ${getSearchFilters('?dp', searchText)}
   }
   ${getLimit(maxResults)}
   `
+}
+
+function getSearchFilters(variable: string, searchText: string) {
+  const searchTexts = searchText.split(' ')
+  const results: string[] = []
+  searchTexts.forEach(text => {
+    results.push(`regex(${variable}, '${escapeRegex(text.trim())}', 'i')`)
+  })
+
+  return `FILTER(${results.join('\n &&')})`
 }
 
 /**
