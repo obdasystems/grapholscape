@@ -1,13 +1,13 @@
-import { NodeSingular, SingularElementReturnValue, Stylesheet } from "cytoscape"
-import FloatyRendererState from "../floaty/floaty-renderer-state"
+import { EventObject, Stylesheet } from "cytoscape"
 import { floatyOptions } from "../../../config"
-import { Diagram, DiagramRepresentation, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model"
+import { Diagram, DiagramRepresentation, GrapholscapeTheme, Ontology, RendererStatesEnum, iFilterManager } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
+import FloatyRendererState from "../floaty/floaty-renderer-state"
 import FloatyTransformer from "../floaty/floaty-transformer"
-import computeHierarchies from "./compute-hierarchies"
-import incrementalStyle from "./incremental-style"
 import Renderer from "../renderer"
+import computeHierarchies from "./compute-hierarchies"
 import IncrementalFilterManager from "./filter-manager"
+import incrementalStyle from "./incremental-style"
 
 /**
  * The incremental renderer state is a kind of floaty renderer state in which
@@ -24,7 +24,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   private previousDiagram: Diagram
 
-  onContextClickCallback: (target: any) => void
+  onContextClickCallback: (event: EventObject) => void
 
   render() {
     this.overrideDiagram()
@@ -101,8 +101,8 @@ export default class IncrementalRendererState extends FloatyRendererState {
     }
     this.overrideDiagram()
 
-    this.diagramRepresentation?.cy.on('cxttap', `node`, evt => {
-      this.onContextClickCallback(evt.target)
+    this.diagramRepresentation?.cy.on('cxttap', `node,edge`, evt => {
+      this.onContextClickCallback(evt)
     })
 
     if (this.renderer.diagram?.id)
@@ -111,7 +111,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
     this.render()
   }
 
-  onContextClick(callback: (target: NodeSingular) => void) {
+  onContextClick(callback: (event: EventObject) => void) {
     this.onContextClickCallback = callback
   }
 

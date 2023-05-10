@@ -1,3 +1,4 @@
+import { EventObject, SingularElementReturnValue } from "cytoscape"
 import { GrapholEntity } from "../model"
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity"
 import { ClassInstance } from "./api/kg-api"
@@ -32,7 +33,7 @@ export interface IonEvent {
   (event: IncrementalEvent.Reset, callback: () => void): void
   (event: IncrementalEvent.ClassInstanceSelection, callback: (classInstanceEntity: ClassInstanceEntity) => void): void
   (event: IncrementalEvent.ClassSelection, callback: (classEntity: GrapholEntity) => void): void
-  (event: IncrementalEvent.ContextClick, callback: (entity: GrapholEntity) => void): void
+  (event: IncrementalEvent.ContextClick, callback: (element: SingularElementReturnValue, evt: EventObject) => void): void
   (event: IncrementalEvent.DiagramUpdated, callback: () => void): void
   (event: IncrementalEvent.ReasonerSet, callback: () => void): void
   (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void
@@ -52,7 +53,7 @@ export default class IncrementalLifecycle {
   private reset: (() => void)[] = []
   private classInstanceSselection: ((classInstanceEntity: ClassInstanceEntity) => void)[] = []
   private classSelection: ((classEntity: GrapholEntity) => void)[] = []
-  private contextClick: ((entity: GrapholEntity) => void)[] = []
+  private contextClick: ((element: SingularElementReturnValue, evt: EventObject) => void)[] = []
   private diagramUpdated: (() => void)[] = []
   private reasonerSet: (() => void)[] = []
   private newDataPropertyValues: ((dataPropertyIri: string, newValues: string[]) => void)[] = []
@@ -73,7 +74,7 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.Reset): void
   trigger(event: IncrementalEvent.ClassInstanceSelection, classInstanceEntity: ClassInstanceEntity): void
   trigger(event: IncrementalEvent.ClassSelection, classEntity: GrapholEntity): void
-  trigger(event: IncrementalEvent.ContextClick, entity: GrapholEntity): void
+  trigger(event: IncrementalEvent.ContextClick, element: SingularElementReturnValue, evt: EventObject): void
   trigger(event: IncrementalEvent.DiagramUpdated): void
   trigger(event: IncrementalEvent.ReasonerSet): void
   trigger(event: IncrementalEvent.NewDataPropertyValues, instanceIri: string, dataPropertyIri: string, newValues: string[]): void

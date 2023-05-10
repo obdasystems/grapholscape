@@ -64,8 +64,8 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
   render() {
     return html`
     <div class="gscape-panel">
-      ${this.title ? html`<div>${this.title}</div>` : null }
-      ${this.showFirst === 'elements' ? this.customElementsTemplate : null }
+      ${this.title ? html`<div>${this.title}</div>` : null}
+      ${this.showFirst === 'elements' ? this.customElementsTemplate : null}
       
       ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
         ? html`<div class="hr"></div>` : null}
@@ -76,16 +76,48 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         ? html`<div class="hr"></div>` : null}
 
 
-      ${this.showFirst === 'commands' ? this.customElementsTemplate : null }
+      ${this.showFirst === 'commands' ? this.customElementsTemplate : null}
     </div>
     `
   }
 
+  // Attach context menu to a given html element
   attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]) {
     super.attachTo(element)
     this.commands = commands || []
     this.customElements = elements || []
-  }  
+  }
+
+  // Attach menu to nothing, show it in arbitrary position
+  attachToPosition(
+    position: { x: number; y: number; },
+    container: Element,
+    commands?: Command[],
+    elements?: (LitElement | HTMLElement | TemplateResult)[]
+  ): void {
+    const dummyDiv = document.createElement('div')
+    dummyDiv.style.position = 'absolute'
+    dummyDiv.style.top = position.y + "px"
+    dummyDiv.style.left = position.x + "px"
+    container.appendChild(dummyDiv)
+    super.attachTo(dummyDiv)
+    this.commands = commands || []
+    this.customElements = elements || []
+
+    const oldOnHide = this.cxtWidgetProps.onHide
+
+    this.cxtWidgetProps.onHide = (instance) => {
+      dummyDiv.remove()
+      this.cxtWidgetProps.onHide = undefined
+
+      if (oldOnHide) {
+        oldOnHide(instance)
+
+        //restore oldOnHide
+        this.cxtWidgetProps.onHide = oldOnHide
+      }
+    }
+  }
 
   private handleCommandClick(e: any) {
     const command = this.commands[e.currentTarget.getAttribute('command-id')]
@@ -93,7 +125,7 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
       command.select()
       this.onCommandRun()
       this.hide()
-    }    
+    }
   }
 
   private get commandsTemplate() {
@@ -101,13 +133,13 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
       return html`
         <div class="commands">
           ${this.commands.map((command, id) => {
-            return html`
+        return html`
               <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
-                ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null }
+                ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null}
                 <span class="command-text">${command.content}</span>
               <div>
             `
-          })}
+      })}
         </div>
       `
   }

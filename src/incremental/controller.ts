@@ -31,6 +31,10 @@ export default class IncrementalController {
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
   on = this.lifecycle.on
 
+  /**
+   * Callback called when user click on data lineage command
+   */
+  onShowDataLineage: (entityIri: string) => void = () => { }
   addEdge: (sourceId: string, targetId: string, edgeType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.INPUT | GrapholTypesEnum.EQUIVALENCE | GrapholTypesEnum.INSTANCE_OF) => void;
 
   constructor(
@@ -691,10 +695,8 @@ export default class IncrementalController {
   }
 
   setIncrementalEventHandlers() {
-    this.incrementalRenderer.onContextClick(target => {
-      const entity = this.classInstanceEntities.get(target.data().iri) || this.ontology.getEntity(target.data().iri)
-      if (entity)
-        this.lifecycle.trigger(IncrementalEvent.ContextClick, entity)
+    this.incrementalRenderer.onContextClick(event => {
+      this.lifecycle.trigger(IncrementalEvent.ContextClick, event.target, event)
     })
 
     if (this.incrementalDiagram.representation?.hasEverBeenRendered || this.incrementalDiagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
