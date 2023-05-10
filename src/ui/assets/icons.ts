@@ -104,6 +104,12 @@ export const commentIcon = svg`<svg fill="currentColor" xmlns="http://www.w3.org
 
 export const authorIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><rect x="0" y="0" width="24" height="24" fill="rgba(255, 255, 255, 0)" /><path fill="currentColor" d="M2 17v3h8v-1.89H3.9V17c0-.64 3.13-2.1 6.1-2.1c.96.01 1.91.14 2.83.38l1.52-1.52c-1.4-.47-2.85-.73-4.35-.76c-2.67 0-8 1.33-8 4m8-13C7.79 4 6 5.79 6 8s1.79 4 4 4s4-1.79 4-4s-1.79-4-4-4m0 6c-1.1 0-2-.89-2-2s.9-2 2-2s2 .9 2 2s-.89 2-2 2m11.7 3.35l-1 1l-2.05-2l1-1a.55.55 0 0 1 .77 0l1.28 1.28c.21.21.21.56 0 .77M12 18.94l6.06-6.06l2.05 2l-6 6.07H12v-2.01"/></svg>`
 
+export const addEntityIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M746.5 801.5v-132h-132v-67h132v-132h67v132h132v67h-132v132h-67Zm-600-132v-379h667v113h-67v-46h-533v245h334v67h-401Zm67-134v-178 245-67Z"/></svg>`
+
+export const addDataPropertyIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`
+
+export const addObjectPropertyIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`
+
 export const entityIcons: { [x in GrapholTypesEnum.CLASS |
   GrapholTypesEnum.OBJECT_PROPERTY |
   GrapholTypesEnum.DATA_PROPERTY |

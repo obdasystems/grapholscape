@@ -2,6 +2,7 @@ import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
 import { IBaseMixin } from "./common/mixins";
 import initDiagramSelector from "./diagram-selector";
+import initDrawingElements from "./new-element-modal";
 import initEntityDetails from "./entity-details";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
@@ -38,6 +39,7 @@ export default function (grapholscape: Grapholscape) {
   initFullscreenButton(grapholscape)
   initFitButton(grapholscape)
   initZoomTools(grapholscape)
+  initDrawingElements(grapholscape)
   initFilters(grapholscape)
   initOntologyInfo(grapholscape)
   initEntityDetails(grapholscape)
@@ -56,6 +58,9 @@ export default function (grapholscape: Grapholscape) {
         buttonsTray.appendChild(widget)
         break
 
+      case WidgetEnum.NEW_CLASS:
+      case WidgetEnum.NEW_DATAPROPERTY:
+      case WidgetEnum.NEW_OBJECTPROPERTY:
       case WidgetEnum.FULLSCREEN_BUTTON:
       case WidgetEnum.DIAGRAM_SELECTOR:
       case WidgetEnum.ENTITY_DETAILS:
