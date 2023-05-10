@@ -43,7 +43,7 @@ export default class GscapeEntityListItem extends LitElement {
   render() {
     return this.asAccordion
       ? html`
-        <details class="ellipsed entity-list-item" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
+        <details title=${this.displayedName} class="ellipsed entity-list-item" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
           <summary class="actionable" @click=${this.handleDetailsClick}>
             ${this.iconNameSlotTemplate()}
           </summary>
@@ -52,7 +52,7 @@ export default class GscapeEntityListItem extends LitElement {
         </details>
       `
       : html`
-        <div class="ellipsed entity-list-item ${this.actionable ? 'actionable' : null}" ?disabled=${this.disabled}>
+        <div title=${this.displayedName} class="ellipsed entity-list-item ${this.actionable ? 'actionable' : null}" ?disabled=${this.disabled}>
           ${this.iconNameSlotTemplate()}
         </div>
       `
@@ -72,7 +72,7 @@ export default class GscapeEntityListItem extends LitElement {
         : null
       }      
       <span class="entity-icon slotted-icon">${entityIcons[this.type]}</span>
-      <span class="entity-name">${this.displayedName}</span>
+      <span class="entity-name rtl">${this.displayedName}</span>
       <slot name="trailing-element"></slot>
     `
   }

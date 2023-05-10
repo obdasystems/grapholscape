@@ -200,6 +200,11 @@ export default css`
   text-overflow: ellipsis ellipsis;
 }
 
+.rtl {
+  direction: rtl;
+  text-align: left;
+}
+
 .bold-text {
   font-weight: 600;
 }
