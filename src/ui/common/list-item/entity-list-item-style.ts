@@ -19,7 +19,7 @@ export default css`
     border-radius: var(--gscape-border-radius-btn);
   }
 
-  div.entity-list-item > .entity-icon {
+  div.entity-list-item > .slotted-icon, summary > .slotted-icon {
     flex-shrink: 0;
   }
 
@@ -51,8 +51,11 @@ export default css`
 
   slot[name="accordion-body"]::slotted(*) {
     background-color: var(--gscape-color-bg-inset);
-    white-space: normal;
     padding: 4px 8px;
+  }
+
+  slot {
+    white-space: normal;
   }
 
   .entity-list-item[disabled] {
