@@ -197,4 +197,6 @@ export default class EndpointController {
   isReasonerAvailable() {
     return this.selectedEndpoint !== undefined
   }
+
+  get endpoint() { return this.selectedEndpoint }
 }

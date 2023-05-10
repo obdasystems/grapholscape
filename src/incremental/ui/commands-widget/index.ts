@@ -132,7 +132,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     if (!entity.is(GrapholTypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
       commands.push({
-        content: 'Show Data Lineage',
+        content: 'Data Lineage',
         icon: sankey,
         select: () => ic.onShowDataLineage(entity.iri.fullIri) ,
       })
