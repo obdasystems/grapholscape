@@ -13,12 +13,12 @@ export default class EndpointController {
   private selectedEndpoint?: MastroEndpoint
   private vkgApi?: VKGApi
   highlightsManager?: HighlightsManager
-  limit = 10
+  pageSize = 100
 
   constructor(private requestOptions: RequestOptions, private lifecycle: IncrementalLifecycle) {
     this.endpointApi = new EndpointApi(this.requestOptions)
     this.getRunningEndpoints()
-    this.setLimit(this.limit)
+    this.setPageSize(this.pageSize)
   }
 
   async getRunningEndpoints(): Promise<MastroEndpoint[]> {
@@ -34,7 +34,7 @@ export default class EndpointController {
     if (_endpoint) {
       this.selectedEndpoint = _endpoint
       if (!this.vkgApi) {
-        this.vkgApi = new VKGApi(this.requestOptions, _endpoint, this.limit)
+        this.vkgApi = new VKGApi(this.requestOptions, _endpoint, this.pageSize)
       } else {
         this.vkgApi.setEndpoint(_endpoint)
       }
@@ -48,11 +48,11 @@ export default class EndpointController {
     }
   }
 
-  setLimit(limit: number) {
-    this.limit = limit
+  setPageSize(newPageSize: number) {
+    this.pageSize = newPageSize
     if (this.vkgApi) {
-      this.vkgApi.pageSize = limit
-      this.lifecycle.trigger(IncrementalEvent.LimitChange, limit)
+      this.vkgApi.pageSize = newPageSize
+      this.lifecycle.trigger(IncrementalEvent.LimitChange, newPageSize)
     }
   }
 

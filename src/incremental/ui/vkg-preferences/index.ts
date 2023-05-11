@@ -25,7 +25,7 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
   })
 
   incrementalController.on(IncrementalEvent.LimitChange, limit => {
-    vkgPreferences.limit = limit
+    vkgPreferences.pageSize = limit
   })
 
   incrementalController.on(IncrementalEvent.ReasonerSet, () => {
@@ -34,7 +34,8 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
     }
 
     setEndpointList()
-    vkgPreferences.limit = incrementalController.endpointController?.limit || 100
+    if (incrementalController.endpointController)
+      vkgPreferences.pageSize = incrementalController.endpointController.pageSize
   })
 
   vkgPreferences.onTogglePanel = () => setEndpointList()
@@ -50,8 +51,8 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
     }
   })
 
-  vkgPreferences.onLimitChange(limit => {
-    incrementalController.endpointController?.setLimit(limit)
+  vkgPreferences.onPageSizeChange(limit => {
+    incrementalController.endpointController?.setPageSize(limit)
   })
 
   vkgPreferences.onShowCountersChange(state => {

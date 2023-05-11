@@ -10,13 +10,13 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
 
   endpoints: { name: string }[] = []
   selectedEndpointName: string
-  limit: number
+  pageSize: number
   showCounters: boolean
 
   static properties = {
     endpoints: { type: Array, attribute: false },
     selectedEndpointName: { type: String, reflect: true },
-    limit: { type: Number, reflect: true },
+    pageSize: { type: Number, reflect: true },
     showCounters: { type: Boolean, reflect: true }
   }
 
@@ -55,7 +55,7 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
   ]
 
   protected _onEndpointChangeCallback: (newEndpointName: string) => void = () => { }
-  protected _onLimitChangeCallback: (newLimit: number) => void = () => { }
+  protected _onPageSizeChangeCallback: (newLimit: number) => void = () => { }
   protected _onStopRequestsCallback: () => void = () => { }
   protected _onShowCountersChangeCallback: (state: boolean) => void = () => { }
 
@@ -112,13 +112,13 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
             </div>
             <div class="setting">
               <div class="title-wrap">
-                <div class="setting-title">Limit Instances</div>
+                <div class="setting-title">Page Size</div>
                 <div class="setting-label muted-text">
-                  Choose how many instances to retrieve for each search
+                  Choose how many instances to retrieve for each page
                 </div>
               </div>
               <div class="setting-obj">
-                <input id="instances-limit" type="number" min="1" max="1000" value="${this.limit}" @change=${this.handleLimitChange}>
+                <input id="instances-limit" type="number" min="1" max="1000" value="${this.pageSize}" @change=${this.handlePageSizeChange}>
               </div>
             </div>
           </div>
@@ -159,11 +159,11 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
       this._onEndpointChangeCallback(e.currentTarget.label)
   }
 
-  protected handleLimitChange(e) {
+  protected handlePageSizeChange(e) {
     const input = e.currentTarget as HTMLInputElement
 
     if (input.reportValidity()) {
-      this._onLimitChangeCallback(input.valueAsNumber)
+      this._onPageSizeChangeCallback(input.valueAsNumber)
     }
   }
 
@@ -178,8 +178,8 @@ export default class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(LitEl
     this._onEndpointChangeCallback = callback
   }
 
-  onLimitChange(callback: (limit: number) => void) {
-    this._onLimitChangeCallback = callback
+  onPageSizeChange(callback: (limit: number) => void) {
+    this._onPageSizeChangeCallback = callback
   }
 
   onShowCountersChange(callback: (state: boolean) => void) {
