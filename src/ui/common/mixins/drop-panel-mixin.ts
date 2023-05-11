@@ -40,8 +40,10 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
     }
 
     closePanel() {
-      this.panel?.classList.add('hide')
-      this.requestUpdate()
+      if (!this.isPanelClosed()) {
+        this.panel?.classList.add('hide')
+        this.requestUpdate()
+      }
     }
 
     blur() {

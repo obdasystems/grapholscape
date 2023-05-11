@@ -9,7 +9,6 @@ import emptySearchBlankState from '../util/empty-search-blank-state'
 import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
 import { search } from '../util/search-entities'
 import { EntityViewData } from '../view-model'
-import entityListItemStyle from './entity-list-item-style'
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
@@ -27,7 +26,6 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
   }
 
   static styles = [
-    entityListItemStyle,
     BaseStyle,
     css`
       :host {
