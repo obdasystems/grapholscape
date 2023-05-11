@@ -1,17 +1,17 @@
-import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model";
+import { ClassInstanceEntity, GrapholTypesEnum, LifecycleEvent } from "../../../model";
 import { counter, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import * as IncrementalCommands from "./commands";
 import IncrementalController from "../../controller";
-import { IncrementalEvent } from "../../lifecycle";
 
 export function CommandsWidgetFactory(ic: IncrementalController) {
   const commandsWidget = new GscapeContextMenu()
 
-  ic.on(IncrementalEvent.ContextClick, (element, event) => {
+  ic.grapholscape.on(LifecycleEvent.ContextClick, event => {
     const commands: Command[] = []
 
-    if (!element.data().iri) return
+    if (event.target === ic.grapholscape.renderer.cy || !event.target.data().iri)
+      return
 
     const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri)
     if (!entity) return
@@ -143,10 +143,10 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     )
 
     try {
-      if (element.isEdge() && ic.grapholscape.uiContainer) {
+      if (event.target.isEdge() && ic.grapholscape.uiContainer) {
         commandsWidget.attachToPosition(event.renderedPosition, ic.grapholscape.uiContainer, commands)
       } else {
-        const htmlNodeReference = (element as any).popperRef()
+        const htmlNodeReference = (event.target as any).popperRef()
         if (htmlNodeReference && commands.length > 0) {
           commandsWidget.attachTo(htmlNodeReference, commands)
         }

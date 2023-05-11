@@ -64,6 +64,8 @@ export default class IncrementalController {
     if (viewportState)
       this.diagram.lastViewportState = viewportState
 
+    setGraphEventHandlers(this.diagram, this.grapholscape.lifecycle, this.grapholscape.ontology)
+
     this.grapholscape.renderer.render(this.diagram)
   }
 
