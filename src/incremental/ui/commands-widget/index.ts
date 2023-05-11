@@ -1,8 +1,9 @@
-import { ClassInstanceEntity, GrapholTypesEnum, LifecycleEvent } from "../../../model";
+import { ClassInstanceEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
 import { counter, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import * as IncrementalCommands from "./commands";
 import IncrementalController from "../../controller";
+import { IncrementalEvent } from "../../lifecycle";
 
 export function CommandsWidgetFactory(ic: IncrementalController) {
   const commandsWidget = new GscapeContextMenu()
@@ -139,7 +140,15 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     }
     
     commands.push(
-      IncrementalCommands.remove(() => ic.removeEntity(classIri))
+      IncrementalCommands.remove(() => {
+        if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
+          ic.diagram.removeElement(event.target.id())
+          entity.removeOccurrence(event.target.id(), ic.diagram.id, RendererStatesEnum.INCREMENTAL)
+          ic.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
+        } else {
+          ic.removeEntity(entity.iri.fullIri)
+        }
+      })
     )
 
     try {

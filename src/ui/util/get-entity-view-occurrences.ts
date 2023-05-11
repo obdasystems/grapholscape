@@ -39,10 +39,13 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
         originalId: cyElement.data().originalId,
       }
 
-      const diagramViewData = { id: diagram.id, name: diagram.name }
-
-      if (!result.get(diagramViewData)) {
+      const d = Array.from(result).find(([diagramViewData, _]) => diagramViewData.id === diagram.id)
+      let diagramViewData: DiagramViewData
+      if (!d) {
+        diagramViewData = { id: diagram.id, name: diagram.name }
         result.set(diagramViewData, [])
+      } else {
+        diagramViewData = d[0]
       }
 
       result.get(diagramViewData)?.push(occurrenceIdViewData)
