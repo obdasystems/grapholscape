@@ -48,6 +48,11 @@ export default class DiagramRepresentation {
     this.cy.$id(elementId).remove()
   }
 
+  clear() {
+    this.cy.elements().remove()
+    this.grapholElements.clear()
+  }
+
   updateElement(element: GrapholElement, updatePosition?: boolean): void
   updateElement(elementId: string, updatePosition?: boolean): void
   updateElement(elementIdOrObj: string | GrapholElement, updatePosition: boolean = true) {

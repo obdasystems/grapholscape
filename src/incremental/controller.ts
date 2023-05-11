@@ -2,7 +2,7 @@ import { EdgeSingular, NodeSingular, Position } from "cytoscape";
 import { EntityNameType } from "../config";
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../model";
+import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholTypesEnum, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, ViewportState } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
@@ -22,6 +22,8 @@ export default class IncrementalController {
   public lastClassIri?: string
   public lastInstanceIri?: string
 
+  public diagram: IncrementalDiagram = new IncrementalDiagram()
+
   endpointController?: EndpointController
 
   private entitySelectionTimeout: NodeJS.Timeout
@@ -40,15 +42,9 @@ export default class IncrementalController {
   constructor(
     public grapholscape: Grapholscape
   ) {
-    this.diagramBuilder = new DiagramBuilder(this.incrementalDiagram)
+    this.diagramBuilder = new DiagramBuilder(this.diagram)
     this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
-
-    grapholscape.on(LifecycleEvent.RendererChange, newRendererState => {
-      if (newRendererState === RendererStatesEnum.INCREMENTAL) {
-        this.diagramBuilder.diagram = this.incrementalDiagram
-      }
-    })
 
     // update instances displayed names
     grapholscape.on(LifecycleEvent.EntityNameTypeChange, _ => {
@@ -64,9 +60,16 @@ export default class IncrementalController {
     })
   }
 
+  showDiagram(viewportState?: ViewportState) {
+    if (viewportState)
+      this.diagram.lastViewportState = viewportState
+
+    this.grapholscape.renderer.render(this.diagram)
+  }
+
   async performActionWithBlockedGraph(action: () => void | Promise<void>) {
     const oldElemNumbers = this.numberOfElements
-    this.incrementalRenderer.freezeGraph()
+    this.incrementalRenderer?.freezeGraph()
     await action()
     this.postDiagramEdit(oldElemNumbers)
   }
@@ -138,16 +141,9 @@ export default class IncrementalController {
   }
 
   reset() {
-    if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      this.incrementalRenderer.createNewDiagram()
-      this.diagramBuilder.diagram = this.incrementalDiagram
-      this.classInstanceEntities.clear()
-      if (this.grapholscape.renderer.diagram)
-        setGraphEventHandlers(this.grapholscape.renderer.diagram, this.grapholscape.lifecycle, this.ontology)
-
-      this.setIncrementalEventHandlers()
-    }
-
+    this.incrementalRenderer?.reset()
+    this.classInstanceEntities.clear()
+    this.diagram.clear()
     this.clearState()
     this.lifecycle.trigger(IncrementalEvent.Reset)
   }
@@ -166,13 +162,13 @@ export default class IncrementalController {
     }
 
     const entity = this.classInstanceEntities.get(entityIri) || this.ontology.getEntity(entityIri)
-    let entityElement = this.incrementalDiagram.representation?.grapholElements.get(entityIri)
+    let entityElement = this.diagram.representation?.grapholElements.get(entityIri)
     let entityElements: GrapholElement[] | undefined
 
     // can't find element? look for occurrences, not every entity has id=iri
     if (entity && !entityElement) {
-      entityElements = entity.occurrences.get(this.incrementalRenderer.id)?.map(occurrence => {
-        return this.incrementalDiagram.representation?.grapholElements.get(occurrence.elementId) as GrapholElement
+      entityElements = entity.occurrences.get(RendererStatesEnum.INCREMENTAL)?.map(occurrence => {
+        return this.diagram?.representation?.grapholElements.get(occurrence.elementId) as GrapholElement
       }).filter(e => e !== undefined)
     } else if (entityElement) {
       entityElements = [entityElement]
@@ -185,7 +181,7 @@ export default class IncrementalController {
           this.grapholscape.entityNameType,
           this.grapholscape.language
         )
-        this.incrementalDiagram.representation?.updateElement(element, false)
+        this.diagram?.representation?.updateElement(element, false)
       })
     }
   }
@@ -216,7 +212,7 @@ export default class IncrementalController {
           if (objectPropertyEntity) {
             objectPropertyEntity.removeOccurrence(
               objectPropertyEdge.id(),
-              this.incrementalDiagram.id,
+              this.diagram.id,
               RendererStatesEnum.INCREMENTAL
             )
           }
@@ -232,7 +228,7 @@ export default class IncrementalController {
                   entitiesIrisToKeep.push(entity?.iri.fullIri || '') // the entity we are removing must be skipped, otherwise cyclic recursion
                   this.removeEntity(neighbourElement.data().iri, entitiesIrisToKeep)
                 } else {
-                  this.incrementalRenderer.removeElement(neighbourElement.id())
+                  this.diagram.removeElement(neighbourElement.id())
                 }
               }
             } else {
@@ -240,7 +236,7 @@ export default class IncrementalController {
               // (cytoscape removes them automatically
               // but we need to update the grapholElements 
               // map too in diagram representation)
-              this.incrementalRenderer.removeElement((neighbourElement as EdgeSingular).id())
+              this.diagram.removeElement((neighbourElement as EdgeSingular).id())
             }
           })
 
@@ -253,8 +249,8 @@ export default class IncrementalController {
           })
         }
 
-        this.incrementalRenderer.removeElement(element.id())
-        entity?.removeOccurrence(element.id(), this.incrementalDiagram.id, RendererStatesEnum.INCREMENTAL)
+        this.diagram.removeElement(element.id())
+        entity?.removeOccurrence(element.id(), this.diagram.id, RendererStatesEnum.INCREMENTAL)
 
         if (entity?.is(GrapholTypesEnum.CLASS_INSTANCE))
           this.classInstanceEntities.delete(entity.iri.fullIri)
@@ -453,7 +449,7 @@ export default class IncrementalController {
     if (!unionNode || !inputEdges || !inclusionEdges)
       return
 
-    this.incrementalDiagram.addElement(unionNode)
+    this.diagram.addElement(unionNode)
 
     // Add inputs
     for (const inputClassIri of hierarchy.inputs) {
@@ -464,25 +460,25 @@ export default class IncrementalController {
       this.addEntity(superClass.classIri, false)
     }
 
-    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.incrementalDiagram.addElement(inputEdge))
-    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.incrementalDiagram.addElement(inclusionEdge))
+    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
+    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
   }
 
   private removeHierarchy(hierarchy: Hierarchy, entitiesTokeep: string[] = []) {
-    if (!hierarchy.id || (hierarchy.id && this.grapholscape.renderer.cy?.$id(hierarchy.id).empty()))
+    if (!this.incrementalRenderer || !hierarchy.id || (hierarchy.id && this.grapholscape.renderer.cy?.$id(hierarchy.id).empty()))
       return
 
     // remove union node
-    this.incrementalRenderer.removeElement(hierarchy.id)
+    this.diagram.removeElement(hierarchy.id)
 
     // remove input edges
     hierarchy.getInputGrapholEdges()?.forEach(inputEdge => {
-      this.incrementalRenderer.removeElement(inputEdge.id)
+      this.diagram?.removeElement(inputEdge.id)
     })
 
     // remove inclusion edges
     hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
-      this.incrementalRenderer.removeElement(inclusionEdge.id)
+      this.diagram?.removeElement(inclusionEdge.id)
     })
 
     let entity: GrapholEntity | null
@@ -619,22 +615,22 @@ export default class IncrementalController {
     }
   }
 
-  runLayout = () => this.incrementalRenderer.runLayout()
-  pinNode = (node: NodeSingular | string) => this.incrementalRenderer.pinNode(node)
-  unpinNode = (node: NodeSingular | string) => this.incrementalRenderer.unpinNode(node)
+  runLayout = () => this.incrementalRenderer?.runLayout()
+  pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
+  unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)
 
   postDiagramEdit(oldElemsNumber: number) {
     if (this.numberOfElements !== oldElemsNumber) {
       this.runLayout()
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     } else {
-      this.incrementalRenderer.unFreezeGraph()
+      this.incrementalRenderer?.unFreezeGraph()
     }
   }
 
   async countInstancesForClass(classIri: string) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
-    const node = this.incrementalDiagram.representation?.cy.$id(classIri)
+    const node = this.diagram?.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
 
     await this.updateMaterializedCounts()
@@ -695,14 +691,10 @@ export default class IncrementalController {
   }
 
   setIncrementalEventHandlers() {
-    this.incrementalRenderer.onContextClick(event => {
-      this.lifecycle.trigger(IncrementalEvent.ContextClick, event.target, event)
-    })
-
-    if (this.incrementalDiagram.representation?.hasEverBeenRendered || this.incrementalDiagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
+    if (this.diagram.representation?.hasEverBeenRendered || this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
     // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
-    this.incrementalRenderer.diagramRepresentation?.cy.on('tap', evt => {
+    this.diagram.representation?.cy.on('tap', evt => {
       const targetType = evt.target.data().type
 
       if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
@@ -741,13 +733,17 @@ export default class IncrementalController {
       }
     })
 
-    this.incrementalDiagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
+    this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
   }
 
   private get ontology() { return this.grapholscape.ontology }
-  public get incrementalDiagram() { return this.incrementalRenderer.incrementalDiagram }
+  // public get incrementalDiagram() { return this.incrementalRenderer?.incrementalDiagram }
 
-  private get incrementalRenderer() { return this.grapholscape.renderer.renderState as IncrementalRendererState }
+  private get incrementalRenderer() {
+    if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      return this.grapholscape.renderer.renderState as IncrementalRendererState
+    }
+  }
 
   get numberOfElements() { return this.grapholscape.renderer.cy?.elements().size() || 0 }
 }

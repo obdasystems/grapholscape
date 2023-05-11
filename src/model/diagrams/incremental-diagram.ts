@@ -8,12 +8,12 @@ import Diagram from "./diagram";
 import DiagramRepresentation from "./diagram-representation";
 
 export default class IncrementalDiagram extends Diagram {
-
+  public static ID = -1
   /** @internal */
   public classInstances?: Map<string, ClassInstanceEntity>
 
   constructor() {
-    super('Incremental', -1)
+    super('Incremental', IncrementalDiagram.ID)
     this.representations = new Map([[RendererStatesEnum.INCREMENTAL, new DiagramRepresentation(floatyOptions)]])
   }
 

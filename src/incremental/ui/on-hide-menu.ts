@@ -7,7 +7,7 @@ export default function(menu: GscapeNavigationMenu | GscapeInstanceExplorer, inc
     
     if (menu.referenceEntity) {
       const refNode = incrementalController
-        .incrementalDiagram
+        .diagram
         .representation
         ?.cy.$id(menu.referenceEntity.value.iri.fullIri)
 

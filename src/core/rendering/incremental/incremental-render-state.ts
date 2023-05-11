@@ -1,6 +1,5 @@
-import { EventObject, Stylesheet } from "cytoscape"
-import { floatyOptions } from "../../../config"
-import { Diagram, DiagramRepresentation, GrapholscapeTheme, Ontology, RendererStatesEnum, iFilterManager } from "../../../model"
+import { Stylesheet } from "cytoscape"
+import { Diagram, GrapholscapeTheme, Ontology, RendererStatesEnum, iFilterManager } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
 import FloatyTransformer from "../floaty/floaty-transformer"
@@ -24,14 +23,30 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   private previousDiagram: Diagram
 
-  onContextClickCallback: (event: EventObject) => void
-
   render() {
-    this.overrideDiagram()
-
-    if (this.popperContainer) {
-      this.renderer.cy?.container()?.appendChild(this.popperContainer)
+    if (this.renderer.diagram && this.renderer.diagram?.id !== IncrementalDiagram.ID) {
+      this.previousDiagram = this.renderer.diagram
     }
+
+    if (!this.renderer.diagram) return
+
+    const incrementalRepresentation = this.renderer.diagram.representations.get(this.id)
+    if (!incrementalRepresentation) return
+
+    this.renderer.cy = incrementalRepresentation.cy
+    this.renderer.mount()
+
+    if (this.renderer.diagram.lastViewportState) {
+      this.renderer.cy?.viewport(this.renderer.diagram.lastViewportState)
+    }
+
+    if (!incrementalRepresentation.hasEverBeenRendered) {
+      if (this.popperContainer) {
+        this.renderer.cy?.container()?.appendChild(this.popperContainer)
+      }
+    }
+
+    incrementalRepresentation.hasEverBeenRendered = true
   }
 
   runLayout() {
@@ -40,9 +55,9 @@ export default class IncrementalRendererState extends FloatyRendererState {
       this.unFreezeGraph()
     } else {
       this.layout.one('layoutstop', () => {
-        if (this.diagramRepresentation?.grapholElements.size === 1)
+        if (this.renderer.diagram?.representations.get(this.id)?.grapholElements.size === 1)
           this.renderer.fit()
-          
+
         this.unFreezeGraph()
       })
     }
@@ -79,55 +94,12 @@ export default class IncrementalRendererState extends FloatyRendererState {
     return incrementalStyle(theme)
   }
 
-  protected overrideDiagram() {
-    if (this.renderer.diagram && this.renderer.diagram?.id !== this.incrementalDiagram.id) {
-      this.previousDiagram = this.renderer.diagram
+  reset() {
+    if (this.renderer.diagram?.id) {
+      this.popperContainers.get(this.renderer.diagram.id)?.childNodes.forEach(c => c.remove())
     }
-
-    this.renderer.stopRendering()
-
-    this.renderer.diagram = this.incrementalDiagram
-    this.renderer.cy = this.diagramRepresentation?.cy
-    this.renderer.mount()
-  }
-
-  createNewDiagram() {
-    this.unpinAll()
-    if (!this.incrementalDiagram)
-      this.renderer.renderStateData[this.id].diagram = new IncrementalDiagram()
-    else {
-      this.incrementalDiagram.representation?.cy.destroy()
-      this.incrementalDiagram.representations.set(this.id, new DiagramRepresentation(floatyOptions))
-    }
-    this.overrideDiagram()
-
-    this.diagramRepresentation?.cy.on('cxttap', `node,edge`, evt => {
-      this.onContextClickCallback(evt)
-    })
-
-    if (this.renderer.diagram?.id)
-      this.popperContainers.set(this.renderer.diagram?.id, document.createElement('div'))
-    this.setDragAndPinEventHandlers()
     this.render()
   }
-
-  onContextClick(callback: (event: EventObject) => void) {
-    this.onContextClickCallback = callback
-  }
-
-  removeElement(elementId: string) {
-    const element = this.renderer.cy?.$id(elementId)
-    if (element?.nonempty() && element?.data().pinned) {
-      this.unpinNode(element)
-    }
-    this.incrementalDiagram.removeElement(elementId)
-  }
-
-  get diagramRepresentation() {
-    return this.incrementalDiagram.representations.get(this.id)
-  }
-
-  get incrementalDiagram(): IncrementalDiagram { return this.renderer.renderStateData[this.id].diagram }
 
   set renderer(newRenderer: Renderer) {
     super.renderer = newRenderer
@@ -135,11 +107,9 @@ export default class IncrementalRendererState extends FloatyRendererState {
       newRenderer.renderStateData[this.id] = {}
     }
 
+    this.floatyLayoutOptions = this.defaultLayoutOptions
     this.floatyLayoutOptions.fit = false
     this.floatyLayoutOptions.maxSimulationTime = 1000
-
-    if (!newRenderer.renderStateData[this.id].diagram)
-      this.createNewDiagram()
   }
 
   get renderer(): Renderer {

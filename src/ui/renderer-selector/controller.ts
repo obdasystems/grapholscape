@@ -52,6 +52,7 @@ export function rendererStateSelectionCallback(
 
       case RendererStatesEnum.INCREMENTAL:
         grapholscape.setRenderer(new IncrementalRendererState())
+        grapholscape.incremental?.showDiagram()
         isRenderValid = true
         break
     }
