@@ -21,15 +21,22 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   isPropertyDirect: boolean = true
   requestId?:string
   numberOfPagesShown = 1
+  numberResultsAvailable: number = 0
   /**
    * Not all received instances are shown, no duplicates allowed.
    * i.e. different results for different labels but same instance.
    */
   numberOfInstancesReceived = 0
-  canShowMore: boolean = false
   shouldAskForLabels?: boolean
 
   private searchTimeout:  NodeJS.Timeout
+
+  private explanation = `
+  Number of available results: it's the maximum number of results you can see in the list below. \n\
+  It can be lower than the total number of possible results due to manual filters or due to
+  labels, if labels are available, we will show you results with label.
+  You can find instances without a label by manually searching selecting the ID filter option.
+  `
 
   static properties: PropertyDeclarations = {
     areInstancesLoading: { type: Boolean },
@@ -195,7 +202,19 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
             ${getIconSlot('icon', search)}
           </gscape-button>
         </div>
-        
+
+        ${this.numberResultsAvailable
+          ? html`
+            <div style="align-self: center; display: flex; align-items: center; gap: 8px">
+              <span class="chip-neutral">
+                ${this.numberOfInstancesReceived}/${this.numberResultsAvailable}
+              </span>
+              <span class="tip" style="width: 12px; text-align: center" title=${this.explanation}>?</span>
+            </div>
+          `
+          : null
+        }
+
         <div class="entity-list">
         ${this.instances.size > 0
           ? html`
@@ -386,6 +405,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.referencePropertyEntity = undefined
     this.popperRef = undefined
     this.shouldAskForLabels = undefined
+    this.numberResultsAvailable = 0
 
     if (this.instancesSearchInput)
       this.instancesSearchInput.value = ''
@@ -399,6 +419,13 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   attachTo(element: HTMLElement): void {
     this.popperRef = element
     super.attachTo(element)
+  }
+
+  private get canShowMore() {
+    if (!this.numberResultsAvailable)
+      return this.numberOfInstancesReceived > 0
+
+    return this.numberOfInstancesReceived < this.numberResultsAvailable
   }
 
   private get propertyFilterSelect() { return this.shadowRoot?.querySelector('#property-filter-select') as GscapeSelect | undefined }

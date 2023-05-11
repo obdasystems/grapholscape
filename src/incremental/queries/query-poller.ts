@@ -24,8 +24,8 @@ export type QueryStatus = {
   numOntologyRewritings: number,
   numHighLevelQueries: number,
   numLowLevelQueries: number,
-  executionTime: 14,
-  numResults: 32,
+  executionTime: number,
+  numResults: number,
 }
 
 export enum QueryPollerStatus {
@@ -123,6 +123,7 @@ export abstract class QueryPoller {
 
 export class QueryResultsPoller extends QueryPoller {
   public onNewResults: (result: QueryRecords) => void = () => { }
+  public numberResultsAvailable: number = 0
 
   protected _result: QueryRecords
 

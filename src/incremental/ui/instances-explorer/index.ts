@@ -11,10 +11,11 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   const instancesExplorer = new GscapeInstanceExplorer()
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
-  incrementalController.on(IncrementalEvent.NewInstances, newInstances => {
+  incrementalController.on(IncrementalEvent.NewInstances, (newInstances, numberResultsAvailable) => {
     instancesExplorer.addInstances(newInstances.map(i => i[0]))
-    const minNumberOfInstancesToAskMore = (incrementalController.endpointController?.limit || 10000) * instancesExplorer.numberOfPagesShown
-    instancesExplorer.canShowMore = instancesExplorer.numberOfInstancesReceived >= minNumberOfInstancesToAskMore
+
+    if (!instancesExplorer.numberResultsAvailable && numberResultsAvailable)
+      instancesExplorer.numberResultsAvailable = numberResultsAvailable
   })
 
   incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)
@@ -47,6 +48,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     incrementalController.endpointController?.stopRequests('instances')
     instancesExplorer.instances = new Map()
     instancesExplorer.numberOfInstancesReceived = 0
+    instancesExplorer.numberResultsAvailable = 0
     instancesExplorer.numberOfPagesShown = 1
     instancesExplorer.areInstancesLoading = true
 

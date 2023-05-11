@@ -23,13 +23,14 @@ export type ClassInstance = {
 // }
 
 export interface IVirtualKnowledgeGraphApi {
-  getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, onStop?: () => void, searchText?: string) => void,
-  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, isDirect?: boolean, onStop?: () => void) => void,
+  getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string) => void,
+  getNewResults: (executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number) => Promise<void>,
+  getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: () => void) => void,
   getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, rangeClassIri?: string, dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
+  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassIri?: string, dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
@@ -46,7 +47,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     this.setEndpoint(endpoint)
   }
 
-  async getInstances(iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][]) => void, onStop?: () => void, searchText?: string, pageSize?: number) {
+  async getInstances(iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string, pageSize?: number) {
     const _pageSize = pageSize || this.pageSize
     let querySemantics: QuerySemantics, queryCode: string
 
@@ -64,7 +65,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize, querySemantics)
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)))
+      onNewResults(
+        result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)),
+        queryPoller.numberResultsAvailable
+      )
     })
 
     if (onStop) {
@@ -78,7 +82,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
   async getNewResults(executionId: string,
     pageNumber: number,
-    onNewResults: (classInstances: ClassInstance[][]) => void,
+    onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void,
     onStop?: () => void,
     pageSize?: number) {
 
@@ -86,7 +90,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const queryPoller = await this.queryManager.getQueryResults(executionId, _pageSize, pageNumber)
 
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)))
+      onNewResults(
+        result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)),
+        queryPoller.numberResultsAvailable
+      )
       queryPoller.stop()
     })
 
@@ -103,7 +110,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     propertyType: string,
     propertyValue: string,
     includeLabels: boolean,
-    onNewResults: (classInstances: ClassInstance[][]) => void,
+    onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void,
     isDirect?: boolean,
     onStop?: (() => void),
     pageSize?: number) {
@@ -114,7 +121,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       : QueriesTemplates.getInstancesByDataProperty(classIri, propertyIri, propertyValue, includeLabels)
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize, QuerySemantics.FULL_SPARQL)
     queryPoller.onNewResults = (result => {
-      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)))
+      onNewResults(
+        result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)),
+        queryPoller.numberResultsAvailable
+      )
     })
 
     if (onStop) {
@@ -223,7 +233,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     objectPropertyIri: string,
     isDirect: boolean,
     includeLabels: boolean,
-    onNewResults: (classInstances: ClassInstance[][]) => void,
+    onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void,
     rangeClassIri?: string,
     dataPropertyIriFilter?: string,
     textSearch?: string,
@@ -261,7 +271,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     // const querySemantics = textSearch ? QuerySemantics.FULL_SPARQL : QuerySemantics.CQ
     const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, querySemantics)
     queryPoller.onNewResults = (result) => {
-      onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)))
+      onNewResults(
+        result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)),
+        queryPoller.numberResultsAvailable
+      )
     }
 
     if (onStop) {

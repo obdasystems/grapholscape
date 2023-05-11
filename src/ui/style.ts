@@ -250,7 +250,7 @@ input {
   margin-bottom: 4px;
 }
 
-.chip {
+.chip, .chip-neutral {
   display: inline-flex;
   border: 1px solid var(--gscape-color-accent);
   color: var(--gscape-color-accent);
@@ -260,11 +260,27 @@ input {
   margin: 1px 2px;
 }
 
+.chip-neutral {
+  border: 1px solid var(--gscape-color-neutral-muted);
+  color: var(--gscape-color-fg-muted);
+  background: var(--gscape-color-neutral);
+}
+
 .area {
   background: var(--gscape-color-bg-inset);
   border-radius: calc(var(--gscape-border-radius) - 2px);
   padding: 4px 4px 4px 6px;
   border: solid 1px var(--gscape-color-border-subtle);
   margin-bottom: 18px;
+}
+
+.tip {
+  font-size: 90%;
+  border-bottom: dotted 2px;
+  cursor: help;
+}
+
+.tip: hover {
+  color:inherit;
 }
 `

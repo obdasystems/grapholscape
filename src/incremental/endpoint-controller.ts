@@ -93,7 +93,7 @@ export default class EndpointController {
         propertyType,
         searchText,
         includeLabels,
-        (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+        (classInstances, numberResultsAvailable) => this.lifecycle.trigger(IncrementalEvent.NewInstances, classInstances, numberResultsAvailable),
         isDirect,
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
       )
@@ -101,7 +101,7 @@ export default class EndpointController {
       return this.vkgApi?.getInstances(
         classIri,
         includeLabels,
-        (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+        (classInstances, numberResultsAvailable) => this.lifecycle.trigger(IncrementalEvent.NewInstances, classInstances, numberResultsAvailable),
         () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished),
         searchText
       )
@@ -111,7 +111,7 @@ export default class EndpointController {
     this.vkgApi?.getNewResults(
       requestId,
       pageNumber,
-      (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+      (classInstances, numberResultsAvailable) => this.lifecycle.trigger(IncrementalEvent.NewInstances, classInstances, numberResultsAvailable),
       () => this.lifecycle.trigger(IncrementalEvent.InstancesSearchFinished)
     )
   }
@@ -130,7 +130,7 @@ export default class EndpointController {
       objectPropertyIri,
       isDirect,
       includeLabels,
-      (result) => this.lifecycle.trigger(IncrementalEvent.NewInstances, result),
+      (classInstances, numberResultsAvailable) => this.lifecycle.trigger(IncrementalEvent.NewInstances, classInstances, numberResultsAvailable),
       rangeClassIri,
       propertyIriFilter,
       searchText,
