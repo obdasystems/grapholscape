@@ -46,7 +46,7 @@ export default class Grapholscape {
 
   // ----------------------------- RENDERER ----------------------------- //
   /**
-   * Show a certain diagram by its ID - test 3.3.1 doc
+   * Show a certain diagram by its ID
    * @param diagramId the diagram's id to display
    * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
    */
