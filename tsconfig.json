@@ -14,7 +14,7 @@
   },
   // OPTIONS FOR DOCUMENTATION
   "typedocOptions": {
-    "includeVersion": true,
+    "includeVersion": false,
     "entryPoints": [
       "src/core",
       "src/ui",
