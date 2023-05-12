@@ -9,4 +9,4 @@ app/graphol/grapholscape.js
 docs/generated
 docs/static/demo/js/grapholscape.js
 temp/**
-public/**
+docs/**

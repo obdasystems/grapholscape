@@ -17,8 +17,8 @@ jobs:
 
             - name: tar the existing docs
               run: |
-                  mkdir -p ./public
-                  tar -cvf documentation.tar ./public
+                  mkdir -p ./docs
+                  tar -cvf documentation.tar ./docs
 
             - name: create a document artifact
               uses: actions/upload-artifact@v3
@@ -33,12 +33,12 @@ jobs:
             - name: Checkout src
               uses: actions/checkout@v3
 
-            - run: mkdir -p ./public
+            - run: mkdir -p ./docs
             - name: Download the existing documents artifact
               uses: actions/download-artifact@v3
               with:
                   name: documentation
-            - run: tar -xf documentation.tar -C ./public
+            - run: tar -xf documentation.tar -C ./docs
 
             - name: Build
               uses: actions/setup-node@v3
@@ -52,7 +52,7 @@ jobs:
               run: npm run doc #set up 'docs' build script in your package.json
 
             - name: tar the new docs
-              run: tar -cvf newdocumentation.tar -C ./public .
+              run: tar -cvf newdocumentation.tar -C ./docs .
 
             - name: create a new document artifact
               uses: actions/upload-artifact@v3
@@ -60,7 +60,7 @@ jobs:
                   name: newdocumentation
                   path: newdocumentation.tar
 
-    commit: # commit the old and new merged documents to gh-pages/public
+    commit: # commit the old and new merged documents to gh-pages/docs
         needs: build
         runs-on: ubuntu-latest
         steps:
@@ -69,12 +69,12 @@ jobs:
               with:
                   ref: gh-pages
 
-            - run: mkdir -p ./public
+            - run: mkdir -p ./docs
             - name: Download the new documents artifact
               uses: actions/download-artifact@v3
               with:
                   name: newdocumentation
-            - run: tar -xf newdocumentation.tar -C ./public
+            - run: tar -xf newdocumentation.tar -C ./docs
 
             - name: commit
               run: |

@@ -23,10 +23,10 @@
       "src/index.ts",
       "src/incremental"
     ],
-    "out": "public",
+    "out": "docs",
     "hideGenerator": true,
     "name": "Grapholscape",
-    "favicon": "docs/assets/img/icon.png",
+    "favicon": "static-docs/assets/img/icon.png",
     "intentionallyNotExported": [
       "Constructor",
       "DisplayedNamesManager",
@@ -36,7 +36,7 @@
     "excludeInternal": true,
     "excludeExternals": true,
     "pluginPages": {
-      "source": "docs/pages",
+      "source": "static-docs/pages",
       "pages": [
         {
           "title": "Getting Started",
