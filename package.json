@@ -27,7 +27,7 @@
     "deploy": "cross-env-shell gh-pages -d docs/generated -m \"$npm_package_version\"",
     "doc": "run-s doc:*",
     "doc:typedoc": "typedoc",
-    "doc:copy-demo-in-doc": "cpy . ../../generated/demo --cwd=docs/static/demo",
+    "doc:copy-demo-in-doc": "cpy . ../../public/demo --cwd=docs/demo",
     "test": "jest",
     "gen-types": "run-s clean:types gen-types:tsc",
     "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
