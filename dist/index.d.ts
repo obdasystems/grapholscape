@@ -1614,7 +1614,7 @@ declare class Grapholscape {
     widgetsInitialStates: WidgetsConfig;
     constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig);
     /**
-     * Show a certain diagram by its ID
+     * Show a certain diagram by its ID - test 3.2.4 doc
      * @param diagramId the diagram's id to display
      * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
      */
