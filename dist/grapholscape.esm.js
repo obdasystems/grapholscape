@@ -9917,7 +9917,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.3.1"}</span>
+            <span>${"3.2.2"}</span>
           </div>
         </div>
       </div>
@@ -10999,7 +10999,7 @@ class Grapholscape {
     }
     // ----------------------------- RENDERER ----------------------------- //
     /**
-     * Show a certain diagram by its ID - test 3.3.1 doc
+     * Show a certain diagram by its ID
      * @param diagramId the diagram's id to display
      * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
      */
