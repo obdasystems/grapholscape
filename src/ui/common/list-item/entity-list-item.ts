@@ -72,7 +72,10 @@ export default class GscapeEntityListItem extends LitElement {
         : null
       }      
       <span class="entity-icon slotted-icon">${entityIcons[this.type]}</span>
-      <span class="entity-name rtl">${this.displayedName}</span>
+      <div style="display: flex; flex-direction: column; flex-grow: 2; gap: 4px">
+        <span class="entity-name rtl">${this.displayedName}</span>
+        <slot name="subrow-item"></slot>
+      </div>
       <slot name="trailing-element"></slot>
     `
   }

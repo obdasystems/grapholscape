@@ -1,4 +1,4 @@
-import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
+import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit"
 import { GrapholTypesEnum } from "../../../model"
 import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinnerStyle } from "../../../ui"
 import { entityIcons, insertInGraph, search, searchOff } from "../../../ui/assets"
@@ -8,12 +8,13 @@ import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
 import { EntityViewDataUnfolding, ViewObjectPropertyUnfolding } from "../../../ui/view-model"
 
+export type ClassInstanceViewData = ClassInstance & { connectedInstance?: ClassInstance }
 
 export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   popperRef?: HTMLElement
 
   areInstancesLoading: boolean
-  instances: Map<string, ClassInstance> = new Map()
+  instances: Map<string, ClassInstanceViewData> = new Map()
   propertiesFilterList: EntityViewDataUnfolding[] = []
   classTypeFilterList?: EntityViewDataUnfolding[]
   referenceEntity?: EntityViewData
@@ -37,6 +38,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   labels, if labels are available, we will show you results with label.
   You can find instances without a label by manually searching selecting the ID filter option.
   `
+  private lastSearchedText = ''
 
   static properties: PropertyDeclarations = {
     areInstancesLoading: { type: Boolean },
@@ -46,6 +48,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     referencePropertyEntity: { type: Object },
     classTypeFilterList: { type: Object },
     canShowMore: { type: Boolean },
+    lastSearchedText: { type: String, state: true }
   }
 
   static styles: CSSResultGroup = [
@@ -90,6 +93,19 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
       #loading-content-spinner {
         position: relative;
+      }
+
+      .search-match {
+        background: var(--gscape-color-bg-inset);
+        border-radius: var(--gscape-border-radius);
+        padding: 4px 8px;
+        font-size: 90%;
+        width: fit-content;
+      }
+
+      .search-match > .highlight {
+        background: var(--gscape-color-accent-muted);
+        padding: 0 1px;
       }
     `
   ]
@@ -218,23 +234,37 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         <div class="entity-list">
         ${this.instances.size > 0
           ? html`
-            ${Array.from(this.instances).map(([_, instance]) => html`
-              <gscape-entity-list-item
-                displayedname=${instance.label?.value || instance.shortIri || instance.iri}
-                iri=${instance.iri}
-                type=${GrapholTypesEnum.CLASS_INSTANCE}
-              >
-                <div slot="trailing-element" class="hover-btn">
-                  <gscape-button
-                    size="s"
-                    type="subtle"
-                    @click=${this.handleInsertInGraph}
-                  >
-                    ${getIconSlot('icon', insertInGraph)}
-                  </gscape-button>
-                </div>
-              </gscape-entity-list-item>
-            `)}
+            ${Array.from(this.instances).map(([_, instance]) => {
+              let displayedName = instance.label?.value || instance.shortIri || instance.iri
+              let searchMatch: { preString: string; highlightString: string | undefined; postString: string | undefined } | undefined
+              if (instance.searchMatch && instance.searchMatch.toLowerCase() !== displayedName.toLowerCase()) {
+                searchMatch = this.getHighlightInSearchMatch(instance.searchMatch)
+              }
+              
+              return html`
+                <gscape-entity-list-item
+                  displayedname=${instance.label?.value || instance.shortIri || instance.iri}
+                  iri=${instance.iri}
+                  type=${GrapholTypesEnum.CLASS_INSTANCE}
+                >
+                  <div slot="trailing-element" class="hover-btn">
+                    <gscape-button
+                      size="s"
+                      type="subtle"
+                      @click=${this.handleInsertInGraph}
+                    >
+                      ${getIconSlot('icon', insertInGraph)}
+                    </gscape-button>
+                  </div>
+                  ${searchMatch
+                    ? html`
+                      <div slot="subrow-item" class="search-match muted-text">${searchMatch.preString ?  html`<span>${searchMatch.preString}</span>` : nothing}${searchMatch.highlightString ? html`<span class="highlight">${searchMatch.highlightString}</span>` : nothing}${searchMatch.postString ?  html`<span>${searchMatch.postString}</span>` : nothing}</div>
+                    `
+                    : null
+                  }
+                </gscape-entity-list-item>
+              `}
+            )}
           `
           : !this.areInstancesLoading ? html`
               <div class="blank-slate">
@@ -305,6 +335,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       event.detail.shouldAskForLabels = false
     }
 
+    this.lastSearchedText = event.detail.filterText || ''
+
     this.numberOfPagesShown = 1
     this.dispatchEvent(event)
   }
@@ -360,6 +392,14 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
           return
         }
 
+        let filterByPropertyIri: string | undefined
+        if (this.propertyFilterSelect?.selectedOptionId && 
+          this.propertyFilterSelect.selectedOptionId !== 'id' &&
+          this.propertyFilterSelect.selectedOptionId !== 'label' &&
+          this.instancesSearchInput?.value) {
+            filterByPropertyIri = this.propertyFilterSelect.selectedOptionId
+        }
+
         this.requestUpdate()
         await this.updateComplete
 
@@ -368,7 +408,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
           composed: true, 
           detail: {
             parentClassIris: parentClassIris,
-            instance: instance
+            instance: instance,
+            filterByProperty: filterByPropertyIri,
           }
         }) as InstanceSelectionEvent)
       }
@@ -383,7 +424,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.numberOfPagesShown += 1
   }
 
-  addInstances(newInstances: ClassInstance[]) {
+  addInstances(newInstances: ClassInstanceViewData[]) {
     this.numberOfInstancesReceived += newInstances.length
     newInstances.forEach(i => {
       if (!this.instances.has(i.iri)) {
@@ -410,6 +451,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.popperRef = undefined
     this.shouldAskForLabels = undefined
     this.numberResultsAvailable = 0
+    this.lastSearchedText = ''
 
     if (this.instancesSearchInput)
       this.instancesSearchInput.value = ''
@@ -423,6 +465,27 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   attachTo(element: HTMLElement): void {
     this.popperRef = element
     super.attachTo(element)
+  }
+
+  getHighlightInSearchMatch(searchMatch: string) {
+    if (this.lastSearchedText.length > 0 && this.lastSearchedText !== ' ') {
+      const startMatchIndex = searchMatch.toLowerCase().search(this.lastSearchedText.toLowerCase())
+      if (startMatchIndex >= 0) {
+        const endMatchIndex = startMatchIndex + this.lastSearchedText.length - 1
+        console.log(startMatchIndex)
+        return {
+          preString: searchMatch.substring(0, startMatchIndex),
+          highlightString: searchMatch.substring(startMatchIndex, endMatchIndex + 1),
+          postString: searchMatch.substring(endMatchIndex + 1, searchMatch.length),
+        }
+      }
+    }
+
+    return {
+      preString: searchMatch,
+      highlightString: undefined,
+      postString: undefined,
+    }
   }
 
   private get canShowMore() {
@@ -444,7 +507,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
 export type InstanceSelectionEvent = CustomEvent<{
   parentClassIris: string[] | string,
-  instance: ClassInstance
+  instance: ClassInstanceViewData,
+  filterByProperty: string | undefined
 }>
 
 export type InstanceFilterEvent = CustomEvent<{
