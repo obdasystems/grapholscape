@@ -243,8 +243,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
               
               return html`
                 <gscape-entity-list-item
-                  displayedname=${instance.label?.value || instance.shortIri || instance.iri}
-                  iri=${instance.iri}
+                  displayedname=${displayedName}
+                  iri=${instance.connectedInstance ? `${instance.iri}-${instance.connectedInstance.iri}` : instance.iri}
                   type=${GrapholTypesEnum.CLASS_INSTANCE}
                 >
                   <div slot="trailing-element" class="hover-btn">
@@ -427,13 +427,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   addInstances(newInstances: ClassInstanceViewData[]) {
     this.numberOfInstancesReceived += newInstances.length
     newInstances.forEach(i => {
-      if (!this.instances.has(i.iri)) {
-        this.instances.set(i.iri, i)
-      } else if (i.label) { // override duplicate only if it has label
-        const instance = this.instances.get(i.iri)
-        if (instance && !instance.label) {
-          this.instances.set(i.iri, i)
-        }
+      const instanceKey = i.connectedInstance ? `${i.iri}-${i.connectedInstance.iri}` : i.iri
+      if (!this.instances.has(instanceKey)) {
+        this.instances.set(instanceKey, i)
       }
     })
     this.requestUpdate()
@@ -472,7 +468,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       const startMatchIndex = searchMatch.toLowerCase().search(this.lastSearchedText.toLowerCase())
       if (startMatchIndex >= 0) {
         const endMatchIndex = startMatchIndex + this.lastSearchedText.length - 1
-        console.log(startMatchIndex)
         return {
           preString: searchMatch.substring(0, startMatchIndex),
           highlightString: searchMatch.substring(startMatchIndex, endMatchIndex + 1),
