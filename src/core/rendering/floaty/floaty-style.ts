@@ -20,10 +20,17 @@ export default function (theme: GrapholscapeTheme) {
         'text-margin-y': 0,
         'text-valign': 'center',
         'text-halign': 'center',
-        'height': 'data(width)'
+        'height': (node)=>  node.data('width') || 100,
+        'width' : (node)=>  node.data('width') || 100
       }
     },
-
+    {
+      selector: `[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+      style: {
+        'height': (node)=>  node.data('width') || 20,
+        'width' : (node)=>  node.data('width') || 20
+      }
+    },
     {
       selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
       style: {
