@@ -8,7 +8,7 @@ import GscapeConfirmDialog from '../common/confirm-dialog'
 export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitElement)){
 
     ontology: OntologyViewModel
-    protected get modal(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('.gscape-panel') }
+    public get modal(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('.gscape-panel') }
 
     public onConfirm: (iri: string) => void = () => {}
     public onCancel: () => void = () => {}
@@ -26,7 +26,6 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         css`
         :host {
             position: absolute;
-            display: none;
           }
         .drawing-btn {
             position: absolute;
@@ -66,8 +65,23 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     ]
 
     private handleConfirm = () => {
-      let iri = ''
+      let prefix = this.shadowRoot?.querySelector('#prefix') as HTMLSelectElement
+      let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
+      let iri = prefix.options[prefix.selectedIndex].text + input.value
       this.onConfirm(iri)
+      this.resetForm()
+    }
+
+    private handleCancel = () => {
+      this.onCancel()
+      this.resetForm()
+    }
+
+    private resetForm = () => {
+      let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
+      if (myform){
+        myform.reset()
+      }
     }
 
     render() {
@@ -77,19 +91,18 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             <div class="header">
             ${this.dialogTitle}
             </div>
-            <form>
+            <form id= "new-element-form">
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="prefix">Prefix:</label><br>
-                <select style = "width: 95%; margin: 8px 8px 8px 8px ; id="prefix" name="prefix">
-                    <option value="default">default namespace</option>
+                <select style = "width: 95%; margin: 8px 8px 8px 8px ;" id="prefix" name="prefix" required>
                     ${this.ontology.namespaces.map((n, i) => {
                       return html`<option value="${i}">${n.toString()}</option>`
                     })}
                 </select>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
-                <input style = "width: 95%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value=""><br><br>
+                <input style = "width: 95%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value="" required><br><br>
             </form>
             <div class="buttons">
-                <gscape-button label="Cancel" type="subtle" @click=${this.onCancel}></gscape-button>
+                <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
                 <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
             </div>
           </div>
