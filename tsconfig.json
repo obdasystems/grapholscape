@@ -21,7 +21,6 @@
       "src/config",
       "src/model",
       "src/index.ts",
-      "src/incremental"
     ],
     "out": "docs",
     "hideGenerator": true,
