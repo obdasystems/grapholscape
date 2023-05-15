@@ -10,7 +10,7 @@ export * from './common/text-search'
 export * from "./common/toggle/gscape-toggle"
 export { default as GscapeConfirmDialog } from './common/confirm-dialog'
 export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
-export { default as GscapeSelect } from "./common/gscape-select"
+export { default as GscapeSelect, SelectOption } from "./common/gscape-select"
 export { GscapeEntitySelector, IEntitySelector } from './entity-selector'
 export * from './full-page-selector'
 export * from './view-model'

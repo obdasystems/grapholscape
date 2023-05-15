@@ -13,6 +13,7 @@ import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbour
 import { addBadge } from "./ui";
 import NodeButton from "./ui/node-buttons.ts/node-button";
 
+/** @internal */
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
   neighbourhoodFinder: NeighbourhoodFinder
