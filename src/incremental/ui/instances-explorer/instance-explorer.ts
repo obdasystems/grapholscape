@@ -301,6 +301,10 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     if (this.shouldAskForLabels !== undefined)
       event.detail.shouldAskForLabels = this.shouldAskForLabels && this.propertyFilterSelect?.selectedOptionId !== 'id'
 
+    if (this.propertyFilterSelect?.selectedOptionId === 'id') {
+      event.detail.shouldAskForLabels = false
+    }
+
     this.numberOfPagesShown = 1
     this.dispatchEvent(event)
   }
