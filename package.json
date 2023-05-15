@@ -84,6 +84,7 @@
     "cytoscape": "^3.22.1",
     "cytoscape-automove": "^1.10.3",
     "cytoscape-cola": "^2.5.1",
+    "cytoscape-edgehandles": "^4.0.1",
     "cytoscape-popper": "^2.0.0",
     "cytoscape-svg": "^0.4.0",
     "lit": "^2.3.1",
