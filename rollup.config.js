@@ -58,20 +58,12 @@ const licenseHeaderOptions = {
 const configs = [
   { // development
     input,
-    output: [
-      {
-        file: 'docs/static/demo/js/grapholscape.js',
-        format: 'iife',
-        name,
-        sourcemap: 'inline'
-      },
-      {
-        file: 'app/graphol/grapholscape.js',
-        format: 'iife',
-        name,
-        sourcemap: 'inline'
-      }
-    ],
+    output: {
+      file: 'static-docs/demo/js/grapholscape.js',
+      format: 'iife',
+      name,
+      sourcemap: 'inline'
+    },
     plugins: [
       nodeResolve(),
       replace(envVariables),
@@ -94,13 +86,7 @@ const configs = [
         sourcemap: false
       },
       {
-        file: 'docs/static/demo/js/grapholscape.js',
-        format: 'iife',
-        name,
-        sourcemap: false
-      },
-      {
-        file: 'app/graphol/grapholscape.js',
+        file: 'static-docs/demo/js/grapholscape.js',
         format: 'iife',
         name,
         sourcemap: false
