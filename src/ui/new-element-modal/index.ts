@@ -96,13 +96,24 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   addObjectPropertyBtn.onclick = () => {
 
     let myCy = grapholscape.renderer.cy as any
+    myCy.on('mouseover', `node[type = "${GrapholTypesEnum.CLASS}"]`, (event) => {
+      if(event.cy.container()) {
+        event.cy.container().style.cursor = "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAgklEQVR4nO2TwQnAIAxF35LFg13AHQq6T8dxkPauYA+NIOKt8VDwgaA5vB+CgcXLAdyAYQIBKHIysM+QJ+Bs7ka7cye1GnJpygsQJSTJ+9CQJ5HGLixoyY3UnLY8A1ZqWzMWv+R2jeX/v4VmYeoSmUb+aYn6APXOK2VwPIpMlS8Y8QBWK2Wx+gsuywAAAABJRU5ErkJggg=='), auto";
+      }
+    })
     let edgehandles = myCy.edgehandles(edgeHandlesDefaults)
     edgehandles.enableDrawMode()
+    
 
     myCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge)=> {
       grapholscape.uiContainer?.appendChild(newElementComponent)
       initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('id'), targetNode.data('id'))
       edgehandles.disableDrawMode()
+      myCy.on('mouseover', (event) => {
+        if(event.cy.container()) {
+          event.cy.container().style.cursor = 'pointer';
+        }
+      })
     })
     
   }
