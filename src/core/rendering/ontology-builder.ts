@@ -39,6 +39,7 @@ export default class OntologyBuilder {
             const instanceEdge = new GrapholEdge(`${sourceId}-${entityType}-${targetId}`, entityType);
             instanceEdge.sourceId = sourceId;
             instanceEdge.targetId = targetId;
+            instanceEdge.displayedName = entity.getDisplayedName(EntityNameType.LABEL);
             entity.addOccurrence(instanceEdge.id, diagram.id, RendererStatesEnum.FLOATY)
             this.grapholscape.renderer.diagram?.representations.get(RendererStatesEnum.FLOATY)?.addElement(instanceEdge, entity);
 
