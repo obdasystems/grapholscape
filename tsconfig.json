@@ -25,7 +25,7 @@
     "out": "docs",
     "hideGenerator": true,
     "name": "Grapholscape",
-    "favicon": "static-docs/assets/img/icon.png",
+    "favicon": "media/img/icon.png",
     "intentionallyNotExported": [
       "Constructor",
       "DisplayedNamesManager",
@@ -35,7 +35,7 @@
     "excludeInternal": true,
     "excludeExternals": true,
     "pluginPages": {
-      "source": "static-docs/pages",
+      "source": "tutorials",
       "pages": [
         {
           "title": "Getting Started",
@@ -47,5 +47,6 @@
         },
       ],
     },
+    "media": "media",
   }
 }

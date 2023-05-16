@@ -1,6 +1,6 @@
 <h1 align="center">
   <a href="https://obdasystems.github.io/grapholscape/">
-    <img height="150" src="static-docs/assets/img/icon.png?raw=true" alt="Grapholscape logo" title="Grapholscape" />
+    <img height="150" src="media/img/icon.png?raw=true" alt="Grapholscape logo" title="Grapholscape" />
   </a>
   <br>
   Grapholscape
@@ -25,7 +25,7 @@
 </h3>
 
 <a align="center" href="https://obdasystems.github.io/grapholscape/demo/">
-  <img src="static-docs/assets/img/demo.gif?raw=true" />
+  <img src="media/img/demo.gif?raw=true" />
 </a>
 
 ## Features

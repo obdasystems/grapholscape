@@ -5,6 +5,6 @@ dists/**
 coverage/**
 .*/
 .size-snapshot.json
-static-docs/demo/js/grapholscape.js
+demo/js/grapholscape.js
 temp/**
 docs/**

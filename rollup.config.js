@@ -59,7 +59,7 @@ const configs = [
   { // development
     input,
     output: {
-      file: 'static-docs/demo/js/grapholscape.js',
+      file: 'demo/js/grapholscape.js',
       format: 'iife',
       name,
       sourcemap: 'inline'
@@ -86,7 +86,7 @@ const configs = [
         sourcemap: false
       },
       {
-        file: 'static-docs/demo/js/grapholscape.js',
+        file: 'demo/js/grapholscape.js',
         format: 'iife',
         name,
         sourcemap: false

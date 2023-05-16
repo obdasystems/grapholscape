@@ -1,6 +1,6 @@
 {
   "name": "grapholscape",
-  "version": "3.2.3",
+  "version": "3.2.2",
   "description": "ontology visualization",
   "module": "dist/grapholscape.esm.js",
   "main": "dist/grapholscape.esm.js",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "start": "run-p serve watch",
-    "serve": "ws -o -d static-docs/demo",
+    "serve": "ws -o -d demo",
     "watch": "rollup -c -w",
     "build": "run-p gen-types build:* && run-s clean:types",
     "build:rollup": "cross-env NODE_ENV=production VERSION=$npm_package_version rollup -c",
@@ -26,7 +26,7 @@
     "clean:types": "rimraf ./temp",
     "doc": "run-s doc:*",
     "doc:typedoc": "typedoc",
-    "doc:copy-demo-in-doc": "cpy . ../../docs/demo --cwd=static-docs/demo",
+    "doc:copy-demo-in-doc": "cross-env cpy . ../docs/v$npm_package_version/demo --cwd=demo",
     "test": "jest",
     "gen-types": "run-s clean:types gen-types:tsc",
     "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
