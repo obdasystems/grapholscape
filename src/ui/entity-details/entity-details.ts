@@ -12,6 +12,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   title = 'Entity Details'
   grapholEntity: GrapholEntity
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
+  showOccurrences: boolean = true
   language: string
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
   onWikiLinkClick: (iri: string) => void
@@ -22,6 +23,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     return {
       grapholEntity: { type: Object, attribute: false },
       occurrences: { type: Object, attribute: false },
+      showOccurrences: { type: Boolean },
       language: { type: String, attribute: false },
       _isPanelClosed: { type: Boolean, attribute: false },
       incrementalSection: {type: Object, attribute: false }
@@ -150,7 +152,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
           ${annotationsTemplate(this.grapholEntity.getAnnotations())}
           
-          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null }
+          ${this.showOccurrences && this.occurrences.size > 0 ? this.occurrencesTemplate() : null }
 
           ${this.grapholEntity.getComments().length > 0
             ? html`

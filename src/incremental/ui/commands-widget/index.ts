@@ -1,9 +1,9 @@
 import { ClassInstanceEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
 import { counter, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
-import * as IncrementalCommands from "./commands";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
+import * as IncrementalCommands from "./commands";
 
 export function CommandsWidgetFactory(ic: IncrementalController) {
   const commandsWidget = new GscapeContextMenu()
@@ -11,7 +11,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
   ic.grapholscape.on(LifecycleEvent.ContextClick, event => {
     const commands: Command[] = []
 
-    if (event.target === ic.grapholscape.renderer.cy || !event.target.data().iri)
+    if (
+      event.target === ic.grapholscape.renderer.cy ||
+      !event.target.data().iri ||
+      ic.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL
+    )
       return
 
     const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri)
@@ -128,17 +132,17 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
           }
         })
       }
-      
+
     }
 
     if (!entity.is(GrapholTypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
       commands.push({
         content: 'Data Lineage',
         icon: sankey,
-        select: () => ic.onShowDataLineage(entity.iri.fullIri) ,
+        select: () => ic.onShowDataLineage(entity.iri.fullIri),
       })
     }
-    
+
     commands.push(
       IncrementalCommands.remove(() => {
         if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
@@ -160,7 +164,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
           commandsWidget.attachTo(htmlNodeReference, commands)
         }
       }
-      
+
     } catch (e) { console.error(e) }
   })
 }
