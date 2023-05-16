@@ -5357,7 +5357,7 @@ function getEntityOccurrencesTemplate(occurrences, onNodeNavigation) {
     return y `
   ${Array.from(occurrences).map(([diagram, occurrencesIds]) => {
         return y `
-      <div diagram-id="${diagram.id}">
+      <div diagram-id="${diagram.id}" style="display: flex; align-items: center; gap: 2px; flex-wrap: wrap;">
         <span class="diagram-name">${diagram.name}</span>
         ${occurrencesIds.map(occurrenceId => y `
           <gscape-button
@@ -7719,7 +7719,10 @@ function init$7 (diagramSelectorComponent, grapholscape) {
         diagramSelectorComponent.currentDiagramId = grapholscape.diagramId;
     }
     diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram);
-    grapholscape.on(LifecycleEvent.DiagramChange, diagram => diagramSelectorComponent.currentDiagramId = diagram.id);
+    grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
+        if (diagramSelectorComponent.diagrams.includes(diagram))
+            diagramSelectorComponent.currentDiagramId = diagram.id;
+    });
 }
 
 /**
@@ -7831,12 +7834,14 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.title = 'Entity Details';
+        this.showOccurrences = true;
         this.onNodeNavigation = () => { };
     }
     static get properties() {
         return {
             grapholEntity: { type: Object, attribute: false },
             occurrences: { type: Object, attribute: false },
+            showOccurrences: { type: Boolean },
             language: { type: String, attribute: false },
             _isPanelClosed: { type: Boolean, attribute: false },
             incrementalSection: { type: Object, attribute: false }
@@ -7874,7 +7879,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
 
           ${annotationsTemplate(this.grapholEntity.getAnnotations())}
           
-          ${!this.incrementalSection && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
+          ${this.showOccurrences && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
 
           ${this.grapholEntity.getComments().length > 0
             ? y `
@@ -8071,8 +8076,9 @@ function init$6 (entityDetailsComponent, grapholscape) {
         entityDetailsComponent.language = language;
     });
     grapholscape.on(LifecycleEvent.RendererChange, _ => {
-        if (entityDetailsComponent.grapholEntity)
+        if (entityDetailsComponent.grapholEntity && grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
             entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape);
+        entityDetailsComponent.showOccurrences = grapholscape.renderState !== RendererStatesEnum.INCREMENTAL;
     });
     function setGrapholEntity(entity) {
         entityDetailsComponent.grapholEntity = entity;
@@ -9565,7 +9571,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.2.4"}</span>
+            <span>${"3.2.5"}</span>
           </div>
         </div>
       </div>
@@ -13568,12 +13574,15 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
         this.requestUpdate();
     }
     clear() {
+        var _a, _b;
         this.instances = new Map();
         this.numberOfPagesShown = 1;
         this.numberOfInstancesReceived = 0;
         this.areInstancesLoading = false;
         this.propertiesFilterList = [];
+        (_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.clear();
         this.classTypeFilterList = [];
+        (_b = this.classTypeFilterSelect) === null || _b === void 0 ? void 0 : _b.clear();
         this.referenceEntity = undefined;
         this.referencePropertyEntity = undefined;
         this.popperRef = undefined;
@@ -13836,7 +13845,9 @@ function CommandsWidgetFactory(ic) {
     ic.grapholscape.on(LifecycleEvent.ContextClick, event => {
         var _a, _b;
         const commands = [];
-        if (event.target === ic.grapholscape.renderer.cy || !event.target.data().iri)
+        if (event.target === ic.grapholscape.renderer.cy ||
+            !event.target.data().iri ||
+            ic.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
             return;
         const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri);
         if (!entity)
@@ -15135,7 +15146,7 @@ class IncrementalController {
 
 /** @internal */
 function initIncremental(grapholscape) {
-    var _a;
+    var _a, _b;
     let incrementalController = new IncrementalController(grapholscape);
     grapholscape.incremental = incrementalController;
     // Create and initialize UI components
@@ -15163,7 +15174,8 @@ function initIncremental(grapholscape) {
         entitySelector.closePanel();
     });
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-        onIncrementalStartup(grapholscape, incrementalController);
+        grapholscape.renderer.unselect();
+        manageWidgetsOnActivation(grapholscape.widgets, (_b = grapholscape.renderer.cy) === null || _b === void 0 ? void 0 : _b.elements().empty(), incrementalController.endpointController !== undefined);
     }
     else {
         manageWidgetsOnDeactivation(grapholscape.widgets);
@@ -15207,13 +15219,13 @@ function initIncremental(grapholscape) {
 function onIncrementalStartup(grapholscape, incrementalController) {
     var _a;
     grapholscape.renderer.unselect();
-    if (!incrementalController) {
-        incrementalController = new IncrementalController(grapholscape);
-    }
+    // if (!incrementalController) {
+    //   incrementalController = new IncrementalController(grapholscape)
+    // }
     manageWidgetsOnActivation(grapholscape.widgets, (_a = grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.elements().empty(), incrementalController.endpointController !== undefined);
-    if (grapholscape.renderer.diagram)
-        setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology);
-    incrementalController.setIncrementalEventHandlers();
+    // if (grapholscape.renderer.diagram)
+    //   setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+    // incrementalController.setIncrementalEventHandlers()
 }
 function manageWidgetsOnActivation(widgets, isCanvasEmpty = false, isReasonerAvailable) {
     const filtersWidget = widgets.get(WidgetEnum.FILTERS);
@@ -15221,6 +15233,8 @@ function manageWidgetsOnActivation(widgets, isCanvasEmpty = false, isReasonerAva
     const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR);
     const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS);
     const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES);
+    const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS);
+    entityDetails.showOccurrences = false;
     classInstanceDetails === null || classInstanceDetails === void 0 ? void 0 : classInstanceDetails.enable();
     diagramSelector === null || diagramSelector === void 0 ? void 0 : diagramSelector.disable();
     entitySelector === null || entitySelector === void 0 ? void 0 : entitySelector.show();
@@ -15238,6 +15252,8 @@ function manageWidgetsOnDeactivation(widgets) {
     const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR);
     const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS);
     const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES);
+    const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS);
+    entityDetails.showOccurrences = true;
     classInstanceDetails === null || classInstanceDetails === void 0 ? void 0 : classInstanceDetails.disable();
     vkgPreferences === null || vkgPreferences === void 0 ? void 0 : vkgPreferences.disable();
     diagramSelector === null || diagramSelector === void 0 ? void 0 : diagramSelector.enable();
