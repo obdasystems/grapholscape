@@ -441,7 +441,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.numberOfInstancesReceived = 0
     this.areInstancesLoading = false
     this.propertiesFilterList = []
+    this.propertyFilterSelect?.clear()
     this.classTypeFilterList = []
+    this.classTypeFilterSelect?.clear()
     this.referenceEntity = undefined
     this.referencePropertyEntity = undefined
     this.popperRef = undefined
