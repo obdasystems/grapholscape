@@ -43,6 +43,7 @@ export default class IncrementalController {
   constructor(
     public grapholscape: Grapholscape
   ) {
+    this.setIncrementalEventHandlers()
     this.diagramBuilder = new DiagramBuilder(this.diagram)
     this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
