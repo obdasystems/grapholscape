@@ -111,5 +111,10 @@ Run `npm run <target>` in the console. The main targets are:
 4. Publish to npm: `npm publish`
 5. Create a release on Github from the latest tag
 
+## Release a snapshot test version
+1. Use `npm run snapshot`
+2. Publish using *snapshot* tag `npm publish --tag snapshot`
+> To install latest snapshot version use `npm i grapholscape@snapshot`
+
 ## Credits
 Based on [cytoscape.js](http://js.cytoscape.org).

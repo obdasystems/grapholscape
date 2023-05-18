@@ -9571,7 +9571,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.2.5"}</span>
+            <span>${"3.2.6-snap.1"}</span>
           </div>
         </div>
       </div>
@@ -14528,6 +14528,7 @@ class IncrementalController {
         this.runLayout = () => { var _a; return (_a = this.incrementalRenderer) === null || _a === void 0 ? void 0 : _a.runLayout(); };
         this.pinNode = (node) => { var _a; return (_a = this.incrementalRenderer) === null || _a === void 0 ? void 0 : _a.pinNode(node); };
         this.unpinNode = (node) => { var _a; return (_a = this.incrementalRenderer) === null || _a === void 0 ? void 0 : _a.unpinNode(node); };
+        this.setIncrementalEventHandlers();
         this.diagramBuilder = new DiagramBuilder(this.diagram);
         this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder);
         this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology);

@@ -1,6 +1,6 @@
 {
   "name": "grapholscape",
-  "version": "3.2.5",
+  "version": "3.2.6-snap.1",
   "description": "ontology visualization",
   "module": "dist/grapholscape.esm.js",
   "main": "dist/grapholscape.esm.js",
@@ -35,7 +35,8 @@
     "git-add-all": "git add -A",
     "apigen": "run-s apigen:*",
     "apigen:clean": "rimraf ./src/incremental/api/swagger",
-    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json"
+    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json",
+    "snapshot": "npm version prerelease --no-git-tag --preid=snap"
   },
   "repository": {
     "type": "git",
