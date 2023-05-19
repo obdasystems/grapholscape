@@ -163,6 +163,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                     }
                   })}
                   .placeholder=${ {text: 'Filter by type'} }
+                  ?multiple-selection=${true}
                   ?clearable=${true}
                   @change=${this.handleClassTypeFilterChange}
                 >

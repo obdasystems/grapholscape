@@ -152,19 +152,41 @@ export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyI
  * @returns 
  */
 export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassesIri?: string[], isDirect = true, includeLabels = true, maxResults?: number) {
-  return `
-  SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
-  WHERE {
-    ${!isDirect
-      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
-    }
-    
-    ${rangeTypeClassesIri && rangeTypeClassesIri.length === 1 ? `?y a <${encodeURI(rangeTypeClassesIri[0])}>.` : ''}
-    ${includeLabels ? '?y rdfs:label ?ly' : ''}
-    ${rangeTypeClassesIri && rangeTypeClassesIri.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIri) : ''}
+  
+  let whereClausesInUnion: string[]
+
+  if (rangeTypeClassesIri) {
+    whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ${includeLabels ? '?y rdfs:label ?ly' : ''}
+    `)
+
+
+  } else {
+    // No rangeClassType
+    whereClausesInUnion = [`
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ${includeLabels ? '?y rdfs:label ?ly' : ''}
+    `]
   }
-  ${getLimit(maxResults)}
+
+  return `
+    SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
+    WHERE {
+      ${whereClausesInUnion.length > 1 ? '{' : '' }
+      ${whereClausesInUnion.join('\n } UNION { \n')}
+      ${whereClausesInUnion.length > 1 ? '}' : '' }
+    }
+    ${getLimit(maxResults)}
   `
 }
 
@@ -182,18 +204,39 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
  * @returns 
  */
 export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassesIri?: string[], isDirect = true, maxResults?: number) {
+  
+  let whereClausesInUnion: string[]
+
+  if (rangeTypeClassesIri) {
+    whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y rdfs:label ?ly
+      ${getSearchFilters('?ly', searchText)}
+    `)
+  } else {
+    // No rangeClassType
+    whereClausesInUnion = [`
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ?y rdfs:label ?ly
+      ${getSearchFilters('?ly', searchText)}
+    `]
+  }
+  
   return `
   SELECT DISTINCT ?y ?ly
   WHERE {
-    ${!isDirect
-      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
-    }
-    
-    ${rangeTypeClassesIri && rangeTypeClassesIri.length === 1 ? `?y a <${encodeURI(rangeTypeClassesIri[0])}>.` : ''}
-    ?y rdfs:label ?ly.
-    ${getSearchFilters('?ly', searchText)}
-    ${rangeTypeClassesIri && rangeTypeClassesIri.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIri) : ''}
+    ${whereClausesInUnion.length > 1 ? '{' : '' }
+    ${whereClausesInUnion.join('\n } UNION { \n')}
+    ${whereClausesInUnion.length > 1 ? '}' : '' }
   }
   ${getLimit(maxResults)}
   `
@@ -213,17 +256,36 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
  * @returns 
  */
 export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassesIri?: string[], isDirect = true, maxResults?: number) {
+
+  let whereClausesInUnion: string[]
+
+  if (rangeTypeClassesIri) {
+    whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ${getSearchFilters('?y', searchText)}
+    `)
+  } else {
+    // No rangeClassType
+    whereClausesInUnion = [`
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+      ${getSearchFilters('?y', searchText)}
+    `]
+  }
+
   return `
   SELECT DISTINCT ?y
   WHERE {
-    ${!isDirect
-      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
-    }
-    
-    ${rangeTypeClassesIri && rangeTypeClassesIri.length === 1 ? `?y a <${encodeURI(rangeTypeClassesIri[0])}>.` : ''}
-    ${getSearchFilters('?y', searchText)}
-    ${rangeTypeClassesIri && rangeTypeClassesIri.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIri) : ''}
+    ${whereClausesInUnion.length > 1 ? '{' : '' }
+    ${whereClausesInUnion.join('\n } UNION { \n')}
+    ${whereClausesInUnion.length > 1 ? '}' : '' }
   }
   ${getLimit(maxResults)}
   `
@@ -237,7 +299,7 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
  * 
  * @param instanceIRI starting instance
  * @param objectPropertyIRI object properties connecting the instances
- * @param rangeTypeClassesIRI the type of instances to search
+ * @param rangeTypeClassesIri the type of instances to search
  * @param dataPropertyFilterIRI the data property on which the filter must be done
  * @param searchText the value to search in the data property range (attribute value)
  * @param isDirect whether the object property is direct or inverse default: true (direct)
@@ -248,26 +310,48 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
 export function getInstancesThroughOPByDP(
   instanceIRI: string,
   objectPropertyIRI: string,
-  rangeTypeClassesIRI: string[],
+  rangeTypeClassesIri: string[],
   dataPropertyFilterIRI: string,
   searchText: string,
   isDirect = true,
   includeLabels = true,
   maxResults?: number) {
 
+  
+  let whereClausesInUnion: string[]
+
+  if (rangeTypeClassesIri) {
+    whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>;
+        ${includeLabels ? 'rdfs:label ?ly;' : ''}
+        <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+      ${getSearchFilters('?dp', searchText)}
+    `)
+  } else {
+    // No rangeClassType
+    whereClausesInUnion = [`
+      ${!isDirect
+        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+      }
+
+      ?y ${includeLabels ? 'rdfs:label ?ly;' : ''}
+         <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+      ${getSearchFilters('?dp', searchText)}
+    `]
+  }
+
   return `
   SELECT DISTINCT ${includeLabels ? '?y ?ly ?dp' : '?y ?dp'}
   WHERE {
-    ${!isDirect
-      ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-      : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
-    }
-    
-    ?y ${rangeTypeClassesIRI.length === 1 ? `a <${encodeURI(rangeTypeClassesIRI[0])}>;` : ''}
-       ${includeLabels ? 'rdfs:label ?ly;' : ''}
-       <${encodeURI(dataPropertyFilterIRI)}> ?dp.
-    ${getSearchFilters('?dp', searchText)}
-    ${rangeTypeClassesIRI.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIRI) : ''
+    ${whereClausesInUnion.length > 1 ? '{' : '' }
+    ${whereClausesInUnion.join('\n } UNION { \n')}
+    ${whereClausesInUnion.length > 1 ? '}' : '' }
   }
   ${getLimit(maxResults)}
   `
