@@ -134,17 +134,12 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     const label = options.map(o => o.text).join(' - ')
 
     return html`
-      <gscape-button id="select-btn" @click="${this.handleClick}" label=${label} title=${label} size="${this.size}">
+      <gscape-button id="select-btn" @click="${this.togglePanel}" label=${label} title=${label} size="${this.size}">
         <!-- Only set icons if selected options have all the same icon -->
         ${icon && options.every(o => !o.leadingIcon || o.leadingIcon === icon) ? getIconSlot('icon', icon) : null}
         ${getIconSlot('trailing-icon', triangle_down)}
       </gscape-button>
     `
-  }
-
-  private handleClick() {
-    console.log(document.activeElement)
-    this.togglePanel()
   }
 
   clear() {
