@@ -1,5 +1,5 @@
 import { ClassInstanceEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
-import { counter, sankey } from "../../../ui/assets";
+import { classIcon, counter, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
@@ -21,7 +21,23 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri)
     if (!entity) return
 
-    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && !(entity as ClassInstanceEntity).isRDFTypeUnknown) {
+    if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
+        event.target.source().data().type === GrapholTypesEnum.CLASS_INSTANCE &&
+        event.target.target().data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+      commands.push({
+        content: 'Show Instance Types',
+        icon: classIcon,
+        select: () => {
+          ic.showObjectPropertyTypes(
+            entity.iri.fullIri,
+            event.target.source().id(),
+            event.target.target().id(),
+          )
+        },
+      })
+    }
+
+    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE)) {
 
       commands.push(IncrementalCommands.performInstanceChecking(async () => {
         const allClassesIris = ic
@@ -44,7 +60,9 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
         showParentClass(ic, entity as ClassInstanceEntity)
       }))
 
-      commands.push(IncrementalCommands.showParentClass(() => showParentClass(ic, entity as ClassInstanceEntity)))
+      if (!(entity as ClassInstanceEntity).isRDFTypeUnknown) {
+        commands.push(IncrementalCommands.showParentClass(() => showParentClass(ic, entity as ClassInstanceEntity)))
+      }
     }
 
     const classIri = entity.iri.fullIri

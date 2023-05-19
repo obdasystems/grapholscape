@@ -372,6 +372,41 @@ export default class IncrementalController {
   }
 
   /**
+   * Shows the domain/range types of an extensional object property
+   * hence only if object property connects two instances, shows their rdf:types
+   * and add the intensional object property between them.
+   * @param objectPropertyIri
+   * @param sourceClassInstanceIri 
+   * @param targetClassInstanceIri 
+   */
+  showObjectPropertyTypes(objectPropertyIri: string, sourceClassInstanceIri: string, targetClassInstanceIri: string) {
+    const sourceClassInstanceEntity = this.classInstanceEntities.get(sourceClassInstanceIri)
+    const targetClassInstanceEntity = this.classInstanceEntities.get(targetClassInstanceIri)
+
+    if (sourceClassInstanceEntity && targetClassInstanceEntity) {
+      sourceClassInstanceEntity.parentClassIris.forEach(sourceParentClassIri => {
+        targetClassInstanceEntity.parentClassIris.forEach(targetParentClassIri => {
+          this.addIntensionalObjectProperty(
+            objectPropertyIri,
+            sourceParentClassIri.fullIri,
+            targetParentClassIri.fullIri,
+          )
+          this.addEdge(
+            sourceClassInstanceIri,
+            sourceParentClassIri.fullIri,
+            GrapholTypesEnum.INSTANCE_OF
+          )
+          this.addEdge(
+            targetClassInstanceIri,
+            targetParentClassIri.fullIri,
+            GrapholTypesEnum.INSTANCE_OF
+          )
+        })
+      })
+    }
+  }
+
+  /**
    * Show hierarchies for which the specified class is a subclass.
    * @param classIri 
    */
