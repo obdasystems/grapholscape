@@ -30,7 +30,7 @@ export interface IVirtualKnowledgeGraphApi {
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassIri?: string, dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
+  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
@@ -234,7 +234,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     isDirect: boolean,
     includeLabels: boolean,
     onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void,
-    rangeClassIri?: string,
+    rangeClassesIri?: string[],
     dataPropertyIriFilter?: string,
     textSearch?: string,
     onStop?: (() => void)
@@ -244,11 +244,11 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     if (textSearch) {
       querySemantics = QuerySemantics.FULL_SPARQL
-      if (rangeClassIri && dataPropertyIriFilter) {
+      if (rangeClassesIri && dataPropertyIriFilter) {
         queryCode = QueriesTemplates.getInstancesThroughOPByDP(
           instanceIri,
           objectPropertyIri,
-          rangeClassIri,
+          rangeClassesIri,
           dataPropertyIriFilter,
           textSearch,
           isDirect,
@@ -256,19 +256,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
         )
       } else {
         if (includeLabels)
-          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassIri, isDirect)
+          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect)
         else
-          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassIri, isDirect)
+          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect)
       }
 
     } else {
       querySemantics = QuerySemantics.CQ
-      queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassIri, isDirect, includeLabels)
+      queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels)
     }
 
-
-    // const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, dataPropertyIriFilter, textSearch)
-    // const querySemantics = textSearch ? QuerySemantics.FULL_SPARQL : QuerySemantics.CQ
     const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, querySemantics)
     queryPoller.onNewResults = (result) => {
       onNewResults(

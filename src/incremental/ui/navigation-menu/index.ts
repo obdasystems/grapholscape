@@ -75,7 +75,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
           e.detail.objectPropertyIri,
           e.detail.direct,
           true,
-          e.detail.rangeClassIri
+          e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
         )
 
         if (instancesExplorer.requestId) {
@@ -91,7 +91,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
                   e.detail.objectPropertyIri,
                   e.detail.direct,
                   shouldAskForLabels,
-                  e.detail.rangeClassIri
+                  e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
                 )
               }
               

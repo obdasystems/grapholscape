@@ -302,14 +302,14 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       }
     }) as InstanceFilterEvent
 
-    if (this.propertyFilterSelect?.selectedOptionId && 
-      this.propertyFilterSelect.selectedOptionId !== 'id' &&
-      this.propertyFilterSelect.selectedOptionId !== 'label' &&
+    if (this.propertyFilterSelect?.selectedOptionsId[0] && 
+      this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
+      this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
       event.detail.filterText) {
-      event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionId
+      event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionsId[0]
       const property = this.propertiesFilterList.find(p => {
-        return this.propertyFilterSelect?.selectedOptionId &&
-          p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionId)
+        return this.propertyFilterSelect?.selectedOptionsId &&
+          p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionsId[0])
       })
 
       if (property) {
@@ -323,15 +323,15 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
     // if only one class type, then use it, there is not select element
     if (this.classTypeFilterList?.length === 1) {
-      event.detail.filterByType = this.classTypeFilterList[0].entityViewData.value.iri.fullIri
-    } else if (this.classTypeFilterSelect) { // otherwise check selected option
-      event.detail.filterByType = this.classTypeFilterSelect.selectedOptionId
+      event.detail.filterByType = [this.classTypeFilterList[0].entityViewData.value.iri.fullIri]
+    } else if (this.classTypeFilterSelect && this.classTypeFilterSelect.selectedOptionsId.size > 0) { // otherwise check selected option
+      event.detail.filterByType = Array.from(this.classTypeFilterSelect.selectedOptionsId)
     }
 
     if (this.shouldAskForLabels !== undefined)
-      event.detail.shouldAskForLabels = this.shouldAskForLabels && this.propertyFilterSelect?.selectedOptionId !== 'id'
+      event.detail.shouldAskForLabels = this.shouldAskForLabels && this.propertyFilterSelect?.selectedOptionsId[0] !== 'id'
 
-    if (this.propertyFilterSelect?.selectedOptionId === 'id') {
+    if (this.propertyFilterSelect?.selectedOptionsId[0] === 'id') {
       event.detail.shouldAskForLabels = false
     }
 
@@ -360,7 +360,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   }
 
   private handleClassTypeFilterChange(e: Event) {
-    if (!this.classTypeFilterSelect?.selectedOptionId) {
+    if (!this.classTypeFilterSelect?.selectedOptionsId) {
       this.propertiesFilterList = []
     }
 
@@ -382,8 +382,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
           if (this.classTypeFilterList?.length === 1) { 
             parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class
-          } else if (this.classTypeFilterSelect?.selectedOptionId) {
-            parentClassIris = this.classTypeFilterSelect.selectedOptionId // otherwise take the selected one
+          } else if (this.classTypeFilterSelect?.selectedOptionsId) {
+            parentClassIris = Array.from(this.classTypeFilterSelect.selectedOptionsId) // otherwise take the selected one
           } else if (this.classTypeFilterList) {
             parentClassIris = this.classTypeFilterList.map(e => e.entityViewData.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
           } else
@@ -393,11 +393,11 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         }
 
         let filterByPropertyIri: string | undefined
-        if (this.propertyFilterSelect?.selectedOptionId && 
-          this.propertyFilterSelect.selectedOptionId !== 'id' &&
-          this.propertyFilterSelect.selectedOptionId !== 'label' &&
+        if (this.propertyFilterSelect?.selectedOptionsId[0] && 
+          this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
+          this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
           this.instancesSearchInput?.value) {
-            filterByPropertyIri = this.propertyFilterSelect.selectedOptionId
+            filterByPropertyIri = this.propertyFilterSelect.selectedOptionsId[0]
         }
 
         this.requestUpdate()
@@ -513,7 +513,7 @@ export type InstanceFilterEvent = CustomEvent<{
   filterByProperty: string | undefined,
   propertyType: GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY,
   direct: boolean,
-  filterByType: string | undefined,
+  filterByType: string[] | undefined,
   shouldAskForLabels: boolean,
 }>
 

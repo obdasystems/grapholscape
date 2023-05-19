@@ -145,13 +145,13 @@ export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyI
  * Get instances of a given type participating to an object property with a given instance
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
- * @param rangeTypeClassIri the type of instances to retrieve 
+ * @param rangeTypeClassesIri the type of instances to retrieve 
  * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param includeLabels retrieve labels or not, default: true
  * @param maxResults default: 1000
  * @returns 
  */
-export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassIri?: string, isDirect = true, includeLabels = true, maxResults?: number) {
+export function getInstancesThroughObjectProperty(instanceIRI: string, objectPropertyIRI: string, rangeTypeClassesIri?: string[], isDirect = true, includeLabels = true, maxResults?: number) {
   return `
   SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
   WHERE {
@@ -160,8 +160,9 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
     
-    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
+    ${rangeTypeClassesIri && rangeTypeClassesIri.length === 1 ? `?y a <${encodeURI(rangeTypeClassesIri[0])}>.` : ''}
     ${includeLabels ? '?y rdfs:label ?ly' : ''}
+    ${rangeTypeClassesIri && rangeTypeClassesIri.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIri) : ''}
   }
   ${getLimit(maxResults)}
   `
@@ -175,12 +176,12 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
  * @param searchText the text to search in the label of results
- * @param rangeTypeClassIri the type of instances to retrieve
+ * @param rangeTypeClassesIri the type of instances to retrieve
  * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param maxResults default: 1000
  * @returns 
  */
-export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isDirect = true, maxResults?: number) {
+export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassesIri?: string[], isDirect = true, maxResults?: number) {
   return `
   SELECT DISTINCT ?y ?ly
   WHERE {
@@ -189,9 +190,10 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
     
-    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
+    ${rangeTypeClassesIri && rangeTypeClassesIri.length === 1 ? `?y a <${encodeURI(rangeTypeClassesIri[0])}>.` : ''}
     ?y rdfs:label ?ly.
     ${getSearchFilters('?ly', searchText)}
+    ${rangeTypeClassesIri && rangeTypeClassesIri.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIri) : ''}
   }
   ${getLimit(maxResults)}
   `
@@ -205,12 +207,12 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
  * @param searchText the text to search in the IRIs of results
- * @param rangeTypeClassIri the type of instances to retrieve
+ * @param rangeTypeClassesIri the type of instances to retrieve
  * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param maxResults default: 1000
  * @returns 
  */
-export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassIri?: string, isDirect = true, maxResults?: number) {
+export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, objectPropertyIRI: string, searchText: string, rangeTypeClassesIri?: string[], isDirect = true, maxResults?: number) {
   return `
   SELECT DISTINCT ?y
   WHERE {
@@ -219,8 +221,9 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
     
-    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
+    ${rangeTypeClassesIri && rangeTypeClassesIri.length === 1 ? `?y a <${encodeURI(rangeTypeClassesIri[0])}>.` : ''}
     ${getSearchFilters('?y', searchText)}
+    ${rangeTypeClassesIri && rangeTypeClassesIri.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIri) : ''}
   }
   ${getLimit(maxResults)}
   `
@@ -234,7 +237,7 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
  * 
  * @param instanceIRI starting instance
  * @param objectPropertyIRI object properties connecting the instances
- * @param rangeTypeClassIRI the type of instances to search
+ * @param rangeTypeClassesIRI the type of instances to search
  * @param dataPropertyFilterIRI the data property on which the filter must be done
  * @param searchText the value to search in the data property range (attribute value)
  * @param isDirect whether the object property is direct or inverse default: true (direct)
@@ -245,7 +248,7 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
 export function getInstancesThroughOPByDP(
   instanceIRI: string,
   objectPropertyIRI: string,
-  rangeTypeClassIRI: string,
+  rangeTypeClassesIRI: string[],
   dataPropertyFilterIRI: string,
   searchText: string,
   isDirect = true,
@@ -260,10 +263,11 @@ export function getInstancesThroughOPByDP(
       : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
     }
     
-    ?y a <${encodeURI(rangeTypeClassIRI)}>;
+    ?y ${rangeTypeClassesIRI.length === 1 ? `a <${encodeURI(rangeTypeClassesIRI[0])}>;` : ''}
        ${includeLabels ? 'rdfs:label ?ly;' : ''}
        <${encodeURI(dataPropertyFilterIRI)}> ?dp.
     ${getSearchFilters('?dp', searchText)}
+    ${rangeTypeClassesIRI.length > 1 ? getTypeListFilter('?y', rangeTypeClassesIRI) : ''
   }
   ${getLimit(maxResults)}
   `
@@ -291,4 +295,8 @@ export function getInstanceLabels(instanceIri: string) {
       <${encodeURI(instanceIri)}> rdfs:label ?l
     }
   `
+}
+
+function getTypeListFilter(variable: string, typesIRI: string[]) {
+  return `FILTER(${variable} IN (${typesIRI.map(r => `<${r}>`).join(', ')}) )`
 }

@@ -121,7 +121,7 @@ export default class EndpointController {
     objectPropertyIri: string,
     isDirect = true,
     includeLabels = true,
-    rangeClassIri?: string,
+    rangeClassIri?: string[],
     propertyIriFilter?: string,
     searchText?: string) {
 
