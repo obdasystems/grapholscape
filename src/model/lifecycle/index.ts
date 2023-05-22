@@ -1,3 +1,4 @@
+import { EventObject } from "cytoscape"
 import { Diagram, Filter } from ".."
 import { EntityNameType, Language } from "../../config"
 import GrapholEdge from "../graphol-elems/edge"
@@ -21,6 +22,7 @@ export enum LifecycleEvent {
   FilterRequest = 'filterRequest',
   UnfilterRequest = 'unfilterRequest',
   BackgroundClick = 'backgroundClick',
+  ContextClick = 'contextClick',
   EntityWikiLinkClick = 'entityWikiLinkClick',
 }
 
@@ -38,6 +40,7 @@ export interface IonEvent {
   (event: LifecycleEvent.FilterRequest, callback: (filter: Filter) => boolean): void
   (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void
   (event: LifecycleEvent.BackgroundClick, callback: () => void): void
+  (event: LifecycleEvent.ContextClick, callback: (eventObject: EventObject) => void): void
   (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void
 }
 
@@ -55,6 +58,7 @@ export default class Lifecycle {
   private filterRequest: ((filter: Filter) => boolean) = () => true
   private unfilterRequest: ((filter: Filter) => boolean) = () => true
   private backgroundClick: (() => void)[] = []
+  private contextClick: ((eventObject: EventObject) => void)[] = []
   public entityWikiLinkClick: ((iri: string) => void)[] = []
 
 
@@ -73,6 +77,7 @@ export default class Lifecycle {
   trigger(event: LifecycleEvent.FilterRequest, filter: Filter): boolean
   trigger(event: LifecycleEvent.UnfilterRequest, filter: Filter): boolean
   trigger(event: LifecycleEvent.BackgroundClick): void
+  trigger(event: LifecycleEvent.ContextClick, eventObject: EventObject): void
   trigger(event: LifecycleEvent.EntityWikiLinkClick, iri: string): void
   trigger(event: string, ...params: any): any {
 

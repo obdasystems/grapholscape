@@ -1,9 +1,10 @@
 import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model"
 import { WidgetEnum } from "../../../ui"
+import { ClassInstance } from "../../api/kg-api"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
 import onHideMenu from "../on-hide-menu"
-import GscapeInstanceExplorer, { InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
+import GscapeInstanceExplorer, { ClassInstanceViewData, InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
 
 export { default as GscapeInstanceExplorer } from './instance-explorer'
 
@@ -11,10 +12,19 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   const instancesExplorer = new GscapeInstanceExplorer()
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
-  incrementalController.on(IncrementalEvent.NewInstances, newInstances => {
-    instancesExplorer.addInstances(newInstances.map(i => i[0]))
-    const minNumberOfInstancesToAskMore = (incrementalController.endpointController?.limit || 10000) * instancesExplorer.numberOfPagesShown
-    instancesExplorer.canShowMore = instancesExplorer.numberOfInstancesReceived >= minNumberOfInstancesToAskMore
+  incrementalController.on(IncrementalEvent.NewInstances, (newInstances, numberResultsAvailable) => {
+    instancesExplorer.addInstances((newInstances as ClassInstanceViewData[][]).map(i => {
+      if (i[1]) {
+        i[0].searchMatch = i[1].label?.value
+      }
+
+      i[0].connectedInstance = i[1]
+
+      return i[0]
+    }))
+
+    if (!instancesExplorer.numberResultsAvailable && numberResultsAvailable)
+      instancesExplorer.numberResultsAvailable = numberResultsAvailable
   })
 
   incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)
@@ -30,6 +40,27 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
       incrementalController.addEdge(e.detail.instance.iri, parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
     })
+
+    if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {
+      incrementalController.addInstance(e.detail.instance.connectedInstance)
+      const isDirect = (await (incrementalController.endpointController?.highlightsManager?.objectProperties()))
+        ?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
+      
+      if (isDirect !== undefined) {
+        isDirect 
+          ? incrementalController.addExtensionalObjectProperty(
+              e.detail.filterByProperty,
+              e.detail.instance.iri,
+              e.detail.instance.connectedInstance.iri
+            )
+          : incrementalController.addExtensionalObjectProperty(
+              e.detail.filterByProperty,
+              e.detail.instance.connectedInstance.iri,
+              e.detail.instance.iri
+            )
+      }
+      
+    }
 
     if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
       const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
@@ -47,6 +78,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     incrementalController.endpointController?.stopRequests('instances')
     instancesExplorer.instances = new Map()
     instancesExplorer.numberOfInstancesReceived = 0
+    instancesExplorer.numberResultsAvailable = 0
     instancesExplorer.numberOfPagesShown = 1
     instancesExplorer.areInstancesLoading = true
 

@@ -14,7 +14,7 @@ import showMenu from "../show-menu";
 import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import NodeButton from "./node-button";
 
-export function NodeButtonsFactory(incrementalController: IncrementalController) {
+export function NodeButtonsFactory(ic: IncrementalController) {
 
   const instancesButton = new NodeButton(classInstanceIcon)
   instancesButton.title = 'Search instances'
@@ -27,23 +27,23 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
   nodeButtonsMap.set(GrapholTypesEnum.CLASS_INSTANCE, [objectPropertyButton])
 
 
-  instancesButton.onclick = (e) => handleInstancesButtonClick(e, incrementalController)
-  objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, incrementalController)
+  instancesButton.onclick = (e) => handleInstancesButtonClick(e, ic)
+  objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, ic)
 
-  if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
-    setHandlersOnIncrementalCytoscape(incrementalController.incrementalDiagram.representation.cy, nodeButtonsMap)
+  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && ic.diagram.representation) {
+    setHandlersOnIncrementalCytoscape(ic.diagram.representation.cy, nodeButtonsMap)
   }
 
-  incrementalController.grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
-    if (rendererState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
-      setHandlersOnIncrementalCytoscape(incrementalController.incrementalDiagram.representation.cy, nodeButtonsMap)
+  ic.grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
+    if (rendererState === RendererStatesEnum.INCREMENTAL && ic.diagram.representation) {
+      setHandlersOnIncrementalCytoscape(ic.diagram.representation.cy, nodeButtonsMap)
     }
   })
 
-  incrementalController.on(IncrementalEvent.Reset, () => {
-    if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && incrementalController.incrementalDiagram.representation) {
-      setHandlersOnIncrementalCytoscape(incrementalController.incrementalDiagram.representation.cy, nodeButtonsMap)
-      incrementalController
+  ic.on(IncrementalEvent.Reset, () => {
+    if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && ic.diagram.representation) {
+      setHandlersOnIncrementalCytoscape(ic.diagram.representation.cy, nodeButtonsMap)
+      ic
         .grapholscape
         .container
         .querySelectorAll('[data-tippy-root]') // take all the tippy widgets (loading badges basically)
@@ -51,43 +51,43 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
     }
   })
 
-  incrementalController.on(IncrementalEvent.EndpointChange, () => {
+  ic.on(IncrementalEvent.EndpointChange, () => {
     if (!nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.includes(instancesButton)) {
       nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(instancesButton)
     }
   })
 
 
-  incrementalController.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
-    const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
+  ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
+    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
     if (cyNode) {
       cyNode.addClass('unknown-parent-class')
       addBadge(cyNode, textSpinner(), 'loading-badge')
     }
   })
 
-  incrementalController.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
-    const cyNode = incrementalController.incrementalDiagram.representation?.cy.$id(instanceIri)
+  ic.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
+    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
     if (cyNode && cyNode.scratch('loading-badge')) {
       removeBadge(cyNode, 'loading-badge')
     }
   })
 
-  incrementalController.on(IncrementalEvent.CountStarted, classIri => {
-    const node = incrementalController.incrementalDiagram.representation?.cy.$id(classIri)
+  ic.on(IncrementalEvent.CountStarted, classIri => {
+    const node = ic.diagram.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
 
     removeBadge(node, 'instance-count')
     addBadge(node, textSpinner(), 'instance-count', 'bottom')
   })
 
-  incrementalController.on(IncrementalEvent.NewCountResult, (classIri, count) => {
-    const cyNode = incrementalController.grapholscape.renderer.cy?.$id(classIri)
+  ic.on(IncrementalEvent.NewCountResult, (classIri, count) => {
+    const cyNode = ic.grapholscape.renderer.cy?.$id(classIri)
     if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
       const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
       instanceCountBadge.contentType = 'template';
 
-      count = count || incrementalController.counts.get(classIri)
+      count = count || ic.counts.get(classIri)
       instanceCountBadge.content = count?.value !== undefined
         ? new Intl.NumberFormat().format(count.value)
         : 'n/a'
@@ -105,13 +105,13 @@ export function NodeButtonsFactory(incrementalController: IncrementalController)
 
       setTimeout(() => instanceCountBadge.hide(), 1000)
       cyNode.on('mouseover', () => {
-        if (incrementalController.countersEnabled)
+        if (ic.countersEnabled)
           instanceCountBadge.tippyWidget.show()
       })
       cyNode.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
 
       if (count && !count.materialized) // update only if it's a fresh value
-        incrementalController.counts.set(classIri, count)
+        ic.counts.set(classIri, count)
     }
   })
 }

@@ -1,6 +1,6 @@
 import { css, html, nothing } from 'lit'
-import { Annotation, AnnotationsKind, GrapholTypesEnum } from '../../model'
-import { annotationIcons, authorIcon, commentIcon, entityIcons, labelIcon } from '../assets/icons'
+import { Annotation, GrapholTypesEnum } from '../../model'
+import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
   name: string,
@@ -15,7 +15,7 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
   }
 
   return html`
-    <div class="item-with-iri-info ellipsed">
+    <div class="item-with-iri-info ellipsed rtl">
       <div 
         class="name ${onWikiLinkClick ? 'link' : null}" 
         title="${item.name}"

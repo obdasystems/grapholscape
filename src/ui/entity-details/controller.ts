@@ -1,5 +1,5 @@
 import Grapholscape from '../../core'
-import { GrapholEntity, LifecycleEvent } from '../../model'
+import { GrapholEntity, LifecycleEvent, RendererStatesEnum } from '../../model'
 import getEntityViewOccurrences from '../util/get-entity-view-occurrences'
 import GscapeEntityDetails from './entity-details'
 
@@ -30,8 +30,10 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   })
 
   grapholscape.on(LifecycleEvent.RendererChange, _ => {
-    if (entityDetailsComponent.grapholEntity)
+    if (entityDetailsComponent.grapholEntity && grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
       entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape)
+
+    entityDetailsComponent.showOccurrences = grapholscape.renderState !== RendererStatesEnum.INCREMENTAL
   })
 
 

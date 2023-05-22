@@ -431,19 +431,6 @@ export default class Grapholscape {
     return `${this.ontology.name}-${this.renderer.diagram?.name}-v${this.ontology.version}`
   }
 
-  // ------------------- VIRTUAL KNOWLEDGE NAVIGATION -----------------
-  // /** @internal */
-  // public mastroRequestOptions?: RequestOptions
-  // /**
-  //  * Use this to pass options to build rest calls for querying 
-  //  * the virtual knowledge graph when embedded in monolith
-  //  * @internal
-  //  * @param options 
-  //  */
-  // setMastroRequestOptions(options: RequestOptions) {
-  //   this.mastroRequestOptions = options
-  //   this.incremental?.updateMastroConnection()
-  // }
-
+  /** @internal */
   public incremental?: IncrementalController
 }

@@ -50,8 +50,8 @@ export default class GrapholEntity extends AnnotatedElement {
   public removeOccurrence(occurrenceId: string, diagramId: number, representationKind: RendererStatesEnum) {
     const occurrences = this.occurrences.get(representationKind)
 
-    const occurrenceToRemoveIndex = occurrences?.indexOf({ elementId: occurrenceId, diagramId: diagramId })
-    if (occurrenceToRemoveIndex !== undefined) {
+    const occurrenceToRemoveIndex = occurrences?.findIndex(o => o.elementId === occurrenceId && o.diagramId === diagramId)
+    if (occurrenceToRemoveIndex !== undefined && occurrenceToRemoveIndex >= 0) {
       occurrences?.splice(occurrenceToRemoveIndex, 1)
     }
   }

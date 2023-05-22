@@ -14,7 +14,8 @@ export default function(diagramSelectorComponent: GscapeDiagramSelector, graphol
   }
   diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram)
 
-  grapholscape.on(LifecycleEvent.DiagramChange, diagram => 
-    diagramSelectorComponent.currentDiagramId = diagram.id
-  )
+  grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
+    if (diagramSelectorComponent.diagrams.includes(diagram)) 
+      diagramSelectorComponent.currentDiagramId = diagram.id
+  })
 }

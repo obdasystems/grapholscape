@@ -37,6 +37,16 @@ class Diagram {
     this.representations.get(RendererStatesEnum.GRAPHOL)?.addElement(newElement, grapholEntity)
   }
 
+  /**
+   * Delete every element from a diagram
+   * @param rendererState optional, if you pass a particular rendererState, only its representation will be cleared.
+   * If you don't pass any rendererState, all representations will be cleared
+   */
+  clear(rendererState?: RendererStatesEnum) {
+    rendererState
+      ? this.representations.get(rendererState)?.clear()
+      : this.representations.forEach(r => r.clear())
+  }
 }
 
 export default Diagram

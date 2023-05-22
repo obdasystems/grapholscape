@@ -1,6 +1,6 @@
 {
   "name": "grapholscape",
-  "version": "3.2.2",
+  "version": "3.2.6-snap.1",
   "description": "ontology visualization",
   "module": "dist/grapholscape.esm.js",
   "main": "dist/grapholscape.esm.js",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "start": "run-p serve watch",
-    "serve": "ws -o -d docs/static/demo",
+    "serve": "ws -o -d demo",
     "watch": "rollup -c -w",
     "build": "run-p gen-types build:* && run-s clean:types",
     "build:rollup": "cross-env NODE_ENV=production VERSION=$npm_package_version rollup -c",
@@ -24,10 +24,9 @@
     "clean": "run-s clean:*",
     "clean:dist": "rimraf ./dist",
     "clean:types": "rimraf ./temp",
-    "deploy": "cross-env-shell gh-pages -d docs/generated -m \"$npm_package_version\"",
     "doc": "run-s doc:*",
     "doc:typedoc": "typedoc",
-    "doc:copy-demo-in-doc": "cpy . ../../generated/demo --cwd=docs/static/demo",
+    "doc:copy-demo-in-doc": "cross-env cpy . ../docs/v$npm_package_version/demo --cwd=demo",
     "test": "jest",
     "gen-types": "run-s clean:types gen-types:tsc",
     "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",
@@ -36,7 +35,8 @@
     "git-add-all": "git add -A",
     "apigen": "run-s apigen:*",
     "apigen:clean": "rimraf ./src/incremental/api/swagger",
-    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json"
+    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json",
+    "snapshot": "npm version prerelease --no-git-tag --preid=snap"
   },
   "repository": {
     "type": "git",
@@ -78,6 +78,7 @@
     "tslib": "^2.4.1",
     "typedoc": "^0.23.14",
     "typedoc-plugin-extras": "^2.3.0",
+    "typedoc-plugin-versions": "^0.2.3",
     "typescript": "^4.8.2"
   },
   "dependencies": {

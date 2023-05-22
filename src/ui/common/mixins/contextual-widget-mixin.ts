@@ -54,9 +54,9 @@ export const ContextualWidgetMixin = <T extends Constructor<LitElement>>(superCl
     hide() {
       this.tippyWidget.hide()
     }
+
+    oncontextmenu = (e: MouseEvent) => e.preventDefault()
   }
-
-
 
   // Cast return type to your mixin's interface intersected with the superClass type
   return ContextualWidgetMixinClass as unknown as Constructor<IContextualWidgetMixin> & T

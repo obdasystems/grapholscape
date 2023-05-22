@@ -1,10 +1,8 @@
-import { LifecycleEvent } from "../model/lifecycle";
-import { GrapholElement, GrapholEntity } from "../model";
-import Grapholscape from "./grapholscape";
-import { RendererStatesEnum } from "../model/renderers/i-render-state";
 import { EntityNameType, Language, storeConfigEntry } from "../config";
-import { IncrementalRendererState } from "./rendering";
-
+import { GrapholElement, GrapholEntity } from "../model";
+import { LifecycleEvent } from "../model/lifecycle";
+import { RendererStatesEnum } from "../model/renderers/i-render-state";
+import Grapholscape from "./grapholscape";
 /**
  * @internal
  */
@@ -67,7 +65,9 @@ export default class DisplayedNamesManager {
         let grapholElement: GrapholElement | undefined
 
         if (renderState === RendererStatesEnum.INCREMENTAL) {
-          grapholElement = (this._grapholscape.renderer.renderState as IncrementalRendererState).diagramRepresentation?.grapholElements.get(entityOccurrence.elementId)
+          // incremental diagram is not in the ontology, must take it from rendererStateData in renderer
+          grapholElement = this._grapholscape.incremental?.diagram?.representation
+            ?.grapholElements.get(entityOccurrence.elementId)
         } else {
           grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState)
         }
@@ -78,7 +78,7 @@ export default class DisplayedNamesManager {
 
         if (newDisplayedName !== grapholElement.displayedName) {
           grapholElement.displayedName = newDisplayedName
-          const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId)
+          const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId) || this._grapholscape.incremental?.diagram
 
           if (diagram) {
             /**

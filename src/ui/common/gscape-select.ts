@@ -18,11 +18,12 @@ export type SelectOption = {
 export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) {
   private readonly PLACEHOLDER_ID = '!PLACEHOLDER!'
   defaultIcon: SVGTemplateResult
-  selectedOptionId?: string
+  selectedOptionsId: Set<string> = new Set()
   defaultOptionId?: string
   options: SelectOption[] = []
   size: SizeEnum = SizeEnum.S
   clearable: boolean = false
+  multipleSelection: boolean = false
 
   private _placeholder: SelectOption = {
     id: this.PLACEHOLDER_ID,
@@ -30,7 +31,6 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   }
   onSelection: (optionId: string) => void = () => { }
   
-
   static properties: PropertyDeclarations = {
     options: { type: Object },
     selectedOptionId: { type: String, attribute: 'selected-option', reflect: true },
@@ -39,6 +39,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },
     clearable: { type: Boolean },
+    multipleSelection: { type: Boolean, attribute: 'multiple-selection' },
   }
 
   static styles = [
@@ -75,6 +76,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
 
         ${this.options.length > 0
           ? this.options.map(option => {
+            const selected = this.isIdSelected(option.id)
             return html`
               <div class="option-wrapper">
                 <gscape-action-list-item
@@ -83,20 +85,11 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
                   label="${option.text}"
                   title="${option.text}"
                   id="${option.id}"
-                  ?selected=${(this.selectedOption && this.selectedOption.id === option.id) || (!this.selectedOption && this.defaultOptionId === option.id)}
+                  ?selected=${selected || (this.isSelectionEmpty() && this.defaultOptionId === option.id)}
                   ?disabled=${option.disabled !== undefined && option.disabled}
                 >
                   ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
                 </gscape-action-list-item>
-                
-                ${this.clearable && this.selectedOption && this.selectedOption.id === option.id
-                  ? html`
-                    <gscape-button title="clear" size="s" type="subtle" slot="trailing-icon" @click=${this.clear}>
-                      ${getIconSlot('icon', cross)}
-                    </gscape-button>
-                  `
-                  : null
-                }
               </div>
             `})
           : html`
@@ -115,35 +108,57 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     if (a11yClick(e)) {
       const targetItem = e.currentTarget as GscapeActionListItem
       if (targetItem && !targetItem.disabled) {
-        this.selectedOptionId = targetItem.id
-        this.closePanel()
-        this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
+        if (targetItem.selected) {
+          // UNSELECT
+          if (this.clearable) {
+            this.selectedOptionsId.delete(targetItem.id)
+            this.requestUpdate()
+            this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
+          }
+        } else {
+          // SELECT
+          if (!this.multipleSelection) {
+            this.closePanel()
+            this.selectedOptionsId.clear()
+          }
+          this.selectedOptionsId.add(targetItem.id)
+          this.requestUpdate()
+          this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
+        }
       }
     }
   }
-
   private getButton() {
-    const option = this.selectedOption || this.defaultOption
+    const options = this.selectedOptions.length > 0 ? this.selectedOptions : [this.defaultOption]
+    const icon = options.find(o => o.leadingIcon !== undefined)?.leadingIcon!
+    const label = options.map(o => o.text).join(' - ')
 
     return html`
-      <gscape-button @click="${this.togglePanel}" label="${option.text}" size="${this.size}">
-        ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
+      <gscape-button id="select-btn" @click="${this.togglePanel}" label=${label} title=${label} size="${this.size}">
+        <!-- Only set icons if selected options have all the same icon -->
+        ${icon && options.every(o => !o.leadingIcon || o.leadingIcon === icon) ? getIconSlot('icon', icon) : null}
         ${getIconSlot('trailing-icon', triangle_down)}
       </gscape-button>
     `
   }
 
   clear() {
-    this.selectedOptionId = undefined
+    this.selectedOptionsId.clear()
     this.closePanel()
-
+    this.requestUpdate()
     this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
   }
 
-  get selectedOption() {
-    if (this.selectedOptionId) {
-      return this.options.find(o => o.id === this.selectedOptionId)
-    }
+  private isSelectionEmpty() {
+    return this.selectedOptionsId.size === 0
+  }
+
+  private isIdSelected(id: string) {
+    return this.selectedOptionsId.has(id)
+  }
+
+  get selectedOptions() {
+    return this.options.filter(o => this.isIdSelected(o.id))
   }
 
   get defaultOption() {

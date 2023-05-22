@@ -1,3 +1,4 @@
+import handleApiCall from "./handle-api-call"
 import { MastroEndpoint, RequestOptions } from "./model"
 
 export interface IEndpointApi {
@@ -9,11 +10,10 @@ export default class EndpointApi implements IEndpointApi {
   constructor(private requestOptions: RequestOptions) { }
 
   async getRunningEndpoints() {
-    const runningEndpoints = (await (await fetch(`${this.requestOptions.basePath}/endpoints/running`, {
+    const runningEndpoints = (await (await handleApiCall(fetch(`${this.requestOptions.basePath}/endpoints/running`, {
       method: 'get',
       headers: this.requestOptions.headers,
-
-    })).json()).endpoints as MastroEndpoint[]
+    }), this.requestOptions.onError)).json()).endpoints as MastroEndpoint[]
 
     return runningEndpoints.filter(endpoint =>
       endpoint.mastroID?.ontologyID.ontologyName === this.requestOptions.name &&

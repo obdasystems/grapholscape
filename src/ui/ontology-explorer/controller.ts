@@ -22,5 +22,9 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
   grapholscape.on(LifecycleEvent.RendererChange, () => {
     ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
   })
+
+  grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
+    ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
+  })
 }
 

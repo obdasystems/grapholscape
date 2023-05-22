@@ -1,3 +1,4 @@
+import handleApiCall from "../api/handle-api-call"
 import { HeadTypes, InstanceCheckingInfo, QueryStatusEnum } from "../api/model"
 
 export type APICallResult = QueryRecords | number | QueryStatus | InstanceCheckingInfo
@@ -23,8 +24,8 @@ export type QueryStatus = {
   numOntologyRewritings: number,
   numHighLevelQueries: number,
   numLowLevelQueries: number,
-  executionTime: 14,
-  numResults: 32,
+  executionTime: number,
+  numResults: number,
 }
 
 export enum QueryPollerStatus {
@@ -60,7 +61,7 @@ export abstract class QueryPoller {
 
   protected poll() {
     this.status = QueryPollerStatus.RUNNING
-    fetch(this.request)
+    handleApiCall(fetch(this.request), () => {})
       .then((response: Response) => {
         response.json().then((result: APICallResult) => {
           // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
@@ -122,6 +123,7 @@ export abstract class QueryPoller {
 
 export class QueryResultsPoller extends QueryPoller {
   public onNewResults: (result: QueryRecords) => void = () => { }
+  public numberResultsAvailable: number = 0
 
   protected _result: QueryRecords
 

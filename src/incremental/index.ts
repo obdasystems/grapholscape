@@ -2,6 +2,7 @@ import { Grapholscape } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { LifecycleEvent, RendererStatesEnum } from "../model";
 import { createEntitiesList, IBaseMixin } from "../ui";
+import { GscapeEntityDetails } from "../ui/entity-details";
 import initEntitySelector, { GscapeEntitySelector } from "../ui/entity-selector";
 import { GscapeExplorer } from "../ui/ontology-explorer";
 import { WidgetEnum } from "../ui/util/widget-enum";
@@ -45,7 +46,12 @@ export function initIncremental(grapholscape: Grapholscape) {
   })
 
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    onIncrementalStartup(grapholscape, incrementalController)
+    grapholscape.renderer.unselect()
+    manageWidgetsOnActivation(
+      grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
+      grapholscape.renderer.cy?.elements().empty(),
+      incrementalController.endpointController !== undefined
+    )
   } else {
     manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
   }
@@ -96,9 +102,9 @@ export function initIncremental(grapholscape: Grapholscape) {
 function onIncrementalStartup(grapholscape: Grapholscape, incrementalController: IncrementalController) {
   grapholscape.renderer.unselect()
 
-  if (!incrementalController) {
-    incrementalController = new IncrementalController(grapholscape)
-  }
+  // if (!incrementalController) {
+  //   incrementalController = new IncrementalController(grapholscape)
+  // }
 
   manageWidgetsOnActivation(
     grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
@@ -106,10 +112,10 @@ function onIncrementalStartup(grapholscape: Grapholscape, incrementalController:
     incrementalController.endpointController !== undefined
   )
 
-  if (grapholscape.renderer.diagram)
-    setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+  // if (grapholscape.renderer.diagram)
+  //   setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
 
-  incrementalController.setIncrementalEventHandlers()
+  // incrementalController.setIncrementalEventHandlers()
 }
 
 function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false, isReasonerAvailable?: boolean) {
@@ -118,7 +124,9 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR)
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
+  const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
 
+  entityDetails.showOccurrences = false
   classInstanceDetails?.enable()
   diagramSelector?.disable()
 
@@ -141,7 +149,9 @@ function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLE
   const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR)
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
+  const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
 
+  entityDetails.showOccurrences = true
   classInstanceDetails?.disable()
   vkgPreferences?.disable()
   diagramSelector?.enable()
