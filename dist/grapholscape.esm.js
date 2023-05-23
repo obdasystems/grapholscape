@@ -5152,9 +5152,11 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.PLACEHOLDER_ID = '!PLACEHOLDER!';
+        this.selectedOptionsId = new Set();
         this.options = [];
         this.size = SizeEnum.S;
         this.clearable = false;
+        this.multipleSelection = false;
         this._placeholder = {
             id: this.PLACEHOLDER_ID,
             text: 'Select'
@@ -5171,6 +5173,7 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
 
         ${this.options.length > 0
             ? this.options.map(option => {
+                const selected = this.isIdSelected(option.id);
                 return y `
               <div class="option-wrapper">
                 <gscape-action-list-item
@@ -5179,19 +5182,11 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
                   label="${option.text}"
                   title="${option.text}"
                   id="${option.id}"
-                  ?selected=${(this.selectedOption && this.selectedOption.id === option.id) || (!this.selectedOption && this.defaultOptionId === option.id)}
+                  ?selected=${selected || (this.isSelectionEmpty() && this.defaultOptionId === option.id)}
                   ?disabled=${option.disabled !== undefined && option.disabled}
                 >
                   ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
                 </gscape-action-list-item>
-                
-                ${this.clearable && this.selectedOption && this.selectedOption.id === option.id
-                    ? y `
-                    <gscape-button title="clear" size="s" type="subtle" slot="trailing-icon" @click=${this.clear}>
-                      ${getIconSlot('icon', cross)}
-                    </gscape-button>
-                  `
-                    : null}
               </div>
             `;
             })
@@ -5208,30 +5203,54 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
         if (a11yClick(e)) {
             const targetItem = e.currentTarget;
             if (targetItem && !targetItem.disabled) {
-                this.selectedOptionId = targetItem.id;
-                this.closePanel();
-                this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
+                if (targetItem.selected) {
+                    // UNSELECT
+                    if (this.clearable) {
+                        this.selectedOptionsId.delete(targetItem.id);
+                        this.requestUpdate();
+                        this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
+                    }
+                }
+                else {
+                    // SELECT
+                    if (!this.multipleSelection) {
+                        this.closePanel();
+                        this.selectedOptionsId.clear();
+                    }
+                    this.selectedOptionsId.add(targetItem.id);
+                    this.requestUpdate();
+                    this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
+                }
             }
         }
     }
     getButton() {
-        const option = this.selectedOption || this.defaultOption;
+        var _a;
+        const options = this.selectedOptions.length > 0 ? this.selectedOptions : [this.defaultOption];
+        const icon = (_a = options.find(o => o.leadingIcon !== undefined)) === null || _a === void 0 ? void 0 : _a.leadingIcon;
+        const label = options.map(o => o.text).join(' - ');
         return y `
-      <gscape-button @click="${this.togglePanel}" label="${option.text}" size="${this.size}">
-        ${option.leadingIcon ? getIconSlot('icon', option.leadingIcon) : null}
+      <gscape-button id="select-btn" @click="${this.togglePanel}" label=${label} title=${label} size="${this.size}">
+        <!-- Only set icons if selected options have all the same icon -->
+        ${icon && options.every(o => !o.leadingIcon || o.leadingIcon === icon) ? getIconSlot('icon', icon) : null}
         ${getIconSlot('trailing-icon', triangle_down)}
       </gscape-button>
     `;
     }
     clear() {
-        this.selectedOptionId = undefined;
+        this.selectedOptionsId.clear();
         this.closePanel();
+        this.requestUpdate();
         this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
     }
-    get selectedOption() {
-        if (this.selectedOptionId) {
-            return this.options.find(o => o.id === this.selectedOptionId);
-        }
+    isSelectionEmpty() {
+        return this.selectedOptionsId.size === 0;
+    }
+    isIdSelected(id) {
+        return this.selectedOptionsId.has(id);
+    }
+    get selectedOptions() {
+        return this.options.filter(o => this.isIdSelected(o.id));
     }
     get defaultOption() {
         return this.options.find(o => o.id === this.defaultOptionId) || this.placeholder;
@@ -5250,6 +5269,7 @@ GscapeSelect.properties = {
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },
     clearable: { type: Boolean },
+    multipleSelection: { type: Boolean, attribute: 'multiple-selection' },
 };
 GscapeSelect.styles = [
     baseStyle,
@@ -5737,7 +5757,6 @@ function grapholStyle (theme) {
             selector: `node[displayedName][type = "${GrapholTypesEnum.CLASS}"], node[displayedName][type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
             style: {
                 'text-max-width': 'data(width)',
-                'text-overflow-wrap': 'anywhere',
             }
         },
         {
@@ -7299,6 +7318,14 @@ class IncrementalRendererState extends FloatyRendererState {
         this.floatyLayoutOptions = this.defaultLayoutOptions;
         this.floatyLayoutOptions.fit = false;
         this.floatyLayoutOptions.maxSimulationTime = 1000;
+        this.floatyLayoutOptions.edgeLength = function (edge) {
+            var _a;
+            let crowdnessFactor = edge.target().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length +
+                edge.source().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length;
+            crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0;
+            const nameLength = ((_a = edge.data('displayedName')) === null || _a === void 0 ? void 0 : _a.length) * 5 || 0;
+            return 140 + crowdnessFactor + nameLength;
+        };
     }
     get renderer() {
         return super.renderer;
@@ -9571,7 +9598,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.2.6-snap.1"}</span>
+            <span>${"3.2.6-snap.3"}</span>
           </div>
         </div>
       </div>
@@ -11808,24 +11835,42 @@ function getInstanceDataPropertyValues(instanceIRI, dataPropertyIRI) {
  * Get instances of a given type participating to an object property with a given instance
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
- * @param rangeTypeClassIri the type of instances to retrieve
+ * @param rangeTypeClassesIri the type of instances to retrieve
  * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param includeLabels retrieve labels or not, default: true
  * @param maxResults default: 1000
  * @returns
  */
-function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, rangeTypeClassIri, isDirect = true, includeLabels = true, maxResults) {
+function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, rangeTypeClassesIri, isDirect = true, includeLabels = true, maxResults) {
+    let whereClausesInUnion;
+    if (rangeTypeClassesIri) {
+        whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ${includeLabels ? '?y rdfs:label ?ly' : ''}
+    `);
+    }
+    else {
+        // No rangeClassType
+        whereClausesInUnion = [`
+      ${!isDirect
+                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ${includeLabels ? '?y rdfs:label ?ly' : ''}
+    `];
+    }
     return `
-  SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
-  WHERE {
-    ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
-    
-    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
-    ${includeLabels ? '?y rdfs:label ?ly' : ''}
-  }
-  ${getLimit(maxResults)}
+    SELECT DISTINCT ?y ${includeLabels ? '?ly' : ''}
+    WHERE {
+      ${whereClausesInUnion.length > 1 ? '{' : ''}
+      ${whereClausesInUnion.join('\n } UNION { \n')}
+      ${whereClausesInUnion.length > 1 ? '}' : ''}
+    }
+    ${getLimit(maxResults)}
   `;
 }
 /**
@@ -11836,22 +11881,41 @@ function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, range
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
  * @param searchText the text to search in the label of results
- * @param rangeTypeClassIri the type of instances to retrieve
+ * @param rangeTypeClassesIri the type of instances to retrieve
  * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param maxResults default: 1000
  * @returns
  */
-function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI, searchText, rangeTypeClassIri, isDirect = true, maxResults) {
+function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI, searchText, rangeTypeClassesIri, isDirect = true, maxResults) {
+    let whereClausesInUnion;
+    if (rangeTypeClassesIri) {
+        whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y rdfs:label ?ly
+      ${getSearchFilters('?ly', searchText)}
+    `);
+    }
+    else {
+        // No rangeClassType
+        whereClausesInUnion = [`
+      ${!isDirect
+                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ?y rdfs:label ?ly
+      ${getSearchFilters('?ly', searchText)}
+    `];
+    }
     return `
   SELECT DISTINCT ?y ?ly
   WHERE {
-    ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
-    
-    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
-    ?y rdfs:label ?ly.
-    ${getSearchFilters('?ly', searchText)}
+    ${whereClausesInUnion.length > 1 ? '{' : ''}
+    ${whereClausesInUnion.join('\n } UNION { \n')}
+    ${whereClausesInUnion.length > 1 ? '}' : ''}
   }
   ${getLimit(maxResults)}
   `;
@@ -11864,21 +11928,38 @@ function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI
  * @param instanceIRI the starting instance
  * @param objectPropertyIRI the object property connecting the instances
  * @param searchText the text to search in the IRIs of results
- * @param rangeTypeClassIri the type of instances to retrieve
+ * @param rangeTypeClassesIri the type of instances to retrieve
  * @param isDirect whether the object property is direct or inverse default: true (direct)
  * @param maxResults default: 1000
  * @returns
  */
-function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, searchText, rangeTypeClassIri, isDirect = true, maxResults) {
+function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, searchText, rangeTypeClassesIri, isDirect = true, maxResults) {
+    let whereClausesInUnion;
+    if (rangeTypeClassesIri) {
+        whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ${getSearchFilters('?y', searchText)}
+    `);
+    }
+    else {
+        // No rangeClassType
+        whereClausesInUnion = [`
+      ${!isDirect
+                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+      ${getSearchFilters('?y', searchText)}
+    `];
+    }
     return `
   SELECT DISTINCT ?y
   WHERE {
-    ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
-    
-    ${rangeTypeClassIri ? `?y a <${encodeURI(rangeTypeClassIri)}>.` : ''}
-    ${getSearchFilters('?y', searchText)}
+    ${whereClausesInUnion.length > 1 ? '{' : ''}
+    ${whereClausesInUnion.join('\n } UNION { \n')}
+    ${whereClausesInUnion.length > 1 ? '}' : ''}
   }
   ${getLimit(maxResults)}
   `;
@@ -11891,7 +11972,7 @@ function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, 
  *
  * @param instanceIRI starting instance
  * @param objectPropertyIRI object properties connecting the instances
- * @param rangeTypeClassIRI the type of instances to search
+ * @param rangeTypeClassesIri the type of instances to search
  * @param dataPropertyFilterIRI the data property on which the filter must be done
  * @param searchText the value to search in the data property range (attribute value)
  * @param isDirect whether the object property is direct or inverse default: true (direct)
@@ -11899,18 +11980,38 @@ function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, 
  * @param maxResults max number of results, default: 1000
  * @returns the SPARQL query code
  */
-function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClassIRI, dataPropertyFilterIRI, searchText, isDirect = true, includeLabels = true, maxResults) {
+function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClassesIri, dataPropertyFilterIRI, searchText, isDirect = true, includeLabels = true, maxResults) {
+    let whereClausesInUnion;
+    if (rangeTypeClassesIri) {
+        whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
+      ${!isDirect
+            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ?y a <${encodeURI(rangeTypeClassIri)}>;
+        ${includeLabels ? 'rdfs:label ?ly;' : ''}
+        <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+      ${getSearchFilters('?dp', searchText)}
+    `);
+    }
+    else {
+        // No rangeClassType
+        whereClausesInUnion = [`
+      ${!isDirect
+                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+
+      ?y ${includeLabels ? 'rdfs:label ?ly;' : ''}
+         <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+      ${getSearchFilters('?dp', searchText)}
+    `];
+    }
     return `
   SELECT DISTINCT ${includeLabels ? '?y ?ly ?dp' : '?y ?dp'}
   WHERE {
-    ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
-    
-    ?y a <${encodeURI(rangeTypeClassIRI)}>;
-       ${includeLabels ? 'rdfs:label ?ly;' : ''}
-       <${encodeURI(dataPropertyFilterIRI)}> ?dp.
-    ${getSearchFilters('?dp', searchText)}
+    ${whereClausesInUnion.length > 1 ? '{' : ''}
+    ${whereClausesInUnion.join('\n } UNION { \n')}
+    ${whereClausesInUnion.length > 1 ? '}' : ''}
   }
   ${getLimit(maxResults)}
   `;
@@ -12077,27 +12178,25 @@ class VKGApi {
             queryPoller.start();
         });
     }
-    getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, isDirect, includeLabels, onNewResults, rangeClassIri, dataPropertyIriFilter, textSearch, onStop) {
+    getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, isDirect, includeLabels, onNewResults, rangeClassesIri, dataPropertyIriFilter, textSearch, onStop, customLimit) {
         return __awaiter(this, void 0, void 0, function* () {
             let querySemantics, queryCode;
             if (textSearch) {
                 querySemantics = QuerySemantics.FULL_SPARQL;
-                if (rangeClassIri && dataPropertyIriFilter) {
-                    queryCode = getInstancesThroughOPByDP(instanceIri, objectPropertyIri, rangeClassIri, dataPropertyIriFilter, textSearch, isDirect, includeLabels);
+                if (rangeClassesIri && dataPropertyIriFilter) {
+                    queryCode = getInstancesThroughOPByDP(instanceIri, objectPropertyIri, rangeClassesIri, dataPropertyIriFilter, textSearch, isDirect, includeLabels);
                 }
                 else {
                     if (includeLabels)
-                        queryCode = getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassIri, isDirect);
+                        queryCode = getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect, customLimit);
                     else
-                        queryCode = getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassIri, isDirect);
+                        queryCode = getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect, customLimit);
                 }
             }
             else {
                 querySemantics = QuerySemantics.CQ;
-                queryCode = getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassIri, isDirect, includeLabels);
+                queryCode = getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels, customLimit);
             }
-            // const queryCode = QueriesTemplates.getInstancesObjectPropertyRanges(instanceIri, objectPropertyIri, rangeClassIri, isDirect, dataPropertyIriFilter, textSearch)
-            // const querySemantics = textSearch ? QuerySemantics.FULL_SPARQL : QuerySemantics.CQ
             const queryPoller = yield this.queryManager.performQuery(queryCode, this.pageSize, querySemantics);
             queryPoller.onNewResults = (result) => {
                 onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)), queryPoller.numberResultsAvailable);
@@ -12383,6 +12482,8 @@ var IncrementalEvent;
     IncrementalEvent["InstanceCheckingFinished"] = "instanceCheckingFinished";
     IncrementalEvent["CountStarted"] = "countStarted";
     IncrementalEvent["NewCountResult"] = "newCountResult";
+    IncrementalEvent["FocusStarted"] = "focusStarted";
+    IncrementalEvent["FocusFinished"] = "focusFinished";
 })(IncrementalEvent || (IncrementalEvent = {}));
 class IncrementalLifecycle {
     constructor() {
@@ -12402,6 +12503,8 @@ class IncrementalLifecycle {
         this.instanceCheckingFinished = [];
         this.newCountResult = [];
         this.countStarted = [];
+        this.focusStarted = [];
+        this.focusFinished = [];
         this.on = (event, callback) => {
             this[event].push(callback);
         };
@@ -13319,6 +13422,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
                     };
                 })}
                   .placeholder=${{ text: 'Filter by type' }}
+                  ?multiple-selection=${true}
                   ?clearable=${true}
                   @change=${this.handleClassTypeFilterChange}
                 >
@@ -13451,15 +13555,15 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
                 filterByType: undefined,
             }
         });
-        if (((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionId) &&
-            this.propertyFilterSelect.selectedOptionId !== 'id' &&
-            this.propertyFilterSelect.selectedOptionId !== 'label' &&
+        if (((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionsId[0]) &&
+            this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
+            this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
             event.detail.filterText) {
-            event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionId;
+            event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionsId[0];
             const property = this.propertiesFilterList.find(p => {
                 var _a;
-                return ((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionId) &&
-                    p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionId);
+                return ((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionsId) &&
+                    p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionsId[0]);
             });
             if (property) {
                 event.detail.propertyType = property.entityViewData.value.type;
@@ -13470,14 +13574,14 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
         }
         // if only one class type, then use it, there is not select element
         if (((_b = this.classTypeFilterList) === null || _b === void 0 ? void 0 : _b.length) === 1) {
-            event.detail.filterByType = this.classTypeFilterList[0].entityViewData.value.iri.fullIri;
+            event.detail.filterByType = [this.classTypeFilterList[0].entityViewData.value.iri.fullIri];
         }
-        else if (this.classTypeFilterSelect) { // otherwise check selected option
-            event.detail.filterByType = this.classTypeFilterSelect.selectedOptionId;
+        else if (this.classTypeFilterSelect && this.classTypeFilterSelect.selectedOptionsId.size > 0) { // otherwise check selected option
+            event.detail.filterByType = Array.from(this.classTypeFilterSelect.selectedOptionsId);
         }
         if (this.shouldAskForLabels !== undefined)
-            event.detail.shouldAskForLabels = this.shouldAskForLabels && ((_c = this.propertyFilterSelect) === null || _c === void 0 ? void 0 : _c.selectedOptionId) !== 'id';
-        if (((_d = this.propertyFilterSelect) === null || _d === void 0 ? void 0 : _d.selectedOptionId) === 'id') {
+            event.detail.shouldAskForLabels = this.shouldAskForLabels && ((_c = this.propertyFilterSelect) === null || _c === void 0 ? void 0 : _c.selectedOptionsId[0]) !== 'id';
+        if (((_d = this.propertyFilterSelect) === null || _d === void 0 ? void 0 : _d.selectedOptionsId[0]) === 'id') {
             event.detail.shouldAskForLabels = false;
         }
         this.lastSearchedText = event.detail.filterText || '';
@@ -13502,7 +13606,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
     }
     handleClassTypeFilterChange(e) {
         var _a;
-        if (!((_a = this.classTypeFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionId)) {
+        if (!((_a = this.classTypeFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionsId)) {
             this.propertiesFilterList = [];
         }
         this.handleFilter(e);
@@ -13522,8 +13626,8 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
                         if (((_e = this.classTypeFilterList) === null || _e === void 0 ? void 0 : _e.length) === 1) {
                             parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri; // if only one type, take it as parent class
                         }
-                        else if ((_f = this.classTypeFilterSelect) === null || _f === void 0 ? void 0 : _f.selectedOptionId) {
-                            parentClassIris = this.classTypeFilterSelect.selectedOptionId; // otherwise take the selected one
+                        else if ((_f = this.classTypeFilterSelect) === null || _f === void 0 ? void 0 : _f.selectedOptionsId) {
+                            parentClassIris = Array.from(this.classTypeFilterSelect.selectedOptionsId); // otherwise take the selected one
                         }
                         else if (this.classTypeFilterList) {
                             parentClassIris = this.classTypeFilterList.map(e => e.entityViewData.value.iri.fullIri); // if no option is selected, take them all, instance checking will decide
@@ -13535,11 +13639,11 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
                         return;
                     }
                     let filterByPropertyIri;
-                    if (((_g = this.propertyFilterSelect) === null || _g === void 0 ? void 0 : _g.selectedOptionId) &&
-                        this.propertyFilterSelect.selectedOptionId !== 'id' &&
-                        this.propertyFilterSelect.selectedOptionId !== 'label' &&
+                    if (((_g = this.propertyFilterSelect) === null || _g === void 0 ? void 0 : _g.selectedOptionsId[0]) &&
+                        this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
+                        this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
                         ((_h = this.instancesSearchInput) === null || _h === void 0 ? void 0 : _h.value)) {
-                        filterByPropertyIri = this.propertyFilterSelect.selectedOptionId;
+                        filterByPropertyIri = this.propertyFilterSelect.selectedOptionsId[0];
                     }
                     this.requestUpdate();
                     yield this.updateComplete;
@@ -13839,6 +13943,13 @@ function performInstanceChecking(callback) {
         select: callback,
     };
 }
+function focusInstance(callback) {
+    return {
+        content: 'Show Relationships',
+        icon: objectPropertyIcon,
+        select: callback,
+    };
+}
 
 function CommandsWidgetFactory(ic) {
     const commandsWidget = new GscapeContextMenu();
@@ -13852,7 +13963,19 @@ function CommandsWidgetFactory(ic) {
         const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri);
         if (!entity)
             return;
-        if (entity.is(GrapholTypesEnum.CLASS_INSTANCE) && !entity.isRDFTypeUnknown) {
+        if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
+            event.target.source().data().type === GrapholTypesEnum.CLASS_INSTANCE &&
+            event.target.target().data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+            commands.push({
+                content: 'Show Instance Types',
+                icon: classIcon,
+                select: () => {
+                    ic.showObjectPropertyTypes(entity.iri.fullIri, event.target.source().id(), event.target.target().id());
+                },
+            });
+        }
+        if (entity.is(GrapholTypesEnum.CLASS_INSTANCE)) {
+            commands.push(focusInstance(() => ic.expandObjectPropertiesOnInstance(entity.iri.fullIri)));
             commands.push(performInstanceChecking(() => __awaiter(this, void 0, void 0, function* () {
                 var _c;
                 const allClassesIris = ic
@@ -13870,7 +13993,9 @@ function CommandsWidgetFactory(ic) {
                 });
                 showParentClass(ic, entity);
             })));
-            commands.push(showParentClass$1(() => showParentClass(ic, entity)));
+            if (!entity.isRDFTypeUnknown) {
+                commands.push(showParentClass$1(() => showParentClass(ic, entity)));
+            }
         }
         const classIri = entity.iri.fullIri;
         if (entity.is(GrapholTypesEnum.CLASS)) {
@@ -14025,6 +14150,20 @@ function NodeButtonsFactory(ic) {
         var _a, _b;
         if (!((_a = nodeButtonsMap.get(GrapholTypesEnum.CLASS)) === null || _a === void 0 ? void 0 : _a.includes(instancesButton))) {
             (_b = nodeButtonsMap.get(GrapholTypesEnum.CLASS)) === null || _b === void 0 ? void 0 : _b.push(instancesButton);
+        }
+    });
+    ic.on(IncrementalEvent.FocusStarted, instanceIri => {
+        var _a;
+        const cyNode = (_a = ic.diagram.representation) === null || _a === void 0 ? void 0 : _a.cy.$id(instanceIri);
+        if (cyNode) {
+            addBadge(cyNode, textSpinner(), 'loading-badge');
+        }
+    });
+    ic.on(IncrementalEvent.FocusFinished, instanceIri => {
+        var _a;
+        const cyNode = (_a = ic.diagram.representation) === null || _a === void 0 ? void 0 : _a.cy.$id(instanceIri);
+        if (cyNode && cyNode.scratch('loading-badge')) {
+            removeBadge(cyNode, 'loading-badge');
         }
     });
     ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
@@ -14470,7 +14609,7 @@ function NavigationMenuFactory(incrementalController) {
                         .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].entityViewData.value.iri.fullIri]))
                         .map(dp => getEntityViewDataUnfolding(dp, incrementalController.grapholscape, hasUnfoldings));
                 }
-                instancesExplorer.requestId = yield ((_g = incrementalController.endpointController) === null || _g === void 0 ? void 0 : _g.requestInstancesThroughObjectProperty(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct, true, e.detail.rangeClassIri));
+                instancesExplorer.requestId = yield ((_g = incrementalController.endpointController) === null || _g === void 0 ? void 0 : _g.requestInstancesThroughObjectProperty(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct, true, e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined));
                 if (instancesExplorer.requestId) {
                     (_j = (_h = incrementalController
                         .endpointController) === null || _h === void 0 ? void 0 : _h.shouldQueryUseLabels(instancesExplorer.requestId)) === null || _j === void 0 ? void 0 : _j.then((shouldAskForLabels) => __awaiter(this, void 0, void 0, function* () {
@@ -14478,7 +14617,7 @@ function NavigationMenuFactory(incrementalController) {
                         if (!shouldAskForLabels) {
                             instancesExplorer.shouldAskForLabels = shouldAskForLabels;
                             instancesExplorer.areInstancesLoading = true;
-                            instancesExplorer.requestId = yield ((_k = incrementalController.endpointController) === null || _k === void 0 ? void 0 : _k.requestInstancesThroughObjectProperty(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct, shouldAskForLabels, e.detail.rangeClassIri));
+                            instancesExplorer.requestId = yield ((_k = incrementalController.endpointController) === null || _k === void 0 ? void 0 : _k.requestInstancesThroughObjectProperty(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct, shouldAskForLabels, e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined));
                         }
                     }));
                 }
@@ -14517,6 +14656,7 @@ class IncrementalController {
         this.grapholscape = grapholscape;
         this.classInstanceEntities = new Map();
         this.diagram = new IncrementalDiagram();
+        this.actionsWithBlockedGraph = 0;
         this.counts = new Map();
         this.countersEnabled = true;
         this.lifecycle = new IncrementalLifecycle();
@@ -14553,9 +14693,11 @@ class IncrementalController {
     performActionWithBlockedGraph(action) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            this.actionsWithBlockedGraph += 1;
             const oldElemNumbers = this.numberOfElements;
             (_a = this.incrementalRenderer) === null || _a === void 0 ? void 0 : _a.freezeGraph();
             yield action();
+            this.actionsWithBlockedGraph -= 1;
             this.postDiagramEdit(oldElemNumbers);
         });
     }
@@ -14798,6 +14940,27 @@ class IncrementalController {
         }
     }
     /**
+     * Shows the domain/range types of an extensional object property
+     * hence only if object property connects two instances, shows their rdf:types
+     * and add the intensional object property between them.
+     * @param objectPropertyIri
+     * @param sourceClassInstanceIri
+     * @param targetClassInstanceIri
+     */
+    showObjectPropertyTypes(objectPropertyIri, sourceClassInstanceIri, targetClassInstanceIri) {
+        const sourceClassInstanceEntity = this.classInstanceEntities.get(sourceClassInstanceIri);
+        const targetClassInstanceEntity = this.classInstanceEntities.get(targetClassInstanceIri);
+        if (sourceClassInstanceEntity && targetClassInstanceEntity) {
+            sourceClassInstanceEntity.parentClassIris.forEach(sourceParentClassIri => {
+                targetClassInstanceEntity.parentClassIris.forEach(targetParentClassIri => {
+                    this.addIntensionalObjectProperty(objectPropertyIri, sourceParentClassIri.fullIri, targetParentClassIri.fullIri);
+                    this.addEdge(sourceClassInstanceIri, sourceParentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF);
+                    this.addEdge(targetClassInstanceIri, targetParentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF);
+                });
+            });
+        }
+    }
+    /**
      * Show hierarchies for which the specified class is a subclass.
      * @param classIri
      */
@@ -15017,10 +15180,52 @@ class IncrementalController {
             }
         });
     }
+    expandObjectPropertiesOnInstance(instanceIri) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!((_a = this.endpointController) === null || _a === void 0 ? void 0 : _a.isReasonerAvailable()) || !this.endpointController.vkgApi) {
+                return;
+            }
+            const instanceEntity = this.classInstanceEntities.get(instanceIri);
+            if (instanceEntity) {
+                const objectProperties = yield this.getObjectPropertiesByClasses(instanceEntity.parentClassIris.map(iri => iri.fullIri));
+                if (objectProperties) {
+                    let promisesCount = 0;
+                    this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri);
+                    objectProperties.forEach((rangeClasses, objectPropertyEntity) => {
+                        rangeClasses.list.forEach(rangeClassEntity => {
+                            promisesCount += 1;
+                            this.endpointController.vkgApi.getInstancesThroughObjectProperty(instanceIri, objectPropertyEntity.iri.fullIri, rangeClasses.direct, false, (result) => {
+                                if (result.length > 0) {
+                                    if (!this.classInstanceEntities.get(result[0][0].iri)) {
+                                        this.addInstance(result[0][0], rangeClassEntity.iri.fullIri);
+                                    }
+                                    rangeClasses.direct
+                                        ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, instanceIri, result[0][0].iri)
+                                        : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, result[0][0].iri, instanceIri);
+                                }
+                            }, [rangeClassEntity.iri.fullIri], undefined, undefined, () => {
+                                promisesCount -= 1;
+                                if (promisesCount === 0) {
+                                    this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri);
+                                }
+                            }, 1);
+                        });
+                    });
+                }
+            }
+        });
+    }
+    focusInstance(classInstance) {
+        this.addInstance(classInstance);
+        this.expandObjectPropertiesOnInstance(classInstance.iri);
+    }
     postDiagramEdit(oldElemsNumber) {
         var _a;
         if (this.numberOfElements !== oldElemsNumber) {
-            this.runLayout();
+            if (this.actionsWithBlockedGraph === 0) {
+                this.runLayout();
+            }
             this.lifecycle.trigger(IncrementalEvent.DiagramUpdated);
         }
         else {

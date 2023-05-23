@@ -1324,7 +1324,7 @@ interface IVirtualKnowledgeGraphApi {
     getHighlights: (iri: string) => Promise<Highlights>;
     getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>;
     getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void;
-    getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassIri?: string, dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void;
+    getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void;
     setEndpoint: (endpoint: MastroEndpoint) => void;
     instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>;
     stopAllQueries: () => void;
@@ -1333,6 +1333,34 @@ interface IVirtualKnowledgeGraphApi {
         lang?: string;
     }[]) => void) => Promise<void>;
     pageSize: number;
+}
+declare class VKGApi implements IVirtualKnowledgeGraphApi {
+    private requestOptions;
+    pageSize: number;
+    private queryManager;
+    language: string;
+    constructor(requestOptions: RequestOptions, endpoint: MastroEndpoint, pageSize: number);
+    getInstances(iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string, pageSize?: number): Promise<string>;
+    getNewResults(executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number): Promise<void>;
+    getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: (() => void), pageSize?: number): Promise<string>;
+    getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void): Promise<void>;
+    getHighlights(classIri: string): Promise<any>;
+    getEntitiesEmptyUnfoldings(endpoint: MastroEndpoint): Promise<EmptyUnfoldingEntities>;
+    getInstanceDataPropertyValues(instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: (() => void), onError?: (() => void)): Promise<void>;
+    getInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyIriFilter?: string, textSearch?: string, onStop?: (() => void), customLimit?: number): Promise<string>;
+    instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string[]) => void, onStop?: () => void): Promise<void>;
+    getMaterializedCounts(endpoint: MastroEndpoint): Promise<MaterializedCounts>;
+    stopAllQueries(): void;
+    stopCountsQueries(): void;
+    stopInstancesQueries(): void;
+    setEndpoint(endpoint: MastroEndpoint): void;
+    getInstanceLabels(instanceIri: string, onResult: (result: {
+        value: string;
+        language?: string;
+    }[]) => void): Promise<void>;
+    shouldQueryUseLabels(executionId: string): Promise<boolean>;
+    private getClassInstanceFromQueryResult;
+    private parseLabel;
 }
 
 declare enum IncrementalEvent {
@@ -1352,7 +1380,9 @@ declare enum IncrementalEvent {
     InstanceCheckingStarted = "instanceCheckingStarted",
     InstanceCheckingFinished = "instanceCheckingFinished",
     CountStarted = "countStarted",
-    NewCountResult = "newCountResult"
+    NewCountResult = "newCountResult",
+    FocusStarted = "focusStarted",
+    FocusFinished = "focusFinished"
 }
 interface IonEvent {
     (event: IncrementalEvent.RequestStopped, callback: () => void): void;
@@ -1375,6 +1405,8 @@ interface IonEvent {
         date?: string;
     }) => void): void;
     (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void;
+    (event: IncrementalEvent.FocusStarted, callback: (entityIri: string) => void): void;
+    (event: IncrementalEvent.FocusFinished, callback: (entityIri: string) => void): void;
 }
 declare class IncrementalLifecycle {
     private requestStopped;
@@ -1393,6 +1425,8 @@ declare class IncrementalLifecycle {
     private instanceCheckingFinished;
     private newCountResult;
     private countStarted;
+    private focusStarted;
+    private focusFinished;
     constructor();
     trigger(event: IncrementalEvent.RequestStopped): void;
     trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][], numberResultsAvailable: number): void;
@@ -1414,6 +1448,8 @@ declare class IncrementalLifecycle {
         date?: string;
     }): void;
     trigger(event: IncrementalEvent.CountStarted, classIri: string): void;
+    trigger(event: IncrementalEvent.FocusStarted, entityIri: string): void;
+    trigger(event: IncrementalEvent.FocusFinished, entityIri: string): void;
     on: IonEvent;
 }
 
@@ -1444,7 +1480,7 @@ declare class EndpointController {
     private endpointApi;
     private endpoints;
     private selectedEndpoint?;
-    private vkgApi?;
+    vkgApi?: VKGApi;
     highlightsManager?: HighlightsManager;
     pageSize: number;
     constructor(requestOptions: RequestOptions, lifecycle: IncrementalLifecycle);
@@ -1456,7 +1492,7 @@ declare class EndpointController {
     stopRequests(requestType?: 'instances' | 'counts' | 'all'): void;
     requestInstancesForClass(classIri: string, includeLabels?: boolean, searchText?: string, propertyIriFilter?: string, propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY, isDirect?: boolean): Promise<string> | undefined;
     requestNewInstances(requestId: string, pageNumber: number): void;
-    requestInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect?: boolean, includeLabels?: boolean, rangeClassIri?: string, propertyIriFilter?: string, searchText?: string): Promise<string> | undefined;
+    requestInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect?: boolean, includeLabels?: boolean, rangeClassIri?: string[], propertyIriFilter?: string, searchText?: string): Promise<string> | undefined;
     requestDataPropertyValues(instanceIri: string, dataPropertyIri: string): void;
     requestCountForClass(classIri: string): void;
     shouldQueryUseLabels(queryExecutionId: string): Promise<boolean> | undefined;
@@ -1506,6 +1542,7 @@ declare class IncrementalController {
     lastInstanceIri?: string;
     diagram: IncrementalDiagram;
     endpointController?: EndpointController;
+    private actionsWithBlockedGraph;
     private entitySelectionTimeout;
     counts: Map<string, {
         value: number;
@@ -1559,6 +1596,15 @@ declare class IncrementalController {
      */
     addExtensionalObjectProperty(objectPropertyIri: string, sourceInstanceIri: string, targetInstanceIri: string): void;
     /**
+     * Shows the domain/range types of an extensional object property
+     * hence only if object property connects two instances, shows their rdf:types
+     * and add the intensional object property between them.
+     * @param objectPropertyIri
+     * @param sourceClassInstanceIri
+     * @param targetClassInstanceIri
+     */
+    showObjectPropertyTypes(objectPropertyIri: string, sourceClassInstanceIri: string, targetClassInstanceIri: string): void;
+    /**
      * Show hierarchies for which the specified class is a subclass.
      * @param classIri
      */
@@ -1598,6 +1644,8 @@ declare class IncrementalController {
     getObjectPropertiesByClasses(classIris: string[]): Promise<Map<GrapholEntity, ObjectPropertyConnectedClasses>>;
     getDataPropertiesByClasses(classIris: string[]): Promise<GrapholEntity[]>;
     getDataPropertiesByClassInstance(instanceIri: string): Promise<GrapholEntity[]>;
+    expandObjectPropertiesOnInstance(instanceIri: string): Promise<void>;
+    focusInstance(classInstance: ClassInstance): void;
     runLayout: () => void | undefined;
     pinNode: (node: NodeSingular | string) => void | undefined;
     unpinNode: (node: NodeSingular | string) => void | undefined;
@@ -2335,11 +2383,12 @@ declare const GscapeSelect_base: (new (...args: any[]) => IDropPanelMixin) & (ne
 declare class GscapeSelect extends GscapeSelect_base {
     private readonly PLACEHOLDER_ID;
     defaultIcon: SVGTemplateResult;
-    selectedOptionId?: string;
+    selectedOptionsId: Set<string>;
     defaultOptionId?: string;
     options: SelectOption[];
     size: SizeEnum;
     clearable: boolean;
+    multipleSelection: boolean;
     private _placeholder;
     onSelection: (optionId: string) => void;
     static properties: PropertyDeclarations;
@@ -2348,7 +2397,9 @@ declare class GscapeSelect extends GscapeSelect_base {
     private handleSelection;
     private getButton;
     clear(): void;
-    get selectedOption(): SelectOption | undefined;
+    private isSelectionEmpty;
+    private isIdSelected;
+    get selectedOptions(): SelectOption[];
     get defaultOption(): SelectOption;
     get placeholder(): SelectOption;
     set placeholder(placeHolder: SelectOption);
