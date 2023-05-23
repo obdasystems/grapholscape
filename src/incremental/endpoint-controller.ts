@@ -11,7 +11,7 @@ export default class EndpointController {
   private endpointApi: EndpointApi
   private endpoints: MastroEndpoint[]
   private selectedEndpoint?: MastroEndpoint
-  private vkgApi?: VKGApi
+  vkgApi?: VKGApi
   highlightsManager?: HighlightsManager
   pageSize = 100
 

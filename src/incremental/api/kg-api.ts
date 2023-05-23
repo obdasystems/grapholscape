@@ -237,7 +237,8 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     rangeClassesIri?: string[],
     dataPropertyIriFilter?: string,
     textSearch?: string,
-    onStop?: (() => void)
+    onStop?: (() => void),
+    customLimit?: number,
   ) {
 
     let querySemantics: QuerySemantics, queryCode: string
@@ -256,14 +257,14 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
         )
       } else {
         if (includeLabels)
-          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect)
+          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByLabel(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect, customLimit)
         else
-          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect)
+          queryCode = QueriesTemplates.getInstancesThroughObjectPropertyByIRI(instanceIri, objectPropertyIri, textSearch, rangeClassesIri, isDirect, customLimit)
       }
 
     } else {
       querySemantics = QuerySemantics.CQ
-      queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels)
+      queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels, customLimit)
     }
 
     const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, querySemantics)

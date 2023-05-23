@@ -1,5 +1,5 @@
-import { Stylesheet } from "cytoscape"
-import { Diagram, GrapholscapeTheme, Ontology, RendererStatesEnum, iFilterManager } from "../../../model"
+import { EdgeSingular, Stylesheet } from "cytoscape"
+import { Diagram, GrapholTypesEnum, GrapholscapeTheme, Ontology, RendererStatesEnum, iFilterManager } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
 import FloatyTransformer from "../floaty/floaty-transformer"
@@ -110,6 +110,15 @@ export default class IncrementalRendererState extends FloatyRendererState {
     this.floatyLayoutOptions = this.defaultLayoutOptions
     this.floatyLayoutOptions.fit = false
     this.floatyLayoutOptions.maxSimulationTime = 1000
+    this.floatyLayoutOptions.edgeLength = function (edge: EdgeSingular) {
+      let crowdnessFactor =
+        edge.target().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length +
+        edge.source().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length
+
+      crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
+      const nameLength = edge.data('displayedName')?.length * 5 || 0
+      return 140 + crowdnessFactor + nameLength
+    }
   }
 
   get renderer(): Renderer {

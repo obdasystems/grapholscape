@@ -27,6 +27,7 @@ export default class IncrementalController {
 
   endpointController?: EndpointController
 
+  private actionsWithBlockedGraph = 0
   private entitySelectionTimeout: NodeJS.Timeout
   public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
   public countersEnabled: boolean = true
@@ -72,9 +73,11 @@ export default class IncrementalController {
   }
 
   async performActionWithBlockedGraph(action: () => void | Promise<void>) {
+    this.actionsWithBlockedGraph += 1
     const oldElemNumbers = this.numberOfElements
     this.incrementalRenderer?.freezeGraph()
     await action()
+    this.actionsWithBlockedGraph -= 1
     this.postDiagramEdit(oldElemNumbers)
   }
 
@@ -654,13 +657,68 @@ export default class IncrementalController {
     }
   }
 
+  async expandObjectPropertiesOnInstance(instanceIri: string) {
+    if (!this.endpointController?.isReasonerAvailable() || !this.endpointController.vkgApi) {
+      return
+    }
+
+    const instanceEntity = this.classInstanceEntities.get(instanceIri)
+    if (instanceEntity) {
+      const objectProperties = await this.getObjectPropertiesByClasses(instanceEntity.parentClassIris.map(iri => iri.fullIri))
+      if (objectProperties) {
+        let promisesCount = 0
+        this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri)
+        objectProperties.forEach((rangeClasses, objectPropertyEntity) => {
+          rangeClasses.list.forEach(rangeClassEntity => {
+
+            promisesCount += 1
+
+            this.endpointController!.vkgApi!.getInstancesThroughObjectProperty(
+              instanceIri,
+              objectPropertyEntity.iri.fullIri,
+              rangeClasses.direct,
+              false,
+              (result) => { // onNewResult
+                if (result.length > 0) {
+                  if (!this.classInstanceEntities.get(result[0][0].iri)) {
+                    this.addInstance(result[0][0], rangeClassEntity.iri.fullIri)
+                  }
+
+                  rangeClasses.direct
+                    ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, instanceIri, result[0][0].iri)
+                    : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, result[0][0].iri, instanceIri)
+                }
+              },
+              [rangeClassEntity.iri.fullIri],
+              undefined, undefined,
+              () => { // onStopPolling
+                promisesCount -= 1
+                if (promisesCount === 0) {
+                  this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+                }
+              },
+              1
+            )
+          })
+        })
+      }
+    }
+  }
+
+  focusInstance(classInstance: ClassInstance) {
+    this.addInstance(classInstance)
+    this.expandObjectPropertiesOnInstance(classInstance.iri)
+  }
+
   runLayout = () => this.incrementalRenderer?.runLayout()
   pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
   unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)
 
   postDiagramEdit(oldElemsNumber: number) {
     if (this.numberOfElements !== oldElemsNumber) {
-      this.runLayout()
+      if (this.actionsWithBlockedGraph === 0) {
+        this.runLayout()
+      }
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     } else {
       this.incrementalRenderer?.unFreezeGraph()

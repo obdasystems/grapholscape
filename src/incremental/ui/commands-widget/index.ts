@@ -39,6 +39,8 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     if (entity.is(GrapholTypesEnum.CLASS_INSTANCE)) {
 
+      commands.push(IncrementalCommands.focusInstance(() => ic.expandObjectPropertiesOnInstance(entity.iri.fullIri)))
+
       commands.push(IncrementalCommands.performInstanceChecking(async () => {
         const allClassesIris = ic
           .grapholscape
