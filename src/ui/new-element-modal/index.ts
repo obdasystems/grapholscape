@@ -32,7 +32,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     },
     edgeParams: function (sourceNode, targetNode) {
   
-      let temp_id = 'temp_' + sourceNode.id() + '-' + targetNode.id()
+      let temp_id = 'temp_' + sourceNode.data('iri') + '-' + targetNode.data('iri')
       return {
         data: {
           id: temp_id,
@@ -68,55 +68,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS)
   }
 
-  /*const addDataPropertyBtn = new GscapeButton()
-  const datapropertyIcon = getIconSlot('icon', addDataPropertyIcon)
-  addDataPropertyBtn.appendChild(datapropertyIcon)
-
-  addDataPropertyBtn.style.top = '85px'
-  addDataPropertyBtn.style.left = '10px'
-  addDataPropertyBtn.style.position = 'absolute'
-  addDataPropertyBtn.title = 'Add Data Property'
-
-  addDataPropertyBtn.onclick = () => {
-
-    grapholscape.uiContainer?.appendChild(newElementComponent)
-    initNewElementModal(newElementComponent, 'Add New Data Property', GrapholTypesEnum.DATA_PROPERTY)
-  }*/
-
-  const addObjectPropertyBtn = new GscapeButton()
-  const objectpropertyIcon = getIconSlot('icon', addObjectPropertyIcon)
-  addObjectPropertyBtn.appendChild(objectpropertyIcon)
-
-  addObjectPropertyBtn.style.top = '85px'
-  addObjectPropertyBtn.style.left = '10px'
-  addObjectPropertyBtn.style.position = 'absolute'
-  addObjectPropertyBtn.title = 'Add Object Property'
-
-  addObjectPropertyBtn.onclick = () => {
-
-    let myCy = grapholscape.renderer.cy as any
-    myCy.on('mouseover', `node[type = "${GrapholTypesEnum.CLASS}"]`, (event) => {
-      if(event.cy.container()) {
-        event.cy.container().style.cursor = "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAgklEQVR4nO2TwQnAIAxF35LFg13AHQq6T8dxkPauYA+NIOKt8VDwgaA5vB+CgcXLAdyAYQIBKHIysM+QJ+Bs7ka7cye1GnJpygsQJSTJ+9CQJ5HGLixoyY3UnLY8A1ZqWzMWv+R2jeX/v4VmYeoSmUb+aYn6APXOK2VwPIpMlS8Y8QBWK2Wx+gsuywAAAABJRU5ErkJggg=='), auto";
-      }
-    })
-    let edgehandles = myCy.edgehandles(edgeHandlesDefaults)
-    edgehandles.enableDrawMode()
-    
-
-    myCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge)=> {
-      grapholscape.uiContainer?.appendChild(newElementComponent)
-      initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('id'), targetNode.data('id'))
-      edgehandles.disableDrawMode()
-      myCy.on('mouseover', (event) => {
-        if(event.cy.container()) {
-          event.cy.container().style.cursor = 'pointer';
-        }
-      })
-    })
-  
-  }
-
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
     const elem = evt.target
 
@@ -130,6 +81,21 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         select: () => {
           grapholscape.uiContainer?.appendChild(newElementComponent)
           initNewElementModal(newElementComponent, 'Add New Data Property', GrapholTypesEnum.DATA_PROPERTY, elem.data('iri'))
+        }
+      })
+
+      commands.push({
+        content: 'Add Object Property',
+        icon: addObjectPropertyIcon,
+        select: () => {
+          let myCy = grapholscape.renderer.cy as any
+          let edgehandles = myCy.edgehandles(edgeHandlesDefaults)
+          edgehandles.start(elem)
+
+          myCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge)=> {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
+          })
         }
       })
 
@@ -171,7 +137,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
 grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
 //grapholscape.widgets.set(WidgetEnum.NEW_DATAPROPERTY, addDataPropertyBtn)
-grapholscape.widgets.set(WidgetEnum.NEW_OBJECTPROPERTY, addObjectPropertyBtn)
+//grapholscape.widgets.set(WidgetEnum.NEW_OBJECTPROPERTY, addObjectPropertyBtn)
 
 
 }

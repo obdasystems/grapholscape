@@ -34,22 +34,16 @@ export default class OntologyBuilder {
 
     public addEdgeElement(iriString, entityType, sourceId, targetId) {
 
-        let diagram = this.grapholscape.renderer.diagram as Diagram
+        const diagram = this.grapholscape.renderer.diagram as Diagram
+        this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
         const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
         const entity = new GrapholEntity(iri, entityType)
         this.grapholscape.ontology.addEntity(entity)
 
-        const sourceNode = this.grapholscape.renderer.diagram?.representations.get(RendererStatesEnum.FLOATY)?.grapholElements.get(sourceId);
-        const targetNode = this.grapholscape.renderer.diagram?.representations.get(RendererStatesEnum.FLOATY)?.grapholElements.get(targetId);
-        if (sourceNode && targetNode) {
-            const instanceEdge = new GrapholEdge(`${sourceId}-${entityType}-${targetId}`, entityType);
-            instanceEdge.sourceId = sourceId;
-            instanceEdge.targetId = targetId;
-            instanceEdge.displayedName = entity.getDisplayedName(EntityNameType.LABEL);
-            entity.addOccurrence(instanceEdge.id, diagram.id, RendererStatesEnum.FLOATY)
-            this.grapholscape.renderer.diagram?.representations.get(RendererStatesEnum.FLOATY)?.addElement(instanceEdge, entity);
-
-        }
+        const sourceEntity = this.grapholscape.ontology.getEntity(sourceId)
+        const targetEntity = this.grapholscape.ontology.getEntity(targetId)
+        if(!sourceEntity || !targetEntity) return
+        this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity)
 
     }
 }
