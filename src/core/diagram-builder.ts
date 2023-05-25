@@ -1,11 +1,11 @@
 import { Position } from "cytoscape";
 import { EntityNameType } from "../config";
-import { ClassInstanceEntity, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, IncrementalDiagram, isGrapholNode, RendererStatesEnum, Shape } from "../model";
+import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, IncrementalDiagram, isGrapholNode, RendererStatesEnum, Shape } from "../model";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
 
-  constructor(public diagram: IncrementalDiagram) { }
+  constructor(public diagram: Diagram, private rendererState: RendererStatesEnum) { }
 
   addEntity(objectProperty: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity): void
   addEntity(grapholEntity: GrapholEntity): void
@@ -22,12 +22,12 @@ export default class DiagramBuilder {
         break
 
       case GrapholTypesEnum.CLASS:
-        if (!this.diagram.containsEntity(grapholEntity))
+        if (!this.diagram.containsEntity(grapholEntity, this.rendererState))
           this.addClass(grapholEntity)
         break
 
       case GrapholTypesEnum.CLASS_INSTANCE:
-        if (!this.diagram.containsEntity(grapholEntity))
+        if (!this.diagram.containsEntity(grapholEntity, this.rendererState))
           this.addClassInstance(grapholEntity as ClassInstanceEntity)
 
     }
@@ -114,7 +114,7 @@ export default class DiagramBuilder {
       // check if parent class is present in diagram
       for (let parentClassIri of classInstanceEntity.parentClassIris) {
         if (this.diagramRepresentation?.containsEntity(parentClassIri)) {
-          instanceNode.position = this.diagram.representation?.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
+          instanceNode.position = this.diagramRepresentation.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
           break
         }
       }
@@ -156,7 +156,7 @@ export default class DiagramBuilder {
 
   }
 
-  private get diagramRepresentation() {
-    return this.diagram.representations.get(RendererStatesEnum.INCREMENTAL)
+  public get diagramRepresentation() {
+    return this.diagram.representations.get(this.rendererState)
   }
 }

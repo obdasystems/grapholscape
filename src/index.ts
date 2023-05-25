@@ -11,6 +11,7 @@ import { initIncremental } from './incremental'
 cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
+cytoscape.use(edgehandles)
 
 export * from './model'
 export * from './config'

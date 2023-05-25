@@ -2,20 +2,22 @@ import cytoscape from 'cytoscape';
 import edgehandles from 'cytoscape-edgehandles';
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { GrapholTypesEnum } from '../../model';
+import { GrapholTypesEnum, Lifecycle, RendererStatesEnum } from '../../model';
 import { addDataPropertyIcon, addEntityIcon, addObjectPropertyIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import getIconSlot from '../util/get-icon-slot';
 import ontologyModelToViewData from '../util/get-ontology-view-data';
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeNewElementModal from "./new-element-modal";
+import { LifecycleEvent } from '../../../dist';
+import GscapeContextMenu, { Command } from '../common/context-menu';
 
 
-export { GscapeNewElementModal };
-cytoscape.use(edgehandles);
+export { GscapeNewElementModal }
 
 
 export default function initDrawingElements(grapholscape: Grapholscape) {
+  const commandsWidget = new GscapeContextMenu()
 
   const edgeHandlesDefaults = {
     canConnect: function (sourceNode: any, targetNode: any ) {
@@ -116,6 +118,27 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       })
     })
     
+    grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
+      const elem = evt.target
+
+      if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+        const commands: Command[] = []
+        
+        // Logica per aggiungere comandi
+
+        try {
+          if (elem.isEdge() && grapholscape.uiContainer) {
+            commandsWidget.attachToPosition(evt.renderedPosition, grapholscape.uiContainer, commands)
+          } else {
+            const htmlNodeReference = (elem as any).popperRef()
+            if (htmlNodeReference && commands.length > 0) {
+              commandsWidget.attachTo(htmlNodeReference, commands)
+            }
+          }
+    
+        } catch (e) { console.error(e) }
+      }
+    })
   }
 
 

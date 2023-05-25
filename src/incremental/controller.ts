@@ -6,7 +6,7 @@ import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholType
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
-import DiagramBuilder from "./diagram-builder";
+import DiagramBuilder from "../core/diagram-builder";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -44,7 +44,7 @@ export default class IncrementalController {
     public grapholscape: Grapholscape
   ) {
     this.setIncrementalEventHandlers()
-    this.diagramBuilder = new DiagramBuilder(this.diagram)
+    this.diagramBuilder = new DiagramBuilder(this.diagram, RendererStatesEnum.INCREMENTAL)
     this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
 
@@ -96,7 +96,7 @@ export default class IncrementalController {
   addEntity(iri: string, centerOnIt = true, position?: Position) {
     const entity = this.grapholscape.ontology.getEntity(iri)
 
-    if (entity && this.diagramBuilder.diagram.representation) {
+    if (entity && this.diagramBuilder.diagramRepresentation) {
       if (position && entity.is(GrapholTypesEnum.CLASS)) {
         this.diagramBuilder.addClass(entity, position)
       } else {
