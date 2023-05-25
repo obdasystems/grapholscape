@@ -299,7 +299,7 @@ export default class IncrementalController {
     // update parent class Iri
     if (typeof (parentClassesIris) !== 'string') {
 
-      if (!parentClassesIris) {
+      if (!parentClassesIris || parentClassesIris.length === 0) {
         parentClassesIris = this.ontology.getEntitiesByType(GrapholTypesEnum.CLASS).map(entity => entity.iri.fullIri)
       }
 
