@@ -668,9 +668,17 @@ export default class IncrementalController {
       if (objectProperties) {
         let promisesCount = 0
         this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri)
-        objectProperties.forEach((rangeClasses, objectPropertyEntity) => {
-          rangeClasses.list.forEach(rangeClassEntity => {
+        const results: Map<GrapholEntity, {
+          ranges: {
+            classEntity: GrapholEntity,
+            classInstance: ClassInstance,
+          }[],
+          isDirect: boolean
+        }> = new Map()
 
+        objectProperties.forEach((rangeClasses, objectPropertyEntity) => {
+          results.set(objectPropertyEntity, { ranges: [], isDirect: rangeClasses.direct })
+          rangeClasses.list.forEach(rangeClassEntity => {
             promisesCount += 1
 
             this.endpointController!.vkgApi!.getInstancesThroughObjectProperty(
@@ -680,13 +688,10 @@ export default class IncrementalController {
               false,
               (result) => { // onNewResult
                 if (result.length > 0) {
-                  if (!this.classInstanceEntities.get(result[0][0].iri)) {
-                    this.addInstance(result[0][0], rangeClassEntity.iri.fullIri)
-                  }
-
-                  rangeClasses.direct
-                    ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, instanceIri, result[0][0].iri)
-                    : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, result[0][0].iri, instanceIri)
+                  results.get(objectPropertyEntity)?.ranges.push({
+                    classEntity: rangeClassEntity,
+                    classInstance: result[0][0]
+                  })
                 }
               },
               [rangeClassEntity.iri.fullIri],
@@ -694,6 +699,7 @@ export default class IncrementalController {
               () => { // onStopPolling
                 promisesCount -= 1
                 if (promisesCount === 0) {
+                  this.addResultsFromFocus(instanceIri, results)
                   this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
                 }
               },
@@ -708,6 +714,31 @@ export default class IncrementalController {
   focusInstance(classInstance: ClassInstance) {
     this.addInstance(classInstance)
     this.expandObjectPropertiesOnInstance(classInstance.iri)
+  }
+
+  private addResultsFromFocus(sourceInstanceIri: string, results: Map<GrapholEntity, {
+    ranges: {
+      classEntity: GrapholEntity,
+      classInstance: ClassInstance,
+    }[],
+    isDirect: boolean
+  }>) {
+    this.performActionWithBlockedGraph(() => {
+      results.forEach((result, objectPropertyEntity) => {
+        result.ranges.forEach(range => {
+          if (!this.classInstanceEntities.get(range.classInstance.iri)) {
+            this.addInstance(range.classInstance, range.classEntity.iri.fullIri)
+          }
+  
+          this.addEntity(range.classEntity.iri.fullIri)
+          this.addEdge(range.classInstance.iri, range.classEntity.iri.fullIri, GrapholTypesEnum.INSTANCE_OF)
+  
+          result.isDirect
+            ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
+            : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, range.classInstance.iri, sourceInstanceIri)
+        })
+      })
+    })
   }
 
   runLayout = () => this.incrementalRenderer?.runLayout()
