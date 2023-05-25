@@ -1,15 +1,12 @@
-import cytoscape from 'cytoscape';
-import edgehandles from 'cytoscape-edgehandles';
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { GrapholTypesEnum, Lifecycle, RendererStatesEnum } from '../../model';
-import { addDataPropertyIcon, addEntityIcon, addObjectPropertyIcon } from '../assets';
+import { GrapholTypesEnum, Lifecycle, LifecycleEvent, RendererStatesEnum } from '../../model';
+import { addDataPropertyIcon, addEntityIcon, addObjectPropertyIcon, dataPropertyIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import getIconSlot from '../util/get-icon-slot';
 import ontologyModelToViewData from '../util/get-ontology-view-data';
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeNewElementModal from "./new-element-modal";
-import { LifecycleEvent } from '../../../dist';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 
 
@@ -71,7 +68,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS)
   }
 
-  const addDataPropertyBtn = new GscapeButton()
+  /*const addDataPropertyBtn = new GscapeButton()
   const datapropertyIcon = getIconSlot('icon', addDataPropertyIcon)
   addDataPropertyBtn.appendChild(datapropertyIcon)
 
@@ -84,13 +81,13 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
     grapholscape.uiContainer?.appendChild(newElementComponent)
     initNewElementModal(newElementComponent, 'Add New Data Property', GrapholTypesEnum.DATA_PROPERTY)
-  }
+  }*/
 
   const addObjectPropertyBtn = new GscapeButton()
   const objectpropertyIcon = getIconSlot('icon', addObjectPropertyIcon)
   addObjectPropertyBtn.appendChild(objectpropertyIcon)
 
-  addObjectPropertyBtn.style.top = '120px'
+  addObjectPropertyBtn.style.top = '85px'
   addObjectPropertyBtn.style.left = '10px'
   addObjectPropertyBtn.style.position = 'absolute'
   addObjectPropertyBtn.title = 'Add Object Property'
@@ -117,30 +114,33 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       })
     })
-    
-    grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
-      const elem = evt.target
-
-      if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-        const commands: Command[] = []
-        
-        // Logica per aggiungere comandi
-
-        try {
-          if (elem.isEdge() && grapholscape.uiContainer) {
-            commandsWidget.attachToPosition(evt.renderedPosition, grapholscape.uiContainer, commands)
-          } else {
-            const htmlNodeReference = (elem as any).popperRef()
-            if (htmlNodeReference && commands.length > 0) {
-              commandsWidget.attachTo(htmlNodeReference, commands)
-            }
-          }
-    
-        } catch (e) { console.error(e) }
-      }
-    })
+  
   }
 
+  grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
+    const elem = evt.target
+
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === 'class') {
+      const commands: Command[] = []
+      
+      // Logica per aggiungere comandi
+      commands.push({
+        content: 'Add Data Property',
+        icon: addDataPropertyIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          initNewElementModal(newElementComponent, 'Add New Data Property', GrapholTypesEnum.DATA_PROPERTY, elem.data('iri'))
+        }
+      })
+
+      try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+        }
+      } catch (e) { console.error(e) }
+    }
+  })
 
   function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId = null, targetId = null) {
 
@@ -150,8 +150,11 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     newElementComponent.onConfirm = (iriString) => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      if (entityType === GrapholTypesEnum.CLASS || entityType === GrapholTypesEnum.DATA_PROPERTY) { 
+      if (entityType === GrapholTypesEnum.CLASS ) { 
         ontologyBuilder.addNodeElement(iriString, entityType)
+      }
+      else if( entityType === GrapholTypesEnum.DATA_PROPERTY){
+        ontologyBuilder.addNodeElement(iriString, entityType, sourceId)
       }
       else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
         grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
@@ -167,7 +170,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   }
 
 grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
-grapholscape.widgets.set(WidgetEnum.NEW_DATAPROPERTY, addDataPropertyBtn)
+//grapholscape.widgets.set(WidgetEnum.NEW_DATAPROPERTY, addDataPropertyBtn)
 grapholscape.widgets.set(WidgetEnum.NEW_OBJECTPROPERTY, addObjectPropertyBtn)
 
 

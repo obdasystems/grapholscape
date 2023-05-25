@@ -25,7 +25,7 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
     {
-      selector: `[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+      selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
       style: {
         'height': (node)=>  node.data('width') || 20,
         'width' : (node)=>  node.data('width') || 20

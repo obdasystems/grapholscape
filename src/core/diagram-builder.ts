@@ -1,6 +1,6 @@
 import { Position } from "cytoscape";
 import { EntityNameType } from "../config";
-import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, IncrementalDiagram, isGrapholNode, RendererStatesEnum, Shape } from "../model";
+import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, IncrementalDiagram, isGrapholNode, RendererStatesEnum, Shape } from "../model";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
@@ -42,32 +42,42 @@ export default class DiagramBuilder {
     classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
     classNode.height = classNode.width = 80
     classNode.position = position || { x: 0, y: 0 }
-    classNode.originalId = classEntity.getEntityOriginalNodeId()
+    classNode.originalId = classEntity.iri.fullIri
 
-    classEntity.addOccurrence(classNode.id, this.diagram.id, RendererStatesEnum.INCREMENTAL)
+    classEntity.addOccurrence(classNode.id, this.diagram.id, RendererStatesEnum.FLOATY)
 
-    this.diagram.addElement(classNode, classEntity)
+    this.diagramRepresentation?.addElement(classNode, classEntity)
   }
 
   addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity: GrapholEntity) {
 
     const dataPropertyNode = new GrapholNode(dataPropertyEntity.iri.fullIri, GrapholTypesEnum.DATA_PROPERTY)
-    const ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntity.iri.fullIri)
+
+    const ownerEntityOccurrences = ownerEntity.occurrences.get(RendererStatesEnum.GRAPHOL)
+    if (!ownerEntityOccurrences || ownerEntityOccurrences.length === 0) return
+    let ownerEntityId = ownerEntityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId
+
+    if(!ownerEntityId) return
+    let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)    
+    
     if (!dataPropertyNode || !ownerEntityNode) return
 
     dataPropertyNode.id = dataPropertyEntity.iri.fullIri
+    dataPropertyNode.iri = dataPropertyEntity.iri.fullIri;
+    dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL);
     if (isGrapholNode(ownerEntityNode)) {
       dataPropertyNode.position = ownerEntityNode.position
     }
     
-    dataPropertyNode.originalId = dataPropertyEntity.getEntityOriginalNodeId()
+    dataPropertyNode.originalId = dataPropertyNode.id
+    dataPropertyEntity.addOccurrence(dataPropertyNode.id, this.diagram.id, RendererStatesEnum.FLOATY);
 
     const dataPropertyEdge = new GrapholEdge(`${ownerEntityNode.id}-${dataPropertyNode.id}`, GrapholTypesEnum.DATA_PROPERTY)
     dataPropertyEdge.sourceId = ownerEntityNode.id
     dataPropertyEdge.targetId = dataPropertyNode.id
-
-    this.diagram.addElement(dataPropertyNode, dataPropertyEntity)
-    this.diagram.addElement(dataPropertyEdge)
+    console.log(dataPropertyEdge)
+    this.diagramRepresentation?.addElement(dataPropertyNode, dataPropertyEntity)
+    this.diagramRepresentation?.addElement(dataPropertyEdge)
   }
 
   addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity) {

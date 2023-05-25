@@ -7,6 +7,8 @@ import * as UI from './ui'
 import Grapholscape from './core'
 import { GrapholscapeConfig, loadConfig } from './config'
 import { initIncremental } from './incremental'
+import edgehandles from 'cytoscape-edgehandles';
+
 
 cytoscape.use(popper)
 cytoscape.use(cola)
