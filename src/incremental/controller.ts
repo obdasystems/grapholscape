@@ -111,7 +111,7 @@ export default class IncrementalController {
         this.grapholscape.centerOnElement(iri)
 
       if (entity.is(GrapholTypesEnum.CLASS))
-        this.countInstancesForClass(iri)
+        this.countInstancesForClass(iri, false)
     }
   }
 
@@ -756,7 +756,7 @@ export default class IncrementalController {
     }
   }
 
-  async countInstancesForClass(classIri: string) {
+  async countInstancesForClass(classIri: string, askFreshValue = true) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
     const node = this.diagram?.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
@@ -764,10 +764,13 @@ export default class IncrementalController {
     await this.updateMaterializedCounts()
 
     if (this.counts.get(classIri) === undefined) {
-      this.endpointController?.requestCountForClass(classIri)
+      if (askFreshValue)
+        this.endpointController?.requestCountForClass(classIri)
     } else { // Value already present
       let instanceCountBadge: NodeButton
-      const countEntry = this.counts.get(classIri)!
+      const countEntry = this.counts.get(classIri)
+      if (!countEntry)
+        return
 
       if (!node.scratch('instance-count')) {
         instanceCountBadge = addBadge(node, countEntry.value, 'instance-count', 'bottom')
