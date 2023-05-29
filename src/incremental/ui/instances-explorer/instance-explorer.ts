@@ -303,21 +303,22 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       }
     }) as InstanceFilterEvent
 
-    if (this.propertyFilterSelect?.selectedOptionsId[0] && 
-      this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
-      this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
-      event.detail.filterText) {
-      event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionsId[0]
-      const property = this.propertiesFilterList.find(p => {
-        return this.propertyFilterSelect?.selectedOptionsId &&
-          p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionsId[0])
-      })
+    if (this.propertyFilterSelect) {
+      const selectedOption = Array.from(this.propertyFilterSelect.selectedOptionsId)[0]
 
-      if (property) {
-        event.detail.propertyType = property.entityViewData.value.type as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
-
-        if (property.entityViewData.value.type === GrapholTypesEnum.OBJECT_PROPERTY) {
-          event.detail.direct = (property as ViewObjectPropertyUnfolding).direct
+      if (selectedOption && selectedOption !== 'id' && selectedOption !== 'label' && event.detail.filterText) {
+        event.detail.filterByProperty = selectedOption
+        const property = this.propertiesFilterList.find(p => {
+          return this.propertyFilterSelect?.selectedOptionsId &&
+            p.entityViewData.value.iri.equals(selectedOption)
+        })
+  
+        if (property) {
+          event.detail.propertyType = property.entityViewData.value.type as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
+  
+          if (property.entityViewData.value.type === GrapholTypesEnum.OBJECT_PROPERTY) {
+            event.detail.direct = (property as ViewObjectPropertyUnfolding).direct
+          }
         }
       }
     }
@@ -394,11 +395,12 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         }
 
         let filterByPropertyIri: string | undefined
-        if (this.propertyFilterSelect?.selectedOptionsId[0] && 
-          this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
-          this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
-          this.instancesSearchInput?.value) {
-            filterByPropertyIri = this.propertyFilterSelect.selectedOptionsId[0]
+
+        if (this.propertyFilterSelect) {
+          const selectedOption = Array.from(this.propertyFilterSelect.selectedOptionsId)[0]
+    
+          if (selectedOption && selectedOption !== 'id' && selectedOption !== 'label' && this.instancesSearchInput?.value)
+            filterByPropertyIri = selectedOption
         }
 
         this.requestUpdate()
