@@ -9598,7 +9598,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"3.2.6-snap.3"}</span>
+            <span>${"3.2.6-snap.4"}</span>
           </div>
         </div>
       </div>
@@ -11713,7 +11713,7 @@ function getInstances(classIRI, includeLabels = true, maxResults) {
     return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx' : '?x'}
   WHERE {
-    ?x a <${encodeURI(classIRI)}>;
+    ?x a <${classIRI}>;
        ${includeLabels ? `rdfs:label ?lx` : ``}
   }
   ${getLimit(maxResults)}
@@ -11732,7 +11732,7 @@ function getInstancesByLabel(classIRI, searchText, maxResults) {
     return `
   SELECT DISTINCT ?x ?lx
   WHERE {
-    ?x a <${encodeURI(classIRI)}>;
+    ?x a <${classIRI}>;
        rdfs:label ?lx.
     ${getSearchFilters('?lx', searchText)}
   }
@@ -11752,7 +11752,7 @@ function getInstancesByIRI(classIRI, searchText, maxResults) {
     return `
   SELECT DISTINCT ?x
   WHERE {
-    ?x a <${encodeURI(classIRI)}>.
+    ?x a <${classIRI}>.
     ${getSearchFilters('?x', searchText)}
   }
   ${getLimit(maxResults)}
@@ -11773,8 +11773,8 @@ function getInstancesByDataProperty(classIRI, dataPropertyIRI, searchText, inclu
     return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx ?y' : '?x ?y'}
   WHERE {
-    ?x a <${encodeURI(classIRI)}>;
-       <${encodeURI(dataPropertyIRI)}> ?y;
+    ?x a <${classIRI}>;
+       <${dataPropertyIRI}> ?y;
        ${includeLabels ? `rdfs:label ?lx` : ``}
     ${getSearchFilters('?y', searchText)}
   }
@@ -11787,7 +11787,7 @@ function getInstancesByDataProperty(classIRI, dataPropertyIRI, searchText, inclu
  * Fetch instances of a given type such that they participate in a object property with
  * another instance whose label contains a given search text.
  *
- * @param classIri class type of the instances
+ * @param classIRI class type of the instances
  * @param objectPropertyIRI the object property on which the filter must be done
  * @param searchText the text to search in the label of the instances participating in the object property
  * @param isDirect whether the object property is direct or inverse default: true (direct)
@@ -11795,16 +11795,16 @@ function getInstancesByDataProperty(classIRI, dataPropertyIRI, searchText, inclu
  * @param maxResults if 'unlimited', no limit is set. default: 1000
  * @returns
  */
-function getInstancesByObjectProperty(classIri, objectPropertyIRI, searchText, isDirect = true, includeLabels = true, maxResults) {
+function getInstancesByObjectProperty(classIRI, objectPropertyIRI, searchText, isDirect = true, includeLabels = true, maxResults) {
     return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx ?y ?ly' : '?x ?y ?ly'}
   WHERE {
-    ?x a <${encodeURI(classIri)}>;
+    ?x a <${classIRI}>;
        ${includeLabels ? 'rdfs:label ?lx' : ''}.
        
     ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> ?x.`
-        : `?x <${encodeURI(objectPropertyIRI)}> ?y.`}
+        ? `?y <${objectPropertyIRI}> ?x.`
+        : `?x <${objectPropertyIRI}> ?y.`}
        
     ?y rdfs:label ?ly.
     ${getSearchFilters('?ly', searchText)}
@@ -11824,7 +11824,7 @@ function getInstanceDataPropertyValues(instanceIRI, dataPropertyIRI) {
     return `
   SELECT DISTINCT ?y
   WHERE {
-    <${encodeURI(instanceIRI)}> <${encodeURI(dataPropertyIRI)}> ?y
+    <${encodeURI(instanceIRI)}> <${dataPropertyIRI}> ?y
   }
   LIMIT 10
   `;
@@ -11846,10 +11846,10 @@ function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, range
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y a <${rangeTypeClassIri}>.
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
     `);
     }
@@ -11857,8 +11857,8 @@ function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, range
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
     `];
@@ -11891,10 +11891,10 @@ function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y a <${rangeTypeClassIri}>.
       ?y rdfs:label ?ly
       ${getSearchFilters('?ly', searchText)}
     `);
@@ -11903,8 +11903,8 @@ function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
       ?y rdfs:label ?ly
       ${getSearchFilters('?ly', searchText)}
@@ -11938,10 +11938,10 @@ function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, 
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y a <${rangeTypeClassIri}>.
       ${getSearchFilters('?y', searchText)}
     `);
     }
@@ -11949,8 +11949,8 @@ function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, 
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
       ${getSearchFilters('?y', searchText)}
     `];
     }
@@ -11985,12 +11985,12 @@ function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClas
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>;
+      ?y a <${rangeTypeClassIri}>;
         ${includeLabels ? 'rdfs:label ?ly;' : ''}
-        <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+        <${dataPropertyFilterIRI}> ?dp.
       ${getSearchFilters('?dp', searchText)}
     `);
     }
@@ -11998,11 +11998,11 @@ function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClas
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
 
       ?y ${includeLabels ? 'rdfs:label ?ly;' : ''}
-         <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+         <${dataPropertyFilterIRI}> ?dp.
       ${getSearchFilters('?dp', searchText)}
     `];
     }
@@ -13542,7 +13542,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
     `;
     }
     handleFilter(e) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         const inputElement = this.instancesSearchInput;
         if (!inputElement)
             return;
@@ -13555,33 +13555,33 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
                 filterByType: undefined,
             }
         });
-        if (((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionsId[0]) &&
-            this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
-            this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
-            event.detail.filterText) {
-            event.detail.filterByProperty = this.propertyFilterSelect.selectedOptionsId[0];
-            const property = this.propertiesFilterList.find(p => {
-                var _a;
-                return ((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionsId) &&
-                    p.entityViewData.value.iri.equals(this.propertyFilterSelect.selectedOptionsId[0]);
-            });
-            if (property) {
-                event.detail.propertyType = property.entityViewData.value.type;
-                if (property.entityViewData.value.type === GrapholTypesEnum.OBJECT_PROPERTY) {
-                    event.detail.direct = property.direct;
+        if (this.propertyFilterSelect) {
+            const selectedOption = Array.from(this.propertyFilterSelect.selectedOptionsId)[0];
+            if (selectedOption && selectedOption !== 'id' && selectedOption !== 'label' && event.detail.filterText) {
+                event.detail.filterByProperty = selectedOption;
+                const property = this.propertiesFilterList.find(p => {
+                    var _a;
+                    return ((_a = this.propertyFilterSelect) === null || _a === void 0 ? void 0 : _a.selectedOptionsId) &&
+                        p.entityViewData.value.iri.equals(selectedOption);
+                });
+                if (property) {
+                    event.detail.propertyType = property.entityViewData.value.type;
+                    if (property.entityViewData.value.type === GrapholTypesEnum.OBJECT_PROPERTY) {
+                        event.detail.direct = property.direct;
+                    }
                 }
             }
         }
         // if only one class type, then use it, there is not select element
-        if (((_b = this.classTypeFilterList) === null || _b === void 0 ? void 0 : _b.length) === 1) {
+        if (((_a = this.classTypeFilterList) === null || _a === void 0 ? void 0 : _a.length) === 1) {
             event.detail.filterByType = [this.classTypeFilterList[0].entityViewData.value.iri.fullIri];
         }
         else if (this.classTypeFilterSelect && this.classTypeFilterSelect.selectedOptionsId.size > 0) { // otherwise check selected option
             event.detail.filterByType = Array.from(this.classTypeFilterSelect.selectedOptionsId);
         }
         if (this.shouldAskForLabels !== undefined)
-            event.detail.shouldAskForLabels = this.shouldAskForLabels && ((_c = this.propertyFilterSelect) === null || _c === void 0 ? void 0 : _c.selectedOptionsId[0]) !== 'id';
-        if (((_d = this.propertyFilterSelect) === null || _d === void 0 ? void 0 : _d.selectedOptionsId[0]) === 'id') {
+            event.detail.shouldAskForLabels = this.shouldAskForLabels && ((_b = this.propertyFilterSelect) === null || _b === void 0 ? void 0 : _b.selectedOptionsId[0]) !== 'id';
+        if (((_c = this.propertyFilterSelect) === null || _c === void 0 ? void 0 : _c.selectedOptionsId[0]) === 'id') {
             event.detail.shouldAskForLabels = false;
         }
         this.lastSearchedText = event.detail.filterText || '';
@@ -13612,7 +13612,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
         this.handleFilter(e);
     }
     handleInsertInGraph(e) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
             const targetListItem = (_a = e.currentTarget.parentElement) === null || _a === void 0 ? void 0 : _a.parentElement;
             if (targetListItem) {
@@ -13639,11 +13639,10 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
                         return;
                     }
                     let filterByPropertyIri;
-                    if (((_g = this.propertyFilterSelect) === null || _g === void 0 ? void 0 : _g.selectedOptionsId[0]) &&
-                        this.propertyFilterSelect.selectedOptionsId[0] !== 'id' &&
-                        this.propertyFilterSelect.selectedOptionsId[0] !== 'label' &&
-                        ((_h = this.instancesSearchInput) === null || _h === void 0 ? void 0 : _h.value)) {
-                        filterByPropertyIri = this.propertyFilterSelect.selectedOptionsId[0];
+                    if (this.propertyFilterSelect) {
+                        const selectedOption = Array.from(this.propertyFilterSelect.selectedOptionsId)[0];
+                        if (selectedOption && selectedOption !== 'id' && selectedOption !== 'label' && ((_g = this.instancesSearchInput) === null || _g === void 0 ? void 0 : _g.value))
+                            filterByPropertyIri = selectedOption;
                     }
                     this.requestUpdate();
                     yield this.updateComplete;
@@ -14728,7 +14727,7 @@ class IncrementalController {
             if (centerOnIt)
                 this.grapholscape.centerOnElement(iri);
             if (entity.is(GrapholTypesEnum.CLASS))
-                this.countInstancesForClass(iri);
+                this.countInstancesForClass(iri, false);
         }
     }
     areHierarchiesVisible(hierarchies) {
@@ -14878,7 +14877,7 @@ class IncrementalController {
         }
         // update parent class Iri
         if (typeof (parentClassesIris) !== 'string') {
-            if (!parentClassesIris) {
+            if (!parentClassesIris || parentClassesIris.length === 0) {
                 parentClassesIris = this.ontology.getEntitiesByType(GrapholTypesEnum.CLASS).map(entity => entity.iri.fullIri);
             }
             (_b = this.endpointController) === null || _b === void 0 ? void 0 : _b.instanceCheck(instance.iri, parentClassesIris).then(result => {
@@ -15192,21 +15191,23 @@ class IncrementalController {
                 if (objectProperties) {
                     let promisesCount = 0;
                     this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri);
+                    const results = new Map();
                     objectProperties.forEach((rangeClasses, objectPropertyEntity) => {
+                        results.set(objectPropertyEntity, { ranges: [], isDirect: rangeClasses.direct });
                         rangeClasses.list.forEach(rangeClassEntity => {
                             promisesCount += 1;
                             this.endpointController.vkgApi.getInstancesThroughObjectProperty(instanceIri, objectPropertyEntity.iri.fullIri, rangeClasses.direct, false, (result) => {
+                                var _a;
                                 if (result.length > 0) {
-                                    if (!this.classInstanceEntities.get(result[0][0].iri)) {
-                                        this.addInstance(result[0][0], rangeClassEntity.iri.fullIri);
-                                    }
-                                    rangeClasses.direct
-                                        ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, instanceIri, result[0][0].iri)
-                                        : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, result[0][0].iri, instanceIri);
+                                    (_a = results.get(objectPropertyEntity)) === null || _a === void 0 ? void 0 : _a.ranges.push({
+                                        classEntity: rangeClassEntity,
+                                        classInstance: result[0][0]
+                                    });
                                 }
                             }, [rangeClassEntity.iri.fullIri], undefined, undefined, () => {
                                 promisesCount -= 1;
                                 if (promisesCount === 0) {
+                                    this.addResultsFromFocus(instanceIri, results);
                                     this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri);
                                 }
                             }, 1);
@@ -15220,6 +15221,22 @@ class IncrementalController {
         this.addInstance(classInstance);
         this.expandObjectPropertiesOnInstance(classInstance.iri);
     }
+    addResultsFromFocus(sourceInstanceIri, results) {
+        this.performActionWithBlockedGraph(() => {
+            results.forEach((result, objectPropertyEntity) => {
+                result.ranges.forEach(range => {
+                    if (!this.classInstanceEntities.get(range.classInstance.iri)) {
+                        this.addInstance(range.classInstance, range.classEntity.iri.fullIri);
+                    }
+                    this.addEntity(range.classEntity.iri.fullIri);
+                    this.addEdge(range.classInstance.iri, range.classEntity.iri.fullIri, GrapholTypesEnum.INSTANCE_OF);
+                    result.isDirect
+                        ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
+                        : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, range.classInstance.iri, sourceInstanceIri);
+                });
+            });
+        });
+    }
     postDiagramEdit(oldElemsNumber) {
         var _a;
         if (this.numberOfElements !== oldElemsNumber) {
@@ -15232,7 +15249,7 @@ class IncrementalController {
             (_a = this.incrementalRenderer) === null || _a === void 0 ? void 0 : _a.unFreezeGraph();
         }
     }
-    countInstancesForClass(classIri) {
+    countInstancesForClass(classIri, askFreshValue = true) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.countersEnabled || !((_a = this.endpointController) === null || _a === void 0 ? void 0 : _a.isReasonerAvailable()))
@@ -15242,11 +15259,14 @@ class IncrementalController {
                 return;
             yield this.updateMaterializedCounts();
             if (this.counts.get(classIri) === undefined) {
-                (_d = this.endpointController) === null || _d === void 0 ? void 0 : _d.requestCountForClass(classIri);
+                if (askFreshValue)
+                    (_d = this.endpointController) === null || _d === void 0 ? void 0 : _d.requestCountForClass(classIri);
             }
             else { // Value already present
                 let instanceCountBadge;
                 const countEntry = this.counts.get(classIri);
+                if (!countEntry)
+                    return;
                 if (!node.scratch('instance-count')) {
                     instanceCountBadge = addBadge(node, countEntry.value, 'instance-count', 'bottom');
                     setTimeout(() => instanceCountBadge.hide(), 1000);
