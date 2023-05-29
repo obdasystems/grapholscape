@@ -53,12 +53,9 @@ export default class DiagramBuilder {
 
     const dataPropertyNode = new GrapholNode(dataPropertyEntity.iri.fullIri, GrapholTypesEnum.DATA_PROPERTY)
 
-    const ownerEntityOccurrences = ownerEntity.occurrences.get(RendererStatesEnum.GRAPHOL)
-    if (!ownerEntityOccurrences || ownerEntityOccurrences.length === 0) return
-    let ownerEntityId = ownerEntityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId
-
+    const ownerEntityId = this.getIdFromEntity(ownerEntity)
     if(!ownerEntityId) return
-    let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)    
+    let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
     
     if (!dataPropertyNode || !ownerEntityNode) return
 
@@ -84,17 +81,11 @@ export default class DiagramBuilder {
     if (!this.diagramRepresentation) return
     
     // if both object property and range class are already present, do not add them again
-    const sourceEntityOccurrences = sourceEntity.occurrences.get(RendererStatesEnum.GRAPHOL)
-    if (!sourceEntityOccurrences || sourceEntityOccurrences.length === 0) return
-    let sourceEntityId = sourceEntityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId
-
+    const sourceEntityId = this.getIdFromEntity(sourceEntity)
     if(!sourceEntityId) return
     let sourceNode = this.diagramRepresentation?.grapholElements.get(sourceEntityId)
-
-    const targetEntityOccurrences = targetEntity.occurrences.get(RendererStatesEnum.GRAPHOL)
-    if (!targetEntityOccurrences || targetEntityOccurrences.length === 0) return
-    let targetEntityId = targetEntityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId
-
+  
+    const targetEntityId = this.getIdFromEntity(targetEntity)  
     if(!targetEntityId) return
     let targetNode = this.diagramRepresentation?.grapholElements.get(targetEntityId)
     
@@ -172,12 +163,26 @@ export default class DiagramBuilder {
       instanceEdge.sourceId = sourceId
       instanceEdge.targetId = targetId
 
-      this.diagram.addElement(instanceEdge)
+      this.diagramRepresentation?.addElement(instanceEdge)
     }
 
   }
 
   public get diagramRepresentation() {
     return this.diagram.representations.get(this.rendererState)
+  }
+
+  public getIdFromEntity(entity) {
+    if (!this.diagramRepresentation) return
+    
+    // if both object property and range class are already present, do not add them again
+    const entityOccurrences = entity.occurrences.get(RendererStatesEnum.GRAPHOL).length > 0 ? entity.occurrences.get(RendererStatesEnum.GRAPHOL) : entity.occurrences.get(RendererStatesEnum.FLOATY)
+    if (!entityOccurrences || entityOccurrences.length === 0) return
+    let entityId = entityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId
+
+    if(!entityId) return
+    let node = this.diagramRepresentation?.grapholElements.get(entityId)
+
+    return node?.id
   }
 }

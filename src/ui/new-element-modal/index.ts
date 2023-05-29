@@ -1,37 +1,37 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { GrapholTypesEnum, Lifecycle, LifecycleEvent, RendererStatesEnum } from '../../model';
-import { addDataPropertyIcon, addEntityIcon, addObjectPropertyIcon, dataPropertyIcon } from '../assets';
+import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
+import { addChildClassIcon, addDataPropertyIcon, addEntityIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
 import { GscapeButton } from '../common/button';
+import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
 import ontologyModelToViewData from '../util/get-ontology-view-data';
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeNewElementModal from "./new-element-modal";
-import GscapeContextMenu, { Command } from '../common/context-menu';
 
 
-export { GscapeNewElementModal }
+export { GscapeNewElementModal };
 
 
 export default function initDrawingElements(grapholscape: Grapholscape) {
   const commandsWidget = new GscapeContextMenu()
 
   const edgeHandlesDefaults = {
-    canConnect: function (sourceNode: any, targetNode: any ) {
+    canConnect: function (sourceNode: any, targetNode: any) {
       const sourceType = sourceNode.data('type')
       const targetType = targetNode.data('type')
-  
+
       switch (sourceType) {
-       
+
         case GrapholTypesEnum.CLASS:
-          return targetType === GrapholTypesEnum.CLASS 
-  
+          return targetType === GrapholTypesEnum.CLASS
+
         default:
           return false
       }
     },
     edgeParams: function (sourceNode, targetNode) {
-  
+
       let temp_id = 'temp_' + sourceNode.data('iri') + '-' + targetNode.data('iri')
       return {
         data: {
@@ -73,7 +73,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
     if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === 'class') {
       const commands: Command[] = []
-      
+
       // Logica per aggiungere comandi
       commands.push({
         content: 'Add Data Property',
@@ -92,17 +92,35 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           let edgehandles = myCy.edgehandles(edgeHandlesDefaults)
           edgehandles.start(elem)
 
-          myCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge)=> {
+          myCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
             grapholscape.uiContainer?.appendChild(newElementComponent)
             initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
           })
         }
       })
 
+      commands.push({
+        content: 'Add Parent Class',
+        icon: addParentClassIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS, elem.data('iri'))
+        }
+      })
+
+      commands.push({
+        content: 'Add Child Class',
+        icon: addChildClassIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS, null, elem.data('iri'))
+        }
+      })
+
       try {
-          const htmlNodeReference = (elem as any).popperRef()
-          if (htmlNodeReference && commands.length > 0) {
-            commandsWidget.attachTo(htmlNodeReference, commands)
+        const htmlNodeReference = (elem as any).popperRef()
+        if (htmlNodeReference && commands.length > 0) {
+          commandsWidget.attachTo(htmlNodeReference, commands)
         }
       } catch (e) { console.error(e) }
     }
@@ -116,10 +134,17 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     newElementComponent.onConfirm = (iriString) => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      if (entityType === GrapholTypesEnum.CLASS ) { 
-        ontologyBuilder.addNodeElement(iriString, entityType)
+      if (entityType === GrapholTypesEnum.CLASS) {
+        if (sourceId) {
+          ontologyBuilder.addNodeElement(iriString, entityType, sourceId, "superclass")
+        }
+        else if (targetId) {
+          ontologyBuilder.addNodeElement(iriString, entityType, targetId, "subclass")
+        } else {
+          ontologyBuilder.addNodeElement(iriString, entityType)
+        }
       }
-      else if( entityType === GrapholTypesEnum.DATA_PROPERTY){
+      else if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
         ontologyBuilder.addNodeElement(iriString, entityType, sourceId)
       }
       else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
@@ -131,13 +156,14 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     newElementComponent.onCancel = () => {
       newElementComponent.hide()
       if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
-        grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()}
+        grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
+      }
     }
   }
 
-grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
-//grapholscape.widgets.set(WidgetEnum.NEW_DATAPROPERTY, addDataPropertyBtn)
-//grapholscape.widgets.set(WidgetEnum.NEW_OBJECTPROPERTY, addObjectPropertyBtn)
+  grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
+  //grapholscape.widgets.set(WidgetEnum.NEW_DATAPROPERTY, addDataPropertyBtn)
+  //grapholscape.widgets.set(WidgetEnum.NEW_OBJECTPROPERTY, addObjectPropertyBtn)
 
 
 }
