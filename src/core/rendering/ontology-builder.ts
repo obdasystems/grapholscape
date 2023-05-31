@@ -43,18 +43,27 @@ export default class OntologyBuilder {
         }
     }
 
-    public addEdgeElement(iriString, entityType, sourceId, targetId) {
+    public addEdgeElement(iriString: string | null = null, entityType, sourceId, targetId) {
 
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
-        const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
-        const entity = new GrapholEntity(iri, entityType)
-        this.grapholscape.ontology.addEntity(entity)
-
         const sourceEntity = this.grapholscape.ontology.getEntity(sourceId)
         const targetEntity = this.grapholscape.ontology.getEntity(targetId)
         if (!sourceEntity || !targetEntity) return
-        this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity)
+
+        if (iriString && entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
+            const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
+            const entity = new GrapholEntity(iri, entityType)
+            this.grapholscape.ontology.addEntity(entity)
+            this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity)
+        }
+        else if (entityType === GrapholTypesEnum.INCLUSION) {
+            const sourceID = this.diagramBuilder.getIdFromEntity(sourceEntity)
+            const targetID = this.diagramBuilder.getIdFromEntity(targetEntity)
+            if (!sourceID || !targetID) return
+            this.diagramBuilder.addEdge(sourceID, targetID, GrapholTypesEnum.INCLUSION)
+        }
+
 
     }
 }

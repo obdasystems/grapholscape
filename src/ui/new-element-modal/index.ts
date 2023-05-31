@@ -1,7 +1,7 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
 import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
-import { addChildClassIcon, addDataPropertyIcon, addEntityIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
+import { addChildClassIcon, addDataPropertyIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
@@ -88,11 +88,11 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         content: 'Add Object Property',
         icon: addObjectPropertyIcon,
         select: () => {
-          let myCy = grapholscape.renderer.cy as any
-          let edgehandles = myCy.edgehandles(edgeHandlesDefaults)
+          let currentCy = grapholscape.renderer.cy as any
+          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
           edgehandles.start(elem)
 
-          myCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
             grapholscape.uiContainer?.appendChild(newElementComponent)
             initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
           })
@@ -114,6 +114,24 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         select: () => {
           grapholscape.uiContainer?.appendChild(newElementComponent)
           initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS, null, elem.data('iri'))
+        }
+      })
+
+      commands.push({
+        content: 'Add IS-A Edge',
+        icon: addISAIcon,
+        select: () => {
+          let currentCy = grapholscape.renderer.cy as any
+          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+          edgehandles.start(elem)
+
+          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const sourceId = sourceNode.data('iri')
+            const targetId = targetNode.data('iri')
+            grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
+            ontologyBuilder.addEdgeElement(null, GrapholTypesEnum.INCLUSION, sourceId, targetId)
+          })
         }
       })
 
@@ -162,9 +180,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   }
 
   grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
-  //grapholscape.widgets.set(WidgetEnum.NEW_DATAPROPERTY, addDataPropertyBtn)
-  //grapholscape.widgets.set(WidgetEnum.NEW_OBJECTPROPERTY, addObjectPropertyBtn)
-
 
 }
 
