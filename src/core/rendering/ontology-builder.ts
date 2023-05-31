@@ -1,4 +1,4 @@
-import { Diagram, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../../model"
+import { ClassInstanceEntity, Diagram, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../../model"
 import DiagramBuilder from "../diagram-builder"
 import Grapholscape from "../grapholscape"
 
@@ -16,10 +16,21 @@ export default class OntologyBuilder {
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
         const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
+        if (entityType === GrapholTypesEnum.CLASS_INSTANCE && ownerIri){
+            const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
+            if(!ownerEntity) return
+            const instanceEntity = new ClassInstanceEntity(iri, [ownerEntity?.iri])
+            this.grapholscape.ontology.addEntity(instanceEntity)
+            this.diagramBuilder.addClassInstance(instanceEntity)
+            const sourceId = this.diagramBuilder.getIdFromEntity(instanceEntity)
+            const targetId = this.diagramBuilder.getIdFromEntity(ownerEntity)
+            if(!sourceId || !targetId) return
+            this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+            return
+        }
+
         const entity = new GrapholEntity(iri, entityType)
         this.grapholscape.ontology.addEntity(entity)
-
-
         if (entityType === GrapholTypesEnum.DATA_PROPERTY && ownerIri) {
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if (ownerEntity)

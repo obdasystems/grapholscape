@@ -138,13 +138,14 @@ export default class DiagramBuilder {
       instanceNode.position = position
     }
 
-    // instanceNode.displayedName = iri
+    instanceNode.displayedName = classInstanceEntity.iri.remainder
     instanceNode.height = instanceNode.width = 50
     instanceNode.shape = Shape.ELLIPSE
     instanceNode.labelXpos = 0
     instanceNode.labelYpos = 0
+    classInstanceEntity.addOccurrence(instanceNode.id, this.diagram.id, RendererStatesEnum.FLOATY);
 
-    this.diagram.addElement(instanceNode, classInstanceEntity)
+    this.diagramRepresentation?.addElement(instanceNode, classInstanceEntity)
     return instanceNode
   }
 
@@ -174,8 +175,7 @@ export default class DiagramBuilder {
 
   public getIdFromEntity(entity) {
     if (!this.diagramRepresentation) return
-    
-    // if both object property and range class are already present, do not add them again
+
     const entityOccurrences = entity.occurrences.get(RendererStatesEnum.GRAPHOL).length > 0 ? entity.occurrences.get(RendererStatesEnum.GRAPHOL) : entity.occurrences.get(RendererStatesEnum.FLOATY)
     if (!entityOccurrences || entityOccurrences.length === 0) return
     let entityId = entityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId

@@ -32,6 +32,23 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
     {
+      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      style: {
+        backgroundColor: theme.getColour(ColoursNames.class_instance),
+        "border-color": theme.getColour(ColoursNames.class_instance_contrast),
+      }
+    },
+    {
+      selector: `edge[type = "${GrapholTypesEnum.INSTANCE_OF}"]`,
+      style: {
+        "target-arrow-shape": 'triangle',
+        'target-arrow-fill': 'filled',
+        'line-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'line-opacity': 0.4,
+      }
+    },
+    {
       selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
       style: {
         'line-style': 'solid',

@@ -1,7 +1,7 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
 import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
-import { addChildClassIcon, addDataPropertyIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
+import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
@@ -135,6 +135,15 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       })
 
+      commands.push({
+        content: 'Add Class Instance',
+        icon: addClassInstanceIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          initNewElementModal(newElementComponent, 'Add New Instance', GrapholTypesEnum.CLASS_INSTANCE, null, elem.data('iri'))
+        }
+      })
+
       try {
         const htmlNodeReference = (elem as any).popperRef()
         if (htmlNodeReference && commands.length > 0) {
@@ -164,6 +173,8 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       }
       else if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
         ontologyBuilder.addNodeElement(iriString, entityType, sourceId)
+      } else if(entityType === GrapholTypesEnum.CLASS_INSTANCE){
+        ontologyBuilder.addNodeElement(iriString, entityType, targetId)
       }
       else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
         grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
