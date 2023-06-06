@@ -1,7 +1,7 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
 import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
-import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
+import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
@@ -85,7 +85,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
     const elem = evt.target
-
     if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === 'class') {
       const commands: Command[] = []
 
@@ -159,6 +158,15 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       })
 
+      commands.push({
+        content: 'Add Subhierarchy',
+        icon: addSubhierarchyIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Subhierarchy', null, elem.data('iri'))
+        }
+      })
+
       try {
         const htmlNodeReference = (elem as any).popperRef()
         if (htmlNodeReference && commands.length > 0) {
@@ -171,12 +179,8 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId = null, targetId = null) {
 
     newElementComponent.dialogTitle = title
-    if (entityType === 'Diagram') {
-      newElementComponent.withoutPrefix = 'none'
-    }
-    else {
-      newElementComponent.withoutPrefix = 'inline'
-    }
+    newElementComponent.withoutPrefix = entityType === 'Diagram' ? 'none': 'inline'
+    newElementComponent.enableMore = entityType === 'Subhierarchy' ? 'inline' : 'none'
     newElementComponent.show()
 
     newElementComponent.onConfirm = (iriString) => {
@@ -184,25 +188,28 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (entityType === GrapholTypesEnum.CLASS) {
         if (sourceId) {
-          ontologyBuilder.addNodeElement(iriString, entityType, sourceId, "superclass")
+          ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, "superclass")
         }
         else if (targetId) {
-          ontologyBuilder.addNodeElement(iriString, entityType, targetId, "subclass")
+          ontologyBuilder.addNodeElement(iriString[0], entityType, targetId, "subclass")
         } else {
-          ontologyBuilder.addNodeElement(iriString, entityType)
+          ontologyBuilder.addNodeElement(iriString[0], entityType)
         }
       }
       else if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
-        ontologyBuilder.addNodeElement(iriString, entityType, sourceId)
+        ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId)
       } else if (entityType === GrapholTypesEnum.INDIVIDUAL) {
-        ontologyBuilder.addNodeElement(iriString, entityType, targetId)
+        ontologyBuilder.addNodeElement(iriString[0], entityType, targetId)
       }
       else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
         grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-        ontologyBuilder.addEdgeElement(iriString, entityType, sourceId, targetId)
+        ontologyBuilder.addEdgeElement(iriString[0], entityType, sourceId, targetId)
       }
       else if (entityType === 'Diagram') {
-        ontologyBuilder.addDiagram(iriString)
+        ontologyBuilder.addDiagram(iriString[0])
+      }
+      else if (entityType === 'Subhierarchy'){
+        ontologyBuilder.addSubhierarchy(iriString, targetId)
       }
     }
 

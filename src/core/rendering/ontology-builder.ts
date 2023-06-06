@@ -1,4 +1,4 @@
-import { ClassInstanceEntity, Diagram, GrapholEntity, GrapholTypesEnum, Iri, RendererStatesEnum } from "../../model"
+import { ClassInstanceEntity, Diagram, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../../model"
 import DiagramBuilder from "../diagram-builder"
 import Grapholscape from "../grapholscape"
 
@@ -85,5 +85,24 @@ export default class OntologyBuilder {
         const newDiagram = new Diagram(name, id)
         this.grapholscape.ontology.addDiagram(newDiagram)
         this.grapholscape.showDiagram(id)
+    }
+
+    public addSubhierarchy(iris, ownerIri){
+        const diagram = this.grapholscape.renderer.diagram as Diagram
+        this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+        const hierarchy = new Hierarchy(GrapholTypesEnum.UNION)
+        hierarchy.id = `un${this.grapholscape.renderer.nodes?.length}`
+        if (!ownerIri) return
+        hierarchy.addSuperclass(ownerIri)
+        const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
+        for(let i of iris){
+            const iri = new Iri(i, this.grapholscape.ontology.namespaces)
+            const entity = new GrapholEntity(iri, GrapholTypesEnum.CLASS)
+            this.grapholscape.ontology.addEntity(entity)
+            this.diagramBuilder.addClass(entity)
+            hierarchy.addInput(i)
+        }
+        this.diagramBuilder.addHierarchy(hierarchy, ownerEntity, {x:0, y:0})
+        this.grapholscape.renderer.renderState?.runLayout()
     }
 }

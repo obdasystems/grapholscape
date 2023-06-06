@@ -1,6 +1,6 @@
 import { Position } from "cytoscape";
 import { EntityNameType } from "../config";
-import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, IncrementalDiagram, isGrapholNode, RendererStatesEnum, Shape } from "../model";
+import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
@@ -147,6 +147,26 @@ export default class DiagramBuilder {
 
     this.diagramRepresentation?.addElement(instanceNode, classInstanceEntity)
     return instanceNode
+  }
+
+  public addHierarchy(hierarchy: Hierarchy, superEntity, position?: Position) {
+    const unionNode = hierarchy.getUnionGrapholNode(position)
+    const inputEdges = hierarchy.getInputGrapholEdges()
+    const inclusionEdges = hierarchy.getInclusionEdges()
+
+    if (!unionNode || !inputEdges || !inclusionEdges)
+      return
+
+    this.diagramRepresentation?.addElement(unionNode)
+
+    const superId = this.getIdFromEntity(superEntity)
+    if(!superId) return
+
+    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagramRepresentation?.addElement(inputEdge))
+    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
+      inclusionEdge.targetId = superId
+      this.diagramRepresentation?.addElement(inclusionEdge)
+    })
   }
 
   addEdge(sourceId: string,
