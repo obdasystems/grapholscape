@@ -14,10 +14,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     public onCancel: () => void = () => {}
 
     static properties: PropertyDeclarations = {
-      dialogTitle: {type: String}
+      dialogTitle: {type: String},
+      withoutPrefix: {type: String}
     }
 
-    constructor(public message?: string, public dialogTitle?) {
+    constructor(public message?: string, public dialogTitle?, public withoutPrefix?) {
         super()
     }
 
@@ -67,7 +68,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     private handleConfirm = () => {
       let prefix = this.shadowRoot?.querySelector('#prefix') as HTMLSelectElement
       let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
-      let iri = prefix.options[prefix.selectedIndex].text + input.value
+      let iri = this.withoutPrefix === 'none'? input.value : prefix.options[prefix.selectedIndex].text + input.value
       this.onConfirm(iri)
       this.resetForm()
     }
@@ -92,8 +93,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             ${this.dialogTitle}
             </div>
             <form id= "new-element-form">
-                <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="prefix">Prefix:</label><br>
-                <select style = "width: 95%; margin: 8px 8px 8px 8px ;" id="prefix" name="prefix" required>
+                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix-label" for="prefix">Prefix:</label><br>
+                <select style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix" name="prefix" required>
                     ${this.ontology.namespaces.map((n, i) => {
                       return html`<option value="${i}">${n.toString()}</option>`
                     })}

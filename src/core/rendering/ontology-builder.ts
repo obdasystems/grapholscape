@@ -16,7 +16,7 @@ export default class OntologyBuilder {
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
         const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
-        if (entityType === GrapholTypesEnum.CLASS_INSTANCE && ownerIri){
+        if (entityType === GrapholTypesEnum.INDIVIDUAL && ownerIri){
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if(!ownerEntity) return
             const instanceEntity = new ClassInstanceEntity(iri, [ownerEntity?.iri])
@@ -26,6 +26,7 @@ export default class OntologyBuilder {
             const targetId = this.diagramBuilder.getIdFromEntity(ownerEntity)
             if(!sourceId || !targetId) return
             this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+            this.grapholscape.renderer.renderState?.runLayout()
             return
         }
 
@@ -52,6 +53,7 @@ export default class OntologyBuilder {
                 this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INCLUSION)
             }
         }
+        this.grapholscape.renderer.renderState?.runLayout()
     }
 
     public addEdgeElement(iriString: string | null = null, entityType, sourceId, targetId) {
@@ -76,5 +78,12 @@ export default class OntologyBuilder {
         }
 
 
+    }
+
+    public addDiagram(name) {
+        const id = this.grapholscape.ontology.diagrams.length
+        const newDiagram = new Diagram(name, id)
+        this.grapholscape.ontology.addDiagram(newDiagram)
+        this.grapholscape.showDiagram(id)
     }
 }

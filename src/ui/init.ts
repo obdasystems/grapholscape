@@ -59,6 +59,7 @@ export default function (grapholscape: Grapholscape) {
         break
 
       case WidgetEnum.NEW_CLASS:
+      case WidgetEnum.NEW_DIAGRAM:
       case WidgetEnum.NEW_DATAPROPERTY:
       case WidgetEnum.NEW_OBJECTPROPERTY:
       case WidgetEnum.FULLSCREEN_BUTTON:

@@ -1,7 +1,7 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
 import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
-import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
+import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
@@ -57,15 +57,30 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   const classIcon = getIconSlot('icon', addEntityIcon)
   addClassBtn.appendChild(classIcon)
 
-  addClassBtn.style.top = '50px'
+  addClassBtn.style.top = '90px'
   addClassBtn.style.left = '10px'
   addClassBtn.style.position = 'absolute'
-  addClassBtn.title = 'Add Entity'
+  addClassBtn.title = 'Add Class'
 
   addClassBtn.onclick = () => {
 
     grapholscape.uiContainer?.appendChild(newElementComponent)
-    initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS)
+    initNewElementModal(newElementComponent, 'Add New Class', GrapholTypesEnum.CLASS)
+  }
+
+  const addDiagramBtn = new GscapeButton()
+  const diagramIcon = getIconSlot('icon', addDiagramIcon)
+  addDiagramBtn.appendChild(diagramIcon)
+
+  addDiagramBtn.style.top = '50px'
+  addDiagramBtn.style.left = '10px'
+  addDiagramBtn.style.position = 'absolute'
+  addDiagramBtn.title = 'Add Diagram'
+
+  addDiagramBtn.onclick = () => {
+
+    grapholscape.uiContainer?.appendChild(newElementComponent)
+    initNewElementModal(newElementComponent, 'Add New Diagram', 'Diagram')
   }
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
@@ -104,7 +119,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         icon: addParentClassIcon,
         select: () => {
           grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS, elem.data('iri'))
+          initNewElementModal(newElementComponent, 'Add New Class', GrapholTypesEnum.CLASS, elem.data('iri'))
         }
       })
 
@@ -113,7 +128,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         icon: addChildClassIcon,
         select: () => {
           grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Entity', GrapholTypesEnum.CLASS, null, elem.data('iri'))
+          initNewElementModal(newElementComponent, 'Add New Class', GrapholTypesEnum.CLASS, null, elem.data('iri'))
         }
       })
 
@@ -140,7 +155,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         icon: addClassInstanceIcon,
         select: () => {
           grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Instance', GrapholTypesEnum.CLASS_INSTANCE, null, elem.data('iri'))
+          initNewElementModal(newElementComponent, 'Add New Individual', GrapholTypesEnum.INDIVIDUAL, null, elem.data('iri'))
         }
       })
 
@@ -156,6 +171,12 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId = null, targetId = null) {
 
     newElementComponent.dialogTitle = title
+    if (entityType === 'Diagram') {
+      newElementComponent.withoutPrefix = 'none'
+    }
+    else {
+      newElementComponent.withoutPrefix = 'inline'
+    }
     newElementComponent.show()
 
     newElementComponent.onConfirm = (iriString) => {
@@ -173,12 +194,15 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       }
       else if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
         ontologyBuilder.addNodeElement(iriString, entityType, sourceId)
-      } else if(entityType === GrapholTypesEnum.CLASS_INSTANCE){
+      } else if (entityType === GrapholTypesEnum.INDIVIDUAL) {
         ontologyBuilder.addNodeElement(iriString, entityType, targetId)
       }
       else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
         grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
         ontologyBuilder.addEdgeElement(iriString, entityType, sourceId, targetId)
+      }
+      else if (entityType === 'Diagram') {
+        ontologyBuilder.addDiagram(iriString)
       }
     }
 
@@ -191,7 +215,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   }
 
   grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
-
+  grapholscape.widgets.set(WidgetEnum.NEW_DIAGRAM, addDiagramBtn)
 }
 
 
