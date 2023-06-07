@@ -1646,11 +1646,12 @@ declare class IncrementalController {
     getDataPropertiesByClassInstance(instanceIri: string): Promise<GrapholEntity[]>;
     expandObjectPropertiesOnInstance(instanceIri: string): Promise<void>;
     focusInstance(classInstance: ClassInstance): void;
+    private addResultsFromFocus;
     runLayout: () => void | undefined;
     pinNode: (node: NodeSingular | string) => void | undefined;
     unpinNode: (node: NodeSingular | string) => void | undefined;
     postDiagramEdit(oldElemsNumber: number): void;
-    countInstancesForClass(classIri: string): Promise<void>;
+    countInstancesForClass(classIri: string, askFreshValue?: boolean): Promise<void>;
     updateMaterializedCounts(): Promise<void>;
     setIncrementalEventHandlers(): void;
     private get ontology();
