@@ -23,7 +23,7 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
       >
         ${item.name}
       </div>
-      <div class="muted-text" title="iri: ${item.iri}">${item.iri}</div>
+      <div class="muted-text" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div>
       <div class="muted-text type-or-version">
         ${Object.values(GrapholTypesEnum).includes(item.typeOrVersion as GrapholTypesEnum)
           ? entityIcons[item.typeOrVersion] : null }
