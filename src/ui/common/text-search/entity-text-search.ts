@@ -16,6 +16,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   [GrapholTypesEnum.CLASS_INSTANCE]?: number
 
   private isSearchTextEmpty: boolean = true
+  private searchTimeout: NodeJS.Timeout
 
   static properties: PropertyDeclarations = {
     [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
@@ -71,7 +72,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
       <div class="search-box">
         <div id="input-wrapper" style="position:relative">
           <span class="slotted-icon muted-text">${search}</span>
-          <input @keyup=${this.handleSearch} type="text" placeholder="Search IRI, labels...">
+          <input @keyup=${this.handleKeyPress} type="text" placeholder="Search IRI, labels...">
           ${!this.isSearchTextEmpty
             ? html`
               <gscape-button id="clear-btn" size="s" type="subtle" title="Clear search" @click=${this.clearSearch}>
@@ -104,24 +105,34 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
     `
   }
 
-  private async handleSearch(e: KeyboardEvent) {
+  private handleKeyPress(e: KeyboardEvent) {
+
     const inputElement = e.currentTarget as HTMLInputElement
     if (!inputElement) return
 
     if (e.key === 'Escape') {
       inputElement.blur();
       inputElement.value = ''
+      this.handleSearch('')
+      return
     }
 
+    clearTimeout(this.searchTimeout)
+    this.searchTimeout = setTimeout(() => {
+      this.handleSearch(inputElement.value)
+    }, 500)
+  }
+
+  private async handleSearch(searchText: string) {
     await this.updateComplete
     
     this.dispatchEvent(new CustomEvent('onsearch', {
       bubbles: true,
       composed: true,
-      detail: { searchText: inputElement.value }
+      detail: { searchText: searchText }
     }))
 
-    this.isSearchTextEmpty = inputElement.value.length <= 0
+    this.isSearchTextEmpty = searchText.length <= 0
   }
 
   clearSearch() {

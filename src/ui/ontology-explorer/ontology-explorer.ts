@@ -9,11 +9,16 @@ import emptySearchBlankState from '../util/empty-search-blank-state'
 import { getEntityOccurrencesTemplate } from '../util/get-entity-view-occurrences'
 import { search } from '../util/search-entities'
 import { EntityViewData } from '../view-model'
+import { LitVirtualizer } from '@lit-labs/virtualizer'
+import { contentSpinnerStyle, getContentSpinner } from '../common/spinners'
+
+LitVirtualizer
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
   private _entities: EntityViewData[]
   private shownEntities: EntityViewData[]
+  private loading = false
   // search: (e:any) => void = () => { }
   // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
@@ -22,11 +27,13 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
   static properties = {
     entities: { type: Object, attribute: false },
-    shownEntities: { type: Object, attribute: false }
+    shownEntities: { type: Object, attribute: false },
+    loading: { type: Boolean, state: true }
   }
 
   static styles = [
     BaseStyle,
+    contentSpinnerStyle,
     css`
       :host {
         order: 6;
@@ -73,11 +80,16 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
     this.addEventListener('onsearch', (e: SearchEvent) => {
       if (e.detail.searchText.length > 2) {
-        this.shownEntities = search(e.detail.searchText, this.entities)
+        this.loading = true
+        search(e.detail.searchText, this.entities).then(entities => {
+          this.loading = false
+          this.shownEntities = entities
+        })
       } else {
         this.shownEntities = this.entities
       }
     })
+    this.closePanel()
   }
 
   render() {
@@ -100,32 +112,39 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
         ${this.shownEntities.length === 0
           ? emptySearchBlankState
-          : null
+          : !this.isPanelClosed()
+            ? this.loading 
+              ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
+              : html`
+                <lit-virtualizer
+                  .items=${this.shownEntities}
+                  .renderItem=${(entity: EntityViewData) => html`
+                    <gscape-entity-list-item
+                      style="width: 100%"
+                      ?asaccordion=${true}
+                      displayedname=${entity.displayedName}
+                      type=${entity.value.type}
+                      iri=${entity.value.iri.fullIri}
+                    >
+                      <div slot="accordion-body">
+                      ${entity.viewOccurrences && entity.viewOccurrences.size > 0
+                        ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
+                        : html`
+                          <div class="blank-slate">
+                            ${blankSlateDiagrams}
+                            <div class="header">No Occurrences</div>
+                            <div class="description">The entity has no occurrences in this rendering mode.</div>
+                          </div>
+                        `
+                      }
+                      </div>
+                    </gscape-entity-list-item>
+                  `}
+                >
+                </lit-virtualizer>
+              `
+            : null
         }
-
-        ${this.shownEntities.map(entity => {
-          return html`
-            <gscape-entity-list-item
-              ?asaccordion=${true}
-              displayedname=${entity.displayedName}
-              type=${entity.value.type}
-              iri=${entity.value.iri.fullIri}
-            >
-              <div slot="accordion-body">
-              ${entity.viewOccurrences && entity.viewOccurrences.size > 0
-                ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
-                : html`
-                  <div class="blank-slate">
-                    ${blankSlateDiagrams}
-                    <div class="header">No Occurrences</div>
-                    <div class="description">The entity has no occurrences in this rendering mode.</div>
-                  </div>
-                `
-              }
-              </div>
-            </gscape-entity-list-item>
-          `
-        })}
       </div>
     </div>
     `

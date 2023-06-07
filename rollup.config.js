@@ -62,7 +62,8 @@ const configs = [
       file: 'demo/js/grapholscape.js',
       format: 'iife',
       name,
-      sourcemap: 'inline'
+      sourcemap: 'inline',
+      inlineDynamicImports : true,
     },
     plugins: [
       nodeResolve(),
