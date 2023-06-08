@@ -1,25 +1,25 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import popper from 'cytoscape-popper'
-import { Ontology, RendererStatesEnum } from './model'
+import { GrapholscapeConfig, ThemeConfig, loadConfig } from './config'
+import Grapholscape from './core'
+import { initIncremental } from './incremental'
+import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
-import Grapholscape from './core'
-import { GrapholscapeConfig, loadConfig } from './config'
-import { initIncremental } from './incremental'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
 
-export * from './model'
 export * from './config'
-export * as ui from './ui'
 export * from './core'
-/** @internal */
-export * from './incremental'
 export { default as setGraphEventHandlers } from './core/set-graph-event-handlers'
 export * from './exporter'
+/** @internal */
+export * from './incremental'
+export * from './model'
+export * as ui from './ui'
 export * as util from './util'
 
 /**
@@ -90,15 +90,36 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
   const savedConfig = loadConfig()
   // copy savedConfig over config
   config = Object.assign(config || {}, savedConfig)
-  return new Promise<Grapholscape>((resolve, reject) => {
-    let ontology: Ontology
+  return new Promise<Grapholscape>(async (resolve, reject) => {
+    let ontology: Ontology | undefined
+    let timeout: NodeJS.Timeout
+
+    const spinner = new UI.ContentSpinner()
+    let themeConfig: ThemeConfig | undefined
+    let theme: GrapholscapeTheme | undefined
+    if (config?.selectedTheme) {
+      if (config?.themes) {
+        themeConfig = config.themes.find(theme => theme === config?.selectedTheme || (theme as GrapholscapeTheme).id === config?.selectedTheme)
+      }
+
+      if (themeConfig) {
+        theme = typeof(themeConfig) === 'string' ? DefaultThemes[themeConfig] : themeConfig
+      }
+    }
+
+    if (!theme) {
+      theme = DefaultThemes.grapholscape
+    }
+
+    spinner.setColor(theme.getColour(ColoursNames.accent) || '#000')
+    container.appendChild(spinner)
 
     if (typeof (file) === 'object') {
       let reader = new FileReader()
 
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         try {
-          ontology = getResult(reader.result)
+          ontology = await getResult(reader.result)
           init()
         } catch (error) { reject(error) }
       }
@@ -110,7 +131,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
       }, 10000)
 
     } else if (typeof (file) === 'string') {
-      ontology = getResult(file)
+      ontology = await getResult(file)
       init()
     } else {
       reject('Err: Grapholscape needs a Graphol File or the corresponding string to be initialized')
@@ -118,6 +139,11 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
 
     function init() {
       try {
+        if (!ontology) {
+          throw new Error("Error in graphol file")
+        }
+        clearTimeout(timeout)
+        spinner.remove()
         const gscape = new Grapholscape(ontology, container, config)
         resolve(gscape)
       } catch (e) { console.error(e) }
