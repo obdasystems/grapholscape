@@ -16,9 +16,9 @@ LitVirtualizer
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Ontology Explorer'
-  private _entities: EntityViewData[]
-  private shownEntities: EntityViewData[]
-  private loading = false
+  private _entities: EntityViewData[] = []
+  private shownEntities: EntityViewData[] = []
+  loading = false
   // search: (e:any) => void = () => { }
   // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
   onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
@@ -28,7 +28,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
   static properties = {
     entities: { type: Object, attribute: false },
     shownEntities: { type: Object, attribute: false },
-    loading: { type: Boolean, state: true }
+    loading: { type: Boolean }
   }
 
   static styles = [
@@ -110,12 +110,12 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
 
       <div class="list-wrapper">
 
-        ${this.shownEntities.length === 0
-          ? emptySearchBlankState
-          : !this.isPanelClosed()
-            ? this.loading 
-              ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
-              : html`
+        ${this.loading 
+          ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
+          : this.shownEntities.length === 0
+            ? emptySearchBlankState
+            : !this.isPanelClosed()
+              ? html`
                 <lit-virtualizer
                   .items=${this.shownEntities}
                   .renderItem=${(entity: EntityViewData) => html`
@@ -143,7 +143,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
                 >
                 </lit-virtualizer>
               `
-            : null
+              : null
         }
       </div>
     </div>

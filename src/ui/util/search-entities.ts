@@ -65,6 +65,8 @@ export function search(searchValue: string, entities: EntityViewData[]) {
       }
       return isAmatch
     })
+
+    resolve(result)
   })
 
   function matchInIRI(iri: Iri, searchValue: string) {
