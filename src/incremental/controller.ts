@@ -27,6 +27,7 @@ export default class IncrementalController {
 
   endpointController?: EndpointController
 
+  private actionsWithBlockedGraph = 0
   private entitySelectionTimeout: NodeJS.Timeout
   public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
   public countersEnabled: boolean = true
@@ -72,9 +73,11 @@ export default class IncrementalController {
   }
 
   async performActionWithBlockedGraph(action: () => void | Promise<void>) {
+    this.actionsWithBlockedGraph += 1
     const oldElemNumbers = this.numberOfElements
     this.incrementalRenderer?.freezeGraph()
     await action()
+    this.actionsWithBlockedGraph -= 1
     this.postDiagramEdit(oldElemNumbers)
   }
 
@@ -108,7 +111,7 @@ export default class IncrementalController {
         this.grapholscape.centerOnElement(iri)
 
       if (entity.is(GrapholTypesEnum.CLASS))
-        this.countInstancesForClass(iri)
+        this.countInstancesForClass(iri, false)
     }
   }
 
@@ -296,7 +299,7 @@ export default class IncrementalController {
     // update parent class Iri
     if (typeof (parentClassesIris) !== 'string') {
 
-      if (!parentClassesIris) {
+      if (!parentClassesIris || parentClassesIris.length === 0) {
         parentClassesIris = this.ontology.getEntitiesByType(GrapholTypesEnum.CLASS).map(entity => entity.iri.fullIri)
       }
 
@@ -654,20 +657,106 @@ export default class IncrementalController {
     }
   }
 
+  async expandObjectPropertiesOnInstance(instanceIri: string) {
+    if (!this.endpointController?.isReasonerAvailable() || !this.endpointController.vkgApi) {
+      return
+    }
+
+    const instanceEntity = this.classInstanceEntities.get(instanceIri)
+    if (instanceEntity) {
+      const objectProperties = await this.getObjectPropertiesByClasses(instanceEntity.parentClassIris.map(iri => iri.fullIri))
+      if (objectProperties) {
+        let promisesCount = 0
+        this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri)
+        const results: Map<GrapholEntity, {
+          ranges: {
+            classEntity: GrapholEntity,
+            classInstance: ClassInstance,
+          }[],
+          isDirect: boolean
+        }> = new Map()
+
+        objectProperties.forEach((rangeClasses, objectPropertyEntity) => {
+          results.set(objectPropertyEntity, { ranges: [], isDirect: rangeClasses.direct })
+          rangeClasses.list.forEach(rangeClassEntity => {
+            promisesCount += 1
+
+            this.endpointController!.vkgApi!.getInstancesThroughObjectProperty(
+              instanceIri,
+              objectPropertyEntity.iri.fullIri,
+              rangeClasses.direct,
+              false,
+              (result) => { // onNewResult
+                if (result.length > 0) {
+                  results.get(objectPropertyEntity)?.ranges.push({
+                    classEntity: rangeClassEntity,
+                    classInstance: result[0][0]
+                  })
+                }
+              },
+              [rangeClassEntity.iri.fullIri],
+              undefined, undefined,
+              () => { // onStopPolling
+                promisesCount -= 1
+                if (promisesCount === 0) {
+                  this.addResultsFromFocus(instanceIri, results)
+                  this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+                }
+              },
+              1
+            )
+          })
+        })
+      }
+    }
+  }
+
+  focusInstance(classInstance: ClassInstance) {
+    this.addInstance(classInstance)
+    this.expandObjectPropertiesOnInstance(classInstance.iri)
+  }
+
+  private addResultsFromFocus(sourceInstanceIri: string, results: Map<GrapholEntity, {
+    ranges: {
+      classEntity: GrapholEntity,
+      classInstance: ClassInstance,
+    }[],
+    isDirect: boolean
+  }>) {
+    this.performActionWithBlockedGraph(() => {
+      results.forEach((result, objectPropertyEntity) => {
+        result.ranges.forEach(range => {
+          if (!this.classInstanceEntities.get(range.classInstance.iri)) {
+            this.addInstance(range.classInstance, range.classEntity.iri.fullIri)
+          }
+  
+          this.addEntity(range.classEntity.iri.fullIri)
+          this.addEdge(range.classInstance.iri, range.classEntity.iri.fullIri, GrapholTypesEnum.INSTANCE_OF)
+  
+          result.isDirect
+            ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
+            : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, range.classInstance.iri, sourceInstanceIri)
+        })
+      })
+    })
+  }
+
   runLayout = () => this.incrementalRenderer?.runLayout()
   pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
   unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)
 
   postDiagramEdit(oldElemsNumber: number) {
     if (this.numberOfElements !== oldElemsNumber) {
-      this.runLayout()
+      if (this.actionsWithBlockedGraph === 0) {
+        this.runLayout()
+      }
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     } else {
       this.incrementalRenderer?.unFreezeGraph()
     }
   }
 
-  async countInstancesForClass(classIri: string) {
+  async countInstancesForClass(classIri: string, askFreshValue = true) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
     const node = this.diagram?.representation?.cy.$id(classIri)
     if (!node || node.empty()) return
@@ -675,10 +764,13 @@ export default class IncrementalController {
     await this.updateMaterializedCounts()
 
     if (this.counts.get(classIri) === undefined) {
-      this.endpointController?.requestCountForClass(classIri)
+      if (askFreshValue)
+        this.endpointController?.requestCountForClass(classIri)
     } else { // Value already present
       let instanceCountBadge: NodeButton
-      const countEntry = this.counts.get(classIri)!
+      const countEntry = this.counts.get(classIri)
+      if (!countEntry)
+        return
 
       if (!node.scratch('instance-count')) {
         instanceCountBadge = addBadge(node, countEntry.value, 'instance-count', 'bottom')
