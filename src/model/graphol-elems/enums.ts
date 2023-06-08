@@ -59,7 +59,9 @@ export enum GrapholTypesEnum {
   /** @type {"membership"} */
   MEMBERSHIP = 'membership',
   /** @type {"class-instance"} */
-  CLASS_INSTANCE = 'class-instance'
+  CLASS_INSTANCE = 'class-instance',
+  /** @type {"unknown"} */
+  UNKNOWN = 'unknown'
 }
 
 /**

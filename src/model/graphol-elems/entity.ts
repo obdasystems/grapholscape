@@ -27,10 +27,10 @@ export default class GrapholEntity extends AnnotatedElement {
   private _datatype: string
   private _functionalities: FunctionalityEnum[] = []
 
-  constructor(iri: Iri, type: GrapholTypesEnum) {
+  constructor(iri: Iri, type: GrapholTypesEnum = GrapholTypesEnum.UNKNOWN) {
     super()
     this.iri = iri
-    this.type = type
+    this._type = type
   }
 
   public addOccurrence(occurenceId: string, diagramId: number, representationKind = RendererStatesEnum.GRAPHOL) {
