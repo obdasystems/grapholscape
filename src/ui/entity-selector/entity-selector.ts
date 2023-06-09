@@ -68,6 +68,9 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
         position: relative;
         top: 0;
         max-height: unset;
+        min-height: 60vh;
+        height: 1px;
+        overflow: hidden;
       }
 
       gscape-entity-list-item {
@@ -84,10 +87,6 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
 
       gscape-entity-search {
         flex-shrink: 0;
-      }
-
-      .list-wrapper {
-        padding: 0 8px;
       }
 
       #input-wrapper {
@@ -156,6 +155,8 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
           : !this.isPanelClosed()
             ? html`
               <lit-virtualizer
+                scroller
+                style="min-height: 100%;"
                 .items=${this.entityList}
                 .renderItem=${(entityItem: EntityViewData) => html`
                   <gscape-entity-list-item

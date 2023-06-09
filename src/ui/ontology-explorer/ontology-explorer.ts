@@ -108,44 +108,45 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
         class-instance=0
       ></gscape-entity-search>
 
-      <div class="list-wrapper">
-
         ${this.loading 
           ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
           : this.shownEntities.length === 0
             ? emptySearchBlankState
             : !this.isPanelClosed()
               ? html`
-                <lit-virtualizer
-                  .items=${this.shownEntities}
-                  .renderItem=${(entity: EntityViewData) => html`
-                    <gscape-entity-list-item
-                      style="width: 100%"
-                      ?asaccordion=${true}
-                      displayedname=${entity.displayedName}
-                      type=${entity.value.type}
-                      iri=${entity.value.iri.fullIri}
-                    >
-                      <div slot="accordion-body">
-                      ${entity.viewOccurrences && entity.viewOccurrences.size > 0
-                        ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
-                        : html`
-                          <div class="blank-slate">
-                            ${blankSlateDiagrams}
-                            <div class="header">No Occurrences</div>
-                            <div class="description">The entity has no occurrences in this rendering mode.</div>
-                          </div>
-                        `
-                      }
-                      </div>
-                    </gscape-entity-list-item>
-                  `}
-                >
-                </lit-virtualizer>
+                <div style="padding: 0 8px; height: inherit">
+                  <lit-virtualizer
+                    scroller
+                    style="min-height: 100%"
+                    .items=${this.shownEntities}
+                    .renderItem=${(entity: EntityViewData) => html`
+                      <gscape-entity-list-item
+                        style="width: 100%"
+                        ?asaccordion=${true}
+                        displayedname=${entity.displayedName}
+                        type=${entity.value.type}
+                        iri=${entity.value.iri.fullIri}
+                      >
+                        <div slot="accordion-body">
+                        ${entity.viewOccurrences && entity.viewOccurrences.size > 0
+                          ? getEntityOccurrencesTemplate(entity.viewOccurrences, this.onNodeNavigation)
+                          : html`
+                            <div class="blank-slate">
+                              ${blankSlateDiagrams}
+                              <div class="header">No Occurrences</div>
+                              <div class="description">The entity has no occurrences in this rendering mode.</div>
+                            </div>
+                          `
+                        }
+                        </div>
+                      </gscape-entity-list-item>
+                    `}
+                  >
+                  </lit-virtualizer>
+                </div>
               `
               : null
         }
-      </div>
     </div>
     `
   }
