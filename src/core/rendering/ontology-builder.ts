@@ -1,4 +1,5 @@
-import { ClassInstanceEntity, Diagram, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../../model"
+import { floatyOptions } from "../../config"
+import { ClassInstanceEntity, Diagram, DiagramRepresentation, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../../model"
 import DiagramBuilder from "../diagram-builder"
 import Grapholscape from "../grapholscape"
 
@@ -83,6 +84,7 @@ export default class OntologyBuilder {
     public addDiagram(name) {
         const id = this.grapholscape.ontology.diagrams.length
         const newDiagram = new Diagram(name, id)
+        newDiagram.representations.set(RendererStatesEnum.FLOATY, new DiagramRepresentation(floatyOptions))
         this.grapholscape.ontology.addDiagram(newDiagram)
         this.grapholscape.showDiagram(id)
     }
