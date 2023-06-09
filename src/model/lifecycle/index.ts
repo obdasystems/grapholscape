@@ -1,5 +1,5 @@
 import { EventObject } from "cytoscape"
-import { Diagram, Filter } from ".."
+import { Annotation, Diagram, Filter, Ontology } from ".."
 import { EntityNameType, Language } from "../../config"
 import GrapholEdge from "../graphol-elems/edge"
 import GrapholEntity from "../graphol-elems/entity"
@@ -24,6 +24,14 @@ export enum LifecycleEvent {
   BackgroundClick = 'backgroundClick',
   ContextClick = 'contextClick',
   EntityWikiLinkClick = 'entityWikiLinkClick',
+  // Ontology Designer
+  EntityAddition = 'entityAddition',
+  EntityRemoval = 'entityRemoval',
+  DiagramAddition = 'diagramAddition',
+  DiagramRemoval = 'diagramRemoval',
+  AnnotationAddition = 'annotationAddition',
+  AnnotationEdit = 'annotationEdit',
+  AnnotationRemoval = 'annotationRemoval'
 }
 
 export interface IonEvent {
@@ -42,6 +50,13 @@ export interface IonEvent {
   (event: LifecycleEvent.BackgroundClick, callback: () => void): void
   (event: LifecycleEvent.ContextClick, callback: (eventObject: EventObject) => void): void
   (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void
+  (event: LifecycleEvent.EntityAddition, callback: (entity: GrapholEntity, diagramId: number) => void): void
+  (event: LifecycleEvent.EntityRemoval, callback: (entity: GrapholEntity, diagramId: number) => void): void
+  (event: LifecycleEvent.DiagramAddition, callback: (diagram: Diagram) => void): void
+  (event: LifecycleEvent.DiagramRemoval, callback: (diagram: Diagram) => void): void
+  (event: LifecycleEvent.AnnotationAddition, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void
+  (event: LifecycleEvent.AnnotationEdit, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void
+  (event: LifecycleEvent.AnnotationRemoval, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void
 }
 
 export default class Lifecycle {
@@ -60,6 +75,13 @@ export default class Lifecycle {
   private backgroundClick: (() => void)[] = []
   private contextClick: ((eventObject: EventObject) => void)[] = []
   public entityWikiLinkClick: ((iri: string) => void)[] = []
+  private entityAddition: ((entity: GrapholEntity, diagramId: number) => void)[] = []
+  private entityRemoval: ((entity: GrapholEntity, diagramId: number) => void)[] = []
+  private diagramAddition: ((diagram: Diagram) => void)[] = []
+  private diagramRemoval: ((diagram: Diagram) => void)[] = []
+  private annotationAddition: ((entity: GrapholEntity | Ontology, annotation: Annotation) => void)[] = []
+  private annotationEdit: ((entity: GrapholEntity | Ontology, annotation: Annotation) => void)[] = []
+  private annotationRemoval: ((entity: GrapholEntity | Ontology, annotation: Annotation) => void)[] = []
 
 
   constructor() { }
@@ -79,6 +101,13 @@ export default class Lifecycle {
   trigger(event: LifecycleEvent.BackgroundClick): void
   trigger(event: LifecycleEvent.ContextClick, eventObject: EventObject): void
   trigger(event: LifecycleEvent.EntityWikiLinkClick, iri: string): void
+  trigger(event: LifecycleEvent.EntityAddition, entity: GrapholEntity, diagramId: number): void
+  trigger(event: LifecycleEvent.EntityRemoval, entity: GrapholEntity, diagramId: number): void
+  trigger(event: LifecycleEvent.DiagramAddition, diagram: Diagram): void
+  trigger(event: LifecycleEvent.DiagramRemoval, diagram: Diagram): void
+  trigger(event: LifecycleEvent.AnnotationAddition, entity: GrapholEntity | Ontology, annotation: Annotation): void
+  trigger(event: LifecycleEvent.AnnotationEdit, entity: GrapholEntity | Ontology, annotation: Annotation): void
+  trigger(event: LifecycleEvent.AnnotationRemoval, entity: GrapholEntity | Ontology, annotation: Annotation): void
   trigger(event: string, ...params: any): any {
 
     if (event === LifecycleEvent.FilterRequest || event === LifecycleEvent.UnfilterRequest) {
