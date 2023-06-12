@@ -1,4 +1,5 @@
-import { ClassInstanceEntity, Diagram, FunctionalityEnum, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../../model"
+import { floatyOptions } from "../../config"
+import { ClassInstanceEntity, Diagram, FunctionalityEnum, DiagramRepresentation, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../../model"
 import DiagramBuilder from "../diagram-builder"
 import Grapholscape from "../grapholscape"
 
@@ -57,6 +58,7 @@ export default class OntologyBuilder {
             }
         }
         this.grapholscape.renderer.renderState?.runLayout()
+        this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
     }
 
     public addEdgeElement(iriString: string | null = null, entityType, sourceId, targetId, functionalities: string[] = []) {
@@ -75,6 +77,7 @@ export default class OntologyBuilder {
             functionalities.forEach(i => {
                 entity.functionalities.push(FunctionalityEnum[i])
             })
+            this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
         }
         else if (entityType === GrapholTypesEnum.INCLUSION) {
             const sourceID = this.diagramBuilder.getIdFromEntity(sourceEntity)
@@ -87,8 +90,10 @@ export default class OntologyBuilder {
     public addDiagram(name) {
         const id = this.grapholscape.ontology.diagrams.length
         const newDiagram = new Diagram(name, id)
+        newDiagram.representations.set(RendererStatesEnum.FLOATY, new DiagramRepresentation(floatyOptions))
         this.grapholscape.ontology.addDiagram(newDiagram)
         this.grapholscape.showDiagram(id)
+        this.grapholscape.lifecycle.trigger(LifecycleEvent.DiagramAddition, newDiagram)
     }
 
     public addSubhierarchy(iris, ownerIri){

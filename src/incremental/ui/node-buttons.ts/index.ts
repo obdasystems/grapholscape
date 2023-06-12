@@ -57,6 +57,19 @@ export function NodeButtonsFactory(ic: IncrementalController) {
     }
   })
 
+  ic.on(IncrementalEvent.FocusStarted, instanceIri => {
+    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    if (cyNode) {
+      addBadge(cyNode, textSpinner(), 'loading-badge')
+    }
+  })
+
+  ic.on(IncrementalEvent.FocusFinished, instanceIri => {
+    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    if (cyNode && cyNode.scratch('loading-badge')) {
+      removeBadge(cyNode, 'loading-badge')
+    }
+  })
 
   ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
     const cyNode = ic.diagram.representation?.cy.$id(instanceIri)

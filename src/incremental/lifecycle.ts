@@ -21,6 +21,8 @@ export enum IncrementalEvent {
   InstanceCheckingFinished = 'instanceCheckingFinished',
   CountStarted = 'countStarted',
   NewCountResult = 'newCountResult',
+  FocusStarted = 'focusStarted',
+  FocusFinished = 'focusFinished',
 }
 
 export interface IonEvent {
@@ -40,6 +42,8 @@ export interface IonEvent {
   (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void,
   (event: IncrementalEvent.NewCountResult, callback: (classIri: string, result?: { value: number, materialized: boolean, date?: string }) => void): void,
   (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void,
+  (event: IncrementalEvent.FocusStarted, callback: (entityIri: string) => void): void,
+  (event: IncrementalEvent.FocusFinished, callback: (entityIri: string) => void): void,
 }
 
 export default class IncrementalLifecycle {
@@ -59,6 +63,8 @@ export default class IncrementalLifecycle {
   private instanceCheckingFinished: ((instanceIri: string) => void)[] = []
   private newCountResult: ((classIri: string, result?: { value: number, materialized: boolean, date?: string }) => void)[] = []
   private countStarted: ((classIri: string) => void)[] = []
+  private focusStarted: ((entityIri: string) => void)[] = []
+  private focusFinished: ((entityIri: string) => void)[] = []
 
 
   constructor() { }
@@ -79,6 +85,8 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void
   trigger(event: IncrementalEvent.NewCountResult, classIri: string, result?: { value: number, materialized: boolean, date?: string }): void
   trigger(event: IncrementalEvent.CountStarted, classIri: string): void
+  trigger(event: IncrementalEvent.FocusStarted, entityIri: string): void
+  trigger(event: IncrementalEvent.FocusFinished, entityIri: string): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

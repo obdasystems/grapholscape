@@ -16,7 +16,7 @@ export function getInstances(classIRI: string, includeLabels = true, maxResults?
   return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx' : '?x'}
   WHERE {
-    ?x a <${encodeURI(classIRI)}>;
+    ?x a <${classIRI}>;
        ${includeLabels ? `rdfs:label ?lx` : ``}
   }
   ${getLimit(maxResults)}
@@ -36,7 +36,7 @@ export function getInstancesByLabel(classIRI: string, searchText: string, maxRes
   return `
   SELECT DISTINCT ?x ?lx
   WHERE {
-    ?x a <${encodeURI(classIRI)}>;
+    ?x a <${classIRI}>;
        rdfs:label ?lx.
     ${getSearchFilters('?lx', searchText)}
   }
@@ -57,7 +57,7 @@ export function getInstancesByIRI(classIRI: string, searchText: string, maxResul
   return `
   SELECT DISTINCT ?x
   WHERE {
-    ?x a <${encodeURI(classIRI)}>.
+    ?x a <${classIRI}>.
     ${getSearchFilters('?x', searchText)}
   }
   ${getLimit(maxResults)}
@@ -79,8 +79,8 @@ export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: st
   return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx ?y' : '?x ?y'}
   WHERE {
-    ?x a <${encodeURI(classIRI)}>;
-       <${encodeURI(dataPropertyIRI)}> ?y;
+    ?x a <${classIRI}>;
+       <${dataPropertyIRI}> ?y;
        ${includeLabels ? `rdfs:label ?lx` : ``}
     ${getSearchFilters('?y', searchText)}
   }
@@ -94,7 +94,7 @@ export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: st
  * Fetch instances of a given type such that they participate in a object property with
  * another instance whose label contains a given search text.
  * 
- * @param classIri class type of the instances
+ * @param classIRI class type of the instances
  * @param objectPropertyIRI the object property on which the filter must be done
  * @param searchText the text to search in the label of the instances participating in the object property
  * @param isDirect whether the object property is direct or inverse default: true (direct)
@@ -102,16 +102,16 @@ export function getInstancesByDataProperty(classIRI: string, dataPropertyIRI: st
  * @param maxResults if 'unlimited', no limit is set. default: 1000
  * @returns 
  */
-export function getInstancesByObjectProperty(classIri: string, objectPropertyIRI: string, searchText: string, isDirect = true, includeLabels = true, maxResults?: number) {
+export function getInstancesByObjectProperty(classIRI: string, objectPropertyIRI: string, searchText: string, isDirect = true, includeLabels = true, maxResults?: number) {
   return `
   SELECT DISTINCT ${includeLabels ? '?x ?lx ?y ?ly' : '?x ?y ?ly'}
   WHERE {
-    ?x a <${encodeURI(classIri)}>;
+    ?x a <${classIRI}>;
        ${includeLabels ? 'rdfs:label ?lx' : ''}.
        
     ${!isDirect
-      ? `?y <${encodeURI(objectPropertyIRI)}> ?x.`
-      : `?x <${encodeURI(objectPropertyIRI)}> ?y.`
+      ? `?y <${objectPropertyIRI}> ?x.`
+      : `?x <${objectPropertyIRI}> ?y.`
     }
        
     ?y rdfs:label ?ly.
@@ -133,7 +133,7 @@ export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyI
   return `
   SELECT DISTINCT ?y
   WHERE {
-    <${encodeURI(instanceIRI)}> <${encodeURI(dataPropertyIRI)}> ?y
+    <${encodeURI(instanceIRI)}> <${dataPropertyIRI}> ?y
   }
   LIMIT 10
   `
@@ -158,11 +158,11 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y a <${rangeTypeClassIri}>.
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
     `)
 
@@ -171,8 +171,8 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
@@ -210,11 +210,11 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y a <${rangeTypeClassIri}>.
       ?y rdfs:label ?ly
       ${getSearchFilters('?ly', searchText)}
     `)
@@ -222,8 +222,8 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y rdfs:label ?ly
@@ -262,19 +262,19 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>.
+      ?y a <${rangeTypeClassIri}>.
       ${getSearchFilters('?y', searchText)}
     `)
   } else {
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
       ${getSearchFilters('?y', searchText)}
     `]
@@ -323,25 +323,25 @@ export function getInstancesThroughOPByDP(
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
-      ?y a <${encodeURI(rangeTypeClassIri)}>;
+      ?y a <${rangeTypeClassIri}>;
         ${includeLabels ? 'rdfs:label ?ly;' : ''}
-        <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+        <${dataPropertyFilterIRI}> ?dp.
       ${getSearchFilters('?dp', searchText)}
     `)
   } else {
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${encodeURI(objectPropertyIRI)}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${encodeURI(objectPropertyIRI)}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
+        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y ${includeLabels ? 'rdfs:label ?ly;' : ''}
-         <${encodeURI(dataPropertyFilterIRI)}> ?dp.
+         <${dataPropertyFilterIRI}> ?dp.
       ${getSearchFilters('?dp', searchText)}
     `]
   }
