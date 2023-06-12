@@ -1,4 +1,4 @@
-import { ClassInstanceEntity, Diagram, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../../model"
+import { ClassInstanceEntity, Diagram, FunctionalityEnum, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, RendererStatesEnum } from "../../model"
 import DiagramBuilder from "../diagram-builder"
 import Grapholscape from "../grapholscape"
 
@@ -11,7 +11,7 @@ export default class OntologyBuilder {
         this.grapholscape = grapholscape
     }
 
-    public addNodeElement(iriString, entityType, ownerIri = null, relationship: string | null = null) {
+    public addNodeElement(iriString, entityType, ownerIri = null, relationship: string | null = null, functionalities: string[] = []) {
 
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
@@ -33,6 +33,9 @@ export default class OntologyBuilder {
         const entity = new GrapholEntity(iri, entityType)
         this.grapholscape.ontology.addEntity(entity)
         if (entityType === GrapholTypesEnum.DATA_PROPERTY && ownerIri) {
+            if (functionalities.includes('functional')) {
+                entity.functionalities = [FunctionalityEnum.functional]
+            }
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if (ownerEntity)
                 this.diagramBuilder.addDataProperty(entity, ownerEntity)
@@ -56,7 +59,7 @@ export default class OntologyBuilder {
         this.grapholscape.renderer.renderState?.runLayout()
     }
 
-    public addEdgeElement(iriString: string | null = null, entityType, sourceId, targetId) {
+    public addEdgeElement(iriString: string | null = null, entityType, sourceId, targetId, functionalities: string[] = []) {
 
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
@@ -69,6 +72,9 @@ export default class OntologyBuilder {
             const entity = new GrapholEntity(iri, entityType)
             this.grapholscape.ontology.addEntity(entity)
             this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity)
+            functionalities.forEach(i => {
+                entity.functionalities.push(FunctionalityEnum[i])
+            })
         }
         else if (entityType === GrapholTypesEnum.INCLUSION) {
             const sourceID = this.diagramBuilder.getIdFromEntity(sourceEntity)
@@ -76,8 +82,6 @@ export default class OntologyBuilder {
             if (!sourceID || !targetID) return
             this.diagramBuilder.addEdge(sourceID, targetID, GrapholTypesEnum.INCLUSION)
         }
-
-
     }
 
     public addDiagram(name) {

@@ -1,6 +1,6 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
+import { FunctionalityEnum, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
 import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
@@ -132,7 +132,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       })
 
       commands.push({
-        content: 'Add IS-A Edge',
+        content: 'Add Subclass Edge',
         icon: addISAIcon,
         select: () => {
           let currentCy = grapholscape.renderer.cy as any
@@ -181,9 +181,16 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     newElementComponent.dialogTitle = title
     newElementComponent.withoutPrefix = entityType === 'Diagram' ? 'none': 'inline'
     newElementComponent.enableMore = entityType === 'Subhierarchy' ? 'inline' : 'none'
+    newElementComponent.functionalities = []
+    if(entityType === GrapholTypesEnum.DATA_PROPERTY){
+      newElementComponent.functionalities.push(FunctionalityEnum.functional)
+    }
+    else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY){
+      newElementComponent.functionalities.push(FunctionalityEnum.asymmetric, FunctionalityEnum.functional, FunctionalityEnum.inverseFunctional, FunctionalityEnum.irreflexive, FunctionalityEnum.reflexive, FunctionalityEnum.symmetric, FunctionalityEnum.transitive)
+    }
     newElementComponent.show()
 
-    newElementComponent.onConfirm = (iriString) => {
+    newElementComponent.onConfirm = (iriString, functionalities=[]) => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (entityType === GrapholTypesEnum.CLASS) {
@@ -197,13 +204,13 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       }
       else if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
-        ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId)
+        ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, null, functionalities)
       } else if (entityType === GrapholTypesEnum.INDIVIDUAL) {
         ontologyBuilder.addNodeElement(iriString[0], entityType, targetId)
       }
       else if (entityType === GrapholTypesEnum.OBJECT_PROPERTY) {
         grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-        ontologyBuilder.addEdgeElement(iriString[0], entityType, sourceId, targetId)
+        ontologyBuilder.addEdgeElement(iriString[0], entityType, sourceId, targetId, functionalities)
       }
       else if (entityType === 'Diagram') {
         ontologyBuilder.addDiagram(iriString[0])
