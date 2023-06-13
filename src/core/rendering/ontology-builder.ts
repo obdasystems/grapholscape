@@ -96,10 +96,10 @@ export default class OntologyBuilder {
         this.grapholscape.lifecycle.trigger(LifecycleEvent.DiagramAddition, newDiagram)
     }
 
-    public addSubhierarchy(iris, ownerIri){
+    public addSubhierarchy(iris, ownerIri, disjoint = false){
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
-        const hierarchy = new Hierarchy(GrapholTypesEnum.UNION)
+        const hierarchy = disjoint? new Hierarchy(GrapholTypesEnum.DISJOINT_UNION) : new Hierarchy(GrapholTypesEnum.UNION)
         hierarchy.id = `un${this.grapholscape.renderer.nodes?.length}`
         if (!ownerIri) return
         hierarchy.addSuperclass(ownerIri)

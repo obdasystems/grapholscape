@@ -167,6 +167,15 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       })
 
+      commands.push({
+        content: 'Add Disjoint Subhierarchy',
+        icon: addSubhierarchyIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Disjoint Subhierarchy', null, elem.data('iri'))
+        }
+      })
+
       try {
         const htmlNodeReference = (elem as any).popperRef()
         if (htmlNodeReference && commands.length > 0) {
@@ -180,7 +189,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
     newElementComponent.dialogTitle = title
     newElementComponent.withoutPrefix = entityType === 'Diagram' ? 'none': 'inline'
-    newElementComponent.enableMore = entityType === 'Subhierarchy' ? 'inline' : 'none'
+    newElementComponent.enableMore = entityType === 'Subhierarchy' || entityType === 'Disjoint Subhierarchy' ? 'inline' : 'none'
     newElementComponent.functionalities = []
     if(entityType === GrapholTypesEnum.DATA_PROPERTY){
       newElementComponent.functionalities.push(FunctionalityEnum.functional)
@@ -217,6 +226,9 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       }
       else if (entityType === 'Subhierarchy'){
         ontologyBuilder.addSubhierarchy(iriString, targetId)
+      }
+      else if (entityType === 'Disjoint Subhierarchy'){
+        ontologyBuilder.addSubhierarchy(iriString, targetId, true)
       }
     }
 
