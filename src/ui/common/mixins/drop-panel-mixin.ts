@@ -62,7 +62,7 @@ export const DropPanelMixin = <T extends Constructor<LitElement>>(superClass: T)
     }
 
     isPanelClosed() {
-      return this.panel ? this.panel.classList.contains('hide') : false // default open
+      return this.panel ? this.panel.classList.contains('hide') : true // default closed
     }
 
     onTogglePanel = () => {}

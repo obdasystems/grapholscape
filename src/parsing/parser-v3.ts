@@ -2,28 +2,29 @@
 
 import { Ontology } from '../model'
 import Annotation from '../model/graphol-elems/annotation'
-import { FunctionalityEnum } from '../model/graphol-elems/entity'
+import GrapholEntity, { FunctionalityEnum } from '../model/graphol-elems/entity'
+import { GrapholTypesEnum } from '../model/graphol-elems/enums'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
-import { GrapholTypesEnum } from '../model/graphol-elems/enums'
 
 export let warnings = new Set()
 
 export function getOntologyInfo(xmlDocument: XMLDocument) {
   let project = getTag(xmlDocument, 'project')
   let ontology_languages = getTag(xmlDocument, 'languages')?.children
-  let iri = getTag(xmlDocument, 'ontology')?.getAttribute('iri')
+  const ontologyElem = getTag(xmlDocument, 'ontology')
+  if (!ontologyElem) return
 
-  const ontology = new Ontology(project?.getAttribute('name') || '', project?.getAttribute('version') || '')
+  const ontology = new Ontology(
+    project?.getAttribute('name') || '',
+    project?.getAttribute('version') || '',
+    ontologyElem.getAttribute('iri') || '',
+  )
 
   if (ontology_languages)
     ontology.languages.list = [...ontology_languages].map(lang => lang.textContent) || []
 
-  ontology.languages.default = getTag(xmlDocument, 'ontology')?.getAttribute('lang') || ontology.languages.list[0]
-  if (iri) {
-    ontology.iri = iri
-    ontology.annotations = getIriAnnotations(iri, xmlDocument)
-  }
+  ontology.languages.default = ontologyElem.getAttribute('lang') || ontology.languages.list[0]
   return ontology
 }
 
@@ -40,7 +41,7 @@ export function getNamespaces(xmlDocument: XMLDocument): Namespace[] {
       const namespaceValue = getTagText(p, 'namespace')
       const prefixValue = getTagText(p, 'value')
       const namespace = result.find(n => n.toString() === namespaceValue)
-      if (typeof(prefixValue) === 'string' && namespaceValue) {
+      if (typeof (prefixValue) === 'string' && namespaceValue) {
         if (namespace) {
           namespace.addPrefix(prefixValue)
         }
@@ -53,7 +54,6 @@ export function getNamespaces(xmlDocument: XMLDocument): Namespace[] {
   return result
 }
 
-
 export function getIri(element: Element, ontology: Ontology) {
   let nodeIri = getTagText(element, 'iri')
 
@@ -61,13 +61,14 @@ export function getIri(element: Element, ontology: Ontology) {
 
   return new Iri(nodeIri, ontology.namespaces)
 }
+
 /**
- * 
- * @param {Element} element 
- * @param {Ontology} ontology
- * @returns {string}
+ * Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
+ * @param element 
+ * @param ontology 
+ * @returns 
  */
-export function getFacetDisplayedName(element: Element, ontology: Ontology) {
+export function getFacetDisplayedName(element: Element, ontology: Ontology): string | undefined {
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
   if (element.getAttribute('type') === GrapholTypesEnum.FACET) {
     const constrainingFacet = getTagText(element, 'constrainingFacet')
@@ -88,71 +89,39 @@ export function getFacetDisplayedName(element: Element, ontology: Ontology) {
       //let datatype = ontology.destructureIri(getTagText(element, 'datatype'))
       //datatype = datatype.prefix + ':' + datatype.rem_chars
 
-      
     }
   }
 }
 
 /**
  * Returns an object with annotations, description and the properties (functional, etc..) for DataProperties
- * @param {Element} element 
- * @param {Element} xmlDocument 
+ * @param {Element} element
  * @returns {FunctionalityEnum[]}
  */
-export function getFunctionalities(element: Element, xmlDocument: XMLDocument): FunctionalityEnum[] {
+export function getFunctionalities(element: Element): FunctionalityEnum[] {
   let result: FunctionalityEnum[] = []
-  let current_iri_elem = getIriElem(element, xmlDocument)
-
-  let elementType: GrapholTypesEnum | undefined
-  switch (element.getAttribute('type')) {
-    case 'concept':
-      elementType = GrapholTypesEnum.CLASS
-      break
-
-    case 'role':
-      elementType = GrapholTypesEnum.OBJECT_PROPERTY
-      break
-
-    case 'attribute':
-      elementType = GrapholTypesEnum.DATA_PROPERTY
-      break
-  }
-
-  if (elementType === GrapholTypesEnum.OBJECT_PROPERTY || elementType === GrapholTypesEnum.DATA_PROPERTY) {
-    if (current_iri_elem && current_iri_elem.children) {
-      for (let property of current_iri_elem.children) {
-
-        const functionality = Object.values(FunctionalityEnum).find(f => f.toString() === property.tagName)
-        if (functionality) {
-          result.push(functionality)
-        }
-      }
+  for (let property of element.children) {
+    const functionality = Object.values(FunctionalityEnum).find(f => f.toString() === property.tagName)
+    if (functionality) {
+      result.push(functionality)
     }
   }
   return result
 }
 
-export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument) {
-  const entityIri = getTagText(element, 'iri')
-  if (entityIri)
-    return getIriAnnotations(entityIri, xmlDocument)
-  else
-    return []
-}
-
-function getIriAnnotations(iri: string, xmlDocument: XMLDocument): Annotation[] {
+function getIriAnnotations(iriElem: Element): Annotation[] {
   let result: Annotation[] = []
-  const iriElem = getIriElem(iri, xmlDocument)
+  let annotations = getTag(iriElem, 'annotations')
+  let language: string | null | undefined
+  let annotation_kind: string
+  let lexicalForm: string | null | undefined
+  let annotationProperty: string | null | undefined
 
-  if (iriElem) {
-    let annotations = getTag(iriElem, 'annotations')
-    let language: string | null | undefined
-    let annotation_kind: string
-    let lexicalForm: string | null | undefined
-
-    if (annotations) {
-      for (let annotation of annotations.children) {
-        annotation_kind = getRemainingChars(getTagText(annotation, 'property'))
+  if (annotations) {
+    for (let annotation of annotations.children) {
+      annotationProperty = getTagText(annotation, 'property')
+      if (annotationProperty) {
+        annotation_kind = getRemainingChars(annotationProperty)
         language = getTagText(annotation, 'language')
         lexicalForm = getTagText(annotation, 'lexicalForm')
 
@@ -202,10 +171,9 @@ function getIriElem(node: string | Element, xmlDocument: Element | XMLDocument) 
 
 /**
  * Get the substring after separator '#' or '/' from a full IRI
- * @param {string} iri 
- * @returns {string}
+ * @param iri
  */
-function getRemainingChars(iri) {
+function getRemainingChars(iri: string): string {
   let rem_chars = iri.slice(iri.lastIndexOf('#') + 1)
   // if rem_chars has no '#' then use '/' as separator
   if (rem_chars.length == iri.length) {
@@ -213,4 +181,29 @@ function getRemainingChars(iri) {
   }
 
   return rem_chars
+}
+
+export function parseEntities(xmlDocument: XMLDocument, namespaces: Namespace[]): Map<string, GrapholEntity> {
+  const xmlIris = getTag(xmlDocument, 'iris')?.children
+  const resultMap = new Map()
+
+  if (xmlIris) {
+    let iri: Iri,
+      iriString: string | null | undefined,
+      entity: GrapholEntity
+
+    for (let xmlIri of xmlIris) {
+      iriString = getTagText(xmlIri, 'value')
+      if (iriString) {
+        iri = new Iri(iriString, namespaces)
+        entity = new GrapholEntity(iri)
+        entity.annotations = getIriAnnotations(xmlIri)
+        entity.functionalities = getFunctionalities(xmlIri)
+
+        resultMap.set(iriString, entity)
+      }
+    }
+  }
+
+  return resultMap
 }
