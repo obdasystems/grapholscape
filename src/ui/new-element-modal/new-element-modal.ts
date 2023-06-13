@@ -2,6 +2,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit
 import { BaseMixin, ModalMixin } from '../common/mixins'
 import { OntologyViewModel } from '../ontology-info/ontology-info'
 import baseStyle from '../style'
+import { GscapeButton } from '../common/button'
 
 export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitElement)) {
 
@@ -136,7 +137,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private showFunctionalCheckbox = () => {
     if (this.functionalities.length === 1) {
-      return 'inline'
+      return 'inline-block'
     } else {
       return 'none'
     }
@@ -144,7 +145,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private showFunctionalitiesDropdown = () => {
     if (this.functionalities.length > 1) {
-      return 'inline'
+      return 'inline-block'
     } else {
       return 'none'
     }
@@ -152,12 +153,12 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private toggleFunctionalities = () => {
 
-    this.funcVisibility = this.funcVisibility === 'inline' ? 'none' : 'inline'
+    this.funcVisibility = this.funcVisibility === 'inline-block' ? 'none' : 'inline-block'
     let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
     if (myform) {
-      let funcButton = myform.querySelector('#addFunctionalities') as HTMLButtonElement
-      if(funcButton.firstChild)
-        funcButton.firstChild.textContent = funcButton.firstChild.textContent === 'Add functionalities +' ? 'Hide functionalities -' : 'Add functionalities +'
+      let funcButton = myform.querySelector('#addFunctionalities') as GscapeButton
+      if(funcButton.label)
+        funcButton.label = funcButton.label === 'Add functionalities +' ? 'Hide functionalities -' : 'Add functionalities +'
     }
 
     
@@ -180,11 +181,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
                 <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value="" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
-                <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;">Functional<input type="checkbox" id="functional"></label>
-                <gscape-button style = "margin: 28px 18px 18px 108px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add functionalities +" @click=${this.toggleFunctionalities}></gscape-button><br>
-                <ul class="dropdown-menu" style = "width: 58%; margin: 108px 108px 108px 108px ; display:  ${this.funcVisibility}; list-style-type: none;" name="prefix" ><br>
+                <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional"> functional</label>
+                <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add functionalities +" @click=${this.toggleFunctionalities}></gscape-button><br>
+                <ul class="dropdown-menu" style = "width: 68%; margin: 8px 18px 18px 8px ; border-radius: 5%; display: ${this.funcVisibility}; list-style-type: none; background-color: var(--gscape-color-neutral); " name="functionalities" >
                       ${this.functionalities.map((n, i) => {
-        return html`<li style = "width: 78%; margin: 8px 8px 8px 8px ; display:${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" />${n.toString()}</a></li><br>`
+        return html`<li style = "width: 78%; margin: 2px 2px 2px 2px ; display:${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
       })}</ul><br>
             </form>
             <div class="buttons">
