@@ -199,7 +199,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     }
     newElementComponent.show()
 
-    newElementComponent.onConfirm = (iriString, functionalities=[]) => {
+    newElementComponent.onConfirm = (iriString, functionalities=[], complete=false) => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (entityType === GrapholTypesEnum.CLASS) {
@@ -225,10 +225,10 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         ontologyBuilder.addDiagram(iriString[0])
       }
       else if (entityType === 'Subhierarchy'){
-        ontologyBuilder.addSubhierarchy(iriString, targetId)
+        ontologyBuilder.addSubhierarchy(iriString, targetId, false, complete)
       }
       else if (entityType === 'Disjoint Subhierarchy'){
-        ontologyBuilder.addSubhierarchy(iriString, targetId, true)
+        ontologyBuilder.addSubhierarchy(iriString, targetId, true, complete)
       }
     }
 

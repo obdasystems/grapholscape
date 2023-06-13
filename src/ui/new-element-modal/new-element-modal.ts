@@ -9,7 +9,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   ontology: OntologyViewModel
   public get modal(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('.gscape-panel') }
 
-  public onConfirm: (iri: string | string[], functionalities?: string[]) => void = () => { }
+  public onConfirm: (iri: string | string[], functionalities: string[], complete: boolean) => void = () => { }
   public onCancel: () => void = () => { }
 
   static properties: PropertyDeclarations = {
@@ -92,8 +92,9 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         settedFunctionalities.push(checkbox.value)
       }
     })
-    
-    this.onConfirm(iris, settedFunctionalities)
+    let complete = myform.querySelector('#complete') as HTMLInputElement
+
+    this.onConfirm(iris, settedFunctionalities, complete.checked)
     this.resetForm()
   }
 
@@ -105,6 +106,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   private addInputField = () => {
     let myform = this.shadowRoot?.querySelector('#new-element-form')
     let btn = myform?.querySelector('#more') as Node
+    let checkbox = myform?.querySelector('#completeL') as Node
     let label = document.createElement("label")
     label.innerHTML = '<br><label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>'
     label.className = "lab"
@@ -114,9 +116,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     input.style.width = '78%'
     input.style.margin = '8px 8px 8px 8px'
     myform?.removeChild(btn)
+    myform?.removeChild(checkbox)
     myform?.appendChild(label)
     myform?.appendChild(input)
     myform?.appendChild(btn)
+    myform?.appendChild(checkbox)
   }
 
   private resetForm = () => {
@@ -182,6 +186,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
                 <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value="" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
                 <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional"> functional</label>
+                <label class="container" style = "display: ${this.enableMore}; margin: 8px 8px 8px 8px ;" id="completeL"><input type="checkbox" id="complete"> Complete</label>
                 <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add functionalities +" @click=${this.toggleFunctionalities}></gscape-button>
                 <ul class="dropdown-menu" style = "width: 68%; margin: 8px 18px 18px 8px ; border-radius: 5%; display: ${this.funcVisibility}; list-style-type: none; background-color: var(--gscape-color-neutral); " name="functionalities" >
                       ${this.functionalities.map((n, i) => {
