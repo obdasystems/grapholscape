@@ -1,5 +1,5 @@
 import { EntityNameType } from "../config"
-import { ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholTypesEnum, Iri, Namespace, Ontology, RendererStatesEnum } from "../model"
+import { Ontology, Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum, GrapholNodeInfo, GrapholNodesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { FunctionalityEnum } from "../model/graphol-elems/entity"
 import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'
@@ -7,15 +7,18 @@ import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/
 import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
 import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
 import { LABEL_HEIGHT } from "../model/graphol-elems/node"
+import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
 import * as ParserUtil from './parser_util'
 
 interface Graphol {
-  getOntologyInfo: (xmlDocument: XMLDocument) => Ontology | undefined
+  getOntologyInfo: (xmlDocument: XMLDocument) => Ontology
   getNamespaces: (xmlDocument: XMLDocument) => Namespace[]
   getIri: (element: HTMLElement, ontology: Ontology) => Iri | undefined
   getFacetDisplayedName: (element: Element, ontology: Ontology) => string | undefined
-  parseEntities: (XMLDocument: XMLDocument, namespaces: Namespace[]) => Map<string, GrapholEntity>
+  getFunctionalities: (element: Element, xmlDocument: XMLDocument) => FunctionalityEnum[]
+  getEntityAnnotations: (element: Element, xmlDocument: XMLDocument) => Annotation[]
+
 }
 
 export default class GrapholParser {
@@ -30,24 +33,17 @@ export default class GrapholParser {
 
     this.graphol_ver = this.xmlDocument.getElementsByTagName('graphol')[0].getAttribute('version') || -1
 
-    if (this.graphol_ver == 3)
+    if (this.graphol_ver == 2 || this.graphol_ver == -1)
+      this.graphol = Graphol2
+    else if (this.graphol_ver == 3)
       this.graphol = Graphol3
     else
       throw new Error(`Graphol version [${this.graphol_ver}] not supported`)
   }
 
   parseGraphol() {
-    return new Promise<Ontology | undefined>((resolve) => setTimeout(() => resolve(this.parseGrapholExecutor()), 0))
-  }
-
-  private parseGrapholExecutor() {
-    const ontology = this.graphol.getOntologyInfo(this.xmlDocument)
-    if (!ontology) return
-    this.ontology = ontology
+    this.ontology = this.graphol.getOntologyInfo(this.xmlDocument)
     this.ontology.namespaces = this.graphol.getNamespaces(this.xmlDocument)
-    this.ontology.entities = this.graphol.parseEntities(this.xmlDocument, this.ontology.namespaces)
-    if (ontology.iri)
-      this.ontology.entities.delete(ontology.iri)
 
     let i, k, nodes, edges, cnt, array_json_elems
     let diagrams = this.xmlDocument.getElementsByTagName('diagram')
@@ -62,24 +58,26 @@ export default class GrapholParser {
       // Create JSON for each node to be added to the collection
       for (k = 0; k < nodes.length; k++) {
         const nodeXmlElement = nodes[k]
+        const grapholNodeType = this.getGrapholNodeInfo(nodeXmlElement)?.TYPE
         const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i)
-
+        
         if (!node) continue
 
         let grapholEntity: GrapholEntity | undefined
 
-        if (node.isEntity() && node.type) {
-          const iri = Graphol3.getTagText(nodeXmlElement, 'iri')
+        if (node.isEntity() && grapholNodeType) {
+          const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
           if (iri) {
-            grapholEntity = this.ontology.entities.get(iri)
+            grapholEntity = this.ontology.entities.get(iri.fullIri)
 
             if (!grapholEntity) {
-              console.warn(`Inconsistency: node with ID=${node.id} in diagram=${diagram.name} with IRI=${iri} is not declared as an entity. Skipped.`)
-              continue
+              grapholEntity = new GrapholEntity(iri, grapholNodeType)
+              this.ontology.addEntity(grapholEntity)
             }
 
             grapholEntity.addOccurrence(node.id, diagram.id)
-            grapholEntity.type = node.type
+            grapholEntity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+            grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
 
             // APPLY DISPLAYED NAME FROM LABELS
             node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined)
