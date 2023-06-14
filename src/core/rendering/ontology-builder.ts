@@ -12,7 +12,7 @@ export default class OntologyBuilder {
         this.grapholscape = grapholscape
     }
 
-    public addNodeElement(iriString, entityType, ownerIri = null, relationship: string | null = null, functionalities: string[] = []) {
+    public addNodeElement(iriString, entityType, ownerIri = null, relationship: string | null = null, functionalities: string[] = [], datatype = '') {
 
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
@@ -34,6 +34,7 @@ export default class OntologyBuilder {
         const entity = new GrapholEntity(iri, entityType)
         this.grapholscape.ontology.addEntity(entity)
         if (entityType === GrapholTypesEnum.DATA_PROPERTY && ownerIri) {
+            entity.datatype = datatype
             if (functionalities.includes('functional')) {
                 entity.functionalities = [FunctionalityEnum.functional]
             }

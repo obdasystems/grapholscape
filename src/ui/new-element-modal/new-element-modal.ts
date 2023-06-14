@@ -4,12 +4,24 @@ import { OntologyViewModel } from '../ontology-info/ontology-info'
 import baseStyle from '../style'
 import { GscapeButton } from '../common/button'
 
+export const datatypes = ['owl:real', 'owl:rational', 'xsd:decimal', 'xsd:integer',
+'xsd:nonNegativeInteger', 'xsd:nonPositiveInteger',
+'xsd:positiveInteger', 'xsd:negativeInteger', 'xsd:long',
+'xsd:int', 'xsd:short', 'xsd:byte', 'xsd:unsignedLong',
+'xsd:unsignedInt', 'xsd:unsignedShort', 'xsd:unsignedByte',
+'xsd:double', 'xsd:float', 'xsd:string',
+'xsd:normalizedString', 'xsd:token', 'xsd:language', 'xsd:Name',
+'xsd:NCName', 'xsd:NMTOKEN', 'xsd:boolean', 'xsd:hexBinary',
+'xsd:base64Binary',
+'xsd:dateTime', 'xsd:dateTimeStamp', 'rdf:XMLLiteral',
+'rdf:PlainLiteral', 'rdfs:Literal', 'xsd:anyURI']
+
 export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitElement)) {
 
   ontology: OntologyViewModel
   public get modal(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('.gscape-panel') }
 
-  public onConfirm: (iri: string | string[], functionalities: string[], complete: boolean) => void = () => { }
+  public onConfirm: (iri: string | string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
   public onCancel: () => void = () => { }
 
   static properties: PropertyDeclarations = {
@@ -81,6 +93,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         iris.push(prefix.options[prefix.selectedIndex].text + input.value)
       });
     }
+    let datatype = this.shadowRoot?.querySelector('#datatype') as HTMLSelectElement
+    let datatypeValue = datatype.options[datatype.selectedIndex].text
     let settedFunctionalities : string[] = []
     let functional = myform.querySelector('#functional') as HTMLInputElement
     if(functional.checked)
@@ -93,8 +107,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       }
     })
     let complete = myform.querySelector('#complete') as HTMLInputElement
-
-    this.onConfirm(iris, settedFunctionalities, complete.checked)
+    this.onConfirm(iris, settedFunctionalities, complete.checked, datatypeValue)
     this.resetForm()
   }
 
@@ -175,7 +188,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             <div class="header">
             ${this.dialogTitle}
             </div>
-            <form id= "new-element-form">
+            <form id= "new-element-form" action= "javascript:void(0);">
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix-label" for="prefix">Prefix:</label><br>
                 <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix" name="prefix" required>
                     ${this.ontology.namespaces.map((n, i) => {
@@ -185,6 +198,12 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
                 <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value="" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
+                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype-label" for="datatype">Datatype:</label><br>
+                <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype" name="datatype" required>
+                    ${datatypes.sort().map((n, i) => {
+      return html`<option value="${n.toString()}">${n.toString()}</option>`
+    })}
+                </select><br>
                 <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional"> functional</label>
                 <label class="container" style = "display: ${this.enableMore}; margin: 8px 8px 8px 8px ;" id="completeL"><input type="checkbox" id="complete"> Complete</label>
                 <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add functionalities +" @click=${this.toggleFunctionalities}></gscape-button>

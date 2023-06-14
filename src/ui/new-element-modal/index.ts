@@ -219,7 +219,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     }
     newElementComponent.show()
 
-    newElementComponent.onConfirm = (iriString, functionalities = [], complete = false) => {
+    newElementComponent.onConfirm = (iriString, functionalities = [], complete = false, datatype= '') => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (entityType === GrapholTypesEnum.CLASS) {
@@ -233,7 +233,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       }
       else if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
-        ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, null, functionalities)
+        ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, null, functionalities, datatype)
       } else if (entityType === GrapholTypesEnum.INDIVIDUAL) {
         ontologyBuilder.addNodeElement(iriString[0], entityType, targetId)
       }
