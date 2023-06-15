@@ -1,17 +1,17 @@
 openapi: 3.0.0
+paths: {}
 servers:
-  # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/PEPE_2/Grapholscape_Model/1.0.0
 info:
   description: This is a simple API
-  version: "1.0.0"
+  version: 1.0.0
   title: Simple Inventory API
   contact:
     email: you@your-company.com
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
 tags:
   - name: admins
     description: Secured Admin-only calls
@@ -49,7 +49,10 @@ components:
           type: string
         originalId:
           type: string
-          description: 'In case of replicated elements, this is the ID of the original element replicated in multiple occurrences, all of them with different IDs'
+          description: >-
+            In case of replicated elements, this is the ID of the original
+            element replicated in multiple occurrences, all of them with
+            different IDs
         displayedName:
           type: string
         iri:
@@ -114,7 +117,11 @@ components:
               type: string
             prefix:
               type: string
-          example: { prefixed: 'obda:Entity', full: 'http://obda.com/Entity', remainder: 'Entity', prefix: 'obda' }
+          example:
+            prefixed: obda:Entity
+            full: http://obda.com/Entity
+            remainder: Entity
+            prefix: obda
         type:
           $ref: '#/components/schemas/EntityTypeEnum'
         annotations:
@@ -131,7 +138,7 @@ components:
           type: string
         property:
           type: string
-          example: 'rdfs:label'
+          example: rdfs:label
         language:
           type: string
         datatype:
