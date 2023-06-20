@@ -175,7 +175,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     if (myform) {
       let funcButton = myform.querySelector('#addFunctionalities') as GscapeButton
       if(funcButton.label)
-        funcButton.label = funcButton.label === 'Add functionalities +' ? 'Hide functionalities -' : 'Add functionalities +'
+        funcButton.label = funcButton.label === 'Add properties +' ? 'Hide properties -' : 'Add properties +'
     }
 
     
@@ -198,15 +198,15 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
                 <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value="" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
-                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype-label" for="datatype">Datatype:</label><br>
+                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype-label" for="datatype">Datatype:</label>
                 <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype" name="datatype" required>
                     ${datatypes.sort().map((n, i) => {
       return html`<option value="${n.toString()}">${n.toString()}</option>`
     })}
-                </select><br>
+                </select>
                 <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional"> functional</label>
                 <label class="container" style = "display: ${this.enableMore}; margin: 8px 8px 8px 8px ;" id="completeL"><input type="checkbox" id="complete"> Complete</label>
-                <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add functionalities +" @click=${this.toggleFunctionalities}></gscape-button>
+                <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add properties +" @click=${this.toggleFunctionalities}></gscape-button>
                 <ul class="dropdown-menu" style = "width: 68%; margin: 8px 18px 18px 8px ; border-radius: 5%; display: ${this.funcVisibility}; list-style-type: none; background-color: var(--gscape-color-neutral); " name="functionalities" >
                       ${this.functionalities.map((n, i) => {
         return html`<li style = "width: 78%; margin: 2px 2px 2px 2px ; display:${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
