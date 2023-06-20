@@ -87,13 +87,20 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     initNewElementModal(newElementComponent, 'Add New Diagram', 'Diagram')
   }
 
+  grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {
+    const elem = evt.target
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === "data-property") {
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      ontologyBuilder.toggleFunctionality(elem.data('iri'))
+    }
+  })
+
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
     const elem = evt.target
     if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === "data-property") {
       const commands: Command[] = []
 
       // Logica per aggiungere comandi
-      
 
       commands.push({
         content: 'Add Inclusion Edge',

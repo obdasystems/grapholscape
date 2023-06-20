@@ -115,4 +115,17 @@ export default class OntologyBuilder {
         this.diagramBuilder.addHierarchy(hierarchy, ownerEntity, {x:0, y:0})
         this.grapholscape.renderer.renderState?.runLayout()
     }
+
+    public toggleFunctionality(iri){
+        const entity = this.grapholscape.ontology.getEntity(iri)
+        if(entity?.hasFunctionality(FunctionalityEnum.functional)){
+            entity.functionalities = []
+        } else {
+            entity?.functionalities.push(FunctionalityEnum.functional)
+        }
+        const diagram = this.grapholscape.renderer.diagram as Diagram
+        this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+        this.diagramBuilder.toggleFunctionality(entity, entity?.hasFunctionality(FunctionalityEnum.functional))
+
+    }
 }

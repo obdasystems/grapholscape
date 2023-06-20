@@ -205,4 +205,13 @@ export default class DiagramBuilder {
 
     return node?.id
   }
+
+  public toggleFunctionality(entity, functional){
+
+    const id = this.getIdFromEntity(entity)
+    if(!id) return
+    const node = this.diagramRepresentation?.cy.$id(id)
+    if(!node) return
+    node.data('functional', functional)
+  }
 }

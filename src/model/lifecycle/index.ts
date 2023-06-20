@@ -23,6 +23,7 @@ export enum LifecycleEvent {
   UnfilterRequest = 'unfilterRequest',
   BackgroundClick = 'backgroundClick',
   ContextClick = 'contextClick',
+  DoubleTap = 'doubleTap',
   EntityWikiLinkClick = 'entityWikiLinkClick',
   // Ontology Designer
   EntityAddition = 'entityAddition',
@@ -49,6 +50,7 @@ export interface IonEvent {
   (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void
   (event: LifecycleEvent.BackgroundClick, callback: () => void): void
   (event: LifecycleEvent.ContextClick, callback: (eventObject: EventObject) => void): void
+  (event: LifecycleEvent.DoubleTap, callback: (eventObject: EventObject) => void): void
   (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void
   (event: LifecycleEvent.EntityAddition, callback: (entity: GrapholEntity, diagramId: number) => void): void
   (event: LifecycleEvent.EntityRemoval, callback: (entity: GrapholEntity, diagramId: number) => void): void
@@ -74,6 +76,7 @@ export default class Lifecycle {
   private unfilterRequest: ((filter: Filter) => boolean) = () => true
   private backgroundClick: (() => void)[] = []
   private contextClick: ((eventObject: EventObject) => void)[] = []
+  private doubleTap: ((eventObject: EventObject) => void)[] = []
   public entityWikiLinkClick: ((iri: string) => void)[] = []
   private entityAddition: ((entity: GrapholEntity, diagramId: number) => void)[] = []
   private entityRemoval: ((entity: GrapholEntity, diagramId: number) => void)[] = []
@@ -100,6 +103,7 @@ export default class Lifecycle {
   trigger(event: LifecycleEvent.UnfilterRequest, filter: Filter): boolean
   trigger(event: LifecycleEvent.BackgroundClick): void
   trigger(event: LifecycleEvent.ContextClick, eventObject: EventObject): void
+  trigger(event: LifecycleEvent.DoubleTap, eventObject: EventObject): void
   trigger(event: LifecycleEvent.EntityWikiLinkClick, iri: string): void
   trigger(event: LifecycleEvent.EntityAddition, entity: GrapholEntity, diagramId: number): void
   trigger(event: LifecycleEvent.EntityRemoval, entity: GrapholEntity, diagramId: number): void
