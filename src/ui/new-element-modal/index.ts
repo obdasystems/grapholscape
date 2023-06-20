@@ -26,6 +26,9 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         case GrapholTypesEnum.CLASS:
           return targetType === GrapholTypesEnum.CLASS
 
+        case GrapholTypesEnum.DATA_PROPERTY:
+          return targetType === GrapholTypesEnum.DATA_PROPERTY
+
         default:
           return false
       }
@@ -83,6 +86,49 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     grapholscape.uiContainer?.appendChild(newElementComponent)
     initNewElementModal(newElementComponent, 'Add New Diagram', 'Diagram')
   }
+
+  grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
+    const elem = evt.target
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === "data-property") {
+      const commands: Command[] = []
+
+      // Logica per aggiungere comandi
+      
+
+      commands.push({
+        content: 'Add Inclusion Edge',
+        icon: addISAIcon,
+        select: () => {
+          let currentCy = grapholscape.renderer.cy as any
+          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+          edgehandles.start(elem)
+          currentCy.scratch('edge-creation-type', GrapholTypesEnum.INCLUSION)
+
+          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+            if (addedEdge.data('type') === GrapholTypesEnum.OBJECT_PROPERTY) {
+              grapholscape.uiContainer?.appendChild(newElementComponent)
+              initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
+            }
+            else if(addedEdge.data('type') === GrapholTypesEnum.INCLUSION){
+              const ontologyBuilder = new OntologyBuilder(grapholscape)
+              const sourceId = sourceNode.data('iri')
+              const targetId = targetNode.data('iri')
+              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
+              ontologyBuilder.addEdgeElement(null, GrapholTypesEnum.INCLUSION, sourceId, targetId)
+            }
+            currentCy.removeScratch('edge-creation-type')
+          })
+        }
+      })
+
+      try {
+        const htmlNodeReference = (elem as any).popperRef()
+        if (htmlNodeReference && commands.length > 0) {
+          commandsWidget.attachTo(htmlNodeReference, commands)
+        }
+      } catch (e) { console.error(e) }
+    }
+  })
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
     const elem = evt.target
