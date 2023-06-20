@@ -1,6 +1,7 @@
 import { Position } from "cytoscape";
 import { EntityNameType } from "../config";
 import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
+import { GrapholElement } from "../../dist";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
@@ -213,5 +214,31 @@ export default class DiagramBuilder {
     const node = this.diagramRepresentation?.cy.$id(id)
     if(!node) return
     node.data('functional', functional)
+  }
+
+  public toggleUnion(node){
+    const type = node.data('type')
+    if(type === GrapholTypesEnum.UNION){
+      node.removeClass('union')
+      node.data('type', GrapholTypesEnum.DISJOINT_UNION)
+      node.data('displayedName', undefined)
+      node.addClass('disjoint-union')
+      // edge
+      const edge = node.connectedEdges().find(e => e.data('type') === GrapholTypesEnum.UNION) 
+      edge?.data('type', GrapholTypesEnum.DISJOINT_UNION)
+
+    } else {
+      node.removeClass('disjoint-union')
+      node.data('type', GrapholTypesEnum.UNION)
+      node.data('displayedName', 'or')
+      node.data('labelXpos', 0)
+      node.data('labelXcentered', true)
+      node.data('labelYpos', 0)
+      node.data('labelYcentered', true)
+      node.addClass('union')
+      // edge
+      const edge = node.connectedEdges().find(e => e.data('type') === GrapholTypesEnum.DISJOINT_UNION) 
+      edge?.data('type', GrapholTypesEnum.UNION)
+    }
   }
 }

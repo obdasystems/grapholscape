@@ -89,9 +89,13 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {
     const elem = evt.target
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === "data-property") {
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === GrapholTypesEnum.DATA_PROPERTY) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleFunctionality(elem.data('iri'))
+    }
+    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.data('type') === GrapholTypesEnum.DISJOINT_UNION || elem.data('type') === GrapholTypesEnum.UNION)){
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      ontologyBuilder.toggleUnion(elem)
     }
   })
 
