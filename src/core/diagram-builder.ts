@@ -241,4 +241,17 @@ export default class DiagramBuilder {
       edge?.data('type', GrapholTypesEnum.UNION)
     }
   }
+
+  public toggleComplete(edge){
+    
+    if(edge.data('targetLabel') === 'C'){
+      edge.removeClass('equivalence')
+      edge.data('targetLabel', '')
+      edge.addClass('inclusion')
+    } else {
+      edge.removeClass('inclusion')
+      edge.data('targetLabel', 'C')
+      edge.addClass('equivalence')
+    }
+  }
 }

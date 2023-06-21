@@ -134,4 +134,10 @@ export default class OntologyBuilder {
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
         this.diagramBuilder.toggleUnion(elem)
     }
+
+    public toggleComplete(elem){
+        const diagram = this.grapholscape.renderer.diagram as Diagram
+        this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+        this.diagramBuilder.toggleComplete(elem)
+    }
 }

@@ -1,6 +1,6 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { FunctionalityEnum, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
+import { FunctionalityEnum, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum, isGrapholEdge } from '../../model';
 import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
@@ -93,9 +93,13 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleFunctionality(elem.data('iri'))
     }
-    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.data('type') === GrapholTypesEnum.DISJOINT_UNION || elem.data('type') === GrapholTypesEnum.UNION)){
+    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && !(elem.group() === 'edges') && (elem.data('type') === GrapholTypesEnum.DISJOINT_UNION || elem.data('type') === GrapholTypesEnum.UNION)){
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleUnion(elem)
+    }
+    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === GrapholTypesEnum.DISJOINT_UNION || elem.data('type') === GrapholTypesEnum.UNION)){
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      ontologyBuilder.toggleComplete(elem)
     }
   })
 
