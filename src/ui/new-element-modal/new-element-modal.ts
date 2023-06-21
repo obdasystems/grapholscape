@@ -90,7 +90,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       let inputs = myform.getElementsByClassName('inp')
       Array.from(inputs).forEach(element => {
         let input = element as HTMLInputElement
-        iris.push(prefix.options[prefix.selectedIndex].text + input.value)
+        if(input.value.length > 0)
+          iris.push(prefix.options[prefix.selectedIndex].text + input.value)
       });
     }
     let datatype = this.shadowRoot?.querySelector('#datatype') as HTMLSelectElement
@@ -177,8 +178,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       if(funcButton.label)
         funcButton.label = funcButton.label === 'Add properties +' ? 'Hide properties -' : 'Add properties +'
     }
-
-    
+   
   }
 
   render() {
@@ -188,7 +188,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             <div class="header">
             ${this.dialogTitle}
             </div>
-            <form id= "new-element-form" action= "javascript:void(0);">
+            <form id= "new-element-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix-label" for="prefix">Prefix:</label><br>
                 <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix" name="prefix" required>
                     ${this.ontology.namespaces.map((n, i) => {
@@ -196,7 +196,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     })}
                 </select><br>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
-                <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" name="input" value="" required>
+                <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" oninput="if(this.value.length > 0) this.offsetParent.querySelector('#ok').disabled = false; else this.offsetParent.querySelector('#ok').disabled = true;" name="input" value="" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype-label" for="datatype">Datatype:</label>
                 <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype" name="datatype" required>
@@ -212,9 +212,9 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         return html`<li style = "width: 78%; margin: 2px 2px 2px 2px ; display:${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
       })}</ul>
             </form>
-            <div class="buttons">
+            <div class="buttons" id="buttons">
                 <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
+                <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} disabled></gscape-button>
             </div>
           </div>
         </div>
