@@ -4,40 +4,78 @@ servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/PEPE_2/Grapholscape_Model/1.0.0
 info:
-  description: This is a simple API
+  description: This is the API for retaining a Grapholscape's loaded ontology (or graph) in order to restart navigation from a previous state.
   version: 1.0.0
-  title: Simple Inventory API
+  title: Grapholscape API model
   contact:
-    email: you@your-company.com
+    email: obdasystems@info.com
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-tags:
-  - name: admins
-    description: Secured Admin-only calls
-  - name: developers
-    description: Operations available to regular developers
 components:
   schemas:
     Model:
       type: object
       required:
         - entities
-        - nodes
-        - edges
+        - diagrams
       properties:
-        entities:
+        diagrams:
           type: array
           items:
-            $ref: '#/components/schemas/Entity'
-        nodes:
+            $ref: '#/components/schemas/Diagram'
+        ontology:
+         type: object
+         required:
+          - iri
+          - version
+          - namespaces
+          - entities
+         properties:
+          iri:
+            type: string
+          version:
+            type: string
+          languages:
+            type: array
+            items:
+              type: string
+          defaultLanguage:
+            type: string
+          namespaces:
+            type: array
+            items:
+              $ref: '#/components/schemas/Namespace'
+          entities:
+            type: array
+            items:
+              $ref: '#/components/schemas/Entity'
+        viewport:
+          type: object
+          properties:
+            pan:
+              $ref: '#/components/schemas/Position'
+            zoom:
+              type: number
+        selectedDiagramId:
+          type: string
+    Diagram:
+      type: object
+      required:
+        - id
+        - name
+        - elements
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        elements:
           type: array
           items:
-            $ref: '#/components/schemas/Node'
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/Edge'
+            oneOf:
+              - $ref: '#/components/schemas/Node'
+              - $ref: '#/components/schemas/Edge'
     Element:
       type: object
       required:
@@ -60,9 +98,7 @@ components:
         type:
           type: string
           oneOf:
-            - $ref: '#/components/schemas/EntityTypeEnum'
-            - $ref: '#/components/schemas/ConstructorTypeEnum'
-            - $ref: '#/components/schemas/EdgeTypeEnum'
+            - $ref: '#/components/schemas/TypesEnum'
     Edge:
       type: object
       allOf:
@@ -82,24 +118,24 @@ components:
                 $ref: '#/components/schemas/Position'
     Node:
       type: object
+      allOf:
+        - $ref: '#/components/schemas/Element'
+        - type: object
+          properties:
+            position:
+              $ref: '#/components/schemas/Position'
+    Namespace:
+      type: object
       required:
-        - id
-        - displayedName
-        - type
+        - value
+        - prefixes
       properties:
-        id:
+        value:
           type: string
-        displayedName:
-          type: string
-        iri:
-          type: string
-        type:
-          type: string
-          oneOf:
-            - $ref: '#/components/schemas/EntityTypeEnum'
-            - $ref: '#/components/schemas/ConstructorTypeEnum'
-        position:
-          $ref: '#/components/schemas/Position'
+        prefixes:
+          type: array
+          items:
+            type: string
     Entity:
       type: object
       required:
@@ -154,14 +190,43 @@ components:
     ConstructorTypeEnum:
       type: string
       enum:
+        - domain-restriction
+        - range-restriction
         - union
         - disjoint-union
+        - complement
+        - intersection
+        - enumeration
+        - key
+        - role-inverse
+        - role-chain
+        - datatype-restriction
+    OthersTypeEnum:
+      type: string
+      enum:
+        - value-domain
+        - property-assertion
+        - literal
+        - individual
+        - facet
+        - neutral
+        - value
     EdgeTypeEnum:
       type: string
       enum:
         - subclass-of
         - equivalence
         - instance-of
+        - input
+        - same
+        - different
+        - membership
+    TypesEnum:
+      allOf:
+        - $ref: '#/components/schemas/EntityTypeEnum'
+        - $ref: '#/components/schemas/ConstructorTypeEnum'
+        - $ref: '#/components/schemas/OthersTypeEnum'
+        - $ref: '#/components/schemas/EdgeTypeEnum'
     Position:
       type: object
       required:
