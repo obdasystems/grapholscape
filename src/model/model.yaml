@@ -19,18 +19,26 @@ components:
       required:
         - entities
         - diagrams
+        - modelType
       properties:
         diagrams:
           type: array
           items:
             $ref: '#/components/schemas/Diagram'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+        classInstanceEntities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassInstanceEntity'
         ontology:
          type: object
          required:
           - iri
           - version
           - namespaces
-          - entities
          properties:
           iri:
             type: string
@@ -46,10 +54,25 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Namespace'
-          entities:
-            type: array
-            items:
-              $ref: '#/components/schemas/Entity'
+        config:
+          type: object
+          properties:
+            themes:
+              type: array
+              items:
+                $ref: '#/components/schemas/Theme'
+            selectedTheme:
+              type: string
+            language:
+              type: string
+            entityNameType:
+              $ref: '#/components/schemas/EntityNameType'
+            renderers:
+              type: array
+              items:
+                type: string
+            widgets:
+              type: object
         viewport:
           type: object
           properties:
@@ -59,6 +82,18 @@ components:
               type: number
         selectedDiagramId:
           type: string
+        modelType:
+          type: string
+          enum: [ 'ontology', 'vkg', 'rdf' ]
+    Theme:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        colours:
+          type: object
     Diagram:
       type: object
       required:
@@ -80,7 +115,6 @@ components:
       type: object
       required:
         - id
-        - displayedName
         - type
       properties:
         id:
@@ -124,6 +158,8 @@ components:
           properties:
             position:
               $ref: '#/components/schemas/Position'
+            identity:
+              $ref: '#/components/schemas/TypesEnum'
     Namespace:
       type: object
       required:
@@ -158,12 +194,20 @@ components:
             full: http://obda.com/Entity
             remainder: Entity
             prefix: obda
-        type:
-          $ref: '#/components/schemas/EntityTypeEnum'
         annotations:
           type: array
           items:
             $ref: '#/components/schemas/Annotation'
+    ClassInstanceEntity:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            parentClasses:
+              type: array
+              items:
+                type: string
     Annotation:
       type: object
       required:
@@ -237,3 +281,9 @@ components:
           type: number
         y:
           type: number
+    EntityNameType:
+      type: string
+      enum:
+        - label
+        - prefixed_iri
+        - full_iri
