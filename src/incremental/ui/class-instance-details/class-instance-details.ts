@@ -42,7 +42,7 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
                   <gscape-entity-list-item
                     displayedname=${parentClass.displayedName}
                     iri=${parentClass.value.iri.fullIri}
-                    type=${parentClass.value.type}
+                    .types=${parentClass.value.types}
                     @click=${this.handleEntityClick}
                   >
                   </gscape-entity-list-item>
@@ -66,7 +66,7 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
                   <gscape-entity-list-item
                     displayedname=${dataProperty.displayedName}
                     iri=${dataProperty.value.iri.fullIri}
-                    type=${dataProperty.value.type}
+                    .types=${dataProperty.value.types}
                   >
                     ${this.canShowDataPropertiesValues && values
                       ? html`

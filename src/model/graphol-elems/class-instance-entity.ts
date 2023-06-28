@@ -1,6 +1,5 @@
 import Iri from "../iri";
 import GrapholEntity from "./entity";
-import { GrapholTypesEnum } from "./enums";
 
 /** @internal */
 export default class ClassInstanceEntity extends GrapholEntity {
@@ -8,7 +7,7 @@ export default class ClassInstanceEntity extends GrapholEntity {
   private _parentClassIris: Iri[] = []
 
   constructor(iri: Iri, parentClassIris: Iri[] = []) {
-    super(iri, GrapholTypesEnum.CLASS_INSTANCE)
+    super(iri)
 
     this._parentClassIris = parentClassIris
   }

@@ -1,5 +1,4 @@
 import { css, html, LitElement } from 'lit'
-import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { blankSlateDiagrams, explore } from '../assets/icons'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import { GscapeEntitySearch } from '../common/text-search'
@@ -21,7 +20,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
   loading = false
   // search: (e:any) => void = () => { }
   // filterEntities: (entityFilters: IEntityFilters) => void = () => { }
-  onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
+  onNodeNavigation: (elementId: string, diagramId: number) => void = () => { }
   // onSearch: (e: KeyboardEvent) => void
   // onEntityFilterToggle: () => void
 
@@ -117,6 +116,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
                 <div style="padding: 0 8px; height: inherit">
                   <lit-virtualizer
                     scroller
+                    class="background-propagation"
                     style="min-height: 100%"
                     .items=${this.shownEntities}
                     .renderItem=${(entity: EntityViewData) => html`
@@ -124,7 +124,7 @@ export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)
                         style="width: 100%"
                         ?asaccordion=${true}
                         displayedname=${entity.displayedName}
-                        type=${entity.value.type}
+                        .types=${entity.value.types}
                         iri=${entity.value.iri.fullIri}
                       >
                         <div slot="accordion-body">

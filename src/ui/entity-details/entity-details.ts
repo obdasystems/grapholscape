@@ -1,6 +1,5 @@
 import { css, html, LitElement } from 'lit'
 import { GrapholEntity, GrapholTypesEnum } from '../../model'
-import { EntityOccurrence } from '../../model/graphol-elems/entity'
 import { commentIcon, infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
@@ -14,7 +13,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   showOccurrences: boolean = true
   language: string
-  onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
+  onNodeNavigation: (elmentId: string, diagramId: number) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 
   incrementalSection?: HTMLElement
@@ -227,7 +226,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   private get entityForTemplate() {
     const result: ViewItemWithIri = {
       name: this.grapholEntity.iri.remainder,
-      typeOrVersion: this.grapholEntity.type.toString(),
+      typeOrVersion: this.grapholEntity.types,
       iri: this.grapholEntity.iri.fullIri,
     }
     return result

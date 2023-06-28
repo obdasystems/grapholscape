@@ -5,9 +5,9 @@ import GscapeEntityDetails from './entity-details'
 
 export default function (entityDetailsComponent: GscapeEntityDetails, grapholscape: Grapholscape) {
   // entityDetailsComponent.onWikiClick = (iri) => grapholscape.wikiRedirectTo(iri)
-  entityDetailsComponent.onNodeNavigation = (entityOccurrence) => {
-    grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2)
-    grapholscape.selectElement(entityOccurrence.elementId)
+  entityDetailsComponent.onNodeNavigation = (elementId, diagramId) => {
+    grapholscape.centerOnElement(elementId, diagramId, 1.2)
+    grapholscape.selectElement(elementId)
   }
   entityDetailsComponent.language = grapholscape.language
 

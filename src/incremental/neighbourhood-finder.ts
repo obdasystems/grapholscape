@@ -139,7 +139,7 @@ export default class NeighbourhoodFinder {
 
         if (diagram) {
           const inclusionEdges = diagram.representations.get(RendererStatesEnum.FLOATY)
-            ?.cy.$id(classOccurrence.elementId)
+            ?.cy.$id(classOccurrence.id)
             .edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
             .filter(edge => edge.data().type === type) // take only inclusions/equivalence edges
 

@@ -6,9 +6,9 @@ import { IEntityFilters } from '../view-model';
 import GscapeExplorer from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
-  ontologyExplorerComponent.onNodeNavigation = (entityOccurrence) => {
-    grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2)
-    grapholscape.selectElement(entityOccurrence.elementId)
+  ontologyExplorerComponent.onNodeNavigation = (elementId, diagramId) => {
+    grapholscape.centerOnElement(elementId, diagramId, 1.2)
+    grapholscape.selectElement(elementId)
   }
 
   ontologyExplorerComponent.addEventListener('onentityfilterchange', (e: EntityFilterEvent) => {

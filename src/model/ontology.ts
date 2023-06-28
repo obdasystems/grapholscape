@@ -3,11 +3,12 @@ import AnnotatedElement from './annotated-element'
 import Diagram from './diagrams/diagram'
 import DiagramRepresentation from './diagrams/diagram-representation'
 import { Hierarchy } from './graph-structures'
-import GrapholEntity, { EntityOccurrence } from './graphol-elems/entity'
+import GrapholEntity from './graphol-elems/entity'
 import GrapholNode from './graphol-elems/node'
 import { GrapholTypesEnum } from './graphol-elems/enums'
 import Namespace from './namespace'
 import { RendererStatesEnum } from './renderers/i-render-state'
+import GrapholElement from './graphol-elems/graphol-element'
 /**
  * # Ontology
  * Class used as the Model of the whole app.
@@ -114,17 +115,14 @@ class Ontology extends AnnotatedElement {
     return Array.from(this.entities).filter(([_, entity]) => entity.is(entityType)).map(([_, entity]) => entity)
   }
 
-  getEntityFromOccurrence(entityOccurrence: EntityOccurrence) {
+  getEntityFromOccurrence(entityOccurrence: GrapholElement) {
     const diagram = this.getDiagram(entityOccurrence.diagramId)
     if (!diagram) return
 
-    for (let [_, representation] of diagram.representations) {
-      const cyElement = representation.cy.$id(entityOccurrence.elementId)
-      try {
-        if (cyElement?.data().iri) {
-          return this.getEntity(cyElement.data().iri)
-        }
-      } catch (e) { console.log(entityOccurrence) }
+    if (entityOccurrence.iri) {
+      const entity = this.getEntity(entityOccurrence.iri)
+      if (entity)
+        return entity
     }
 
     console.warn(`Can't find occurrence ${entityOccurrence.toString()} in any diagram's representation`)
@@ -187,7 +185,7 @@ class Ontology extends AnnotatedElement {
    * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
    * @returns An array of EntityOccurrence objects
    */
-  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> | undefined {
+  getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]> | undefined {
     // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
     return diagramId || diagramId === 0
       ? this.getEntity(iri)?.getOccurrencesByDiagramId(diagramId, renderState)
@@ -266,7 +264,7 @@ class Ontology extends AnnotatedElement {
       representation: DiagramRepresentation | undefined,
       datatypeNode: CollectionReturnValue,
       datatype: string,
-      occurrences: EntityOccurrence[] | undefined
+      occurrences: GrapholElement[] | undefined
 
     this.entities.forEach((dataPropertyEntity, _) => {
       if (dataPropertyEntity.is(GrapholTypesEnum.DATA_PROPERTY)) {
@@ -279,7 +277,7 @@ class Ontology extends AnnotatedElement {
           representation = this.getDiagram(occurrence.diagramId)
             ?.representations.get(RendererStatesEnum.GRAPHOL)
 
-          cyElement = representation?.cy.$id(occurrence.elementId)
+          cyElement = representation?.cy.$id(occurrence.id)
 
           if (cyElement && cyElement.nonempty()) {
             datatypeNode = cyElement
@@ -289,7 +287,7 @@ class Ontology extends AnnotatedElement {
             if (datatypeNode.nonempty()) {
               datatype = datatypeNode.first().data('displayedName')
               dataPropertyEntity.datatype = datatype
-              representation?.updateElement(occurrence.elementId)
+              representation?.updateElement(occurrence.id)
             }
           }
         })

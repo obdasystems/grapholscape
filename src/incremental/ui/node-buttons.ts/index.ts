@@ -183,6 +183,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
         return
 
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
+      navigationMenu.referenceEntityType = targetButton.node.data().type
       navigationMenu.canShowObjectPropertiesRanges = true
 
 
@@ -195,6 +196,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
         return
 
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
+      navigationMenu.referenceEntityType = targetButton.node.data().type
       navigationMenu.canShowObjectPropertiesRanges = false
 
       const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
@@ -233,8 +235,8 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 
   if (targetButton.node && targetButton.node.data().iri) {
     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
-
-    if (referenceEntity && referenceEntity.type === GrapholTypesEnum.CLASS) {
+    const entityType = targetButton.node.data().type
+    if (referenceEntity && entityType === GrapholTypesEnum.CLASS) {
       if (!instanceExplorer.referenceEntity ||
         !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
         instanceExplorer.numberOfInstancesReceived === 0) {
@@ -242,6 +244,7 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 
         instanceExplorer.areInstancesLoading = true
         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
+        instanceExplorer.referenceEntityType = targetButton.node.data().type
 
         const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
           incrementalController.endpointController?.highlightsManager

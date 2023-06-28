@@ -125,6 +125,7 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   }
 
   render() {
+    console.log(this.entityList)
     return html`
       <div class="gscape-panel widget-body">
         <div id="input-wrapper">
@@ -156,12 +157,13 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
             ? html`
               <lit-virtualizer
                 scroller
+                class="background-propagation"
                 style="min-height: 100%;"
                 .items=${this.entityList}
                 .renderItem=${(entityItem: EntityViewData) => html`
                   <gscape-entity-list-item
                     style="width:100%"
-                    type=${entityItem.value.type}
+                    .types=${entityItem.value.types}
                     displayedName=${entityItem.displayedName}
                     title=${entityItem.displayedName}
                     iri=${entityItem.value.iri.fullIri}

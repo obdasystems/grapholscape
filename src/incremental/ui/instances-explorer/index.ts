@@ -83,7 +83,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     instancesExplorer.areInstancesLoading = true
 
     if (instancesExplorer.referenceEntity) {
-      if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS) {
+      if (instancesExplorer.referenceEntity.value.types.has(GrapholTypesEnum.CLASS)) {
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
           instancesExplorer.referenceEntity?.value.iri.fullIri,
           e.detail.shouldAskForLabels,
@@ -94,7 +94,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         )
       }
 
-      else if (instancesExplorer.referenceEntity.value.type === GrapholTypesEnum.CLASS_INSTANCE && instancesExplorer.referencePropertyEntity) {
+      else if (instancesExplorer.referenceEntity.value.types.has(GrapholTypesEnum.CLASS_INSTANCE) && instancesExplorer.referencePropertyEntity) {
         // if (e.detail.filterByType) {
         //   instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
         //     .map(dp => getEntityViewDataIncremental(dp, incrementalController))

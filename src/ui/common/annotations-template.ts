@@ -4,7 +4,7 @@ import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
   name: string,
-  typeOrVersion: string,
+  typeOrVersion: Set<string>,
   iri: string
 }
 
@@ -25,9 +25,18 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
       </div>
       <div class="muted-text" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div>
       <div class="muted-text type-or-version">
-        ${Object.values(GrapholTypesEnum).includes(item.typeOrVersion as GrapholTypesEnum)
-          ? entityIcons[item.typeOrVersion] : null }
-        ${item.typeOrVersion || '-'}
+        ${item.typeOrVersion.forEach(text => {
+          if (Object.values(GrapholTypesEnum).includes(text as GrapholTypesEnum)) {
+            return html`
+              <div>
+                ${entityIcons[text]}
+                ${item.typeOrVersion || '-'}
+              </div>
+            `
+          } else {
+            return item.typeOrVersion || '-'
+          }
+        })}
       </div>
     </div>
   `

@@ -1,6 +1,5 @@
-import { RendererStatesEnum } from "../model"
+import { RendererStatesEnum, GrapholElement } from "../model"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
-import { EntityOccurrence } from "../model/graphol-elems/entity"
 import { isGrapholNode } from "../model/graphol-elems/node"
 import { LifecycleEvent } from "../model/lifecycle"
 import Grapholscape from "./grapholscape"
@@ -43,21 +42,15 @@ export default class EntityNavigator {
     }
   }
 
-  private _performCenterSelect(occurrence: EntityOccurrence, select?: boolean, zoom?: number) {
+  private _performCenterSelect(grapholElement: GrapholElement, select?: boolean, zoom?: number) {
 
-    if (this._grapholscape.diagramId !== occurrence.diagramId) {
-      this._grapholscape.showDiagram(occurrence.diagramId)
+    if (this._grapholscape.diagramId !== grapholElement.diagramId) {
+      this._grapholscape.showDiagram(grapholElement.diagramId)
     }
 
-    this._grapholscape.renderer.centerOnElementById(occurrence.elementId, zoom, select)
+    this._grapholscape.renderer.centerOnElementById(grapholElement.id, zoom, select)
 
     if (select) {
-      const grapholElement = this._grapholscape.ontology.getGrapholElement(
-        occurrence.elementId,
-        occurrence.diagramId,
-        this._grapholscape.renderState
-      )
-
       if (!grapholElement) return
 
       if (isGrapholNode(grapholElement)) {
@@ -85,7 +78,7 @@ export default class EntityNavigator {
 
     // Search any original graphol occurrence in the current representation
     for (let grapholOccurrence of grapholOccurrences) {
-      if (currentDiagramRepresentation?.grapholElements.has(grapholOccurrence.elementId)) {
+      if (currentDiagramRepresentation?.grapholElements.get(grapholOccurrence.id) === grapholOccurrence) {
         return grapholOccurrence
       }
     }
@@ -107,19 +100,24 @@ export default class EntityNavigator {
       if (!this._grapholscape.renderState)
         return
 
-      // const diagram = this._grapholscape.renderer.diagram
-      const replicatedElements = diagram.representations.get(this._grapholscape.renderState)?.cy?.$("[originalId]")
+      const diagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
+      if (diagramRepresentation) {
+        const replicatedElements = diagram.representations.get(this._grapholscape.renderState)?.cy?.$("[originalId]")
 
-      if (replicatedElements && !replicatedElements.empty()) {
-        replicatedElements.forEach(replicatedElement => {
-          const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'))
+        if (replicatedElements && !replicatedElements.empty()) {
+          replicatedElements.forEach(replicatedElement => {
+            const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'))
 
-          if (grapholEntity) {
-            //grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState)
-            // replicatedElement.data('iri', grapholEntity.iri.fullIri)
-            grapholEntity.addOccurrence(replicatedElement.id(), diagram.id, this._grapholscape.renderState)
-          }
-        })
+            if (grapholEntity) {
+              //grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState)
+              // replicatedElement.data('iri', grapholEntity.iri.fullIri)
+              const grapholElement = diagramRepresentation.grapholElements.get(replicatedElement.id())
+              if (grapholElement) {
+                grapholEntity.addOccurrence(grapholElement, this._grapholscape.renderState)
+              }
+            }
+          })
+        }
       }
     })
   }

@@ -1,7 +1,6 @@
 
 import { Position } from "cytoscape";
 import GrapholEdge from "../graphol-elems/edge";
-import GrapholEntity from "../graphol-elems/entity";
 import GrapholNode from "../graphol-elems/node";
 import { GrapholTypesEnum, Shape } from "../graphol-elems/enums";
 
@@ -56,7 +55,7 @@ export default class Hierarchy {
 
     this.inputs.forEach((inputClassIri, i) => {
       const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`, GrapholTypesEnum.INPUT)
-      newInputEdge.sourceId = inputClassIri
+      newInputEdge.sourceId =  `${inputClassIri}-${GrapholTypesEnum.CLASS}`
       newInputEdge.targetId = this._id!
       res.push(newInputEdge)
     })
@@ -74,7 +73,7 @@ export default class Hierarchy {
     this._superclasses.forEach((superclass, i) => {
       const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`, this.type)
       newInclusionEdge.sourceId = this._id!
-      newInclusionEdge.targetId = superclass.classIri
+      newInclusionEdge.targetId = `${superclass.classIri}-${GrapholTypesEnum.CLASS}`
 
       if (superclass.complete) {
         newInclusionEdge.targetLabel = 'C'

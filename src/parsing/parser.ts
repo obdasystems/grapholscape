@@ -71,11 +71,11 @@ export default class GrapholParser {
             grapholEntity = this.ontology.entities.get(iri.fullIri)
 
             if (!grapholEntity) {
-              grapholEntity = new GrapholEntity(iri, grapholNodeType)
+              grapholEntity = new GrapholEntity(iri)
               this.ontology.addEntity(grapholEntity)
             }
 
-            grapholEntity.addOccurrence(node.id, diagram.id)
+            grapholEntity.addOccurrence(node)
             grapholEntity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
 
@@ -148,6 +148,7 @@ export default class GrapholParser {
       return
     }
     let grapholNode = new GrapholNode(element.getAttribute('id') || '', nodeInfoBasedOnType.TYPE)
+    grapholNode.diagramId = diagramId
     grapholNode.shape = nodeInfoBasedOnType.SHAPE
     grapholNode.identity = nodeInfoBasedOnType.IDENTITY
     grapholNode.fillColor = element.getAttribute('color') || ''

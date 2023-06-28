@@ -3,7 +3,7 @@ import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import { GrapholTypesEnum } from "./enums"
 import { EntityNameType } from "../../config"
-import ClassInstanceEntity from "./class-instance-entity"
+import GrapholElement from "./graphol-element"
 
 export enum FunctionalityEnum {
   functional = 'functional',
@@ -15,42 +15,38 @@ export enum FunctionalityEnum {
   irreflexive = 'irreflexive'
 }
 
-export type EntityOccurrence = {
-  elementId: string,
-  diagramId: number,
-}
-
 export default class GrapholEntity extends AnnotatedElement {
   private _iri!: Iri
-  private _occurrences: Map<RendererStatesEnum, EntityOccurrence[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
-  private _type: GrapholTypesEnum
+  private _occurrences: Map<RendererStatesEnum, GrapholElement[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
+  //private _type: Set<GrapholTypesEnum> = new Set([GrapholTypesEnum.UNKWNOWN])
   private _datatype: string
   private _functionalities: FunctionalityEnum[] = []
 
-  constructor(iri: Iri, type: GrapholTypesEnum) {
+  constructor(iri: Iri) {
     super()
     this.iri = iri
-    this.type = type
+    //if (type) {
+    //  this._type.clear()
+    //  this._type.add(type)
+    // }
   }
 
-  public addOccurrence(occurenceId: string, diagramId: number, representationKind = RendererStatesEnum.GRAPHOL) {
+  public addOccurrence(newGrapholElement: GrapholElement, representationKind = RendererStatesEnum.GRAPHOL) {
     if (!this.occurrences.get(representationKind)) {
       this.occurrences.set(representationKind, [])
     }
 
     const occurrences = this.occurrences.get(representationKind)
-    if (!occurrences?.find(r => r.elementId === occurenceId && r.diagramId === diagramId)) {
-      occurrences?.push({
-        elementId: occurenceId,
-        diagramId: diagramId,
-      })
+    if (!occurrences?.find(occ => occ === newGrapholElement)) {
+      occurrences?.push(newGrapholElement)
     }
   }
 
-  public removeOccurrence(occurrenceId: string, diagramId: number, representationKind: RendererStatesEnum) {
+
+  public removeOccurrence(grapholElement: GrapholElement, representationKind: RendererStatesEnum) {
     const occurrences = this.occurrences.get(representationKind)
 
-    const occurrenceToRemoveIndex = occurrences?.findIndex(o => o.elementId === occurrenceId && o.diagramId === diagramId)
+    const occurrenceToRemoveIndex = occurrences?.findIndex(o => o === grapholElement)
     if (occurrenceToRemoveIndex !== undefined && occurrenceToRemoveIndex >= 0) {
       occurrences?.splice(occurrenceToRemoveIndex, 1)
     }
@@ -64,8 +60,8 @@ export default class GrapholEntity extends AnnotatedElement {
    * @returns A map with the occurrences in the original Graphol representation and other 
    * replicated occurrences in other diagram representations
    */
-  getOccurrencesByDiagramId(diagramId: number, representationKind?: RendererStatesEnum): Map<RendererStatesEnum, EntityOccurrence[]> {
-    const result = new Map<RendererStatesEnum, EntityOccurrence[]>()
+  getOccurrencesByDiagramId(diagramId: number, representationKind?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]> {
+    const result = new Map<RendererStatesEnum, GrapholElement[]>()
     if (representationKind) {
       const occurrences = this.occurrences.get(representationKind)
       if (occurrences) {
@@ -79,17 +75,41 @@ export default class GrapholEntity extends AnnotatedElement {
     return result
   }
 
-  get type() { return this._type }
-  set type(type: GrapholTypesEnum) {
-    this._type = type
+  //addType(type: GrapholTypesEnum) {
+  //  this._type.add(type)
+  // }
+
+  // setType(type: GrapholTypesEnum) {
+  //  this._type.clear()
+  //  this._type.add(type)
+  // }
+
+  get types() {
+    let types = new Set<GrapholTypesEnum>()
+    for (let [_, elements] of this.occurrences) {
+      elements.forEach(e => types.add(e.type))
+    }
+
+    return types
   }
+
+  // get type() { return this._type.values()[0] }
+  //   set type(type: GrapholTypesEnum) {
+  //   this.setType(type)
+  // }
 
   /**
    * Check if entity is of a certain type
    * @param type 
    */
   is(type: GrapholTypesEnum): boolean {
-    return this.type === type
+    for (let [_, elements] of this.occurrences) {
+      if (elements.some(e => e.is(type))) {
+        return true
+      }
+    }
+
+    return false
   }
 
   public get occurrences() {
@@ -114,6 +134,10 @@ export default class GrapholEntity extends AnnotatedElement {
 
   public get datatype() { return this._datatype }
   public set datatype(datatype) { this._datatype = datatype }
+
+  public getOccurrenceByType(type: GrapholTypesEnum, rendererState: RendererStatesEnum) {
+    return this.occurrences.get(rendererState)?.find(o => o.type === type)
+  }
 
   public hasFunctionality(functionalityKind: FunctionalityEnum) {
     return this._functionalities?.includes(functionalityKind) || false
@@ -163,7 +187,7 @@ export default class GrapholEntity extends AnnotatedElement {
   public getEntityOriginalNodeId() {
     const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL)
     if (grapholRepresentationOccurrences) {
-      return grapholRepresentationOccurrences[0].elementId // used in UI to show the original nodeID in graphol
+      return grapholRepresentationOccurrences[0].id // used in UI to show the original nodeID in graphol
     }
   }
 }

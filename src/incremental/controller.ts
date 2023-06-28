@@ -96,19 +96,16 @@ export default class IncrementalController {
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
   }
 
-  addEntity(iri: string, centerOnIt = true, position?: Position) {
+  addClass(iri: string, centerOnIt = true, position?: Position) {
     const entity = this.grapholscape.ontology.getEntity(iri)
 
     if (entity && this.diagramBuilder.diagram.representation) {
-      if (position && entity.is(GrapholTypesEnum.CLASS)) {
-        this.diagramBuilder.addClass(entity, position)
-      } else {
-        this.diagramBuilder.addEntity(entity)
-      }
+
+      this.diagramBuilder.addClass(entity, position)
 
       this.updateEntityNameType(entity.iri)
       if (centerOnIt)
-        this.grapholscape.centerOnElement(iri)
+        this.grapholscape.centerOnElement(`${iri}-${GrapholTypesEnum.CLASS}`)
 
       if (entity.is(GrapholTypesEnum.CLASS))
         this.countInstancesForClass(iri, false)
@@ -129,17 +126,17 @@ export default class IncrementalController {
 
   areAllConnectedClassesVisibleForClass(classIri: string, connectedClassesIris: string[], positionType: 'sub' | 'super' | 'equivalent') {
     for (let subClassIri of connectedClassesIris) {
-      const connectedEdges = this.grapholscape.renderer.cy?.$id(subClassIri)
+      const connectedEdges = this.grapholscape.renderer.cy?.$id(`${subClassIri}-${GrapholTypesEnum.CLASS}`)
         .connectedEdges(`[ type ="${positionType === 'equivalent' ? GrapholTypesEnum.EQUIVALENCE : GrapholTypesEnum.INCLUSION}" ]`)
 
       if (connectedEdges) {
-        if (positionType === 'sub' && connectedEdges.targets(`[id = "${classIri}"]`).empty())
+        if (positionType === 'sub' && connectedEdges.targets(`[iri = "${classIri}"]`).empty())
           return false
 
-        if (positionType === 'super' && connectedEdges.sources(`[id = "${classIri}"]`).empty())
+        if (positionType === 'super' && connectedEdges.sources(`[iri = "${classIri}"]`).empty())
           return false
 
-        if (positionType === 'equivalent' && connectedEdges.connectedNodes(`[id = "${classIri}"]`).empty())
+        if (positionType === 'equivalent' && connectedEdges.connectedNodes(`[iri = "${classIri}"]`).empty())
           return false
       }
     }
@@ -174,9 +171,7 @@ export default class IncrementalController {
 
     // can't find element? look for occurrences, not every entity has id=iri
     if (entity && !entityElement) {
-      entityElements = entity.occurrences.get(RendererStatesEnum.INCREMENTAL)?.map(occurrence => {
-        return this.diagram?.representation?.grapholElements.get(occurrence.elementId) as GrapholElement
-      }).filter(e => e !== undefined)
+      entityElements = entity.occurrences.get(RendererStatesEnum.INCREMENTAL)
     } else if (entityElement) {
       entityElements = [entityElement]
     }
@@ -217,11 +212,10 @@ export default class IncrementalController {
         edges.forEach(objectPropertyEdge => {
           const objectPropertyEntity = this.ontology.getEntity(objectPropertyEdge.data().iri)
           if (objectPropertyEntity) {
-            objectPropertyEntity.removeOccurrence(
-              objectPropertyEdge.id(),
-              this.diagram.id,
-              RendererStatesEnum.INCREMENTAL
-            )
+            const grapholOccurrence = this.diagram.representation?.grapholElements.get(objectPropertyEdge.id())
+            if (grapholOccurrence) {
+              objectPropertyEntity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+            }
           }
         })
 
@@ -257,7 +251,10 @@ export default class IncrementalController {
         }
 
         this.diagram.removeElement(element.id())
-        entity?.removeOccurrence(element.id(), this.diagram.id, RendererStatesEnum.INCREMENTAL)
+        const grapholOccurrence = this.diagram.representation?.grapholElements.get(element.id())
+        if (grapholOccurrence) {
+          entity?.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+        }
 
         if (entity?.is(GrapholTypesEnum.CLASS_INSTANCE))
           this.classInstanceEntities.delete(entity.iri.fullIri)
@@ -336,7 +333,7 @@ export default class IncrementalController {
 
     if (objectPropertyEntity && sourceClass && targetClass) {
       this.performActionWithBlockedGraph(() => {
-        this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass)
+        this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, GrapholTypesEnum.CLASS)
 
         this.updateEntityNameType(objectPropertyEntity.iri)
         this.updateEntityNameType(sourceClassIri)
@@ -364,7 +361,8 @@ export default class IncrementalController {
         this.diagramBuilder.addObjectProperty(
           objectPropertyEntity,
           sourceInstanceEntity,
-          targetInstanceEntity
+          targetInstanceEntity,
+          GrapholTypesEnum.CLASS_INSTANCE
         )
 
         this.updateEntityNameType(objectPropertyEntity.iri)
@@ -474,7 +472,7 @@ export default class IncrementalController {
 
     if (hierarchies && hierarchies.length > 0) {
       this.performActionWithBlockedGraph(() => {
-        const position = this.grapholscape.renderer.cy?.$id(classIri).position()
+        const position = this.grapholscape.renderer.cy?.$id(`${classIri}-${GrapholTypesEnum.CLASS}`).position()
         if (showORHide === 'show')
           hierarchies?.forEach(hierarchy => this.addHierarchy(hierarchy, position))
         else
@@ -495,11 +493,11 @@ export default class IncrementalController {
 
     // Add inputs
     for (const inputClassIri of hierarchy.inputs) {
-      this.addEntity(inputClassIri, false)
+      this.addClass(inputClassIri, false)
     }
 
     for (const superClass of hierarchy.superclasses) {
-      this.addEntity(superClass.classIri, false)
+      this.addClass(superClass.classIri, false)
     }
 
     hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
@@ -527,7 +525,7 @@ export default class IncrementalController {
 
     // remove input classes or superclasses left with no edges
     hierarchy.inputs.forEach(inputClassIri => {
-      if (this.grapholscape.renderer.cy?.$id(inputClassIri).degree(false) === 0 &&
+      if (this.grapholscape.renderer.cy?.$id(`${inputClassIri}-${GrapholTypesEnum.CLASS}`).degree(false) === 0 &&
         !entitiesTokeep.includes(inputClassIri)) {
         entity = this.ontology.getEntity(inputClassIri)
         if (entity)
@@ -536,7 +534,7 @@ export default class IncrementalController {
     })
 
     hierarchy.superclasses.forEach(superclass => {
-      if (this.grapholscape.renderer.cy?.$id(superclass.classIri).degree(false) === 0 &&
+      if (this.grapholscape.renderer.cy?.$id(`${superclass.classIri}-${GrapholTypesEnum.CLASS}`).degree(false) === 0 &&
         !entitiesTokeep.includes(superclass.classIri)) {
         entity = this.ontology.getEntity(superclass.classIri)
         if (entity)
@@ -577,7 +575,7 @@ export default class IncrementalController {
 
     this.performActionWithBlockedGraph(() => {
       targetsIris.forEach(targetIri => {
-        this.addEntity(targetIri, false)
+        this.addClass(targetIri, false)
         subOrSuper === 'super'
           ? this.diagramBuilder.addEdge(sourceIri, targetIri, isaType)
           : this.diagramBuilder.addEdge(targetIri, sourceIri, isaType)
@@ -729,10 +727,10 @@ export default class IncrementalController {
           if (!this.classInstanceEntities.get(range.classInstance.iri)) {
             this.addInstance(range.classInstance, range.classEntity.iri.fullIri)
           }
-  
-          this.addEntity(range.classEntity.iri.fullIri)
+
+          this.addClass(range.classEntity.iri.fullIri)
           this.addEdge(range.classInstance.iri, range.classEntity.iri.fullIri, GrapholTypesEnum.INSTANCE_OF)
-  
+
           result.isDirect
             ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
             : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, range.classInstance.iri, sourceInstanceIri)
@@ -758,7 +756,7 @@ export default class IncrementalController {
 
   async countInstancesForClass(classIri: string, askFreshValue = true) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
-    const node = this.diagram?.representation?.cy.$id(classIri)
+    const node = this.diagram?.representation?.cy.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
     if (!node || node.empty()) return
 
     await this.updateMaterializedCounts()
