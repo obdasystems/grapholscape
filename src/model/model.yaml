@@ -85,6 +85,10 @@ components:
         modelType:
           type: string
           enum: ["ontology", "vkg", "rdf"]
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
     Theme:
       type: object
       properties:
@@ -287,3 +291,158 @@ components:
         - label
         - prefixed_iri
         - full_iri
+
+    Hierarchy:
+      type: object
+      required:
+        - id
+        - type
+        - inputs
+        - superclasses
+      properties:
+        id:
+          type: string
+        type:
+          $ref: "#/components/schemas/ConstructorTypeEnum"
+        inputs:
+          type: array
+          items:
+            type: string
+        superclasses:
+          type: object
+          required:
+            - classIri
+            - complete
+          properties:
+            classIri:
+              type: string
+            complete:
+              type: boolean
+
+    Action:
+      description:
+        Actions describes what user has done on a single element or element's metadata.
+        The user can add, edit or remove something.
+        The "something" is described by the operation involved in the action, it can be
+        an operation over an entity, a diagram, a hierarchy and so on.
+
+        Reverting an action means reverting the operation that has been done and it
+        depends on the type of the action.
+        - Add => Remove
+        - Remove => Add
+        - Edit => restore the previous state of the subject of the operation made
+      type: object
+      properties:
+        operationType:
+          type: string
+          enum: ["add", "edit", "remove"]
+        operation:
+          description:
+            Operations differ by their subject, that is the object on which
+            the operation take place (if the user perform the action of adding a diagram,
+            the subject of the operation will be the diagram).
+            The previousState of a operation must be set in case of editing a single field
+            of the subject, it is not needed in case of 'add' or 'remove' actions.
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/EntityOp"
+            - $ref: "#/components/schemas/DiagramOp"
+            - $ref: "#/components/schemas/HierarchyOp"
+            - $ref: "#/components/schemas/AnnotationOp"
+            - $ref: "#/components/schemas/PropertyOp"
+            - $ref: "#/components/schemas/NamespaceOp"
+
+        user:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+        timestamp:
+          type: number
+
+    EntityOp:
+      type: object
+      required:
+        - subject
+        - diagramId
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        diagramId:
+          type: string
+        previousState:
+          $ref: "#/components/schemas/Entity"
+        involvedElements:
+          description:
+            Array of other elements involved in the operation. Only for Remove actions.
+            The remove action on an Entity might involve other elements.
+            i.e. if the class removed was the superclass of a hierarchy, the whole hierarchy might become not valid"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/Node"
+              - $ref: "#/components/schemas/Edge"
+              - $ref: "#/components/schemas/Hierarchy"
+
+    DiagramOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Diagram"
+        previousState:
+          $ref: "#/components/schemas/Diagram"
+
+    HierarchyOp:
+      type: object
+      required:
+        - subject
+        - diagramId
+      properties:
+        subject:
+          $ref: "#/components/schemas/Hierarchy"
+        diagramId:
+          type: string
+        previousState:
+          $ref: "#/components/schemas/Hierarchy"
+
+    AnnotationOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Annotation"
+        previousState:
+          $ref: "#/components/schemas/Annotation"
+        entity:
+          $ref: "#/components/schemas/Entity"
+
+    PropertyOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        previousState:
+          $ref: "#/components/schemas/Entity"
+
+    NamespaceOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Namespace"
+        previousState:
+          $ref: "#/components/schemas/Namespace"
