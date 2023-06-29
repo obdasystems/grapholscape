@@ -24,49 +24,49 @@ components:
         diagrams:
           type: array
           items:
-            $ref: '#/components/schemas/Diagram'
+            $ref: "#/components/schemas/Diagram"
         entities:
           type: array
           items:
-            $ref: '#/components/schemas/Entity'
+            $ref: "#/components/schemas/Entity"
         classInstanceEntities:
           type: array
           items:
-            $ref: '#/components/schemas/ClassInstanceEntity'
+            $ref: "#/components/schemas/ClassInstanceEntity"
         ontology:
-         type: object
-         required:
-          - iri
-          - version
-          - namespaces
-         properties:
-          iri:
-            type: string
-          version:
-            type: string
-          languages:
-            type: array
-            items:
+          type: object
+          required:
+            - iri
+            - version
+            - namespaces
+          properties:
+            iri:
               type: string
-          defaultLanguage:
-            type: string
-          namespaces:
-            type: array
-            items:
-              $ref: '#/components/schemas/Namespace'
+            version:
+              type: string
+            languages:
+              type: array
+              items:
+                type: string
+            defaultLanguage:
+              type: string
+            namespaces:
+              type: array
+              items:
+                $ref: "#/components/schemas/Namespace"
         config:
           type: object
           properties:
             themes:
               type: array
               items:
-                $ref: '#/components/schemas/Theme'
+                $ref: "#/components/schemas/Theme"
             selectedTheme:
               type: string
             language:
               type: string
             entityNameType:
-              $ref: '#/components/schemas/EntityNameType'
+              $ref: "#/components/schemas/EntityNameType"
             renderers:
               type: array
               items:
@@ -77,14 +77,14 @@ components:
           type: object
           properties:
             pan:
-              $ref: '#/components/schemas/Position'
+              $ref: "#/components/schemas/Position"
             zoom:
               type: number
         selectedDiagramId:
           type: string
         modelType:
           type: string
-          enum: [ 'ontology', 'vkg', 'rdf' ]
+          enum: ["ontology", "vkg", "rdf"]
     Theme:
       type: object
       properties:
@@ -109,8 +109,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: '#/components/schemas/Node'
-              - $ref: '#/components/schemas/Edge'
+              - $ref: "#/components/schemas/Node"
+              - $ref: "#/components/schemas/Edge"
     Element:
       type: object
       required:
@@ -132,11 +132,11 @@ components:
         type:
           type: string
           oneOf:
-            - $ref: '#/components/schemas/TypesEnum'
+            - $ref: "#/components/schemas/TypesEnum"
     Edge:
       type: object
       allOf:
-        - $ref: '#/components/schemas/Element'
+        - $ref: "#/components/schemas/Element"
         - type: object
           required:
             - sourceId
@@ -149,17 +149,17 @@ components:
             breakpoints:
               type: array
               items:
-                $ref: '#/components/schemas/Position'
+                $ref: "#/components/schemas/Position"
     Node:
       type: object
       allOf:
-        - $ref: '#/components/schemas/Element'
+        - $ref: "#/components/schemas/Element"
         - type: object
           properties:
             position:
-              $ref: '#/components/schemas/Position'
+              $ref: "#/components/schemas/Position"
             identity:
-              $ref: '#/components/schemas/TypesEnum'
+              $ref: "#/components/schemas/TypesEnum"
     Namespace:
       type: object
       required:
@@ -197,11 +197,11 @@ components:
         annotations:
           type: array
           items:
-            $ref: '#/components/schemas/Annotation'
+            $ref: "#/components/schemas/Annotation"
     ClassInstanceEntity:
       type: object
       allOf:
-        - $ref: '#/components/schemas/Entity'
+        - $ref: "#/components/schemas/Entity"
         - type: object
           properties:
             parentClasses:
@@ -267,10 +267,10 @@ components:
         - membership
     TypesEnum:
       allOf:
-        - $ref: '#/components/schemas/EntityTypeEnum'
-        - $ref: '#/components/schemas/ConstructorTypeEnum'
-        - $ref: '#/components/schemas/OthersTypeEnum'
-        - $ref: '#/components/schemas/EdgeTypeEnum'
+        - $ref: "#/components/schemas/EntityTypeEnum"
+        - $ref: "#/components/schemas/ConstructorTypeEnum"
+        - $ref: "#/components/schemas/OthersTypeEnum"
+        - $ref: "#/components/schemas/EdgeTypeEnum"
     Position:
       type: object
       required:
