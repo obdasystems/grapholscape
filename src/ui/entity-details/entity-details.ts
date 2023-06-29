@@ -18,6 +18,8 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
   incrementalSection?: HTMLElement
 
+  protected isDefaultClosed: boolean = false
+
   static get properties() {
     return {
       grapholEntity: { type: Object, attribute: false },
