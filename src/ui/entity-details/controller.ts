@@ -1,5 +1,5 @@
 import Grapholscape from '../../core'
-import { GrapholEntity, LifecycleEvent, RendererStatesEnum } from '../../model'
+import { GrapholElement, GrapholEntity, LifecycleEvent, RendererStatesEnum } from '../../model'
 import getEntityViewOccurrences from '../util/get-entity-view-occurrences'
 import GscapeEntityDetails from './entity-details'
 
@@ -37,8 +37,11 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   })
 
 
-  function setGrapholEntity(entity: GrapholEntity) {
+  function setGrapholEntity(entity: GrapholEntity, instance?: GrapholElement) {
     entityDetailsComponent.grapholEntity = entity
+    if (instance) {
+      entityDetailsComponent.currentOccurrenceType = instance.type
+    }
     entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape)
     entityDetailsComponent.language = grapholscape.language
     entityDetailsComponent.show()

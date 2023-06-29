@@ -15,7 +15,7 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
   }
 
   return html`
-    <div class="item-with-iri-info ellipsed rtl">
+    <div class="item-with-iri-info ellipsed">
       <div 
         class="name ${onWikiLinkClick ? 'link' : null}" 
         title="${item.name}"
@@ -23,18 +23,18 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
       >
         ${item.name}
       </div>
-      <div class="muted-text" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div>
+      <div class="rtl"><div class="muted-text" style="text-align: center" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div></div>
       <div class="muted-text type-or-version">
-        ${item.typeOrVersion.forEach(text => {
+        ${Array.from(item.typeOrVersion).map(text => {
           if (Object.values(GrapholTypesEnum).includes(text as GrapholTypesEnum)) {
             return html`
-              <div>
+              <div class="type-or-version">
                 ${entityIcons[text]}
-                ${item.typeOrVersion || '-'}
+                ${text || '-'}
               </div>
             `
           } else {
-            return item.typeOrVersion || '-'
+            return text || '-'
           }
         })}
       </div>
@@ -49,7 +49,7 @@ export const itemWithIriTemplateStyle = css`
     white-space: nowrap;
   }
 
-  .item-with-iri-info > .type-or-version {
+  .item-with-iri-info .type-or-version {
     display: flex;
     align-items: center;
     justify-content: center;
