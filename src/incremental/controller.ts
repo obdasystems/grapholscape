@@ -696,15 +696,40 @@ export default class IncrementalController {
               undefined, undefined,
               () => { // onStopPolling
                 promisesCount -= 1
-                if (promisesCount === 0) {
-                  this.addResultsFromFocus(instanceIri, results)
-                  this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
-                }
               },
               1
             )
           })
         })
+
+        const onDone = () => {
+          this.addResultsFromFocus(instanceIri, results)
+          this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+        }
+
+        let interval = setInterval(() => {
+          if (promisesCount === 0) {
+            onDone()
+            clearInterval(interval)
+          }
+        }, 500)
+
+        setTimeout(() => {
+          if (promisesCount > 0) {
+            clearInterval(interval)
+            const dialog = new GscapeConfirmDialog(`
+              Focus instance [${instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)}] took too long, reached timeout limit.
+              Partial results might be shown, ok?
+            `, 'Timeout Reached')
+
+            this.grapholscape.uiContainer?.appendChild(dialog)
+            dialog.onConfirm = onDone
+            dialog.onCancel = () => {
+              this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+            }
+            dialog.show()
+          }
+        }, 10000)
       }
     }
   }
