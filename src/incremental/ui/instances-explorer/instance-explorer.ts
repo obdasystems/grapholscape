@@ -322,6 +322,13 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
           }
         }
       }
+
+      if (this.shouldAskForLabels !== undefined)
+      event.detail.shouldAskForLabels = this.shouldAskForLabels && selectedOption !== 'id'
+
+      if (selectedOption === 'id') {
+        event.detail.shouldAskForLabels = false
+      }
     }
 
     // if only one class type, then use it, there is not select element
@@ -329,13 +336,6 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       event.detail.filterByType = [this.classTypeFilterList[0].entityViewData.value.iri.fullIri]
     } else if (this.classTypeFilterSelect && this.classTypeFilterSelect.selectedOptionsId.size > 0) { // otherwise check selected option
       event.detail.filterByType = Array.from(this.classTypeFilterSelect.selectedOptionsId)
-    }
-
-    if (this.shouldAskForLabels !== undefined)
-      event.detail.shouldAskForLabels = this.shouldAskForLabels && this.propertyFilterSelect?.selectedOptionsId[0] !== 'id'
-
-    if (this.propertyFilterSelect?.selectedOptionsId[0] === 'id') {
-      event.detail.shouldAskForLabels = false
     }
 
     this.lastSearchedText = event.detail.filterText || ''
