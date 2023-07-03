@@ -8,12 +8,13 @@ import Grapholscape from './core'
 import { GrapholscapeConfig, loadConfig } from './config'
 import { initIncremental } from './incremental'
 import edgehandles from 'cytoscape-edgehandles';
-
+import undoredo from 'cytoscape-undo-redo'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
 cytoscape.use(edgehandles)
+cytoscape.use(undoredo)
 
 export * from './model'
 export * from './config'

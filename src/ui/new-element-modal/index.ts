@@ -1,6 +1,6 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { FunctionalityEnum, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum, isGrapholEdge } from '../../model';
+import { FunctionalityEnum, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
 import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
@@ -8,9 +8,14 @@ import getIconSlot from '../util/get-icon-slot';
 import ontologyModelToViewData from '../util/get-ontology-view-data';
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeNewElementModal from "./new-element-modal";
+import edgeEditing from 'cytoscape-edge-editing'
+import $ from "jquery";
+import konva from "konva";
+import cytoscape from 'cytoscape'
 
-
+edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
+window['$'] = window['jQuery'] = $
 
 
 export default function initDrawingElements(grapholscape: Grapholscape) {
@@ -86,6 +91,53 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     grapholscape.uiContainer?.appendChild(newElementComponent)
     initNewElementModal(newElementComponent, 'Add New Diagram', 'Diagram')
   }
+
+  grapholscape.on(LifecycleEvent.DiagramChange, () => {
+    let currentCy = grapholscape.renderer.cy as any
+    if(currentCy.edgeEditing('get') === undefined){
+      currentCy.edgeEditing({
+        initAnchorsAutomatically: false,
+        undoable: true,
+        validateEdge: function (edge, newSource, newTarget) {
+          const edgeType  = edge.data('type')
+          switch (edgeType) {
+            case 'attribute-edge':
+              if (newSource.data('type') === 'class' && newTarget.id() === edge.data('target')){
+                return 'valid'
+              }
+              return 'invalid';
+            case 'inclusion':
+              if ((newSource.data('type') === 'class' && newTarget.data('type') === 'class') || (newSource.data('type') === 'data-property' && newTarget.data('type') === 'data-property')){
+                return 'valid'
+              }
+              return 'invalid';
+            case 'object-property':
+              if (newSource.data('type') === 'class' && newTarget.data('type') === 'class'){
+                return 'valid'
+              }
+              return 'invalid';
+            case 'union':
+              if (newSource.data('type') === 'union' && newTarget.data('type') === 'class'){
+                return 'valid'
+              }
+              return 'invalid';
+            case 'disjoint-union':
+              if (newSource.data('type') === 'disjoint-union' && newTarget.data('type') === 'class'){
+                return 'valid'
+              }
+              return 'invalid';
+            case 'input':
+              if (newSource.data('type') === 'class' && (newTarget.data('type') === 'disjoint-union' || newTarget.data('type') === 'union')){
+                return 'valid'
+              }
+              return 'invalid';
+            default:
+              return 'valid'
+          }
+       }
+      })
+    }
+  })
 
   grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {
     const elem = evt.target
