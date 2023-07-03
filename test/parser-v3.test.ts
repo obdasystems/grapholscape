@@ -187,7 +187,7 @@ describe('Test retrieving annotations', () => {
   `)
 
   const retrievedInfosConcept = parserV3.getEntityAnnotations(node1_mock_input, xmlDoc)
-  const conceptEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode1', ontology.namespaces), GrapholTypesEnum.CLASS)
+  const conceptEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode1', ontology.namespaces))
   conceptEntity.annotations = retrievedInfosConcept
 
   test('it should parse multiple labels for each language, even not defined language', () => {
@@ -230,7 +230,7 @@ describe('Test parsing functionalities', () => {
   `)
 
   const retrievedInfosObjectProperty = parserV3.getFunctionalities(node_mock_input, xmlDoc)
-  const objPropertyEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode2', ontology.namespaces), GrapholTypesEnum.OBJECT_PROPERTY)
+  const objPropertyEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode2', ontology.namespaces))
   objPropertyEntity.functionalities = retrievedInfosObjectProperty
 
   // For DataProperties and ObjectProperties

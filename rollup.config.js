@@ -78,17 +78,20 @@ const configs = [
       {
         file: 'dist/grapholscape.min.js',
         format: 'iife',
+        inlineDynamicImports : true,
         name,
         sourcemap: false
       },
       {
         file: 'dist/grapholscape.esm.min.js',
         format: 'es',
+        inlineDynamicImports : true,
         sourcemap: false
       },
       {
         file: 'demo/js/grapholscape.js',
         format: 'iife',
+        inlineDynamicImports : true,
         name,
         sourcemap: false
       },
@@ -107,6 +110,7 @@ const configs = [
     input,
     output: {
       file: 'dist/grapholscape.esm.js',
+      inlineDynamicImports : true,
       format: 'es',
     },
     plugins: [

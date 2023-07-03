@@ -47,6 +47,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
         instancesExplorer.clear()
         instancesExplorer.areInstancesLoading = true
         instancesExplorer.referenceEntity = navigationMenu.referenceEntity
+        instancesExplorer.referenceEntityType = navigationMenu.referenceEntityType
         instancesExplorer.referencePropertyEntity = grapholEntityToEntityViewData(objectPropertyEntity, incrementalController.grapholscape)
         instancesExplorer.isPropertyDirect = e.detail.direct
 

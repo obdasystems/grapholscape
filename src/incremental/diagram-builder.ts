@@ -1,4 +1,4 @@
-import { Position } from "cytoscape";
+import cytoscape, { Position } from "cytoscape";
 import { EntityNameType } from "../config";
 import { ClassInstanceEntity, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, IncrementalDiagram, isGrapholNode, RendererStatesEnum, Shape } from "../model";
 
@@ -7,51 +7,52 @@ export default class DiagramBuilder {
 
   constructor(public diagram: IncrementalDiagram) { }
 
-  addEntity(objectProperty: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity): void
-  addEntity(grapholEntity: GrapholEntity): void
-  addEntity(grapholEntity: GrapholEntity, sourceEntity?: GrapholEntity, targetEntity?: GrapholEntity): void {
-    switch (grapholEntity.type) {
-      case GrapholTypesEnum.DATA_PROPERTY:
-        if (sourceEntity)
-          this.addDataProperty(grapholEntity, sourceEntity)
-        break
+  // addEntity(objectProperty: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity): void
+  // addEntity(grapholEntity: GrapholEntity): void
+  // addEntity(grapholEntity: GrapholEntity, sourceEntity?: GrapholEntity, targetEntity?: GrapholEntity): void {
+  //   switch (grapholEntity.type) {
+  //     case GrapholTypesEnum.DATA_PROPERTY:
+  //       if (sourceEntity)
+  //         this.addDataProperty(grapholEntity, sourceEntity)
+  //       break
 
-      case GrapholTypesEnum.OBJECT_PROPERTY:
-        if (sourceEntity && targetEntity)
-          this.addObjectProperty(grapholEntity, sourceEntity, targetEntity)
-        break
+  //     case GrapholTypesEnum.OBJECT_PROPERTY:
+  //       if (sourceEntity && targetEntity)
+  //         this.addObjectProperty(grapholEntity, sourceEntity, targetEntity)
+  //       break
 
-      case GrapholTypesEnum.CLASS:
-        if (!this.diagram.containsEntity(grapholEntity))
-          this.addClass(grapholEntity)
-        break
+  //     case GrapholTypesEnum.CLASS:
+  //       if (!this.diagram.containsEntity(grapholEntity))
+  //         this.addClass(grapholEntity)
+  //       break
 
-      case GrapholTypesEnum.CLASS_INSTANCE:
-        if (!this.diagram.containsEntity(grapholEntity))
-          this.addClassInstance(grapholEntity as ClassInstanceEntity)
+  //     case GrapholTypesEnum.CLASS_INSTANCE:
+  //       if (!this.diagram.containsEntity(grapholEntity))
+  //         this.addClassInstance(grapholEntity as ClassInstanceEntity)
 
-    }
-  }
+  //   }
+  // }
 
   addClass(classEntity: GrapholEntity, position?: Position) {
     if (this.diagramRepresentation?.grapholElements.get(classEntity.iri.fullIri))
       return
 
-    const classNode = new GrapholNode(classEntity.iri.fullIri, GrapholTypesEnum.CLASS)
+    const classNode = new GrapholNode(`${classEntity.iri.fullIri}-${GrapholTypesEnum.CLASS}`, GrapholTypesEnum.CLASS)
     classNode.iri = classEntity.iri.fullIri
     classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
     classNode.height = classNode.width = 80
     classNode.position = position || { x: 0, y: 0 }
     classNode.originalId = classEntity.getEntityOriginalNodeId()
+    classNode.diagramId = this.diagram.id
 
-    classEntity.addOccurrence(classNode.id, this.diagram.id, RendererStatesEnum.INCREMENTAL)
+    classEntity.addOccurrence(classNode, RendererStatesEnum.INCREMENTAL)
 
     this.diagram.addElement(classNode, classEntity)
   }
 
   addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity: GrapholEntity) {
 
-    const dataPropertyNode = new GrapholNode(dataPropertyEntity.iri.fullIri, GrapholTypesEnum.DATA_PROPERTY)
+    const dataPropertyNode = new GrapholNode(`${dataPropertyEntity.iri.fullIri}-${GrapholTypesEnum.DATA_PROPERTY}`, GrapholTypesEnum.DATA_PROPERTY)
     const ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntity.iri.fullIri)
     if (!dataPropertyNode || !ownerEntityNode) return
 
@@ -70,13 +71,22 @@ export default class DiagramBuilder {
     this.diagram.addElement(dataPropertyEdge)
   }
 
-  addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity) {
+  addObjectProperty(
+    objectPropertyEntity: GrapholEntity,
+    sourceEntity: GrapholEntity,
+    targetEntity: GrapholEntity,
+    nodesType: GrapholTypesEnum
+  ) {
 
-    if (!this.diagramRepresentation) return
+    if (!this.diagramRepresentation ||
+      !sourceEntity.is(nodesType) ||
+      !targetEntity.is(nodesType)
+    ) return
 
     // if both object property and range class are already present, do not add them again
-    const sourceNode = this.diagramRepresentation.cy.$id(sourceEntity.iri.fullIri)
-    const targetNode = this.diagramRepresentation.cy.$id(targetEntity.iri.fullIri)
+    const sourceNode = this.getEntityCyRepr(sourceEntity, nodesType)
+    const targetNode = this.getEntityCyRepr(targetEntity, nodesType)
+
     if (sourceNode.nonempty() && targetNode.nonempty()) {
       /**
        * If the set of edges between reference node and the connected class
@@ -91,30 +101,31 @@ export default class DiagramBuilder {
     }
 
     if (sourceNode.empty())
-      sourceEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addEntity(sourceEntity)
+      nodesType === GrapholTypesEnum.CLASS_INSTANCE ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
 
     if (targetNode.empty())
-      targetEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addEntity(targetEntity)
+      nodesType === GrapholTypesEnum.CLASS_INSTANCE ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addClass(targetEntity)
 
     //const connectedClassIri = connectedClassEntity.iri.fullIri
     const objectPropertyEdge = new GrapholEdge(`${sourceEntity.iri.prefixed}-${objectPropertyEntity.iri.prefixed}-${targetEntity.iri.prefixed}`, GrapholTypesEnum.OBJECT_PROPERTY)
     objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
-    objectPropertyEdge.sourceId = sourceEntity.iri.fullIri
-    objectPropertyEdge.targetId = targetEntity.iri.fullIri
+    objectPropertyEdge.sourceId = `${sourceEntity.iri.fullIri}-${nodesType}`
+    objectPropertyEdge.targetId = `${targetEntity.iri.fullIri}-${nodesType}`
     objectPropertyEdge.originalId = objectPropertyEntity.getEntityOriginalNodeId()
+    objectPropertyEdge.diagramId = this.diagram.id
 
-    objectPropertyEntity.addOccurrence(objectPropertyEdge.id, this.diagram.id, RendererStatesEnum.INCREMENTAL)
+    objectPropertyEntity.addOccurrence(objectPropertyEdge, RendererStatesEnum.INCREMENTAL)
     this.diagram.addElement(objectPropertyEdge, objectPropertyEntity)
   }
 
   addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position) {
-    const instanceNode = new GrapholNode(classInstanceEntity.iri.fullIri, GrapholTypesEnum.CLASS_INSTANCE)
+    const instanceNode = new GrapholNode(`${classInstanceEntity.iri.fullIri}-${GrapholTypesEnum.CLASS_INSTANCE}`, GrapholTypesEnum.CLASS_INSTANCE)
 
     if (!position) {
       // check if parent class is present in diagram
       for (let parentClassIri of classInstanceEntity.parentClassIris) {
         if (this.diagramRepresentation?.containsEntity(parentClassIri)) {
-          instanceNode.position = this.diagram.representation?.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
+          instanceNode.position = this.diagram.representation?.cy.$id(`${parentClassIri.fullIri}-${GrapholTypesEnum.CLASS}`).position() || { x: 0, y: 0 }
           break
         }
       }
@@ -133,6 +144,7 @@ export default class DiagramBuilder {
     instanceNode.labelYpos = 0
 
     this.diagram.addElement(instanceNode, classInstanceEntity)
+    classInstanceEntity.addOccurrence(instanceNode, RendererStatesEnum.INCREMENTAL)
     return instanceNode
   }
 
@@ -154,6 +166,10 @@ export default class DiagramBuilder {
       this.diagram.addElement(instanceEdge)
     }
 
+  }
+
+  private getEntityCyRepr(entity: GrapholEntity, type: GrapholTypesEnum) {
+    return this.diagramRepresentation?.cy.$id(`${entity.iri.fullIri}-${type}`) || cytoscape().collection()
   }
 
   private get diagramRepresentation() {

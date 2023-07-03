@@ -48,7 +48,12 @@ export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: I
 function shouldFilterEntity(entity: GrapholEntity, entityFilters?: IEntityFilters) {
   if (!entityFilters) return false
 
-  return !entityFilters.areAllFiltersDisabled && entityFilters[entity.type] !== 1 && entityFilters[entity.type] !== true
+  let typeFilterEnabled = true
+  entity.types.forEach(type => {
+    typeFilterEnabled = typeFilterEnabled && entityFilters[type] !== 1 && entityFilters[type] !== true
+  })
+
+  return !entityFilters.areAllFiltersDisabled && typeFilterEnabled
 }
 
 export function search(searchValue: string, entities: EntityViewData[]) {

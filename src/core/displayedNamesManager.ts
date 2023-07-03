@@ -65,11 +65,11 @@ export default class DisplayedNamesManager {
         let grapholElement: GrapholElement | undefined
 
         if (renderState === RendererStatesEnum.INCREMENTAL) {
-          // incremental diagram is not in the ontology, must take it from rendererStateData in renderer
+          // incremental diagram is not in the ontology, must take it from inremental controller
           grapholElement = this._grapholscape.incremental?.diagram?.representation
-            ?.grapholElements.get(entityOccurrence.elementId)
+            ?.grapholElements.get(entityOccurrence.id)
         } else {
-          grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.elementId, entityOccurrence.diagramId, renderState)
+          grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.id, entityOccurrence.diagramId, renderState)
         }
 
         if (!grapholElement) return

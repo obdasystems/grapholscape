@@ -11,8 +11,19 @@ export function grapholEntityToEntityViewData(grapholEntity: GrapholEntity, grap
 }
 
 export function getEntityViewDataUnfolding(entity: GrapholEntity, grapholscape: Grapholscape, hasUnfoldings?: (iri: string, type: GrapholTypesEnum) => boolean ) {
+  let hasAnyUnfolding = true
+
+  if (hasUnfoldings) {
+    entity.types.forEach(type => {
+      hasAnyUnfolding = hasAnyUnfolding && hasUnfoldings(entity.iri.fullIri, type)
+    })
+  } else {
+    hasAnyUnfolding = false
+  }
+  
+
   return {
     entityViewData: grapholEntityToEntityViewData(entity, grapholscape),
-    hasUnfolding: hasUnfoldings && hasUnfoldings(entity.iri.fullIri, entity.type)
+    hasUnfolding:hasAnyUnfolding
   } as EntityViewDataUnfolding
 }

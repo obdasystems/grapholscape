@@ -58,21 +58,21 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.FocusStarted, instanceIri => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode) {
       addBadge(cyNode, textSpinner(), 'loading-badge')
     }
   })
 
   ic.on(IncrementalEvent.FocusFinished, instanceIri => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode && cyNode.scratch('loading-badge')) {
       removeBadge(cyNode, 'loading-badge')
     }
   })
 
   ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode) {
       cyNode.addClass('unknown-parent-class')
       addBadge(cyNode, textSpinner(), 'loading-badge')
@@ -80,14 +80,14 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode && cyNode.scratch('loading-badge')) {
       removeBadge(cyNode, 'loading-badge')
     }
   })
 
   ic.on(IncrementalEvent.CountStarted, classIri => {
-    const node = ic.diagram.representation?.cy.$id(classIri)
+    const node = ic.diagram.representation?.cy.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
     if (!node || node.empty()) return
 
     removeBadge(node, 'instance-count')
@@ -95,7 +95,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.NewCountResult, (classIri, count) => {
-    const cyNode = ic.grapholscape.renderer.cy?.$id(classIri)
+    const cyNode = ic.grapholscape.renderer.cy?.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
     if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
       const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
       instanceCountBadge.contentType = 'template';
@@ -183,6 +183,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
         return
 
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
+      navigationMenu.referenceEntityType = targetButton.node.data().type
       navigationMenu.canShowObjectPropertiesRanges = true
 
 
@@ -195,6 +196,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
         return
 
       navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
+      navigationMenu.referenceEntityType = targetButton.node.data().type
       navigationMenu.canShowObjectPropertiesRanges = false
 
       const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
@@ -233,8 +235,8 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 
   if (targetButton.node && targetButton.node.data().iri) {
     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
-
-    if (referenceEntity && referenceEntity.type === GrapholTypesEnum.CLASS) {
+    const entityType = targetButton.node.data().type
+    if (referenceEntity && entityType === GrapholTypesEnum.CLASS) {
       if (!instanceExplorer.referenceEntity ||
         !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
         instanceExplorer.numberOfInstancesReceived === 0) {
@@ -242,6 +244,7 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 
         instanceExplorer.areInstancesLoading = true
         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
+        instanceExplorer.referenceEntityType = targetButton.node.data().type
 
         const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
           incrementalController.endpointController?.highlightsManager

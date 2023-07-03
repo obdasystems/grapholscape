@@ -6,11 +6,11 @@ import GscapeNavigationMenu from "./navigation-menu/navigation-menu";
 const panGraph = false
 
 export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, incrementalController: IncrementalController) {
-  if (menu.referenceEntity) {
+  if (menu.referenceEntity && menu.referenceEntityType) {
     const cy = incrementalController.grapholscape.renderer.cy
 
     if (cy) {
-      const node = cy.$id(menu.referenceEntity.value.iri.fullIri)
+      const node = cy.$id(`${menu.referenceEntity.value.iri.fullIri}-${menu.referenceEntityType}`)
 
       if (node) {
         if (panGraph)

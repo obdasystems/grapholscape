@@ -1,17 +1,14 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
 import baseStyle from "../../style";
-import { GrapholTypesEnum } from "../../../model";
 import { arrowDown, arrow_right, entityIcons } from "../../assets";
 import entityListItemStyle from "./entity-list-item-style";
+import GscapeIconList from "../imgs-horizontal-list";
+
+GscapeIconList
 
 export default class GscapeEntityListItem extends LitElement {
 
-  type: GrapholTypesEnum.CLASS |
-    GrapholTypesEnum.DATA_PROPERTY |
-    GrapholTypesEnum.OBJECT_PROPERTY |
-    GrapholTypesEnum.INDIVIDUAL |
-    GrapholTypesEnum.CLASS_INSTANCE
-    = GrapholTypesEnum.CLASS
+  private _types: Set<string> = new Set()
 
   displayedName: string = ''
   iri: string = ''
@@ -21,7 +18,7 @@ export default class GscapeEntityListItem extends LitElement {
   private isAccordionOpen = false
 
   static properties: PropertyDeclarations = {
-    type: { type: String, reflect: true },
+    types: { type: Object, reflect: true },
     displayedName: { type: String, reflect: true },
     actionable: { type: Boolean },
     asAccordion: { type: Boolean },
@@ -52,7 +49,7 @@ export default class GscapeEntityListItem extends LitElement {
         </details>
       `
       : html`
-        <div title=${this.displayedName} class="ellipsed entity-list-item ${this.actionable ? 'actionable' : null}" ?disabled=${this.disabled}>
+        <div title=${this.displayedName} class="ellipsed background-propagation entity-list-item ${this.actionable ? 'actionable' : null}" ?disabled=${this.disabled}>
           ${this.iconNameSlotTemplate()}
         </div>
       `
@@ -71,7 +68,9 @@ export default class GscapeEntityListItem extends LitElement {
         `
         : null
       }      
-      <span class="entity-icon slotted-icon">${entityIcons[this.type]}</span>
+      <span class="entity-icon slotted-icon">
+        <gscape-icon-list .icons=${Array.from(this._types).map(t => entityIcons[t])}></gscape-icon-list>
+      </span>
       <div style="display: flex; flex-direction: column; flex-grow: 2; gap: 4px">
         <span class="entity-name rtl"><bdo dir="ltr">${this.displayedName}</bdo></span>
         <slot name="subrow-item"></slot>
@@ -94,6 +93,14 @@ export default class GscapeEntityListItem extends LitElement {
   closeAccordion() {
     if (this.asAccordion)
       this.isAccordionOpen = false
+  }
+
+  set types(newTypes: Set<string> | undefined) {
+    this._types = newTypes || new Set()
+  }
+
+  get types() {
+    return this._types
   }
 }
 

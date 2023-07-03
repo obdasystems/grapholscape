@@ -1,6 +1,6 @@
 import { ElementDefinition } from "cytoscape"
-import { GrapholTypesEnum } from "./enums"
 import GrapholEntity, { FunctionalityEnum } from "./entity"
+import { GrapholTypesEnum } from "./enums"
 
 export default class GrapholElement {
   // The id coming from xml
@@ -9,6 +9,7 @@ export default class GrapholElement {
   private _displayedName?: string
   private _originalId?: string // In case of replicated elements, this is the id of the original node
   private _iri?: string
+  private _diagramId: number
 
   constructor(private _id: string, private _type: GrapholTypesEnum) { }
 
@@ -32,6 +33,11 @@ export default class GrapholElement {
 
   get iri() { return this._iri }
   set iri(iri: string | undefined) { this._iri = iri }
+
+  get diagramId() { return this._diagramId }
+  set diagramId(newdiagramId) {
+    this._diagramId = newdiagramId
+  }
 
   /**
    * Check if node is of a certain type

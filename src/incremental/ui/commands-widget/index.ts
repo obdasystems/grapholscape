@@ -167,7 +167,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
       IncrementalCommands.remove(() => {
         if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
           ic.diagram.removeElement(event.target.id())
-          entity.removeOccurrence(event.target.id(), ic.diagram.id, RendererStatesEnum.INCREMENTAL)
+          const grapholOccurrence = ic.diagram.representation?.grapholElements.get(event.target.id())
+          if (grapholOccurrence) {
+            entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+          }
+
           ic.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
         } else {
           ic.removeEntity(entity.iri.fullIri)
@@ -193,9 +197,10 @@ function showParentClass(incrementalController: IncrementalController, instanceE
   const parentClassIris = instanceEntity.parentClassIris
   incrementalController.performActionWithBlockedGraph(() => {
     parentClassIris?.forEach(parentClassIri => {
-      incrementalController.addEntity(parentClassIri.fullIri, false)
-      incrementalController.addEdge(instanceEntity.iri.fullIri,
-        parentClassIri.fullIri,
+      incrementalController.addClass(parentClassIri.fullIri, false)
+      incrementalController.addEdge(
+        `${instanceEntity.iri.fullIri}-${GrapholTypesEnum.CLASS_INSTANCE}`,
+        `${parentClassIri.fullIri}-${GrapholTypesEnum.CLASS}`,
         GrapholTypesEnum.INSTANCE_OF
       )
     })
