@@ -58,21 +58,21 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.FocusStarted, instanceIri => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode) {
       addBadge(cyNode, textSpinner(), 'loading-badge')
     }
   })
 
   ic.on(IncrementalEvent.FocusFinished, instanceIri => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode && cyNode.scratch('loading-badge')) {
       removeBadge(cyNode, 'loading-badge')
     }
   })
 
   ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode) {
       cyNode.addClass('unknown-parent-class')
       addBadge(cyNode, textSpinner(), 'loading-badge')
@@ -80,14 +80,14 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
-    const cyNode = ic.diagram.representation?.cy.$id(instanceIri)
+    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
     if (cyNode && cyNode.scratch('loading-badge')) {
       removeBadge(cyNode, 'loading-badge')
     }
   })
 
   ic.on(IncrementalEvent.CountStarted, classIri => {
-    const node = ic.diagram.representation?.cy.$id(classIri)
+    const node = ic.diagram.representation?.cy.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
     if (!node || node.empty()) return
 
     removeBadge(node, 'instance-count')
@@ -95,7 +95,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.NewCountResult, (classIri, count) => {
-    const cyNode = ic.grapholscape.renderer.cy?.$id(classIri)
+    const cyNode = ic.grapholscape.renderer.cy?.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
     if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
       const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
       instanceCountBadge.contentType = 'template';

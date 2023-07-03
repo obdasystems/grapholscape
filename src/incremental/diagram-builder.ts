@@ -144,6 +144,7 @@ export default class DiagramBuilder {
     instanceNode.labelYpos = 0
 
     this.diagram.addElement(instanceNode, classInstanceEntity)
+    classInstanceEntity.addOccurrence(instanceNode, RendererStatesEnum.INCREMENTAL)
     return instanceNode
   }
 

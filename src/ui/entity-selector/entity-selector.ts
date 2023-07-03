@@ -125,7 +125,6 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   }
 
   render() {
-    console.log(this.entityList)
     return html`
       <div class="gscape-panel widget-body">
         <div id="input-wrapper">

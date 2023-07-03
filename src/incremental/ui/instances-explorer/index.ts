@@ -38,7 +38,11 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
 
     addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
     addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
-      incrementalController.addEdge(e.detail.instance.iri, parentClassIri.fullIri, GrapholTypesEnum.INSTANCE_OF)
+      incrementalController.addEdge(
+        `${e.detail.instance.iri}-${GrapholTypesEnum.CLASS_INSTANCE}`,
+        `${parentClassIri.fullIri}-${GrapholTypesEnum.CLASS}`,
+        GrapholTypesEnum.INSTANCE_OF
+      )
     })
 
     if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {

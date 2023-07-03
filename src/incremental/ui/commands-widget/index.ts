@@ -198,8 +198,9 @@ function showParentClass(incrementalController: IncrementalController, instanceE
   incrementalController.performActionWithBlockedGraph(() => {
     parentClassIris?.forEach(parentClassIri => {
       incrementalController.addClass(parentClassIri.fullIri, false)
-      incrementalController.addEdge(instanceEntity.iri.fullIri,
-        parentClassIri.fullIri,
+      incrementalController.addEdge(
+        `${instanceEntity.iri.fullIri}-${GrapholTypesEnum.CLASS_INSTANCE}`,
+        `${parentClassIri.fullIri}-${GrapholTypesEnum.CLASS}`,
         GrapholTypesEnum.INSTANCE_OF
       )
     })

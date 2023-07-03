@@ -8,7 +8,7 @@ GscapeIconList
 
 export default class GscapeEntityListItem extends LitElement {
 
-  types: Set<string> = new Set()
+  private _types: Set<string> = new Set()
 
   displayedName: string = ''
   iri: string = ''
@@ -69,7 +69,7 @@ export default class GscapeEntityListItem extends LitElement {
         : null
       }      
       <span class="entity-icon slotted-icon">
-        <gscape-icon-list .icons=${Array.from(this.types).map(t => entityIcons[t])}></gscape-icon-list>
+        <gscape-icon-list .icons=${Array.from(this._types).map(t => entityIcons[t])}></gscape-icon-list>
       </span>
       <div style="display: flex; flex-direction: column; flex-grow: 2; gap: 4px">
         <span class="entity-name rtl"><bdo dir="ltr">${this.displayedName}</bdo></span>
@@ -93,6 +93,14 @@ export default class GscapeEntityListItem extends LitElement {
   closeAccordion() {
     if (this.asAccordion)
       this.isAccordionOpen = false
+  }
+
+  set types(newTypes: Set<string> | undefined) {
+    this._types = newTypes || new Set()
+  }
+
+  get types() {
+    return this._types
   }
 }
 

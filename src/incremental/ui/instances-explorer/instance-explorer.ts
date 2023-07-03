@@ -247,7 +247,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 <gscape-entity-list-item
                   displayedname=${displayedName}
                   iri=${instance.connectedInstance ? `${instance.iri}-${instance.connectedInstance.iri}` : instance.iri}
-                  type=${GrapholTypesEnum.CLASS_INSTANCE}
+                  .types=${new Set([GrapholTypesEnum.CLASS_INSTANCE])}
                 >
                   <div slot="trailing-element" class="hover-btn">
                     <gscape-button
@@ -449,6 +449,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     this.classTypeFilterList = []
     this.classTypeFilterSelect?.clear()
     this.referenceEntity = undefined
+    this.referenceEntityType = undefined
     this.referencePropertyEntity = undefined
     this.popperRef = undefined
     this.shouldAskForLabels = undefined
