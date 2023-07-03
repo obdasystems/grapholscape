@@ -1,0 +1,448 @@
+openapi: 3.0.0
+paths: {}
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/PEPE_2/Grapholscape_Model/1.0.0
+info:
+  description: This is the API for retaining a Grapholscape's loaded ontology (or graph) in order to restart navigation from a previous state.
+  version: 1.0.0
+  title: Grapholscape API model
+  contact:
+    email: obdasystems@info.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+components:
+  schemas:
+    Model:
+      type: object
+      required:
+        - entities
+        - diagrams
+        - modelType
+      properties:
+        diagrams:
+          type: array
+          items:
+            $ref: "#/components/schemas/Diagram"
+        entities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entity"
+        classInstanceEntities:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClassInstanceEntity"
+        ontology:
+          type: object
+          required:
+            - iri
+            - version
+            - namespaces
+          properties:
+            iri:
+              type: string
+            version:
+              type: string
+            languages:
+              type: array
+              items:
+                type: string
+            defaultLanguage:
+              type: string
+            namespaces:
+              type: array
+              items:
+                $ref: "#/components/schemas/Namespace"
+        config:
+          type: object
+          properties:
+            themes:
+              type: array
+              items:
+                $ref: "#/components/schemas/Theme"
+            selectedTheme:
+              type: string
+            language:
+              type: string
+            entityNameType:
+              $ref: "#/components/schemas/EntityNameType"
+            renderers:
+              type: array
+              items:
+                type: string
+            widgets:
+              type: object
+        viewport:
+          type: object
+          properties:
+            pan:
+              $ref: "#/components/schemas/Position"
+            zoom:
+              type: number
+        selectedDiagramId:
+          type: string
+        modelType:
+          type: string
+          enum: ["ontology", "vkg", "rdf"]
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
+    Theme:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        colours:
+          type: object
+    Diagram:
+      type: object
+      required:
+        - id
+        - name
+        - elements
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        elements:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/Node"
+              - $ref: "#/components/schemas/Edge"
+    Element:
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+        originalId:
+          type: string
+          description: >-
+            In case of replicated elements, this is the ID of the original
+            element replicated in multiple occurrences, all of them with
+            different IDs
+        displayedName:
+          type: string
+        iri:
+          type: string
+        type:
+          type: string
+          oneOf:
+            - $ref: "#/components/schemas/TypesEnum"
+    Edge:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+        - type: object
+          required:
+            - sourceId
+            - targetId
+          properties:
+            sourceId:
+              type: string
+            targetId:
+              type: string
+            breakpoints:
+              type: array
+              items:
+                $ref: "#/components/schemas/Position"
+    Node:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+        - type: object
+          properties:
+            position:
+              $ref: "#/components/schemas/Position"
+            identity:
+              $ref: "#/components/schemas/TypesEnum"
+    Namespace:
+      type: object
+      required:
+        - value
+        - prefixes
+      properties:
+        value:
+          type: string
+        prefixes:
+          type: array
+          items:
+            type: string
+    Entity:
+      type: object
+      required:
+        - iri
+        - type
+      properties:
+        iri:
+          type: object
+          properties:
+            prefixed:
+              type: string
+            full:
+              type: string
+            remainder:
+              type: string
+            prefix:
+              type: string
+          example:
+            prefixed: obda:Entity
+            full: http://obda.com/Entity
+            remainder: Entity
+            prefix: obda
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Annotation"
+    ClassInstanceEntity:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Entity"
+        - type: object
+          properties:
+            parentClasses:
+              type: array
+              items:
+                type: string
+    Annotation:
+      type: object
+      required:
+        - lexicalForm
+        - property
+      properties:
+        lexicalForm:
+          type: string
+        property:
+          type: string
+          example: rdfs:label
+        language:
+          type: string
+        datatype:
+          type: string
+    EntityTypeEnum:
+      type: string
+      enum:
+        - class
+        - object-property
+        - data-property
+        - individual
+        - class-instance
+    ConstructorTypeEnum:
+      type: string
+      enum:
+        - domain-restriction
+        - range-restriction
+        - union
+        - disjoint-union
+        - complement
+        - intersection
+        - enumeration
+        - key
+        - role-inverse
+        - role-chain
+        - datatype-restriction
+    OthersTypeEnum:
+      type: string
+      enum:
+        - value-domain
+        - property-assertion
+        - literal
+        - individual
+        - facet
+        - neutral
+        - value
+    EdgeTypeEnum:
+      type: string
+      enum:
+        - subclass-of
+        - equivalence
+        - instance-of
+        - input
+        - same
+        - different
+        - membership
+    TypesEnum:
+      allOf:
+        - $ref: "#/components/schemas/EntityTypeEnum"
+        - $ref: "#/components/schemas/ConstructorTypeEnum"
+        - $ref: "#/components/schemas/OthersTypeEnum"
+        - $ref: "#/components/schemas/EdgeTypeEnum"
+    Position:
+      type: object
+      required:
+        - x
+        - y
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+    EntityNameType:
+      type: string
+      enum:
+        - label
+        - prefixed_iri
+        - full_iri
+
+    Hierarchy:
+      type: object
+      required:
+        - id
+        - type
+        - inputs
+        - superclasses
+      properties:
+        id:
+          type: string
+        type:
+          $ref: "#/components/schemas/ConstructorTypeEnum"
+        inputs:
+          type: array
+          items:
+            type: string
+        superclasses:
+          type: object
+          required:
+            - classIri
+            - complete
+          properties:
+            classIri:
+              type: string
+            complete:
+              type: boolean
+
+    Action:
+      description:
+        Actions describes what user has done on a single element or element's metadata.
+        The user can add, edit or remove something.
+        The "something" is described by the operation involved in the action, it can be
+        an operation over an entity, a diagram, a hierarchy and so on.
+
+        Reverting an action means reverting the operation that has been done and it
+        depends on the type of the action.
+        - Add => Remove
+        - Remove => Add
+        - Edit => restore the previous state of the subject of the operation made
+      type: object
+      properties:
+        operationType:
+          type: string
+          enum: ["add", "edit", "remove"]
+        operation:
+          description:
+            Operations differ by their subject, that is the object on which
+            the operation take place (if the user perform the action of adding a diagram,
+            the subject of the operation will be the diagram).
+            The previousState of a operation must be set in case of editing a single field
+            of the subject, it is not needed in case of 'add' or 'remove' actions.
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/EntityOp"
+            - $ref: "#/components/schemas/DiagramOp"
+            - $ref: "#/components/schemas/HierarchyOp"
+            - $ref: "#/components/schemas/AnnotationOp"
+            - $ref: "#/components/schemas/PropertyOp"
+            - $ref: "#/components/schemas/NamespaceOp"
+
+        user:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+        timestamp:
+          type: number
+
+    EntityOp:
+      type: object
+      required:
+        - subject
+        - diagramId
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        diagramId:
+          type: string
+        previousState:
+          $ref: "#/components/schemas/Entity"
+        involvedElements:
+          description:
+            Array of other elements involved in the operation. Only for Remove actions.
+            The remove action on an Entity might involve other elements.
+            i.e. if the class removed was the superclass of a hierarchy, the whole hierarchy might become not valid"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/Node"
+              - $ref: "#/components/schemas/Edge"
+              - $ref: "#/components/schemas/Hierarchy"
+
+    DiagramOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Diagram"
+        previousState:
+          $ref: "#/components/schemas/Diagram"
+
+    HierarchyOp:
+      type: object
+      required:
+        - subject
+        - diagramId
+      properties:
+        subject:
+          $ref: "#/components/schemas/Hierarchy"
+        diagramId:
+          type: string
+        previousState:
+          $ref: "#/components/schemas/Hierarchy"
+
+    AnnotationOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Annotation"
+        previousState:
+          $ref: "#/components/schemas/Annotation"
+        entity:
+          $ref: "#/components/schemas/Entity"
+
+    PropertyOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        previousState:
+          $ref: "#/components/schemas/Entity"
+
+    NamespaceOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Namespace"
+        previousState:
+          $ref: "#/components/schemas/Namespace"
