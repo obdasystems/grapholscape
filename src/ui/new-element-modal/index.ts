@@ -72,7 +72,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   addClassBtn.title = 'Add Class'
 
   addClassBtn.onclick = () => {
-
     grapholscape.uiContainer?.appendChild(newElementComponent)
     initNewElementModal(newElementComponent, 'Add New Class', GrapholTypesEnum.CLASS)
   }
@@ -87,10 +86,24 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   addDiagramBtn.title = 'Add Diagram'
 
   addDiagramBtn.onclick = () => {
-
     grapholscape.uiContainer?.appendChild(newElementComponent)
     initNewElementModal(newElementComponent, 'Add New Diagram', 'Diagram')
   }
+
+  if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+    grapholscape.uiContainer?.appendChild(addDiagramBtn)
+    grapholscape.uiContainer?.appendChild(addClassBtn)
+  }
+
+  grapholscape.on(LifecycleEvent.RendererChange, (renderer) => {
+    if (renderer === RendererStatesEnum.FLOATY) {
+      grapholscape.uiContainer?.appendChild(addDiagramBtn)
+      grapholscape.uiContainer?.appendChild(addClassBtn)
+    } else {
+      addDiagramBtn.remove()
+      addClassBtn.remove()
+    }
+  })
 
   grapholscape.on(LifecycleEvent.DiagramChange, () => {
     let currentCy = grapholscape.renderer.cy as any
