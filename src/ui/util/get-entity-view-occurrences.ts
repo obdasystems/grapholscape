@@ -1,13 +1,12 @@
 import { html } from "lit"
 import Grapholscape from '../../core'
-import { GrapholEntity } from "../../model"
-import { EntityOccurrence } from "../../model/graphol-elems/entity"
+import { GrapholElement, GrapholEntity } from "../../model"
 import { RendererStatesEnum } from "../../model/renderers/i-render-state"
 
 export type DiagramViewData = { id: number, name: string }
 export type OccurrenceIdViewData = { originalId: string, realId: string }
 
-export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape): Map<DiagramViewData, OccurrenceIdViewData[]> {
+export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscape): Map<DiagramViewData, OccurrenceIdViewData[]> {
   const result = new Map<DiagramViewData, OccurrenceIdViewData[]>()
 
   grapholEntity.occurrences.get(RendererStatesEnum.GRAPHOL)?.forEach(occurrence => {
@@ -22,21 +21,21 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
   return result
 
 
-  function addOccurrenceViewData(occurrence: EntityOccurrence) {
+  function addOccurrenceViewData(occurrence: GrapholElement) {
     if (!grapholscape.renderState)
       return
 
     const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId) || grapholscape.renderer.diagram
-    const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
+    // const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
 
-    if (diagram && cyElement && !cyElement.empty()) {
+    if (diagram) {
 
       /**
        * In case of repositioned or transformed elements, show the original id
        */
       const occurrenceIdViewData: OccurrenceIdViewData = {
-        realId: occurrence.elementId,
-        originalId: cyElement.data().originalId,
+        realId: occurrence.id,
+        originalId: occurrence.originalId || occurrence.id,
       }
 
       const d = Array.from(result).find(([diagramViewData, _]) => diagramViewData.id === diagram.id)
@@ -49,7 +48,7 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
       }
 
       result.get(diagramViewData)?.push(occurrenceIdViewData)
-      
+
 
       // for (let [diagramViewData, occurrencesIdViewData] of result.entries()) {
       //   if (diagramViewData.id === diagram.id) {
@@ -62,19 +61,16 @@ export default function(grapholEntity: GrapholEntity, grapholscape: Grapholscape
 }
 
 
-export function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>, onNodeNavigation: (occurrence: EntityOccurrence) => void) {
-  
+export function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>, onNodeNavigation: (elementId: string, diagramId: number) => void) {
+
   function nodeNavigationHandler(e) {
     const target = e.target as HTMLElement
     const diagramId = target.parentElement?.getAttribute('diagram-id')
     const elementId = target.getAttribute('real-id')
-  
-    if (!diagramId || ! elementId) return
-  
-    onNodeNavigation({
-      diagramId: parseInt(diagramId),
-      elementId: elementId
-    })
+
+    if (!diagramId || !elementId) return
+
+    onNodeNavigation(elementId, parseInt(diagramId))
   }
 
   return html`

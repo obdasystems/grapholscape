@@ -7,6 +7,8 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
   title = "OWL 2 Translation"
   owlText: string = ''
 
+  protected isDefaultClosed: boolean = false
+
   static properties = {
     owlText: { type: String, attribute: false }
   }

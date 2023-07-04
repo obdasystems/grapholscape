@@ -48,22 +48,31 @@ export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: I
 function shouldFilterEntity(entity: GrapholEntity, entityFilters?: IEntityFilters) {
   if (!entityFilters) return false
 
-  return !entityFilters.areAllFiltersDisabled && entityFilters[entity.type] !== 1 && entityFilters[entity.type] !== true
+  let typeFilterEnabled = true
+  entity.types.forEach(type => {
+    typeFilterEnabled = typeFilterEnabled && entityFilters[type] !== 1 && entityFilters[type] !== true
+  })
+
+  return !entityFilters.areAllFiltersDisabled && typeFilterEnabled
 }
 
 export function search(searchValue: string, entities: EntityViewData[]) {
   const searchWords = searchValue.split(' ')
 
-  return entities.filter(entity => {
-    let isAmatch = true
-    for (const word of searchWords) {
-      if (word.length <= 2) continue
-      isAmatch = isAmatch && (matchInIRI(entity.value.iri, word) ||
-        matchInAnnotations(entity.value.getAnnotations(), word))
-    }
-    return isAmatch
-  })
+  return new Promise<EntityViewData[]>((resolve) => {
+    const result = entities.filter(entity => {
+      let isAmatch = true
+      let isCurrentAMatch = false
+      for (const word of searchWords) {
+        if (word.length <= 2) continue
+        isCurrentAMatch = matchInIRI(entity.value.iri, word) || matchInAnnotations(entity.value.getAnnotations(), word)
+        isAmatch = isAmatch && isCurrentAMatch
+      }
+      return isAmatch
+    })
 
+    resolve(result)
+  })
 
   function matchInIRI(iri: Iri, searchValue: string) {
     return isMatch(iri.fullIri, searchValue) || isMatch(iri.prefixed, searchValue)
@@ -72,7 +81,8 @@ export function search(searchValue: string, entities: EntityViewData[]) {
   function matchInAnnotations(annotations: Annotation[], searchValue: string) {
     // search in labels defined in annotations (only for Graphol v3)
     for (const annotation of annotations) {
-      return isMatch(annotation.lexicalForm, searchValue)
+      if (isMatch(annotation.lexicalForm, searchValue))
+        return true
     }
 
     return false // only if no language has a match

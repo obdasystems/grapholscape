@@ -2,29 +2,39 @@ import Grapholscape from '../../core';
 import { LifecycleEvent } from "../../model";
 import { EntityFilterEvent } from '../common/text-search/entity-type-filters';
 import { createEntitiesList } from '../util/search-entities';
+import { IEntityFilters } from '../view-model';
 import GscapeExplorer from "./ontology-explorer";
 
 export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape: Grapholscape) {
-  // let languages = grapholscape.languages
-  ontologyExplorerComponent.entities = createEntitiesList(grapholscape)
-
-  // ontologyExplorerComponent.onToggleBody = closeAllSubRows.bind(this)
-
-  ontologyExplorerComponent.onNodeNavigation = (entityOccurrence) => {
-    grapholscape.centerOnElement(entityOccurrence.elementId, entityOccurrence.diagramId, 1.2)
-    grapholscape.selectElement(entityOccurrence.elementId)
+  ontologyExplorerComponent.onNodeNavigation = (elementId, diagramId) => {
+    grapholscape.centerOnElement(elementId, diagramId, 1.2)
+    grapholscape.selectElement(elementId)
   }
 
   ontologyExplorerComponent.addEventListener('onentityfilterchange', (e: EntityFilterEvent) => {
     ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail)
   })
 
+  ontologyExplorerComponent.onTogglePanel = () => {
+    if (ontologyExplorerComponent.entities.length === 0) {
+      updateEntityList()
+    }
+  }
+
   grapholscape.on(LifecycleEvent.RendererChange, () => {
-    ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
+    updateEntityList(ontologyExplorerComponent.searchEntityComponent)
   })
 
   grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
-    ontologyExplorerComponent.entities = createEntitiesList(grapholscape, ontologyExplorerComponent.searchEntityComponent)
+    updateEntityList(ontologyExplorerComponent.searchEntityComponent)
   })
+
+  function updateEntityList(entityFilters?: IEntityFilters) {
+    ontologyExplorerComponent.loading = true
+    setTimeout(() => {
+      ontologyExplorerComponent.entities = createEntitiesList(grapholscape, entityFilters)
+      ontologyExplorerComponent.loading = false
+    }, 0)
+  }
 }
 

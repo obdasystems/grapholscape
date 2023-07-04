@@ -9,6 +9,7 @@ import { arrowDown, cross, insertInGraph, search as searchIcon } from '../assets
 import a11yClick from '../util/a11y-click'
 import { GscapeEntityListItem } from '../common/list-item'
 import { EntityViewData } from '../view-model'
+import { contentSpinnerStyle, getContentSpinner } from '../common/spinners'
 
 export interface IEntitySelector {
   onClassSelection(callback:(iri: string) => void): void
@@ -21,17 +22,20 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   private onClassSelectionCallback: (iri: string) => void
 
   private isSearchTextEmpty: boolean = true
+  private loading: boolean = false
 
   static get properties() {
     return {
       entityList: { type: Object, attribute: false },
       isSearchTextEmpty: { type: Boolean, state: true },
+      loading: { type: Boolean, state: true },
     }
   }
 
   static styles = [
     baseStyle,
     GscapeButtonStyle,
+    contentSpinnerStyle,
     css`
       :host {
         position: absolute;
@@ -64,6 +68,9 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
         position: relative;
         top: 0;
         max-height: unset;
+        min-height: 60vh;
+        height: 1px;
+        overflow: hidden;
       }
 
       gscape-entity-list-item {
@@ -80,10 +87,6 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
 
       gscape-entity-search {
         flex-shrink: 0;
-      }
-
-      .list-wrapper {
-        padding: 0 8px;
       }
 
       #input-wrapper {
@@ -147,33 +150,46 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
       </div>
           
       <div id="drop-panel" class="gscape-panel hide drop-down">
-        ${this.entityList.map(entityItem => {
-          return html`
-            <gscape-entity-list-item
-              type=${entityItem.value.type}
-              displayedName=${entityItem.displayedName}
-              title=${entityItem.displayedName}
-              iri=${entityItem.value.iri.fullIri}
-              tabindex="0"
-              @keypress=${this.handleKeyPressOnEntry}
-            >
-              <div slot="trailing-element" class="hover-btn">
-                <gscape-button
-                  size="s"
-                  type="subtle"
-                  title="Insert in graph"
-                  @click=${this.handleEntitySelection}
-                >
-                  ${getIconSlot('icon', insertInGraph)}
-                </gscape-button>
-              </div>
-            </gscape-entity-list-item>
-          `
-        })}
+        ${this.loading
+          ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
+          : !this.isPanelClosed()
+            ? html`
+              <lit-virtualizer
+                scroller
+                class="background-propagation"
+                style="min-height: 100%;"
+                .items=${this.entityList}
+                .renderItem=${(entityItem: EntityViewData) => html`
+                  <gscape-entity-list-item
+                    style="width:100%"
+                    .types=${entityItem.value.types}
+                    displayedName=${entityItem.displayedName}
+                    title=${entityItem.displayedName}
+                    iri=${entityItem.value.iri.fullIri}
+                    tabindex="0"
+                    @keypress=${this.handleKeyPressOnEntry.bind(this)}
+                  >
+                    <div slot="trailing-element" class="hover-btn">
+                      <gscape-button
+                        size="s"
+                        type="subtle"
+                        title="Insert in graph"
+                        @click=${this.handleEntitySelection.bind(this)}
+                      >
+                        ${getIconSlot('icon', insertInGraph)}
+                      </gscape-button>
+                    </div>
+                  </gscape-entity-list-item>
+                `}
+              >
+              </lit-virtualizer>
 
-        ${this.entityList.length === 0
-          ? emptySearchBlankState
-          : null
+              ${this.entityList.length === 0
+                ? emptySearchBlankState
+                : null
+              } 
+            `
+            : null
         }
       </div>
     `
@@ -216,7 +232,11 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
     this.isSearchTextEmpty = inputElement.value.length <= 0
 
     if (inputElement.value?.length > 2) {
-      this.entityList = search(inputElement.value, this.fullEntityList)
+      this.loading = true
+      search(inputElement.value, this.fullEntityList).then(entities => {
+        this.loading = false
+        this.entityList = entities
+      })
       this.openPanel()
     } else {
       this.entityList = this.fullEntityList

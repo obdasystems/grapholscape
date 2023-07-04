@@ -425,7 +425,6 @@ declare enum LifecycleEvent {
     UnfilterRequest = "unfilterRequest",
     BackgroundClick = "backgroundClick",
     ContextClick = "contextClick",
-    DoubleTap = 'doubleTap',
     EntityWikiLinkClick = "entityWikiLinkClick"
 }
 interface IonEvent$1 {
@@ -443,7 +442,6 @@ interface IonEvent$1 {
     (event: LifecycleEvent.UnfilterRequest, callback: (filter: Filter) => boolean): void;
     (event: LifecycleEvent.BackgroundClick, callback: () => void): void;
     (event: LifecycleEvent.ContextClick, callback: (eventObject: EventObject) => void): void;
-    (event: LifecycleEvent.DoubleTap, callback: (eventObject: EventObject) => void): void;
     (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void;
 }
 declare class Lifecycle {
@@ -461,7 +459,6 @@ declare class Lifecycle {
     private unfilterRequest;
     private backgroundClick;
     private contextClick;
-    private doubleTap;
     entityWikiLinkClick: ((iri: string) => void)[];
     constructor();
     trigger(event: LifecycleEvent.EntitySelection, entity: GrapholEntity, instance: GrapholElement): void;
@@ -478,7 +475,6 @@ declare class Lifecycle {
     trigger(event: LifecycleEvent.UnfilterRequest, filter: Filter): boolean;
     trigger(event: LifecycleEvent.BackgroundClick): void;
     trigger(event: LifecycleEvent.ContextClick, eventObject: EventObject): void;
-    trigger(event: LifecycleEvent.DoubleTap, eventObject: EventObject): void;
     trigger(event: LifecycleEvent.EntityWikiLinkClick, iri: string): void;
     on: IonEvent$1;
 }
@@ -1377,7 +1373,6 @@ declare enum IncrementalEvent {
     ClassInstanceSelection = "classInstanceSselection",
     ClassSelection = "classSelection",
     ContextClick = "contextClick",
-    DoubleTap = "doubleTap",
     DiagramUpdated = "diagramUpdated",
     ReasonerSet = "reasonerSet",
     NewDataPropertyValues = "newDataPropertyValues",

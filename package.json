@@ -82,6 +82,7 @@
     "typescript": "^4.8.2"
   },
   "dependencies": {
+    "@lit-labs/virtualizer": "^2.0.3",
     "cytoscape": "^3.22.1",
     "cytoscape-automove": "^1.10.3",
     "cytoscape-cola": "^2.5.1",

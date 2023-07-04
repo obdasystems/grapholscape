@@ -1,7 +1,7 @@
-import { css, html } from "lit";
+import { LitElement, PropertyDeclarations, css, html } from "lit";
 
 export function getContentSpinner() {
-  return html`<div class="lds-ring" title="Loading"><div></div><div></div><div></div><div></div></div>` 
+  return html`<div class="lds-ring" title="Loading"><div></div><div></div><div></div><div></div></div>`
 }
 
 export const contentSpinnerStyle = css`
@@ -40,3 +40,33 @@ export const contentSpinnerStyle = css`
     }
   }
 `
+
+export class ContentSpinner extends LitElement {
+
+  color: string
+
+  static styles = [
+    contentSpinnerStyle,
+    css`
+      :host {
+        display: inline-block;
+        position: relative;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        left: 50%;
+      }
+    `
+  ]
+
+  static properties: PropertyDeclarations = {
+    color: { type: String}
+  }
+
+  render = getContentSpinner
+
+  setColor(newColor: string) {
+    this.style.setProperty('--gscape-color-accent', newColor)
+  }
+}
+
+customElements.define('gscape-content-spinner', ContentSpinner)

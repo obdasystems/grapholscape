@@ -1,24 +1,26 @@
 
 import { Position } from "cytoscape";
+import getIdFromEntity from "../../util/get-id-from-entity";
 import GrapholEdge from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
-import GrapholNode from "../graphol-elems/node";
 import { GrapholTypesEnum, Shape } from "../graphol-elems/enums";
+import GrapholNode from "../graphol-elems/node";
+import { RendererStatesEnum } from "../renderers/i-render-state";
 
 export default class Hierarchy {
 
   private _id?: string
-  private _inputs: string[] = []
-  private _superclasses: { classIri: string, complete?: boolean }[] = []
+  private _inputs: GrapholEntity[] = []
+  private _superclasses: { classEntity: GrapholEntity, complete?: boolean }[] = []
 
   constructor(public type: GrapholTypesEnum.UNION | GrapholTypesEnum.DISJOINT_UNION) { }
 
-  addInput(classIri: string) {
-    this.inputs.push(classIri)
+  addInput(classEntity: GrapholEntity) {
+    this.inputs.push(classEntity)
   }
 
-  addSuperclass(classIri: string, complete = false) {
-    this._superclasses.push({ classIri: classIri, complete: complete })
+  addSuperclass(classEntity: GrapholEntity, complete = false) {
+    this._superclasses.push({ classEntity: classEntity, complete: complete })
   }
 
   get inputs() { return this._inputs }
@@ -39,24 +41,26 @@ export default class Hierarchy {
     unionNode.shape = Shape.ELLIPSE
     unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined
     unionNode.height = unionNode.width = 30
-    unionNode.position = position!
-    unionNode.setLabelXposFromXML(position!.x)
-    unionNode.setLabelYposFromXML(position!.y)
+    unionNode.position = position || { x: 0, y: 0 }
+    unionNode.setLabelXposFromXML(position?.x || 0)
+    unionNode.setLabelYposFromXML(position?.y || 0)
 
     return unionNode
   }
 
-  getInputGrapholEdges(): GrapholEdge[] | undefined {
+  getInputGrapholEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined {
     if (!this.isValid()) {
       console.warn('[Grapholscape] Hierarchy not valid, cannot create input edges - check id, inputs and superclasses')
       return
     }
 
     const res: GrapholEdge[] = []
-
-    this.inputs.forEach((inputClassIri, i) => {
+    let sourceId: string | undefined
+    this.inputs.forEach((inputEntity, i) => {
       const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`, GrapholTypesEnum.INPUT)
-      newInputEdge.sourceId = inputClassIri
+      sourceId = getIdFromEntity(inputEntity, diagramId, GrapholTypesEnum.CLASS, rendererState)
+      if (!sourceId) return
+      newInputEdge.sourceId = sourceId
       newInputEdge.targetId = this._id!
       res.push(newInputEdge)
     })
@@ -64,17 +68,20 @@ export default class Hierarchy {
     return res
   }
 
-  getInclusionEdges(): GrapholEdge[] | undefined {
+  getInclusionEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined {
     if (!this.isValid()) {
       console.warn('[Grapholscape] Hierarchy not valid, cannot create inclusions edges - check id, inputs and superclasses')
       return
     }
 
     const res: GrapholEdge[] = []
+    let targetId: string | undefined
     this._superclasses.forEach((superclass, i) => {
       const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`, this.type)
       newInclusionEdge.sourceId = this._id!
-      newInclusionEdge.targetId = superclass.classIri
+      targetId = getIdFromEntity(superclass.classEntity, diagramId, GrapholTypesEnum.CLASS, rendererState)
+      if (!targetId) return
+      newInclusionEdge.targetId = targetId
 
       if (superclass.complete) {
         newInclusionEdge.targetLabel = 'C'

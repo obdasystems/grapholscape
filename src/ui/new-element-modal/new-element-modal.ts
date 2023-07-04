@@ -21,7 +21,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   ontology: OntologyViewModel
   public get modal(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('.gscape-panel') }
 
-  public onConfirm: (iri: string | string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
+  public onConfirm: (iri: string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
   public onCancel: () => void = () => { }
 
   static properties: PropertyDeclarations = {
@@ -31,7 +31,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     functionalities: { type: Array },
     funcVisibility: {type: String} 
   }
-  funcVisibility = 'none'
+  funcVisibility: 'inline-block' | 'none' = 'none'
 
   constructor(public message?: string, public dialogTitle?, public withoutPrefix?, public enableMore?, public functionalities?) {
     super()
@@ -209,7 +209,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
                 <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add properties +" @click=${this.toggleFunctionalities}></gscape-button>
                 <ul class="dropdown-menu" style = "width: 68%; margin: 8px 18px 18px 8px ; border-radius: 5%; display: ${this.funcVisibility}; list-style-type: none; background-color: var(--gscape-color-neutral); " name="functionalities" >
                       ${this.functionalities.map((n, i) => {
-        return html`<li style = "width: 78%; margin: 2px 2px 2px 2px ; display:${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
+        return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
       })}</ul>
             </form>
             <div class="buttons" id="buttons">

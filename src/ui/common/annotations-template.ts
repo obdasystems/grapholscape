@@ -4,7 +4,7 @@ import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
   name: string,
-  typeOrVersion: string,
+  typeOrVersion: Set<string>,
   iri: string
 }
 
@@ -15,7 +15,7 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
   }
 
   return html`
-    <div class="item-with-iri-info ellipsed rtl">
+    <div class="item-with-iri-info ellipsed">
       <div 
         class="name ${onWikiLinkClick ? 'link' : null}" 
         title="${item.name}"
@@ -23,11 +23,20 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
       >
         ${item.name}
       </div>
-      <div class="muted-text" title="iri: ${item.iri}">${item.iri}</div>
+      <div class="rtl"><div class="muted-text" style="text-align: center" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div></div>
       <div class="muted-text type-or-version">
-        ${Object.values(GrapholTypesEnum).includes(item.typeOrVersion as GrapholTypesEnum)
-          ? entityIcons[item.typeOrVersion] : null }
-        ${item.typeOrVersion || '-'}
+        ${Array.from(item.typeOrVersion).map(text => {
+          if (Object.values(GrapholTypesEnum).includes(text as GrapholTypesEnum)) {
+            return html`
+              <div class="type-or-version">
+                ${entityIcons[text]}
+                ${text || '-'}
+              </div>
+            `
+          } else {
+            return text || '-'
+          }
+        })}
       </div>
     </div>
   `
@@ -40,7 +49,7 @@ export const itemWithIriTemplateStyle = css`
     white-space: nowrap;
   }
 
-  .item-with-iri-info > .type-or-version {
+  .item-with-iri-info .type-or-version {
     display: flex;
     align-items: center;
     justify-content: center;

@@ -1,6 +1,5 @@
-import { css, html, LitElement } from 'lit'
-import { GrapholEntity, GrapholTypesEnum } from '../../model'
-import { EntityOccurrence } from '../../model/graphol-elems/entity'
+import { css, html, LitElement, PropertyValueMap } from 'lit'
+import { GrapholElement, GrapholEntity, GrapholTypesEnum } from '../../model'
 import { commentIcon, infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
@@ -11,13 +10,16 @@ import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } f
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
   grapholEntity: GrapholEntity
+  currentOccurrenceType?: GrapholTypesEnum
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   showOccurrences: boolean = true
   language: string
-  onNodeNavigation: (occurrence: EntityOccurrence) => void = () => { }
+  onNodeNavigation: (elmentId: string, diagramId: number) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 
   incrementalSection?: HTMLElement
+
+  protected isDefaultClosed: boolean = false
 
   static get properties() {
     return {
@@ -122,7 +124,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
-        ${!this.grapholEntity.is(GrapholTypesEnum.CLASS_INSTANCE)
+        ${this.currentOccurrenceType !== GrapholTypesEnum.CLASS_INSTANCE
             ? itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)
             : itemWithIriTemplate(this.entityForTemplate)
         }
@@ -218,7 +220,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   // override blur to avoid collapsing when clicking on cytoscape's canvas
   blur() { }
 
-  setGrapholEntity(entity: GrapholEntity) { }
+  setGrapholEntity(entity: GrapholEntity, instance?: GrapholElement) { }
 
   private languageSelectionHandler(e) {
     this.language = e.target.value
@@ -227,7 +229,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   private get entityForTemplate() {
     const result: ViewItemWithIri = {
       name: this.grapholEntity.iri.remainder,
-      typeOrVersion: this.grapholEntity.type.toString(),
+      typeOrVersion: this.currentOccurrenceType ? new Set([this.currentOccurrenceType]) : this.grapholEntity.types,
       iri: this.grapholEntity.iri.fullIri,
     }
     return result

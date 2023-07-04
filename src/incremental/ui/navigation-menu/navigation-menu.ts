@@ -18,6 +18,8 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   canShowObjectPropertiesRanges = true
   /** @internal */
   referenceEntity?: EntityViewData
+  /** @internal */
+  referenceEntityType?: GrapholTypesEnum
 
   static properties: PropertyDeclarations = {
     objectProperties: { type: Object },
@@ -49,7 +51,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
         <gscape-entity-list-item
           displayedname=${this.referenceEntity?.displayedName}
           iri=${this.referenceEntity?.value.iri.fullIri}
-          type=${this.referenceEntity?.value.type}
+          .types=${this.referenceEntity?.value.types}
         ></gscape-entity-list-item>
       </div>
 
@@ -65,7 +67,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                   <gscape-entity-list-item
                     displayedname=${objectProperty.entityViewData.displayedName}
                     iri=${objectProperty.entityViewData.value.iri.fullIri}
-                    type=${objectProperty.entityViewData.value.type}
+                    .types=${objectProperty.entityViewData.value.types}
                     ?actionable=${!this.canShowObjectPropertiesRanges}
                     ?asaccordion=${this.canShowObjectPropertiesRanges}
                     ?disabled=${disabled}
@@ -83,7 +85,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                                   iri=${connectedClass.entityViewData.value.iri.fullIri}
                                   objpropertyiri=${objectProperty.entityViewData.value.iri.fullIri}
                                   direct=${objectProperty.direct}
-                                  type=${connectedClass.entityViewData.value.type}
+                                  .types=${connectedClass.entityViewData.value.types}
                                   ?actionable=${false}
                                 >
                                   <div slot="trailing-element" class="hover-btn">
@@ -133,7 +135,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
       const targetListItem = e.currentTarget as GscapeEntityListItem | null
 
       if (targetListItem &&
-        this.referenceEntity?.value.type === GrapholTypesEnum.CLASS_INSTANCE &&
+        this.referenceEntity?.value.types.has(GrapholTypesEnum.CLASS_INSTANCE) &&
         !targetListItem.disabled) {
         this.dispatchEvent(new CustomEvent('onobjectpropertyselection', {
           bubbles: true,

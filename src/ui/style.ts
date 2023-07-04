@@ -20,6 +20,10 @@ export default css`
   border-color: var(--gscape-color-border-default);
 }
 
+.background-propagation, .background-propagation * {
+  background: inherit;
+}
+
 .gscape-panel {
   font-size: 12px;
   background-color: var(--gscape-color-bg-default);

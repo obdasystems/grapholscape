@@ -1,127 +1,142 @@
-import { Position } from "cytoscape";
+import cytoscape, { Position } from "cytoscape";
 import { EntityNameType } from "../config";
 import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
-import { GrapholElement } from "../../dist";
+import getIdFromEntity from "../util/get-id-from-entity";
 
 export default class DiagramBuilder {
   /** The class to which new entities/instances will be connected */
 
   constructor(public diagram: Diagram, private rendererState: RendererStatesEnum) { }
 
-  addEntity(objectProperty: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity): void
-  addEntity(grapholEntity: GrapholEntity): void
-  addEntity(grapholEntity: GrapholEntity, sourceEntity?: GrapholEntity, targetEntity?: GrapholEntity): void {
-    switch (grapholEntity.type) {
-      case GrapholTypesEnum.DATA_PROPERTY:
-        if (sourceEntity)
-          this.addDataProperty(grapholEntity, sourceEntity)
-        break
+  // addEntity(objectProperty: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity): void
+  // addEntity(grapholEntity: GrapholEntity): void
+  // addEntity(grapholEntity: GrapholEntity, sourceEntity?: GrapholEntity, targetEntity?: GrapholEntity): void {
+  //   switch (grapholEntity.type) {
+  //     case GrapholTypesEnum.DATA_PROPERTY:
+  //       if (sourceEntity)
+  //         this.addDataProperty(grapholEntity, sourceEntity)
+  //       break
 
-      case GrapholTypesEnum.OBJECT_PROPERTY:
-        if (sourceEntity && targetEntity)
-          this.addObjectProperty(grapholEntity, sourceEntity, targetEntity)
-        break
+  //     case GrapholTypesEnum.OBJECT_PROPERTY:
+  //       if (sourceEntity && targetEntity)
+  //         this.addObjectProperty(grapholEntity, sourceEntity, targetEntity)
+  //       break
 
-      case GrapholTypesEnum.CLASS:
-        if (!this.diagram.containsEntity(grapholEntity, this.rendererState))
-          this.addClass(grapholEntity)
-        break
+  //     case GrapholTypesEnum.CLASS:
+  //       if (!this.diagram.containsEntity(grapholEntity, this.rendererState))
+  //         this.addClass(grapholEntity)
+  //       break
 
-      case GrapholTypesEnum.CLASS_INSTANCE:
-        if (!this.diagram.containsEntity(grapholEntity, this.rendererState))
-          this.addClassInstance(grapholEntity as ClassInstanceEntity)
+  //     case GrapholTypesEnum.CLASS_INSTANCE:
+  //       if (!this.diagram.containsEntity(grapholEntity, this.rendererState))
+  //         this.addClassInstance(grapholEntity as ClassInstanceEntity)
 
-    }
-  }
+  //   }
+  // }
 
   addClass(classEntity: GrapholEntity, position?: Position) {
     if (this.diagramRepresentation?.grapholElements.get(classEntity.iri.fullIri))
       return
 
-    const classNode = new GrapholNode(classEntity.iri.fullIri, GrapholTypesEnum.CLASS)
+    const classNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS)
     classNode.iri = classEntity.iri.fullIri
     classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
     classNode.height = classNode.width = 80
     classNode.position = position || { x: 0, y: 0 }
-    classNode.originalId = classEntity.iri.fullIri
+    classNode.originalId = classNode.id
+    classNode.diagramId = this.diagram.id
 
-    classEntity.addOccurrence(classNode.id, this.diagram.id, RendererStatesEnum.FLOATY)
+    classEntity.addOccurrence(classNode, this.rendererState)
 
     this.diagramRepresentation?.addElement(classNode, classEntity)
   }
 
   addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity: GrapholEntity) {
 
-    const dataPropertyNode = new GrapholNode(dataPropertyEntity.iri.fullIri, GrapholTypesEnum.DATA_PROPERTY)
+    const dataPropertyNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.DATA_PROPERTY)
 
-    const ownerEntityId = this.getIdFromEntity(ownerEntity)
+    const ownerEntityId = getIdFromEntity(ownerEntity, this.diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
     if(!ownerEntityId) return
     let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
     
     if (!dataPropertyNode || !ownerEntityNode) return
 
-    dataPropertyNode.id = dataPropertyEntity.iri.fullIri
-    dataPropertyNode.iri = dataPropertyEntity.iri.fullIri;
+    dataPropertyNode.diagramId = this.diagram.id
+    dataPropertyNode.iri = dataPropertyEntity.iri.fullIri
     dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL);
     if (isGrapholNode(ownerEntityNode)) {
       dataPropertyNode.position = ownerEntityNode.position
     }
     
     dataPropertyNode.originalId = dataPropertyNode.id
-    dataPropertyEntity.addOccurrence(dataPropertyNode.id, this.diagram.id, RendererStatesEnum.FLOATY);
+    dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY)
 
-    const dataPropertyEdge = new GrapholEdge(`${ownerEntityNode.id}-${dataPropertyNode.id}`, GrapholTypesEnum.DATA_PROPERTY)
+    const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), GrapholTypesEnum.DATA_PROPERTY)
+    dataPropertyEdge.diagramId = this.diagram.id
     dataPropertyEdge.sourceId = ownerEntityNode.id
     dataPropertyEdge.targetId = dataPropertyNode.id
     this.diagramRepresentation?.addElement(dataPropertyNode, dataPropertyEntity)
     this.diagramRepresentation?.addElement(dataPropertyEdge)
   }
 
-  addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity) {
+  addObjectProperty(
+    objectPropertyEntity: GrapholEntity,
+    sourceEntity: GrapholEntity,
+    targetEntity: GrapholEntity,
+    nodesType: GrapholTypesEnum
+  ) {
 
-    if (!this.diagramRepresentation) return
+    if (!this.diagramRepresentation ||
+      !sourceEntity.is(nodesType) ||
+      !targetEntity.is(nodesType)
+    ) return
     
     // if both object property and range class are already present, do not add them again
-    const sourceEntityId = this.getIdFromEntity(sourceEntity)
-    if(!sourceEntityId) return
-    let sourceNode = this.diagramRepresentation?.grapholElements.get(sourceEntityId)
-  
-    const targetEntityId = this.getIdFromEntity(targetEntity)  
-    if(!targetEntityId) return
-    let targetNode = this.diagramRepresentation?.grapholElements.get(targetEntityId)
+    let sourceNode = this.getEntityCyRepr(sourceEntity, nodesType)
+    let targetNode = this.getEntityCyRepr(targetEntity, nodesType)
     
-    if (sourceNode && targetNode) {
+    if (sourceNode.nonempty() && targetNode.nonempty()) {
       /**
        * If the set of edges between reference node and the connected class
        * includes the object property we want to add, then it's already present.
        */
-      /*if (sourceNode.edgesWith(targetNode)
+      if (sourceNode.edgesWith(targetNode)
         .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri)
         .nonempty()
       ) {
         return
-      }*/
+      }
     }
 
-    if (!sourceNode)
-      sourceEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addEntity(sourceEntity)
-
-    if (!targetNode)
-      targetEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addEntity(targetEntity)
-
-    //const connectedClassIri = connectedClassEntity.iri.fullIri
-    if(!sourceNode || !targetNode) return
-    const objectPropertyEdge = new GrapholEdge(`${sourceEntity.iri.prefixed}-${objectPropertyEntity.iri.prefixed}-${targetEntity.iri.prefixed}`, GrapholTypesEnum.OBJECT_PROPERTY)
+    if (sourceNode.empty()) {
+      sourceEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
+      sourceNode = this.getEntityCyRepr(sourceEntity, nodesType)
+      if (sourceNode.empty()) {
+        console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`)
+        return
+      }
+    }
+    if (targetNode.empty()) {
+      targetEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addClass(targetEntity)
+      targetNode = this.getEntityCyRepr(targetEntity, nodesType)
+      if (targetNode.empty()) {
+        console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`)
+        return
+      }
+    }
+      
+    const objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), GrapholTypesEnum.OBJECT_PROPERTY)
+    objectPropertyEdge.diagramId = this.diagram.id
     objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
-    objectPropertyEdge.sourceId = sourceNode.id
-    objectPropertyEdge.targetId = targetNode.id
+    objectPropertyEdge.sourceId = sourceNode.id()
+    objectPropertyEdge.targetId = targetNode.id()
     objectPropertyEdge.originalId = objectPropertyEdge.id
-    objectPropertyEntity.addOccurrence(objectPropertyEdge.id, this.diagram.id, RendererStatesEnum.FLOATY)
+    objectPropertyEntity.addOccurrence(objectPropertyEdge, this.rendererState)
     this.diagramRepresentation.addElement(objectPropertyEdge, objectPropertyEntity)
   }
 
   addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position) {
-    const instanceNode = new GrapholNode(classInstanceEntity.iri.fullIri, GrapholTypesEnum.CLASS_INSTANCE)
+    const instanceNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS_INSTANCE)
 
     if (!position) {
       // check if parent class is present in diagram
@@ -139,35 +154,51 @@ export default class DiagramBuilder {
       instanceNode.position = position
     }
 
-    instanceNode.displayedName = classInstanceEntity.iri.remainder
-    instanceNode.height = instanceNode.width = 50
-    instanceNode.shape = Shape.ELLIPSE
-    instanceNode.labelXpos = 0
-    instanceNode.labelYpos = 0
-    classInstanceEntity.addOccurrence(instanceNode.id, this.diagram.id, RendererStatesEnum.FLOATY);
-
-    this.diagramRepresentation?.addElement(instanceNode, classInstanceEntity)
-    return instanceNode
+    return this._addIndividualOrClassInstance(instanceNode, classInstanceEntity)
   }
 
-  public addHierarchy(hierarchy: Hierarchy, superEntity, position?: Position) {
+  addIndividual(individualEntity: GrapholEntity, position?: Position) {
+    const instanceNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS_INSTANCE)
+    instanceNode.position = position || { x: 0, y: 0 }
+
+    this._addIndividualOrClassInstance(instanceNode, individualEntity)
+  }
+
+  private _addIndividualOrClassInstance(grapholNode: GrapholNode, grapholEntity: GrapholEntity) {
+    grapholNode.diagramId = this.diagram.id
+    grapholNode.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL)
+    grapholNode.height = grapholNode.width = 50
+    grapholNode.shape = Shape.ELLIPSE
+    grapholNode.labelXpos = 0
+    grapholNode.labelYpos = 0
+    grapholEntity.addOccurrence(grapholNode, this.rendererState)
+
+    this.diagramRepresentation?.addElement(grapholNode, grapholEntity)
+    return grapholNode
+  }
+
+  public addHierarchy(hierarchy: Hierarchy, position?: Position) {
     const unionNode = hierarchy.getUnionGrapholNode(position)
-    const inputEdges = hierarchy.getInputGrapholEdges()
-    const inclusionEdges = hierarchy.getInclusionEdges()
+    const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, this.rendererState)
+    const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, this.rendererState)
 
     if (!unionNode || !inputEdges || !inclusionEdges)
       return
 
+    // Add inputs
+    for (const inputClasses of hierarchy.inputs) {
+      this.addClass(inputClasses, position)
+    }
+
+    // Add superclasses
+    for (const superClass of hierarchy.superclasses) {
+      this.addClass(superClass.classEntity, position)
+    }
+
     this.diagramRepresentation?.addElement(unionNode)
 
-    const superId = this.getIdFromEntity(superEntity)
-    if(!superId) return
-
-    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagramRepresentation?.addElement(inputEdge))
-    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
-      inclusionEdge.targetId = superId
-      this.diagramRepresentation?.addElement(inclusionEdge)
-    })
+    inputEdges.forEach(inputEdge => this.diagramRepresentation?.addElement(inputEdge))
+    inclusionEdges.forEach(inclusionEdge => this.diagramRepresentation?.addElement(inclusionEdge))
   }
 
   addEdge(sourceId: string,
@@ -181,7 +212,8 @@ export default class DiagramBuilder {
     const targetNode = this.diagramRepresentation?.grapholElements.get(targetId)
 
     if (sourceNode && targetNode) {
-      const instanceEdge = new GrapholEdge(`${sourceId}-${edgeType}-${targetId}`, edgeType)
+      const instanceEdge = new GrapholEdge(this.getNewId('edge'), edgeType)
+      instanceEdge.diagramId = this.diagram.id
       instanceEdge.sourceId = sourceId
       instanceEdge.targetId = targetId
 
@@ -194,22 +226,9 @@ export default class DiagramBuilder {
     return this.diagram.representations.get(this.rendererState)
   }
 
-  public getIdFromEntity(entity) {
-    if (!this.diagramRepresentation) return
-
-    const entityOccurrences = entity.occurrences.get(RendererStatesEnum.GRAPHOL).length > 0 ? entity.occurrences.get(RendererStatesEnum.GRAPHOL) : entity.occurrences.get(RendererStatesEnum.FLOATY)
-    if (!entityOccurrences || entityOccurrences.length === 0) return
-    let entityId = entityOccurrences.find(o => o.diagramId === this.diagram.id)?.elementId
-
-    if(!entityId) return
-    let node = this.diagramRepresentation?.grapholElements.get(entityId)
-
-    return node?.id
-  }
-
   public toggleFunctionality(entity, functional){
 
-    const id = this.getIdFromEntity(entity)
+    const id = getIdFromEntity(entity, this.diagram.id, GrapholTypesEnum.DATA_PROPERTY, this.rendererState)
     if(!id) return
     const node = this.diagramRepresentation?.cy.$id(id)
     if(!node) return
@@ -253,5 +272,23 @@ export default class DiagramBuilder {
       edge.data('targetLabel', 'C')
       edge.addClass('equivalence')
     }
+  }
+
+  /**
+   * Get cytoscape representation of an entity given the type needed
+   * @param entity 
+   * @param type 
+   * @returns 
+   */
+  private getEntityCyRepr(entity: GrapholEntity, type: GrapholTypesEnum) {
+    const occurrenceID = getIdFromEntity(entity, this.diagram.id, type, this.rendererState)
+    if (occurrenceID)
+      return this.diagramRepresentation?.cy.$id(occurrenceID) || cytoscape().collection()
+    else
+      return cytoscape().collection()
+  }
+
+  private getNewId(nodeOrEdge: 'node' | 'edge') {
+    return `${nodeOrEdge.charAt(0)}${(this.diagramRepresentation?.grapholElements.size || -1) + 1}`
   }
 }
