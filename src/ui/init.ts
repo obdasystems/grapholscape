@@ -58,10 +58,6 @@ export default function (grapholscape: Grapholscape) {
         buttonsTray.appendChild(widget)
         break
 
-      case WidgetEnum.NEW_CLASS:
-      case WidgetEnum.NEW_DIAGRAM:
-      case WidgetEnum.NEW_DATAPROPERTY:
-      case WidgetEnum.NEW_OBJECTPROPERTY:
       case WidgetEnum.FULLSCREEN_BUTTON:
       case WidgetEnum.DIAGRAM_SELECTOR:
       case WidgetEnum.ENTITY_DETAILS:
@@ -71,6 +67,10 @@ export default function (grapholscape: Grapholscape) {
         break
 
       case WidgetEnum.LAYOUT_SETTINGS:
+      case WidgetEnum.NEW_CLASS:
+      case WidgetEnum.NEW_DIAGRAM:
+      case WidgetEnum.NEW_DATAPROPERTY:
+      case WidgetEnum.NEW_OBJECTPROPERTY:
         break
       
       case WidgetEnum.INITIAL_RENDERER_SELECTOR:
