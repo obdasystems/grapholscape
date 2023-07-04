@@ -13,6 +13,7 @@ export enum IncrementalEvent {
   ClassInstanceSelection = 'classInstanceSselection',
   ClassSelection = 'classSelection',
   ContextClick = 'contextClick',
+  DoubleTap = 'doubleTap',
   DiagramUpdated = 'diagramUpdated',
   ReasonerSet = 'reasonerSet',
   NewDataPropertyValues = 'newDataPropertyValues',

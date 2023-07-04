@@ -36,6 +36,8 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
 
     cy.on('cxttap', evt => lifecycle.trigger(LifecycleEvent.ContextClick, evt))
 
+    cy.on('dbltap', evt => lifecycle.trigger(LifecycleEvent.DoubleTap, evt))
+
     cy.on('mouseover', '*', e => {
       const container = cy.container()
       if (container) {

@@ -20,10 +20,34 @@ export default function (theme: GrapholscapeTheme) {
         'text-margin-y': 0,
         'text-valign': 'center',
         'text-halign': 'center',
-        'height': 'data(width)'
+        'height': (node)=>  node.data('width') || 100,
+        'width' : (node)=>  node.data('width') || 100
       }
     },
-
+    {
+      selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+      style: {
+        'height': (node)=>  node.data('width') || 20,
+        'width' : (node)=>  node.data('width') || 20
+      }
+    },
+    {
+      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      style: {
+        backgroundColor: theme.getColour(ColoursNames.class_instance),
+        "border-color": theme.getColour(ColoursNames.class_instance_contrast),
+      }
+    },
+    {
+      selector: `edge[type = "${GrapholTypesEnum.INSTANCE_OF}"]`,
+      style: {
+        "target-arrow-shape": 'triangle',
+        'target-arrow-fill': 'filled',
+        'line-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'line-opacity': 0.4,
+      }
+    },
     {
       selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
       style: {

@@ -12,6 +12,10 @@ export enum WidgetEnum {
   LAYOUT_SETTINGS = 'layout-settings',
   SETTINGS = 'settings',
   ZOOM_TOOLS = 'zoom-tools',
+  NEW_CLASS = 'new-class',
+  NEW_DIAGRAM = 'new-diagram',
+  NEW_DATAPROPERTY = 'new-dataproperty',
+  NEW_OBJECTPROPERTY = 'new-objectproperty',
   INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
   /** @internal */
   CLASS_INSTANCE_DETAILS = 'class-instance-details',

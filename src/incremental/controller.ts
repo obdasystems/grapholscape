@@ -7,7 +7,7 @@ import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeConfirmDialog } from "../ui";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
-import DiagramBuilder from "./diagram-builder";
+import DiagramBuilder from "../core/diagram-builder";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -46,7 +46,7 @@ export default class IncrementalController {
     public grapholscape: Grapholscape
   ) {
     this.setIncrementalEventHandlers()
-    this.diagramBuilder = new DiagramBuilder(this.diagram)
+    this.diagramBuilder = new DiagramBuilder(this.diagram, RendererStatesEnum.INCREMENTAL)
     this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
 
@@ -100,7 +100,7 @@ export default class IncrementalController {
   addClass(iri: string, centerOnIt = true, position?: Position) {
     const entity = this.grapholscape.ontology.getEntity(iri)
 
-    if (entity && this.diagramBuilder.diagram.representation) {
+    if (entity && this.diagram.representation) {
 
       this.diagramBuilder.addClass(entity, position)
 
@@ -470,35 +470,35 @@ export default class IncrementalController {
       this.performActionWithBlockedGraph(() => {
         const position = this.grapholscape.renderer.cy?.$id(`${classIri}-${GrapholTypesEnum.CLASS}`).position()
         if (showORHide === 'show')
-          hierarchies?.forEach(hierarchy => this.addHierarchy(hierarchy, position))
+          hierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy, position))
         else
           hierarchies?.forEach(hierarchy => this.removeHierarchy(hierarchy, [classIri]))
       })
     }
   }
 
-  private addHierarchy(hierarchy: Hierarchy, position?: Position) {
-    const unionNode = hierarchy.getUnionGrapholNode(position)
-    const inputEdges = hierarchy.getInputGrapholEdges()
-    const inclusionEdges = hierarchy.getInclusionEdges()
+  // private addHierarchy(hierarchy: Hierarchy, position?: Position) {
+  //   // const unionNode = hierarchy.getUnionGrapholNode(position)
+  //   // const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)
+  //   // const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)
 
-    if (!unionNode || !inputEdges || !inclusionEdges)
-      return
+  //   if (!hierarchy.id)
+  //     return
 
-    this.diagram.addElement(unionNode)
+  //   // Add inputs
+  //   for (const inputClassIri of hierarchy.inputs) {
+  //     this.addClass(inputClassIri.iri.fullIri, false)
+  //   }
 
-    // Add inputs
-    for (const inputClassIri of hierarchy.inputs) {
-      this.addClass(inputClassIri, false)
-    }
+  //   for (const superClass of hierarchy.superclasses) {
+  //     this.addClass(superClass.classEntity.iri.fullIri, false)
+  //   }
 
-    for (const superClass of hierarchy.superclasses) {
-      this.addClass(superClass.classIri, false)
-    }
+  //   this.diagramBuilder.addHierarchy(hierarchy)
 
-    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
-    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
-  }
+  //   // hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
+  //   // hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
+  // }
 
   private removeHierarchy(hierarchy: Hierarchy, entitiesTokeep: string[] = []) {
     if (!this.incrementalRenderer || !hierarchy.id || (hierarchy.id && this.grapholscape.renderer.cy?.$id(hierarchy.id).empty()))
@@ -508,33 +508,29 @@ export default class IncrementalController {
     this.diagram.removeElement(hierarchy.id)
 
     // remove input edges
-    hierarchy.getInputGrapholEdges()?.forEach(inputEdge => {
+    hierarchy.getInputGrapholEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)?.forEach(inputEdge => {
       this.diagram?.removeElement(inputEdge.id)
     })
 
     // remove inclusion edges
-    hierarchy.getInclusionEdges()?.forEach(inclusionEdge => {
+    hierarchy.getInclusionEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)?.forEach(inclusionEdge => {
       this.diagram?.removeElement(inclusionEdge.id)
     })
 
     let entity: GrapholEntity | null
 
     // remove input classes or superclasses left with no edges
-    hierarchy.inputs.forEach(inputClassIri => {
-      if (this.grapholscape.renderer.cy?.$id(`${inputClassIri}-${GrapholTypesEnum.CLASS}`).degree(false) === 0 &&
-        !entitiesTokeep.includes(inputClassIri)) {
-        entity = this.ontology.getEntity(inputClassIri)
-        if (entity)
-          this.removeEntity(entity)
+    hierarchy.inputs.forEach(inputClass => {
+      if (this.grapholscape.renderer.cy?.$id(`${inputClass.iri.fullIri}-${GrapholTypesEnum.CLASS}`).degree(false) === 0 &&
+        !entitiesTokeep.includes(inputClass.iri.fullIri)) {
+        this.removeEntity(inputClass)
       }
     })
 
     hierarchy.superclasses.forEach(superclass => {
-      if (this.grapholscape.renderer.cy?.$id(`${superclass.classIri}-${GrapholTypesEnum.CLASS}`).degree(false) === 0 &&
-        !entitiesTokeep.includes(superclass.classIri)) {
-        entity = this.ontology.getEntity(superclass.classIri)
-        if (entity)
-          this.removeEntity(entity)
+      if (this.grapholscape.renderer.cy?.$id(`${superclass.classEntity.iri.fullIri}-${GrapholTypesEnum.CLASS}`).degree(false) === 0 &&
+        !entitiesTokeep.includes(superclass.classEntity.iri.fullIri)) {
+          this.removeEntity(superclass.classEntity)
       }
     })
   }

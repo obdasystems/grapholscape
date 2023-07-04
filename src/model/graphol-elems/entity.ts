@@ -139,6 +139,12 @@ export default class GrapholEntity extends AnnotatedElement {
     return this.occurrences.get(rendererState)?.find(o => o.type === type)
   }
 
+  public getOccurrencesByType(type: GrapholTypesEnum, rendererState: RendererStatesEnum) {
+    console.log(this.occurrences)
+    console.log(this.occurrences.get(rendererState))
+    return this.occurrences.get(rendererState)?.filter(o => o.type === type)
+  }
+
   public hasFunctionality(functionalityKind: FunctionalityEnum) {
     return this._functionalities?.includes(functionalityKind) || false
   }

@@ -3,6 +3,7 @@ import GrapholEntity from '../graphol-elems/entity'
 import GrapholElement from '../graphol-elems/graphol-element'
 import { RendererStatesEnum } from '../renderers/i-render-state'
 import DiagramRepresentation from './diagram-representation'
+import Iri from '../iri'
 
 export type ViewportState = {
   pan: Position,
@@ -46,6 +47,10 @@ class Diagram {
     rendererState
       ? this.representations.get(rendererState)?.clear()
       : this.representations.forEach(r => r.clear())
+  }
+
+  containsEntity(iriOrGrapholEntity: Iri | GrapholEntity, rendererState: RendererStatesEnum) {
+    return this.representations.get(rendererState)?.containsEntity(iriOrGrapholEntity)
   }
 }
 

@@ -7,10 +7,14 @@ import { initIncremental } from './incremental'
 import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
+import edgehandles from 'cytoscape-edgehandles';
+import undoredo from 'cytoscape-undo-redo'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
+cytoscape.use(edgehandles)
+cytoscape.use(undoredo)
 
 export * from './config'
 export * from './core'
