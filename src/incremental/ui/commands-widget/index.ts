@@ -19,9 +19,10 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
       return
 
     const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri)
-    if (!entity) return
+    const grapholElement = ic.diagram.representation?.grapholElements.get(event.target.id())
+    if (!entity || !grapholElement) return
 
-    if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
+    if (grapholElement.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
         event.target.source().data().type === GrapholTypesEnum.CLASS_INSTANCE &&
         event.target.target().data().type === GrapholTypesEnum.CLASS_INSTANCE) {
       commands.push({
@@ -37,7 +38,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
       })
     }
 
-    if (entity.is(GrapholTypesEnum.CLASS_INSTANCE)) {
+    if (grapholElement.is(GrapholTypesEnum.CLASS_INSTANCE)) {
 
       commands.push(IncrementalCommands.focusInstance(() => ic.expandObjectPropertiesOnInstance(entity.iri.fullIri)))
 
@@ -69,7 +70,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     const classIri = entity.iri.fullIri
 
-    if (entity.is(GrapholTypesEnum.CLASS)) {
+    if (grapholElement.is(GrapholTypesEnum.CLASS)) {
       const superHierarchies = ic.grapholscape.ontology.hierarchiesBySubclassMap.get(classIri)
       const subHierarchies = ic.grapholscape.ontology.hierarchiesBySuperclassMap.get(classIri)
 
@@ -155,7 +156,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     }
 
-    if (!entity.is(GrapholTypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
+    if (!grapholElement.is(GrapholTypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
       commands.push({
         content: 'Data Lineage',
         icon: sankey,
@@ -165,7 +166,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     commands.push(
       IncrementalCommands.remove(() => {
-        if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
+        if (grapholElement.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
           const grapholOccurrence = ic.diagram.representation?.grapholElements.get(event.target.id())
           if (grapholOccurrence) {
             entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
