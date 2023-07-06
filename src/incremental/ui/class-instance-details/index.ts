@@ -53,7 +53,8 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     }
 
     classInstanceDetails.canShowDataPropertiesValues = true
-    entityDetailsWidget?.setGrapholEntity(classInstanceEntity)
+    const classInstanceNode = classInstanceEntity.getOccurrenceByType(GrapholTypesEnum.CLASS_INSTANCE, RendererStatesEnum.INCREMENTAL)
+    entityDetailsWidget?.setGrapholEntity(classInstanceEntity, classInstanceNode)
     classInstanceDetails.show()
   })
 

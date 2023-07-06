@@ -6,10 +6,13 @@ export default function(menu: GscapeNavigationMenu | GscapeInstanceExplorer, inc
     incrementalController.endpointController?.stopRequests('instances')
     
     if (menu.referenceEntity && menu.referenceEntityType) {
+      const refNodeId = incrementalController.getIDByIRI(menu.referenceEntity.value.iri.fullIri, menu.referenceEntityType)
+      if (!refNodeId) return
+
       const refNode = incrementalController
         .diagram
         .representation
-        ?.cy.$id(`${menu.referenceEntity.value.iri.fullIri}-${menu.referenceEntityType}`)
+        ?.cy.$id(refNodeId)
 
       if (refNode?.scratch('should-unpin')) {
         refNode.removeScratch('should-unpin')

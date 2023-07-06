@@ -166,12 +166,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     commands.push(
       IncrementalCommands.remove(() => {
         if (entity.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
-          ic.diagram.removeElement(event.target.id())
           const grapholOccurrence = ic.diagram.representation?.grapholElements.get(event.target.id())
           if (grapholOccurrence) {
             entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
           }
-
+          ic.diagram.removeElement(event.target.id())
           ic.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
         } else {
           ic.removeEntity(entity.iri.fullIri)

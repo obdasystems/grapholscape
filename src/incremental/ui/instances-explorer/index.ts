@@ -37,12 +37,15 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     let addedInstanceEntity: ClassInstanceEntity | undefined
 
     addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
+    const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, GrapholTypesEnum.CLASS_INSTANCE)
+    if (!sourceId)
+      return
+
     addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
-      incrementalController.addEdge(
-        `${e.detail.instance.iri}-${GrapholTypesEnum.CLASS_INSTANCE}`,
-        `${parentClassIri.fullIri}-${GrapholTypesEnum.CLASS}`,
-        GrapholTypesEnum.INSTANCE_OF
-      )
+      const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, GrapholTypesEnum.CLASS)
+      if (targetId) {
+        incrementalController.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+      }
     })
 
     if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {

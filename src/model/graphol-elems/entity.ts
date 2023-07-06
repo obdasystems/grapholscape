@@ -75,15 +75,6 @@ export default class GrapholEntity extends AnnotatedElement {
     return result
   }
 
-  //addType(type: GrapholTypesEnum) {
-  //  this._type.add(type)
-  // }
-
-  // setType(type: GrapholTypesEnum) {
-  //  this._type.clear()
-  //  this._type.add(type)
-  // }
-
   get types() {
     let types = new Set<GrapholTypesEnum>()
     for (let [_, elements] of this.occurrences) {
@@ -92,11 +83,6 @@ export default class GrapholEntity extends AnnotatedElement {
 
     return types
   }
-
-  // get type() { return this._type.values()[0] }
-  //   set type(type: GrapholTypesEnum) {
-  //   this.setType(type)
-  // }
 
   /**
    * Check if entity is of a certain type
@@ -140,8 +126,6 @@ export default class GrapholEntity extends AnnotatedElement {
   }
 
   public getOccurrencesByType(type: GrapholTypesEnum, rendererState: RendererStatesEnum) {
-    console.log(this.occurrences)
-    console.log(this.occurrences.get(rendererState))
     return this.occurrences.get(rendererState)?.filter(o => o.type === type)
   }
 
