@@ -169,7 +169,7 @@ export default class IncrementalController {
     this.classInstanceEntities.clear()
     let clearedEntities: string[] = []
     this.diagram.representation?.grapholElements.forEach(elem => {
-      if (elem.iri && !clearedEntities.includes(elem.iri)) {
+      if (elem.iri && !clearedEntities.includes(elem.iri) && elem.type !== GrapholTypesEnum.CLASS_INSTANCE) {
         const entity = this.grapholscape.ontology.getEntity(elem.iri)
         if (entity) {
           entity.occurrences.set(RendererStatesEnum.INCREMENTAL, [])
