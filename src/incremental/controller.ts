@@ -1,8 +1,8 @@
-import { EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
+import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
 import { EntityNameType } from "../config";
 import { Grapholscape, IncrementalRendererState } from "../core";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, ViewportState } from "../model";
+import { Annotation, AnnotationsKind, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, ViewportState } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeConfirmDialog } from "../ui";
 import { ClassInstance } from "./api/kg-api";
@@ -355,9 +355,14 @@ export default class IncrementalController {
     const objectPropertyEntity = this.ontology.getEntity(objectPropertyIri)
     const sourceClass = this.ontology.getEntity(sourceClassIri)
     const targetClass = this.ontology.getEntity(targetClassIri)
-
+    let objectPropertyEdge: GrapholEdge | undefined
     if (objectPropertyEntity && sourceClass && targetClass) {
-      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, GrapholTypesEnum.CLASS)
+      objectPropertyEdge = this.diagramBuilder.addObjectProperty(
+        objectPropertyEntity,
+        sourceClass,
+        targetClass,
+        GrapholTypesEnum.CLASS
+      ) as GrapholEdge
 
       this.updateEntityNameType(objectPropertyEntity.iri)
       this.updateEntityNameType(sourceClassIri)
@@ -365,6 +370,8 @@ export default class IncrementalController {
 
       this.countInstancesForClass(sourceClassIri, false)
       this.countInstancesForClass(targetClassIri, false)
+
+      return objectPropertyEdge
     }
   }
 
@@ -839,7 +846,59 @@ export default class IncrementalController {
     })
   }
 
-  runLayout = () => this.incrementalRenderer?.runLayout()
+  async addPath(path: { iri: string, type: string }[]) {
+    this.performActionWithBlockedGraph(() => {
+      if (!this.diagram.representation)
+      return
+      let i = 0
+      let sourceClassIri: string, targetClassIri: string
+      let cyElems: Collection  = this.diagram.representation.cy.collection()
+      let elemId: string | undefined
+
+      for (let entity of path) {
+        
+        if (entity.type === 'objectProperty' || entity.type === 'inverseObjectProperty') {
+          if (!path[i+1] || !path[i-1])
+            return
+
+          sourceClassIri = path[i-1].iri
+          targetClassIri = path[i+1].iri
+          if (entity.type === 'objectProperty')
+            elemId = this.addIntensionalObjectProperty(entity.iri, sourceClassIri, targetClassIri)?.id
+          else
+            elemId = this.addIntensionalObjectProperty(entity.iri, targetClassIri, sourceClassIri)?.id
+
+          // create collection of elems to flash class and highlight them
+          if (elemId)
+            cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
+          
+          elemId = this.getIDByIRI(sourceClassIri, GrapholTypesEnum.CLASS)
+          if (elemId)
+            cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
+
+          elemId = this.getIDByIRI(targetClassIri, GrapholTypesEnum.CLASS)
+          if (elemId)
+            cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
+
+        }
+
+        i += 1
+      }
+
+      // clear previous highlighting
+      this.diagram.representation.cy.$('.path').removeClass('path')
+      // highlight current path
+      cyElems.addClass('path')
+      // clear highlight at any tap
+      this.diagram.representation.cy.one('tap', e => cyElems.removeClass('path'))
+      setTimeout(() => this.diagram.representation?.cy.fit(cyElems, 200), 500)
+    })
+  }
+
+  runLayout = () => {
+    this.incrementalRenderer?.runLayout()
+    console.log('runn')
+  }
   pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
   unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)
 

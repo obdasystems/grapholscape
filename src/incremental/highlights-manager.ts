@@ -73,6 +73,10 @@ export default class HighlightsManager {
     return Array.from(this._objectProperties).map(([_, opBranch]) => opBranch)
   }
 
+  async getShortestPath(sourceClassIri: string, targetClassIri: string) {
+    return this.vkgApi.getShortestPath(sourceClassIri, targetClassIri)
+  }
+
   public hasUnfoldings(entityIri: string, entityType: GrapholTypesEnum) {
     switch (entityType) {
       case GrapholTypesEnum.DATA_PROPERTY:

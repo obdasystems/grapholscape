@@ -9,6 +9,7 @@ import { WidgetEnum } from "../ui/util/widget-enum";
 import IncrementalController from "./controller";
 import { IncrementalEvent } from "./lifecycle";
 import * as IncrementalUI from './ui';
+import IncrementalInitialMenu from "./ui/initial-menu/initial-menu";
 
 export { IncrementalController };
 
@@ -25,25 +26,61 @@ export function initIncremental(grapholscape: Grapholscape) {
   IncrementalUI.NodeButtonsFactory(incrementalController)
   IncrementalUI.NavigationMenuFactory(incrementalController)
 
-  let entitySelector: GscapeEntitySelector
-  if (!incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR)) {
-    initEntitySelector(incrementalController.grapholscape)
+  let initialMenu = incrementalController
+    .grapholscape
+    .widgets
+    .get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu
+  
+  if (!initialMenu) {
+    // initEntitySelector(incrementalController.grapholscape)
+    initialMenu = new IncrementalInitialMenu(incrementalController)
+    incrementalController.grapholscape.widgets.set(WidgetEnum.INCREMENTAL_INITIAL_MENU, initialMenu)
   }
 
-  entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
-  incrementalController.grapholscape.uiContainer?.appendChild(entitySelector)
-  entitySelector.hide()
+  // entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+  incrementalController.grapholscape.uiContainer?.appendChild(initialMenu)
+  // entitySelector.hide()
 
-  entitySelector.onClassSelection(classIri => {
+  initialMenu.addEventListener('class-selection', (e: CustomEvent) => {
     const randomPos = {
       x: Math.random() * 200,
       y: Math.random() * 200
     }
-    incrementalController.addClass(classIri, true, randomPos)
-    grapholscape.selectElement(classIri)
-    IncrementalUI.moveUpLeft(entitySelector)
-    entitySelector.closePanel()
+    incrementalController.addClass(e.detail, true, randomPos)
+    grapholscape.selectElement(e.detail)
+    IncrementalUI.moveUpLeft(initialMenu)
   })
+
+  initialMenu.addEventListener('confirm-shortest-path', async (e: CustomEvent) => {
+    const path = await incrementalController.endpointController?.highlightsManager?.getShortestPath(
+      e.detail.sourceClassIri,
+      e.detail.targetClassIri
+    )
+    
+    if (path) {
+      path.unshift({
+        iri: e.detail.sourceClassIri,
+        type: 'class'
+      })
+      path.push({
+        iri: e.detail.targetClassIri,
+        type: 'class',
+      })
+      
+
+      incrementalController.addPath(path)
+    }
+  })
+  // entitySelector.onClassSelection(classIri => {
+  //   const randomPos = {
+  //     x: Math.random() * 200,
+  //     y: Math.random() * 200
+  //   }
+  //   incrementalController.addClass(classIri, true, randomPos)
+  //   grapholscape.selectElement(classIri)
+  //   IncrementalUI.moveUpLeft(entitySelector)
+  //   entitySelector.closePanel()
+  // })
 
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
     grapholscape.renderer.unselect()
@@ -121,7 +158,7 @@ function onIncrementalStartup(grapholscape: Grapholscape, incrementalController:
 function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false, isReasonerAvailable?: boolean) {
   const filtersWidget = widgets.get(WidgetEnum.FILTERS)
   const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
-  const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR)
+  const entitySelector = widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU)
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
   const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
@@ -134,7 +171,7 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
 
   if (isCanvasEmpty && entitySelector) {
     IncrementalUI.restorePosition(entitySelector);
-    (entitySelector as GscapeEntitySelector).focusInputSearch()
+    // (entitySelector as GscapeEntitySelector).focusInputSearch()
   }
 
   if (isReasonerAvailable)
@@ -146,7 +183,7 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
 function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>) {
   const filtersWidget = widgets.get(WidgetEnum.FILTERS)
   const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
-  const entitySelector = widgets.get(WidgetEnum.ENTITY_SELECTOR)
+  const entitySelector = widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU)
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
   const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails

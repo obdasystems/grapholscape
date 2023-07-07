@@ -45,6 +45,15 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         backgroundColor: theme.getColour(ColoursNames.neutral)
       }
+    },
+
+    {
+      selector: '.path',
+      style: {
+        'underlay-opacity': 0.5,
+        'underlay-color': theme.getColour(ColoursNames.success_subtle),
+        'underlay-shape': 'ellipse'
+      }
     }
 
   ] as Stylesheet[]

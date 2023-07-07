@@ -35,7 +35,10 @@ export interface IVirtualKnowledgeGraphApi {
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
-
+  getShortestPath: (sourceClassIri: string, targetClassIri: string) => Promise<{
+    type: string,
+    iri: string
+  }[]>
   pageSize: number
 }
 
@@ -350,6 +353,22 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     }
 
     queryPoller.start()
+  }
+
+  async getShortestPath(sourceClassIri: string, targetClassIri: string) {
+    const params = new URLSearchParams({
+      lastSelectedIRI: sourceClassIri,
+      clickedIRI: targetClassIri,
+      version: this.requestOptions.version
+    })
+    const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights/paths?${params.toString()}`)
+    return (await (await handleApiCall(
+      fetch(url, {
+        method: 'get',
+        headers: this.requestOptions.headers
+      }),
+      this.requestOptions.onError
+    )).json()).entities
   }
 
   shouldQueryUseLabels(executionId: string) {

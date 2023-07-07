@@ -15,7 +15,7 @@ export interface IEntitySelector {
   onClassSelection(callback:(iri: string) => void): void
 }
 
-export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) implements IEntitySelector {
+export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Class Selector'
   private fullEntityList: EntityViewData[] = []
   private _entityList: EntityViewData[] = []
@@ -29,6 +29,7 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
       entityList: { type: Object, attribute: false },
       isSearchTextEmpty: { type: Boolean, state: true },
       loading: { type: Boolean, state: true },
+      onClassSelection: { type: Object },
     }
   }
 
@@ -37,18 +38,6 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
     GscapeButtonStyle,
     contentSpinnerStyle,
     css`
-      :host {
-        position: absolute;
-        top: 20%;
-        left: 50%;
-        transform: translate(-50%);
-        max-height: 70%;
-        display: flex;
-        width: 40%;
-        font-size: 14px;
-        display: flex;
-        flex-direction: column;
-      }
 
       .gscape-panel {
         width: 100%;
@@ -251,8 +240,17 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
     }
   }
 
-  onClassSelection(callback: (iri: string) => void) {
+  // onClassSelection(callback: (iri: string) => void) {
+  //   this.onClassSelectionCallback = callback
+  // }
+
+  get onClassSelection() {
+    return this.onClassSelectionCallback
+  }
+
+  set onClassSelection(callback: (iri: string) => void) {
     this.onClassSelectionCallback = callback
+    this.requestUpdate()
   }
 
   set entityList(newEntityList) {
