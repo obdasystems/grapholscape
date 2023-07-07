@@ -1,4 +1,4 @@
-import { ClassInstanceEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
+import { ClassInstanceEntity, GrapholNode, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
 import { classIcon, counter, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import IncrementalController from "../../controller";
@@ -195,19 +195,26 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
 function showParentClass(incrementalController: IncrementalController, instanceEntity: ClassInstanceEntity) {
   const parentClassIris = instanceEntity.parentClassIris
-  incrementalController.performActionWithBlockedGraph(() => {
-    parentClassIris?.forEach(parentClassIri => {
-      incrementalController.addClass(parentClassIri.fullIri, false)
-      incrementalController.addEdge(
-        `${instanceEntity.iri.fullIri}-${GrapholTypesEnum.CLASS_INSTANCE}`,
-        `${parentClassIri.fullIri}-${GrapholTypesEnum.CLASS}`,
-        GrapholTypesEnum.INSTANCE_OF
-      )
+  let parentClassNode: GrapholNode | undefined
+  let classInstanceId = incrementalController.getIDByIRI(instanceEntity.iri.fullIri, GrapholTypesEnum.CLASS_INSTANCE)
+  if (classInstanceId) {
+    incrementalController.performActionWithBlockedGraph(() => {
+      parentClassIris?.forEach(parentClassIri => {
+        parentClassNode = incrementalController.addClass(parentClassIri.fullIri, false)
+        if (parentClassNode) {
+          incrementalController.addEdge(
+            classInstanceId!,
+            parentClassNode.id,
+            GrapholTypesEnum.INSTANCE_OF
+          )
+        }
+      })
     })
-  })
-  if (parentClassIris?.length === 1) {
-    setTimeout(() => {
-      incrementalController.grapholscape.centerOnElement(parentClassIris[0].fullIri)
-    }, 250)
+
+    if (parentClassIris?.length === 1 && parentClassNode) {
+      setTimeout(() => {
+        incrementalController.grapholscape.centerOnElement(parentClassNode!.id)
+      }, 250)
+    }
   }
 }
