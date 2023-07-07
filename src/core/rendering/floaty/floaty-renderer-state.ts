@@ -37,7 +37,7 @@ export default class FloatyRendererState extends BaseRenderer {
     this._layout?.stop()
     this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions)
     this._layout.one('layoutstop', (e) => {
-      if (e.layout !== this._layout) // only if layout has not changed
+      if (e.layout === this._layout) // only if layout has not changed
         this.layoutRunning = false
     })
     this._layout.run()

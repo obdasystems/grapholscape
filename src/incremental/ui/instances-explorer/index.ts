@@ -1,3 +1,4 @@
+import { Position } from "cytoscape"
 import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model"
 import { WidgetEnum } from "../../../ui"
 import { ClassInstance } from "../../api/kg-api"
@@ -34,51 +35,62 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   })
 
   instancesExplorer.addEventListener('instanceselection', async (e: InstanceSelectionEvent) => {
-    let addedInstanceEntity: ClassInstanceEntity | undefined
+    incrementalController.performActionWithBlockedGraph(async () => {
+      let addedInstanceEntity: ClassInstanceEntity | undefined
+      let refNodeId: string | undefined
+      let refPosition: Position | undefined
+      if (instancesExplorer.referenceEntity && instancesExplorer.referenceEntityType) {
+        refNodeId = incrementalController.getIDByIRI(
+          instancesExplorer.referenceEntity.value.iri.fullIri,
+          instancesExplorer.referenceEntityType,
+        )
+        if (refNodeId) {
+          refPosition = incrementalController.diagram.representation?.cy.$id(refNodeId).position()
+        }
+      }
+      
 
-    addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris)
-    const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, GrapholTypesEnum.CLASS_INSTANCE)
-    if (!sourceId)
-      return
+      addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris, refPosition)
+      const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, GrapholTypesEnum.CLASS_INSTANCE)
+      if (!sourceId)
+        return
 
-    addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
-      const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, GrapholTypesEnum.CLASS)
-      if (targetId) {
-        incrementalController.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+      addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
+        const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, GrapholTypesEnum.CLASS)
+        if (targetId) {
+          incrementalController.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+        }
+      })
+
+      if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {
+        incrementalController.addInstance(e.detail.instance.connectedInstance, undefined, refPosition)
+        const isDirect = (await (incrementalController.endpointController?.highlightsManager?.objectProperties()))
+          ?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
+        
+        if (isDirect !== undefined) {
+          isDirect 
+            ? incrementalController.addExtensionalObjectProperty(
+                e.detail.filterByProperty,
+                e.detail.instance.iri,
+                e.detail.instance.connectedInstance.iri
+              )
+            : incrementalController.addExtensionalObjectProperty(
+                e.detail.filterByProperty,
+                e.detail.instance.connectedInstance.iri,
+                e.detail.instance.iri
+              )
+        }
+      }
+
+      if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
+        const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
+        const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
+        if (instancesExplorer.isPropertyDirect)
+          incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
+        else
+          incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
       }
     })
-
-    if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {
-      incrementalController.addInstance(e.detail.instance.connectedInstance)
-      const isDirect = (await (incrementalController.endpointController?.highlightsManager?.objectProperties()))
-        ?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
-      
-      if (isDirect !== undefined) {
-        isDirect 
-          ? incrementalController.addExtensionalObjectProperty(
-              e.detail.filterByProperty,
-              e.detail.instance.iri,
-              e.detail.instance.connectedInstance.iri
-            )
-          : incrementalController.addExtensionalObjectProperty(
-              e.detail.filterByProperty,
-              e.detail.instance.connectedInstance.iri,
-              e.detail.instance.iri
-            )
-      }
-      
-    }
-
-    if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
-      const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
-      const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
-      if (instancesExplorer.isPropertyDirect)
-        incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
-      else
-        incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
-    }
-
-    incrementalController.runLayout()
   })
 
   instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {

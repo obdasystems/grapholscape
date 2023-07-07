@@ -289,7 +289,7 @@ export default class IncrementalController {
     })
   }
 
-  addInstance(instance: ClassInstance, parentClassesIris?: string[] | string) {
+  addInstance(instance: ClassInstance, parentClassesIris?: string[] | string, position?: Position) {
     let classInstanceEntity = this.classInstanceEntities.get(instance.iri)
 
     // if not already present, then build classInstanceEntity and add it to diagram
@@ -316,7 +316,7 @@ export default class IncrementalController {
       this.classInstanceEntities.set(instance.iri, classInstanceEntity)
     }
 
-    this.diagramBuilder.addClassInstance(classInstanceEntity)
+    this.diagramBuilder.addClassInstance(classInstanceEntity, position)
 
     // update parent class Iri
     if (typeof (parentClassesIris) !== 'string') {
@@ -357,13 +357,11 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
 
     if (objectPropertyEntity && sourceClass && targetClass) {
-      this.performActionWithBlockedGraph(() => {
-        this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, GrapholTypesEnum.CLASS)
+      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, GrapholTypesEnum.CLASS)
 
-        this.updateEntityNameType(objectPropertyEntity.iri)
-        this.updateEntityNameType(sourceClassIri)
-        this.updateEntityNameType(targetClassIri)
-      })
+      this.updateEntityNameType(objectPropertyEntity.iri)
+      this.updateEntityNameType(sourceClassIri)
+      this.updateEntityNameType(targetClassIri)
 
       this.countInstancesForClass(sourceClassIri, false)
       this.countInstancesForClass(targetClassIri, false)
@@ -382,18 +380,16 @@ export default class IncrementalController {
     const targetInstanceEntity = this.classInstanceEntities.get(targetInstanceIri)
 
     if (objectPropertyEntity && sourceInstanceEntity && targetInstanceEntity) {
-      this.performActionWithBlockedGraph(() => {
-        this.diagramBuilder.addObjectProperty(
-          objectPropertyEntity,
-          sourceInstanceEntity,
-          targetInstanceEntity,
-          GrapholTypesEnum.CLASS_INSTANCE
-        )
+      this.diagramBuilder.addObjectProperty(
+        objectPropertyEntity,
+        sourceInstanceEntity,
+        targetInstanceEntity,
+        GrapholTypesEnum.CLASS_INSTANCE
+      )
 
-        this.updateEntityNameType(objectPropertyEntity.iri)
-        this.updateEntityNameType(sourceInstanceEntity.iri)
-        this.updateEntityNameType(targetInstanceEntity.iri)
-      })
+      this.updateEntityNameType(objectPropertyEntity.iri)
+      this.updateEntityNameType(sourceInstanceEntity.iri)
+      this.updateEntityNameType(targetInstanceEntity.iri)
     }
   }
 
@@ -414,27 +410,30 @@ export default class IncrementalController {
       let targetParentClassId: string | undefined
       let sourceClassInstanceId: string | undefined
       let targetClassInstanceId: string | undefined
-      sourceClassInstanceEntity.parentClassIris.forEach(sourceParentClassIri => {
-        targetClassInstanceEntity.parentClassIris.forEach(targetParentClassIri => {
+      this.performActionWithBlockedGraph(() => {
+        sourceClassInstanceEntity.parentClassIris.forEach(sourceParentClassIri => {
+          targetClassInstanceEntity.parentClassIris.forEach(targetParentClassIri => {
 
-          sourceClassInstanceId = this.getIDByIRI(sourceClassInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
-          sourceParentClassId = this.getIDByIRI(sourceParentClassIri.fullIri, GrapholTypesEnum.CLASS)
+            sourceClassInstanceId = this.getIDByIRI(sourceClassInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+            sourceParentClassId = this.getIDByIRI(sourceParentClassIri.fullIri, GrapholTypesEnum.CLASS)
 
-          targetClassInstanceId = this.getIDByIRI(targetClassInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
-          targetParentClassId = this.getIDByIRI(targetParentClassIri.fullIri, GrapholTypesEnum.CLASS)
+            targetClassInstanceId = this.getIDByIRI(targetClassInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+            targetParentClassId = this.getIDByIRI(targetParentClassIri.fullIri, GrapholTypesEnum.CLASS)
 
-          if (sourceParentClassId && targetParentClassId && sourceClassInstanceId && targetClassInstanceId) {
-            this.addIntensionalObjectProperty(
-            objectPropertyIri,
-            sourceParentClassIri.fullIri,
-            targetParentClassIri.fullIri,
-            )
-            
-            this.addEdge(sourceClassInstanceId, sourceParentClassId, GrapholTypesEnum.INSTANCE_OF)
-            this.addEdge(targetClassInstanceId, targetParentClassId, GrapholTypesEnum.INSTANCE_OF)
-          }
+            if (sourceParentClassId && targetParentClassId && sourceClassInstanceId && targetClassInstanceId) {
+              this.addIntensionalObjectProperty(
+                objectPropertyIri,
+                sourceParentClassIri.fullIri,
+                targetParentClassIri.fullIri,
+              )
+              
+              this.addEdge(sourceClassInstanceId, sourceParentClassId, GrapholTypesEnum.INSTANCE_OF)
+              this.addEdge(targetClassInstanceId, targetParentClassId, GrapholTypesEnum.INSTANCE_OF)
+            }
+          })
         })
       })
+      
     }
   }
 
@@ -813,10 +812,15 @@ export default class IncrementalController {
       let addedClassNode: GrapholElement | undefined
       let addedClassInstanceEntity: ClassInstanceEntity | undefined
       let classInstanceId: string | undefined
+      let position: Position | undefined
+      const sourceId = this.getIDByIRI(sourceInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+      if (sourceId) {
+        position = this.diagram.representation?.cy.$id(sourceId).position()
+      }
 
       results.forEach((result, objectPropertyEntity) => {
         result.ranges.forEach(range => {
-          addedClassInstanceEntity = this.addInstance(range.classInstance, range.classEntity.iri.fullIri)
+          addedClassInstanceEntity = this.addInstance(range.classInstance, range.classEntity.iri.fullIri, position)
 
           classInstanceId = addedClassInstanceEntity.getOccurrenceByType(
             GrapholTypesEnum.CLASS_INSTANCE,
@@ -830,7 +834,6 @@ export default class IncrementalController {
               ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
               : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, range.classInstance.iri, sourceInstanceIri)
           }
-          
         })
       })
     })
