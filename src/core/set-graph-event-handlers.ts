@@ -1,4 +1,4 @@
-import { Diagram, Lifecycle, LifecycleEvent, Ontology } from "../model"
+import { Diagram, GrapholTypesEnum, Lifecycle, LifecycleEvent, Ontology } from "../model"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
 import { isGrapholNode } from "../model/graphol-elems/node"
 
@@ -11,7 +11,7 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
     cy.on('select', e => {
       const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
       if (grapholElement) {
-        if (grapholElement.isEntity()) {
+        if (grapholElement.isEntity() && !grapholElement.is(GrapholTypesEnum.CLASS_INSTANCE)) {
           const grapholEntity = ontology.getEntity(e.target.data().iri)
           if (grapholEntity) {
             lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)

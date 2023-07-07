@@ -58,73 +58,91 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.FocusStarted, instanceIri => {
-    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
-    if (cyNode) {
-      addBadge(cyNode, textSpinner(), 'loading-badge')
+    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    if (nodeId) {
+      const cyNode = ic.diagram.representation?.cy.$id(nodeId)
+      if (cyNode && cyNode.nonempty()) {
+        addBadge(cyNode, textSpinner(), 'loading-badge')
+      }
     }
   })
 
   ic.on(IncrementalEvent.FocusFinished, instanceIri => {
-    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
-    if (cyNode && cyNode.scratch('loading-badge')) {
-      removeBadge(cyNode, 'loading-badge')
+    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    if (nodeId) {
+      const cyNode = ic.diagram.representation?.cy.$id(nodeId)
+      if (cyNode && cyNode.nonempty() && cyNode.scratch('loading-badge')) {
+        removeBadge(cyNode, 'loading-badge')
+      }
     }
   })
 
   ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
-    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
-    if (cyNode) {
-      cyNode.addClass('unknown-parent-class')
-      addBadge(cyNode, textSpinner(), 'loading-badge')
+    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    if (nodeId) {
+      const cyNode = ic.diagram.representation?.cy.$id(nodeId)
+      if (cyNode && cyNode.nonempty()) {
+        cyNode.addClass('unknown-parent-class')
+        addBadge(cyNode, textSpinner(), 'loading-badge')
+      }
     }
   })
 
   ic.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
-    const cyNode = ic.diagram.representation?.cy.$id(`${instanceIri}-${GrapholTypesEnum.CLASS_INSTANCE}`)
-    if (cyNode && cyNode.scratch('loading-badge')) {
-      removeBadge(cyNode, 'loading-badge')
+    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    if (nodeId) {
+      const cyNode = ic.diagram.representation?.cy.$id(nodeId)
+      if (cyNode && cyNode.nonempty() && cyNode.scratch('loading-badge')) {
+        removeBadge(cyNode, 'loading-badge')
+      }
     }
   })
 
   ic.on(IncrementalEvent.CountStarted, classIri => {
-    const node = ic.diagram.representation?.cy.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
-    if (!node || node.empty()) return
+    const nodeId = ic.getIDByIRI(classIri, GrapholTypesEnum.CLASS)
+    if (nodeId) {
+      const node = ic.diagram.representation?.cy.$id(nodeId)
+      if (!node || node.empty()) return
 
-    removeBadge(node, 'instance-count')
-    addBadge(node, textSpinner(), 'instance-count', 'bottom')
+      removeBadge(node, 'instance-count')
+      addBadge(node, textSpinner(), 'instance-count', 'bottom')
+    }
   })
 
   ic.on(IncrementalEvent.NewCountResult, (classIri, count) => {
-    const cyNode = ic.grapholscape.renderer.cy?.$id(`${classIri}-${GrapholTypesEnum.CLASS}`)
-    if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
-      const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
-      instanceCountBadge.contentType = 'template';
+    const nodeId = ic.getIDByIRI(classIri, GrapholTypesEnum.CLASS)
+    if (nodeId) {
+      const cyNode = ic.diagram.representation?.cy.$id(nodeId)
+      if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
+        const instanceCountBadge = cyNode.scratch('instance-count') as NodeButton
+        instanceCountBadge.contentType = 'template';
 
-      count = count || ic.counts.get(classIri)
-      instanceCountBadge.content = count?.value !== undefined
-        ? new Intl.NumberFormat().format(count.value)
-        : 'n/a'
+        count = count || ic.counts.get(classIri)
+        instanceCountBadge.content = count?.value !== undefined
+          ? new Intl.NumberFormat().format(count.value)
+          : 'n/a'
 
-      instanceCountBadge.highlighted = !count?.materialized
-      if (count?.date) {
-        instanceCountBadge.title = `Date: ${count.date}`
-      } else {
-        instanceCountBadge.title = 'Fresh Value'
+        instanceCountBadge.highlighted = !count?.materialized
+        if (count?.date) {
+          instanceCountBadge.title = `Date: ${count.date}`
+        } else {
+          instanceCountBadge.title = 'Fresh Value'
+        }
+
+
+        const updateFun = cyNode.scratch('update-instance-count-position')
+        if (updateFun) updateFun()
+
+        setTimeout(() => instanceCountBadge.hide(), 1000)
+        cyNode.on('mouseover', () => {
+          if (ic.countersEnabled)
+            instanceCountBadge.tippyWidget.show()
+        })
+        cyNode.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
+
+        if (count && !count.materialized) // update only if it's a fresh value
+          ic.counts.set(classIri, count)
       }
-
-
-      const updateFun = cyNode.scratch('update-instance-count-position')
-      if (updateFun) updateFun()
-
-      setTimeout(() => instanceCountBadge.hide(), 1000)
-      cyNode.on('mouseover', () => {
-        if (ic.countersEnabled)
-          instanceCountBadge.tippyWidget.show()
-      })
-      cyNode.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
-
-      if (count && !count.materialized) // update only if it's a fresh value
-        ic.counts.set(classIri, count)
     }
   })
 }

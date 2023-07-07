@@ -54,18 +54,20 @@ export default class IncrementalRendererState extends FloatyRendererState {
     if (this.isLayoutInfinite) {
       this.unFreezeGraph()
     } else {
-      this.layout.one('layoutstop', () => {
+      this.layout.one('layoutstop', (e) => {
         if (this.renderer.diagram?.representations.get(this.id)?.grapholElements.size === 1)
           this.renderer.fit()
 
-        this.unFreezeGraph()
+        if (e.layout === this._layout)
+          this.unFreezeGraph()
       })
     }
   }
 
   /** lock all nodes */
   freezeGraph() {
-    this.renderer.cy?.nodes().lock()
+    if (!this.layoutRunning)
+      this.renderer.cy?.nodes().lock()
   }
 
   /** unlock all nodes that are not pinned (pinned can be unlocked only with unpin) */

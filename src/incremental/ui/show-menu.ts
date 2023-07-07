@@ -10,7 +10,10 @@ export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, in
     const cy = incrementalController.grapholscape.renderer.cy
 
     if (cy) {
-      const node = cy.$id(`${menu.referenceEntity.value.iri.fullIri}-${menu.referenceEntityType}`)
+      const nodeId = incrementalController.getIDByIRI(menu.referenceEntity.value.iri.fullIri, menu.referenceEntityType)
+      if (!nodeId) return
+
+      const node = cy.$id(nodeId)
 
       if (node) {
         if (panGraph)

@@ -1,4 +1,4 @@
-import { Ontology, GrapholTypesEnum, Hierarchy, RendererStatesEnum } from "../../../model"
+import { Ontology, GrapholTypesEnum, Hierarchy, RendererStatesEnum, GrapholEntity } from "../../../model"
 
 
 export default function computeHierarchies(ontology: Ontology) {
@@ -9,14 +9,17 @@ export default function computeHierarchies(ontology: Ontology) {
     diagram.representations.get(RendererStatesEnum.FLOATY)?.cy.$(unionNodeSelector).forEach(unionNode => {
       const hierarchy = new Hierarchy(unionNode.data().type)
       hierarchy.id = `${unionNode.id()}-${diagram.id}`
-
+      let entity: GrapholEntity | null
       unionNode.connectedEdges(`[type = "${GrapholTypesEnum.INPUT}"]`).sources().forEach(inputNode => {
         if (inputNode.data().iri) {
           if (!ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)) {
             ontology.hierarchiesBySubclassMap.set(inputNode.data().iri, [])
           }
+          entity = ontology.getEntity(inputNode.data().iri)
+          if (entity) {
+            hierarchy.addInput(entity)
+          }
 
-          hierarchy.addInput(inputNode.data().iri)
           ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)?.push(hierarchy)
         }
       })
@@ -29,7 +32,11 @@ export default function computeHierarchies(ontology: Ontology) {
             ontology.hierarchiesBySuperclassMap.set(superClass.data().iri, [])
           }
 
-          hierarchy.addSuperclass(superClass.data().iri, inclusionEdge.data().targetLabel === 'C')
+          entity = ontology.getEntity(superClass.data().iri)
+          if (entity) {
+            hierarchy.addSuperclass(entity, inclusionEdge.data().targetLabel === 'C')
+          }
+
           ontology.hierarchiesBySuperclassMap.get(superClass.data().iri)?.push(hierarchy)
         }
       })
