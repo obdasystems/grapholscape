@@ -152,6 +152,20 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       // avoid konvajs to put div over grapholscape's UI
       document.getElementById('cy-node-edge-editing-stage0')?.remove()
     }
+    currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+      if (addedEdge.data('type') === GrapholTypesEnum.OBJECT_PROPERTY) {
+        grapholscape.uiContainer?.appendChild(newElementComponent)
+        initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
+      }
+      else if(addedEdge.data('type') === GrapholTypesEnum.INCLUSION){
+        const ontologyBuilder = new OntologyBuilder(grapholscape)
+        const sourceId = sourceNode.data('iri')
+        const targetId = targetNode.data('iri')
+        grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
+        ontologyBuilder.addEdgeElement(undefined, GrapholTypesEnum.INCLUSION, sourceId, targetId, sourceNode.data('type'))
+      }
+      currentCy.removeScratch('edge-creation-type')
+    })
   })
 
   grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {
@@ -186,20 +200,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           edgehandles.start(elem)
           currentCy.scratch('edge-creation-type', GrapholTypesEnum.INCLUSION)
 
-          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            if (addedEdge.data('type') === GrapholTypesEnum.OBJECT_PROPERTY) {
-              grapholscape.uiContainer?.appendChild(newElementComponent)
-              initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
-            }
-            else if(addedEdge.data('type') === GrapholTypesEnum.INCLUSION){
-              const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const sourceId = sourceNode.data('iri')
-              const targetId = targetNode.data('iri')
-              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-              ontologyBuilder.addEdgeElement(undefined, GrapholTypesEnum.INCLUSION, sourceId, targetId, GrapholTypesEnum.DATA_PROPERTY)
-            }
-            currentCy.removeScratch('edge-creation-type')
-          })
         }
       })
 
@@ -236,20 +236,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           edgehandles.start(elem)
           currentCy.scratch('edge-creation-type', GrapholTypesEnum.OBJECT_PROPERTY)
 
-          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            if (addedEdge.data('type') === GrapholTypesEnum.OBJECT_PROPERTY) {
-              grapholscape.uiContainer?.appendChild(newElementComponent)
-              initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
-            }
-            else if(addedEdge.data('type') === GrapholTypesEnum.INCLUSION){
-              const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const sourceId = sourceNode.data('iri')
-              const targetId = targetNode.data('iri')
-              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-              ontologyBuilder.addEdgeElement(undefined, GrapholTypesEnum.INCLUSION, sourceId, targetId, GrapholTypesEnum.CLASS)
-            }
-            currentCy.removeScratch('edge-creation-type')
-          })
         }
       })
 
@@ -280,20 +266,6 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           edgehandles.start(elem)
           currentCy.scratch('edge-creation-type', GrapholTypesEnum.INCLUSION)
 
-          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            if (addedEdge.data('type') === GrapholTypesEnum.OBJECT_PROPERTY) {
-              grapholscape.uiContainer?.appendChild(newElementComponent)
-              initNewElementModal(newElementComponent, 'Add New Object Property', GrapholTypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
-            }
-            else if(addedEdge.data('type') === GrapholTypesEnum.INCLUSION){
-              const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const sourceId = sourceNode.data('iri')
-              const targetId = targetNode.data('iri')
-              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-              ontologyBuilder.addEdgeElement(undefined, GrapholTypesEnum.INCLUSION, sourceId, targetId, GrapholTypesEnum.CLASS)
-            }
-            currentCy.removeScratch('edge-creation-type')
-          })
         }
       })
 
