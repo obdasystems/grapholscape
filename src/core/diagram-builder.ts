@@ -76,11 +76,12 @@ export default class DiagramBuilder {
        * If the set of edges between reference node and the connected class
        * includes the object property we want to add, then it's already present.
        */
-      if (sourceNode.edgesWith(targetNode)
+      let edgesAlreadyPresent = sourceNode.edgesWith(targetNode)
         .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri)
-        .nonempty()
-      ) {
-        return
+      if (edgesAlreadyPresent.nonempty()) {
+        return this.diagramRepresentation
+          ?.grapholElements
+          .get(edgesAlreadyPresent.first().id())
       }
     }
 
