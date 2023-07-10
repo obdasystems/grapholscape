@@ -14,7 +14,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 components:
   schemas:
-    Model:
+    RDFGraph:
       type: object
       required:
         - entities
@@ -125,10 +125,12 @@ components:
           type: string
         originalId:
           type: string
-          description: >-
+          description:
             In case of replicated elements, this is the ID of the original
             element replicated in multiple occurrences, all of them with
             different IDs
+        diagramId:
+          type: number
         displayedName:
           type: string
         iri:
@@ -212,6 +214,10 @@ components:
               type: array
               items:
                 type: string
+            dataProperties:
+              type: array
+              items:
+                $ref: "#/components/schemas/DataPropertyValue"
     Annotation:
       type: object
       required:
@@ -223,6 +229,20 @@ components:
         property:
           type: string
           example: rdfs:label
+        language:
+          type: string
+        datatype:
+          type: string
+    DataPropertyValue:
+      type: object
+      required:
+        - value
+        - iri
+      properties:
+        value:
+          type: string
+        iri:
+          type: string
         language:
           type: string
         datatype:
@@ -345,6 +365,7 @@ components:
             of the subject, it is not needed in case of 'add' or 'remove' actions.
           type: object
           oneOf:
+            - $ref: "#/components/schemas/ElementOp"
             - $ref: "#/components/schemas/EntityOp"
             - $ref: "#/components/schemas/DiagramOp"
             - $ref: "#/components/schemas/HierarchyOp"
@@ -368,6 +389,32 @@ components:
         timestamp:
           type: number
 
+    ElementOp:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          oneOf:
+            - $ref: "#/components/schemas/Node"
+            - $ref: "#/components/schemas/Edge"
+            - $ref: "#/components/schemas/Hierarchy"
+        previousState:
+          oneOf:
+            - $ref: "#/components/schemas/Node"
+            - $ref: "#/components/schemas/Edge"
+        involvedElements:
+          description:
+            Array of other elements involved in the operation. Only for Remove actions.
+            The remove action on an Entity might involve other elements.
+            i.e. if the class removed was the superclass of a hierarchy, the whole hierarchy might become not valid"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/Node"
+              - $ref: "#/components/schemas/Edge"
+              - $ref: "#/components/schemas/Hierarchy"
+
     EntityOp:
       type: object
       required:
@@ -376,8 +423,6 @@ components:
       properties:
         subject:
           $ref: "#/components/schemas/Entity"
-        diagramId:
-          type: string
         previousState:
           $ref: "#/components/schemas/Entity"
         involvedElements:
