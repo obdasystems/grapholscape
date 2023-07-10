@@ -109,12 +109,14 @@ components:
           type: string
         name:
           type: string
-        elements:
+        nodes:
           type: array
           items:
-            oneOf:
-              - $ref: "#/components/schemas/Node"
-              - $ref: "#/components/schemas/Edge"
+           $ref: "#/components/schemas/Node"
+        edges:
+          type: array
+          items:
+           $ref: "#/components/schemas/Edge"
     Element:
       type: object
       required:
@@ -137,8 +139,7 @@ components:
           type: string
         type:
           type: string
-          oneOf:
-            - $ref: "#/components/schemas/TypesEnum"
+          $ref: "#/components/schemas/TypesEnum"
     Edge:
       type: object
       allOf:
@@ -275,7 +276,6 @@ components:
         - value-domain
         - property-assertion
         - literal
-        - individual
         - facet
         - neutral
         - value
