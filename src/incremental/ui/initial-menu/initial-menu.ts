@@ -1,12 +1,13 @@
 import { css, html, LitElement } from "lit";
-import { BaseMixin, baseStyle, createEntitiesList, EntityViewData, SizeEnum } from "../../../ui";
+import { BaseMixin, baseStyle, createEntitiesList, DropPanelMixin, EntityViewData, GscapeEntitySelector, SizeEnum } from "../../../ui";
 import { cross } from "../../../ui/assets";
 import getIconSlot from "../../../ui/util/get-icon-slot";
 import IncrementalController from "../../controller";
 
 export default class IncrementalInitialMenu extends BaseMixin(LitElement) {
 
-  private shortestPathMode: boolean = false
+  public shortestPathMode: boolean = false
+  public sideMenuMode: boolean = false
   private class1?: EntityViewData
   private class2?: EntityViewData
   private classes?: EntityViewData[]
@@ -14,7 +15,8 @@ export default class IncrementalInitialMenu extends BaseMixin(LitElement) {
   static properties = {
     class1: { type: Object, attribute: 'class1' },
     class2: { type: Object, attribute: 'class2' },
-    shortestPathMode: { type: Boolean, state: true },
+    shortestPathMode: { type: Boolean },
+    sideMenuMode: { type: Boolean }
   }
 
   static styles = [
@@ -96,12 +98,17 @@ export default class IncrementalInitialMenu extends BaseMixin(LitElement) {
           ></gscape-entity-selector>
         `
       }
-      <gscape-button
-        id="shortest-path-btn"
-        label=${this.shortestPathMode ? `Single Class` : `Shortest Path` }
-        @click=${this.handleShortestPathBtnClick}
-      ></gscape-button>
 
+      ${!this.sideMenuMode
+        ? html`
+          <gscape-button
+            id="shortest-path-btn"
+            label=${this.shortestPathMode ? `Single Class` : `Shortest Path` }
+            @click=${this.handleShortestPathBtnClick}
+          ></gscape-button>
+        `
+        : null
+      }
 
       ${this.shortestPathMode && this.class1 && this.class2 ? html `
         <center>
@@ -114,6 +121,28 @@ export default class IncrementalInitialMenu extends BaseMixin(LitElement) {
         </center>
       ` : null}
     `
+  }
+
+  focusInputSearch() {
+    (this.shadowRoot
+      ?.querySelector('gscape-entity-selector') as GscapeEntitySelector | null
+    )?.focusInputSearch()
+  }
+
+  closePanel(): void {
+    let entitySelectors = this.shadowRoot
+      ?.querySelectorAll('gscape-entity-selector')
+
+    entitySelectors?.forEach(entitySelector => (entitySelector as GscapeEntitySelector).closePanel())
+    this.requestUpdate()
+  }
+
+  openPanel(): void {
+    let entitySelectors = this.shadowRoot
+      ?.querySelectorAll('gscape-entity-selector')
+
+    entitySelectors?.forEach(entitySelector => (entitySelector as GscapeEntitySelector).openPanel())
+    this.requestUpdate()
   }
 
   private getTemplate(id: number, entity?: EntityViewData) {

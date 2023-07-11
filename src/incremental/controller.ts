@@ -846,17 +846,26 @@ export default class IncrementalController {
     })
   }
 
-  async addPath(path: { iri: string, type: string }[]) {
+  async addPath(path: { iri: string, type: string }[], sourceClassIri: string, targetClassIri: string) {
     this.performActionWithBlockedGraph(() => {
       if (!this.diagram.representation)
-      return
+        return
+
       let i = 0
-      let sourceClassIri: string, targetClassIri: string
       let cyElems: Collection  = this.diagram.representation.cy.collection()
       let elemId: string | undefined
 
+      path.unshift({
+        iri: sourceClassIri,
+        type: 'class'
+      })
+
+      path.push({
+        iri: targetClassIri,
+        type: 'class',
+      })
+
       for (let entity of path) {
-        
         if (entity.type === 'objectProperty' || entity.type === 'inverseObjectProperty') {
           if (!path[i+1] || !path[i-1])
             return
