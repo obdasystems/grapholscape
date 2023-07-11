@@ -19,8 +19,18 @@ export default class Hierarchy {
     this.inputs.push(classEntity)
   }
 
+  removeInput(classEntity: GrapholEntity) {
+    const index = this.inputs.findIndex(i => i === classEntity)
+    this.inputs.splice(index, 1)
+  }
+
   addSuperclass(classEntity: GrapholEntity, complete = false) {
     this._superclasses.push({ classEntity: classEntity, complete: complete })
+  }
+
+  removeSuperclass(classEntity: GrapholEntity) {
+    const index = this.superclasses.findIndex(i => i.classEntity === classEntity)
+    this.superclasses.splice(index, 1)
   }
 
   get inputs() { return this._inputs }

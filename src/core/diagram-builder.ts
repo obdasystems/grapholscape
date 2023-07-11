@@ -1,6 +1,6 @@
 import cytoscape, { Position } from "cytoscape";
 import { EntityNameType } from "../config";
-import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
+import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
 import getIdFromEntity from "../util/get-id-from-entity";
 
 export default class DiagramBuilder {
@@ -289,6 +289,61 @@ export default class DiagramBuilder {
       edge.addClass('equivalence')
     }
   }
+
+  public removeHierarchy(hierarchy: Hierarchy) {
+    if (hierarchy.id) {
+      const unionNode = this.diagramRepresentation?.cy.$id(hierarchy.id)
+      // remove input edges
+      unionNode?.connectedEdges(`[ type = "${GrapholTypesEnum.INPUT}" ]`)?.forEach(inputEdge => {
+        this.diagram?.removeElement(inputEdge.id(), this.rendererState)
+      })
+
+      // remove inclusion edges
+      unionNode?.connectedEdges(`[ type = "${hierarchy.type}" ]`)?.forEach(inclusionEdge => {
+        this.diagram?.removeElement(inclusionEdge.id(), this.rendererState)
+      })
+
+      // remove union node
+      this.diagram.removeElement(hierarchy.id, this.rendererState)
+    }
+  }
+
+  public removeHierarchyInputEdge(hierarchy: Hierarchy, inputIri: string) {
+    if (hierarchy.id) {
+      const unionNode = this.diagramRepresentation?.cy.$id(hierarchy.id)
+      unionNode?.edgesTo(`[ iri = "${inputIri}" ]`).forEach(inputEdge => {
+        if (inputEdge.data().type === GrapholTypesEnum.INPUT)
+          this.diagram?.removeElement(inputEdge.id(), this.rendererState)
+      })
+    }
+  }
+
+  public removeHierarchyInclusionEdge(hierarchy: Hierarchy, superclassIri: string) {
+    if (hierarchy.id) {
+      const unionNode = this.diagramRepresentation?.cy.$id(hierarchy.id)
+      unionNode?.edgesTo(`[ iri = "${superclassIri}" ]`).forEach(inclusionEdge => {
+        if (inclusionEdge.data().type === hierarchy.type)
+          this.diagram?.removeElement(inclusionEdge.id(), this.rendererState)
+      })
+    }
+  }
+
+  public removeElement(id: string) {
+    const cyElem = this.diagramRepresentation?.cy.$id(id)
+    const grapholElem = this.diagramRepresentation?.grapholElements.get(id)
+
+    if (cyElem?.nonempty() && grapholElem) {
+
+      if (grapholElem.is(GrapholTypesEnum.DATA_PROPERTY)) {
+        cyElem.connectedEdges().forEach(e => {
+          this.diagramRepresentation?.removeElement(e.id())
+        })
+      }
+
+      this.diagramRepresentation?.removeElement(id)
+    }
+  }
+  
 
   /**
    * Get cytoscape representation of an entity given the type needed

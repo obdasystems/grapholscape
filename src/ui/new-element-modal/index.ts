@@ -1,7 +1,7 @@
 import Grapholscape from '../../core';
-import OntologyBuilder from '../../core/rendering/ontology-builder';
+import OntologyBuilder from '../../core/ontology-builder';
 import { FunctionalityEnum, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../model';
-import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addInputIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon } from '../assets';
+import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addInputIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon, rubbishBin } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
@@ -13,6 +13,7 @@ import $ from "jquery";
 import konva from "konva";
 import cytoscape from 'cytoscape'
 import GrapholParser from '../../parsing/parser';
+import { icons } from '..';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -326,6 +327,18 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         select: () => {
           grapholscape.uiContainer?.appendChild(newElementComponent)
           initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Disjoint Subhierarchy', undefined, elem.data('iri'))
+        }
+      })
+
+      commands.push({
+        content: 'Remove',
+        icon: rubbishBin,
+        select: () => {
+          const ontologyBuilder = new OntologyBuilder(grapholscape)
+          const entity = grapholscape.ontology.getEntity(elem.data().iri)
+          if (entity) {
+            ontologyBuilder.removeEntity(elem, entity)
+          }
         }
       })
 
