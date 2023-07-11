@@ -122,6 +122,8 @@ export const addChildClassIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" hei
 
 export const addSubhierarchyIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M251.788-410q-29.288 0-49.538-20.462Q182-450.925 182-480.212q0-29.288 20.462-49.538Q222.925-550 252.212-550q29.288 0 49.538 20.462Q322-509.075 322-479.788q0 29.288-20.462 49.538Q281.075-410 251.788-410Zm228 0q-29.288 0-49.538-20.462Q410-450.925 410-480.212q0-29.288 20.462-49.538Q450.925-550 480.212-550q29.288 0 49.538 20.462Q550-509.075 550-479.788q0 29.288-20.462 49.538Q509.075-410 479.788-410Zm228 0q-29.288 0-49.538-20.462Q638-450.925 638-480.212q0-29.288 20.462-49.538Q678.925-550 708.212-550q29.288 0 49.538 20.462Q778-509.075 778-479.788q0 29.288-20.462 49.538Q737.075-410 707.788-410Z"/></svg>`
 
+export const addInputIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M767.867-386.5q-29.127 0-52.617-17-23.489-17-33.806-43H98.5v-67H681q10.35-26 33.874-43t52.693-17q38.933 0 66.433 27.275 27.5 27.274 27.5 66 0 38.725-27.378 66.225-27.379 27.5-66.255 27.5Z"/></svg>`
+
 export const sankey = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="padding: 1px; box-sizing: border-box;"><path d="M20 4V6H4V4H2V12H4V10C8.16 10 9.92 12.11 11.77 14.34S15.65 19 20 19V21H22V15H20V17C16.59 17 15.07 15.17 13.31 13.06C11.34 10.69 9.1 8 4 8H20V10H22V4Z" /></svg>`
 
 export const entityIcons: { [x in GrapholTypesEnum.CLASS |
