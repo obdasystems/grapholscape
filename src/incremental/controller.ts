@@ -40,7 +40,7 @@ export default class IncrementalController {
    * Callback called when user click on data lineage command
    */
   onShowDataLineage: (entityIri: string) => void = () => { }
-  addEdge: (sourceId: string, targetId: string, edgeType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.INPUT | GrapholTypesEnum.EQUIVALENCE | GrapholTypesEnum.INSTANCE_OF) => void;
+  addEdge: (sourceId: string, targetId: string, edgeType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.INPUT | GrapholTypesEnum.EQUIVALENCE | GrapholTypesEnum.INSTANCE_OF) => GrapholEdge | undefined;
 
   constructor(
     public grapholscape: Grapholscape
@@ -872,10 +872,22 @@ export default class IncrementalController {
 
           sourceClassIri = path[i-1].iri
           targetClassIri = path[i+1].iri
-          if (entity.type === 'objectProperty')
-            elemId = this.addIntensionalObjectProperty(entity.iri, sourceClassIri, targetClassIri)?.id
-          else
-            elemId = this.addIntensionalObjectProperty(entity.iri, targetClassIri, sourceClassIri)?.id
+
+          if (entity.iri === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
+            const sourceId = this.addClass(sourceClassIri)?.id
+            const targetId = this.addClass(targetClassIri)?.id
+            if (sourceId && targetId) {
+              if (entity.type === 'objectProperty')
+                elemId = this.addEdge(sourceId, targetId, GrapholTypesEnum.INCLUSION)?.id
+              else
+                elemId = this.addEdge(targetId, sourceId, GrapholTypesEnum.INCLUSION)?.id
+            }
+          } else {
+            if (entity.type === 'objectProperty')
+              elemId = this.addIntensionalObjectProperty(entity.iri, sourceClassIri, targetClassIri)?.id
+            else
+              elemId = this.addIntensionalObjectProperty(entity.iri, targetClassIri, sourceClassIri)?.id
+          }
 
           // create collection of elems to flash class and highlight them
           if (elemId)
