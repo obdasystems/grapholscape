@@ -1,24 +1,15 @@
 import { NodeSingular } from "cytoscape"
 import { GrapholTypesEnum } from "../model"
 
-export const shortestPathOptions = {
+export const edgeHandlesOptions = {
   canConnect: function (sourceNode: NodeSingular, targetNode: NodeSingular) {
     const sourceType = sourceNode.data('type')
     const targetType = targetNode.data('type')
 
-    return sourceType === targetType && sourceType === GrapholTypesEnum.CLASS
+    const isTypeValid = (type: GrapholTypesEnum) => type === GrapholTypesEnum.CLASS || type === GrapholTypesEnum.CLASS_INSTANCE
+
+    return sourceNode !== targetNode && isTypeValid(sourceType) && isTypeValid(targetType)
   },
-  edgeParams: function (sourceNode: NodeSingular, targetNode: NodeSingular) {
-    return {
-      data: {
-        id: `${sourceNode.id()}-temp-shortest-path-${targetNode.id()}`,
-        source: sourceNode.id(),
-        target: targetNode.id(),
-        type: 'shortest-path-preview'
-      }
-    }
-  }
-  ,
   hoverDelay: 150, // time spent hovering over a target node before it is considered selected
   snap: true, // when enabled, the edge can be drawn by just moving close to a target node (can be confusing on compound graphs)
   snapThreshold: 50, // the target node must be less than or equal to this many pixels away from the cursor/finger

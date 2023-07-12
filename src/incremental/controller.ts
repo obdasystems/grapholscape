@@ -906,7 +906,6 @@ export default class IncrementalController {
 
   runLayout = () => {
     this.incrementalRenderer?.runLayout()
-    console.log('runn')
   }
   pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
   unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)

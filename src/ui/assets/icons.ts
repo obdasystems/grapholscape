@@ -124,6 +124,8 @@ export const addSubhierarchyIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" h
 
 export const sankey = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="padding: 1px; box-sizing: border-box;"><path d="M20 4V6H4V4H2V12H4V10C8.16 10 9.92 12.11 11.77 14.34S15.65 19 20 19V21H22V15H20V17C16.59 17 15.07 15.17 13.31 13.06C11.34 10.69 9.1 8 4 8H20V10H22V4Z" /></svg>`
 
+export const pathIcon = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M744-144q-41 0-72-24t-42-60H396q-55 0-93.5-38.5T264-360q0-55 38.5-93.5T396-492h120q34.65 0 59.325-24.748Q600-541.496 600-576.248 600-611 575.325-635.5T516-660H330q-11 36-42 60t-72 24q-50 0-85-35t-35-85q0-50 35-85t85-35q41 0 72 24t42 60h186q65 0 110.5 45.5T672-576q0 65-45.5 110.5T516-420H396q-24.75 0-42.375 17.677T336-359.823Q336-335 353.625-317.5T396-300h234q11-36 42-60t72-24q50 0 85 35t35 85q0 50-35 85t-85 35ZM216-648q20.4 0 34.2-13.8Q264-675.6 264-696q0-20.4-13.8-34.2Q236.4-744 216-744q-20.4 0-34.2 13.8Q168-716.4 168-696q0 20.4 13.8 34.2Q195.6-648 216-648Z"/></svg>`
+
 export const entityIcons: { [x in GrapholTypesEnum.CLASS |
   GrapholTypesEnum.OBJECT_PROPERTY |
   GrapholTypesEnum.DATA_PROPERTY |

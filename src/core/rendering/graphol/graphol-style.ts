@@ -6,8 +6,8 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: 'node',
       style: {
-        'height': 'data(height)',
-        'width': 'data(width)',
+        'height': (node) => node.data('height') || 40,
+        'width': (node) => node.data('width') || 40,
         'background-color': (node) => getColor(node, ColoursNames.bg_node_light),
         'shape': 'data(shape)',
         'border-width': 1,
