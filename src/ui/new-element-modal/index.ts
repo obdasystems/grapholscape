@@ -14,6 +14,7 @@ import konva from "konva";
 import cytoscape from 'cytoscape'
 import GrapholParser from '../../parsing/parser';
 import { icons } from '..';
+import DiagramBuilder from '../../core/diagram-builder';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -186,69 +187,8 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
     const elem = evt.target
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === GrapholTypesEnum.DATA_PROPERTY) {
-      const commands: Command[] = []
-
-      // Logica per aggiungere comandi
-
-      commands.push({
-        content: 'Add Inclusion Edge',
-        icon: addISAIcon,
-        select: () => {
-          let currentCy = grapholscape.renderer.cy as any
-          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
-          edgehandles.start(elem)
-          currentCy.scratch('edge-creation-type', GrapholTypesEnum.INCLUSION)
-
-        }
-      })
-
-      try {
-        const htmlNodeReference = (elem as any).popperRef()
-        if (htmlNodeReference && commands.length > 0) {
-          commandsWidget.attachTo(htmlNodeReference, commands)
-        }
-      } catch (e) { console.error(e) }
-    }
-    else if(grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.data('type') === GrapholTypesEnum.UNION || elem.data('type') === GrapholTypesEnum.DISJOINT_UNION) ){
-      const commands: Command[] = []
-      // Logica per aggiungere comandi
-      commands.push({
-        content: 'Add Inclusion Edge',
-        icon: addISAIcon,
-        select: () => {
-          let currentCy = grapholscape.renderer.cy as any
-          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
-          edgehandles.start(elem)
-          currentCy.scratch('edge-creation-type', elem.data('type'))
-
-        }
-      })
-
-      commands.push({
-        content: 'Add Input Edge',
-        icon: addInputIcon,
-        select: () => {
-          let currentCy = grapholscape.renderer.cy as any
-          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
-          edgehandles.start(elem)
-          currentCy.scratch('edge-creation-type', GrapholTypesEnum.INPUT)
-
-        }
-      })
-
-      try {
-        const htmlNodeReference = (elem as any).popperRef()
-        if (htmlNodeReference && commands.length > 0) {
-          commandsWidget.attachTo(htmlNodeReference, commands)
-        }
-      } catch (e) { console.error(e) }
-    }
-  })
-
-  grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
-    const elem = evt.target
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === GrapholTypesEnum.CLASS) {
+    if(grapholscape.renderState === RendererStatesEnum.FLOATY){
+      if (elem.data('type') === GrapholTypesEnum.CLASS) {
       const commands: Command[] = []
 
       // Logica per aggiungere comandi
@@ -348,7 +288,174 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           commandsWidget.attachTo(htmlNodeReference, commands)
         }
       } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === GrapholTypesEnum.DATA_PROPERTY) {
+        const commands: Command[] = []
+
+        // Logica per aggiungere comandi
+
+        commands.push({
+          content: 'Add Inclusion Edge',
+          icon: addISAIcon,
+          select: () => {
+            let currentCy = grapholscape.renderer.cy as any
+            let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+            edgehandles.start(elem)
+            currentCy.scratch('edge-creation-type', GrapholTypesEnum.INCLUSION)
+
+          }
+        })
+
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const entity = grapholscape.ontology.getEntity(elem.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(elem, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if(elem.data('type') === 'attribute-edge' ){
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const dpNode = elem.target()
+            const entity = grapholscape.ontology.getEntity(dpNode.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(dpNode, entity)
+            }
+          }
+        })
+      
+      try {
+        const htmlNodeReference = (elem as any).popperRef()
+        if (htmlNodeReference && commands.length > 0) {
+          commandsWidget.attachTo(htmlNodeReference, commands)
+        }
+      } catch (e) { console.error(e) }
+      }
+      else if((elem.data('type') === GrapholTypesEnum.UNION || elem.data('type') === GrapholTypesEnum.DISJOINT_UNION) ){
+        const commands: Command[] = []
+        if(elem.isNode()){
+          
+          // Logica per aggiungere comandi
+          commands.push({
+            content: 'Add Inclusion Edge',
+            icon: addISAIcon,
+            select: () => {
+              let currentCy = grapholscape.renderer.cy as any
+              let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+              edgehandles.start(elem)
+              currentCy.scratch('edge-creation-type', elem.data('type'))
+
+            }
+          })
+
+          commands.push({
+            content: 'Add Input Edge',
+            icon: addInputIcon,
+            select: () => {
+              let currentCy = grapholscape.renderer.cy as any
+              let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+              edgehandles.start(elem)
+              currentCy.scratch('edge-creation-type', GrapholTypesEnum.INPUT)
+
+            }
+          })
+
+          commands.push({
+            content: 'Remove',
+            icon: rubbishBin,
+            select: () => {
+              const ontologyBuilder = new OntologyBuilder(grapholscape)
+              elem.connectedEdges(`[type = "${elem.data('type')}"]`).forEach(e => {
+                const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(e.target().data('iri'))?.find(h => h.id === elem.id())
+                if(hierarchy)
+                  ontologyBuilder.removeHierarchy(hierarchy)
+              })
+            }
+          })
+
+        }
+        else{
+          commands.push({
+            content: 'Remove',
+            icon: rubbishBin,
+            select: () => {
+              const ontologyBuilder = new OntologyBuilder(grapholscape)
+              const superclassIri = elem.target().data('iri')
+              const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(superclassIri)?.find(h => h.id === elem.id())
+              if(hierarchy)
+                ontologyBuilder.removeHierarchySuperclass(hierarchy, superclassIri)
+            }
+          })
+        }
+        
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if(elem.data('type') === GrapholTypesEnum.INPUT && (elem.connectedNodes(`[type = "${GrapholTypesEnum.UNION}"]`) || elem.connectedNodes(`[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`))){
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+              const inputclassIri = elem.connectedNodes(`[type = "${GrapholTypesEnum.CLASS}"]`).data('iri')
+              const hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(inputclassIri)?.find(h => h.id === elem.id())
+              if(hierarchy)
+                ontologyBuilder.removeHierarchyInput(hierarchy, inputclassIri)
+          }
+        })
+      
+      try {
+        const htmlNodeReference = (elem as any).popperRef()
+        if (htmlNodeReference && commands.length > 0) {
+          commandsWidget.attachTo(htmlNodeReference, commands)
+        }
+      } catch (e) { console.error(e) }
+      }
+      
+      else{
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const entity = grapholscape.ontology.getEntity(elem.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(elem, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
     }
+     
   })
 
   function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId?: string, targetId?: string) {

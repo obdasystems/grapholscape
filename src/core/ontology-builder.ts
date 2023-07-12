@@ -178,6 +178,19 @@ export default class OntologyBuilder {
     }
   }
 
+  public removeHierarchy(hierarchy: Hierarchy){
+
+    const diagram = this.grapholscape.renderer.diagram as Diagram
+    this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
+
+    hierarchy.inputs.forEach(i => this.removeHierarchyInput(hierarchy, i.iri.fullIri))
+    hierarchy.superclasses.forEach(s => this.removeHierarchySuperclass(hierarchy, s.classEntity.iri.fullIri))
+
+    if(hierarchy.id)
+      this.diagramBuilder.removeHierarchy(hierarchy)
+  }
+
+
   public removeHierarchyInput(hierarchy: Hierarchy, inputIri: string) {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
