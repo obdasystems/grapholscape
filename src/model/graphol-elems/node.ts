@@ -16,6 +16,7 @@ export default class GrapholNode extends GrapholElement {
   private _fillColor: string
   private _labelHeight: number = LABEL_HEIGHT
 
+  private _hierarchyID?: string
   private _labelXpos?: number
   private _labelXcentered?: boolean
   private _labelYpos?: number
@@ -43,6 +44,11 @@ export default class GrapholNode extends GrapholElement {
   get shape() { return this._shape }
   set shape(shape: Shape) {
     this._shape = shape
+  }
+
+  get hierarchyID(){ return this._hierarchyID }
+  set hierarchyID(hierarchyID: string | undefined) {
+    this._hierarchyID = hierarchyID
   }
 
   get identity() { return this._identity }
@@ -145,6 +151,7 @@ export default class GrapholNode extends GrapholElement {
       labelXcentered: this.isLabelXcentered,
       labelYcentered: this.isLabelYcentered,
       identity: this.identity,
+      hierarchyID: this.hierarchyID
     })
 
     if (!this.type)

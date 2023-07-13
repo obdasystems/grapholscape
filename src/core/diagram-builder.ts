@@ -178,10 +178,11 @@ export default class DiagramBuilder {
 
   public addHierarchy(hierarchy: Hierarchy, position?: Position) {
     const unionNode = hierarchy.getUnionGrapholNode(position)
-
+    
     if (!unionNode)
       return
-
+    
+    //hierarchy.id = `${unionNode.id}-${this.diagram.id}` 
     // Add inputs
     for (const inputClasses of hierarchy.inputs) {
       this.addClass(inputClasses, position)
@@ -292,7 +293,10 @@ export default class DiagramBuilder {
 
   public removeHierarchy(hierarchy: Hierarchy) {
     if (hierarchy.id) {
-      const unionNode = this.diagramRepresentation?.cy.$id(hierarchy.id)
+      let unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
+      if(!unionNode || unionNode.empty()){
+        return
+      }
       // remove input edges
       unionNode?.connectedEdges(`[ type = "${GrapholTypesEnum.INPUT}" ]`)?.forEach(inputEdge => {
         this.diagram?.removeElement(inputEdge.id(), this.rendererState)
@@ -304,7 +308,7 @@ export default class DiagramBuilder {
       })
 
       // remove union node
-      this.diagram.removeElement(hierarchy.id, this.rendererState)
+      this.diagram.removeElement(unionNode.id(), this.rendererState)
     }
   }
 

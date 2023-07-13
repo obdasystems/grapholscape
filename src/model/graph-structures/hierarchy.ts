@@ -49,6 +49,7 @@ export default class Hierarchy {
     unionNode.type = this.type
     unionNode.identity = GrapholTypesEnum.CLASS
     unionNode.shape = Shape.ELLIPSE
+    unionNode.hierarchyID = this._id
     unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined
     unionNode.height = unionNode.width = 30
     unionNode.position = position || { x: 0, y: 0 }

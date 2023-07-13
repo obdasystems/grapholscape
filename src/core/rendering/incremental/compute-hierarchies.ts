@@ -1,4 +1,5 @@
-import { Ontology, GrapholTypesEnum, Hierarchy, RendererStatesEnum, GrapholEntity } from "../../../model"
+import { GrapholNode } from "../../../../dist"
+import { Ontology, GrapholTypesEnum, Hierarchy, RendererStatesEnum, GrapholEntity, isGrapholNode } from "../../../model"
 
 
 export default function computeHierarchies(ontology: Ontology) {
@@ -9,6 +10,11 @@ export default function computeHierarchies(ontology: Ontology) {
     diagram.representations.get(RendererStatesEnum.FLOATY)?.cy.$(unionNodeSelector).forEach(unionNode => {
       const hierarchy = new Hierarchy(unionNode.data().type)
       hierarchy.id = `${unionNode.id()}-${diagram.id}`
+      unionNode.data('hierarchyID', hierarchy.id)
+      const grapholUnionNode = diagram.representations.get(RendererStatesEnum.FLOATY)?.grapholElements.get(unionNode.id()) 
+      if(grapholUnionNode && isGrapholNode(grapholUnionNode)){
+        grapholUnionNode.hierarchyID = hierarchy.id
+      }
       let entity: GrapholEntity | null
       unionNode.connectedEdges(`[type = "${GrapholTypesEnum.INPUT}"]`).sources().forEach(inputNode => {
         if (inputNode.data().iri) {

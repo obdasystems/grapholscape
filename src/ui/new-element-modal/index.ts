@@ -15,6 +15,7 @@ import cytoscape from 'cytoscape'
 import GrapholParser from '../../parsing/parser';
 import { icons } from '..';
 import DiagramBuilder from '../../core/diagram-builder';
+import computeHierarchies from '../../core/rendering/incremental/compute-hierarchies';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -382,7 +383,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
             select: () => {
               const ontologyBuilder = new OntologyBuilder(grapholscape)
               elem.connectedEdges(`[type = "${elem.data('type')}"]`).forEach(e => {
-                const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(e.target().data('iri'))?.find(h => h.id === elem.id())
+                const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(e.target().data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
                 if(hierarchy)
                   ontologyBuilder.removeHierarchy(hierarchy)
               })

@@ -105,7 +105,7 @@ export default class OntologyBuilder {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
     const hierarchy = disjoint ? new Hierarchy(GrapholTypesEnum.DISJOINT_UNION) : new Hierarchy(GrapholTypesEnum.UNION)
-    hierarchy.id = `un${this.grapholscape.renderer.nodes?.length}`
+    hierarchy.id = `n${this.grapholscape.renderer.nodes?.length}`
     const superClass = this.grapholscape.ontology.getEntity(ownerIri)
     if (!superClass) return
     hierarchy.addSuperclass(superClass, complete)
@@ -183,8 +183,15 @@ export default class OntologyBuilder {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
 
-    hierarchy.inputs.forEach(i => this.removeHierarchyInput(hierarchy, i.iri.fullIri))
-    hierarchy.superclasses.forEach(s => this.removeHierarchySuperclass(hierarchy, s.classEntity.iri.fullIri))
+    
+    hierarchy.inputs.forEach(i => {
+      const map = this.grapholscape.ontology.hierarchiesBySubclassMap.get(i.iri.fullIri)
+      map?.splice(map.findIndex(h => h.id === hierarchy.id), 1)
+    })
+    hierarchy.superclasses.forEach(s => {
+      const hierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(s.classEntity.iri.fullIri)
+      hierarchies?.splice(hierarchies.findIndex(h => h.id === hierarchy.id), 1)
+    })
 
     if(hierarchy.id)
       this.diagramBuilder.removeHierarchy(hierarchy)
