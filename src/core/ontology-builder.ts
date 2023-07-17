@@ -26,7 +26,7 @@ export default class OntologyBuilder {
       const instanceEntity = new ClassInstanceEntity(iri, [ownerEntity?.iri])
       this.grapholscape.ontology.addEntity(instanceEntity)
       this.diagramBuilder.addClassInstance(instanceEntity)
-      const sourceId = getIdFromEntity(instanceEntity, diagram.id, GrapholTypesEnum.INDIVIDUAL, this.rendererState)
+      const sourceId = getIdFromEntity(instanceEntity, diagram.id, GrapholTypesEnum.CLASS_INSTANCE, this.rendererState)
       const targetId = getIdFromEntity(ownerEntity, diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
       if (!sourceId || !targetId) return
       this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
