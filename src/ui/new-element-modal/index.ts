@@ -13,7 +13,7 @@ import $ from "jquery";
 import konva from "konva";
 import cytoscape from 'cytoscape'
 import GrapholParser from '../../parsing/parser';
-import { icons } from '..';
+import { contentSpinnerStyle, icons } from '..';
 import DiagramBuilder from '../../core/diagram-builder';
 import computeHierarchies from '../../core/rendering/incremental/compute-hierarchies';
 
@@ -397,8 +397,9 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
             icon: rubbishBin,
             select: () => {
               const ontologyBuilder = new OntologyBuilder(grapholscape)
+              const hierarchyID = elem.connectedNodes(`[type = "${elem.data('type')}"]`).first().data('hierarchyID')
               const superclassIri = elem.target().data('iri')
-              const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(superclassIri)?.find(h => h.id === elem.id())
+              const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(superclassIri)?.find(h => h.id === hierarchyID)
               if(hierarchy)
                 ontologyBuilder.removeHierarchySuperclass(hierarchy, superclassIri)
             }
