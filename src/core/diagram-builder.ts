@@ -336,9 +336,9 @@ export default class DiagramBuilder {
     const cyElem = this.diagramRepresentation?.cy.$id(id)
     const grapholElem = this.diagramRepresentation?.grapholElements.get(id)
 
-    if (cyElem?.nonempty() && grapholElem) {
+    if (cyElem?.nonempty() ) {
 
-      if (grapholElem.is(GrapholTypesEnum.DATA_PROPERTY)) {
+      if (grapholElem && grapholElem.is(GrapholTypesEnum.DATA_PROPERTY)) {
         cyElem.connectedEdges().forEach(e => {
           this.diagramRepresentation?.removeElement(e.id())
         })

@@ -435,7 +435,49 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       } catch (e) { console.error(e) }
       }
+      else if(elem.data('type') === GrapholTypesEnum.INCLUSION){
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const diagram = grapholscape.renderer.diagram
+            if(diagram){
+              const diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+              diagramBuilder.removeElement(elem.id())
+            }
+          }
+        })
       
+      try {
+        const htmlNodeReference = (elem as any).popperRef()
+        if (htmlNodeReference && commands.length > 0) {
+          commandsWidget.attachTo(htmlNodeReference, commands)
+        }
+      } catch (e) { console.error(e) }
+      }
+      else if(elem.data('type') === GrapholTypesEnum.INSTANCE_OF ){
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const individualNode = elem.connectedNodes(`[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`).first()
+            const entity = grapholscape.ontology.getEntity(individualNode.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(individualNode, entity)
+            }
+          }
+        })
+      
+      try {
+        const htmlNodeReference = (elem as any).popperRef()
+        if (htmlNodeReference && commands.length > 0) {
+          commandsWidget.attachTo(htmlNodeReference, commands)
+        }
+      } catch (e) { console.error(e) }
+      }
       else{
         const commands: Command[] = []
         commands.push({
