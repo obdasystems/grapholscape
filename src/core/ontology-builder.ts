@@ -111,8 +111,10 @@ export default class OntologyBuilder {
     hierarchy.addSuperclass(superClass, complete)
     for (let i of iris) {
       const iri = new Iri(i, this.grapholscape.ontology.namespaces)
-      const entity = new GrapholEntity(iri)
-      this.grapholscape.ontology.addEntity(entity)
+      let entity = this.grapholscape.ontology.getEntity(i)
+      if(!entity)
+        entity = new GrapholEntity(iri)
+        this.grapholscape.ontology.addEntity(entity)
       hierarchy.addInput(entity)
     }
     this.diagramBuilder.addHierarchy(hierarchy, { x: 0, y: 0 })
