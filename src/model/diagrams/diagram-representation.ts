@@ -125,6 +125,6 @@ export default class DiagramRepresentation {
     return this.cy.edges().jsons()
   }
 
-  get nodesCounter() { return this.cy.nodes().size() }
-  get edgesCounter() { return this.cy.edges().size() }
+  get nodesCounter() { return this.cy.nodes().length }
+  get edgesCounter() { return this.cy.edges().length }
 }

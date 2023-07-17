@@ -8,12 +8,12 @@ export default class DiagramBuilder {
   constructor(public diagram: Diagram, private rendererState: RendererStatesEnum) { }
 
   addClass(classEntity: GrapholEntity, position?: Position) {
-    if (this.diagramRepresentation?.containsEntity(classEntity)) {
-      const nodeId = getIdFromEntity(classEntity, this.diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
-      return nodeId
-        ? this.diagramRepresentation.grapholElements.get(nodeId)
-        : undefined
-    }
+
+    //if (this.diagramRepresentation?.containsEntity(classEntity)) {
+    const nodeId = getIdFromEntity(classEntity, this.diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
+    if (nodeId)
+        return this.diagramRepresentation?.grapholElements.get(nodeId)
+    //}
 
     const classNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS)
     classNode.iri = classEntity.iri.fullIri
@@ -363,13 +363,17 @@ export default class DiagramBuilder {
       return cytoscape().collection()
   }
 
-  private getNewId(nodeOrEdge: 'node' | 'edge') {
-    let newId: string
-    if (nodeOrEdge === 'node') {
-      newId = `n${this.diagramRepresentation?.nodesCounter}`
-    } else {
-      newId = `e${this.diagramRepresentation?.edgesCounter}`
+  public getNewId(nodeOrEdge: 'node' | 'edge') {
+    let newId = nodeOrEdge === 'node' ? 'n' : 'e'
+    let count = this.diagramRepresentation?.cy.elements.length
+    if(count){
+      count = count+1
+      while(!this.diagramRepresentation?.cy.$id(newId+count).empty()){
+        count = count+1
+      }
+      return newId+count
     }
-    return newId
+
+    return newId+0
   }
 }

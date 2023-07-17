@@ -105,7 +105,7 @@ export default class OntologyBuilder {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
     const hierarchy = disjoint ? new Hierarchy(GrapholTypesEnum.DISJOINT_UNION) : new Hierarchy(GrapholTypesEnum.UNION)
-    hierarchy.id = `n${this.grapholscape.renderer.nodes?.length}`
+    hierarchy.id = this.diagramBuilder.getNewId('node')+'-'+diagram.id
     const superClass = this.grapholscape.ontology.getEntity(ownerIri)
     if (!superClass) return
     hierarchy.addSuperclass(superClass, complete)
