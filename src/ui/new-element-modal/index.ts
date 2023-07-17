@@ -420,10 +420,11 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           icon: rubbishBin,
           select: () => {
             const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const inputclassIri = elem.connectedNodes(`[type = "${GrapholTypesEnum.CLASS}"]`).data('iri')
-              const hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(inputclassIri)?.find(h => h.id === elem.id())
-              if(hierarchy)
-                ontologyBuilder.removeHierarchyInput(hierarchy, inputclassIri)
+            const hierarchyID = elem.connectedNodes(`[type $= "${GrapholTypesEnum.UNION}"]`).first().data('hierarchyID')
+            const inputclassIri = elem.connectedNodes(`[type = "${GrapholTypesEnum.CLASS}"]`).first().data('iri')
+            const hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(inputclassIri)?.find(h => h.id === hierarchyID)
+            if(hierarchy)
+              ontologyBuilder.removeHierarchyInput(hierarchy, inputclassIri)
           }
         })
       

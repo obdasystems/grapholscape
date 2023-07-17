@@ -314,8 +314,8 @@ export default class DiagramBuilder {
 
   public removeHierarchyInputEdge(hierarchy: Hierarchy, inputIri: string) {
     if (hierarchy.id) {
-      const unionNode = this.diagramRepresentation?.cy.$id(hierarchy.id)
-      unionNode?.edgesTo(`[ iri = "${inputIri}" ]`).forEach(inputEdge => {
+      const unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
+      unionNode?.edgesWith(`[ iri = "${inputIri}" ]`).forEach(inputEdge => {
         if (inputEdge.data().type === GrapholTypesEnum.INPUT)
           this.diagram?.removeElement(inputEdge.id(), this.rendererState)
       })
