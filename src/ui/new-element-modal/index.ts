@@ -12,10 +12,7 @@ import edgeEditing from 'cytoscape-edge-editing'
 import $ from "jquery";
 import konva from "konva";
 import cytoscape from 'cytoscape'
-import GrapholParser from '../../parsing/parser';
-import { contentSpinnerStyle, icons } from '..';
 import DiagramBuilder from '../../core/diagram-builder';
-import computeHierarchies from '../../core/rendering/incremental/compute-hierarchies';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -382,11 +379,27 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
             icon: rubbishBin,
             select: () => {
               const ontologyBuilder = new OntologyBuilder(grapholscape)
-              elem.connectedEdges(`[type = "${elem.data('type')}"]`).forEach(e => {
-                const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(e.target().data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
-                if(hierarchy)
-                  ontologyBuilder.removeHierarchy(hierarchy)
-              })
+              if(elem.edges().nonempty())
+                elem.edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`).forEach(e => {
+                  const classNode = e.connectedNodes(`[ type = "${GrapholTypesEnum.CLASS}" ]`).first()
+                  let hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(classNode.data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
+                  if(hierarchy){
+                    ontologyBuilder.removeHierarchy(hierarchy)
+                  }
+                  else{
+                    hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(classNode.data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
+                    if(hierarchy){
+                      ontologyBuilder.removeHierarchy(hierarchy)
+                    }
+                  }
+                })
+              else{
+                const diagram = grapholscape.renderer.diagram
+                if(diagram){
+                const diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+                  diagramBuilder.removeElement(elem.id())
+                }
+              }
             }
           })
 
