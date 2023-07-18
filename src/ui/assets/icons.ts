@@ -124,6 +124,8 @@ export const addSubhierarchyIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" h
 
 export const addInputIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M767.867-386.5q-29.127 0-52.617-17-23.489-17-33.806-43H98.5v-67H681q10.35-26 33.874-43t52.693-17q38.933 0 66.433 27.275 27.5 27.274 27.5 66 0 38.725-27.378 66.225-27.379 27.5-66.255 27.5Z"/></svg>`
 
+export const renameIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M445-152v-67h71v67h-71Zm0-588v-67h71v67h-71Zm148 588v-67h71v67h-71Zm0-588v-67h71v67h-71Zm148 588v-67h67v67h-67Zm0-144v-71h67v71h-67Zm0-148v-71h67v71h-67Zm0-148v-71h67v71h-67Zm0-148v-67h67v67h-67ZM153-152v-67h83v-521h-83v-67h233v67h-83v521h83v67H153Z"/></svg>`
+
 export const sankey = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="padding: 1px; box-sizing: border-box;"><path d="M20 4V6H4V4H2V12H4V10C8.16 10 9.92 12.11 11.77 14.34S15.65 19 20 19V21H22V15H20V17C16.59 17 15.07 15.17 13.31 13.06C11.34 10.69 9.1 8 4 8H20V10H22V4Z" /></svg>`
 
 export const entityIcons: { [x in GrapholTypesEnum.CLASS |

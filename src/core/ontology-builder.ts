@@ -222,6 +222,83 @@ export default class OntologyBuilder {
     }
   }
 
+  public renameEntity(oldIri: Iri, elemID: string, newIri: string){
+    const diagram = this.grapholscape.renderer.diagram as Diagram
+    this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
+    const grapholElem = diagram.representations.get(this.rendererState)?.grapholElements.get(elemID)
+
+    let entity = this.grapholscape.ontology.getEntity(newIri)
+    let iri = entity?.iri
+    if(!entity || !iri){
+      iri = new Iri(newIri, this.grapholscape.ontology.namespaces)
+      entity = new GrapholEntity(iri)
+      this.grapholscape.ontology.addEntity(entity)
+    }
+
+    this.diagramBuilder.renameElement(elemID, iri)
+    if(!grapholElem) return
+    entity.addOccurrence(grapholElem, this.rendererState)
+
+    const oldEntity = this.grapholscape.ontology.getEntity(oldIri.fullIri)
+    if(!oldEntity) return
+    if(grapholElem.is(GrapholTypesEnum.CLASS)){
+      let hierarchiesIDs: string[] = []
+      let cyElem = this.diagramBuilder.getEntityCyRepr(oldEntity, grapholElem.type)
+      cyElem.neighborhood(`node[type $= ${GrapholTypesEnum.UNION}]`).forEach(un => {
+        hierarchiesIDs.push(un.data('hierarchyID'))
+      }
+      )
+      this.reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri)
+      this.reassignSubhierarchies(hierarchiesIDs, oldIri, newIri)
+    }
+
+    oldEntity.removeOccurrence(grapholElem, this.rendererState)
+    const occurrences = oldEntity.occurrences.get(this.rendererState)
+    if (occurrences && occurrences.length === 0) {
+      this.grapholscape.ontology.entities.delete(oldIri.fullIri)
+    }
+  }
+
+  public refactorEntity(oldIri: Iri, newIri: string){
+
+  }
+
+  public reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri){
+    let superhierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(oldIri.fullIri)
+    if(superhierarchies){
+      let oldSuperhierarchies = superhierarchies.filter(h => {
+        if(h.id){
+          return !hierarchiesIDs.includes(h.id)
+        }
+      })
+      let newSuperhierarchies = superhierarchies.filter(h => {
+        if(h.id){
+          return hierarchiesIDs.includes(h.id)
+        }
+      })
+      this.grapholscape.ontology.hierarchiesBySuperclassMap.set(oldIri.fullIri, oldSuperhierarchies)
+      this.grapholscape.ontology.hierarchiesBySuperclassMap.set(newIri, newSuperhierarchies)
+    }
+  }
+
+  public reassignSubhierarchies(hierarchiesIDs, oldIri, newIri){
+    let subhierarchies = this.grapholscape.ontology.hierarchiesBySubclassMap.get(oldIri.fullIri)
+    if(subhierarchies){
+      let oldSubhierarchies = subhierarchies.filter(h => {
+        if(h.id){
+          return !hierarchiesIDs.includes(h.id)
+        }
+      })
+      let newSubhierarchies = subhierarchies.filter(h => {
+        if(h.id){
+          return hierarchiesIDs.includes(h.id)
+        }
+      })
+      this.grapholscape.ontology.hierarchiesBySubclassMap.set(oldIri.fullIri, oldSubhierarchies)
+      this.grapholscape.ontology.hierarchiesBySubclassMap.set(newIri, newSubhierarchies)
+    }
+  }
+
   public toggleFunctionality(iri) {
     const entity = this.grapholscape.ontology.getEntity(iri)
     if (entity?.hasFunctionality(FunctionalityEnum.functional)) {

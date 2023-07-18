@@ -23,6 +23,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   public onConfirm: (iri: string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
   public onCancel: () => void = () => { }
+  public onRefactor: (iri: string[]) => void = () => { }
 
   static properties: PropertyDeclarations = {
     dialogTitle: { type: String },
@@ -33,7 +34,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
   funcVisibility: 'inline-block' | 'none' = 'none'
 
-  constructor(public message?: string, public dialogTitle?, public withoutPrefix?, public enableMore?, public functionalities?) {
+  constructor(public message?: string, public dialogTitle?, public withoutPrefix?, public enableMore?, public functionalities?, public entity?) {
     super()
   }
 
@@ -112,6 +113,15 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     this.resetForm()
   }
 
+  private handleRefactor = () => {
+    let prefix = this.shadowRoot?.querySelector('#prefix') as HTMLSelectElement
+    let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
+    let iri = this.withoutPrefix === 'none' ? input.value : prefix.options[prefix.selectedIndex].text + input.value
+    let iris = [iri]
+    this.onRefactor(iris)
+    this.resetForm()
+  }
+
   private handleCancel = () => {
     this.onCancel()
     this.resetForm()
@@ -139,6 +149,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private resetForm = () => {
     let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
+    this.entity = undefined
     if (myform) {
       let labels = myform.getElementsByClassName('lab')
       Array.from(labels).forEach(element => {
@@ -148,9 +159,15 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       Array.from(inputs).forEach(element => {
         myform.removeChild(element)
       });
+      let properties = myform.querySelector('#addFunctionalities') as GscapeButton
+      if(properties){
+        properties.label = 'Add properties +'
+      }
       myform.reset()
     }
     this.funcVisibility = 'none'
+    this.shadowRoot?.querySelector('#ok')?.setAttribute('disabled', 'true')
+    this.shadowRoot?.querySelector('#refactor')?.setAttribute('disabled', 'true')
   }
 
   private showFunctionalCheckbox = () => {
@@ -196,25 +213,36 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     })}
                 </select><br>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
-                <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" oninput="if(this.value.length > 0) this.offsetParent.querySelector('#ok').disabled = false; else this.offsetParent.querySelector('#ok').disabled = true;" name="input" value="" required>
+                <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" oninput="if(this.value.length > 0) {this.offsetParent.querySelector('#ok').disabled = false; this.offsetParent.querySelector('#refactor').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true; this.offsetParent.querySelector('#refactor').disabled = true;}" name="input" value="${this.entity? this.entity.iri.remainder:''}" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype-label" for="datatype">Datatype:</label>
                 <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype" name="datatype" required>
                     ${datatypes.sort().map((n, i) => {
-      return html`<option value="${n.toString()}">${n.toString()}</option>`
+                      if(this.entity && n.toString()===this.entity.datatype){
+                        return html`<option value="${n.toString()}"; selected>${n.toString()}</option>`
+                      } else{
+                        return html`<option value="${n.toString()}"; >${n.toString()}</option>`
+                      }
+      
     })}
                 </select>
-                <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional"> functional</label>
+                <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional" checked = ${this.entity?.functionalities.includes('functional')}> functional</label>
                 <label class="container" style = "display: ${this.enableMore}; margin: 8px 8px 8px 8px ;" id="completeL"><input type="checkbox" id="complete"> Complete</label>
                 <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add properties +" @click=${this.toggleFunctionalities}></gscape-button>
                 <ul class="dropdown-menu" style = "width: 68%; margin: 8px 18px 18px 8px ; border-radius: 5%; display: ${this.funcVisibility}; list-style-type: none; background-color: var(--gscape-color-neutral); " name="functionalities" >
                       ${this.functionalities.map((n, i) => {
-        return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
+                        if(this.entity && this.entity.functionalities.includes(n.toString())){
+                          return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" checked/> ${n.toString()}</a></li><br>`
+                        }
+                        else {
+                          return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
+                        }
       })}</ul>
             </form>
             <div class="buttons" id="buttons">
                 <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} disabled></gscape-button>
+                <gscape-button id="ok" label="${this.entity? 'Rename' : 'Ok'}" @click=${this.handleConfirm} disabled></gscape-button>
+                <gscape-button id="refactor" style = "display: ${this.entity? 'inline-block' : 'none'};" label="Refactor" @click=${this.handleRefactor} disabled></gscape-button>
             </div>
           </div>
         </div>

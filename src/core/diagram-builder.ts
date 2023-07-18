@@ -1,6 +1,6 @@
-import cytoscape, { Position } from "cytoscape";
+import cytoscape, { NodeSingular, Position } from "cytoscape";
 import { EntityNameType } from "../config";
-import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
+import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, Iri, isGrapholNode, RendererStatesEnum, Shape } from "../model";
 import getIdFromEntity from "../util/get-id-from-entity";
 
 export default class DiagramBuilder {
@@ -348,6 +348,15 @@ export default class DiagramBuilder {
     }
   }
   
+  public renameElement(elemId: string, newIri: Iri){
+    const cyElem = this.diagramRepresentation?.cy.$id(elemId)
+    cyElem?.data('iri', newIri.fullIri)
+    cyElem?.data('displayedName', newIri.remainder)
+    const grapholElem = this.diagramRepresentation?.grapholElements.get(elemId)
+    if(!grapholElem) return
+    grapholElem.iri = newIri.fullIri
+    grapholElem.displayedName = newIri.remainder
+  }
 
   /**
    * Get cytoscape representation of an entity given the type needed
@@ -355,7 +364,7 @@ export default class DiagramBuilder {
    * @param type 
    * @returns 
    */
-  private getEntityCyRepr(entity: GrapholEntity, type: GrapholTypesEnum) {
+  public getEntityCyRepr(entity: GrapholEntity, type: GrapholTypesEnum) {
     const occurrenceID = getIdFromEntity(entity, this.diagram.id, type, this.rendererState)
     if (occurrenceID)
       return this.diagramRepresentation?.cy.$id(occurrenceID) || cytoscape().collection()
