@@ -23,9 +23,16 @@ export default class OntologyBuilder {
     if (entityType === GrapholTypesEnum.INDIVIDUAL && ownerIri) {
       const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
       if (!ownerEntity) return
-      const instanceEntity = new ClassInstanceEntity(iri, [ownerEntity?.iri])
-      this.grapholscape.ontology.addEntity(instanceEntity)
-      this.diagramBuilder.addClassInstance(instanceEntity)
+      let instanceEntity = this.grapholscape.ontology.getEntity(iriString) 
+      if(instanceEntity && instanceEntity.is(GrapholTypesEnum.CLASS_INSTANCE)){
+        (instanceEntity as ClassInstanceEntity).addParentClass(ownerEntity.iri)
+      }
+      else{
+        instanceEntity = new ClassInstanceEntity(iri, [ownerEntity?.iri])
+        this.grapholscape.ontology.addEntity(instanceEntity)
+      }
+      if(!instanceEntity) return
+      this.diagramBuilder.addClassInstance(instanceEntity as ClassInstanceEntity)
       const sourceId = getIdFromEntity(instanceEntity, diagram.id, GrapholTypesEnum.CLASS_INSTANCE, this.rendererState)
       const targetId = getIdFromEntity(ownerEntity, diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
       if (!sourceId || !targetId) return
@@ -34,8 +41,11 @@ export default class OntologyBuilder {
       return
     }
 
-    const entity = new GrapholEntity(iri)
-    this.grapholscape.ontology.addEntity(entity)
+    let entity = this.grapholscape.ontology.getEntity(iriString)
+    if(!entity){
+      entity = new GrapholEntity(iri)
+      this.grapholscape.ontology.addEntity(entity)
+    }
     if (entityType === GrapholTypesEnum.DATA_PROPERTY && ownerIri) {
       entity.datatype = datatype
       if (functionalities.includes('functional')) {
@@ -75,12 +85,15 @@ export default class OntologyBuilder {
     if (!sourceEntity || !targetEntity) return
 
     if (iriString && edgeType === GrapholTypesEnum.OBJECT_PROPERTY) {
-      const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
-      const entity = new GrapholEntity(iri)
-      this.grapholscape.ontology.addEntity(entity)
+      let entity = this.grapholscape.ontology.getEntity(iriString)
+      if(!entity){  
+        const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
+        entity = new GrapholEntity(iri)
+        this.grapholscape.ontology.addEntity(entity)
+      }
       this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, GrapholTypesEnum.CLASS)
       functionalities.forEach(i => {
-        entity.functionalities.push(FunctionalityEnum[i])
+        entity?.functionalities.push(FunctionalityEnum[i])
       })
       this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
     }
@@ -199,7 +212,6 @@ export default class OntologyBuilder {
       this.diagramBuilder.removeHierarchy(hierarchy)
   }
 
-
   public removeHierarchyInput(hierarchy: Hierarchy, inputIri: string) {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
@@ -259,8 +271,28 @@ export default class OntologyBuilder {
     }
   }
 
-  public refactorEntity(oldIri: Iri, newIri: string){
+  public refactorEntity(entity: GrapholEntity, elemID: string, newIri: string){
+    const diagram = this.grapholscape.renderer.diagram as Diagram
+    this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
 
+    const oldIri = entity.iri.fullIri
+    const iri = new Iri(newIri, this.grapholscape.ontology.namespaces)
+    const grapholElem = diagram.representations.get(this.rendererState)?.grapholElements.get(elemID)
+    if(grapholElem && grapholElem.is(GrapholTypesEnum.CLASS)){
+      let hierarchiesIDs: string[] = []
+      let cyElem = this.diagramBuilder.getEntityCyRepr(entity, grapholElem.type)
+      cyElem.neighborhood(`node[type $= ${GrapholTypesEnum.UNION}]`).forEach(un => {
+        hierarchiesIDs.push(un.data('hierarchyID'))
+      }
+      )
+      this.reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri)
+      this.reassignSubhierarchies(hierarchiesIDs, oldIri, newIri)
+    }
+    entity.iri = iri
+    this.grapholscape.ontology.addEntity(entity)
+    entity.occurrences.get(this.rendererState)?.forEach(o => this.diagramBuilder.renameElement(o.id, iri))
+
+    this.grapholscape.ontology.entities.delete(oldIri)
   }
 
   public reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri){

@@ -636,8 +636,8 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     newElementComponent.onRefactor = (iriString) => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      if(entity){
-        ontologyBuilder.refactorEntity(entity.iri, iriString[0])
+      if(entity && sourceId){
+        ontologyBuilder.refactorEntity(entity, sourceId, iriString[0])
       }
     }
 
