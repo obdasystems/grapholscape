@@ -45,6 +45,57 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         backgroundColor: theme.getColour(ColoursNames.neutral)
       }
+    },
+
+    {
+      selector: '.path',
+      style: {
+        'underlay-opacity': 0.5,
+        'underlay-color': theme.getColour(ColoursNames.success_subtle),
+        'underlay-shape': 'ellipse'
+      }
+    },
+
+    {
+      selector: '.eh-ghost-edge, edge.eh-preview',
+      style: {
+        'width': 4,
+        'label': 'Find path to...',
+        'line-color': theme.getColour(ColoursNames.accent),
+        'target-arrow-color': theme.getColour(ColoursNames.accent),
+        'target-arrow-shape': 'triangle',
+        'opacity': 0.8,
+        'text-rotation': 'autorotate',
+      }
+    },
+
+    {
+      selector: '.eh-ghost-edge.eh-preview-active',
+      style: {
+        'opacity': 0,
+      }
+    },
+
+    {
+      selector: '.eh-target, .eh-source',
+      style: {
+        'border-width': 4,
+        'border-color': theme.getColour(ColoursNames.accent),
+      }
+    },
+
+    {
+      selector: '.eh-presumptive-target',
+      style: {
+        'opacity': 1,
+      }
+    },
+
+    {
+      selector: '.eh-not-target',
+      style: {
+        'opacity': 0.4,
+      }
     }
 
   ] as Stylesheet[]

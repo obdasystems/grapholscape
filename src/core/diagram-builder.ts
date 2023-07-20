@@ -218,7 +218,7 @@ export default class DiagramBuilder {
     if (sourceCyNode && targetCyNode) {
       const edgesAlreadyPresent = sourceCyNode.edgesTo(targetCyNode).filter(e => e.data().type === edgeType)
       if (edgesAlreadyPresent.nonempty()) {
-        return edgesAlreadyPresent.first()
+        return this.diagramRepresentation?.grapholElements.get(edgesAlreadyPresent.first().id())
       }
     } else {
       return

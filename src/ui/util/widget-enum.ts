@@ -24,5 +24,6 @@ export enum WidgetEnum {
   /** @internal */
   NAVIGATION_MENU = 'naviagtion-menu',
   /** @internal */
-  VKG_PREFERENCES = 'vkg-preferences'
+  VKG_PREFERENCES = 'vkg-preferences',
+  INCREMENTAL_INITIAL_MENU = 'incremental-initial-menu',
 }

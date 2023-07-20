@@ -354,7 +354,7 @@ export default class IncrementalController {
     const objectPropertyEntity = this.ontology.getEntity(objectPropertyIri)
     const sourceClass = this.ontology.getEntity(sourceClassIri)
     const targetClass = this.ontology.getEntity(targetClassIri)
-
+    let objectPropertyEdge: GrapholEdge | undefined
     if (objectPropertyEntity && sourceClass && targetClass) {
       this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, TypesEnum.CLASS)
 
@@ -364,6 +364,8 @@ export default class IncrementalController {
 
       this.countInstancesForClass(sourceClassIri, false)
       this.countInstancesForClass(targetClassIri, false)
+
+      return objectPropertyEdge
     }
   }
 
@@ -838,7 +840,79 @@ export default class IncrementalController {
     })
   }
 
-  runLayout = () => this.incrementalRenderer?.runLayout()
+  async addPath(path: { iri: string, type: string }[], sourceClassIri: string, targetClassIri: string) {
+    this.performActionWithBlockedGraph(() => {
+      if (!this.diagram.representation)
+        return
+
+      let i = 0
+      let cyElems: Collection  = this.diagram.representation.cy.collection()
+      let elemId: string | undefined
+
+      path.unshift({
+        iri: sourceClassIri,
+        type: 'class'
+      })
+
+      path.push({
+        iri: targetClassIri,
+        type: 'class',
+      })
+
+      for (let entity of path) {
+        if (entity.type === 'objectProperty' || entity.type === 'inverseObjectProperty') {
+          if (!path[i+1] || !path[i-1])
+            return
+
+          sourceClassIri = path[i-1].iri
+          targetClassIri = path[i+1].iri
+
+          if (entity.iri === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
+            const sourceId = this.addClass(sourceClassIri)?.id
+            const targetId = this.addClass(targetClassIri)?.id
+            if (sourceId && targetId) {
+              if (entity.type === 'objectProperty')
+                elemId = this.addEdge(sourceId, targetId, GrapholTypesEnum.INCLUSION)?.id
+              else
+                elemId = this.addEdge(targetId, sourceId, GrapholTypesEnum.INCLUSION)?.id
+            }
+          } else {
+            if (entity.type === 'objectProperty')
+              elemId = this.addIntensionalObjectProperty(entity.iri, sourceClassIri, targetClassIri)?.id
+            else
+              elemId = this.addIntensionalObjectProperty(entity.iri, targetClassIri, sourceClassIri)?.id
+          }
+
+          // create collection of elems to flash class and highlight them
+          if (elemId)
+            cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
+          
+          elemId = this.getIDByIRI(sourceClassIri, GrapholTypesEnum.CLASS)
+          if (elemId)
+            cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
+
+          elemId = this.getIDByIRI(targetClassIri, GrapholTypesEnum.CLASS)
+          if (elemId)
+            cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
+
+        }
+
+        i += 1
+      }
+
+      // clear previous highlighting
+      this.diagram.representation.cy.$('.path').removeClass('path')
+      // highlight current path
+      cyElems.addClass('path')
+      // clear highlight at any tap
+      this.diagram.representation.cy.one('tap', e => cyElems.removeClass('path'))
+      setTimeout(() => this.diagram.representation?.cy.fit(cyElems, 200), 500)
+    })
+  }
+
+  runLayout = () => {
+    this.incrementalRenderer?.runLayout()
+  }
   pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
   unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)
 

@@ -104,12 +104,33 @@
       document.getElementById('home').style.display = 'none';
       grapholscape_container.style.display = 'block';
 
-      grapholscape = await Grapholscape.fullGrapholscape(file, grapholscape_container)
-      if (grapholscape.renderState === Grapholscape.RendererStatesEnum.INCREMENTAL) {
+      // grapholscape = await Grapholscape.fullGrapholscape(file, grapholscape_container)
+      // if (grapholscape.renderState === Grapholscape.RendererStatesEnum.INCREMENTAL) {
+      //   grapholscape.incremental.showDiagram()
+      // } else {
+      //   grapholscape.showDiagram(0)
+      // }
+
+      await fetch("http://localhost:8989/mws/rest/mwsx/login", {
+          "headers": {
+              "Authorization": "Basic YWRtaW46YWRtaW4=",
+          },
+          "method": "GET",
+      }).then(async response => {
+        grapholscape = await Grapholscape.fullGrapholscape(file, grapholscape_container)
+        if (grapholscape.incremental) {
+          grapholscape.incremental.setMastroConnection({
+            basePath: `http://localhost:8989/mws/rest/mwsx`,
+            version: 'http://www.obdasystems.com/books/4.0',
+            name: 'Books',
+            headers: {"x-monolith-session-id": response.headers.get('x-monolith-session-id')},
+            onError: (err) => console.error(err)
+          })
+        }
+
+        grapholscape.setRenderer(new Grapholscape.IncrementalRendererState())
         grapholscape.incremental.showDiagram()
-      } else {
-        grapholscape.showDiagram(0)
-      }
+      })
     }
 
     function fetchGrapholFromUrl(form) {

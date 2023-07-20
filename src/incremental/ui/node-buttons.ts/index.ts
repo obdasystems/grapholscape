@@ -1,10 +1,10 @@
-import { NodeSingular } from "cytoscape";
+import { Core, EdgeSingular, NodeSingular } from "cytoscape";
 import { SVGTemplateResult, TemplateResult } from "lit";
 import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { textSpinner, WidgetEnum } from "../../../ui";
-import { classInstanceIcon, objectPropertyIcon } from "../../../ui/assets";
 import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
+import { classInstanceIcon, objectPropertyIcon, pathIcon } from "../../../ui/assets";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
@@ -13,6 +13,8 @@ import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
 import NodeButton from "../../../ui/common/button/node-button";
+import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
+import { edgeHandlesOptions } from "../../edge-handles-options";
 
 export function NodeButtonsFactory(ic: IncrementalController) {
 
@@ -22,13 +24,16 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   const objectPropertyButton = new NodeButton(objectPropertyIcon)
   objectPropertyButton.title = 'Navigate through object properties'
 
+  const pathDrawingButton = new NodeButton(pathIcon)
+  pathDrawingButton.title = 'Find path to another entity'
+
   const nodeButtonsMap = new Map<TypesEnum, NodeButton[]>()
   nodeButtonsMap.set(TypesEnum.CLASS, [objectPropertyButton])
   nodeButtonsMap.set(TypesEnum.CLASS_INSTANCE, [objectPropertyButton])
 
-
   instancesButton.onclick = (e) => handleInstancesButtonClick(e, ic)
   objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, ic)
+  pathDrawingButton.onmousedown = (e) => onPathDrawingButtonClick(e, ic)
 
   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && ic.diagram.representation) {
     setHandlersOnIncrementalCytoscape(ic.diagram.representation.cy, nodeButtonsMap)
@@ -54,6 +59,10 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   ic.on(IncrementalEvent.EndpointChange, () => {
     if (!nodeButtonsMap.get(TypesEnum.CLASS)?.includes(instancesButton)) {
       nodeButtonsMap.get(TypesEnum.CLASS)?.push(instancesButton)
+    }
+
+    if (!nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.includes(pathDrawingButton)) {
+      nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(pathDrawingButton)
     }
   })
 
@@ -317,6 +326,47 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
   }
 }
 
+function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
+  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    const cy = ic.grapholscape.renderer.cy as any
+    if (cy && !cy.scratch('eh')) {
+      let eh = cy.edgehandles()
+      cy.scratch('eh', eh)
+      eh.start((e.currentTarget as NodeButton).node)
+      cy.on('ehcomplete', async (evt, sourceNode: NodeSingular, targetNode: NodeSingular, addedEdge: EdgeSingular) => {
+        console.log(addedEdge)
+        addedEdge.remove()
+        const sourceIri = sourceNode.data('iri')
+        const targetIri = targetNode.data('iri')
+        if (sourceIri && targetIri) {
+          const path = await ic.endpointController?.highlightsManager?.getShortestPath(
+            sourceIri,
+            targetIri
+          )
+
+          if (path) {
+            ic.addPath(path, sourceIri, targetIri)
+          }
+        }
+      })
+
+      const onStop = (ev: MouseEvent) => {
+        const eh = cy.scratch('eh')
+        if (eh) {
+          eh.stop()
+          eh.destroy()
+          cy.removeScratch('eh')
+          cy.removeListener('ehcomplete ehstop')
+        }
+        
+        
+        document.removeEventListener('mouseup', onStop)
+      }
+
+      document.addEventListener('mouseup', (ev: MouseEvent) => onStop(ev))
+    }
+  }
+}
 
 function getButtonOffset(info: { popper: { height: number, width: number } }, buttonIndex = 0, numberOfButtons = 1): [number, number] {
   const btnHeight = info.popper.height + 4
