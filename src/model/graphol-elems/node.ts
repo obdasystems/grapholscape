@@ -13,12 +13,17 @@ export default class GrapholNode extends GrapholElement implements Node {
 
     Object.entries(n).forEach(([key, value]) => {
       if (n[key] && key !== 'id' && key !== 'type') {
-        instance[key] = value
+
+        if (key === 'labelPosition') {
+          instance.labelXpos = n.labelPosition?.x
+          instance.labelYpos = n.labelPosition?.y
+        } else {
+          instance[key] = value
+        }
+        
       }
     })
 
-    if (n.displayedName === 'or')
-      console.log(instance)
     return instance
   }
 
@@ -87,11 +92,13 @@ export default class GrapholNode extends GrapholElement implements Node {
   get labelXpos(): number | undefined { return this._labelXpos }
   set labelXpos(labelXpos) {
     this._labelXpos = labelXpos
+    if (labelXpos === 0) {
+      this._labelXcentered = true
+    }
   }
 
   setLabelXposFromXML(labelXpos: number) {
     if (labelXpos === this.position.x) {
-      this._labelXcentered = true
       this.labelXpos = 0
     } else {
       this.labelXpos = labelXpos - this.position.x + 1
@@ -106,11 +113,13 @@ export default class GrapholNode extends GrapholElement implements Node {
   get labelYpos(): number | undefined { return this._labelYpos }
   set labelYpos(labelYpos) {
     this._labelYpos = labelYpos
+    if (labelYpos === 0) {
+      this._labelYcentered = true
+    }
   }
 
   setLabelYposFromXML(labelYpos: number) {
     if (labelYpos === this.position.y) {
-      this._labelYcentered = true
       this.labelYpos = 0
     } else {
       this.labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4
@@ -195,7 +204,6 @@ export default class GrapholNode extends GrapholElement implements Node {
       }
     }
 
-    console.log(result)
     return result
   }
 }

@@ -2,7 +2,7 @@ import { Language } from "./config";
 import FloatyTransformer from "./core/rendering/floaty/floaty-transformer";
 import { EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, SwaggerModel } from "./model";
 import { Edge, Node, RDFGraphConfigFiltersEnum } from "./model/rdf-graph/swagger";
-import { WidgetEnum } from "./ui";
+import { WidgetEnum } from "./ui/util/widget-enum";
 import { GscapeFilters } from "./ui/filters";
 
 type RDFGraph = SwaggerModel.RDFGraph
