@@ -68,6 +68,12 @@ export default class FloatyRendererState extends BaseRenderer {
       this.setDragAndPinEventHandlers();
 
       (this.renderer.cy as any).automove(this.automoveOptions)
+    } else {
+      if (!this.isLayoutInfinite) {
+        if (floatyRepresentation.lastViewportState) {
+          this.renderer.cy?.viewport(floatyRepresentation.lastViewportState)
+        }
+      }
     }
 
     if (this.popperContainer)
@@ -86,6 +92,13 @@ export default class FloatyRendererState extends BaseRenderer {
 
   stopRendering(): void {
     this._layout?.stop()
+    if (this.renderer.diagram) {
+      const floaty = this.renderer.diagram.representations.get(this.id)
+      
+      if (floaty) {
+        floaty.lastViewportState = this.renderer.viewportState
+      }
+    }
   }
 
   getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {

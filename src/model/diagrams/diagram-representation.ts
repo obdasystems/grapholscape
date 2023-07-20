@@ -5,7 +5,7 @@ import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
 import { isGrapholNode } from "../graphol-elems/node";
 import Iri from "../iri";
-import { TypesEnum } from "../rdf-graph/swagger";
+import { TypesEnum, Viewport } from "../rdf-graph/swagger";
 
 export default class DiagramRepresentation {
   private _cy: cytoscape.Core
@@ -14,6 +14,8 @@ export default class DiagramRepresentation {
 
   private _nodesCounter: number = 0
   private _edgesCounter: number = 0
+
+  public lastViewportState?: Viewport
 
   constructor(cyConfig = cytoscapeDefaultConfig) {
     this.cy = cytoscape(cyConfig)

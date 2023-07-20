@@ -2,7 +2,7 @@ import { EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape"
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, EntityNameType, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, ViewportState } from "../model";
+import { Annotation, AnnotationsKind, EntityNameType, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeConfirmDialog } from "../ui";
 import { ClassInstance } from "./api/kg-api";
@@ -63,7 +63,7 @@ export default class IncrementalController {
     })
   }
 
-  showDiagram(viewportState?: ViewportState) {
+  showDiagram(viewportState?: Viewport) {
     if (viewportState)
       this.diagram.lastViewportState = viewportState
 

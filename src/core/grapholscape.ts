@@ -1,7 +1,7 @@
 import { GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
-import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, ViewportState } from "../model"
+import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport } from "../model"
 import rdfgraphSerializer from "../rdfgraph-serializer"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -50,7 +50,7 @@ export default class Grapholscape {
    * @param diagramId the diagram's id to display
    * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
    */
-  showDiagram(diagramId: number, viewportState?: ViewportState) {
+  showDiagram(diagramId: number, viewportState?: Viewport) {
     const diagram = this.ontology.getDiagram(diagramId)
 
     if (!diagram) {

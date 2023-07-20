@@ -1,12 +1,9 @@
 import { Language } from "./config";
 import FloatyTransformer from "./core/rendering/floaty/floaty-transformer";
-import { EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, SwaggerModel } from "./model";
-import { Edge, Node, RDFGraphConfigFiltersEnum } from "./model/rdf-graph/swagger";
+import { EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
 import { WidgetEnum } from "./ui/util/widget-enum";
 import { GscapeFilters } from "./ui/filters";
-
-type RDFGraph = SwaggerModel.RDFGraph
-const { RDFGraphModelTypeEnum } = SwaggerModel
+import { RDFGraph, RDFGraphModelTypeEnum, Edge, RDFGraphConfigFiltersEnum, Node } from "./model/rdf-graph/swagger";
 
 export interface IGscape {
   ontology: Ontology
@@ -16,6 +13,7 @@ export interface IGscape {
       pan: () => Position,
       zoom: () => number,
     },
+    viewportState?: Viewport
   },
   themeList: GrapholscapeTheme[],
   theme: GrapholscapeTheme,
@@ -58,7 +56,7 @@ export default function(grapholscape: IGscape) {
     return {
       id: d.id,
       name: d.name,
-      lastViewportState: d.lastViewportState,
+      lastViewportState: d.id === grapholscape.diagramId ? grapholscape.renderer.viewportState : d.lastViewportState,
       nodes: floaty.cy.nodes().map(n => {
         resElem = floaty!.grapholElements.get(n.id())?.json()
 

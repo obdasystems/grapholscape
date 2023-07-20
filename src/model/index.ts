@@ -1,5 +1,5 @@
 export { default as Ontology } from "./ontology"
-export { default as Diagram, ViewportState } from "./diagrams/diagram"
+export { default as Diagram } from "./diagrams/diagram"
 export { default as DiagramRepresentation } from './diagrams/diagram-representation'
 export { default as IncrementalDiagram } from './diagrams/incremental-diagram'
 export { default as Namespace } from './namespace'
@@ -37,5 +37,6 @@ export {
   EntityFunctionPropertiesEnum as FunctionalityEnum,
   EntityNameType,
   Position,
-  RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum
+  RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum,
+  Viewport
 } from './rdf-graph/swagger'

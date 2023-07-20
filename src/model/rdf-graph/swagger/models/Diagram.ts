@@ -67,7 +67,7 @@ export interface Diagram {
      * @type {Viewport}
      * @memberof Diagram
      */
-    lastViewPortState?: Viewport;
+    lastViewportState?: Viewport;
 }
 
 /**
@@ -95,7 +95,7 @@ export function DiagramFromJSONTyped(json: any, ignoreDiscriminator: boolean): D
         'name': json['name'],
         'nodes': !exists(json, 'nodes') ? undefined : ((json['nodes'] as Array<any>).map(NodeFromJSON)),
         'edges': !exists(json, 'edges') ? undefined : ((json['edges'] as Array<any>).map(EdgeFromJSON)),
-        'lastViewPortState': !exists(json, 'lastViewPortState') ? undefined : ViewportFromJSON(json['lastViewPortState']),
+        'lastViewportState': !exists(json, 'lastViewportState') ? undefined : ViewportFromJSON(json['lastViewportState']),
     };
 }
 
@@ -112,7 +112,7 @@ export function DiagramToJSON(value?: Diagram | null): any {
         'name': value.name,
         'nodes': value.nodes === undefined ? undefined : ((value.nodes as Array<any>).map(NodeToJSON)),
         'edges': value.edges === undefined ? undefined : ((value.edges as Array<any>).map(EdgeToJSON)),
-        'lastViewPortState': ViewportToJSON(value.lastViewPortState),
+        'lastViewportState': ViewportToJSON(value.lastViewportState),
     };
 }
 

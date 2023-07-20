@@ -11,6 +11,7 @@ import edgehandles from 'cytoscape-edgehandles';
 import undoredo from 'cytoscape-undo-redo'
 import { RDFGraph } from './model/rdf-graph/swagger'
 import parseRDFGraph from './parsing/rdf-graph-parser'
+import setGraphEventHandlers from './core/set-graph-event-handlers'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -102,7 +103,11 @@ export function resumeGrapholscape(rdfGraph: RDFGraph, container: HTMLElement) {
     }
 
     if (rdfGraph.selectedDiagramId !== undefined) {
-      grapholscape.showDiagram(rdfGraph.selectedDiagramId)
+      const diagram = grapholscape.ontology.getDiagram(rdfGraph.selectedDiagramId)
+      if (diagram) {
+        setGraphEventHandlers(diagram, grapholscape.lifecycle, grapholscape.ontology)
+        grapholscape.showDiagram(rdfGraph.selectedDiagramId)
+      }
     }
   }
 

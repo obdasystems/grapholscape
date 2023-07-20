@@ -1,5 +1,6 @@
+import { floatyOptions } from "../config";
 import { Grapholscape } from "../core";
-import { Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { Edge, Node, RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
@@ -22,11 +23,18 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
 
 
   let diagram: Diagram
+let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | null
   let grapholElement: GrapholNode | GrapholEdge
 
   rdfGraph.diagrams.forEach(d => {
     diagram = new Diagram(d.name, d.id)
+    diagramRepr = diagram.representations.get(rendererState)
+
+    if (!diagramRepr) {
+      diagramRepr = new DiagramRepresentation(floatyOptions)
+      diagram.representations.set(rendererState, diagramRepr)
+    }
 
     // Nodes
     d.nodes?.forEach(n => {
@@ -37,7 +45,7 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
         grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
 
-      diagram.addElement(grapholElement)
+      diagramRepr!.addElement(grapholElement)
     })
 
     // Edges
@@ -47,14 +55,15 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
         grapholEntity = ontology.getEntity(e.iri)
         grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
-      diagram.addElement(grapholElement)
+      diagramRepr!.addElement(grapholElement)
     })
 
-    if (d.lastViewPortState) {
-      diagram.lastViewportState = d.lastViewPortState
+    if (d.lastViewportState !== undefined) {
       const diagramRepr = diagram.representations.get(rendererState)
-      if (diagramRepr)
+      if (diagramRepr) {
         diagramRepr.hasEverBeenRendered = true
+        diagramRepr.lastViewportState = d.lastViewportState
+      }
     }
 
     ontology.addDiagram(diagram)

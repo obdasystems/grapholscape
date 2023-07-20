@@ -166,7 +166,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Edge"
-        lastViewPortState:
+        lastViewportState:
           $ref: "#/components/schemas/Viewport"
     Element:
       type: object

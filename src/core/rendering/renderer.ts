@@ -1,5 +1,5 @@
 import cytoscape, { ElementDefinition } from "cytoscape"
-import { DefaultFilterKeyEnum, Diagram, Filter, getDefaultFilters, GrapholElement, LifecycleEvent } from "../../model"
+import { DefaultFilterKeyEnum, Diagram, Filter, getDefaultFilters, GrapholElement, LifecycleEvent, Viewport } from "../../model"
 import { isGrapholEdge } from "../../model/graphol-elems/edge"
 import { isGrapholNode } from "../../model/graphol-elems/node"
 import Lifecycle from "../../model/lifecycle"

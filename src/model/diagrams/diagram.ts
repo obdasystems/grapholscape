@@ -4,11 +4,7 @@ import GrapholElement from '../graphol-elems/graphol-element'
 import { RendererStatesEnum } from '../renderers/i-render-state'
 import DiagramRepresentation from './diagram-representation'
 import Iri from '../iri'
-import { Diagram as IDiagram } from '../rdf-graph/swagger'
-export type ViewportState = {
-  pan: Position,
-  zoom: number,
-}
+import { Diagram as IDiagram, Viewport } from '../rdf-graph/swagger'
 
 /**
  * @property {string} name - diagram's name
@@ -18,7 +14,7 @@ class Diagram implements IDiagram {
   name: string
   id: number
   representations: Map<RendererStatesEnum, DiagramRepresentation> = new Map([[RendererStatesEnum.GRAPHOL, new DiagramRepresentation()]])
-  lastViewportState: ViewportState
+  lastViewportState: Viewport
 
   /**
    * @param {string} name

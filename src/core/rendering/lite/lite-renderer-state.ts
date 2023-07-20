@@ -50,11 +50,8 @@ export default class LiteRendererState extends BaseRenderer {
   }
 
   stopRendering(): void {
-    if (this.renderer.cy && this.renderer.diagram) {
-      this.renderer.diagram.lastViewportState = {
-        pan: this.renderer.cy.pan(),
-        zoom: this.renderer.cy.zoom(),
-      }
+    if (this.renderer.viewportState && this.renderer.diagram) {
+      this.renderer.diagram.lastViewportState = this.renderer.viewportState
     }
   }
 
