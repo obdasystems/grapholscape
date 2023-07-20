@@ -1,4 +1,4 @@
-import { GrapholTypesEnum } from "../../../model";
+import { TypesEnum } from "../../../model";
 import { WidgetEnum } from "../../../ui";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
@@ -24,7 +24,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
       : incrementalController.addIntensionalObjectProperty(e.detail.objectPropertyIri, e.detail.rangeClassIri, e.detail.referenceClassIri)
 
     setTimeout(() => {
-      const nodeId = incrementalController.getIDByIRI(e.detail.rangeClassIri!, GrapholTypesEnum.CLASS)
+      const nodeId = incrementalController.getIDByIRI(e.detail.rangeClassIri!, TypesEnum.CLASS)
       if (nodeId) {
         incrementalController.grapholscape.centerOnElement(nodeId)
       }

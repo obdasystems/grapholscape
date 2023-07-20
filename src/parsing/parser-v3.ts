@@ -1,12 +1,9 @@
 /** @typedef {import('../model').default} Ontology */
 
-import { Ontology } from '../model'
+import { FunctionalityEnum, Ontology, TypesEnum } from '../model'
 import Annotation from '../model/graphol-elems/annotation'
-import { FunctionalityEnum } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
-import { GrapholTypesEnum } from '../model/graphol-elems/enums'
-
 export let warnings = new Set()
 
 export function getOntologyInfo(xmlDocument: XMLDocument) {
@@ -17,9 +14,9 @@ export function getOntologyInfo(xmlDocument: XMLDocument) {
   const ontology = new Ontology(project?.getAttribute('name') || '', project?.getAttribute('version') || '')
 
   if (ontology_languages)
-    ontology.languages.list = [...ontology_languages].map(lang => lang.textContent) || []
+    ontology.languages = [...ontology_languages].map(lang => lang.textContent).filter(l => l !== null) as string[] || []
 
-  ontology.languages.default = getTag(xmlDocument, 'ontology')?.getAttribute('lang') || ontology.languages.list[0]
+  ontology.defaultLanguage = getTag(xmlDocument, 'ontology')?.getAttribute('lang') || ontology.languages[0]
   if (iri) {
     ontology.iri = iri
     ontology.annotations = getIriAnnotations(iri, xmlDocument)
@@ -69,7 +66,7 @@ export function getIri(element: Element, ontology: Ontology) {
  */
 export function getFacetDisplayedName(element: Element, ontology: Ontology) {
   // Facets' label must be in the form: [constraining-facet-iri^^"value"] to be compliant to Graphol-V2
-  if (element.getAttribute('type') === GrapholTypesEnum.FACET) {
+  if (element.getAttribute('type') === TypesEnum.FACET) {
     const constrainingFacet = getTagText(element, 'constrainingFacet')
     if (constrainingFacet) {
       const facetIri = new Iri(constrainingFacet, ontology.namespaces)
@@ -103,22 +100,22 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument): 
   let result: FunctionalityEnum[] = []
   let current_iri_elem = getIriElem(element, xmlDocument)
 
-  let elementType: GrapholTypesEnum | undefined
+  let elementType: TypesEnum | undefined
   switch (element.getAttribute('type')) {
     case 'concept':
-      elementType = GrapholTypesEnum.CLASS
+      elementType = TypesEnum.CLASS
       break
 
     case 'role':
-      elementType = GrapholTypesEnum.OBJECT_PROPERTY
+      elementType = TypesEnum.OBJECT_PROPERTY
       break
 
     case 'attribute':
-      elementType = GrapholTypesEnum.DATA_PROPERTY
+      elementType = TypesEnum.DATA_PROPERTY
       break
   }
 
-  if (elementType === GrapholTypesEnum.OBJECT_PROPERTY || elementType === GrapholTypesEnum.DATA_PROPERTY) {
+  if (elementType === TypesEnum.OBJECT_PROPERTY || elementType === TypesEnum.DATA_PROPERTY) {
     if (current_iri_elem && current_iri_elem.children) {
       for (let property of current_iri_elem.children) {
 

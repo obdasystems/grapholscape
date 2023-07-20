@@ -1,10 +1,12 @@
+import { Namespace as INamespace } from "./rdf-graph/swagger"
+
 /**
  * Class representing a namespace
  * @property {string[]} prefixes - array of prefixes
  * @property {string} value - namespace lexical form
  * @property {boolean} standard - bool saying if the namespace is standard or user defined
  */
-class Namespace {
+class Namespace implements INamespace {
   private _prefixes: string[]
   private _value: string
   private _standard: boolean
@@ -25,6 +27,10 @@ class Namespace {
 
   private set value(val: string) {
     this._value = val
+  }
+
+  public get value() {
+    return this._value
   }
 
   public toString() {

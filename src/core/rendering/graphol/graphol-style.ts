@@ -1,13 +1,13 @@
 import { NodeSingular, SingularElementArgument, Stylesheet } from "cytoscape";
-import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, GrapholTypesEnum, Shape } from "../../../model";
+import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, Shape, TypesEnum } from "../../../model";
 
 export default function (theme: GrapholscapeTheme) {
   return [
     {
       selector: 'node',
       style: {
-        'height': 'data(height)',
-        'width': 'data(width)',
+        'height': (n) => n.data('height') || 40,
+        'width': (n) => n.data('width') || 40,
         'background-color': (node) => getColor(node, ColoursNames.bg_node_light),
         'shape': 'data(shape)',
         'border-width': 1,
@@ -29,17 +29,17 @@ export default function (theme: GrapholscapeTheme) {
       selector: 'node[displayedName]',
       style: {
         'label': 'data(displayedName)',
-        'text-margin-x': 'data(labelXpos)',
-        'text-margin-y': 'data(labelYpos)',
+        'text-margin-x': (n) => n.data('labelXpos') || 0,
+        'text-margin-y': (n) => n.data('labelYpos') || 0,
         'text-wrap': 'wrap',
         'min-zoomed-font-size': '5px',
       }
     },
 
     {
-      selector: `node[displayedName][type = "${GrapholTypesEnum.CLASS}"], node[displayedName][type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
+      selector: `node[displayedName][type = "${TypesEnum.CLASS}"], node[displayedName][type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
-        'text-max-width': 'data(width)',
+        'text-max-width': (n) => n.data('width') || 40,
       }
     },
 
@@ -71,7 +71,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.INCLUSION}"]`,
+      selector: `edge[type = "${TypesEnum.INCLUSION}"]`,
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'triangle',
@@ -80,7 +80,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.MEMBERSHIP}"]`,
+      selector: `edge[type = "${TypesEnum.MEMBERSHIP}"]`,
       style: {
         'line-style': 'dashed',
         'line-dash-pattern': [2, 3],
@@ -90,7 +90,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
+      selector: `edge[type = "${TypesEnum.INPUT}"]`,
       style: {
         'line-style': 'dashed',
         'target-arrow-shape': 'diamond',
@@ -99,7 +99,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.EQUIVALENCE}"]`,
+      selector: `edge[type = "${TypesEnum.EQUIVALENCE}"]`,
       style: {
         'line-style': 'solid',
         'source-arrow-shape': 'triangle',
@@ -208,7 +208,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[type = "${GrapholTypesEnum.FACET}"][!fake], .fake-bottom-rhomboid`,
+      selector: `[type = "${TypesEnum.FACET}"][!fake], .fake-bottom-rhomboid`,
       style: {
         'background-opacity': 0
       }
@@ -222,7 +222,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[type = "${GrapholTypesEnum.PROPERTY_ASSERTION}"][!fake]`,
+      selector: `[type = "${TypesEnum.PROPERTY_ASSERTION}"][!fake]`,
       style: {
         'background-opacity': 0,
         'border-width': 0,
@@ -252,7 +252,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.CLASS}"]`,
+      selector: `node[type = "${TypesEnum.CLASS}"]`,
       style: {
         'background-color': node => getColor(node, ColoursNames.class),
         'border-color': theme.getColour(ColoursNames.class_contrast),
@@ -260,7 +260,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"], .fake-triangle`,
+      selector: `node[type = "${TypesEnum.OBJECT_PROPERTY}"], .fake-triangle`,
       style: {
         'background-color': node => getColor(node, ColoursNames.object_property),
         'border-color': theme.getColour(ColoursNames.object_property_contrast),
@@ -268,7 +268,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+      selector: `node[type = "${TypesEnum.DATA_PROPERTY}"]`,
       style: {
         'background-color': node => getColor(node, ColoursNames.data_property),
         'border-color': theme.getColour(ColoursNames.data_property_contrast),
@@ -276,7 +276,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]:selected`,
+      selector: `node[type = "${TypesEnum.DATA_PROPERTY}"]:selected`,
       style: {
         'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
@@ -284,7 +284,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.INDIVIDUAL}"]`,
+      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         'background-color': node => getColor(node, ColoursNames.individual),
         'border-color': theme.getColour(ColoursNames.individual_contrast),
@@ -292,7 +292,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"], [type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+      selector: `[type = "${TypesEnum.RANGE_RESTRICTION}"], [type = "${TypesEnum.DISJOINT_UNION}"]`,
       style: {
         'background-color': theme.getColour(ColoursNames.bg_node_dark),
       }
@@ -306,7 +306,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[shape = "${Shape.HEXAGON}"],[type = "${GrapholTypesEnum.VALUE_DOMAIN}"]`,
+      selector: `[shape = "${Shape.HEXAGON}"],[type = "${TypesEnum.VALUE_DOMAIN}"]`,
       style: {
         'color': theme.getColour(ColoursNames.bg_node_dark),
       }

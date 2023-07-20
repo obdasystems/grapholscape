@@ -1,4 +1,5 @@
-import Filter, { DefaultFilterKeyEnum } from "./filter"
+import { RDFGraphConfigFiltersEnum } from "../rdf-graph/swagger"
+import Filter from "./filter"
 
 export default interface FilterManager {
   filters: Map<string, Filter>
@@ -9,7 +10,7 @@ export default interface FilterManager {
 
 export abstract class BaseFilterManager implements FilterManager {
   protected _filters: Map<string, Filter>
-  protected lockedFilters: DefaultFilterKeyEnum[] = []
+  protected lockedFilters: RDFGraphConfigFiltersEnum[] = []
 
   filterActivation(filter: Filter) {
     if (filter.active) {
@@ -43,7 +44,7 @@ export abstract class BaseFilterManager implements FilterManager {
     this._filters = filters
 
     filters.forEach(filter => {
-      if (this.lockedFilters.includes(filter.key as DefaultFilterKeyEnum))
+      if (this.lockedFilters.includes(filter.key as RDFGraphConfigFiltersEnum))
         filter?.lock()
       else
         filter?.unlock()

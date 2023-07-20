@@ -5,7 +5,7 @@ import { LifecycleEvent } from "../../model";
 import { IBaseMixin } from "../common/mixins/";
 
 export default function (settingsComponent: GscapeSettings, grapholscape: Grapholscape) {
-  settingsComponent.languages = grapholscape.ontology.languages.list
+  settingsComponent.languages = grapholscape.ontology.languages
   settingsComponent.selectedLanguage = grapholscape.language
   settingsComponent.selectedEntityNameType = grapholscape.entityNameType
   settingsComponent.themes = grapholscape.themeList
@@ -25,6 +25,7 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   }
   settingsComponent.onPngExport = () => grapholscape.exportToPng()
   settingsComponent.onSvgExport = () => grapholscape.exportToSvg()
+  settingsComponent.onJSONExport = () => grapholscape.exportToRdfGraph()
 
   // let gui_container = grapholscape.container.querySelector('#gscape-ui')
   settingsComponent.onWidgetEnabled = (widgetKey) => {

@@ -1,7 +1,7 @@
 import { Grapholscape } from "../core";
-import { EntityViewDataUnfolding } from "../ui/view-model";
-import { GrapholEntity, GrapholTypesEnum } from "../model";
+import { GrapholEntity, TypesEnum } from "../model";
 import { EntityViewData } from "../ui";
+import { EntityViewDataUnfolding } from "../ui/view-model";
 
 export function grapholEntityToEntityViewData(grapholEntity: GrapholEntity, grapholscape: Grapholscape): EntityViewData {
   return {
@@ -10,7 +10,7 @@ export function grapholEntityToEntityViewData(grapholEntity: GrapholEntity, grap
   }
 }
 
-export function getEntityViewDataUnfolding(entity: GrapholEntity, grapholscape: Grapholscape, hasUnfoldings?: (iri: string, type: GrapholTypesEnum) => boolean ) {
+export function getEntityViewDataUnfolding(entity: GrapholEntity, grapholscape: Grapholscape, hasUnfoldings?: (iri: string, type: TypesEnum) => boolean ) {
   let hasAnyUnfolding = true
 
   if (hasUnfoldings) {

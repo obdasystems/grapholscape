@@ -1,6 +1,6 @@
-import { GrapholEntity, GrapholTypesEnum, RendererStatesEnum } from "../model"
+import { GrapholEntity, RendererStatesEnum, TypesEnum } from "../model"
 
-export default function getIdFromEntity(entity: GrapholEntity, diagramId: number, type: GrapholTypesEnum, rendererState = RendererStatesEnum.GRAPHOL) {
+export default function getIdFromEntity(entity: GrapholEntity, diagramId: number, type: TypesEnum, rendererState = RendererStatesEnum.GRAPHOL) {
   let entityOccurrences = entity.getOccurrencesByType(type, rendererState)
 
   if (!entityOccurrences || entityOccurrences.length === 0)

@@ -1,6 +1,5 @@
 import { floatyOptions } from "../../config"
-import { ClassInstanceEntity, Diagram, FunctionalityEnum, DiagramRepresentation, GrapholEntity, GrapholTypesEnum, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum } from "../../model"
-import getIdFromEntity from "../../util/get-id-from-entity"
+import { ClassInstanceEntity, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../model"
 import DiagramBuilder from "../diagram-builder"
 import Grapholscape from "../grapholscape"
 
@@ -13,58 +12,58 @@ export default class OntologyBuilder {
         this.grapholscape = grapholscape
     }
 
-    public addNodeElement(iriString: string, entityType: GrapholTypesEnum, ownerIri?: string, relationship?: string, functionalities: string[] = [], datatype = '') {
+    public addNodeElement(iriString: string, entityType: TypesEnum, ownerIri?: string, relationship?: string, functionalities: string[] = [], datatype = '') {
 
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
         const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
-        if (entityType === GrapholTypesEnum.INDIVIDUAL && ownerIri){
+        if (entityType === TypesEnum.INDIVIDUAL && ownerIri){
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if(!ownerEntity) return
             const instanceEntity = new ClassInstanceEntity(iri, [ownerEntity?.iri])
             this.grapholscape.ontology.addEntity(instanceEntity)
             this.diagramBuilder.addClassInstance(instanceEntity)
-            const sourceId = getIdFromEntity(instanceEntity, diagram.id, GrapholTypesEnum.INDIVIDUAL, RendererStatesEnum.FLOATY)
-            const targetId = getIdFromEntity(ownerEntity, diagram.id, GrapholTypesEnum.CLASS, RendererStatesEnum.FLOATY)
+            const sourceId = instanceEntity.getIdInDiagram(diagram.id, TypesEnum.INDIVIDUAL, RendererStatesEnum.FLOATY)
+            const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, RendererStatesEnum.FLOATY)
             if(!sourceId || !targetId) return
-            this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+            this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
             this.grapholscape.renderer.renderState?.runLayout()
             return
         }
 
         const entity = new GrapholEntity(iri)
         this.grapholscape.ontology.addEntity(entity)
-        if (entityType === GrapholTypesEnum.DATA_PROPERTY && ownerIri) {
+        if (entityType === TypesEnum.DATA_PROPERTY && ownerIri) {
             entity.datatype = datatype
             if (functionalities.includes('functional')) {
-                entity.functionalities = [FunctionalityEnum.functional]
+                entity.functionalities = [FunctionalityEnum.FUNCTIONAL]
             }
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if (ownerEntity)
                 this.diagramBuilder.addDataProperty(entity, ownerEntity)
         }
-        else if (entityType === GrapholTypesEnum.CLASS) {
+        else if (entityType === TypesEnum.CLASS) {
             this.diagramBuilder.addClass(entity)
             if (!ownerIri) return
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if (!ownerEntity) return
             if (relationship === 'superclass') {
-                const sourceId = getIdFromEntity(ownerEntity, diagram.id, GrapholTypesEnum.CLASS, RendererStatesEnum.FLOATY)
-                const targetId = getIdFromEntity(entity, diagram.id, GrapholTypesEnum.CLASS, RendererStatesEnum.FLOATY)
+                const sourceId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, RendererStatesEnum.FLOATY)
+                const targetId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, RendererStatesEnum.FLOATY)
                 if (!sourceId || !targetId) return
-                this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INCLUSION)
+                this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
             } else if (relationship === 'subclass') {
-                const sourceId = getIdFromEntity(entity, diagram.id, GrapholTypesEnum.CLASS, RendererStatesEnum.FLOATY)
-                const targetId = getIdFromEntity(ownerEntity, diagram.id, GrapholTypesEnum.CLASS, RendererStatesEnum.FLOATY)
+                const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, RendererStatesEnum.FLOATY)
+                const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, RendererStatesEnum.FLOATY)
                 if (!sourceId || !targetId) return
-                this.diagramBuilder.addEdge(sourceId, targetId, GrapholTypesEnum.INCLUSION)
+                this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
             }
         }
         this.grapholscape.renderer.renderState?.runLayout()
         this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
     }
 
-    public addEdgeElement(iriString: string | null = null, edgeType: GrapholTypesEnum, sourceId: string, targetId: string, nodesType: GrapholTypesEnum, functionalities: string[] = []) {
+    public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionalities: string[] = []) {
 
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
@@ -72,19 +71,19 @@ export default class OntologyBuilder {
         const targetEntity = this.grapholscape.ontology.getEntity(targetId)
         if (!sourceEntity || !targetEntity) return
 
-        if (iriString && edgeType === GrapholTypesEnum.OBJECT_PROPERTY) {
+        if (iriString && edgeType === TypesEnum.OBJECT_PROPERTY) {
             const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
             const entity = new GrapholEntity(iri)
             this.grapholscape.ontology.addEntity(entity)
-            this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, GrapholTypesEnum.CLASS)
+            this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS)
             functionalities.forEach(i => {
                 entity.functionalities.push(FunctionalityEnum[i])
             })
             this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
         }
-        else if (edgeType === GrapholTypesEnum.INCLUSION) {
-            const sourceID = getIdFromEntity(sourceEntity, diagram.id, nodesType, RendererStatesEnum.FLOATY)
-            const targetID = getIdFromEntity(targetEntity, diagram.id, nodesType, RendererStatesEnum.FLOATY)
+        else if (edgeType === TypesEnum.INCLUSION) {
+            const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType, RendererStatesEnum.FLOATY)
+            const targetID = targetEntity.getIdInDiagram(diagram.id, nodesType, RendererStatesEnum.FLOATY)
             if (!sourceID || !targetID) return
             this.diagramBuilder.addEdge(sourceID, targetID, edgeType)
         }
@@ -102,8 +101,11 @@ export default class OntologyBuilder {
     public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete= false){
         const diagram = this.grapholscape.renderer.diagram as Diagram
         this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
-        const hierarchy = disjoint? new Hierarchy(GrapholTypesEnum.DISJOINT_UNION) : new Hierarchy(GrapholTypesEnum.UNION)
-        hierarchy.id = `un${this.grapholscape.renderer.nodes?.length}`
+        const hierarchyId = `un${this.grapholscape.renderer.nodes?.length}`
+        const hierarchy = disjoint
+            ? new Hierarchy(hierarchyId, TypesEnum.DISJOINT_UNION) 
+            : new Hierarchy(hierarchyId, TypesEnum.UNION)
+        
         const superClass = this.grapholscape.ontology.getEntity(ownerIri)
         if (!superClass) return
         hierarchy.addSuperclass(superClass, complete)
@@ -117,16 +119,18 @@ export default class OntologyBuilder {
         this.grapholscape.renderer.renderState?.runLayout()
     }
 
-    public toggleFunctionality(iri){
+    public toggleFunctionality(iri: string){
         const entity = this.grapholscape.ontology.getEntity(iri)
-        if(entity?.hasFunctionality(FunctionalityEnum.functional)){
-            entity.functionalities = []
-        } else {
-            entity?.functionalities.push(FunctionalityEnum.functional)
-        }
-        const diagram = this.grapholscape.renderer.diagram as Diagram
-        this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
-        this.diagramBuilder.toggleFunctionality(entity, entity?.hasFunctionality(FunctionalityEnum.functional))
+        if (entity) {
+            if(entity?.hasFunctionality(FunctionalityEnum.FUNCTIONAL)){
+                entity.functionalities = []
+            } else {
+                entity?.functionalities.push(FunctionalityEnum.FUNCTIONAL)
+            }
+            const diagram = this.grapholscape.renderer.diagram as Diagram
+            this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+            this.diagramBuilder.toggleFunctionality(entity, entity?.hasFunctionality(FunctionalityEnum.FUNCTIONAL))
+        }        
 
     }
 

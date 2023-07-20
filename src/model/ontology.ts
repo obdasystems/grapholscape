@@ -4,23 +4,22 @@ import Diagram from './diagrams/diagram'
 import DiagramRepresentation from './diagrams/diagram-representation'
 import { Hierarchy } from './graph-structures'
 import GrapholEntity from './graphol-elems/entity'
-import GrapholNode from './graphol-elems/node'
-import { GrapholTypesEnum } from './graphol-elems/enums'
-import Namespace from './namespace'
-import { RendererStatesEnum } from './renderers/i-render-state'
 import GrapholElement from './graphol-elems/graphol-element'
+import GrapholNode from './graphol-elems/node'
+import Namespace from './namespace'
+import { RDFGraphMetadata, TypesEnum } from './rdf-graph/swagger'
+import { RendererStatesEnum } from './renderers/i-render-state'
 /**
  * # Ontology
  * Class used as the Model of the whole app.
  */
-class Ontology extends AnnotatedElement {
+class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   name: string
   version: string
   namespaces: Namespace[] = []
   diagrams: Diagram[] = []
-  languages: {
-    list: any[]; default: string
-  }
+  languages: string[] = []
+  defaultLanguage?: string
   iri?: string
 
   private _entities: Map<string, GrapholEntity> = new Map()
@@ -47,12 +46,6 @@ class Ontology extends AnnotatedElement {
     this.diagrams = diagrams
 
     this.iri = iri
-
-    this.languages = {
-      /** @type {import('../grapholscape').Language[]}*/
-      list: [],
-      default: ''
-    }
   }
 
   /** @param {Namespace} namespace */
@@ -111,7 +104,7 @@ class Ontology extends AnnotatedElement {
     return null
   }
 
-  getEntitiesByType(entityType: GrapholTypesEnum.CLASS | GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.INDIVIDUAL) {
+  getEntitiesByType(entityType: TypesEnum) {
     return Array.from(this.entities).filter(([_, entity]) => entity.is(entityType)).map(([_, entity]) => entity)
   }
 
@@ -267,7 +260,7 @@ class Ontology extends AnnotatedElement {
       occurrences: GrapholElement[] | undefined
 
     this.entities.forEach((dataPropertyEntity, _) => {
-      if (dataPropertyEntity.is(GrapholTypesEnum.DATA_PROPERTY)) {
+      if (dataPropertyEntity.is(TypesEnum.DATA_PROPERTY)) {
         occurrences = dataPropertyEntity.occurrences.get(RendererStatesEnum.GRAPHOL)
         if (!occurrences)
           return
@@ -281,8 +274,8 @@ class Ontology extends AnnotatedElement {
 
           if (cyElement && cyElement.nonempty()) {
             datatypeNode = cyElement
-              .neighborhood(`node[type = "${GrapholTypesEnum.RANGE_RESTRICTION}"]`)
-              .neighborhood(`node[type = "${GrapholTypesEnum.VALUE_DOMAIN}"]`)
+              .neighborhood(`node[type = "${TypesEnum.RANGE_RESTRICTION}"]`)
+              .neighborhood(`node[type = "${TypesEnum.VALUE_DOMAIN}"]`)
 
             if (datatypeNode.nonempty()) {
               datatype = datatypeNode.first().data('displayedName')

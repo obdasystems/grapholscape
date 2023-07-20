@@ -1,5 +1,5 @@
 import { css, html, nothing } from 'lit'
-import { Annotation, GrapholTypesEnum } from '../../model'
+import { Annotation, TypesEnum } from '../../model'
 import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
@@ -26,7 +26,7 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
       <div class="rtl"><div class="muted-text" style="text-align: center" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div></div>
       <div class="muted-text type-or-version">
         ${Array.from(item.typeOrVersion).map(text => {
-          if (Object.values(GrapholTypesEnum).includes(text as GrapholTypesEnum)) {
+          if (Object.values(TypesEnum).includes(text as TypesEnum)) {
             return html`
               <div class="type-or-version">
                 ${entityIcons[text]}

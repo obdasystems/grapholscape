@@ -1,6 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { EntityNameType } from '../../config'
-import { GrapholscapeTheme } from '../../model'
+import { EntityNameType, GrapholscapeTheme } from '../../model'
 import capitalizeFirstChar from '../../util/capitalize-first-char'
 import { grapholscapeLogo } from '../assets'
 import { save, settings_icon } from '../assets/icons'
@@ -34,6 +33,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
   onWidgetDisabled: (widgetKey: WidgetEnum) => void = () => { }
   onPngExport: () => void = () => { }
   onSvgExport: () => void = () => { }
+  onJSONExport: () => void = () => { }
 
   static properties = {
     languages: { type: Object, attribute: false, },
@@ -163,6 +163,13 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
                 <span slot="icon">${save}</span>
               </gscape-button>
             </div>
+          </div>
+        </div>
+
+        <div class="area">
+          <div class="setting">
+            <gscape-button label="Export JSON" size="s" @click=${this.onJSONExport}>
+            </gscape-button>
           </div>
         </div>
 

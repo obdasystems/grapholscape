@@ -1,7 +1,5 @@
 import cytoscape, { Position } from "cytoscape";
-import { EntityNameType } from "../config";
-import { ClassInstanceEntity, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, isGrapholNode, RendererStatesEnum, Shape } from "../model";
-import getIdFromEntity from "../util/get-id-from-entity";
+import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, Hierarchy, isGrapholNode, RendererStatesEnum, Shape, TypesEnum } from "../model";
 
 export default class DiagramBuilder {
 
@@ -9,13 +7,13 @@ export default class DiagramBuilder {
 
   addClass(classEntity: GrapholEntity, position?: Position) {
     if (this.diagramRepresentation?.containsEntity(classEntity)) {
-      const nodeId = getIdFromEntity(classEntity, this.diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
+      const nodeId = classEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState)
       return nodeId
         ? this.diagramRepresentation.grapholElements.get(nodeId)
         : undefined
     }
 
-    const classNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS)
+    const classNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS)
     classNode.iri = classEntity.iri.fullIri
     classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
     classNode.height = classNode.width = 80
@@ -32,9 +30,9 @@ export default class DiagramBuilder {
 
   addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity: GrapholEntity) {
 
-    const dataPropertyNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.DATA_PROPERTY)
+    const dataPropertyNode = new GrapholNode(this.getNewId('node'), TypesEnum.DATA_PROPERTY)
 
-    const ownerEntityId = getIdFromEntity(ownerEntity, this.diagram.id, GrapholTypesEnum.CLASS, this.rendererState)
+    const ownerEntityId = ownerEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState)
     if (!ownerEntityId) return
     let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
 
@@ -50,7 +48,7 @@ export default class DiagramBuilder {
     dataPropertyNode.originalId = dataPropertyNode.id
     dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY)
 
-    const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), GrapholTypesEnum.DATA_PROPERTY)
+    const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.DATA_PROPERTY)
     dataPropertyEdge.diagramId = this.diagram.id
     dataPropertyEdge.sourceId = ownerEntityNode.id
     dataPropertyEdge.targetId = dataPropertyNode.id
@@ -64,7 +62,7 @@ export default class DiagramBuilder {
     objectPropertyEntity: GrapholEntity,
     sourceEntity: GrapholEntity,
     targetEntity: GrapholEntity,
-    nodesType: GrapholTypesEnum
+    nodesType: TypesEnum
   ) {
 
     // if both object property and range class are already present, do not add them again
@@ -86,7 +84,7 @@ export default class DiagramBuilder {
     }
 
     if (sourceNode.empty()) {
-      sourceEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
+      sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
       sourceNode = this.getEntityCyRepr(sourceEntity, nodesType)
       if (sourceNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`)
@@ -94,7 +92,7 @@ export default class DiagramBuilder {
       }
     }
     if (targetNode.empty()) {
-      targetEntity.is(GrapholTypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addClass(targetEntity)
+      targetEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addClass(targetEntity)
       targetNode = this.getEntityCyRepr(targetEntity, nodesType)
       if (targetNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`)
@@ -109,7 +107,7 @@ export default class DiagramBuilder {
       return
     }
 
-    const objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), GrapholTypesEnum.OBJECT_PROPERTY)
+    const objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
     objectPropertyEdge.diagramId = this.diagram.id
     objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
     objectPropertyEdge.sourceId = sourceNode.id()
@@ -123,12 +121,12 @@ export default class DiagramBuilder {
 
   addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position) {
     if (this.diagramRepresentation?.containsEntity(classInstanceEntity)) {
-      const nodeId = getIdFromEntity(classInstanceEntity, this.diagram.id, GrapholTypesEnum.CLASS_INSTANCE, this.rendererState)
+      const nodeId = classInstanceEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState)
       if (nodeId)
         return this.diagramRepresentation.grapholElements.get(nodeId)
     }
 
-    const instanceNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS_INSTANCE)
+    const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE)
 
     if (!position) {
       // check if parent class is present in diagram
@@ -151,12 +149,12 @@ export default class DiagramBuilder {
 
   addIndividual(individualEntity: GrapholEntity, position?: Position) {
     if (this.diagramRepresentation?.containsEntity(individualEntity)) {
-      const nodeId = getIdFromEntity(individualEntity, this.diagram.id, GrapholTypesEnum.CLASS_INSTANCE, this.rendererState)
+      const nodeId = individualEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState)
       if (nodeId)
         return this.diagramRepresentation.grapholElements.get(nodeId)
     }
 
-    const instanceNode = new GrapholNode(this.getNewId('node'), GrapholTypesEnum.CLASS_INSTANCE)
+    const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE)
     instanceNode.position = position || { x: 0, y: 0 }
 
     return this._addIndividualOrClassInstance(instanceNode, individualEntity)
@@ -206,10 +204,10 @@ export default class DiagramBuilder {
 
   addEdge(sourceId: string,
     targetId: string,
-    edgeType: GrapholTypesEnum.INCLUSION |
-      GrapholTypesEnum.EQUIVALENCE |
-      GrapholTypesEnum.INSTANCE_OF |
-      GrapholTypesEnum.INPUT) {
+    edgeType: TypesEnum.INCLUSION |
+      TypesEnum.EQUIVALENCE |
+      TypesEnum.INSTANCE_OF |
+      TypesEnum.INPUT) {
 
     const sourceNode = this.diagramRepresentation?.grapholElements.get(sourceId)
     const targetNode = this.diagramRepresentation?.grapholElements.get(targetId)
@@ -242,9 +240,9 @@ export default class DiagramBuilder {
     return this.diagram.representations.get(this.rendererState)
   }
 
-  public toggleFunctionality(entity, functional) {
+  public toggleFunctionality(entity: GrapholEntity, functional: boolean) {
 
-    const id = getIdFromEntity(entity, this.diagram.id, GrapholTypesEnum.DATA_PROPERTY, this.rendererState)
+    const id = entity.getIdInDiagram(this.diagram.id, TypesEnum.DATA_PROPERTY, this.rendererState)
     if (!id) return
     const node = this.diagramRepresentation?.cy.$id(id)
     if (!node) return
@@ -253,18 +251,18 @@ export default class DiagramBuilder {
 
   public toggleUnion(node) {
     const type = node.data('type')
-    if (type === GrapholTypesEnum.UNION) {
+    if (type === TypesEnum.UNION) {
       node.removeClass('union')
-      node.data('type', GrapholTypesEnum.DISJOINT_UNION)
+      node.data('type', TypesEnum.DISJOINT_UNION)
       node.data('displayedName', undefined)
       node.addClass('disjoint-union')
       // edge
-      const edge = node.connectedEdges().find(e => e.data('type') === GrapholTypesEnum.UNION)
-      edge?.data('type', GrapholTypesEnum.DISJOINT_UNION)
+      const edge = node.connectedEdges().find(e => e.data('type') === TypesEnum.UNION)
+      edge?.data('type', TypesEnum.DISJOINT_UNION)
 
     } else {
       node.removeClass('disjoint-union')
-      node.data('type', GrapholTypesEnum.UNION)
+      node.data('type', TypesEnum.UNION)
       node.data('displayedName', 'or')
       node.data('labelXpos', 0)
       node.data('labelXcentered', true)
@@ -272,8 +270,8 @@ export default class DiagramBuilder {
       node.data('labelYcentered', true)
       node.addClass('union')
       // edge
-      const edge = node.connectedEdges().find(e => e.data('type') === GrapholTypesEnum.DISJOINT_UNION)
-      edge?.data('type', GrapholTypesEnum.UNION)
+      const edge = node.connectedEdges().find(e => e.data('type') === TypesEnum.DISJOINT_UNION)
+      edge?.data('type', TypesEnum.UNION)
     }
   }
 
@@ -296,8 +294,8 @@ export default class DiagramBuilder {
    * @param type 
    * @returns 
    */
-  private getEntityCyRepr(entity: GrapholEntity, type: GrapholTypesEnum) {
-    const occurrenceID = getIdFromEntity(entity, this.diagram.id, type, this.rendererState)
+  private getEntityCyRepr(entity: GrapholEntity, type: TypesEnum) {
+    const occurrenceID = entity.getIdInDiagram(this.diagram.id, type, this.rendererState)
     if (occurrenceID)
       return this.diagramRepresentation?.cy.$id(occurrenceID) || cytoscape().collection()
     else

@@ -1,11 +1,11 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
-import { GrapholTypesEnum } from "../../../model";
+import { TypesEnum } from "../../../model";
 import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons } from "../../../ui";
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
 import a11yClick from "../../../ui/util/a11y-click";
 import getIconSlot from "../../../ui/util/get-icon-slot";
-import menuBaseStyle from "../menu-base-style";
 import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
+import menuBaseStyle from "../menu-base-style";
 
 export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   popperRef?: HTMLElement
@@ -19,7 +19,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   /** @internal */
   referenceEntity?: EntityViewData
   /** @internal */
-  referenceEntityType?: GrapholTypesEnum
+  referenceEntityType?: TypesEnum
 
   static properties: PropertyDeclarations = {
     objectProperties: { type: Object },
@@ -135,7 +135,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
       const targetListItem = e.currentTarget as GscapeEntityListItem | null
 
       if (targetListItem &&
-        this.referenceEntity?.value.types.has(GrapholTypesEnum.CLASS_INSTANCE) &&
+        this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
         !targetListItem.disabled) {
         this.dispatchEvent(new CustomEvent('onobjectpropertyselection', {
           bubbles: true,

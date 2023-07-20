@@ -1,5 +1,5 @@
 import { svg, SVGTemplateResult } from "lit"
-import { AnnotationsKind, GrapholTypesEnum } from "../../model"
+import { AnnotationsKind, TypesEnum } from "../../model"
 import classIcon from './class-icon'
 import classInstanceIcon from "./class-instance-icon"
 import dataPropertyIcon from "./data-property-icon"
@@ -124,18 +124,18 @@ export const addSubhierarchyIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" h
 
 export const sankey = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="padding: 1px; box-sizing: border-box;"><path d="M20 4V6H4V4H2V12H4V10C8.16 10 9.92 12.11 11.77 14.34S15.65 19 20 19V21H22V15H20V17C16.59 17 15.07 15.17 13.31 13.06C11.34 10.69 9.1 8 4 8H20V10H22V4Z" /></svg>`
 
-export const entityIcons: { [x in GrapholTypesEnum.CLASS |
-  GrapholTypesEnum.OBJECT_PROPERTY |
-  GrapholTypesEnum.DATA_PROPERTY |
-  GrapholTypesEnum.INDIVIDUAL |
-  GrapholTypesEnum.CLASS_INSTANCE
+export const entityIcons: { [x in TypesEnum.CLASS |
+  TypesEnum.OBJECT_PROPERTY |
+  TypesEnum.DATA_PROPERTY |
+  TypesEnum.INDIVIDUAL |
+  TypesEnum.CLASS_INSTANCE
   ]: SVGTemplateResult
 } = {
-  [GrapholTypesEnum.CLASS]: classIcon,
-  [GrapholTypesEnum.OBJECT_PROPERTY]: objectPropertyIcon,
-  [GrapholTypesEnum.DATA_PROPERTY]: dataPropertyIcon,
-  [GrapholTypesEnum.INDIVIDUAL]: individualIcon,
-  [GrapholTypesEnum.CLASS_INSTANCE]: classInstanceIcon,
+  [TypesEnum.CLASS]: classIcon,
+  [TypesEnum.OBJECT_PROPERTY]: objectPropertyIcon,
+  [TypesEnum.DATA_PROPERTY]: dataPropertyIcon,
+  [TypesEnum.INDIVIDUAL]: individualIcon,
+  [TypesEnum.CLASS_INSTANCE]: classInstanceIcon,
 }
 
 export const annotationIcons: { [x in AnnotationsKind]: SVGTemplateResult } = {

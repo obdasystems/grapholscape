@@ -22,5 +22,4 @@ export { default as emptySearchBlankState } from "./util/empty-search-blank-stat
 export * from './util/get-entity-view-occurrences'
 export * from './util/search-entities'
 export { WidgetEnum } from "./util/widget-enum"
-export { default as NodeButton } from '../incremental/ui/node-buttons.ts/node-button'
 

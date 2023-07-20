@@ -1,5 +1,5 @@
 import { DiagramViewData, OccurrenceIdViewData } from "."
-import { Iri, GrapholTypesEnum, AnnotatedElement } from "../model"
+import { AnnotatedElement, Iri, TypesEnum } from "../model"
 
 export type ViewObjectPropertyUnfolding = EntityViewDataUnfolding & {
   // objectProperty: EntityViewData,
@@ -15,14 +15,14 @@ export type EntityViewDataUnfolding = {
 
 export type EntityViewData = {
   displayedName: string,
-  value: { iri: Iri, types: Set<GrapholTypesEnum> } & AnnotatedElement, // GrapholEntity is a compatible type
+  value: { iri: Iri, types: Set<TypesEnum> } & AnnotatedElement, // GrapholEntity is a compatible type
   viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>
 }
 
 export interface IEntityFilters { // use numbers to work as DOM attributes
-  [GrapholTypesEnum.CLASS]?: number
-  [GrapholTypesEnum.DATA_PROPERTY]?: number
-  [GrapholTypesEnum.OBJECT_PROPERTY]?: number
-  [GrapholTypesEnum.INDIVIDUAL]?: number
+  [TypesEnum.CLASS]?: number
+  [TypesEnum.DATA_PROPERTY]?: number
+  [TypesEnum.OBJECT_PROPERTY]?: number
+  [TypesEnum.INDIVIDUAL]?: number
   areAllFiltersDisabled: boolean
 }

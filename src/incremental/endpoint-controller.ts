@@ -1,4 +1,4 @@
-import { GrapholTypesEnum } from "../model";
+import { TypesEnum } from "../model";
 import EndpointApi from "./api/endpoint-api";
 import VKGApi from "./api/kg-api";
 import { MastroEndpoint, RequestOptions } from "./api/model";
@@ -82,7 +82,7 @@ export default class EndpointController {
     includeLabels = true,
     searchText?: string,
     propertyIriFilter?: string,
-    propertyType?: GrapholTypesEnum.OBJECT_PROPERTY | GrapholTypesEnum.DATA_PROPERTY,
+    propertyType?: TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY,
     isDirect?: boolean,
   ) {
 

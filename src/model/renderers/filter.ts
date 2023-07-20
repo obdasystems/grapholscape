@@ -1,5 +1,5 @@
 import GrapholElement from "../graphol-elems/graphol-element"
-import { GrapholTypesEnum } from "../graphol-elems/enums"
+import { RDFGraphConfigFiltersEnum, TypesEnum } from "../rdf-graph/swagger"
 
 /** 
  * @typedef {object} Filter
@@ -52,53 +52,43 @@ export default class Filter {
   }
 }
 
-export enum DefaultFilterKeyEnum {
-  ALL = 'all',
-  DATA_PROPERTY = 'data-property',
-  VALUE_DOMAIN = 'value-domain',
-  INDIVIDUAL = 'individual',
-  UNIVERSAL_QUANTIFIER = 'for-all',
-  COMPLEMENT = 'complement',
-  HAS_KEY = 'has-key'
-}
-
 const dataPropertyFilter = () => {
   return new Filter(
-    DefaultFilterKeyEnum.DATA_PROPERTY,
-    (element) => element.is(GrapholTypesEnum.DATA_PROPERTY)
+    RDFGraphConfigFiltersEnum.DATA_PROPERTY,
+    (element) => element.is(TypesEnum.DATA_PROPERTY)
   )
 }
 
 const valueDomainFilter = () => {
   return new Filter(
-    DefaultFilterKeyEnum.VALUE_DOMAIN,
-    (element) => element.is(GrapholTypesEnum.VALUE_DOMAIN)
+    RDFGraphConfigFiltersEnum.VALUE_DOMAIN,
+    (element) => element.is(TypesEnum.VALUE_DOMAIN)
   )
 }
 
 const individualsFilter = () => {
   return new Filter(
-    DefaultFilterKeyEnum.INDIVIDUAL,
-    (element) => element.is(GrapholTypesEnum.INDIVIDUAL)
+    RDFGraphConfigFiltersEnum.INDIVIDUAL,
+    (element) => element.is(TypesEnum.INDIVIDUAL)
   )
 }
 
 const universalQuantifierFilter = () => new Filter(
-  DefaultFilterKeyEnum.UNIVERSAL_QUANTIFIER,
+  RDFGraphConfigFiltersEnum.UNIVERSAL_QUANTIFIER,
   (element) => {
-    return (element.is(GrapholTypesEnum.DOMAIN_RESTRICTION) || element.is(GrapholTypesEnum.RANGE_RESTRICTION)) &&
+    return (element.is(TypesEnum.DOMAIN_RESTRICTION) || element.is(TypesEnum.RANGE_RESTRICTION)) &&
       element.displayedName === 'forall'
   }
 )
 
 const complementFilter = () => new Filter(
-  DefaultFilterKeyEnum.COMPLEMENT,
-  (element) => element.is(GrapholTypesEnum.COMPLEMENT)
+  RDFGraphConfigFiltersEnum.COMPLEMENT,
+  (element) => element.is(TypesEnum.COMPLEMENT)
 )
 
 const hasKeyFilter = () => new Filter(
-  DefaultFilterKeyEnum.HAS_KEY,
-  (element) => element.is(GrapholTypesEnum.KEY)
+  RDFGraphConfigFiltersEnum.HAS_KEY,
+  (element) => element.is(TypesEnum.HAS_KEY)
 )
 
 export const getDefaultFilters = () => {

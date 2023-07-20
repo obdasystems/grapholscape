@@ -1,9 +1,11 @@
 import { NodeSingular } from "cytoscape";
 import { LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult, css, html } from "lit";
 import { Props } from "tippy.js";
-import { BaseMixin, GscapeButtonStyle, baseStyle, contentSpinnerStyle, textSpinnerStyle } from "../../../ui";
-import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
-import getIconSlot from "../../../ui/util/get-icon-slot";
+import getIconSlot from "../../util/get-icon-slot";
+import GscapeButtonStyle from "./style";
+import baseStyle from "../../style"
+import { BaseMixin, ContextualWidgetMixin } from "../mixins";
+import { textSpinnerStyle, contentSpinnerStyle } from "../spinners";
 
 export default class NodeButton extends ContextualWidgetMixin(BaseMixin(LitElement)) {
 

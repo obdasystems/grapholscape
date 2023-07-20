@@ -1,7 +1,6 @@
-import { Ontology } from '../model'
+import { FunctionalityEnum, Ontology } from '../model'
 import { AnnotationsKind } from '../model/annotated-element'
 import Annotation from '../model/graphol-elems/annotation'
-import { FunctionalityEnum } from '../model/graphol-elems/entity'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
 

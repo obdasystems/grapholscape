@@ -1,12 +1,12 @@
 import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit"
-import { GrapholTypesEnum } from "../../../model"
+import { TypesEnum } from "../../../model"
 import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinnerStyle } from "../../../ui"
 import { entityIcons, insertInGraph, search, searchOff } from "../../../ui/assets"
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
 import getIconSlot from "../../../ui/util/get-icon-slot"
+import { EntityViewDataUnfolding, ViewObjectPropertyUnfolding } from "../../../ui/view-model"
 import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
-import { EntityViewDataUnfolding, ViewObjectPropertyUnfolding } from "../../../ui/view-model"
 
 export type ClassInstanceViewData = ClassInstance & { connectedInstance?: ClassInstance }
 
@@ -18,7 +18,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   propertiesFilterList: EntityViewDataUnfolding[] = []
   classTypeFilterList?: EntityViewDataUnfolding[]
   referenceEntity?: EntityViewData
-  referenceEntityType?: GrapholTypesEnum
+  referenceEntityType?: TypesEnum
   referencePropertyEntity?: EntityViewData
   isPropertyDirect: boolean = true
   requestId?:string
@@ -247,7 +247,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 <gscape-entity-list-item
                   displayedname=${displayedName}
                   iri=${instance.connectedInstance ? `${instance.iri}-${instance.connectedInstance.iri}` : instance.iri}
-                  .types=${new Set([GrapholTypesEnum.CLASS_INSTANCE])}
+                  .types=${new Set([TypesEnum.CLASS_INSTANCE])}
                 >
                   <div slot="trailing-element" class="hover-btn">
                     <gscape-button
@@ -315,9 +315,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         })
   
         if (property) {
-          event.detail.propertyType = Array.from(property.entityViewData.value.types)[0] as GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY
+          event.detail.propertyType = Array.from(property.entityViewData.value.types)[0] as TypesEnum.DATA_PROPERTY | TypesEnum.OBJECT_PROPERTY
   
-          if (property.entityViewData.value.types.has(GrapholTypesEnum.OBJECT_PROPERTY)) {
+          if (property.entityViewData.value.types.has(TypesEnum.OBJECT_PROPERTY)) {
             event.detail.direct = (property as ViewObjectPropertyUnfolding).direct
           }
         }
@@ -379,9 +379,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       if (instance) {
         let parentClassIris: string[] | string
   
-        if (this.referenceEntity?.value.types.has(GrapholTypesEnum.CLASS)) { // if class, take class iri as parent
+        if (this.referenceEntity?.value.types.has(TypesEnum.CLASS)) { // if class, take class iri as parent
           parentClassIris = this.referenceEntity?.value.iri.fullIri
-        } else if (this.referenceEntity?.value.types.has(GrapholTypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
+        } else if (this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
 
           if (this.classTypeFilterList?.length === 1) { 
             parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class
@@ -516,7 +516,7 @@ export type InstanceSelectionEvent = CustomEvent<{
 export type InstanceFilterEvent = CustomEvent<{
   filterText: string,
   filterByProperty: string | undefined,
-  propertyType: GrapholTypesEnum.DATA_PROPERTY | GrapholTypesEnum.OBJECT_PROPERTY,
+  propertyType: TypesEnum.DATA_PROPERTY | TypesEnum.OBJECT_PROPERTY,
   direct: boolean,
   filterByType: string[] | undefined,
   shouldAskForLabels: boolean,

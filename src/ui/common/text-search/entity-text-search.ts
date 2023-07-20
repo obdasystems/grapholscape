@@ -1,5 +1,5 @@
 import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit";
-import { GrapholTypesEnum } from "../../../model";
+import { TypesEnum } from "../../../model";
 import { cross, filter, search } from "../../assets";
 import baseStyle from "../../style";
 import getIconSlot from "../../util/get-icon-slot";
@@ -9,21 +9,21 @@ import { DropPanelMixin } from "../mixins";
 
 export default class GscapeEntitySearch extends DropPanelMixin(LitElement) implements IEntityFilters {
   areAllFiltersDisabled: boolean = true;
-  [GrapholTypesEnum.CLASS]?: number
-  [GrapholTypesEnum.DATA_PROPERTY]?: number
-  [GrapholTypesEnum.OBJECT_PROPERTY]?: number
-  [GrapholTypesEnum.INDIVIDUAL]?: number
-  [GrapholTypesEnum.CLASS_INSTANCE]?: number
+  [TypesEnum.CLASS]?: number
+  [TypesEnum.DATA_PROPERTY]?: number
+  [TypesEnum.OBJECT_PROPERTY]?: number
+  [TypesEnum.INDIVIDUAL]?: number
+  [TypesEnum.CLASS_INSTANCE]?: number
 
   private isSearchTextEmpty: boolean = true
   private searchTimeout: NodeJS.Timeout
 
   static properties: PropertyDeclarations = {
-    [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
-    [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
-    [GrapholTypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
+    [TypesEnum.CLASS]: { type: Number, reflect: true },
+    [TypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
+    [TypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
+    [TypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
+    [TypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
     isSearchTextEmpty: { type: Boolean, state: true },
   }
 
@@ -94,11 +94,11 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
       </div>
       <div id="drop-panel" class="hide">
         <gscape-entity-type-filter
-          class=${this[GrapholTypesEnum.CLASS] ?? nothing}
-          object-property=${this[GrapholTypesEnum.OBJECT_PROPERTY] ?? nothing}
-          data-property=${this[GrapholTypesEnum.DATA_PROPERTY] ?? nothing}
-          individual=${this[GrapholTypesEnum.INDIVIDUAL] ?? nothing}
-          class-instance=${this[GrapholTypesEnum.CLASS_INSTANCE] ?? nothing}
+          class=${this[TypesEnum.CLASS] ?? nothing}
+          object-property=${this[TypesEnum.OBJECT_PROPERTY] ?? nothing}
+          data-property=${this[TypesEnum.DATA_PROPERTY] ?? nothing}
+          individual=${this[TypesEnum.INDIVIDUAL] ?? nothing}
+          class-instance=${this[TypesEnum.CLASS_INSTANCE] ?? nothing}
         ></gscape-entity-type-filter>
       </div>
       
@@ -151,16 +151,16 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   private get atLeastTwoFilters() {
     let count = 0
 
-    if (this[GrapholTypesEnum.CLASS] !== undefined)
+    if (this[TypesEnum.CLASS] !== undefined)
       count++
 
-    if (this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined)
+    if (this[TypesEnum.OBJECT_PROPERTY] !== undefined)
       count++
 
-    if (this[GrapholTypesEnum.DATA_PROPERTY] !== undefined)
+    if (this[TypesEnum.DATA_PROPERTY] !== undefined)
       count++
 
-    if (this[GrapholTypesEnum.INDIVIDUAL] !== undefined)
+    if (this[TypesEnum.INDIVIDUAL] !== undefined)
       count++
 
     return count >= 2

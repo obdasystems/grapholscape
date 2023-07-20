@@ -1,11 +1,27 @@
-import { ElementDefinition, Position } from "cytoscape";
-import { GrapholTypesEnum } from "./enums";
+import { Edge, Element, Position, TypesEnum } from "../rdf-graph/swagger";
 import Breakpoint from "./breakpoint";
 import GrapholEntity from "./entity";
 import GrapholElement from "./graphol-element";
 
 
-export default class GrapholEdge extends GrapholElement {
+export default class GrapholEdge extends GrapholElement implements Edge {
+
+  static newFromSwagger(n: Edge) {
+    const instance = new GrapholEdge(n.id, n.type)
+
+    Object.entries(n).forEach(([key, value]) => {
+      if (n[key] && key !== 'id' && key !== 'type') {
+        if (key === 'breakpoints') {
+          instance.addBreakPoint(value)
+        } else {
+          instance[key] = value
+        }
+      }
+    })
+
+    return instance
+  }
+
   private _sourceId: string
   private _targetId: string
   private _breakpoints: Breakpoint[] = []
@@ -14,7 +30,7 @@ export default class GrapholEdge extends GrapholElement {
   private _sourceEndpoint?: Position
   private _targetEndpoint?: Position
 
-  constructor(id: string, type: GrapholTypesEnum) {
+  constructor(id: string, type: TypesEnum) {
     super(id, type)
   }
 
@@ -96,10 +112,10 @@ export default class GrapholEdge extends GrapholElement {
   }
 
   public get type() { return super.type }
-  public set type(newType: GrapholTypesEnum) {
+  public set type(newType: TypesEnum) {
     super.type = newType
 
-    if (this.is(GrapholTypesEnum.SAME) || this.is(GrapholTypesEnum.DIFFERENT))
+    if (this.is(TypesEnum.SAME) || this.is(TypesEnum.DIFFERENT))
       this.displayedName = this.type
   }
 
@@ -126,6 +142,16 @@ export default class GrapholEdge extends GrapholElement {
     Object.assign(cloneObj, this)
 
     return cloneObj
+  }
+
+  json(): Edge {
+    const result: Edge = super.json() as Edge
+
+    result.sourceId = this.sourceId
+    result.targetId = this.targetId
+    result.breakpoints = this.breakpoints
+        
+    return result
   }
 }
 

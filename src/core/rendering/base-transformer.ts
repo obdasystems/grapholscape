@@ -1,6 +1,5 @@
 import { Collection, EdgeSingular, NodeSingular, SingularElementReturnValue } from "cytoscape";
-import { Diagram, DiagramRepresentation, GrapholElement, GrapholTypesEnum } from "../../model";
-import { cytoscapeFilter } from "./filtering";
+import { Diagram, DiagramRepresentation, GrapholElement, TypesEnum } from "../../model";
 
 export interface GrapholTransformer {
   transform(diagram: Diagram): DiagramRepresentation
@@ -19,7 +18,7 @@ export default abstract class BaseGrapholTransformer implements GrapholTransform
     this.newCy.$('*').forEach(node => {
       if (criterion(node)) {
         count += 1
-        cytoscapeFilter(node.id(), '', this.newCy)
+        this.result.filter(node.id(), '')
       }
     })
   }
@@ -30,8 +29,8 @@ export default abstract class BaseGrapholTransformer implements GrapholTransform
 
   protected isRestriction(grapholElement: GrapholElement) {
     if (!grapholElement) return false
-    return grapholElement.is(GrapholTypesEnum.DOMAIN_RESTRICTION) ||
-      grapholElement.is(GrapholTypesEnum.RANGE_RESTRICTION)
+    return grapholElement.is(TypesEnum.DOMAIN_RESTRICTION) ||
+      grapholElement.is(TypesEnum.RANGE_RESTRICTION)
   }
 
   protected getGrapholElement(id: string): GrapholElement {

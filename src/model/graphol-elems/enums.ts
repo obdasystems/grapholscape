@@ -1,68 +1,4 @@
-/** 
- * Node types in a Graphol ontology
- */
-export enum GrapholTypesEnum {
-  CLASS = 'class',
-  /** @type {"domain-restriction"} */
-  DOMAIN_RESTRICTION = 'domain-restriction',
-  /** @type {"range-restriction"} */
-  RANGE_RESTRICTION = 'range-restriction',
-  /** @type {"role"} */
-  OBJECT_PROPERTY = 'object-property',
-  /** @type {"data property"} */
-  DATA_PROPERTY = 'data-property',
-  /** @type {"union"} */
-  UNION = 'union',
-  /** @type {"disjoint-union"} */
-  DISJOINT_UNION = 'disjoint-union',
-  /** @type {"complement"} */
-  COMPLEMENT = 'complement',
-  /** @type {"intersection"} */
-  INTERSECTION = 'intersection',
-  /** @type {"enumeration"} */
-  ENUMERATION = 'enumeration',
-  /** @type {"has-key"} */
-  KEY = 'has-key',
-  /** @type {"role-inverse"} */
-  ROLE_INVERSE = 'role-inverse',
-  /** @type {"role-chain"} */
-  ROLE_CHAIN = 'role-chain',
-  /** @type {"datatype-restriction"} */
-  DATATYPE_RESTRICTION = 'datatype-restriction',
-  /** @type {"value-domain"} */
-  VALUE_DOMAIN = 'value-domain',
-  /** @type {"property-assertion"} */
-  PROPERTY_ASSERTION = 'property-assertion',
-  /** @type {"literal"} */
-  LITERAL = 'literal',
-  /** @type {"individual"} */
-  INDIVIDUAL = 'individual',
-  /** @type {"facet"} */
-  FACET = 'facet',
-  /** @type {"neutral"} */
-  NEUTRAL = 'neutral',
-  /** @type {"value"} */
-  VALUE = 'value',
-  // EDGES
-  /** @type {"inclusion"} */
-  INCLUSION = 'inclusion',
-  /** @type {"input"} */
-  INPUT = 'input',
-  /** @type {"equivalence"} */
-  EQUIVALENCE = 'equivalence',
-  /** @type {"instanceOf"} */
-  INSTANCE_OF = 'instanceOf',
-  /** @type {"same"} */
-  SAME = 'same',
-  /** @type {"different"} */
-  DIFFERENT = 'different',
-  /** @type {"membership"} */
-  MEMBERSHIP = 'membership',
-  /** @type {"class-instance"} */
-  CLASS_INSTANCE = 'class-instance',
-  /** @type {"unknown"} */
-  UNKWNOWN = 'unknown'
-}
+import { TypesEnum } from "../rdf-graph/swagger"
 
 /**
  * Shapes assigned to Graphol nodes. These are [Cytoscape.js shapes](https =//js.cytoscape.org/#style/node-body)  
@@ -97,109 +33,109 @@ export const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1'
 /**
  * Enumeration having `type`, `shape` and `identity` for each Graphol node
  */
-export type GrapholNodeInfo =  { TYPE: GrapholTypesEnum, SHAPE: Shape, IDENTITY: GrapholTypesEnum, SHAPE_POINTS?: string }
+export type GrapholNodeInfo =  { TYPE: TypesEnum, SHAPE: Shape, IDENTITY: TypesEnum, SHAPE_POINTS?: string }
 
-export const GrapholNodesEnum: { [x in keyof typeof GrapholTypesEnum]?: GrapholNodeInfo } = {
-  CLASS: {
-    TYPE: GrapholTypesEnum.CLASS,
+export const GrapholNodesEnum: { [x in TypesEnum ]?: GrapholNodeInfo } = {
+  [TypesEnum.CLASS]: {
+    TYPE: TypesEnum.CLASS,
     SHAPE: Shape.RECTANGLE,
-    IDENTITY: GrapholTypesEnum.CLASS
+    IDENTITY: TypesEnum.CLASS
   },
-  DOMAIN_RESTRICTION: {
-    TYPE: GrapholTypesEnum.DOMAIN_RESTRICTION,
+  [TypesEnum.DOMAIN_RESTRICTION]: {
+    TYPE: TypesEnum.DOMAIN_RESTRICTION,
     SHAPE: Shape.RECTANGLE,
-    IDENTITY: GrapholTypesEnum.CLASS,
+    IDENTITY: TypesEnum.CLASS,
   },
-  RANGE_RESTRICTION: {
-    TYPE: GrapholTypesEnum.RANGE_RESTRICTION,
+  [TypesEnum.RANGE_RESTRICTION]: {
+    TYPE: TypesEnum.RANGE_RESTRICTION,
     SHAPE: Shape.RECTANGLE,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  OBJECT_PROPERTY: {
-    TYPE: GrapholTypesEnum.OBJECT_PROPERTY,
+  [TypesEnum.OBJECT_PROPERTY]: {
+    TYPE: TypesEnum.OBJECT_PROPERTY,
     SHAPE: Shape.DIAMOND,
-    IDENTITY: GrapholTypesEnum.OBJECT_PROPERTY
+    IDENTITY: TypesEnum.OBJECT_PROPERTY
   },
-  DATA_PROPERTY: {
-    TYPE: GrapholTypesEnum.DATA_PROPERTY,
+  [TypesEnum.DATA_PROPERTY]: {
+    TYPE: TypesEnum.DATA_PROPERTY,
     SHAPE: Shape.ELLIPSE,
-    IDENTITY: GrapholTypesEnum.DATA_PROPERTY
+    IDENTITY: TypesEnum.DATA_PROPERTY
   },
-  UNION: {
-    TYPE: GrapholTypesEnum.UNION,
+  [TypesEnum.UNION]: {
+    TYPE: TypesEnum.UNION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  DISJOINT_UNION: {
-    TYPE: GrapholTypesEnum.DISJOINT_UNION,
+  [TypesEnum.DISJOINT_UNION]: {
+    TYPE: TypesEnum.DISJOINT_UNION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  COMPLEMENT: {
-    TYPE: GrapholTypesEnum.COMPLEMENT,
+  [TypesEnum.COMPLEMENT]: {
+    TYPE: TypesEnum.COMPLEMENT,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  INTERSECTION: {
-    TYPE: GrapholTypesEnum.INTERSECTION,
+  [TypesEnum.INTERSECTION]: {
+    TYPE: TypesEnum.INTERSECTION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  ENUMERATION: {
-    TYPE: GrapholTypesEnum.ENUMERATION,
+  [TypesEnum.ENUMERATION]: {
+    TYPE: TypesEnum.ENUMERATION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  KEY: {
-    TYPE: GrapholTypesEnum.KEY,
+  [TypesEnum.HAS_KEY]: {
+    TYPE: TypesEnum.HAS_KEY,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  ROLE_INVERSE: {
-    TYPE: GrapholTypesEnum.ROLE_INVERSE,
+  [TypesEnum.ROLE_INVERSE]: {
+    TYPE: TypesEnum.ROLE_INVERSE,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.OBJECT_PROPERTY
+    IDENTITY: TypesEnum.OBJECT_PROPERTY
   },
-  ROLE_CHAIN: {
-    TYPE: GrapholTypesEnum.ROLE_CHAIN,
+  [TypesEnum.ROLE_CHAIN]: {
+    TYPE: TypesEnum.ROLE_CHAIN,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.OBJECT_PROPERTY
+    IDENTITY: TypesEnum.OBJECT_PROPERTY
   },
-  DATATYPE_RESTRICTION: {
-    TYPE: GrapholTypesEnum.DATATYPE_RESTRICTION,
+  [TypesEnum.DATATYPE_RESTRICTION]: {
+    TYPE: TypesEnum.DATATYPE_RESTRICTION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: GrapholTypesEnum.VALUE_DOMAIN
+    IDENTITY: TypesEnum.VALUE_DOMAIN
   },
-  VALUE_DOMAIN: {
-    TYPE: GrapholTypesEnum.VALUE_DOMAIN,
+  [TypesEnum.VALUE_DOMAIN]: {
+    TYPE: TypesEnum.VALUE_DOMAIN,
     SHAPE: Shape.ROUND_RECTANGLE,
-    IDENTITY: GrapholTypesEnum.VALUE_DOMAIN
+    IDENTITY: TypesEnum.VALUE_DOMAIN
   },
-  PROPERTY_ASSERTION: {
-    TYPE: GrapholTypesEnum.PROPERTY_ASSERTION,
+  [TypesEnum.PROPERTY_ASSERTION]: {
+    TYPE: TypesEnum.PROPERTY_ASSERTION,
     SHAPE: Shape.RECTANGLE,
-    IDENTITY: GrapholTypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL
   },
-  LITERAL: {
-    TYPE: GrapholTypesEnum.LITERAL,
+  [TypesEnum.LITERAL]: {
+    TYPE: TypesEnum.LITERAL,
     SHAPE: Shape.OCTAGON,
-    IDENTITY: GrapholTypesEnum.VALUE
+    IDENTITY: TypesEnum.VALUE
   },
-  INDIVIDUAL: {
-    TYPE: GrapholTypesEnum.INDIVIDUAL,
+  [TypesEnum.INDIVIDUAL]: {
+    TYPE: TypesEnum.INDIVIDUAL,
     SHAPE: Shape.OCTAGON,
-    IDENTITY: GrapholTypesEnum.INDIVIDUAL
+    IDENTITY: TypesEnum.INDIVIDUAL
   },
-  FACET: {
-    TYPE: GrapholTypesEnum.FACET,
+  [TypesEnum.FACET]: {
+    TYPE: TypesEnum.FACET,
     SHAPE: Shape.POLYGON,
     SHAPE_POINTS: POLYGON_POINTS,
-    IDENTITY: GrapholTypesEnum.FACET
+    IDENTITY: TypesEnum.FACET
   },
-  CLASS_INSTANCE: {
-    TYPE: GrapholTypesEnum.CLASS_INSTANCE,
+  [TypesEnum.CLASS_INSTANCE]: {
+    TYPE: TypesEnum.CLASS_INSTANCE,
     SHAPE: Shape.ELLIPSE,
-    IDENTITY: GrapholTypesEnum.CLASS_INSTANCE,
+    IDENTITY: TypesEnum.CLASS_INSTANCE,
   }
 }
 

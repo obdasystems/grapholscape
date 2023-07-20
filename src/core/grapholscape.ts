@@ -1,12 +1,12 @@
-import { EntityNameType, GrapholscapeConfig, WidgetsConfig } from "../config"
+import { GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
-import { RequestOptions } from "../incremental/api/model"
-import { Ontology, ColoursNames, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, RendererStatesEnum, ViewportState, Filter, DefaultFilterKeyEnum } from "../model"
+import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, ViewportState } from "../model"
+import rdfgraphSerializer from "../rdfgraph-serializer"
 import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
-import { Renderer, GrapholRendererState, LiteRendererState, FloatyRendererState } from "./rendering"
+import { FloatyRendererState, GrapholRendererState, LiteRendererState, Renderer } from "./rendering"
 import IncrementalRendererState from "./rendering/incremental/incremental-render-state"
 import setGraphEventHandlers from "./set-graph-event-handlers"
 import ThemeManager from "./themeManager"
@@ -421,6 +421,12 @@ export default class Grapholscape {
   exportToSvg(fileName = this.exportFileName) {
     fileName += '.svg'
     Exporter.toSVG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph))
+  }
+
+  exportToRdfGraph() {
+    const rdfGraph = rdfgraphSerializer(this)
+    console.log(rdfGraph)
+    return rdfGraph
   }
 
   /**

@@ -1,10 +1,12 @@
 import Iri from "../iri";
 import GrapholEntity from "./entity";
+import { DataPropertyValue, ClassInstanceEntity as IClassInstanceEntity } from "../rdf-graph/swagger";
 
 /** @internal */
-export default class ClassInstanceEntity extends GrapholEntity {
+export default class ClassInstanceEntity extends GrapholEntity implements IClassInstanceEntity {
 
   private _parentClassIris: Iri[] = []
+  private _dataProperties: DataPropertyValue[] = []
 
   constructor(iri: Iri, parentClassIris: Iri[] = []) {
     super(iri)
@@ -34,4 +36,12 @@ export default class ClassInstanceEntity extends GrapholEntity {
 
   get isRDFTypeUnknown() { return this._parentClassIris.length === 0 }
   get parentClassIris() { return Array.from(this._parentClassIris) }
+
+  get dataProperties() {
+    return this._dataProperties
+  }
+
+  set dataProperties(newProperties: DataPropertyValue[]) {
+    this._dataProperties = newProperties
+  }
 }

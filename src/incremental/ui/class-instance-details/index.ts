@@ -1,4 +1,4 @@
-import { GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from '../../../model';
+import { GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../../model';
 import { EntityViewData, WidgetEnum } from '../../../ui';
 import { GscapeEntityDetails } from '../../../ui/entity-details';
 import { grapholEntityToEntityViewData } from '../../../util';
@@ -6,7 +6,7 @@ import IncrementalController from '../../controller';
 import { IncrementalEvent } from '../../lifecycle';
 import GscapeClassInstanceDetails from './class-instance-details';
 
-export { default as GscapeClassInstanceDetails } from './class-instance-details'
+export { default as GscapeClassInstanceDetails } from './class-instance-details';
 
 export function ClassInstanceDetailsFactory(incrementalController: IncrementalController) {
   const classInstanceDetails = new GscapeClassInstanceDetails()
@@ -22,7 +22,7 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     let dataProperties: GrapholEntity[] | undefined
 
 
-    if (grapholEntity.is(GrapholTypesEnum.CLASS) && incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    if (grapholEntity.is(TypesEnum.CLASS) && incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       dataProperties = await incrementalController.getDataPropertiesByClasses([grapholEntity.iri.fullIri])
       classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
       classInstanceDetails.parentClasses = undefined
@@ -53,7 +53,7 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     }
 
     classInstanceDetails.canShowDataPropertiesValues = true
-    const classInstanceNode = classInstanceEntity.getOccurrenceByType(GrapholTypesEnum.CLASS_INSTANCE, RendererStatesEnum.INCREMENTAL)
+    const classInstanceNode = classInstanceEntity.getOccurrenceByType(TypesEnum.CLASS_INSTANCE, RendererStatesEnum.INCREMENTAL)
     entityDetailsWidget?.setGrapholEntity(classInstanceEntity, classInstanceNode)
     classInstanceDetails.show()
   })

@@ -1,4 +1,4 @@
-import { Position } from "cytoscape";
+import { Position } from "../rdf-graph/swagger"
 
 export default class Breakpoint implements Position {
   x: number

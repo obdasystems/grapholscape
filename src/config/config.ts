@@ -1,4 +1,4 @@
-import { GrapholscapeTheme, DefaultThemesEnum, RendererStatesEnum } from "../model"
+import { GrapholscapeTheme, DefaultThemesEnum, RendererStatesEnum, EntityNameType } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 
 export enum Language {
@@ -9,11 +9,11 @@ export enum Language {
   IT = 'it',
 }
 
-export enum EntityNameType {
-  LABEL = 'label',
-  PREFIXED_IRI = 'prefixedIri',
-  FULL_IRI = 'fullIri'
-}
+// export enum EntityNameType {
+//   LABEL = 'label',
+//   PREFIXED_IRI = 'prefixedIri',
+//   FULL_IRI = 'fullIri'
+// }
 
 export type WidgetsConfig = { [key in WidgetEnum]?: boolean }
 

@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { GrapholTypesEnum, Iri } from '../src/model'
-import GrapholEntity, { FunctionalityEnum } from '../src/model/graphol-elems/entity'
+import { Iri, TypesEnum, FunctionalityEnum } from '../src/model'
+import GrapholEntity from '../src/model/graphol-elems/entity'
 import GrapholNode from '../src/model/graphol-elems/node'
 import GrapholParser from '../src/parsing/parser'
 import * as parserV3 from '../src/parsing/parser-v3'
@@ -37,8 +37,8 @@ describe("Test parsing ontology metadata", () => {
     expect(ontology.name).toBe(output.name)
     expect(ontology.version).toBe(output.version)
     //expect(ontology.iri).toBe(output.iri)
-    expect(ontology.languages.default).toBe(output.default_language)
-    expect(ontology.languages.list).toEqual(output.languages)
+    expect(ontology.defaultLanguage).toBe(output.default_language)
+    expect(ontology.languages).toEqual(output.languages)
   })
 
   test('it should parse comments correctly', () => {
@@ -210,13 +210,13 @@ describe('Test retrieving annotations', () => {
   })
 
   test('it should not parse properties on Concepts', () => {
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.symmetric)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.asymmetric)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.reflexive)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.irreflexive)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.functional)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.transitive)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.SYMMETRIC)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.ASYMMETRIC)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.REFLEXIVE)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.IRREFLEXIVE)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.INVERSE_FUNCTIONAL)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
+    expect(conceptEntity.hasFunctionality(FunctionalityEnum.TRANSITIVE)).toBeFalsy()
   })
 })
 
@@ -235,18 +235,18 @@ describe('Test parsing functionalities', () => {
 
   // For DataProperties and ObjectProperties
   test('it should parse missing properties as falsy value', () => {
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.functional)).toBeFalsy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
   })
 
   test('it should parse properties on ObjectProperties correctly', () => {
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.symmetric)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.asymmetric)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.reflexive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.irreflexive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.reflexive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.transitive)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.functional)).toBeFalsy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.SYMMETRIC)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.ASYMMETRIC)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.REFLEXIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.IRREFLEXIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.REFLEXIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.TRANSITIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.INVERSE_FUNCTIONAL)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
   })
 })
 
@@ -307,7 +307,7 @@ describe('It should parse edges correctly', () => {
   })
 
   test('It should move endpoints on borders correctly', () => {
-    const grapholNode = new GrapholNode('0', GrapholTypesEnum.CLASS)
+    const grapholNode = new GrapholNode('0', TypesEnum.CLASS)
     grapholNode.position = { x: 1000, y: 1000 }
     const customEndpoint = { x: 1020, y: 1010 }
 

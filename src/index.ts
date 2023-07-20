@@ -9,6 +9,8 @@ import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 import edgehandles from 'cytoscape-edgehandles';
 import undoredo from 'cytoscape-undo-redo'
+import { RDFGraph } from './model/rdf-graph/swagger'
+import parseRDFGraph from './parsing/rdf-graph-parser'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -82,6 +84,28 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
   if (grapholscape?.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
     initIncremental(grapholscape)
   }
+  return grapholscape
+}
+
+export function resumeGrapholscape(rdfGraph: RDFGraph, container: HTMLElement) {
+  const grapholscape = parseRDFGraph(rdfGraph, container)
+  if (grapholscape) {
+    UI.initUI(grapholscape)
+
+    if (grapholscape.renderState) {
+      (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+    }
+
+    if (grapholscape.renderer.renderState) {
+      grapholscape.renderer.renderState.layoutRunning = false
+      grapholscape.renderer.renderState.stopLayout()
+    }
+
+    if (rdfGraph.selectedDiagramId !== undefined) {
+      grapholscape.showDiagram(rdfGraph.selectedDiagramId)
+    }
+  }
+
   return grapholscape
 }
 

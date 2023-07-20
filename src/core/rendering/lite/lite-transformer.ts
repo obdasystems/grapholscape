@@ -1,11 +1,10 @@
-import cytoscape, { Collection, CollectionReturnValue, EdgeSingular, NodeSingular, SingularElementReturnValue } from "cytoscape";
-import { Diagram, GrapholEdge, GrapholElement, GrapholNode, GrapholTypesEnum, RendererStatesEnum } from "../../../model";
+import cytoscape, { CollectionReturnValue, NodeSingular } from "cytoscape";
+import { liteOptions } from "../../../config/cytoscape-default-config";
+import { Diagram, GrapholEdge, GrapholElement, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
 import DiagramRepresentation from "../../../model/diagrams/diagram-representation";
+import Breakpoint from '../../../model/graphol-elems/breakpoint';
 import { isGrapholEdge } from "../../../model/graphol-elems/edge";
 import { isGrapholNode } from "../../../model/graphol-elems/node";
-import { cytoscapeFilter } from "../filtering";
-import Breakpoint from '../../../model/graphol-elems/breakpoint'
-import { liteOptions } from "../../../config/cytoscape-default-config";
 import BaseGrapholTransformer from "../base-transformer";
 
 export default class LiteTransformer extends BaseGrapholTransformer {
@@ -28,15 +27,15 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       const grapholNode = this.getGrapholElement(node.id())
       if (!grapholNode) return false
       switch (grapholNode.type) {
-        case GrapholTypesEnum.COMPLEMENT:
-        case GrapholTypesEnum.VALUE_DOMAIN:
-        case GrapholTypesEnum.ROLE_CHAIN:
-        case GrapholTypesEnum.ENUMERATION:
-        case GrapholTypesEnum.KEY:
+        case TypesEnum.COMPLEMENT:
+        case TypesEnum.VALUE_DOMAIN:
+        case TypesEnum.ROLE_CHAIN:
+        case TypesEnum.ENUMERATION:
+        case TypesEnum.HAS_KEY:
           return true
 
-        case GrapholTypesEnum.DOMAIN_RESTRICTION:
-        case GrapholTypesEnum.RANGE_RESTRICTION:
+        case TypesEnum.DOMAIN_RESTRICTION:
+        case TypesEnum.RANGE_RESTRICTION:
           if (grapholNode.displayedName == 'forall')
             return true
           else
@@ -63,7 +62,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
   private isQualifiedRestriction = (node: cytoscape.SingularElementReturnValue) => {
     const grapholElement = this.getGrapholElement(node.id())
     if (this.isRestriction(grapholElement)) {
-      return node.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).size() > 1 ? true : false
+      return node.incomers(`edge[type = "${TypesEnum.INPUT}"]`).size() > 1 ? true : false
     }
 
     return false
@@ -83,7 +82,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     let outcome = false
 
     if (this.isRestriction(grapholElement)) {
-      node.incomers(`edge[type = "${GrapholTypesEnum.INPUT}"]`).forEach(edge => {
+      node.incomers(`edge[type = "${TypesEnum.INPUT}"]`).forEach(edge => {
         const sourceGrapholElement = this.getGrapholElement(edge.source().id())
         if (this.isRestriction(sourceGrapholElement)) {
           outcome = true
@@ -107,8 +106,8 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           const grapholEdge = this.getGrapholElement(edge.id())
           const grapholSource = this.getGrapholElement(edge.data().source)
 
-          return grapholEdge.is(GrapholTypesEnum.INPUT) &&
-            (grapholSource.is(GrapholTypesEnum.OBJECT_PROPERTY) || grapholSource.is(GrapholTypesEnum.DATA_PROPERTY))
+          return grapholEdge.is(TypesEnum.INPUT) &&
+            (grapholSource.is(TypesEnum.OBJECT_PROPERTY) || grapholSource.is(TypesEnum.DATA_PROPERTY))
         })
 
       if (!edgeResult.empty()) {
@@ -148,15 +147,15 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       edgeOnRestriction.targetId = propertyNode.id
 
       // move attribute on restriction node position
-      if (propertyNode.is(GrapholTypesEnum.DATA_PROPERTY)) {
-        edgeOnRestriction.type = 'attribute-edge' as GrapholTypesEnum
+      if (propertyNode.is(TypesEnum.DATA_PROPERTY)) {
+        edgeOnRestriction.type = 'attribute-edge' as TypesEnum
         propertyNode.x = restrictionNode.position.x
         propertyNode.y = restrictionNode.position.y
         this.result.updateElement(propertyNode)
         //new_edge = edges[0]
       }
 
-      if (propertyNode.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
+      if (propertyNode.is(TypesEnum.OBJECT_PROPERTY)) {
         edgeOnRestriction.type = restrictionNode.type
         // restriction node must become a new breakpoint
         edgeOnRestriction.addBreakPoint(new Breakpoint(restrictionNode.x, restrictionNode.y))
@@ -186,7 +185,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       this.reverseEdge(inputGrapholEdge)
       // create a new role edge concatenating each edge different from inputs
       // to the input edge from object/data property to restriction node
-      restriction.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+      restriction.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
         .forEach((edgeToRestriction, i) => {
           const grapholEdgeToRestriction = this.getGrapholElement(edgeToRestriction.id())
           if (!isGrapholEdge(grapholEdgeToRestriction) || !isGrapholNode(grapholRestrictionNode))
@@ -195,7 +194,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           transformIntoRoleEdge(grapholEdgeToRestriction, inputGrapholEdge, grapholRestrictionNode)
         })
 
-      cytoscapeFilter(restriction.id(), '', this.newCy)
+      this.result.filter(restriction.id(), '')
       this.deleteFilteredElements()
     })
 
@@ -236,7 +235,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     this.newCy.nodes().forEach(node => {
       if (this.isComplexHierarchy(node)) {
         this.replicateAttributes(node)
-        cytoscapeFilter(node.id(), '', this.newCy)
+        this.result.filter(node.id(), '')
       }
     })
 
@@ -245,17 +244,17 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
   private isComplexHierarchy(node: NodeSingular) {
     const grapholNode = this.getGrapholElement(node.id())
-    if (!grapholNode || (!grapholNode.is(GrapholTypesEnum.UNION) &&
-      !grapholNode.is(GrapholTypesEnum.DISJOINT_UNION) &&
-      !grapholNode.is(GrapholTypesEnum.INTERSECTION))
+    if (!grapholNode || (!grapholNode.is(TypesEnum.UNION) &&
+      !grapholNode.is(TypesEnum.DISJOINT_UNION) &&
+      !grapholNode.is(TypesEnum.INTERSECTION))
     )
       return false
 
     // Complex hierarchy if it has something different from a class as input
     const inputNodesNotConcepts = node.incomers(`edge`)
-      .filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+      .filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
       .sources()
-      .filter(node => !this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS))
+      .filter(node => !this.getGrapholElement(node.id()).is(TypesEnum.CLASS))
 
     return !inputNodesNotConcepts.empty()
   }
@@ -269,8 +268,8 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     const getAllInputClasses = (node: NodeSingular): CollectionReturnValue => {
       let allInputClasses = node.cy().collection()
 
-      let inputEdges = node.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
-      allInputClasses = allInputClasses.union(inputEdges.sources().filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.CLASS)))
+      let inputEdges = node.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
+      allInputClasses = allInputClasses.union(inputEdges.sources().filter(node => this.getGrapholElement(node.id()).is(TypesEnum.CLASS)))
 
       inputEdges.sources().difference(allInputClasses).forEach(constructor => {
         allInputClasses = allInputClasses.union(getAllInputClasses(constructor))
@@ -285,9 +284,9 @@ export default class LiteTransformer extends BaseGrapholTransformer {
      * @param attribute 
      * @param i 
      */
-    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: GrapholTypesEnum | string, i: number) => {
-      const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`, GrapholTypesEnum.DATA_PROPERTY)
-      const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`, edgeType as GrapholTypesEnum)
+    const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: TypesEnum | string, i: number) => {
+      const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`, TypesEnum.DATA_PROPERTY)
+      const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`, edgeType as TypesEnum)
 
       newAttribute.originalId = attribute.id()
       newAttribute.x = concept.position().x
@@ -305,7 +304,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // recursively add new attributes connected to replicated attributes by inclusions
       if (!attribute.hasClass('repositioned')) {
-        attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY)).forEach((inclusion_attribute, j) => {
+        attribute.neighborhood('node').filter(node => this.getGrapholElement(node.id()).is(TypesEnum.DATA_PROPERTY)).forEach((inclusion_attribute, j) => {
           if (allAttributes.contains(inclusion_attribute)) {
             return
           }
@@ -321,7 +320,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     }
 
     let allClasses = getAllInputClasses(node)
-    let allAttributes = node.neighborhood(`node`).filter(node => this.getGrapholElement(node.id()).is(GrapholTypesEnum.DATA_PROPERTY))
+    let allAttributes = node.neighborhood(`node`).filter(node => this.getGrapholElement(node.id()).is(TypesEnum.DATA_PROPERTY))
     let allInclusionAttributes = this.newCy.collection()
 
     allAttributes.forEach((attribute) => {
@@ -340,7 +339,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     this.newCy.nodes().forEach(union => {
       const grapholUnion = this.getGrapholElement(union.id())
       if (!grapholUnion || !isGrapholNode(grapholUnion) ||
-        (!grapholUnion.is(GrapholTypesEnum.UNION) && !grapholUnion.is(GrapholTypesEnum.DISJOINT_UNION)))
+        (!grapholUnion.is(TypesEnum.UNION) && !grapholUnion.is(TypesEnum.DISJOINT_UNION)))
         return
 
       //grapholUnion.height = grapholUnion.width = 0.1
@@ -350,7 +349,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       // delete incoming inclusions
       union.incomers('edge').forEach(edge => {
         const grapholEdge = this.getGrapholElement(edge.id())
-        if (grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
+        if (grapholEdge.is(TypesEnum.INCLUSION)) {
           this.deleteElement(edge)
         }
       })
@@ -360,7 +359,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
         const grapholEdge = this.getGrapholElement(edge.id()) as GrapholEdge
 
         // if it's equivalence add 'C' and reverse if needed
-        if (grapholEdge.is(GrapholTypesEnum.EQUIVALENCE)) {
+        if (grapholEdge.is(TypesEnum.EQUIVALENCE)) {
           grapholEdge.type = grapholUnion.type
           grapholEdge.targetLabel = 'C'
 
@@ -374,7 +373,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
         }
 
         // if it's outgoing and of type inclusion
-        if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(GrapholTypesEnum.INCLUSION)) {
+        if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(TypesEnum.INCLUSION)) {
           grapholEdge.type = grapholUnion.type
           this.result.updateElement(grapholEdge)
         }
@@ -383,7 +382,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
       // process inclusion edges
       // union.outgoers('edge').forEach(inclusion => {
       //   inclusion.addClass('hierarchy')
-      //   if (union.data('type') == GrapholTypesEnum.DISJOINT_UNION)
+      //   if (union.data('type') == TypesEnum.DISJOINT_UNION)
       //     inclusion.addClass('disjoint')
       // })
 
@@ -398,7 +397,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       this.result.updateElement(grapholUnion)
 
-      const numberEdgesNotInput = union.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT)).size()
+      const numberEdgesNotInput = union.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(TypesEnum.INPUT)).size()
 
       if (numberEdgesNotInput <= 0) {
         this.deleteElement(union)
@@ -412,7 +411,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
   private simplifyIntersections() {
     this.newCy.nodes().forEach(and => {
       const grapholAndNode = this.getGrapholElement(and.id())
-      if (!grapholAndNode || !grapholAndNode.is(GrapholTypesEnum.INTERSECTION))
+      if (!grapholAndNode || !grapholAndNode.is(TypesEnum.INTERSECTION))
         return
 
       this.replicateAttributes(and)
@@ -420,19 +419,19 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // if there are no incoming inclusions or equivalence and no equivalences connected,
       // remove the intersection
-      const incomingInclusions = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION))
-      const connectedEquivalences = and.connectedEdges().filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.EQUIVALENCE))
+      const incomingInclusions = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INCLUSION))
+      const connectedEquivalences = and.connectedEdges().filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.EQUIVALENCE))
       const incomingUnionEdges = and.incomers('edge').filter(edge => {
         const grapholEdge = this.getGrapholElement(edge.id())
-        return grapholEdge.is(GrapholTypesEnum.UNION) || grapholEdge.is(GrapholTypesEnum.DISJOINT_UNION)
+        return grapholEdge.is(TypesEnum.UNION) || grapholEdge.is(TypesEnum.DISJOINT_UNION)
       })
 
       const edgesToBeReplicated = incomingInclusions.union(connectedEquivalences).union(incomingUnionEdges)
 
       if (edgesToBeReplicated.empty()) {
-        cytoscapeFilter(grapholAndNode.id, '', this.newCy)
+        this.result.filter(grapholAndNode.id, '')
       } else {
-        const incomingInputs = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+        const incomingInputs = and.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
         // process incoming inclusion && connected equivalences
         edgesToBeReplicated.forEach(edge => {
           const edgeToBeReplicated = this.getGrapholElement(edge.id()) as GrapholEdge
@@ -451,7 +450,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
              * incoming edge in any case and ignore the opposite direction.
              * so if the edge is outgoing from the intersection, we reverse it
              */
-            if (edgeToBeReplicated.is(GrapholTypesEnum.EQUIVALENCE) &&
+            if (edgeToBeReplicated.is(TypesEnum.EQUIVALENCE) &&
               edgeToBeReplicated.sourceId === grapholAndNode.id) {
               this.reverseEdge(edgeToBeReplicated)
             }
@@ -472,7 +471,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           })
         })
 
-        cytoscapeFilter(grapholAndNode.id, '', this.newCy)
+        this.result.filter(grapholAndNode.id, '')
       }
       this.deleteFilteredElements()
       this.deleteElements(edgesToBeReplicated)
@@ -482,7 +481,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
   private replicateRoleTypizations(constructorNode: NodeSingular) {
     // replicate role tipization on input classes
     const restrictionEdges = constructorNode.connectedEdges().filter(edge => this.isRestriction(this.getGrapholElement(edge.id())))
-    const inputEdges = constructorNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+    const inputEdges = constructorNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
 
     restrictionEdges.forEach((restrictionEdge, i) => {
       const grapholRestrictionEdge = this.getGrapholElement(restrictionEdge.id()) as GrapholEdge
@@ -523,10 +522,10 @@ export default class LiteTransformer extends BaseGrapholTransformer {
   }
 
   private simplifyRoleInverse() {
-    this.newCy.nodes().filter(node => this.getGrapholElement(node.id())?.is(GrapholTypesEnum.ROLE_INVERSE)).forEach(roleInverseNode => {
+    this.newCy.nodes().filter(node => this.getGrapholElement(node.id())?.is(TypesEnum.ROLE_INVERSE)).forEach(roleInverseNode => {
       let new_edges_count = 0
       // the input role is only one
-      const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+      const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
       const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
       // the input edge must always be reversed
       this.reverseEdge(grapholInputEdge)
@@ -534,11 +533,11 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // for each other edge connected, create a concatenated edge
       // the edge is directed towards the input_role
-      roleInverseNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INPUT))
+      roleInverseNode.connectedEdges().filter(edge => !this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
         .forEach((edge) => {
 
           const roleInverseEdge = this.getGrapholElement(edge.id()) as GrapholEdge
-          roleInverseEdge.type = GrapholTypesEnum.ROLE_INVERSE
+          roleInverseEdge.type = TypesEnum.ROLE_INVERSE
           roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints)
           roleInverseEdge.targetId = grapholInputEdge.targetId
 

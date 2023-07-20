@@ -1,18 +1,17 @@
 import { EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
-import { EntityNameType } from "../config";
 import { Grapholscape, IncrementalRendererState } from "../core";
+import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, GrapholElement, GrapholEntity, GrapholNode, GrapholTypesEnum, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, ViewportState } from "../model";
+import { Annotation, AnnotationsKind, EntityNameType, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, ViewportState } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeConfirmDialog } from "../ui";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
-import DiagramBuilder from "../core/diagram-builder";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
-import NodeButton from "./ui/node-buttons.ts/node-button";
+import NodeButton from "../ui/common/button/node-button";
 
 /** @internal */
 export default class IncrementalController {
@@ -40,7 +39,7 @@ export default class IncrementalController {
    * Callback called when user click on data lineage command
    */
   onShowDataLineage: (entityIri: string) => void = () => { }
-  addEdge: (sourceId: string, targetId: string, edgeType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.INPUT | GrapholTypesEnum.EQUIVALENCE | GrapholTypesEnum.INSTANCE_OF) => void;
+  addEdge: (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => void;
 
   constructor(
     public grapholscape: Grapholscape
@@ -106,10 +105,10 @@ export default class IncrementalController {
 
       this.updateEntityNameType(entity.iri)
 
-      if (entity.is(GrapholTypesEnum.CLASS))
+      if (entity.is(TypesEnum.CLASS))
         this.countInstancesForClass(iri, false)
     } else {
-      const classNodeId = this.getIDByIRI(iri, GrapholTypesEnum.CLASS)
+      const classNodeId = this.getIDByIRI(iri, TypesEnum.CLASS)
       if (classNodeId)
         classNode = this.diagram.representation?.grapholElements.get(classNodeId) as GrapholNode
     }
@@ -139,11 +138,11 @@ export default class IncrementalController {
     for (let subClassIri of connectedClassesIris) {
       subClassEntity = this.grapholscape.ontology.getEntity(subClassIri)
       if (subClassEntity) {
-        subClassNode = subClassEntity.getOccurrenceByType(GrapholTypesEnum.CLASS, RendererStatesEnum.INCREMENTAL)
+        subClassNode = subClassEntity.getOccurrenceByType(TypesEnum.CLASS, RendererStatesEnum.INCREMENTAL)
 
         if (subClassNode) {
           connectedEdges = this.grapholscape.renderer.cy?.$id(subClassNode.id)
-            .connectedEdges(`[ type ="${positionType === 'equivalent' ? GrapholTypesEnum.EQUIVALENCE : GrapholTypesEnum.INCLUSION}" ]`)
+            .connectedEdges(`[ type ="${positionType === 'equivalent' ? TypesEnum.EQUIVALENCE : TypesEnum.INCLUSION}" ]`)
 
           if (connectedEdges) {
             if (positionType === 'sub' && connectedEdges.targets(`[iri = "${classIri}"]`).empty())
@@ -169,7 +168,7 @@ export default class IncrementalController {
     this.classInstanceEntities.clear()
     let clearedEntities: string[] = []
     this.diagram.representation?.grapholElements.forEach(elem => {
-      if (elem.iri && !clearedEntities.includes(elem.iri) && elem.type !== GrapholTypesEnum.CLASS_INSTANCE) {
+      if (elem.iri && !clearedEntities.includes(elem.iri) && elem.type !== TypesEnum.CLASS_INSTANCE) {
         const entity = this.grapholscape.ontology.getEntity(elem.iri)
         if (entity) {
           entity.occurrences.set(RendererStatesEnum.INCREMENTAL, [])
@@ -235,7 +234,7 @@ export default class IncrementalController {
     this.performActionWithBlockedGraph(() => {
       this.grapholscape.renderer.cy?.$(`[iri = "${entity?.iri.fullIri}"]`).forEach(element => {
         // start from object properties connected to this entity, remove their occurrences from ontology entities
-        const edges = element.connectedEdges(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`)
+        const edges = element.connectedEdges(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`)
         edges.forEach(objectPropertyEdge => {
           const objectPropertyEntity = this.ontology.getEntity(objectPropertyEdge.data().iri)
           if (objectPropertyEntity) {
@@ -246,7 +245,7 @@ export default class IncrementalController {
           }
         })
 
-        if (element.data().type === GrapholTypesEnum.CLASS) {
+        if (element.data().type === TypesEnum.CLASS) {
           element.neighborhood().forEach(neighbourElement => {
             if (neighbourElement.isNode()) {
               // remove nodes only if they have 1 connection, i.e. with the class we want to remove
@@ -283,7 +282,7 @@ export default class IncrementalController {
         }
         this.diagram.removeElement(element.id())
 
-        if (entity?.is(GrapholTypesEnum.CLASS_INSTANCE))
+        if (entity?.is(TypesEnum.CLASS_INSTANCE))
           this.classInstanceEntities.delete(entity.iri.fullIri)
       })
     })
@@ -322,7 +321,7 @@ export default class IncrementalController {
     if (typeof (parentClassesIris) !== 'string') {
 
       if (!parentClassesIris || parentClassesIris.length === 0) {
-        parentClassesIris = this.ontology.getEntitiesByType(GrapholTypesEnum.CLASS).map(entity => entity.iri.fullIri)
+        parentClassesIris = this.ontology.getEntitiesByType(TypesEnum.CLASS).map(entity => entity.iri.fullIri)
       }
 
       this.endpointController?.instanceCheck(instance.iri, parentClassesIris).then(result => {
@@ -357,7 +356,7 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
 
     if (objectPropertyEntity && sourceClass && targetClass) {
-      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, GrapholTypesEnum.CLASS)
+      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, TypesEnum.CLASS)
 
       this.updateEntityNameType(objectPropertyEntity.iri)
       this.updateEntityNameType(sourceClassIri)
@@ -384,7 +383,7 @@ export default class IncrementalController {
         objectPropertyEntity,
         sourceInstanceEntity,
         targetInstanceEntity,
-        GrapholTypesEnum.CLASS_INSTANCE
+        TypesEnum.CLASS_INSTANCE
       )
 
       this.updateEntityNameType(objectPropertyEntity.iri)
@@ -414,11 +413,11 @@ export default class IncrementalController {
         sourceClassInstanceEntity.parentClassIris.forEach(sourceParentClassIri => {
           targetClassInstanceEntity.parentClassIris.forEach(targetParentClassIri => {
 
-            sourceClassInstanceId = this.getIDByIRI(sourceClassInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
-            sourceParentClassId = this.getIDByIRI(sourceParentClassIri.fullIri, GrapholTypesEnum.CLASS)
+            sourceClassInstanceId = this.getIDByIRI(sourceClassInstanceIri, TypesEnum.CLASS_INSTANCE)
+            sourceParentClassId = this.getIDByIRI(sourceParentClassIri.fullIri, TypesEnum.CLASS)
 
-            targetClassInstanceId = this.getIDByIRI(targetClassInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
-            targetParentClassId = this.getIDByIRI(targetParentClassIri.fullIri, GrapholTypesEnum.CLASS)
+            targetClassInstanceId = this.getIDByIRI(targetClassInstanceIri, TypesEnum.CLASS_INSTANCE)
+            targetParentClassId = this.getIDByIRI(targetParentClassIri.fullIri, TypesEnum.CLASS)
 
             if (sourceParentClassId && targetParentClassId && sourceClassInstanceId && targetClassInstanceId) {
               this.addIntensionalObjectProperty(
@@ -427,8 +426,8 @@ export default class IncrementalController {
                 targetParentClassIri.fullIri,
               )
               
-              this.addEdge(sourceClassInstanceId, sourceParentClassId, GrapholTypesEnum.INSTANCE_OF)
-              this.addEdge(targetClassInstanceId, targetParentClassId, GrapholTypesEnum.INSTANCE_OF)
+              this.addEdge(sourceClassInstanceId, sourceParentClassId, TypesEnum.INSTANCE_OF)
+              this.addEdge(targetClassInstanceId, targetParentClassId, TypesEnum.INSTANCE_OF)
             }
           })
         })
@@ -502,7 +501,7 @@ export default class IncrementalController {
 
     if (hierarchies && hierarchies.length > 0) {
       this.performActionWithBlockedGraph(() => {
-        const classId = this.getIDByIRI(classIri, GrapholTypesEnum.CLASS)
+        const classId = this.getIDByIRI(classIri, TypesEnum.CLASS)
         if (classId) {
           const position = this.grapholscape.renderer.cy?.$id(classId).position()
           if (showORHide === 'show')
@@ -559,7 +558,7 @@ export default class IncrementalController {
 
     // remove input classes or superclasses left with no edges
     hierarchy.inputs.forEach(inputClass => {
-      classId = this.getIDByIRI(inputClass.iri.fullIri, GrapholTypesEnum.CLASS)
+      classId = this.getIDByIRI(inputClass.iri.fullIri, TypesEnum.CLASS)
       if (classId &&
         this.grapholscape.renderer.cy?.$id(classId).degree(false) === 0 &&
         !entitiesTokeep.includes(inputClass.iri.fullIri)) {
@@ -568,7 +567,7 @@ export default class IncrementalController {
     })
 
     hierarchy.superclasses.forEach(superclass => {
-      classId = this.getIDByIRI(superclass.classEntity.iri.fullIri, GrapholTypesEnum.CLASS)
+      classId = this.getIDByIRI(superclass.classEntity.iri.fullIri, TypesEnum.CLASS)
       if (
         classId &&
         this.grapholscape.renderer.cy?.$id(classId).degree(false) === 0 &&
@@ -585,30 +584,30 @@ export default class IncrementalController {
     if (!subclassesIris) {
       subclassesIris = this.neighbourhoodFinder.getSubclassesIris(classIri)
     }
-    this.showClassesInIsa(classIri, subclassesIris, GrapholTypesEnum.INCLUSION)
+    this.showClassesInIsa(classIri, subclassesIris, TypesEnum.INCLUSION)
   }
 
   showSuperClassesOf(classIri: string, superclassesIris?: string[]) {
     if (!superclassesIris) {
       superclassesIris = this.neighbourhoodFinder.getSuperclassesIris(classIri)
     }
-    this.showClassesInIsa(classIri, superclassesIris, GrapholTypesEnum.INCLUSION, 'super')
+    this.showClassesInIsa(classIri, superclassesIris, TypesEnum.INCLUSION, 'super')
   }
 
   showEquivalentClassesOf(classIri: string, equivalentClassesIris?: string[]) {
     if (!equivalentClassesIris) {
       equivalentClassesIris = this.neighbourhoodFinder.getEquivalentClassesIris(classIri)
     }
-    this.showClassesInIsa(classIri, equivalentClassesIris, GrapholTypesEnum.EQUIVALENCE)
+    this.showClassesInIsa(classIri, equivalentClassesIris, TypesEnum.EQUIVALENCE)
   }
 
   private showClassesInIsa(
     sourceIri: string,
     targetsIris: string[],
-    isaType: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.EQUIVALENCE,
+    isaType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE,
     subOrSuper: 'sub' | 'super' = 'sub') {
     
-    const sourceId = this.getIDByIRI(sourceIri, GrapholTypesEnum.CLASS)
+    const sourceId = this.getIDByIRI(sourceIri, TypesEnum.CLASS)
     if (sourceId) {
       this.performActionWithBlockedGraph(() => {
         let targetNode: GrapholNode | undefined
@@ -621,8 +620,8 @@ export default class IncrementalController {
             if (cySource?.nonempty() && cyTarget?.nonempty()) {
               if (subOrSuper === 'super') {
                 const isEdgeAlreadyPresent = cySource.edgesTo(cyTarget)
-                  .filter(e => e.data().type === GrapholTypesEnum.INCLUSION || 
-                               e.data().type === GrapholTypesEnum.EQUIVALENCE)
+                  .filter(e => e.data().type === TypesEnum.INCLUSION || 
+                               e.data().type === TypesEnum.EQUIVALENCE)
                   .nonempty()
                 
                 if (!isEdgeAlreadyPresent) {
@@ -630,8 +629,8 @@ export default class IncrementalController {
                 }
               } else {
                 const isEdgeAlreadyPresent = cyTarget.edgesTo(cySource)
-                  .filter(e => e.data().type === GrapholTypesEnum.INCLUSION || 
-                               e.data().type === GrapholTypesEnum.EQUIVALENCE)
+                  .filter(e => e.data().type === TypesEnum.INCLUSION || 
+                               e.data().type === TypesEnum.EQUIVALENCE)
                   .nonempty()
                 
                 if (!isEdgeAlreadyPresent) {
@@ -813,7 +812,7 @@ export default class IncrementalController {
       let addedClassInstanceEntity: ClassInstanceEntity | undefined
       let classInstanceId: string | undefined
       let position: Position | undefined
-      const sourceId = this.getIDByIRI(sourceInstanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+      const sourceId = this.getIDByIRI(sourceInstanceIri, TypesEnum.CLASS_INSTANCE)
       if (sourceId) {
         position = this.diagram.representation?.cy.$id(sourceId).position()
       }
@@ -823,12 +822,12 @@ export default class IncrementalController {
           addedClassInstanceEntity = this.addInstance(range.classInstance, range.classEntity.iri.fullIri, position)
 
           classInstanceId = addedClassInstanceEntity.getOccurrenceByType(
-            GrapholTypesEnum.CLASS_INSTANCE,
+            TypesEnum.CLASS_INSTANCE,
             RendererStatesEnum.INCREMENTAL)?.id
           addedClassNode = this.addClass(range.classEntity.iri.fullIri)
 
           if (classInstanceId && addedClassNode) {
-            this.addEdge(classInstanceId, addedClassNode.id, GrapholTypesEnum.INSTANCE_OF)
+            this.addEdge(classInstanceId, addedClassNode.id, TypesEnum.INSTANCE_OF)
 
             result.isDirect
               ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
@@ -856,7 +855,7 @@ export default class IncrementalController {
 
   async countInstancesForClass(classIri: string, askFreshValue = true) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
-    const nodeId = this.getIDByIRI(classIri, GrapholTypesEnum.CLASS)
+    const nodeId = this.getIDByIRI(classIri, TypesEnum.CLASS)
     if (!nodeId) return
 
     const node = this.diagram?.representation?.cy.$id(nodeId)
@@ -925,17 +924,17 @@ export default class IncrementalController {
   setIncrementalEventHandlers() {
     if (this.diagram.representation?.hasEverBeenRendered || this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
-    // const classOrInstanceSelector = `node[type = "${GrapholTypesEnum.CLASS}"], node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`
+    // const classOrInstanceSelector = `node[type = "${TypesEnum.CLASS}"], node[type = "${TypesEnum.CLASS_INSTANCE}"]`
     this.diagram.representation?.cy.on('tap', evt => {
       const targetType = evt.target.data().type
 
-      if (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE) {
+      if (targetType === TypesEnum.CLASS || targetType === TypesEnum.CLASS_INSTANCE) {
 
         const triggerSelectionEvent = () => {
           // this.diagramBuilder.referenceNodeId = evt.target.id()
           const targetIri = evt.target.data().iri
 
-          if (targetType === GrapholTypesEnum.CLASS_INSTANCE) {
+          if (targetType === TypesEnum.CLASS_INSTANCE) {
             const instanceEntity = this.classInstanceEntities.get(targetIri)
             if (instanceEntity) {
               if (targetIri !== this.lastInstanceIri)
@@ -977,7 +976,7 @@ export default class IncrementalController {
     }
   }
 
-  public getIDByIRI(iri: string, type: GrapholTypesEnum) {
+  public getIDByIRI(iri: string, type: TypesEnum) {
     const entity = this.classInstanceEntities.get(iri) || this.grapholscape.ontology.getEntity(iri)
     if (entity) {
       return entity.getOccurrenceByType(type, RendererStatesEnum.INCREMENTAL)?.id

@@ -1,5 +1,4 @@
 openapi: 3.0.0
-paths: {}
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/PEPE_2/Grapholscape_Model/1.0.0
@@ -12,6 +11,29 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
+paths:
+  /instanceShortestPath:
+    post:
+      tags:
+        - VKG
+      summary: Return the CONSTRUCT query based on the shortest path between an instance and another instance or class
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstanceShortestPathInput"
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                description: THE SPARQL CONSTRUCT query that will compute the shortest path
+                type: string
+        404:
+          description: Ontology not uploaded
+          content: {}
 components:
   schemas:
     RDFGraph:
@@ -20,6 +42,7 @@ components:
         - entities
         - diagrams
         - modelType
+        - metadata
       properties:
         diagrams:
           type: array
@@ -33,13 +56,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ClassInstanceEntity"
-        ontology:
+        metadata:
           type: object
           required:
-            - iri
+            - name
             - version
             - namespaces
           properties:
+            name:
+              type: string
             iri:
               type: string
             version:
@@ -54,6 +79,10 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Namespace"
+            annotations:
+              type: array
+              items:
+                $ref: "#/components/schemas/Annotation"
         config:
           type: object
           properties:
@@ -73,24 +102,33 @@ components:
                 type: string
             widgets:
               type: object
-        viewport:
-          type: object
-          properties:
-            pan:
-              $ref: "#/components/schemas/Position"
-            zoom:
-              type: number
+            filters:
+              type: array
+              items:
+                type: string
+                enum:
+                  [
+                    "all",
+                    "data-property",
+                    "value-domain",
+                    "individual",
+                    "universal_quantifier",
+                    "complement",
+                    "has-key",
+                  ]
         selectedDiagramId:
-          type: string
+          type: number
         modelType:
           type: string
           enum: ["ontology", "vkg", "rdf"]
-        actions:
-          type: array
-          items:
-            $ref: "#/components/schemas/Action"
+        # actions:
+        #   type: array
+        #   items:
+        #     $ref: "#/components/schemas/Action"
     Theme:
       type: object
+      required:
+        - id
       properties:
         id:
           type: string
@@ -98,6 +136,17 @@ components:
           type: string
         colours:
           type: object
+    Viewport:
+      type: object
+      required:
+        - pan
+        - zoom
+      properties:
+        pan:
+          $ref: "#/components/schemas/Position"
+        zoom:
+          type: number
+
     Diagram:
       type: object
       required:
@@ -106,17 +155,19 @@ components:
         - elements
       properties:
         id:
-          type: string
+          type: number
         name:
           type: string
         nodes:
           type: array
           items:
-           $ref: "#/components/schemas/Node"
+            $ref: "#/components/schemas/Node"
         edges:
           type: array
           items:
-           $ref: "#/components/schemas/Edge"
+            $ref: "#/components/schemas/Edge"
+        lastViewPortState:
+          $ref: "#/components/schemas/Viewport"
     Element:
       type: object
       required:
@@ -167,6 +218,8 @@ components:
               $ref: "#/components/schemas/Position"
             identity:
               $ref: "#/components/schemas/TypesEnum"
+            labelPosition:
+              $ref: "#/components/schemas/Position"
     Namespace:
       type: object
       required:
@@ -182,29 +235,28 @@ components:
     Entity:
       type: object
       required:
-        - iri
-        - type
+        - fullIri
       properties:
-        iri:
-          type: object
-          properties:
-            prefixed:
-              type: string
-            full:
-              type: string
-            remainder:
-              type: string
-            prefix:
-              type: string
-          example:
-            prefixed: obda:Entity
-            full: http://obda.com/Entity
-            remainder: Entity
-            prefix: obda
+        fullIri:
+          type: string
         annotations:
           type: array
           items:
             $ref: "#/components/schemas/Annotation"
+        datatype:
+          type: string
+        functionProperties:
+          type: array
+          items:
+            type: string
+            enum:
+              - functional
+              - inverseFunctional
+              - transitive
+              - symmetric
+              - asymmetric
+              - reflexive
+              - irreflexive
     ClassInstanceEntity:
       type: object
       allOf:
@@ -248,7 +300,7 @@ components:
           type: string
         datatype:
           type: string
-    EntityTypeEnum:
+    TypesEnum:
       type: string
       enum:
         - class
@@ -256,9 +308,6 @@ components:
         - data-property
         - individual
         - class-instance
-    ConstructorTypeEnum:
-      type: string
-      enum:
         - domain-restriction
         - range-restriction
         - union
@@ -266,35 +315,23 @@ components:
         - complement
         - intersection
         - enumeration
-        - key
+        - has-key
         - role-inverse
         - role-chain
         - datatype-restriction
-    OthersTypeEnum:
-      type: string
-      enum:
         - value-domain
         - property-assertion
         - literal
         - facet
         - neutral
         - value
-    EdgeTypeEnum:
-      type: string
-      enum:
-        - subclass-of
+        - inclusion
         - equivalence
         - instance-of
         - input
         - same
         - different
         - membership
-    TypesEnum:
-      allOf:
-        - $ref: "#/components/schemas/EntityTypeEnum"
-        - $ref: "#/components/schemas/ConstructorTypeEnum"
-        - $ref: "#/components/schemas/OthersTypeEnum"
-        - $ref: "#/components/schemas/EdgeTypeEnum"
     Position:
       type: object
       required:
@@ -323,71 +360,71 @@ components:
         id:
           type: string
         type:
-          $ref: "#/components/schemas/ConstructorTypeEnum"
+          $ref: "#/components/schemas/TypesEnum"
         inputs:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/Entity"
         superclasses:
-          type: object
-          required:
-            - classIri
-            - complete
-          properties:
-            classIri:
-              type: string
-            complete:
-              type: boolean
+          type: array
+          items:
+            required:
+              - classEntity
+              - complete
+            properties:
+              classEntity:
+                $ref: "#/components/schemas/Entity"
+              complete:
+                type: boolean
 
-    Action:
-      description:
-        Actions describes what user has done on a single element or element's metadata.
-        The user can add, edit or remove something.
-        The "something" is described by the operation involved in the action, it can be
-        an operation over an entity, a diagram, a hierarchy and so on.
+    # Action:
+    #   description:
+    #     Actions describes what user has done on a single element or element's metadata.
+    #     The user can add, edit or remove something.
+    #     The "something" is described by the operation involved in the action, it can be
+    #     an operation over an entity, a diagram, a hierarchy and so on.
 
-        Reverting an action means reverting the operation that has been done and it
-        depends on the type of the action.
-        - Add => Remove
-        - Remove => Add
-        - Edit => restore the previous state of the subject of the operation made
-      type: object
-      properties:
-        operationType:
-          type: string
-          enum: ["add", "edit", "remove"]
-        operation:
-          description:
-            Operations differ by their subject, that is the object on which
-            the operation take place (if the user perform the action of adding a diagram,
-            the subject of the operation will be the diagram).
-            The previousState of a operation must be set in case of editing a single field
-            of the subject, it is not needed in case of 'add' or 'remove' actions.
-          type: object
-          oneOf:
-            - $ref: "#/components/schemas/ElementOp"
-            - $ref: "#/components/schemas/EntityOp"
-            - $ref: "#/components/schemas/DiagramOp"
-            - $ref: "#/components/schemas/HierarchyOp"
-            - $ref: "#/components/schemas/AnnotationOp"
-            - $ref: "#/components/schemas/PropertyOp"
-            - $ref: "#/components/schemas/NamespaceOp"
-
-        user:
-          type: object
-          required:
-            - name
-          properties:
-            name:
-              type: string
-            firstName:
-              type: string
-            lastName:
-              type: string
-            email:
-              type: string
-        timestamp:
-          type: number
+    #     Reverting an action means reverting the operation that has been done and it
+    #     depends on the type of the action.
+    #     - Add => Remove
+    #     - Remove => Add
+    #     - Edit => restore the previous state of the subject of the operation made
+    #   type: object
+    #   properties:
+    #     operationType:
+    #       type: string
+    #       enum: ["add", "edit", "remove"]
+    #     operation:
+    #       description:
+    #         Operations differ by their subject, that is the object on which
+    #         the operation take place (if the user perform the action of adding a diagram,
+    #         the subject of the operation will be the diagram).
+    #         The previousState of a operation must be set in case of editing a single field
+    #         of the subject, it is not needed in case of 'add' or 'remove' actions.
+    #       type: object
+    #       oneOf:
+    #         - $ref: "#/components/schemas/ElementOp"
+    #         - $ref: "#/components/schemas/EntityOp"
+    #         - $ref: "#/components/schemas/DiagramOp"
+    #         - $ref: "#/components/schemas/HierarchyOp"
+    #         - $ref: "#/components/schemas/AnnotationOp"
+    #         - $ref: "#/components/schemas/PropertyOp"
+    #         - $ref: "#/components/schemas/NamespaceOp"
+    #     user:
+    #       type: object
+    #       required:
+    #         - name
+    #       properties:
+    #         name:
+    #           type: string
+    #         firstName:
+    #           type: string
+    #         lastName:
+    #           type: string
+    #         email:
+    #           type: string
+    #     timestamp:
+    #       type: number
 
     ElementOp:
       type: object
@@ -491,3 +528,37 @@ components:
           $ref: "#/components/schemas/Namespace"
         previousState:
           $ref: "#/components/schemas/Namespace"
+
+    InstanceShortestPathInput:
+      type: object
+      properties:
+        source:
+          $ref: "#/components/schemas/InstanceShortestPathSource"
+        target:
+          $ref: "#/components/schemas/InstanceShortestPathTarget"
+    InstanceShortestPathSource:
+      type: object
+      required:
+        - instanceIRI
+        - parentClasses
+      properties:
+        instanceIRI:
+          type: string
+        parentClasses:
+          type: array
+          items:
+            type: string
+    InstanceShortestPathTarget:
+      type: object
+      required:
+        - iri
+        - isInstance
+      properties:
+        isInstance:
+          type: boolean
+        iri:
+          type: string
+        parentClasses:
+          type: array
+          items:
+            type: string

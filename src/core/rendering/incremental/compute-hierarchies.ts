@@ -1,16 +1,15 @@
-import { Ontology, GrapholTypesEnum, Hierarchy, RendererStatesEnum, GrapholEntity } from "../../../model"
+import { GrapholEntity, Hierarchy, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
 
 
 export default function computeHierarchies(ontology: Ontology) {
-  const unionNodeSelector = `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`
-  const unionEdgeSelector = `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`
+  const unionNodeSelector = `node[type = "${TypesEnum.UNION}"], node[type = "${TypesEnum.DISJOINT_UNION}"]`
+  const unionEdgeSelector = `edge[type = "${TypesEnum.UNION}"], edge[type = "${TypesEnum.DISJOINT_UNION}"]`
 
   for (const diagram of ontology.diagrams) {
     diagram.representations.get(RendererStatesEnum.FLOATY)?.cy.$(unionNodeSelector).forEach(unionNode => {
-      const hierarchy = new Hierarchy(unionNode.data().type)
-      hierarchy.id = `${unionNode.id()}-${diagram.id}`
+      const hierarchy = new Hierarchy(`${unionNode.id()}-${diagram.id}`, unionNode.data().type)
       let entity: GrapholEntity | null
-      unionNode.connectedEdges(`[type = "${GrapholTypesEnum.INPUT}"]`).sources().forEach(inputNode => {
+      unionNode.connectedEdges(`[type = "${TypesEnum.INPUT}"]`).sources().forEach(inputNode => {
         if (inputNode.data().iri) {
           if (!ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)) {
             ontology.hierarchiesBySubclassMap.set(inputNode.data().iri, [])

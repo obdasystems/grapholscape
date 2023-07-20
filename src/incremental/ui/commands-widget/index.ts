@@ -1,4 +1,4 @@
-import { ClassInstanceEntity, GrapholNode, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
+import { ClassInstanceEntity, GrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { classIcon, counter, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import IncrementalController from "../../controller";
@@ -22,9 +22,9 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const grapholElement = ic.diagram.representation?.grapholElements.get(event.target.id())
     if (!entity || !grapholElement) return
 
-    if (grapholElement.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
-        event.target.source().data().type === GrapholTypesEnum.CLASS_INSTANCE &&
-        event.target.target().data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+    if (grapholElement.is(TypesEnum.OBJECT_PROPERTY) &&
+        event.target.source().data().type === TypesEnum.CLASS_INSTANCE &&
+        event.target.target().data().type === TypesEnum.CLASS_INSTANCE) {
       commands.push({
         content: 'Show Instance Types',
         icon: classIcon,
@@ -38,7 +38,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
       })
     }
 
-    if (grapholElement.is(GrapholTypesEnum.CLASS_INSTANCE)) {
+    if (grapholElement.is(TypesEnum.CLASS_INSTANCE)) {
 
       commands.push(IncrementalCommands.focusInstance(() => ic.expandObjectPropertiesOnInstance(entity.iri.fullIri)))
 
@@ -46,7 +46,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
         const allClassesIris = ic
           .grapholscape
           .ontology
-          .getEntitiesByType(GrapholTypesEnum.CLASS)
+          .getEntitiesByType(TypesEnum.CLASS)
           .map(e => e.iri.fullIri)
 
         const instanceCheckingClasses = await ic
@@ -70,7 +70,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     const classIri = entity.iri.fullIri
 
-    if (grapholElement.is(GrapholTypesEnum.CLASS)) {
+    if (grapholElement.is(TypesEnum.CLASS)) {
       const superHierarchies = ic.grapholscape.ontology.hierarchiesBySubclassMap.get(classIri)
       const subHierarchies = ic.grapholscape.ontology.hierarchiesBySuperclassMap.get(classIri)
 
@@ -156,7 +156,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     }
 
-    if (!grapholElement.is(GrapholTypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
+    if (!grapholElement.is(TypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
       commands.push({
         content: 'Data Lineage',
         icon: sankey,
@@ -166,7 +166,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     commands.push(
       IncrementalCommands.remove(() => {
-        if (grapholElement.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
+        if (grapholElement.is(TypesEnum.OBJECT_PROPERTY)) {
           const grapholOccurrence = ic.diagram.representation?.grapholElements.get(event.target.id())
           if (grapholOccurrence) {
             entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
@@ -196,7 +196,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 function showParentClass(incrementalController: IncrementalController, instanceEntity: ClassInstanceEntity) {
   const parentClassIris = instanceEntity.parentClassIris
   let parentClassNode: GrapholNode | undefined
-  let classInstanceId = incrementalController.getIDByIRI(instanceEntity.iri.fullIri, GrapholTypesEnum.CLASS_INSTANCE)
+  let classInstanceId = incrementalController.getIDByIRI(instanceEntity.iri.fullIri, TypesEnum.CLASS_INSTANCE)
   if (classInstanceId) {
     incrementalController.performActionWithBlockedGraph(() => {
       parentClassIris?.forEach(parentClassIri => {
@@ -205,7 +205,7 @@ function showParentClass(incrementalController: IncrementalController, instanceE
           incrementalController.addEdge(
             classInstanceId!,
             parentClassNode.id,
-            GrapholTypesEnum.INSTANCE_OF
+            TypesEnum.INSTANCE_OF
           )
         }
       })

@@ -1,0 +1,5 @@
+{
+  "supportsES6": true,
+  "stringEnums": true,
+  "enumPropertyNaming": "UPPERCASE"
+}

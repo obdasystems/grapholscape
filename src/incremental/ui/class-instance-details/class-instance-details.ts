@@ -101,7 +101,7 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
         title=${entity.displayedName}
         iri=${entity.value.iri.fullIri}
         entity-type="${entity.value.type}"
-        class="ellipsed entity-list-item ${entity.value.type !== GrapholTypesEnum.DATA_PROPERTY ? 'actionable' : null }"
+        class="ellipsed entity-list-item ${entity.value.type !== TypesEnum.DATA_PROPERTY ? 'actionable' : null }"
         @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri, parentClassIri, direct)}
       >
         <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>

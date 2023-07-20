@@ -1,7 +1,7 @@
 import cytoscape, { NodeSingular } from "cytoscape";
 import automove from 'cytoscape-automove';
 import { Renderer } from "..";
-import { BaseRenderer, GrapholscapeTheme, GrapholTypesEnum, iFilterManager, Ontology, RendererStatesEnum } from "../../../model";
+import { BaseRenderer, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model";
 import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
@@ -236,15 +236,15 @@ export default class FloatyRendererState extends BaseRenderer {
     avoidOverlap: false,
     edgeLength: function (edge) {
       let crowdnessFactor =
-        edge.target().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length +
-        edge.source().neighborhood(`[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`).length
+        edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
+        edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
 
       crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
       if (edge.hasClass('role')) {
         return 250 + edge.data('displayedName').length * 4 + crowdnessFactor
       }
-      else if (edge.target().data('type') == GrapholTypesEnum.DATA_PROPERTY ||
-        edge.source().data('type') == GrapholTypesEnum.DATA_PROPERTY)
+      else if (edge.target().data('type') == TypesEnum.DATA_PROPERTY ||
+        edge.source().data('type') == TypesEnum.DATA_PROPERTY)
         return 150
       else {
         return 200 + crowdnessFactor
@@ -323,9 +323,9 @@ export default class FloatyRendererState extends BaseRenderer {
   }
 
   protected automoveOptions = {
-    nodesMatching: (node: NodeSingular) => this.renderer.cy?.$(':grabbed').neighborhood(`[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`).has(node),
+    nodesMatching: (node: NodeSingular) => this.renderer.cy?.$(':grabbed').neighborhood(`[type = "${TypesEnum.DATA_PROPERTY}"]`).has(node),
     reposition: 'drag',
-    dragWith: `[type ="${GrapholTypesEnum.CLASS}"][iri]`
+    dragWith: `[type ="${TypesEnum.CLASS}"][iri]`
   }
 
   get isLayoutInfinite() {

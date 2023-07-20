@@ -1,34 +1,41 @@
 import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
-import { GrapholTypesEnum } from "./enums"
-import { EntityNameType } from "../../config"
 import GrapholElement from "./graphol-element"
+import { Entity, EntityFunctionPropertiesEnum, EntityNameType, TypesEnum } from "../rdf-graph/swagger"
 
-export enum FunctionalityEnum {
-  functional = 'functional',
-  inverseFunctional = 'inverseFunctional',
-  transitive = 'transitive',
-  symmetric = 'symmetric',
-  asymmetric = 'asymmetric',
-  reflexive = 'reflexive',
-  irreflexive = 'irreflexive'
-}
+// export enum FunctionalityEnum {
+//   functional = 'functional',
+//   inverseFunctional = 'inverseFunctional',
+//   transitive = 'transitive',
+//   symmetric = 'symmetric',
+//   asymmetric = 'asymmetric',
+//   reflexive = 'reflexive',
+//   irreflexive = 'irreflexive'
+// }
 
-export default class GrapholEntity extends AnnotatedElement {
+export default class GrapholEntity extends AnnotatedElement implements Entity {
+  
+  static newFromSwagger(iri: Iri, e: Entity) {
+    const instance = new GrapholEntity(iri)
+
+    Object.entries(e).forEach(([key, value]) => {
+      if (e[key] && key !== 'fullIri') {
+        instance[key] = value
+      }
+    })
+
+    return instance
+  }
+
   private _iri!: Iri
   private _occurrences: Map<RendererStatesEnum, GrapholElement[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
-  //private _type: Set<GrapholTypesEnum> = new Set([GrapholTypesEnum.UNKWNOWN])
   private _datatype: string
-  private _functionalities: FunctionalityEnum[] = []
+  private _functionalities: EntityFunctionPropertiesEnum[] = []
 
   constructor(iri: Iri) {
     super()
     this.iri = iri
-    //if (type) {
-    //  this._type.clear()
-    //  this._type.add(type)
-    // }
   }
 
   public addOccurrence(newGrapholElement: GrapholElement, representationKind = RendererStatesEnum.GRAPHOL) {
@@ -76,7 +83,7 @@ export default class GrapholEntity extends AnnotatedElement {
   }
 
   get types() {
-    let types = new Set<GrapholTypesEnum>()
+    let types = new Set<TypesEnum>()
     for (let [_, elements] of this.occurrences) {
       elements.forEach(e => types.add(e.type))
     }
@@ -88,7 +95,7 @@ export default class GrapholEntity extends AnnotatedElement {
    * Check if entity is of a certain type
    * @param type 
    */
-  is(type: GrapholTypesEnum): boolean {
+  is(type: TypesEnum): boolean {
     for (let [_, elements] of this.occurrences) {
       if (elements.some(e => e.is(type))) {
         return true
@@ -110,6 +117,10 @@ export default class GrapholEntity extends AnnotatedElement {
     return this._iri
   }
 
+  public get fullIri() {
+    return this.iri.fullIri
+  }
+
   public get functionalities() {
     return this._functionalities
   }
@@ -121,15 +132,15 @@ export default class GrapholEntity extends AnnotatedElement {
   public get datatype() { return this._datatype }
   public set datatype(datatype) { this._datatype = datatype }
 
-  public getOccurrenceByType(type: GrapholTypesEnum, rendererState: RendererStatesEnum) {
+  public getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum) {
     return this.occurrences.get(rendererState)?.find(o => o.type === type)
   }
 
-  public getOccurrencesByType(type: GrapholTypesEnum, rendererState: RendererStatesEnum) {
+  public getOccurrencesByType(type: TypesEnum, rendererState: RendererStatesEnum) {
     return this.occurrences.get(rendererState)?.filter(o => o.type === type)
   }
 
-  public hasFunctionality(functionalityKind: FunctionalityEnum) {
+  public hasFunctionality(functionalityKind: EntityFunctionPropertiesEnum) {
     return this._functionalities?.includes(functionalityKind) || false
   }
 
@@ -168,7 +179,7 @@ export default class GrapholEntity extends AnnotatedElement {
         break
     }
 
-    if (this.is(GrapholTypesEnum.CLASS) || this.is(GrapholTypesEnum.INDIVIDUAL))
+    if (this.is(TypesEnum.CLASS) || this.is(TypesEnum.INDIVIDUAL))
       return newDisplayedName.replace(/\r?\n|\r/g, '')
     else
       return newDisplayedName
@@ -178,6 +189,27 @@ export default class GrapholEntity extends AnnotatedElement {
     const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL)
     if (grapholRepresentationOccurrences) {
       return grapholRepresentationOccurrences[0].id // used in UI to show the original nodeID in graphol
+    }
+  }
+
+  public getIdInDiagram(diagramId: number, type: TypesEnum, rendererState: RendererStatesEnum) {
+    let entityOccurrences = this.getOccurrencesByType(type, rendererState)
+
+    if (!entityOccurrences || entityOccurrences.length === 0)
+      entityOccurrences =  this.getOccurrencesByType(type, RendererStatesEnum.GRAPHOL)
+    
+    if (!entityOccurrences)
+      return
+
+    return entityOccurrences.find(o => o.diagramId === diagramId)?.id
+  }
+
+  public json(): Entity {
+    return {
+      fullIri: this.fullIri,
+      annotations: this.getAnnotations(),
+      datatype: this.datatype,
+      functionProperties: this.functionalities
     }
   }
 }

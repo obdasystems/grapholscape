@@ -1,6 +1,8 @@
+import { Annotation as IAnnotation } from "../rdf-graph/swagger"
+
 export const UNDEFINED_LANGUAGE = '_'
 
-export default class Annotation {
+export default class Annotation implements IAnnotation {
   property: string
   lexicalForm: string
   language: string

@@ -1,19 +1,19 @@
-
-import { Position } from "cytoscape";
-import getIdFromEntity from "../../util/get-id-from-entity";
 import GrapholEdge from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
-import { GrapholTypesEnum, Shape } from "../graphol-elems/enums";
+import { Shape } from "../graphol-elems/enums";
 import GrapholNode from "../graphol-elems/node";
+import { Hierarchy as IHierarchy, Position, TypesEnum } from "../rdf-graph/swagger";
 import { RendererStatesEnum } from "../renderers/i-render-state";
 
-export default class Hierarchy {
+export default class Hierarchy implements IHierarchy {
 
-  private _id?: string
+  private _id: string
   private _inputs: GrapholEntity[] = []
-  private _superclasses: { classEntity: GrapholEntity, complete?: boolean }[] = []
+  private _superclasses: { classEntity: GrapholEntity, complete: boolean }[] = []
 
-  constructor(public type: GrapholTypesEnum.UNION | GrapholTypesEnum.DISJOINT_UNION) { }
+  constructor(id: string, public type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION) {
+    this.id = id
+  }
 
   addInput(classEntity: GrapholEntity) {
     this.inputs.push(classEntity)
@@ -26,7 +26,7 @@ export default class Hierarchy {
   get inputs() { return this._inputs }
   get superclasses() { return this._superclasses }
 
-  set id(newId: string | undefined) { this._id = newId }
+  set id(newId: string) { this._id = newId }
   get id() { return this._id }
 
   getUnionGrapholNode(position?: Position): GrapholNode | undefined {
@@ -35,9 +35,9 @@ export default class Hierarchy {
       return
     }
 
-    const unionNode = new GrapholNode(this._id!, GrapholTypesEnum.CLASS)
+    const unionNode = new GrapholNode(this._id!, TypesEnum.CLASS)
     unionNode.type = this.type
-    unionNode.identity = GrapholTypesEnum.CLASS
+    unionNode.identity = TypesEnum.CLASS
     unionNode.shape = Shape.ELLIPSE
     unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined
     unionNode.height = unionNode.width = 30
@@ -57,8 +57,8 @@ export default class Hierarchy {
     const res: GrapholEdge[] = []
     let sourceId: string | undefined
     this.inputs.forEach((inputEntity, i) => {
-      const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`, GrapholTypesEnum.INPUT)
-      sourceId = getIdFromEntity(inputEntity, diagramId, GrapholTypesEnum.CLASS, rendererState)
+      const newInputEdge = new GrapholEdge(`${this._id}-e-${i}`, TypesEnum.INPUT)
+      sourceId = inputEntity.getIdInDiagram(diagramId, TypesEnum.CLASS, rendererState)
       if (!sourceId) return
       newInputEdge.sourceId = sourceId
       newInputEdge.targetId = this._id!
@@ -79,7 +79,7 @@ export default class Hierarchy {
     this._superclasses.forEach((superclass, i) => {
       const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`, this.type)
       newInclusionEdge.sourceId = this._id!
-      targetId = getIdFromEntity(superclass.classEntity, diagramId, GrapholTypesEnum.CLASS, rendererState)
+      targetId = superclass.classEntity.getIdInDiagram(diagramId, TypesEnum.CLASS, rendererState)
       if (!targetId) return
       newInclusionEdge.targetId = targetId
 
@@ -94,7 +94,7 @@ export default class Hierarchy {
   }
 
   isDisjoint() {
-    return this.type === GrapholTypesEnum.DISJOINT_UNION
+    return this.type === TypesEnum.DISJOINT_UNION
   }
 
   private isValid() {

@@ -1,6 +1,7 @@
+import { Theme } from "../rdf-graph/swagger"
 import { ColourMap, ColoursNames } from "./colours"
 
-export default class GrapholscapeTheme {
+export default class GrapholscapeTheme implements Theme {
   private _id: string
   private _name: string
   colours: ColourMap = { }

@@ -1,5 +1,5 @@
 import { Stylesheet } from "cytoscape";
-import { GrapholTypesEnum, GrapholscapeTheme, ColoursNames } from "../../../model";
+import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model";
 import grapholStyle from "../graphol/graphol-style";
 
 export default function (theme: GrapholscapeTheme) {
@@ -14,7 +14,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[type = "${GrapholTypesEnum.CLASS}"]`,
+      selector: `[type = "${TypesEnum.CLASS}"]`,
       style: {
         'text-margin-x': 0,
         'text-margin-y': 0,
@@ -25,21 +25,21 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
     {
-      selector: `node[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`,
+      selector: `node[type = "${TypesEnum.DATA_PROPERTY}"]`,
       style: {
         'height': (node)=>  node.data('width') || 20,
         'width' : (node)=>  node.data('width') || 20
       }
     },
     {
-      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
         backgroundColor: theme.getColour(ColoursNames.class_instance),
         "border-color": theme.getColour(ColoursNames.class_instance_contrast),
       }
     },
     {
-      selector: `edge[type = "${GrapholTypesEnum.INSTANCE_OF}"]`,
+      selector: `edge[type = "${TypesEnum.INSTANCE_OF}"]`,
       style: {
         "target-arrow-shape": 'triangle',
         'target-arrow-fill': 'filled',
@@ -49,7 +49,7 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
     {
-      selector: `edge[type = "${GrapholTypesEnum.INPUT}"]`,
+      selector: `edge[type = "${TypesEnum.INPUT}"]`,
       style: {
         'line-style': 'solid',
         'target-arrow-shape': 'none',
@@ -57,14 +57,14 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[displayedName][type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
+      selector: `[displayedName][type = "${TypesEnum.OBJECT_PROPERTY}"]`,
       style: {
         'label': (elem) => elem.data().displayedName.replace(/\r?\n|\r/g, '')
       }
     },
 
     {
-      selector: `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`,
+      selector: `[type = "${TypesEnum.OBJECT_PROPERTY}"]`,
       style: {
         'line-color': theme.getColour(ColoursNames.object_property_contrast),
         'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
@@ -78,7 +78,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.UNION}"], node[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+      selector: `node[type = "${TypesEnum.UNION}"], node[type = "${TypesEnum.DISJOINT_UNION}"]`,
       style: {
         'width': 35,
         'height': 35,
@@ -86,7 +86,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.UNION}"], edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+      selector: `edge[type = "${TypesEnum.UNION}"], edge[type = "${TypesEnum.DISJOINT_UNION}"]`,
       style: {
         'width': 6,
         'line-style': 'solid',
@@ -95,14 +95,14 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.UNION}"]`,
+      selector: `edge[type = "${TypesEnum.UNION}"]`,
       style: {
         'target-arrow-fill': 'hollow'
       }
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.DISJOINT_UNION}"]`,
+      selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"]`,
       style: {
         'target-arrow-fill': 'filled',
       }
@@ -111,7 +111,7 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: ':loop',
       style: {
-        'control-point-step-size': 'data(control_point_step_size)',
+        'control-point-step-size': 80,
         'control-point-weight': 0.5,
       }
     },

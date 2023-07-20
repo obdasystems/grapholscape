@@ -30,3 +30,12 @@ export * from './lifecycle'
 export { default as Breakpoint } from './graphol-elems/breakpoint'
 
 export * from './graph-structures'
+
+export * as SwaggerModel from './rdf-graph/swagger'
+export { 
+  TypesEnum, 
+  EntityFunctionPropertiesEnum as FunctionalityEnum,
+  EntityNameType,
+  Position,
+  RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum
+} from './rdf-graph/swagger'

@@ -1,5 +1,5 @@
 import { Stylesheet } from "cytoscape"
-import { GrapholscapeTheme, GrapholTypesEnum, ColoursNames } from "../../../model"
+import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model"
 import floatyStyle from "../floaty/floaty-style"
 
 export default function (theme: GrapholscapeTheme) {
@@ -14,7 +14,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
         backgroundColor: theme.getColour(ColoursNames.class_instance),
         "border-color": theme.getColour(ColoursNames.class_instance_contrast),
@@ -22,7 +22,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${GrapholTypesEnum.CLASS_INSTANCE}"]:selected`,
+      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
       style: {
         'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
@@ -30,7 +30,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${GrapholTypesEnum.INSTANCE_OF}"]`,
+      selector: `edge[type = "${TypesEnum.INSTANCE_OF}"]`,
       style: {
         "target-arrow-shape": 'triangle',
         'target-arrow-fill': 'filled',

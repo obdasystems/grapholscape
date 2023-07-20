@@ -1,4 +1,4 @@
-import { GrapholTypesEnum } from '../../model'
+import { TypesEnum } from '../../model'
 import QueryManager from '../queries/query-manager'
 import { ResultRecord } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
@@ -116,7 +116,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     pageSize?: number) {
 
     const _pageSize = pageSize || this.pageSize
-    const queryCode = propertyType === GrapholTypesEnum.OBJECT_PROPERTY
+    const queryCode = propertyType === TypesEnum.OBJECT_PROPERTY
       ? QueriesTemplates.getInstancesByObjectProperty(classIri, propertyIri, propertyValue, isDirect, includeLabels)
       : QueriesTemplates.getInstancesByDataProperty(classIri, propertyIri, propertyValue, includeLabels)
     const queryPoller = await this.queryManager.performQuery(queryCode, _pageSize, QuerySemantics.FULL_SPARQL)

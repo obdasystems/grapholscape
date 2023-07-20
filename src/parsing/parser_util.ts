@@ -1,7 +1,6 @@
 import { Position } from "cytoscape"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import GrapholNode from "../model/graphol-elems/node"
-import { GrapholTypesEnum } from "../model/graphol-elems/enums"
 
 // Funzioni che ritornano il primo figlio o il fratello successivo di un dato nodo
 // Ignorano quindi tutti gli elementi di tipo diverso da 1

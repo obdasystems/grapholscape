@@ -1,4 +1,4 @@
-import { GrapholTypesEnum } from "../model";
+import { TypesEnum } from "../model";
 import { IVirtualKnowledgeGraphApi } from "./api/kg-api";
 import { EmptyUnfoldingEntities } from "./api/model";
 import { Branch } from "./api/swagger/models/Branch";
@@ -73,15 +73,15 @@ export default class HighlightsManager {
     return Array.from(this._objectProperties).map(([_, opBranch]) => opBranch)
   }
 
-  public hasUnfoldings(entityIri: string, entityType: GrapholTypesEnum) {
+  public hasUnfoldings(entityIri: string, entityType: TypesEnum) {
     switch (entityType) {
-      case GrapholTypesEnum.DATA_PROPERTY:
+      case TypesEnum.DATA_PROPERTY:
         return !this.emptyUnfoldingsDataProperties.includes(entityIri)
 
-        case GrapholTypesEnum.OBJECT_PROPERTY:
+        case TypesEnum.OBJECT_PROPERTY:
           return !this.emptyUnfoldingsObjectProperties.includes(entityIri)
 
-        case GrapholTypesEnum.CLASS:
+        case TypesEnum.CLASS:
           return !this.emptyUnfoldingsClasses.includes(entityIri)
 
       default:

@@ -1,5 +1,5 @@
 import { NodeCollection } from "cytoscape";
-import { Diagram, GrapholEntity, GrapholTypesEnum, Iri, Ontology, RendererStatesEnum } from "../model";
+import { Diagram, GrapholEntity, Iri, Ontology, RendererStatesEnum, TypesEnum } from "../model";
 
 export type ObjectPropertyConnectedClasses = {
   list: GrapholEntity[],
@@ -14,7 +14,7 @@ export default class NeighbourhoodFinder {
     const res: GrapholEntity[] = []
 
     const classIri = this.getIriObject(classIriString)
-    const dataPropertySelector = `[type = "${GrapholTypesEnum.DATA_PROPERTY}"]`
+    const dataPropertySelector = `[type = "${TypesEnum.DATA_PROPERTY}"]`
 
     this.ontology.diagrams.forEach(diagram => {
       diagram.representations.get(RendererStatesEnum.FLOATY)
@@ -35,7 +35,7 @@ export default class NeighbourhoodFinder {
     const res: Map<GrapholEntity, ObjectPropertyConnectedClasses> = new Map()
 
     const classIri = this.getIriObject(classIriString)
-    const objectPropertyEdgeSelector = `[type = "${GrapholTypesEnum.OBJECT_PROPERTY}"]`
+    const objectPropertyEdgeSelector = `[type = "${TypesEnum.OBJECT_PROPERTY}"]`
 
     this.ontology.diagrams.forEach(diagram => {
       diagram.representations.get(RendererStatesEnum.FLOATY)
@@ -128,7 +128,7 @@ export default class NeighbourhoodFinder {
     return res
   }
 
-  private getConnectedClassesIrisByType(classIri: string, type: GrapholTypesEnum.INCLUSION | GrapholTypesEnum.EQUIVALENCE, inclusionType: 'subclass' | 'superclass' = 'subclass') {
+  private getConnectedClassesIrisByType(classIri: string, type: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE, inclusionType: 'subclass' | 'superclass' = 'subclass') {
     const res: string[] = []
     let resultingNodes: NodeCollection
 
@@ -140,12 +140,12 @@ export default class NeighbourhoodFinder {
         if (diagram) {
           const inclusionEdges = diagram.representations.get(RendererStatesEnum.FLOATY)
             ?.cy.$id(classOccurrence.id)
-            .edgesWith(`[ type = "${GrapholTypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
+            .edgesWith(`[ type = "${TypesEnum.CLASS}" ]`) // take all edges going/coming to/from other classes
             .filter(edge => edge.data().type === type) // take only inclusions/equivalence edges
 
           if (!inclusionEdges) return
 
-          if (type === GrapholTypesEnum.EQUIVALENCE) {
+          if (type === TypesEnum.EQUIVALENCE) {
             resultingNodes = inclusionEdges.connectedNodes(`[ iri != "${classIri}" ]`)
           } else if (inclusionType === 'subclass') {
             resultingNodes = inclusionEdges.sources(`[ iri != "${classIri}" ]`) // of these inclusions, take sources different from the class we are considering as superclass
@@ -166,15 +166,15 @@ export default class NeighbourhoodFinder {
   }
 
   getSubclassesIris(classIri: string): string[] {
-    return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.INCLUSION, 'subclass')
+    return this.getConnectedClassesIrisByType(classIri, TypesEnum.INCLUSION, 'subclass')
   }
 
   getEquivalentClassesIris(classIri: string): string[] {
-    return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.EQUIVALENCE)
+    return this.getConnectedClassesIrisByType(classIri, TypesEnum.EQUIVALENCE)
   }
 
   getSuperclassesIris(classIri: string): string[] {
-    return this.getConnectedClassesIrisByType(classIri, GrapholTypesEnum.INCLUSION, 'superclass')
+    return this.getConnectedClassesIrisByType(classIri, TypesEnum.INCLUSION, 'superclass')
   }
 
   private getIriObject(iri: string): Iri {

@@ -1,5 +1,5 @@
-import { EntityNameType, Language, storeConfigEntry } from "../config";
-import { GrapholElement, GrapholEntity } from "../model";
+import { Language, storeConfigEntry } from "../config";
+import { EntityNameType, GrapholElement, GrapholEntity } from "../model";
 import { LifecycleEvent } from "../model/lifecycle";
 import { RendererStatesEnum } from "../model/renderers/i-render-state";
 import Grapholscape from "./grapholscape";
@@ -38,7 +38,7 @@ export default class DisplayedNamesManager {
   setLanguage(language: string | Language) {
     const languageValue = language as Language
 
-    if (!this._grapholscape.ontology.languages.list.includes(language)) {
+    if (!this._grapholscape.ontology.languages.includes(language)) {
       console.warn(`Language ${language} is not supported by this ontology`)
       return
     }

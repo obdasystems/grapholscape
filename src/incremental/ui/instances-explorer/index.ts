@@ -1,7 +1,6 @@
 import { Position } from "cytoscape"
-import { ClassInstanceEntity, GrapholTypesEnum } from "../../../model"
+import { ClassInstanceEntity, TypesEnum } from "../../../model"
 import { WidgetEnum } from "../../../ui"
-import { ClassInstance } from "../../api/kg-api"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
 import onHideMenu from "../on-hide-menu"
@@ -51,14 +50,14 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
       
 
       addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris, refPosition)
-      const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, GrapholTypesEnum.CLASS_INSTANCE)
+      const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, TypesEnum.CLASS_INSTANCE)
       if (!sourceId)
         return
 
       addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
-        const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, GrapholTypesEnum.CLASS)
+        const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, TypesEnum.CLASS)
         if (targetId) {
-          incrementalController.addEdge(sourceId, targetId, GrapholTypesEnum.INSTANCE_OF)
+          incrementalController.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
         }
       })
 
@@ -102,7 +101,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
     instancesExplorer.areInstancesLoading = true
 
     if (instancesExplorer.referenceEntity) {
-      if (instancesExplorer.referenceEntity.value.types.has(GrapholTypesEnum.CLASS)) {
+      if (instancesExplorer.referenceEntity.value.types.has(TypesEnum.CLASS)) {
         instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
           instancesExplorer.referenceEntity?.value.iri.fullIri,
           e.detail.shouldAskForLabels,
@@ -113,7 +112,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         )
       }
 
-      else if (instancesExplorer.referenceEntity.value.types.has(GrapholTypesEnum.CLASS_INSTANCE) && instancesExplorer.referencePropertyEntity) {
+      else if (instancesExplorer.referenceEntity.value.types.has(TypesEnum.CLASS_INSTANCE) && instancesExplorer.referencePropertyEntity) {
         // if (e.detail.filterByType) {
         //   instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
         //     .map(dp => getEntityViewDataIncremental(dp, incrementalController))

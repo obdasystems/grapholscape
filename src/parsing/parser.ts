@@ -1,7 +1,5 @@
-import { EntityNameType } from "../config"
-import { Ontology, Annotation, ConstructorLabelsEnum, Diagram, GrapholEdge, GrapholEntity, GrapholNode, GrapholTypesEnum, Iri, Namespace, RendererStatesEnum, GrapholNodeInfo, GrapholNodesEnum } from "../model"
+import { Annotation, ConstructorLabelsEnum, Diagram, EntityNameType, FunctionalityEnum, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, Iri, Namespace, Ontology, RendererStatesEnum, TypesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
-import { FunctionalityEnum } from "../model/graphol-elems/entity"
 import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'
 import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/fake-rectangle'
 import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
@@ -69,6 +67,7 @@ export default class GrapholParser {
           const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
           if (iri) {
             grapholEntity = this.ontology.entities.get(iri.fullIri)
+            node.iri = iri.fullIri
 
             if (!grapholEntity) {
               grapholEntity = new GrapholEntity(iri)
@@ -83,9 +82,9 @@ export default class GrapholParser {
             node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined)
 
             // Add fake nodes
-            if (node.is(GrapholTypesEnum.OBJECT_PROPERTY) &&
-              grapholEntity.hasFunctionality(FunctionalityEnum.functional) &&
-              grapholEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)) {
+            if (node.is(TypesEnum.OBJECT_PROPERTY) &&
+              grapholEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL) &&
+              grapholEntity.hasFunctionality(FunctionalityEnum.INVERSE_FUNCTIONAL)) {
               node.addFakeNode(new FakeTriangleRight(node))
               node.addFakeNode(new FakeTriangleLeft(node))
               node.height -= 8
@@ -95,17 +94,17 @@ export default class GrapholParser {
         } else {
           // not an entity, take label from <label> tag or use those for constructor nodes          
           switch (node?.type) {
-            case GrapholTypesEnum.FACET:
+            case TypesEnum.FACET:
               node.displayedName = this.graphol.getFacetDisplayedName(nodeXmlElement, this.ontology) || ''
               break
 
-            case GrapholTypesEnum.VALUE_DOMAIN:
+            case TypesEnum.VALUE_DOMAIN:
               const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
               node.displayedName = iri?.prefixed || ''
               break
 
             default:
-              const labelKey = Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === node.type)
+              const labelKey = Object.keys(TypesEnum).find(k => TypesEnum[k] === node.type)
               if (labelKey) {
                 const constructorLabel = ConstructorLabelsEnum[labelKey]
                 if (constructorLabel) {
@@ -116,7 +115,7 @@ export default class GrapholParser {
           }
 
           // for domain/range restrictions, cardinalities
-          if (node.type === GrapholTypesEnum.DOMAIN_RESTRICTION || node.type === GrapholTypesEnum.RANGE_RESTRICTION) {
+          if (node.type === TypesEnum.DOMAIN_RESTRICTION || node.type === TypesEnum.RANGE_RESTRICTION) {
             node.displayedName = Graphol3.getTagText(nodes[k], 'label') || ''
           }
         }
@@ -160,7 +159,7 @@ export default class GrapholParser {
     grapholNode.x = parseInt(geometry.getAttribute('x') || '')
     grapholNode.y = parseInt(geometry.getAttribute('y') || '')
 
-    if (grapholNode.is(GrapholTypesEnum.ROLE_CHAIN) || grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
+    if (grapholNode.is(TypesEnum.ROLE_CHAIN) || grapholNode.is(TypesEnum.PROPERTY_ASSERTION)) {
       if (element.getAttribute('inputs') !== '')
         grapholNode.inputs = element.getAttribute('inputs')?.split(',')
     }
@@ -174,8 +173,8 @@ export default class GrapholParser {
       grapholNode.fontSize = parseInt(label.getAttribute('size') || '12')
     }
 
-    if (grapholNode.is(GrapholTypesEnum.FACET)) {
-      grapholNode.shapePoints = GrapholNodesEnum.FACET?.SHAPE_POINTS
+    if (grapholNode.is(TypesEnum.FACET)) {
+      grapholNode.shapePoints = GrapholNodesEnum.facet?.SHAPE_POINTS
       grapholNode.fillColor = '#ffffff'
 
       // Add fake nodes
@@ -186,7 +185,7 @@ export default class GrapholParser {
       grapholNode.addFakeNode(new FakeBottomRhomboid(grapholNode))
     }
 
-    if (grapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
+    if (grapholNode.is(TypesEnum.PROPERTY_ASSERTION)) {
       // Add fake nodes
       grapholNode.height -= 1
 
@@ -209,11 +208,11 @@ export default class GrapholParser {
   }
 
   getGrapholEdgeFromXML(edgeXmlElement: Element, diagramId: number) {
-    const typeKey = Object.keys(GrapholTypesEnum).find(k => GrapholTypesEnum[k] === edgeXmlElement.getAttribute('type'))
+    const typeKey = Object.keys(TypesEnum).find(k => TypesEnum[k] === edgeXmlElement.getAttribute('type'))
     if (!typeKey)
       return
 
-    const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id') || '', GrapholTypesEnum[typeKey])
+    const grapholEdge = new GrapholEdge(edgeXmlElement.getAttribute('id') || '', TypesEnum[typeKey])
 
     const sourceId = edgeXmlElement.getAttribute('source')
     if (sourceId)
@@ -235,7 +234,7 @@ export default class GrapholParser {
       // Quindi se l'arco che stiamo aggiungendo ha come target un nodo role-chain,
       // Cerchiamo l'id dell'arco negli inputs del role-chain e se lo troviamo impostiamo
       // la target_label in base alla posizione nella sequenza
-      if (targetGrapholNode.is(GrapholTypesEnum.ROLE_CHAIN) || targetGrapholNode.is(GrapholTypesEnum.PROPERTY_ASSERTION)) {
+      if (targetGrapholNode.is(TypesEnum.ROLE_CHAIN) || targetGrapholNode.is(TypesEnum.PROPERTY_ASSERTION)) {
 
         if (targetGrapholNode?.inputs) {
           for (let k = 0; k < targetGrapholNode.inputs.length; k++) {
@@ -349,18 +348,18 @@ export default class GrapholParser {
     function findIdentity(node) {
       var first_input_node = node.incomers('[type = "input"]').sources()
       var identity = first_input_node.data('identity')
-      if (identity === GrapholTypesEnum.NEUTRAL) { return findIdentity(first_input_node) } else {
+      if (identity === TypesEnum.NEUTRAL) { return findIdentity(first_input_node) } else {
         switch (node.data('type')) {
-          case GrapholTypesEnum.RANGE_RESTRICTION:
-            if (identity === GrapholTypesEnum.OBJECT_PROPERTY) {
-              return GrapholTypesEnum.CLASS
-            } else if (identity === GrapholTypesEnum.DATA_PROPERTY) {
-              return GrapholTypesEnum.VALUE_DOMAIN
+          case TypesEnum.RANGE_RESTRICTION:
+            if (identity === TypesEnum.OBJECT_PROPERTY) {
+              return TypesEnum.CLASS
+            } else if (identity === TypesEnum.DATA_PROPERTY) {
+              return TypesEnum.VALUE_DOMAIN
             } else {
               return identity
             }
-          case GrapholTypesEnum.ENUMERATION:
-            if (identity === GrapholTypesEnum.INDIVIDUAL) { return GrapholNodesEnum.CLASS?.TYPE } else { return identity }
+          case TypesEnum.ENUMERATION:
+            if (identity === TypesEnum.INDIVIDUAL) { return GrapholNodesEnum.class?.TYPE } else { return identity }
           default:
             return identity
         }
@@ -375,20 +374,20 @@ export default class GrapholParser {
 
     switch (elementTypeFromXmL) {
       case 'concept':
-        elementTypeFromXmL = GrapholTypesEnum.CLASS
+        elementTypeFromXmL = TypesEnum.CLASS
         break
 
       case 'role':
-        elementTypeFromXmL = GrapholTypesEnum.OBJECT_PROPERTY
+        elementTypeFromXmL = TypesEnum.OBJECT_PROPERTY
         break
 
       case 'attribute':
-        elementTypeFromXmL = GrapholTypesEnum.DATA_PROPERTY
+        elementTypeFromXmL = TypesEnum.DATA_PROPERTY
         break
     }
 
 
-    let nodeTypeKey = Object.keys(GrapholNodesEnum).find(k => GrapholNodesEnum[k].TYPE === elementTypeFromXmL) as GrapholTypesEnum
+    let nodeTypeKey = Object.keys(GrapholNodesEnum).find(k => GrapholNodesEnum[k].TYPE === elementTypeFromXmL) as TypesEnum
     if (!nodeTypeKey) return
 
     return GrapholNodesEnum[nodeTypeKey]

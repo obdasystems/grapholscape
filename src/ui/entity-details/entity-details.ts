@@ -1,16 +1,16 @@
-import { css, html, LitElement, PropertyValueMap } from 'lit'
-import { GrapholElement, GrapholEntity, GrapholTypesEnum } from '../../model'
+import { css, html, LitElement } from 'lit'
+import { GrapholElement, GrapholEntity, TypesEnum } from '../../model'
 import { commentIcon, infoFilled, minus, plus } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import { GscapeButtonStyle } from '../common/button'
+import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
   grapholEntity: GrapholEntity
-  currentOccurrenceType?: GrapholTypesEnum
+  currentOccurrenceType?: TypesEnum
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   showOccurrences: boolean = true
   language: string
@@ -124,7 +124,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
-        ${this.currentOccurrenceType !== GrapholTypesEnum.CLASS_INSTANCE
+        ${this.currentOccurrenceType !== TypesEnum.CLASS_INSTANCE
             ? itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)
             : itemWithIriTemplate(this.entityForTemplate)
         }

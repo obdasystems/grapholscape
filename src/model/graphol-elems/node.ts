@@ -1,16 +1,31 @@
-import { ElementDefinition, Position } from "cytoscape"
-import { Shape, GrapholTypesEnum } from "./enums"
+import { ElementDefinition } from "cytoscape"
+import { Shape } from "./enums"
 import GrapholEntity from "./entity"
 import GrapholElement from "./graphol-element"
+import { Node, Position, TypesEnum } from "../rdf-graph/swagger"
 
 export const LABEL_HEIGHT = 23
 
-export default class GrapholNode extends GrapholElement {
+export default class GrapholNode extends GrapholElement implements Node {
+
+  static newFromSwagger(n: Node) {
+    const instance = new GrapholNode(n.id, n.type)
+
+    Object.entries(n).forEach(([key, value]) => {
+      if (n[key] && key !== 'id' && key !== 'type') {
+        instance[key] = value
+      }
+    })
+
+    if (n.displayedName === 'or')
+      console.log(instance)
+    return instance
+  }
 
   private _x = 0
   private _y = 0
   private _shape: Shape
-  private _identity: GrapholTypesEnum
+  private _identity: TypesEnum
   private _height: number
   private _width: number
   private _fillColor: string
@@ -46,7 +61,7 @@ export default class GrapholNode extends GrapholElement {
   }
 
   get identity() { return this._identity }
-  set identity(identity: GrapholTypesEnum) {
+  set identity(identity: TypesEnum) {
     this._identity = identity
   }
 
@@ -59,7 +74,7 @@ export default class GrapholNode extends GrapholElement {
   set height(height: number) {
     this._height = height >= 0 ? height : -height
 
-    if (this.type === GrapholTypesEnum.FACET) {
+    if (this.type === TypesEnum.FACET) {
       this._height = 40
     }
   }
@@ -166,6 +181,22 @@ export default class GrapholNode extends GrapholElement {
     Object.assign(cloneObj, this)
 
     return cloneObj
+  }
+
+  json(): Node {
+    const result: Node = super.json()
+
+    result.identity = this.identity
+    result.position = this.position
+    if (this.labelXpos !== undefined && this.labelYpos !== undefined) {
+      result.labelPosition = {
+        x: this.labelXpos,
+        y: this.labelYpos,
+      }
+    }
+
+    console.log(result)
+    return result
   }
 }
 

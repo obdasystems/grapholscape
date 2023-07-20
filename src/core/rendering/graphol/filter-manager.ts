@@ -1,5 +1,4 @@
-import { BaseFilterManager, Filter, DefaultFilterKeyEnum } from "../../../model"
-import { filter } from "../../../ui/assets/icons"
+import { BaseFilterManager, DefaultFilterKeyEnum, Filter } from "../../../model"
 
 export default class GrapholFilterManager extends BaseFilterManager {
   _filters: Map<string, Filter>

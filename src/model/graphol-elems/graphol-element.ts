@@ -1,17 +1,14 @@
 import { ElementDefinition } from "cytoscape"
-import GrapholEntity, { FunctionalityEnum } from "./entity"
-import { GrapholTypesEnum } from "./enums"
+import { Element, TypesEnum, EntityFunctionPropertiesEnum } from "../rdf-graph/swagger"
+import GrapholEntity from "./entity"
 
-export default class GrapholElement {
-  // The id coming from xml
-  // private _id: string
-  // private _type: GrapholTypesEnum
+export default class GrapholElement implements Element {
   private _displayedName?: string
   private _originalId?: string // In case of replicated elements, this is the id of the original node
   private _iri?: string
   private _diagramId: number
 
-  constructor(private _id: string, private _type: GrapholTypesEnum) { }
+  constructor(private _id: string, private _type: TypesEnum) { }
 
   get id() { return this._id }
   set id(value: string) {
@@ -19,7 +16,7 @@ export default class GrapholElement {
   }
 
   get type() { return this._type }
-  set type(type: GrapholTypesEnum) {
+  set type(type: TypesEnum) {
     this._type = type
   }
 
@@ -43,7 +40,7 @@ export default class GrapholElement {
    * Check if node is of a certain type
    * @param type 
    */
-  is(type: GrapholTypesEnum): boolean {
+  is(type: TypesEnum): boolean {
     return this.type === type
   }
 
@@ -53,11 +50,11 @@ export default class GrapholElement {
    */
   isEntity(): boolean {
     switch (this.type) {
-      case GrapholTypesEnum.CLASS:
-      case GrapholTypesEnum.DATA_PROPERTY:
-      case GrapholTypesEnum.OBJECT_PROPERTY:
-      case GrapholTypesEnum.INDIVIDUAL:
-      case GrapholTypesEnum.CLASS_INSTANCE:
+      case TypesEnum.CLASS:
+      case TypesEnum.DATA_PROPERTY:
+      case TypesEnum.OBJECT_PROPERTY:
+      case TypesEnum.INDIVIDUAL:
+      case TypesEnum.CLASS_INSTANCE:
         return true
     }
 
@@ -77,9 +74,9 @@ export default class GrapholElement {
     }
 
     // Set functionality for data/object properties
-    if (grapholEntity?.is(GrapholTypesEnum.DATA_PROPERTY) || grapholEntity?.is(GrapholTypesEnum.OBJECT_PROPERTY)) {
-      result.data[FunctionalityEnum.functional] = grapholEntity.hasFunctionality(FunctionalityEnum.functional)
-      result.data[FunctionalityEnum.inverseFunctional] = grapholEntity.hasFunctionality(FunctionalityEnum.inverseFunctional)
+    if (grapholEntity?.is(TypesEnum.DATA_PROPERTY) || grapholEntity?.is(TypesEnum.OBJECT_PROPERTY)) {
+      result.data[EntityFunctionPropertiesEnum.FUNCTIONAL] = grapholEntity.hasFunctionality(EntityFunctionPropertiesEnum.FUNCTIONAL)
+      result.data[EntityFunctionPropertiesEnum.INVERSE_FUNCTIONAL] = grapholEntity.hasFunctionality(EntityFunctionPropertiesEnum.INVERSE_FUNCTIONAL)
     }
     return [result]
   }
@@ -89,5 +86,18 @@ export default class GrapholElement {
     Object.assign(cloneObj, this)
 
     return cloneObj
+  }
+
+  json(): Element {
+    const result: Element = {
+      id: this.id,
+      type: this.type,
+      originalId: this.originalId,
+      diagramId: this.diagramId,
+      displayedName: this.displayedName,
+      iri: this.iri,
+    }
+
+    return result
   }
 }

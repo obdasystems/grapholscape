@@ -1,6 +1,6 @@
 import { NodeCollection, NodeSingular } from "cytoscape";
 import { floatyOptions } from "../../../config/cytoscape-default-config";
-import { Diagram, DiagramRepresentation, GrapholEdge, GrapholNode, GrapholTypesEnum, RendererStatesEnum } from "../../../model";
+import { Diagram, DiagramRepresentation, GrapholEdge, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
 import BaseGrapholTransformer from "../base-transformer";
 import LiteTransformer from "../lite/lite-transformer";
 
@@ -34,13 +34,6 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
     this.makeEdgesStraight()
     this.simplifyRolesFloat()
-    // this.simplifyHierarchiesFloat(cy)
-    // this.simplifyAttributesFloat(cy)
-    // cy.edges().removeData('segment_distances')
-    // cy.edges().removeData('segment_weights')
-    // cy.edges().removeData('target_endpoint')
-    // cy.edges().removeData('source_endpoint')
-    //cy.$(`[type = "${GrapholTypesEnum.CONCEPT}"]`).addClass('bubble')
 
     this.newCy.elements().unlock()
     return this.result
@@ -59,7 +52,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
   private simplifyRolesFloat() {
     let objectProperties = this.newCy.nodes().filter(node => {
       const grapholNode = this.getGrapholElement(node.id())
-      return grapholNode && grapholNode.is(GrapholTypesEnum.OBJECT_PROPERTY)
+      return grapholNode && grapholNode.is(TypesEnum.OBJECT_PROPERTY)
     })
 
     objectProperties.forEach(objectProperty => {
@@ -82,7 +75,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         grapholRangeNode = this.getGrapholElement(range.id()) as GrapholNode
 
         newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`
-        let newGrapholEdge = new GrapholEdge(newId, GrapholTypesEnum.OBJECT_PROPERTY)
+        let newGrapholEdge = new GrapholEdge(newId, TypesEnum.OBJECT_PROPERTY)
         newGrapholEdge.sourceId = grapholDomainNode.id
         newGrapholEdge.targetId = grapholRangeNode.id
 
@@ -106,11 +99,6 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         this.result.addElement(newGrapholEdge)
         const newAddedCyElement = this.newCy.$id(newGrapholEdge.id)
         newAddedCyElement.data().iri = objectProperty.data().iri
-
-        if (newGrapholEdge.sourceId === newGrapholEdge.targetId) {
-          let loop_edge = this.newCy.$id(newGrapholEdge.id)
-          loop_edge.data('control_point_step_size', grapholDomainNode.width)
-        }
       })
     })
   }
@@ -120,7 +108,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     if (!objectProperty || objectProperty.empty()) return null
 
     let domains = objectProperty.incomers(`edge`).filter(edge =>
-      this.getGrapholElement(edge.id()).is(GrapholTypesEnum.DOMAIN_RESTRICTION)
+      this.getGrapholElement(edge.id()).is(TypesEnum.DOMAIN_RESTRICTION)
     ).sources()
 
     const fathers = this.getFathers(objectProperty)
@@ -139,7 +127,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
   private getRangesOfObjectProperty(objectProperty: NodeSingular) {
     if (!objectProperty || objectProperty.empty()) return
     let ranges = objectProperty.incomers(`edge`).filter(edge =>
-      this.getGrapholElement(edge.id()).is(GrapholTypesEnum.RANGE_RESTRICTION)
+      this.getGrapholElement(edge.id()).is(TypesEnum.RANGE_RESTRICTION)
     ).sources()
 
     const fathers = this.getFathers(objectProperty)
@@ -157,7 +145,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
   private getFathers(node: NodeSingular) {
     return node.outgoers('edge').filter(edge =>
-      this.getGrapholElement(edge.id()).is(GrapholTypesEnum.INCLUSION)
+      this.getGrapholElement(edge.id()).is(TypesEnum.INCLUSION)
     ).targets()
   }
 

@@ -1,5 +1,4 @@
 import { Grapholscape } from "../core";
-import setGraphEventHandlers from "../core/set-graph-event-handlers";
 import { LifecycleEvent, RendererStatesEnum } from "../model";
 import { createEntitiesList, IBaseMixin } from "../ui";
 import { GscapeEntityDetails } from "../ui/entity-details";

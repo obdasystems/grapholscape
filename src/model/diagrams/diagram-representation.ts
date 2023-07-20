@@ -1,10 +1,11 @@
-import cytoscape, { CytoscapeOptions } from "cytoscape";
+import cytoscape from "cytoscape";
 import cytoscapeDefaultConfig from "../../config/cytoscape-default-config";
 import { isGrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
 import { isGrapholNode } from "../graphol-elems/node";
 import Iri from "../iri";
+import { TypesEnum } from "../rdf-graph/swagger";
 
 export default class DiagramRepresentation {
   private _cy: cytoscape.Core
@@ -107,6 +108,70 @@ export default class DiagramRepresentation {
     }
 
     return false
+  }
+
+  filter(elementId: string, filterTag: string,) {
+    const element = this.cy.$id(elementId)
+
+    if (element.hasClass('filtered'))
+      return
+
+    const classesToAdd = ['filtered', filterTag]
+    element.addClass(classesToAdd.join(' '))
+    // Filter fake nodes!
+    this.cy.nodes(`[parent_node_id = "${element.id()}"]`).addClass(classesToAdd.join(' '))
+
+    // ARCHI IN USCITA
+    //var selector = `[source = "${element.data('id')}"]`
+    element.outgoers('edge').forEach(e => {
+      let neighbour = e.target()
+
+      // if inclusion[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      let number_edges_in_out = getNumberEdgesInOut(neighbour)
+
+      if (!e.target().hasClass(classesToAdd[0]) && (number_edges_in_out <= 0 || e.data('type') === TypesEnum.INPUT)) {
+        this.filter(e.target().id(), filterTag)
+      }
+    })
+
+    // ARCHI IN ENTRATA
+    element.incomers('edge').forEach(e => {
+      let neighbour = e.source()
+      // if Isa[IN] + equivalence[IN] + all[OUT] == 0 => filter!!
+      let number_edges_in_out = getNumberEdgesInOut(neighbour)
+
+      if (!e.source().hasClass(classesToAdd[0]) && number_edges_in_out === 0) {
+        this.filter(e.source().id(), filterTag)
+      }
+    })
+
+
+    function getNumberEdgesInOut(neighbour: cytoscape.NodeSingular) {
+      let count = neighbour.outgoers('edge').size() + neighbour.incomers(`edge[type != "${TypesEnum.INPUT}"]`).size()
+  
+      neighbour.outgoers('node').forEach(node => {
+        if (node.hasClass(classesToAdd[0])) {
+          count--
+        }
+      })
+  
+      neighbour.incomers(`edge[type != "${TypesEnum.INPUT}"]`).forEach(e => {
+        if (e.source().hasClass(classesToAdd[0])) {
+          count--
+        }
+      })
+  
+      return count
+    }
+  }
+
+  unfilter(elementId: string, filterTag: string) {
+    const classToRemove = ['filtered', filterTag]
+    const element = this.cy.$id(elementId)
+    if (element.hasClass('filtered') && element.hasClass(filterTag)) {
+      this.cy.$id(elementId).removeClass(classToRemove.join(' '))
+      this.cy.$(`.${filterTag}`).removeClass(classToRemove.join(' '))
+    }
   }
 
   get grapholElements() {

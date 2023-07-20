@@ -1,5 +1,5 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
-import { GrapholTypesEnum } from "../../../model";
+import { TypesEnum } from "../../../model";
 import capitalizeFirstChar from "../../../util/capitalize-first-char";
 import { entityIcons } from "../../assets";
 import baseStyle from "../../style";
@@ -10,11 +10,11 @@ import { BaseMixin } from "../mixins";
 export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) implements IEntityFilters {
 
   static properties: PropertyDeclarations = {
-    [GrapholTypesEnum.CLASS]: { type: Number, reflect: true },
-    [GrapholTypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
-    [GrapholTypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
-    [GrapholTypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
+    [TypesEnum.CLASS]: { type: Number, reflect: true },
+    [TypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
+    [TypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
+    [TypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
+    [TypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
     onFilterToggle: { type: Function, reflect: true }
   }
 
@@ -82,35 +82,35 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
   render() {
     return html`
       <div class="chips-filters">
-        ${this[GrapholTypesEnum.CLASS] !== undefined
-          ? this.getChipTemplate(GrapholTypesEnum.CLASS)
+        ${this[TypesEnum.CLASS] !== undefined
+          ? this.getChipTemplate(TypesEnum.CLASS)
           : null
         }
 
-        ${this[GrapholTypesEnum.DATA_PROPERTY] !== undefined
-          ? this.getChipTemplate(GrapholTypesEnum.DATA_PROPERTY)
+        ${this[TypesEnum.DATA_PROPERTY] !== undefined
+          ? this.getChipTemplate(TypesEnum.DATA_PROPERTY)
           : null
         }
 
-        ${this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined
-          ? this.getChipTemplate(GrapholTypesEnum.OBJECT_PROPERTY)
+        ${this[TypesEnum.OBJECT_PROPERTY] !== undefined
+          ? this.getChipTemplate(TypesEnum.OBJECT_PROPERTY)
           : null
         }
 
-        ${this[GrapholTypesEnum.INDIVIDUAL] !== undefined
-          ? this.getChipTemplate(GrapholTypesEnum.INDIVIDUAL)
+        ${this[TypesEnum.INDIVIDUAL] !== undefined
+          ? this.getChipTemplate(TypesEnum.INDIVIDUAL)
           : null
         }
 
-        ${this[GrapholTypesEnum.CLASS_INSTANCE] !== undefined
-          ? this.getChipTemplate(GrapholTypesEnum.CLASS_INSTANCE)
+        ${this[TypesEnum.CLASS_INSTANCE] !== undefined
+          ? this.getChipTemplate(TypesEnum.CLASS_INSTANCE)
           : null
         }
       </div>
     `
   }
 
-  private getChipTemplate(type: GrapholTypesEnum) {
+  private getChipTemplate(type: TypesEnum) {
     const labels = type.split('-')
     labels.forEach(l => capitalizeFirstChar(l))
     const label = labels.join(' ')
@@ -126,7 +126,7 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
   }
 
   private async _handleFilterStateChange(e: MouseEvent) {
-    const entityType: GrapholTypesEnum = (e.currentTarget as HTMLSpanElement).getAttribute('entity-type') as GrapholTypesEnum
+    const entityType: TypesEnum = (e.currentTarget as HTMLSpanElement).getAttribute('entity-type') as TypesEnum
 
     if (this[entityType] !== undefined) {
       this[entityType] = !this[entityType]
@@ -136,11 +136,11 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
         bubbles: true, 
         composed: true, 
         detail: {
-          [GrapholTypesEnum.CLASS]: this[GrapholTypesEnum.CLASS],
-          [GrapholTypesEnum.DATA_PROPERTY]: this[GrapholTypesEnum.DATA_PROPERTY],
-          [GrapholTypesEnum.OBJECT_PROPERTY]: this[GrapholTypesEnum.OBJECT_PROPERTY],
-          [GrapholTypesEnum.INDIVIDUAL]: this[GrapholTypesEnum.INDIVIDUAL],
-          [GrapholTypesEnum.CLASS_INSTANCE]: this[GrapholTypesEnum.CLASS_INSTANCE],
+          [TypesEnum.CLASS]: this[TypesEnum.CLASS],
+          [TypesEnum.DATA_PROPERTY]: this[TypesEnum.DATA_PROPERTY],
+          [TypesEnum.OBJECT_PROPERTY]: this[TypesEnum.OBJECT_PROPERTY],
+          [TypesEnum.INDIVIDUAL]: this[TypesEnum.INDIVIDUAL],
+          [TypesEnum.CLASS_INSTANCE]: this[TypesEnum.CLASS_INSTANCE],
           areAllFiltersDisabled: this.areAllFiltersDisabled
         } as IEntityFilters
       }))
@@ -150,58 +150,58 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
   get areAllFiltersDisabled() {
     let result = true
 
-    if (this[GrapholTypesEnum.CLASS] !== undefined) {
-      result = result && !this[GrapholTypesEnum.CLASS]
+    if (this[TypesEnum.CLASS] !== undefined) {
+      result = result && !this[TypesEnum.CLASS]
     }
 
-    if (this[GrapholTypesEnum.OBJECT_PROPERTY] !== undefined) {
-      result = result && !this[GrapholTypesEnum.OBJECT_PROPERTY]
+    if (this[TypesEnum.OBJECT_PROPERTY] !== undefined) {
+      result = result && !this[TypesEnum.OBJECT_PROPERTY]
     }
 
-    if (this[GrapholTypesEnum.DATA_PROPERTY] !== undefined) {
-      result = result && !this[GrapholTypesEnum.DATA_PROPERTY]
+    if (this[TypesEnum.DATA_PROPERTY] !== undefined) {
+      result = result && !this[TypesEnum.DATA_PROPERTY]
     }
 
-    if (this[GrapholTypesEnum.INDIVIDUAL] !== undefined) {
-      result = result && !this[GrapholTypesEnum.INDIVIDUAL]
+    if (this[TypesEnum.INDIVIDUAL] !== undefined) {
+      result = result && !this[TypesEnum.INDIVIDUAL]
     }
 
-    if (this[GrapholTypesEnum.CLASS_INSTANCE] !== undefined) {
-      result = result && !this[GrapholTypesEnum.CLASS_INSTANCE]
+    if (this[TypesEnum.CLASS_INSTANCE] !== undefined) {
+      result = result && !this[TypesEnum.CLASS_INSTANCE]
     }
 
     return result
   }
 
-  set [GrapholTypesEnum.CLASS](v: number | undefined) {
+  set [TypesEnum.CLASS](v: number | undefined) {
     this._class = v
     this.requestUpdate()
   }
-  get [GrapholTypesEnum.CLASS]() { return this._class }
+  get [TypesEnum.CLASS]() { return this._class }
 
-  set [GrapholTypesEnum.DATA_PROPERTY](v: number | undefined) {
+  set [TypesEnum.DATA_PROPERTY](v: number | undefined) {
     this._dataproperty = v
     this.requestUpdate()
   }
-  get [GrapholTypesEnum.DATA_PROPERTY]() { return this._dataproperty }
+  get [TypesEnum.DATA_PROPERTY]() { return this._dataproperty }
 
-  set [GrapholTypesEnum.OBJECT_PROPERTY](v: number | undefined) {
+  set [TypesEnum.OBJECT_PROPERTY](v: number | undefined) {
     this._objectproperty = v
     this.requestUpdate()
   }
-  get [GrapholTypesEnum.OBJECT_PROPERTY]() { return this._objectproperty }
+  get [TypesEnum.OBJECT_PROPERTY]() { return this._objectproperty }
 
-  set [GrapholTypesEnum.INDIVIDUAL](v: number | undefined) {
+  set [TypesEnum.INDIVIDUAL](v: number | undefined) {
     this._individual = v
     this.requestUpdate()
   }
-  get [GrapholTypesEnum.INDIVIDUAL]() { return this._individual }
+  get [TypesEnum.INDIVIDUAL]() { return this._individual }
 
-  set [GrapholTypesEnum.CLASS_INSTANCE](v: number | undefined) {
+  set [TypesEnum.CLASS_INSTANCE](v: number | undefined) {
     this._classInstance = v
     this.requestUpdate()
   }
-  get [GrapholTypesEnum.CLASS_INSTANCE]() { return this._classInstance }
+  get [TypesEnum.CLASS_INSTANCE]() { return this._classInstance }
 }
 
 export type EntityFilterEvent = CustomEvent<IEntityFilters>

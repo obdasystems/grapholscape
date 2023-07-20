@@ -1,4 +1,4 @@
-import { BaseFilterManager, Filter, DefaultFilterKeyEnum } from "../../../model";
+import { BaseFilterManager, DefaultFilterKeyEnum } from "../../../model";
 
 export default class FloatyFilterManager extends BaseFilterManager {
   protected lockedFilters = [

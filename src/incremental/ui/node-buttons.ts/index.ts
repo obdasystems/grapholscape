@@ -1,9 +1,10 @@
 import { NodeSingular } from "cytoscape";
 import { SVGTemplateResult, TemplateResult } from "lit";
 import { Placement } from "tippy.js";
-import { ClassInstanceEntity, GrapholEntity, GrapholTypesEnum, LifecycleEvent, RendererStatesEnum } from "../../../model";
+import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { textSpinner, WidgetEnum } from "../../../ui";
 import { classInstanceIcon, objectPropertyIcon } from "../../../ui/assets";
+import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
@@ -11,8 +12,7 @@ import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
-import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
-import NodeButton from "./node-button";
+import NodeButton from "../../../ui/common/button/node-button";
 
 export function NodeButtonsFactory(ic: IncrementalController) {
 
@@ -22,9 +22,9 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   const objectPropertyButton = new NodeButton(objectPropertyIcon)
   objectPropertyButton.title = 'Navigate through object properties'
 
-  const nodeButtonsMap = new Map<GrapholTypesEnum, NodeButton[]>()
-  nodeButtonsMap.set(GrapholTypesEnum.CLASS, [objectPropertyButton])
-  nodeButtonsMap.set(GrapholTypesEnum.CLASS_INSTANCE, [objectPropertyButton])
+  const nodeButtonsMap = new Map<TypesEnum, NodeButton[]>()
+  nodeButtonsMap.set(TypesEnum.CLASS, [objectPropertyButton])
+  nodeButtonsMap.set(TypesEnum.CLASS_INSTANCE, [objectPropertyButton])
 
 
   instancesButton.onclick = (e) => handleInstancesButtonClick(e, ic)
@@ -52,13 +52,13 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.EndpointChange, () => {
-    if (!nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.includes(instancesButton)) {
-      nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(instancesButton)
+    if (!nodeButtonsMap.get(TypesEnum.CLASS)?.includes(instancesButton)) {
+      nodeButtonsMap.get(TypesEnum.CLASS)?.push(instancesButton)
     }
   })
 
   ic.on(IncrementalEvent.FocusStarted, instanceIri => {
-    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty()) {
@@ -68,7 +68,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.FocusFinished, instanceIri => {
-    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty() && cyNode.scratch('loading-badge')) {
@@ -78,7 +78,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.InstanceCheckingStarted, (instanceIri) => {
-    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty()) {
@@ -89,7 +89,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.InstanceCheckingFinished, (instanceIri) => {
-    const nodeId = ic.getIDByIRI(instanceIri, GrapholTypesEnum.CLASS_INSTANCE)
+    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty() && cyNode.scratch('loading-badge')) {
@@ -99,7 +99,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.CountStarted, classIri => {
-    const nodeId = ic.getIDByIRI(classIri, GrapholTypesEnum.CLASS)
+    const nodeId = ic.getIDByIRI(classIri, TypesEnum.CLASS)
     if (nodeId) {
       const node = ic.diagram.representation?.cy.$id(nodeId)
       if (!node || node.empty()) return
@@ -110,7 +110,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.NewCountResult, (classIri, count) => {
-    const nodeId = ic.getIDByIRI(classIri, GrapholTypesEnum.CLASS)
+    const nodeId = ic.getIDByIRI(classIri, TypesEnum.CLASS)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty() && cyNode.scratch('instance-count')) {
@@ -147,7 +147,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   })
 }
 
-function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<GrapholTypesEnum, NodeButton[]>) {
+function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<TypesEnum, NodeButton[]>) {
   if (cy.scratch('_gscape-graph-incremental-handlers-set'))
     return
 
@@ -155,7 +155,7 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
     const targetNode = e.target
     const targetType = targetNode.data().type
 
-    if (!targetNode.hasClass('unknown-parent-class') && (targetType === GrapholTypesEnum.CLASS || targetType === GrapholTypesEnum.CLASS_INSTANCE)) {
+    if (!targetNode.hasClass('unknown-parent-class') && (targetType === TypesEnum.CLASS || targetType === TypesEnum.CLASS_INSTANCE)) {
       nodeButtons.get(targetType)?.forEach((btn, i) => {
         // set position relative to default placemente (right)
         btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
@@ -195,7 +195,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
     let referenceEnity: GrapholEntity | ClassInstanceEntity | null | undefined
     let objectProperties: Map<GrapholEntity, ObjectPropertyConnectedClasses> = new Map()
 
-    if (targetButton.node.data().type === GrapholTypesEnum.CLASS) {
+    if (targetButton.node.data().type === TypesEnum.CLASS) {
       referenceEnity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
       if (!referenceEnity)
         return
@@ -208,7 +208,7 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
       objectProperties = await incrementalController.getObjectPropertiesByClasses([targetButton.node.data().iri])
     }
 
-    else if (targetButton.node.data().type === GrapholTypesEnum.CLASS_INSTANCE) {
+    else if (targetButton.node.data().type === TypesEnum.CLASS_INSTANCE) {
       referenceEnity = incrementalController.classInstanceEntities.get(targetButton.node.data().iri)
       if (!referenceEnity)
         return
@@ -254,7 +254,7 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
   if (targetButton.node && targetButton.node.data().iri) {
     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
     const entityType = targetButton.node.data().type
-    if (referenceEntity && entityType === GrapholTypesEnum.CLASS) {
+    if (referenceEntity && entityType === TypesEnum.CLASS) {
       if (!instanceExplorer.referenceEntity ||
         !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
         instanceExplorer.numberOfInstancesReceived === 0) {
