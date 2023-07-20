@@ -1,12 +1,12 @@
 import { NodeSingular } from "cytoscape"
-import { GrapholTypesEnum } from "../model"
+import { TypesEnum } from "../model"
 
 export const edgeHandlesOptions = {
   canConnect: function (sourceNode: NodeSingular, targetNode: NodeSingular) {
     const sourceType = sourceNode.data('type')
     const targetType = targetNode.data('type')
 
-    const isTypeValid = (type: GrapholTypesEnum) => type === GrapholTypesEnum.CLASS || type === GrapholTypesEnum.CLASS_INSTANCE
+    const isTypeValid = (type: TypesEnum) => type === TypesEnum.CLASS || type === TypesEnum.CLASS_INSTANCE
 
     return sourceNode !== targetNode && isTypeValid(sourceType) && isTypeValid(targetType)
   },

@@ -1,9 +1,8 @@
-import { Core, EdgeSingular, NodeSingular } from "cytoscape";
+import { EdgeSingular, NodeSingular } from "cytoscape";
 import { SVGTemplateResult, TemplateResult } from "lit";
 import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { textSpinner, WidgetEnum } from "../../../ui";
-import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import { classInstanceIcon, objectPropertyIcon, pathIcon } from "../../../ui/assets";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
@@ -61,8 +60,8 @@ export function NodeButtonsFactory(ic: IncrementalController) {
       nodeButtonsMap.get(TypesEnum.CLASS)?.push(instancesButton)
     }
 
-    if (!nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.includes(pathDrawingButton)) {
-      nodeButtonsMap.get(GrapholTypesEnum.CLASS)?.push(pathDrawingButton)
+    if (!nodeButtonsMap.get(TypesEnum.CLASS)?.includes(pathDrawingButton)) {
+      nodeButtonsMap.get(TypesEnum.CLASS)?.push(pathDrawingButton)
     }
   })
 

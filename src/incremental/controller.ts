@@ -1,8 +1,8 @@
-import { EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
+import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, EntityNameType, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, AnnotationsKind, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeConfirmDialog } from "../ui";
 import { ClassInstance } from "./api/kg-api";
@@ -39,7 +39,7 @@ export default class IncrementalController {
    * Callback called when user click on data lineage command
    */
   onShowDataLineage: (entityIri: string) => void = () => { }
-  addEdge: (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => void;
+  addEdge: (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => GrapholEdge | undefined;
 
   constructor(
     public grapholscape: Grapholscape
@@ -872,9 +872,9 @@ export default class IncrementalController {
             const targetId = this.addClass(targetClassIri)?.id
             if (sourceId && targetId) {
               if (entity.type === 'objectProperty')
-                elemId = this.addEdge(sourceId, targetId, GrapholTypesEnum.INCLUSION)?.id
+                elemId = this.addEdge(sourceId, targetId, TypesEnum.INCLUSION)?.id
               else
-                elemId = this.addEdge(targetId, sourceId, GrapholTypesEnum.INCLUSION)?.id
+                elemId = this.addEdge(targetId, sourceId, TypesEnum.INCLUSION)?.id
             }
           } else {
             if (entity.type === 'objectProperty')
@@ -887,11 +887,11 @@ export default class IncrementalController {
           if (elemId)
             cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
           
-          elemId = this.getIDByIRI(sourceClassIri, GrapholTypesEnum.CLASS)
+          elemId = this.getIDByIRI(sourceClassIri, TypesEnum.CLASS)
           if (elemId)
             cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
 
-          elemId = this.getIDByIRI(targetClassIri, GrapholTypesEnum.CLASS)
+          elemId = this.getIDByIRI(targetClassIri, TypesEnum.CLASS)
           if (elemId)
             cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
 
