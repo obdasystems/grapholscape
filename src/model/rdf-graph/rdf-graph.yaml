@@ -11,29 +11,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-paths:
-  /instanceShortestPath:
-    post:
-      tags:
-        - VKG
-      summary: Return the CONSTRUCT query based on the shortest path between an instance and another instance or class
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InstanceShortestPathInput"
-        required: true
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                description: THE SPARQL CONSTRUCT query that will compute the shortest path
-                type: string
-        404:
-          description: Ontology not uploaded
-          content: {}
+paths: {}
 components:
   schemas:
     RDFGraph:
@@ -59,8 +37,6 @@ components:
         metadata:
           type: object
           required:
-            - name
-            - version
             - namespaces
           properties:
             name:
@@ -117,7 +93,7 @@ components:
                     "has-key",
                   ]
         selectedDiagramId:
-          type: number
+          type: integer
         modelType:
           type: string
           enum: ["ontology", "vkg", "rdf"]
@@ -146,7 +122,7 @@ components:
           $ref: "#/components/schemas/Position"
         zoom:
           type: number
-
+          format: float
     Diagram:
       type: object
       required:
@@ -155,7 +131,7 @@ components:
         - elements
       properties:
         id:
-          type: number
+          type: integer
         name:
           type: string
         nodes:
@@ -183,7 +159,7 @@ components:
             element replicated in multiple occurrences, all of them with
             different IDs
         diagramId:
-          type: number
+          type: integer
         displayedName:
           type: string
         iri:
@@ -340,8 +316,10 @@ components:
       properties:
         x:
           type: number
+          format: float
         y:
           type: number
+          format: float
     EntityNameType:
       type: string
       enum:
@@ -528,37 +506,3 @@ components:
           $ref: "#/components/schemas/Namespace"
         previousState:
           $ref: "#/components/schemas/Namespace"
-
-    InstanceShortestPathInput:
-      type: object
-      properties:
-        source:
-          $ref: "#/components/schemas/InstanceShortestPathSource"
-        target:
-          $ref: "#/components/schemas/InstanceShortestPathTarget"
-    InstanceShortestPathSource:
-      type: object
-      required:
-        - instanceIRI
-        - parentClasses
-      properties:
-        instanceIRI:
-          type: string
-        parentClasses:
-          type: array
-          items:
-            type: string
-    InstanceShortestPathTarget:
-      type: object
-      required:
-        - iri
-        - isInstance
-      properties:
-        isInstance:
-          type: boolean
-        iri:
-          type: string
-        parentClasses:
-          type: array
-          items:
-            type: string

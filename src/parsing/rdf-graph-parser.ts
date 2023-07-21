@@ -1,7 +1,7 @@
 import { floatyOptions } from "../config";
 import { Grapholscape } from "../core";
-import { Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
-import { Edge, Node, RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
+import { Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Ontology, RendererStatesEnum } from "../model";
+import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
   const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
@@ -10,8 +10,8 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
 
   let ontology: Ontology
   ontology = new Ontology(
-    rdfGraph.metadata.name,
-    rdfGraph.metadata.version,
+    rdfGraph.metadata.name || '',
+    rdfGraph.metadata.version || '',
     rdfGraph.metadata.iri
   )
 
@@ -23,7 +23,7 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
 
 
   let diagram: Diagram
-let diagramRepr: DiagramRepresentation | undefined
+  let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | null
   let grapholElement: GrapholNode | GrapholEdge
 

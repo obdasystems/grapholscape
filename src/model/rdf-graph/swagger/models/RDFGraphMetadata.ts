@@ -37,7 +37,7 @@ export interface RDFGraphMetadata {
      * @type {string}
      * @memberof RDFGraphMetadata
      */
-    name: string;
+    name?: string;
     /**
      * 
      * @type {string}
@@ -49,7 +49,7 @@ export interface RDFGraphMetadata {
      * @type {string}
      * @memberof RDFGraphMetadata
      */
-    version: string;
+    version?: string;
     /**
      * 
      * @type {Array<string>}
@@ -81,8 +81,6 @@ export interface RDFGraphMetadata {
  */
 export function instanceOfRDFGraphMetadata(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "name" in value;
-    isInstance = isInstance && "version" in value;
     isInstance = isInstance && "namespaces" in value;
 
     return isInstance;
@@ -98,9 +96,9 @@ export function RDFGraphMetadataFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'name': json['name'],
+        'name': !exists(json, 'name') ? undefined : json['name'],
         'iri': !exists(json, 'iri') ? undefined : json['iri'],
-        'version': json['version'],
+        'version': !exists(json, 'version') ? undefined : json['version'],
         'languages': !exists(json, 'languages') ? undefined : json['languages'],
         'defaultLanguage': !exists(json, 'defaultLanguage') ? undefined : json['defaultLanguage'],
         'namespaces': ((json['namespaces'] as Array<any>).map(NamespaceFromJSON)),
