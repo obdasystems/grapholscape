@@ -1,6 +1,6 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/ontology-builder';
-import { FunctionalityEnum, GrapholEntity, GrapholTypesEnum, Iri, LifecycleEvent, RendererStatesEnum } from '../../model';
+import { FunctionalityEnum, GrapholEntity, GrapholTypesEnum, Iri, LifecycleEvent, Namespace, RendererStatesEnum } from '../../model';
 import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addInputIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon, renameIcon, rubbishBin } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
@@ -573,7 +573,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId?: string, targetId?: string, entity?: GrapholEntity) {
 
     newElementComponent.dialogTitle = title
-    newElementComponent.withoutPrefix = entityType === 'Diagram' ? 'none' : 'inline'
+    newElementComponent.withoutNamespace = entityType === 'Diagram' ? 'none' : 'inline'
     newElementComponent.enableMore = entityType === 'Subhierarchy' || entityType === 'Disjoint Subhierarchy' ? 'inline' : 'none'
     newElementComponent.functionalities = []
     if (entityType === GrapholTypesEnum.DATA_PROPERTY) {
@@ -586,6 +586,14 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       newElementComponent.entity = entity
     }
     newElementComponent.show()
+
+    newElementComponent.checkNamespace = (namespace) => {
+
+      if(!grapholscape.ontology.getNamespace(namespace)){
+        const ns = new Namespace([], namespace)
+        grapholscape.ontology.addNamespace(ns)
+      }
+    }
 
     newElementComponent.onConfirm = (iriString, functionalities = [], complete = false, datatype= '') => {
       newElementComponent.hide()

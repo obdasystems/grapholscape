@@ -24,17 +24,18 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   public onConfirm: (iri: string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
   public onCancel: () => void = () => { }
   public onRefactor: (iri: string[]) => void = () => { }
+  public checkNamespace: (namespace: string) => void = () => {}
 
   static properties: PropertyDeclarations = {
     dialogTitle: { type: String },
-    withoutPrefix: { type: String },
+    withoutNamespace: { type: String },
     enableMore: { type: String },
     functionalities: { type: Array },
     funcVisibility: {type: String} 
   }
   funcVisibility: 'inline-block' | 'none' = 'none'
 
-  constructor(public message?: string, public dialogTitle?, public withoutPrefix?, public enableMore?, public functionalities?, public entity?) {
+  constructor(public message?: string, public dialogTitle?, public withoutNamespace?, public enableMore?, public functionalities?, public entity?) {
     super()
   }
 
@@ -78,13 +79,44 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             justify-content: right;
             gap: 8px;
           }
+
+          .dropdown {
+            position: relative;
+            width: 78%; 
+            margin: 8px 8px 8px 8px ;
+            border: solid 1px var(--gscape-color-border-subtle);
+            border-radius: var(--gscape-border-radius);
+          }
+          
+          .dropdown select {
+            width: 100%;
+          }
+          
+          .dropdown > * {
+            box-sizing: border-box;
+            height: 100%;
+            border: none;
+          }
+          
+          .dropdown input {
+            position: absolute;
+            width: calc(100% - 18px);
+          }
+
+          .dropdown select:focus, .dropdown input:focus {
+            border-color: inherit;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+          }
         `
   ]
 
   private handleConfirm = () => {
-    let prefix = this.shadowRoot?.querySelector('#prefix') as HTMLSelectElement
+    let namespace = this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement
     let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
-    let iri = this.withoutPrefix === 'none' ? input.value : prefix.options[prefix.selectedIndex].text + input.value
+    if(namespace && namespace.value.length > 0)
+      this.checkNamespace(namespace.value)
+    let iri = this.withoutNamespace === 'none' ? input.value : namespace.value + input.value
     let iris = [iri]
     let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
     if (this.enableMore) {
@@ -92,7 +124,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       Array.from(inputs).forEach(element => {
         let input = element as HTMLInputElement
         if(input.value.length > 0)
-          iris.push(prefix.options[prefix.selectedIndex].text + input.value)
+          iris.push(namespace.value + input.value)
       });
     }
     let datatype = this.shadowRoot?.querySelector('#datatype') as HTMLSelectElement
@@ -114,9 +146,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
 
   private handleRefactor = () => {
-    let prefix = this.shadowRoot?.querySelector('#prefix') as HTMLSelectElement
+    let namespace = this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement
     let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
-    let iri = this.withoutPrefix === 'none' ? input.value : prefix.options[prefix.selectedIndex].text + input.value
+    if(namespace && namespace.value.length > 0)
+      this.checkNamespace(namespace.value)
+    let iri = this.withoutNamespace === 'none' ? input.value : namespace.value + input.value
     let iris = [iri]
     this.onRefactor(iris)
     this.resetForm()
@@ -151,6 +185,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
     this.entity = undefined
     if (myform) {
+      let namespace = myform.querySelector('#namespace') as HTMLSelectElement
+      if(namespace){
+        namespace.selectedIndex = namespace.options.length
+      }
       let labels = myform.getElementsByClassName('lab')
       Array.from(labels).forEach(element => {
         myform.removeChild(element)
@@ -206,12 +244,16 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             ${this.dialogTitle}
             </div>
             <form id= "new-element-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix-label" for="prefix">Prefix:</label><br>
-                <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix" name="prefix" required>
+                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutNamespace};" id="namespace-label" for="namespace">Namespace:</label><br>
+                <div class="dropdown" style = "display:${this.withoutNamespace==='inline'?'block':'none'};">
+                <input id="newnamespace" value="${this.entity? this.entity.iri.namespace : ''}" type="text"/>
+                <select style = "display: ${this.withoutNamespace};" id="namespace" onchange="this.offsetParent.querySelector('#newnamespace').value=this.value; this.offsetParent.querySelector('#newnamespace').focus(); if(this.offsetParent.offsetParent.querySelector('#input').value.length > 0){this.offsetParent.offsetParent.querySelector('#ok').disabled = false; this.offsetParent.offsetParent.querySelector('#refactor').disabled = false;} " name="namespace" value="${this.entity? this.entity.iri.namespace :''}" required>
                     ${this.ontology.namespaces.map((n, i) => {
-      return html`<option value="${i}">${n.toString()}</option>`
+      return html`<option value="${n.toString()}">${n.toString()}</option>`
     })}
-                </select><br>
+                <option value=""></option>
+                </select>
+                </div>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
                 <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" oninput="if(this.value.length > 0) {this.offsetParent.querySelector('#ok').disabled = false; this.offsetParent.querySelector('#refactor').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true; this.offsetParent.querySelector('#refactor').disabled = true;}" name="input" value="${this.entity? this.entity.iri.remainder:''}" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
