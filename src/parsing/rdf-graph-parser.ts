@@ -1,6 +1,6 @@
 import { floatyOptions } from "../config";
 import { Grapholscape } from "../core";
-import { Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Ontology, RendererStatesEnum } from "../model";
+import { Annotation, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, getDefaultFilters, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
@@ -12,8 +12,21 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
   ontology = new Ontology(
     rdfGraph.metadata.name || '',
     rdfGraph.metadata.version || '',
-    rdfGraph.metadata.iri
+    rdfGraph.metadata.iri,
+    rdfGraph.metadata.namespaces.map(n => new Namespace(n.prefixes, n.value))
   )
+
+  if (rdfGraph.metadata.languages) {
+    ontology.languages = rdfGraph.metadata.languages
+  }
+
+  ontology.defaultLanguage = rdfGraph.metadata.defaultLanguage
+  if (rdfGraph.metadata.annotations) {
+    ontology.annotations = rdfGraph.metadata.annotations.map(a => {
+      return new Annotation(a.property, a.lexicalForm, a.language, a.datatype)
+    })
+  }
+
 
   let iri: Iri
   rdfGraph.entities.forEach(e => {
@@ -82,8 +95,14 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
       selectedRenderer: rendererState,
       language: rdfGraph.config?.language,
       entityNameType: rdfGraph.config?.entityNameType,
-      renderers: rdfGraph.config?.renderers as RendererStatesEnum[],
+      renderers: rdfGraph.config?.renderers as RendererStatesEnum[]
     })
+
+  rdfGraph.config?.filters?.forEach(f => {
+    if (Object.values(DefaultFilterKeyEnum).includes(f)) {
+      grapholscape.filter(f)
+    }
+  })
 
   return grapholscape
 }

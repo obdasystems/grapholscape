@@ -101,9 +101,9 @@ export default class Renderer {
             this._renderState.unfilter(grapholElement.id, filter)
         }
       }
-
-      filter.active = activate
     }
+
+    filter.active = activate
   }
 
   /**
