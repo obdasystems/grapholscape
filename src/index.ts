@@ -89,6 +89,7 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
 }
 
 export function resumeGrapholscape(rdfGraph: RDFGraph, container: HTMLElement) {
+  const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
   const grapholscape = parseRDFGraph(rdfGraph, container)
   if (grapholscape) {
     UI.initUI(grapholscape)
@@ -111,6 +112,7 @@ export function resumeGrapholscape(rdfGraph: RDFGraph, container: HTMLElement) {
     }
   }
 
+  loadingSpinner.remove()
   return grapholscape
 }
 
@@ -127,25 +129,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
     let ontology: Ontology | undefined
     let timeout: NodeJS.Timeout
 
-    const spinner = new UI.ContentSpinner()
-    let themeConfig: ThemeConfig | undefined
-    let theme: GrapholscapeTheme | undefined
-    if (config?.selectedTheme) {
-      if (config?.themes) {
-        themeConfig = config.themes.find(theme => theme === config?.selectedTheme || (theme as GrapholscapeTheme).id === config?.selectedTheme)
-      }
-
-      if (themeConfig) {
-        theme = typeof(themeConfig) === 'string' ? DefaultThemes[themeConfig] : themeConfig
-      }
-    }
-
-    if (!theme) {
-      theme = DefaultThemes.grapholscape
-    }
-
-    spinner.setColor(theme.getColour(ColoursNames.accent) || '#000')
-    container.appendChild(spinner)
+    const loadingSpinner = showLoadingSpinner(container, config)
 
     if (typeof (file) === 'object') {
       let reader = new FileReader()
@@ -176,7 +160,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
           throw new Error("Error in graphol file")
         }
         clearTimeout(timeout)
-        spinner.remove()
+        loadingSpinner.remove()
         const gscape = new Grapholscape(ontology, container, config)
         resolve(gscape)
       } catch (e) { console.error(e) }
@@ -186,4 +170,30 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
   function getResult(file) {
     return new GrapholParser(file).parseGraphol()
   }
+}
+
+function showLoadingSpinner(container: HTMLElement, config?: GrapholscapeConfig) {
+  const spinner = new UI.ContentSpinner()
+  spinner.style.position = 'absolute'
+  spinner.style.zIndex = '10'
+  let themeConfig: ThemeConfig | undefined
+  let theme: GrapholscapeTheme | undefined
+  if (config?.selectedTheme) {
+    if (DefaultThemes[config.selectedTheme] !== undefined) {
+      theme = DefaultThemes[config.selectedTheme]
+    } else if (config?.themes) {
+      themeConfig = config.themes.find(theme => theme === config?.selectedTheme || (theme as GrapholscapeTheme).id === config?.selectedTheme)
+      if (themeConfig) {
+        theme = typeof(themeConfig) === 'string' ? DefaultThemes[themeConfig] : themeConfig
+      }
+    }
+  }
+
+  if (!theme) {
+    theme = DefaultThemes.grapholscape
+  }
+
+  spinner.setColor(theme.getColour(ColoursNames.accent) || '#000')
+  container.appendChild(spinner)
+  return spinner
 }
