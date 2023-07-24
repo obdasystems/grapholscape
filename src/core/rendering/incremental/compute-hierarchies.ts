@@ -8,7 +8,7 @@ export default function computeHierarchies(ontology: Ontology) {
   for (const diagram of ontology.diagrams) {
     diagram.representations.get(RendererStatesEnum.FLOATY)?.cy.$(unionNodeSelector).forEach(unionNode => {
       const hierarchy = new Hierarchy(`${unionNode.id()}-${diagram.id}`, unionNode.data().type)
-      let entity: GrapholEntity | null
+      let entity: GrapholEntity | undefined
       unionNode.connectedEdges(`[type = "${TypesEnum.INPUT}"]`).sources().forEach(inputNode => {
         if (inputNode.data().iri) {
           if (!ontology.hierarchiesBySubclassMap.get(inputNode.data().iri)) {

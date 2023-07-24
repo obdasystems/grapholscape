@@ -261,7 +261,7 @@ export default class GrapholToOwlTranslator {
         entitiesOwlNames[TypesEnum.VALUE_DOMAIN] = 'Datatype'
 
         if (grapholNode.is(TypesEnum.OBJECT_PROPERTY) || grapholNode.is(TypesEnum.DATA_PROPERTY)) {
-          grapholNodeEntity?.functionalities.forEach(functionality => {
+          grapholNodeEntity?.functionProperties.forEach(functionality => {
             owl_string += `<br/>${capitalizeFirstChar(functionality)}${entitiesOwlNames[grapholNode.type]}(${iriSpan})`
           })
         }

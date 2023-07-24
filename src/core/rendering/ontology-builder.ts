@@ -36,7 +36,7 @@ export default class OntologyBuilder {
         if (entityType === TypesEnum.DATA_PROPERTY && ownerIri) {
             entity.datatype = datatype
             if (functionalities.includes('functional')) {
-                entity.functionalities = [FunctionalityEnum.FUNCTIONAL]
+                entity.functionProperties = [FunctionalityEnum.FUNCTIONAL]
             }
             const ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
             if (ownerEntity)
@@ -77,7 +77,7 @@ export default class OntologyBuilder {
             this.grapholscape.ontology.addEntity(entity)
             this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS)
             functionalities.forEach(i => {
-                entity.functionalities.push(FunctionalityEnum[i])
+                entity.functionProperties.push(FunctionalityEnum[i])
             })
             this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
         }
@@ -122,14 +122,14 @@ export default class OntologyBuilder {
     public toggleFunctionality(iri: string){
         const entity = this.grapholscape.ontology.getEntity(iri)
         if (entity) {
-            if(entity?.hasFunctionality(FunctionalityEnum.FUNCTIONAL)){
-                entity.functionalities = []
+            if(entity?.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL)){
+                entity.functionProperties = []
             } else {
-                entity?.functionalities.push(FunctionalityEnum.FUNCTIONAL)
+                entity?.functionProperties.push(FunctionalityEnum.FUNCTIONAL)
             }
             const diagram = this.grapholscape.renderer.diagram as Diagram
             this.diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
-            this.diagramBuilder.toggleFunctionality(entity, entity?.hasFunctionality(FunctionalityEnum.FUNCTIONAL))
+            this.diagramBuilder.toggleFunctionality(entity, entity?.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL))
         }        
 
     }

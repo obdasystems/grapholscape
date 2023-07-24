@@ -19,6 +19,12 @@ import {
     AnnotationFromJSONTyped,
     AnnotationToJSON,
 } from './Annotation';
+import type { FunctionPropertiesEnum } from './FunctionPropertiesEnum';
+import {
+    FunctionPropertiesEnumFromJSON,
+    FunctionPropertiesEnumFromJSONTyped,
+    FunctionPropertiesEnumToJSON,
+} from './FunctionPropertiesEnum';
 
 /**
  * 
@@ -46,26 +52,11 @@ export interface Entity {
     datatype?: string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<FunctionPropertiesEnum>}
      * @memberof Entity
      */
-    functionProperties?: Array<EntityFunctionPropertiesEnum>;
+    functionProperties?: Array<FunctionPropertiesEnum>;
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum EntityFunctionPropertiesEnum {
-    FUNCTIONAL = 'functional',
-    INVERSE_FUNCTIONAL = 'inverseFunctional',
-    TRANSITIVE = 'transitive',
-    SYMMETRIC = 'symmetric',
-    ASYMMETRIC = 'asymmetric',
-    REFLEXIVE = 'reflexive',
-    IRREFLEXIVE = 'irreflexive'
-}
-
 
 /**
  * Check if a given object implements the Entity interface.
@@ -90,7 +81,7 @@ export function EntityFromJSONTyped(json: any, ignoreDiscriminator: boolean): En
         'fullIri': json['fullIri'],
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
-        'functionProperties': !exists(json, 'functionProperties') ? undefined : json['functionProperties'],
+        'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
     };
 }
 
@@ -106,7 +97,7 @@ export function EntityToJSON(value?: Entity | null): any {
         'fullIri': value.fullIri,
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
         'datatype': value.datatype,
-        'functionProperties': value.functionProperties,
+        'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
     };
 }
 

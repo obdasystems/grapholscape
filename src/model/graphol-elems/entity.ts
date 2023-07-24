@@ -2,7 +2,7 @@ import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import GrapholElement from "./graphol-element"
-import { Entity, EntityFunctionPropertiesEnum, EntityNameType, TypesEnum } from "../rdf-graph/swagger"
+import { Entity, EntityNameType, FunctionPropertiesEnum, TypesEnum } from "../rdf-graph/swagger"
 
 // export enum FunctionalityEnum {
 //   functional = 'functional',
@@ -31,7 +31,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   private _iri!: Iri
   private _occurrences: Map<RendererStatesEnum, GrapholElement[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
   private _datatype: string
-  private _functionalities: EntityFunctionPropertiesEnum[] = []
+  private _functionProperties: FunctionPropertiesEnum[] = []
 
   constructor(iri: Iri) {
     super()
@@ -121,12 +121,12 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     return this.iri.fullIri
   }
 
-  public get functionalities() {
-    return this._functionalities
+  public get functionProperties() {
+    return this._functionProperties
   }
 
-  public set functionalities(functionalities) {
-    this._functionalities = functionalities
+  public set functionProperties(properties) {
+    this._functionProperties = properties
   }
 
   public get datatype() { return this._datatype }
@@ -140,8 +140,8 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     return this.occurrences.get(rendererState)?.filter(o => o.type === type)
   }
 
-  public hasFunctionality(functionalityKind: EntityFunctionPropertiesEnum) {
-    return this._functionalities?.includes(functionalityKind) || false
+  public hasFunctionProperty(property: FunctionPropertiesEnum) {
+    return this._functionProperties?.includes(property) || false
   }
 
   public hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum) {
@@ -209,7 +209,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
       fullIri: this.fullIri,
       annotations: this.getAnnotations(),
       datatype: this.datatype,
-      functionProperties: this.functionalities
+      functionProperties: this.functionProperties
     }
   }
 }

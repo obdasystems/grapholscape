@@ -210,13 +210,13 @@ describe('Test retrieving annotations', () => {
   })
 
   test('it should not parse properties on Concepts', () => {
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.SYMMETRIC)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.ASYMMETRIC)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.REFLEXIVE)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.IRREFLEXIVE)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.INVERSE_FUNCTIONAL)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
-    expect(conceptEntity.hasFunctionality(FunctionalityEnum.TRANSITIVE)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.SYMMETRIC)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.ASYMMETRIC)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.REFLEXIVE)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.IRREFLEXIVE)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.INVERSE_FUNCTIONAL)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
+    expect(conceptEntity.hasFunctionProperty(FunctionalityEnum.TRANSITIVE)).toBeFalsy()
   })
 })
 
@@ -231,22 +231,22 @@ describe('Test parsing functionalities', () => {
 
   const retrievedInfosObjectProperty = parserV3.getFunctionalities(node_mock_input, xmlDoc)
   const objPropertyEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode2', ontology.namespaces))
-  objPropertyEntity.functionalities = retrievedInfosObjectProperty
+  objPropertyEntity.functionProperties = retrievedInfosObjectProperty
 
   // For DataProperties and ObjectProperties
   test('it should parse missing properties as falsy value', () => {
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
   })
 
   test('it should parse properties on ObjectProperties correctly', () => {
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.SYMMETRIC)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.ASYMMETRIC)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.REFLEXIVE)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.IRREFLEXIVE)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.REFLEXIVE)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.TRANSITIVE)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.INVERSE_FUNCTIONAL)).toBeTruthy()
-    expect(objPropertyEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.SYMMETRIC)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.ASYMMETRIC)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.REFLEXIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.IRREFLEXIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.REFLEXIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.TRANSITIVE)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.INVERSE_FUNCTIONAL)).toBeTruthy()
+    expect(objPropertyEntity.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL)).toBeFalsy()
   })
 })
 

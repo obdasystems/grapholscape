@@ -132,7 +132,7 @@ export default class IncrementalController {
   }
 
   areAllConnectedClassesVisibleForClass(classIri: string, connectedClassesIris: string[], positionType: 'sub' | 'super' | 'equivalent') {
-    let subClassEntity: GrapholEntity | null
+    let subClassEntity: GrapholEntity | undefined
     let subClassNode: GrapholElement | undefined
     let connectedEdges: EdgeCollection | undefined
     for (let subClassIri of connectedClassesIris) {

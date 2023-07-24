@@ -224,15 +224,7 @@ components:
         functionProperties:
           type: array
           items:
-            type: string
-            enum:
-              - functional
-              - inverseFunctional
-              - transitive
-              - symmetric
-              - asymmetric
-              - reflexive
-              - irreflexive
+            $ref: "#/components/schemas/FunctionPropertiesEnum"
     ClassInstanceEntity:
       type: object
       allOf:
@@ -247,6 +239,16 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/DataPropertyValue"
+    FunctionPropertiesEnum:
+      type: string
+      enum:
+        - functional
+        - inverseFunctional
+        - transitive
+        - symmetric
+        - asymmetric
+        - reflexive
+        - irreflexive
     Annotation:
       type: object
       required:

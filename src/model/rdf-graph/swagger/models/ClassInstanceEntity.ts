@@ -25,6 +25,12 @@ import {
     DataPropertyValueFromJSONTyped,
     DataPropertyValueToJSON,
 } from './DataPropertyValue';
+import type { FunctionPropertiesEnum } from './FunctionPropertiesEnum';
+import {
+    FunctionPropertiesEnumFromJSON,
+    FunctionPropertiesEnumFromJSONTyped,
+    FunctionPropertiesEnumToJSON,
+} from './FunctionPropertiesEnum';
 
 /**
  * 
@@ -52,10 +58,10 @@ export interface ClassInstanceEntity {
     datatype?: string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<FunctionPropertiesEnum>}
      * @memberof ClassInstanceEntity
      */
-    functionProperties?: Array<ClassInstanceEntityFunctionPropertiesEnum>;
+    functionProperties?: Array<FunctionPropertiesEnum>;
     /**
      * 
      * @type {Array<string>}
@@ -69,21 +75,6 @@ export interface ClassInstanceEntity {
      */
     dataProperties?: Array<DataPropertyValue>;
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ClassInstanceEntityFunctionPropertiesEnum {
-    FUNCTIONAL = 'functional',
-    INVERSE_FUNCTIONAL = 'inverseFunctional',
-    TRANSITIVE = 'transitive',
-    SYMMETRIC = 'symmetric',
-    ASYMMETRIC = 'asymmetric',
-    REFLEXIVE = 'reflexive',
-    IRREFLEXIVE = 'irreflexive'
-}
-
 
 /**
  * Check if a given object implements the ClassInstanceEntity interface.
@@ -108,7 +99,7 @@ export function ClassInstanceEntityFromJSONTyped(json: any, ignoreDiscriminator:
         'fullIri': json['fullIri'],
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
-        'functionProperties': !exists(json, 'functionProperties') ? undefined : json['functionProperties'],
+        'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
         'parentClasses': !exists(json, 'parentClasses') ? undefined : json['parentClasses'],
         'dataProperties': !exists(json, 'dataProperties') ? undefined : ((json['dataProperties'] as Array<any>).map(DataPropertyValueFromJSON)),
     };
@@ -126,7 +117,7 @@ export function ClassInstanceEntityToJSON(value?: ClassInstanceEntity | null): a
         'fullIri': value.fullIri,
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
         'datatype': value.datatype,
-        'functionProperties': value.functionProperties,
+        'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
         'parentClasses': value.parentClasses,
         'dataProperties': value.dataProperties === undefined ? undefined : ((value.dataProperties as Array<any>).map(DataPropertyValueToJSON)),
     };

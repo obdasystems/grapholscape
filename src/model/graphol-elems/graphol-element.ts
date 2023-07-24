@@ -1,5 +1,5 @@
 import { ElementDefinition } from "cytoscape"
-import { Element, TypesEnum, EntityFunctionPropertiesEnum } from "../rdf-graph/swagger"
+import { Element, TypesEnum, FunctionPropertiesEnum } from "../rdf-graph/swagger"
 import GrapholEntity from "./entity"
 
 export default class GrapholElement implements Element {
@@ -75,8 +75,8 @@ export default class GrapholElement implements Element {
 
     // Set functionality for data/object properties
     if (grapholEntity?.is(TypesEnum.DATA_PROPERTY) || grapholEntity?.is(TypesEnum.OBJECT_PROPERTY)) {
-      result.data[EntityFunctionPropertiesEnum.FUNCTIONAL] = grapholEntity.hasFunctionality(EntityFunctionPropertiesEnum.FUNCTIONAL)
-      result.data[EntityFunctionPropertiesEnum.INVERSE_FUNCTIONAL] = grapholEntity.hasFunctionality(EntityFunctionPropertiesEnum.INVERSE_FUNCTIONAL)
+      result.data[FunctionPropertiesEnum.FUNCTIONAL] = grapholEntity.hasFunctionProperty(FunctionPropertiesEnum.FUNCTIONAL)
+      result.data[FunctionPropertiesEnum.INVERSE_FUNCTIONAL] = grapholEntity.hasFunctionProperty(FunctionPropertiesEnum.INVERSE_FUNCTIONAL)
     }
     return [result]
   }

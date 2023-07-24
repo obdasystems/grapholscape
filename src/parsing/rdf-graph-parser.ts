@@ -24,7 +24,7 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
 
   let diagram: Diagram
   let diagramRepr: DiagramRepresentation | undefined
-  let grapholEntity: GrapholEntity | null
+  let grapholEntity: GrapholEntity | undefined
   let grapholElement: GrapholNode | GrapholEdge
 
   rdfGraph.diagrams.forEach(d => {
@@ -45,7 +45,7 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
         grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
 
-      diagramRepr!.addElement(grapholElement)
+      diagramRepr!.addElement(grapholElement, grapholEntity)
     })
 
     // Edges

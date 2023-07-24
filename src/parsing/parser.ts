@@ -75,7 +75,7 @@ export default class GrapholParser {
             }
 
             grapholEntity.addOccurrence(node)
-            grapholEntity.functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+            grapholEntity.functionProperties = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
 
             // APPLY DISPLAYED NAME FROM LABELS
@@ -83,8 +83,8 @@ export default class GrapholParser {
 
             // Add fake nodes
             if (node.is(TypesEnum.OBJECT_PROPERTY) &&
-              grapholEntity.hasFunctionality(FunctionalityEnum.FUNCTIONAL) &&
-              grapholEntity.hasFunctionality(FunctionalityEnum.INVERSE_FUNCTIONAL)) {
+              grapholEntity.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL) &&
+              grapholEntity.hasFunctionProperty(FunctionalityEnum.INVERSE_FUNCTIONAL)) {
               node.addFakeNode(new FakeTriangleRight(node))
               node.addFakeNode(new FakeTriangleLeft(node))
               node.height -= 8
