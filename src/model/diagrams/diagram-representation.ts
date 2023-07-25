@@ -12,8 +12,6 @@ export default class DiagramRepresentation {
   private _grapholElements: Map<string, GrapholElement> = new Map()
   private _hasEverBeenRendered = false
 
-  private _nodesCounter: number = 0
-  private _edgesCounter: number = 0
 
   public lastViewportState?: Viewport
 
@@ -47,9 +45,6 @@ export default class DiagramRepresentation {
     // Every elem can have a set of fake elements to build a custom shape
     const cyElems = newElement.getCytoscapeRepr(grapholEntity)
     const addedElems = this.cy.add(cyElems)
-    addedElems.forEach(e => {
-      e.isNode() ? this._nodesCounter += 1 : this._edgesCounter += 1
-    })
   }
 
   removeElement(elementId: string) {
@@ -60,8 +55,7 @@ export default class DiagramRepresentation {
   clear() {
     this.cy.elements().remove()
     this.grapholElements.clear()
-    this._nodesCounter = 0
-    this._edgesCounter = 0
+
   }
 
   updateElement(element: GrapholElement, updatePosition?: boolean): void
@@ -198,6 +192,6 @@ export default class DiagramRepresentation {
     return this.cy.edges().jsons()
   }
 
-  get nodesCounter() { return this._nodesCounter }
-  get edgesCounter() { return this._edgesCounter }
+  get nodesCounter() { return this.cy.nodes().length }
+  get edgesCounter() { return this.cy.edges().length }
 }

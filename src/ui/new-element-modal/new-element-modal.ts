@@ -3,6 +3,7 @@ import { BaseMixin, ModalMixin } from '../common/mixins'
 import { OntologyViewModel } from '../ontology-info/ontology-info'
 import baseStyle from '../style'
 import { GscapeButton } from '../common/button'
+import { FunctionalityEnum, GrapholEntity } from '../../model'
 
 export const datatypes = ['owl:real', 'owl:rational', 'xsd:decimal', 'xsd:integer',
 'xsd:nonNegativeInteger', 'xsd:nonPositiveInteger',
@@ -23,17 +24,19 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   public onConfirm: (iri: string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
   public onCancel: () => void = () => { }
+  public onRefactor: (iri: string[]) => void = () => { }
+  public checkNamespace: (namespace: string) => void = () => {}
 
   static properties: PropertyDeclarations = {
     dialogTitle: { type: String },
-    withoutPrefix: { type: String },
+    withoutNamespace: { type: String },
     enableMore: { type: String },
     functionalities: { type: Array },
     funcVisibility: {type: String} 
   }
   funcVisibility: 'inline-block' | 'none' = 'none'
 
-  constructor(public message?: string, public dialogTitle?, public withoutPrefix?, public enableMore?, public functionalities?) {
+  constructor(public message?: string, public dialogTitle?, public withoutNamespace?, public enableMore?, public functionalities?, public entity?: GrapholEntity) {
     super()
   }
 
@@ -77,13 +80,44 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             justify-content: right;
             gap: 8px;
           }
+
+          .dropdown {
+            position: relative;
+            width: 78%; 
+            margin: 8px 8px 8px 8px ;
+            border: solid 1px var(--gscape-color-border-subtle);
+            border-radius: var(--gscape-border-radius);
+          }
+          
+          .dropdown select {
+            width: 100%;
+          }
+          
+          .dropdown > * {
+            box-sizing: border-box;
+            height: 100%;
+            border: none;
+          }
+          
+          .dropdown input {
+            position: absolute;
+            width: calc(100% - 18px);
+          }
+
+          .dropdown select:focus, .dropdown input:focus {
+            border-color: inherit;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+          }
         `
   ]
 
   private handleConfirm = () => {
-    let prefix = this.shadowRoot?.querySelector('#prefix') as HTMLSelectElement
+    let namespace = this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement
     let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
-    let iri = this.withoutPrefix === 'none' ? input.value : prefix.options[prefix.selectedIndex].text + input.value
+    if(namespace && namespace.value.length > 0)
+      this.checkNamespace(namespace.value)
+    let iri = this.withoutNamespace === 'none' ? input.value : namespace.value + input.value
     let iris = [iri]
     let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
     if (this.enableMore) {
@@ -91,7 +125,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       Array.from(inputs).forEach(element => {
         let input = element as HTMLInputElement
         if(input.value.length > 0)
-          iris.push(prefix.options[prefix.selectedIndex].text + input.value)
+          iris.push(namespace.value + input.value)
       });
     }
     let datatype = this.shadowRoot?.querySelector('#datatype') as HTMLSelectElement
@@ -109,6 +143,17 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     })
     let complete = myform.querySelector('#complete') as HTMLInputElement
     this.onConfirm(iris, settedFunctionalities, complete.checked, datatypeValue)
+    this.resetForm()
+  }
+
+  private handleRefactor = () => {
+    let namespace = this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement
+    let input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
+    if(namespace && namespace.value.length > 0)
+      this.checkNamespace(namespace.value)
+    let iri = this.withoutNamespace === 'none' ? input.value : namespace.value + input.value
+    let iris = [iri]
+    this.onRefactor(iris)
     this.resetForm()
   }
 
@@ -139,7 +184,12 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private resetForm = () => {
     let myform = this.shadowRoot?.querySelector('#new-element-form') as HTMLFormElement
+    this.entity = undefined
     if (myform) {
+      let namespace = myform.querySelector('#namespace') as HTMLSelectElement
+      if(namespace){
+        namespace.selectedIndex = namespace.options.length
+      }
       let labels = myform.getElementsByClassName('lab')
       Array.from(labels).forEach(element => {
         myform.removeChild(element)
@@ -148,9 +198,15 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       Array.from(inputs).forEach(element => {
         myform.removeChild(element)
       });
+      let properties = myform.querySelector('#addFunctionalities') as GscapeButton
+      if(properties){
+        properties.label = 'Add properties +'
+      }
       myform.reset()
     }
     this.funcVisibility = 'none'
+    this.shadowRoot?.querySelector('#ok')?.setAttribute('disabled', 'true')
+    this.shadowRoot?.querySelector('#refactor')?.setAttribute('disabled', 'true')
   }
 
   private showFunctionalCheckbox = () => {
@@ -189,32 +245,47 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
             ${this.dialogTitle}
             </div>
             <form id= "new-element-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix-label" for="prefix">Prefix:</label><br>
-                <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.withoutPrefix};" id="prefix" name="prefix" required>
+                <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.withoutNamespace};" id="namespace-label" for="namespace">Namespace:</label><br>
+                <div class="dropdown" style = "display:${this.withoutNamespace==='inline'?'block':'none'};">
+                <input id="newnamespace" value="${this.entity? this.entity.iri.namespace : ''}" type="text"/>
+                <select style = "display: ${this.withoutNamespace};" id="namespace" onchange="this.offsetParent.querySelector('#newnamespace').value=this.value; this.offsetParent.querySelector('#newnamespace').focus(); if(this.offsetParent.offsetParent.querySelector('#input').value.length > 0){this.offsetParent.offsetParent.querySelector('#ok').disabled = false; this.offsetParent.offsetParent.querySelector('#refactor').disabled = false;} " name="namespace" value="${this.entity? this.entity.iri.namespace :''}" required>
                     ${this.ontology.namespaces.map((n, i) => {
-      return html`<option value="${i}">${n.toString()}</option>`
+      return html`<option value="${n.toString()}">${n.toString()}</option>`
     })}
-                </select><br>
+                <option value=""></option>
+                </select>
+                </div>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ;" for="input">Input:</label><br>
-                <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" oninput="if(this.value.length > 0) this.offsetParent.querySelector('#ok').disabled = false; else this.offsetParent.querySelector('#ok').disabled = true;" name="input" value="" required>
+                <input style = "width: 78%; margin: 8px 8px 8px 8px ;" type="text" id="input" oninput="if(this.value.length > 0) {this.offsetParent.querySelector('#ok').disabled = false; this.offsetParent.querySelector('#refactor').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true; this.offsetParent.querySelector('#refactor').disabled = true;}" name="input" value="${this.entity? this.entity.iri.remainder:''}" required>
                 <gscape-button style = "border-radius: 50%; display: ${this.enableMore};" id ="more" label="+" @click=${this.addInputField}></gscape-button>
                 <label style = "width: 95%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype-label" for="datatype">Datatype:</label>
                 <select style = "width: 78%; margin: 8px 8px 8px 8px ; display: ${this.showFunctionalCheckbox()};" id="datatype" name="datatype" required>
                     ${datatypes.sort().map((n, i) => {
-      return html`<option value="${n.toString()}">${n.toString()}</option>`
+                      if(this.entity && n.toString()===this.entity.datatype){
+                        return html`<option value="${n.toString()}"; selected>${n.toString()}</option>`
+                      } else{
+                        return html`<option value="${n.toString()}"; >${n.toString()}</option>`
+                      }
+      
     })}
                 </select>
-                <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional"> functional</label>
+                <label class="container" style = "display: ${this.showFunctionalCheckbox()}; margin: 8px 8px 8px 8px ;"><input type="checkbox" id="functional" ?checked=${this.entity?.hasFunctionProperty(FunctionalityEnum.FUNCTIONAL)}> functional</label>
                 <label class="container" style = "display: ${this.enableMore}; margin: 8px 8px 8px 8px ;" id="completeL"><input type="checkbox" id="complete"> Complete</label>
                 <gscape-button style = "margin: 8px 8px 8px 8px ; border-radius: 50%; display: ${this.showFunctionalitiesDropdown()};" id ="addFunctionalities" label="Add properties +" @click=${this.toggleFunctionalities}></gscape-button>
                 <ul class="dropdown-menu" style = "width: 68%; margin: 8px 18px 18px 8px ; border-radius: 5%; display: ${this.funcVisibility}; list-style-type: none; background-color: var(--gscape-color-neutral); " name="functionalities" >
                       ${this.functionalities.map((n, i) => {
-        return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
+                        if(this.entity && this.entity.functionProperties.includes(n.toString())){
+                          return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" checked/> ${n.toString()}</a></li><br>`
+                        }
+                        else {
+                          return html`<li style="width: 78%; margin: 2px 2px 2px 2px ; display: ${this.funcVisibility};" value="${n.toString()}" id = "functionalities"><input type="checkbox" value="${n.toString()}" id= "fCheckbox" /> ${n.toString()}</a></li><br>`
+                        }
       })}</ul>
             </form>
             <div class="buttons" id="buttons">
                 <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} disabled></gscape-button>
+                <gscape-button id="ok" label="${this.entity? 'Rename' : 'Ok'}" @click=${this.handleConfirm} disabled></gscape-button>
+                <gscape-button id="refactor" style = "display: ${this.entity? 'inline-block' : 'none'};" label="Refactor" @click=${this.handleRefactor} disabled></gscape-button>
             </div>
           </div>
         </div>

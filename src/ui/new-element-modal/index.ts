@@ -1,17 +1,18 @@
-import cytoscape from 'cytoscape';
-import edgeEditing from 'cytoscape-edge-editing';
-import $ from "jquery";
-import konva from "konva";
 import Grapholscape from '../../core';
-import OntologyBuilder from '../../core/rendering/ontology-builder';
-import { FunctionalityEnum, LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model';
-import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon } from '../assets';
+import OntologyBuilder from '../../core/ontology-builder';
+import { FunctionalityEnum, GrapholEntity, Iri, LifecycleEvent, Namespace, RendererStatesEnum, TypesEnum } from '../../model';
+import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addInputIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon, renameIcon, rubbishBin } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
 import ontologyModelToViewData from '../util/get-ontology-view-data';
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeNewElementModal from "./new-element-modal";
+import edgeEditing from 'cytoscape-edge-editing'
+import $ from "jquery";
+import konva from "konva";
+import cytoscape from 'cytoscape'
+import DiagramBuilder from '../../core/diagram-builder';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -30,6 +31,10 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
         case TypesEnum.CLASS:
           return targetType === TypesEnum.CLASS
+        case TypesEnum.CLASS:
+        case TypesEnum.UNION:
+        case TypesEnum.DISJOINT_UNION:
+          return targetType === TypesEnum.CLASS
 
         case TypesEnum.DATA_PROPERTY:
           return targetType === TypesEnum.DATA_PROPERTY
@@ -41,6 +46,9 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     edgeParams: function (sourceNode, targetNode) {
 
       let temp_id = 'temp_' + sourceNode.data('iri') + '-' + targetNode.data('iri')
+      if (sourceNode.data('type') === TypesEnum.UNION || sourceNode.data('type') === TypesEnum.DISJOINT_UNION) {
+        temp_id = 'temp_' + sourceNode.data('id') + '-' + targetNode.data('iri')
+      }
       return {
         data: {
           id: temp_id,
@@ -107,51 +115,58 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.DiagramChange, () => {
     let currentCy = grapholscape.renderer.cy as any
-    if(currentCy.edgeEditing('get') === undefined){
+    if (currentCy.edgeEditing('get') === undefined) {
       currentCy.edgeEditing({
         initAnchorsAutomatically: false,
         undoable: true,
         validateEdge: function (edge, newSource, newTarget) {
-          const edgeType  = edge.data('type')
+          const edgeType = edge.data('type')
           switch (edgeType) {
             case 'attribute-edge':
-              if (newSource.data('type') === 'class' && newTarget.id() === edge.data('target')){
+              if (newSource.data('type') === 'class' && newTarget.id() === edge.data('target')) {
                 return 'valid'
               }
               return 'invalid';
             case 'inclusion':
-              if ((newSource.data('type') === 'class' && newTarget.data('type') === 'class') || (newSource.data('type') === 'data-property' && newTarget.data('type') === 'data-property')){
+              if ((newSource.data('type') === 'class' && newTarget.data('type') === 'class') || (newSource.data('type') === 'data-property' && newTarget.data('type') === 'data-property')) {
                 return 'valid'
               }
               return 'invalid';
             case 'object-property':
-              if (newSource.data('type') === 'class' && newTarget.data('type') === 'class'){
+              if (newSource.data('type') === 'class' && newTarget.data('type') === 'class') {
                 return 'valid'
               }
               return 'invalid';
             case 'union':
-              if (newSource.data('type') === 'union' && newTarget.data('type') === 'class'){
+              if (newSource.data('type') === 'union' && newTarget.data('type') === 'class') {
                 return 'valid'
               }
               return 'invalid';
             case 'disjoint-union':
-              if (newSource.data('type') === 'disjoint-union' && newTarget.data('type') === 'class'){
+              if (newSource.data('type') === 'disjoint-union' && newTarget.data('type') === 'class') {
                 return 'valid'
               }
               return 'invalid';
             case 'input':
-              if (newSource.data('type') === 'class' && (newTarget.data('type') === 'disjoint-union' || newTarget.data('type') === 'union')){
+              if (newSource.data('type') === 'class' && (newTarget.data('type') === 'disjoint-union' || newTarget.data('type') === 'union')) {
                 return 'valid'
               }
               return 'invalid';
             default:
               return 'valid'
           }
-       }
+        }
       })
       // avoid konvajs to put div over grapholscape's UI
       document.getElementById('cy-node-edge-editing-stage0')?.remove()
     }
+    currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+      if (addedEdge.data('type') === TypesEnum.OBJECT_PROPERTY) {
+        grapholscape.uiContainer?.appendChild(newElementComponent)
+        initNewElementModal(newElementComponent, 'Add New Object Property', TypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
+      }
+      currentCy.removeScratch('edge-creation-type')
+    })
   })
 
   grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {
@@ -160,11 +175,11 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleFunctionality(elem.data('iri'))
     }
-    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && !(elem.group() === 'edges') && (elem.data('type') === TypesEnum.DISJOINT_UNION || elem.data('type') === TypesEnum.UNION)){
+    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && !(elem.group() === 'edges') && (elem.data('type') === TypesEnum.DISJOINT_UNION || elem.data('type') === TypesEnum.UNION)) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleUnion(elem)
     }
-    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.DISJOINT_UNION || elem.data('type') === TypesEnum.UNION)){
+    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.DISJOINT_UNION || elem.data('type') === TypesEnum.UNION)) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleComplete(elem)
     }
@@ -172,171 +187,395 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
     const elem = evt.target
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === TypesEnum.DATA_PROPERTY) {
-      const commands: Command[] = []
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+      if (elem.data('type') === TypesEnum.CLASS) {
+        const commands: Command[] = []
 
-      // Logica per aggiungere comandi
+        // Logica per aggiungere comandi
+        commands.push({
+          content: 'Add Data Property',
+          icon: addDataPropertyIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Data Property', TypesEnum.DATA_PROPERTY, elem.data('iri'))
+          }
+        })
 
-      commands.push({
-        content: 'Add Inclusion Edge',
-        icon: addISAIcon,
-        select: () => {
-          let currentCy = grapholscape.renderer.cy as any
-          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
-          edgehandles.start(elem)
-          currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
+        commands.push({
+          content: 'Add Object Property',
+          icon: addObjectPropertyIcon,
+          select: () => {
+            let currentCy = grapholscape.renderer.cy as any
+            let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+            edgehandles.start(elem)
+            currentCy.scratch('edge-creation-type', TypesEnum.OBJECT_PROPERTY)
 
-          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            if (addedEdge.data('type') === TypesEnum.OBJECT_PROPERTY) {
-              grapholscape.uiContainer?.appendChild(newElementComponent)
-              initNewElementModal(newElementComponent, 'Add New Object Property', TypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
+          }
+        })
+
+        commands.push({
+          content: 'Add Parent Class',
+          icon: addParentClassIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Class', TypesEnum.CLASS, elem.data('iri'))
+          }
+        })
+
+        commands.push({
+          content: 'Add Child Class',
+          icon: addChildClassIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Class', TypesEnum.CLASS, undefined, elem.data('iri'))
+          }
+        })
+
+        commands.push({
+          content: 'Add Subclass Edge',
+          icon: addISAIcon,
+          select: () => {
+            let currentCy = grapholscape.renderer.cy as any
+            let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+            edgehandles.start(elem)
+            currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
+
+          }
+        })
+
+        commands.push({
+          content: 'Add Class Instance',
+          icon: addClassInstanceIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Individual', TypesEnum.INDIVIDUAL, undefined, elem.data('iri'))
+          }
+        })
+
+        commands.push({
+          content: 'Add Subhierarchy',
+          icon: addSubhierarchyIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Subhierarchy', undefined, elem.data('iri'))
+          }
+        })
+
+        commands.push({
+          content: 'Add Disjoint Subhierarchy',
+          icon: addSubhierarchyIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Disjoint Subhierarchy', undefined, elem.data('iri'))
+          }
+        })
+
+        commands.push({
+          content: 'Rename',
+          icon: renameIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+            if (entity)
+              initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
+          }
+        })
+
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const entity = grapholscape.ontology.getEntity(elem.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(elem, entity)
             }
-            else if(addedEdge.data('type') === TypesEnum.INCLUSION){
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === TypesEnum.DATA_PROPERTY) {
+        const commands: Command[] = []
+
+        // Logica per aggiungere comandi
+
+        commands.push({
+          content: 'Add Inclusion Edge',
+          icon: addISAIcon,
+          select: () => {
+            let currentCy = grapholscape.renderer.cy as any
+            let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+            edgehandles.start(elem)
+            currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
+
+          }
+        })
+
+        commands.push({
+          content: 'Rename',
+          icon: renameIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+            if (entity)
+              initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
+          }
+        })
+
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const entity = grapholscape.ontology.getEntity(elem.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(elem, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === 'attribute-edge') {
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const dpNode = elem.target()
+            const entity = grapholscape.ontology.getEntity(dpNode.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(dpNode, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if ((elem.data('type') === TypesEnum.UNION || elem.data('type') === TypesEnum.DISJOINT_UNION)) {
+        const commands: Command[] = []
+        if (elem.isNode()) {
+
+          // Logica per aggiungere comandi
+          commands.push({
+            content: 'Add Inclusion Edge',
+            icon: addISAIcon,
+            select: () => {
+              let currentCy = grapholscape.renderer.cy as any
+              let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+              edgehandles.start(elem)
+              currentCy.scratch('edge-creation-type', elem.data('type'))
+
+            }
+          })
+
+          commands.push({
+            content: 'Add Input Edge',
+            icon: addInputIcon,
+            select: () => {
+              let currentCy = grapholscape.renderer.cy as any
+              let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
+              edgehandles.start(elem)
+              currentCy.scratch('edge-creation-type', TypesEnum.INPUT)
+
+            }
+          })
+
+          commands.push({
+            content: 'Remove',
+            icon: rubbishBin,
+            select: () => {
               const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const sourceId = sourceNode.data('iri')
-              const targetId = targetNode.data('iri')
-              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-              ontologyBuilder.addEdgeElement(undefined, TypesEnum.INCLUSION, sourceId, targetId, TypesEnum.DATA_PROPERTY)
+              if (elem.edges().nonempty()) {
+                elem.edgesWith(`[ type = "${TypesEnum.CLASS}" ]`).forEach(e => {
+                  const classNode = e.connectedNodes(`[ type = "${TypesEnum.CLASS}" ]`).first()
+                  let hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(classNode.data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
+                  if (hierarchy) {
+                    ontologyBuilder.removeHierarchy(hierarchy)
+                  }
+                  else {
+                    hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(classNode.data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
+                    if (hierarchy) {
+                      ontologyBuilder.removeHierarchy(hierarchy)
+                    }
+                  }
+                })
+              }
+              else {
+                const diagram = grapholscape.renderer.diagram
+                if (diagram) {
+                  const diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+                  diagramBuilder.removeElement(elem.id())
+                }
+              }
             }
-            currentCy.removeScratch('edge-creation-type')
+          })
+
+        }
+        else {
+          commands.push({
+            content: 'Remove',
+            icon: rubbishBin,
+            select: () => {
+              const ontologyBuilder = new OntologyBuilder(grapholscape)
+              const hierarchyID = elem.connectedNodes(`[type = "${elem.data('type')}"]`).first().data('hierarchyID')
+              const superclassIri = elem.target().data('iri')
+              const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(superclassIri)?.find(h => h.id === hierarchyID)
+              if (hierarchy)
+                ontologyBuilder.removeHierarchySuperclass(hierarchy, superclassIri)
+            }
           })
         }
-      })
 
-      try {
-        const htmlNodeReference = (elem as any).popperRef()
-        if (htmlNodeReference && commands.length > 0) {
-          commandsWidget.attachTo(htmlNodeReference, commands)
-        }
-      } catch (e) { console.error(e) }
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === TypesEnum.INPUT && (elem.connectedNodes(`[type = "${TypesEnum.UNION}"]`) || elem.connectedNodes(`[type = "${TypesEnum.DISJOINT_UNION}"]`))) {
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const hierarchyID = elem.connectedNodes(`[type $= "${TypesEnum.UNION}"]`).first().data('hierarchyID')
+            const inputclassIri = elem.connectedNodes(`[type = "${TypesEnum.CLASS}"]`).first().data('iri')
+            const hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(inputclassIri)?.find(h => h.id === hierarchyID)
+            if (hierarchy)
+              ontologyBuilder.removeHierarchyInput(hierarchy, inputclassIri)
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === TypesEnum.INCLUSION) {
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const diagram = grapholscape.renderer.diagram
+            if (diagram) {
+              const diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY)
+              diagramBuilder.removeElement(elem.id())
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === TypesEnum.INSTANCE_OF) {
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const individualNode = elem.connectedNodes(`[type = "${TypesEnum.CLASS_INSTANCE}"]`).first()
+            const entity = grapholscape.ontology.getEntity(individualNode.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(individualNode, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else if (elem.data('type') === TypesEnum.OBJECT_PROPERTY) {
+
+        const commands: Command[] = []
+        commands.push({
+          content: 'Rename',
+          icon: renameIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(newElementComponent)
+            const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+            if (entity)
+              initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
+          }
+        })
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const entity = grapholscape.ontology.getEntity(elem.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(elem, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
+      else {
+        const commands: Command[] = []
+        commands.push({
+          content: 'Remove',
+          icon: rubbishBin,
+          select: () => {
+            const ontologyBuilder = new OntologyBuilder(grapholscape)
+            const entity = grapholscape.ontology.getEntity(elem.data().iri)
+            if (entity) {
+              ontologyBuilder.removeEntity(elem, entity)
+            }
+          }
+        })
+
+        try {
+          const htmlNodeReference = (elem as any).popperRef()
+          if (htmlNodeReference && commands.length > 0) {
+            commandsWidget.attachTo(htmlNodeReference, commands)
+          }
+        } catch (e) { console.error(e) }
+      }
     }
   })
 
-  grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
-    const elem = evt.target
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === TypesEnum.CLASS) {
-      const commands: Command[] = []
-
-      // Logica per aggiungere comandi
-      commands.push({
-        content: 'Add Data Property',
-        icon: addDataPropertyIcon,
-        select: () => {
-          grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Data Property', TypesEnum.DATA_PROPERTY, elem.data('iri'))
-        }
-      })
-
-      commands.push({
-        content: 'Add Object Property',
-        icon: addObjectPropertyIcon,
-        select: () => {
-          let currentCy = grapholscape.renderer.cy as any
-          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
-          edgehandles.start(elem)
-          currentCy.scratch('edge-creation-type', TypesEnum.OBJECT_PROPERTY)
-
-          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            if (addedEdge.data('type') === TypesEnum.OBJECT_PROPERTY) {
-              grapholscape.uiContainer?.appendChild(newElementComponent)
-              initNewElementModal(newElementComponent, 'Add New Object Property', TypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
-            }
-            else if(addedEdge.data('type') === TypesEnum.INCLUSION){
-              const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const sourceId = sourceNode.data('iri')
-              const targetId = targetNode.data('iri')
-              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-              ontologyBuilder.addEdgeElement(undefined, TypesEnum.INCLUSION, sourceId, targetId, TypesEnum.CLASS)
-            }
-            currentCy.removeScratch('edge-creation-type')
-          })
-        }
-      })
-
-      commands.push({
-        content: 'Add Parent Class',
-        icon: addParentClassIcon,
-        select: () => {
-          grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Class', TypesEnum.CLASS, elem.data('iri'))
-        }
-      })
-
-      commands.push({
-        content: 'Add Child Class',
-        icon: addChildClassIcon,
-        select: () => {
-          grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Class', TypesEnum.CLASS, undefined, elem.data('iri'))
-        }
-      })
-
-      commands.push({
-        content: 'Add Subclass Edge',
-        icon: addISAIcon,
-        select: () => {
-          let currentCy = grapholscape.renderer.cy as any
-          let edgehandles = currentCy.edgehandles(edgeHandlesDefaults)
-          edgehandles.start(elem)
-          currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
-
-          currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            if (addedEdge.data('type') === TypesEnum.OBJECT_PROPERTY) {
-              grapholscape.uiContainer?.appendChild(newElementComponent)
-              initNewElementModal(newElementComponent, 'Add New Object Property', TypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
-            }
-            else if(addedEdge.data('type') === TypesEnum.INCLUSION){
-              const ontologyBuilder = new OntologyBuilder(grapholscape)
-              const sourceId = sourceNode.data('iri')
-              const targetId = targetNode.data('iri')
-              grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-              ontologyBuilder.addEdgeElement(undefined, TypesEnum.INCLUSION, sourceId, targetId, TypesEnum.CLASS)
-            }
-            currentCy.removeScratch('edge-creation-type')
-          })
-        }
-      })
-
-      commands.push({
-        content: 'Add Class Instance',
-        icon: addClassInstanceIcon,
-        select: () => {
-          grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Individual', TypesEnum.INDIVIDUAL, undefined, elem.data('iri'))
-        }
-      })
-
-      commands.push({
-        content: 'Add Subhierarchy',
-        icon: addSubhierarchyIcon,
-        select: () => {
-          grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Subhierarchy', undefined, elem.data('iri'))
-        }
-      })
-
-      commands.push({
-        content: 'Add Disjoint Subhierarchy',
-        icon: addSubhierarchyIcon,
-        select: () => {
-          grapholscape.uiContainer?.appendChild(newElementComponent)
-          initNewElementModal(newElementComponent, 'Add New Set of SubClasses', 'Disjoint Subhierarchy', undefined, elem.data('iri'))
-        }
-      })
-
-      try {
-        const htmlNodeReference = (elem as any).popperRef()
-        if (htmlNodeReference && commands.length > 0) {
-          commandsWidget.attachTo(htmlNodeReference, commands)
-        }
-      } catch (e) { console.error(e) }
-    }
-  })
-
-  function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId?: string, targetId?: string) {
+  function initNewElementModal(newElementComponent: GscapeNewElementModal, title, entityType, sourceId?: string, targetId?: string, entity?: GrapholEntity) {
 
     newElementComponent.dialogTitle = title
-    newElementComponent.withoutPrefix = entityType === 'Diagram' ? 'none' : 'inline'
+    newElementComponent.withoutNamespace = entityType === 'Diagram' ? 'none' : 'inline'
     newElementComponent.enableMore = entityType === 'Subhierarchy' || entityType === 'Disjoint Subhierarchy' ? 'inline' : 'none'
     newElementComponent.functionalities = []
     if (entityType === TypesEnum.DATA_PROPERTY) {
@@ -345,13 +584,30 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     else if (entityType === TypesEnum.OBJECT_PROPERTY) {
       newElementComponent.functionalities.push(FunctionalityEnum.ASYMMETRIC, FunctionalityEnum.FUNCTIONAL, FunctionalityEnum.INVERSE_FUNCTIONAL, FunctionalityEnum.IRREFLEXIVE, FunctionalityEnum.REFLEXIVE, FunctionalityEnum.SYMMETRIC, FunctionalityEnum.TRANSITIVE)
     }
+    if (title === 'Rename Entity') {
+      newElementComponent.entity = entity
+    }
+    if (title === 'Rename Entity') {
+      newElementComponent.entity = entity
+    }
     newElementComponent.show()
 
-    newElementComponent.onConfirm = (iriString, functionalities = [], complete = false, datatype= '') => {
+    newElementComponent.checkNamespace = (namespace) => {
+
+      if (!grapholscape.ontology.getNamespace(namespace)) {
+        const ns = new Namespace([], namespace)
+        grapholscape.ontology.addNamespace(ns)
+      }
+    }
+
+    newElementComponent.onConfirm = (iriString, functionalities = [], complete = false, datatype = '') => {
       newElementComponent.hide()
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (entityType === TypesEnum.CLASS) {
-        if (sourceId) {
+        if (entity && sourceId) {
+          ontologyBuilder.renameEntity(entity.iri, sourceId, iriString[0])
+        }
+        else if (sourceId) {
           ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, "superclass")
         }
         else if (targetId) {
@@ -361,13 +617,23 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         }
       }
       else if (entityType === TypesEnum.DATA_PROPERTY) {
-        ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, undefined, functionalities, datatype)
+        if (entity && sourceId) {
+          ontologyBuilder.renameEntity(entity.iri, sourceId, iriString[0])
+        }
+        else
+          ontologyBuilder.addNodeElement(iriString[0], entityType, sourceId, undefined, functionalities, datatype)
       } else if (entityType === TypesEnum.INDIVIDUAL && targetId) {
         ontologyBuilder.addNodeElement(iriString[0], entityType, targetId)
       }
-      else if (entityType === TypesEnum.OBJECT_PROPERTY && targetId && sourceId) {
-        grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
-        ontologyBuilder.addEdgeElement(iriString[0], entityType, sourceId, targetId, TypesEnum.CLASS, functionalities)
+      else if (entityType === TypesEnum.OBJECT_PROPERTY && sourceId) {
+        if (entity) {
+          ontologyBuilder.renameEntity(entity.iri, sourceId, iriString[0])
+        }
+        else if (targetId) {
+          grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
+          ontologyBuilder.addEdgeElement(iriString[0], entityType, sourceId, targetId, TypesEnum.CLASS, functionalities)
+        }
+
       }
       else if (entityType === 'Diagram') {
         ontologyBuilder.addDiagram(iriString[0])
@@ -377,6 +643,14 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       }
       else if (entityType === 'Disjoint Subhierarchy' && targetId) {
         ontologyBuilder.addSubhierarchy(iriString, targetId, true, complete)
+      }
+    }
+
+    newElementComponent.onRefactor = (iriString) => {
+      newElementComponent.hide()
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      if (entity && sourceId) {
+        ontologyBuilder.refactorEntity(entity, sourceId, iriString[0])
       }
     }
 

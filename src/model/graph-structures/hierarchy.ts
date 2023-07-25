@@ -19,8 +19,18 @@ export default class Hierarchy implements IHierarchy {
     this.inputs.push(classEntity)
   }
 
+  removeInput(classEntity: GrapholEntity) {
+    const index = this.inputs.findIndex(i => i === classEntity)
+    this.inputs.splice(index, 1)
+  }
+
   addSuperclass(classEntity: GrapholEntity, complete = false) {
     this._superclasses.push({ classEntity: classEntity, complete: complete })
+  }
+
+  removeSuperclass(classEntity: GrapholEntity) {
+    const index = this.superclasses.findIndex(i => i.classEntity === classEntity)
+    this.superclasses.splice(index, 1)
   }
 
   get inputs() { return this._inputs }
@@ -39,6 +49,7 @@ export default class Hierarchy implements IHierarchy {
     unionNode.type = this.type
     unionNode.identity = TypesEnum.CLASS
     unionNode.shape = Shape.ELLIPSE
+    unionNode.hierarchyID = this._id
     unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined
     unionNode.height = unionNode.width = 30
     unionNode.position = position || { x: 0, y: 0 }

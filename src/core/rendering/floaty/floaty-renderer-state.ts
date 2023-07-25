@@ -6,6 +6,7 @@ import { lock_open } from "../../../ui/assets/icons";
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
+import computeHierarchies from "../incremental/compute-hierarchies";
 
 cytoscape.use(automove)
 
@@ -30,6 +31,7 @@ export default class FloatyRendererState extends BaseRenderer {
       const floatyTransformer = new FloatyTransformer()
       diagram.representations.set(this.id, floatyTransformer.transform(diagram))
     })
+    computeHierarchies(ontology)
   }
 
   runLayout(): void {

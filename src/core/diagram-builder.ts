@@ -1,5 +1,5 @@
 import cytoscape, { Position } from "cytoscape";
-import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, Hierarchy, isGrapholNode, RendererStatesEnum, Shape, TypesEnum } from "../model";
+import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, RendererStatesEnum, Shape, TypesEnum } from "../model";
 
 export default class DiagramBuilder {
 
@@ -149,12 +149,12 @@ export default class DiagramBuilder {
 
   addIndividual(individualEntity: GrapholEntity, position?: Position) {
     if (this.diagramRepresentation?.containsEntity(individualEntity)) {
-      const nodeId = individualEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState)
+      const nodeId = individualEntity.getIdInDiagram(this.diagram.id, TypesEnum.INDIVIDUAL, this.rendererState)
       if (nodeId)
         return this.diagramRepresentation.grapholElements.get(nodeId)
     }
 
-    const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE)
+    const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.INDIVIDUAL)
     instanceNode.position = position || { x: 0, y: 0 }
 
     return this._addIndividualOrClassInstance(instanceNode, individualEntity)
@@ -180,6 +180,7 @@ export default class DiagramBuilder {
     if (!unionNode)
       return
 
+    //hierarchy.id = `${unionNode.id}-${this.diagram.id}` 
     // Add inputs
     for (const inputClasses of hierarchy.inputs) {
       this.addClass(inputClasses, position)
@@ -288,13 +289,80 @@ export default class DiagramBuilder {
     }
   }
 
+  public removeHierarchy(hierarchy: Hierarchy) {
+    if (hierarchy.id) {
+      let unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
+      if (!unionNode || unionNode.empty()) {
+        return
+      }
+      // remove input edges
+      unionNode?.connectedEdges(`[ type = "${TypesEnum.INPUT}" ]`)?.forEach(inputEdge => {
+        this.diagram?.removeElement(inputEdge.id(), this.rendererState)
+      })
+
+      // remove inclusion edges
+      unionNode?.connectedEdges(`[ type = "${hierarchy.type}" ]`)?.forEach(inclusionEdge => {
+        this.diagram?.removeElement(inclusionEdge.id(), this.rendererState)
+      })
+
+      // remove union node
+      this.diagram.removeElement(unionNode.id(), this.rendererState)
+    }
+  }
+
+  public removeHierarchyInputEdge(hierarchy: Hierarchy, inputIri: string) {
+    if (hierarchy.id) {
+      const unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
+      unionNode?.edgesWith(`[ iri = "${inputIri}" ]`).forEach(inputEdge => {
+        if (inputEdge.data().type === TypesEnum.INPUT)
+          this.diagram?.removeElement(inputEdge.id(), this.rendererState)
+      })
+    }
+  }
+
+  public removeHierarchyInclusionEdge(hierarchy: Hierarchy, superclassIri: string) {
+    if (hierarchy.id) {
+      const unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
+      unionNode?.edgesTo(`[ iri = "${superclassIri}" ]`).forEach(inclusionEdge => {
+        if (inclusionEdge.data().type === hierarchy.type)
+          this.diagram?.removeElement(inclusionEdge.id(), this.rendererState)
+      })
+    }
+  }
+
+  public removeElement(id: string) {
+    const cyElem = this.diagramRepresentation?.cy.$id(id)
+    const grapholElem = this.diagramRepresentation?.grapholElements.get(id)
+
+    if (cyElem?.nonempty()) {
+
+      if (grapholElem && grapholElem.is(TypesEnum.DATA_PROPERTY)) {
+        cyElem.connectedEdges().forEach(e => {
+          this.diagramRepresentation?.removeElement(e.id())
+        })
+      }
+
+      this.diagramRepresentation?.removeElement(id)
+    }
+  }
+
+  public renameElement(elemId: string, newIri: Iri) {
+    const cyElem = this.diagramRepresentation?.cy.$id(elemId)
+    cyElem?.data('iri', newIri.fullIri)
+    cyElem?.data('displayedName', newIri.remainder)
+    const grapholElem = this.diagramRepresentation?.grapholElements.get(elemId)
+    if (!grapholElem) return
+    grapholElem.iri = newIri.fullIri
+    grapholElem.displayedName = newIri.remainder
+  }
+
   /**
    * Get cytoscape representation of an entity given the type needed
    * @param entity 
    * @param type 
    * @returns 
    */
-  private getEntityCyRepr(entity: GrapholEntity, type: TypesEnum) {
+  public getEntityCyRepr(entity: GrapholEntity, type: TypesEnum) {
     const occurrenceID = entity.getIdInDiagram(this.diagram.id, type, this.rendererState)
     if (occurrenceID)
       return this.diagramRepresentation?.cy.$id(occurrenceID) || cytoscape().collection()
@@ -302,13 +370,17 @@ export default class DiagramBuilder {
       return cytoscape().collection()
   }
 
-  private getNewId(nodeOrEdge: 'node' | 'edge') {
-    let newId: string
-    if (nodeOrEdge === 'node') {
-      newId = `n${this.diagramRepresentation?.nodesCounter}`
-    } else {
-      newId = `e${this.diagramRepresentation?.edgesCounter}`
+  public getNewId(nodeOrEdge: 'node' | 'edge') {
+    let newId = nodeOrEdge === 'node' ? 'n' : 'e'
+    let count = this.diagramRepresentation?.cy.elements.length
+    if (count) {
+      count = count + 1
+      while (!this.diagramRepresentation?.cy.$id(newId + count).empty()) {
+        count = count + 1
+      }
+      return newId + count
     }
-    return newId
+
+    return newId + 0
   }
 }

@@ -45,6 +45,10 @@ class Diagram implements IDiagram {
       : this.representations.forEach(r => r.clear())
   }
 
+  removeElement(elementId: string, rendererState: RendererStatesEnum) {
+    this.representations.get(rendererState)?.removeElement(elementId)
+  }
+
   containsEntity(iriOrGrapholEntity: Iri | GrapholEntity, rendererState: RendererStatesEnum) {
     return this.representations.get(rendererState)?.containsEntity(iriOrGrapholEntity)
   }
