@@ -371,16 +371,6 @@ export default class DiagramBuilder {
   }
 
   public getNewId(nodeOrEdge: 'node' | 'edge') {
-    let newId = nodeOrEdge === 'node' ? 'n' : 'e'
-    let count = this.diagramRepresentation?.cy.elements.length
-    if (count) {
-      count = count + 1
-      while (!this.diagramRepresentation?.cy.$id(newId + count).empty()) {
-        count = count + 1
-      }
-      return newId + count
-    }
-
-    return newId + 0
+    return this.diagramRepresentation?.getNewId(nodeOrEdge) || nodeOrEdge === 'node' ? 'n0' : 'e0'
   }
 }

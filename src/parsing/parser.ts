@@ -15,7 +15,7 @@ interface Graphol {
   getIri: (element: HTMLElement, ontology: Ontology) => Iri | undefined
   getFacetDisplayedName: (element: Element, ontology: Ontology) => string | undefined
   getFunctionalities: (element: Element, xmlDocument: XMLDocument) => FunctionalityEnum[]
-  getEntityAnnotations: (element: Element, xmlDocument: XMLDocument) => Annotation[]
+  getEntityAnnotations: (element: Element, xmlDocument: XMLDocument, namespaces: Namespace[]) => Annotation[]
 
 }
 
@@ -76,7 +76,7 @@ export default class GrapholParser {
 
             grapholEntity.addOccurrence(node)
             grapholEntity.functionProperties = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
-            grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument)
+            grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument, this.ontology.namespaces)
 
             // APPLY DISPLAYED NAME FROM LABELS
             node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined)

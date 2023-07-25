@@ -93,7 +93,7 @@ export default class Grapholscape {
     const shouldUpdateEntities = (this.diagramId !== 0 && !this.diagramId) || !this.ontology.getDiagram(this.diagramId)
       ?.representations.get(newRenderState.id) ? true : false
 
-    if (!this.ontology.diagrams[0].representations.get(newRenderState.id)) {
+    if (!this.ontology.diagrams[0]?.representations.get(newRenderState.id)) {
       newRenderState.transformOntology(this.ontology)
     }
 

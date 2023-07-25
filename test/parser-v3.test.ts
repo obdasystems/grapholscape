@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { Iri, TypesEnum, FunctionalityEnum } from '../src/model'
+import { Iri, TypesEnum, FunctionalityEnum, Namespace } from '../src/model'
 import GrapholEntity from '../src/model/graphol-elems/entity'
 import GrapholNode from '../src/model/graphol-elems/node'
 import GrapholParser from '../src/parsing/parser'
@@ -186,7 +186,7 @@ describe('Test retrieving annotations', () => {
     </node>
   `)
 
-  const retrievedInfosConcept = parserV3.getEntityAnnotations(node1_mock_input, xmlDoc)
+  const retrievedInfosConcept = parserV3.getEntityAnnotations(node1_mock_input, xmlDoc, [new Namespace(['rdfs'], 'http://www.w3.org/2000/01/rdf-schema#')])
   const conceptEntity = new GrapholEntity(new Iri('http://www.obdasystems.com/testNode1', ontology.namespaces))
   conceptEntity.annotations = retrievedInfosConcept
 

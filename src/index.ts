@@ -4,14 +4,15 @@ import popper from 'cytoscape-popper'
 import { GrapholscapeConfig, ThemeConfig, loadConfig } from './config'
 import Grapholscape from './core'
 import { initIncremental } from './incremental'
-import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
+import { ColoursNames, DefaultThemes, GrapholscapeTheme, IncrementalDiagram, Ontology, RendererStatesEnum } from './model'
 import GrapholParser from './parsing/parser'
 import * as UI from './ui'
 import edgehandles from 'cytoscape-edgehandles';
 import undoredo from 'cytoscape-undo-redo'
-import { RDFGraph } from './model/rdf-graph/swagger'
-import parseRDFGraph from './parsing/rdf-graph-parser'
+import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
+import parseRDFGraph, { getConfig, getOntology } from './parsing/rdf-graph-parser'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
+import { RequestOptions } from './incremental/api/model'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -88,27 +89,52 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
   return grapholscape
 }
 
-export function resumeGrapholscape(rdfGraph: RDFGraph, container: HTMLElement) {
+export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
-  const grapholscape = parseRDFGraph(rdfGraph, container)
+  let grapholscape: Grapholscape | undefined
+
+  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+    grapholscape = parseRDFGraph(rdfGraph, container)
+  } else {
+    grapholscape = new Grapholscape(getOntology(rdfGraph), container, getConfig(rdfGraph))
+  }
+  
   if (grapholscape) {
     UI.initUI(grapholscape)
+
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
+      initIncremental(grapholscape)
+    }
 
     if (grapholscape.renderState) {
       (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
     }
 
+    // Stop layout, use positions from rdfGraph, for floaty/incremental
     if (grapholscape.renderer.renderState) {
       grapholscape.renderer.renderState.layoutRunning = false
       grapholscape.renderer.renderState.stopLayout()
     }
 
-    if (rdfGraph.selectedDiagramId !== undefined) {
+    if (rdfGraph.selectedDiagramId !== undefined && rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
       const diagram = grapholscape.ontology.getDiagram(rdfGraph.selectedDiagramId)
       if (diagram) {
+        /**
+         * showDiagram won't set event handlers on this diagram cause it results already
+         * been rendered once, but in previous session, not yet in the current one.
+         * Force setting them here.
+         */
         setGraphEventHandlers(diagram, grapholscape.lifecycle, grapholscape.ontology)
         grapholscape.showDiagram(rdfGraph.selectedDiagramId)
       }
+    } else {
+      if (grapholscape.incremental) {
+        if (mastroConnection)
+        grapholscape.incremental.setMastroConnection(mastroConnection)
+        grapholscape.incremental.showDiagram()
+        grapholscape.incremental.addRDFGraph(rdfGraph)
+      }
+      
     }
   }
 

@@ -82,7 +82,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   transformOntology(ontology: Ontology): void {
     // Perform floaty transformation if it has not been done yet
-    if (!ontology.diagrams[0].representations.get(RendererStatesEnum.FLOATY)) {
+    if (!ontology.diagrams[0]?.representations.get(RendererStatesEnum.FLOATY)) {
       ontology.diagrams.forEach(diagram => {
         const floatyTransformer = new FloatyTransformer()
         diagram.representations.set(RendererStatesEnum.FLOATY, floatyTransformer.transform(diagram))
