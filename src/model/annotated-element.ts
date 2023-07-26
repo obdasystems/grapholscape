@@ -25,6 +25,10 @@ export default class AnnotatedElement {
     this._annotations.push(newAnnotation)
   }
 
+  public removeAnnotation(annotation: Annotation) {
+    this._annotations = this._annotations.filter(a => !a.equals(annotation))
+  }
+
   public getAnnotations(language?: string, kind?: AnnotationsKind) {
     return this._annotations.filter(ann => {
       let shouldAdd = true

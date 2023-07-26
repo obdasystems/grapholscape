@@ -2,10 +2,13 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit
 import { BaseMixin, ModalMixin } from "../common/mixins";
 import { baseStyle } from "..";
 import { entityIcons, editIcon, rubbishBin } from "../assets";
+import { Annotation } from "../../model";
 
 export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElement)) {
 
     public onCancel: () => void = () => { }
+    public deleteAnnotation: (annotation: Annotation) => void = () => {}
+
 
     static properties: PropertyDeclarations = {
         dialogTitle: { type: String },
@@ -93,6 +96,14 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
         this.onCancel()
     }
 
+    private handleDeleteAnnotation = (annotation, divId) => {
+        this.deleteAnnotation(annotation)
+        const divToRemove = this.shadowRoot?.querySelector('#ann'+divId)
+        if(divToRemove){
+            divToRemove.remove()
+        }
+    }
+
     render() {
         return html`
             <div>          
@@ -102,7 +113,7 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
                     </div>
                     <div class=area>
                         ${this.annotations.map((a, i) => {
-                            return html`<div style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between; ">
+                            return html`<div style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between;" id=ann${i}>
                                             <div class=annotation-row style="margin: 8px 8px 8px 8px;">
                                                 <b>${a.property}</b> 
                                                 <span class="language muted-text bold-text"> @${a.language} </span>
@@ -110,7 +121,7 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
                                             </div>    
                                             <div>
                                                 <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation"><span slot="icon">${editIcon}</span></gscape-button>
-                                                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation"><span slot="icon">${rubbishBin}</span></gscape-button>
+                                                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => this.handleDeleteAnnotation(a, i)}><span slot="icon">${rubbishBin}</span></gscape-button>
                                             </div>
                                         </div>`
                         })}

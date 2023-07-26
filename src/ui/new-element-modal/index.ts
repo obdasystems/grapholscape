@@ -292,7 +292,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           const entity = grapholscape.ontology.getEntity(elem.data('iri'))
           const annotations = entity?.getAnnotations()
           if(entity)
-             initAnnotationsModal(annotationsModal, entity?.iri.remainder, elem.data('type'), annotations)
+             initAnnotationsModal(annotationsModal, entity, elem.data('type'))
         }
       })
 
@@ -351,7 +351,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
             const entity = grapholscape.ontology.getEntity(elem.data('iri'))
             const annotations = entity?.getAnnotations()
             if(entity)
-               initAnnotationsModal(annotationsModal, entity?.iri.remainder, elem.data('type'), annotations)
+               initAnnotationsModal(annotationsModal, entity, elem.data('type'))
           }
         })
 
@@ -565,7 +565,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
             const entity = grapholscape.ontology.getEntity(elem.data('iri'))
             const annotations = entity?.getAnnotations()
             if(entity)
-               initAnnotationsModal(annotationsModal, entity?.iri.remainder, elem.data('type'), annotations)
+               initAnnotationsModal(annotationsModal, entity, elem.data('type'))
           }
         })
 
@@ -702,11 +702,14 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     }
   }
 
-  function initAnnotationsModal(modal: GscapeAnnotationsModal, simpleName: string, entityType: TypesEnum, annotations: Annotation[] | undefined){
-    modal.dialogTitle = simpleName
+  function initAnnotationsModal(modal: GscapeAnnotationsModal, entity: GrapholEntity, entityType: TypesEnum){
+    modal.dialogTitle = entity.iri.remainder
     modal.entityType = entityType
-    modal.annotations = annotations
+    modal.annotations = entity.getAnnotations()
     modal.show()
+    modal.deleteAnnotation = (annotation) => {
+      entity.removeAnnotation(annotation)
+    }
     modal.onCancel = () => {
       modal.hide()
     }
