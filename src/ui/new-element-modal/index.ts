@@ -14,6 +14,7 @@ import konva from "konva";
 import cytoscape from 'cytoscape'
 import DiagramBuilder from '../../core/diagram-builder';
 import GscapeAnnotationsModal from './annotations-modal';
+import GscapeAnnotationModal from './annotation-modal';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -707,8 +708,37 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
     modal.entityType = entityType
     modal.annotations = entity.getAnnotations()
     modal.show()
+
+    const editAnnotationModal = new GscapeAnnotationModal()
+    editAnnotationModal.ontology =  ontologyModelToViewData(grapholscape.ontology)
+
+    modal.initEditAnnotation = (annotation) => {
+        modal.hide()
+        grapholscape.uiContainer?.appendChild(editAnnotationModal)
+        editAnnotationModal.annotation = annotation
+        editAnnotationModal.show()
+
+        editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
+          editAnnotationModal.hide()
+          const propertyIri = new Iri(property, grapholscape.ontology.namespaces)
+          const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype)
+          if(oldAnnotation && !oldAnnotation.equals(newAnnotation)){
+            entity.removeAnnotation(oldAnnotation)
+          }
+          entity.addAnnotation(newAnnotation)
+          modal.annotations = entity.getAnnotations()
+          modal.show()
+        }
+
+        editAnnotationModal.onCancel = () => {
+          editAnnotationModal.hide()
+          modal.show()
+        }
+    }
+
     modal.deleteAnnotation = (annotation) => {
       entity.removeAnnotation(annotation)
+      modal.annotations = entity.getAnnotations()
     }
     modal.onCancel = () => {
       modal.hide()

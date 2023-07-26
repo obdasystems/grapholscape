@@ -8,7 +8,7 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
 
     public onCancel: () => void = () => { }
     public deleteAnnotation: (annotation: Annotation) => void = () => {}
-
+    public initEditAnnotation: (annotation?: Annotation) => void = () => {}
 
     static properties: PropertyDeclarations = {
         dialogTitle: { type: String },
@@ -96,20 +96,21 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
         this.onCancel()
     }
 
-    private handleDeleteAnnotation = (annotation, divId) => {
+    private handleDeleteAnnotation = (annotation) => {
         this.deleteAnnotation(annotation)
-        const divToRemove = this.shadowRoot?.querySelector('#ann'+divId)
-        if(divToRemove){
-            divToRemove.remove()
-        }
+    }
+
+    private handleEditAnnotation = (annotation?) => {
+        this.initEditAnnotation(annotation)
     }
 
     render() {
         return html`
             <div>          
                 <div class="gscape-panel">
-                    <div class="header">
-                        <span class="slotted-icon">${entityIcons[this.entityType]}</span> ${this.dialogTitle}
+                    <div class="header" style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between; align-items: center;">
+                        <span class="slotted-icon">${entityIcons[this.entityType]}${this.dialogTitle}</span> 
+                        <gscape-button style = "border-radius: 50%;" size='s' id ="more" label="+" @click=${() => this.handleEditAnnotation()}></gscape-button>
                     </div>
                     <div class=area>
                         ${this.annotations.map((a, i) => {
@@ -120,8 +121,8 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
                                                 <span> ${a.lexicalForm} </span>
                                             </div>    
                                             <div>
-                                                <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation"><span slot="icon">${editIcon}</span></gscape-button>
-                                                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => this.handleDeleteAnnotation(a, i)}><span slot="icon">${rubbishBin}</span></gscape-button>
+                                                <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation" @click=${() => this.handleEditAnnotation(a)}><span slot="icon">${editIcon}</span></gscape-button>
+                                                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => this.handleDeleteAnnotation(a)}><span slot="icon">${rubbishBin}</span></gscape-button>
                                             </div>
                                         </div>`
                         })}
