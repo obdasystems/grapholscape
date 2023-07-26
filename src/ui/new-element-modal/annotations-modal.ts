@@ -112,7 +112,7 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
                         <span class="slotted-icon">${entityIcons[this.entityType]}${this.dialogTitle}</span> 
                         <gscape-button style = "border-radius: 50%;" size='s' id ="more" label="+" @click=${() => this.handleEditAnnotation()}></gscape-button>
                     </div>
-                    <div class=area>
+                    <div class=area style="min-height: 200px;">
                         ${this.annotations.map((a, i) => {
                             return html`<div style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between;" id=ann${i}>
                                             <div class=annotation-row style="margin: 8px 8px 8px 8px;">
