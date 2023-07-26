@@ -115,7 +115,7 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
                         ${this.annotations.map((a, i) => {
                             return html`<div style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between;" id=ann${i}>
                                             <div class=annotation-row style="margin: 8px 8px 8px 8px;">
-                                                <b>${a.property}</b> 
+                                                <b>${a.kind.charAt(0).toUpperCase() + a.kind.slice(1)}</b> 
                                                 <span class="language muted-text bold-text"> @${a.language} </span>
                                                 <span> ${a.lexicalForm} </span>
                                             </div>    
