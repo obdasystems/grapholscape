@@ -250,7 +250,12 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
                 <input id="newnamespace" value="${this.entity? this.entity.iri.namespace : ''}" type="text"/>
                 <select style = "display: ${this.withoutNamespace};" id="namespace" onchange="this.offsetParent.querySelector('#newnamespace').value=this.value; this.offsetParent.querySelector('#newnamespace').focus(); if(this.offsetParent.offsetParent.querySelector('#input').value.length > 0){this.offsetParent.offsetParent.querySelector('#ok').disabled = false; this.offsetParent.offsetParent.querySelector('#refactor').disabled = false;} " name="namespace" value="${this.entity? this.entity.iri.namespace :''}" required>
                     ${this.ontology.namespaces.map((n, i) => {
-      return html`<option value="${n.toString()}">${n.toString()}</option>`
+                      if(this.entity && n.toString()===this.entity.iri.namespace?.toString()){
+                        return html`<option value="${n.toString()}"; selected>${n.toString()}</option>`
+                      }else{
+                        return html`<option value="${n.toString()}">${n.toString()}</option>`
+                      }
+      
     })}
                 <option value=""></option>
                 </select>
