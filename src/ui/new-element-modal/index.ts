@@ -1,7 +1,7 @@
 import Grapholscape from '../../core';
 import OntologyBuilder from '../../core/ontology-builder';
-import { FunctionalityEnum, GrapholEntity, Iri, LifecycleEvent, Namespace, RendererStatesEnum, TypesEnum } from '../../model';
-import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addInputIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon, renameIcon, rubbishBin } from '../assets';
+import { Annotation, FunctionalityEnum, GrapholEntity, Iri, LifecycleEvent, Namespace, RendererStatesEnum, TypesEnum } from '../../model';
+import { addChildClassIcon, addClassInstanceIcon, addDataPropertyIcon, addDiagramIcon, addEntityIcon, addISAIcon, addInputIcon, addObjectPropertyIcon, addParentClassIcon, addSubhierarchyIcon, editIcon, renameIcon, rubbishBin } from '../assets';
 import { GscapeButton } from '../common/button';
 import GscapeContextMenu, { Command } from '../common/context-menu';
 import getIconSlot from '../util/get-icon-slot';
@@ -13,6 +13,7 @@ import $ from "jquery";
 import konva from "konva";
 import cytoscape from 'cytoscape'
 import DiagramBuilder from '../../core/diagram-builder';
+import GscapeAnnotationsModal from './annotations-modal';
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -69,6 +70,8 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
 
   const newElementComponent = new GscapeNewElementModal()
   newElementComponent.ontology = ontologyModelToViewData(grapholscape.ontology)
+
+  const annotationsModal = new GscapeAnnotationsModal()
 
   const addClassBtn = new GscapeButton()
   const classIcon = getIconSlot('icon', addEntityIcon)
@@ -270,16 +273,28 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           }
         })
 
-        commands.push({
-          content: 'Rename',
-          icon: renameIcon,
-          select: () => {
-            grapholscape.uiContainer?.appendChild(newElementComponent)
-            const entity = grapholscape.ontology.getEntity(elem.data('iri'))
-            if (entity)
-              initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
-          }
-        })
+      commands.push({
+        content: 'Rename',
+        icon: renameIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(newElementComponent)
+          const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+          if(entity)
+            initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
+        }
+      })
+
+      commands.push({
+        content: 'Edit Annotations',
+        icon: editIcon,
+        select: () => {
+          grapholscape.uiContainer?.appendChild(annotationsModal)
+          const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+          const annotations = entity?.getAnnotations()
+          if(entity)
+             initAnnotationsModal(annotationsModal, entity?.iri.remainder, elem.data('type'), annotations)
+        }
+      })
 
         commands.push({
           content: 'Remove',
@@ -325,6 +340,18 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
             const entity = grapholscape.ontology.getEntity(elem.data('iri'))
             if (entity)
               initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
+          }
+        })
+
+        commands.push({
+          content: 'Edit Annotations',
+          icon: editIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(annotationsModal)
+            const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+            const annotations = entity?.getAnnotations()
+            if(entity)
+               initAnnotationsModal(annotationsModal, entity?.iri.remainder, elem.data('type'), annotations)
           }
         })
 
@@ -529,6 +556,19 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
               initNewElementModal(newElementComponent, 'Rename Entity', elem.data('type'), elem.id(), undefined, entity)
           }
         })
+
+        commands.push({
+          content: 'Edit Annotations',
+          icon: editIcon,
+          select: () => {
+            grapholscape.uiContainer?.appendChild(annotationsModal)
+            const entity = grapholscape.ontology.getEntity(elem.data('iri'))
+            const annotations = entity?.getAnnotations()
+            if(entity)
+               initAnnotationsModal(annotationsModal, entity?.iri.remainder, elem.data('type'), annotations)
+          }
+        })
+
         commands.push({
           content: 'Remove',
           icon: rubbishBin,
@@ -659,6 +699,16 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
       if (entityType === TypesEnum.OBJECT_PROPERTY) {
         grapholscape.renderer.cy?.$id('temp_' + sourceId + '-' + targetId).remove()
       }
+    }
+  }
+
+  function initAnnotationsModal(modal: GscapeAnnotationsModal, simpleName: string, entityType: TypesEnum, annotations: Annotation[] | undefined){
+    modal.dialogTitle = simpleName
+    modal.entityType = entityType
+    modal.annotations = annotations
+    modal.show()
+    modal.onCancel = () => {
+      modal.hide()
     }
   }
 
