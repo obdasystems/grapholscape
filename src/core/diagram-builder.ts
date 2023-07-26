@@ -371,6 +371,6 @@ export default class DiagramBuilder {
   }
 
   public getNewId(nodeOrEdge: 'node' | 'edge') {
-    return this.diagramRepresentation?.getNewId(nodeOrEdge) || nodeOrEdge === 'node' ? 'n0' : 'e0'
+    return this.diagramRepresentation?.getNewId(nodeOrEdge) || (nodeOrEdge === 'node' ? 'n0' : 'e0')
   }
 }
