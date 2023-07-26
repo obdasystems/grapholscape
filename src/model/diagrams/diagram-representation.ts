@@ -72,6 +72,10 @@ export default class DiagramRepresentation {
 
     const cyElement = this.cy.$id(grapholElement.id)
 
+    if (cyElement.empty()) {
+      return
+    }
+
     if (updatePosition && isGrapholNode(grapholElement) && grapholElement.position !== cyElement.position()) {
       cyElement.position(grapholElement.position)
     }
@@ -168,6 +172,20 @@ export default class DiagramRepresentation {
       this.cy.$id(elementId).removeClass(classToRemove.join(' '))
       this.cy.$(`.${filterTag}`).removeClass(classToRemove.join(' '))
     }
+  }
+
+  getNewId(nodeOrEdge: 'node' | 'edge') {
+    let newId = nodeOrEdge === 'node' ? 'n' : 'e'
+    let count = this.cy.elements.length
+    if (count) {
+      count = count + 1
+      while (!this.cy.$id(newId + count).empty()) {
+        count = count + 1
+      }
+      return newId + count
+    }
+
+    return newId + 0
   }
 
   get grapholElements() {

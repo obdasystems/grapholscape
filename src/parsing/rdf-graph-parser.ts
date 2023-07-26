@@ -1,6 +1,7 @@
-import { floatyOptions } from "../config";
+import { floatyOptions, GrapholscapeConfig } from "../config";
 import { Grapholscape } from "../core";
-import { Annotation, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, getDefaultFilters, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { Entity } from "../model/rdf-graph/swagger";
+import { Annotation, ClassInstanceEntity, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, getDefaultFilters, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
@@ -8,6 +9,31 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
     ? RendererStatesEnum.FLOATY
     : RendererStatesEnum.INCREMENTAL
 
+  const ontology = getOntology(rdfGraph)
+  ontology.entities = getEntities(rdfGraph, ontology.namespaces)
+  
+  const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
+  let incrementalDiagram: IncrementalDiagram
+  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+    ontology.diagrams = getDiagrams(rdfGraph, ontology, classInstances, rendererState)
+  else
+    incrementalDiagram = getDiagrams(rdfGraph, ontology, classInstances, rendererState)[0] as IncrementalDiagram
+
+  const grapholscape = new Grapholscape(ontology, container, getConfig(rdfGraph))
+
+  if (grapholscape.incremental)
+    grapholscape.incremental.classInstanceEntities = classInstances
+
+  rdfGraph.config?.filters?.forEach(f => {
+    if (Object.values(DefaultFilterKeyEnum).includes(f)) {
+      grapholscape.filter(f)
+    }
+  })
+
+  return grapholscape
+}
+
+export function getOntology(rdfGraph: RDFGraph) {
   let ontology: Ontology
   ontology = new Ontology(
     rdfGraph.metadata.name || '',
@@ -23,25 +49,55 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
   ontology.defaultLanguage = rdfGraph.metadata.defaultLanguage
   if (rdfGraph.metadata.annotations) {
     ontology.annotations = rdfGraph.metadata.annotations.map(a => {
-      return new Annotation(a.property, a.lexicalForm, a.language, a.datatype)
+      return new Annotation(new Iri(a.property, ontology.namespaces), a.lexicalForm, a.language, a.datatype)
     })
   }
 
+  return ontology
+}
 
+export function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]) {
   let iri: Iri
+  const entities: Map<string, GrapholEntity> = new Map()
+  let entity: GrapholEntity | undefined
   rdfGraph.entities.forEach(e => {
-    iri = new Iri(e.fullIri, ontology.namespaces)
-    ontology.addEntity(GrapholEntity.newFromSwagger(iri, e))
+    iri = new Iri(e.fullIri, namespaces)
+    entity = GrapholEntity.newFromSwagger(iri, e)
+    entities.set(iri.fullIri, entity)
   })
 
+  return entities
+}
 
+export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
+  const classInstances: Map<string, ClassInstanceEntity> = new Map()
+  let classInstance: ClassInstanceEntity | undefined
+  rdfGraph.classInstanceEntities?.forEach(ci => {
+    let iri = new Iri(ci.fullIri, [])
+    let parentClassesIris = ci.parentClasses?.map(p => new Iri(p, namespaces)) || []
+    classInstance = new ClassInstanceEntity(iri, parentClassesIris)
+    classInstance.annotations = getEntityAnnotations(ci, namespaces)
+    console.log(classInstance)
+    classInstances.set(iri.fullIri, classInstance)
+  })
+
+  return classInstances
+}
+
+function getEntityAnnotations(rdfEntity: Entity, namespaces: Namespace[]) {
+  return rdfEntity.annotations?.map(a => new Annotation(new Iri(a.property, namespaces), a.lexicalForm, a.language, a.datatype)) || []
+}
+
+export function getDiagrams(rdfGraph: RDFGraph, ontology: Ontology, classInstances?: Map<string, ClassInstanceEntity>, rendererState = RendererStatesEnum.GRAPHOL) {
   let diagram: Diagram
   let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | undefined
   let grapholElement: GrapholNode | GrapholEdge
 
+  const diagrams: Diagram[] = []
+  
   rdfGraph.diagrams.forEach(d => {
-    diagram = new Diagram(d.name, d.id)
+    diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram()
     diagramRepr = diagram.representations.get(rendererState)
 
     if (!diagramRepr) {
@@ -54,7 +110,9 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
       grapholElement = GrapholNode.newFromSwagger(n)
 
       if (n.iri) {
-        grapholEntity = ontology.getEntity(n.iri)
+        grapholEntity = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
+          ? ontology.getEntity(n.iri)
+          : classInstances?.get(n.iri) || ontology.getEntity(n.iri)
         grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
 
@@ -63,6 +121,9 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
 
     // Edges
     d.edges?.forEach(e => {
+      if (!e.id) {
+        e.id = diagramRepr!.getNewId('edge')
+      }
       grapholElement = GrapholEdge.newFromSwagger(e)
       if (e.iri) {
         grapholEntity = ontology.getEntity(e.iri)
@@ -79,30 +140,26 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
       }
     }
 
-    ontology.addDiagram(diagram)
+    diagrams.push(diagram)
   })
 
+  return diagrams
+}
+
+export function getConfig(rdfGraph: RDFGraph): GrapholscapeConfig {
   let themes: GrapholscapeTheme[] | undefined
   if (rdfGraph.config?.themes) {
     themes = rdfGraph.config.themes.map(t => new GrapholscapeTheme(t.id, t.colours, t.name))
   }
 
-
-  const grapholscape = new Grapholscape(ontology, container,
-    {
-      themes: themes,
-      selectedTheme: rdfGraph.config?.selectedTheme,
-      selectedRenderer: rendererState,
-      language: rdfGraph.config?.language,
-      entityNameType: rdfGraph.config?.entityNameType,
-      renderers: rdfGraph.config?.renderers as RendererStatesEnum[]
-    })
-
-  rdfGraph.config?.filters?.forEach(f => {
-    if (Object.values(DefaultFilterKeyEnum).includes(f)) {
-      grapholscape.filter(f)
-    }
-  })
-
-  return grapholscape
+  return {
+    themes: themes,
+    selectedTheme: rdfGraph.config?.selectedTheme,
+    selectedRenderer: rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
+    ? RendererStatesEnum.FLOATY
+    : RendererStatesEnum.INCREMENTAL,
+    language: rdfGraph.config?.language,
+    entityNameType: rdfGraph.config?.entityNameType,
+    renderers: rdfGraph.config?.renderers as RendererStatesEnum[],
+  }
 }

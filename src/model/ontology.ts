@@ -290,6 +290,9 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0) }
 
   get entities() { return this._entities }
+  set entities(newEntities: Map<string, GrapholEntity>) {
+    this._entities = newEntities
+  }
 }
 
 export default Ontology

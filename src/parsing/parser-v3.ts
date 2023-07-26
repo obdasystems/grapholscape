@@ -19,7 +19,7 @@ export function getOntologyInfo(xmlDocument: XMLDocument) {
   ontology.defaultLanguage = getTag(xmlDocument, 'ontology')?.getAttribute('lang') || ontology.languages[0]
   if (iri) {
     ontology.iri = iri
-    ontology.annotations = getIriAnnotations(iri, xmlDocument)
+    ontology.annotations = getIriAnnotations(iri, xmlDocument, ontology.namespaces)
   }
   return ontology
 }
@@ -129,32 +129,32 @@ export function getFunctionalities(element: Element, xmlDocument: XMLDocument): 
   return result
 }
 
-export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument) {
+export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument, namespaces: Namespace[]) {
   const entityIri = getTagText(element, 'iri')
   if (entityIri)
-    return getIriAnnotations(entityIri, xmlDocument)
+    return getIriAnnotations(entityIri, xmlDocument, namespaces)
   else
     return []
 }
 
-function getIriAnnotations(iri: string, xmlDocument: XMLDocument): Annotation[] {
+function getIriAnnotations(iri: string, xmlDocument: XMLDocument, namespaces: Namespace[]): Annotation[] {
   let result: Annotation[] = []
   const iriElem = getIriElem(iri, xmlDocument)
 
   if (iriElem) {
     let annotations = getTag(iriElem, 'annotations')
     let language: string | null | undefined
-    let annotation_kind: string
+    let property: string | null | undefined
     let lexicalForm: string | null | undefined
 
     if (annotations) {
       for (let annotation of annotations.children) {
-        annotation_kind = getRemainingChars(getTagText(annotation, 'property'))
+        property = getTagText(annotation, 'property')
         language = getTagText(annotation, 'language')
         lexicalForm = getTagText(annotation, 'lexicalForm')
 
-        if (lexicalForm && language)
-          result.push(new Annotation(annotation_kind, lexicalForm, language))
+        if (lexicalForm && language && property)
+          result.push(new Annotation(new Iri(property, namespaces), lexicalForm, language))
       }
     }
   }

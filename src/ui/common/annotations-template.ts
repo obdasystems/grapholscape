@@ -79,7 +79,7 @@ export function annotationsTemplate(annotations: Annotation[]) {
           <div class="annotation">
             <div class="bold-text annotation-property">
               <span class="slotted-icon">${annotationIcons[property] ?? nothing}</span>
-              <span>${property.charAt(0).toUpperCase() + property.slice(1)}</span>
+              <span>${annotation.kind.charAt(0).toUpperCase() + annotation.kind.slice(1)}</span>
             </div>
             ${annotations.filter(a => a.property === property).map(annotation => {
               return html`

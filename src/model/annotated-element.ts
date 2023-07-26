@@ -1,9 +1,9 @@
 import Annotation from "./graphol-elems/annotation"
 
 export enum AnnotationsKind {
-  label = 'label',
-  comment = 'comment',
-  author = 'author',
+  label = 'http://www.w3.org/2000/01/rdf-schema#label',
+  comment = 'http://www.w3.org/2000/01/rdf-schema#comment',
+  author = 'http://www.w3.org/2000/01/rdf-schema#author',
 }
 
 export default class AnnotatedElement {

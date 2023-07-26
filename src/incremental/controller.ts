@@ -1,8 +1,8 @@
-import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
+import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position, SingularElementReturnValue } from "cytoscape";
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, AnnotationsKind, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { GscapeConfirmDialog } from "../ui";
 import { ClassInstance } from "./api/kg-api";
@@ -12,6 +12,8 @@ import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
 import NodeButton from "../ui/common/button/node-button";
+import { RDFGraph } from "../model/rdf-graph/swagger";
+import * as RDFGraphParser from '../parsing/rdf-graph-parser'
 
 /** @internal */
 export default class IncrementalController {
@@ -94,6 +96,55 @@ export default class IncrementalController {
     this.endpointController = new EndpointController(mastroRequestOptions, this.lifecycle)
     this.endpointController.setLanguage(this.grapholscape.language)
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
+  }
+
+  addRDFGraph(rdfGraph: RDFGraph) {
+    let elem: GrapholElement | undefined
+    let entity: GrapholEntity | undefined
+    const addElemToIncremental = (elem: GrapholElement) => {
+
+      if (isGrapholEdge(elem)) {
+        elem.id = this.diagramBuilder.getNewId('edge')
+      }
+
+      if (elem.iri) {
+        if (isGrapholNode(elem)) {
+          elem.originalId = this.diagramBuilder.getNewId('node')
+        }
+        
+        entity = this.classInstanceEntities.get(elem.iri) || this.ontology.getEntity(elem.iri)
+      }
+
+      this.diagram.addElement(elem, entity)
+      if (entity && elem.iri) {
+        this.updateEntityNameType(entity.iri.fullIri)
+      }
+    }
+
+    const classInstanceEntities = RDFGraphParser.getClassInstances(rdfGraph, this.grapholscape.ontology.namespaces)
+
+    classInstanceEntities.forEach((instanceEntity, iri) => {
+      this.classInstanceEntities.set(iri, instanceEntity)
+    })
+
+    const diagram = RDFGraphParser.getDiagrams(rdfGraph, this.grapholscape.ontology, this.classInstanceEntities, RendererStatesEnum.INCREMENTAL)[0]
+    if (diagram) {
+      const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL)
+
+      diagramRepr?.cy.nodes().forEach(node => {
+        elem = diagramRepr.grapholElements.get(node.id())
+        if (elem)
+          addElemToIncremental(elem)
+      })
+
+      diagramRepr?.cy.edges().forEach(edge => {
+        elem = diagramRepr.grapholElements.get(edge.id())
+        if (elem)
+          addElemToIncremental(elem)
+      })
+
+      this.runLayout()
+    }
   }
 
   addClass(iri: string, centerOnIt = true, position?: Position) {
@@ -427,14 +478,14 @@ export default class IncrementalController {
                 sourceParentClassIri.fullIri,
                 targetParentClassIri.fullIri,
               )
-              
+
               this.addEdge(sourceClassInstanceId, sourceParentClassId, TypesEnum.INSTANCE_OF)
               this.addEdge(targetClassInstanceId, targetParentClassId, TypesEnum.INSTANCE_OF)
             }
           })
         })
       })
-      
+
     }
   }
 
@@ -574,7 +625,7 @@ export default class IncrementalController {
         classId &&
         this.grapholscape.renderer.cy?.$id(classId).degree(false) === 0 &&
         !entitiesTokeep.includes(superclass.classEntity.iri.fullIri)) {
-          this.removeEntity(superclass.classEntity)
+        this.removeEntity(superclass.classEntity)
       }
     })
   }
@@ -608,7 +659,7 @@ export default class IncrementalController {
     targetsIris: string[],
     isaType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE,
     subOrSuper: 'sub' | 'super' = 'sub') {
-    
+
     const sourceId = this.getIDByIRI(sourceIri, TypesEnum.CLASS)
     if (sourceId) {
       this.performActionWithBlockedGraph(() => {
@@ -622,19 +673,19 @@ export default class IncrementalController {
             if (cySource?.nonempty() && cyTarget?.nonempty()) {
               if (subOrSuper === 'super') {
                 const isEdgeAlreadyPresent = cySource.edgesTo(cyTarget)
-                  .filter(e => e.data().type === TypesEnum.INCLUSION || 
-                               e.data().type === TypesEnum.EQUIVALENCE)
+                  .filter(e => e.data().type === TypesEnum.INCLUSION ||
+                    e.data().type === TypesEnum.EQUIVALENCE)
                   .nonempty()
-                
+
                 if (!isEdgeAlreadyPresent) {
                   this.diagramBuilder.addEdge(sourceId, targetNode.id, isaType)
                 }
               } else {
                 const isEdgeAlreadyPresent = cyTarget.edgesTo(cySource)
-                  .filter(e => e.data().type === TypesEnum.INCLUSION || 
-                               e.data().type === TypesEnum.EQUIVALENCE)
+                  .filter(e => e.data().type === TypesEnum.INCLUSION ||
+                    e.data().type === TypesEnum.EQUIVALENCE)
                   .nonempty()
-                
+
                 if (!isEdgeAlreadyPresent) {
                   this.diagramBuilder.addEdge(targetNode.id, sourceId, isaType)
                 }
@@ -695,8 +746,8 @@ export default class IncrementalController {
       this.endpointController.highlightsManager?.computeHighlights(classIris)
       const dataProperties = await this.endpointController.highlightsManager?.dataProperties()
       return dataProperties
-        ?.map(dp => this.ontology.getEntity(dp))
-        .filter(dpEntity => dpEntity !== null) as GrapholEntity[]
+        ?.map(dp => this.ontology.getEntity(dp) || new GrapholEntity(new Iri(dp, this.ontology.namespaces)))
+        .filter(dpEntity => dpEntity !== undefined) as GrapholEntity[]
         || []
     } else {
       return this.neighbourhoodFinder.getDataProperties(classIris[0])
@@ -846,7 +897,7 @@ export default class IncrementalController {
         return
 
       let i = 0
-      let cyElems: Collection  = this.diagram.representation.cy.collection()
+      let cyElems: Collection = this.diagram.representation.cy.collection()
       let elemId: string | undefined
 
       path.unshift({
@@ -861,11 +912,11 @@ export default class IncrementalController {
 
       for (let entity of path) {
         if (entity.type === 'objectProperty' || entity.type === 'inverseObjectProperty') {
-          if (!path[i+1] || !path[i-1])
+          if (!path[i + 1] || !path[i - 1])
             return
 
-          sourceClassIri = path[i-1].iri
-          targetClassIri = path[i+1].iri
+          sourceClassIri = path[i - 1].iri
+          targetClassIri = path[i + 1].iri
 
           if (entity.iri === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
             const sourceId = this.addClass(sourceClassIri)?.id
@@ -886,7 +937,7 @@ export default class IncrementalController {
           // create collection of elems to flash class and highlight them
           if (elemId)
             cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
-          
+
           elemId = this.getIDByIRI(sourceClassIri, TypesEnum.CLASS)
           if (elemId)
             cyElems = cyElems.union(this.diagram.representation.cy.$id(elemId))
