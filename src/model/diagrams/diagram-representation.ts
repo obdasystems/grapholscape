@@ -44,7 +44,7 @@ export default class DiagramRepresentation {
 
     // Every elem can have a set of fake elements to build a custom shape
     const cyElems = newElement.getCytoscapeRepr(grapholEntity)
-    const addedElems = this.cy.add(cyElems)
+    return this.cy.add(cyElems)
   }
 
   removeElement(elementId: string) {
@@ -176,7 +176,7 @@ export default class DiagramRepresentation {
 
   getNewId(nodeOrEdge: 'node' | 'edge') {
     let newId = nodeOrEdge === 'node' ? 'n' : 'e'
-    let count = this.cy.elements.length
+    let count = this.cy.elements().length
     if (count) {
       count = count + 1
       while (!this.cy.$id(newId + count).empty()) {
