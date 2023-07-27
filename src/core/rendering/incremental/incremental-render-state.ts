@@ -121,6 +121,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
       const nameLength = edge.data('displayedName')?.length * 5 || 0
       return 140 + crowdnessFactor + nameLength
     }
+    this.floatyLayoutOptions.avoidOverlap = true
   }
 
   get renderer(): Renderer {

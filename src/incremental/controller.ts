@@ -101,6 +101,7 @@ export default class IncrementalController {
   addRDFGraph(rdfGraph: RDFGraph) {
     let elem: GrapholElement | undefined
     let entity: GrapholEntity | undefined
+    const previousElemNumber = this.numberOfElements
     const addElemToIncremental = (elem: GrapholElement) => {
 
       if (isGrapholEdge(elem)) {
@@ -143,7 +144,7 @@ export default class IncrementalController {
           addElemToIncremental(elem)
       })
 
-      this.runLayout()
+      this.postDiagramEdit(previousElemNumber)
     }
   }
 
