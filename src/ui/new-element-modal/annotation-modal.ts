@@ -1,7 +1,7 @@
-import { CSSResultGroup, LitElement, css, html } from "lit";
+import { CSSResultGroup, LitElement, PropertyDeclarations, css, html } from "lit";
 import { BaseMixin, ModalMixin } from "../common/mixins";
 import { baseStyle } from "..";
-import { Annotation } from "../../model";
+import { Annotation, AnnotationsKind } from "../../model";
 import { OntologyViewModel } from "../ontology-info/ontology-info";
 import { datatypes } from "./new-element-modal";
 
@@ -14,6 +14,10 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
 
     public onConfirm: (annotation: Annotation | undefined, property: string, lexicalForm: string, datatype: string, language: string) => void = () => { }
     public onCancel: () => void = () => { }
+
+    static properties: PropertyDeclarations = {
+        annotation: {type: Annotation}
+      }
 
     constructor(public annotation?: Annotation) {
         super()
@@ -106,11 +110,12 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
 
     private handleCancel = () => {
         this.onCancel()
-        this.resetForm
+        this.resetForm()
     }
 
     private resetForm = ()=> {
         let myform = this.shadowRoot?.querySelector('#new-annotation-form') as HTMLFormElement
+        this.annotation = undefined
         if(myform){
             myform.reset()
         }
@@ -129,7 +134,13 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
                         <div class="dropdown">
                             <input id="newproperty" value="${this.annotation?.property}" type="text" oninput="if(this.value.length > 0 && this.offsetParent.offsetParent.querySelector('#lexicalform').value.length > 0) {this.offsetParent.offsetParent.querySelector('#ok').disabled = false;} else {this.offsetParent.offsetParent.querySelector('#ok').disabled = true;}"/>
                             <select id="property" onchange="this.offsetParent.querySelector('#newproperty').value=this.value; this.offsetParent.querySelector('#newproperty').focus(); if(this.offsetParent.offsetParent.querySelector('#lexicalform').value.length > 0){this.offsetParent.offsetParent.querySelector('#ok').disabled = false;} " name="property" value="${this.annotation?.property}" required>
-                                <option value = "${this.annotation?.property}">${this.annotation?.property}</option>    
+                                ${Object.values(AnnotationsKind).sort().map((n, i) => {
+                                    if(this.annotation && n.toString()===this.annotation.property){
+                                        return html`<option value="${n.toString()}"; selected>${n.toString()}</option>`
+                                    } else{
+                                        return html`<option value="${n.toString()}"; >${n.toString()}</option>`
+                                    }
+                                })}
                                 <option value=""></option>
                             </select>
                         </div>
