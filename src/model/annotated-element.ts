@@ -4,6 +4,13 @@ export enum AnnotationsKind {
   label = 'http://www.w3.org/2000/01/rdf-schema#label',
   comment = 'http://www.w3.org/2000/01/rdf-schema#comment',
   author = 'http://www.w3.org/2000/01/rdf-schema#author',
+  deprecated = 'http://www.w3.org/2002/07/owl#deprecated',
+  versionInfo = 'http://www.w3.org/2002/07/owl#versionInfo',
+  incompatibleWith = 'http://www.w3.org/2002/07/owl#incompatibleWith',
+  backwardCompatibleWith = 'http://www.w3.org/2000/01/rdf-schema#backwardCompatibleWith',
+  priorVersion = 'http://www.w3.org/2002/07/owl#priorVersion',
+  backwardCompatible = 'http://www.w3.org/2002/07/owl#backwardCompatibleWith',
+  isDefinedBy = 'http://www.w3.org/2000/01/rdf-schema#isDefinedBy'
 }
 
 export default class AnnotatedElement {

@@ -146,8 +146,15 @@ export const entityIcons: { [x in TypesEnum.CLASS |
   [TypesEnum.CLASS_INSTANCE]: classInstanceIcon,
 }
 
-export const annotationIcons: { [x in AnnotationsKind]: SVGTemplateResult } = {
+export const annotationIcons: { [x in AnnotationsKind]: SVGTemplateResult | undefined } = {
   [AnnotationsKind.label]: labelIcon,
   [AnnotationsKind.comment]: commentIcon,
   [AnnotationsKind.author]: authorIcon,
+  [AnnotationsKind.deprecated]: undefined,
+  [AnnotationsKind.isDefinedBy]: undefined,
+  [AnnotationsKind.versionInfo]: undefined,
+  [AnnotationsKind.priorVersion]: undefined,
+  [AnnotationsKind.incompatibleWith]: undefined,
+  [AnnotationsKind.backwardCompatible]: undefined,
+  [AnnotationsKind.backwardCompatibleWith]: undefined,
 }
