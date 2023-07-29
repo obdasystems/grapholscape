@@ -10,6 +10,13 @@ import dts from 'rollup-plugin-dts'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
+
+// Custom output path, used for external integration tests
+let OUTPUT_PATH = process.env.OUTPUT_PATH
+if (!OUTPUT_PATH) { // if not set, build in dist for production, demo for dev
+  OUTPUT_PATH = process.env.NODE_ENV === 'production' ? 'dist' : 'demo/js'
+}
+
 const dependencies = Object.keys(require('./package.json').dependencies)
 dependencies.splice(dependencies.indexOf('lit'), 1)
 
@@ -59,8 +66,8 @@ const configs = [
   { // development
     input,
     output: {
-      file: 'demo/js/grapholscape.js',
-      format: 'iife',
+      file: `${OUTPUT_PATH}/grapholscape.js`,
+      format: OUTPUT_PATH === 'demo/js' ? 'iife' : 'es', // use iife for demo, es for external testing
       name,
       sourcemap: 'inline',
       inlineDynamicImports : true,
@@ -76,14 +83,14 @@ const configs = [
     input,
     output: [
       {
-        file: 'dist/grapholscape.min.js',
+        file: `${OUTPUT_PATH}/grapholscape.min.js`,
         format: 'iife',
         inlineDynamicImports : true,
         name,
         sourcemap: false
       },
       {
-        file: 'dist/grapholscape.esm.min.js',
+        file: `${OUTPUT_PATH}/grapholscape.esm.min.js`,
         format: 'es',
         inlineDynamicImports : true,
         sourcemap: false
@@ -106,10 +113,10 @@ const configs = [
       license(licenseHeaderOptions)
     ]
   },
-  {
+  { // production pure es module: not transpiled, not minified  
     input,
     output: {
-      file: 'dist/grapholscape.esm.js',
+      file: `${OUTPUT_PATH}/grapholscape.esm.js`,
       inlineDynamicImports : true,
       format: 'es',
     },
