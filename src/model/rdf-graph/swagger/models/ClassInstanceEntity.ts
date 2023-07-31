@@ -74,6 +74,12 @@ export interface ClassInstanceEntity {
      * @memberof ClassInstanceEntity
      */
     dataProperties?: Array<DataPropertyValue>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClassInstanceEntity
+     */
+    shortIri?: string;
 }
 
 /**
@@ -102,6 +108,7 @@ export function ClassInstanceEntityFromJSONTyped(json: any, ignoreDiscriminator:
         'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
         'parentClasses': !exists(json, 'parentClasses') ? undefined : json['parentClasses'],
         'dataProperties': !exists(json, 'dataProperties') ? undefined : ((json['dataProperties'] as Array<any>).map(DataPropertyValueFromJSON)),
+        'shortIri': !exists(json, 'shortIri') ? undefined : json['shortIri'],
     };
 }
 
@@ -120,6 +127,7 @@ export function ClassInstanceEntityToJSON(value?: ClassInstanceEntity | null): a
         'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
         'parentClasses': value.parentClasses,
         'dataProperties': value.dataProperties === undefined ? undefined : ((value.dataProperties as Array<any>).map(DataPropertyValueToJSON)),
+        'shortIri': value.shortIri,
     };
 }
 

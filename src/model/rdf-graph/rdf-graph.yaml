@@ -239,6 +239,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/DataPropertyValue"
+            shortIri:
+              type: string
     FunctionPropertiesEnum:
       type: string
       enum:

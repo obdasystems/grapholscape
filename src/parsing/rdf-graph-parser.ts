@@ -88,7 +88,7 @@ export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
   const classInstances: Map<string, ClassInstanceEntity> = new Map()
   let classInstance: ClassInstanceEntity | undefined
   rdfGraph.classInstanceEntities?.forEach(ci => {
-    let iri = new Iri(ci.fullIri, [])
+    let iri = new Iri(ci.fullIri, [], ci.shortIri)
     let parentClassesIris = ci.parentClasses?.map(p => new Iri(p, namespaces)) || []
     classInstance = new ClassInstanceEntity(iri, parentClassesIris)
     classInstance.annotations = getEntityAnnotations(ci, namespaces)
