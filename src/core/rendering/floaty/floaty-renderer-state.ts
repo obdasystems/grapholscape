@@ -246,30 +246,32 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  protected defaultLayoutOptions = {
-    name: 'cola',
-    avoidOverlap: false,
-    edgeLength: function (edge) {
-      let crowdnessFactor =
-        edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
-        edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
+  protected get defaultLayoutOptions() {
+    return {
+      name: 'cola',
+      avoidOverlap: false,
+      edgeLength: function (edge) {
+        let crowdnessFactor =
+          edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
+          edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
 
-      crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
-      if (edge.hasClass('role')) {
-        return 250 + edge.data('displayedName').length * 4 + crowdnessFactor
-      }
-      else if (edge.target().data('type') == TypesEnum.DATA_PROPERTY ||
-        edge.source().data('type') == TypesEnum.DATA_PROPERTY)
-        return 150
-      else {
-        return 200 + crowdnessFactor
-      }
-    },
-    fit: true,
-    maxSimulationTime: 4000,
-    infinite: false,
-    handleDisconnected: true, // if true, avoids disconnected components from overlapping
-    centerGraph: false,
+        crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
+        if (edge.hasClass('role')) {
+          return 250 + edge.data('displayedName').length * 4 + crowdnessFactor
+        }
+        else if (edge.target().data('type') == TypesEnum.DATA_PROPERTY ||
+          edge.source().data('type') == TypesEnum.DATA_PROPERTY)
+          return 150
+        else {
+          return 200 + crowdnessFactor
+        }
+      },
+      fit: true,
+      maxSimulationTime: 4000,
+      infinite: false,
+      handleDisconnected: true, // if true, avoids disconnected components from overlapping
+      centerGraph: false,
+    }
   }
 
   centerOnElementById(elementId: string, zoom?: number, select?: boolean): void {

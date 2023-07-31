@@ -64,6 +64,12 @@ export default class IncrementalRendererState extends FloatyRendererState {
     }
   }
 
+  runCustomLayout(cyLayoutOptions: any) {
+    Object.assign(this.floatyLayoutOptions, cyLayoutOptions)
+    this.runLayout()
+    this.floatyLayoutOptions = this.defaultLayoutOptions
+  }
+
   /** lock all nodes */
   freezeGraph() {
     if (!this.layoutRunning)
@@ -109,23 +115,54 @@ export default class IncrementalRendererState extends FloatyRendererState {
       newRenderer.renderStateData[this.id] = {}
     }
 
-    this.floatyLayoutOptions = this.defaultLayoutOptions
-    this.floatyLayoutOptions.fit = false
-    this.floatyLayoutOptions.maxSimulationTime = 1000
-    this.floatyLayoutOptions.edgeLength = function (edge: EdgeSingular) {
-      let crowdnessFactor =
-        edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
-        edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
+    // this.floatyLayoutOptions = this.defaultLayoutOptions
+    // this.floatyLayoutOptions.fit = false
+    // this.floatyLayoutOptions.maxSimulationTime = 1000
+    // this.floatyLayoutOptions.edgeLength = function (edge: EdgeSingular) {
+    //   let crowdnessFactor =
+    //     edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
+    //     edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
 
-      crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
-      const nameLength = edge.data('displayedName')?.length * 5 || 0
-      return 140 + crowdnessFactor + nameLength
-    }
-    this.floatyLayoutOptions.avoidOverlap = true
+    //   crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
+    //   const nameLength = edge.data('displayedName')?.length * 5 || 0
+    //   return 140 + crowdnessFactor + nameLength
+    // }
+    // this.floatyLayoutOptions.avoidOverlap = true
+    // this.floatyLayoutOptions.randomize = true
+    // this.floatyLayoutOptions.centerGraph = true
+
+    // this.floatyLayoutOptions.boundingBox = {
+    //   x1: 0,
+    //   y1: 0,
+    //   w: 500,
+    //   h: 500
+    // }
+
+    // this.floatyLayoutOptions.flow = { axis: 'x', minSeparation: 100 }
   }
 
   get renderer(): Renderer {
     return super.renderer
   }
 
+  protected get defaultLayoutOptions() {
+    return {
+      name: 'cola',
+      avoidOverlap: true,
+      edgeLength: function (edge: EdgeSingular) {
+        let crowdnessFactor =
+          edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
+          edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
+
+        crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
+        const nameLength = edge.data('displayedName')?.length * 5 || 0
+        return 140 + crowdnessFactor + nameLength
+      },
+      fit: false,
+      maxSimulationTime: 1000,
+      infinite: false,
+      handleDisconnected: true, // if true, avoids disconnected components from overlapping
+      centerGraph: false,
+    }
+  }
 }

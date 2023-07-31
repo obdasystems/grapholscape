@@ -100,4 +100,12 @@ export default class GrapholElement implements Element {
 
     return result
   }
+
+  equals(grapholElement: GrapholElement) {
+    return this === grapholElement || 
+      (
+        this.id === grapholElement.id &&
+        this.diagramId === grapholElement.diagramId
+      )
+  }
 }

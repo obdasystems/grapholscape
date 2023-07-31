@@ -44,7 +44,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     }
 
     const occurrences = this.occurrences.get(representationKind)
-    if (!occurrences?.find(occ => occ === newGrapholElement)) {
+    if (!occurrences?.some(occ => occ.equals(newGrapholElement))) {
       occurrences?.push(newGrapholElement)
     }
   }

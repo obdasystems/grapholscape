@@ -1,8 +1,7 @@
 import { floatyOptions, GrapholscapeConfig } from "../config";
 import { Grapholscape } from "../core";
-import { Entity } from "../model/rdf-graph/swagger";
-import { Annotation, ClassInstanceEntity, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, getDefaultFilters, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
-import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
+import { Annotation, ClassInstanceEntity, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { Entity, RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
   const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
@@ -14,15 +13,31 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
   
   const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
   let incrementalDiagram: IncrementalDiagram
+  const parsedDiagrams = getDiagrams(rdfGraph, ontology, classInstances, rendererState)
+  
   if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
-    ontology.diagrams = getDiagrams(rdfGraph, ontology, classInstances, rendererState)
+    ontology.diagrams = parsedDiagrams
   else
-    incrementalDiagram = getDiagrams(rdfGraph, ontology, classInstances, rendererState)[0] as IncrementalDiagram
+    incrementalDiagram = parsedDiagrams[0] as IncrementalDiagram
 
   const grapholscape = new Grapholscape(ontology, container, getConfig(rdfGraph))
 
   if (grapholscape.incremental)
     grapholscape.incremental.classInstanceEntities = classInstances
+
+  let grapholEntity: GrapholEntity | undefined
+  parsedDiagrams.forEach(parsedDiagram => {
+    parsedDiagram.representations.forEach((representation, rendererState) => {
+      representation.grapholElements.forEach(elem => {
+        if (elem.iri) {
+          grapholEntity = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
+            ? ontology.getEntity(elem.iri)
+            : grapholscape.incremental?.classInstanceEntities?.get(elem.iri) || ontology.getEntity(elem.iri)
+          grapholEntity?.addOccurrence(elem, rendererState)
+        }
+      })
+    })
+  })
 
   rdfGraph.config?.filters?.forEach(f => {
     if (Object.values(DefaultFilterKeyEnum).includes(f)) {
@@ -77,7 +92,6 @@ export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
     let parentClassesIris = ci.parentClasses?.map(p => new Iri(p, namespaces)) || []
     classInstance = new ClassInstanceEntity(iri, parentClassesIris)
     classInstance.annotations = getEntityAnnotations(ci, namespaces)
-    console.log(classInstance)
     classInstances.set(iri.fullIri, classInstance)
   })
 
@@ -108,14 +122,6 @@ export function getDiagrams(rdfGraph: RDFGraph, ontology: Ontology, classInstanc
     // Nodes
     d.nodes?.forEach(n => {
       grapholElement = GrapholNode.newFromSwagger(n)
-
-      if (n.iri) {
-        grapholEntity = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
-          ? ontology.getEntity(n.iri)
-          : classInstances?.get(n.iri) || ontology.getEntity(n.iri)
-        grapholEntity?.addOccurrence(grapholElement, rendererState)
-      }
-
       diagramRepr!.addElement(grapholElement, grapholEntity)
     })
 
@@ -125,10 +131,6 @@ export function getDiagrams(rdfGraph: RDFGraph, ontology: Ontology, classInstanc
         e.id = diagramRepr!.getNewId('edge')
       }
       grapholElement = GrapholEdge.newFromSwagger(e)
-      if (e.iri) {
-        grapholEntity = ontology.getEntity(e.iri)
-        grapholEntity?.addOccurrence(grapholElement, rendererState)
-      }
       diagramRepr!.addElement(grapholElement)
     })
 
