@@ -11,7 +11,141 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-paths: {}
+paths: 
+  /ontologyDrafts:
+    get:
+      tags:
+      - Ontology Designer
+      summary: Returns the list of all ontology drafts made by the user
+      operationId: getOntologyDrafts
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/RDFGraph'
+    post:
+      tags:
+      - Ontology Designer
+      summary: Add to the list of all ontology drafts a new draft
+      operationId: postOntologyDrafts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RDFGraph'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/RDFGraph'
+  /ontologyDraft/{ontologyName}:
+    get:
+      tags:
+      - Ontology Designer
+      summary: Returns the ontology draft {ontologyName}
+      operationId: getOntologyDraft
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RDFGraph'
+    put:
+      tags:
+      - Ontology Designer
+      summary: Modify the ontology draft {ontologyName} (called when using the ontology builder to save the draft)
+      operationId: putOntologyDraft
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RDFGraph'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/RDFGraph'
+    delete:
+      tags:
+      - Ontology Designer
+      summary: Delete the ontology draft {ontologyName}
+      operationId: deleteOntologyDraft
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/RDFGraph'
+  /endpoint/{name}/cquery/{queryID}/results/rdfGraph:
+    get:
+      tags:
+      - VKG
+      summary: Returns RDFGraph for CONSTRUCT visualization
+      operationId: getRDFGraphConstruct
+      parameters:
+      - name: name
+        description: Endpoint name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: queryID
+        description: Query execution id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: pageSize
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: pageNumber
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RDFGraph'
 components:
   schemas:
     RDFGraph:
