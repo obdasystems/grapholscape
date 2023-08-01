@@ -10,6 +10,7 @@ import { GscapeConfirmDialog } from "../ui";
 import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
+import { Entity, EntityTypeEnum } from "./api/swagger";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -474,7 +475,12 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
     let objectPropertyEdge: GrapholEdge | undefined
     if (objectPropertyEntity && sourceClass && targetClass) {
-      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, TypesEnum.CLASS)
+      objectPropertyEdge = this.diagramBuilder.addObjectProperty(
+        objectPropertyEntity,
+        sourceClass,
+        targetClass,
+        TypesEnum.CLASS
+      ) as GrapholEdge
 
       this.updateEntityNameType(objectPropertyEntity.iri)
       this.updateEntityNameType(sourceClassIri)
@@ -958,7 +964,7 @@ export default class IncrementalController {
     })
   }
 
-  async addPath(path: { iri: string, type: string }[], sourceClassIri: string, targetClassIri: string) {
+  async addPath(path: Entity[]) {
     this.performActionWithBlockedGraph(() => {
       if (!this.diagram.representation)
         return
@@ -967,35 +973,29 @@ export default class IncrementalController {
       let cyElems: Collection = this.diagram.representation.cy.collection()
       let elemId: string | undefined
 
-      path.unshift({
-        iri: sourceClassIri,
-        type: 'class'
-      })
-
-      path.push({
-        iri: targetClassIri,
-        type: 'class',
-      })
-
+      let sourceClassIri: string | undefined, targetClassIri: string | undefined
       for (let entity of path) {
-        if (entity.type === 'objectProperty' || entity.type === 'inverseObjectProperty') {
+        if (entity.type === EntityTypeEnum.ObjectProperty || entity.type === EntityTypeEnum.InverseObjectProperty) {
           if (!path[i + 1] || !path[i - 1])
             return
 
           sourceClassIri = path[i - 1].iri
           targetClassIri = path[i + 1].iri
 
+          if (!sourceClassIri || !targetClassIri)
+            return
+
           if (entity.iri === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
             const sourceId = this.addClass(sourceClassIri)?.id
             const targetId = this.addClass(targetClassIri)?.id
             if (sourceId && targetId) {
-              if (entity.type === 'objectProperty')
+              if (entity.type === EntityTypeEnum.ObjectProperty)
                 elemId = this.addEdge(sourceId, targetId, TypesEnum.INCLUSION)?.id
               else
                 elemId = this.addEdge(targetId, sourceId, TypesEnum.INCLUSION)?.id
             }
-          } else {
-            if (entity.type === 'objectProperty')
+          } else if (entity.iri) {
+            if (entity.type === EntityTypeEnum.ObjectProperty)
               elemId = this.addIntensionalObjectProperty(entity.iri, sourceClassIri, targetClassIri)?.id
             else
               elemId = this.addIntensionalObjectProperty(entity.iri, targetClassIri, sourceClassIri)?.id

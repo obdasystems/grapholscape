@@ -75,7 +75,7 @@ export default class HighlightsManager {
 
 
   async getShortestPath(sourceClassIri: string, targetClassIri: string) {
-    return this.vkgApi.getShortestPath(sourceClassIri, targetClassIri)
+    return this.vkgApi.getIntensionalShortestPath(sourceClassIri, targetClassIri)
   }
 
   public hasUnfoldings(entityIri: string, entityType: TypesEnum) {

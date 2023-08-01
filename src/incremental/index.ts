@@ -57,8 +57,8 @@ export function initIncremental(grapholscape: Grapholscape) {
       e.detail.targetClassIri
     )
     
-    if (path) {
-      incrementalController.addPath(path, e.detail.sourceClassIri, e.detail.targetClassIri)
+    if (path && path[0].entities) {
+      incrementalController.addPath(path[0].entities)
       initialMenu.shortestPathMode = false
       IncrementalUI.moveUpLeft(initialMenu)
       initialMenu.closePanel()

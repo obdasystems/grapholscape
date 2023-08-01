@@ -333,7 +333,6 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
       cy.scratch('eh', eh)
       eh.start((e.currentTarget as NodeButton).node)
       cy.on('ehcomplete', async (evt, sourceNode: NodeSingular, targetNode: NodeSingular, addedEdge: EdgeSingular) => {
-        console.log(addedEdge)
         addedEdge.remove()
         const sourceIri = sourceNode.data('iri')
         const targetIri = targetNode.data('iri')
@@ -343,8 +342,8 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
             targetIri
           )
 
-          if (path) {
-            ic.addPath(path, sourceIri, targetIri)
+          if (path && path[0]?.entities) {
+            ic.addPath(path[0].entities)
           }
         }
       })

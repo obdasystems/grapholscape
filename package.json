@@ -39,7 +39,8 @@
     "rdf-graph-gen:fix-index": "node src/model/rdf-graph/fix-index.js",
     "apigen": "run-s apigen:*",
     "apigen:clean": "rimraf ./src/incremental/api/swagger",
-    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i ./src/incremental/api/api-spec-1.0.1.json",
+    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i https://api.swaggerhub.com/apis/OBDASystems/swagger-sparqling_ws/1.0.3",
+    "apigen:post-gen": "node src/incremental/api/post-api-gen.js",
     "snapshot": "npm version prerelease --no-git-tag --preid=snap"
   },
   "repository": {

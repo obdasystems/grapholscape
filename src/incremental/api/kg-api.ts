@@ -5,6 +5,7 @@ import * as QueriesTemplates from '../queries/query-templates'
 import handleApiCall from './handle-api-call'
 import { EmptyUnfoldingEntities, HeadTypes, MastroEndpoint, MaterializedCounts, QuerySemantics, QueryStatusEnum, RequestOptions } from './model'
 import { Highlights } from './swagger/models/Highlights'
+import { Configuration, OntologyGraphApi, OntologyPath } from './swagger'
 
 export type ClassInstance = {
   iri: string,
@@ -35,10 +36,7 @@ export interface IVirtualKnowledgeGraphApi {
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
-  getShortestPath: (sourceClassIri: string, targetClassIri: string) => Promise<{
-    type: string,
-    iri: string
-  }[]>
+  getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string) => Promise<OntologyPath[]>
   pageSize: number
 }
 
@@ -355,12 +353,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     queryPoller.start()
   }
 
-  async getShortestPath(sourceClassIri: string, targetClassIri: string) {
+  async getIntensionalShortestPath(sourceClassIri: string, targetClassIri: string, kShortest = false) {
     const params = new URLSearchParams({
       lastSelectedIRI: sourceClassIri,
       clickedIRI: targetClassIri,
       version: this.requestOptions.version
     })
+
+    if (kShortest)
+      params.append('kShortest', 'true')
+
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights/paths?${params.toString()}`)
     return (await (await handleApiCall(
       fetch(url, {
@@ -368,7 +370,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
         headers: this.requestOptions.headers
       }),
       this.requestOptions.onError
-    )).json()).entities
+    )).json())
   }
 
   shouldQueryUseLabels(executionId: string) {
