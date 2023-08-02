@@ -78,6 +78,10 @@ export default class HighlightsManager {
     return this.vkgApi.getIntensionalShortestPath(sourceClassIri, targetClassIri)
   }
 
+  async getShortestKPaths(sourceClassIri: string, targetClassIri: string) {
+    return this.vkgApi.getIntensionalShortestPath(sourceClassIri, targetClassIri, true)
+  }
+
   public hasUnfoldings(entityIri: string, entityType: TypesEnum) {
     switch (entityType) {
       case TypesEnum.DATA_PROPERTY:

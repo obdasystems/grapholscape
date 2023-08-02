@@ -36,7 +36,7 @@ export interface IVirtualKnowledgeGraphApi {
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
-  getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string) => Promise<OntologyPath[]>
+  getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>
   pageSize: number
 }
 

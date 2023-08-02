@@ -34,6 +34,8 @@ export const ModalMixin = <T extends Constructor<IBaseMixin>>(superClass: T) => 
         opacity: 0.6;
         display: none;
       `
+
+      this.hide()
     }
 
     show() {

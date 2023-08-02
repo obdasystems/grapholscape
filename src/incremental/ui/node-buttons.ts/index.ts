@@ -4,16 +4,16 @@ import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { textSpinner, WidgetEnum } from "../../../ui";
 import { classInstanceIcon, objectPropertyIcon, pathIcon } from "../../../ui/assets";
+import NodeButton from "../../../ui/common/button/node-button";
+import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
+import { pathSelectionInit } from "../path-selection";
 import showMenu from "../show-menu";
-import NodeButton from "../../../ui/common/button/node-button";
-import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
-import { edgeHandlesOptions } from "../../edge-handles-options";
 
 export function NodeButtonsFactory(ic: IncrementalController) {
 
@@ -337,14 +337,7 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
         const sourceIri = sourceNode.data('iri')
         const targetIri = targetNode.data('iri')
         if (sourceIri && targetIri) {
-          const path = await ic.endpointController?.highlightsManager?.getShortestPath(
-            sourceIri,
-            targetIri
-          )
-
-          if (path && path[0]?.entities) {
-            ic.addPath(path[0].entities)
-          }
+          pathSelectionInit(ic, sourceIri, targetIri)
         }
       })
 
