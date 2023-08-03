@@ -10,7 +10,7 @@ import { GscapeConfirmDialog } from "../ui";
 import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
-import { Entity, EntityTypeEnum } from "./api/swagger";
+import { Entity, EntityTypeEnum, OntologyPath } from "./api/swagger";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -212,6 +212,23 @@ export default class IncrementalController {
           fit: true,
         }
       )
+    }
+  }
+
+  /**
+   * Given source instance and target instance IRIs and a path to traverse,
+   * add to the diagram the set of instances/object properties resulting
+   * from the CONSTRUCT query over the path.
+   */
+  async addInstancesPath(sourceIri: string, targetIri: string, path: OntologyPath) {
+    const rdfGraph = await this.endpointController?.requestInstancesPath(
+      sourceIri,
+      targetIri,
+      path
+    )
+
+    if (rdfGraph) {
+      this.addRDFGraph(rdfGraph)
     }
   }
 

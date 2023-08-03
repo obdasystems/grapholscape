@@ -1,7 +1,9 @@
 import { TypesEnum } from "../model";
+import { RDFGraph } from "../model/rdf-graph/swagger";
 import EndpointApi from "./api/endpoint-api";
 import VKGApi from "./api/kg-api";
 import { MastroEndpoint, RequestOptions } from "./api/model";
+import { OntologyPath } from "./api/swagger";
 import HighlightsManager from "./highlights-manager";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 
@@ -185,6 +187,17 @@ export default class EndpointController {
       this.vkgApi?.getInstanceLabels(
         instanceIri,
         (res) => resolve(res)
+      )
+    })
+  }
+
+  requestInstancesPath(sourceInstanceIri: string, targetIri: string, path: OntologyPath) {
+    return new Promise((resolve: (result: RDFGraph) => void) => {
+      this.vkgApi?.getExtensionalShortestPath(
+        sourceInstanceIri,
+        targetIri,
+        path,
+        (rdfGraph) => resolve(rdfGraph)
       )
     })
   }

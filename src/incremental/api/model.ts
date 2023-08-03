@@ -30,6 +30,12 @@ export enum QuerySemantics {
   FULL_SPARQL = 'eql'
 }
 
+export enum QueryType {
+  STANDARD = 'standard',
+  COUNT = 'count',
+  CONSTRUCT = 'construct'
+}
+
 export type RequestOptions = {
   basePath: string,
   version: string,

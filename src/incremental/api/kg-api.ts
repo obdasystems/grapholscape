@@ -1,11 +1,12 @@
 import { TypesEnum } from '../../model'
+import { RDFGraph } from '../../model/rdf-graph/swagger'
 import QueryManager from '../queries/query-manager'
 import { ResultRecord } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
 import handleApiCall from './handle-api-call'
 import { EmptyUnfoldingEntities, HeadTypes, MastroEndpoint, MaterializedCounts, QuerySemantics, QueryStatusEnum, RequestOptions } from './model'
+import { OntologyPath } from './swagger'
 import { Highlights } from './swagger/models/Highlights'
-import { Configuration, OntologyGraphApi, OntologyPath } from './swagger'
 
 export type ClassInstance = {
   iri: string,
@@ -37,6 +38,7 @@ export interface IVirtualKnowledgeGraphApi {
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
   getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>
+  getExtensionalShortestPath: (sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph: RDFGraph) => void) => Promise<void>
   pageSize: number
 }
 
@@ -371,6 +373,43 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       }),
       this.requestOptions.onError
     )).json())
+  }
+
+  async getExtensionalShortestPath(
+    sourceInstanceIri: string,
+    targetIri: string,
+    path: OntologyPath,
+    onNewResult: (rdfGraph: RDFGraph) => void
+    ) {
+    const params = new URLSearchParams({
+      sourceInstanceIri: sourceInstanceIri,
+      targetInstanceIRI: targetIri,
+      labels: 'true',
+      version: this.requestOptions.version
+    })
+
+    const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/instanceShortestPath?${params.toString()}`)
+    const headers = this.requestOptions.headers
+
+    // headers['content-type'] = 'text/plain'
+    const queryCode = (await (await handleApiCall(
+      fetch(url, {
+        method: 'post',
+        headers: headers,
+        body: JSON.stringify(path),
+      }),
+      this.requestOptions.onError
+    )).text())
+
+    if (queryCode && typeof queryCode === 'string') {
+      const poller = await this.queryManager.performQueryContrusct(queryCode, 100)
+
+      poller.onNewResults = (result) => {
+        console.log(result)
+      }
+
+      poller.start()
+    }
   }
 
   shouldQueryUseLabels(executionId: string) {

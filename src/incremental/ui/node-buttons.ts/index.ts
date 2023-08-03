@@ -1,4 +1,4 @@
-import { EdgeSingular, NodeSingular } from "cytoscape";
+import { NodeSingular } from "cytoscape";
 import { SVGTemplateResult, TemplateResult } from "lit";
 import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
@@ -7,12 +7,13 @@ import { classInstanceIcon, objectPropertyIcon, pathIcon } from "../../../ui/ass
 import NodeButton from "../../../ui/common/button/node-button";
 import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
+import { OntologyPath } from "../../api/swagger";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
-import { pathSelectionInit } from "../path-selection";
+import { handlePathEdgeDraw } from "../path-selection";
 import showMenu from "../show-menu";
 
 export function NodeButtonsFactory(ic: IncrementalController) {
@@ -326,35 +327,56 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 }
 
 function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
-  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    const cy = ic.grapholscape.renderer.cy as any
-    if (cy && !cy.scratch('eh')) {
-      let eh = cy.edgehandles()
-      cy.scratch('eh', eh)
-      eh.start((e.currentTarget as NodeButton).node)
-      cy.on('ehcomplete', async (evt, sourceNode: NodeSingular, targetNode: NodeSingular, addedEdge: EdgeSingular) => {
-        addedEdge.remove()
-        const sourceIri = sourceNode.data('iri')
-        const targetIri = targetNode.data('iri')
-        if (sourceIri && targetIri) {
-          pathSelectionInit(ic, sourceIri, targetIri)
-        }
-      })
+  const onComplete = async (sourceNode: NodeSingular, targetNode: NodeSingular) => {
+    let sourceIriForPath = sourceNode.data('iri')
+    let targetIriForpath = targetNode.data('iri')
+    let path: OntologyPath[] | undefined
+    // let pathSelector: GscapePathSelector | undefined
+    if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
+      if (sourceIriForPath && targetIriForpath) {
+        path = await ic.endpointController?.highlightsManager?.getShortestPath(
+          sourceIriForPath,
+          targetIriForpath
+        )
 
-      const onStop = (ev: MouseEvent) => {
-        const eh = cy.scratch('eh')
-        if (eh) {
-          eh.stop()
-          eh.destroy()
-          cy.removeScratch('eh')
-          cy.removeListener('ehcomplete ehstop')
+        if (path && path[0].entities) {
+          ic.addPath(path[0].entities)
         }
-        
-        
-        document.removeEventListener('mouseup', onStop)
+      }
+    } else {
+      let entity: ClassInstanceEntity | undefined
+      // Take parentClass IRI to find a path to the other node in the intensional level
+      if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
+        entity = ic.classInstanceEntities.get(sourceNode.data('iri'))
+
+        if (entity) {
+          sourceIriForPath = entity.parentClassIris[0].fullIri
+        }
       }
 
-      document.addEventListener('mouseup', (ev: MouseEvent) => onStop(ev))
+      if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
+        entity = ic.classInstanceEntities.get(targetNode.data('iri'))
+
+        if (entity) {
+          targetIriForpath = entity.parentClassIris[0].fullIri
+        }
+      }
+
+      path = await ic.endpointController?.highlightsManager?.getShortestPath(
+        sourceIriForPath,
+        targetIriForpath
+      )
+
+      if (path && path[0].entities) {
+        ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, path[0])
+      }
+    }
+  }
+
+  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    const targetNode = (e.currentTarget as NodeButton).node
+    if (targetNode) {
+      handlePathEdgeDraw(targetNode, ic, onComplete)
     }
   }
 }

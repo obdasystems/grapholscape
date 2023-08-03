@@ -1,51 +1,78 @@
+import { EdgeSingular, NodeSingular } from "cytoscape";
+import { RendererStatesEnum } from "../../../model";
 import IncrementalController from "../../controller";
-import GscapePathSelector, { PathSelectionEvent } from "./path-selector";
+import { edgeHandlesOptions } from "../../edge-handles-options";
+import GscapePathSelector from "./path-selector";
 
-export async function pathSelectionInit(ic: IncrementalController, sourceIri: string, targetIri: string) {
-  if (ic.grapholscape.uiContainer) {
-    const path = await ic.endpointController?.highlightsManager?.getShortestPath(
-      sourceIri,
-      targetIri
+export function pathSelectionInit(
+  ic: IncrementalController,
+  sourceIri: string,
+  targetIri: string) {
+
+  const pathSelector = new GscapePathSelector()
+
+  ic.endpointController?.highlightsManager?.getShortestKPaths(
+    sourceIri,
+    targetIri
+  ).then(paths => pathSelector.paths = paths)
+
+  pathSelector.getDisplayedName = (entity) => {
+    if (!entity.iri)
+      return
+
+    const grapholEntity = ic.grapholscape.ontology.getEntity(entity.iri)
+    return grapholEntity?.getDisplayedName(
+      ic.grapholscape.entityNameType,
+      ic.grapholscape.language,
     )
-
-    if (!path) return
-
-    const pathSelector = new GscapePathSelector()
-    ic.grapholscape.uiContainer.appendChild(pathSelector)
-
-    pathSelector.getDisplayedName = (entity) => {
-      if (!entity.iri)
-        return
-
-      const grapholEntity = ic.grapholscape.ontology.getEntity(entity.iri)
-      return grapholEntity?.getDisplayedName(
-        ic.grapholscape.entityNameType,
-        ic.grapholscape.language,
-      )
-    }
-
-    pathSelector.addEventListener('path-selection', (evt: PathSelectionEvent) => {
-      if (evt.detail.entities) {
-        ic.addPath(evt.detail.entities)
-      }
-    })
-
-    pathSelector.addEventListener('show-more-paths', async () => {
-      pathSelector.canShowMore = false
-
-      const paths = await ic.endpointController?.highlightsManager?.getShortestKPaths(
-        sourceIri,
-        targetIri
-      )
-      
-      if (paths)
-        pathSelector.paths = paths
-    })
-
-    pathSelector.canShowMore = true
-    pathSelector.paths = path
-    pathSelector.show()
-    return pathSelector
   }
 
+  // pathSelector.canShowMore = true
+
+  if (ic.grapholscape.uiContainer) {
+    ic.grapholscape.uiContainer.appendChild(pathSelector)
+  }
+
+  return pathSelector
+}
+
+export function handlePathEdgeDraw(targetNode: NodeSingular, ic: IncrementalController, onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular) => { }) {
+  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    const cy = ic.grapholscape.renderer.cy as any
+    if (cy && !cy.scratch('eh')) {
+      let eh = cy.edgehandles(edgeHandlesOptions)
+      cy.scratch('eh', eh)
+      eh.start(targetNode)
+      cy.on('ehcomplete', async (evt, sourceNode: NodeSingular, targetNode: NodeSingular, addedEdge: EdgeSingular) => {
+        addedEdge.remove()
+        onComplete(sourceNode, targetNode)
+        // if (sourceIriForPath && targetIriForpath) {
+        //   pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
+
+        //   pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
+        //     ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
+        //   })
+        // }
+
+        // if (pathSelector) {
+        //   pathSelector.canShowMore = true
+        //   pathSelector.show()
+        // }
+      })
+
+      const onStop = (ev: MouseEvent) => {
+        const eh = cy.scratch('eh')
+        if (eh) {
+          eh.stop()
+          eh.destroy()
+          cy.removeScratch('eh')
+          cy.removeListener('ehcomplete ehstop')
+        }
+
+        document.removeEventListener('mouseup', onStop)
+      }
+
+      document.addEventListener('mouseup', (ev: MouseEvent) => onStop(ev))
+    }
+  }
 }
