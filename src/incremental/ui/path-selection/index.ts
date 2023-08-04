@@ -36,7 +36,7 @@ export function pathSelectionInit(
   return pathSelector
 }
 
-export function handlePathEdgeDraw(targetNode: NodeSingular, ic: IncrementalController, onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular) => { }) {
+export function handlePathEdgeDraw(targetNode: NodeSingular, ic: IncrementalController, onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => { }) {
   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
     const cy = ic.grapholscape.renderer.cy as any
     if (cy && !cy.scratch('eh')) {
@@ -44,20 +44,7 @@ export function handlePathEdgeDraw(targetNode: NodeSingular, ic: IncrementalCont
       cy.scratch('eh', eh)
       eh.start(targetNode)
       cy.on('ehcomplete', async (evt, sourceNode: NodeSingular, targetNode: NodeSingular, addedEdge: EdgeSingular) => {
-        addedEdge.remove()
-        onComplete(sourceNode, targetNode)
-        // if (sourceIriForPath && targetIriForpath) {
-        //   pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
-
-        //   pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
-        //     ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
-        //   })
-        // }
-
-        // if (pathSelector) {
-        //   pathSelector.canShowMore = true
-        //   pathSelector.show()
-        // }
+        onComplete(sourceNode, targetNode, addedEdge)
       })
 
       const onStop = (ev: MouseEvent) => {

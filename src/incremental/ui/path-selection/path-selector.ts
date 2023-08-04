@@ -299,7 +299,14 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
     this.remove()
   }
 
-  private handleCancel() {
+  private async handleCancel() {
+    await this.updateComplete
+
+    this.dispatchEvent(new CustomEvent('cancel', {
+      bubbles: true,
+      composed: true
+    }))
+
     this.remove()
   }
 
@@ -325,8 +332,8 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
     for( let [pathId, path] of newPaths.entries()) {
       if (path.entities) {
         let edge: ElementDefinition,
-          previousClassCy,
-          successorClassCy
+          previousClassCy: cytoscape.SingularElementArgument,
+          successorClassCy: cytoscape.SingularElementArgument
 
         for (let [i, entity] of path.entities.entries()) {
           if (entity.type === EntityTypeEnum.ObjectProperty || entity.type === EntityTypeEnum.InverseObjectProperty) {
@@ -384,7 +391,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
         spacing: 80,
         fixedAlignment: 'BALANCED',
       },
-      padding: 20,
+      padding: 30,
       // some more options here...
     } as any).run()
 
@@ -427,6 +434,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
       container: this.shadowRoot?.querySelector('#cy'),
       autounselectify: true,
       autoungrabify: true,
+      wheelSensitivity: 0.2,
     })
 
     this.setTheme(this.theme)
@@ -461,7 +469,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
       this.fixHover()
     })
 
-    this.cy.on('dbtap', (evt) => {
+    this.cy.on('dbltap', (evt) => {
       if (evt.target === this.cy)
         this.cy?.fit()
 

@@ -26,7 +26,7 @@ export function showButtons(targetNode: NodeSingular, nodeButtons: Map<string, N
 export function hideButtons(targetNode: NodeSingular) {
   const nodeButtons = targetNode.scratch('node-button-list') as NodeButton[]
 
-  nodeButtons.forEach((btn, i) => {
+  nodeButtons?.forEach((btn, i) => {
     btn.hide();
     const updatePosFunction = targetNode.scratch(`place-node-button-${i}`)
     if (updatePosFunction) {

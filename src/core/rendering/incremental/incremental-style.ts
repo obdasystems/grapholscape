@@ -57,6 +57,29 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
+      selector: '.loading-edge',
+      style: {
+        width: 4,
+        "line-color": theme.getColour(ColoursNames.neutral),
+        "transition-property": "line-color target-arrow-color",
+        "transition-duration": '0.5s',
+        'text-rotation': 'autorotate',
+        'target-arrow-color': theme.getColour(ColoursNames.neutral),
+        'font-size': 12,
+        'text-background-color': theme.getColour(ColoursNames.bg_graph),
+        label: 'Loading...',
+      }
+    },
+
+    {
+      selector: '.loading-edge[?on]',
+      style: {
+        "line-color": theme.getColour(ColoursNames.accent),
+        "target-arrow-color": theme.getColour(ColoursNames.accent)
+      }
+    },
+
+    {
       selector: '.eh-ghost-edge, edge.eh-preview',
       style: {
         'width': 4,
@@ -96,7 +119,7 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         'opacity': 0.4,
       }
-    }
+    },
 
   ] as Stylesheet[]
 

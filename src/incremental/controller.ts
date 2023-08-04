@@ -224,7 +224,9 @@ export default class IncrementalController {
       sourceIri,
       targetIri,
       path
-    )
+    ).catch(() => {
+      console.log('aaah')
+    })
 
     if (rdfGraph) {
       this.addRDFGraph(rdfGraph)

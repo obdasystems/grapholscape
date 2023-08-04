@@ -1,4 +1,4 @@
-import { NodeSingular } from "cytoscape";
+import { EdgeSingular, NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { classIcon, counter, pathIcon, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
@@ -52,10 +52,24 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
         content: 'Find paths to',
         icon: pathIcon,
         select: () => {
-          const onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular) => {
+          const onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
             let pathSelector: GscapePathSelector | undefined
             let sourceIriForPath = sourceNode.data('iri')
             let targetIriForpath = targetNode.data('iri')
+
+            const loadingAnimationInterval = setInterval(() => {
+              loadingEdge.data('on', !loadingEdge.data('on'))
+            }, 500)
+        
+            const stopAnimation = () => {
+              loadingEdge.remove()
+              clearInterval(loadingAnimationInterval)
+            }
+        
+            if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
+              stopAnimation()
+            }
+
             // let pathSelector: GscapePathSelector | undefined
             if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
               if (sourceIriForPath && targetIriForpath) {
@@ -64,6 +78,8 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
                 pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
                   if (evt.detail.entities)
                     ic.addPath(evt.detail.entities)
+
+                  stopAnimation()
                 })
               }
             } else {
@@ -90,11 +106,13 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
                 pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
                   ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
+                    .finally(stopAnimation)
                 })
               }
             }
 
             if (pathSelector) {
+              pathSelector.addEventListener('cancel', stopAnimation)
               pathSelector.show()
             }
           }
