@@ -228,7 +228,8 @@ export class QueryConstructResultsPoller extends QueryPoller {
   }
 
   protected hasAnyResults(): boolean {
-    return this.result && this.result.diagrams.length > 0
+    const diagramNodes = this.result.diagrams[0]?.nodes
+    return this.result && diagramNodes !== undefined && diagramNodes.length > 0
   }
 
   protected isResultError(result: RDFGraph): boolean {

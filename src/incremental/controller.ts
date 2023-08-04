@@ -228,6 +228,8 @@ export default class IncrementalController {
 
     if (rdfGraph) {
       this.addRDFGraph(rdfGraph)
+    } else {
+      showMessage('No results found', 'Info', this.grapholscape.uiContainer)
     }
   }
 

@@ -1,3 +1,4 @@
+import { RDFGraph } from "../../model/rdf-graph/swagger"
 import handleApiCall from "../api/handle-api-call"
 import { MastroEndpoint, QuerySemantics, QueryStatusEnum, QueryType, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
@@ -180,47 +181,58 @@ export default class QueryManager {
     })
   }
 
-  async performQueryContrusct(queryCode: string, pageSize: number, keepAlive = false) {
-    const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.CONSTRUCT)
-
+  async performQueryContrusct(queryCode: string, pageSize?: number) {
     // return this.getQueryResults(executionId, pageSize, pageNumber)
-    const queryResultsPoller = new QueryConstructResultsPoller(this.getQueryResultRequest(executionId, pageSize, 1, QueryType.CONSTRUCT), pageSize, executionId)
-    if (!keepAlive) {
-      const pollers = this._runningQueryPollerByExecutionId.get(executionId)
-      if (pollers) {
-        pollers.resultPollers.add(queryResultsPoller)
-      } else {
-        this._runningQueryPollerByExecutionId.set(executionId, {
-          resultPollers: new Set([queryResultsPoller]),
-          statusPollers: new Set(),
-        })
+    // const queryResultsPoller = new QueryConstructResultsPoller(this.getQueryResultRequest(executionId, pageSize, 1, QueryType.CONSTRUCT), pageSize, executionId)
+    // if (!keepAlive) {
+    //   const pollers = this._runningQueryPollerByExecutionId.get(executionId)
+    //   if (pollers) {
+    //     pollers.resultPollers.add(queryResultsPoller)
+    //   } else {
+    //     this._runningQueryPollerByExecutionId.set(executionId, {
+    //       resultPollers: new Set([queryResultsPoller]),
+    //       statusPollers: new Set(),
+    //     })
+    //   }
+    // }
+
+    // queryResultsPoller.onError = this.requestOptions.onError
+
+    return new Promise<RDFGraph | undefined>(async (resolve) => {
+      const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.CONSTRUCT)
+      const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
+      this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
+
+      queryStatusPoller.onNewResults = (statusResult) => {
+        if (statusResult.status !== QueryStatusEnum.RUNNING) {
+          this._runningQueryPollerByExecutionId.delete(executionId)
+          queryStatusPoller.stop()
+        }
+
+        if (statusResult.status === QueryStatusEnum.FINISHED) {
+          pageSize = pageSize || statusResult.numResults
+
+          if (pageSize > 0) {
+            const request = this.getQueryResultRequest(executionId, pageSize || statusResult.numResults, 1, QueryType.CONSTRUCT)
+            handleApiCall(fetch(request), this.onError)
+              .then(async response => resolve(await response.json()))
+          } {
+            resolve(undefined)
+          }
+        }
       }
-    }
 
-    queryResultsPoller.onError = this.requestOptions.onError
+      queryStatusPoller.onError = (errors) => {
+        for (let error of errors)
+          this.requestOptions.onError(error)
 
-    const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId,))
-    this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
-
-    queryStatusPoller.start()
-    queryStatusPoller.onNewResults = (result) => {
-      queryResultsPoller.numberResultsAvailable = result.numResults
-      if (result.status !== QueryStatusEnum.RUNNING) {
-        queryResultsPoller.stop()
+        // queryResultsPoller.stop()
         this._runningQueryPollerByExecutionId.delete(executionId)
-        queryStatusPoller.stop()
       }
-    }
 
-    queryStatusPoller.onError = (errors) => {
-      for (let error of errors)
-        this.requestOptions.onError(error)
-
-      queryResultsPoller.stop()
-      this._runningQueryPollerByExecutionId.delete(executionId)
-    }
-
-    return queryResultsPoller
+      queryStatusPoller.start()
+    })
+    
   }
 
   async getQueryStatus(executionID: string): Promise<{ status: QueryStatusEnum, hasError: boolean }> {
@@ -404,8 +416,8 @@ export default class QueryManager {
   }
 
   // Requests for polling a query
-  private getQueryResultRequest(queryExecutionId: string, limit: number, pagenumber = 1, queryType = QueryType.STANDARD) {
-    const params = new URLSearchParams({ pagesize: limit.toString(), pagenumber: pagenumber.toString() })
+  private getQueryResultRequest(queryExecutionId: string, pageSize: number, pagenumber = 1, queryType = QueryType.STANDARD) {
+    const params = new URLSearchParams({ pagesize: pageSize.toString(), pagenumber: pagenumber.toString() })
 
     return new Request(`${this.getQueryResultPath(queryExecutionId, queryType)}?${params.toString()}`, {
       method: 'get',

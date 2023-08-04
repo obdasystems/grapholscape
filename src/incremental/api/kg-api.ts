@@ -38,7 +38,7 @@ export interface IVirtualKnowledgeGraphApi {
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
   getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>
-  getExtensionalShortestPath: (sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph: RDFGraph) => void) => Promise<void>
+  getExtensionalShortestPath: (sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void) => Promise<void>
   pageSize: number
 }
 
@@ -379,7 +379,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     sourceInstanceIri: string,
     targetIri: string,
     path: OntologyPath,
-    onNewResult: (rdfGraph: RDFGraph) => void
+    onNewResult: (rdfGraph?: RDFGraph) => void
     ) {
     const params = new URLSearchParams({
       sourceInstanceIri: sourceInstanceIri,
@@ -402,13 +402,8 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     )).text())
 
     if (queryCode && typeof queryCode === 'string') {
-      const poller = await this.queryManager.performQueryContrusct(queryCode, 100)
-
-      poller.onNewResults = (result) => {
-        console.log(result)
-      }
-
-      poller.start()
+      this.queryManager.performQueryContrusct(queryCode)
+        .then(rdfGraph => onNewResult(rdfGraph))
     }
   }
 
