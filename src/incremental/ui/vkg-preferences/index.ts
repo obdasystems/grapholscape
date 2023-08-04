@@ -1,5 +1,5 @@
 import { RendererStatesEnum } from "../../../model"
-import { GscapeConfirmDialog, WidgetEnum } from "../../../ui"
+import { showMessage, WidgetEnum } from "../../../ui"
 import IncrementalController from "../../controller"
 import { IncrementalEvent } from "../../lifecycle"
 import GscapeVKGPreferences from "./vkg-preferences"
@@ -41,13 +41,16 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
   vkgPreferences.onTogglePanel = () => setEndpointList()
 
   vkgPreferences.onEndpointChange(newEndpointName => {
-    const confirmDialog = new GscapeConfirmDialog(`Are you sure? \nIf you change the current endpoint, your exploration will be reset.`)
-    incrementalController.grapholscape.uiContainer?.appendChild(confirmDialog)
-    confirmDialog.show()
-    confirmDialog.onConfirm = async () => {
-      incrementalController.reset()
-      incrementalController.endpointController?.setEndpoint(newEndpointName)
-      incrementalController.endpointController?.setLanguage(incrementalController.grapholscape.language)
+    if (incrementalController.grapholscape.uiContainer) {
+      showMessage(
+        `Are you sure? \nIf you change the current endpoint, your exploration will be reset.`,
+        'Confirm',
+        incrementalController.grapholscape.uiContainer
+      ).onConfirm(async () => {
+        incrementalController.reset()
+        incrementalController.endpointController?.setEndpoint(newEndpointName)
+        incrementalController.endpointController?.setLanguage(incrementalController.grapholscape.language)
+      })
     }
   })
 

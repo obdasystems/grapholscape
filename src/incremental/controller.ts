@@ -6,7 +6,7 @@ import { Annotation, AnnotationsKind, DiagramRepresentation, EntityNameType, Gra
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { RDFGraph } from "../model/rdf-graph/swagger";
 import * as RDFGraphParser from '../parsing/rdf-graph-parser';
-import { GscapeConfirmDialog } from "../ui";
+import { showMessage } from "../ui";
 import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
@@ -920,17 +920,16 @@ export default class IncrementalController {
         setTimeout(() => {
           if (promisesCount > 0) {
             clearInterval(interval)
-            const dialog = new GscapeConfirmDialog(`
-              Focus instance [${instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)}] took too long, reached timeout limit.
-              Partial results might be shown, ok?
-            `, 'Timeout Reached')
-
-            this.grapholscape.uiContainer?.appendChild(dialog)
-            dialog.onConfirm = onDone
-            dialog.onCancel = () => {
-              this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+            if (this.grapholscape.uiContainer) {
+              showMessage(`
+                Focus instance [${instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)}] took too long, reached timeout limit.
+                Partial results might be shown, ok?
+              `, 'Timeout Reached',
+                this.grapholscape.uiContainer
+              )
+                .onConfirm(onDone)
+                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri))
             }
-            dialog.show()
           }
         }, 10000)
       }
