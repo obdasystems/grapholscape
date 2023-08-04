@@ -9,7 +9,7 @@ export function pathSelectionInit(
   sourceIri: string,
   targetIri: string) {
 
-  const pathSelector = new GscapePathSelector()
+  const pathSelector = new GscapePathSelector(ic.grapholscape.theme)
 
   ic.endpointController?.highlightsManager?.getShortestKPaths(
     sourceIri,

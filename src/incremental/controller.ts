@@ -186,7 +186,6 @@ export default class IncrementalController {
       const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL)
 
       this.performActionWithBlockedGraph(() => {
-        console.log('################')
         let elem: GrapholElement | undefined
         diagramRepr?.cy.nodes().forEach(node => {
           elem = diagramRepr.grapholElements.get(node.id())

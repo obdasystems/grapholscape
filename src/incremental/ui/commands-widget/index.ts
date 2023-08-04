@@ -4,6 +4,7 @@ import { classIcon, counter, pathIcon, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
+import { hideButtons } from "../node-buttons.ts";
 import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
 import GscapePathSelector, { PathSelectionEvent } from "../path-selection/path-selector";
 import * as IncrementalCommands from "./commands";
@@ -24,6 +25,8 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const entity = ic.classInstanceEntities.get(event.target.data().iri) || ic.grapholscape.ontology.getEntity(event.target.data().iri)
     const grapholElement = ic.diagram.representation?.grapholElements.get(event.target.id())
     if (!entity || !grapholElement) return
+
+    hideButtons(event.target)
 
     if (grapholElement.is(TypesEnum.OBJECT_PROPERTY) &&
       event.target.source().data().type === TypesEnum.CLASS_INSTANCE &&

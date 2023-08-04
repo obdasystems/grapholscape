@@ -1,5 +1,6 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
+import klay from 'cytoscape-klay'
 import edgehandles from 'cytoscape-edgehandles'
 import popper from 'cytoscape-popper'
 import undoredo from 'cytoscape-undo-redo'
@@ -19,6 +20,7 @@ cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
 cytoscape.use(edgehandles)
 cytoscape.use(undoredo)
+cytoscape.use(klay)
 
 export * from './config'
 export * from './core'

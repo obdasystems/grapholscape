@@ -15,6 +15,9 @@ import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import { handlePathEdgeDraw } from "../path-selection";
 import showMenu from "../show-menu";
+import { showButtons, hideButtons, getButtonOffset } from "./show-hide-buttons";
+
+export { showButtons, hideButtons }
 
 export function NodeButtonsFactory(ic: IncrementalController) {
 
@@ -161,33 +164,35 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
     return
 
   cy.on('mouseover', 'node', e => {
-    const targetNode = e.target
-    const targetType = targetNode.data().type
+    showButtons(e.target, nodeButtons)
+    // const targetNode = e.target
+    // const targetType = targetNode.data().type
 
-    if (!targetNode.hasClass('unknown-parent-class') && (targetType === TypesEnum.CLASS || targetType === TypesEnum.CLASS_INSTANCE)) {
-      nodeButtons.get(targetType)?.forEach((btn, i) => {
-        // set position relative to default placemente (right)
-        btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
-        btn.node = targetNode
+    // if (!targetNode.hasClass('unknown-parent-class') && (targetType === TypesEnum.CLASS || targetType === TypesEnum.CLASS_INSTANCE)) {
+    //   nodeButtons.get(targetType)?.forEach((btn, i) => {
+    //     // set position relative to default placemente (right)
+    //     btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
+    //     btn.node = targetNode
 
-        // save the function to attach the button in the scratch for later usage
-        targetNode.scratch(`place-node-button-${i}`, () => btn.attachTo(targetNode.popperRef()))
-        targetNode.on('position', targetNode.scratch(`place-node-button-${i}`)) // on position change, call the function in the scratch
-        btn.attachTo(targetNode.popperRef())
-      })
-    }
+    //     // save the function to attach the button in the scratch for later usage
+    //     targetNode.scratch(`place-node-button-${i}`, () => btn.attachTo(targetNode.popperRef()))
+    //     targetNode.on('position', targetNode.scratch(`place-node-button-${i}`)) // on position change, call the function in the scratch
+    //     btn.attachTo(targetNode.popperRef())
+    //   })
+    // }
   })
 
   cy.on('mouseout', 'node', e => {
-    const targetNode = e.target as NodeSingular
-    nodeButtons.forEach((buttons, _) => buttons.forEach((btn, i) => {
-      btn.hide();
-      const updatePosFunction = targetNode.scratch(`place-node-button-${i}`)
-      if (updatePosFunction) {
-        targetNode.removeListener('position', undefined, updatePosFunction)
-        targetNode.removeScratch(`place-node-button-${i}`)
-      }
-    }))
+    hideButtons(e.target)
+    // const targetNode = e.target as NodeSingular
+    // nodeButtons.forEach((buttons, _) => buttons.forEach((btn, i) => {
+    //   btn.hide();
+    //   const updatePosFunction = targetNode.scratch(`place-node-button-${i}`)
+    //   if (updatePosFunction) {
+    //     targetNode.removeListener('position', undefined, updatePosFunction)
+    //     targetNode.removeScratch(`place-node-button-${i}`)
+    //   }
+    // }))
   })
 
   cy.scratch('_gscape-graph-incremental-handlers-set', true)
@@ -379,15 +384,6 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
       handlePathEdgeDraw(targetNode, ic, onComplete)
     }
   }
-}
-
-function getButtonOffset(info: { popper: { height: number, width: number } }, buttonIndex = 0, numberOfButtons = 1): [number, number] {
-  const btnHeight = info.popper.height + 4
-  const btnWidth = info.popper.width
-  return [
-    -(btnHeight / 2) - (buttonIndex * btnHeight) + (btnHeight * (numberOfButtons / 2)), // y
-    -btnWidth / 2 // x
-  ]
 }
 
 export function removeBadge(cyNode: NodeSingular, name: string) {
