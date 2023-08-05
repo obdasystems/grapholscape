@@ -46,7 +46,8 @@ export enum TypesEnum {
     INPUT = 'input',
     SAME = 'same',
     DIFFERENT = 'different',
-    MEMBERSHIP = 'membership'
+    MEMBERSHIP = 'membership',
+    ATTRIBUTE_EDGE = 'attribute-edge'
 }
 
 

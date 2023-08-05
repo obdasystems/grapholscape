@@ -446,6 +446,7 @@ components:
         - same
         - different
         - membership
+        - attribute-edge
     Position:
       type: object
       required:

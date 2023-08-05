@@ -148,7 +148,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // move attribute on restriction node position
       if (propertyNode.is(TypesEnum.DATA_PROPERTY)) {
-        edgeOnRestriction.type = 'attribute-edge' as TypesEnum
+        edgeOnRestriction.type = TypesEnum.ATTRIBUTE_EDGE
         propertyNode.x = restrictionNode.position.x
         propertyNode.y = restrictionNode.position.y
         this.result.updateElement(propertyNode)
@@ -325,7 +325,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
     allAttributes.forEach((attribute) => {
       allClasses.forEach((concept, j) => {
-        addAttribute(concept, attribute, 'attribute-edge', j)
+        addAttribute(concept, attribute, TypesEnum.ATTRIBUTE_EDGE, j)
       })
       attribute.addClass('repositioned')
       allInclusionAttributes.addClass('repositioned')
