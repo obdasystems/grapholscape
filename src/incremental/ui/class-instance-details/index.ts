@@ -8,23 +8,23 @@ import GscapeClassInstanceDetails from './class-instance-details';
 
 export { default as GscapeClassInstanceDetails } from './class-instance-details';
 
-export function ClassInstanceDetailsFactory(incrementalController: IncrementalController) {
+export function ClassInstanceDetailsFactory(ic: IncrementalController) {
   const classInstanceDetails = new GscapeClassInstanceDetails()
-  const entityDetailsWidget = incrementalController.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails | undefined
+  const entityDetailsWidget = ic.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails | undefined
 
   if (entityDetailsWidget)
     entityDetailsWidget.incrementalSection = classInstanceDetails
 
-  incrementalController.grapholscape.widgets.set(WidgetEnum.CLASS_INSTANCE_DETAILS, classInstanceDetails)
+  ic.grapholscape.widgets.set(WidgetEnum.CLASS_INSTANCE_DETAILS, classInstanceDetails)
 
 
-  incrementalController.grapholscape.on(LifecycleEvent.EntitySelection, async grapholEntity => {
+  ic.grapholscape.on(LifecycleEvent.EntitySelection, async grapholEntity => {
     let dataProperties: GrapholEntity[] | undefined
 
 
-    if (grapholEntity.is(TypesEnum.CLASS) && incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      dataProperties = await incrementalController.getDataPropertiesByClasses([grapholEntity.iri.fullIri])
-      classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+    if (grapholEntity.is(TypesEnum.CLASS) && ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      dataProperties = await ic.getDataPropertiesByClasses([grapholEntity.iri.fullIri])
+      classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, ic.grapholscape))
       classInstanceDetails.parentClasses = undefined
       classInstanceDetails.canShowDataPropertiesValues = false
       classInstanceDetails.show()
@@ -33,23 +33,37 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     }
   })
 
-  incrementalController.on(IncrementalEvent.ClassInstanceSelection, async classInstanceEntity => {
+  ic.on(IncrementalEvent.ClassInstanceSelection, async classInstanceEntity => {
     if (!entityDetailsWidget?.grapholEntity || !entityDetailsWidget?.grapholEntity.iri.equals(classInstanceEntity.iri)) {
-      incrementalController.endpointController?.stopRequests('instances')
+      ic.endpointController?.stopRequests('instances')
 
       const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
-      const dataProperties = await incrementalController.getDataPropertiesByClasses(parentClassesIris)
-      classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+      let dataProperties: GrapholEntity[] = []
+      if (classInstanceEntity.dataProperties.length > 0) {
+        let dpEntity: GrapholEntity | undefined
+
+        classInstanceDetails.dataProperties = []
+        classInstanceEntity.dataProperties.forEach(dp => {
+          dpEntity = ic.grapholscape.ontology.getEntity(dp.iri)
+
+          if (dpEntity) {
+            dataProperties.push(dpEntity)
+            classInstanceDetails.addDataPropertyValue(dp.iri, dp.value)
+          }
+        })
+      } else {
+        dataProperties = await ic.getDataPropertiesByClasses(parentClassesIris)
+        classInstanceDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, ic.grapholscape))
+        dataProperties.forEach(dp => {
+          ic.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dp.iri.fullIri)
+        })
+      }
 
       classInstanceDetails.parentClasses = parentClassesIris.map(parentClassIri => {
-        const parentClassEntity = incrementalController.grapholscape.ontology.getEntity(parentClassIri)
+        const parentClassEntity = ic.grapholscape.ontology.getEntity(parentClassIri)
         if (parentClassEntity)
-          return grapholEntityToEntityViewData(parentClassEntity, incrementalController.grapholscape)
+          return grapholEntityToEntityViewData(parentClassEntity, ic.grapholscape)
       }).filter(entity => entity !== undefined) as EntityViewData[]
-
-      dataProperties.forEach(dp => {
-        incrementalController.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dp.iri.fullIri)
-      })
     }
 
     classInstanceDetails.canShowDataPropertiesValues = true
@@ -58,12 +72,12 @@ export function ClassInstanceDetailsFactory(incrementalController: IncrementalCo
     classInstanceDetails.show()
   })
 
-  incrementalController.on(IncrementalEvent.NewDataPropertyValues, (instanceIri, dataPropertyIri, newValues) => {
+  ic.on(IncrementalEvent.NewDataPropertyValues, (instanceIri, dataPropertyIri, newValues) => {
     if (entityDetailsWidget?.grapholEntity.iri.equals(instanceIri))
       newValues.forEach(v => classInstanceDetails.addDataPropertyValue(dataPropertyIri, v))
   })
 
-  incrementalController.on(IncrementalEvent.DataPropertyValuesLoadingFinished, (instanceIri, dataPropertyIri) => {
+  ic.on(IncrementalEvent.DataPropertyValuesLoadingFinished, (instanceIri, dataPropertyIri) => {
     if (entityDetailsWidget?.grapholEntity.iri.equals(instanceIri))
       classInstanceDetails.setDataPropertyLoading(dataPropertyIri, false)
   })

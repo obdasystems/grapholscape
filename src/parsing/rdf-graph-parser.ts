@@ -92,6 +92,8 @@ export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
     let parentClassesIris = ci.parentClasses?.map(p => new Iri(p, namespaces)) || []
     classInstance = new ClassInstanceEntity(iri, parentClassesIris)
     classInstance.annotations = getEntityAnnotations(ci, namespaces)
+    if (ci.dataProperties)
+      classInstance.dataProperties = ci.dataProperties
     classInstances.set(iri.fullIri, classInstance)
   })
 
