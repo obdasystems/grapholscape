@@ -58,7 +58,7 @@ export default class GrapholParser {
         const nodeXmlElement = nodes[k]
         const grapholNodeType = this.getGrapholNodeInfo(nodeXmlElement)?.TYPE
         const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i)
-        
+
         if (!node) continue
 
         let grapholEntity: GrapholEntity | undefined
@@ -75,7 +75,14 @@ export default class GrapholParser {
             }
 
             grapholEntity.addOccurrence(node)
-            grapholEntity.functionProperties = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+            if (node.is(TypesEnum.DATA_PROPERTY) || node.is(TypesEnum.OBJECT_PROPERTY)) {
+              const functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+              if (node.is(TypesEnum.DATA_PROPERTY)) {
+                grapholEntity.isDataPropertyFunctional = functionalities.includes(FunctionalityEnum.FUNCTIONAL)
+              } else {
+                grapholEntity.functionProperties = functionalities
+              }
+            }
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument, this.ontology.namespaces)
 
             // APPLY DISPLAYED NAME FROM LABELS

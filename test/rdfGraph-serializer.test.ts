@@ -7,6 +7,8 @@ import GrapholParser from '../src/parsing/parser'
 import rdfgraphSerializer, { IGscape } from '../src/rdfgraph-serializer'
 import books4Graphol from './books4.graphol'
 
+const fs = require('fs')
+
 describe('test serializing an ontology', () => {
  
   const ontology = new GrapholParser(books4Graphol).parseGraphol() 
@@ -32,5 +34,11 @@ describe('test serializing an ontology', () => {
     widgets: new Map(),
   }
 
-  console.log(JSON.stringify(rdfgraphSerializer(gscapeMock)))
+  const rdfGraph = rdfgraphSerializer(gscapeMock)
+  fs.writeFileSync('test/rdf-graph.json', JSON.stringify(rdfGraph))
+
+  // temporary
+  test('RDF Graph serialization finishes and is defined', () => {
+    expect(rdfGraph).toBeDefined() 
+  })
 })
