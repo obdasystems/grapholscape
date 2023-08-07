@@ -1,5 +1,5 @@
 import { css, html, nothing } from 'lit'
-import { Annotation, TypesEnum } from '../../model'
+import { Annotation, AnnotationsKind, TypesEnum } from '../../model'
 import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
@@ -71,7 +71,7 @@ export function annotationsTemplate(annotations: Annotation[]) {
         
         const property = annotation.property
         
-        if (property === 'comment' || propertiesAlreadyInserted.includes(property)) return null
+        if (property === AnnotationsKind.comment || propertiesAlreadyInserted.includes(property)) return null
         
         propertiesAlreadyInserted.push(property)
         
