@@ -2,8 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { DefaultThemes, RendererStatesEnum } from '../src/model'
-import { EntityNameType, Position } from '../src/model/rdf-graph/swagger'
+import { DefaultThemes, EntityNameType, Position, RendererStatesEnum } from '../src/model'
 import GrapholParser from '../src/parsing/parser'
 import rdfgraphSerializer, { IGscape } from '../src/rdfgraph-serializer'
 import books4Graphol from './books4.graphol'

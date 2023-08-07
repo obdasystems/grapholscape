@@ -76,12 +76,6 @@ export interface Node {
     position?: Position;
     /**
      * 
-     * @type {TypesEnum}
-     * @memberof Node
-     */
-    identity?: TypesEnum;
-    /**
-     * 
      * @type {Position}
      * @memberof Node
      */
@@ -116,7 +110,6 @@ export function NodeFromJSONTyped(json: any, ignoreDiscriminator: boolean): Node
         'iri': !exists(json, 'iri') ? undefined : json['iri'],
         'type': TypesEnumFromJSON(json['type']),
         'position': !exists(json, 'position') ? undefined : PositionFromJSON(json['position']),
-        'identity': !exists(json, 'identity') ? undefined : TypesEnumFromJSON(json['identity']),
         'labelPosition': !exists(json, 'labelPosition') ? undefined : PositionFromJSON(json['labelPosition']),
     };
 }
@@ -137,7 +130,6 @@ export function NodeToJSON(value?: Node | null): any {
         'iri': value.iri,
         'type': TypesEnumToJSON(value.type),
         'position': PositionToJSON(value.position),
-        'identity': TypesEnumToJSON(value.identity),
         'labelPosition': PositionToJSON(value.labelPosition),
     };
 }

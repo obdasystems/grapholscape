@@ -1,4 +1,4 @@
-import { Edge, Element, Position, TypesEnum } from "../rdf-graph/swagger";
+import { Edge, Position, TypesEnum } from "../rdf-graph/swagger";
 import Breakpoint from "./breakpoint";
 import GrapholEntity from "./entity";
 import GrapholElement from "./graphol-element";
@@ -8,6 +8,11 @@ export default class GrapholEdge extends GrapholElement implements Edge {
 
   static newFromSwagger(n: Edge) {
     const instance = new GrapholEdge(n.id, n.type)
+
+    if (n.type === TypesEnum.COMPLETE_DISJOINT_UNION ||
+      n.type === TypesEnum.COMPLETE_UNION) {
+      instance.targetLabel = 'C'
+    }
 
     Object.entries(n).forEach(([key, value]) => {
       if (n[key] && key !== 'id' && key !== 'type') {
@@ -150,7 +155,7 @@ export default class GrapholEdge extends GrapholElement implements Edge {
     result.sourceId = this.sourceId
     result.targetId = this.targetId
     result.breakpoints = this.breakpoints
-        
+
     return result
   }
 }

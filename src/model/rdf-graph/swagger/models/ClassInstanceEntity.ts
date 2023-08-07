@@ -58,6 +58,12 @@ export interface ClassInstanceEntity {
     datatype?: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof ClassInstanceEntity
+     */
+    isDataPropertyFunctional?: boolean;
+    /**
+     * 
      * @type {Array<FunctionPropertiesEnum>}
      * @memberof ClassInstanceEntity
      */
@@ -105,6 +111,7 @@ export function ClassInstanceEntityFromJSONTyped(json: any, ignoreDiscriminator:
         'fullIri': json['fullIri'],
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
+        'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
         'parentClasses': !exists(json, 'parentClasses') ? undefined : json['parentClasses'],
         'dataProperties': !exists(json, 'dataProperties') ? undefined : ((json['dataProperties'] as Array<any>).map(DataPropertyValueFromJSON)),
@@ -124,6 +131,7 @@ export function ClassInstanceEntityToJSON(value?: ClassInstanceEntity | null): a
         'fullIri': value.fullIri,
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
         'datatype': value.datatype,
+        'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
         'parentClasses': value.parentClasses,
         'dataProperties': value.dataProperties === undefined ? undefined : ((value.dataProperties as Array<any>).map(DataPropertyValueToJSON)),

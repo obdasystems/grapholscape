@@ -202,7 +202,6 @@ export default class GrapholNode extends GrapholElement implements Node {
   json(): Node {
     const result: Node = super.json()
 
-    result.identity = this.identity
     result.position = this.position
     if (this.labelXpos !== undefined && this.labelYpos !== undefined) {
       result.labelPosition = {

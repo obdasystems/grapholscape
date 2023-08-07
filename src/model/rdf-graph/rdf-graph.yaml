@@ -205,7 +205,8 @@ components:
             language:
               type: string
             entityNameType:
-              $ref: "#/components/schemas/EntityNameType"
+              type: string
+              enum: [ label, prefixed_iri, full_iri ]
             renderers:
               type: array
               items:
@@ -326,8 +327,6 @@ components:
           properties:
             position:
               $ref: "#/components/schemas/Position"
-            identity:
-              $ref: "#/components/schemas/TypesEnum"
             labelPosition:
               $ref: "#/components/schemas/Position"
     Namespace:
@@ -355,6 +354,8 @@ components:
             $ref: "#/components/schemas/Annotation"
         datatype:
           type: string
+        isDataPropertyFunctional:
+          type: boolean
         functionProperties:
           type: array
           items:
@@ -415,6 +416,30 @@ components:
         datatype:
           type: string
     TypesEnum:
+      description: 
+        Contiene tutti i tipi di nodi/archi orginirari dal Graphol per evitare di duplicare gli enumeratori.
+        Nella rappresentazione Floaty/vkg vengono usati questi valori.
+
+        NODI
+          class
+          data-property
+          class-instance (vkg)
+          individual (floaty)
+          union
+          disjoint-union
+
+        ARCHI
+          object-property
+          instance-of
+          input
+          inclusion
+          equivalence
+          attribute-edge
+          union
+          disjoint-union
+          complete-union
+          complete-disjoint-union
+
       type: string
       enum:
         - class
@@ -425,7 +450,9 @@ components:
         - domain-restriction
         - range-restriction
         - union
+        - complete-union
         - disjoint-union
+        - complete-disjoint-union
         - complement
         - intersection
         - enumeration
@@ -458,13 +485,7 @@ components:
           format: float
         y:
           type: number
-          format: float
-    EntityNameType:
-      type: string
-      enum:
-        - label
-        - prefixed_iri
-        - full_iri
+          format: float      
 
     Hierarchy:
       type: object

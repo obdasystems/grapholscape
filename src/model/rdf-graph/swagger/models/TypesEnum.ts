@@ -13,7 +13,9 @@
  */
 
 /**
- * 
+ * Contiene tutti i tipi di nodi/archi orginirari dal Graphol per evitare di duplicare gli enumeratori. Nella rappresentazione Floaty/vkg vengono usati questi valori.
+ * NODI class data-property class-instance (vkg) individual (floaty) union disjoint-union
+ * ARCHI object-property instance-of input inclusion equivalence attribute-edge complete-union complete-disjoint-union
  * @export
  * @enum {string}
  */
@@ -26,7 +28,9 @@ export enum TypesEnum {
     DOMAIN_RESTRICTION = 'domain-restriction',
     RANGE_RESTRICTION = 'range-restriction',
     UNION = 'union',
+    COMPLETE_UNION = 'complete-union',
     DISJOINT_UNION = 'disjoint-union',
+    COMPLETE_DISJOINT_UNION = 'complete-disjoint-union',
     COMPLEMENT = 'complement',
     INTERSECTION = 'intersection',
     ENUMERATION = 'enumeration',

@@ -360,8 +360,13 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
         // if it's equivalence add 'C' and reverse if needed
         if (grapholEdge.is(TypesEnum.EQUIVALENCE)) {
-          grapholEdge.type = grapholUnion.type
           grapholEdge.targetLabel = 'C'
+          if (grapholUnion.type === TypesEnum.UNION) {
+            grapholEdge.type = TypesEnum.COMPLETE_UNION
+          } else if (grapholUnion.type === TypesEnum.DISJOINT_UNION) {
+            grapholEdge.type = TypesEnum.COMPLETE_DISJOINT_UNION
+          }
+          
 
           // the edge must have as source the union node
           if (grapholEdge.sourceId != grapholUnion.id) {
@@ -370,10 +375,8 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
           this.result.updateElement(grapholEdge)
           return
-        }
-
-        // if it's outgoing and of type inclusion
-        if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(TypesEnum.INCLUSION)) {
+        } else if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(TypesEnum.INCLUSION)) {
+          // if it's outgoing and of type inclusion
           grapholEdge.type = grapholUnion.type
           this.result.updateElement(grapholEdge)
         }
