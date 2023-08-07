@@ -1,4 +1,4 @@
-import { Annotation, ConstructorLabelsEnum, Diagram, EntityNameType, FunctionalityEnum, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, Iri, Namespace, Ontology, RendererStatesEnum, TypesEnum } from "../model"
+import { Annotation, Diagram, EntityNameType, FunctionalityEnum, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, Iri, Namespace, Ontology, RendererStatesEnum, TypesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'
 import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/fake-rectangle'
@@ -104,13 +104,7 @@ export default class GrapholParser {
               break
 
             default:
-              const labelKey = Object.keys(TypesEnum).find(k => TypesEnum[k] === node.type)
-              if (labelKey) {
-                const constructorLabel = ConstructorLabelsEnum[labelKey]
-                if (constructorLabel) {
-                  node.displayedName = constructorLabel
-                }
-              }
+              node.displayedName = GrapholNodesEnum[node.type]?.LABEL
               break
           }
 

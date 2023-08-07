@@ -33,7 +33,7 @@ export const POLYGON_POINTS = '-0.9 -1 1 -1 0.9 1 -1 1'
 /**
  * Enumeration having `type`, `shape` and `identity` for each Graphol node
  */
-export type GrapholNodeInfo =  { TYPE: TypesEnum, SHAPE: Shape, IDENTITY: TypesEnum, SHAPE_POINTS?: string }
+export type GrapholNodeInfo =  { TYPE: TypesEnum, SHAPE: Shape, IDENTITY: TypesEnum, LABEL?: string, SHAPE_POINTS?: string }
 
 export const GrapholNodesEnum: { [x in TypesEnum ]?: GrapholNodeInfo } = {
   [TypesEnum.CLASS]: {
@@ -64,7 +64,8 @@ export const GrapholNodesEnum: { [x in TypesEnum ]?: GrapholNodeInfo } = {
   [TypesEnum.UNION]: {
     TYPE: TypesEnum.UNION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL,
+    LABEL: 'or',
   },
   [TypesEnum.DISJOINT_UNION]: {
     TYPE: TypesEnum.DISJOINT_UNION,
@@ -74,37 +75,44 @@ export const GrapholNodesEnum: { [x in TypesEnum ]?: GrapholNodeInfo } = {
   [TypesEnum.COMPLEMENT]: {
     TYPE: TypesEnum.COMPLEMENT,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL,
+    LABEL: 'not',
   },
   [TypesEnum.INTERSECTION]: {
     TYPE: TypesEnum.INTERSECTION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL,
+    LABEL: 'and',
   },
   [TypesEnum.ENUMERATION]: {
     TYPE: TypesEnum.ENUMERATION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL,
+    LABEL: 'oneOf',
   },
   [TypesEnum.HAS_KEY]: {
     TYPE: TypesEnum.HAS_KEY,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.NEUTRAL
+    IDENTITY: TypesEnum.NEUTRAL,
+    LABEL: 'key'
   },
   [TypesEnum.ROLE_INVERSE]: {
     TYPE: TypesEnum.ROLE_INVERSE,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.OBJECT_PROPERTY
+    IDENTITY: TypesEnum.OBJECT_PROPERTY,
+    LABEL: 'inv',
   },
   [TypesEnum.ROLE_CHAIN]: {
     TYPE: TypesEnum.ROLE_CHAIN,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.OBJECT_PROPERTY
+    IDENTITY: TypesEnum.OBJECT_PROPERTY,
+    LABEL: 'chain',
   },
   [TypesEnum.DATATYPE_RESTRICTION]: {
     TYPE: TypesEnum.DATATYPE_RESTRICTION,
     SHAPE: Shape.HEXAGON,
-    IDENTITY: TypesEnum.VALUE_DOMAIN
+    IDENTITY: TypesEnum.VALUE_DOMAIN,
+    LABEL: 'data',
   },
   [TypesEnum.VALUE_DOMAIN]: {
     TYPE: TypesEnum.VALUE_DOMAIN,
@@ -137,34 +145,4 @@ export const GrapholNodesEnum: { [x in TypesEnum ]?: GrapholNodeInfo } = {
     SHAPE: Shape.ELLIPSE,
     IDENTITY: TypesEnum.CLASS_INSTANCE,
   }
-}
-
-/**
- * Labels to apply to constructor nodes in Graphol
- * @enum {string}
- * @property {string} UNION or
- * @property {string} INTERSECTION and
- * @property {string} ROLE_CHAIN inv
- * @property {string} COMPLEMENT not
- * @property {string} DATATYPE_RESTRICTION data
- * @property {string} ENUMERATION oneOf
- * @property {string} KEY key
- */
-export enum ConstructorLabelsEnum {
-  /** @type {"or"} */
-  UNION = 'or',
-  /** @type {"and"} */
-  INTERSECTION = 'and',
-  /** @type {"chain"} */
-  ROLE_CHAIN = 'chain',
-  /** @type {"inv"} */
-  ROLE_INVERSE = 'inv',
-  /** @type {"not"} */
-  COMPLEMENT = 'not',
-  /** @type {"data"} */
-  DATATYPE_RESTRICTION = 'data',
-  /** @type {"oneOf"} */
-  ENUMERATION = 'oneOf',
-  /** @type {"key"} */
-  KEY = 'key',
 }

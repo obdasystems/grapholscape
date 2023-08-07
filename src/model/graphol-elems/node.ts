@@ -107,7 +107,7 @@ export default class GrapholNode extends GrapholElement implements Node {
     if (labelXpos === this.position.x) {
       this.labelXpos = 0
     } else {
-      this.labelXpos = labelXpos - this.position.x + 1
+      this.labelXpos = labelXpos - this.position.x
     }
   }
 
@@ -128,7 +128,7 @@ export default class GrapholNode extends GrapholElement implements Node {
     if (labelYpos === this.position.y) {
       this.labelYpos = 0
     } else {
-      this.labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4
+      this.labelYpos = labelYpos - this.y
     }
   }
 
