@@ -1,24 +1,26 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
+import klay from 'cytoscape-klay'
+import edgehandles from 'cytoscape-edgehandles'
 import popper from 'cytoscape-popper'
-import { GrapholscapeConfig, ThemeConfig, loadConfig } from './config'
-import Grapholscape from './core'
-import { initIncremental } from './incremental'
-import { ColoursNames, DefaultThemes, GrapholscapeTheme, IncrementalDiagram, Ontology, RendererStatesEnum } from './model'
-import GrapholParser from './parsing/parser'
-import * as UI from './ui'
-import edgehandles from 'cytoscape-edgehandles';
 import undoredo from 'cytoscape-undo-redo'
-import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
-import parseRDFGraph, { getConfig, getOntology } from './parsing/rdf-graph-parser'
+import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
+import Grapholscape from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
+import { initIncremental } from './incremental'
 import { RequestOptions } from './incremental/api/model'
+import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
+import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
+import GrapholParser from './parsing/parser'
+import parseRDFGraph, { getConfig, getEntities, getOntology } from './parsing/rdf-graph-parser'
+import * as UI from './ui'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
 cytoscape.use(edgehandles)
 cytoscape.use(undoredo)
+cytoscape.use(klay)
 
 export * from './config'
 export * from './core'
@@ -97,6 +99,7 @@ export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroC
     grapholscape = parseRDFGraph(rdfGraph, container)
   } else {
     grapholscape = new Grapholscape(getOntology(rdfGraph), container, getConfig(rdfGraph))
+    grapholscape.ontology.entities = getEntities(rdfGraph, grapholscape.ontology.namespaces)
   }
   
   if (grapholscape) {

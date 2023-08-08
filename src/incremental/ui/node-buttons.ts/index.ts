@@ -4,16 +4,19 @@ import { Placement } from "tippy.js";
 import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { textSpinner, WidgetEnum } from "../../../ui";
 import { classInstanceIcon, objectPropertyIcon, pathIcon } from "../../../ui/assets";
+import NodeButton from "../../../ui/common/button/node-button";
+import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
 import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
+import { handlePathEdgeDraw } from "../path-selection";
 import showMenu from "../show-menu";
-import NodeButton from "../../../ui/common/button/node-button";
-import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
-import { edgeHandlesOptions } from "../../edge-handles-options";
+import { getButtonOffset, hideButtons, showButtons } from "./show-hide-buttons";
+
+export { showButtons, hideButtons };
 
 export function NodeButtonsFactory(ic: IncrementalController) {
 
@@ -28,7 +31,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
 
   const nodeButtonsMap = new Map<TypesEnum, NodeButton[]>()
   nodeButtonsMap.set(TypesEnum.CLASS, [objectPropertyButton])
-  nodeButtonsMap.set(TypesEnum.CLASS_INSTANCE, [objectPropertyButton])
+  nodeButtonsMap.set(TypesEnum.CLASS_INSTANCE, [objectPropertyButton, pathDrawingButton])
 
   instancesButton.onclick = (e) => handleInstancesButtonClick(e, ic)
   objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, ic)
@@ -160,33 +163,11 @@ function setHandlersOnIncrementalCytoscape(cy: cytoscape.Core, nodeButtons: Map<
     return
 
   cy.on('mouseover', 'node', e => {
-    const targetNode = e.target
-    const targetType = targetNode.data().type
-
-    if (!targetNode.hasClass('unknown-parent-class') && (targetType === TypesEnum.CLASS || targetType === TypesEnum.CLASS_INSTANCE)) {
-      nodeButtons.get(targetType)?.forEach((btn, i) => {
-        // set position relative to default placemente (right)
-        btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
-        btn.node = targetNode
-
-        // save the function to attach the button in the scratch for later usage
-        targetNode.scratch(`place-node-button-${i}`, () => btn.attachTo(targetNode.popperRef()))
-        targetNode.on('position', targetNode.scratch(`place-node-button-${i}`)) // on position change, call the function in the scratch
-        btn.attachTo(targetNode.popperRef())
-      })
-    }
+    showButtons(e.target, nodeButtons)
   })
 
   cy.on('mouseout', 'node', e => {
-    const targetNode = e.target as NodeSingular
-    nodeButtons.forEach((buttons, _) => buttons.forEach((btn, i) => {
-      btn.hide();
-      const updatePosFunction = targetNode.scratch(`place-node-button-${i}`)
-      if (updatePosFunction) {
-        targetNode.removeListener('position', undefined, updatePosFunction)
-        targetNode.removeScratch(`place-node-button-${i}`)
-      }
-    }))
+    hideButtons(e.target)
   })
 
   cy.scratch('_gscape-graph-incremental-handlers-set', true)
@@ -326,54 +307,75 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 }
 
 function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
-  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    const cy = ic.grapholscape.renderer.cy as any
-    if (cy && !cy.scratch('eh')) {
-      let eh = cy.edgehandles()
-      cy.scratch('eh', eh)
-      eh.start((e.currentTarget as NodeButton).node)
-      cy.on('ehcomplete', async (evt, sourceNode: NodeSingular, targetNode: NodeSingular, addedEdge: EdgeSingular) => {
-        console.log(addedEdge)
-        addedEdge.remove()
-        const sourceIri = sourceNode.data('iri')
-        const targetIri = targetNode.data('iri')
-        if (sourceIri && targetIri) {
-          const path = await ic.endpointController?.highlightsManager?.getShortestPath(
-            sourceIri,
-            targetIri
-          )
+  const onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
+    let sourceIriForPath = sourceNode.data('iri')
+    let targetIriForpath = targetNode.data('iri')
 
-          if (path) {
-            ic.addPath(path, sourceIri, targetIri)
+    const loadingAnimationInterval = setInterval(() => {
+      loadingEdge.data('on', !loadingEdge.data('on'))
+    }, 500)
+
+    const stopAnimation = () => {
+      loadingEdge.remove()
+      clearInterval(loadingAnimationInterval)
+    }
+
+    if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
+      stopAnimation()
+    }
+
+    if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
+      if (sourceIriForPath && targetIriForpath) {
+        ic.endpointController?.highlightsManager?.getShortestPath(
+          sourceIriForPath,
+          targetIriForpath
+        ).then(path => {
+          if (path[0].entities) {
+            ic.addPath(path[0].entities).finally(stopAnimation)
+          } else {
+            stopAnimation()
           }
-        }
-      })
+        }).catch(stopAnimation)
+      }
+    } else {
+      let entity: ClassInstanceEntity | undefined
+      // Take parentClass IRI to find a path to the other node in the intensional level
+      if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
+        entity = ic.classInstanceEntities.get(sourceNode.data('iri'))
 
-      const onStop = (ev: MouseEvent) => {
-        const eh = cy.scratch('eh')
-        if (eh) {
-          eh.stop()
-          eh.destroy()
-          cy.removeScratch('eh')
-          cy.removeListener('ehcomplete ehstop')
+        if (entity) {
+          sourceIriForPath = entity.parentClassIris[0].fullIri
         }
-        
-        
-        document.removeEventListener('mouseup', onStop)
       }
 
-      document.addEventListener('mouseup', (ev: MouseEvent) => onStop(ev))
+      if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
+        entity = ic.classInstanceEntities.get(targetNode.data('iri'))
+
+        if (entity) {
+          targetIriForpath = entity.parentClassIris[0].fullIri
+        }
+      }
+
+      ic.endpointController?.highlightsManager?.getShortestPath(
+        sourceIriForPath,
+        targetIriForpath
+      ).then(path => {
+        if (path[0].entities) {
+          ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, path[0])
+            .finally(stopAnimation)
+        } else {
+          stopAnimation()
+        }
+      }).catch(stopAnimation)
     }
   }
-}
 
-function getButtonOffset(info: { popper: { height: number, width: number } }, buttonIndex = 0, numberOfButtons = 1): [number, number] {
-  const btnHeight = info.popper.height + 4
-  const btnWidth = info.popper.width
-  return [
-    -(btnHeight / 2) - (buttonIndex * btnHeight) + (btnHeight * (numberOfButtons / 2)), // y
-    -btnWidth / 2 // x
-  ]
+  if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    const targetNode = (e.currentTarget as NodeButton).node
+    if (targetNode) {
+      handlePathEdgeDraw(targetNode, ic, onComplete)
+    }
+  }
 }
 
 export function removeBadge(cyNode: NodeSingular, name: string) {

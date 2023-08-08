@@ -1,5 +1,5 @@
 import { FunctionalityEnum, Ontology } from '../model'
-import { AnnotationsKind } from '../model/annotated-element'
+import { AnnotationProperty } from '../model/annotated-element'
 import Annotation from '../model/graphol-elems/annotation'
 import Iri from '../model/iri'
 import Namespace from '../model/namespace'
@@ -129,7 +129,7 @@ export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument)
   if (label) {
     const labelNoBreak = label.replace(/\n/g, '')
     // push label annotation
-    result.push(new Annotation(AnnotationsKind.label, label))
+    result.push(new Annotation(AnnotationProperty.label, label))
 
     // for searching predicates' description in graphol v2
     const xmlPredicates = xmlDocument.getElementsByTagName('predicate')
@@ -142,7 +142,7 @@ export function getEntityAnnotations(element: Element, xmlDocument: XMLDocument)
           let bodyEndIndex = description.indexOf('</body')
           description = description.slice(bodyStartIndex, bodyEndIndex)
 
-          result.push(new Annotation(AnnotationsKind.comment, description))
+          result.push(new Annotation(AnnotationProperty.comment, description))
         }
         break
       }

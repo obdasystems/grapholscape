@@ -1,4 +1,4 @@
-import { Annotation, ConstructorLabelsEnum, Diagram, EntityNameType, FunctionalityEnum, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, Iri, Namespace, Ontology, RendererStatesEnum, TypesEnum } from "../model"
+import { Annotation, Diagram, EntityNameType, FunctionalityEnum, GrapholEdge, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, Iri, Namespace, Ontology, RendererStatesEnum, TypesEnum } from "../model"
 import Breakpoint from "../model/graphol-elems/breakpoint"
 import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fake-circle'
 import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/fake-rectangle'
@@ -58,7 +58,7 @@ export default class GrapholParser {
         const nodeXmlElement = nodes[k]
         const grapholNodeType = this.getGrapholNodeInfo(nodeXmlElement)?.TYPE
         const node = this.getBasicGrapholNodeFromXML(nodeXmlElement, i)
-        
+
         if (!node) continue
 
         let grapholEntity: GrapholEntity | undefined
@@ -75,7 +75,14 @@ export default class GrapholParser {
             }
 
             grapholEntity.addOccurrence(node)
-            grapholEntity.functionProperties = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+            if (node.is(TypesEnum.DATA_PROPERTY) || node.is(TypesEnum.OBJECT_PROPERTY)) {
+              const functionalities = this.graphol.getFunctionalities(nodeXmlElement, this.xmlDocument)
+              if (node.is(TypesEnum.DATA_PROPERTY)) {
+                grapholEntity.isDataPropertyFunctional = functionalities.includes(FunctionalityEnum.FUNCTIONAL)
+              } else {
+                grapholEntity.functionProperties = functionalities
+              }
+            }
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument, this.ontology.namespaces)
 
             // APPLY DISPLAYED NAME FROM LABELS
@@ -104,13 +111,7 @@ export default class GrapholParser {
               break
 
             default:
-              const labelKey = Object.keys(TypesEnum).find(k => TypesEnum[k] === node.type)
-              if (labelKey) {
-                const constructorLabel = ConstructorLabelsEnum[labelKey]
-                if (constructorLabel) {
-                  node.displayedName = constructorLabel
-                }
-              }
+              node.displayedName = GrapholNodesEnum[node.type]?.LABEL
               break
           }
 

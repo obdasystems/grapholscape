@@ -148,7 +148,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       // move attribute on restriction node position
       if (propertyNode.is(TypesEnum.DATA_PROPERTY)) {
-        edgeOnRestriction.type = 'attribute-edge' as TypesEnum
+        edgeOnRestriction.type = TypesEnum.ATTRIBUTE_EDGE
         propertyNode.x = restrictionNode.position.x
         propertyNode.y = restrictionNode.position.y
         this.result.updateElement(propertyNode)
@@ -325,7 +325,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
     allAttributes.forEach((attribute) => {
       allClasses.forEach((concept, j) => {
-        addAttribute(concept, attribute, 'attribute-edge', j)
+        addAttribute(concept, attribute, TypesEnum.ATTRIBUTE_EDGE, j)
       })
       attribute.addClass('repositioned')
       allInclusionAttributes.addClass('repositioned')
@@ -360,8 +360,13 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
         // if it's equivalence add 'C' and reverse if needed
         if (grapholEdge.is(TypesEnum.EQUIVALENCE)) {
-          grapholEdge.type = grapholUnion.type
           grapholEdge.targetLabel = 'C'
+          if (grapholUnion.type === TypesEnum.UNION) {
+            grapholEdge.type = TypesEnum.COMPLETE_UNION
+          } else if (grapholUnion.type === TypesEnum.DISJOINT_UNION) {
+            grapholEdge.type = TypesEnum.COMPLETE_DISJOINT_UNION
+          }
+          
 
           // the edge must have as source the union node
           if (grapholEdge.sourceId != grapholUnion.id) {
@@ -370,10 +375,8 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
           this.result.updateElement(grapholEdge)
           return
-        }
-
-        // if it's outgoing and of type inclusion
-        if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(TypesEnum.INCLUSION)) {
+        } else if (grapholEdge.sourceId === grapholUnion.id && grapholEdge.is(TypesEnum.INCLUSION)) {
+          // if it's outgoing and of type inclusion
           grapholEdge.type = grapholUnion.type
           this.result.updateElement(grapholEdge)
         }
@@ -523,7 +526,6 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
   private simplifyRoleInverse() {
     this.newCy.nodes().filter(node => this.getGrapholElement(node.id())?.is(TypesEnum.ROLE_INVERSE)).forEach(roleInverseNode => {
-      let new_edges_count = 0
       // the input role is only one
       const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
       const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
@@ -538,9 +540,11 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
           const roleInverseEdge = this.getGrapholElement(edge.id()) as GrapholEdge
           roleInverseEdge.type = TypesEnum.ROLE_INVERSE
+          if (roleInverseEdge.sourceId === grapholRoleInverseNode.id) {
+            this.reverseEdge(roleInverseEdge)
+          }
           roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints)
           roleInverseEdge.targetId = grapholInputEdge.targetId
-
           const source = this.getGrapholElement(roleInverseEdge.sourceId) as GrapholNode
           const target = this.getGrapholElement(roleInverseEdge.targetId) as GrapholNode
           roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position)

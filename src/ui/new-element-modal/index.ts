@@ -125,34 +125,36 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
         undoable: true,
         validateEdge: function (edge, newSource, newTarget) {
           const edgeType = edge.data('type')
+          const sourceType = newSource.data('type')
+          const targetType = newTarget.data('type')
           switch (edgeType) {
-            case 'attribute-edge':
-              if (newSource.data('type') === 'class' && newTarget.id() === edge.data('target')) {
+            case TypesEnum.ATTRIBUTE_EDGE:
+              if (sourceType === TypesEnum.CLASS && newTarget.id() === edge.data('target')) {
                 return 'valid'
               }
               return 'invalid';
-            case 'inclusion':
-              if ((newSource.data('type') === 'class' && newTarget.data('type') === 'class') || (newSource.data('type') === 'data-property' && newTarget.data('type') === 'data-property')) {
+            case TypesEnum.INCLUSION:
+              if (sourceType === targetType && (sourceType === TypesEnum.CLASS || sourceType === TypesEnum.DATA_PROPERTY)) {
                 return 'valid'
               }
               return 'invalid';
-            case 'object-property':
-              if (newSource.data('type') === 'class' && newTarget.data('type') === 'class') {
+            case TypesEnum.OBJECT_PROPERTY:
+              if (sourceType === targetType && sourceType === TypesEnum.CLASS) {
                 return 'valid'
               }
               return 'invalid';
-            case 'union':
-              if (newSource.data('type') === 'union' && newTarget.data('type') === 'class') {
+            case TypesEnum.UNION:
+              if (sourceType === TypesEnum.UNION && targetType === TypesEnum.CLASS) {
                 return 'valid'
               }
               return 'invalid';
-            case 'disjoint-union':
-              if (newSource.data('type') === 'disjoint-union' && newTarget.data('type') === 'class') {
+            case TypesEnum.DISJOINT_UNION:
+              if (sourceType === TypesEnum.DISJOINT_UNION && targetType === TypesEnum.CLASS) {
                 return 'valid'
               }
               return 'invalid';
-            case 'input':
-              if (newSource.data('type') === 'class' && (newTarget.data('type') === 'disjoint-union' || newTarget.data('type') === 'union')) {
+            case TypesEnum.INPUT:
+              if (sourceType === TypesEnum.CLASS && (targetType === TypesEnum.DISJOINT_UNION || targetType === TypesEnum.UNION)) {
                 return 'valid'
               }
               return 'invalid';
@@ -375,7 +377,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
           }
         } catch (e) { console.error(e) }
       }
-      else if (elem.data('type') === 'attribute-edge') {
+      else if (elem.data('type') === TypesEnum.ATTRIBUTE_EDGE) {
         const commands: Command[] = []
         commands.push({
           content: 'Remove',

@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { EntityNameType } from './EntityNameType';
-import {
-    EntityNameTypeFromJSON,
-    EntityNameTypeFromJSONTyped,
-    EntityNameTypeToJSON,
-} from './EntityNameType';
 import type { Theme } from './Theme';
 import {
     ThemeFromJSON,
@@ -52,10 +46,10 @@ export interface RDFGraphConfig {
     language?: string;
     /**
      * 
-     * @type {EntityNameType}
+     * @type {string}
      * @memberof RDFGraphConfig
      */
-    entityNameType?: EntityNameType;
+    entityNameType?: RDFGraphConfigEntityNameTypeEnum;
     /**
      * 
      * @type {Array<string>}
@@ -76,6 +70,15 @@ export interface RDFGraphConfig {
     filters?: Array<RDFGraphConfigFiltersEnum>;
 }
 
+/**
+* @export
+* @enum {string}
+*/
+export enum RDFGraphConfigEntityNameTypeEnum {
+    LABEL = 'label',
+    PREFIXED_IRI = 'prefixed_iri',
+    FULL_IRI = 'full_iri'
+}
 /**
 * @export
 * @enum {string}
@@ -113,7 +116,7 @@ export function RDFGraphConfigFromJSONTyped(json: any, ignoreDiscriminator: bool
         'themes': !exists(json, 'themes') ? undefined : ((json['themes'] as Array<any>).map(ThemeFromJSON)),
         'selectedTheme': !exists(json, 'selectedTheme') ? undefined : json['selectedTheme'],
         'language': !exists(json, 'language') ? undefined : json['language'],
-        'entityNameType': !exists(json, 'entityNameType') ? undefined : EntityNameTypeFromJSON(json['entityNameType']),
+        'entityNameType': !exists(json, 'entityNameType') ? undefined : json['entityNameType'],
         'renderers': !exists(json, 'renderers') ? undefined : json['renderers'],
         'widgets': !exists(json, 'widgets') ? undefined : json['widgets'],
         'filters': !exists(json, 'filters') ? undefined : json['filters'],
@@ -132,7 +135,7 @@ export function RDFGraphConfigToJSON(value?: RDFGraphConfig | null): any {
         'themes': value.themes === undefined ? undefined : ((value.themes as Array<any>).map(ThemeToJSON)),
         'selectedTheme': value.selectedTheme,
         'language': value.language,
-        'entityNameType': EntityNameTypeToJSON(value.entityNameType),
+        'entityNameType': value.entityNameType,
         'renderers': value.renderers,
         'widgets': value.widgets,
         'filters': value.filters,

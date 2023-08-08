@@ -1,19 +1,20 @@
-import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position, SingularElementReturnValue } from "cytoscape";
+import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationsKind, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, AnnotationProperty, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
-import { GscapeConfirmDialog } from "../ui";
+import { RDFGraph } from "../model/rdf-graph/swagger";
+import * as RDFGraphParser from '../parsing/rdf-graph-parser';
+import { showMessage } from "../ui";
+import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
+import { Entity, EntityTypeEnum, OntologyPath } from "./api/swagger";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
-import NodeButton from "../ui/common/button/node-button";
-import { RDFGraph } from "../model/rdf-graph/swagger";
-import * as RDFGraphParser from '../parsing/rdf-graph-parser'
 
 /** @internal */
 export default class IncrementalController {
@@ -74,13 +75,13 @@ export default class IncrementalController {
     this.grapholscape.renderer.render(this.diagram)
   }
 
-  async performActionWithBlockedGraph(action: () => void | Promise<void>) {
+  async performActionWithBlockedGraph(action: () => void | Promise<void>, customLayoutOptions?: any) {
     this.actionsWithBlockedGraph += 1
     const oldElemNumbers = this.numberOfElements
     this.incrementalRenderer?.freezeGraph()
     await action()
     this.actionsWithBlockedGraph -= 1
-    this.postDiagramEdit(oldElemNumbers)
+    this.postDiagramEdit(oldElemNumbers, customLayoutOptions)
   }
 
   /**
@@ -98,11 +99,22 @@ export default class IncrementalController {
     this.lifecycle.trigger(IncrementalEvent.ReasonerSet)
   }
 
+  /**
+   * Inject in the current diagram the results from a construct query in RDFGraph form.
+   * Here we assume entities are already in the loaded ontology.
+   * If grapholscape is started right away with construct results, then the function
+   * performing the init must take care of loading all the entities beforehand.
+   * The only entities that will be loaded here are instance entities (individuals).
+   * @param rdfGraph the graph to add to current vkg instance
+   * @returns 
+   */
   addRDFGraph(rdfGraph: RDFGraph) {
-    let elem: GrapholElement | undefined
-    let entity: GrapholEntity | undefined
-    const addElemToIncremental = (elem: GrapholElement) => {
+    if (!this.diagram.representation) {
+      return
+    }
 
+    const addElemToIncremental = (elem: GrapholElement, rdfGraphRepr: DiagramRepresentation) => {
+      let entity: GrapholEntity | undefined
       if (isGrapholEdge(elem)) {
         elem.id = this.diagramBuilder.getNewId('edge')
       }
@@ -111,12 +123,48 @@ export default class IncrementalController {
         if (isGrapholNode(elem)) {
           elem.originalId = this.diagramBuilder.getNewId('node')
         }
-        
+
         entity = this.classInstanceEntities.get(elem.iri) || this.ontology.getEntity(elem.iri)
       }
 
-      this.diagram.addElement(elem, entity)
+      elem.diagramId = this.diagram.id
+
       if (entity && elem.iri) {
+
+        switch (elem.type) {
+          case TypesEnum.CLASS_INSTANCE:
+            this.diagramBuilder.addClassInstance(entity as ClassInstanceEntity, elem)
+            break
+
+          case TypesEnum.OBJECT_PROPERTY:
+            // Here we can be sure to find source and target cause nodes are added before edges, and
+            // object properties are always edges in vkg.
+            const source = rdfGraphRepr.grapholElements.get((elem as GrapholEdge).sourceId)
+            const target = rdfGraphRepr.grapholElements.get((elem as GrapholEdge).targetId)
+
+            let sourceEntity: GrapholEntity | undefined, targetEntity: GrapholEntity | undefined
+
+            if (source?.iri && target?.iri) {
+              if (source.is(TypesEnum.CLASS_INSTANCE) && target.is(TypesEnum.CLASS_INSTANCE)) {
+                sourceEntity = this.classInstanceEntities.get(source.iri)
+                targetEntity = this.classInstanceEntities.get(target.iri)
+              } else if (source.is(TypesEnum.CLASS) && target.is(TypesEnum.CLASS)) {
+                sourceEntity = this.ontology.getEntity(source.iri)
+                targetEntity = this.ontology.getEntity(target.iri)
+              } else {
+                return
+              }
+
+              if (sourceEntity && targetEntity)
+                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, source.type, elem as GrapholEdge)
+            }
+            break
+
+          case TypesEnum.CLASS:
+            this.diagramBuilder.addClass(entity, elem as GrapholNode)
+            break
+        }
+
         this.updateEntityNameType(entity.iri.fullIri)
       }
     }
@@ -124,26 +172,66 @@ export default class IncrementalController {
     const classInstanceEntities = RDFGraphParser.getClassInstances(rdfGraph, this.grapholscape.ontology.namespaces)
 
     classInstanceEntities.forEach((instanceEntity, iri) => {
-      this.classInstanceEntities.set(iri, instanceEntity)
+      if (!this.classInstanceEntities.get(iri))
+        this.classInstanceEntities.set(iri, instanceEntity)
     })
 
-    const diagram = RDFGraphParser.getDiagrams(rdfGraph, this.grapholscape.ontology, this.classInstanceEntities, RendererStatesEnum.INCREMENTAL)[0]
+    const diagram = RDFGraphParser.getDiagrams(
+      rdfGraph,
+      this.grapholscape.ontology,
+      this.classInstanceEntities,
+      RendererStatesEnum.INCREMENTAL)[0]
+
     if (diagram) {
       const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL)
 
-      diagramRepr?.cy.nodes().forEach(node => {
-        elem = diagramRepr.grapholElements.get(node.id())
-        if (elem)
-          addElemToIncremental(elem)
-      })
+      this.performActionWithBlockedGraph(() => {
+        let elem: GrapholElement | undefined
+        diagramRepr?.cy.nodes().forEach(node => {
+          elem = diagramRepr.grapholElements.get(node.id())
+          if (elem)
+            addElemToIncremental(elem, diagramRepr)
+        })
 
-      diagramRepr?.cy.edges().forEach(edge => {
-        elem = diagramRepr.grapholElements.get(edge.id())
-        if (elem)
-          addElemToIncremental(elem)
-      })
+        diagramRepr?.cy.edges().forEach(edge => {
+          elem = diagramRepr.grapholElements.get(edge.id())
+          if (elem)
+            addElemToIncremental(elem, diagramRepr)
+        })
+      },
+        { // layout options
+          centerGraph: true,
+          boundingBox: {
+            x1: 0,
+            y1: 0,
+            h: (diagramRepr?.grapholElements.size || 10) * 5,
+            w: (diagramRepr?.grapholElements.size || 10) * 5,
+          },
+          randomize: true,
+          fit: true,
+        }
+      )
+    }
+  }
 
-      this.runLayout()
+  /**
+   * Given source instance and target instance IRIs and a path to traverse,
+   * add to the diagram the set of instances/object properties resulting
+   * from the CONSTRUCT query over the path.
+   */
+  async addInstancesPath(sourceIri: string, targetIri: string, path: OntologyPath) {
+    const rdfGraph = await this.endpointController?.requestInstancesPath(
+      sourceIri,
+      targetIri,
+      path
+    ).catch(() => {
+      console.log('aaah')
+    })
+
+    if (rdfGraph) {
+      this.addRDFGraph(rdfGraph)
+    } else {
+      showMessage('No results found', 'Info', this.grapholscape.uiContainer)
     }
   }
 
@@ -350,14 +438,14 @@ export default class IncrementalController {
 
       if (instance.label) {
         classInstanceEntity.addAnnotation(
-          new Annotation(AnnotationsKind.label, instance.label.value, instance.label.language)
+          new Annotation(AnnotationProperty.label, instance.label.value, instance.label.language)
         )
       }
 
       this.endpointController?.requestLabels(instance.iri).then(labels => {
         labels?.forEach(label => {
           classInstanceEntity!.addAnnotation(
-            new Annotation(AnnotationsKind.label, label.value, label.language)
+            new Annotation(AnnotationProperty.label, label.value, label.language)
           )
         })
 
@@ -407,7 +495,12 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
     let objectPropertyEdge: GrapholEdge | undefined
     if (objectPropertyEntity && sourceClass && targetClass) {
-      this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, TypesEnum.CLASS)
+      objectPropertyEdge = this.diagramBuilder.addObjectProperty(
+        objectPropertyEntity,
+        sourceClass,
+        targetClass,
+        TypesEnum.CLASS
+      ) as GrapholEdge
 
       this.updateEntityNameType(objectPropertyEntity.iri)
       this.updateEntityNameType(sourceClassIri)
@@ -831,17 +924,16 @@ export default class IncrementalController {
         setTimeout(() => {
           if (promisesCount > 0) {
             clearInterval(interval)
-            const dialog = new GscapeConfirmDialog(`
-              Focus instance [${instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)}] took too long, reached timeout limit.
-              Partial results might be shown, ok?
-            `, 'Timeout Reached')
-
-            this.grapholscape.uiContainer?.appendChild(dialog)
-            dialog.onConfirm = onDone
-            dialog.onCancel = () => {
-              this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+            if (this.grapholscape.uiContainer) {
+              showMessage(`
+                Focus instance [${instanceEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)}] took too long, reached timeout limit.
+                Partial results might be shown, ok?
+              `, 'Timeout Reached',
+                this.grapholscape.uiContainer
+              )
+                .onConfirm(onDone)
+                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri))
             }
-            dialog.show()
           }
         }, 10000)
       }
@@ -891,7 +983,7 @@ export default class IncrementalController {
     })
   }
 
-  async addPath(path: { iri: string, type: string }[], sourceClassIri: string, targetClassIri: string) {
+  async addPath(path: Entity[]) {
     this.performActionWithBlockedGraph(() => {
       if (!this.diagram.representation)
         return
@@ -900,35 +992,29 @@ export default class IncrementalController {
       let cyElems: Collection = this.diagram.representation.cy.collection()
       let elemId: string | undefined
 
-      path.unshift({
-        iri: sourceClassIri,
-        type: 'class'
-      })
-
-      path.push({
-        iri: targetClassIri,
-        type: 'class',
-      })
-
+      let sourceClassIri: string | undefined, targetClassIri: string | undefined
       for (let entity of path) {
-        if (entity.type === 'objectProperty' || entity.type === 'inverseObjectProperty') {
+        if (entity.type === EntityTypeEnum.ObjectProperty || entity.type === EntityTypeEnum.InverseObjectProperty) {
           if (!path[i + 1] || !path[i - 1])
             return
 
           sourceClassIri = path[i - 1].iri
           targetClassIri = path[i + 1].iri
 
+          if (!sourceClassIri || !targetClassIri)
+            return
+
           if (entity.iri === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
             const sourceId = this.addClass(sourceClassIri)?.id
             const targetId = this.addClass(targetClassIri)?.id
             if (sourceId && targetId) {
-              if (entity.type === 'objectProperty')
+              if (entity.type === EntityTypeEnum.ObjectProperty)
                 elemId = this.addEdge(sourceId, targetId, TypesEnum.INCLUSION)?.id
               else
                 elemId = this.addEdge(targetId, sourceId, TypesEnum.INCLUSION)?.id
             }
-          } else {
-            if (entity.type === 'objectProperty')
+          } else if (entity.iri) {
+            if (entity.type === EntityTypeEnum.ObjectProperty)
               elemId = this.addIntensionalObjectProperty(entity.iri, sourceClassIri, targetClassIri)?.id
             else
               elemId = this.addIntensionalObjectProperty(entity.iri, targetClassIri, sourceClassIri)?.id
@@ -961,16 +1047,18 @@ export default class IncrementalController {
     })
   }
 
-  runLayout = () => {
-    this.incrementalRenderer?.runLayout()
-  }
+  // runLayout = () => {
+  //   this.incrementalRenderer?.runLayout()
+  // }
   pinNode = (node: NodeSingular | string) => this.incrementalRenderer?.pinNode(node)
   unpinNode = (node: NodeSingular | string) => this.incrementalRenderer?.unpinNode(node)
 
-  postDiagramEdit(oldElemsNumber: number) {
+  postDiagramEdit(oldElemsNumber: number, customLayoutOptions?: any) {
     if (this.numberOfElements !== oldElemsNumber) {
       if (this.actionsWithBlockedGraph === 0) {
-        this.runLayout()
+        customLayoutOptions
+          ? this.incrementalRenderer?.runCustomLayout(customLayoutOptions)
+          : this.incrementalRenderer?.runLayout()
       }
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     } else {

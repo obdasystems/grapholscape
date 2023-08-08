@@ -1,7 +1,8 @@
+import { RDFGraph } from "../../model/rdf-graph/swagger"
 import handleApiCall from "../api/handle-api-call"
 import { HeadTypes, InstanceCheckingInfo, QueryStatusEnum } from "../api/model"
 
-export type APICallResult = QueryRecords | number | QueryStatus | InstanceCheckingInfo
+export type APICallResult = QueryRecords | number | QueryStatus | InstanceCheckingInfo | RDFGraph
 
 export type QueryRecords = {
   headTerms: string[],
@@ -215,4 +216,31 @@ export class QueryCountStatePoller extends QueryPoller {
     return this._result
   }
 
+}
+
+export class QueryConstructResultsPoller extends QueryPoller {
+  protected _result: RDFGraph
+  public onNewResults: (result: RDFGraph) => void = () => { }
+  public numberResultsAvailable: number = 0
+
+  constructor(protected request: Request, private limit: number, public executionId: string) {
+    super()
+  }
+
+  protected hasAnyResults(): boolean {
+    const diagramNodes = this.result.diagrams[0]?.nodes
+    return this.result && diagramNodes !== undefined && diagramNodes.length > 0
+  }
+
+  protected isResultError(result: RDFGraph): boolean {
+    return !result || !result.diagrams
+  }
+
+  protected stopCondition(): boolean {
+    return this._result !== undefined
+  }
+
+  get result(): RDFGraph {
+    return this._result
+  }
 }

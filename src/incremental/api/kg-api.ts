@@ -1,9 +1,11 @@
 import { TypesEnum } from '../../model'
+import { RDFGraph } from '../../model/rdf-graph/swagger'
 import QueryManager from '../queries/query-manager'
 import { ResultRecord } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
 import handleApiCall from './handle-api-call'
 import { EmptyUnfoldingEntities, HeadTypes, MastroEndpoint, MaterializedCounts, QuerySemantics, QueryStatusEnum, RequestOptions } from './model'
+import { OntologyPath } from './swagger'
 import { Highlights } from './swagger/models/Highlights'
 
 export type ClassInstance = {
@@ -35,10 +37,8 @@ export interface IVirtualKnowledgeGraphApi {
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
-  getShortestPath: (sourceClassIri: string, targetClassIri: string) => Promise<{
-    type: string,
-    iri: string
-  }[]>
+  getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>
+  getExtensionalShortestPath: (sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void) => Promise<void>
   pageSize: number
 }
 
@@ -355,12 +355,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     queryPoller.start()
   }
 
-  async getShortestPath(sourceClassIri: string, targetClassIri: string) {
+  async getIntensionalShortestPath(sourceClassIri: string, targetClassIri: string, kShortest = false) {
     const params = new URLSearchParams({
       lastSelectedIRI: sourceClassIri,
       clickedIRI: targetClassIri,
       version: this.requestOptions.version
     })
+
+    if (kShortest)
+      params.append('kShortest', 'true')
+
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/highlights/paths?${params.toString()}`)
     return (await (await handleApiCall(
       fetch(url, {
@@ -368,7 +372,39 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
         headers: this.requestOptions.headers
       }),
       this.requestOptions.onError
-    )).json()).entities
+    )).json())
+  }
+
+  async getExtensionalShortestPath(
+    sourceInstanceIri: string,
+    targetIri: string,
+    path: OntologyPath,
+    onNewResult: (rdfGraph?: RDFGraph) => void
+    ) {
+    const params = new URLSearchParams({
+      sourceInstanceIri: sourceInstanceIri,
+      targetInstanceIRI: targetIri,
+      labels: 'true',
+      version: this.requestOptions.version
+    })
+
+    const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/instanceShortestPath?${params.toString()}`)
+    const headers = this.requestOptions.headers
+
+    // headers['content-type'] = 'text/plain'
+    const queryCode = (await (await handleApiCall(
+      fetch(url, {
+        method: 'post',
+        headers: headers,
+        body: JSON.stringify(path),
+      }),
+      this.requestOptions.onError
+    )).text())
+
+    if (queryCode && typeof queryCode === 'string') {
+      this.queryManager.performQueryContrusct(queryCode)
+        .then(rdfGraph => onNewResult(rdfGraph))
+    }
   }
 
   shouldQueryUseLabels(executionId: string) {

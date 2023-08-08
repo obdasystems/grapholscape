@@ -38,6 +38,12 @@ export interface ClassInstanceEntityAllOf {
      * @memberof ClassInstanceEntityAllOf
      */
     dataProperties?: Array<DataPropertyValue>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClassInstanceEntityAllOf
+     */
+    shortIri?: string;
 }
 
 /**
@@ -61,6 +67,7 @@ export function ClassInstanceEntityAllOfFromJSONTyped(json: any, ignoreDiscrimin
         
         'parentClasses': !exists(json, 'parentClasses') ? undefined : json['parentClasses'],
         'dataProperties': !exists(json, 'dataProperties') ? undefined : ((json['dataProperties'] as Array<any>).map(DataPropertyValueFromJSON)),
+        'shortIri': !exists(json, 'shortIri') ? undefined : json['shortIri'],
     };
 }
 
@@ -75,6 +82,7 @@ export function ClassInstanceEntityAllOfToJSON(value?: ClassInstanceEntityAllOf 
         
         'parentClasses': value.parentClasses,
         'dataProperties': value.dataProperties === undefined ? undefined : ((value.dataProperties as Array<any>).map(DataPropertyValueToJSON)),
+        'shortIri': value.shortIri,
     };
 }
 

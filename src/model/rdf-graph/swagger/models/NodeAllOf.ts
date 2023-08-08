@@ -19,12 +19,6 @@ import {
     PositionFromJSONTyped,
     PositionToJSON,
 } from './Position';
-import type { TypesEnum } from './TypesEnum';
-import {
-    TypesEnumFromJSON,
-    TypesEnumFromJSONTyped,
-    TypesEnumToJSON,
-} from './TypesEnum';
 
 /**
  * 
@@ -38,12 +32,6 @@ export interface NodeAllOf {
      * @memberof NodeAllOf
      */
     position?: Position;
-    /**
-     * 
-     * @type {TypesEnum}
-     * @memberof NodeAllOf
-     */
-    identity?: TypesEnum;
     /**
      * 
      * @type {Position}
@@ -72,7 +60,6 @@ export function NodeAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     return {
         
         'position': !exists(json, 'position') ? undefined : PositionFromJSON(json['position']),
-        'identity': !exists(json, 'identity') ? undefined : TypesEnumFromJSON(json['identity']),
         'labelPosition': !exists(json, 'labelPosition') ? undefined : PositionFromJSON(json['labelPosition']),
     };
 }
@@ -87,7 +74,6 @@ export function NodeAllOfToJSON(value?: NodeAllOf | null): any {
     return {
         
         'position': PositionToJSON(value.position),
-        'identity': TypesEnumToJSON(value.identity),
         'labelPosition': PositionToJSON(value.labelPosition),
     };
 }

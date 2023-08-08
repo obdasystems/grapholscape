@@ -2,7 +2,7 @@ import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import GrapholElement from "./graphol-element"
-import { Entity, EntityNameType, FunctionPropertiesEnum, TypesEnum } from "../rdf-graph/swagger"
+import { Entity, RDFGraphConfigEntityNameTypeEnum as EntityNameType, FunctionPropertiesEnum, TypesEnum } from "../rdf-graph/swagger"
 
 // export enum FunctionalityEnum {
 //   functional = 'functional',
@@ -31,6 +31,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   private _iri!: Iri
   private _occurrences: Map<RendererStatesEnum, GrapholElement[]> = new Map([[RendererStatesEnum.GRAPHOL, []]])
   private _datatype: string
+  private _isDataPropertyFunctional: boolean = false
   private _functionProperties: FunctionPropertiesEnum[] = []
 
   constructor(iri: Iri) {
@@ -44,7 +45,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     }
 
     const occurrences = this.occurrences.get(representationKind)
-    if (!occurrences?.find(occ => occ === newGrapholElement)) {
+    if (!occurrences?.some(occ => occ.equals(newGrapholElement))) {
       occurrences?.push(newGrapholElement)
     }
   }
@@ -129,6 +130,14 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     this._functionProperties = properties
   }
 
+  public get isDataPropertyFunctional() {
+    return this._isDataPropertyFunctional
+  }
+
+  public set isDataPropertyFunctional(value) {
+    this._isDataPropertyFunctional = value
+  }
+
   public get datatype() { return this._datatype }
   public set datatype(datatype) { this._datatype = datatype }
 
@@ -141,7 +150,11 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   }
 
   public hasFunctionProperty(property: FunctionPropertiesEnum) {
-    return this._functionProperties?.includes(property) || false
+    const resVal = this._functionProperties?.includes(property) || false
+    if (property === FunctionPropertiesEnum.FUNCTIONAL) {
+      return this.isDataPropertyFunctional || resVal
+    }
+    return resVal
   }
 
   public hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum) {
@@ -207,9 +220,17 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   public json(): Entity {
     return {
       fullIri: this.fullIri,
-      annotations: this.getAnnotations(),
+      annotations: this.getAnnotations().map(ann => {
+        return {
+          property: ann.property,
+          lexicalForm: ann.lexicalForm,
+          language: ann.language,
+          datatype: ann.datatype,
+        }
+      }),
       datatype: this.datatype,
-      functionProperties: this.functionProperties
+      functionProperties: this.functionProperties,
+      isDataPropertyFunctional: this.isDataPropertyFunctional,
     }
   }
 }

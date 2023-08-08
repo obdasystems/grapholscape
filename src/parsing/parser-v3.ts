@@ -1,5 +1,3 @@
-/** @typedef {import('../model').default} Ontology */
-
 import { FunctionalityEnum, Ontology, TypesEnum } from '../model'
 import Annotation from '../model/graphol-elems/annotation'
 import Iri from '../model/iri'

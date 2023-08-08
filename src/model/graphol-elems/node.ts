@@ -20,7 +20,7 @@ export default class GrapholNode extends GrapholElement implements Node {
         } else {
           instance[key] = value
         }
-        
+
       }
     })
 
@@ -38,9 +38,9 @@ export default class GrapholNode extends GrapholElement implements Node {
 
   private _hierarchyID?: string
   private _labelXpos?: number
-  private _labelXcentered?: boolean
+  private _labelXcentered?: boolean = true
   private _labelYpos?: number
-  private _labelYcentered?: boolean
+  private _labelYcentered?: boolean = true
   private _fontSize?: number
   protected _fakeNodes: GrapholNode[]
 
@@ -66,7 +66,7 @@ export default class GrapholNode extends GrapholElement implements Node {
     this._shape = shape
   }
 
-  get hierarchyID(){ return this._hierarchyID }
+  get hierarchyID() { return this._hierarchyID }
   set hierarchyID(hierarchyID: string | undefined) {
     this._hierarchyID = hierarchyID
   }
@@ -107,7 +107,7 @@ export default class GrapholNode extends GrapholElement implements Node {
     if (labelXpos === this.position.x) {
       this.labelXpos = 0
     } else {
-      this.labelXpos = labelXpos - this.position.x + 1
+      this.labelXpos = labelXpos - this.position.x
     }
   }
 
@@ -128,7 +128,7 @@ export default class GrapholNode extends GrapholElement implements Node {
     if (labelYpos === this.position.y) {
       this.labelYpos = 0
     } else {
-      this.labelYpos = (labelYpos - this.y) + (this.height + 2) / 2 + this.labelHeight / 4
+      this.labelYpos = labelYpos - this.y
     }
   }
 
@@ -202,7 +202,6 @@ export default class GrapholNode extends GrapholElement implements Node {
   json(): Node {
     const result: Node = super.json()
 
-    result.identity = this.identity
     result.position = this.position
     if (this.labelXpos !== undefined && this.labelYpos !== undefined) {
       result.labelPosition = {
@@ -216,5 +215,5 @@ export default class GrapholNode extends GrapholElement implements Node {
 }
 
 export function isGrapholNode(elem: GrapholElement): elem is GrapholNode {
-  return (elem as GrapholNode).shape !== undefined
+  return (elem as GrapholNode).isLabelXcentered !== undefined
 }

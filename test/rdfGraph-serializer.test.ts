@@ -2,11 +2,12 @@
  * @jest-environment jsdom
  */
 
-import { DefaultThemes, RendererStatesEnum } from '../src/model'
-import { EntityNameType, Position } from '../src/model/rdf-graph/swagger'
+import { DefaultThemes, EntityNameType, Position, RendererStatesEnum } from '../src/model'
 import GrapholParser from '../src/parsing/parser'
 import rdfgraphSerializer, { IGscape } from '../src/rdfgraph-serializer'
 import books4Graphol from './books4.graphol'
+
+const fs = require('fs')
 
 describe('test serializing an ontology', () => {
  
@@ -33,5 +34,11 @@ describe('test serializing an ontology', () => {
     widgets: new Map(),
   }
 
-  console.log(JSON.stringify(rdfgraphSerializer(gscapeMock)))
+  const rdfGraph = rdfgraphSerializer(gscapeMock)
+  fs.writeFileSync('test/rdf-graph.json', JSON.stringify(rdfGraph))
+
+  // temporary
+  test('RDF Graph serialization finishes and is defined', () => {
+    expect(rdfGraph).toBeDefined() 
+  })
 })

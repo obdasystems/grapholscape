@@ -139,11 +139,18 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             : null
           }
 
-          ${this.grapholEntity.functionProperties.length > 0
+          ${this.grapholEntity.functionProperties.length > 0 || this.grapholEntity.isDataPropertyFunctional
             ? html`
                 <div class="chips-wrapper section">
+                ${this.grapholEntity.isDataPropertyFunctional
+                  ? html`<span class="chip">&#10003; functional</span>`
+                  : null
+                }
                 ${this.grapholEntity.functionProperties.map(functionality => {
-                  return html`<span class="chip">&#10003; ${functionality.toString()}</span>`
+                  if (this.grapholEntity.isDataPropertyFunctional)
+                    return null
+                  else
+                    return html`<span class="chip">&#10003; ${functionality.toString()}</span>`
                 })}
                 </div>
               `

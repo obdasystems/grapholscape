@@ -1,8 +1,12 @@
+import { EdgeSingular, NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
-import { classIcon, counter, sankey } from "../../../ui/assets";
+import { classIcon, counter, pathIcon, sankey } from "../../../ui/assets";
 import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
+import { hideButtons } from "../node-buttons.ts";
+import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
+import GscapePathSelector, { PathSelectionEvent } from "../path-selection/path-selector";
 import * as IncrementalCommands from "./commands";
 
 export function CommandsWidgetFactory(ic: IncrementalController) {
@@ -22,9 +26,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const grapholElement = ic.diagram.representation?.grapholElements.get(event.target.id())
     if (!entity || !grapholElement) return
 
+    hideButtons(event.target)
+
     if (grapholElement.is(TypesEnum.OBJECT_PROPERTY) &&
-        event.target.source().data().type === TypesEnum.CLASS_INSTANCE &&
-        event.target.target().data().type === TypesEnum.CLASS_INSTANCE) {
+      event.target.source().data().type === TypesEnum.CLASS_INSTANCE &&
+      event.target.target().data().type === TypesEnum.CLASS_INSTANCE) {
       commands.push({
         content: 'Show Instance Types',
         icon: classIcon,
@@ -35,6 +41,84 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
             event.target.target().id(),
           )
         },
+      })
+    }
+
+    if (
+      grapholElement.is(TypesEnum.CLASS) ||
+      grapholElement.is(TypesEnum.CLASS_INSTANCE)
+    ) {
+      commands.push({
+        content: 'Find paths to',
+        icon: pathIcon,
+        select: () => {
+          const onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
+            let pathSelector: GscapePathSelector | undefined
+            let sourceIriForPath = sourceNode.data('iri')
+            let targetIriForpath = targetNode.data('iri')
+
+            const loadingAnimationInterval = setInterval(() => {
+              loadingEdge.data('on', !loadingEdge.data('on'))
+            }, 500)
+        
+            const stopAnimation = () => {
+              loadingEdge.remove()
+              clearInterval(loadingAnimationInterval)
+            }
+        
+            if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
+              stopAnimation()
+            }
+
+            // let pathSelector: GscapePathSelector | undefined
+            if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
+              if (sourceIriForPath && targetIriForpath) {
+                pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
+
+                pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
+                  if (evt.detail.entities)
+                    ic.addPath(evt.detail.entities)
+
+                  stopAnimation()
+                })
+              }
+            } else {
+              let entity: ClassInstanceEntity | undefined
+              // Take parentClass IRI to find a path to the other node in the intensional level
+              if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
+                entity = ic.classInstanceEntities.get(sourceNode.data('iri'))
+
+                if (entity) {
+                  sourceIriForPath = entity.parentClassIris[0].fullIri
+                }
+              }
+
+              if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
+                entity = ic.classInstanceEntities.get(targetNode.data('iri'))
+
+                if (entity) {
+                  targetIriForpath = entity.parentClassIris[0].fullIri
+                }
+              }
+
+              if (sourceIriForPath && targetIriForpath) {
+                pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
+
+                pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
+                  ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
+                    .finally(stopAnimation)
+                })
+              }
+            }
+
+            if (pathSelector) {
+              pathSelector.addEventListener('cancel', stopAnimation)
+              pathSelector.show()
+            }
+          }
+
+          handlePathEdgeDraw(event.target, ic, onComplete)
+        }
       })
     }
 

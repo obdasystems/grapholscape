@@ -1,11 +1,12 @@
+import { RDFGraph } from "../../model/rdf-graph/swagger"
 import handleApiCall from "../api/handle-api-call"
-import { MastroEndpoint, QuerySemantics, QueryStatusEnum, RequestOptions } from "../api/model"
+import { MastroEndpoint, QuerySemantics, QueryStatusEnum, QueryType, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
-import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
+import { QueryConstructResultsPoller, QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
-  private _runningQueryPollerByExecutionId: Map<string, { resultPollers: Set<QueryResultsPoller>, statusPollers: Set<QueryStatusPoller> }> = new Map()
+  private _runningQueryPollerByExecutionId: Map<string, { resultPollers: Set<QueryResultsPoller | QueryConstructResultsPoller>, statusPollers: Set<QueryStatusPoller> }> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
   private _runningInstanceCheckingPollerByThreadId: Map<string, InstanceCheckingPoller> = new Map()
 
@@ -139,7 +140,7 @@ export default class QueryManager {
    * @returns a promise which will be resolved with the result
    */
   async performQueryCount(queryCode: string, onStopCallback?: () => void): Promise<number> {
-    const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, true)
+    const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.COUNT)
     const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId))
 
     this._runningCountQueryPollerByExecutionId.set(executionId, countStatePoller)
@@ -178,6 +179,60 @@ export default class QueryManager {
 
       countStatePoller.start()
     })
+  }
+
+  async performQueryContrusct(queryCode: string, pageSize?: number) {
+    // return this.getQueryResults(executionId, pageSize, pageNumber)
+    // const queryResultsPoller = new QueryConstructResultsPoller(this.getQueryResultRequest(executionId, pageSize, 1, QueryType.CONSTRUCT), pageSize, executionId)
+    // if (!keepAlive) {
+    //   const pollers = this._runningQueryPollerByExecutionId.get(executionId)
+    //   if (pollers) {
+    //     pollers.resultPollers.add(queryResultsPoller)
+    //   } else {
+    //     this._runningQueryPollerByExecutionId.set(executionId, {
+    //       resultPollers: new Set([queryResultsPoller]),
+    //       statusPollers: new Set(),
+    //     })
+    //   }
+    // }
+
+    // queryResultsPoller.onError = this.requestOptions.onError
+
+    return new Promise<RDFGraph | undefined>(async (resolve) => {
+      const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.CONSTRUCT)
+      const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
+      this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
+
+      queryStatusPoller.onNewResults = (statusResult) => {
+        if (statusResult.status !== QueryStatusEnum.RUNNING) {
+          this._runningQueryPollerByExecutionId.delete(executionId)
+          queryStatusPoller.stop()
+        }
+
+        if (statusResult.status === QueryStatusEnum.FINISHED) {
+          pageSize = pageSize || statusResult.numResults
+
+          if (pageSize > 0) {
+            const request = this.getQueryResultRequest(executionId, pageSize || statusResult.numResults, 1, QueryType.CONSTRUCT)
+            handleApiCall(fetch(request), this.onError)
+              .then(async response => resolve(await response.json()))
+          } {
+            resolve(undefined)
+          }
+        }
+      }
+
+      queryStatusPoller.onError = (errors) => {
+        for (let error of errors)
+          this.requestOptions.onError(error)
+
+        // queryResultsPoller.stop()
+        this._runningQueryPollerByExecutionId.delete(executionId)
+      }
+
+      queryStatusPoller.start()
+    })
+    
   }
 
   async getQueryStatus(executionID: string): Promise<{ status: QueryStatusEnum, hasError: boolean }> {
@@ -290,15 +345,10 @@ export default class QueryManager {
     return this._prefixes
   }
 
-  private async startQuery(queryCode: string, querySemantics: QuerySemantics, isCount?: boolean): Promise<string> {
-    let countURL: URL | undefined
-    if (isCount) {
-      countURL = this.queryCountPath
-    }
-
+  private async startQuery(queryCode: string, querySemantics: QuerySemantics, queryType: QueryType = QueryType.STANDARD): Promise<string> {
     return new Promise(async (resolve) => {
       handleApiCall(
-        fetch(await this.getNewQueryRequest(queryCode, querySemantics, countURL)),
+        fetch(await this.getNewQueryRequest(queryCode, querySemantics, queryType)),
         this.onError
       ).then(async response => {
         resolve((await response.json()).executionId)
@@ -313,17 +363,46 @@ export default class QueryManager {
    * @param customURL URL to use, if not specified this.queryStartPath will be used
    * @returns the request object to send
    */
-  private async getNewQueryRequest(queryCode: string, querySemantics: QuerySemantics, customURL?: URL): Promise<Request> {
-    const url: URL = customURL || this.queryStartPath
-    const params = new URLSearchParams({
-      useReplaceForUrlEncoding: 'false',
-      querySemantics: querySemantics,
-      advanced: 'true',
-      reasoning: 'true',
-      expandSparqlTables: 'true'
-    })
+  private async getNewQueryRequest(queryCode: string, querySemantics: QuerySemantics, queryType: QueryType, customURL?: URL): Promise<Request> {
+    // const url: URL = customURL || this.getQueryStartPath()
+    let url: URL | undefined
+    let params: URLSearchParams | undefined
+    switch (queryType) {
+      case QueryType.STANDARD:
+      default:
+        url = this.getQueryStartPath(queryType)
+        params = new URLSearchParams({
+          useReplaceForUrlEncoding: 'false',
+          querySemantics: querySemantics,
+          advanced: 'true',
+          reasoning: 'true',
+          expandSparqlTables: 'true'
+        })
 
-    return new Request(new URL(url.toString().concat(`?${params.toString()}`)), {
+        break
+
+      case QueryType.COUNT:
+        url = this.queryCountPath
+        params = new URLSearchParams({
+          useReplaceForUrlEncoding: 'false',
+          querySemantics: querySemantics,
+          advanced: 'true',
+          reasoning: 'true',
+          expandSparqlTables: 'true'
+        })
+
+        break
+
+      case QueryType.CONSTRUCT:
+        url = this.getQueryStartPath(queryType)
+    }
+
+
+    if (params) {
+      url = new URL(url.toString().concat(`?${params.toString()}`))
+    }
+
+    return new Request(url, {
       method: 'post',
       headers: this.requestOptions.headers,
       body: JSON.stringify({
@@ -331,22 +410,23 @@ export default class QueryManager {
         queryID: Math.random(),
         queryDescription: "",
         mappingParameters: {},
+        construct: queryType === QueryType.CONSTRUCT || undefined,
       }),
     })
   }
 
   // Requests for polling a query
-  private getQueryResultRequest(queryExecutionId: string, limit: number, pagenumber = 1) {
-    const params = new URLSearchParams({ pagesize: limit.toString(), pagenumber: pagenumber.toString() })
+  private getQueryResultRequest(queryExecutionId: string, pageSize: number, pagenumber = 1, queryType = QueryType.STANDARD) {
+    const params = new URLSearchParams({ pagesize: pageSize.toString(), pagenumber: pagenumber.toString() })
 
-    return new Request(`${this.getQueryResultPath(queryExecutionId)}?${params.toString()}`, {
+    return new Request(`${this.getQueryResultPath(queryExecutionId, queryType)}?${params.toString()}`, {
       method: 'get',
       headers: this.requestOptions.headers
     })
   }
 
-  private getQueryStatusRequest(queryExecutionId: string) {
-    return new Request(`${this.getQueryStatePath(queryExecutionId)}`, {
+  private getQueryStatusRequest(queryExecutionId: string, queryType = QueryType.STANDARD) {
+    return new Request(`${this.getQueryStatePath(queryExecutionId, queryType)}`, {
       method: 'get',
       headers: this.requestOptions.headers
     })
@@ -359,20 +439,36 @@ export default class QueryManager {
     })
   }
 
-  private get queryStartPath() {
-    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/start`)
+  private getQueryStartPath(queryType = QueryType.STANDARD) {
+    let query = 'query'
+    if (queryType === QueryType.CONSTRUCT) {
+      query = 'cquery'
+    }
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${query}/start`)
   }
 
-  private getQueryStopPath(executionId: string) {
-    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/stop`)
+  private getQueryStopPath(executionId: string, queryType = QueryType.STANDARD) {
+    let query = 'query'
+    if (queryType === QueryType.CONSTRUCT) {
+      query = 'cquery'
+    }
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${query}/${executionId}/stop`)
   }
 
-  private getQueryResultPath(executionId: string) {
-    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/results`)
+  private getQueryResultPath(executionId: string, queryType = QueryType.STANDARD) {
+    let endingPath = `query/${executionId}/results`
+    if (queryType === QueryType.CONSTRUCT) {
+      endingPath = `cquery/${executionId}/results/rdfGraph`
+    }
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${endingPath}`)
   }
 
-  private getQueryStatePath(executionId: string) {
-    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/query/${executionId}/status`)
+  private getQueryStatePath(executionId: string, queryType = QueryType.STANDARD) {
+    let query = 'query'
+    if (queryType === QueryType.CONSTRUCT) {
+      query = 'cquery'
+    }
+    return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${query}/${executionId}/status`)
   }
 
   private getInstanceCheckingPath(threadId: string) {

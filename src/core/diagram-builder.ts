@@ -1,11 +1,14 @@
-import cytoscape, { Position } from "cytoscape";
-import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, RendererStatesEnum, Shape, TypesEnum } from "../model";
+import cytoscape from "cytoscape";
+import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, Position, RendererStatesEnum, Shape, TypesEnum } from "../model";
 
 export default class DiagramBuilder {
 
   constructor(public diagram: Diagram, private rendererState: RendererStatesEnum) { }
 
-  addClass(classEntity: GrapholEntity, position?: Position) {
+  addClass(classEntity: GrapholEntity, classNode?: GrapholNode): GrapholNode
+  addClass(classEntity: GrapholEntity, position?: Position): GrapholNode
+  addClass(classEntity: GrapholEntity): GrapholNode
+  addClass(classEntity: GrapholEntity, positionOrNode?: any) {
     if (this.diagramRepresentation?.containsEntity(classEntity)) {
       const nodeId = classEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState)
       return nodeId
@@ -13,13 +16,22 @@ export default class DiagramBuilder {
         : undefined
     }
 
-    const classNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS)
-    classNode.iri = classEntity.iri.fullIri
-    classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
-    classNode.height = classNode.width = 80
-    classNode.position = position || { x: 0, y: 0 }
-    classNode.originalId = classNode.id
-    classNode.diagramId = this.diagram.id
+    let position: Position | undefined, classNode: GrapholNode | undefined
+    if (positionOrNode && isGrapholNode(positionOrNode)) {
+      classNode = positionOrNode
+    } else if (positionOrNode) {
+      position = positionOrNode
+    }
+
+    if (!classNode) {
+      classNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS)
+      classNode.iri = classEntity.iri.fullIri
+      classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
+      classNode.height = classNode.width = 80
+      classNode.position = position || { x: 0, y: 0 }
+      classNode.originalId = classNode.id
+      classNode.diagramId = this.diagram.id
+    }
 
     classEntity.addOccurrence(classNode, this.rendererState)
 
@@ -58,11 +70,25 @@ export default class DiagramBuilder {
     return dataPropertyNode
   }
 
+  /**
+   * Add an object property between two entities.
+   * If the source and/or target entities are already present in graph, they won't be added again.
+   * If there already exists an object property between them with the same IRI, the
+   * edge won't be added.
+   * @param objectPropertyEntity the object property entity 
+   * @param sourceEntity the source entity
+   * @param targetEntity the target entity
+   * @param nodesType the type of source and target, they must have same type
+   * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
+   * if you don't pass this, a new GrapholEdge will be created from scratch
+   * @returns 
+   */
   addObjectProperty(
     objectPropertyEntity: GrapholEntity,
     sourceEntity: GrapholEntity,
     targetEntity: GrapholEntity,
-    nodesType: TypesEnum
+    nodesType: TypesEnum,
+    objectPropertyElement?: GrapholEdge
   ) {
 
     // if both object property and range class are already present, do not add them again
@@ -107,26 +133,53 @@ export default class DiagramBuilder {
       return
     }
 
-    const objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
-    objectPropertyEdge.diagramId = this.diagram.id
-    objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
+    let objectPropertyEdge: GrapholEdge
+    if (!objectPropertyElement) {
+      objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
+      objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(EntityNameType.LABEL)
+      objectPropertyEdge.originalId = objectPropertyEdge.id
+      objectPropertyEdge.iri = objectPropertyEntity.iri.fullIri
+    } else {
+      objectPropertyEdge = objectPropertyElement
+    }
+
+    /**
+     * objectPropertyEdge might not have the right source(target)NodeId,
+     * can happen loading rdfGraph in VKG having edges between instances
+     * that were already present in the diagram.
+     * Just set the right IDs anyway, either a custom edge was provided or not.
+     */
     objectPropertyEdge.sourceId = sourceNode.id()
     objectPropertyEdge.targetId = targetNode.id()
-    objectPropertyEdge.originalId = objectPropertyEdge.id
-    objectPropertyEdge.iri = objectPropertyEntity.iri.fullIri
+
+    objectPropertyEdge.diagramId = this.diagram.id
     objectPropertyEntity.addOccurrence(objectPropertyEdge, this.rendererState)
     this.diagramRepresentation.addElement(objectPropertyEdge, objectPropertyEntity)
     return objectPropertyEdge
   }
 
-  addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position) {
+  addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode
+  addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode
+  addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode
+  addClassInstance(classInstanceEntity: ClassInstanceEntity, positionOrElem?: any) {
     if (this.diagramRepresentation?.containsEntity(classInstanceEntity)) {
       const nodeId = classInstanceEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState)
       if (nodeId)
         return this.diagramRepresentation.grapholElements.get(nodeId)
     }
 
-    const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE)
+    let position: Position | undefined, instanceNode: GrapholNode | undefined
+
+    if (positionOrElem && isGrapholNode(positionOrElem)) {
+      instanceNode = positionOrElem
+      position = instanceNode.position
+    } else {
+      instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE)
+
+      if (positionOrElem) {
+        position = positionOrElem
+      }
+    }
 
     if (!position) {
       // check if parent class is present in diagram

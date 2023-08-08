@@ -35,7 +35,7 @@ export * as SwaggerModel from './rdf-graph/swagger'
 export { 
   TypesEnum, 
   FunctionPropertiesEnum as FunctionalityEnum,
-  EntityNameType,
+  RDFGraphConfigEntityNameTypeEnum as EntityNameType,
   Position,
   RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum,
   Viewport

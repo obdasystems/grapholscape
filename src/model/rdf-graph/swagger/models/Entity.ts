@@ -52,6 +52,12 @@ export interface Entity {
     datatype?: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof Entity
+     */
+    isDataPropertyFunctional?: boolean;
+    /**
+     * 
      * @type {Array<FunctionPropertiesEnum>}
      * @memberof Entity
      */
@@ -81,6 +87,7 @@ export function EntityFromJSONTyped(json: any, ignoreDiscriminator: boolean): En
         'fullIri': json['fullIri'],
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
+        'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
     };
 }
@@ -97,6 +104,7 @@ export function EntityToJSON(value?: Entity | null): any {
         'fullIri': value.fullIri,
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
         'datatype': value.datatype,
+        'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
     };
 }

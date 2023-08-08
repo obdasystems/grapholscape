@@ -10,6 +10,17 @@ export const edgeHandlesOptions = {
 
     return sourceNode !== targetNode && isTypeValid(sourceType) && isTypeValid(targetType)
   },
+  edgeParams: function (sourceNode, targetNode) {
+    // for edges between the specified source and target
+    // return element object to be passed to cy.add() for edge
+    return {
+      data: {
+        source: sourceNode.id(),
+        targetNode: targetNode.id(),
+      },
+      classes: 'loading-edge'
+    }
+  },
   hoverDelay: 150, // time spent hovering over a target node before it is considered selected
   snap: true, // when enabled, the edge can be drawn by just moving close to a target node (can be confusing on compound graphs)
   snapThreshold: 50, // the target node must be less than or equal to this many pixels away from the cursor/finger
