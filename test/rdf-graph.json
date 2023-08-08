@@ -731,31 +731,13 @@
       "fullIri": "http://www.obdasystems.com/books/Edition",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "Edition",
           "language": "it",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "The bibliographical definition of an edition includes all copies of a book printed “from substantially the same setting of type,” including all minor typographical variants.",
           "language": "en",
           "datatype": ""
@@ -768,16 +750,7 @@
       "fullIri": "http://www.obdasystems.com/books/actAsAuthor",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "actAsAuthor",
           "language": "en",
           "datatype": ""
@@ -790,16 +763,7 @@
       "fullIri": "http://www.obdasystems.com/books/actAsPublisher",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "actAsPublisher",
           "language": "en",
           "datatype": ""
@@ -812,16 +776,7 @@
       "fullIri": "http://www.obdasystems.com/books/hasEdition",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "hasEdition",
           "language": "it",
           "datatype": ""
@@ -836,31 +791,13 @@
       "fullIri": "http://www.obdasystems.com/books/penName",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "penName",
           "language": "en",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "A pen name, also called a nom de plume or a literary double, is a pseudonym (or, in some cases, a variant form of a real name) adopted by an author and printed on the title page or by-line of their works in place of their real name.\n",
           "language": "en",
           "datatype": ""
@@ -874,16 +811,7 @@
       "fullIri": "http://www.obdasystems.com/books/UnpublishedBook",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "UnpublishedBook",
           "language": "en",
           "datatype": ""
@@ -896,16 +824,7 @@
       "fullIri": "http://www.obdasystems.com/books/ScientificBook",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "ScientificBook",
           "language": "en",
           "datatype": ""
@@ -918,16 +837,7 @@
       "fullIri": "http://www.obdasystems.com/books/ScientificBookRevision",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "ScientificBook\nRevision",
           "language": "en",
           "datatype": ""
@@ -940,16 +850,7 @@
       "fullIri": "http://www.obdasystems.com/books/writtenBy",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "writtenBy",
           "language": "it",
           "datatype": ""
@@ -962,16 +863,7 @@
       "fullIri": "http://www.obdasystems.com/books/hasBookRevision",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "hasBookRevision",
           "language": "en",
           "datatype": ""
@@ -986,16 +878,7 @@
       "fullIri": "http://www.obdasystems.com/books/scientificTopic",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "scientificTopic",
           "language": "en",
           "datatype": ""
@@ -1009,16 +892,7 @@
       "fullIri": "http://www.obdasystems.com/books/scientificBookRevisionDate",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "scientificBookRevisionDate",
           "language": "en",
           "datatype": ""
@@ -1046,16 +920,7 @@
       "fullIri": "http://www.obdasystems.com/books/dateOfPublication",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "dateOfPublication",
           "language": "it",
           "datatype": ""
@@ -1069,16 +934,7 @@
       "fullIri": "http://www.obdasystems.com/books/editionNumber",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "editionNumber",
           "language": "it",
           "datatype": ""
@@ -1092,31 +948,13 @@
       "fullIri": "http://www.obdasystems.com/books/title",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "title",
           "language": "it",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "It is the title of the book. It identifies the book along eith the author.",
           "language": "en",
           "datatype": ""
@@ -1130,31 +968,13 @@
       "fullIri": "http://www.obdasystems.com/books/genre",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "genre",
           "language": "it",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "It is a genre of the book which describe the style in which the book is written",
           "language": "en",
           "datatype": ""
@@ -1168,16 +988,7 @@
       "fullIri": "http://www.obdasystems.com/books/SpecialEdition",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "SpecialEdition",
           "language": "it",
           "datatype": ""
@@ -1190,16 +1001,7 @@
       "fullIri": "http://www.obdasystems.com/books/EconomicEdition",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "EconomicEdition",
           "language": "it",
           "datatype": ""
@@ -1212,16 +1014,7 @@
       "fullIri": "http://www.obdasystems.com/books/E-Book",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "E-Book",
           "language": "it",
           "datatype": ""
@@ -1234,16 +1027,7 @@
       "fullIri": "http://www.obdasystems.com/books/AudioBook",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "AudioBook",
           "language": "it",
           "datatype": ""
@@ -1256,16 +1040,7 @@
       "fullIri": "http://www.obdasystems.com/books/PrintedBook",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "PrintedBook",
           "language": "it",
           "datatype": ""
@@ -1278,31 +1053,13 @@
       "fullIri": "http://www.obdasystems.com/books/Person",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "Person",
           "language": "en",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "A person (plural people or persons) is a being that has certain capacities or attributes such as reason, morality, consciousness or self-consciousness, and being a part of a culturally established form of social relations such as kinship, ownership of property, or legal responsibility.\n",
           "language": "en",
           "datatype": ""
@@ -1315,16 +1072,7 @@
       "fullIri": "http://www.obdasystems.com/books/name",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "name",
           "language": "en",
           "datatype": ""
@@ -1338,16 +1086,7 @@
       "fullIri": "http://www.obdasystems.com/books/vatNumber",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "vatNumber",
           "language": "en",
           "datatype": ""
@@ -1361,31 +1100,13 @@
       "fullIri": "http://www.obdasystems.com/books/Book",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "Book",
           "language": "it",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "A book is a medium for recording information in the form of writing or images, typically composed of many pages (made of papyrus, parchment, vellum, or paper) bound together and protected by a cover. The technical term for this physical arrangement is codex (plural, codices). In the history of hand-held physical supports for extended written compositions or records, the codex replaces its predecessor, the scroll. A single sheet in a codex is a leaf and each side of a leaf is a page.",
           "language": "en",
           "datatype": ""
@@ -1398,16 +1119,7 @@
       "fullIri": "http://www.obdasystems.com/books/durationInSeconds",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "durationInSeconds",
           "language": "en",
           "datatype": ""
@@ -1421,16 +1133,7 @@
       "fullIri": "http://www.obdasystems.com/books/priceInDollars",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "priceInDollars",
           "language": "en",
           "datatype": ""
@@ -1444,31 +1147,13 @@
       "fullIri": "http://www.obdasystems.com/books/Author",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "Author",
           "language": "it",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "An author is the creator or originator of any written work such as a book or play, and is also considered a writer or poet.\n",
           "language": "en",
           "datatype": ""
@@ -1481,16 +1166,7 @@
       "fullIri": "http://www.obdasystems.com/books/numberOfPages",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "numberOfPages",
           "language": "en",
           "datatype": ""
@@ -1504,31 +1180,13 @@
       "fullIri": "http://www.obdasystems.com/books/Publisher",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "Publisher",
           "language": "en",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "The publisher's activity is of making information, literature, music, software and other content available to the public for sale or for free.\n",
           "language": "en",
           "datatype": ""
@@ -1541,16 +1199,7 @@
       "fullIri": "http://www.obdasystems.com/books/publishedBy",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "publishedBy",
           "language": "en",
           "datatype": ""
@@ -1563,31 +1212,13 @@
       "fullIri": "http://www.obdasystems.com/books/ClassicBook",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "ClassicBook",
           "language": "en",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "A classic is a book accepted as being exemplary or noteworthy.",
           "language": "it",
           "datatype": ""
@@ -1600,31 +1231,13 @@
       "fullIri": "http://www.obdasystems.com/books/EmergingWriter",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "EmergingWriter",
           "language": "it",
           "datatype": ""
         },
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "comment"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
           "lexicalForm": "It is an author which is not already well known by a large group of people.",
           "language": "en",
           "datatype": ""
@@ -1637,16 +1250,7 @@
       "fullIri": "http://www.obdasystems.com/books/dateOfBirth",
       "annotations": [
         {
-          "_property": {
-            "_namespace": {
-              "_prefixes": [
-                "rdfs"
-              ],
-              "_value": "http://www.w3.org/2000/01/rdf-schema#",
-              "_standard": false
-            },
-            "_remainder": "label"
-          },
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
           "lexicalForm": "dateOfBirth",
           "language": "en",
           "datatype": ""

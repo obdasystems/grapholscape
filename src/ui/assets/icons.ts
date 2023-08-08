@@ -1,5 +1,5 @@
 import { svg, SVGTemplateResult } from "lit"
-import { AnnotationsKind, TypesEnum } from "../../model"
+import { TypesEnum } from "../../model"
 import classIcon from './class-icon'
 import classInstanceIcon from "./class-instance-icon"
 import dataPropertyIcon from "./data-property-icon"
@@ -144,8 +144,8 @@ export const entityIcons: { [x in TypesEnum.CLASS |
   [TypesEnum.CLASS_INSTANCE]: classInstanceIcon,
 }
 
-export const annotationIcons: { [x in AnnotationsKind]: SVGTemplateResult } = {
-  [AnnotationsKind.label]: labelIcon,
-  [AnnotationsKind.comment]: commentIcon,
-  [AnnotationsKind.author]: authorIcon,
+export const annotationIcons: { [x in string]: SVGTemplateResult } = {
+  label: labelIcon,
+  comment: commentIcon,
+  author: authorIcon,
 }

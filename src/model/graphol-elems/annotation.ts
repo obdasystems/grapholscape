@@ -1,6 +1,4 @@
-import { AnnotationsKind } from "../annotated-element"
 import Iri from "../iri"
-import Namespace from "../namespace"
 import { Annotation as IAnnotation } from "../rdf-graph/swagger"
 
 export const UNDEFINED_LANGUAGE = '_'
@@ -11,15 +9,8 @@ export default class Annotation implements IAnnotation {
   language: string
   datatype: string
 
-  constructor(property: Iri | AnnotationsKind, lexicalForm: string, language?: string, datatype?: string) {
-    if (property['fullIri']) {
-      this._property = property as Iri
-    } else {
-      this._property = new Iri(
-        property as string,
-        [new Namespace(['rdfs'], 'http://www.w3.org/2000/01/rdf-schema#')]
-      )
-    }
+  constructor(property: Iri, lexicalForm: string, language?: string, datatype?: string) {
+    this._property = property
     this.lexicalForm = lexicalForm
     this.language = language || UNDEFINED_LANGUAGE
     this.datatype = datatype || ''
@@ -29,7 +20,7 @@ export default class Annotation implements IAnnotation {
     return this.datatype === annotation.datatype &&
       this.lexicalForm === annotation.lexicalForm &&
       this.language === annotation.language &&
-      this.property === annotation.property
+      this._property.equals(annotation.property)
   }
 
   get property() {

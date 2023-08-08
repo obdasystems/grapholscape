@@ -220,7 +220,14 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   public json(): Entity {
     return {
       fullIri: this.fullIri,
-      annotations: this.getAnnotations(),
+      annotations: this.getAnnotations().map(ann => {
+        return {
+          property: ann.property,
+          lexicalForm: ann.lexicalForm,
+          language: ann.language,
+          datatype: ann.datatype,
+        }
+      }),
       datatype: this.datatype,
       functionProperties: this.functionProperties,
       isDataPropertyFunctional: this.isDataPropertyFunctional,

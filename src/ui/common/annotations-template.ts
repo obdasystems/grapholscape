@@ -1,5 +1,5 @@
 import { css, html, nothing } from 'lit'
-import { Annotation, AnnotationsKind, TypesEnum } from '../../model'
+import { Annotation, AnnotationProperty, TypesEnum } from '../../model'
 import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
@@ -71,14 +71,14 @@ export function annotationsTemplate(annotations: Annotation[]) {
         
         const property = annotation.property
         
-        if (property === AnnotationsKind.comment || propertiesAlreadyInserted.includes(property)) return null
+        if (AnnotationProperty.comment.equals(annotation.property) || propertiesAlreadyInserted.includes(property)) return null
         
         propertiesAlreadyInserted.push(property)
         
         return html`
           <div class="annotation">
             <div class="bold-text annotation-property">
-              <span class="slotted-icon">${annotationIcons[property] ?? nothing}</span>
+              <span class="slotted-icon">${annotationIcons[annotation.kind] ?? nothing}</span>
               <span>${annotation.kind.charAt(0).toUpperCase() + annotation.kind.slice(1)}</span>
             </div>
             ${annotations.filter(a => a.property === property).map(annotation => {
