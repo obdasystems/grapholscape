@@ -86,6 +86,15 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    {
+      selector: `edge[type = "${TypesEnum.ROLE_INVERSE}"]`,
+      style: {
+        'target-arrow-shape': 'triangle',
+        'target-arrow-fill': 'filled',
+        'text-rotation': 'autorotate',
+      }
+    },
+
   ] as Stylesheet[]
 
   return baseStyle.concat(liteStyle)

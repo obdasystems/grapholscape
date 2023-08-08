@@ -526,7 +526,6 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
   private simplifyRoleInverse() {
     this.newCy.nodes().filter(node => this.getGrapholElement(node.id())?.is(TypesEnum.ROLE_INVERSE)).forEach(roleInverseNode => {
-      let new_edges_count = 0
       // the input role is only one
       const inputEdge = roleInverseNode.incomers('edge').filter(edge => this.getGrapholElement(edge.id()).is(TypesEnum.INPUT))
       const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
@@ -541,9 +540,11 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
           const roleInverseEdge = this.getGrapholElement(edge.id()) as GrapholEdge
           roleInverseEdge.type = TypesEnum.ROLE_INVERSE
+          if (roleInverseEdge.sourceId === grapholRoleInverseNode.id) {
+            this.reverseEdge(roleInverseEdge)
+          }
           roleInverseEdge.controlpoints = roleInverseEdge.controlpoints.concat(grapholInputEdge.controlpoints)
           roleInverseEdge.targetId = grapholInputEdge.targetId
-
           const source = this.getGrapholElement(roleInverseEdge.sourceId) as GrapholNode
           const target = this.getGrapholElement(roleInverseEdge.targetId) as GrapholNode
           roleInverseEdge.computeBreakpointsDistancesWeights(source.position, target.position)
