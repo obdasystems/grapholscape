@@ -67,7 +67,7 @@ export default class OntologyBuilder {
     this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
   }
 
-  public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionProperties: string[] = []) {
+  public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionProperties: FunctionalityEnum[] = []) {
 
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
@@ -83,9 +83,7 @@ export default class OntologyBuilder {
         this.grapholscape.ontology.addEntity(entity)
       }
       this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS)
-      functionProperties.forEach(i => {
-        entity?.functionProperties.push(FunctionalityEnum[i])
-      })
+      entity.functionProperties = entity?.functionProperties.concat(functionProperties)
       this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
     }
     else if (edgeType === TypesEnum.INCLUSION) {
