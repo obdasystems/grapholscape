@@ -1,4 +1,3 @@
-import { Grapholscape } from "../../core"
 import { TypesEnum } from "../../model"
 
 export default (edgeType: TypesEnum) => {
@@ -24,7 +23,6 @@ export default (edgeType: TypesEnum) => {
       }
     },
     edgeParams: function (sourceNode, targetNode) {
-
       let temp_id = 'temp_' + sourceNode.data('iri') + '-' + targetNode.data('iri')
       if (sourceNode.data('type') === TypesEnum.UNION || sourceNode.data('type') === TypesEnum.DISJOINT_UNION) {
         temp_id = 'temp_' + sourceNode.data('id') + '-' + targetNode.data('iri')
@@ -35,7 +33,9 @@ export default (edgeType: TypesEnum) => {
           name: temp_id,
           source: sourceNode.id(),
           target: targetNode.id(),
-          type: edgeType
+          type: edgeType,
+          targetLabel: edgeType === TypesEnum.COMPLETE_UNION ||
+            edgeType === TypesEnum.COMPLETE_DISJOINT_UNION ? 'C' : undefined,
         }
       }
     },

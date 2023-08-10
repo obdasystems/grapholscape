@@ -3,12 +3,12 @@ import edgeEditing from 'cytoscape-edge-editing';
 import $ from "jquery";
 import konva from "konva";
 import Grapholscape from '../../core';
-import OntologyBuilder from '../ontology-builder';
 import { LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model';
-import { addInclusionEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
+import * as UI from '../../ui';
+import OntologyBuilder from '../ontology-builder';
+import { addHierarchySuperClassEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
 import { initNewDiagramUI, initNewEntityUI, initNewObjectPropertyUI } from './init-modals';
 import GscapeNewElementModal from "./new-element-modal";
-import * as UI from '../../ui'
 
 const {
   GscapeContextMenu,
@@ -150,20 +150,22 @@ export default function initBuilderUI(grapholscape: Grapholscape) {
         if (entity) {
           commandsFunctions.push(...(commandsByType.get('Entity') || []))
         }
-      }
-      else if ((elem.data('type') === TypesEnum.UNION || elem.data('type') === TypesEnum.DISJOINT_UNION)) {
-        // For hierarchies there can be edges or nodes, manually add specific commands
-        if (elem.isNode()) {
-          commandsFunctions.push(addInclusionEdge)
-          commandsFunctions.push(addInputEdge)
-          commandsFunctions.push(removeHierarchyByNode)
+      } else {
+        const grapholElement = grapholscape.renderer.diagram?.representations.get(RendererStatesEnum.FLOATY)?.grapholElements.get(elem.id())
+        if (grapholElement && grapholElement.isHierarchy()) {
+          // For hierarchies there can be edges or nodes, manually add specific commands
+          if (elem.isNode()) {
+            commandsFunctions.push(addHierarchySuperClassEdge)
+            commandsFunctions.push(addInputEdge)
+            commandsFunctions.push(removeHierarchyByNode)
+          }
+          else {
+            commandsFunctions.push(removeHierarchySuperClassEdge)
+          }
         }
-        else {
-          commandsFunctions.push(removeHierarchySuperClassEdge)
+        else if (elem.data('type') === TypesEnum.INPUT && (elem.connectedNodes(`[type = "${TypesEnum.UNION}"]`) || elem.connectedNodes(`[type = "${TypesEnum.DISJOINT_UNION}"]`))) {
+          commandsFunctions.push(removeHierarchyInputEdge)
         }
-      }
-      else if (elem.data('type') === TypesEnum.INPUT && (elem.connectedNodes(`[type = "${TypesEnum.UNION}"]`) || elem.connectedNodes(`[type = "${TypesEnum.DISJOINT_UNION}"]`))) {
-        commandsFunctions.push(removeHierarchyInputEdge)
       }
 
       try {
