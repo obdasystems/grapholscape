@@ -1,15 +1,13 @@
 import { EdgeSingular, NodeSingular } from "cytoscape";
 import { Grapholscape } from "../../core";
 import DiagramBuilder from "../../core/diagram-builder";
+import { RendererStatesEnum, TypesEnum } from "../../model";
+import * as UI from '../../ui';
 import OntologyBuilder from "../ontology-builder";
-import { Annotation, GrapholEntity, Iri, RendererStatesEnum, TypesEnum } from "../../model";
-import GscapeAnnotationModal from "./annotation-modal";
 import GscapeAnnotationsModal from "./annotations-modal";
-import edgeHandlesDefaults from "./edge-handles-defaults";
-import { initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
-import * as UI from '../../ui'
-import ontologyModelToViewData from "../../ui/util/get-ontology-view-data";
 import applyEdgeDrawStyle from "./apply-edge-draw-style";
+import edgeHandlesDefaults from "./edge-handles-defaults";
+import { initAnnotationsModal, initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
 
 const {
   icons,
@@ -304,49 +302,5 @@ export const addInclusionEdge = (grapholscape: Grapholscape, elem: NodeSingular)
       currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
 
     }
-  }
-}
-
-
-// TODO: Refactor somewhere else
-function initAnnotationsModal(grapholscape: Grapholscape, modal: GscapeAnnotationsModal, entity: GrapholEntity, entityType: TypesEnum) {
-  modal.dialogTitle = entity.iri.remainder
-  modal.entityType = entityType
-  modal.annotations = entity.getAnnotations()
-  modal.show()
-
-  const editAnnotationModal = new GscapeAnnotationModal()
-  editAnnotationModal.ontology = ontologyModelToViewData(grapholscape.ontology)
-
-  modal.initEditAnnotation = (annotation) => {
-    modal.hide()
-    grapholscape.uiContainer?.appendChild(editAnnotationModal)
-    editAnnotationModal.annotation = annotation
-    editAnnotationModal.show()
-
-    editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
-      editAnnotationModal.hide()
-      const propertyIri = new Iri(property, grapholscape.ontology.namespaces)
-      const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype)
-      if (oldAnnotation && !oldAnnotation.equals(newAnnotation)) {
-        entity.removeAnnotation(oldAnnotation)
-      }
-      entity.addAnnotation(newAnnotation)
-      modal.annotations = entity.getAnnotations()
-      modal.show()
-    }
-
-    editAnnotationModal.onCancel = () => {
-      editAnnotationModal.hide()
-      modal.show()
-    }
-  }
-
-  modal.deleteAnnotation = (annotation) => {
-    entity.removeAnnotation(annotation)
-    modal.annotations = entity.getAnnotations()
-  }
-  modal.onCancel = () => {
-    modal.hide()
   }
 }

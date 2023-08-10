@@ -1,7 +1,10 @@
 import { Grapholscape } from "../../core";
 import OntologyBuilder from "../ontology-builder";
-import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
+import { Annotation, FunctionalityEnum, GrapholEntity, Iri, Namespace, TypesEnum } from "../../model";
 import GscapeNewElementModal, { ConfirmEventDetail, ModalTypeEnum, NewDataPropertyDetail, NewDiagramDetail, NewEntityDetail, NewIsaDetail, NewObjectPropertyDetail, NewSubHierarchyDetail, RenameEntityDetail } from "./new-element-modal";
+import ontologyModelToViewData from "../../ui/util/get-ontology-view-data";
+import GscapeAnnotationModal from "./annotation-modal";
+import GscapeAnnotationsModal from "./annotations-modal";
 
 export function initNewDiagramUI(grapholscape: Grapholscape) {
   getModal(
@@ -140,6 +143,52 @@ export function initRenameEntityUI(grapholscape: Grapholscape, entity: GrapholEn
   modal.remainderToRename = entity.iri.remainder
   if (entity.iri.namespace)
     modal.selectedNamespaceIndex = modal.namespaces.indexOf(entity.iri.namespace)
+}
+
+// #####################################
+// ## ANNOTATIONS                     ##
+// #####################################
+
+export function initAnnotationsModal(grapholscape: Grapholscape, modal: GscapeAnnotationsModal, entity: GrapholEntity, entityType: TypesEnum) {
+  modal.dialogTitle = entity.iri.remainder
+  modal.entityType = entityType
+  modal.annotations = entity.getAnnotations()
+  modal.show()
+
+  const editAnnotationModal = new GscapeAnnotationModal()
+  editAnnotationModal.ontology = ontologyModelToViewData(grapholscape.ontology)
+
+  modal.initEditAnnotation = (annotation) => {
+    modal.hide()
+    grapholscape.uiContainer?.appendChild(editAnnotationModal)
+    editAnnotationModal.annotation = annotation
+    editAnnotationModal.show()
+
+    editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
+      editAnnotationModal.hide()
+      const propertyIri = new Iri(property, grapholscape.ontology.namespaces)
+      const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype)
+      if (oldAnnotation && !oldAnnotation.equals(newAnnotation)) {
+        entity.removeAnnotation(oldAnnotation)
+      }
+      entity.addAnnotation(newAnnotation)
+      modal.annotations = entity.getAnnotations()
+      modal.show()
+    }
+
+    editAnnotationModal.onCancel = () => {
+      editAnnotationModal.hide()
+      modal.show()
+    }
+  }
+
+  modal.deleteAnnotation = (annotation) => {
+    entity.removeAnnotation(annotation)
+    modal.annotations = entity.getAnnotations()
+  }
+  modal.onCancel = () => {
+    modal.hide()
+  }
 }
 
 function getModal(
