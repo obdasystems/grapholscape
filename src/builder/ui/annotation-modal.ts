@@ -1,12 +1,16 @@
 import { CSSResultGroup, LitElement, PropertyDeclarations, css, html } from "lit";
-import { BaseMixin, ModalMixin } from "../common/mixins";
-import { baseStyle } from "..";
 import { Annotation, AnnotationProperty } from "../../model";
-import { OntologyViewModel } from "../ontology-info/ontology-info";
 import { datatypes } from "./new-element-modal";
+import * as UI from '../../ui'
+import { OntologyViewModel } from "../../ui/ontology-info/ontology-info";
 
-export const languages = ['it', 'es', 'en', 'de',
-'fr']
+const {
+    ModalMixin, BaseMixin,
+    icons,
+    baseStyle,
+} = UI
+
+export const languages = ['it', 'es', 'en', 'de', 'fr']
 
 export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitElement)) {
     

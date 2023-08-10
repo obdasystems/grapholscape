@@ -14,6 +14,7 @@ import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
 import parseRDFGraph, { getConfig, getEntities, getOntology } from './parsing/rdf-graph-parser'
 import * as UI from './ui'
+import { initBuilderUI } from './builder'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -54,7 +55,7 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
   if (grapholscape) {
     UI.initUI(grapholscape)
 
-    if (config?.initialRendererSelection === false || grapholscape.renderState) {
+    if (config?.initialRendererSelection === false) {
       (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
     }
 
@@ -109,9 +110,9 @@ export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroC
       initIncremental(grapholscape)
     }
 
-    if (grapholscape.renderState) {
-      (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
-    }
+    // if (grapholscape.renderState) {
+    //   (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+    // }
 
     // Stop layout, use positions from rdfGraph, for floaty/incremental
     if (grapholscape.renderer.renderState) {
@@ -137,11 +138,26 @@ export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroC
         grapholscape.incremental.showDiagram()
         grapholscape.incremental.addRDFGraph(rdfGraph)
       }
-      
     }
   }
 
   loadingSpinner.remove()
+  return grapholscape
+}
+
+export async function builder(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
+  const grapholscape = loadRDFGraph(rdfGraph, container)
+  initBuilderUI(grapholscape)
+  return grapholscape
+}
+
+export async function buildFromScratch(name: string, version: string, container: HTMLElement, mastroConnection?: RequestOptions) {
+  const ontology = new Ontology(name, version)
+  const grapholscape = new Grapholscape(ontology, container, {
+    renderers: [RendererStatesEnum.FLOATY],
+  })
+  UI.initUI(grapholscape)
+  initBuilderUI(grapholscape)
   return grapholscape
 }
 

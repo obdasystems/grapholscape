@@ -3,26 +3,30 @@ import edgeEditing from 'cytoscape-edge-editing';
 import $ from "jquery";
 import konva from "konva";
 import Grapholscape from '../../core';
-import OntologyBuilder from '../../core/ontology-builder';
+import OntologyBuilder from '../ontology-builder';
 import { LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model';
-import { addDiagramIcon, addEntityIcon } from '../assets';
-import { GscapeButton } from '../common/button';
-import GscapeContextMenu from '../common/context-menu';
-import getIconSlot from '../util/get-icon-slot';
-import { WidgetEnum } from "../util/widget-enum";
 import { addInclusionEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
 import { initNewDiagramUI, initNewEntityUI, initNewObjectPropertyUI } from './init-modals';
 import GscapeNewElementModal from "./new-element-modal";
+import * as UI from '../../ui'
+
+const {
+  GscapeContextMenu,
+  GscapeButton,
+  getIconSlot,
+  icons,
+  WidgetEnum,
+} = UI
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
 window['$'] = window['jQuery'] = $
 
-export default function initDrawingElements(grapholscape: Grapholscape) {
+export default function initBuilderUI(grapholscape: Grapholscape) {
   const commandsWidget = new GscapeContextMenu()
 
   const addClassBtn = new GscapeButton()
-  const classIcon = getIconSlot('icon', addEntityIcon)
+  const classIcon = getIconSlot('icon', icons.addEntityIcon)
   addClassBtn.appendChild(classIcon)
 
   addClassBtn.style.top = '90px'
@@ -33,7 +37,7 @@ export default function initDrawingElements(grapholscape: Grapholscape) {
   addClassBtn.onclick = () => initNewEntityUI(grapholscape, TypesEnum.CLASS)
 
   const addDiagramBtn = new GscapeButton()
-  const diagramIcon = getIconSlot('icon', addDiagramIcon)
+  const diagramIcon = getIconSlot('icon', icons.addDiagramIcon)
   addDiagramBtn.appendChild(diagramIcon)
 
   addDiagramBtn.style.top = '50px'

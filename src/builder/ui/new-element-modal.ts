@@ -1,9 +1,14 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from 'lit'
 import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from '../../model'
-import { addISAIcon, diagrams, entityIcons, plus, renameIcon, subHierarchies } from '../assets'
-import { SizeEnum } from '../common/button'
-import { BaseMixin, ModalMixin } from '../common/mixins'
-import baseStyle from '../style'
+import * as UI from '../../ui'
+
+const {
+  ModalMixin, BaseMixin,
+  icons,
+  baseStyle,
+  SizeEnum,
+} = UI
+
 
 export const datatypes = ['owl:real', 'owl:rational', 'xsd:decimal', 'xsd:integer',
 'xsd:nonNegativeInteger', 'xsd:nonPositiveInteger',
@@ -25,22 +30,19 @@ export enum ModalTypeEnum {
 }
 
 const modalIcons: { [x in ModalTypeEnum]: SVGTemplateResult } = {
-  [ModalTypeEnum.DIAGRAM]: diagrams,
-  [ModalTypeEnum.HIERARCHY]: subHierarchies,
-  [ModalTypeEnum.ISA]: addISAIcon,
-  [ModalTypeEnum.RENAME_ENTITY]: renameIcon,
+  [ModalTypeEnum.DIAGRAM]: icons.diagrams,
+  [ModalTypeEnum.HIERARCHY]: icons.subHierarchies,
+  [ModalTypeEnum.ISA]: icons.addISAIcon,
+  [ModalTypeEnum.RENAME_ENTITY]: icons.renameIcon,
 }
 
 export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitElement)) {
 
-  public get modal(): HTMLElement | undefined | null { return this.shadowRoot?.querySelector('.gscape-panel') }
-
-  // public onConfirm: (iri: string[], functionalities: string[], complete: boolean, datatype: string) => void = () => { }
   public onCancel: () => void = () => { }
 
   public namespaces: Namespace[] = []
   public remainderToRename: string = ''
-  public selectedNamespaceIndex?: number = 3
+  public selectedNamespaceIndex?: number = 0
 
   private advancedMode: boolean = false
   private selectedDatatype: string = 'xsd:string'
@@ -481,7 +483,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       </div>
 
       <gscape-button style="align-self: center;" title="Add Subclass" @click=${onAdd} size=${SizeEnum.S}>
-        <span slot="icon">${plus}</span>
+        <span slot="icon">${icons.plus}</span>
       </gscape-button>
 
       <div id ="hierarchy-toggles" class="form-item">
@@ -558,7 +560,9 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
 
   private get selectedNamespaceValue() {
-    if (this.namespaces && this.selectedNamespaceIndex !== undefined)
+    if (this.namespaces?.length > 0 &&
+        this.selectedNamespaceIndex !== undefined &&
+        this.namespaces[this.selectedNamespaceIndex])
       return this.namespaces[this.selectedNamespaceIndex].toString()
     else
       return (this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement | undefined)?.value
@@ -584,7 +588,6 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     }
   }
 
-
   connectedCallback(): void {
     super.connectedCallback()
     window.addEventListener('keyup', this.handleKeyUp)
@@ -596,7 +599,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
 
   render() {
-    const headerIcon = entityIcons[this.modalType] || modalIcons[this.modalType]
+    const headerIcon = icons.entityIcons[this.modalType] || modalIcons[this.modalType]
     return html`
       <div class="gscape-panel">
         <div class="header">

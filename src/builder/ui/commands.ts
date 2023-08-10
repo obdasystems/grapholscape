@@ -1,15 +1,18 @@
 import { EdgeSingular, NodeSingular } from "cytoscape";
 import { Grapholscape } from "../../core";
 import DiagramBuilder from "../../core/diagram-builder";
-import OntologyBuilder from "../../core/ontology-builder";
+import OntologyBuilder from "../ontology-builder";
 import { Annotation, GrapholEntity, Iri, RendererStatesEnum, TypesEnum } from "../../model";
-import { addClassInstanceIcon, addDataPropertyIcon, addInputIcon, addISAIcon, addObjectPropertyIcon, addSubhierarchyIcon, editIcon, renameIcon, rubbishBin } from "../assets";
-import { Command } from "../common/context-menu";
-import ontologyModelToViewData from "../util/get-ontology-view-data";
 import GscapeAnnotationModal from "./annotation-modal";
 import GscapeAnnotationsModal from "./annotations-modal";
 import edgeHandlesDefaults from "./edge-handles-defaults";
 import { initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
+import * as UI from '../../ui'
+import ontologyModelToViewData from "../../ui/util/get-ontology-view-data";
+
+const {
+  icons,
+} = UI
 
 /**
  * Get a map storing for each element type (TypesEnum) an array of Command[].
@@ -19,7 +22,7 @@ import { initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewSubHie
  * @returns a Map of functions yielding a command by element's type
  */
 export function getCommandsByType() {
-  const commandsMap = new Map<string | TypesEnum, ((grapholscape: Grapholscape, elem: any) => Command)[]>()
+  const commandsMap = new Map<string | TypesEnum, ((grapholscape: Grapholscape, elem: any) => UI.Command)[]>()
 
   commandsMap.set('Entity', [
     rename,
@@ -49,20 +52,20 @@ export function getCommandsByType() {
   return commandsMap
 }
 
-export const addDataProperty = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addDataProperty = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Data Property',
-    icon: addDataPropertyIcon,
+    icon: icons.addDataPropertyIcon,
     select: () => {
       initNewDataPropertyUI(grapholscape, elem.data().iri)
     }
   }
 }
 
-export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Object Property',
-    icon: addObjectPropertyIcon,
+    icon: icons.addObjectPropertyIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
       let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.OBJECT_PROPERTY))
@@ -72,20 +75,20 @@ export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular
   }
 }
 
-export const addISA = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addISA = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Class in IS-A',
-    icon: addISAIcon,
+    icon: icons.addISAIcon,
     select: () => {
       initNewIsaUI(grapholscape, elem.data().iri)
     }
   }
 }
 
-export const addSubclassEdge = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addSubclassEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Subclass Edge',
-    icon: addISAIcon,
+    icon: icons.addISAIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
       let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.INCLUSION))
@@ -95,30 +98,30 @@ export const addSubclassEdge = (grapholscape: Grapholscape, elem: NodeSingular) 
   }
 }
 
-export const addIndividual = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addIndividual = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Individual',
-    icon: addClassInstanceIcon,
+    icon: icons.addClassInstanceIcon,
     select: () => {
       initNewIndividualUI(grapholscape, elem.data().iri)
     }
   }
 }
 
-export const addSubhierarchy = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addSubhierarchy = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Subhierarchy',
-    icon: addSubhierarchyIcon,
+    icon: icons.addSubhierarchyIcon,
     select: () => {
       initNewSubHierarchyUI(grapholscape, elem.data().iri)
     }
   }
 }
 
-export const rename = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const rename = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Rename',
-    icon: renameIcon,
+    icon: icons.renameIcon,
     select: () => {
       const entity = grapholscape.ontology.getEntity(elem.data('iri'))
       if (entity) {
@@ -128,10 +131,10 @@ export const rename = (grapholscape: Grapholscape, elem: NodeSingular) => {
   }
 }
 
-export const editAnnotations = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const editAnnotations = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Edit Annotations',
-    icon: editIcon,
+    icon: icons.editIcon,
     select: () => {
       const annotationsModal = new GscapeAnnotationsModal()
       grapholscape.uiContainer?.appendChild(annotationsModal)
@@ -143,10 +146,10 @@ export const editAnnotations = (grapholscape: Grapholscape, elem: NodeSingular) 
   }
 }
 
-export const removeEntity = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const removeEntity = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Remove',
-    icon: rubbishBin,
+    icon: icons.rubbishBin,
     select: () => {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       const entity = grapholscape.ontology.getEntity(elem.data().iri)
@@ -157,10 +160,10 @@ export const removeEntity = (grapholscape: Grapholscape, elem: NodeSingular) => 
   }
 }
 
-export const removeAttributeEdge = (grapholscape: Grapholscape, elem: EdgeSingular) => {
+export const removeAttributeEdge = (grapholscape: Grapholscape, elem: EdgeSingular): UI.Command => {
   return {
     content: 'Remove',
-    icon: rubbishBin,
+    icon: icons.rubbishBin,
     select: () => {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       const dpNode = elem.target()
@@ -172,10 +175,10 @@ export const removeAttributeEdge = (grapholscape: Grapholscape, elem: EdgeSingul
   }
 }
 
-export const removeElement = (grapholscape: Grapholscape, elem: NodeSingular | EdgeSingular) => {
+export const removeElement = (grapholscape: Grapholscape, elem: NodeSingular | EdgeSingular): UI.Command => {
   return {
     content: 'Remove',
-    icon: rubbishBin,
+    icon: icons.rubbishBin,
     select: () => {
       const diagram = grapholscape.renderer.diagram
       if (diagram) {
@@ -186,10 +189,10 @@ export const removeElement = (grapholscape: Grapholscape, elem: NodeSingular | E
   }
 }
 
-export const removeHierarchyByNode = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const removeHierarchyByNode = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Remove',
-    icon: rubbishBin,
+    icon: icons.rubbishBin,
     select: () => {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (elem.edges().nonempty()) {
@@ -218,10 +221,10 @@ export const removeHierarchyByNode = (grapholscape: Grapholscape, elem: NodeSing
   }
 }
 
-export const removeHierarchySuperClassEdge = (grapholscape: Grapholscape, elem: EdgeSingular) => {
+export const removeHierarchySuperClassEdge = (grapholscape: Grapholscape, elem: EdgeSingular): UI.Command => {
   return {
     content: 'Remove',
-    icon: rubbishBin,
+    icon: icons.rubbishBin,
     select: () => {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       const hierarchyID = elem.connectedNodes(`[type = "${elem.data('type')}"]`).first().data('hierarchyID')
@@ -233,10 +236,10 @@ export const removeHierarchySuperClassEdge = (grapholscape: Grapholscape, elem: 
   }
 }
 
-export const removeHierarchyInputEdge = (grapholscape: Grapholscape, elem: EdgeSingular) => {
+export const removeHierarchyInputEdge = (grapholscape: Grapholscape, elem: EdgeSingular): UI.Command => {
   return {
     content: 'Remove',
-    icon: rubbishBin,
+    icon: icons.rubbishBin,
     select: () => {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       const hierarchyID = elem.connectedNodes(`[type $= "${TypesEnum.UNION}"]`).first().data('hierarchyID')
@@ -248,10 +251,10 @@ export const removeHierarchyInputEdge = (grapholscape: Grapholscape, elem: EdgeS
   }
 }
 
-export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Input Edge',
-    icon: addInputIcon,
+    icon: icons.addInputIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
       let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.INPUT))
@@ -261,10 +264,10 @@ export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular) => 
   }
 }
 
-export const addInclusionEdge = (grapholscape: Grapholscape, elem: NodeSingular) => {
+export const addInclusionEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Inclusion Edge',
-    icon: addISAIcon,
+    icon: icons.addISAIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
       let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.INCLUSION))

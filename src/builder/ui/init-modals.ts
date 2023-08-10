@@ -1,5 +1,5 @@
 import { Grapholscape } from "../../core";
-import OntologyBuilder from "../../core/ontology-builder";
+import OntologyBuilder from "../ontology-builder";
 import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
 import GscapeNewElementModal, { ConfirmEventDetail, ModalTypeEnum, NewDataPropertyDetail, NewDiagramDetail, NewEntityDetail, NewIsaDetail, NewObjectPropertyDetail, NewSubHierarchyDetail, RenameEntityDetail } from "./new-element-modal";
 

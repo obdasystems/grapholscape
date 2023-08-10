@@ -1,8 +1,8 @@
 import { SingularElementArgument } from "cytoscape"
 import { floatyOptions } from "../config"
 import { Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
-import DiagramBuilder from "./diagram-builder"
-import Grapholscape from "./grapholscape"
+import DiagramBuilder from "../core/diagram-builder"
+import Grapholscape from "../core/grapholscape"
 
 export default class OntologyBuilder {
 
