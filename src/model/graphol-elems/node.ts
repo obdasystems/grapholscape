@@ -37,6 +37,7 @@ export default class GrapholNode extends GrapholElement implements Node {
   private _labelHeight: number = LABEL_HEIGHT
 
   private _hierarchyID?: string
+  private _hierarchyForcedComplete?: boolean
   private _labelXpos?: number
   private _labelXcentered?: boolean = true
   private _labelYpos?: number
@@ -69,6 +70,11 @@ export default class GrapholNode extends GrapholElement implements Node {
   get hierarchyID() { return this._hierarchyID }
   set hierarchyID(hierarchyID: string | undefined) {
     this._hierarchyID = hierarchyID
+  }
+
+  get hierarchyForcedComplete() { return this._hierarchyForcedComplete }
+  set hierarchyForcedComplete(complete: boolean | undefined) {
+    this._hierarchyForcedComplete = complete
   }
 
   get identity() { return this._identity }
@@ -152,6 +158,10 @@ export default class GrapholNode extends GrapholElement implements Node {
 
   get fakeNodes() { return this._fakeNodes }
 
+  isHierarchy = () => {
+    return this.is(TypesEnum.UNION) || this.is(TypesEnum.DISJOINT_UNION)
+  }
+
   addFakeNode(newFakeNode: GrapholNode) {
     if (!this._fakeNodes)
       this._fakeNodes = []
@@ -175,7 +185,8 @@ export default class GrapholNode extends GrapholElement implements Node {
       labelXcentered: this.isLabelXcentered,
       labelYcentered: this.isLabelYcentered,
       identity: this.identity,
-      hierarchyID: this.hierarchyID
+      hierarchyID: this.hierarchyID,
+      hierarchyForcedComplete: this.hierarchyForcedComplete 
     })
 
     if (!this.type)

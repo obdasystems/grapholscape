@@ -124,6 +124,13 @@ export default class GrapholEdge extends GrapholElement implements Edge {
       this.displayedName = this.type
   }
 
+  isHierarchy = () => {
+    return this.is(TypesEnum.UNION) ||
+      this.is(TypesEnum.COMPLETE_UNION) ||
+      this.is(TypesEnum.DISJOINT_UNION) ||
+      this.is(TypesEnum.COMPLETE_DISJOINT_UNION)
+  }
+
   public getCytoscapeRepr(grapholEntity?: GrapholEntity) {
     let result = super.getCytoscapeRepr(grapholEntity)
     Object.assign(result[0].data, {

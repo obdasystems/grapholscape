@@ -95,14 +95,14 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${TypesEnum.UNION}"]`,
+      selector: `edge[type = "${TypesEnum.UNION}"], edge[type = "${TypesEnum.COMPLETE_UNION}"]`,
       style: {
         'target-arrow-fill': 'hollow'
       }
     },
 
     {
-      selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"]`,
+      selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
       style: {
         'target-arrow-fill': 'filled',
       }

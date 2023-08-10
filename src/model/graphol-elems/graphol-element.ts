@@ -37,12 +37,14 @@ export default class GrapholElement implements Element {
   }
 
   /**
-   * Check if node is of a certain type
+   * Check if element is of a certain type
    * @param type 
    */
   is(type: TypesEnum): boolean {
     return this.type === type
   }
+
+  isHierarchy: () => boolean
 
   /**
    * 

@@ -11,7 +11,15 @@ export default class Hierarchy implements IHierarchy {
   private _inputs: GrapholEntity[] = []
   private _superclasses: { classEntity: GrapholEntity, complete: boolean }[] = []
 
-  constructor(id: string, public type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION) {
+  /**
+   * 
+   * @param id 
+   * @param type 
+   * @param forcedComplete if the hierarchy is forced to be complete, any superclass edge
+   * will have type COMPLETE_UNION / COMPLETE_DISJOINT_UNION, regardless if they are created
+   * as complete or not.
+   */
+  constructor(id: string, public type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION, public forcedComplete = false) {
     this.id = id
   }
 
@@ -24,7 +32,7 @@ export default class Hierarchy implements IHierarchy {
     this.inputs.splice(index, 1)
   }
 
-  addSuperclass(classEntity: GrapholEntity, complete = false) {
+  addSuperclass(classEntity: GrapholEntity, complete = this.forcedComplete) {
     this._superclasses.push({ classEntity: classEntity, complete: complete })
   }
 
@@ -50,6 +58,7 @@ export default class Hierarchy implements IHierarchy {
     unionNode.identity = TypesEnum.CLASS
     unionNode.shape = Shape.ELLIPSE
     unionNode.hierarchyID = this._id
+    unionNode.hierarchyForcedComplete = this.forcedComplete
     unionNode.displayedName = !this.isDisjoint() ? 'or' : undefined
     unionNode.height = unionNode.width = 30
     unionNode.position = position || { x: 0, y: 0 }
@@ -87,14 +96,22 @@ export default class Hierarchy implements IHierarchy {
 
     const res: GrapholEdge[] = []
     let targetId: string | undefined
+    let type: TypesEnum = this.type
     this._superclasses.forEach((superclass, i) => {
+      if (superclass.complete || this.forcedComplete) {
+        if (this.isDisjoint()) {
+          type = TypesEnum.COMPLETE_DISJOINT_UNION
+        } else {
+          type = TypesEnum.COMPLETE_UNION
+        }
+      }
       const newInclusionEdge = new GrapholEdge(`${this._id}-inclusion-${i}`, this.type)
       newInclusionEdge.sourceId = this._id!
       targetId = superclass.classEntity.getIdInDiagram(diagramId, TypesEnum.CLASS, rendererState)
       if (!targetId) return
       newInclusionEdge.targetId = targetId
 
-      if (superclass.complete) {
+      if (superclass.complete || this.forcedComplete) {
         newInclusionEdge.targetLabel = 'C'
       }
 
