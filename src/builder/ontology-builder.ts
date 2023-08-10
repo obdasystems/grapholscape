@@ -63,7 +63,7 @@ export default class OntologyBuilder {
         this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
       }
     }
-    //this.grapholscape.renderer.renderState?.runLayout()
+    this.grapholscape.renderer.renderState?.runLayout()
     this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
   }
 

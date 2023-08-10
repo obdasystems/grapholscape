@@ -95,7 +95,7 @@ export function initNewIsaUI(grapholscape: Grapholscape, sourceIri: string) {
     'Add New Class',
     (confirmDetail: NewIsaDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.CLASS, sourceIri, confirmDetail.isaType)
+      ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.CLASS, sourceIri, confirmDetail.isaDirection)
     }
   )
 }

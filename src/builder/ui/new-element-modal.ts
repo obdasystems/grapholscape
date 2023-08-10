@@ -1,6 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from 'lit'
 import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from '../../model'
 import * as UI from '../../ui'
+import { subHierarchies, superHierarchies } from '../../ui/assets'
 
 const {
   ModalMixin, BaseMixin,
@@ -51,6 +52,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   private isValid: boolean = false
   private isHierarchyComplete: boolean = false
   private isHierarchyDisjoint: boolean = false
+  private isaDirection: 'superclass' | 'subclass' = 'subclass'
 
   static properties: PropertyDeclarations = {
     dialogTitle: { type: String },
@@ -61,6 +63,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     isHierarchyComplete: { type: Boolean, state: true },
     isHierarchyDisjoint: { type: Boolean, state: true },
     numberOfInputs: { type: Number, state: true },
+    isaDirection: { type: String, state: true },
   }
 
   /**
@@ -263,6 +266,18 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               isDisjoint: this.isHierarchyDisjoint,
             } as NewSubHierarchyDetail
           }
+          break
+        
+        case ModalTypeEnum.ISA:
+          if (this.selectedNamespaceValue && this.mainInputValue) {
+            eventDetail = {
+              iri: this.selectedNamespaceValue + this.mainInputValue,
+              namespace: this.selectedNamespaceValue,
+              type: TypesEnum.CLASS,
+              isaDirection: this.isaDirection,
+            } as NewIsaDetail
+          }
+          break
       }
 
       if (eventDetail) {
@@ -388,10 +403,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     `
   }
 
-  private newEntityForm() {
+  private getMainInput() {
     return html`
-      ${this.advancedMode ? this.getNamespacesTemplate() : null}
-
       <div class="form-item">
         <label for="input">Name:</label>
         <input
@@ -402,36 +415,75 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
           placeholder=${this.remainderToRename}
         />
       </div>
+    `
+  }
 
-      ${this.modalType === TypesEnum.DATA_PROPERTY
-        ? html`
-          <div class="form-item">
-            <label id="datatype-label" for="datatype">Datatype:</label>
-            <select id="datatype" name="datatype" required @change=${this.handleDataTypeSelection}>
-              ${datatypes.sort().map(datatype => html`
-                <option value=${datatype} ?selected=${this.selectedDatatype === datatype} >${datatype}</option>
-              `)}
-            </select>
-          </div>
+  private newDataPropertyForm() {
+    return html`
+      ${this.advancedMode ? this.getNamespacesTemplate() : null}
+      ${this.getMainInput()}
 
-          <div class="form-item" style="margin-top: 4px">
-            ${this.getFunctionPropertyChip(FunctionalityEnum.FUNCTIONAL)}
-          </div>
-        `
-        : null
-      }
+      <div class="form-item">
+        <label id="datatype-label" for="datatype">Datatype:</label>
+        <select id="datatype" name="datatype" required @change=${this.handleDataTypeSelection}>
+          ${datatypes.sort().map(datatype => html`
+            <option value=${datatype} ?selected=${this.selectedDatatype === datatype} >${datatype}</option>
+          `)}
+        </select>
+      </div>
 
-      ${this.modalType === TypesEnum.OBJECT_PROPERTY
-        ? html`
-          <div id="function-properties" class="form-item">
-            <label>Properties</label>
-            <div>
-              ${Object.values(FunctionalityEnum).map(f => this.getFunctionPropertyChip(f))}
-            </div>
-          </div>
-        `
-        : null
-      }
+      <div class="form-item" style="margin-top: 4px">
+        ${this.getFunctionPropertyChip(FunctionalityEnum.FUNCTIONAL)}
+      </div>
+    `
+  }
+
+  private newOBjectPropertyForm() {
+    return html`
+      ${this.advancedMode ? this.getNamespacesTemplate() : null}
+      ${this.getMainInput()}
+      
+      <div id="function-properties" class="form-item">
+        <label>Properties</label>
+        <div>
+          ${Object.values(FunctionalityEnum).map(f => this.getFunctionPropertyChip(f))}
+        </div>
+      </div>
+    `
+  }
+
+  private newISAForm() {
+
+    const toggleISADirection = () => {
+      this.isaDirection = this.isaDirection === 'subclass' ? 'superclass' : 'subclass'
+    }
+
+    return html`
+      ${this.advancedMode ? this.getNamespacesTemplate() : null}
+      ${this.getMainInput()}
+
+      <div class="form-item" style="align-self: center">
+        <gscape-button
+          label=${`As ${this.isaDirection.charAt(0).toUpperCase().concat(this.isaDirection.slice(1))}`}
+          size=${SizeEnum.S}
+          type='subtle'
+          @click=${toggleISADirection}
+        >
+          <span slot="icon">
+            ${this.isaDirection === 'superclass'
+              ? superHierarchies
+              : subHierarchies
+            }
+          </span>
+        </gscape-button>
+      </div>
+    `
+  }
+
+  private newEntityForm() {
+    return html`
+      ${this.advancedMode ? this.getNamespacesTemplate() : null}
+      ${this.getMainInput()}
     `
   }
 
@@ -505,13 +557,19 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private getForm() {
     switch(this.modalType) {
-      case TypesEnum.CLASS:
       case TypesEnum.DATA_PROPERTY:
+        return this.newDataPropertyForm()
+
       case TypesEnum.OBJECT_PROPERTY:
+        return this.newOBjectPropertyForm()
+
       case TypesEnum.INDIVIDUAL:
+      case TypesEnum.CLASS:
       case ModalTypeEnum.RENAME_ENTITY:
-      case ModalTypeEnum.ISA:
         return this.newEntityForm()
+
+      case ModalTypeEnum.ISA:
+        return this.newISAForm()
 
       case ModalTypeEnum.DIAGRAM:
         return this.newDiagramForm()
@@ -677,7 +735,7 @@ export type NewEntityDetail = { iri: string, type: TypesEnum, namespace: string 
  * Trigged event for a new ISA.
  * Event.detail include class `iri` and `isaType` which user can choose
  */
-export type NewIsaDetail = NewEntityDetail & { type: TypesEnum.CLASS, isaType: 'subclass' | 'superclass' }
+export type NewIsaDetail = NewEntityDetail & { type: TypesEnum.CLASS, isaDirection: 'subclass' | 'superclass' }
 
 /**
  * Trigged event for a new Data Property.
