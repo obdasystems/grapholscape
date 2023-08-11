@@ -446,7 +446,13 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       <div id="function-properties" class="form-item">
         <label>Properties</label>
         <div>
-          ${Object.values(FunctionalityEnum).map(f => this.getFunctionPropertyChip(f))}
+          ${this.advancedMode 
+            ? Object.values(FunctionalityEnum).map(f => this.getFunctionPropertyChip(f))
+            : html`
+              ${this.getFunctionPropertyChip(FunctionalityEnum.FUNCTIONAL)}
+              ${this.getFunctionPropertyChip(FunctionalityEnum.INVERSE_FUNCTIONAL)}
+            `
+          }
         </div>
       </div>
     `
