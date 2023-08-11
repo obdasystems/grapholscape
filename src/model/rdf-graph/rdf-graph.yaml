@@ -110,6 +110,255 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/RDFGraph'
+  /ontologyDraft/download:
+    get:
+      tags:
+      - Ontology Designer
+      summary: Download the ontology draft {ontologyName} converted in OWL2
+      operationId: downloadOntologyDraft
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                description: FileInfo object
+  /owlOntology/{ontologyName}/version/fromRDFGraph:
+    post:
+      tags:
+      - Ontology Designer
+      summary: Add to the ontology a new version translated from the RDFGraph
+      operationId: postOntologyVersionFromRDFGraph
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RDFGraph'
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                description: FileInfo object
+  /owlOntology/{ontologyName}/vkg/catalog:
+    get:
+      tags:
+      - VKG
+      summary: Returns the saved RDFGraph for VKGs exploration
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VKGSnapshot'
+    post:
+      tags:
+      - VKG
+      summary: Save a new VKG exploration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VKGSnapshot'  
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VKGSnapshot'
+    delete:
+      tags:
+      - VKG
+      summary: Delete all the saved RDFGraph for VKGs exploration
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VKGSnapshot'
+  /owlOntology/{ontologyName}/vkg/catalog/export:
+    get:
+      tags:
+      - VKG
+      summary: Returns the catalog as a FileInfo
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                description: A FileInfo that contains the VKGs catalog
+  /owlOntology/{ontologyName}/vkg/catalog/import:
+    post:
+      tags:
+      - VKG
+      summary: Import a FileInfo in the ontology VKG's catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+                type: string
+                description: A FileInfo that contains the VKGs catalog
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: additive
+        in: query
+        schema:
+          type: boolean
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VKGSnapshot'
+  /owlOntology/{ontologyName}/vkg/catalog/{snapshotId}:
+    delete:
+      tags:
+      - VKG
+      summary: Delete the VKG exploration
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      - name: snapshotId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VKGSnapshot'
+    put:
+      tags:
+      - VKG
+      summary: Modify a VKG exploration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VKGSnapshot'  
+      parameters:
+      - name: ontologyName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: version
+        description: Ontology version
+        in: query
+        required: true
+        schema:
+          type: string 
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VKGSnapshot'
+
   /endpoint/{name}/cquery/{queryID}/results/rdfGraph:
     get:
       tags:
@@ -666,3 +915,18 @@ components:
           $ref: "#/components/schemas/Namespace"
         previousState:
           $ref: "#/components/schemas/Namespace"
+    
+    VKGSnapshot:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        lastModification:
+          type: integer
+          format: int64
+        rdfGraph:
+          $ref: '#/components/schemas/RDFGraph'
