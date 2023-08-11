@@ -163,7 +163,7 @@ export default function initBuilderUI(grapholscape: Grapholscape) {
             commandsFunctions.push(removeHierarchySuperClassEdge)
           }
         }
-        else if (elem.data('type') === TypesEnum.INPUT && (elem.connectedNodes(`[type = "${TypesEnum.UNION}"]`) || elem.connectedNodes(`[type = "${TypesEnum.DISJOINT_UNION}"]`))) {
+        else if (elem.data('type') === TypesEnum.INPUT && (elem.connectedNodes(`[type = "${TypesEnum.UNION}"]`).nonempty() || elem.connectedNodes(`[type = "${TypesEnum.DISJOINT_UNION}"]`).nonempty())) {
           commandsFunctions.push(removeHierarchyInputEdge)
         }
       }

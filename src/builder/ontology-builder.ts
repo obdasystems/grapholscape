@@ -43,7 +43,7 @@ export default class OntologyBuilder {
     if (entityType === TypesEnum.DATA_PROPERTY && ownerEntity) {
       entity.datatype = datatype
       if (functionProperties.includes(FunctionalityEnum.FUNCTIONAL)) {
-        entity.functionProperties = [FunctionalityEnum.FUNCTIONAL]
+        entity.isDataPropertyFunctional = true
       }
 
       this.diagramBuilder.addDataProperty(entity, ownerEntity)
