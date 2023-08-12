@@ -102,7 +102,7 @@ export const addSubclassEdge = (grapholscape: Grapholscape, elem: NodeSingular):
 export const addIndividual = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Individual',
-    icon: icons.addClassInstanceIcon,
+    icon: icons.addIndividualIcon,
     select: () => {
       initNewIndividualUI(grapholscape, elem.data().iri)
     }

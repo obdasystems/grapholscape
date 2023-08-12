@@ -7,16 +7,11 @@ import { LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model';
 import * as UI from '../../ui';
 import OntologyBuilder from '../ontology-builder';
 import { addHierarchySuperClassEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
-import { initNewDiagramUI, initNewEntityUI, initNewObjectPropertyUI } from './init-modals';
+import { initNewObjectPropertyUI } from './init-modals';
 import GscapeNewElementModal from "./new-element-modal";
+import GscapeDesignerToolbar from './toolbar';
 
-const {
-  GscapeContextMenu,
-  GscapeButton,
-  getIconSlot,
-  icons,
-  WidgetEnum,
-} = UI
+const { GscapeContextMenu } = UI
 
 edgeEditing(cytoscape, $, konva)
 export { GscapeNewElementModal };
@@ -24,42 +19,24 @@ window['$'] = window['jQuery'] = $
 
 export default function initBuilderUI(grapholscape: Grapholscape) {
   const commandsWidget = new GscapeContextMenu()
-
-  const addClassBtn = new GscapeButton()
-  const classIcon = getIconSlot('icon', icons.addEntityIcon)
-  addClassBtn.appendChild(classIcon)
-
-  addClassBtn.style.top = '90px'
-  addClassBtn.style.left = '10px'
-  addClassBtn.style.position = 'absolute'
-  addClassBtn.title = 'Add Class'
-
-  addClassBtn.onclick = () => initNewEntityUI(grapholscape, TypesEnum.CLASS)
-
-  const addDiagramBtn = new GscapeButton()
-  const diagramIcon = getIconSlot('icon', icons.addDiagramIcon)
-  addDiagramBtn.appendChild(diagramIcon)
-
-  addDiagramBtn.style.top = '50px'
-  addDiagramBtn.style.left = '10px'
-  addDiagramBtn.style.position = 'absolute'
-  addDiagramBtn.title = 'Add Diagram'
-
-  addDiagramBtn.onclick = () => initNewDiagramUI(grapholscape)
+  const toolboxWidget = new GscapeDesignerToolbar(grapholscape)
 
   if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-    grapholscape.uiContainer?.appendChild(addDiagramBtn)
-    grapholscape.uiContainer?.appendChild(addClassBtn)
+    grapholscape.uiContainer?.appendChild(toolboxWidget)
   }
 
-  grapholscape.on(LifecycleEvent.RendererChange, (renderer) => {
-    if (renderer === RendererStatesEnum.FLOATY) {
-      grapholscape.uiContainer?.appendChild(addDiagramBtn)
-      grapholscape.uiContainer?.appendChild(addClassBtn)
-    } else {
-      addDiagramBtn.remove()
-      addClassBtn.remove()
-    }
+  grapholscape.on(LifecycleEvent.NodeSelection, n => {
+    const elem = grapholscape.renderer.cy?.$id(n.id)
+    toolboxWidget.lastSelectedElement = elem
+  })
+
+  grapholscape.on(LifecycleEvent.EdgeSelection, e => {
+    const elem = grapholscape.renderer.cy?.$id(e.id)
+    toolboxWidget.lastSelectedElement = elem
+  })
+
+  grapholscape.on(LifecycleEvent.BackgroundClick, () => {
+    toolboxWidget.lastSelectedElement = undefined
   })
 
   grapholscape.on(LifecycleEvent.DiagramChange, () => {
@@ -139,6 +116,7 @@ export default function initBuilderUI(grapholscape: Grapholscape) {
   })
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
+    toolboxWidget.lastSelectedElement = undefined
     const elem = evt.target
     if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
       const commandsByType = getCommandsByType()
@@ -179,7 +157,4 @@ export default function initBuilderUI(grapholscape: Grapholscape) {
       } catch (e) { console.error(e) }
     }
   })
-
-  grapholscape.widgets.set(WidgetEnum.NEW_CLASS, addClassBtn)
-  grapholscape.widgets.set(WidgetEnum.NEW_DIAGRAM, addDiagramBtn)
 }

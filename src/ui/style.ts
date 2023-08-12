@@ -66,6 +66,7 @@ export default css`
   text-overflow: ellipsis;
   padding-right: 0;
   padding-left: 0;
+  z-index: 9999;
 }
 
 .gscape-panel-in-tray.hanging {

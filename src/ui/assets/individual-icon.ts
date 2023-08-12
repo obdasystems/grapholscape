@@ -15,7 +15,10 @@ export default svg`<?xml version="1.0" encoding="UTF-8" standalone="no"?>
    id="svg4"
    version="1.1"
    height="18"
-   width="18">
+   width="18"
+   viewBox="0 0 18 18"
+   style="box-sizing: border-box; padding: 1px;"
+   >
   <metadata
      id="metadata10">
     <rdf:RDF>

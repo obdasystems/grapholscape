@@ -65,10 +65,6 @@ export default function (grapholscape: Grapholscape) {
         break
 
       case WidgetEnum.LAYOUT_SETTINGS:
-      case WidgetEnum.NEW_CLASS:
-      case WidgetEnum.NEW_DIAGRAM:
-      case WidgetEnum.NEW_DATAPROPERTY:
-      case WidgetEnum.NEW_OBJECTPROPERTY:
         break
       
       case WidgetEnum.INITIAL_RENDERER_SELECTOR:
