@@ -15,6 +15,7 @@ import GrapholParser from './parsing/parser'
 import parseRDFGraph, { getConfig, getEntities, getOntology } from './parsing/rdf-graph-parser'
 import * as UI from './ui'
 import { initBuilderUI } from './builder'
+import { OntologyDesignerConfig } from './builder/config'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -151,13 +152,16 @@ export async function builder(rdfGraph: RDFGraph, container: HTMLElement, mastro
   return grapholscape
 }
 
-export async function buildFromScratch(name: string, iri: string, container: HTMLElement, mastroConnection?: RequestOptions) {
+export async function buildFromScratch(name: string, iri: string, container: HTMLElement, mastroConnection?: RequestOptions, config?: OntologyDesignerConfig) {
   const ontology = new Ontology(name, '', iri)
   ontology.addNamespace(new Namespace([''], iri))
   ontology.addDiagram(new Diagram(name, 0))
-  const grapholscape = new Grapholscape(ontology, container, {
+
+  config = Object.assign(config || {}, {
     renderers: [RendererStatesEnum.FLOATY],
   })
+
+  const grapholscape = new Grapholscape(ontology, container, config)
   UI.initUI(grapholscape)
   initBuilderUI(grapholscape)
   grapholscape.showDiagram(0)
