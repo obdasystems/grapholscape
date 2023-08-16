@@ -1,21 +1,18 @@
 import cytoscape from 'cytoscape';
-import edgeEditing from 'cytoscape-edge-editing';
-import $ from "jquery";
-import konva from "konva";
+// import edgeEditing from 'cytoscape-edge-editing';
+// import $ from "jquery";
+// import konva from "konva";
 import Grapholscape from '../../core';
 import { LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model';
 import * as UI from '../../ui';
 import OntologyBuilder from '../ontology-builder';
 import { addHierarchySuperClassEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
 import { initNewObjectPropertyUI } from './init-modals';
-import GscapeNewElementModal from "./new-element-modal";
 import GscapeDesignerToolbar from './toolbar';
+import edgeEditing from '../edge-editing'
+import { setDesignerStyle } from './style';
 
 const { GscapeContextMenu } = UI
-
-edgeEditing(cytoscape, $, konva)
-export { GscapeNewElementModal };
-window['$'] = window['jQuery'] = $
 
 export default function initBuilderUI(grapholscape: Grapholscape) {
   const commandsWidget = new GscapeContextMenu()
@@ -32,7 +29,7 @@ export default function initBuilderUI(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.EdgeSelection, e => {
     const elem = grapholscape.renderer.cy?.$id(e.id)
-    toolboxWidget.lastSelectedElement = elem
+    toolboxWidget.lastSelectedElement = elem;
   })
 
   grapholscape.on(LifecycleEvent.BackgroundClick, () => {
@@ -41,62 +38,16 @@ export default function initBuilderUI(grapholscape: Grapholscape) {
 
   grapholscape.on(LifecycleEvent.DiagramChange, () => {
     let currentCy = grapholscape.renderer.cy as any
-    if (currentCy.edgeEditing('get') === undefined) {
-      currentCy.edgeEditing({
-        initAnchorsAutomatically: false,
-        undoable: true,
-        validateEdge: function (edge, newSource, newTarget) {
-          const edgeType = edge.data('type')
-          const sourceType = newSource.data('type')
-          const targetType = newTarget.data('type')
-          switch (edgeType) {
-            case TypesEnum.ATTRIBUTE_EDGE:
-              if (sourceType === TypesEnum.CLASS && newTarget.id() === edge.data('target')) {
-                return 'valid'
-              }
-              return 'invalid';
-            case TypesEnum.INCLUSION:
-              if (sourceType === targetType && (sourceType === TypesEnum.CLASS || sourceType === TypesEnum.DATA_PROPERTY)) {
-                return 'valid'
-              }
-              return 'invalid';
-            case TypesEnum.OBJECT_PROPERTY:
-              if (sourceType === targetType && sourceType === TypesEnum.CLASS) {
-                return 'valid'
-              }
-              return 'invalid';
-            case TypesEnum.UNION:
-              if (sourceType === TypesEnum.UNION && targetType === TypesEnum.CLASS) {
-                return 'valid'
-              }
-              return 'invalid';
-            case TypesEnum.DISJOINT_UNION:
-              if (sourceType === TypesEnum.DISJOINT_UNION && targetType === TypesEnum.CLASS) {
-                return 'valid'
-              }
-              return 'invalid';
-            case TypesEnum.INPUT:
-              if (sourceType === TypesEnum.CLASS && (targetType === TypesEnum.DISJOINT_UNION || targetType === TypesEnum.UNION)) {
-                return 'valid'
-              }
-              return 'invalid';
-            default:
-              return 'valid'
-          }
-        }
-      })
-      // avoid konvajs to put div over grapholscape's UI
-      document.getElementById('cy-node-edge-editing-stage0')?.remove()
-    }
-    currentCy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-      if (addedEdge.data('type') === TypesEnum.OBJECT_PROPERTY) {
-        addedEdge.remove()
-        initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri)
-        // grapholscape.uiContainer?.appendChild(newElementComponent)
-        // initNewElementModal(newElementComponent, 'Add New Object Property', TypesEnum.OBJECT_PROPERTY, sourceNode.data('iri'), targetNode.data('iri'))
-      }
-      currentCy.removeScratch('edge-creation-type')
-    })
+
+    if (!currentCy.scratch('designer-listeners-set')) {
+
+      setDesignerStyle(currentCy, grapholscape.theme)
+      edgeEditing(grapholscape)
+
+      // set true in the scratch so it won't add new listeners
+      // if it has already been added
+      currentCy.scratch('designer-listeners-set', true)
+    }   
   })
 
   grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {

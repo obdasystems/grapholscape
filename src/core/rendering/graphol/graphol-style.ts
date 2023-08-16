@@ -152,12 +152,18 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: 'edge[displayedName]',
+      selector: 'edge',
       style: {
-        'label': 'data(displayedName)',
         'font-size': 10,
         'text-rotation': 'autorotate',
         'text-margin-y': -10,
+      }
+    },
+
+    {
+      selector: 'edge[displayedName]',
+      style: {
+        'label': 'data(displayedName)',
       }
     },
 

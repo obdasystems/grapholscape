@@ -3,11 +3,10 @@ import { Grapholscape } from "../../core";
 import DiagramBuilder from "../../core/diagram-builder";
 import { RendererStatesEnum, TypesEnum } from "../../model";
 import * as UI from '../../ui';
+import drawNewEdge from "../edge-creation/draw-new-edge";
 import OntologyBuilder from "../ontology-builder";
 import GscapeAnnotationsModal from "./annotations-modal";
-import applyEdgeDrawStyle from "./apply-edge-draw-style";
-import edgeHandlesDefaults from "./edge-handles-defaults";
-import { initAnnotationsModal, initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
+import { initAnnotationsModal, initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewObjectPropertyUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
 
 const {
   icons,
@@ -67,10 +66,15 @@ export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular
     icon: icons.addObjectPropertyIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
-      applyEdgeDrawStyle(currentCy, grapholscape.theme, TypesEnum.OBJECT_PROPERTY)
-      let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.OBJECT_PROPERTY))
-      edgehandles.start(elem)
-      currentCy.scratch('edge-creation-type', TypesEnum.OBJECT_PROPERTY)
+      drawNewEdge(
+        currentCy,
+        TypesEnum.OBJECT_PROPERTY,
+        elem,
+        grapholscape.theme,
+        (_, sourceNode, targetNode, addedEdge) => { // ehcomplete
+          addedEdge.remove()
+          initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri)
+      })
     }
   }
 }
@@ -90,11 +94,9 @@ export const addSubclassEdge = (grapholscape: Grapholscape, elem: NodeSingular):
     content: 'Add Subclass Edge',
     icon: icons.addISAIcon,
     select: () => {
+      
       let currentCy = grapholscape.renderer.cy as any
-      applyEdgeDrawStyle(currentCy, grapholscape.theme, TypesEnum.INCLUSION)
-      let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.INCLUSION))
-      edgehandles.start(elem)
-      currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
+      drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme)
     }
   }
 }
@@ -237,11 +239,7 @@ export const addHierarchySuperClassEdge = (grapholscape: Grapholscape, elem: Nod
         }
       }
 
-      console.log(edgeType)
-      applyEdgeDrawStyle(currentCy, grapholscape.theme, edgeType)
-      let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(edgeType))
-      edgehandles.start(elem)
-      currentCy.scratch('edge-creation-type', edgeType)
+      drawNewEdge(currentCy, edgeType, elem, grapholscape.theme)
     }
   }
 }
@@ -282,10 +280,7 @@ export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI
     icon: icons.addInputIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
-      applyEdgeDrawStyle(currentCy, grapholscape.theme, TypesEnum.INPUT)
-      let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.INPUT))
-      edgehandles.start(elem)
-      currentCy.scratch('edge-creation-type', TypesEnum.INPUT)
+      drawNewEdge(currentCy, TypesEnum.INPUT, elem, grapholscape.theme)
     }
   }
 }
@@ -296,11 +291,7 @@ export const addInclusionEdge = (grapholscape: Grapholscape, elem: NodeSingular)
     icon: icons.addISAIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
-      applyEdgeDrawStyle(currentCy, grapholscape.theme, TypesEnum.INCLUSION)
-      let edgehandles = currentCy.edgehandles(edgeHandlesDefaults(TypesEnum.INCLUSION))
-      edgehandles.start(elem)
-      currentCy.scratch('edge-creation-type', TypesEnum.INCLUSION)
-
+      drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme)
     }
   }
 }

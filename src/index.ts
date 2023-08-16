@@ -3,7 +3,6 @@ import cola from 'cytoscape-cola'
 import klay from 'cytoscape-klay'
 import edgehandles from 'cytoscape-edgehandles'
 import popper from 'cytoscape-popper'
-import undoredo from 'cytoscape-undo-redo'
 import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
 import Grapholscape from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
@@ -21,7 +20,6 @@ cytoscape.use(popper)
 cytoscape.use(cola)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
 cytoscape.use(edgehandles)
-cytoscape.use(undoredo)
 cytoscape.use(klay)
 
 export * from './config'

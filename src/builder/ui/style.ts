@@ -1,14 +1,55 @@
-import { Core, Css } from "cytoscape";
-import floatyStyle from "../../core/rendering/floaty/floaty-style";
+import { Core, Css, Stylesheet } from "cytoscape";
+import getFloatyStyle from "../../core/rendering/floaty/floaty-style";
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../model";
+
+export function setDesignerStyle(cy: Core, theme: GrapholscapeTheme) {
+  const edgeCreationType = cy.scratch('edge-creation-type')
+  const edgeCreationLabel = cy.scratch('edge-creation-label')
+  const edgeCreationReversed = cy.scratch('edge-creation-reversed')
+  let edgeHandlingStyle: Stylesheet[] = []
+  if(edgeCreationType !== undefined) {
+    edgeHandlingStyle = getEdgeHandlingStyle(theme, edgeCreationType as TypesEnum, edgeCreationLabel, edgeCreationReversed)
+  }
+  /**
+   * Update style to change ghost edge styling based on edge-creation-type.
+   * Could be done assigning here the type field to the ghost edge
+   * but this event is fired before the creation of such edge, should use
+   * a long enough timeout but trying it results in a poor UX.
+   * So just update style with new values for .eh-ghost-edge.
+   */
+  (cy as any).style().resetToDefault().fromJson([
+    ...getFloatyStyle(theme),
+    ...getDesignerBaseStyle(theme),
+    ...edgeHandlingStyle,
+  ]).update()
+}
+
+export function getDesignerBaseStyle(theme: GrapholscapeTheme): Stylesheet[] {
+  return [
+    {
+      selector: '.anchor-node',
+      style: {
+        height: 10,
+        width: 10,
+      }
+    },
+    {
+      selector: 'edge.editing',
+      style: {
+        display: 'none',
+      }
+    }
+  ]
+}
 
 /**
  * Apply stylesheet for edge handling during edge drawing in builder
  * @param cy cytoscape instance
  * @param theme current grapholscape's theme
  * @param creationEdgeType the kind of edge that is going to be shown
+ * @param creationEdgeLabel the label to apply to the ghost edge
  */
-export default function (cy: Core, theme: GrapholscapeTheme, creationEdgeType: TypesEnum) {
+export function getEdgeHandlingStyle(theme: GrapholscapeTheme, creationEdgeType: TypesEnum, creationEdgeLabel?: string, creationEdgeReversed = false) {
   const ehGhostEdgeStyles: { [x in TypesEnum]?: Css.Edge } = {
     [TypesEnum.INCLUSION]: {
       'target-arrow-shape': 'triangle',
@@ -78,17 +119,42 @@ export default function (cy: Core, theme: GrapholscapeTheme, creationEdgeType: T
   const ehGhostEdgeStyle: Css.Edge = {
     'opacity': 0.8,
     'text-rotation': 'autorotate',
+    'label': creationEdgeLabel
   }
 
   // apply styling based on ghost edge type
-  if (ehGhostEdgeStyles[creationEdgeType]) {
-    Object.assign(ehGhostEdgeStyle, ehGhostEdgeStyles[creationEdgeType])
+  const ehGhostStyleByType = ehGhostEdgeStyles[creationEdgeType]
+  if (ehGhostStyleByType) {
+    if (creationEdgeReversed) {
+      // reverse style of arrows
+      const copy = JSON.parse(JSON.stringify(ehGhostStyleByType))
+
+      ehGhostStyleByType['source-arrow-color'] = ehGhostStyleByType['target-arrow-color']
+      ehGhostStyleByType['source-arrow-fill'] = ehGhostStyleByType['target-arrow-fill']
+      ehGhostStyleByType['source-arrow-shape'] = ehGhostStyleByType['target-arrow-shape']
+      ehGhostStyleByType['source-label'] = ehGhostStyleByType['target-label']
+      ehGhostStyleByType['source-text-offset'] = ehGhostStyleByType['target-text-offset']
+
+      ehGhostStyleByType['target-arrow-color'] = copy['source-arrow-color']
+      ehGhostStyleByType['target-arrow-fill'] = copy['source-arrow-fill']
+      ehGhostStyleByType['target-arrow-shape'] = copy['source-arrow-shape']
+      ehGhostStyleByType['target-label'] = copy['source-label']
+      ehGhostStyleByType['target-text-offset'] = copy['source-text-offset']
+    }
+    Object.assign(ehGhostEdgeStyle, ehGhostStyleByType)
   }
 
   const ehStyle = [
     {
       selector: '.eh-ghost-edge',
       style: ehGhostEdgeStyle
+    },
+
+    {
+      selector: 'edge.eh-preview',
+      style: {
+        label: creationEdgeLabel
+      }
     },
 
     {
@@ -118,18 +184,7 @@ export default function (cy: Core, theme: GrapholscapeTheme, creationEdgeType: T
         'opacity': 0.4,
       }
     },
-  ]
+  ];
 
-  /**
-   * Update style to change ghost edge styling based on edge-creation-type.
-   * Could be done assigning here the type field to the ghost edge
-   * but this event is fired before the creation of such edge, should use
-   * a long enough timeout but trying it results in a poor UX.
-   * So just update style with new values for .eh-ghost-edge.
-   */
-  const previousStyle = floatyStyle(theme);
-  (cy as any).style().resetToDefault().fromJson([
-    ...previousStyle,
-    ...ehStyle
-  ]).update()
+  return ehStyle
 }
