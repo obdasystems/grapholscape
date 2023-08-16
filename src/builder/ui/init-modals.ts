@@ -29,7 +29,16 @@ export function initNewEntityUI(grapholscape: Grapholscape, entityType: TypesEnu
     `Add New ${getEntityTypeInTitle(entityType)}`,
     (confirmDetail: NewEntityDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, confirmDetail.type)
+      ontologyBuilder.addNodeElement(confirmDetail.iri, 
+        confirmDetail.type, 
+        undefined, 
+        undefined, 
+        [], 
+        '',
+        confirmDetail.deriveLabel, 
+        confirmDetail.convertCamel, 
+        confirmDetail.convertSnake, 
+        confirmDetail.lang)
     }
   )
 }
@@ -51,7 +60,11 @@ export function initNewDataPropertyUI(grapholscape: Grapholscape, ownerClassIri:
         ownerClassIri,
         undefined,
         functionProperties,
-        confirmDetail.datatype)
+        confirmDetail.datatype,
+        confirmDetail.deriveLabel, 
+        confirmDetail.convertCamel, 
+        confirmDetail.convertSnake, 
+        confirmDetail.lang)
     }
   )
 }
@@ -70,7 +83,11 @@ export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassI
         sourceClassIri,
         targetClassIri,
         TypesEnum.CLASS,
-        confirmDetail.functionProperties)
+        confirmDetail.functionProperties,
+        confirmDetail.deriveLabel, 
+        confirmDetail.convertCamel, 
+        confirmDetail.convertSnake, 
+        confirmDetail.lang)
     }
   )
 }
@@ -82,7 +99,16 @@ export function initNewIndividualUI(grapholscape: Grapholscape, ownerClassIri: s
     'Add New Individual',
     (confirmDetail: NewObjectPropertyDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.INDIVIDUAL, ownerClassIri)
+      ontologyBuilder.addNodeElement(confirmDetail.iri, 
+        TypesEnum.INDIVIDUAL, 
+        ownerClassIri,
+        undefined, 
+        [], 
+        '',
+        confirmDetail.deriveLabel, 
+        confirmDetail.convertCamel, 
+        confirmDetail.convertSnake, 
+        confirmDetail.lang)
     }
   )
 }
@@ -98,7 +124,16 @@ export function initNewIsaUI(grapholscape: Grapholscape, sourceIri: string) {
     'Add New Class',
     (confirmDetail: NewIsaDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.CLASS, sourceIri, confirmDetail.isaDirection)
+      ontologyBuilder.addNodeElement(confirmDetail.iri, 
+        TypesEnum.CLASS, 
+        sourceIri, 
+        confirmDetail.isaDirection,
+        [], 
+        '',
+        confirmDetail.deriveLabel, 
+        confirmDetail.convertCamel, 
+        confirmDetail.convertSnake, 
+        confirmDetail.lang)
     }
   )
 }
@@ -116,7 +151,11 @@ export function initNewSubHierarchyUI(grapholscape: Grapholscape, sourceIri: str
         confirmDetail.inputClassesIri,
         sourceIri,
         confirmDetail.isDisjoint,
-        confirmDetail.isComplete)
+        confirmDetail.isComplete,
+        confirmDetail.deriveLabel, 
+        confirmDetail.convertCamel, 
+        confirmDetail.convertSnake, 
+        confirmDetail.lang)
     }
   )
 }

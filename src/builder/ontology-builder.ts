@@ -1,6 +1,6 @@
 import { SingularElementArgument } from "cytoscape"
 import { floatyOptions } from "../config"
-import { Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
+import { Annotation, AnnotationProperty, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
 import DiagramBuilder from "../core/diagram-builder"
 import Grapholscape from "../core/grapholscape"
 
@@ -14,7 +14,7 @@ export default class OntologyBuilder {
     this.grapholscape = grapholscape
   }
 
-  public addNodeElement(iriString: string, entityType: TypesEnum, ownerIri?: string, relationship?: string, functionProperties: string[] = [], datatype = '') {
+  public addNodeElement(iriString: string, entityType: TypesEnum, ownerIri?: string, relationship?: string, functionProperties: string[] = [], datatype = '', deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
 
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
@@ -23,6 +23,12 @@ export default class OntologyBuilder {
     if (!entity) {
       entity = new GrapholEntity(iri)
       this.grapholscape.ontology.addEntity(entity)
+      if(deriveLabel){
+        let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
+        label = convertSnake ? this.convertSnakeCase(label) : label
+        const labelAnnotation = new Annotation(AnnotationProperty.label, label, labelLanguage, 'xsd:string')
+        entity.addAnnotation(labelAnnotation)
+      }
     }
 
     let ownerEntity: GrapholEntity | undefined
@@ -67,7 +73,7 @@ export default class OntologyBuilder {
     this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
   }
 
-  public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionProperties: FunctionalityEnum[] = []) {
+  public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionProperties: FunctionalityEnum[] = [], deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
 
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
@@ -81,6 +87,12 @@ export default class OntologyBuilder {
         const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
         entity = new GrapholEntity(iri)
         this.grapholscape.ontology.addEntity(entity)
+        if(deriveLabel){
+          let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
+          label = convertSnake ? this.convertSnakeCase(label) : label
+          const labelAnnotation = new Annotation(AnnotationProperty.label, label, labelLanguage, 'xsd:string')
+          entity.addAnnotation(labelAnnotation)
+        }
       }
       this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS)
       entity.functionProperties = entity?.functionProperties.concat(functionProperties)
@@ -103,7 +115,7 @@ export default class OntologyBuilder {
     this.grapholscape.lifecycle.trigger(LifecycleEvent.DiagramAddition, newDiagram)
   }
 
-  public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete = false) {
+  public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
     const hierarchyID = this.diagramBuilder.getNewId('node') + '-' + diagram.id
@@ -114,9 +126,17 @@ export default class OntologyBuilder {
     for (let i of iris) {
       const iri = new Iri(i, this.grapholscape.ontology.namespaces)
       let entity = this.grapholscape.ontology.getEntity(i)
-      if (!entity)
+      if (!entity){
         entity = new GrapholEntity(iri)
-      this.grapholscape.ontology.addEntity(entity)
+        this.grapholscape.ontology.addEntity(entity)
+        if(deriveLabel){
+          let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
+          label = convertSnake ? this.convertSnakeCase(label) : label
+          const labelAnnotation = new Annotation(AnnotationProperty.label, label, labelLanguage, 'xsd:string')
+          entity.addAnnotation(labelAnnotation)
+        }
+      }
+        
       hierarchy.addInput(entity)
     }
     this.diagramBuilder.addHierarchy(hierarchy, { x: 0, y: 0 })
@@ -343,5 +363,16 @@ export default class OntologyBuilder {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
     this.diagramBuilder.toggleComplete(elem)
+  }
+
+  public convertCamelCase(input: string) {
+    input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1").trim()
+    input = input.charAt(0).toUpperCase() + input.slice(1);
+    return input
+  }
+
+  public convertSnakeCase(input: string) {
+    input = input.replace('_',' ')
+    return input
   }
 }

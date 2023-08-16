@@ -2,6 +2,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplat
 import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from '../../model'
 import * as UI from '../../ui'
 import { subHierarchies, superHierarchies } from '../../ui/assets'
+import { languages } from './annotation-modal'
 
 const {
   ModalMixin, BaseMixin,
@@ -50,6 +51,9 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   private selectedFunctionProperties: Set<FunctionalityEnum> = new Set()
   private numberOfInputs: number = 2
   private isValid: boolean = false
+  private deriveLabel: boolean = true
+  private convertCamel: boolean = true
+  private convertSnake: boolean = false
   private isHierarchyComplete: boolean = false
   private isHierarchyDisjoint: boolean = false
   private isaDirection: 'superclass' | 'subclass' = 'subclass'
@@ -60,6 +64,9 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     advancedMode: { type: Boolean, state: true },
     selectedNamespaceIndex: { type: Number, state: true },
     isValid: { type: Boolean, state: true },
+    deriveLabel: {type: Boolean, state: true},
+    convertCamel: {type: Boolean, state: true},
+    convertSnake: {type: Boolean, state: true}, 
     isHierarchyComplete: { type: Boolean, state: true },
     isHierarchyDisjoint: { type: Boolean, state: true },
     numberOfInputs: { type: Number, state: true },
@@ -212,6 +219,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               iri: this.selectedNamespaceValue + this.mainInputValue,
               namespace: this.selectedNamespaceValue,
               type: this.modalType,
+              deriveLabel: this.deriveLabel,
+              convertCamel: this.convertCamel,
+              convertSnake: this.convertSnake,
+              lang: this.labelLanguage,
             } as NewEntityDetail
           }
           break
@@ -222,6 +233,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               iri: this.selectedNamespaceValue + this.mainInputValue,
               namespace: this.selectedNamespaceValue,
               type: this.modalType,
+              deriveLabel: this.deriveLabel,
+              convertCamel: this.convertCamel,
+              convertSnake: this.convertSnake,
+              lang: this.labelLanguage,
               isFunctional: this.selectedFunctionProperties.has(FunctionalityEnum.FUNCTIONAL),
               datatype: this.selectedDatatype,
             } as NewDataPropertyDetail
@@ -234,6 +249,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               iri: this.selectedNamespaceValue + this.mainInputValue,
               namespace: this.selectedNamespaceValue,
               type: this.modalType,
+              deriveLabel: this.deriveLabel,
+              convertCamel: this.convertCamel,
+              convertSnake: this.convertSnake,
+              lang: this.labelLanguage,
               functionProperties: Array.from(this.selectedFunctionProperties),
             } as NewObjectPropertyDetail
           }
@@ -264,6 +283,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               namespace: this.selectedNamespaceValue,
               isComplete: this.isHierarchyComplete,
               isDisjoint: this.isHierarchyDisjoint,
+              deriveLabel: this.deriveLabel,
+              convertCamel: this.convertCamel,
+              convertSnake: this.convertSnake,
+              lang: this.labelLanguage,
             } as NewSubHierarchyDetail
           }
           break
@@ -274,6 +297,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               iri: this.selectedNamespaceValue + this.mainInputValue,
               namespace: this.selectedNamespaceValue,
               type: TypesEnum.CLASS,
+              deriveLabel: this.deriveLabel,
+              convertCamel: this.convertCamel,
+              convertSnake: this.convertSnake,
+              lang: this.labelLanguage,
               isaDirection: this.isaDirection,
             } as NewIsaDetail
           }
@@ -418,6 +445,66 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     `
   }
 
+  private getLabelSettings() {
+
+    const toggleLabel = (e: Event) => {
+      e.preventDefault()
+      this.deriveLabel = !this.deriveLabel
+    }
+
+    const toggleCamelCase = (e: Event) => {
+      e.preventDefault()
+      this.convertCamel = !this.convertCamel
+    }
+
+    const toggleSnakeCase = (e: Event) => {
+      e.preventDefault()
+      this.convertSnake = !this.convertSnake
+    }
+
+    return html`
+      <div id = 'label-settings' class="form-item">
+        <label id="label-label" for="label">Label:</label>
+        <gscape-toggle
+          class="actionable"
+          label="Derive label from input"
+          @click=${toggleLabel}
+          ?checked=${this.deriveLabel}>
+        </gscape-toggle>
+        ${this.deriveLabel ? html`
+        <label id="language-label" for="language">Language:</label>
+        <div class="dropdown">
+            <input id="newlan" type="text"/>
+            <select id="language" onchange="this.offsetParent.querySelector('#newlan').value=this.value; this.offsetParent.querySelector('#newlan').focus(); " name="language" required>
+                ${languages.sort().map((n, i) => {
+                    return html`<option value="${n.toString()}"; >${n.toString()}</option>`
+                })}
+                <option value=""></option>
+            </select>
+        </div><br>
+        <span
+          id='camelCase'
+          class="chip actionable"
+          @click=${toggleCamelCase}
+          ?selected=${this.convertCamel}
+        >
+          ${this.convertCamel ? html`&#10003; ` : null} Convert camelCase
+        </span>
+        <span
+          id='snake_case'
+          class="chip actionable"
+          @click=${toggleSnakeCase}
+          ?selected=${this.convertSnake}
+        >
+          ${this.convertSnake ? html`&#10003; ` : null} Convert snake_case
+        </span>
+        
+        `
+         : null}
+      </div>
+    `
+  }
+
   private newDataPropertyForm() {
     return html`
       ${this.advancedMode ? this.getNamespacesTemplate() : null}
@@ -435,6 +522,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       <div class="form-item" style="margin-top: 4px">
         ${this.getFunctionPropertyChip(FunctionalityEnum.FUNCTIONAL)}
       </div>
+
+      ${this.advancedMode ? this.getLabelSettings() : null}
     `
   }
 
@@ -455,6 +544,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
           }
         </div>
       </div>
+
+      ${this.advancedMode ? this.getLabelSettings() : null}
     `
   }
 
@@ -483,6 +574,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
           </span>
         </gscape-button>
       </div>
+
+      ${this.advancedMode ? this.getLabelSettings() : null}
     `
   }
 
@@ -490,6 +583,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     return html`
       ${this.advancedMode ? this.getNamespacesTemplate() : null}
       ${this.getMainInput()}
+      ${this.advancedMode && this.modalType != ModalTypeEnum.RENAME_ENTITY ? this.getLabelSettings() : null}
     `
   }
 
@@ -558,6 +652,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
           ?checked=${this.isHierarchyDisjoint}>
         </gscape-toggle>
       </div>
+      ${this.advancedMode ? this.getLabelSettings() : null}
     `
   }
 
@@ -634,6 +729,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private get mainInputValue() {
     return (this.shadowRoot?.querySelector('#input') as HTMLInputElement | undefined)?.value
+  }
+
+  private get labelLanguage() {
+    return (this.shadowRoot?.querySelector('#newlan') as HTMLInputElement | undefined)?.value
   }
 
   private get isAdvanceAllowed() {
@@ -735,7 +834,7 @@ export type NewDiagramDetail = { diagramName: string }
  * Trigged event for a new entity
  * Event.detail includes `iri` and `type`
  */
-export type NewEntityDetail = { iri: string, type: TypesEnum, namespace: string }
+export type NewEntityDetail = { iri: string, type: TypesEnum, namespace: string, deriveLabel: boolean, convertCamel: boolean, convertSnake: boolean, lang: string}
 
 /**
  * Trigged event for a new ISA.
@@ -769,6 +868,10 @@ export type NewSubHierarchyDetail = {
   namespace: string,
   isDisjoint: boolean,
   isComplete: boolean,
+  deriveLabel: boolean, 
+  convertCamel: boolean, 
+  convertSnake: boolean, 
+  lang: string
 }
 
 /**
