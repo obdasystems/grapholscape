@@ -6,7 +6,7 @@ import terser from '@rollup/plugin-terser'
 import license from 'rollup-plugin-license'
 import path from 'path'
 import typescript from '@rollup/plugin-typescript'
-import dts from 'rollup-plugin-dts'
+import { dts } from 'rollup-plugin-dts'
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development

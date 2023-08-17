@@ -5,6 +5,7 @@ import { TypesEnum } from '../../model'
 import * as UI from '../../ui'
 import { addObjectProperty } from './commands'
 import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI } from './init-modals'
+import OntologyManager from './ontology-manager/ontology-manager'
 
 const {
   BaseMixin,
@@ -91,6 +92,13 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
     }
   }
 
+  private handleOntologyManager() {
+    const ontologyManager = new OntologyManager()
+
+    this.grapholscape.uiContainer?.appendChild(ontologyManager)
+    ontologyManager.show()
+  }
+
   public get lastSelectedElement() { return this._lastSelectedElement}
   public set lastSelectedElement(newElem) {
     const oldElem = this._lastSelectedElement
@@ -145,6 +153,9 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
 
           <gscape-button size="s" type="primary" label="New Version" title="Save A New Version" ?disabled=${!this.newVersionEnabled}>
             <span slot="icon">${icons.addPack}</span>
+          </gscape-button>
+
+          <gscape-button size="s" label="Ontology Manager" title="Show Ontology Manager" @click=${this.handleOntologyManager}>
           </gscape-button>
         </div>
       </div>
