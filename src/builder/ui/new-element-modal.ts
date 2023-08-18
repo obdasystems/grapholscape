@@ -1,8 +1,8 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from 'lit'
+import { Language } from '../../config'
 import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from '../../model'
 import * as UI from '../../ui'
 import { subHierarchies, superHierarchies } from '../../ui/assets'
-import { languages } from './annotation-modal'
 
 const {
   ModalMixin, BaseMixin,
@@ -476,7 +476,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         <div class="dropdown">
             <input id="newlan" type="text"/>
             <select id="language" onchange="this.offsetParent.querySelector('#newlan').value=this.value; this.offsetParent.querySelector('#newlan').focus(); " name="language" required>
-                ${languages.sort().map((n, i) => {
+                ${Object.values(Language).sort().map((n, i) => {
                     return html`<option value="${n.toString()}"; >${n.toString()}</option>`
                 })}
                 <option value=""></option>

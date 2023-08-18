@@ -3,14 +3,13 @@ import { Annotation, AnnotationProperty } from "../../model";
 import { datatypes } from "./new-element-modal";
 import * as UI from '../../ui'
 import { OntologyViewModel } from "../../ui/ontology-info/ontology-info";
+import { Language } from "../../config";
 
 const {
     ModalMixin, BaseMixin,
     icons,
     baseStyle,
 } = UI
-
-export const languages = ['it', 'es', 'en', 'de', 'fr']
 
 export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitElement)) {
     
@@ -169,7 +168,7 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
                         <div class="dropdown" style = "width: 30%; margin: 8px 8px 8px 8px ;">
                             <input id="newlan" value="${this.annotation?.language}" type="text"/>
                             <select id="language" onchange="this.offsetParent.querySelector('#newlan').value=this.value; this.offsetParent.querySelector('#newlan').focus(); if(this.offsetParent.offsetParent.querySelector('#lexicalform').value.length > 0){this.offsetParent.offsetParent.querySelector('#ok').disabled = false;} "name="language" required>
-                                ${languages.sort().map((n, i) => {
+                                ${Object.values(Language).sort().map((n, i) => {
                                 if(this.annotation && n.toString()===this.annotation.language){
                                     return html`<option value="${n.toString()}"; selected>${n.toString()}</option>`
                                 } else{
