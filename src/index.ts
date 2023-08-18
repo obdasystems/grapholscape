@@ -13,8 +13,7 @@ import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
 import parseRDFGraph, { getConfig, getEntities, getOntology } from './parsing/rdf-graph-parser'
 import * as UI from './ui'
-import { initBuilderUI } from './builder'
-import { OntologyDesignerConfig } from './builder/config'
+import { GrapholscapeDesigner, initBuilderUI, OntologyDesignerConfig } from './builder'
 
 cytoscape.use(popper)
 cytoscape.use(cola)
@@ -146,7 +145,7 @@ export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroC
 
 export async function builder(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
   const grapholscape = loadRDFGraph(rdfGraph, container)
-  initBuilderUI(grapholscape)
+  initBuilderUI(grapholscape as GrapholscapeDesigner)
   return grapholscape
 }
 
@@ -159,7 +158,7 @@ export async function buildFromScratch(name: string, iri: string, container: HTM
     renderers: [RendererStatesEnum.FLOATY],
   })
 
-  const grapholscape = new Grapholscape(ontology, container, config)
+  const grapholscape = new GrapholscapeDesigner(ontology, container, config)
   UI.initUI(grapholscape)
   initBuilderUI(grapholscape)
   grapholscape.showDiagram(0)

@@ -2,11 +2,12 @@ import { SingularElementArgument } from "cytoscape"
 import { floatyOptions } from "../config"
 import { Annotation, AnnotationProperty, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
 import DiagramBuilder from "../core/diagram-builder"
-import Grapholscape from "../core/grapholscape"
+import { GrapholscapeDesigner } from "."
+import { DesignerEvent } from "./lifecycle"
 
 export default class OntologyBuilder {
 
-  grapholscape: Grapholscape
+  grapholscape: GrapholscapeDesigner
   diagramBuilder: DiagramBuilder
   private rendererState = RendererStatesEnum.FLOATY
 
@@ -70,7 +71,7 @@ export default class OntologyBuilder {
       }
     }
     this.grapholscape.renderer.renderState?.runLayout()
-    this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
+    this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
   }
 
   public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionProperties: FunctionalityEnum[] = [], deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
@@ -96,7 +97,7 @@ export default class OntologyBuilder {
       }
       this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS)
       entity.functionProperties = entity?.functionProperties.concat(functionProperties)
-      this.grapholscape.lifecycle.trigger(LifecycleEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
+      this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
     }
     else if (edgeType === TypesEnum.INCLUSION) {
       const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType, this.rendererState)
@@ -112,7 +113,7 @@ export default class OntologyBuilder {
     newDiagram.representations.set(this.rendererState, new DiagramRepresentation(floatyOptions))
     this.grapholscape.ontology.addDiagram(newDiagram)
     this.grapholscape.showDiagram(id)
-    this.grapholscape.lifecycle.trigger(LifecycleEvent.DiagramAddition, newDiagram)
+    this.grapholscape.lifecycle.trigger(DesignerEvent.DiagramAddition, newDiagram)
   }
 
   public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {

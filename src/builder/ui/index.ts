@@ -1,20 +1,15 @@
-import cytoscape from 'cytoscape';
-// import edgeEditing from 'cytoscape-edge-editing';
-// import $ from "jquery";
-// import konva from "konva";
-import Grapholscape from '../../core';
 import { LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model';
 import * as UI from '../../ui';
 import OntologyBuilder from '../ontology-builder';
 import { addHierarchySuperClassEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
-import { initNewObjectPropertyUI } from './init-modals';
 import GscapeDesignerToolbar from './toolbar';
 import edgeEditing from '../edge-editing'
 import { setDesignerStyle } from './style';
+import GrapholscapeDesigner from '../core';
 
 const { GscapeContextMenu } = UI
 
-export default function initBuilderUI(grapholscape: Grapholscape) {
+export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
   const commandsWidget = new GscapeContextMenu()
   const toolboxWidget = new GscapeDesignerToolbar(grapholscape)
 
