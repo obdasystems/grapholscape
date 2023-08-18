@@ -140,6 +140,10 @@ export const redo = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/s
 
 export const addPack = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M621.5-622H740 621.5ZM221-622h331-17.5 9H221Zm5.5-67H734l-48-50H273.915L226.5-689Zm179 239 74.5-37 74.5 37v-172h-149v172Zm168 296H224q-29.2 0-49.6-20.269Q154-194.538 154-223v-461q0-12.85 5.25-25.425 5.25-12.575 14.013-21.353L226.5-786q10.5-10.5 22.191-15.25 11.691-4.75 25.482-4.75h411.654q14.144 0 26.158 4.75Q724-796.5 733.5-786l53 55q10 9 14.75 21.575T806-684v165.5q-9.162-1.333-18.617-1.417Q777.928-520 768-520q-7 0-14.5.5T739-518v-104H621.5v153.5q-22 18.5-40 42.5T552-375l-72-37-141.5 71v-281H221v401h322.5q5 18 12.75 34.75T573.5-154ZM733-144v-108H625v-67h108v-108h67v108h108v67H800v108h-67Z"/></svg>`
 
+export const protocol = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20" style="padding: 2px; box-sizing: border-box;"><path d="M18 20H14L18 4H22M16 4H12L8 20H12M2 16.5A2.5 2.5 0 0 0 4.5 19A2.5 2.5 0 0 0 7 16.5A2.5 2.5 0 0 0 4.5 14A2.5 2.5 0 0 0 2 16.5M2 9.5A2.5 2.5 0 0 0 4.5 12A2.5 2.5 0 0 0 7 9.5A2.5 2.5 0 0 0 4.5 7A2.5 2.5 0 0 0 2 9.5Z" /></svg>`
+
+export const notes = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M288-168v-432q0-30.076 21-51.038Q330-672 360-672h432q29.7 0 50.85 21.15Q864-629.7 864-600v312L672-96H360q-29.7 0-50.85-21.15Q288-138.3 288-168ZM98-703q-5-29 12.5-54t46.5-30l425-76q29-5 53.5 12.5T665-804l11 60h-73l-9-48-425 76 47 263v228q-16-7-27.5-21.082Q177-260.163 174-278L98-703Zm262 103v432h264v-168h168v-264H360Zm216 216Z"/></svg>`
+
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |

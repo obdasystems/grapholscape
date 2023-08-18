@@ -23,4 +23,5 @@ export * from './util/get-entity-view-occurrences'
 export * from './util/search-entities'
 export { default as getIconSlot } from './util/get-icon-slot'
 export { WidgetEnum } from "./util/widget-enum"
+export * from './common/tabs'
 
