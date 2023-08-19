@@ -1,6 +1,8 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
-import { Annotation } from "../../model";
+import { Annotation, TypesEnum } from "../../model";
 import * as UI from '../../ui'
+import modalSharedStyles from "./modal-shared-styles";
+import { annotationsTemplate, annotationsTemplateStyle } from "./ontology-manager/ontology-annotations-template";
 
 const {
   ModalMixin, BaseMixin,
@@ -10,134 +12,88 @@ const {
 
 export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElement)) {
 
-    public onCancel: () => void = () => { }
-    public deleteAnnotation: (annotation: Annotation) => void = () => {}
-    public initEditAnnotation: (annotation?: Annotation) => void = () => {}
+  public onCancel: () => void = () => { }
+  public deleteAnnotation: (annotation: Annotation) => void = () => { }
+  public initEditAnnotation: (annotation?: Annotation) => void = () => { }
 
-    static properties: PropertyDeclarations = {
-        dialogTitle: { type: String },
-        entityType: { type: String },
-        annotations: {type: Array}
-      }
-    
-    constructor(public dialogTitle?, public entityType?, public annotations?) {
-        super()
-    }
-    
-    static styles?: CSSResultGroup = [
+  static properties: PropertyDeclarations = {
+    dialogTitle: { type: String },
+    entityType: { type: String },
+    annotations: { type: Array }
+  }
+
+  constructor(public dialogTitle?: string, public entityType?: TypesEnum | 'ontology', public annotations: Annotation[] = []) {
+    super()
+  }
+
+  static styles?: CSSResultGroup = [
     baseStyle,
+    modalSharedStyles,
+    annotationsTemplateStyle,
     css`
-        :host {
-            position: absolute;
-            }
-        .drawing-btn {
-            position: absolute;
-            top: 50px;
-            left: 10px;
-            border-radius: var(--gscape-border-radius-btn);
-            border: 1px solid var(--gscape-color-border-subtle);
-            background-color: var(--gscape-color-bg-default);
-        }
+    :host {
+      position: absolute;
+      }
+    `
+  ]
 
-        .gscape-panel {
-            position: absolute;
-            top: 100px;
-            left: 50%;
-            transform: translate(-50%);
-            max-width: 400px;
-            min-width: 300px;
-            }
-    
-            .header, .dialog-message {
-            margin: 8px;
-            font-size: 15px;
-            }
-    
-            .dialog-message {
-            padding: 8px;
-            margin-bottom: 16px;
-            }
-    
-            .buttons {
-            display: flex;
-            align-items: center;
-            justify-content: right;
-            gap: 8px;
-            }
+  private handleCancel = () => {
+    this.onCancel()
+    this.remove()
+  }
 
-            .dropdown {
-            position: relative;
-            width: 78%; 
-            margin: 8px 8px 8px 8px ;
-            border: solid 1px var(--gscape-color-border-subtle);
-            border-radius: var(--gscape-border-radius);
-            }
-            
-            .dropdown select {
-            width: 100%;
-            }
-            
-            .dropdown > * {
-            box-sizing: border-box;
-            height: 100%;
-            border: none;
-            }
-            
-            .dropdown input {
-            position: absolute;
-            width: calc(100% - 18px);
-            }
+  private handleDeleteAnnotation = (annotation) => {
+    this.deleteAnnotation(annotation)
+  }
 
-            .dropdown select:focus, .dropdown input:focus {
-            border-color: inherit;
-            -webkit-box-shadow: none;
-            box-shadow: none;
-            }
-        `
-    ]
+  private handleEditAnnotation = (annotation?) => {
+    this.initEditAnnotation(annotation)
+  }
 
-    private handleCancel = () => {
-        this.onCancel()
+  private get headerIcon() {
+    if (this.entityType === 'ontology') {
+      return icons.notes
+    } else if (this.entityType) {
+      return icons.entityIcons[this.entityType]
     }
+  }
 
-    private handleDeleteAnnotation = (annotation) => {
-        this.deleteAnnotation(annotation)
-    }
+  render() {
+    return html`
+      <div class="gscape-panel">
+        <div class="top-bar">
+          <div class="header">
+            ${this.headerIcon ? html`<span class="slotted-icon">${this.headerIcon}</span>` : null}
+            <span>${this.dialogTitle} - Annotations</span>
+          </div>
+          <gscape-button type="subtle" size='s' id="more" title="Close" @click=${this.handleCancel}>
+            <span slot="icon">${icons.close}</span>
+          </gscape-button>
+        </div>
 
-    private handleEditAnnotation = (annotation?) => {
-        this.initEditAnnotation(annotation)
-    }
+        <div class="modal-body">
+          ${annotationsTemplate(this.annotations, this.handleEditAnnotation, this.handleDeleteAnnotation)}
 
-    render() {
-        return html`
-            <div>          
-                <div class="gscape-panel">
-                    <div class="header" style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between; align-items: center;">
-                        <span class="slotted-icon">${icons.entityIcons[this.entityType]}${this.dialogTitle}</span>
-                        <gscape-button style = "border-radius: 50%;" size='s' id ="more" label="+" @click=${() => this.handleEditAnnotation()}></gscape-button>
-                    </div>
-                    <div class=area style="min-height: 200px;">
-                        ${this.annotations.map((a, i) => {
-                            return html`<div style="margin: 8px 8px 8px 8px; display:flex; justify-content:space-between;" id=ann${i}>
-                                            <div class=annotation-row style="margin: 8px 8px 8px 8px;">
-                                                <b>${a.kind.charAt(0).toUpperCase() + a.kind.slice(1)}</b> 
-                                                <span class="language muted-text bold-text"> @${a.language} </span>
-                                                <span> ${a.lexicalForm} </span>
-                                            </div>    
-                                            <div>
-                                                <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation" @click=${() => this.handleEditAnnotation(a)}><span slot="icon">${icons.editIcon}</span></gscape-button>
-                                                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => this.handleDeleteAnnotation(a)}><span slot="icon">${icons.rubbishBin}</span></gscape-button>
-                                            </div>
-                                        </div>`
-                        })}
-                    </div>
-                    <div class="buttons" style="display: flex; justify-content: center; align-items: center;" id="buttons">
-                        <gscape-button size='s' id="ok" label="Ok" @click=${this.handleCancel}></gscape-button>
-                    </div>
-                </div>
+          ${this.annotations.length === 0
+            ? html`
+              <div class="blank-slate">
+                ${icons.blankSlateDiagrams}
+                <div class="header">No annotations defined</div>
+                <div class="description">Add new annotations clicking the Add button.</div>
             </div>
             `
-    }
+            : null
+          }
+        </div>
+
+        <div class="bottom-buttons">
+          <gscape-button type="primary" id="more" title="Add Annotation" label="Add" @click=${() => this.handleEditAnnotation()}>
+            <span slot="icon">${icons.plus}</span>
+          </gscape-button>
+        </div>
+      </div>
+    `
+  }
 }
 
 customElements.define('gscape-annotations', GscapeAnnotationsModal)

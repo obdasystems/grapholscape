@@ -138,13 +138,11 @@ export const editAnnotations = (grapholscape: Grapholscape, elem: NodeSingular):
   return {
     content: 'Edit Annotations',
     icon: icons.editIcon,
-    select: () => {
-      const annotationsModal = new GscapeAnnotationsModal()
-      grapholscape.uiContainer?.appendChild(annotationsModal)
+    select: () => {      
       const entity = grapholscape.ontology.getEntity(elem.data('iri'))
       const annotations = entity?.getAnnotations()
       if (entity)
-        initAnnotationsModal(grapholscape, annotationsModal, entity, elem.data('type'))
+        initAnnotationsModal(grapholscape, entity, elem.data('type'))
     }
   }
 }

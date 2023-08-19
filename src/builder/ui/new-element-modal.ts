@@ -3,6 +3,7 @@ import { Language } from '../../config'
 import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from '../../model'
 import * as UI from '../../ui'
 import { subHierarchies, superHierarchies } from '../../ui/assets'
+import modalSharedStyles from './modal-shared-styles'
 
 const {
   ModalMixin, BaseMixin,
@@ -86,105 +87,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   static styles?: CSSResultGroup = [
     baseStyle,
+    modalSharedStyles,
     css`
       :host {
         position: absolute;
-      }
-      .drawing-btn {
-        position: absolute;
-        top: 50px;
-        left: 10px;
-        border-radius: var(--gscape-border-radius-btn);
-        border: 1px solid var(--gscape-color-border-subtle);
-        background-color: var(--gscape-color-bg-default);
-      }
-
-      .gscape-panel {
-        position: absolute;
-        top: 100px;
-        left: 50%;
-        transform: translate(-50%);
-        max-width: 30%;
-        min-width: 300px;
-        max-height: calc(90% - 100px);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      form {
-        padding: 0 16px;
-        flex-grow: 2;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        overflow: auto;
-      }
-
-      .header {
-        margin: 2px 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .form-item > label {
-        display: block;
-        margin-bottom: 4px
-      }
-
-      .form-item input {
-        display: block;
-        width: 100%;
-      }
-
-      .buttons {
-        display: flex;
-        align-items: center;
-        justify-content: right;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .dropdown {
-        position: relative;
-        border: solid 1px var(--gscape-color-border-subtle);
-        border-radius: var(--gscape-border-radius);
-      }
-
-      .dropdown select {
-        width: 100%;
-      }
-
-      .dropdown > * {
-        box-sizing: border-box;
-        height: 100%;
-        border: none;
-      }
-
-      .dropdown input {
-        position: absolute;
-        width: calc(100% - 18px);
-      }
-
-      .dropdown select:focus, .dropdown input:focus {
-        border-color: inherit;
-        -webkit-box-shadow: none;
-        box-shadow: none;
-      }
-
-      .chip {
-        width: fit-content;
-        border: 1px solid var(--gscape-color-neutral-muted);
-        color: unset;
-        background: var(--gscape-color-neutral);
-      }
-
-      .chip[selected] {
-        border: 1px solid var(--gscape-color-accent);
-        color: var(--gscape-color-accent);
-        background: var(--gscape-color-accent-subtle);
       }
 
       #hierarchy-toggles {
@@ -769,46 +675,49 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
           ${headerIcon ? html`<span class="slotted-icon">${headerIcon}</span>` : null}
           <span>${this.dialogTitle}</span>
         </div>
-        <form
-          id="new-element-form"
-          action= "javascript:void(0);"
-          autocomplete="off"
-        >
-          ${this.getForm()}
-        </form>
-        <div class="buttons" id="buttons">
-            ${this.isAdvanceAllowed
-              ? html`
-                <span
-                  class="actionable muted-text"
-                  @click=${this.toggleAdvanced}
-                  style="margin-right: auto; text-decoration: underline; align-self: end; flex-shrink: 0;"
-                >
-                  ${this.advancedMode ? "Base settings" : "Advanced settings"}
-                </span>
-              `
-              : null
-            }
-            <gscape-button label="Cancel" type="subtle" size=${SizeEnum.S} @click=${this.handleCancel}></gscape-button>
-            <gscape-button
-              id="ok"
-              label="${this.modalType === ModalTypeEnum.RENAME_ENTITY ? 'Rename' : 'Ok'}"
-              @click=${this.handleConfirm}
-              ?disabled=${!this.isValid}
-            ></gscape-button>
+        <div class="modal-body">
+          <form
+            id="new-element-form"
+            action= "javascript:void(0);"
+            autocomplete="off"
+          >
+            ${this.getForm()}
+          </form>
+        </div>
+        <div class="bottom-buttons" id="buttons">
+          ${this.isAdvanceAllowed
+            ? html`
+              <span
+                class="actionable muted-text"
+                @click=${this.toggleAdvanced}
+                style="margin-right: auto; text-decoration: underline; align-self: end; flex-shrink: 0;"
+              >
+                ${this.advancedMode ? "Base settings" : "Advanced settings"}
+              </span>
+            `
+            : null
+          }
+          <gscape-button label="Cancel" type="subtle" size=${SizeEnum.S} @click=${this.handleCancel}></gscape-button>
 
-            ${this.modalType === ModalTypeEnum.RENAME_ENTITY
-              ? html`
-                <gscape-button
-                  id="refactor"
-                  label="Refactor"
-                  @click=${this.handleConfirm}
-                  ?disabled=${!this.isValid}
-                ></gscape-button>
-              `
-              : null
-            }
+          ${this.modalType === ModalTypeEnum.RENAME_ENTITY
+            ? html`
+              <gscape-button
+                id="refactor"
+                label="Refactor"
+                @click=${this.handleConfirm}
+                ?disabled=${!this.isValid}
+              ></gscape-button>
+            `
+            : null
+          }
 
+          <gscape-button
+            id="ok"
+            type="primary"
+            label="${this.modalType === ModalTypeEnum.RENAME_ENTITY ? 'Rename' : 'Ok'}"
+            @click=${this.handleConfirm}
+            ?disabled=${!this.isValid}
+          ></gscape-button>
         </div>
       </div>
     `

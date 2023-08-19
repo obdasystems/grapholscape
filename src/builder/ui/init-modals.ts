@@ -188,21 +188,20 @@ export function initRenameEntityUI(grapholscape: Grapholscape, entity: GrapholEn
 // ## ANNOTATIONS                     ##
 // #####################################
 
-export function initAnnotationsModal(grapholscape: Grapholscape, modal: GscapeAnnotationsModal, entity: GrapholEntity, entityType: TypesEnum) {
+export function initAnnotationsModal(grapholscape: Grapholscape, entity: GrapholEntity, entityType: TypesEnum) {
+  const modal = new GscapeAnnotationsModal()
+  grapholscape.uiContainer?.appendChild(modal)
   modal.dialogTitle = entity.iri.remainder
   modal.entityType = entityType
   modal.annotations = entity.getAnnotations()
   modal.show()
 
-  const editAnnotationModal = new GscapeAnnotationModal()
-  editAnnotationModal.ontology = ontologyModelToViewData(grapholscape.ontology)
-
   modal.initEditAnnotation = (annotation) => {
+    const editAnnotationModal = new GscapeAnnotationModal()
+    editAnnotationModal.ontology = ontologyModelToViewData(grapholscape.ontology)
     modal.hide()
     grapholscape.uiContainer?.appendChild(editAnnotationModal)
     editAnnotationModal.annotation = annotation
-    editAnnotationModal.show()
-
     editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
       editAnnotationModal.hide()
       const propertyIri = new Iri(property, grapholscape.ontology.namespaces)
@@ -215,18 +214,14 @@ export function initAnnotationsModal(grapholscape: Grapholscape, modal: GscapeAn
       modal.show()
     }
 
-    editAnnotationModal.onCancel = () => {
-      editAnnotationModal.hide()
-      modal.show()
-    }
+    editAnnotationModal.onCancel = () => modal.show()
+
+    editAnnotationModal.show()
   }
 
   modal.deleteAnnotation = (annotation) => {
     entity.removeAnnotation(annotation)
     modal.annotations = entity.getAnnotations()
-  }
-  modal.onCancel = () => {
-    modal.hide()
   }
 }
 

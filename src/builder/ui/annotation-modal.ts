@@ -114,6 +114,7 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
     private handleCancel = () => {
         this.onCancel()
         this.resetForm()
+        this.remove()
     }
 
     private resetForm = ()=> {
