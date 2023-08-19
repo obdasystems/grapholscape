@@ -27,7 +27,7 @@ export function initOntologyManagerModal(grapholscape: Grapholscape) {
 
   ontologyManager.onDeleteAnnotation = (annotation) => {
     grapholscape.ontology.removeAnnotation(annotation)
-    ontologyManager.annotations = this.grapholscape.ontology.getAnnotations()
+    ontologyManager.annotations = grapholscape.ontology.getAnnotations()
   }
 
   grapholscape.uiContainer?.appendChild(ontologyManager)

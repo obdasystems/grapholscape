@@ -6,7 +6,7 @@ import { annotationsTemplate, annotationsTemplateStyle } from "../annotations";
 import modalSharedStyles from "../modal-shared-styles";
 
 type TabInfo = TabProps & {
-  content: HTMLTemplateResult | HTMLElement,
+  getContent: () => HTMLTemplateResult | HTMLElement,
   onAdd: () => void,
 }
 
@@ -58,23 +58,21 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
       id: 0,
       label: 'Ontology Annotations',
       icon: icons.info_outline,
-      content: html`
-        ${annotationsTemplate(this.annotations, this.onEditAnnotation, this.onDeleteAnnotation)}
-      `,
+      getContent: () => annotationsTemplate(this.annotations, this.onEditAnnotation, this.onDeleteAnnotation),
       onAdd: () => this.onEditAnnotation()
     },
     {
       id: 1,
       label: 'Annotation Properties',
       icon: icons.notes,
-      content: html`Tab ann properties`,
+      getContent: () => html`Tab ann properties`,
       onAdd: () => { } // Define new annotation property
     },
     {
       id: 2,
       label: 'Namespaces',
       icon: icons.protocol,
-      content: ontologyNamespacesTemplate(this.namespaces),
+      getContent: () => ontologyNamespacesTemplate(this.namespaces),
       onAdd: () => { } // Define new Namespace
     }
   ]
@@ -96,7 +94,7 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
       
         <div>
           <gscape-tabs .tabs=${this.tabs} @change=${this.handleTabChange}></gscape-tabs>
-          <div class="modal-body content">${this.currentTab.content}</div>
+          <div class="modal-body content">${this.currentTab.getContent()}</div>
         </div>
       
         <div class="bottom-buttons">
