@@ -59,7 +59,13 @@ export function initEditAnnotationModal(grapholscape: Grapholscape, annotatedEle
   grapholscape.uiContainer?.appendChild(editAnnotationModal)
   editAnnotationModal.annotation = annotation
   editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
-    const propertyIri = new Iri(property, grapholscape.ontology.namespaces)
+    let propertyIri: Iri
+    if (typeof property === 'string') { // custom property defined by the user
+      propertyIri = new Iri(property, grapholscape.ontology.namespaces)
+    } else { // standard OWL/RDFS property IRI
+      propertyIri = property
+    }
+    
     const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype)
     if (oldAnnotation && !oldAnnotation.equals(newAnnotation)) {
       annotatedElement.removeAnnotation(oldAnnotation)

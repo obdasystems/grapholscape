@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, PropertyDeclarations, css, html } from "lit";
-import { Annotation, AnnotationProperty } from "../../../model";
+import { Annotation, AnnotationProperty, Iri } from "../../../model";
 import { datatypes } from "../new-element-modal";
 import * as UI from '../../../ui'
 import { OntologyViewModel } from "../../../ui/ontology-info/ontology-info";
@@ -15,7 +15,7 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
     
     ontology: OntologyViewModel
 
-    public onConfirm: (annotation: Annotation | undefined, property: string, lexicalForm: string, datatype: string, language: string) => void = () => { }
+    public onConfirm: (annotation: Annotation | undefined, property: Iri | string, lexicalForm: string, datatype: string, language: string) => void = () => { }
     public onCancel: () => void = () => { }
 
     static properties: PropertyDeclarations = {
@@ -105,10 +105,12 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
             const lexicalFormInput = this.shadowRoot?.querySelector('#lexicalform') as HTMLTextAreaElement
             const datatypeInput = this.shadowRoot?.querySelector('#datatype') as HTMLSelectElement
             const languageInput = this.shadowRoot?.querySelector('#newlan') as HTMLInputElement
-            this.onConfirm(this.annotation, propertyInput.value, lexicalFormInput.value, datatypeInput.value, languageInput.value)
+
+            const propertyIri = Object.values(AnnotationProperty).find(ap => ap.equals(propertyInput.value)) || propertyInput.value
+            this.onConfirm(this.annotation, propertyIri, lexicalFormInput.value, datatypeInput.value, languageInput.value)
             this.resetForm()
         }
-
+        this.remove()
     }
 
     private handleCancel = () => {
