@@ -1,4 +1,4 @@
-import { Grapholscape } from "../../../core";
+import Grapholscape from "../../core";
 import { initEditAnnotationModal } from "../annotations";
 import OntologyManager from "./ontology-manager";
 

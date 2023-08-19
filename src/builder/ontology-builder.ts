@@ -2,12 +2,12 @@ import { SingularElementArgument } from "cytoscape"
 import { floatyOptions } from "../config"
 import { Annotation, AnnotationProperty, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
 import DiagramBuilder from "../core/diagram-builder"
-import { GrapholscapeDesigner } from "."
+import Grapholscape from "./core"
 import { DesignerEvent } from "./lifecycle"
 
 export default class OntologyBuilder {
 
-  grapholscape: GrapholscapeDesigner
+  grapholscape: Grapholscape
   diagramBuilder: DiagramBuilder
   private rendererState = RendererStatesEnum.FLOATY
 

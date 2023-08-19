@@ -1,8 +1,10 @@
 import { EdgeSingular, NodeSingular } from 'cytoscape'
 import { css, html, LitElement, PropertyDeclarations } from 'lit'
-import { Grapholscape } from '../../core'
 import { TypesEnum } from '../../model'
+import rdfgraphSerializer from '../../rdfgraph-serializer'
 import * as UI from '../../ui'
+import Grapholscape from '../core'
+import { DesignerEvent } from '../lifecycle'
 import { addObjectProperty } from './commands'
 import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI } from './init-modals'
 import { initOntologyManagerModal } from './ontology-manager'
@@ -96,6 +98,14 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
     initOntologyManagerModal(this.grapholscape)
   }
 
+  private handleSaveDraft() {
+    this.grapholscape.lifecycle.trigger(DesignerEvent.SaveDraft, rdfgraphSerializer(this.grapholscape))
+  }
+
+  private handleSaveVersion() {
+    this.grapholscape.lifecycle.trigger(DesignerEvent.SaveVersion, rdfgraphSerializer(this.grapholscape))
+  }
+
   public get lastSelectedElement() { return this._lastSelectedElement}
   public set lastSelectedElement(newElem) {
     const oldElem = this._lastSelectedElement
@@ -116,9 +126,9 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
           <gscape-button @click=${() => initNewDiagramUI(this.grapholscape)} size="s" label="Diagram" title="Add Diagram">
             <span slot="icon">${icons.plus}</span>
           </gscape-button>
-      
+
           <div class="hr"></div>
-      
+
           <gscape-button @click=${() => initNewEntityUI(this.grapholscape, TypesEnum.CLASS)} size="s" type="subtle" title="Add Class">
             <span slot="icon">${icons.classIcon}</span>
           </gscape-button>
@@ -131,13 +141,13 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
           <gscape-button @click=${this.handleNewIndividual} size="s" type="subtle" title="Add Individual" ?disabled=${!this.individualEnabled}>
             <span slot="icon">${icons.individualIcon}</span>
           </gscape-button>
-      
+
           <div class="hr"></div>
 
           <gscape-button size="s" type="subtle" title="Undo" ?disabled=${!this.undoEnabled}>
             <span slot="icon">${icons.undo}</span>
           </gscape-button>
-      
+
           <gscape-button size="s" type="subtle" title="Redo" ?disabled=${!this.redoEnabled}>
             <span slot="icon">${icons.redo}</span>
           </gscape-button>
@@ -152,7 +162,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
             <span slot="icon">${icons.save}</span>
           </gscape-button>
 
-          <gscape-button 
+          <gscape-button
             size="s"
             type="primary"
             label="New Version"

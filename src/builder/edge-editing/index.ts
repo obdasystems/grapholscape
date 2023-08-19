@@ -1,5 +1,5 @@
 import { EdgeSingular, EventObject, NodeSingular } from "cytoscape";
-import { Grapholscape } from "../../core";
+import Grapholscape from "../core";
 import { TypesEnum } from "../../model";
 import drawNewEdge from "../edge-creation/draw-new-edge";
 import { addAnchorsOnEdge, AnchorPosition, removeAnchorsOnEdge } from "./anchor-utilities";

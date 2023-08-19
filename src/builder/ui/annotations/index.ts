@@ -1,4 +1,4 @@
-import { Grapholscape } from '../../../core'
+import Grapholscape from '../../core'
 import { GrapholEntity, TypesEnum, Ontology, Annotation, Iri } from '../../../model'
 import ontologyModelToViewData from '../../../ui/util/get-ontology-view-data'
 import GscapeAnnotationModal from './annotation-modal'

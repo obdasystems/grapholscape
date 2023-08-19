@@ -1,5 +1,5 @@
 import { EdgeSingular, NodeSingular } from "cytoscape";
-import { Grapholscape } from "../../core";
+import Grapholscape from "../core";
 import DiagramBuilder from "../../core/diagram-builder";
 import { RendererStatesEnum, TypesEnum } from "../../model";
 import * as UI from '../../ui';
