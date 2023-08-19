@@ -5,8 +5,8 @@ import { RendererStatesEnum, TypesEnum } from "../../model";
 import * as UI from '../../ui';
 import drawNewEdge from "../edge-creation/draw-new-edge";
 import OntologyBuilder from "../ontology-builder";
-import GscapeAnnotationsModal from "./annotations-modal";
-import { initAnnotationsModal, initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewObjectPropertyUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
+import { initAnnotationsModal } from "./annotations";
+import { initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewObjectPropertyUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
 
 const {
   icons,
@@ -140,7 +140,6 @@ export const editAnnotations = (grapholscape: Grapholscape, elem: NodeSingular):
     icon: icons.editIcon,
     select: () => {      
       const entity = grapholscape.ontology.getEntity(elem.data('iri'))
-      const annotations = entity?.getAnnotations()
       if (entity)
         initAnnotationsModal(grapholscape, entity, elem.data('type'))
     }

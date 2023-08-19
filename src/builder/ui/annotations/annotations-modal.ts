@@ -1,8 +1,8 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
-import { Annotation, TypesEnum } from "../../model";
-import * as UI from '../../ui'
-import modalSharedStyles from "./modal-shared-styles";
-import { annotationsTemplate, annotationsTemplateStyle } from "./ontology-manager/ontology-annotations-template";
+import { Annotation, TypesEnum } from "../../../model";
+import * as UI from '../../../ui'
+import modalSharedStyles from "../modal-shared-styles";
+import { annotationsTemplateStyle, annotationsTemplate } from "./annotations-template";
 
 const {
   ModalMixin, BaseMixin,
@@ -13,8 +13,8 @@ const {
 export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElement)) {
 
   public onCancel: () => void = () => { }
-  public deleteAnnotation: (annotation: Annotation) => void = () => { }
-  public initEditAnnotation: (annotation?: Annotation) => void = () => { }
+  public onDeleteAnnotation: (annotation: Annotation) => void = () => { }
+  public onEditAnnotation: (annotation?: Annotation) => void = () => { }
 
   static properties: PropertyDeclarations = {
     dialogTitle: { type: String },
@@ -43,11 +43,11 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
   }
 
   private handleDeleteAnnotation = (annotation) => {
-    this.deleteAnnotation(annotation)
+    this.onDeleteAnnotation(annotation)
   }
 
   private handleEditAnnotation = (annotation?) => {
-    this.initEditAnnotation(annotation)
+    this.onEditAnnotation(annotation)
   }
 
   private get headerIcon() {
@@ -73,17 +73,6 @@ export default class GscapeAnnotationsModal extends ModalMixin(BaseMixin(LitElem
 
         <div class="modal-body">
           ${annotationsTemplate(this.annotations, this.handleEditAnnotation, this.handleDeleteAnnotation)}
-
-          ${this.annotations.length === 0
-            ? html`
-              <div class="blank-slate">
-                ${icons.blankSlateDiagrams}
-                <div class="header">No annotations defined</div>
-                <div class="description">Add new annotations clicking the Add button.</div>
-            </div>
-            `
-            : null
-          }
         </div>
 
         <div class="bottom-buttons">

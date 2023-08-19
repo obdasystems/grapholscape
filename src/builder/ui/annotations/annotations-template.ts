@@ -2,19 +2,19 @@ import { css, html } from "lit"
 import { Annotation } from "../../../model"
 import { icons } from "../../../ui";
 
-export function annotationsTemplate(annotations: Annotation[], handleEditAnnotation: (annotation?: Annotation)=> void, handleDeleteAnnotation: (annotation: Annotation)=> void) {
+export function annotationsTemplate(annotations: Annotation[], handleEditAnnotation: (annotation?: Annotation) => void, handleDeleteAnnotation: (annotation: Annotation)=> void) {
   return html`
     <div class="annotations-list">
       ${annotations.map((a, i) => {
         return html`
           <div class="annotation-row" id=ann${i}>
             <div class="annotation-value">
-              <b>${a.kind.charAt(0).toUpperCase() + a.kind.slice(1)}</b> 
+              <b>${a.kind.charAt(0).toUpperCase() + a.kind.slice(1)}</b>
               <span class="language muted-text bold-text"> @${a.language} </span>
               <span> ${a.lexicalForm} </span>
             </div>
             <div class="annotation-buttons">
-              <gscape-button 
+              <gscape-button
                 type="subtle"
                 size='s'
                 id ="editAnnotation"
@@ -22,8 +22,8 @@ export function annotationsTemplate(annotations: Annotation[], handleEditAnnotat
               >
                 <span slot="icon">${icons.editIcon}</span>
               </gscape-button>
-              
-              <gscape-button 
+
+              <gscape-button
                 type="subtle"
                 size='s'
                 id ="deleteAnnotation"
@@ -35,6 +35,17 @@ export function annotationsTemplate(annotations: Annotation[], handleEditAnnotat
           </div>
         `
       })}
+
+      ${annotations.length === 0
+        ? html`
+          <div class="blank-slate">
+            ${icons.blankSlateDiagrams}
+            <div class="header">No annotations defined</div>
+            <div class="description">Add new annotations clicking the Add button.</div>
+          </div>
+        `
+        : null
+      }
     </div>
   `
 }
@@ -60,4 +71,3 @@ export const annotationsTemplateStyle = css`
     flex-shrink: 0;
   }
 `
-  

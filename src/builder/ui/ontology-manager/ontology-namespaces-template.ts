@@ -34,3 +34,28 @@ export function ontologyNamespacesTemplate(namespaces: Namespace[]) {
       `
   }
   
+
+export const namespacesTemplateStyle = css`
+  table {
+    border-spacing: 0;
+  }
+
+  th, td {
+    padding: 2px;
+  }
+
+  td {
+    padding-left: 8px;
+  }
+
+  th {
+    text-align: left;
+    border-right: solid 1px var(--gscape-color-border-subtle);
+    padding-right: 8px;
+  }
+
+  table > caption {
+    margin-top: 8px;
+    font-weight: 600;
+  }
+`

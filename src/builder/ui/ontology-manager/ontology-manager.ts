@@ -1,94 +1,114 @@
-import { css, html, LitElement, PropertyDeclarations } from "lit";
-import { BaseMixin, baseStyle, ModalMixin, icons } from "../../../ui";
-import { Annotation, Ontology } from "../../../model";
-import { ontologyAnnotationsTemplate } from "./ontology-annotations-template";
-import { ontologyNamespacesTemplate } from "./ontology-namespaces-template";
+import { css, CSSResultGroup, html, HTMLTemplateResult, LitElement, PropertyDeclarations } from "lit";
+import { BaseMixin, baseStyle, ModalMixin, icons, SizeEnum, TabProps } from "../../../ui";
+import { Annotation } from "../../../model";
+import { namespacesTemplateStyle, ontologyNamespacesTemplate } from "./ontology-namespaces-template";
+import { annotationsTemplate, annotationsTemplateStyle } from "../annotations";
+import modalSharedStyles from "../modal-shared-styles";
+
+type TabInfo = TabProps & {
+  content: HTMLTemplateResult | HTMLElement,
+  onAdd: () => void,
+}
 
 export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
 
-  public initEditAnnotation: (annotation?: Annotation) => void = () => {}
-  public deleteAnnotation: (annotation: Annotation) => void = () => {}
+  public onEditAnnotation: (annotation?: Annotation) => void = () => { }
+  public onDeleteAnnotation: (annotation: Annotation) => void = () => { }
   public onCancel: () => void = () => { }
 
-  static properties: PropertyDeclarations = {
-    annotations: {type: Array},
-    namespaces: {type: Array},
-    annProperties: {type: Array}
-  }
-
-  constructor(public ontology: Ontology, public annotations?, public namespaces?, public annProperties?) {
+  constructor(public annotations: Annotation[] = [], public namespaces?, public annProperties?) {
     super()
   }
-  static styles: any[] = [
+
+  static properties: PropertyDeclarations = {
+    annotations: { type: Array },
+    namespaces: { type: Array },
+    annProperties: { type: Array },
+    currentTab: { type: Object },
+  }
+
+  static styles: CSSResultGroup = [
     baseStyle,
+    modalSharedStyles,
+    annotationsTemplateStyle,
+    namespacesTemplateStyle,
     css`
-      .gscape-panel {
-        position: absolute;
-        top: 100px;
-        left: 50%;
-        transform: translate(-50%);
-        max-width: 30%;
-        min-width: 300px;
-        max-height: calc(90% - 100px);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      table {
-        border-spacing: 0;
-      }
-
-      th, td {
-        padding: 2px;
-      }
-
-      td {
-        padding-left: 8px;
-      }
-
-      th {
-        text-align: left;
-        border-right: solid 1px var(--gscape-color-border-subtle);
-        padding-right: 8px;
-      }
-      
-      table > caption {
-        margin-top: 8px;
-        font-weight: 600;
+      .content {
+        background: var(--gscape-color-bg-inset);
+        border: solid 1px var(--gscape-color-border-default);
+        border-bottom-left-radius: var(--gscape-border-radius);
+        border-bottom-right-radius: var(--gscape-border-radius);
+        padding: 16px;
+        min-height: 106px;
       }
     `
   ]
 
   private handleCancel = () => {
     this.onCancel()
+    this.remove()
   }
 
-  private handleEditAnnotation = (annotation?) => {
-    this.initEditAnnotation(annotation)
+  private handleTabChange(e: CustomEvent<number>) {
+    this.currentTab = this.tabs[e.detail]
   }
 
-  private handleDeleteAnnotation = (annotation) => {
-    this.deleteAnnotation(annotation)
-}
+  private tabs: TabInfo[] = [
+    {
+      id: 0,
+      label: 'Ontology Annotations',
+      icon: icons.info_outline,
+      content: html`
+        ${annotationsTemplate(this.annotations, this.onEditAnnotation, this.onDeleteAnnotation)}
+      `,
+      onAdd: () => this.onEditAnnotation()
+    },
+    {
+      id: 1,
+      label: 'Annotation Properties',
+      icon: icons.notes,
+      content: html`Tab ann properties`,
+      onAdd: () => { } // Define new annotation property
+    },
+    {
+      id: 2,
+      label: 'Namespaces',
+      icon: icons.protocol,
+      content: ontologyNamespacesTemplate(this.namespaces),
+      onAdd: () => { } // Define new Namespace
+    }
+  ]
 
-  private showOntologyAnnotationsTab() {
-    return ontologyAnnotationsTemplate(this.ontology.getAnnotations(), this.handleEditAnnotation, this.handleDeleteAnnotation)
-  }
-
-  private showOntologyNamespacesTab() {
-    return ontologyNamespacesTemplate(this.ontology.namespaces)
-  }
-
-  private showOntologyAnnotationPropertiesTab() {}
+  private currentTab: TabInfo = this.tabs[0]
 
   render() {
     return html`
       <div class="gscape-panel">
-        ${this.showOntologyAnnotationsTab()}
-        <div class="buttons" style="display: flex; justify-content: center; align-items: center;" id="buttons">
-          <gscape-button size='s' id="ok" label="Ok" @click=${this.handleCancel}></gscape-button>
+        <div class="top-bar">
+          <div class="header">
+            <span class="slotted-icon">${icons.tools}</span>
+            <span>Ontology Manager</span>
+          </div>
+          <gscape-button size=${SizeEnum.S} type="subtle" style="margin-left: auto" @click=${this.handleCancel}>
+            <span slot="icon">${icons.close}</span>
+          </gscape-button>
+        </div>
+      
+        <div>
+          <gscape-tabs .tabs=${this.tabs} @change=${this.handleTabChange}></gscape-tabs>
+          <div class="modal-body content">${this.currentTab.content}</div>
+        </div>
+      
+        <div class="bottom-buttons">
+          <gscape-button 
+            type="primary"
+            id="more"
+            title="Add ${this.currentTab.label}"
+            label="Add"
+            @click=${this.currentTab.onAdd}
+          >
+            <span slot="icon">${icons.plus}</span>
+          </gscape-button>
         </div>
       </div>
     `

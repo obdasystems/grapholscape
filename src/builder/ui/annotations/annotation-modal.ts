@@ -1,9 +1,9 @@
 import { CSSResultGroup, LitElement, PropertyDeclarations, css, html } from "lit";
-import { Annotation, AnnotationProperty } from "../../model";
-import { datatypes } from "./new-element-modal";
-import * as UI from '../../ui'
-import { OntologyViewModel } from "../../ui/ontology-info/ontology-info";
-import { Language } from "../../config";
+import { Annotation, AnnotationProperty } from "../../../model";
+import { datatypes } from "../new-element-modal";
+import * as UI from '../../../ui'
+import { OntologyViewModel } from "../../../ui/ontology-info/ontology-info";
+import { Language } from "../../../config";
 
 const {
     ModalMixin, BaseMixin,

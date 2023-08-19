@@ -1,4 +1,4 @@
-import { css, html, LitElement, PropertyDeclarations, PropertyValueMap, SVGTemplateResult } from "lit";
+import { css, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit";
 import baseStyle from "../style";
 
 export type TabProps = {
@@ -24,7 +24,6 @@ export default class GscapeTabs extends LitElement {
       .nav-bar {
         display: flex;
         justify-content: space-evenly;
-        border-bottom: solid 1px var(--gscape-color-border-default);
         gap: 8px;
       }
 

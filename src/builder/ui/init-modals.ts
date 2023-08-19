@@ -1,10 +1,7 @@
 import { Grapholscape } from "../../core";
+import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
 import OntologyBuilder from "../ontology-builder";
-import { Annotation, FunctionalityEnum, GrapholEntity, Iri, Namespace, TypesEnum } from "../../model";
 import GscapeNewElementModal, { ConfirmEventDetail, ModalTypeEnum, NewDataPropertyDetail, NewDiagramDetail, NewEntityDetail, NewIsaDetail, NewObjectPropertyDetail, NewSubHierarchyDetail, RenameEntityDetail } from "./new-element-modal";
-import ontologyModelToViewData from "../../ui/util/get-ontology-view-data";
-import GscapeAnnotationModal from "./annotation-modal";
-import GscapeAnnotationsModal from "./annotations-modal";
 
 export function initNewDiagramUI(grapholscape: Grapholscape) {
   getModal(
@@ -29,15 +26,15 @@ export function initNewEntityUI(grapholscape: Grapholscape, entityType: TypesEnu
     `Add New ${getEntityTypeInTitle(entityType)}`,
     (confirmDetail: NewEntityDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, 
-        confirmDetail.type, 
-        undefined, 
-        undefined, 
-        [], 
+      ontologyBuilder.addNodeElement(confirmDetail.iri,
+        confirmDetail.type,
+        undefined,
+        undefined,
+        [],
         '',
-        confirmDetail.deriveLabel, 
-        confirmDetail.convertCamel, 
-        confirmDetail.convertSnake, 
+        confirmDetail.deriveLabel,
+        confirmDetail.convertCamel,
+        confirmDetail.convertSnake,
         confirmDetail.lang)
     }
   )
@@ -61,9 +58,9 @@ export function initNewDataPropertyUI(grapholscape: Grapholscape, ownerClassIri:
         undefined,
         functionProperties,
         confirmDetail.datatype,
-        confirmDetail.deriveLabel, 
-        confirmDetail.convertCamel, 
-        confirmDetail.convertSnake, 
+        confirmDetail.deriveLabel,
+        confirmDetail.convertCamel,
+        confirmDetail.convertSnake,
         confirmDetail.lang)
     }
   )
@@ -84,9 +81,9 @@ export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassI
         targetClassIri,
         TypesEnum.CLASS,
         confirmDetail.functionProperties,
-        confirmDetail.deriveLabel, 
-        confirmDetail.convertCamel, 
-        confirmDetail.convertSnake, 
+        confirmDetail.deriveLabel,
+        confirmDetail.convertCamel,
+        confirmDetail.convertSnake,
         confirmDetail.lang)
     }
   )
@@ -99,15 +96,15 @@ export function initNewIndividualUI(grapholscape: Grapholscape, ownerClassIri: s
     'Add New Individual',
     (confirmDetail: NewObjectPropertyDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, 
-        TypesEnum.INDIVIDUAL, 
+      ontologyBuilder.addNodeElement(confirmDetail.iri,
+        TypesEnum.INDIVIDUAL,
         ownerClassIri,
-        undefined, 
-        [], 
+        undefined,
+        [],
         '',
-        confirmDetail.deriveLabel, 
-        confirmDetail.convertCamel, 
-        confirmDetail.convertSnake, 
+        confirmDetail.deriveLabel,
+        confirmDetail.convertCamel,
+        confirmDetail.convertSnake,
         confirmDetail.lang)
     }
   )
@@ -124,15 +121,15 @@ export function initNewIsaUI(grapholscape: Grapholscape, sourceIri: string) {
     'Add New Class',
     (confirmDetail: NewIsaDetail) => { // onConfirm
       const ontologyBuilder = new OntologyBuilder(grapholscape)
-      ontologyBuilder.addNodeElement(confirmDetail.iri, 
-        TypesEnum.CLASS, 
-        sourceIri, 
+      ontologyBuilder.addNodeElement(confirmDetail.iri,
+        TypesEnum.CLASS,
+        sourceIri,
         confirmDetail.isaDirection,
-        [], 
+        [],
         '',
-        confirmDetail.deriveLabel, 
-        confirmDetail.convertCamel, 
-        confirmDetail.convertSnake, 
+        confirmDetail.deriveLabel,
+        confirmDetail.convertCamel,
+        confirmDetail.convertSnake,
         confirmDetail.lang)
     }
   )
@@ -152,9 +149,9 @@ export function initNewSubHierarchyUI(grapholscape: Grapholscape, sourceIri: str
         sourceIri,
         confirmDetail.isDisjoint,
         confirmDetail.isComplete,
-        confirmDetail.deriveLabel, 
-        confirmDetail.convertCamel, 
-        confirmDetail.convertSnake, 
+        confirmDetail.deriveLabel,
+        confirmDetail.convertCamel,
+        confirmDetail.convertSnake,
         confirmDetail.lang)
     }
   )
@@ -182,47 +179,6 @@ export function initRenameEntityUI(grapholscape: Grapholscape, entity: GrapholEn
   modal.remainderToRename = entity.iri.remainder
   if (entity.iri.namespace)
     modal.selectedNamespaceIndex = modal.namespaces.indexOf(entity.iri.namespace)
-}
-
-// #####################################
-// ## ANNOTATIONS                     ##
-// #####################################
-
-export function initAnnotationsModal(grapholscape: Grapholscape, entity: GrapholEntity, entityType: TypesEnum) {
-  const modal = new GscapeAnnotationsModal()
-  grapholscape.uiContainer?.appendChild(modal)
-  modal.dialogTitle = entity.iri.remainder
-  modal.entityType = entityType
-  modal.annotations = entity.getAnnotations()
-  modal.show()
-
-  modal.initEditAnnotation = (annotation) => {
-    const editAnnotationModal = new GscapeAnnotationModal()
-    editAnnotationModal.ontology = ontologyModelToViewData(grapholscape.ontology)
-    modal.hide()
-    grapholscape.uiContainer?.appendChild(editAnnotationModal)
-    editAnnotationModal.annotation = annotation
-    editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
-      editAnnotationModal.hide()
-      const propertyIri = new Iri(property, grapholscape.ontology.namespaces)
-      const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype)
-      if (oldAnnotation && !oldAnnotation.equals(newAnnotation)) {
-        entity.removeAnnotation(oldAnnotation)
-      }
-      entity.addAnnotation(newAnnotation)
-      modal.annotations = entity.getAnnotations()
-      modal.show()
-    }
-
-    editAnnotationModal.onCancel = () => modal.show()
-
-    editAnnotationModal.show()
-  }
-
-  modal.deleteAnnotation = (annotation) => {
-    entity.removeAnnotation(annotation)
-    modal.annotations = entity.getAnnotations()
-  }
 }
 
 function getModal(

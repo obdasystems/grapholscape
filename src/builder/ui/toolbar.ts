@@ -1,13 +1,11 @@
 import { EdgeSingular, NodeSingular } from 'cytoscape'
 import { css, html, LitElement, PropertyDeclarations } from 'lit'
 import { Grapholscape } from '../../core'
-import { Annotation, Iri, TypesEnum } from '../../model'
+import { TypesEnum } from '../../model'
 import * as UI from '../../ui'
 import { addObjectProperty } from './commands'
 import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI } from './init-modals'
-import OntologyManager from './ontology-manager/ontology-manager'
-import GscapeAnnotationModal from './annotation-modal'
-import ontologyModelToViewData from '../../ui/util/get-ontology-view-data'
+import { initOntologyManagerModal } from './ontology-manager'
 
 const {
   BaseMixin,
@@ -95,45 +93,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
   }
 
   private handleOntologyManager() {
-    const ontologyManager = new OntologyManager(this.grapholscape.ontology)
-    ontologyManager.onCancel = () => {
-      ontologyManager.hide()
-    }
-
-    const editAnnotationModal = new GscapeAnnotationModal()
-    editAnnotationModal.ontology = ontologyModelToViewData(this.grapholscape.ontology)
-
-    ontologyManager.initEditAnnotation = (annotation) => {
-      ontologyManager.hide()
-      this.grapholscape.uiContainer?.appendChild(editAnnotationModal)
-      editAnnotationModal.annotation = annotation
-      editAnnotationModal.show()
-
-      editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
-        editAnnotationModal.hide()
-        const propertyIri = new Iri(property, this.grapholscape.ontology.namespaces)
-        const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype)
-        if (oldAnnotation && !oldAnnotation.equals(newAnnotation)) {
-          this.grapholscape.ontology.removeAnnotation(oldAnnotation)
-        }
-        this.grapholscape.ontology.addAnnotation(newAnnotation)
-        ontologyManager.annotations = this.grapholscape.ontology.getAnnotations()
-        ontologyManager.show()
-      }
-
-      editAnnotationModal.onCancel = () => {
-        editAnnotationModal.hide()
-        ontologyManager.show()
-      }
-    }
-
-    ontologyManager.deleteAnnotation = (annotation) => {
-      this.grapholscape.ontology.removeAnnotation(annotation)
-      ontologyManager.annotations = this.grapholscape.ontology.getAnnotations()
-    }
-
-    this.grapholscape.uiContainer?.appendChild(ontologyManager)
-    ontologyManager.show()
+    initOntologyManagerModal(this.grapholscape)
   }
 
   public get lastSelectedElement() { return this._lastSelectedElement}
@@ -184,15 +144,22 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
 
           <div class="hr"></div>
 
+          <gscape-button size="s" title="Ontology Manager" type="subtle" @click=${this.handleOntologyManager}>
+            <span slot="icon">${icons.tools}</span>
+          </gscape-button>
+
           <gscape-button size="s" type="subtle" title="Save Draft">
             <span slot="icon">${icons.save}</span>
           </gscape-button>
 
-          <gscape-button size="s" type="primary" label="New Version" title="Save A New Version" ?disabled=${!this.newVersionEnabled}>
+          <gscape-button 
+            size="s"
+            type="primary"
+            label="New Version"
+            title="Save A New Version"
+            ?disabled=${!this.newVersionEnabled}
+          >
             <span slot="icon">${icons.addPack}</span>
-          </gscape-button>
-
-          <gscape-button size="s" label="Ontology Manager" title="Show Ontology Manager" @click=${this.handleOntologyManager}>
           </gscape-button>
         </div>
       </div>
