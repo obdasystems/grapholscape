@@ -96,7 +96,13 @@ export const addSubclassEdge = (grapholscape: Grapholscape, elem: NodeSingular):
     select: () => {
       
       let currentCy = grapholscape.renderer.cy as any
-      drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme)
+      drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
+        addedEdge.remove()
+        if (grapholscape.renderer.diagram) {
+          const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
+          diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INCLUSION)
+        }
+      })
     }
   }
 }
@@ -236,7 +242,13 @@ export const addHierarchySuperClassEdge = (grapholscape: Grapholscape, elem: Nod
         }
       }
 
-      drawNewEdge(currentCy, edgeType, elem, grapholscape.theme)
+      drawNewEdge(currentCy, edgeType, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
+        addedEdge.remove()
+        if (grapholscape.renderer.diagram) {
+          const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
+          diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), edgeType)
+        }
+      })
     }
   }
 }
@@ -277,7 +289,21 @@ export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI
     icon: icons.addInputIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
-      drawNewEdge(currentCy, TypesEnum.INPUT, elem, grapholscape.theme)
+      drawNewEdge(
+        currentCy,
+        TypesEnum.INPUT,
+        elem,
+        grapholscape.theme,
+        (_, sourceNode, targetNode, addedEdge) => {
+          console.log(sourceNode.data().type)
+          addedEdge.remove()
+          if (grapholscape.renderer.diagram) {
+            const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
+            diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INPUT)
+          }
+        },
+        true // input edges must go towards input node, but we draw them in opposite direction
+      )
     }
   }
 }
@@ -288,7 +314,13 @@ export const addInclusionEdge = (grapholscape: Grapholscape, elem: NodeSingular)
     icon: icons.addISAIcon,
     select: () => {
       let currentCy = grapholscape.renderer.cy as any
-      drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme)
+      drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
+        addedEdge.remove()
+        if (grapholscape.renderer.diagram) {
+          const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
+          diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INCLUSION)
+        }
+      })
     }
   }
 }

@@ -42,8 +42,8 @@ export default function edgeEditing(grapholscape: Grapholscape) {
         addedEdge.remove()
 
         selectedEdge?.move({
-          source: !isEditingFromSource ? sourceNode.id() : targetNode.id(),
-          target: !isEditingFromSource ? targetNode.id() : sourceNode.id(),
+          source: sourceNode.id(),
+          target: targetNode.id(),
         })
 
         onEditingCompleted()
@@ -82,6 +82,7 @@ export default function edgeEditing(grapholscape: Grapholscape) {
           case TypesEnum.DISJOINT_UNION:
           case TypesEnum.COMPLETE_UNION:
           case TypesEnum.COMPLETE_DISJOINT_UNION:
+          case TypesEnum.INSTANCE_OF:
             addAnchorsOnEdge(edge, AnchorPosition.TARGET) // only target
             break
 

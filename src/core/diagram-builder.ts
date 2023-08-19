@@ -60,7 +60,7 @@ export default class DiagramBuilder {
     dataPropertyNode.originalId = dataPropertyNode.id
     dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY)
 
-    const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.DATA_PROPERTY)
+    const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE)
     dataPropertyEdge.diagramId = this.diagram.id
     dataPropertyEdge.sourceId = ownerEntityNode.id
     dataPropertyEdge.targetId = dataPropertyNode.id
@@ -261,7 +261,11 @@ export default class DiagramBuilder {
     edgeType: TypesEnum.INCLUSION |
       TypesEnum.EQUIVALENCE |
       TypesEnum.INSTANCE_OF |
-      TypesEnum.INPUT) {
+      TypesEnum.INPUT |
+      TypesEnum.UNION |
+      TypesEnum.DISJOINT_UNION |
+      TypesEnum.COMPLETE_UNION |
+      TypesEnum.COMPLETE_DISJOINT_UNION) {
 
     const sourceNode = this.diagramRepresentation?.grapholElements.get(sourceId)
     const targetNode = this.diagramRepresentation?.grapholElements.get(targetId)

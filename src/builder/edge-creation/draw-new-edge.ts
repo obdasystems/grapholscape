@@ -22,7 +22,10 @@ export default function (
 
   if (onComplete) {
     (cy as any).one('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-      onComplete(event, sourceNode, targetNode, addedEdge)
+      // ignore sourceNode and targetNode provided by edge-handles plugin
+      // cause in case of isReversed = true, the real source/target are
+      // those set on the addedEdge, hence use them in callback
+      onComplete(event, addedEdge.source(), addedEdge.target(), addedEdge)
       // clear event listener, avoid pollution in case other services create edges
       cy.off('ehcomplete')
       cy.removeScratch('edge-creation-type')

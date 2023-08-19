@@ -1,13 +1,24 @@
+import { NodeSingular } from "cytoscape"
 import { TypesEnum } from "../../model"
 
 export default (edgeType: TypesEnum, isReversed: boolean = false) => {
   return {
-    canConnect: function (sourceNode: any, targetNode: any) {
+    canConnect: function (sourceNode: NodeSingular, targetNode: NodeSingular) {
       const sourceType = sourceNode.data('type')
       const targetType = targetNode.data('type')
 
-      switch (sourceType) {
+      // return false if there are duplicates
+      // object properties can have duplicates between same nodes
+      if (edgeType !== TypesEnum.OBJECT_PROPERTY) {
+        const edges = !isReversed 
+          ? sourceNode.edgesTo(targetNode)
+          : targetNode.edgesTo(sourceNode)
+          
+        if(edges.filter(e => e.data().type === edgeType).nonempty())
+          return false
+      }
 
+      switch (sourceType) {
         case TypesEnum.CLASS:
           return targetType === TypesEnum.CLASS
         case TypesEnum.CLASS:
@@ -23,14 +34,8 @@ export default (edgeType: TypesEnum, isReversed: boolean = false) => {
       }
     },
     edgeParams: function (sourceNode, targetNode) {
-      let temp_id = 'temp_' + sourceNode.data('iri') + '-' + targetNode.data('iri')
-      if (sourceNode.data('type') === TypesEnum.UNION || sourceNode.data('type') === TypesEnum.DISJOINT_UNION) {
-        temp_id = 'temp_' + sourceNode.data('id') + '-' + targetNode.data('iri')
-      }
       return {
         data: {
-          id: temp_id,
-          name: temp_id,
           source: !isReversed ? sourceNode.id() : targetNode.id(),
           target: !isReversed ? targetNode.id() : sourceNode.id(),
           type: edgeType,

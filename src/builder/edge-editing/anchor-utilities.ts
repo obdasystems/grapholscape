@@ -1,4 +1,4 @@
-import { EdgeSingular } from "cytoscape";
+import { EdgeSingular, EventObjectNode } from "cytoscape";
 
 export enum AnchorPosition {
   SOURCE = 'source',
@@ -39,10 +39,13 @@ export function addAnchorsOnEdge(edge: EdgeSingular, position?: AnchorPosition) 
 
     edge.scratch('target-anchor', targetAnchor)
   }
+
+  edge.source().on('position', updateAnchorsPosition)
+  edge.target().on('position', updateAnchorsPosition)
 }
 
 /**
- * Remove anchors node, assuming edge is not attached to any anchor
+ * Remove anchors nodes
  * @param edge
  * @param position remove source or target anchor, if undefined removes both
  */
@@ -56,4 +59,16 @@ export function removeAnchorsOnEdge(edge: EdgeSingular, position?: AnchorPositio
     edge.scratch('target-anchor')?.remove()
     edge.removeScratch('target-anchor')
   }
+
+  edge.source().off('position', undefined, updateAnchorsPosition)
+  edge.target().off('position', undefined, updateAnchorsPosition)
+}
+
+const updateAnchorsPosition = (evt: EventObjectNode) => {
+  const node = evt.target
+
+  node.connectedEdges().forEach(edge => {
+    edge.scratch('source-anchor')?.position(edge.sourceEndpoint())
+    edge.scratch('target-anchor')?.position(edge.targetEndpoint())
+  })
 }
