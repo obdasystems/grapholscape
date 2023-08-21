@@ -1,0 +1,56 @@
+import { css, html } from "lit"
+import { icons } from "../../../ui";
+import AnnotationProperty from "../../../model/annotation-property";
+
+export function propertiesTemplate(annProperties: AnnotationProperty[], handleEditProperty: (annProperty?: AnnotationProperty) => void, handleDeleteProperty: (annProperty: AnnotationProperty)=> void) {
+  return html`
+    <div class="annotations-list">
+      ${annProperties.map((a, i) => {
+        return html`
+          <div class="annotation-row" id=ann${i}>
+            <div class="annotation-value">
+              <span> ${a.iri.fullIri} </span>
+            </div>
+            <div style="flex-shrink: 0;">
+                <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation" @click=${() => handleEditProperty(a)}><span slot="icon">${icons.editIcon}</span></gscape-button>
+                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => handleDeleteProperty(a)}><span slot="icon">${icons.rubbishBin}</span></gscape-button>
+            </div>
+          </div>
+        `
+      })}
+
+      ${annProperties.length === 0
+        ? html`
+          <div class="blank-slate">
+            ${icons.blankSlateDiagrams}
+            <div class="header">No annotation properties defined</div>
+            <div class="description">Add new annotation properties clicking the Add button.</div>
+          </div>
+        `
+        : null
+      }
+    </div>
+  `
+}
+
+export const annotationsTemplateStyle = css`
+  .annotations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .annotation-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: var(--gscape-border-radius);
+    border: solid 1px var(--gscape-color-border-subtle);
+    padding: 8px;
+    background: var(--gscape-color-bg-inset);
+  }
+
+  .annotation-buttons {
+    flex-shrink: 0;
+  }
+`

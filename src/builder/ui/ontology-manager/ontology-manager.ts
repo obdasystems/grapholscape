@@ -4,6 +4,8 @@ import { Annotation, Namespace } from "../../../model";
 import { namespacesTemplate, namespacesTemplateStyle } from "../namespaces/namespaces-template";
 import { annotationsTemplate, annotationsTemplateStyle } from "../annotations";
 import modalSharedStyles from "../modal-shared-styles";
+import AnnotationProperty from "../../../model/annotation-property";
+import { propertiesTemplate } from "../annotation-properties/ann-properties-template";
 
 type TabInfo = TabProps & {
   getContent: () => HTMLTemplateResult | HTMLElement,
@@ -16,6 +18,8 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
   public onDeleteAnnotation: (annotation: Annotation) => void = () => { }
   public onEditNamespace: (namespace?: Namespace, prefix?: string) => void = () => { }
   public onDeleteNamespace: (namespace: Namespace, prefix: string) => void = () => { }
+  public onEditProperty: (annProperty?: AnnotationProperty) => void = () => { }
+  public onDeleteProperty: (annProperty: AnnotationProperty) => void = () => { }
   public onCancel: () => void = () => { }
 
   static properties: PropertyDeclarations = {
@@ -25,7 +29,7 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
     currentTab: { type: Object },
   }
 
-  constructor(public annotations: Annotation[] = [], public namespaces: Namespace[] = [], public annProperties?) {
+  constructor(public annotations: Annotation[] = [], public namespaces: Namespace[] = [], public annProperties: AnnotationProperty[] = []) {
     super()
   }
 
@@ -67,8 +71,8 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
       id: 1,
       label: 'Annotation Properties',
       icon: icons.notes,
-      getContent: () => html`Tab ann properties`,
-      onAdd: () => { } // Define new annotation property
+      getContent: () => propertiesTemplate(this.annProperties, this.onEditProperty, this.onDeleteProperty),
+      onAdd: () => this.onEditProperty() // Define new annotation property
     },
     {
       id: 2,

@@ -9,6 +9,8 @@ import GrapholNode from './graphol-elems/node'
 import Namespace from './namespace'
 import { RDFGraphMetadata, TypesEnum } from './rdf-graph/swagger'
 import { RendererStatesEnum } from './renderers/i-render-state'
+import AnnotationProperty from './annotation-property'
+
 /**
  * # Ontology
  * Class used as the Model of the whole app.
@@ -17,6 +19,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   name: string
   version: string
   namespaces: Namespace[] = []
+  annProperties: AnnotationProperty[] = []
   diagrams: Diagram[] = []
   languages: string[] = []
   defaultLanguage?: string
@@ -32,9 +35,10 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
    * @param {string} name
    * @param {string} version
    * @param {Namespace[]} namespaces
+   * @param {AnnotationProperty[]} annProperties
    * @param {Diagram[]} diagrams
    */
-  constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], diagrams: Diagram[] = []) {
+  constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], annProperties: AnnotationProperty[] = [], diagrams: Diagram[] = []) {
     super()
     /** @type {string} */
     this.name = name
@@ -42,6 +46,8 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     this.version = version
     /** @type {Namespace[]} */
     this.namespaces = namespaces
+    /** @type {AnnotationProperty[]} */
+    this.annProperties = annProperties
     /** @type {Diagram[]} */
     this.diagrams = diagrams
 
@@ -73,6 +79,24 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
 
   getNamespaces(){
     return this.namespaces
+  }
+
+  /** @param {AnnotationProperty} annProperty */
+  addAnnotationProperty(annProperty: AnnotationProperty) {
+    this.annProperties.push(annProperty)
+  }
+
+  /**
+   * Get the Namspace object given its IRI string
+   * @param {string} iriValue the IRI assigned to the namespace
+   * @returns {AnnotationProperty}
+   */
+  getAnnotationProperty(iriValue: string): AnnotationProperty | undefined {
+    return this.annProperties.find(prop => prop.iri.fullIri === iriValue)
+  }
+
+  public getAnnotationProperties(): AnnotationProperty[] {
+    return this.annProperties
   }
 
 

@@ -1,4 +1,5 @@
 import Grapholscape from "../../core";
+import { initEditAnnPropertyModal } from "../annotation-properties";
 import { initEditAnnotationModal } from "../annotations";
 import { initEditNamespaceModal } from "../namespaces";
 import OntologyManager from "./ontology-manager";
@@ -7,6 +8,7 @@ export function initOntologyManagerModal(grapholscape: Grapholscape) {
   const ontologyManager = new OntologyManager(
     grapholscape.ontology.getAnnotations(),
     grapholscape.ontology.getNamespaces(),
+    grapholscape.ontology.getAnnotationProperties()
   )
 
   ontologyManager.onEditAnnotation = (annotation) => {
@@ -29,6 +31,31 @@ export function initOntologyManagerModal(grapholscape: Grapholscape) {
   ontologyManager.onDeleteAnnotation = (annotation) => {
     grapholscape.ontology.removeAnnotation(annotation)
     ontologyManager.annotations = grapholscape.ontology.getAnnotations()
+  }
+
+  ontologyManager.onEditProperty = (annProperty) => {
+    ontologyManager.hide()
+    const editPropertyModal = initEditAnnPropertyModal(
+      grapholscape,
+      grapholscape.ontology,
+      annProperty,
+      () => {
+        ontologyManager.annotations = grapholscape.ontology.getAnnotations()
+        ontologyManager.annProperties = grapholscape.ontology.getAnnotationProperties()
+        ontologyManager.show()
+      }
+    )
+
+    editPropertyModal.onCancel = () => {
+      ontologyManager.show()
+    }
+  }
+
+  ontologyManager.onDeleteProperty = (annProperty) => {
+    grapholscape.ontology.annProperties = grapholscape.ontology.annProperties.filter(p => !p.equals(annProperty))
+    ontologyManager.annotations = grapholscape.ontology.getAnnotations()
+    ontologyManager.annProperties = grapholscape.ontology.getAnnotationProperties()
+
   }
 
   ontologyManager.onEditNamespace = (namespace, prefix) => {
