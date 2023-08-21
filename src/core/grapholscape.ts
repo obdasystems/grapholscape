@@ -3,7 +3,6 @@ import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
 import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport } from "../model"
 import rdfgraphSerializer from "../rdfgraph-serializer"
-import { WidgetEnum } from "../ui/util/widget-enum"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import { FloatyRendererState, GrapholRendererState, LiteRendererState, Renderer } from "./rendering"
@@ -26,7 +25,7 @@ export default class Grapholscape {
   private entityNavigator = new EntityNavigator(this)
   private displayedNamesManager = new DisplayedNamesManager(this)
   private themesManager = new ThemeManager(this)
-  widgets: Map<WidgetEnum, HTMLElement> = new Map()
+  widgets: Map<string, HTMLElement> = new Map()
   widgetsInitialStates: WidgetsConfig
 
   constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig) {

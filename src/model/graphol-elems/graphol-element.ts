@@ -1,6 +1,8 @@
 import { ElementDefinition } from "cytoscape"
 import { Element, TypesEnum, FunctionPropertiesEnum } from "../rdf-graph/swagger"
 import GrapholEntity from "./entity"
+import GrapholNode from "./node"
+import GrapholEdge from "./edge"
 
 export default class GrapholElement implements Element {
   private _displayedName?: string
@@ -109,5 +111,13 @@ export default class GrapholElement implements Element {
         this.id === grapholElement.id &&
         this.diagramId === grapholElement.diagramId
       )
+  }
+
+  isNode(): this is GrapholNode {
+    return (this as unknown as GrapholNode).position !== undefined
+  }
+
+  isEdge(): this is GrapholEdge {
+    return (this as unknown as GrapholEdge).sourceId !== undefined
   }
 }

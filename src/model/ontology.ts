@@ -99,8 +99,6 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
         return entity
       }
     }
-
-    console.warn(`Can't find any entity with iri = "${iri}"`)
   }
 
   getEntitiesByType(entityType: TypesEnum) {
