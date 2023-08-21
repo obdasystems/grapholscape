@@ -71,6 +71,10 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     return this.namespaces.find(ns => ns.hasPrefix(prefix))
   }
 
+  getNamespaces(){
+    return this.namespaces
+  }
+
 
   /** @param {Diagram} diagram */
   addDiagram(diagram: Diagram) {

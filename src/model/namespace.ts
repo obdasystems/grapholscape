@@ -21,7 +21,7 @@ class Namespace implements INamespace {
     return Array.from(this._prefixes)
   }
 
-  private set prefixes(value) {
+  public set prefixes(value) {
     this._prefixes = value
   }
 

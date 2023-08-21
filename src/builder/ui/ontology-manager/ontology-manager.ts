@@ -1,7 +1,7 @@
 import { css, CSSResultGroup, html, HTMLTemplateResult, LitElement, PropertyDeclarations } from "lit";
 import { BaseMixin, baseStyle, ModalMixin, icons, SizeEnum, TabProps } from "../../../ui";
-import { Annotation } from "../../../model";
-import { namespacesTemplateStyle, ontologyNamespacesTemplate } from "./ontology-namespaces-template";
+import { Annotation, Namespace } from "../../../model";
+import { namespacesTemplate, namespacesTemplateStyle } from "../namespaces/namespaces-template";
 import { annotationsTemplate, annotationsTemplateStyle } from "../annotations";
 import modalSharedStyles from "../modal-shared-styles";
 
@@ -14,17 +14,19 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
 
   public onEditAnnotation: (annotation?: Annotation) => void = () => { }
   public onDeleteAnnotation: (annotation: Annotation) => void = () => { }
+  public onEditNamespace: (namespace?: Namespace, prefix?: string) => void = () => { }
+  public onDeleteNamespace: (namespace: Namespace, prefix: string) => void = () => { }
   public onCancel: () => void = () => { }
-
-  constructor(public annotations: Annotation[] = [], public namespaces?, public annProperties?) {
-    super()
-  }
 
   static properties: PropertyDeclarations = {
     annotations: { type: Array },
     namespaces: { type: Array },
     annProperties: { type: Array },
     currentTab: { type: Object },
+  }
+
+  constructor(public annotations: Annotation[] = [], public namespaces: Namespace[] = [], public annProperties?) {
+    super()
   }
 
   static styles: CSSResultGroup = [
@@ -72,8 +74,8 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
       id: 2,
       label: 'Namespaces',
       icon: icons.protocol,
-      getContent: () => ontologyNamespacesTemplate(this.namespaces),
-      onAdd: () => { } // Define new Namespace
+      getContent: () => namespacesTemplate(this.namespaces, this.onEditNamespace, this.onDeleteNamespace),
+      onAdd: () => this.onEditNamespace()
     }
   ]
 
