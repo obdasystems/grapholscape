@@ -1,12 +1,12 @@
-import nodeResolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import babel from '@rollup/plugin-babel'
-import replace from '@rollup/plugin-replace'
-import terser from '@rollup/plugin-terser'
-import license from 'rollup-plugin-license'
-import path from 'path'
-import typescript from '@rollup/plugin-typescript'
-import { dts } from 'rollup-plugin-dts'
+const nodeResolve = require('@rollup/plugin-node-resolve')
+const commonjs = require('@rollup/plugin-commonjs')
+const babel = require('@rollup/plugin-babel')
+const replace = require('@rollup/plugin-replace')
+const terser = require('@rollup/plugin-terser')
+const license = require('rollup-plugin-license')
+const path = require('path')
+const typescript = require('@rollup/plugin-typescript')
+const dts = require('rollup-plugin-dts').dts
 
 const VERSION = process.env.VERSION || 'snapshot' // default snapshot
 const NODE_ENV = process.env.NODE_ENV === 'production' ? 'production' : 'development' // default development
@@ -141,5 +141,7 @@ const typesRollup = {
 }
 
 // splice(1) removes everything starting at index 1 and returns what he removed
-export default NODE_ENV === 'production'
+module.exports = {
+  default: NODE_ENV === 'production'
   ? [...configs.splice(1), typesRollup] : configs[0]
+}
