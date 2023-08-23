@@ -12,7 +12,7 @@ export function namespacesTemplate(namespaces: Namespace[],  handleEditNamespace
           <div class="blank-slate">
             ${icons.blankSlateDiagrams}
             <div class="header">No namespaces defined</div>
-            <div class="description">Add new namespaces clicking the Add button.</div>
+            <div class="description">Add new namespaces by clicking the Add button.</div>
           </div>
         `
         : null

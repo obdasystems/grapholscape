@@ -41,7 +41,7 @@ export function annotationsTemplate(annotations: Annotation[], handleEditAnnotat
           <div class="blank-slate">
             ${icons.blankSlateDiagrams}
             <div class="header">No annotations defined</div>
-            <div class="description">Add new annotations clicking the Add button.</div>
+            <div class="description">Add new annotations by clicking the Add button.</div>
           </div>
         `
         : null

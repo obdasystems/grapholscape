@@ -135,10 +135,10 @@ export default class GscapeNamespaceModal extends ModalMixin(BaseMixin(LitElemen
                     Edit Namespace
                     </div>
                     <form id= "new-namespace-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                        <label style = "width: 95%;" id="prefix-label" for="prefix"><b>Prefix:</b></label>
-                        <input style = "width: 95%;" id="prefix" value="${this.prefixx}" type="text"/>
-                        <label style = "width: 95%;" id="namespace-label" for="namespace"><b>Namespace:</b></label>
-                        <input style = "width: 95%;" id="namespace" value="${this.namespace?.toString()}" type="text" oninput="if(this.value.length > 0 ) {this.offsetParent.querySelector('#ok').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true;}"/>
+                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="prefix-label" for="prefix"><b>Prefix:</b></label>
+                        <input style= "width: 78%; margin: 0px 8px 0px 8px ;" id="prefix" value="${this.prefixx}" type="text"/>
+                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace-label" for="namespace"><b>Namespace:</b></label>
+                        <input style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace" value="${this.namespace?.toString()}" type="text" oninput="if(this.value.length > 0 ) {this.offsetParent.querySelector('#ok').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true;}"/>
                     </form>
                     <div class="buttons" id="buttons">
                         <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>

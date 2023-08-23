@@ -72,7 +72,7 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                 .dropdown {
                 position: relative;
                 width: 78%; 
-                margin: 8px 8px 8px 8px ;
+                margin: 0px 8px 0px 8px ;
                 border: solid 1px var(--gscape-color-border-subtle);
                 border-radius: var(--gscape-border-radius);
                 }
@@ -162,7 +162,7 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                     Edit Annotation Property
                     </div>
                     <form id= "new-property-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                        <label id="namespace-label" for="newnamespace">Namespace:</label>
+                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace-label" for="newnamespace"><b>Namespace:</b></label>
                         <div class="dropdown">
                             <input
                                 id="newnamespace"
@@ -176,8 +176,9 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                                 <option value="" ?selected=${this.annProperty === undefined}></option>
                             </select>
                         </div>
-                        <label for="input">Name:</label>
+                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" for="input"><b>Input:</b></label>
                         <input
+                            style= "width: 78%; margin: 0px 8px 0px 8px ;"
                             id="input"
                             type="text"
                             value= ${this.annProperty !== undefined ? this.annProperty.iri.remainder : ''}

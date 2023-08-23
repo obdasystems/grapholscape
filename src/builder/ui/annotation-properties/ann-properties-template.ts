@@ -24,7 +24,7 @@ export function propertiesTemplate(annProperties: AnnotationProperty[], handleEd
           <div class="blank-slate">
             ${icons.blankSlateDiagrams}
             <div class="header">No annotation properties defined</div>
-            <div class="description">Add new annotation properties clicking the Add button.</div>
+            <div class="description">Add new annotation properties by clicking the Add button.</div>
           </div>
         `
         : null
