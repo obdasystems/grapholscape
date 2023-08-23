@@ -82,7 +82,7 @@ export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular
 export const addISA = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Class in IS-A',
-    icon: icons.addISAIcon,
+    icon: icons.addClassIcon,
     select: () => {
       initNewIsaUI(grapholscape, elem.data().iri)
     }
