@@ -52,7 +52,6 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
 
   grapholscape.on(LifecycleEvent.RendererChange, newRenderer => {
     if (newRenderer === RendererStatesEnum.FLOATY) {
-      console.log('??')
       grapholscape.addTheme(colorfulThemeLight)
       grapholscape.addTheme(colorfulThemeDark)
     } else {

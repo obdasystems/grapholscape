@@ -71,7 +71,6 @@ export class ColorManager {
     }
 
     const topSuperClass = this.getTopSuperClass(classEntity)
-    console.log(topSuperClass)
 
     this.forest.clear()
     const childrenClasses = this.getAllChildren(topSuperClass)
@@ -109,7 +108,6 @@ export class ColorManager {
 
     const hierarchies = this.ontology.getSuperHierarchiesOf(classEntity.iri)
     if (hierarchies.length > 0) {
-      console.log(hierarchies[0].superclasses[0].classEntity)
       return this.getTopSuperClass(hierarchies[0].superclasses[0].classEntity)
 
     } else if (directSuperclass) {
@@ -128,8 +126,6 @@ export class ColorManager {
       if (!result.has(directChild)) {
         result.add(directChild)
         result = new Set([...result, ...this.getAllChildren(directChild, result)])
-      } else {
-        // console.log('skip!')
       }
     }
 
@@ -141,8 +137,6 @@ export class ColorManager {
           if (!result.has(inputClass)) {
             result.add(inputClass)
             result = new Set([...result, ...this.getAllChildren(inputClass, result)])
-          } else {
-            // console.log('skip!')
           }
         })
       })

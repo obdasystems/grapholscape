@@ -286,7 +286,6 @@ export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI
         elem,
         grapholscape.theme,
         (_, sourceNode, targetNode, addedEdge) => {
-          console.log(sourceNode.data().type)
           addedEdge.remove()
           if (grapholscape.renderer.diagram) {
             const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
