@@ -33,6 +33,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   private _datatype: string
   private _isDataPropertyFunctional: boolean = false
   private _functionProperties: FunctionPropertiesEnum[] = []
+  private _color?: string
 
   constructor(iri: Iri) {
     super()
@@ -140,6 +141,9 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
 
   public get datatype() { return this._datatype }
   public set datatype(datatype) { this._datatype = datatype }
+
+  public get color() { return this._color }
+  public set color(color) { this._color = color }
 
   public getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum) {
     return this.occurrences.get(rendererState)?.find(o => o.type === type)

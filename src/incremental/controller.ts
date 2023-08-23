@@ -11,6 +11,7 @@ import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
 import { Entity, EntityTypeEnum, OntologyPath } from "./api/swagger";
+import { ColorManager } from "../core/colors-manager";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -113,6 +114,11 @@ export default class IncrementalController {
       return
     }
 
+    const colorManager = new ColorManager(
+      this.ontology,
+      this.diagram.representation,
+      this.grapholscape.theme)
+
     const addElemToIncremental = (elem: GrapholElement, rdfGraphRepr: DiagramRepresentation) => {
       let entity: GrapholEntity | undefined
       if (isGrapholEdge(elem)) {
@@ -133,6 +139,8 @@ export default class IncrementalController {
 
         switch (elem.type) {
           case TypesEnum.CLASS_INSTANCE:
+            if (!entity.color)
+              colorManager.setInstanceColor(entity as ClassInstanceEntity)
             this.diagramBuilder.addClassInstance(entity as ClassInstanceEntity, elem)
             break
 
@@ -161,6 +169,8 @@ export default class IncrementalController {
             break
 
           case TypesEnum.CLASS:
+            if (!entity.color)
+              colorManager.setClassColor(entity)
             this.diagramBuilder.addClass(entity, elem as GrapholNode)
             break
         }
@@ -239,6 +249,14 @@ export default class IncrementalController {
     const entity = this.grapholscape.ontology.getEntity(iri)
     let classNode: GrapholNode | undefined
     if (entity && this.diagram.representation) {
+      if (!entity.color) {
+        const colorManager = new ColorManager(
+          this.ontology,
+          this.diagram.representation,
+          this.grapholscape.theme)
+
+        colorManager.setClassColor(entity)
+      }
 
       classNode = this.diagramBuilder.addClass(entity, position) as GrapholNode
 
@@ -347,7 +365,7 @@ export default class IncrementalController {
             this.grapholscape.entityNameType,
             this.grapholscape.language
           )
-          this.diagram?.representation?.updateElement(element, false)
+          this.diagram?.representation?.updateElement(element, entity, false)
         })
       }
     }
@@ -454,7 +472,7 @@ export default class IncrementalController {
       this.classInstanceEntities.set(instance.iri, classInstanceEntity)
     }
 
-    this.diagramBuilder.addClassInstance(classInstanceEntity, position)
+    const addedNode = this.diagramBuilder.addClassInstance(classInstanceEntity, position)
 
     // update parent class Iri
     if (typeof (parentClassesIris) !== 'string') {
@@ -468,14 +486,26 @@ export default class IncrementalController {
           const classEntity = this.ontology.getEntity(classIri)
           if (classEntity && classInstanceEntity) {
             classInstanceEntity.addParentClass(classEntity.iri)
+
+            if (!classInstanceEntity.color && this.diagram.representation) {
+              const colorManager = new ColorManager(this.ontology, this.diagram.representation, this.grapholscape.theme)
+              colorManager.setInstanceColor(classInstanceEntity)
+              this.diagram.representation.updateElement(addedNode, classInstanceEntity)
+            }
           }
         })
       })
 
     } else {
       const parentClassEntity = this.ontology.getEntity(parentClassesIris)
-      if (parentClassEntity)
+      if (parentClassEntity) {
         classInstanceEntity.addParentClass(parentClassEntity.iri)
+
+        if (!classInstanceEntity.color && this.diagram.representation) {
+          const colorManager = new ColorManager(this.ontology, this.diagram.representation, this.grapholscape.theme)
+          colorManager.setInstanceColor(classInstanceEntity)
+        }
+      }
     }
 
     this.updateEntityNameType(classInstanceEntity.iri)

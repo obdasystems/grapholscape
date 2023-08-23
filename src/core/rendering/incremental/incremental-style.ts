@@ -1,6 +1,9 @@
-import { Stylesheet } from "cytoscape"
+import chroma from "chroma-js"
+import { NodeSingular, Stylesheet } from "cytoscape"
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model"
+import { ColorManager } from "../../colors-manager"
 import floatyStyle from "../floaty/floaty-style"
+import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util"
 
 export default function (theme: GrapholscapeTheme) {
   const baseStyle = floatyStyle(theme)
@@ -14,10 +17,20 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${TypesEnum.CLASS}"]`,
       style: {
-        backgroundColor: theme.getColour(ColoursNames.class_instance),
-        "border-color": theme.getColour(ColoursNames.class_instance_contrast),
+        'text-background-color': (node) => getNodeBodyColor(node, theme, true) || 'rgba(0, 0, 0, 0)',
+        'text-background-opacity': (node) => getNodeBodyColor(node, theme, true) ? 1 : 0,
+        'text-background-shape': 'roundrectangle',
+        'text-background-padding': 2,
+        color: (node) => getNodeLabelColor(node, theme)
+      }
+    },
+    {
+      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"], node[type = "${TypesEnum.CLASS}"]`,
+      style: {
+        backgroundColor: (node) => getNodeBodyColor(node, theme, true),
+        "border-color": (node) => getNodeBorderColor(node, theme, true),
       }
     },
 
