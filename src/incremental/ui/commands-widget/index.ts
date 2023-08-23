@@ -155,8 +155,8 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const classIri = entity.iri.fullIri
 
     if (grapholElement.is(TypesEnum.CLASS)) {
-      const superHierarchies = ic.grapholscape.ontology.hierarchiesBySubclassMap.get(classIri)
-      const subHierarchies = ic.grapholscape.ontology.hierarchiesBySuperclassMap.get(classIri)
+      const superHierarchies = ic.grapholscape.ontology.getSuperHierarchiesOf(classIri)
+      const subHierarchies = ic.grapholscape.ontology.getSubHierarchiesOf(classIri)
 
       if (superHierarchies && superHierarchies.length > 0) {
         const areAllSuperHierarchiesVisible = ic.areHierarchiesVisible(superHierarchies)

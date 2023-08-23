@@ -406,11 +406,11 @@ export default class IncrementalController {
             }
           })
 
-          this.ontology.hierarchiesBySubclassMap.get(entity!.iri.fullIri)?.forEach(hierarchy => {
+          this.ontology.getSuperHierarchiesOf(entity!.iri.fullIri).forEach(hierarchy => {
             this.removeHierarchy(hierarchy)
           })
 
-          this.ontology.hierarchiesBySuperclassMap.get(entity!.iri.fullIri)?.forEach(hierarchy => {
+          this.ontology.getSubHierarchiesOf(entity!.iri.fullIri).forEach(hierarchy => {
             this.removeHierarchy(hierarchy)
           })
         }
@@ -621,8 +621,8 @@ export default class IncrementalController {
     if (!classEntity) return
 
     let hierarchies: Hierarchy[] | undefined
-    const sub = this.ontology.hierarchiesBySuperclassMap.get(classIri) // get hiearchies with class being a superclass => get sub classes
-    const superh = this.ontology.hierarchiesBySubclassMap.get(classIri) // get hierarchies with class being a subclass => get super classes
+    const sub = this.ontology.getSubHierarchiesOf(classIri) // get hiearchies with class being a superclass => get sub classes
+    const superh = this.ontology.getSuperHierarchiesOf(classIri) // get hierarchies with class being a subclass => get super classes
     switch (hierarchyType) {
       case 'super':
         hierarchies = superh
