@@ -242,7 +242,7 @@ function showLoadingSpinner(container: HTMLElement, config?: GrapholscapeConfig)
     theme = DefaultThemes.grapholscape
   }
 
-  spinner.setColor(theme.getColour(ColoursNames.accent) || '#000')
+  spinner.setColor(theme?.getColour(ColoursNames.accent) || '#000')
   container.appendChild(spinner)
   return spinner
 }

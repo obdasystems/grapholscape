@@ -5,6 +5,8 @@ export enum DefaultThemesEnum {
   GRAPHOLSCAPE = 'grapholscape',
   GRAPHOL = 'graphol',
   DARK = 'dark',
+  COLORFUL_LIGHT = 'colorful-light',
+  COLORFUL_DARK = 'colorful-dark'
 }
 
 export const gscapeColourMap: ColourMap = {
@@ -145,7 +147,13 @@ export const darkColourMap: ColourMap = {
   [ColoursNames.accent_subtle]: 'rgba(56,139,253,0.15)',
 }
 
-export const DefaultThemes: { [key in DefaultThemesEnum]: GrapholscapeTheme } = {
+// based on grapholscape theme
+export const autoLightColourMap: ColourMap = JSON.parse(JSON.stringify(gscapeColourMap))
+
+// based on dark theme
+export const autoDarkColourMap: ColourMap = JSON.parse(JSON.stringify(darkColourMap))
+
+export const DefaultThemes: { [key in DefaultThemesEnum]?: GrapholscapeTheme } = {
   grapholscape: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOLSCAPE, gscapeColourMap, 'Grapholscape'),
   graphol: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOL, classicColourMap, 'Graphol'),
   dark: new GrapholscapeTheme(DefaultThemesEnum.DARK, darkColourMap, 'Dark'),

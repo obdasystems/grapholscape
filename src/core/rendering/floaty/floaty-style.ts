@@ -1,6 +1,9 @@
-import { Stylesheet } from "cytoscape";
-import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model";
+import chroma from "chroma-js";
+import { NodeSingular, Stylesheet } from "cytoscape";
+import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, TypesEnum } from "../../../model";
+import { ColorManager } from "../../colors-manager";
 import grapholStyle from "../graphol/graphol-style";
+import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util";
 
 export default function (theme: GrapholscapeTheme) {
   const baseStyle = grapholStyle(theme)
@@ -21,7 +24,14 @@ export default function (theme: GrapholscapeTheme) {
         'text-valign': 'center',
         'text-halign': 'center',
         'height': (node)=>  node.data('width') || 100,
-        'width' : (node)=>  node.data('width') || 100
+        'width' : (node)=>  node.data('width') || 100,
+        'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
+        'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
+        'text-background-shape': 'roundrectangle',
+        'text-background-padding': 2,
+        color: (node) => getNodeLabelColor(node, theme),
+        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_contrast),
       }
     },
     {
@@ -34,8 +44,9 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
-        backgroundColor: theme.getColour(ColoursNames.class_instance),
-        "border-color": theme.getColour(ColoursNames.class_instance_contrast),
+        // color: (node) => getNodeLabelColor(node, theme),
+        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
       }
     },
     {
@@ -127,3 +138,28 @@ export default function (theme: GrapholscapeTheme) {
 
   return baseStyle.concat(floatyStyle)
 }
+
+// function getNodeBodyColor(node: NodeSingular, theme: GrapholscapeTheme) {
+//   if ((theme.id === DefaultThemesEnum.COLORFUL_LIGHT || theme.id === DefaultThemesEnum.COLORFUL_DARK) && node.data().computedFillColor) {
+//     if (ColorManager.isBackgroundDark(theme)) {
+//       const color = chroma(node.data().computedFillColor)
+//       if (color.luminance() > 0.5) {
+//         color.luminance(0.5, 'lab')
+//       }
+
+//       return color.desaturate().darken().css()
+//     } else {
+//       return node.data().computedFillColor
+//     }
+//   }
+// }
+
+// function getNodeBorderColor(node: NodeSingular, theme: GrapholscapeTheme) {
+//   if ((theme.id === DefaultThemesEnum.COLORFUL_LIGHT || theme.id === DefaultThemesEnum.COLORFUL_DARK) && node.data().computedFillColor) {
+//     if (ColorManager.isBackgroundDark(theme)) {
+//       return chroma(node.data().computedFillColor).css()
+//     } else {
+//       return chroma(node.data().computedFillColor).darken(2).css()
+//     }
+//   }
+// }

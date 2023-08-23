@@ -6,6 +6,7 @@ import { Hierarchy } from './graph-structures'
 import GrapholEntity from './graphol-elems/entity'
 import GrapholElement from './graphol-elems/graphol-element'
 import GrapholNode from './graphol-elems/node'
+import Iri from './iri'
 import Namespace from './namespace'
 import { RDFGraphMetadata, TypesEnum } from './rdf-graph/swagger'
 import { RendererStatesEnum } from './renderers/i-render-state'
@@ -28,8 +29,171 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   private _entities: Map<string, GrapholEntity> = new Map()
 
   // computed only in floaty
-  hierarchiesBySubclassMap: Map<string, Hierarchy[]> = new Map()
-  hierarchiesBySuperclassMap: Map<string, Hierarchy[]> = new Map()
+  private _hierarchies: Map<string, Hierarchy> = new Map()
+  private _subHierarchiesMap: Map<string, Set<Hierarchy>> = new Map()
+  private _superHierarchiesMap: Map<String, Set<Hierarchy>> = new Map()
+  private _inclusions: { subclass: GrapholEntity, superclass: GrapholEntity }[] = []
+
+  addHierarchy(hierarchy: Hierarchy) {
+    this._hierarchies.set(hierarchy.id, hierarchy)
+
+    let hierarchiesSet: Set<Hierarchy> | undefined
+    hierarchy.inputs.forEach(inputClass => {
+      hierarchiesSet = this._superHierarchiesMap.get(inputClass.fullIri)
+      if (!hierarchiesSet) {
+        this._superHierarchiesMap.set(inputClass.fullIri, new Set([hierarchy]))
+      } else {
+        hierarchiesSet.add(hierarchy)
+      }
+    })
+
+    hierarchy.superclasses.map(sc => sc.classEntity).forEach(superClass => {
+      hierarchiesSet = this._subHierarchiesMap.get(superClass.fullIri)
+      if (!hierarchiesSet) {
+        this._subHierarchiesMap.set(superClass.fullIri, new Set([hierarchy]))
+      } else {
+        hierarchiesSet.add(hierarchy)
+      }
+    })
+  }
+
+  removeHierarchy(hiearchyId: string): void
+  removeHierarchy(hiearchyId: Hierarchy): void
+  removeHierarchy(hierarchyOrId: Hierarchy | string) {
+    let hierarchy: Hierarchy | undefined 
+    if (typeof hierarchyOrId === 'string') {
+      hierarchy = this.getHierarchy(hierarchyOrId)
+    }
+
+    if (hierarchy) {
+      this._hierarchies.delete(hierarchy.id)
+
+      this._subHierarchiesMap.forEach(sh => {
+        sh.delete(hierarchy!)
+      })
+
+      this._superHierarchiesMap.forEach(sh => {
+        sh.delete(hierarchy!)
+      })
+    }
+  }
+
+  getHierarchy(hierarchyId: string) {
+    return this._hierarchies.get(hierarchyId)
+  }
+
+  getHierarchiesOf(classIri: string | Iri) {
+    return Array.from(
+      new Set(Array.from(this.getSubHierarchiesOf(classIri)).concat(
+        Array.from(this.getSuperHierarchiesOf(classIri)))
+      )
+    )
+  }
+
+  /**
+   * @param superClassIri the superclass iri
+   * @returns The arrary of hiearchies for which a class appear as superclass
+   */
+  getSubHierarchiesOf(superClassIri: string | Iri) {
+    if (typeof superClassIri !== 'string')
+      superClassIri = superClassIri.fullIri
+
+    return Array.from(this._subHierarchiesMap.get(superClassIri) || [])
+  }
+
+  /**
+   * 
+   * @param subClassIri 
+   * @returns The arrary of hiearchies for which a class appear as subclass
+   */
+  getSuperHierarchiesOf(subClassIri: string | Iri) {
+    if (typeof subClassIri !== 'string')
+      subClassIri = subClassIri.fullIri
+
+    return Array.from(this._superHierarchiesMap.get(subClassIri) || [])
+  }
+
+  getSubclassesOf(superClassIri: string | Iri) {
+    const res: Set<GrapholEntity> = new Set()
+
+    this.getSubHierarchiesOf(superClassIri).forEach(hierarchy => {
+      hierarchy.inputs.forEach(classInput => res.add(classInput))
+    })
+
+    this._inclusions.forEach(s => {
+      if (s.superclass.iri.equals(superClassIri)) {
+        res.add(s.subclass)
+      }
+    })
+
+    return res
+  }
+
+  getSuperclassesOf(superClassIri: string | Iri) {
+    const res: Set<GrapholEntity> = new Set()
+
+    this.getSuperHierarchiesOf(superClassIri).forEach(hierarchy => {
+      hierarchy.superclasses.forEach(sc => res.add(sc.classEntity))
+    })
+
+    this._inclusions.forEach(s => {
+      if (s.subclass.iri.equals(superClassIri)) {
+        res.add(s.superclass)
+      }
+    })
+
+    return res
+  }
+
+  addSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void
+  addSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void
+  addSubclassOf(subclass: GrapholEntity | string | Iri, superclass: GrapholEntity | string | Iri) {
+
+    let subclassEntity: GrapholEntity | undefined
+    let superclassEntity: GrapholEntity | undefined
+
+    if (!(subclass as unknown as GrapholEntity).types) {
+      subclassEntity = this.getEntity(subclass as string | Iri)
+    } else {
+      subclassEntity = subclass as GrapholEntity
+    }
+
+    if (!(superclass as unknown as GrapholEntity).types) {
+      superclassEntity = this.getEntity(superclass as string | Iri)
+    } else {
+      superclassEntity = subclass as GrapholEntity
+    }
+
+    if (superclassEntity && subclassEntity) {
+      if (!this._inclusions.find(sc => sc.subclass.iri.equals(subclassEntity!.iri) && sc.superclass.iri.equals(superclassEntity!.iri))) {
+        this._inclusions.push({ subclass: subclassEntity, superclass: superclassEntity })
+      }
+    }
+  }
+
+  removeSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void
+  removeSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void
+  removeSubclassOf(subclass: GrapholEntity | string | Iri, superclass: GrapholEntity | string | Iri) {
+    let subclassEntity: GrapholEntity | undefined
+    let superclassEntity: GrapholEntity | undefined
+
+    if (!(subclass as unknown as GrapholEntity).types) {
+      subclassEntity = this.getEntity(subclass as string | Iri)
+    } else {
+      subclassEntity = subclass as GrapholEntity
+    }
+
+    if (!(superclass as unknown as GrapholEntity).types) {
+      superclassEntity = this.getEntity(superclass as string | Iri)
+    } else {
+      superclassEntity = subclass as GrapholEntity
+    }
+
+    this._inclusions.splice(
+      this._inclusions.findIndex(sc => sc.subclass === subclassEntity && sc.superclass === superclassEntity),
+      1
+    )
+  }
 
   /**
    * @param {string} name
@@ -121,7 +285,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     this.entities.set(entity.iri.fullIri, entity)
   }
 
-  getEntity(iri: string) {
+  getEntity(iri: string | Iri) {
     for (let entity of this.entities.values()) {
       if (entity.iri.equals(iri)) {
         return entity
@@ -305,7 +469,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
             if (datatypeNode.nonempty()) {
               datatype = datatypeNode.first().data('displayedName')
               dataPropertyEntity.datatype = datatype
-              representation?.updateElement(occurrence.id)
+              representation?.updateElement(occurrence.id, dataPropertyEntity)
             }
           }
         })

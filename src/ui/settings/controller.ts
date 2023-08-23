@@ -1,7 +1,7 @@
 import GscapeSettings from "./settings";
 import { storeConfigEntry } from "../../config/config-manager";
 import Grapholscape from '../../core';
-import { LifecycleEvent } from "../../model";
+import { autoDarkColourMap, autoLightColourMap, DefaultThemesEnum, GrapholscapeTheme, LifecycleEvent, RendererStatesEnum } from "../../model";
 import { IBaseMixin } from "../common/mixins/";
 
 export default function (settingsComponent: GscapeSettings, grapholscape: Grapholscape) {
@@ -47,6 +47,20 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   grapholscape.on(LifecycleEvent.EntityNameTypeChange, entityNameType => settingsComponent.selectedEntityNameType = entityNameType)
   grapholscape.on(LifecycleEvent.ThemeChange, newTheme => settingsComponent.selectedTheme = newTheme.id)
 
+  const colorfulThemeLight = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_LIGHT, autoLightColourMap, 'Colorful - Light')
+  const colorfulThemeDark = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_DARK, autoDarkColourMap, 'Colorful - Dark')
+
+  grapholscape.on(LifecycleEvent.RendererChange, newRenderer => {
+    if (newRenderer === RendererStatesEnum.FLOATY) {
+      grapholscape.addTheme(colorfulThemeLight)
+      grapholscape.addTheme(colorfulThemeDark)
+    } else {
+      grapholscape.removeTheme(colorfulThemeLight)
+      grapholscape.removeTheme(colorfulThemeDark)
+    }
+
+    settingsComponent.themes = grapholscape.themeList
+  })
   // function updateOnChange(settingID, newValue) {
   //   let select = settingsComponent.shadowRoot.querySelector(`#${settingID}`)
   //   let option = Array.from(select.options)?.find( o => o.value === newValue)
