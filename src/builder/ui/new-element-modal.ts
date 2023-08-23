@@ -299,6 +299,21 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     }
   }
 
+  private handleLanguageSelection(e: Event) {
+    const selectTarget = e.currentTarget as HTMLSelectElement
+    if (selectTarget) {
+        const languageInput = this.shadowRoot?.querySelector('#newlan') as HTMLInputElement
+        const value = selectTarget.value
+        languageInput.value = value
+        ? value
+        : ''
+        languageInput.focus()
+    }    
+
+    this.validate()
+
+}
+
   private handleFunctionPropertyClick(e: Event) {
     const chip = e.currentTarget as HTMLElement | null
 
@@ -381,7 +396,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         <label id="language-label" for="language">Language:</label>
         <div class="dropdown">
             <input id="newlan" type="text"/>
-            <select id="language" onchange="this.offsetParent.querySelector('#newlan').value=this.value; this.offsetParent.querySelector('#newlan').focus(); " name="language" required>
+            <select id="language" onchange=${this.handleLanguageSelection} name="language" required>
                 ${Object.values(Language).sort().map((n, i) => {
                     return html`<option value="${n.toString()}"; >${n.toString()}</option>`
                 })}
