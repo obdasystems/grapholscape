@@ -2,7 +2,7 @@ import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationProperty, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, DefaultAnnotationProperties, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { RDFGraph } from "../model/rdf-graph/swagger";
 import * as RDFGraphParser from '../parsing/rdf-graph-parser';
@@ -438,14 +438,14 @@ export default class IncrementalController {
 
       if (instance.label) {
         classInstanceEntity.addAnnotation(
-          new Annotation(AnnotationProperty.label, instance.label.value, instance.label.language)
+          new Annotation(DefaultAnnotationProperties.label, instance.label.value, instance.label.language)
         )
       }
 
       this.endpointController?.requestLabels(instance.iri).then(labels => {
         labels?.forEach(label => {
           classInstanceEntity!.addAnnotation(
-            new Annotation(AnnotationProperty.label, label.value, label.language)
+            new Annotation(DefaultAnnotationProperties.label, label.value, label.language)
           )
         })
 

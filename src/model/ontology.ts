@@ -92,7 +92,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
    * @returns {AnnotationProperty}
    */
   getAnnotationProperty(iriValue: string): AnnotationProperty | undefined {
-    return this.annProperties.find(prop => prop.iri.fullIri === iriValue)
+    return this.annProperties.find(prop => prop.fullIri === iriValue)
   }
 
   public getAnnotationProperties(): AnnotationProperty[] {

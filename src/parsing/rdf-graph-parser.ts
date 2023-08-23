@@ -1,6 +1,6 @@
 import { floatyOptions, GrapholscapeConfig } from "../config";
 import { Grapholscape } from "../core";
-import { Annotation, ClassInstanceEntity, AnnotationProperty, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { Annotation, ClassInstanceEntity, DefaultAnnotationProperties, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { Entity, RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
@@ -104,7 +104,7 @@ export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
 
 function getEntityAnnotations(rdfEntity: Entity, namespaces: Namespace[]) {
   return rdfEntity.annotations?.map(a => {
-    const annotationProperty = Object.values(AnnotationProperty).find(property => {
+    const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
       return property.equals(a.property)
     }) || new Iri(a.property, namespaces)
     return new Annotation(annotationProperty, a.lexicalForm, a.language, a.datatype)

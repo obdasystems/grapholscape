@@ -7,6 +7,9 @@ export { default as Iri } from "./iri"
 export { default as Annotation } from './graphol-elems/annotation'
 export { default as AnnotatedElement } from './annotated-element'
 export * from './annotated-element'
+export { default as AnnotationProperty } from './annotation-property'
+export * from './annotation-property'
+export * from './namespace'
 
 export * from './graphol-elems/enums'
 export * from './themes'

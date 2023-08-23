@@ -8,7 +8,7 @@ import Grapholscape from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
 import { initIncremental } from './incremental'
 import { RequestOptions } from './incremental/api/model'
-import { ColoursNames, DefaultThemes, Diagram, GrapholscapeTheme, Namespace, Ontology, RendererStatesEnum } from './model'
+import { ColoursNames, DefaultAnnotationProperties, DefaultNamespaces, DefaultThemes, Diagram, GrapholscapeTheme, Namespace, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
 import parseRDFGraph, { getConfig, getEntities, getOntology } from './parsing/rdf-graph-parser'
@@ -150,7 +150,7 @@ export async function builder(rdfGraph: RDFGraph, container: HTMLElement, mastro
 }
 
 export async function buildFromScratch(name: string, iri: string, container: HTMLElement, mastroConnection?: RequestOptions, config?: OntologyDesignerConfig) {
-  const ontology = new Ontology(name, '', iri)
+  const ontology = new Ontology(name, '', iri, Object.values(DefaultNamespaces), Object.values(DefaultAnnotationProperties))
   ontology.addNamespace(new Namespace([''], iri))
   ontology.addDiagram(new Diagram(name, 0))
 

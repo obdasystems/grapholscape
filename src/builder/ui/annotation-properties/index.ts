@@ -11,21 +11,19 @@ export function initEditAnnPropertyModal(grapholscape: Grapholscape, ontology: O
     editPropertyModal.annProperty = annProperty
     editPropertyModal.onConfirm = (oldProperty, newProperty) => {
         if(oldProperty){
-            if(oldProperty.iri.toString() != newProperty){
+            if(oldProperty.toString() != newProperty){
 
                 ontology.annProperties = ontology.annProperties.filter(p => !p.equals(oldProperty))
                 const property = ontology.getAnnotationProperty(newProperty)
                 if(!property){
-                    const iri = new Iri(newProperty, ontology.namespaces)
-                    const newProp = new AnnotationProperty(iri)
+                    const newProp = new AnnotationProperty(newProperty, ontology.namespaces)
                     ontology.addAnnotationProperty(newProp)
                 }
             }
         } else {
             const property = ontology.getAnnotationProperty(newProperty)
             if(!property){
-                const iri = new Iri(newProperty, ontology.namespaces)
-                const newProp = new AnnotationProperty(iri)
+                const newProp = new AnnotationProperty(newProperty, ontology.namespaces)
                 ontology.addAnnotationProperty(newProp)
             }
         }

@@ -1,6 +1,6 @@
 import { SingularElementArgument } from "cytoscape"
 import { floatyOptions } from "../config"
-import { Annotation, AnnotationProperty, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
+import { Annotation, DefaultAnnotationProperties, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
 import DiagramBuilder from "../core/diagram-builder"
 import Grapholscape from "./core"
 import { DesignerEvent } from "./lifecycle"
@@ -27,7 +27,7 @@ export default class OntologyBuilder {
       if(deriveLabel){
         let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
         label = convertSnake ? this.convertSnakeCase(label) : label
-        const labelAnnotation = new Annotation(AnnotationProperty.label, label, labelLanguage, 'xsd:string')
+        const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string')
         entity.addAnnotation(labelAnnotation)
       }
     }
@@ -91,7 +91,7 @@ export default class OntologyBuilder {
         if(deriveLabel){
           let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
           label = convertSnake ? this.convertSnakeCase(label) : label
-          const labelAnnotation = new Annotation(AnnotationProperty.label, label, labelLanguage, 'xsd:string')
+          const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string')
           entity.addAnnotation(labelAnnotation)
         }
       }
@@ -133,7 +133,7 @@ export default class OntologyBuilder {
         if(deriveLabel){
           let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
           label = convertSnake ? this.convertSnakeCase(label) : label
-          const labelAnnotation = new Annotation(AnnotationProperty.label, label, labelLanguage, 'xsd:string')
+          const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string')
           entity.addAnnotation(labelAnnotation)
         }
       }
