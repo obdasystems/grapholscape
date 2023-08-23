@@ -9,11 +9,11 @@ export function propertiesTemplate(annProperties: AnnotationProperty[], handleEd
         return html`
           <div class="annotation-row" id=ann${i}>
             <div class="annotation-value">
-              <span> ${a.iri.fullIri} </span>
+              <span> ${a.fullIri} </span>
             </div>
             <div style="flex-shrink: 0;">
-                <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation" @click=${() => handleEditProperty(a)}><span slot="icon">${icons.editIcon}</span></gscape-button>
-                <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => handleDeleteProperty(a)}><span slot="icon">${icons.rubbishBin}</span></gscape-button>
+                <gscape-button type="subtle" size='s' id ="editAnnotation" @click=${() => handleEditProperty(a)}><span slot="icon">${icons.editIcon}</span></gscape-button>
+                <gscape-button type="subtle" size='s' id ="deleteAnnotation" @click=${() => handleDeleteProperty(a)}><span slot="icon">${icons.rubbishBin}</span></gscape-button>
             </div>
           </div>
         `
@@ -33,24 +33,4 @@ export function propertiesTemplate(annProperties: AnnotationProperty[], handleEd
   `
 }
 
-export const annotationsTemplateStyle = css`
-  .annotations-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
 
-  .annotation-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: var(--gscape-border-radius);
-    border: solid 1px var(--gscape-color-border-subtle);
-    padding: 8px;
-    background: var(--gscape-color-bg-inset);
-  }
-
-  .annotation-buttons {
-    flex-shrink: 0;
-  }
-`

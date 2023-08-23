@@ -23,15 +23,15 @@ export function namespacesTemplate(namespaces: Namespace[],  handleEditNamespace
         return html`
               ${namespace.prefixes.map((prefix, i) => {
             return html`
-                  <tr>
+                  <tr class="annotation-row">
                     <th>${prefix}</th>
                     ${i === 0 
                     ? html`<td rowspan="${numRows}">${namespace.toString()}</td>`
                     : null
                 }
                     <td style="flex-shrink: 0;">
-                        <gscape-button style = "border-radius: 50%;" size='s' id ="editAnnotation" @click=${() => handleEditNamespace(namespace, prefix)}><span slot="icon">${icons.editIcon}</span></gscape-button>
-                        <gscape-button style = "border-radius: 50%;" size='s' id ="deleteAnnotation" @click=${() => handleDeleteNamespace(namespace, prefix)}><span slot="icon">${icons.rubbishBin}</span></gscape-button>
+                        <gscape-button type="subtle" size='s' id ="editAnnotation" @click=${() => handleEditNamespace(namespace, prefix)}><span slot="icon">${icons.editIcon}</span></gscape-button>
+                        <gscape-button type="subtle" size='s' id ="deleteAnnotation" @click=${() => handleDeleteNamespace(namespace, prefix)}><span slot="icon">${icons.rubbishBin}</span></gscape-button>
                     </td>
                   </tr>
                 `

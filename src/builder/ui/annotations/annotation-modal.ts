@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, PropertyDeclarations, css, html } from "lit";
-import { Annotation, AnnotationProperty, Iri } from "../../../model";
+import { Annotation, DefaultAnnotationProperties, Iri } from "../../../model";
 import { datatypes } from "../new-element-modal";
 import * as UI from '../../../ui'
 import { OntologyViewModel } from "../../../ui/ontology-info/ontology-info";
@@ -147,7 +147,7 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
             const datatypeInput = this.shadowRoot?.querySelector('#datatype') as HTMLSelectElement
             const languageInput = this.shadowRoot?.querySelector('#newlan') as HTMLInputElement
 
-            const propertyIri = Object.values(AnnotationProperty).find(ap => ap.equals(propertyInput.value)) || propertyInput.value
+            const propertyIri = Object.values(DefaultAnnotationProperties).find(ap => ap.equals(propertyInput.value)) || propertyInput.value
             this.onConfirm(this.annotation, propertyIri, lexicalFormInput.value, datatypeInput.value, languageInput.value)
             this.resetForm()
         }
@@ -189,7 +189,7 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
                               @change=${this.handlePropertySelection}                              
                               name="property" 
                               value="${this.annotation?.property}" required>
-                                ${Object.values(AnnotationProperty).sort().map((property, i) => {
+                                ${Object.values(DefaultAnnotationProperties).sort().map((property, i) => {
                                   return html`
                                     <option 
                                       value="${property.fullIri}"; 

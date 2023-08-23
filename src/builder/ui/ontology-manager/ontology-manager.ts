@@ -98,7 +98,9 @@ export default class OntologyManager extends ModalMixin(BaseMixin(LitElement)) {
           </gscape-button>
         </div>
       
-        <div>
+        <div style="display: flex;
+            flex-direction: column;
+            overflow: hidden;">
           <gscape-tabs .tabs=${this.tabs} @change=${this.handleTabChange}></gscape-tabs>
           <div class="modal-body content">${this.currentTab.getContent()}</div>
         </div>

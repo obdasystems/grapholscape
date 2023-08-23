@@ -63,7 +63,7 @@ export const annotationsTemplateStyle = css`
     align-items: center;
     border-radius: var(--gscape-border-radius);
     border: solid 1px var(--gscape-color-border-subtle);
-    padding: 8px;
+    padding: 4px 8px;
     background: var(--gscape-color-bg-inset);
   }
 

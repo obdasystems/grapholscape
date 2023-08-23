@@ -165,13 +165,13 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                         <div class="dropdown">
                             <input
                                 id="newnamespace"
-                                value=${this.annProperty !== undefined ? this.annProperty.iri.namespace : ''}
+                                value=${this.annProperty !== undefined ? this.annProperty.namespace : ''}
                                 type="text"
                                 @input=${this.validate}
                             />
-                            <select id="namespace" name="namespace" value=${this.annProperty?.iri.namespace?.toString()} @change=${this.handleNamespaceSelection} required>
+                            <select id="namespace" name="namespace" value=${this.annProperty?.namespace?.toString()} @change=${this.handleNamespaceSelection} required>
                                 ${this.ontology.namespaces?.map((n, i) => {
-                                return html`<option value=${n.toString()} ?selected=${n.toString() === this.annProperty?.iri.namespace?.toString()}>${n.toString()}</option>`
+                                return html`<option value=${n.toString()} ?selected=${n.toString() === this.annProperty?.namespace?.toString()}>${n.toString()}</option>`
                                 })}
                                 <option value="" ?selected=${this.annProperty === undefined}></option>
                             </select>
@@ -181,7 +181,7 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                             style= "width: 78%; margin: 0px 8px 0px 8px ;"
                             id="input"
                             type="text"
-                            value= ${this.annProperty !== undefined ? this.annProperty.iri.remainder : ''}
+                            value= ${this.annProperty !== undefined ? this.annProperty.remainder : ''}
                             @input=${this.validate}
                             required
                         />

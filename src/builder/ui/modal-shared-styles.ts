@@ -28,6 +28,7 @@ export default css`
     flex-direction: column;
     justify-content: space-between;
     gap: 16px;
+    overflow: hidden;
   }
 
   .top-bar {
@@ -47,6 +48,7 @@ export default css`
   .modal-body {
     padding: 0 16px;
     flex-grow: 2;
+    overflow: auto;
   }
 
   form {
