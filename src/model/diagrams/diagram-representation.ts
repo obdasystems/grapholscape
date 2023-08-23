@@ -58,9 +58,9 @@ export default class DiagramRepresentation {
 
   }
 
-  updateElement(element: GrapholElement, updatePosition?: boolean): void
-  updateElement(elementId: string, updatePosition?: boolean): void
-  updateElement(elementIdOrObj: string | GrapholElement, updatePosition: boolean = true) {
+  updateElement(element: GrapholElement, grapholEntity?: GrapholEntity, updatePosition?: boolean): void
+  updateElement(elementId: string, grapholEntity?: GrapholEntity, updatePosition?: boolean): void
+  updateElement(elementIdOrObj: string | GrapholElement, grapholEntity?: GrapholEntity, updatePosition: boolean = true) {
     let grapholElement: GrapholElement | undefined
     if (typeof elementIdOrObj === 'string') {
       grapholElement = this.grapholElements.get(elementIdOrObj)
@@ -88,7 +88,7 @@ export default class DiagramRepresentation {
     }
 
     const iri = cyElement.data().iri
-    cyElement.data(grapholElement.getCytoscapeRepr()[0].data)
+    cyElement.data(grapholElement.getCytoscapeRepr(grapholEntity)[0].data)
     // iri should be always preserved
     cyElement.data().iri = iri
   }

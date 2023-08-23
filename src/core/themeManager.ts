@@ -8,14 +8,14 @@ import Grapholscape from "./grapholscape"
 export default class ThemeManager {
   private _grapholscape: Grapholscape
   theme: GrapholscapeTheme
-  themes: GrapholscapeTheme[] = Object.values(DefaultThemes)
+  themes: Set<GrapholscapeTheme> = new Set(Object.values(DefaultThemes))
   
   constructor(grapholscape: Grapholscape) {
     this._grapholscape = grapholscape
   }
 
   setTheme(newThemeId: string) {
-    const newTheme = this.themes.find(t => t.id === newThemeId)
+    const newTheme = Array.from(this.themes).find(t => t.id === newThemeId)
 
     if (newTheme) {
       this.setMissingColours(newTheme)
@@ -33,11 +33,15 @@ export default class ThemeManager {
   }
 
   addTheme(newTheme: GrapholscapeTheme) {
-    this.themes.push(newTheme)
+    this.themes.add(newTheme)
+  }
+
+  removeTheme(theme: GrapholscapeTheme) {
+    this.themes.delete(theme)
   }
 
   removeThemes() {
-    this.themes = []
+    this.themes.clear()
   }
 
   private setMissingColours(theme: GrapholscapeTheme) {

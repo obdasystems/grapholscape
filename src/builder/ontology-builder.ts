@@ -142,21 +142,7 @@ export default class OntologyBuilder {
     }
     this.diagramBuilder.addHierarchy(hierarchy, { x: 0, y: 0 })
 
-    let subHierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(ownerIri)
-    if (!subHierarchies) {
-      this.grapholscape.ontology.hierarchiesBySuperclassMap.set(ownerIri, [hierarchy])
-    } else {
-      subHierarchies.push(hierarchy)
-    }
-
-    iris.forEach(inputIri => {
-      let superHierarchies = this.grapholscape.ontology.hierarchiesBySubclassMap.get(inputIri)
-      if (!superHierarchies) {
-        this.grapholscape.ontology.hierarchiesBySubclassMap.set(inputIri, [hierarchy])
-      } else {
-        superHierarchies.push(hierarchy)
-      }
-    })
+    this.grapholscape.ontology.addHierarchy(hierarchy)
 
     this.grapholscape.renderer.renderState?.runLayout()
   }
@@ -169,11 +155,11 @@ export default class OntologyBuilder {
       if (grapholElem) {
 
         if (cyOccurrence.isNode() && entity.is(TypesEnum.CLASS)) {
-          this.grapholscape.ontology.hierarchiesBySubclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+          this.grapholscape.ontology.getSuperHierarchiesOf(entity.fullIri).forEach(hierarchy => {
             this.removeHierarchyInput(hierarchy, entity.iri.fullIri)
           })
 
-          this.grapholscape.ontology.hierarchiesBySuperclassMap.get(entity.iri.fullIri)?.forEach(hierarchy => {
+          this.grapholscape.ontology.getSubHierarchiesOf(entity.fullIri).forEach(hierarchy => {
             this.removeHierarchySuperclass(hierarchy, entity.iri.fullIri)
           })
 
@@ -204,22 +190,10 @@ export default class OntologyBuilder {
   }
 
   public removeHierarchy(hierarchy: Hierarchy) {
-
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
-
-
-    hierarchy.inputs.forEach(i => {
-      const map = this.grapholscape.ontology.hierarchiesBySubclassMap.get(i.iri.fullIri)
-      map?.splice(map.findIndex(h => h.id === hierarchy.id), 1)
-    })
-    hierarchy.superclasses.forEach(s => {
-      const hierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(s.classEntity.iri.fullIri)
-      hierarchies?.splice(hierarchies.findIndex(h => h.id === hierarchy.id), 1)
-    })
-
-    if (hierarchy.id)
-      this.diagramBuilder.removeHierarchy(hierarchy)
+    this.grapholscape.ontology.removeHierarchy(hierarchy)
+    this.diagramBuilder.removeHierarchy(hierarchy)
   }
 
   public removeHierarchyInput(hierarchy: Hierarchy, inputIri: string) {
@@ -306,39 +280,39 @@ export default class OntologyBuilder {
   }
 
   public reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri) {
-    let superhierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(oldIri.fullIri)
-    if (superhierarchies) {
-      let oldSuperhierarchies = superhierarchies.filter(h => {
-        if (h.id) {
-          return !hierarchiesIDs.includes(h.id)
-        }
-      })
-      let newSuperhierarchies = superhierarchies.filter(h => {
-        if (h.id) {
-          return hierarchiesIDs.includes(h.id)
-        }
-      })
-      this.grapholscape.ontology.hierarchiesBySuperclassMap.set(oldIri.fullIri, oldSuperhierarchies)
-      this.grapholscape.ontology.hierarchiesBySuperclassMap.set(newIri, newSuperhierarchies)
-    }
+    // let superhierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(oldIri.fullIri)
+    // if (superhierarchies) {
+    //   let oldSuperhierarchies = superhierarchies.filter(h => {
+    //     if (h.id) {
+    //       return !hierarchiesIDs.includes(h.id)
+    //     }
+    //   })
+    //   let newSuperhierarchies = superhierarchies.filter(h => {
+    //     if (h.id) {
+    //       return hierarchiesIDs.includes(h.id)
+    //     }
+    //   })
+    //   this.grapholscape.ontology.hierarchiesBySuperclassMap.set(oldIri.fullIri, oldSuperhierarchies)
+    //   this.grapholscape.ontology.hierarchiesBySuperclassMap.set(newIri, newSuperhierarchies)
+    // }
   }
 
   public reassignSubhierarchies(hierarchiesIDs, oldIri, newIri) {
-    let subhierarchies = this.grapholscape.ontology.hierarchiesBySubclassMap.get(oldIri.fullIri)
-    if (subhierarchies) {
-      let oldSubhierarchies = subhierarchies.filter(h => {
-        if (h.id) {
-          return !hierarchiesIDs.includes(h.id)
-        }
-      })
-      let newSubhierarchies = subhierarchies.filter(h => {
-        if (h.id) {
-          return hierarchiesIDs.includes(h.id)
-        }
-      })
-      this.grapholscape.ontology.hierarchiesBySubclassMap.set(oldIri.fullIri, oldSubhierarchies)
-      this.grapholscape.ontology.hierarchiesBySubclassMap.set(newIri, newSubhierarchies)
-    }
+    // let subhierarchies = this.grapholscape.ontology.hierarchiesBySubclassMap.get(oldIri.fullIri)
+    // if (subhierarchies) {
+    //   let oldSubhierarchies = subhierarchies.filter(h => {
+    //     if (h.id) {
+    //       return !hierarchiesIDs.includes(h.id)
+    //     }
+    //   })
+    //   let newSubhierarchies = subhierarchies.filter(h => {
+    //     if (h.id) {
+    //       return hierarchiesIDs.includes(h.id)
+    //     }
+    //   })
+    //   this.grapholscape.ontology.hierarchiesBySubclassMap.set(oldIri.fullIri, oldSubhierarchies)
+    //   this.grapholscape.ontology.hierarchiesBySubclassMap.set(newIri, newSubhierarchies)
+    // }
   }
 
   public toggleFunctionality(iri) {

@@ -52,7 +52,9 @@ export default class DiagramBuilder {
 
     dataPropertyNode.diagramId = this.diagram.id
     dataPropertyNode.iri = dataPropertyEntity.iri.fullIri
-    dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL);
+    dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL)
+    dataPropertyNode.labelXpos = 0
+    dataPropertyNode.labelYpos = -15
     if (isGrapholNode(ownerEntityNode)) {
       dataPropertyNode.position = ownerEntityNode.position
     }

@@ -179,6 +179,7 @@ export default class GrapholNode extends GrapholElement implements Node {
       height: this.height || undefined,
       width: this.width || undefined,
       fillColor: this.fillColor || undefined,
+      computedFillColor: grapholEntity?.color,
       shapePoints: this.shapePoints || undefined,
       labelXpos: this.labelXpos || this.labelXpos == 0 ? this.labelXpos : undefined,
       labelYpos: this.labelYpos || this.labelYpos == 0 ? this.labelYpos : undefined,

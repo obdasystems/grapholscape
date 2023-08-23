@@ -1,8 +1,9 @@
 import { GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
-import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport } from "../model"
+import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, TypesEnum, Viewport } from "../model"
 import rdfgraphSerializer from "../rdfgraph-serializer"
+import { ColorManager } from "./colors-manager"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import { FloatyRendererState, GrapholRendererState, LiteRendererState, Renderer } from "./rendering"
@@ -57,8 +58,17 @@ export default class Grapholscape {
       return
     }
 
-    if (this.renderState && !diagram.representations?.get(this.renderState)?.hasEverBeenRendered)
+    if (this.renderState && !diagram.representations?.get(this.renderState)?.hasEverBeenRendered) {
       setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
+
+      if (this.renderState === RendererStatesEnum.FLOATY) {
+        new ColorManager(
+          this.ontology,
+          diagram.representations.get(this.renderState)!,
+          this.theme
+        ).computeAllColors()
+      }
+    }
 
     if (viewportState)
       diagram.lastViewportState = viewportState
@@ -272,11 +282,22 @@ export default class Grapholscape {
     this.themesManager.addTheme(newTheme)
   }
 
+  /**
+   * @ignore
+   * // TODO: make this method update settings widget before publishing in docs
+   * Remove a theme in the list of available themes
+   * @param newTheme the new theme
+   * @experimental
+   */
+  removeTheme(newTheme: GrapholscapeTheme) {
+    this.themesManager.removeTheme(newTheme)
+  }
+
   /** The current theme used by Grapholscape */
   get theme() { return this.themesManager.theme }
 
   /** The available themes for this Grapholscape instance */
-  get themeList() { return this.themesManager.themes }
+  get themeList() { return Array.from(this.themesManager.themes) }
 
   // ----------------------------- LIFECYCLE ----------------------------- //
   /**
@@ -382,7 +403,7 @@ export default class Grapholscape {
 
         // It's a default theme id
         if (DefaultThemes[newTheme as DefaultThemesEnum]) {
-          this.themesManager.addTheme(DefaultThemes[newTheme as DefaultThemesEnum])
+          this.themesManager.addTheme(DefaultThemes[newTheme as DefaultThemesEnum]!)
         }
 
         // It's a custom theme

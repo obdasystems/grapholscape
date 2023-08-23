@@ -82,7 +82,7 @@ export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular
 export const addISA = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
   return {
     content: 'Add Class in IS-A',
-    icon: icons.addISAIcon,
+    icon: icons.addClassIcon,
     select: () => {
       initNewIsaUI(grapholscape, elem.data().iri)
     }
@@ -202,19 +202,10 @@ export const removeHierarchyByNode = (grapholscape: Grapholscape, elem: NodeSing
     select: () => {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       if (elem.edges().nonempty()) {
-        elem.edgesWith(`[ type = "${TypesEnum.CLASS}" ]`).forEach(e => {
-          const classNode = e.connectedNodes(`[ type = "${TypesEnum.CLASS}" ]`).first()
-          let hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(classNode.data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
-          if (hierarchy) {
-            ontologyBuilder.removeHierarchy(hierarchy)
-          }
-          else {
-            hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(classNode.data('iri'))?.find(h => h.id === `${elem.data('hierarchyID')}`)
-            if (hierarchy) {
-              ontologyBuilder.removeHierarchy(hierarchy)
-            }
-          }
-        })
+        const hierarchy = grapholscape.ontology.getHierarchy(elem.id())
+        if (hierarchy) {
+          ontologyBuilder.removeHierarchy(hierarchy)
+        }
       }
       else {
         const diagram = grapholscape.renderer.diagram
@@ -261,7 +252,7 @@ export const removeHierarchySuperClassEdge = (grapholscape: Grapholscape, elem: 
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       const hierarchyID = elem.connectedNodes(`[type = "${elem.data('type')}"]`).first().data('hierarchyID')
       const superclassIri = elem.target().data('iri')
-      const hierarchy = grapholscape.ontology.hierarchiesBySuperclassMap.get(superclassIri)?.find(h => h.id === hierarchyID)
+      const hierarchy = grapholscape.ontology.getHierarchy(hierarchyID)
       if (hierarchy)
         ontologyBuilder.removeHierarchySuperclass(hierarchy, superclassIri)
     }
@@ -276,7 +267,7 @@ export const removeHierarchyInputEdge = (grapholscape: Grapholscape, elem: EdgeS
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       const hierarchyID = elem.connectedNodes(`[type $= "${TypesEnum.UNION}"]`).first().data('hierarchyID')
       const inputclassIri = elem.connectedNodes(`[type = "${TypesEnum.CLASS}"]`).first().data('iri')
-      const hierarchy = grapholscape.ontology.hierarchiesBySubclassMap.get(inputclassIri)?.find(h => h.id === hierarchyID)
+      const hierarchy = grapholscape.ontology.getHierarchy(hierarchyID)
       if (hierarchy)
         ontologyBuilder.removeHierarchyInput(hierarchy, inputclassIri)
     }
@@ -295,7 +286,6 @@ export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI
         elem,
         grapholscape.theme,
         (_, sourceNode, targetNode, addedEdge) => {
-          console.log(sourceNode.data().type)
           addedEdge.remove()
           if (grapholscape.renderer.diagram) {
             const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)

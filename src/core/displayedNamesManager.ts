@@ -96,7 +96,7 @@ export default class DisplayedNamesManager {
               diagram.representations.get(renderState)?.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
             }
           } else {
-            this._grapholscape.renderer.diagram?.representations.forEach(representation => representation.updateElement(grapholElement!.id))
+            this._grapholscape.renderer.diagram?.representations.forEach(representation => representation.updateElement(grapholElement!.id, entity))
           }
         }
       })

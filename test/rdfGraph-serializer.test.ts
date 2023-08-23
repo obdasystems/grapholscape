@@ -27,7 +27,7 @@ describe('test serializing an ontology', () => {
       }
     },
     themeList: Object.values(DefaultThemes),
-    theme: DefaultThemes.dark,
+    theme: DefaultThemes.dark!,
     language: 'it',
     entityNameType: EntityNameType.LABEL,
     renderers: Object.values(RendererStatesEnum),

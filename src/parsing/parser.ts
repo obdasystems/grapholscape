@@ -127,8 +127,18 @@ export default class GrapholParser {
       for (k = 0; k < edges.length; k++) {
         const edgeXmlElement = edges[k]
         const grapholEdge = this.getGrapholEdgeFromXML(edgeXmlElement, diagram.id)
-        if (grapholEdge)
+        if (grapholEdge) {
           diagram.addElement(grapholEdge)
+
+          if (grapholEdge.is(TypesEnum.INCLUSION)) {
+            const sourceNode = diagram.representations.get(RendererStatesEnum.GRAPHOL)?.grapholElements.get(grapholEdge.sourceId)
+            const targetNode = diagram.representations.get(RendererStatesEnum.GRAPHOL)?.grapholElements.get(grapholEdge.targetId)
+
+            if (sourceNode?.iri && targetNode?.iri) {
+              this.ontology.addSubclassOf(sourceNode.iri, targetNode.iri)
+            }
+          }
+        }
       }
     }
 
