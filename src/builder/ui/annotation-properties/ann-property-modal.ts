@@ -15,12 +15,15 @@ const {
 export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(LitElement)) {
     
     ontology: OntologyViewModel
+    private isValid: boolean = false
+
 
     public onConfirm: (annProperty: AnnotationProperty | undefined, newProperty: string) => void = () => { }
     public onCancel: () => void = () => { }
 
     static properties: PropertyDeclarations = {
         annProperty: {type: AnnotationProperty},
+        isValid: { type: Boolean, state: true },
       }
 
     constructor(public annProperty?: AnnotationProperty) {
@@ -110,20 +113,16 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
             : ''
             namespaceInput.focus()
         }
+
+        this.validate()
+
     }
 
-    private validate(e: Event) {
-        const selectTarget = e.currentTarget as HTMLInputElement
-        if (selectTarget) {
-            const namespaceInput = this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement
-            const value = this.shadowRoot?.querySelector('#input') as HTMLInputElement
-            console.log(namespaceInput.value.length > 0 && value.value.length > 0)
-            if( namespaceInput.value.length > 0 && value.value.length > 0){
-                console.log(this.shadowRoot?.querySelector('#ok'))
-                this.shadowRoot?.querySelector('#ok')?.setAttribute('disabled', 'false')
-                this.requestUpdate()
-            }
-
+    private validate() {
+        const namespaceInput = this.shadowRoot?.querySelector('#newnamespace') as HTMLInputElement
+        const input = this.shadowRoot?.querySelector('#input') as HTMLInputElement
+        if (namespaceInput && input) {
+            this.isValid = namespaceInput.value.length > 0 && input.value.length > 0
         }
     }
     
@@ -168,6 +167,7 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                                 id="newnamespace"
                                 value=${this.annProperty !== undefined ? this.annProperty.iri.namespace : ''}
                                 type="text"
+                                @input=${this.validate}
                             />
                             <select id="namespace" name="namespace" value=${this.annProperty?.iri.namespace?.toString()} @change=${this.handleNamespaceSelection} required>
                                 ${this.ontology.namespaces?.map((n, i) => {
@@ -182,13 +182,13 @@ export default class GscapeAnnotationPropertyModal extends ModalMixin(BaseMixin(
                             id="input"
                             type="text"
                             value= ${this.annProperty !== undefined ? this.annProperty.iri.remainder : ''}
-                            oninput="if(this.value.length > 0 ) {this.offsetParent.querySelector('#ok').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true;}"                            
+                            @input=${this.validate}
                             required
                         />
                     </form>
                     <div class="buttons" id="buttons">
                         <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} disabled></gscape-button>
+                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} ?disabled=${!this.isValid}></gscape-button>
                     </div>
                 </div>
             </div>

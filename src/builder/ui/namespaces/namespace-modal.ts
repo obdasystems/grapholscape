@@ -14,13 +14,16 @@ const {
 export default class GscapeNamespaceModal extends ModalMixin(BaseMixin(LitElement)) {
     
     ontology: OntologyViewModel
+    private isValid: boolean = false
+
 
     public onConfirm: (namespace: Namespace | undefined, prefix: string | undefined, newnamespace: string, newprefix: string) => void = () => { }
     public onCancel: () => void = () => { }
 
     static properties: PropertyDeclarations = {
         namespace: {type: Namespace},
-        prefixx: {type: String}
+        prefixx: {type: String},
+        isValid: { type: Boolean, state: true },
       }
 
     constructor(public namespace?: Namespace, public prefixx?: string ) {
@@ -99,6 +102,13 @@ export default class GscapeNamespaceModal extends ModalMixin(BaseMixin(LitElemen
                 }
             `
         ]
+
+    private validate() {
+        const namespaceInput = this.shadowRoot?.querySelector('#namespace') as HTMLInputElement 
+        if (namespaceInput) {
+            this.isValid = namespaceInput.value.length > 0
+        }
+    }
     
     private handleConfirm = () => {
         let myform = this.shadowRoot?.querySelector('#new-namespace-form') as HTMLFormElement
@@ -136,13 +146,25 @@ export default class GscapeNamespaceModal extends ModalMixin(BaseMixin(LitElemen
                     </div>
                     <form id= "new-namespace-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
                         <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="prefix-label" for="prefix"><b>Prefix:</b></label>
-                        <input style= "width: 78%; margin: 0px 8px 0px 8px ;" id="prefix" value="${this.prefixx}" type="text"/>
+                        <input 
+                            style= "width: 78%; margin: 0px 8px 0px 8px ;" 
+                            id="prefix" 
+                            value="${this.prefixx}" 
+                            type="text"
+                            @input=${this.validate}
+                            />
                         <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace-label" for="namespace"><b>Namespace:</b></label>
-                        <input style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace" value="${this.namespace?.toString()}" type="text" oninput="if(this.value.length > 0 ) {this.offsetParent.querySelector('#ok').disabled = false;} else {this.offsetParent.querySelector('#ok').disabled = true;}"/>
+                        <input 
+                            style= "width: 78%; margin: 0px 8px 0px 8px ;" 
+                            id="namespace" 
+                            value="${this.namespace?.toString()}" 
+                            type="text" 
+                            @input=${this.validate}                            
+                            />
                     </form>
                     <div class="buttons" id="buttons">
                         <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} disabled></gscape-button>
+                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} ?disabled=${!this.isValid}></gscape-button>
                     </div>
                 </div>
             </div>
