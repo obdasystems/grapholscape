@@ -4,6 +4,7 @@ import { datatypes } from "../new-element-modal";
 import * as UI from '../../../ui'
 import { OntologyViewModel } from "../../../ui/ontology-info/ontology-info";
 import { Language } from "../../../config";
+import modalSharedStyles from "../modal-shared-styles";
 
 const {
     ModalMixin, BaseMixin,
@@ -31,74 +32,15 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
 
     static styles?: CSSResultGroup = [
         baseStyle,
+        modalSharedStyles,
         css`
-            :host {
-                position: absolute;
-                }
-            .drawing-btn {
-                position: absolute;
-                top: 50px;
-                left: 10px;
-                border-radius: var(--gscape-border-radius-btn);
-                border: 1px solid var(--gscape-color-border-subtle);
-                background-color: var(--gscape-color-bg-default);
-            }
-    
-            .gscape-panel {
-                position: absolute;
-                top: 100px;
-                left: 50%;
-                transform: translate(-50%);
-                max-width: 400px;
-                min-width: 300px;
-                }
-        
-                .header, .dialog-message {
+            textarea {
+                width: 78%;
                 margin: 8px;
-                font-size: 15px;
-                }
-        
-                .dialog-message {
-                padding: 8px;
-                margin-bottom: 16px;
-                }
-        
-                .buttons {
-                display: flex;
-                align-items: center;
-                justify-content: right;
-                gap: 8px;
-                }
-    
-                .dropdown {
-                position: relative;
-                width: 78%; 
-                margin: 8px 8px 8px 8px ;
-                border: solid 1px var(--gscape-color-border-subtle);
-                border-radius: var(--gscape-border-radius);
-                }
-                
-                .dropdown select {
-                width: 100%;
-                }
-                
-                .dropdown > * {
-                box-sizing: border-box;
-                height: 100%;
-                border: none;
-                }
-                
-                .dropdown input {
-                position: absolute;
-                width: calc(100% - 18px);
-                }
-    
-                .dropdown select:focus, .dropdown input:focus {
-                border-color: inherit;
-                -webkit-box-shadow: none;
-                box-shadow: none;
-                }
-            `
+                resize: none;
+                color: inherit;
+            }
+        `
         ]
 
         private handlePropertySelection(e: Event) {
@@ -204,13 +146,12 @@ export default class GscapeAnnotationModal extends ModalMixin(BaseMixin(LitEleme
                         </div>
                         <label style = "width: 95%; margin: 8px 8px 8px 8px ;" id="lexicalform-label" for="lexicalform"><b>Lexical Form:</b></label><br>
                         <textarea 
-                            class="area" 
-                            style="width: 78%; margin: 8px 8px 8px 8px ;resize: none;" 
+                            class="area"
                             id = "lexicalform" 
                             rows="4" 
                             cols="40" 
                             @input=${this.validate}
-                            > ${this.annotation?.lexicalForm} </textarea>
+                            >${this.annotation?.lexicalForm}</textarea>
                         <label style = "width: 95%; margin: 8px 8px 8px 8px ;" id="datatype-label" for="datatype"><b>Datatype:</b></label><br>
                         <select style = "width: 78%; margin: 8px 8px 8px 8px ;" id="datatype" name="datatype" @change=${this.validate} required>
                             ${datatypes.sort().map((n, i) => {
