@@ -9,7 +9,7 @@ export declare class IModalMixin {
   protected modalBackground: HTMLDivElement
 }
 
-export const ModalMixin = <T extends Constructor<IBaseMixin>>(superClass: T) => {
+export const ModalMixin = <T extends Constructor<LitElement & IBaseMixin>>(superClass: T) => {
 
   class ModalMixinClass extends superClass {
     protected modalBackground = document.createElement('div')
@@ -39,6 +39,23 @@ export const ModalMixin = <T extends Constructor<IBaseMixin>>(superClass: T) => 
     }
 
     show() {
+      // Manually blur other widgets, needed for chrome/safari/edge
+      // For firefox DropPanelMixin's onblur event listener is enough
+      const container = this.parentElement
+      if (container) {
+        for (const siblingElement of container.children) {
+          if (siblingElement !== this)
+            (siblingElement as HTMLElement).blur()
+        }
+
+        const bottomContainer = this.parentElement?.querySelector('.gscape-ui-buttons-tray')
+        if (bottomContainer) {
+          for (const elem of bottomContainer.children) {
+            (elem as HTMLElement).blur()
+          }
+        }
+      }
+
       super.show();
       // (this as unknown as HTMLElement).style.zIndex = '2';
       this.showModalBackground();
