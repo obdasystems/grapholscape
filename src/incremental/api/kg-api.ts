@@ -382,7 +382,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     onNewResult: (rdfGraph?: RDFGraph) => void
     ) {
     const params = new URLSearchParams({
-      sourceInstanceIri: sourceInstanceIri,
+      sourceInstanceIRI: sourceInstanceIri,
       targetInstanceIRI: targetIri,
       labels: 'true',
       version: this.requestOptions.version

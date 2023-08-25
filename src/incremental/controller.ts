@@ -230,6 +230,19 @@ export default class IncrementalController {
    * from the CONSTRUCT query over the path.
    */
   async addInstancesPath(sourceIri: string, targetIri: string, path: OntologyPath) {
+
+    const sourceEntity = this.classInstanceEntities.get(sourceIri) || this.ontology.getEntity(sourceIri)
+    const targetEntity = this.classInstanceEntities.get(targetIri) || this.ontology.getEntity(targetIri)
+
+    if (sourceEntity && targetEntity) {
+      /**
+       * If source is a class, swap source and target
+       */
+      if (sourceEntity.is(TypesEnum.CLASS)) {
+        [sourceIri, targetIri] = [targetIri, sourceIri]
+      }
+    }
+
     const rdfGraph = await this.endpointController?.requestInstancesPath(
       sourceIri,
       targetIri,
