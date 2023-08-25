@@ -11,7 +11,7 @@ import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
 import { Entity, EntityTypeEnum, OntologyPath } from "./api/swagger";
-import { ColorManager } from "../core/colors-manager";
+import { OntologyColorManager } from "../core/colors-manager";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
@@ -114,10 +114,9 @@ export default class IncrementalController {
       return
     }
 
-    const colorManager = new ColorManager(
+    const colorManager = new OntologyColorManager(
       this.ontology,
-      this.diagram.representation,
-      this.grapholscape.theme)
+      this.diagram.representation)
 
     const addElemToIncremental = (elem: GrapholElement, rdfGraphRepr: DiagramRepresentation) => {
       let entity: GrapholEntity | undefined
@@ -261,10 +260,9 @@ export default class IncrementalController {
     let classNode: GrapholNode | undefined
     if (entity && this.diagram.representation) {
       if (!entity.color) {
-        const colorManager = new ColorManager(
+        const colorManager = new OntologyColorManager(
           this.ontology,
-          this.diagram.representation,
-          this.grapholscape.theme)
+          this.diagram.representation)
 
         colorManager.setClassColor(entity)
       }
@@ -499,7 +497,7 @@ export default class IncrementalController {
             classInstanceEntity.addParentClass(classEntity.iri)
 
             if (!classInstanceEntity.color && this.diagram.representation) {
-              const colorManager = new ColorManager(this.ontology, this.diagram.representation, this.grapholscape.theme)
+              const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
               colorManager.setInstanceColor(classInstanceEntity)
               this.diagram.representation.updateElement(addedNode, classInstanceEntity)
             }
@@ -513,7 +511,7 @@ export default class IncrementalController {
         classInstanceEntity.addParentClass(parentClassEntity.iri)
 
         if (!classInstanceEntity.color && this.diagram.representation) {
-          const colorManager = new ColorManager(this.ontology, this.diagram.representation, this.grapholscape.theme)
+          const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
           colorManager.setInstanceColor(classInstanceEntity)
         }
       }

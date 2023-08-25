@@ -3,7 +3,7 @@ import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
 import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, TypesEnum, Viewport } from "../model"
 import rdfgraphSerializer from "../rdfgraph-serializer"
-import { ColorManager } from "./colors-manager"
+import { OntologyColorManager } from "./colors-manager"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import { FloatyRendererState, GrapholRendererState, LiteRendererState, Renderer } from "./rendering"
@@ -60,14 +60,6 @@ export default class Grapholscape {
 
     if (this.renderState && !diagram.representations?.get(this.renderState)?.hasEverBeenRendered) {
       setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
-
-      if (this.renderState === RendererStatesEnum.FLOATY) {
-        new ColorManager(
-          this.ontology,
-          diagram.representations.get(this.renderState)!,
-          this.theme
-        ).computeAllColors()
-      }
     }
 
     if (viewportState)

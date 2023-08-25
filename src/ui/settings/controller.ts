@@ -8,6 +8,17 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   settingsComponent.languages = grapholscape.ontology.languages
   settingsComponent.selectedLanguage = grapholscape.language
   settingsComponent.selectedEntityNameType = grapholscape.entityNameType
+
+  const colorfulThemeLight = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_LIGHT, autoLightColourMap, 'Colorful - Light')
+  const colorfulThemeDark = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_DARK, autoDarkColourMap, 'Colorful - Dark')
+  if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+    grapholscape.addTheme(colorfulThemeLight)
+    grapholscape.addTheme(colorfulThemeDark)
+  } else {
+    grapholscape.removeTheme(colorfulThemeLight)
+    grapholscape.removeTheme(colorfulThemeDark)
+  }
+
   settingsComponent.themes = grapholscape.themeList
   settingsComponent.selectedTheme = grapholscape.theme.id
 
@@ -46,9 +57,6 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   grapholscape.on(LifecycleEvent.LanguageChange, language => settingsComponent.selectedLanguage = language)
   grapholscape.on(LifecycleEvent.EntityNameTypeChange, entityNameType => settingsComponent.selectedEntityNameType = entityNameType)
   grapholscape.on(LifecycleEvent.ThemeChange, newTheme => settingsComponent.selectedTheme = newTheme.id)
-
-  const colorfulThemeLight = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_LIGHT, autoLightColourMap, 'Colorful - Light')
-  const colorfulThemeDark = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_DARK, autoDarkColourMap, 'Colorful - Dark')
 
   grapholscape.on(LifecycleEvent.RendererChange, newRenderer => {
     if (newRenderer === RendererStatesEnum.FLOATY) {

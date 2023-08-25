@@ -1,7 +1,7 @@
 import chroma from "chroma-js"
 import { NodeSingular, Stylesheet } from "cytoscape"
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model"
-import { ColorManager } from "../../colors-manager"
+import { OntologyColorManager } from "../../colors-manager"
 import floatyStyle from "../floaty/floaty-style"
 import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util"
 
