@@ -66,7 +66,7 @@ export default class QueryManager {
     queryStatusPoller.start()
     queryStatusPoller.onNewResults = (result) => {
       queryResultsPoller.numberResultsAvailable = result.numResults
-      if (result.status !== QueryStatusEnum.RUNNING) {
+      if (result.status === QueryStatusEnum.FINISHED || result.status === QueryStatusEnum.ERROR) {
         queryResultsPoller.stop()
         this._runningQueryPollerByExecutionId.delete(executionId)
         queryStatusPoller.stop()

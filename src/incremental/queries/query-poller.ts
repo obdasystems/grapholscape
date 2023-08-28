@@ -93,8 +93,6 @@ export abstract class QueryPoller {
 
   protected abstract isResultError(result: any): boolean
 
-  protected abstract hasAnyResults(): boolean
-
   start() {
     this.interval = setInterval(() => {
       if (this.lastRequestFulfilled) {
@@ -132,10 +130,6 @@ export class QueryResultsPoller extends QueryPoller {
     super()
   }
 
-  protected hasAnyResults(): boolean {
-    return this.result && this.result.results.length > 0
-  }
-
   protected isResultError(result: QueryRecords): boolean {
     return !result || result.results === undefined
   }
@@ -158,12 +152,8 @@ export class QueryStatusPoller extends QueryPoller {
 
   public onNewResults: (result: QueryStatus) => void
 
-  protected hasAnyResults(): boolean {
-    return this.result !== undefined
-  }
-
   protected stopCondition(): boolean {
-    return this.result?.status !== QueryStatusEnum.RUNNING
+    return this.result?.status === QueryStatusEnum.FINISHED || this.result?.status === QueryStatusEnum.ERROR
   }
 
   protected isResultError(result: QueryStatus): boolean {
