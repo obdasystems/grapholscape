@@ -45,12 +45,16 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
       }
     })
 
+    cy.on('mouseover', evt => lifecycle.trigger(LifecycleEvent.MouseOver, evt))
+
     cy.on('mouseout', '*', e => {
       const container = cy.container()
       if (container) {
         container.style.cursor = 'inherit'
       }
     })
+
+    cy.on('mouseout', evt => lifecycle.trigger(LifecycleEvent.MouseOut, evt))
 
     cy.scratch('_gscape-graph-handlers-set', true)
   })

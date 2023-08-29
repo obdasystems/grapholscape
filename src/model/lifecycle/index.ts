@@ -27,6 +27,8 @@ export enum LifecycleEvent {
   ContextClick = 'contextClick',
   DoubleTap = 'doubleTap',
   EntityWikiLinkClick = 'entityWikiLinkClick',
+  MouseOver = 'mouseOver',
+  MouseOut = 'mouseOut'
 }
 
 export interface IonEvent {
@@ -45,6 +47,8 @@ export interface IonEvent {
   (event: LifecycleEvent.BackgroundClick, callback: () => void): void
   (event: LifecycleEvent.ContextClick, callback: (eventObject: EventObject) => void): void
   (event: LifecycleEvent.DoubleTap, callback: (eventObject: EventObject) => void): void
+  (event: LifecycleEvent.MouseOver, callback: (eventObject: EventObject) => void): void
+  (event: LifecycleEvent.MouseOut, callback: (eventObject: EventObject) => void): void
   (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void
 }
 
@@ -64,6 +68,8 @@ export interface IEventTriggers {
   (event: LifecycleEvent.BackgroundClick): void
   (event: LifecycleEvent.ContextClick, eventObject: EventObject): void
   (event: LifecycleEvent.DoubleTap, eventObject: EventObject): void
+  (event: LifecycleEvent.MouseOver, eventObject: EventObject): void
+  (event: LifecycleEvent.MouseOut, eventObject: EventObject): void
   (event: LifecycleEvent.EntityWikiLinkClick, iri: string): void
 }
 
@@ -83,6 +89,8 @@ export default class Lifecycle {
   private backgroundClick: (() => void)[] = []
   private contextClick: ((eventObject: EventObject) => void)[] = []
   private doubleTap: ((eventObject: EventObject) => void)[] = []
+  private mouseOver: ((eventObject: EventObject) => void)[] = []
+  private mouseOut: ((eventObject: EventObject) => void)[] = []
   public entityWikiLinkClick: ((iri: string) => void)[] = []
 
   trigger: IEventTriggers = (event: string, ...params: any): any => {

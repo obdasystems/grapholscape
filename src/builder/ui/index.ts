@@ -6,15 +6,20 @@ import GscapeDesignerToolbar from './toolbar';
 import edgeEditing from '../edge-editing'
 import { setDesignerStyle } from './style';
 import GrapholscapeDesigner from '../core';
+import GscapeDesignerInfobar from './infobar';
 
 const { GscapeContextMenu } = UI
 
 export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
   const commandsWidget = new GscapeContextMenu()
   const toolboxWidget = new GscapeDesignerToolbar(grapholscape)
+  const infobox = new GscapeDesignerInfobar()
+
 
   if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
     grapholscape.uiContainer?.appendChild(toolboxWidget)
+    grapholscape.uiContainer?.appendChild(infobox)
+
   }
 
   grapholscape.on(LifecycleEvent.NodeSelection, n => {
@@ -102,5 +107,31 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
         }
       } catch (e) { console.error(e) }
     }
+  })
+
+  grapholscape.on(LifecycleEvent.MouseOver, (evt) => {
+    const elem = evt.target
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+
+      if(elem.data('type') === TypesEnum.DATA_PROPERTY){
+        infobox.content = 'Double click to toggle functionality'
+      }
+      else if(elem.data('type') === TypesEnum.UNION || elem.data('type') === TypesEnum.DISJOINT_UNION){
+        if(elem.isNode())
+          infobox.content = elem.data('type') === TypesEnum.UNION ? 'Double click to add disjointness' : 'Double click to remove disjointness'
+        else{
+          infobox.content = elem.data('targetLabel') === 'C' ? 'Double click to remove completeness' : 'Double click to add completeness'
+        }
+
+      }
+    }
+  })
+
+  grapholscape.on(LifecycleEvent.MouseOut, (evt) => {
+
+    if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+        infobox.content = ''
+    }
+
   })
 }
