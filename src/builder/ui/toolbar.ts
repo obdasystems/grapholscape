@@ -8,6 +8,7 @@ import { DesignerEvent } from '../lifecycle'
 import { addObjectProperty } from './commands'
 import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI } from './init-modals'
 import { initOntologyManagerModal } from './ontology-manager'
+import { addObjectPropertyIcon2 } from '../../ui/assets'
 
 const {
   BaseMixin,
@@ -136,7 +137,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
             <span slot="icon">${icons.dataPropertyIcon}</span>
           </gscape-button>
           <gscape-button @click=${this.handleNewObjectProperty} size="s" type="subtle" title="Add Object Property" ?disabled=${!this.objectPropEnabled}>
-            <span slot="icon">${icons.objectPropertyIcon}</span>
+            <span slot="icon">${addObjectPropertyIcon2}</span>
           </gscape-button>
           <gscape-button @click=${this.handleNewIndividual} size="s" type="subtle" title="Add Individual" ?disabled=${!this.individualEnabled}>
             <span slot="icon">${icons.individualIcon}</span>
