@@ -40,34 +40,38 @@ export default class DiagramBuilder {
     return classNode
   }
 
-  addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity: GrapholEntity) {
+  addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity) {
 
     const dataPropertyNode = new GrapholNode(this.getNewId('node'), TypesEnum.DATA_PROPERTY)
-
-    const ownerEntityId = ownerEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState)
-    if (!ownerEntityId) return
-    let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
-
-    if (!dataPropertyNode || !ownerEntityNode) return
 
     dataPropertyNode.diagramId = this.diagram.id
     dataPropertyNode.iri = dataPropertyEntity.iri.fullIri
     dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL)
     dataPropertyNode.labelXpos = 0
     dataPropertyNode.labelYpos = -15
-    if (isGrapholNode(ownerEntityNode)) {
-      dataPropertyNode.position = ownerEntityNode.position
-    }
 
     dataPropertyNode.originalId = dataPropertyNode.id
     dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY)
 
-    const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE)
-    dataPropertyEdge.diagramId = this.diagram.id
-    dataPropertyEdge.sourceId = ownerEntityNode.id
-    dataPropertyEdge.targetId = dataPropertyNode.id
     this.diagramRepresentation?.addElement(dataPropertyNode, dataPropertyEntity)
-    this.diagramRepresentation?.addElement(dataPropertyEdge)
+
+    if(ownerEntity){
+      const ownerEntityId = ownerEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState)
+      if (!ownerEntityId) return
+      let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
+
+      if (!dataPropertyNode || !ownerEntityNode) return
+      
+      if (isGrapholNode(ownerEntityNode)) {
+        dataPropertyNode.position = ownerEntityNode.position
+      }    
+
+      const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE)
+      dataPropertyEdge.diagramId = this.diagram.id
+      dataPropertyEdge.sourceId = ownerEntityNode.id
+      dataPropertyEdge.targetId = dataPropertyNode.id
+      this.diagramRepresentation?.addElement(dataPropertyEdge)
+    }
 
     return dataPropertyNode
   }

@@ -24,7 +24,6 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
   public undoEnabled = false
   public redoEnabled = false
   public objectPropEnabled = false
-  public dataPropEnabled = false
   public individualEnabled = false
   public newVersionEnabled = false
 
@@ -34,7 +33,6 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
     undoEnabled: { type: Boolean },
     redoEnabled: { type: Boolean },
     objectPropEnabled: { type: Boolean },
-    dataPropEnabled: { type: Boolean },
     individualEnabled: { type: Boolean },
     newVersionEnabled: { type: Boolean },
   }
@@ -78,9 +76,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
   }
 
   private handleNewDataProperty() {
-    if (this.lastSelectedElement?.is(TypesEnum.CLASS) && this.lastSelectedElement.data().iri) {
-      initNewDataPropertyUI(this.grapholscape, this.lastSelectedElement.data().iri)
-    }
+    initNewDataPropertyUI(this.grapholscape, undefined)
   }
 
   private handleNewObjectProperty() {
@@ -113,7 +109,6 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
     this._lastSelectedElement = newElem
 
     const isClass = newElem?.data().type === TypesEnum.CLASS || false
-    this.dataPropEnabled = isClass
     this.objectPropEnabled = isClass
     this.individualEnabled = isClass
 
@@ -133,7 +128,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
           <gscape-button @click=${() => initNewEntityUI(this.grapholscape, TypesEnum.CLASS)} size="s" type="subtle" title="Add Class">
             <span slot="icon">${icons.classIcon}</span>
           </gscape-button>
-          <gscape-button @click=${this.handleNewDataProperty} size="s" type="subtle" title="Add Data Property" ?disabled=${!this.dataPropEnabled}>
+          <gscape-button @click=${this.handleNewDataProperty} size="s" type="subtle" title="Add Data Property">
             <span slot="icon">${icons.dataPropertyIcon}</span>
           </gscape-button>
           <gscape-button @click=${this.handleNewObjectProperty} size="s" type="subtle" title="Add Object Property" ?disabled=${!this.objectPropEnabled}>

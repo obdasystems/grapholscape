@@ -40,7 +40,7 @@ export function initNewEntityUI(grapholscape: Grapholscape, entityType: TypesEnu
   )
 }
 
-export function initNewDataPropertyUI(grapholscape: Grapholscape, ownerClassIri: string) {
+export function initNewDataPropertyUI(grapholscape: Grapholscape, ownerClassIri: string | undefined) {
 
   getModal(
     grapholscape,
