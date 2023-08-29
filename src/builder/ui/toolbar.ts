@@ -86,9 +86,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
   }
 
   private handleNewIndividual() {
-    if (this.lastSelectedElement?.is(TypesEnum.CLASS) && this.lastSelectedElement.isNode()) {
-      initNewIndividualUI(this.grapholscape, this.lastSelectedElement.data().iri)
-    }
+      initNewIndividualUI(this.grapholscape, undefined)
   }
 
   private handleOntologyManager() {
@@ -134,7 +132,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
           <gscape-button @click=${this.handleNewObjectProperty} size="s" type="subtle" title="Add Object Property" ?disabled=${!this.objectPropEnabled}>
             <span slot="icon">${addObjectPropertyIcon2}</span>
           </gscape-button>
-          <gscape-button @click=${this.handleNewIndividual} size="s" type="subtle" title="Add Individual" ?disabled=${!this.individualEnabled}>
+          <gscape-button @click=${this.handleNewIndividual} size="s" type="subtle" title="Add Individual">
             <span slot="icon">${icons.individualIcon}</span>
           </gscape-button>
 

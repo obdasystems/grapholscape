@@ -36,14 +36,17 @@ export default class OntologyBuilder {
     if (ownerIri)
       ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
 
-    if (entityType === TypesEnum.INDIVIDUAL && ownerEntity) {
-      const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
+    if (entityType === TypesEnum.INDIVIDUAL) {
       this.diagramBuilder.addIndividual(entity)
       const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.INDIVIDUAL, this.rendererState)
 
-      if (!sourceId || !targetId) return
-      this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
-      this.grapholscape.renderer.renderState?.runLayout()
+      if(ownerEntity){
+        const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
+        if (!sourceId || !targetId) return
+        this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
+        this.grapholscape.renderer.renderState?.runLayout()
+      }
+      
       return
     }
 

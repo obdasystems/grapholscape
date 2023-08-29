@@ -89,7 +89,7 @@ export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassI
   )
 }
 
-export function initNewIndividualUI(grapholscape: Grapholscape, ownerClassIri: string) {
+export function initNewIndividualUI(grapholscape: Grapholscape, ownerClassIri: string | undefined) {
   getModal(
     grapholscape,
     TypesEnum.INDIVIDUAL,
