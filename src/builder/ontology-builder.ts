@@ -341,8 +341,16 @@ export default class OntologyBuilder {
   }
 
   public convertCamelCase(input: string) {
-    input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1").trim()
-    input = input.charAt(0).toUpperCase() + input.slice(1);
+    input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1")//.trim()
+    //input = input.charAt(0).toUpperCase() + input.slice(1);
+    let inputSplit = input.split(' ')
+    inputSplit.forEach((w,i) =>{
+      if(w != w.toUpperCase())
+        inputSplit[i] = w.toLowerCase()
+      else
+        inputSplit[i] = w
+    })
+    input = inputSplit.join(' ')
     return input
   }
 
