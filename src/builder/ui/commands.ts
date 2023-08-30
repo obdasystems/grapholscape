@@ -37,9 +37,9 @@ export function getCommandsByType() {
     addSubclassEdge,
   ])
 
-  commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge])
+  commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge, addInputEdge])
 
-  commandsMap.set(TypesEnum.INDIVIDUAL, [])
+  commandsMap.set(TypesEnum.INDIVIDUAL, [addInstanceOfEdge])
 
   commandsMap.set(TypesEnum.INCLUSION, [removeElement])
 
@@ -311,6 +311,29 @@ export const addInclusionEdge = (grapholscape: Grapholscape, elem: NodeSingular)
           diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INCLUSION)
         }
       })
+    }
+  }
+}
+
+export const addInstanceOfEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
+  return {
+    content: 'Add Instance Edge',
+    icon: icons.addInstanceIcon,
+    select: () => {
+      let currentCy = grapholscape.renderer.cy as any
+      drawNewEdge(
+        currentCy,
+        TypesEnum.INSTANCE_OF,
+        elem,
+        grapholscape.theme,
+        (_, sourceNode, targetNode, addedEdge) => {
+          addedEdge.remove()
+          if (grapholscape.renderer.diagram) {
+            const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
+            diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INSTANCE_OF)
+          }
+        },
+      )
     }
   }
 }

@@ -24,10 +24,11 @@ export default (edgeType: TypesEnum, isReversed: boolean = false) => {
         case TypesEnum.CLASS:
         case TypesEnum.UNION:
         case TypesEnum.DISJOINT_UNION:
+        case TypesEnum.INDIVIDUAL:
           return targetType === TypesEnum.CLASS
 
         case TypesEnum.DATA_PROPERTY:
-          return targetType === TypesEnum.DATA_PROPERTY
+          return targetType === TypesEnum.DATA_PROPERTY || targetType === TypesEnum.CLASS
 
         default:
           return false
