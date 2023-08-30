@@ -65,6 +65,6 @@ export default abstract class BaseRenderer implements RenderState {
 
   unfilter(elementId: string, filter: Filter) {
     if (this.renderer.diagram)
-    this.renderer.diagram.representations.get(this.id)?.unfilter(elementId, filter.filterTag)
+      this.renderer.diagram.representations.get(this.id)?.unfilter(elementId, filter.filterTag)
   }
 }

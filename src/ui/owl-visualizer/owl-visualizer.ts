@@ -73,17 +73,6 @@ export default class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(LitEle
       .axiom_predefinite_obj {
         color: #00c0a0;
       }
-      
-      .top-bar {
-        display: flex;
-        flex-direction: row-reverse;
-        line-height: 1;
-      }
-
-      .traslated-down {
-        position: absolute;
-        right: 0;
-      }
 
     `,
   ]

@@ -25,7 +25,7 @@ export default class Grapholscape {
   ontology: Ontology
   private entityNavigator = new EntityNavigator(this)
   private displayedNamesManager = new DisplayedNamesManager(this)
-  private themesManager = new ThemeManager(this)
+  private themesManager: ThemeManager
   widgets: Map<string, HTMLElement> = new Map()
   widgetsInitialStates: WidgetsConfig
 
@@ -34,7 +34,7 @@ export default class Grapholscape {
     this.container = container
     this.renderer.container = container
     this.renderer.lifecycle = this.lifecycle
-
+    this.themesManager = new ThemeManager(this)
     //this.renderer.renderState = new GrapholRendererState()
     if (!config?.selectedTheme) {
       this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE)

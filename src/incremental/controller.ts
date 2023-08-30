@@ -2,7 +2,7 @@ import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, AnnotationProperty, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, AnnotationProperty, DiagramRepresentation, EntityNameType, Filter, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { RDFGraph } from "../model/rdf-graph/swagger";
 import * as RDFGraphParser from '../parsing/rdf-graph-parser';
@@ -35,6 +35,7 @@ export default class IncrementalController {
   private entitySelectionTimeout: NodeJS.Timeout
   public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
   public countersEnabled: boolean = true
+  public classFilterMap: Map<string, Filter> = new Map()
 
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
   on = this.lifecycle.on
@@ -282,6 +283,7 @@ export default class IncrementalController {
     if (centerOnIt && classNode)
       this.grapholscape.centerOnElement(classNode.id)
 
+    this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     return classNode
   }
 
@@ -442,14 +444,20 @@ export default class IncrementalController {
           })
         }
 
-        const grapholOccurrence = this.diagram.representation?.grapholElements.get(element.id())
-        if (grapholOccurrence) {
-          entity?.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
-        }
-        this.diagram.removeElement(element.id())
 
-        if (entity?.is(TypesEnum.CLASS_INSTANCE))
-          this.classInstanceEntities.delete(entity.iri.fullIri)
+        if (entity && this.diagram.representation) {
+          const grapholOccurrence = this.diagram.representation?.grapholElements.get(element.id())
+          if (grapholOccurrence) {
+            entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+          }
+          this.diagram.removeElement(element.id())
+
+          if (entity.is(TypesEnum.CLASS_INSTANCE))
+            this.classInstanceEntities.delete(entity.iri.fullIri)
+
+          this.classFilterMap.delete(entity.fullIri)
+        }
+        
       })
     })
   }
@@ -548,6 +556,7 @@ export default class IncrementalController {
       this.countInstancesForClass(sourceClassIri, false)
       this.countInstancesForClass(targetClassIri, false)
 
+      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
       return objectPropertyEdge
     }
   }
@@ -574,6 +583,8 @@ export default class IncrementalController {
       this.updateEntityNameType(objectPropertyEntity.iri)
       this.updateEntityNameType(sourceInstanceEntity.iri)
       this.updateEntityNameType(targetInstanceEntity.iri)
+
+      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     }
   }
 

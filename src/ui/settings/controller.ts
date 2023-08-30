@@ -1,23 +1,21 @@
-import GscapeSettings from "./settings";
 import { storeConfigEntry } from "../../config/config-manager";
 import Grapholscape from '../../core';
-import { autoDarkColourMap, autoLightColourMap, DefaultThemesEnum, GrapholscapeTheme, LifecycleEvent, RendererStatesEnum } from "../../model";
+import { LifecycleEvent } from "../../model";
 import { IBaseMixin } from "../common/mixins/";
+import GscapeSettings from "./settings";
 
 export default function (settingsComponent: GscapeSettings, grapholscape: Grapholscape) {
   settingsComponent.languages = grapholscape.ontology.languages
   settingsComponent.selectedLanguage = grapholscape.language
   settingsComponent.selectedEntityNameType = grapholscape.entityNameType
 
-  const colorfulThemeLight = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_LIGHT, autoLightColourMap, 'Colorful - Light')
-  const colorfulThemeDark = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_DARK, autoDarkColourMap, 'Colorful - Dark')
-  if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-    grapholscape.addTheme(colorfulThemeLight)
-    grapholscape.addTheme(colorfulThemeDark)
-  } else {
-    grapholscape.removeTheme(colorfulThemeLight)
-    grapholscape.removeTheme(colorfulThemeDark)
-  }
+  // if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
+  //   grapholscape.addTheme(colorfulThemeLight)
+  //   grapholscape.addTheme(colorfulThemeDark)
+  // } else {
+  //   grapholscape.removeTheme(colorfulThemeLight)
+  //   grapholscape.removeTheme(colorfulThemeDark)
+  // }
 
   settingsComponent.themes = grapholscape.themeList
   settingsComponent.selectedTheme = grapholscape.theme.id
@@ -59,14 +57,6 @@ export default function (settingsComponent: GscapeSettings, grapholscape: Grapho
   grapholscape.on(LifecycleEvent.ThemeChange, newTheme => settingsComponent.selectedTheme = newTheme.id)
 
   grapholscape.on(LifecycleEvent.RendererChange, newRenderer => {
-    if (newRenderer === RendererStatesEnum.FLOATY) {
-      grapholscape.addTheme(colorfulThemeLight)
-      grapholscape.addTheme(colorfulThemeDark)
-    } else {
-      grapholscape.removeTheme(colorfulThemeLight)
-      grapholscape.removeTheme(colorfulThemeDark)
-    }
-
     settingsComponent.themes = grapholscape.themeList
   })
   // function updateOnChange(settingID, newValue) {

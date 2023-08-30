@@ -9,6 +9,7 @@ GscapeIconList
 export default class GscapeEntityListItem extends LitElement {
 
   private _types: Set<string> = new Set()
+  private _color?: string
 
   displayedName: string = ''
   iri: string = ''
@@ -25,6 +26,7 @@ export default class GscapeEntityListItem extends LitElement {
     disabled: { type: Boolean },
     isAccordionOpen: { type: Boolean, attribute: false },
     iri: { type: String, reflect: true },
+    color: { type: String, reflect: true },
   }
 
   static styles: CSSResultGroup = [
@@ -67,10 +69,24 @@ export default class GscapeEntityListItem extends LitElement {
           </span>
         `
         : null
-      }      
-      <span class="entity-icon slotted-icon">
-        <gscape-icon-list .icons=${Array.from(this._types).map(t => entityIcons[t])}></gscape-icon-list>
-      </span>
+      }
+
+      ${this._types.size > 0
+        ? html`
+          <span class="entity-icon slotted-icon">
+            <gscape-icon-list .icons=${Array.from(this._types).map(t => entityIcons[t])}></gscape-icon-list>
+          </span>
+        `
+        : null
+      }
+
+      ${this.color
+        ? html`
+          <span class="color-dot"></span>
+        `
+        : null
+      }
+      
       <div style="display: flex; flex-direction: column; flex-grow: 2; gap: 4px">
         <span class="entity-name rtl"><bdo dir="ltr">${this.displayedName}</bdo></span>
         <slot name="subrow-item"></slot>
@@ -102,6 +118,16 @@ export default class GscapeEntityListItem extends LitElement {
   get types() {
     return this._types
   }
+
+  set color(newColor: string | undefined) {
+    this._color = newColor
+
+    this.style.setProperty('--entity-color', newColor || null)
+
+    this.requestUpdate()
+  }
+
+  get color() { return this._color }
 }
 
 customElements.define('gscape-entity-list-item', GscapeEntityListItem)

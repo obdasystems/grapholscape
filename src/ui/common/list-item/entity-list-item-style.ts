@@ -62,4 +62,12 @@ export default css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  .entity-list-item .color-dot {
+    height: 16px;
+    width: 16px;
+    background: var(--entity-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
 `
