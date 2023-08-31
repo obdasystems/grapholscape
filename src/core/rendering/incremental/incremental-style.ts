@@ -26,6 +26,7 @@ export default function (theme: GrapholscapeTheme) {
         color: (node) => getNodeLabelColor(node, theme)
       }
     },
+
     {
       selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"], node[type = "${TypesEnum.CLASS}"]`,
       style: {
@@ -34,11 +35,20 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    // {
+    //   selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
+    //   style: {
+    //     'text-background-color': theme.getColour(ColoursNames.bg_graph),
+    //     'text-background-opacity': 1,
+    //   }
+    // },
+
     {
-      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
+      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
-        'text-background-color': theme.getColour(ColoursNames.bg_graph),
-        'text-background-opacity': 1,
+        'text-valign': 'top',
+        'text-wrap': 'ellipsis',
+        'text-max-width': 180,
       }
     },
 
