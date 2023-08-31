@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, nothing, PropertyDeclarations } from "lit"
 import { TypesEnum } from "../../../model"
-import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, SizeEnum, textSpinnerStyle } from "../../../ui"
+import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSpinner, GscapeEntityListItem, GscapeSelect, icons, SizeEnum, textSpinnerStyle } from "../../../ui"
 import { entityIcons, insertInGraph, search, searchOff } from "../../../ui/assets"
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
 import getIconSlot from "../../../ui/util/get-icon-slot"
@@ -286,6 +286,22 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
             : this.numberOfPagesShown > 1 ? html`<span style="align-self: center; margin: 8px 8px 16px" class="bold-text muted-text">No more data</span>` : null
         }
         </div>
+
+        ${this.instances.size > 0
+          ? html`
+            <gscape-button
+              style="align-self: center"
+              @click=${this.handleAddAll}
+              size=${SizeEnum.S}
+              type="primary"
+              label="Add All" 
+              title="Insert all visible results in graph"
+            >
+              ${getIconSlot('icon', icons.plus)}
+            </gscape-button>
+          `
+          : null
+        }
       </div>
     `
   }
@@ -377,47 +393,34 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
       const instance = this.instances.get(targetListItem.iri)
 
       if (instance) {
-        let parentClassIris: string[] | string
-  
-        if (this.referenceEntity?.value.types.has(TypesEnum.CLASS)) { // if class, take class iri as parent
-          parentClassIris = this.referenceEntity?.value.iri.fullIri
-        } else if (this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
-
-          if (this.classTypeFilterList?.length === 1) { 
-            parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class
-          } else if (this.classTypeFilterSelect?.selectedOptionsId) {
-            parentClassIris = Array.from(this.classTypeFilterSelect.selectedOptionsId) // otherwise take the selected one
-          } else if (this.classTypeFilterList) {
-            parentClassIris = this.classTypeFilterList.map(e => e.entityViewData.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
-          } else
-            return
-        } else {
-          return
-        }
-
-        let filterByPropertyIri: string | undefined
-
-        if (this.propertyFilterSelect) {
-          const selectedOption = Array.from(this.propertyFilterSelect.selectedOptionsId)[0]
-    
-          if (selectedOption && selectedOption !== 'id' && selectedOption !== 'label' && this.instancesSearchInput?.value)
-            filterByPropertyIri = selectedOption
-        }
-
-        this.requestUpdate()
         await this.updateComplete
 
         this.dispatchEvent(new CustomEvent('instanceselection', { 
           bubbles: true, 
           composed: true, 
           detail: {
-            parentClassIris: parentClassIris,
+            parentClassIris: this.getParentClassIris(),
             instance: instance,
-            filterByProperty: filterByPropertyIri,
+            filterByProperty: this.getFilterByPropertyIri(),
           }
         }) as InstanceSelectionEvent)
       }
     }
+  }
+
+  private async handleAddAll(e: MouseEvent) {
+
+    await this.updateComplete
+
+    this.dispatchEvent(new CustomEvent('addall', {
+      composed: true,
+      bubbles: true,
+      detail: {
+        parentClassIris: this.getParentClassIris(),
+        instances: Array.from(this.instances.values()),
+        filterByProperty: this.getFilterByPropertyIri()
+      }
+    }) as AddAllEvent)
   }
 
   private handleShowMore(e: Event) {
@@ -427,6 +430,37 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     }))
     this.numberOfPagesShown += 1
   }
+
+  private getParentClassIris() {
+    let parentClassIris: string[] | string
+  
+    if (this.referenceEntity?.value.types.has(TypesEnum.CLASS)) { // if class, take class iri as parent
+      parentClassIris = this.referenceEntity?.value.iri.fullIri
+    } else if (this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
+
+      if (this.classTypeFilterList?.length === 1) { 
+        parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class
+      } else if (this.classTypeFilterSelect?.selectedOptionsId) {
+        parentClassIris = Array.from(this.classTypeFilterSelect.selectedOptionsId) // otherwise take the selected one
+      } else if (this.classTypeFilterList) {
+        parentClassIris = this.classTypeFilterList.map(e => e.entityViewData.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
+      } else
+        return
+    } else {
+      return
+    }
+
+    return parentClassIris
+  }
+
+  private getFilterByPropertyIri() {
+    if (this.propertyFilterSelect) {
+      const selectedOption = Array.from(this.propertyFilterSelect.selectedOptionsId)[0]
+
+      if (selectedOption && selectedOption !== 'id' && selectedOption !== 'label' && this.instancesSearchInput?.value)
+        return selectedOption
+    }
+}
 
   addInstances(newInstances: ClassInstanceViewData[]) {
     this.numberOfInstancesReceived += newInstances.length
@@ -506,6 +540,12 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   }
 
 }
+
+export type AddAllEvent = CustomEvent<{
+  parentClassIris: string[] | string,
+  instances: ClassInstanceViewData[],
+  filterByProperty: string | undefined
+}>
 
 export type InstanceSelectionEvent = CustomEvent<{
   parentClassIris: string[] | string,
