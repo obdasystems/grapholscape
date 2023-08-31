@@ -1,6 +1,6 @@
 import { GrapholscapeConfig } from "../config";
 import { Grapholscape } from "../core";
-import { Ontology } from "../model";
+import { DefaultFilterKeyEnum, getDefaultFilters, Ontology } from "../model";
 import { DesignerLifeCycle } from "./lifecycle";
 
 export default class GrapholscapeDesigner extends Grapholscape {
@@ -10,5 +10,9 @@ export default class GrapholscapeDesigner extends Grapholscape {
     super(ontology, container, config)
     this.on = this.lifecycle.on
     this.renderer.lifecycle = this.lifecycle
+
+    this.renderer.filters = new Map()
+    this.renderer.filters.set(DefaultFilterKeyEnum.DATA_PROPERTY, getDefaultFilters().DATA_PROPERTY)
+    this.renderer.filters.set(DefaultFilterKeyEnum.INDIVIDUAL, getDefaultFilters().INDIVIDUAL)
   }
 }
