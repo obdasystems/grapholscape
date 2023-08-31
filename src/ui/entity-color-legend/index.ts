@@ -43,9 +43,9 @@ export function setList(entityColorLegend: GscapeEntityColorLegend, grapholscape
     const diagramRepr = grapholscape.renderer.diagram?.representations.get(grapholscape.renderState)
 
     if (diagramRepr) {
-      const elements: ClassWithColor[] = []
+      const elements: Map<string, ClassWithColor> = new Map()
       diagramRepr.cy.$(`[type = "${TypesEnum.CLASS}"]`).forEach(classNode => {
-        elements.push({
+        elements.set(classNode.data('iri'), {
           id: classNode.id(),
           displayedName: classNode.data('displayedName'),
           iri: classNode.data('iri'),
@@ -54,7 +54,31 @@ export function setList(entityColorLegend: GscapeEntityColorLegend, grapholscape
         })
       })
 
-      entityColorLegend.elements = elements.sort((a, b) => a.displayedName.localeCompare(b.displayedName))
+      if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL && grapholscape.incremental) {
+        diagramRepr.cy.$(`[type = "${TypesEnum.CLASS_INSTANCE}"]`).forEach(instanceNode => {
+          const instanceEntity = grapholscape.incremental?.classInstanceEntities.get(instanceNode.data().iri)
+
+          if (instanceEntity) {
+            instanceEntity.parentClassIris.forEach((parentClassIri, i) => {
+              if (!elements.has(parentClassIri.fullIri)) {
+                const parentClassEntity = grapholscape.ontology.getEntity(parentClassIri)
+                if (parentClassEntity) {
+                  elements.set(parentClassIri.fullIri, {
+                    id: `${instanceNode.id()}-${i}`,
+                    displayedName: parentClassEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language),
+                    iri: parentClassEntity.fullIri,
+                    color: parentClassEntity.color,
+                    filtered: false,
+                  })
+                }
+              }
+            })
+          }
+        })
+      }
+      
+
+      entityColorLegend.elements = Array.from(elements.values()).sort((a, b) => a.displayedName.localeCompare(b.displayedName))
       entityColorLegend.enable()
 
       if (entityColorLegend.elements.length <= 0)
