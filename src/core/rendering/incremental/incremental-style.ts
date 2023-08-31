@@ -19,10 +19,10 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${TypesEnum.CLASS}"]`,
       style: {
-        'text-background-color': (node) => getNodeBodyColor(node, theme, true) || 'rgba(0, 0, 0, 0)',
-        'text-background-opacity': (node) => getNodeBodyColor(node, theme, true) ? 1 : 0,
-        'text-background-shape': 'roundrectangle',
-        'text-background-padding': 2,
+        // 'text-background-color': (node) => getNodeBodyColor(node, theme, true) || 'rgba(0, 0, 0, 0)',
+        // 'text-background-opacity': (node) => getNodeBodyColor(node, theme, true) ? 1 : 0,
+        // 'text-background-shape': 'roundrectangle',
+        // 'text-background-padding': 2,
         color: (node) => getNodeLabelColor(node, theme)
       }
     },
