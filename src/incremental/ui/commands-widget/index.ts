@@ -45,8 +45,9 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     }
 
     if (
-      grapholElement.is(TypesEnum.CLASS) ||
-      grapholElement.is(TypesEnum.CLASS_INSTANCE)
+      ic.endpointController?.isReasonerAvailable() &&
+      (grapholElement.is(TypesEnum.CLASS) ||
+      grapholElement.is(TypesEnum.CLASS_INSTANCE))
     ) {
       commands.push({
         content: 'Find paths to',
