@@ -34,7 +34,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
     navigationMenu.hide()
   })
 
-  navigationMenu.addEventListener('onobjectpropertyselection', async (e: ObjectPropertyNavigationEvent) => {
+  navigationMenu.addEventListener('searchinstancesranges', async (e: ObjectPropertyNavigationEvent) => {
     const instancesExplorer = incrementalController.grapholscape.widgets.get(WidgetEnum.INSTANCES_EXPLORER) as GscapeInstanceExplorer
 
     if (instancesExplorer) {
@@ -99,7 +99,7 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
                   e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
                 )
               }
-              
+
             })
         }
       }
@@ -107,6 +107,14 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
       if (navigationMenu.popperRef) {
         showMenu(instancesExplorer, incrementalController)
       }
+    }
+  })
+
+  navigationMenu.addEventListener('objectpropertyselection', async (e: ObjectPropertyNavigationEvent) => {
+    const referenceEntity = incrementalController.classInstanceEntities.get(e.detail.referenceClassIri)
+
+    if (referenceEntity) {
+      incrementalController.expandObjectPropertyOnInstance(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct)
     }
   })
 

@@ -9,17 +9,17 @@ export function initEntityColorLegend(grapholscape: Grapholscape) {
   const entityColorLegend = new GscapeEntityColorLegend()
 
   if (grapholscape.renderer.diagram) {
-    setList(entityColorLegend, grapholscape)
+    setColorList(entityColorLegend, grapholscape)
     if (grapholscape.renderState === RendererStatesEnum.FLOATY || grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       entityColorLegend.onElementSelection = (elem) => grapholscape.centerOnElement(elem.id, undefined, 1.5)
     }
   }
 
-  grapholscape.on(LifecycleEvent.ThemeChange, () => setList(entityColorLegend, grapholscape))
-  grapholscape.on(LifecycleEvent.DiagramChange, () => setList(entityColorLegend, grapholscape))
+  grapholscape.on(LifecycleEvent.ThemeChange, () => setColorList(entityColorLegend, grapholscape))
+  grapholscape.on(LifecycleEvent.DiagramChange, () => setColorList(entityColorLegend, grapholscape))
   grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
     if (rendererState === RendererStatesEnum.FLOATY) {
-      setList(entityColorLegend, grapholscape)
+      setColorList(entityColorLegend, grapholscape)
       entityColorLegend.onElementSelection = (elem) => grapholscape.centerOnElement(elem.id, undefined, 1.5)
     } else {
       entityColorLegend.disable()
@@ -31,7 +31,7 @@ export function initEntityColorLegend(grapholscape: Grapholscape) {
   return entityColorLegend
 }
 
-export function setList(entityColorLegend: GscapeEntityColorLegend, grapholscape: Grapholscape) {
+export function setColorList(entityColorLegend: GscapeEntityColorLegend, grapholscape: Grapholscape) {
   if (
     grapholscape.renderState === RendererStatesEnum.INCREMENTAL ||
     (

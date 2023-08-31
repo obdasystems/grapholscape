@@ -1,7 +1,7 @@
 import { Grapholscape } from "../core";
 import { ClassInstanceEntity, Filter, GrapholElement, LifecycleEvent, RendererStatesEnum } from "../model";
 import { createEntitiesList, IBaseMixin } from "../ui";
-import { setList } from "../ui/entity-color-legend";
+import { setColorList } from "../ui/entity-color-legend";
 import GscapeEntityColorLegend from "../ui/entity-color-legend/entity-color-legend";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { GscapeEntitySelector } from "../ui/entity-selector";
@@ -94,7 +94,7 @@ export function initIncremental(grapholscape: Grapholscape) {
 
       const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
       if (entityColorLegend) {
-        setList(entityColorLegend, grapholscape)
+        setColorList(entityColorLegend, grapholscape)
         entityColorLegend.enable()
       }
     }

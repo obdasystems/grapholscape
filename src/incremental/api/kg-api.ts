@@ -32,7 +32,7 @@ export interface IVirtualKnowledgeGraphApi {
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
-  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void
+  getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void, customLimit?: number, keepAlive?: boolean) => void
   setEndpoint: (endpoint: MastroEndpoint) => void,
   instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>,
   stopAllQueries: () => void,
@@ -242,6 +242,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     textSearch?: string,
     onStop?: (() => void),
     customLimit?: number,
+    keepAlive?: boolean,
   ) {
 
     let querySemantics: QuerySemantics, queryCode: string
@@ -270,7 +271,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels, customLimit)
     }
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, querySemantics)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, querySemantics, keepAlive)
     queryPoller.onNewResults = (result) => {
       onNewResults(
         result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)),
