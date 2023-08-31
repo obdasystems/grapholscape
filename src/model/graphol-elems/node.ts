@@ -29,6 +29,8 @@ export default class GrapholNode extends GrapholElement implements Node {
 
   private _x = 0
   private _y = 0
+  private _renderedX?: number
+  private _renderedY?: number
   private _shape: Shape
   private _identity: TypesEnum
   private _height: number
@@ -55,6 +57,15 @@ export default class GrapholNode extends GrapholElement implements Node {
   set position(pos: Position) {
     this._x = pos.x
     this._y = pos.y
+  }
+
+  get renderedPosition() {
+    if (this._renderedX !== undefined && this._renderedY !== undefined) 
+      return { x: this._renderedX, y: this._renderedY }
+  }
+  set renderedPosition(pos: Position | undefined) {
+    this._renderedX = pos?.x
+    this._renderedY = pos?.y
   }
 
   get x() { return this._x }
@@ -173,7 +184,12 @@ export default class GrapholNode extends GrapholElement implements Node {
     const fakeNodesCytoscapeRepr: ElementDefinition[] = []
     const thisCytoscapeRepr = super.getCytoscapeRepr(grapholEntity)
 
-    thisCytoscapeRepr[0].position = this.position
+    if (this.renderedPosition) {
+      thisCytoscapeRepr[0].renderedPosition = this.renderedPosition
+    } else {
+      thisCytoscapeRepr[0].position = this.position
+    }
+      
     Object.assign(thisCytoscapeRepr[0].data, {
       shape: this.shape || undefined,
       height: this.height || undefined,
@@ -187,7 +203,7 @@ export default class GrapholNode extends GrapholElement implements Node {
       labelYcentered: this.isLabelYcentered,
       identity: this.identity,
       hierarchyID: this.hierarchyID,
-      hierarchyForcedComplete: this.hierarchyForcedComplete 
+      hierarchyForcedComplete: this.hierarchyForcedComplete
     })
 
     if (!this.type)

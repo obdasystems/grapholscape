@@ -28,7 +28,12 @@ export default class DiagramBuilder {
       classNode.iri = classEntity.iri.fullIri
       classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
       classNode.height = classNode.width = 80
-      classNode.position = position || { x: 0, y: 0 }
+
+      if (position)
+        classNode.position = position
+      else
+        classNode.renderedPosition = this.getCurrentCenterPos()
+
       classNode.originalId = classNode.id
       classNode.diagramId = this.diagram.id
     }
@@ -53,19 +58,23 @@ export default class DiagramBuilder {
     dataPropertyNode.originalId = dataPropertyNode.id
     dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY)
 
-    this.diagramRepresentation?.addElement(dataPropertyNode, dataPropertyEntity)
-
-    if(ownerEntity){
+    let ownerEntityNode: GrapholElement | undefined
+    if (ownerEntity) {
       const ownerEntityId = ownerEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState)
       if (!ownerEntityId) return
-      let ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
+      ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
 
-      if (!dataPropertyNode || !ownerEntityNode) return
-      
-      if (isGrapholNode(ownerEntityNode)) {
-        dataPropertyNode.position = ownerEntityNode.position
-      }    
+      if (!ownerEntityNode) return
+    }
 
+    if (ownerEntityNode?.isNode() && ownerEntityNode.position)
+      dataPropertyNode.position = ownerEntityNode.position
+    else
+      dataPropertyNode.renderedPosition = this.getCurrentCenterPos()
+
+    this.diagramRepresentation?.addElement(dataPropertyNode, dataPropertyEntity)
+
+    if (ownerEntityNode) {
       const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE)
       dataPropertyEdge.diagramId = this.diagram.id
       dataPropertyEdge.sourceId = ownerEntityNode.id
@@ -191,13 +200,13 @@ export default class DiagramBuilder {
       // check if parent class is present in diagram
       for (let parentClassIri of classInstanceEntity.parentClassIris) {
         if (this.diagramRepresentation?.containsEntity(parentClassIri)) {
-          instanceNode.position = this.diagramRepresentation.cy.$id(parentClassIri.fullIri).position() || { x: 0, y: 0 }
+          instanceNode.position = this.diagramRepresentation.cy.$id(parentClassIri.fullIri).position()
           break
         }
       }
 
       if (!instanceNode.position) {
-        instanceNode.position = { x: 0, y: 0 }
+        instanceNode.renderedPosition = this.getCurrentCenterPos()
       }
     } else {
       instanceNode.position = position
@@ -214,7 +223,10 @@ export default class DiagramBuilder {
     }
 
     const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.INDIVIDUAL)
-    instanceNode.position = position || { x: 0, y: 0 }
+    if (position)
+      instanceNode.position = position
+    else
+      instanceNode.renderedPosition = this.getCurrentCenterPos()
 
     return this._addIndividualOrClassInstance(instanceNode, individualEntity)
   }
@@ -435,5 +447,18 @@ export default class DiagramBuilder {
 
   public getNewId(nodeOrEdge: 'node' | 'edge') {
     return this.diagramRepresentation?.getNewId(nodeOrEdge) || (nodeOrEdge === 'node' ? 'n0' : 'e0')
+  }
+
+  private getCurrentCenterPos() {
+    const height = this.diagramRepresentation?.cy.height() || 0
+    const width = this.diagramRepresentation?.cy.width() || 0
+
+    let pos = {
+      x: (width / 2) + Math.random() * 50,
+      y: (height / 2) + Math.random() * 50,
+    }
+
+    console.log(pos)
+    return pos
   }
 }

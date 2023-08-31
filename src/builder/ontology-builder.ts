@@ -1,6 +1,6 @@
 import { SingularElementArgument } from "cytoscape"
 import { floatyOptions } from "../config"
-import { Annotation, DefaultAnnotationProperties, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
+import { Annotation, DefaultAnnotationProperties, Diagram, DiagramRepresentation, FunctionalityEnum, GrapholElement, GrapholEntity, Hierarchy, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../model"
 import DiagramBuilder from "../core/diagram-builder"
 import Grapholscape from "./core"
 import { DesignerEvent } from "./lifecycle"
@@ -24,7 +24,7 @@ export default class OntologyBuilder {
     if (!entity) {
       entity = new GrapholEntity(iri)
       this.grapholscape.ontology.addEntity(entity)
-      if(deriveLabel){
+      if (deriveLabel) {
         let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
         label = convertSnake ? this.convertSnakeCase(label) : label
         const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string')
@@ -36,46 +36,48 @@ export default class OntologyBuilder {
     if (ownerIri)
       ownerEntity = this.grapholscape.ontology.getEntity(ownerIri)
 
+    let addedElement: GrapholElement | undefined
     if (entityType === TypesEnum.INDIVIDUAL) {
-      this.diagramBuilder.addIndividual(entity)
+      addedElement = this.diagramBuilder.addIndividual(entity)
       const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.INDIVIDUAL, this.rendererState)
 
-      if(ownerEntity){
+      if (ownerEntity) {
         const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
         if (!sourceId || !targetId) return
         this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
-        this.grapholscape.renderer.renderState?.runLayout()
       }
-      
-      return
     }
-
-    if (entityType === TypesEnum.DATA_PROPERTY) {
+    else if (entityType === TypesEnum.DATA_PROPERTY) {
       entity.datatype = datatype
       if (functionProperties.includes(FunctionalityEnum.FUNCTIONAL)) {
         entity.isDataPropertyFunctional = true
       }
-      if(ownerEntity)
-        this.diagramBuilder.addDataProperty(entity, ownerEntity)
-      else
-        this.diagramBuilder.addDataProperty(entity)
+
+      addedElement = this.diagramBuilder.addDataProperty(entity, ownerEntity)
     }
     else if (entityType === TypesEnum.CLASS) {
-      this.diagramBuilder.addClass(entity)
-      if (!ownerEntity) return
-      if (relationship === 'superclass') {
-        const sourceId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
-        const targetId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
-        if (!sourceId || !targetId) return
-        this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
-      } else if (relationship === 'subclass') {
-        const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
-        const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
-        if (!sourceId || !targetId) return
-        this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
+      addedElement = this.diagramBuilder.addClass(entity)
+
+      if (ownerEntity) {
+        if (relationship === 'superclass') {
+          const sourceId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
+          const targetId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
+          if (!sourceId || !targetId) return
+          this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
+        } else if (relationship === 'subclass') {
+          const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
+          const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState)
+          if (!sourceId || !targetId) return
+          this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION)
+        }
       }
     }
-    this.grapholscape.renderer.renderState?.runLayout()
+
+    if (ownerEntity) {
+      this.grapholscape.renderer.renderState?.runLayout()
+    } else if (addedElement) {
+      this.grapholscape.centerOnElement(addedElement.id)
+    }
     this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
   }
 
@@ -93,7 +95,7 @@ export default class OntologyBuilder {
         const iri = new Iri(iriString, this.grapholscape.ontology.namespaces)
         entity = new GrapholEntity(iri)
         this.grapholscape.ontology.addEntity(entity)
-        if(deriveLabel){
+        if (deriveLabel) {
           let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
           label = convertSnake ? this.convertSnakeCase(label) : label
           const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string')
@@ -132,17 +134,17 @@ export default class OntologyBuilder {
     for (let i of iris) {
       const iri = new Iri(i, this.grapholscape.ontology.namespaces)
       let entity = this.grapholscape.ontology.getEntity(i)
-      if (!entity){
+      if (!entity) {
         entity = new GrapholEntity(iri)
         this.grapholscape.ontology.addEntity(entity)
-        if(deriveLabel){
+        if (deriveLabel) {
           let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder
           label = convertSnake ? this.convertSnakeCase(label) : label
           const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string')
           entity.addAnnotation(labelAnnotation)
         }
       }
-        
+
       hierarchy.addInput(entity)
     }
     this.diagramBuilder.addHierarchy(hierarchy, { x: 0, y: 0 })
@@ -349,8 +351,8 @@ export default class OntologyBuilder {
     input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1")//.trim()
     //input = input.charAt(0).toUpperCase() + input.slice(1);
     let inputSplit = input.split(' ')
-    inputSplit.forEach((w,i) =>{
-      if(w != w.toUpperCase())
+    inputSplit.forEach((w, i) => {
+      if (w != w.toUpperCase())
         inputSplit[i] = w.toLowerCase()
       else
         inputSplit[i] = w
@@ -360,7 +362,7 @@ export default class OntologyBuilder {
   }
 
   public convertSnakeCase(input: string) {
-    input = input.replace('_',' ')
+    input = input.replace('_', ' ')
     return input
   }
 }
