@@ -1,4 +1,4 @@
-import { GrapholEntity } from "../model"
+import { GrapholEntity, TypesEnum } from "../model"
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity"
 import { ClassInstance } from "./api/kg-api"
 import { MastroEndpoint } from "./api/model"
@@ -22,8 +22,8 @@ export enum IncrementalEvent {
   InstanceCheckingFinished = 'instanceCheckingFinished',
   CountStarted = 'countStarted',
   NewCountResult = 'newCountResult',
-  FocusStarted = 'focusStarted',
-  FocusFinished = 'focusFinished',
+  LoadingStarted = 'loadingStarted',
+  LoadingFinished = 'loadingFinished',
 }
 
 export interface IonEvent {
@@ -43,8 +43,8 @@ export interface IonEvent {
   (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void,
   (event: IncrementalEvent.NewCountResult, callback: (classIri: string, result?: { value: number, materialized: boolean, date?: string }) => void): void,
   (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void,
-  (event: IncrementalEvent.FocusStarted, callback: (entityIri: string) => void): void,
-  (event: IncrementalEvent.FocusFinished, callback: (entityIri: string) => void): void,
+  (event: IncrementalEvent.LoadingStarted, callback: (entityIri: string, entityType: TypesEnum) => void): void,
+  (event: IncrementalEvent.LoadingFinished, callback: (entityIri: string, entityType: TypesEnum) => void): void,
 }
 
 export default class IncrementalLifecycle {
@@ -64,8 +64,8 @@ export default class IncrementalLifecycle {
   private instanceCheckingFinished: ((instanceIri: string) => void)[] = []
   private newCountResult: ((classIri: string, result?: { value: number, materialized: boolean, date?: string }) => void)[] = []
   private countStarted: ((classIri: string) => void)[] = []
-  private focusStarted: ((entityIri: string) => void)[] = []
-  private focusFinished: ((entityIri: string) => void)[] = []
+  private loadingStarted: ((entityIri: string, entityType: TypesEnum) => void)[] = []
+  private loadingFinished: ((entityIri: string, entityType: TypesEnum) => void)[] = []
 
 
   constructor() { }
@@ -86,8 +86,8 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void
   trigger(event: IncrementalEvent.NewCountResult, classIri: string, result?: { value: number, materialized: boolean, date?: string }): void
   trigger(event: IncrementalEvent.CountStarted, classIri: string): void
-  trigger(event: IncrementalEvent.FocusStarted, entityIri: string): void
-  trigger(event: IncrementalEvent.FocusFinished, entityIri: string): void
+  trigger(event: IncrementalEvent.LoadingStarted, entityIri: string, entityType: TypesEnum): void
+  trigger(event: IncrementalEvent.LoadingFinished, entityIri: string, entityType: TypesEnum): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

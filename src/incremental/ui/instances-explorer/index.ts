@@ -178,7 +178,7 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         if (instance.connectedInstance && e.detail.filterByProperty) {
           incrementalController.addInstance(instance.connectedInstance, undefined, refPosition)
           const isDirect = objectProperties?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
-  
+
           if (isDirect !== undefined) {
             isDirect
               ? incrementalController.addExtensionalObjectProperty(
@@ -194,15 +194,6 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
           }
         }
       })
-
-
-
-
-
-
-      
-
-      
 
       if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
         const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri

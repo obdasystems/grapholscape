@@ -156,6 +156,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const classIri = entity.iri.fullIri
 
     if (grapholElement.is(TypesEnum.CLASS)) {
+
+      commands.push(IncrementalCommands.getInstances(() => {
+        ic.expandInstancesOnClass(classIri)
+      }))
+
       const superHierarchies = ic.grapholscape.ontology.getSuperHierarchiesOf(classIri)
       const subHierarchies = ic.grapholscape.ontology.getSubHierarchiesOf(classIri)
 

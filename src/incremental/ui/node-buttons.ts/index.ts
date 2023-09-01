@@ -68,8 +68,8 @@ export function NodeButtonsFactory(ic: IncrementalController) {
     }
   })
 
-  ic.on(IncrementalEvent.FocusStarted, instanceIri => {
-    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
+  ic.on(IncrementalEvent.LoadingStarted, (iri, type) => {
+    const nodeId = ic.getIDByIRI(iri, type)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty()) {
@@ -78,8 +78,8 @@ export function NodeButtonsFactory(ic: IncrementalController) {
     }
   })
 
-  ic.on(IncrementalEvent.FocusFinished, instanceIri => {
-    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
+  ic.on(IncrementalEvent.LoadingFinished, (iri, type) => {
+    const nodeId = ic.getIDByIRI(iri, type)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty() && cyNode.scratch('loading-badge')) {

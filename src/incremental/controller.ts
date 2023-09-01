@@ -924,7 +924,7 @@ export default class IncrementalController {
       const objectProperties = await this.getObjectPropertiesByClasses(instanceEntity.parentClassIris.map(iri => iri.fullIri))
       if (objectProperties) {
         let promisesCount = 0
-        this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri)
+        this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
         const results: Map<GrapholEntity, {
           ranges: {
             classEntity: GrapholEntity,
@@ -963,7 +963,7 @@ export default class IncrementalController {
 
         const onDone = () => {
           this.addResultsFromFocus(instanceIri, results)
-          this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+          this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE)
         }
 
         let interval = setInterval(() => {
@@ -984,7 +984,7 @@ export default class IncrementalController {
                 this.grapholscape.uiContainer
               )
                 .onConfirm(onDone)
-                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri))
+                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE))
             }
           }
         }, 10000)
@@ -1021,7 +1021,7 @@ export default class IncrementalController {
       isDirect: isDirect,
     })
 
-    this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri)
+    this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
 
     this.endpointController.vkgApi.getInstancesThroughObjectProperty(
       instanceIri,
@@ -1034,14 +1034,47 @@ export default class IncrementalController {
         })
 
         this.addResultsFromFocus(instanceIri, resultForFocus)
-        this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
       },
       undefined, // range class filter
       undefined, // data property filter
       undefined, // text search
-      () => this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri), // on stop polling
+      () => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE), // on stop polling
       100,
       true
+    )
+  }
+
+  /**
+   * Retrieve first page of results for instances of a given class.
+   * Then add instances and instance-of edges (if possible) to parent class
+   * @param classIri 
+   * @param pageSize 
+   * @returns 
+   */
+  expandInstancesOnClass(classIri: string, pageSize?: number) {
+    if (!this.endpointController?.vkgApi)
+      return
+
+    const parentClassId = this.getIDByIRI(classIri, TypesEnum.CLASS)
+
+    this.lifecycle.trigger(IncrementalEvent.LoadingStarted, classIri, TypesEnum.CLASS)
+    this.endpointController.vkgApi.getInstances(
+      classIri,
+      false,
+      (results) => {
+        this.performActionWithBlockedGraph(() => {
+          let addedClassInstanceNode: ClassInstanceEntity, classInstanceId: string | undefined
+          results.forEach(result => {
+            addedClassInstanceNode = this.addInstance(result[0], classIri)
+            classInstanceId = this.getIDByIRI(addedClassInstanceNode.fullIri, TypesEnum.CLASS_INSTANCE)
+            if (classInstanceId && parentClassId)
+              this.addEdge(classInstanceId, parentClassId, TypesEnum.INSTANCE_OF)
+          })
+        })
+      },
+      () => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, classIri, TypesEnum.CLASS),
+      undefined, // search text
+      pageSize
     )
   }
 
