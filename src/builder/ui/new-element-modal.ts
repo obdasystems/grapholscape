@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from 'lit'
 import { Language } from '../../config'
-import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from '../../model'
+import { FunctionalityEnum, Namespace, TypesEnum } from '../../model'
 import * as UI from '../../ui'
 import { subHierarchies, superHierarchies } from '../../ui/assets'
 import modalSharedStyles from './modal-shared-styles'
@@ -48,9 +48,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   public selectedNamespaceIndex?: number = 0
 
   private advancedMode: boolean = false
-  private selectedDatatype: string = 'xsd:string'
-  private selectedFunctionProperties: Set<FunctionalityEnum> = new Set()
-  private numberOfInputs: number = 2
+  private inputs: {
+    name?: string,
+    datatype?: string,
+    functionProperties?: Set<FunctionalityEnum>
+  }[] = [{ datatype: 'xsd:string' }]
   private isValid: boolean = false
   private deriveLabel: boolean = true
   private convertCamel: boolean = true
@@ -70,7 +72,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     convertSnake: {type: Boolean, state: true}, 
     isHierarchyComplete: { type: Boolean, state: true },
     isHierarchyDisjoint: { type: Boolean, state: true },
-    numberOfInputs: { type: Number, state: true },
+    inputs: { type: Array, state: true },
     isaDirection: { type: String, state: true },
   }
 
@@ -101,6 +103,22 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       #hierarchy-toggles > * {
         width: fit-content;
       }
+
+      .form-item.data-property-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow: auto;
+      }
+
+      .movedown-chip {
+        position: relative;
+        top: 9px;
+      }
+
+      #advanced-settings.area {
+        padding: 16px;
+      }
     `
   ]
 
@@ -115,43 +133,47 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   private handleConfirm = async (evt?: Event) => {
     if (this.isValid) {
       await this.updateComplete
-      let eventDetail: ConfirmEventDetail | undefined
+      let eventsDetail: ConfirmEventDetail[] = []
 
       switch(this.modalType) {
         case TypesEnum.CLASS:
         case TypesEnum.INDIVIDUAL:
           if (this.selectedNamespaceValue && this.mainInputValue) {
-            eventDetail = {
-              iri: this.selectedNamespaceValue + this.mainInputValue,
-              namespace: this.selectedNamespaceValue,
-              type: this.modalType,
-              deriveLabel: this.deriveLabel,
-              convertCamel: this.convertCamel,
-              convertSnake: this.convertSnake,
-              lang: this.labelLanguage,
-            } as NewEntityDetail
+            this.inputs.filter(i => i.name && i.name.length > 0).forEach(input => {
+              eventsDetail.push({
+                iri: this.selectedNamespaceValue! + input.name,
+                namespace: this.selectedNamespaceValue,
+                type: this.modalType,
+                deriveLabel: this.deriveLabel,
+                convertCamel: this.convertCamel,
+                convertSnake: this.convertSnake,
+                lang: this.labelLanguage,
+              } as NewEntityDetail)
+            })
           }
           break
 
         case TypesEnum.DATA_PROPERTY:
           if (this.selectedNamespaceValue && this.mainInputValue) {
-            eventDetail = {
-              iri: this.selectedNamespaceValue + this.mainInputValue,
-              namespace: this.selectedNamespaceValue,
-              type: this.modalType,
-              deriveLabel: this.deriveLabel,
-              convertCamel: this.convertCamel,
-              convertSnake: this.convertSnake,
-              lang: this.labelLanguage,
-              isFunctional: this.selectedFunctionProperties.has(FunctionalityEnum.FUNCTIONAL),
-              datatype: this.selectedDatatype,
-            } as NewDataPropertyDetail
+            this.inputs.filter(i => i.name && i.name.length > 0).forEach(input => {
+                eventsDetail.push({
+                iri: this.selectedNamespaceValue! + input.name,
+                namespace: this.selectedNamespaceValue,
+                type: this.modalType,
+                deriveLabel: this.deriveLabel,
+                convertCamel: this.convertCamel,
+                convertSnake: this.convertSnake,
+                lang: this.labelLanguage,
+                isFunctional: input.functionProperties?.has(FunctionalityEnum.FUNCTIONAL) || false,
+                datatype: input.datatype,
+              } as NewDataPropertyDetail)
+            })
           }
           break
 
         case TypesEnum.OBJECT_PROPERTY:
           if (this.selectedNamespaceValue && this.mainInputValue) {
-            eventDetail = {
+            eventsDetail = [{
               iri: this.selectedNamespaceValue + this.mainInputValue,
               namespace: this.selectedNamespaceValue,
               type: this.modalType,
@@ -159,32 +181,34 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               convertCamel: this.convertCamel,
               convertSnake: this.convertSnake,
               lang: this.labelLanguage,
-              functionProperties: Array.from(this.selectedFunctionProperties),
-            } as NewObjectPropertyDetail
+              functionProperties: Array.from(this.inputs[0].functionProperties || []),
+            } as NewObjectPropertyDetail]
           }
           break
 
         case ModalTypeEnum.DIAGRAM:
           if (this.mainInputValue) {
-            eventDetail = {
+            eventsDetail = [{
               diagramName: this.mainInputValue,
-            } as NewDiagramDetail
+            } as NewDiagramDetail]
           }
           break
 
         case ModalTypeEnum.RENAME_ENTITY:
           const selectedBtn = evt?.currentTarget as Element | undefined
-          eventDetail = {
+          eventsDetail = [{
             newIri: this.selectedNamespaceValue + (this.mainInputValue || this.remainderToRename),
             namespace: this.selectedNamespaceValue,
             isRefactor: selectedBtn?.id === 'refactor' || false
-          } as RenameEntityDetail
+          } as RenameEntityDetail]
           break
 
         case ModalTypeEnum.HIERARCHY:
-          const newClassesNames = this.hierarchyInputValues
+          const newClassesNames = (
+            this.inputs.filter(i => i.name && i.name.length > 0) as { name: string }[]
+            ).map(i => i.name)
           if (this.selectedNamespaceValue && newClassesNames.length >= 2) {
-            eventDetail = {
+            eventsDetail = [{
               inputClassesIri: newClassesNames.map(iri => this.selectedNamespaceValue + iri),
               namespace: this.selectedNamespaceValue,
               isComplete: this.isHierarchyComplete,
@@ -193,13 +217,13 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               convertCamel: this.convertCamel,
               convertSnake: this.convertSnake,
               lang: this.labelLanguage,
-            } as NewSubHierarchyDetail
+            } as NewSubHierarchyDetail]
           }
           break
         
         case ModalTypeEnum.ISA:
           if (this.selectedNamespaceValue && this.mainInputValue) {
-            eventDetail = {
+            eventsDetail = [{
               iri: this.selectedNamespaceValue + this.mainInputValue,
               namespace: this.selectedNamespaceValue,
               type: TypesEnum.CLASS,
@@ -208,18 +232,18 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
               convertSnake: this.convertSnake,
               lang: this.labelLanguage,
               isaDirection: this.isaDirection,
-            } as NewIsaDetail
+            } as NewIsaDetail]
           }
           break
       }
 
-      if (eventDetail) {
+      eventsDetail.forEach(event => {
         this.dispatchEvent(new CustomEvent('confirm', {
           bubbles: true,
           composed: true,
-          detail: eventDetail
+          detail: event
         }))
-      }
+      })
     }
   }
 
@@ -229,7 +253,8 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
 
   private validate() {
-    const mainInputLength = this.mainInputValue?.length || 0
+    // const mainInputLength = this.mainInputValue?.length || 0
+    const atLeastOneInput = this.inputs.some(i => i.name && i.name.length > 0)
     const nameSpaceInputLength = this.selectedNamespaceValue?.length || 0
     switch(this.modalType) {
       case TypesEnum.CLASS:
@@ -237,27 +262,27 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
       case TypesEnum.OBJECT_PROPERTY:
       case TypesEnum.INDIVIDUAL:
       case ModalTypeEnum.ISA:
-        this.isValid = mainInputLength > 0 && nameSpaceInputLength > 0
+        this.isValid = atLeastOneInput && nameSpaceInputLength > 0
         break
 
       case ModalTypeEnum.RENAME_ENTITY:
         if (this.advancedMode) {
-          // in advanced mode, you can rename/refactor only the namespace
+          // in advanced mode, you can also rename/refactor only the namespace
           this.isValid = nameSpaceInputLength > 0
         } else {
           // In basic mode, you must rename remainder to submit
-          this.isValid = mainInputLength > 0 && nameSpaceInputLength > 0
+          this.isValid = atLeastOneInput && nameSpaceInputLength > 0
         }
 
         break
 
       case ModalTypeEnum.DIAGRAM:
-        this.isValid = mainInputLength > 0
+        this.isValid = atLeastOneInput
         break
 
       case ModalTypeEnum.HIERARCHY:
         this.isValid =
-          this.hierarchyInputValues.length >= 2 &&
+          this.inputs.filter(i => i.name && i.name.length > 0).length >= 2
           nameSpaceInputLength > 0
         break
     }
@@ -291,11 +316,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     this.validate()
   }
 
-  private handleDataTypeSelection(e: Event) {
+  private handleDataTypeSelection(e: Event, i = 0) {
     const selectTarget = e.currentTarget as HTMLSelectElement
 
-    if (selectTarget) {
-      this.selectedDatatype = selectTarget.value
+    if (selectTarget && this.inputs[i]) {
+      this.inputs[i].datatype = selectTarget.value
     }
   }
 
@@ -314,18 +339,36 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
 }
 
-  private handleFunctionPropertyClick(e: Event) {
-    const chip = e.currentTarget as HTMLElement | null
+  private handleFunctionPropertyClick(e: Event, i: number, property: FunctionalityEnum) {
+    const input = this.inputs[i]
 
-    if (chip) {
-      const property = chip.id as FunctionalityEnum
-      if (this.selectedFunctionProperties.has(property)) {
-        this.selectedFunctionProperties.delete(property)
+    if (input) {
+      if (input.functionProperties?.has(property)) {
+        input.functionProperties.delete(property)
       } else {
-        this.selectedFunctionProperties.add(property)
+        if (input.functionProperties)
+          input.functionProperties.add(property)
+        else
+          input.functionProperties = new Set([property])
       }
+    }
 
-      this.requestUpdate()
+    this.requestUpdate()
+  }
+
+  private handleInputChange(e, i = 0) {
+    this.inputs[i].name = e.currentTarget.value
+
+    this.validate()
+  }
+
+  private handleAddInput() {
+    switch (this.modalType) {
+      case TypesEnum.DATA_PROPERTY:
+        this.inputs = this.inputs.concat({ name: '', datatype: 'xsd:string' })
+        break
+      default:
+        this.inputs = this.inputs.concat({})
     }
   }
 
@@ -351,14 +394,14 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     `
   }
 
-  private getMainInput() {
+  private getMainInput(i: number = 0) {
     return html`
       <div class="form-item">
-        <label for="input">Name:</label>
+        ${i === 0 ? html`<label for="input-0">Name:</label>` : null}
         <input
-          id="input"
+          id="input-${i}"
           type="text"
-          @input=${this.validate}
+          @input=${(e) => this.handleInputChange(e, i)}
           required
           placeholder=${this.remainderToRename}
         />
@@ -428,29 +471,38 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   private newDataPropertyForm() {
     return html`
-      ${this.advancedMode ? this.getNamespacesTemplate() : null}
-      ${this.getMainInput()}
 
-      <div class="form-item">
-        <label id="datatype-label" for="datatype">Datatype:</label>
-        <select id="datatype" name="datatype" required @change=${this.handleDataTypeSelection}>
-          ${datatypes.sort().map(datatype => html`
-            <option value=${datatype} ?selected=${this.selectedDatatype === datatype} >${datatype}</option>
-          `)}
-        </select>
-      </div>
+      ${this.inputs.map((input, i) => {
+        return html`
+          <div class="form-item data-property-row" input-index=${i}>
+            ${this.getMainInput(i)}
 
-      <div class="form-item" style="margin-top: 4px">
-        ${this.getFunctionPropertyChip(FunctionalityEnum.FUNCTIONAL)}
-      </div>
+            <div>
+              ${i === 0 ? html`<label>Datatype:</label>` : null}
+              <select id="datatype" name="datatype" required @change=${(e) => this.handleDataTypeSelection(e, i)}>
+                ${datatypes.sort().map(datatype => html`
+                  <option value=${datatype} ?selected=${input.datatype === datatype} >${datatype}</option>
+                `)}
+              </select>
+            </div>
 
-      ${this.advancedMode ? this.getLabelSettings() : null}
+            <div class="${i === 0 ? 'movedown-chip' : null}">
+              ${this.getFunctionPropertyChip(FunctionalityEnum.FUNCTIONAL, i)}
+            </div>
+          </div>
+        `
+      })}
+
+      <gscape-button style="align-self: center;" title="Add Subclass" @click=${this.handleAddInput} size=${SizeEnum.S}>
+        <span slot="icon">${icons.plus}</span>
+      </gscape-button>
+
+      ${this.getAdvancedSection()}
     `
   }
 
   private newOBjectPropertyForm() {
     return html`
-      ${this.advancedMode ? this.getNamespacesTemplate() : null}
       ${this.getMainInput()}
       
       <div id="function-properties" class="form-item">
@@ -466,7 +518,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         </div>
       </div>
 
-      ${this.advancedMode ? this.getLabelSettings() : null}
+      ${this.getAdvancedSection()}
     `
   }
 
@@ -477,7 +529,6 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     }
 
     return html`
-      ${this.advancedMode ? this.getNamespacesTemplate() : null}
       ${this.getMainInput()}
 
       <div class="form-item" style="align-self: center">
@@ -496,15 +547,28 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         </gscape-button>
       </div>
 
-      ${this.advancedMode ? this.getLabelSettings() : null}
+      ${this.getAdvancedSection()}
     `
   }
 
   private newEntityForm() {
     return html`
-      ${this.advancedMode ? this.getNamespacesTemplate() : null}
+      ${this.inputs.map((input, i) => html`
+        ${this.getMainInput(i)}
+      `)}
+
+      <gscape-button style="align-self: center;" title="Add Subclass" @click=${this.handleAddInput} size=${SizeEnum.S}>
+        <span slot="icon">${icons.plus}</span>
+      </gscape-button>
+
+      ${this.getAdvancedSection()}
+    `
+  }
+
+  private renameEntityForm() {
+    return html`
       ${this.getMainInput()}
-      ${this.advancedMode && this.modalType != ModalTypeEnum.RENAME_ENTITY ? this.getLabelSettings() : null}
+      ${this.getAdvancedSection()}
     `
   }
 
@@ -525,19 +589,19 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   private newSubHierarchyForm() {
     const inputs: TemplateResult[] = []
 
-    for (let i = 0; i < this.numberOfInputs; i += 1) {
+    for (let i = 0; i < this.inputs.length; i += 1) {
       inputs.push(html`
         <input
           class="subclass-input"
           style="margin-bottom: 8px;"
           type="text"
-          @input=${this.validate}
+          @input=${(e) => this.handleInputChange(e, i)}
           name="input"
         />
       `)
     }
 
-    const onAdd = () => this.numberOfInputs += 1
+    // const onAdd = () => this.numberOfInputs += 1
     const toggleComplete = (e: Event) => {
       e.preventDefault()
       this.isHierarchyComplete = !this.isHierarchyComplete
@@ -548,14 +612,12 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     }
 
     return html`
-      ${this.advancedMode ? this.getNamespacesTemplate() : null}
-
       <div class="form-item">
         <label>Sub Classes:</label>
         ${inputs}
       </div>
 
-      <gscape-button style="align-self: center;" title="Add Subclass" @click=${onAdd} size=${SizeEnum.S}>
+      <gscape-button style="align-self: center;" title="Add Subclass" @click=${this.handleAddInput} size=${SizeEnum.S}>
         <span slot="icon">${icons.plus}</span>
       </gscape-button>
 
@@ -573,8 +635,28 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
           ?checked=${this.isHierarchyDisjoint}>
         </gscape-toggle>
       </div>
-      ${this.advancedMode ? this.getLabelSettings() : null}
+      ${this.getAdvancedSection()}
     `
+  }
+
+  private getAdvancedSection() {
+    if (this.advancedMode) {
+      if(this.modalType === ModalTypeEnum.RENAME_ENTITY) {
+        return html`
+          <div class="hr" style="margin: 16px auto"></div>
+          <div id="advanced-settings" class="area">
+            ${this.getNamespacesTemplate()}
+        `
+      } else {
+        return html`
+          <div class="hr" style="margin: 16px auto"></div>
+          <div id="advanced-settings" class="area">
+            ${this.getNamespacesTemplate()}
+            ${this.getLabelSettings()}
+          </div>
+        `
+      }
+    }
   }
 
   private getForm() {
@@ -587,8 +669,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
       case TypesEnum.INDIVIDUAL:
       case TypesEnum.CLASS:
-      case ModalTypeEnum.RENAME_ENTITY:
         return this.newEntityForm()
+
+      case ModalTypeEnum.RENAME_ENTITY:
+        return this.renameEntityForm()
 
       case ModalTypeEnum.ISA:
         return this.newISAForm()
@@ -604,15 +688,15 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     }
   }
 
-  private getFunctionPropertyChip(property: FunctionalityEnum) {
+  private getFunctionPropertyChip(property: FunctionalityEnum, i = 0) {
     return html`
       <span
         id=${property}
         class="chip actionable"
-        @click=${this.handleFunctionPropertyClick}
-        ?selected=${this.selectedFunctionProperties.has(property)}
+        @click=${(e) => this.handleFunctionPropertyClick(e, i, property)}
+        ?selected=${this.inputs[i].functionProperties?.has(property)}
       >
-        ${this.selectedFunctionProperties.has(property) ? html`&#10003; ` : null} ${property}
+        ${this.inputs[i].functionProperties?.has(property) ? html`&#10003; ` : null} ${property}
       </span>
     `
   }
@@ -649,7 +733,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
 
   private get mainInputValue() {
-    return (this.shadowRoot?.querySelector('#input') as HTMLInputElement | undefined)?.value
+    return this.inputs.find(i => i.name && i.name.length > 0)?.name
   }
 
   private get labelLanguage() {

@@ -51,14 +51,14 @@ export default css`
     overflow: auto;
   }
 
-  form {
+  form, #advanced-settings {
     display: flex;
     flex-direction: column;
     gap: 8px;
     overflow: auto;
   }
 
-  .form-item > label {
+  .form-item label {
     display: block;
     margin-bottom: 4px
   }
@@ -66,6 +66,7 @@ export default css`
   .form-item input {
     display: block;
     width: 100%;
+    min-width: 100px;
   }
 
   form .dropdown {
