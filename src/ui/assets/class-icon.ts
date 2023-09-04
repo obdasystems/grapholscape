@@ -56,6 +56,6 @@ export default svg`<?xml version="1.0" encoding="UTF-8" standalone="no"?>
      rx="0"
      ry="0"
      id="rect2"
-     style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:3" />
+     style="fill:none;stroke: var(--gscape-color-class-contrast);stroke-width:2" />
 </svg>
 `

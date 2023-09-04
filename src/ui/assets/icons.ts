@@ -112,8 +112,6 @@ export const addIndividualIcon = svg`<svg fill="var(--gscape-color-class-instanc
 
 export const addObjectPropertyIcon = svg`<svg fill="var(--gscape-color-object-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`
 
-export const addObjectPropertyIcon2 = svg`<svg fill="var(--gscape-color-object-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="15" viewBox="0 -960 960 960" width="20" style="-ms-transform: rotate(45deg); -webkit-transform: rotate(45deg); transform: rotate(45deg);"><path d="M232-119q-47.637 0-80.319-32.681Q119-184.363 119-232v-496q0-47.638 32.681-80.319Q184.363-841 232-841h245v113H232v496h496v-245h113v245q0 47.637-32.681 80.319Q775.638-119 728-119H232Zm187.5-222L341-419.5 649.5-728H568v-113h273v273H728v-81.5L419.5-341Z"/></svg>`
-
 export const addISAIcon = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`
 
 export const addInstanceIcon = svg`<svg fill="var(--gscape-color-class-instance-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`

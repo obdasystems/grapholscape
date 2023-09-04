@@ -92,6 +92,6 @@ export default svg`<?xml version="1.0" encoding="UTF-8" standalone="no"?>
      sodipodi:cx="8.9135246"
      sodipodi:sides="8"
      id="path51"
-     style="fill:none;fill-rule:evenodd;stroke:var(--gscape-color-individual-contrast);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     style="fill:none;fill-rule:evenodd;stroke:var(--gscape-color-individual-contrast);stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      sodipodi:type="star" />
 </svg>`
