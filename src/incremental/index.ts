@@ -1,6 +1,8 @@
 import { Grapholscape } from "../core";
-import { LifecycleEvent, RendererStatesEnum } from "../model";
+import { ClassInstanceEntity, Filter, GrapholElement, LifecycleEvent, RendererStatesEnum } from "../model";
 import { createEntitiesList, IBaseMixin } from "../ui";
+import { setColorList } from "../ui/entity-color-legend";
+import GscapeEntityColorLegend from "../ui/entity-color-legend/entity-color-legend";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { GscapeEntitySelector } from "../ui/entity-selector";
 import { GscapeExplorer } from "../ui/ontology-explorer";
@@ -29,7 +31,7 @@ export function initIncremental(grapholscape: Grapholscape) {
     .grapholscape
     .widgets
     .get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu
-  
+
   if (!initialMenu) {
     // initEntitySelector(incrementalController.grapholscape)
     initialMenu = new IncrementalInitialMenu(incrementalController)
@@ -56,7 +58,7 @@ export function initIncremental(grapholscape: Grapholscape) {
       e.detail.sourceClassIri,
       e.detail.targetClassIri
     )
-    
+
     if (path && path[0].entities) {
       incrementalController.addPath(path[0].entities)
       initialMenu.shortestPathMode = false
@@ -66,12 +68,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   })
 
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    grapholscape.renderer.unselect()
-    manageWidgetsOnActivation(
-      grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-      grapholscape.renderer.cy?.elements().empty(),
-      incrementalController.endpointController !== undefined
-    )
+    onIncrementalStartup(grapholscape, incrementalController)
   } else {
     manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
   }
@@ -94,6 +91,12 @@ export function initIncremental(grapholscape: Grapholscape) {
       if (initialMenu) {
         IncrementalUI.moveUpLeft(initialMenu)
       }
+
+      const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
+      if (entityColorLegend) {
+        setColorList(entityColorLegend, grapholscape)
+        entityColorLegend.enable()
+      }
     }
 
 
@@ -107,7 +110,7 @@ export function initIncremental(grapholscape: Grapholscape) {
     if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       manageWidgetsOnActivation(
         grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-        grapholscape.renderer.cy?.elements().empty(),
+        true,
         incrementalController.endpointController !== undefined
       )
       onEmptyDiagram(grapholscape)
@@ -124,9 +127,39 @@ function onIncrementalStartup(grapholscape: Grapholscape, incrementalController:
 
   manageWidgetsOnActivation(
     grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-    grapholscape.renderer.cy?.elements().empty(),
+    !grapholscape.renderer.cy || grapholscape.renderer.cy.elements().empty(),
     incrementalController.endpointController !== undefined
   )
+
+  const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend
+  entityColorLegend.onElementSelection = (elem) => {
+    const filteredEntity = grapholscape.ontology.getEntity(elem.iri) || incrementalController.classInstanceEntities.get(elem.iri)
+    const filter = incrementalController.classFilterMap.get(elem.iri) ||
+      new Filter(elem.id, (grapholElement) => {
+        const _iri = grapholElement.iri
+        if (_iri) {
+          const entityToCheck = grapholscape.ontology.getEntity(_iri) || incrementalController.classInstanceEntities.get(_iri)
+          if (entityToCheck && filteredEntity) {
+            return filteredEntity?.iri.equals(entityToCheck.iri) || 
+              ((entityToCheck as ClassInstanceEntity).parentClassIris && (entityToCheck as ClassInstanceEntity).hasParentClassIri(filteredEntity.iri))
+          }
+          
+        }
+
+        return false
+      })
+
+    incrementalController.classFilterMap.set(elem.iri, filter)
+
+    if (filter.active) {
+      grapholscape.unfilter(filter)
+    } else {
+      grapholscape.filter(filter)
+    }
+
+    elem.filtered = filter.active
+    entityColorLegend.requestUpdate()
+  }
 
   // if (grapholscape.renderer.diagram)
   //   setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
@@ -141,6 +174,9 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
   const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+  const entityColorLegend = widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend
+
+  entityColorLegend.enable()
 
   entityDetails.showOccurrences = false
   classInstanceDetails?.enable()
@@ -176,11 +212,16 @@ function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLE
 }
 
 function onEmptyDiagram(grapholscape: Grapholscape) {
-  const initialMenu  = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu | undefined
+  const initialMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu | undefined
   (grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide();
 
   if (initialMenu) {
     IncrementalUI.restorePosition(initialMenu)
     initialMenu.focusInputSearch()
+  }
+
+  const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
+  if (entityColorLegend) {
+    entityColorLegend.hide()
   }
 }

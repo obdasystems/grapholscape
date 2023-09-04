@@ -31,7 +31,7 @@ export default class ClassInstanceEntity extends GrapholEntity implements IClass
    * @returns 
    */
   hasParentClassIri(parentClassIri: string | Iri) {
-    return this._parentClassIris.find(iri => iri.equals(parentClassIri))
+    return this._parentClassIris.find(iri => iri.equals(parentClassIri)) !== undefined
   }
 
   get isRDFTypeUnknown() { return this._parentClassIris.length === 0 }

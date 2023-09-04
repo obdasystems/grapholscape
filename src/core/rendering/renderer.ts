@@ -133,7 +133,7 @@ export default class Renderer {
       _filter = filter
     }
 
-    if (!_filter || !this.filters.has(_filter.key)) {
+    if (!_filter) {
       console.warn(`Can't find any filter "${filter}"`)
       return
     }

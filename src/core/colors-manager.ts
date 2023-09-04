@@ -1,7 +1,13 @@
 import chroma from 'chroma-js';
-import { ClassInstanceEntity, DiagramRepresentation, GrapholEntity, GrapholscapeTheme, Hierarchy, Ontology, TypesEnum } from "../model"
+import { CollectionArgument, NodeSingular, SingularElementReturnValue } from 'cytoscape';
+import { ClassInstanceEntity, DiagramRepresentation, GrapholEntity, Ontology, TypesEnum } from "../model";
 
-export class ColorManager {
+abstract class ColorManager {
+
+  protected abstract setClassColor(classEntity: any, overwrite: boolean): void
+  protected abstract getTopSuperClass(classEntity: any): any
+  protected abstract getAllChildren(classEntity: any, result: any): any
+
   private static readonly brewerSequentialPalettes = [
     "Blues",
     "BuGn",
@@ -23,10 +29,28 @@ export class ColorManager {
     "YlOrRd"
   ];
 
-  private forest: Set<GrapholEntity> = new Set()
+  protected getColors(numberOfColors: number) {
+
+    if (numberOfColors <= 1) {
+      return [chroma.scale('Accent').mode('lab').colors(20)[Math.floor(Math.random() * 10)]]
+    }
+
+    const scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length)
+
+    return chroma.scale(ColorManager.brewerSequentialPalettes[scaleIndex])
+      .mode('lab')
+      .padding(numberOfColors > 10 ? 1 / numberOfColors : 0.2)
+      .correctLightness(true)
+      .colors(numberOfColors)
+  }
+}
+
+export class OntologyColorManager extends ColorManager {
 
 
-  constructor(private ontology: Ontology, private diagramRepresentation: DiagramRepresentation, private theme: GrapholscapeTheme) { }
+  constructor(private ontology: Ontology, private diagramRepresentation: DiagramRepresentation) {
+    super()
+  }
 
   setInstanceColor(classInstance: ClassInstanceEntity, overwrite = false) {
     if (classInstance.parentClassIris.length <= 0 || (classInstance.color && !overwrite))
@@ -72,37 +96,23 @@ export class ColorManager {
 
     const topSuperClass = this.getTopSuperClass(classEntity)
 
-    this.forest.clear()
     const childrenClasses = this.getAllChildren(topSuperClass)
     const colors = this.getColors(childrenClasses.size + 1)
 
     let i = 0
-    for(let childClass of childrenClasses.values()) {
+    for (let childClass of childrenClasses.values()) {
       childClass.color = colors[i]
       i++
     }
 
     if (childrenClasses.size > 0) {
-      topSuperClass.color = chroma(colors[childrenClasses.size]).saturate().css()
+      topSuperClass.color = chroma(colors[colors.length - 1]).saturate().css()
     } else {
       topSuperClass.color = chroma(colors[0]).css()
     }
   }
 
-  computeAllColors() {
-    this.diagramRepresentation.grapholElements.forEach(elem => {
-      if (elem.is(TypesEnum.CLASS) && elem.iri) {
-        const entity = this.ontology.getEntity(elem.iri)
-        if (entity && !entity.color) {
-          this.setClassColor(entity)
-        }
-
-        this.diagramRepresentation.updateElement(elem, entity)
-      }
-    })
-  }
-
-  private getTopSuperClass(classEntity: GrapholEntity): GrapholEntity {
+  protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity {
 
     const directSuperclass = Array.from(this.ontology.getSuperclassesOf(classEntity.iri))[0]
 
@@ -119,10 +129,10 @@ export class ColorManager {
     }
   }
 
-  private getAllChildren(classEntity: GrapholEntity, result: Set<GrapholEntity> = new Set()): Set<GrapholEntity> {
+  protected getAllChildren(classEntity: GrapholEntity, result: Set<GrapholEntity> = new Set()): Set<GrapholEntity> {
     // let result: Set<GrapholEntity> = new Set()
 
-    for(let directChild of this.ontology.getSubclassesOf(classEntity.iri)) {
+    for (let directChild of this.ontology.getSubclassesOf(classEntity.iri)) {
       if (!result.has(directChild)) {
         result.add(directChild)
         result = new Set([...result, ...this.getAllChildren(directChild, result)])
@@ -145,13 +155,79 @@ export class ColorManager {
     return result
   }
 
-  private getColors(numberOfColors: number) {
-    const scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length)
+}
 
-    return chroma.scale(ColorManager.brewerSequentialPalettes[scaleIndex])
-      .mode('lab')
-      .padding(numberOfColors > 10 ? 1 / numberOfColors : 0.1)
-      .correctLightness(true)
-      .colors(numberOfColors)
+export class DiagramColorManager extends ColorManager {
+
+  constructor(private diagramRepresentation: DiagramRepresentation) {
+    super()
+  }
+
+  colorDiagram(overwrite = false) {
+    this.diagramRepresentation.cy.$(`node[type = "${TypesEnum.CLASS}"]`).forEach(classNode => {
+      this.setClassColor(classNode, overwrite)
+    })
+  }
+
+  setClassColor(classNode: SingularElementReturnValue, overwrite = false) {
+    if (classNode.data().computedFillColor && !overwrite) {
+      return
+    }
+
+    if (classNode.isNode()) {
+      const topSuperClass = this.getTopSuperClass(classNode)
+      const childrenClasses = this.getAllChildren(topSuperClass)
+      const colors = this.getColors(childrenClasses.size() + 1)
+      childrenClasses.forEach((childClass, i) => {
+        childClass.data('computedFillColor', colors[i])
+        // childClass.style().update()
+      })
+
+      if (childrenClasses.nonempty()) {
+        topSuperClass.data('computedFillColor', chroma(colors[colors.length - 1]).saturate().css())
+      } else {
+        topSuperClass.data('computedFillColor', colors[0])
+      }
+
+      // topSuperClass.style().update()
+    }
+  }
+
+  protected getTopSuperClass(classNode: NodeSingular) {
+    const directSuperclass = classNode.outgoers(`edge[type = "${TypesEnum.INCLUSION}"], edge[type = "${TypesEnum.EQUIVALENCE}"]`).targets().first()
+
+    const hierarchies = classNode.outgoers(`edge[type = "${TypesEnum.INPUT}"]`).targets().first()
+
+    if (hierarchies.nonempty()) {
+      return this.getTopSuperClass(hierarchies.outgoers(`node[type = "${TypesEnum.CLASS}"]`))
+
+    } else if (directSuperclass.nonempty()) {
+
+      return this.getTopSuperClass(directSuperclass)
+
+    } else {
+      return classNode
+    }
+  }
+
+  protected getAllChildren(classNode: SingularElementReturnValue | NodeSingular, result = this.diagramRepresentation.cy.collection()) {
+
+    classNode.incomers(`edge[type = "${TypesEnum.INCLUSION}"]`).sources().forEach(elem => {
+      if (!result.contains(elem)) {
+        result = result.union(elem)
+        result = result.union(this.getAllChildren(elem, result))
+      }
+    })
+
+    const hiearchies = classNode.incomers(`node[type = "${TypesEnum.UNION}"], node[type = "${TypesEnum.DISJOINT_UNION}"]`)
+
+    hiearchies.incomers(`edge[type = "${TypesEnum.INPUT}"]`).sources().forEach(elem => {
+      if (!result.contains(elem)) {
+        result = result.union(elem)
+        result = result.union(this.getAllChildren(elem, result))
+      }
+    })
+
+    return result
   }
 }

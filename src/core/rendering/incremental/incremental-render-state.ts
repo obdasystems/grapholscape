@@ -1,5 +1,5 @@
 import { EdgeSingular, Stylesheet } from "cytoscape"
-import { Diagram, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
+import { Diagram, Filter, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
 import FloatyTransformer from "../floaty/floaty-transformer"
@@ -107,6 +107,65 @@ export default class IncrementalRendererState extends FloatyRendererState {
       this.popperContainers.get(this.renderer.diagram.id)?.childNodes.forEach(c => c.remove())
     }
     this.render()
+  }
+
+  filter(elementId: string, filter: Filter) {
+    if (this.renderer.cy) {
+      const element = this.renderer.cy.$id(elementId)
+
+      if (!element.scratch('filterTags')) {
+        element.scratch('filterTags', new Set<string>())
+      }
+
+      const elemFilterTags = element.scratch('filterTags')
+      elemFilterTags.add(filter.filterTag)
+      element.addClass('filtered')
+
+      // ARCHI IN USCITA
+      element.outgoers('edge').forEach(e => {
+        if (e.data('type') === TypesEnum.INPUT) {
+          this.filter(e.target().id(), filter)
+        }
+      })
+
+      // ARCHI IN ENTRATA
+      element.incomers('edge').forEach(e => {
+        let neighbour = e.source()
+        switch (e.data().type) {
+          case TypesEnum.UNION:
+          case TypesEnum.DISJOINT_UNION:
+          case TypesEnum.COMPLETE_UNION:
+          case TypesEnum.COMPLETE_DISJOINT_UNION:
+            this.filter(neighbour.id(), filter)
+        }
+      })
+    }
+  }
+
+  unfilter(elementId: string, filter: Filter) {
+    if (!this.renderer.cy)
+      return
+
+    const element = this.renderer.cy.$id(elementId)
+
+    let elemFilterTags = element.scratch('filterTags') as Set<string>
+    if (element.hasClass('filtered') && elemFilterTags?.has(filter.filterTag)) {
+      elemFilterTags.delete(filter.filterTag)
+
+      if (elemFilterTags.size === 0) {
+        element.removeClass('filtered')
+      }
+    }
+
+    this.renderer.cy.nodes().forEach(elem => {
+      elemFilterTags = elem.scratch('filterTags') as Set<string>
+      if (elemFilterTags?.has(filter.filterTag)) {
+        elemFilterTags.delete(filter.filterTag)
+        if (elemFilterTags.size === 0) {
+          elem.removeClass('filtered')
+        }
+      }
+    })
   }
 
   set renderer(newRenderer: Renderer) {

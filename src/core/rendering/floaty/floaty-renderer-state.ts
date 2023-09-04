@@ -6,6 +6,7 @@ import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
 import computeHierarchies from "../incremental/compute-hierarchies";
+import { DiagramColorManager } from "../../colors-manager";
 
 cytoscape.use(automove)
 
@@ -63,6 +64,12 @@ export default class FloatyRendererState extends BaseRenderer {
     this.renderer.mount()
 
     if (!floatyRepresentation.hasEverBeenRendered) {
+      
+      new DiagramColorManager(
+        this.renderer.diagram.representations.get(this.id)!
+      ).colorDiagram()
+
+
       this.floatyLayoutOptions.fit = true
       this.runLayout()
       if (this.isLayoutInfinite) {

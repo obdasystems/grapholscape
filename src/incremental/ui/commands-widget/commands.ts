@@ -1,4 +1,4 @@
-import { classIcon, equivalentClasses, objectPropertyIcon, rubbishBin, subHierarchies, superHierarchies } from "../../../ui/assets";
+import { classIcon, classInstanceIcon, equivalentClasses, objectPropertyIcon, rubbishBin, subHierarchies, superHierarchies } from "../../../ui/assets";
 import { Command } from "../../../ui/common/context-menu";
 
 export function showHideSuperHierarchies(hide: boolean, callback: () => void): Command {
@@ -69,6 +69,14 @@ export function focusInstance(callback: () => void): Command {
   return {
     content: 'Show Relationships',
     icon: objectPropertyIcon,
+    select: callback,
+  }
+}
+
+export function getInstances(callback: () => void): Command {
+  return {
+    content: 'Show Some Instances',
+    icon: classInstanceIcon,
     select: callback,
   }
 }

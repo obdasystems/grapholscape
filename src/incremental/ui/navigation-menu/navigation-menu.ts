@@ -1,6 +1,6 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit";
 import { TypesEnum } from "../../../model";
-import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons } from "../../../ui";
+import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons, SizeEnum } from "../../../ui";
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
 import a11yClick from "../../../ui/util/a11y-click";
 import getIconSlot from "../../../ui/util/get-icon-slot";
@@ -71,7 +71,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                     ?actionable=${!this.canShowObjectPropertiesRanges}
                     ?asaccordion=${this.canShowObjectPropertiesRanges}
                     ?disabled=${disabled}
-                    @click=${this.handleEntitySelection}
+                    @click=${this.handleObjPropertySelection}
                     direct=${objectProperty.direct}
                     title=${disabled ? 'Property not mapped to data' : objectProperty.entityViewData.displayedName}
                   >
@@ -105,12 +105,29 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                       : null
                     }
 
-                    ${!objectProperty.direct
-                      ? html`
-                        <span slot="trailing-element" class="chip" style="line-height: 1">Inverse</span>
-                      `
-                      : null
-                    }
+                    <div slot="trailing-element">
+                      ${!objectProperty.direct
+                        ? html`
+                          <span class="chip" style="line-height: 1">Inverse</span>
+                        `
+                        : null
+                      }
+
+                      ${!this.canShowObjectPropertiesRanges
+                        ? html`
+                          <span>
+                            <gscape-button
+                              @click=${(e) => this.handleSearchInstancesRange(e, objectProperty)}
+                              size=${SizeEnum.S}
+                              title='Search instances in relationship'
+                            >
+                              ${getIconSlot('icon', icons.search)}
+                            </gscape-button>
+                          </span>
+                        `
+                        : null
+                      }
+                    </div>
                   </gscape-entity-list-item>
                 `
               })}
@@ -127,17 +144,14 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     </div>
   `
 
-  private handleEntitySelection(e: Event) {
-    if (a11yClick(e)) {
-      if (this.popperRef) 
-        this.attachTo(this.popperRef)
-  
+  private handleObjPropertySelection(e: Event) {
+    if (a11yClick(e)) {  
       const targetListItem = e.currentTarget as GscapeEntityListItem | null
 
       if (targetListItem &&
         this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
         !targetListItem.disabled) {
-        this.dispatchEvent(new CustomEvent('onobjectpropertyselection', {
+        this.dispatchEvent(new CustomEvent('objectpropertyselection', {
           bubbles: true,
           composed: true,
           detail: {
@@ -149,6 +163,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
       }
     }
   }
+
 
   private handleInsertInGraphClick(e: MouseEvent) {
     const targetListItem = (e.currentTarget as HTMLElement).parentElement?.parentElement as GscapeEntityListItem | null
@@ -167,7 +182,28 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     }
   }
 
-  private handleSearchInstancesRange() {
+  private handleSearchInstancesRange(e: MouseEvent, objectProperty: ViewObjectPropertyUnfolding) {
+    e.stopPropagation()
+    if (a11yClick(e)) {
+      if (this.popperRef) 
+        this.attachTo(this.popperRef)
+  
+      // const targetListItem = (e.currentTarget as any)?.parentElement.parentElement.parentElement as GscapeEntityListItem | null
+
+      if (objectProperty &&
+        this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
+        objectProperty.hasUnfolding) {
+        this.dispatchEvent(new CustomEvent('searchinstancesranges', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            referenceClassIri: this.referenceEntity?.value.iri.fullIri,
+            objectPropertyIri: objectProperty.entityViewData.value.iri.fullIri,
+            direct: objectProperty.direct
+          }
+        }) as ObjectPropertyNavigationEvent)
+      }
+    }
   }
 
   hide(): void {

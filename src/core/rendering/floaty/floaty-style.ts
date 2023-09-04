@@ -1,7 +1,7 @@
 import chroma from "chroma-js";
 import { NodeSingular, Stylesheet } from "cytoscape";
 import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, TypesEnum } from "../../../model";
-import { ColorManager } from "../../colors-manager";
+import { OntologyColorManager } from "../../colors-manager";
 import grapholStyle from "../graphol/graphol-style";
 import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util";
 

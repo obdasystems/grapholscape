@@ -2,20 +2,21 @@ import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from
 import { Grapholscape, IncrementalRendererState } from "../core";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, DefaultAnnotationProperties, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, DefaultAnnotationProperties, DiagramRepresentation, EntityNameType, Filter, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
 import { RDFGraph } from "../model/rdf-graph/swagger";
 import * as RDFGraphParser from '../parsing/rdf-graph-parser';
-import { showMessage } from "../ui";
+import { showMessage, WidgetEnum } from "../ui";
 import NodeButton from "../ui/common/button/node-button";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
 import { Entity, EntityTypeEnum, OntologyPath } from "./api/swagger";
-import { ColorManager } from "../core/colors-manager";
+import { OntologyColorManager } from "../core/colors-manager";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
+import { GscapeEntityColorLegend, setColorList } from "../ui/entity-color-legend";
 
 /** @internal */
 export default class IncrementalController {
@@ -35,6 +36,7 @@ export default class IncrementalController {
   private entitySelectionTimeout: NodeJS.Timeout
   public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
   public countersEnabled: boolean = true
+  public classFilterMap: Map<string, Filter> = new Map()
 
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
   on = this.lifecycle.on
@@ -114,10 +116,9 @@ export default class IncrementalController {
       return
     }
 
-    const colorManager = new ColorManager(
+    const colorManager = new OntologyColorManager(
       this.ontology,
-      this.diagram.representation,
-      this.grapholscape.theme)
+      this.diagram.representation)
 
     const addElemToIncremental = (elem: GrapholElement, rdfGraphRepr: DiagramRepresentation) => {
       let entity: GrapholEntity | undefined
@@ -230,6 +231,19 @@ export default class IncrementalController {
    * from the CONSTRUCT query over the path.
    */
   async addInstancesPath(sourceIri: string, targetIri: string, path: OntologyPath) {
+
+    const sourceEntity = this.classInstanceEntities.get(sourceIri) || this.ontology.getEntity(sourceIri)
+    const targetEntity = this.classInstanceEntities.get(targetIri) || this.ontology.getEntity(targetIri)
+
+    if (sourceEntity && targetEntity) {
+      /**
+       * If source is a class, swap source and target
+       */
+      if (sourceEntity.is(TypesEnum.CLASS)) {
+        [sourceIri, targetIri] = [targetIri, sourceIri]
+      }
+    }
+
     const rdfGraph = await this.endpointController?.requestInstancesPath(
       sourceIri,
       targetIri,
@@ -248,10 +262,9 @@ export default class IncrementalController {
     let classNode: GrapholNode | undefined
     if (entity && this.diagram.representation) {
       if (!entity.color) {
-        const colorManager = new ColorManager(
+        const colorManager = new OntologyColorManager(
           this.ontology,
-          this.diagram.representation,
-          this.grapholscape.theme)
+          this.diagram.representation)
 
         colorManager.setClassColor(entity)
       }
@@ -271,6 +284,7 @@ export default class IncrementalController {
     if (centerOnIt && classNode)
       this.grapholscape.centerOnElement(classNode.id)
 
+    this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     return classNode
   }
 
@@ -431,14 +445,20 @@ export default class IncrementalController {
           })
         }
 
-        const grapholOccurrence = this.diagram.representation?.grapholElements.get(element.id())
-        if (grapholOccurrence) {
-          entity?.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
-        }
-        this.diagram.removeElement(element.id())
 
-        if (entity?.is(TypesEnum.CLASS_INSTANCE))
-          this.classInstanceEntities.delete(entity.iri.fullIri)
+        if (entity && this.diagram.representation) {
+          const grapholOccurrence = this.diagram.representation?.grapholElements.get(element.id())
+          if (grapholOccurrence) {
+            entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+          }
+          this.diagram.removeElement(element.id())
+
+          if (entity.is(TypesEnum.CLASS_INSTANCE))
+            this.classInstanceEntities.delete(entity.iri.fullIri)
+
+          this.classFilterMap.delete(entity.fullIri)
+        }
+
       })
     })
   }
@@ -486,9 +506,10 @@ export default class IncrementalController {
             classInstanceEntity.addParentClass(classEntity.iri)
 
             if (!classInstanceEntity.color && this.diagram.representation) {
-              const colorManager = new ColorManager(this.ontology, this.diagram.representation, this.grapholscape.theme)
+              const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
               colorManager.setInstanceColor(classInstanceEntity)
-              this.diagram.representation.updateElement(addedNode, classInstanceEntity)
+              this.diagram.representation.updateElement(addedNode, classInstanceEntity, false)
+              setColorList(this.grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend, this.grapholscape)
             }
           }
         })
@@ -500,7 +521,7 @@ export default class IncrementalController {
         classInstanceEntity.addParentClass(parentClassEntity.iri)
 
         if (!classInstanceEntity.color && this.diagram.representation) {
-          const colorManager = new ColorManager(this.ontology, this.diagram.representation, this.grapholscape.theme)
+          const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
           colorManager.setInstanceColor(classInstanceEntity)
         }
       }
@@ -537,6 +558,7 @@ export default class IncrementalController {
       this.countInstancesForClass(sourceClassIri, false)
       this.countInstancesForClass(targetClassIri, false)
 
+      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
       return objectPropertyEdge
     }
   }
@@ -563,6 +585,8 @@ export default class IncrementalController {
       this.updateEntityNameType(objectPropertyEntity.iri)
       this.updateEntityNameType(sourceInstanceEntity.iri)
       this.updateEntityNameType(targetInstanceEntity.iri)
+
+      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     }
   }
 
@@ -900,11 +924,11 @@ export default class IncrementalController {
       const objectProperties = await this.getObjectPropertiesByClasses(instanceEntity.parentClassIris.map(iri => iri.fullIri))
       if (objectProperties) {
         let promisesCount = 0
-        this.lifecycle.trigger(IncrementalEvent.FocusStarted, instanceIri)
+        this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
         const results: Map<GrapholEntity, {
           ranges: {
             classEntity: GrapholEntity,
-            classInstance: ClassInstance,
+            classInstances: ClassInstance[],
           }[],
           isDirect: boolean
         }> = new Map()
@@ -923,7 +947,7 @@ export default class IncrementalController {
                 if (result.length > 0) {
                   results.get(objectPropertyEntity)?.ranges.push({
                     classEntity: rangeClassEntity,
-                    classInstance: result[0][0]
+                    classInstances: [result[0][0]] // limit is 1, array of 1 class instance
                   })
                 }
               },
@@ -939,7 +963,7 @@ export default class IncrementalController {
 
         const onDone = () => {
           this.addResultsFromFocus(instanceIri, results)
-          this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri)
+          this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE)
         }
 
         let interval = setInterval(() => {
@@ -960,12 +984,98 @@ export default class IncrementalController {
                 this.grapholscape.uiContainer
               )
                 .onConfirm(onDone)
-                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.FocusFinished, instanceIri))
+                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE))
             }
           }
         }, 10000)
       }
     }
+  }
+
+  /**
+   * Retrieve all class instances participating to an object property
+   * with another instance and add it to diagram with the extensional
+   * object property.
+   * (called by navigation menu to auto expand an object property)
+   * @param instanceIri 
+   * @param objectPropertyIri 
+   * @param isDirect 
+   */
+  expandObjectPropertyOnInstance(instanceIri: string, objectPropertyIri: string, isDirect: boolean) {
+    if (!this.endpointController?.isReasonerAvailable() || !this.endpointController.vkgApi) {
+      return
+    }
+
+    const resultForFocus: Map<GrapholEntity, {
+      ranges: {
+        classInstances: ClassInstance[],
+      }[],
+      isDirect: boolean
+    }> = new Map()
+
+    const objectPropertyEntity = this.grapholscape.ontology.getEntity(objectPropertyIri)
+    if (!objectPropertyEntity) return
+
+    resultForFocus.set(objectPropertyEntity, {
+      ranges: [{ classInstances: [] }],
+      isDirect: isDirect,
+    })
+
+    this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
+
+    this.endpointController.vkgApi.getInstancesThroughObjectProperty(
+      instanceIri,
+      objectPropertyIri,
+      isDirect,
+      false,
+      (results) => { // onNewResult
+        results.forEach(result => {
+          resultForFocus.get(objectPropertyEntity)?.ranges[0].classInstances.push(result[0])
+        })
+
+        this.addResultsFromFocus(instanceIri, resultForFocus)
+      },
+      undefined, // range class filter
+      undefined, // data property filter
+      undefined, // text search
+      () => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE), // on stop polling
+      100,
+      true
+    )
+  }
+
+  /**
+   * Retrieve first page of results for instances of a given class.
+   * Then add instances and instance-of edges (if possible) to parent class
+   * @param classIri 
+   * @param pageSize 
+   * @returns 
+   */
+  expandInstancesOnClass(classIri: string, pageSize?: number) {
+    if (!this.endpointController?.vkgApi)
+      return
+
+    const parentClassId = this.getIDByIRI(classIri, TypesEnum.CLASS)
+
+    this.lifecycle.trigger(IncrementalEvent.LoadingStarted, classIri, TypesEnum.CLASS)
+    this.endpointController.vkgApi.getInstances(
+      classIri,
+      false,
+      (results) => {
+        this.performActionWithBlockedGraph(() => {
+          let addedClassInstanceNode: ClassInstanceEntity, classInstanceId: string | undefined
+          results.forEach(result => {
+            addedClassInstanceNode = this.addInstance(result[0], classIri)
+            classInstanceId = this.getIDByIRI(addedClassInstanceNode.fullIri, TypesEnum.CLASS_INSTANCE)
+            if (classInstanceId && parentClassId)
+              this.addEdge(classInstanceId, parentClassId, TypesEnum.INSTANCE_OF)
+          })
+        })
+      },
+      () => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, classIri, TypesEnum.CLASS),
+      undefined, // search text
+      pageSize
+    )
   }
 
   focusInstance(classInstance: ClassInstance) {
@@ -975,8 +1085,8 @@ export default class IncrementalController {
 
   private addResultsFromFocus(sourceInstanceIri: string, results: Map<GrapholEntity, {
     ranges: {
-      classEntity: GrapholEntity,
-      classInstance: ClassInstance,
+      classEntity?: GrapholEntity,
+      classInstances: ClassInstance[],
     }[],
     isDirect: boolean
   }>) {
@@ -992,20 +1102,22 @@ export default class IncrementalController {
 
       results.forEach((result, objectPropertyEntity) => {
         result.ranges.forEach(range => {
-          addedClassInstanceEntity = this.addInstance(range.classInstance, range.classEntity.iri.fullIri, position)
+          range.classInstances.forEach((classInstance, i) => {
+            addedClassInstanceEntity = this.addInstance(classInstance, range.classEntity?.iri.fullIri, position)
+            classInstanceId = addedClassInstanceEntity.getOccurrenceByType(
+              TypesEnum.CLASS_INSTANCE,
+              RendererStatesEnum.INCREMENTAL)?.id
 
-          classInstanceId = addedClassInstanceEntity.getOccurrenceByType(
-            TypesEnum.CLASS_INSTANCE,
-            RendererStatesEnum.INCREMENTAL)?.id
-          addedClassNode = this.addClass(range.classEntity.iri.fullIri)
-
-          if (classInstanceId && addedClassNode) {
-            this.addEdge(classInstanceId, addedClassNode.id, TypesEnum.INSTANCE_OF)
+            if (range.classEntity && i === 0 && classInstanceId) {
+              addedClassNode = this.addClass(range.classEntity.iri.fullIri)
+              if (addedClassNode)
+                this.addEdge(classInstanceId, addedClassNode.id, TypesEnum.INSTANCE_OF)
+            }
 
             result.isDirect
-              ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, range.classInstance.iri)
-              : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, range.classInstance.iri, sourceInstanceIri)
-          }
+              ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, classInstance.iri)
+              : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, classInstance.iri, sourceInstanceIri)
+          })
         })
       })
     })

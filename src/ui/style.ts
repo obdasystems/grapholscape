@@ -288,4 +288,15 @@ input {
 .tip: hover {
   color:inherit;
 }
+
+.top-bar {
+  display: flex;
+  flex-direction: row-reverse;
+  line-height: 1;
+}
+
+.top-bar.traslated-down {
+  position: absolute;
+  right: 0;
+}
 `

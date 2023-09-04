@@ -1,7 +1,7 @@
 import chroma from "chroma-js"
 import { NodeSingular, Stylesheet } from "cytoscape"
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model"
-import { ColorManager } from "../../colors-manager"
+import { OntologyColorManager } from "../../colors-manager"
 import floatyStyle from "../floaty/floaty-style"
 import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util"
 
@@ -19,13 +19,14 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${TypesEnum.CLASS}"]`,
       style: {
-        'text-background-color': (node) => getNodeBodyColor(node, theme, true) || 'rgba(0, 0, 0, 0)',
-        'text-background-opacity': (node) => getNodeBodyColor(node, theme, true) ? 1 : 0,
-        'text-background-shape': 'roundrectangle',
-        'text-background-padding': 2,
+        // 'text-background-color': (node) => getNodeBodyColor(node, theme, true) || 'rgba(0, 0, 0, 0)',
+        // 'text-background-opacity': (node) => getNodeBodyColor(node, theme, true) ? 1 : 0,
+        // 'text-background-shape': 'roundrectangle',
+        // 'text-background-padding': 2,
         color: (node) => getNodeLabelColor(node, theme)
       }
     },
+
     {
       selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"], node[type = "${TypesEnum.CLASS}"]`,
       style: {
@@ -34,11 +35,20 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    // {
+    //   selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
+    //   style: {
+    //     'text-background-color': theme.getColour(ColoursNames.bg_graph),
+    //     'text-background-opacity': 1,
+    //   }
+    // },
+
     {
-      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
+      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
-        'text-background-color': theme.getColour(ColoursNames.bg_graph),
-        'text-background-opacity': 1,
+        'text-valign': 'top',
+        'text-wrap': 'ellipsis',
+        'text-max-width': 180,
       }
     },
 

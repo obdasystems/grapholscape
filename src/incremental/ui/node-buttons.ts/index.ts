@@ -68,8 +68,8 @@ export function NodeButtonsFactory(ic: IncrementalController) {
     }
   })
 
-  ic.on(IncrementalEvent.FocusStarted, instanceIri => {
-    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
+  ic.on(IncrementalEvent.LoadingStarted, (iri, type) => {
+    const nodeId = ic.getIDByIRI(iri, type)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty()) {
@@ -78,8 +78,8 @@ export function NodeButtonsFactory(ic: IncrementalController) {
     }
   })
 
-  ic.on(IncrementalEvent.FocusFinished, instanceIri => {
-    const nodeId = ic.getIDByIRI(instanceIri, TypesEnum.CLASS_INSTANCE)
+  ic.on(IncrementalEvent.LoadingFinished, (iri, type) => {
+    const nodeId = ic.getIDByIRI(iri, type)
     if (nodeId) {
       const cyNode = ic.diagram.representation?.cy.$id(nodeId)
       if (cyNode && cyNode.nonempty() && cyNode.scratch('loading-badge')) {
@@ -381,12 +381,20 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
 export function removeBadge(cyNode: NodeSingular, name: string) {
   if (!cyNode.scratch(name)) return
 
-  (cyNode.scratch(name) as NodeButton).tippyWidget.destroy()
-  cyNode.removeClass('unknown-parent-class')
-  cyNode.removeScratch(name)
-  cyNode.removeAllListeners()
-  cyNode.cy().removeListener('pan', cyNode.scratch(`update-${name}-position`))
-  cyNode.removeScratch(`update-${name}-position`)
+  const badgesMap = cyNode.scratch('badges') as Map<string, number>
+  if (badgesMap?.get(name)) {
+    badgesMap.set(name, badgesMap.get(name)! - 1)
+  }
+
+  if (badgesMap?.get(name) === 0) {
+    badgesMap.delete(name);
+    (cyNode.scratch(name) as NodeButton).tippyWidget.destroy()
+    cyNode.removeClass('unknown-parent-class')
+    cyNode.removeScratch(name)
+    cyNode.removeAllListeners()
+    cyNode.cy().removeListener('pan', cyNode.scratch(`update-${name}-position`))
+    cyNode.removeScratch(`update-${name}-position`)
+  }
 }
 
 export function addBadge(
@@ -396,6 +404,13 @@ export function addBadge(
   placement: Placement = 'bottom',
   isIcon = false,
 ) {
+  if (node.scratch(name)) {
+    const badgesMap = node.scratch('badges') as Map<string, number>
+    if (badgesMap.has(name)) {
+      badgesMap.set(name, badgesMap.get(name)! + 1)
+    }
+    return node.scratch(name) as NodeButton
+  }
 
   const badge = isIcon
     ? new NodeButton(content)
@@ -403,6 +418,7 @@ export function addBadge(
 
   badge.cxtWidgetProps.placement = placement
 
+  node.scratch('badges', new Map([[name, 1]]))
   node.scratch(name, badge)
   node.scratch(`update-${name}-position`, () => {
     badge.attachToSilently((node as any).popperRef())

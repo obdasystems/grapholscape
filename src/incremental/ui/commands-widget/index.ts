@@ -45,8 +45,9 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     }
 
     if (
-      grapholElement.is(TypesEnum.CLASS) ||
-      grapholElement.is(TypesEnum.CLASS_INSTANCE)
+      ic.endpointController?.isReasonerAvailable() &&
+      (grapholElement.is(TypesEnum.CLASS) ||
+      grapholElement.is(TypesEnum.CLASS_INSTANCE))
     ) {
       commands.push({
         content: 'Find paths to',
@@ -155,6 +156,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     const classIri = entity.iri.fullIri
 
     if (grapholElement.is(TypesEnum.CLASS)) {
+
+      commands.push(IncrementalCommands.getInstances(() => {
+        ic.expandInstancesOnClass(classIri)
+      }))
+
       const superHierarchies = ic.grapholscape.ontology.getSuperHierarchiesOf(classIri)
       const subHierarchies = ic.grapholscape.ontology.getSubHierarchiesOf(classIri)
 
