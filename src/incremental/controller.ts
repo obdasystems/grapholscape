@@ -544,6 +544,11 @@ export default class IncrementalController {
     const targetClass = this.ontology.getEntity(targetClassIri)
     let objectPropertyEdge: GrapholEdge | undefined
     if (objectPropertyEntity && sourceClass && targetClass) {
+      if ((!sourceClass.color || !targetClass.color) && this.diagram.representation) {
+        new OntologyColorManager(this.ontology, this.diagram.representation)
+          .setClassColor(sourceClass)
+          .setClassColor(targetClass)
+      }
       objectPropertyEdge = this.diagramBuilder.addObjectProperty(
         objectPropertyEntity,
         sourceClass,
@@ -574,7 +579,11 @@ export default class IncrementalController {
     const sourceInstanceEntity = this.classInstanceEntities.get(sourceInstanceIri)
     const targetInstanceEntity = this.classInstanceEntities.get(targetInstanceIri)
 
-    if (objectPropertyEntity && sourceInstanceEntity && targetInstanceEntity) {
+    if (objectPropertyEntity && sourceInstanceEntity && targetInstanceEntity && this.diagram.representation) {
+      new OntologyColorManager(this.ontology, this.diagram.representation)
+        .setInstanceColor(sourceInstanceEntity)
+        .setInstanceColor(targetInstanceEntity)
+  
       this.diagramBuilder.addObjectProperty(
         objectPropertyEntity,
         sourceInstanceEntity,

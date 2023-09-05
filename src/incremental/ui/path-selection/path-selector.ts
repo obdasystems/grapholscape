@@ -1,9 +1,8 @@
-import cytoscape, { EdgeSingular, ElementDefinition, NodeSingular } from "cytoscape";
-import { css, html, LitElement, PropertyValueMap } from "lit";
+import cytoscape, { ElementDefinition } from "cytoscape";
+import { LitElement, css, html } from "lit";
 import incrementalStyle from "../../../core/rendering/incremental/incremental-style";
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model";
-import { BaseMixin, baseStyle, ModalMixin, SizeEnum } from "../../../ui";
-import { incremental } from "../../../ui/assets";
+import { BaseMixin, ModalMixin, SizeEnum, baseStyle } from "../../../ui";
 import { Entity, EntityTypeEnum, OntologyPath } from "../../api/swagger";
 
 export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)) {
@@ -158,7 +157,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
   private setTheme(theme: GrapholscapeTheme) {
     const style = incrementalStyle(theme)
 
-    style.push(...[
+    style.push(
       {
         selector: 'node',
         style: {
@@ -172,7 +171,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
         style: {
           'curve-style': 'unbundled-bezier',
           "control-point-distances": (elem: cytoscape.EdgeSingular) => this.getEdgePointDistances(elem),
-          "control-point-weights": (elem) => this.getEdgePointWeights(elem),
+          "control-point-weights": (elem: cytoscape.EdgeSingular) => this.getEdgePointWeights(elem),
           // 'source-endpoint': ['50%', 0],
           // 'target-endpoint': ['-50%', 0],
         }
@@ -228,7 +227,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
           'z-index': 10,
         } as any
       }
-    ]);
+    );
 
     (this.cy?.style() as any).fromJson(style).update()
   }

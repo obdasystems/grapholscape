@@ -54,7 +54,7 @@ export class OntologyColorManager extends ColorManager {
 
   setInstanceColor(classInstance: ClassInstanceEntity, overwrite = false) {
     if (classInstance.parentClassIris.length <= 0 || (classInstance.color && !overwrite))
-      return
+      return this
 
     let parentClassInDiagram: GrapholEntity | undefined
 
@@ -64,7 +64,7 @@ export class OntologyColorManager extends ColorManager {
         parentClassInDiagram = this.ontology.getEntity(parentClassIri.fullIri)
         if (parentClassInDiagram?.color) {
           classInstance.color = parentClassInDiagram.color
-          return
+          return this
         }
       }
     }
@@ -74,7 +74,7 @@ export class OntologyColorManager extends ColorManager {
       const parentClassEntity = this.ontology.getEntity(parentClassIri.fullIri)
       if (parentClassEntity?.color) {
         classInstance.color = parentClassEntity.color
-        return
+        return this
       }
     }
 
@@ -87,11 +87,13 @@ export class OntologyColorManager extends ColorManager {
       this.setClassColor(parentClassEntity)
       classInstance.color = parentClassEntity.color
     }
+
+    return this
   }
 
   setClassColor(classEntity: GrapholEntity, overwrite = false) {
     if (classEntity.color && !overwrite) {
-      return
+      return this
     }
 
     const topSuperClass = this.getTopSuperClass(classEntity)
@@ -110,6 +112,8 @@ export class OntologyColorManager extends ColorManager {
     } else {
       topSuperClass.color = chroma(colors[0]).css()
     }
+    
+    return this
   }
 
   protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity {

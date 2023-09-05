@@ -43,11 +43,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   // entitySelector.hide()
 
   initialMenu.addEventListener('class-selection', (e: CustomEvent) => {
-    const randomPos = {
-      x: Math.random() * 200,
-      y: Math.random() * 200
-    }
-    incrementalController.addClass(e.detail, true, randomPos)
+    incrementalController.addClass(e.detail, true)
     grapholscape.selectElement(e.detail)
     IncrementalUI.moveUpLeft(initialMenu)
     initialMenu.closePanel()
