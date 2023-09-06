@@ -277,7 +277,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         break
 
       case ModalTypeEnum.DIAGRAM:
-        this.isValid = atLeastOneInput
+        this.isValid = this.mainInputValue? this.mainInputValue.length > 0 : false
         break
 
       case ModalTypeEnum.HIERARCHY:
@@ -733,7 +733,12 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   }
 
   private get mainInputValue() {
-    return this.inputs.find(i => i.name && i.name.length > 0)?.name
+    switch(this.modalType) {
+      case ModalTypeEnum.DIAGRAM:
+        return (this.shadowRoot?.querySelector('#input') as HTMLInputElement).value
+      default:
+        return this.inputs.find(i => i.name && i.name.length > 0)?.name
+    }
   }
 
   private get labelLanguage() {

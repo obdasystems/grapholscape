@@ -25,6 +25,7 @@ const {
         }
   
         .gscape-panel {
+          background-color: transparent;
           padding: 0px;
           max-width: unset;
           width: unset;
@@ -33,6 +34,7 @@ const {
         }
   
         .widget-body {
+          background-color: transparent;
           padding: 8px;
           display: flex;
           align-items: center;
@@ -53,7 +55,7 @@ const {
       return html`
         <div class="gscape-panel">
           <div class="widget-body">
-            ${this.content}
+            <div class="muted-text bold-text"> ${this.content} </div>
           </div>
         </div>
       `

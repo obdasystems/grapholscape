@@ -366,6 +366,17 @@ export default class DiagramBuilder {
     }
   }
 
+  public swapEdge(elem) {
+    const oldSource = elem.source
+    const oldSourceID = elem.data('source')
+    const oldTarget = elem.target
+    const oldTargetID = elem.data('target')
+    elem.source = oldTarget
+    elem.data('source', oldTargetID)
+    elem.target = oldSource
+    elem.data('target', oldSourceID)
+  }
+
   public removeHierarchy(hierarchy: Hierarchy) {
     if (hierarchy.id) {
       let unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
@@ -460,7 +471,6 @@ export default class DiagramBuilder {
       y: (height / 2) + Math.random() * 50,
     }
 
-    console.log(pos)
     return pos
   }
 }
