@@ -64,6 +64,10 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.toggleComplete(elem)
     }
+    else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      ontologyBuilder.swapEdge(elem)
+    }
   })
 
   grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
@@ -123,6 +127,9 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
           infobox.content = elem.data('targetLabel') === 'C' ? 'Double click to remove completeness' : 'Double click to add completeness'
         }
 
+      }
+      else if ((elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
+        infobox.content = 'Double click to swap edge'
       }
     }
   })

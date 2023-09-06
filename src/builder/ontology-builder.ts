@@ -347,6 +347,12 @@ export default class OntologyBuilder {
     this.diagramBuilder.toggleComplete(elem)
   }
 
+  public swapEdge(elem){
+    const diagram = this.grapholscape.renderer.diagram as Diagram
+    this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
+    this.diagramBuilder.swapEdge(elem)
+  }
+
   public convertCamelCase(input: string) {
     input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1")//.trim()
     //input = input.charAt(0).toUpperCase() + input.slice(1);
