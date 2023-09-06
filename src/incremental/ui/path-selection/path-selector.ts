@@ -208,7 +208,7 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
           'underlay-opacity': '1',
           'underlay-color': theme.getColour(ColoursNames.neutral_muted),
           'opacity': 1,
-        }
+        } as any // avoid warning on 'underlay-*' not existing in cytoscape's types.
       },
       {
         selector: `edge.selected`,
