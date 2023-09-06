@@ -182,15 +182,6 @@ export default class EndpointController {
     })
   }
 
-  async requestLabels(instanceIri: string) {
-    return new Promise((resolve: (result: { value: string, language?: string }[]) => void, reject) => {
-      this.vkgApi?.getInstanceLabels(
-        instanceIri,
-        (res) => resolve(res)
-      )
-    })
-  }
-
   requestInstancesPath(sourceInstanceIri: string, targetIri: string, path: OntologyPath) {
     return new Promise((resolve: (result?: RDFGraph) => void) => {
       this.vkgApi?.getExtensionalShortestPath(

@@ -476,17 +476,18 @@ export default class IncrementalController {
         classInstanceEntity.addAnnotation(
           new Annotation(DefaultAnnotationProperties.label, instance.label.value, instance.label.language)
         )
+      } else {
+        this.endpointController?.vkgApi?.getInstanceLabels(instance.iri, labels => {
+          labels?.forEach(label => {
+            classInstanceEntity!.addAnnotation(
+              new Annotation(DefaultAnnotationProperties.label, label.value, label.language)
+            )
+          })
+  
+          this.updateEntityNameType(classInstanceEntity!.iri)
+        })
       }
 
-      this.endpointController?.requestLabels(instance.iri).then(labels => {
-        labels?.forEach(label => {
-          classInstanceEntity!.addAnnotation(
-            new Annotation(DefaultAnnotationProperties.label, label.value, label.language)
-          )
-        })
-
-        this.updateEntityNameType(classInstanceEntity!.iri)
-      })
       this.classInstanceEntities.set(instance.iri, classInstanceEntity)
     }
 
