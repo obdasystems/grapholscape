@@ -133,7 +133,9 @@ export default class DiagramBuilder {
       }
     }
     if (targetNode.empty()) {
-      targetEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addClass(targetEntity)
+      targetEntity.is(TypesEnum.CLASS_INSTANCE) 
+        ? this.addClassInstance(targetEntity as ClassInstanceEntity, sourceNode.position()) 
+        : this.addClass(targetEntity, sourceNode.position())
       targetNode = this.getEntityCyRepr(targetEntity, nodesType)
       if (targetNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`)

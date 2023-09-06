@@ -1065,6 +1065,11 @@ export default class IncrementalController {
       return
 
     const parentClassId = this.getIDByIRI(classIri, TypesEnum.CLASS)
+    const classNodeId = this.getIDByIRI(classIri, TypesEnum.CLASS)
+    let classNodePosition: Position | undefined
+    if (classNodeId) {
+      classNodePosition = this.diagram.representation?.cy.$id(classNodeId).position()
+    }
 
     this.lifecycle.trigger(IncrementalEvent.LoadingStarted, classIri, TypesEnum.CLASS)
     this.endpointController.vkgApi.getInstances(
@@ -1072,10 +1077,10 @@ export default class IncrementalController {
       false,
       (results) => {
         this.performActionWithBlockedGraph(() => {
-          let addedClassInstanceNode: ClassInstanceEntity, classInstanceId: string | undefined
+          let addedClassInstanceEntity: ClassInstanceEntity, classInstanceId: string | undefined
           results.forEach(result => {
-            addedClassInstanceNode = this.addInstance(result[0], classIri)
-            classInstanceId = this.getIDByIRI(addedClassInstanceNode.fullIri, TypesEnum.CLASS_INSTANCE)
+            addedClassInstanceEntity = this.addInstance(result[0], classIri, classNodePosition)
+            classInstanceId = this.getIDByIRI(addedClassInstanceEntity.fullIri, TypesEnum.CLASS_INSTANCE)
             if (classInstanceId && parentClassId)
               this.addEdge(classInstanceId, parentClassId, TypesEnum.INSTANCE_OF)
           })
