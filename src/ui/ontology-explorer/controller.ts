@@ -16,7 +16,7 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
   })
 
   ontologyExplorerComponent.onTogglePanel = () => {
-    if (ontologyExplorerComponent.entities.length === 0) {
+    if (ontologyExplorerComponent.entities.length === 0 || grapholscape.ontology.entities.size !== ontologyExplorerComponent.entities.length) {
       updateEntityList()
     }
   }

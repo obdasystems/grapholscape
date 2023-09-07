@@ -127,7 +127,9 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
         else{
           infobox.content = elem.data('targetLabel') === 'C' ? 'Double click to remove completeness' : 'Double click to add completeness'
         }
-
+      }
+      else if (elem.data('anchorPosition')) {
+        infobox.content = 'Drag anchor to edit edge'
       }
       else if ((elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
         infobox.content = 'Double click to swap edge'

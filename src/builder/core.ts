@@ -8,11 +8,12 @@ export default class GrapholscapeDesigner extends Grapholscape {
 
   constructor(ontology: Ontology, container: HTMLElement, config: GrapholscapeConfig | undefined){
     super(ontology, container, config)
-    this.on = this.lifecycle.on
     this.renderer.lifecycle = this.lifecycle
 
     this.renderer.filters = new Map()
     this.renderer.filters.set(DefaultFilterKeyEnum.DATA_PROPERTY, getDefaultFilters().DATA_PROPERTY)
     this.renderer.filters.set(DefaultFilterKeyEnum.INDIVIDUAL, getDefaultFilters().INDIVIDUAL)
   }
+
+  on = this.lifecycle.on
 }

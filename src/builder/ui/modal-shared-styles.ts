@@ -34,6 +34,7 @@ export default css`
   .top-bar {
     display: flex;
     align-items: center;
+    flex-direction: row;
     justify-content: space-between;
     gap: 4px;
   }
