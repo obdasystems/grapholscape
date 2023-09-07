@@ -4,6 +4,8 @@ import { TypesEnum } from "../../model";
 import drawNewEdge from "../edge-creation/draw-new-edge";
 import { addAnchorsOnEdge, AnchorPosition, removeAnchorsOnEdge } from "./anchor-utilities";
 
+export * from './anchor-utilities'
+
 export default function edgeEditing(grapholscape: Grapholscape) {
   let selectedEdge: EdgeSingular | undefined
 
