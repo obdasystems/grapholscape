@@ -2141,7 +2141,7 @@ declare class Namespace implements Namespace$1 {
     private _standard;
     constructor(prefixes: string[], value: string, standard?: boolean);
     get prefixes(): string[];
-    private set prefixes(value);
+    set prefixes(value: string[]);
     private set value(value);
     get value(): string;
     toString(): string;
@@ -2157,6 +2157,11 @@ declare class Namespace implements Namespace$1 {
     hasPrefix(prefix: string): boolean;
     addPrefix(newPrefix: string): void;
 }
+
+declare const DefaultNamespaces: {
+    RDFS: Namespace;
+    OWL: Namespace;
+};
 
 declare class Iri {
     private _namespace?;
@@ -2184,13 +2189,6 @@ declare class Annotation implements Annotation$1 {
     get kind(): string;
 }
 
-declare const DefaultNamespaces: {
-    RDFS: Namespace;
-    OWL: Namespace;
-};
-declare const AnnotationProperty: {
-    [x: string]: Iri;
-};
 declare class AnnotatedElement {
     private _annotations;
     constructor();
@@ -2272,6 +2270,8 @@ declare class GrapholNode extends GrapholElement implements Node {
     static newFromSwagger(n: Node): GrapholNode;
     private _x;
     private _y;
+    private _renderedX?;
+    private _renderedY?;
     private _shape;
     private _identity;
     private _height;
@@ -2290,6 +2290,8 @@ declare class GrapholNode extends GrapholElement implements Node {
     private _shapePoints?;
     get position(): Position;
     set position(pos: Position);
+    get renderedPosition(): Position | undefined;
+    set renderedPosition(pos: Position | undefined);
     get x(): number;
     set x(valX: number);
     get y(): number;
@@ -2565,7 +2567,9 @@ declare enum LifecycleEvent {
     BackgroundClick = "backgroundClick",
     ContextClick = "contextClick",
     DoubleTap = "doubleTap",
-    EntityWikiLinkClick = "entityWikiLinkClick"
+    EntityWikiLinkClick = "entityWikiLinkClick",
+    MouseOver = "mouseOver",
+    MouseOut = "mouseOut"
 }
 interface IonEvent$1 {
     (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void;
@@ -2583,6 +2587,8 @@ interface IonEvent$1 {
     (event: LifecycleEvent.BackgroundClick, callback: () => void): void;
     (event: LifecycleEvent.ContextClick, callback: (eventObject: EventObject) => void): void;
     (event: LifecycleEvent.DoubleTap, callback: (eventObject: EventObject) => void): void;
+    (event: LifecycleEvent.MouseOver, callback: (eventObject: EventObject) => void): void;
+    (event: LifecycleEvent.MouseOut, callback: (eventObject: EventObject) => void): void;
     (event: LifecycleEvent.EntityWikiLinkClick, callback: (iri: string) => void): void;
 }
 interface IEventTriggers {
@@ -2601,6 +2607,8 @@ interface IEventTriggers {
     (event: LifecycleEvent.BackgroundClick): void;
     (event: LifecycleEvent.ContextClick, eventObject: EventObject): void;
     (event: LifecycleEvent.DoubleTap, eventObject: EventObject): void;
+    (event: LifecycleEvent.MouseOver, eventObject: EventObject): void;
+    (event: LifecycleEvent.MouseOut, eventObject: EventObject): void;
     (event: LifecycleEvent.EntityWikiLinkClick, iri: string): void;
 }
 declare class Lifecycle {
@@ -2619,6 +2627,8 @@ declare class Lifecycle {
     private backgroundClick;
     private contextClick;
     private doubleTap;
+    private mouseOver;
+    private mouseOut;
     entityWikiLinkClick: ((iri: string) => void)[];
     trigger: IEventTriggers;
     on: IonEvent$1;
@@ -2815,6 +2825,8 @@ declare class IncrementalRendererState extends FloatyRendererState {
     transformOntology(ontology: Ontology): void;
     getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
     reset(): void;
+    filter(elementId: string, filter: Filter): void;
+    unfilter(elementId: string, filter: Filter): void;
     set renderer(newRenderer: Renderer);
     get renderer(): Renderer;
     protected get defaultLayoutOptions(): {
@@ -2873,6 +2885,7 @@ declare class GrapholEntity extends AnnotatedElement implements Entity$1 {
     private _datatype;
     private _isDataPropertyFunctional;
     private _functionProperties;
+    private _color?;
     constructor(iri: Iri);
     addOccurrence(newGrapholElement: GrapholElement, representationKind?: RendererStatesEnum): void;
     removeOccurrence(grapholElement: GrapholElement, representationKind: RendererStatesEnum): void;
@@ -2901,6 +2914,8 @@ declare class GrapholEntity extends AnnotatedElement implements Entity$1 {
     set isDataPropertyFunctional(value: boolean);
     get datatype(): string;
     set datatype(datatype: string);
+    get color(): string | undefined;
+    set color(color: string | undefined);
     getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement | undefined;
     getOccurrencesByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement[] | undefined;
     hasFunctionProperty(property: FunctionPropertiesEnum): boolean;
@@ -2928,8 +2943,8 @@ declare class DiagramRepresentation {
     addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): cytoscape__default.CollectionReturnValue;
     removeElement(elementId: string): void;
     clear(): void;
-    updateElement(element: GrapholElement, updatePosition?: boolean): void;
-    updateElement(elementId: string, updatePosition?: boolean): void;
+    updateElement(element: GrapholElement, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
+    updateElement(elementId: string, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
     containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean;
     filter(elementId: string, filterTag: string): void;
     unfilter(elementId: string, filterTag: string): void;
@@ -3010,6 +3025,12 @@ declare class Hierarchy implements Hierarchy$1 {
     private isValid;
 }
 
+declare const DefaultAnnotationProperties: {
+    [x: string]: Iri;
+};
+declare class AnnotationProperty extends Iri {
+}
+
 /**
  * # Ontology
  * Class used as the Model of the whole app.
@@ -3018,20 +3039,46 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     name: string;
     version: string;
     namespaces: Namespace[];
+    annProperties: AnnotationProperty[];
     diagrams: Diagram[];
     languages: string[];
     defaultLanguage?: string;
     iri?: string;
     private _entities;
-    hierarchiesBySubclassMap: Map<string, Hierarchy[]>;
-    hierarchiesBySuperclassMap: Map<string, Hierarchy[]>;
+    private _hierarchies;
+    private _subHierarchiesMap;
+    private _superHierarchiesMap;
+    private _inclusions;
+    addHierarchy(hierarchy: Hierarchy): void;
+    removeHierarchy(hiearchyId: string): void;
+    removeHierarchy(hiearchyId: Hierarchy): void;
+    getHierarchy(hierarchyId: string): Hierarchy | undefined;
+    getHierarchiesOf(classIri: string | Iri): Hierarchy[];
+    /**
+     * @param superClassIri the superclass iri
+     * @returns The arrary of hiearchies for which a class appear as superclass
+     */
+    getSubHierarchiesOf(superClassIri: string | Iri): Hierarchy[];
+    /**
+     *
+     * @param subClassIri
+     * @returns The arrary of hiearchies for which a class appear as subclass
+     */
+    getSuperHierarchiesOf(subClassIri: string | Iri): Hierarchy[];
+    getSubclassesOf(superClassIri: string | Iri): Set<GrapholEntity>;
+    getSuperclassesOf(superClassIri: string | Iri): Set<GrapholEntity>;
+    addSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void;
+    addSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void;
+    removeSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void;
+    removeSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void;
     /**
      * @param {string} name
      * @param {string} version
      * @param {Namespace[]} namespaces
+     * @param {AnnotationProperty[]} annProperties
      * @param {Diagram[]} diagrams
      */
-    constructor(name: string, version: string, iri?: string, namespaces?: Namespace[], diagrams?: Diagram[]);
+    constructor(name: string, version: string, iri?: string, namespaces?: Namespace[], annProperties?: AnnotationProperty[], diagrams?: Diagram[]);
     /** @param {Namespace} namespace */
     addNamespace(namespace: Namespace): void;
     /**
@@ -3046,6 +3093,16 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
      * @returns {Namespace}
      */
     getNamespaceFromPrefix(prefix: string): Namespace | undefined;
+    getNamespaces(): Namespace[];
+    /** @param {AnnotationProperty} annProperty */
+    addAnnotationProperty(annProperty: AnnotationProperty): void;
+    /**
+     * Get the Namspace object given its IRI string
+     * @param {string} iriValue the IRI assigned to the namespace
+     * @returns {AnnotationProperty}
+     */
+    getAnnotationProperty(iriValue: string): AnnotationProperty | undefined;
+    getAnnotationProperties(): AnnotationProperty[];
     /** @param {Diagram} diagram */
     addDiagram(diagram: Diagram): void;
     /**
@@ -3054,7 +3111,7 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     getDiagram(diagramId: number): Diagram | undefined;
     getDiagramByName(name: string): Diagram | undefined;
     addEntity(entity: GrapholEntity): void;
-    getEntity(iri: string): GrapholEntity | undefined;
+    getEntity(iri: string | Iri): GrapholEntity | undefined;
     getEntitiesByType(entityType: TypesEnum): GrapholEntity[];
     getEntityFromOccurrence(entityOccurrence: GrapholElement): GrapholEntity | undefined;
     getGrapholElement(elementId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholElement | undefined;
@@ -3111,7 +3168,7 @@ declare class ClassInstanceEntity extends GrapholEntity implements ClassInstance
      * @param parentClassIri
      * @returns
      */
-    hasParentClassIri(parentClassIri: string | Iri): Iri | undefined;
+    hasParentClassIri(parentClassIri: string | Iri): boolean;
     get isRDFTypeUnknown(): boolean;
     get parentClassIris(): Iri[];
     get dataProperties(): DataPropertyValue[];
@@ -3132,13 +3189,17 @@ declare class IncrementalDiagram extends Diagram {
 declare enum DefaultThemesEnum {
     GRAPHOLSCAPE = "grapholscape",
     GRAPHOL = "graphol",
-    DARK = "dark"
+    DARK = "dark",
+    COLORFUL_LIGHT = "colorful-light",
+    COLORFUL_DARK = "colorful-dark"
 }
 declare const gscapeColourMap: ColourMap;
 declare const classicColourMap: ColourMap;
 declare const darkColourMap: ColourMap;
+declare const autoLightColourMap: ColourMap;
+declare const autoDarkColourMap: ColourMap;
 declare const DefaultThemes: {
-    [key in DefaultThemesEnum]: GrapholscapeTheme;
+    [key in DefaultThemesEnum]?: GrapholscapeTheme;
 };
 
 declare const CSS_PROPERTY_NAMESPACE = "--gscape-color";
@@ -3178,6 +3239,7 @@ declare enum WidgetEnum {
     SETTINGS = "settings",
     ZOOM_TOOLS = "zoom-tools",
     INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
+    ENTITY_COLOR_LEGEND = "entity-color-legend",
     /** @internal */
     CLASS_INSTANCE_DETAILS = "class-instance-details",
     /** @internal */
@@ -3482,7 +3544,7 @@ interface IVirtualKnowledgeGraphApi {
     getHighlights: (iri: string) => Promise<Highlights>;
     getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>;
     getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void;
-    getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void) => void;
+    getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void, customLimit?: number, keepAlive?: boolean) => void;
     setEndpoint: (endpoint: MastroEndpoint) => void;
     instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>;
     stopAllQueries: () => void;
@@ -3507,7 +3569,7 @@ declare class VKGApi implements IVirtualKnowledgeGraphApi {
     getHighlights(classIri: string): Promise<any>;
     getEntitiesEmptyUnfoldings(endpoint: MastroEndpoint): Promise<EmptyUnfoldingEntities>;
     getInstanceDataPropertyValues(instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: (() => void), onError?: (() => void)): Promise<void>;
-    getInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyIriFilter?: string, textSearch?: string, onStop?: (() => void), customLimit?: number): Promise<string>;
+    getInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyIriFilter?: string, textSearch?: string, onStop?: (() => void), customLimit?: number, keepAlive?: boolean): Promise<string>;
     instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string[]) => void, onStop?: () => void): Promise<void>;
     getMaterializedCounts(endpoint: MastroEndpoint): Promise<MaterializedCounts>;
     stopAllQueries(): void;
@@ -3544,8 +3606,8 @@ declare enum IncrementalEvent {
     InstanceCheckingFinished = "instanceCheckingFinished",
     CountStarted = "countStarted",
     NewCountResult = "newCountResult",
-    FocusStarted = "focusStarted",
-    FocusFinished = "focusFinished"
+    LoadingStarted = "loadingStarted",
+    LoadingFinished = "loadingFinished"
 }
 interface IonEvent {
     (event: IncrementalEvent.RequestStopped, callback: () => void): void;
@@ -3568,8 +3630,8 @@ interface IonEvent {
         date?: string;
     }) => void): void;
     (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void;
-    (event: IncrementalEvent.FocusStarted, callback: (entityIri: string) => void): void;
-    (event: IncrementalEvent.FocusFinished, callback: (entityIri: string) => void): void;
+    (event: IncrementalEvent.LoadingStarted, callback: (entityIri: string, entityType: TypesEnum) => void): void;
+    (event: IncrementalEvent.LoadingFinished, callback: (entityIri: string, entityType: TypesEnum) => void): void;
 }
 declare class IncrementalLifecycle {
     private requestStopped;
@@ -3588,8 +3650,8 @@ declare class IncrementalLifecycle {
     private instanceCheckingFinished;
     private newCountResult;
     private countStarted;
-    private focusStarted;
-    private focusFinished;
+    private loadingStarted;
+    private loadingFinished;
     constructor();
     trigger(event: IncrementalEvent.RequestStopped): void;
     trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][], numberResultsAvailable: number): void;
@@ -3611,8 +3673,8 @@ declare class IncrementalLifecycle {
         date?: string;
     }): void;
     trigger(event: IncrementalEvent.CountStarted, classIri: string): void;
-    trigger(event: IncrementalEvent.FocusStarted, entityIri: string): void;
-    trigger(event: IncrementalEvent.FocusFinished, entityIri: string): void;
+    trigger(event: IncrementalEvent.LoadingStarted, entityIri: string, entityType: TypesEnum): void;
+    trigger(event: IncrementalEvent.LoadingFinished, entityIri: string, entityType: TypesEnum): void;
     on: IonEvent;
 }
 
@@ -3663,10 +3725,6 @@ declare class EndpointController {
     shouldQueryUseLabels(queryExecutionId: string): Promise<boolean> | undefined;
     getMaterializedCounts(): Promise<MaterializedCounts | undefined>;
     instanceCheck(instanceIri: string, classesToCheck: string[]): Promise<string[]>;
-    requestLabels(instanceIri: string): Promise<{
-        value: string;
-        language?: string | undefined;
-    }[]>;
     requestInstancesPath(sourceInstanceIri: string, targetIri: string, path: OntologyPath): Promise<RDFGraph | undefined>;
     setLanguage(lang: string): void;
     isReasonerAvailable(): boolean;
@@ -3716,6 +3774,7 @@ declare class IncrementalController {
         date?: string;
     }>;
     countersEnabled: boolean;
+    classFilterMap: Map<string, Filter>;
     lifecycle: IncrementalLifecycle;
     on: IonEvent;
     /**
@@ -3826,6 +3885,24 @@ declare class IncrementalController {
     getDataPropertiesByClasses(classIris: string[]): Promise<GrapholEntity[]>;
     getDataPropertiesByClassInstance(instanceIri: string): Promise<GrapholEntity[]>;
     expandObjectPropertiesOnInstance(instanceIri: string): Promise<void>;
+    /**
+     * Retrieve all class instances participating to an object property
+     * with another instance and add it to diagram with the extensional
+     * object property.
+     * (called by navigation menu to auto expand an object property)
+     * @param instanceIri
+     * @param objectPropertyIri
+     * @param isDirect
+     */
+    expandObjectPropertyOnInstance(instanceIri: string, objectPropertyIri: string, isDirect: boolean): void;
+    /**
+     * Retrieve first page of results for instances of a given class.
+     * Then add instances and instance-of edges (if possible) to parent class
+     * @param classIri
+     * @param pageSize
+     * @returns
+     */
+    expandInstancesOnClass(classIri: string, pageSize?: number): void;
     focusInstance(classInstance: ClassInstance): void;
     private addResultsFromFocus;
     addPath(path: Entity[]): Promise<void>;
@@ -3996,6 +4073,14 @@ declare class Grapholscape {
      * @experimental
      */
     addTheme(newTheme: GrapholscapeTheme): void;
+    /**
+     * @ignore
+     * // TODO: make this method update settings widget before publishing in docs
+     * Remove a theme in the list of available themes
+     * @param newTheme the new theme
+     * @experimental
+     */
+    removeTheme(newTheme: GrapholscapeTheme): void;
     /** The current theme used by Grapholscape */
     get theme(): GrapholscapeTheme;
     /** The available themes for this Grapholscape instance */
@@ -4176,11 +4261,12 @@ declare const labelIcon: lit_html.TemplateResult<2>;
 declare const commentIcon: lit_html.TemplateResult<2>;
 declare const authorIcon: lit_html.TemplateResult<2>;
 declare const addDiagramIcon: lit_html.TemplateResult<2>;
-declare const addEntityIcon: lit_html.TemplateResult<2>;
+declare const addClassIcon: lit_html.TemplateResult<2>;
 declare const addDataPropertyIcon: lit_html.TemplateResult<2>;
 declare const addIndividualIcon: lit_html.TemplateResult<2>;
 declare const addObjectPropertyIcon: lit_html.TemplateResult<2>;
 declare const addISAIcon: lit_html.TemplateResult<2>;
+declare const addInstanceIcon: lit_html.TemplateResult<2>;
 declare const addParentClassIcon: lit_html.TemplateResult<2>;
 declare const addChildClassIcon: lit_html.TemplateResult<2>;
 declare const addSubhierarchyIcon: lit_html.TemplateResult<2>;
@@ -4195,6 +4281,7 @@ declare const redo: lit_html.TemplateResult<2>;
 declare const addPack: lit_html.TemplateResult<2>;
 declare const protocol: lit_html.TemplateResult<2>;
 declare const notes: lit_html.TemplateResult<2>;
+declare const colorPalette: lit_html.TemplateResult<2>;
 declare const entityIcons: {
     [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.CLASS_INSTANCE]: SVGTemplateResult;
 };
@@ -4215,12 +4302,13 @@ declare const _default$6: lit_html.TemplateResult<2>;
 declare const _default$5: lit_html.TemplateResult<1>;
 
 declare const index_d$2_addChildClassIcon: typeof addChildClassIcon;
+declare const index_d$2_addClassIcon: typeof addClassIcon;
 declare const index_d$2_addDataPropertyIcon: typeof addDataPropertyIcon;
 declare const index_d$2_addDiagramIcon: typeof addDiagramIcon;
-declare const index_d$2_addEntityIcon: typeof addEntityIcon;
 declare const index_d$2_addISAIcon: typeof addISAIcon;
 declare const index_d$2_addIndividualIcon: typeof addIndividualIcon;
 declare const index_d$2_addInputIcon: typeof addInputIcon;
+declare const index_d$2_addInstanceIcon: typeof addInstanceIcon;
 declare const index_d$2_addObjectPropertyIcon: typeof addObjectPropertyIcon;
 declare const index_d$2_addPack: typeof addPack;
 declare const index_d$2_addParentClassIcon: typeof addParentClassIcon;
@@ -4234,6 +4322,7 @@ declare const index_d$2_bubbles: typeof bubbles;
 declare const index_d$2_centerDiagram: typeof centerDiagram;
 declare const index_d$2_check: typeof check;
 declare const index_d$2_close: typeof close;
+declare const index_d$2_colorPalette: typeof colorPalette;
 declare const index_d$2_commentIcon: typeof commentIcon;
 declare const index_d$2_counter: typeof counter;
 declare const index_d$2_cross: typeof cross;
@@ -4282,12 +4371,13 @@ declare const index_d$2_undo: typeof undo;
 declare namespace index_d$2 {
   export {
     index_d$2_addChildClassIcon as addChildClassIcon,
+    index_d$2_addClassIcon as addClassIcon,
     index_d$2_addDataPropertyIcon as addDataPropertyIcon,
     index_d$2_addDiagramIcon as addDiagramIcon,
-    index_d$2_addEntityIcon as addEntityIcon,
     index_d$2_addISAIcon as addISAIcon,
     index_d$2_addIndividualIcon as addIndividualIcon,
     index_d$2_addInputIcon as addInputIcon,
+    index_d$2_addInstanceIcon as addInstanceIcon,
     index_d$2_addObjectPropertyIcon as addObjectPropertyIcon,
     index_d$2_addPack as addPack,
     index_d$2_addParentClassIcon as addParentClassIcon,
@@ -4303,6 +4393,7 @@ declare namespace index_d$2 {
     _default$a as classIcon,
     _default$6 as classInstanceIcon,
     index_d$2_close as close,
+    index_d$2_colorPalette as colorPalette,
     index_d$2_commentIcon as commentIcon,
     index_d$2_counter as counter,
     index_d$2_cross as cross,
@@ -4452,7 +4543,7 @@ declare class IModalMixin {
     show(): void;
     protected modalBackground: HTMLDivElement;
 }
-declare const ModalMixin: <T extends Constructor$1<IBaseMixin>>(superClass: T) => Constructor$1<IModalMixin> & T;
+declare const ModalMixin: <T extends Constructor$1<LitElement & IBaseMixin>>(superClass: T) => Constructor$1<IModalMixin> & T;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 declare class IContextualWidgetMixin {
@@ -4535,6 +4626,7 @@ declare const _default$3: lit.CSSResult;
 
 declare class GscapeEntityListItem extends LitElement {
     private _types;
+    private _color?;
     displayedName: string;
     iri: string;
     actionable: boolean;
@@ -4550,6 +4642,8 @@ declare class GscapeEntityListItem extends LitElement {
     closeAccordion(): void;
     set types(newTypes: Set<string> | undefined);
     get types(): Set<string> | undefined;
+    set color(newColor: string | undefined);
+    get color(): string | undefined;
 }
 
 declare const textSpinner: () => lit_html.TemplateResult<1>;
@@ -5020,4 +5114,4 @@ declare function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastro
 declare function builder(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions): Promise<Grapholscape>;
 declare function buildFromScratch(name: string, iri: string, container: HTMLElement, mastroConnection?: RequestOptions, config?: OntologyDesignerConfig): Promise<GrapholscapeDesigner>;
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, RDFGraphConfigEntityNameTypeEnum as EntityNameType, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Position, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, TypesEnum, Viewport, WidgetsConfig, bareGrapholscape, buildFromScratch, builder, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, loadRDFGraph, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, RDFGraphConfigEntityNameTypeEnum as EntityNameType, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Position, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, TypesEnum, Viewport, WidgetsConfig, autoDarkColourMap, autoLightColourMap, bareGrapholscape, buildFromScratch, builder, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, loadRDFGraph, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
