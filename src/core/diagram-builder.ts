@@ -283,7 +283,8 @@ export default class DiagramBuilder {
       TypesEnum.UNION |
       TypesEnum.DISJOINT_UNION |
       TypesEnum.COMPLETE_UNION |
-      TypesEnum.COMPLETE_DISJOINT_UNION) {
+      TypesEnum.COMPLETE_DISJOINT_UNION |
+      TypesEnum.ATTRIBUTE_EDGE) {
 
     const sourceNode = this.diagramRepresentation?.grapholElements.get(sourceId)
     const targetNode = this.diagramRepresentation?.grapholElements.get(targetId)

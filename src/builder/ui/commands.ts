@@ -37,7 +37,7 @@ export function getCommandsByType() {
     addSubclassEdge,
   ])
 
-  commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge, addInputEdge])
+  commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge, addAttributeEdge])
 
   commandsMap.set(TypesEnum.INDIVIDUAL, [addInstanceOfEdge])
 
@@ -290,6 +290,30 @@ export const addInputEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI
           if (grapholscape.renderer.diagram) {
             const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
             diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INPUT)
+          }
+        },
+        true // input edges must go towards input node, but we draw them in opposite direction
+      )
+    }
+  }
+}
+
+export const addAttributeEdge = (grapholscape: Grapholscape, elem: NodeSingular): UI.Command => {
+  return {
+    content: 'Add Input Edge',
+    icon: icons.addInputIcon,
+    select: () => {
+      let currentCy = grapholscape.renderer.cy as any
+      drawNewEdge(
+        currentCy,
+        TypesEnum.ATTRIBUTE_EDGE,
+        elem,
+        grapholscape.theme,
+        (_, sourceNode, targetNode, addedEdge) => {
+          addedEdge.remove()
+          if (grapholscape.renderer.diagram) {
+            const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY)
+            diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.ATTRIBUTE_EDGE)
           }
         },
         true // input edges must go towards input node, but we draw them in opposite direction
