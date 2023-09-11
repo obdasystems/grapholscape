@@ -11,7 +11,7 @@ export enum DesignerEvent {
   AnnotationEdit = 'annotationEdit',
   AnnotationRemoval = 'annotationRemoval',
   SaveDraft = 'saveDraft',
-  SaveVersion = 'saveDraft',
+  SaveVersion = 'saveVersion',
 }
 
 export interface IonDesignerEvent extends IonEvent {
@@ -47,6 +47,8 @@ export class DesignerLifeCycle extends Lifecycle {
   private annotationAddition: ((entity: GrapholEntity | Ontology, annotation: Annotation) => void)[] = []
   private annotationEdit: ((entity: GrapholEntity | Ontology, annotation: Annotation) => void)[] = []
   private annotationRemoval: ((entity: GrapholEntity | Ontology, annotation: Annotation) => void)[] = []
+  private saveDraft: ((rdfGraph: RDFGraph) => void)[] = []
+  private saveVersion: ((rdfGraph: RDFGraph) => void)[] = []
 
   trigger: IDesignerTriggers
 

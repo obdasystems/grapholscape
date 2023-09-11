@@ -24,7 +24,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
   public redoEnabled = false
   public objectPropEnabled = false
   public individualEnabled = false
-  public newVersionEnabled = false
+  public newVersionEnabled = true
 
   private _lastSelectedElement?: NodeSingular | EdgeSingular
 
@@ -151,7 +151,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
             <span slot="icon">${icons.tools}</span>
           </gscape-button>
 
-          <gscape-button size="s" type="subtle" title="Save Draft">
+          <gscape-button size="s" type="subtle" title="Save Draft" @click=${this.handleSaveDraft}>
             <span slot="icon">${icons.save}</span>
           </gscape-button>
 
@@ -161,6 +161,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
             label="New Version"
             title="Save A New Version"
             ?disabled=${!this.newVersionEnabled}
+            @click=${this.handleSaveVersion}
           >
             <span slot="icon">${icons.addPack}</span>
           </gscape-button>

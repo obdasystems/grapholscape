@@ -30,6 +30,7 @@ export * from './incremental'
 export * from './model'
 export * as ui from './ui'
 export * as util from './util'
+export * as designer from './builder'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
