@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Action } from './Action';
+import {
+    ActionFromJSON,
+    ActionFromJSONTyped,
+    ActionToJSON,
+} from './Action';
 import type { ActionInvolvedElements } from './ActionInvolvedElements';
 import {
     ActionInvolvedElementsFromJSON,
@@ -25,54 +31,77 @@ import {
     ActionUserFromJSONTyped,
     ActionUserToJSON,
 } from './ActionUser';
+import type { Annotation } from './Annotation';
+import {
+    AnnotationFromJSON,
+    AnnotationFromJSONTyped,
+    AnnotationToJSON,
+} from './Annotation';
+import type { Entity } from './Entity';
+import {
+    EntityFromJSON,
+    EntityFromJSONTyped,
+    EntityToJSON,
+} from './Entity';
 
 /**
- * Actions describes what user has done on a single element or element's metadata. The user can add, edit or remove something. The "something" is described by the operation involved in the action, it can be an operation over an entity, a diagram, a hierarchy and so on.
- * Reverting an action means reverting the operation that has been done and it depends on the type of the action. - Add => Remove - Remove => Add - Edit => restore the previous state of the subject of the operation made
+ * 
  * @export
- * @interface Action
+ * @interface AnnotationAction
  */
-export interface Action {
+export interface AnnotationAction {
+    /**
+     * 
+     * @type {Annotation}
+     * @memberof AnnotationAction
+     */
+    subject?: Annotation;
+    /**
+     * 
+     * @type {Annotation}
+     * @memberof AnnotationAction
+     */
+    previousState?: Annotation;
+    /**
+     * 
+     * @type {Entity}
+     * @memberof AnnotationAction
+     */
+    entity?: Entity;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AnnotationAction
+     */
+    onOntology?: boolean;
     /**
      * 
      * @type {string}
-     * @memberof Action
+     * @memberof AnnotationAction
      */
-    operationType: ActionOperationTypeEnum;
-    /**
-     * 
-     * @type {object}
-     * @memberof Action
-     */
-    subject: object;
-    /**
-     * 
-     * @type {object}
-     * @memberof Action
-     */
-    previousState?: object;
+    operationType: AnnotationActionOperationTypeEnum;
     /**
      * 
      * @type {ActionInvolvedElements}
-     * @memberof Action
+     * @memberof AnnotationAction
      */
     involvedElements?: ActionInvolvedElements;
     /**
      * 
      * @type {Array<Action>}
-     * @memberof Action
+     * @memberof AnnotationAction
      */
     subactions?: Array<Action>;
     /**
      * 
      * @type {ActionUser}
-     * @memberof Action
+     * @memberof AnnotationAction
      */
     user: ActionUser;
     /**
      * 
      * @type {number}
-     * @memberof Action
+     * @memberof AnnotationAction
      */
     timestamp: number;
 }
@@ -81,7 +110,7 @@ export interface Action {
 * @export
 * @enum {string}
 */
-export enum ActionOperationTypeEnum {
+export enum AnnotationActionOperationTypeEnum {
     ADD = 'add',
     EDIT = 'edit',
     REMOVE = 'remove'
@@ -89,31 +118,32 @@ export enum ActionOperationTypeEnum {
 
 
 /**
- * Check if a given object implements the Action interface.
+ * Check if a given object implements the AnnotationAction interface.
  */
-export function instanceOfAction(value: object): boolean {
+export function instanceOfAnnotationAction(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "operationType" in value;
-    isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "user" in value;
     isInstance = isInstance && "timestamp" in value;
 
     return isInstance;
 }
 
-export function ActionFromJSON(json: any): Action {
-    return ActionFromJSONTyped(json, false);
+export function AnnotationActionFromJSON(json: any): AnnotationAction {
+    return AnnotationActionFromJSONTyped(json, false);
 }
 
-export function ActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Action {
+export function AnnotationActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): AnnotationAction {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
+        'subject': !exists(json, 'subject') ? undefined : AnnotationFromJSON(json['subject']),
+        'previousState': !exists(json, 'previousState') ? undefined : AnnotationFromJSON(json['previousState']),
+        'entity': !exists(json, 'entity') ? undefined : EntityFromJSON(json['entity']),
+        'onOntology': !exists(json, 'onOntology') ? undefined : json['onOntology'],
         'operationType': json['operationType'],
-        'subject': json['subject'],
-        'previousState': !exists(json, 'previousState') ? undefined : json['previousState'],
         'involvedElements': !exists(json, 'involvedElements') ? undefined : ActionInvolvedElementsFromJSON(json['involvedElements']),
         'subactions': !exists(json, 'subactions') ? undefined : ((json['subactions'] as Array<any>).map(ActionFromJSON)),
         'user': ActionUserFromJSON(json['user']),
@@ -121,7 +151,7 @@ export function ActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ac
     };
 }
 
-export function ActionToJSON(value?: Action | null): any {
+export function AnnotationActionToJSON(value?: AnnotationAction | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -130,9 +160,11 @@ export function ActionToJSON(value?: Action | null): any {
     }
     return {
         
+        'subject': AnnotationToJSON(value.subject),
+        'previousState': AnnotationToJSON(value.previousState),
+        'entity': EntityToJSON(value.entity),
+        'onOntology': value.onOntology,
         'operationType': value.operationType,
-        'subject': value.subject,
-        'previousState': value.previousState,
         'involvedElements': ActionInvolvedElementsToJSON(value.involvedElements),
         'subactions': value.subactions === undefined ? undefined : ((value.subactions as Array<any>).map(ActionToJSON)),
         'user': ActionUserToJSON(value.user),

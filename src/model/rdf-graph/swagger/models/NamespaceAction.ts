@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Action } from './Action';
+import {
+    ActionFromJSON,
+    ActionFromJSONTyped,
+    ActionToJSON,
+} from './Action';
 import type { ActionInvolvedElements } from './ActionInvolvedElements';
 import {
     ActionInvolvedElementsFromJSON,
@@ -25,54 +31,59 @@ import {
     ActionUserFromJSONTyped,
     ActionUserToJSON,
 } from './ActionUser';
+import type { Namespace } from './Namespace';
+import {
+    NamespaceFromJSON,
+    NamespaceFromJSONTyped,
+    NamespaceToJSON,
+} from './Namespace';
 
 /**
- * Actions describes what user has done on a single element or element's metadata. The user can add, edit or remove something. The "something" is described by the operation involved in the action, it can be an operation over an entity, a diagram, a hierarchy and so on.
- * Reverting an action means reverting the operation that has been done and it depends on the type of the action. - Add => Remove - Remove => Add - Edit => restore the previous state of the subject of the operation made
+ * 
  * @export
- * @interface Action
+ * @interface NamespaceAction
  */
-export interface Action {
+export interface NamespaceAction {
+    /**
+     * 
+     * @type {Namespace}
+     * @memberof NamespaceAction
+     */
+    subject: Namespace;
+    /**
+     * 
+     * @type {Namespace}
+     * @memberof NamespaceAction
+     */
+    previousState?: Namespace;
     /**
      * 
      * @type {string}
-     * @memberof Action
+     * @memberof NamespaceAction
      */
-    operationType: ActionOperationTypeEnum;
-    /**
-     * 
-     * @type {object}
-     * @memberof Action
-     */
-    subject: object;
-    /**
-     * 
-     * @type {object}
-     * @memberof Action
-     */
-    previousState?: object;
+    operationType: NamespaceActionOperationTypeEnum;
     /**
      * 
      * @type {ActionInvolvedElements}
-     * @memberof Action
+     * @memberof NamespaceAction
      */
     involvedElements?: ActionInvolvedElements;
     /**
      * 
      * @type {Array<Action>}
-     * @memberof Action
+     * @memberof NamespaceAction
      */
     subactions?: Array<Action>;
     /**
      * 
      * @type {ActionUser}
-     * @memberof Action
+     * @memberof NamespaceAction
      */
     user: ActionUser;
     /**
      * 
      * @type {number}
-     * @memberof Action
+     * @memberof NamespaceAction
      */
     timestamp: number;
 }
@@ -81,7 +92,7 @@ export interface Action {
 * @export
 * @enum {string}
 */
-export enum ActionOperationTypeEnum {
+export enum NamespaceActionOperationTypeEnum {
     ADD = 'add',
     EDIT = 'edit',
     REMOVE = 'remove'
@@ -89,31 +100,31 @@ export enum ActionOperationTypeEnum {
 
 
 /**
- * Check if a given object implements the Action interface.
+ * Check if a given object implements the NamespaceAction interface.
  */
-export function instanceOfAction(value: object): boolean {
+export function instanceOfNamespaceAction(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "operationType" in value;
     isInstance = isInstance && "subject" in value;
+    isInstance = isInstance && "operationType" in value;
     isInstance = isInstance && "user" in value;
     isInstance = isInstance && "timestamp" in value;
 
     return isInstance;
 }
 
-export function ActionFromJSON(json: any): Action {
-    return ActionFromJSONTyped(json, false);
+export function NamespaceActionFromJSON(json: any): NamespaceAction {
+    return NamespaceActionFromJSONTyped(json, false);
 }
 
-export function ActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Action {
+export function NamespaceActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceAction {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
+        'subject': NamespaceFromJSON(json['subject']),
+        'previousState': !exists(json, 'previousState') ? undefined : NamespaceFromJSON(json['previousState']),
         'operationType': json['operationType'],
-        'subject': json['subject'],
-        'previousState': !exists(json, 'previousState') ? undefined : json['previousState'],
         'involvedElements': !exists(json, 'involvedElements') ? undefined : ActionInvolvedElementsFromJSON(json['involvedElements']),
         'subactions': !exists(json, 'subactions') ? undefined : ((json['subactions'] as Array<any>).map(ActionFromJSON)),
         'user': ActionUserFromJSON(json['user']),
@@ -121,7 +132,7 @@ export function ActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ac
     };
 }
 
-export function ActionToJSON(value?: Action | null): any {
+export function NamespaceActionToJSON(value?: NamespaceAction | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -130,9 +141,9 @@ export function ActionToJSON(value?: Action | null): any {
     }
     return {
         
+        'subject': NamespaceToJSON(value.subject),
+        'previousState': NamespaceToJSON(value.previousState),
         'operationType': value.operationType,
-        'subject': value.subject,
-        'previousState': value.previousState,
         'involvedElements': ActionInvolvedElementsToJSON(value.involvedElements),
         'subactions': value.subactions === undefined ? undefined : ((value.subactions as Array<any>).map(ActionToJSON)),
         'user': ActionUserToJSON(value.user),

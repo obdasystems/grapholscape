@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Action } from './Action';
+import {
+    ActionFromJSON,
+    ActionFromJSONTyped,
+    ActionToJSON,
+} from './Action';
 import type { ActionInvolvedElements } from './ActionInvolvedElements';
 import {
     ActionInvolvedElementsFromJSON,
@@ -25,54 +31,59 @@ import {
     ActionUserFromJSONTyped,
     ActionUserToJSON,
 } from './ActionUser';
+import type { Diagram } from './Diagram';
+import {
+    DiagramFromJSON,
+    DiagramFromJSONTyped,
+    DiagramToJSON,
+} from './Diagram';
 
 /**
- * Actions describes what user has done on a single element or element's metadata. The user can add, edit or remove something. The "something" is described by the operation involved in the action, it can be an operation over an entity, a diagram, a hierarchy and so on.
- * Reverting an action means reverting the operation that has been done and it depends on the type of the action. - Add => Remove - Remove => Add - Edit => restore the previous state of the subject of the operation made
+ * 
  * @export
- * @interface Action
+ * @interface DiagramAction
  */
-export interface Action {
+export interface DiagramAction {
+    /**
+     * 
+     * @type {Diagram}
+     * @memberof DiagramAction
+     */
+    subject?: Diagram;
+    /**
+     * 
+     * @type {Diagram}
+     * @memberof DiagramAction
+     */
+    previousState?: Diagram;
     /**
      * 
      * @type {string}
-     * @memberof Action
+     * @memberof DiagramAction
      */
-    operationType: ActionOperationTypeEnum;
-    /**
-     * 
-     * @type {object}
-     * @memberof Action
-     */
-    subject: object;
-    /**
-     * 
-     * @type {object}
-     * @memberof Action
-     */
-    previousState?: object;
+    operationType: DiagramActionOperationTypeEnum;
     /**
      * 
      * @type {ActionInvolvedElements}
-     * @memberof Action
+     * @memberof DiagramAction
      */
     involvedElements?: ActionInvolvedElements;
     /**
      * 
      * @type {Array<Action>}
-     * @memberof Action
+     * @memberof DiagramAction
      */
     subactions?: Array<Action>;
     /**
      * 
      * @type {ActionUser}
-     * @memberof Action
+     * @memberof DiagramAction
      */
     user: ActionUser;
     /**
      * 
      * @type {number}
-     * @memberof Action
+     * @memberof DiagramAction
      */
     timestamp: number;
 }
@@ -81,7 +92,7 @@ export interface Action {
 * @export
 * @enum {string}
 */
-export enum ActionOperationTypeEnum {
+export enum DiagramActionOperationTypeEnum {
     ADD = 'add',
     EDIT = 'edit',
     REMOVE = 'remove'
@@ -89,31 +100,30 @@ export enum ActionOperationTypeEnum {
 
 
 /**
- * Check if a given object implements the Action interface.
+ * Check if a given object implements the DiagramAction interface.
  */
-export function instanceOfAction(value: object): boolean {
+export function instanceOfDiagramAction(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "operationType" in value;
-    isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "user" in value;
     isInstance = isInstance && "timestamp" in value;
 
     return isInstance;
 }
 
-export function ActionFromJSON(json: any): Action {
-    return ActionFromJSONTyped(json, false);
+export function DiagramActionFromJSON(json: any): DiagramAction {
+    return DiagramActionFromJSONTyped(json, false);
 }
 
-export function ActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Action {
+export function DiagramActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): DiagramAction {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
+        'subject': !exists(json, 'subject') ? undefined : DiagramFromJSON(json['subject']),
+        'previousState': !exists(json, 'previousState') ? undefined : DiagramFromJSON(json['previousState']),
         'operationType': json['operationType'],
-        'subject': json['subject'],
-        'previousState': !exists(json, 'previousState') ? undefined : json['previousState'],
         'involvedElements': !exists(json, 'involvedElements') ? undefined : ActionInvolvedElementsFromJSON(json['involvedElements']),
         'subactions': !exists(json, 'subactions') ? undefined : ((json['subactions'] as Array<any>).map(ActionFromJSON)),
         'user': ActionUserFromJSON(json['user']),
@@ -121,7 +131,7 @@ export function ActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ac
     };
 }
 
-export function ActionToJSON(value?: Action | null): any {
+export function DiagramActionToJSON(value?: DiagramAction | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -130,9 +140,9 @@ export function ActionToJSON(value?: Action | null): any {
     }
     return {
         
+        'subject': DiagramToJSON(value.subject),
+        'previousState': DiagramToJSON(value.previousState),
         'operationType': value.operationType,
-        'subject': value.subject,
-        'previousState': value.previousState,
         'involvedElements': ActionInvolvedElementsToJSON(value.involvedElements),
         'subactions': value.subactions === undefined ? undefined : ((value.subactions as Array<any>).map(ActionToJSON)),
         'user': ActionUserToJSON(value.user),

@@ -26,11 +26,16 @@ export interface DeleteOntologyDraftRequest {
     ontologyName: string;
 }
 
+export interface DownloadOntologyDraftRequest {
+    ontologyName: string;
+}
+
 export interface GetOntologyDraftRequest {
     ontologyName: string;
 }
 
 export interface PostOntologyDraftsRequest {
+    ontologyName: string;
     rDFGraph?: RDFGraph;
 }
 
@@ -83,13 +88,17 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
     /**
      * Download the ontology draft {ontologyName} converted in OWL2
      */
-    async downloadOntologyDraftRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+    async downloadOntologyDraftRaw(requestParameters: DownloadOntologyDraftRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling downloadOntologyDraft.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/ontologyDraft/download`,
+            path: `/ontologyDraft/{ontologyName}/download`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -105,8 +114,8 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
     /**
      * Download the ontology draft {ontologyName} converted in OWL2
      */
-    async downloadOntologyDraft(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
-        const response = await this.downloadOntologyDraftRaw(initOverrides);
+    async downloadOntologyDraft(requestParameters: DownloadOntologyDraftRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.downloadOntologyDraftRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -170,6 +179,10 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
      * Add to the list of all ontology drafts a new draft
      */
     async postOntologyDraftsRaw(requestParameters: PostOntologyDraftsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RDFGraph>>> {
+        if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling postOntologyDrafts.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -177,7 +190,7 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/ontologyDrafts`,
+            path: `/ontologyDraft/{ontologyName}`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -190,7 +203,7 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
     /**
      * Add to the list of all ontology drafts a new draft
      */
-    async postOntologyDrafts(requestParameters: PostOntologyDraftsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RDFGraph>> {
+    async postOntologyDrafts(requestParameters: PostOntologyDraftsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RDFGraph>> {
         const response = await this.postOntologyDraftsRaw(requestParameters, initOverrides);
         return await response.value();
     }

@@ -23,57 +23,56 @@ import {
 /**
  * 
  * @export
- * @interface HierarchyOp
+ * @interface HierarchyAction
  */
-export interface HierarchyOp {
+export interface HierarchyAction {
     /**
      * 
      * @type {Hierarchy}
-     * @memberof HierarchyOp
+     * @memberof HierarchyAction
      */
-    subject: Hierarchy;
+    subject?: Hierarchy;
     /**
      * 
      * @type {string}
-     * @memberof HierarchyOp
+     * @memberof HierarchyAction
      */
     diagramId: string;
     /**
      * 
      * @type {Hierarchy}
-     * @memberof HierarchyOp
+     * @memberof HierarchyAction
      */
     previousState?: Hierarchy;
 }
 
 /**
- * Check if a given object implements the HierarchyOp interface.
+ * Check if a given object implements the HierarchyAction interface.
  */
-export function instanceOfHierarchyOp(value: object): boolean {
+export function instanceOfHierarchyAction(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "diagramId" in value;
 
     return isInstance;
 }
 
-export function HierarchyOpFromJSON(json: any): HierarchyOp {
-    return HierarchyOpFromJSONTyped(json, false);
+export function HierarchyActionFromJSON(json: any): HierarchyAction {
+    return HierarchyActionFromJSONTyped(json, false);
 }
 
-export function HierarchyOpFromJSONTyped(json: any, ignoreDiscriminator: boolean): HierarchyOp {
+export function HierarchyActionFromJSONTyped(json: any, ignoreDiscriminator: boolean): HierarchyAction {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'subject': HierarchyFromJSON(json['subject']),
+        'subject': !exists(json, 'subject') ? undefined : HierarchyFromJSON(json['subject']),
         'diagramId': json['diagramId'],
         'previousState': !exists(json, 'previousState') ? undefined : HierarchyFromJSON(json['previousState']),
     };
 }
 
-export function HierarchyOpToJSON(value?: HierarchyOp | null): any {
+export function HierarchyActionToJSON(value?: HierarchyAction | null): any {
     if (value === undefined) {
         return undefined;
     }
