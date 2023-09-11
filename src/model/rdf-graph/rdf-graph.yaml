@@ -794,26 +794,21 @@ components:
         - Remove => Add
         - Edit => restore the previous state of the subject of the operation made
       type: object
+      required:
+        - operationType
+        - subject
+        - user
+        - timestamp
       properties:
         operationType:
           type: string
           enum: ["add", "edit", "remove"]
-        operation:
-          description:
-            Operations differ by their subject, that is the object on which
-            the operation take place (if the user perform the action of adding a diagram,
-            the subject of the operation will be the diagram).
-            The previousState of a operation must be set in case of editing a single field
-            of the subject, it is not needed in case of 'add' or 'remove' actions.
+        subject:
           type: object
-          oneOf:
-            - $ref: "#/components/schemas/ElementOp"
-            - $ref: "#/components/schemas/EntityOp"
-            - $ref: "#/components/schemas/DiagramOp"
-            - $ref: "#/components/schemas/HierarchyOp"
-            - $ref: "#/components/schemas/AnnotationOp"
-            - $ref: "#/components/schemas/PropertyOp"
-            - $ref: "#/components/schemas/NamespaceOp"
+        previousState:
+          type: object
+        involvedElements:
+          $ref: "#/components/schemas/ActionInvolvedElements"
         subactions:
           type: array
           items:
@@ -834,68 +829,53 @@ components:
         timestamp:
           type: number
 
-    ElementOp:
+    NodeAction:
       type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
       required:
         - subject
       properties:
         subject:
-          oneOf:
-            - $ref: "#/components/schemas/Node"
-            - $ref: "#/components/schemas/Edge"
-            - $ref: "#/components/schemas/Hierarchy"
+          $ref: "#/components/schemas/Node"
         previousState:
-          oneOf:
-            - $ref: "#/components/schemas/Node"
-            - $ref: "#/components/schemas/Edge"
-            - $ref: "#/components/schemas/Hierarchy"
-        involvedElements:
-          description:
-            Array of other elements involved in the operation. Only for Remove actions.
-            The remove action on an Entity might involve other elements.
-            i.e. if the class removed was the superclass of a hierarchy, the whole hierarchy might become not valid"
-          type: array
-          items:
-            oneOf:
-              - $ref: "#/components/schemas/Node"
-              - $ref: "#/components/schemas/Edge"
-              - $ref: "#/components/schemas/Hierarchy"
+          $ref: "#/components/schemas/Node"
 
-    EntityOp:
+    EdgeAction:
       type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
       required:
         - subject
+      properties:
+        subject:
+          $ref: "#/components/schemas/Edge"
+        previousState:
+          $ref: "#/components/schemas/Edge"
+
+    EntityAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
       properties:
         subject:
           $ref: "#/components/schemas/Entity"
         previousState:
           $ref: "#/components/schemas/Entity"
-        involvedElements:
-          description:
-            Array of other elements involved in the operation. Only for Remove actions.
-            The remove action on an Entity might involve other elements.
-            i.e. if the class removed was the superclass of a hierarchy, the whole hierarchy might become not valid"
-          type: array
-          items:
-            oneOf:
-              - $ref: "#/components/schemas/Node"
-              - $ref: "#/components/schemas/Edge"
-              - $ref: "#/components/schemas/Hierarchy"
 
-    DiagramOp:
+    DiagramAction:
       type: object
-      required:
-        - subject
+      allOf:
+        - $ref: "#/components/schemas/Action"
       properties:
         subject:
           $ref: "#/components/schemas/Diagram"
         previousState:
           $ref: "#/components/schemas/Diagram"
 
-    HierarchyOp:
+    HierarchyAction:
       type: object
       required:
-        - subject
         - diagramId
       properties:
         subject:
@@ -905,10 +885,10 @@ components:
         previousState:
           $ref: "#/components/schemas/Hierarchy"
 
-    AnnotationOp:
+    AnnotationAction:
       type: object
-      required:
-        - subject
+      allOf:
+        - $ref: "#/components/schemas/Action"
       properties:
         subject:
           $ref: "#/components/schemas/Annotation"
@@ -919,18 +899,20 @@ components:
         onOntology:
           type: boolean
 
-    PropertyOp:
+    PropertyAction:
       type: object
-      required:
-        - subject
+      allOf:
+        - $ref: "#/components/schemas/Action"
       properties:
         subject:
           $ref: "#/components/schemas/Entity"
         previousState:
           $ref: "#/components/schemas/Entity"
 
-    NamespaceOp:
+    NamespaceAction:
       type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
       required:
         - subject
       properties:
@@ -939,6 +921,26 @@ components:
         previousState:
           $ref: "#/components/schemas/Namespace"
     
+    ActionInvolvedElements:
+      description:
+        Other elements involved in an action. Only for Remove actions.
+        The remove action on an Entity might involve other elements.
+        i.e. object properties on removed classes
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Node"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Edge"
+        Hierarchies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Hierarchy"
+
     VKGSnapshot:
       type: object
       properties:
