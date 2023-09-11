@@ -50,6 +50,12 @@ export interface AnnotationOp {
      * @memberof AnnotationOp
      */
     entity?: Entity;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AnnotationOp
+     */
+    onOntology?: boolean;
 }
 
 /**
@@ -75,6 +81,7 @@ export function AnnotationOpFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'subject': AnnotationFromJSON(json['subject']),
         'previousState': !exists(json, 'previousState') ? undefined : AnnotationFromJSON(json['previousState']),
         'entity': !exists(json, 'entity') ? undefined : EntityFromJSON(json['entity']),
+        'onOntology': !exists(json, 'onOntology') ? undefined : json['onOntology'],
     };
 }
 
@@ -90,6 +97,7 @@ export function AnnotationOpToJSON(value?: AnnotationOp | null): any {
         'subject': AnnotationToJSON(value.subject),
         'previousState': AnnotationToJSON(value.previousState),
         'entity': EntityToJSON(value.entity),
+        'onOntology': value.onOntology,
     };
 }
 

@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { ElementOpPreviousState } from './ElementOpPreviousState';
-import {
-    ElementOpPreviousStateFromJSON,
-    ElementOpPreviousStateFromJSONTyped,
-    ElementOpPreviousStateToJSON,
-} from './ElementOpPreviousState';
 import type { ElementOpSubject } from './ElementOpSubject';
 import {
     ElementOpSubjectFromJSON,
@@ -40,10 +34,10 @@ export interface ElementOp {
     subject: ElementOpSubject;
     /**
      * 
-     * @type {ElementOpPreviousState}
+     * @type {ElementOpSubject}
      * @memberof ElementOp
      */
-    previousState?: ElementOpPreviousState;
+    previousState?: ElementOpSubject;
     /**
      * Array of other elements involved in the operation. Only for Remove actions. The remove action on an Entity might involve other elements. i.e. if the class removed was the superclass of a hierarchy, the whole hierarchy might become not valid"
      * @type {Array<ElementOpSubject>}
@@ -73,7 +67,7 @@ export function ElementOpFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     return {
         
         'subject': ElementOpSubjectFromJSON(json['subject']),
-        'previousState': !exists(json, 'previousState') ? undefined : ElementOpPreviousStateFromJSON(json['previousState']),
+        'previousState': !exists(json, 'previousState') ? undefined : ElementOpSubjectFromJSON(json['previousState']),
         'involvedElements': !exists(json, 'involvedElements') ? undefined : ((json['involvedElements'] as Array<any>).map(ElementOpSubjectFromJSON)),
     };
 }
@@ -88,7 +82,7 @@ export function ElementOpToJSON(value?: ElementOp | null): any {
     return {
         
         'subject': ElementOpSubjectToJSON(value.subject),
-        'previousState': ElementOpPreviousStateToJSON(value.previousState),
+        'previousState': ElementOpSubjectToJSON(value.previousState),
         'involvedElements': value.involvedElements === undefined ? undefined : ((value.involvedElements as Array<any>).map(ElementOpSubjectToJSON)),
     };
 }

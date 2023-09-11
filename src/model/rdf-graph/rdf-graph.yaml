@@ -348,7 +348,12 @@ paths:
         in: query
         required: true
         schema:
-          type: string 
+          type: string
+      - name: snapshotId
+        in: path
+        required: true
+        schema:
+          type: integer
       responses:
         200:
           description: Successful operation
@@ -481,10 +486,10 @@ components:
         modelType:
           type: string
           enum: ["ontology", "vkg", "rdf"]
-        # actions:
-        #   type: array
-        #   items:
-        #     $ref: "#/components/schemas/Action"
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
     Theme:
       type: object
       required:
@@ -764,54 +769,58 @@ components:
               complete:
                 type: boolean
 
-    # Action:
-    #   description:
-    #     Actions describes what user has done on a single element or element's metadata.
-    #     The user can add, edit or remove something.
-    #     The "something" is described by the operation involved in the action, it can be
-    #     an operation over an entity, a diagram, a hierarchy and so on.
+    Action:
+      description:
+        Actions describes what user has done on a single element or element's metadata.
+        The user can add, edit or remove something.
+        The "something" is described by the operation involved in the action, it can be
+        an operation over an entity, a diagram, a hierarchy and so on.
 
-    #     Reverting an action means reverting the operation that has been done and it
-    #     depends on the type of the action.
-    #     - Add => Remove
-    #     - Remove => Add
-    #     - Edit => restore the previous state of the subject of the operation made
-    #   type: object
-    #   properties:
-    #     operationType:
-    #       type: string
-    #       enum: ["add", "edit", "remove"]
-    #     operation:
-    #       description:
-    #         Operations differ by their subject, that is the object on which
-    #         the operation take place (if the user perform the action of adding a diagram,
-    #         the subject of the operation will be the diagram).
-    #         The previousState of a operation must be set in case of editing a single field
-    #         of the subject, it is not needed in case of 'add' or 'remove' actions.
-    #       type: object
-    #       oneOf:
-    #         - $ref: "#/components/schemas/ElementOp"
-    #         - $ref: "#/components/schemas/EntityOp"
-    #         - $ref: "#/components/schemas/DiagramOp"
-    #         - $ref: "#/components/schemas/HierarchyOp"
-    #         - $ref: "#/components/schemas/AnnotationOp"
-    #         - $ref: "#/components/schemas/PropertyOp"
-    #         - $ref: "#/components/schemas/NamespaceOp"
-    #     user:
-    #       type: object
-    #       required:
-    #         - name
-    #       properties:
-    #         name:
-    #           type: string
-    #         firstName:
-    #           type: string
-    #         lastName:
-    #           type: string
-    #         email:
-    #           type: string
-    #     timestamp:
-    #       type: number
+        Reverting an action means reverting the operation that has been done and it
+        depends on the type of the action.
+        - Add => Remove
+        - Remove => Add
+        - Edit => restore the previous state of the subject of the operation made
+      type: object
+      properties:
+        operationType:
+          type: string
+          enum: ["add", "edit", "remove"]
+        operation:
+          description:
+            Operations differ by their subject, that is the object on which
+            the operation take place (if the user perform the action of adding a diagram,
+            the subject of the operation will be the diagram).
+            The previousState of a operation must be set in case of editing a single field
+            of the subject, it is not needed in case of 'add' or 'remove' actions.
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/ElementOp"
+            - $ref: "#/components/schemas/EntityOp"
+            - $ref: "#/components/schemas/DiagramOp"
+            - $ref: "#/components/schemas/HierarchyOp"
+            - $ref: "#/components/schemas/AnnotationOp"
+            - $ref: "#/components/schemas/PropertyOp"
+            - $ref: "#/components/schemas/NamespaceOp"
+        subactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
+        user:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+        timestamp:
+          type: number
 
     ElementOp:
       type: object
@@ -827,6 +836,7 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Node"
             - $ref: "#/components/schemas/Edge"
+            - $ref: "#/components/schemas/Hierarchy"
         involvedElements:
           description:
             Array of other elements involved in the operation. Only for Remove actions.
@@ -843,7 +853,6 @@ components:
       type: object
       required:
         - subject
-        - diagramId
       properties:
         subject:
           $ref: "#/components/schemas/Entity"
@@ -895,6 +904,8 @@ components:
           $ref: "#/components/schemas/Annotation"
         entity:
           $ref: "#/components/schemas/Entity"
+        onOntology:
+          type: boolean
 
     PropertyOp:
       type: object

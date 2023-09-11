@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Action } from './Action';
+import {
+    ActionFromJSON,
+    ActionFromJSONTyped,
+    ActionToJSON,
+} from './Action';
 import type { ClassInstanceEntity } from './ClassInstanceEntity';
 import {
     ClassInstanceEntityFromJSON,
@@ -92,6 +98,12 @@ export interface RDFGraph {
      * @memberof RDFGraph
      */
     modelType: RDFGraphModelTypeEnum;
+    /**
+     * 
+     * @type {Array<Action>}
+     * @memberof RDFGraph
+     */
+    actions?: Array<Action>;
 }
 
 /**
@@ -135,6 +147,7 @@ export function RDFGraphFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'config': !exists(json, 'config') ? undefined : RDFGraphConfigFromJSON(json['config']),
         'selectedDiagramId': !exists(json, 'selectedDiagramId') ? undefined : json['selectedDiagramId'],
         'modelType': json['modelType'],
+        'actions': !exists(json, 'actions') ? undefined : ((json['actions'] as Array<any>).map(ActionFromJSON)),
     };
 }
 
@@ -154,6 +167,7 @@ export function RDFGraphToJSON(value?: RDFGraph | null): any {
         'config': RDFGraphConfigToJSON(value.config),
         'selectedDiagramId': value.selectedDiagramId,
         'modelType': value.modelType,
+        'actions': value.actions === undefined ? undefined : ((value.actions as Array<any>).map(ActionToJSON)),
     };
 }
 
