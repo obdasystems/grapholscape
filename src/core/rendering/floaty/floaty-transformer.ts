@@ -78,6 +78,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         let newGrapholEdge = new GrapholEdge(newId, TypesEnum.OBJECT_PROPERTY)
         newGrapholEdge.sourceId = grapholDomainNode.id
         newGrapholEdge.targetId = grapholRangeNode.id
+        newGrapholEdge.diagramId = grapholDomainNode.diagramId
 
         Object.entries(objectProperty.data()).forEach(([key, value]) => {
           switch (key) {
