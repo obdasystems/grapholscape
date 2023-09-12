@@ -1,7 +1,8 @@
-import { GrapholscapeConfig, WidgetsConfig } from "../config"
+import { GrapholscapeConfig, Language, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
-import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, TypesEnum, Viewport } from "../model"
+import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholEntity, GrapholscapeTheme, IonEvent, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, TypesEnum, Viewport } from "../model"
+import { RDFGraph } from "../model/rdf-graph/swagger"
 import rdfgraphSerializer from "../rdfgraph-serializer"
 import { OntologyColorManager } from "./colors-manager"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -12,37 +13,17 @@ import setGraphEventHandlers from "./set-graph-event-handlers"
 import ThemeManager from "./themeManager"
 
 
-export default class Grapholscape {
+export default abstract class Grapholscape {
   renderer: Renderer = new Renderer()
-  private availableRenderers: RendererStatesEnum[] = [
-    RendererStatesEnum.GRAPHOL,
-    RendererStatesEnum.GRAPHOL_LITE,
-    RendererStatesEnum.FLOATY,
-    RendererStatesEnum.INCREMENTAL
-  ]
+  protected abstract availableRenderers: RendererStatesEnum[]
   container: HTMLElement
   readonly lifecycle: Lifecycle = new Lifecycle()
   ontology: Ontology
-  private entityNavigator = new EntityNavigator(this)
-  private displayedNamesManager = new DisplayedNamesManager(this)
-  private themesManager: ThemeManager
+  protected abstract entityNavigator: EntityNavigator
+  protected abstract displayedNamesManager: DisplayedNamesManager
+  protected abstract themesManager: ThemeManager
   widgets: Map<string, HTMLElement> = new Map()
   widgetsInitialStates: WidgetsConfig
-
-  constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig) {
-    this.ontology = ontology
-    this.container = container
-    this.renderer.container = container
-    this.renderer.lifecycle = this.lifecycle
-    this.themesManager = new ThemeManager(this)
-    //this.renderer.renderState = new GrapholRendererState()
-    if (!config?.selectedTheme) {
-      this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE)
-    }
-    if (config) {
-      this.setConfig(config)
-    }
-  }
 
   // ----------------------------- RENDERER ----------------------------- //
   /**
@@ -451,4 +432,38 @@ export default class Grapholscape {
 
   /** @internal */
   public incremental?: IncrementalController
+}
+
+export class Core extends Grapholscape {
+  protected availableRenderers: RendererStatesEnum[] = [
+    RendererStatesEnum.GRAPHOL,
+    RendererStatesEnum.GRAPHOL_LITE,
+    RendererStatesEnum.FLOATY,
+    RendererStatesEnum.INCREMENTAL
+  ]
+  renderer: Renderer
+  container: HTMLElement
+  lifecycle: Lifecycle
+  ontology: Ontology
+  protected entityNavigator: EntityNavigator = new EntityNavigator(this)
+  protected displayedNamesManager: DisplayedNamesManager = new DisplayedNamesManager(this)
+  protected themesManager: ThemeManager = new ThemeManager(this)
+  widgets: Map<string, HTMLElement>
+  widgetsInitialStates: WidgetsConfig
+
+  constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig) {
+    super()
+    this.ontology = ontology
+    this.container = container
+    this.renderer.container = container
+    this.renderer.lifecycle = this.lifecycle
+    this.themesManager = new ThemeManager(this)
+    //this.renderer.renderState = new GrapholRendererState()
+    if (!config?.selectedTheme) {
+      this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE)
+    }
+    if (config) {
+      this.setConfig(config)
+    }
+  }
 }

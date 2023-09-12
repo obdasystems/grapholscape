@@ -77,7 +77,6 @@ export function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]) {
     iri = new Iri(e.fullIri, namespaces)
     entity = GrapholEntity.newFromSwagger(iri, e)
     entity.annotations = getEntityAnnotations(e, namespaces)
-    console.log(getEntityAnnotations(e, namespaces))
     entities.set(iri.fullIri, entity)
   })
 

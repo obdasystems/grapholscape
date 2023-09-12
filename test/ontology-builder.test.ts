@@ -3,7 +3,7 @@ import cola from 'cytoscape-cola'
 import edgehandles from 'cytoscape-edgehandles'
 import klay from 'cytoscape-klay'
 import popper from 'cytoscape-popper'
-import GrapholscapeDesigner from "../src/builder/core"
+import DesignerCore from "../src/builder/core"
 import OntologyBuilder from "../src/builder/ontology-builder"
 import { Diagram, GrapholElement, Namespace, Ontology, RendererStatesEnum, TypesEnum } from "../src/model"
 import { FunctionPropertiesEnum } from "../src/model/rdf-graph/swagger"
@@ -19,7 +19,7 @@ describe("Test OntologyBuilder Class", () => {
   const ns = new Namespace([''], 'http://obdasystems/test/')
   const ontology = new Ontology('test', '', ns.value, [ns])
   ontology.addDiagram(new Diagram('test', 0))
-  const grapholscape = new GrapholscapeDesigner(ontology, divElement, { renderers: [RendererStatesEnum.FLOATY] })
+  const grapholscape = new DesignerCore(ontology, divElement, { renderers: [RendererStatesEnum.FLOATY] })
   grapholscape.showDiagram(0)
   const diagramRepr = grapholscape.renderer.diagram?.representations.get(RendererStatesEnum.FLOATY)
   const ontologyBuilder = new OntologyBuilder(grapholscape)

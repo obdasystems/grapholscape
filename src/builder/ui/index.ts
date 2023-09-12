@@ -5,12 +5,12 @@ import { addHierarchySuperClassEdge, addInputEdge, getCommandsByType, removeHier
 import GscapeDesignerToolbar from './toolbar';
 import edgeEditing, { refreshAnchorsOnEdge } from '../edge-editing'
 import { setDesignerStyle } from './style';
-import GrapholscapeDesigner from '../core';
+import DesignerCore from '../core';
 import GscapeDesignerInfobar from './infobar';
 
 const { GscapeContextMenu } = UI
 
-export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
+export default function initBuilderUI(grapholscape: DesignerCore) {
   const commandsWidget = new GscapeContextMenu()
   const toolboxWidget = new GscapeDesignerToolbar(grapholscape)
   const infobox = new GscapeDesignerInfobar()

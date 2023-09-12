@@ -1,7 +1,5 @@
-import chroma from "chroma-js";
-import { NodeSingular, Stylesheet } from "cytoscape";
-import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, TypesEnum } from "../../../model";
-import { OntologyColorManager } from "../../colors-manager";
+import { Stylesheet } from "cytoscape";
+import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model";
 import grapholStyle from "../graphol/graphol-style";
 import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util";
 
@@ -23,8 +21,8 @@ export default function (theme: GrapholscapeTheme) {
         'text-margin-y': 0,
         'text-valign': 'center',
         'text-halign': 'center',
-        'height': (node)=>  node.data('width') || 100,
-        'width' : (node)=>  node.data('width') || 100,
+        'height': (node)=>  node.data('width') || 80,
+        'width' : (node)=> node.data('width') || 80,
         'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
         'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
         'text-background-shape': 'roundrectangle',
