@@ -1,4 +1,4 @@
-import cytoscape from "cytoscape";
+import cytoscape, { EdgeSingular } from "cytoscape";
 import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, Position, RendererStatesEnum, Shape, TypesEnum } from "../model";
 
 export default class DiagramBuilder {
@@ -285,7 +285,8 @@ export default class DiagramBuilder {
       TypesEnum.UNION |
       TypesEnum.DISJOINT_UNION |
       TypesEnum.COMPLETE_UNION |
-      TypesEnum.COMPLETE_DISJOINT_UNION) {
+      TypesEnum.COMPLETE_DISJOINT_UNION |
+      TypesEnum.ATTRIBUTE_EDGE) {
 
     const sourceNode = this.diagramRepresentation?.grapholElements.get(sourceId)
     const targetNode = this.diagramRepresentation?.grapholElements.get(targetId)
@@ -366,14 +367,14 @@ export default class DiagramBuilder {
     }
   }
 
-  public swapEdge(elem) {
-    const oldSource = elem.source
+  public swapEdge(elem: EdgeSingular) {
     const oldSourceID = elem.data('source')
-    const oldTarget = elem.target
     const oldTargetID = elem.data('target')
-    elem.source = oldTarget
+    elem.move({
+      source: elem.target().id(),
+      target: elem.source().id(),
+    })
     elem.data('source', oldTargetID)
-    elem.target = oldSource
     elem.data('target', oldSourceID)
   }
 

@@ -3,7 +3,7 @@ import * as UI from '../../ui';
 import OntologyBuilder from '../ontology-builder';
 import { addHierarchySuperClassEdge, addInputEdge, getCommandsByType, removeHierarchyByNode, removeHierarchyInputEdge, removeHierarchySuperClassEdge } from './commands';
 import GscapeDesignerToolbar from './toolbar';
-import edgeEditing from '../edge-editing'
+import edgeEditing, { refreshAnchorsOnEdge } from '../edge-editing'
 import { setDesignerStyle } from './style';
 import GrapholscapeDesigner from '../core';
 import GscapeDesignerInfobar from './infobar';
@@ -67,6 +67,7 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
     else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
       const ontologyBuilder = new OntologyBuilder(grapholscape)
       ontologyBuilder.swapEdge(elem)
+      refreshAnchorsOnEdge(elem)
     }
   })
 
@@ -126,7 +127,9 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
         else{
           infobox.content = elem.data('targetLabel') === 'C' ? 'Double click to remove completeness' : 'Double click to add completeness'
         }
-
+      }
+      else if (elem.data('anchorPosition')) {
+        infobox.content = 'Drag anchor to edit edge'
       }
       else if ((elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
         infobox.content = 'Double click to swap edge'

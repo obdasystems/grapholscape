@@ -64,6 +64,25 @@ export function removeAnchorsOnEdge(edge: EdgeSingular, position?: AnchorPositio
   edge.target().off('position', undefined, updateAnchorsPosition)
 }
 
+/**
+ * Update anchors, remove them and add new anchors
+ * @param edge 
+ */
+export function refreshAnchorsOnEdge(edge: EdgeSingular) {
+  const sourceAnchor = edge.scratch('source-anchor')
+  const targetAnchor = edge.scratch('target-anchor')
+
+  if (sourceAnchor) {
+    removeAnchorsOnEdge(edge, AnchorPosition.SOURCE)
+    addAnchorsOnEdge(edge, AnchorPosition.SOURCE)
+  }
+
+  if (targetAnchor) {
+    removeAnchorsOnEdge(edge, AnchorPosition.TARGET)
+    addAnchorsOnEdge(edge, AnchorPosition.TARGET)
+  }
+}
+
 const updateAnchorsPosition = (evt: EventObjectNode) => {
   const node = evt.target
 
