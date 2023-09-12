@@ -11,7 +11,8 @@ import { RequestOptions } from './incremental/api/model'
 import { ColoursNames, DefaultAnnotationProperties, DefaultNamespaces, DefaultThemes, Diagram, GrapholscapeTheme, Namespace, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
-import parseRDFGraph, { getConfig, getEntities, getOntology } from './parsing/rdf-graph-parser'
+import parseRDFGraph from './parsing/rdf-graph-parser'
+import * as RDFGraphParser from './parsing/rdf-graph-parser'
 import * as UI from './ui'
 import { GrapholscapeDesigner, initBuilderUI, OntologyDesignerConfig } from './builder'
 
@@ -91,16 +92,20 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
   return grapholscape
 }
 
-export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
+export function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
   let grapholscape: Grapholscape | undefined
 
-  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
-    grapholscape = parseRDFGraph(rdfGraph, container)
-  } else {
-    grapholscape = new Grapholscape(getOntology(rdfGraph), container, getConfig(rdfGraph))
-    grapholscape.ontology.entities = getEntities(rdfGraph, grapholscape.ontology.namespaces)
-  }
+  grapholscape = new Grapholscape(parseRDFGraph(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
+  // if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+    
+  // } else {
+  //   grapholscape = new Grapholscape(RDFGraphParser.getOntology(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
+  //   if (grapholscape.incremental)
+  //     grapholscape.incremental.classInstanceEntities = classInstances
+  //   grapholscape.incremental?.diagram = 
+  //   grapholscape.ontology.entities = getEntities(rdfGraph, grapholscape.ontology.namespaces)
+  // }
   
   if (grapholscape) {
     UI.initUI(grapholscape)
@@ -133,9 +138,14 @@ export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroC
     } else {
       if (grapholscape.incremental) {
         if (mastroConnection)
-        grapholscape.incremental.setMastroConnection(mastroConnection)
+          grapholscape.incremental.setMastroConnection(mastroConnection)
         grapholscape.incremental.showDiagram()
         grapholscape.incremental.addRDFGraph(rdfGraph)
+        grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
+          if (elem.iri) {
+            grapholscape?.incremental?.classInstanceEntities.get(elem.iri)?.addOccurrence(elem, RendererStatesEnum.INCREMENTAL)
+          }
+        })
       }
     }
   }
@@ -144,9 +154,16 @@ export function loadRDFGraph(rdfGraph: RDFGraph, container: HTMLElement, mastroC
   return grapholscape
 }
 
-export async function builder(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
-  const grapholscape = loadRDFGraph(rdfGraph, container)
-  initBuilderUI(grapholscape as GrapholscapeDesigner)
+export async function resumeBuilder(rdfGraph: RDFGraph, container: HTMLElement) {
+  const grapholscape = new GrapholscapeDesigner(parseRDFGraph(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
+  UI.initUI(grapholscape)
+  initBuilderUI(grapholscape)
+  if (rdfGraph.selectedDiagramId) {
+    const diagram = grapholscape.ontology.getDiagram(rdfGraph.selectedDiagramId)
+    if (diagram)
+      grapholscape.showDiagram(diagram.id, diagram.lastViewportState)
+  }
+    
   return grapholscape
 }
 

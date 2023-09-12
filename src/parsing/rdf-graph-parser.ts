@@ -1,9 +1,8 @@
 import { floatyOptions, GrapholscapeConfig } from "../config";
-import { Grapholscape } from "../core";
-import { Annotation, ClassInstanceEntity, DefaultAnnotationProperties, DefaultFilterKeyEnum, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { Annotation, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { Entity, RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
-export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement) {
+export default function parseRDFGraph(rdfGraph: RDFGraph) {
   const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
     ? RendererStatesEnum.FLOATY
     : RendererStatesEnum.INCREMENTAL
@@ -11,41 +10,40 @@ export default function parseRDFGraph(rdfGraph: RDFGraph, container: HTMLElement
   const ontology = getOntology(rdfGraph)
   ontology.entities = getEntities(rdfGraph, ontology.namespaces)
   
-  const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
-  let incrementalDiagram: IncrementalDiagram
-  const parsedDiagrams = getDiagrams(rdfGraph, ontology, classInstances, rendererState)
-  
-  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
-    ontology.diagrams = parsedDiagrams
-  else
-    incrementalDiagram = parsedDiagrams[0] as IncrementalDiagram
+  // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
+  // let incrementalDiagram: IncrementalDiagram
+  ontology.diagrams = getDiagrams(rdfGraph, rendererState)
+  //if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+  //  ontology.diagrams = parsedDiagrams
+  //else
+  //  incrementalDiagram = parsedDiagrams[0] as IncrementalDiagram
 
-  const grapholscape = new Grapholscape(ontology, container, getConfig(rdfGraph))
+  // const grapholscape = new Grapholscape(ontology, container, getConfig(rdfGraph))
 
-  if (grapholscape.incremental)
-    grapholscape.incremental.classInstanceEntities = classInstances
+  // if (grapholscape.incremental)
+  //   grapholscape.incremental.classInstanceEntities = classInstances
 
-  let grapholEntity: GrapholEntity | undefined
-  parsedDiagrams.forEach(parsedDiagram => {
+  updateEntityOccurrences(ontology)
+
+  // rdfGraph.config?.filters?.forEach(f => {
+  //   if (Object.values(DefaultFilterKeyEnum).includes(f)) {
+  //     grapholscape.filter(f)
+  //   }
+  // })
+
+  return ontology
+}
+
+export function updateEntityOccurrences(ontology: Ontology) {
+  ontology.diagrams.forEach(parsedDiagram => {
     parsedDiagram.representations.forEach((representation, rendererState) => {
       representation.grapholElements.forEach(elem => {
         if (elem.iri) {
-          grapholEntity = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
-            ? ontology.getEntity(elem.iri)
-            : grapholscape.incremental?.classInstanceEntities?.get(elem.iri) || ontology.getEntity(elem.iri)
-          grapholEntity?.addOccurrence(elem, rendererState)
+          ontology.getEntity(elem.iri)?.addOccurrence(elem, rendererState)
         }
       })
     })
   })
-
-  rdfGraph.config?.filters?.forEach(f => {
-    if (Object.values(DefaultFilterKeyEnum).includes(f)) {
-      grapholscape.filter(f)
-    }
-  })
-
-  return grapholscape
 }
 
 export function getOntology(rdfGraph: RDFGraph) {
@@ -111,7 +109,7 @@ function getEntityAnnotations(rdfEntity: Entity, namespaces: Namespace[]) {
   }) || []
 }
 
-export function getDiagrams(rdfGraph: RDFGraph, ontology: Ontology, classInstances?: Map<string, ClassInstanceEntity>, rendererState = RendererStatesEnum.GRAPHOL) {
+export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL) {
   let diagram: Diagram
   let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | undefined
