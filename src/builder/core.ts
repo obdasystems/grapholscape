@@ -13,9 +13,10 @@ export default class DesignerCore extends Grapholscape {
   protected themesManager: ThemeManager
   readonly lifecycle: DesignerLifeCycle = new DesignerLifeCycle()
 
+  on = this.lifecycle.on
+
   constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig) {
     super()
-    this.on = this.lifecycle.on
     this.ontology = ontology
     this.container = container
     this.renderer.container = container
