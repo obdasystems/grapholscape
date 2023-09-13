@@ -39,7 +39,7 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `node[displayedName][type = "${TypesEnum.CLASS}"], node[displayedName][type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
-        'text-max-width': (n) => n.data('width') || n.width() || 80,
+        'text-max-width': (n) => n.data('width') || 80,
         'text-overflow-wrap': 'anywhere',
       }
     },
