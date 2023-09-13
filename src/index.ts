@@ -3,7 +3,7 @@ import cola from 'cytoscape-cola'
 import klay from 'cytoscape-klay'
 import edgehandles from 'cytoscape-edgehandles'
 import popper from 'cytoscape-popper'
-import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
+import { GrapholscapeConfig, Language, loadConfig, ThemeConfig } from './config'
 import { Core, Grapholscape } from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
 import { initIncremental } from './incremental'
@@ -154,15 +154,15 @@ function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
   }
 }
 
-export async function buildFromScratch(name: string, iri: string, container: HTMLElement, mastroConnection?: RequestOptions, config?: OntologyDesignerConfig) {
-  const ontology = new Ontology(name, '', iri, Object.values(DefaultNamespaces), Object.values(DefaultAnnotationProperties))
+export async function buildFromScratch(name: string, iri: string, container: HTMLElement, config?: OntologyDesignerConfig) {
+  const ontology = new Ontology(name, iri+'1.0', iri, undefined, Object.values(DefaultAnnotationProperties))
+  ontology.languages = Object.values(Language).sort()
+  ontology.defaultLanguage = Language.EN
   ontology.addNamespace(new Namespace([''], iri))
-  ontology.addDiagram(new Diagram(name, 0))
-
-  config = Object.assign(config || {}, {
-    renderers: [RendererStatesEnum.FLOATY],
+  Object.values(DefaultNamespaces).forEach(namespace => {
+    ontology.addNamespace(namespace)
   })
-
+  ontology.addDiagram(new Diagram(name, 0))
   const grapholscape = new GrapholscapeDesigner(ontology, container, config)
   UI.initUI(grapholscape)
   initBuilderUI(grapholscape)

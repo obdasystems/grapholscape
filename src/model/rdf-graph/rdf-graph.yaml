@@ -459,6 +459,10 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Annotation"
+            annotationProperties:
+              type: array
+              items:
+                type: string
         config:
           type: object
           properties:

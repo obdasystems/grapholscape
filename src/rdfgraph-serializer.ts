@@ -41,7 +41,16 @@ export default function(grapholscape: IGscape) {
       }),
       iri: ontology.iri,
       defaultLanguage: ontology.defaultLanguage,
-      languages: ontology.languages
+      languages: ontology.languages,
+      annotations: ontology.getAnnotations().map(ann => {
+        return {
+          property: ann.property,
+          lexicalForm: ann.lexicalForm,
+          language: ann.language,
+          datatype: ann.datatype,
+        }
+      }),
+      annotationProperties: ontology.annProperties.map(ap => ap.fullIri)
     }
   }
 

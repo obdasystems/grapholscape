@@ -13,7 +13,7 @@ import { RendererStatesEnum } from './renderers/i-render-state'
 import AnnotationProperty from './annotation-property'
 
 /**
- * # Ontology
+ * ### Ontology
  * Class used as the Model of the whole app.
  */
 class Ontology extends AnnotatedElement implements RDFGraphMetadata {
@@ -25,6 +25,18 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   languages: string[] = []
   defaultLanguage?: string
   iri?: string
+
+  constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], annProperties: AnnotationProperty[] = [], diagrams: Diagram[] = []) {
+    super()
+
+    this.name = name
+    this.version = version
+    this.namespaces = namespaces
+    console.log(annProperties)
+    this.annProperties = annProperties
+    this.diagrams = diagrams
+    this.iri = iri
+  }
 
   private _entities: Map<string, GrapholEntity> = new Map()
 
@@ -193,29 +205,6 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
       this._inclusions.findIndex(sc => sc.subclass === subclassEntity && sc.superclass === superclassEntity),
       1
     )
-  }
-
-  /**
-   * @param {string} name
-   * @param {string} version
-   * @param {Namespace[]} namespaces
-   * @param {AnnotationProperty[]} annProperties
-   * @param {Diagram[]} diagrams
-   */
-  constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], annProperties: AnnotationProperty[] = [], diagrams: Diagram[] = []) {
-    super()
-    /** @type {string} */
-    this.name = name
-    /** @type {string} */
-    this.version = version
-    /** @type {Namespace[]} */
-    this.namespaces = namespaces
-    /** @type {AnnotationProperty[]} */
-    this.annProperties = annProperties
-    /** @type {Diagram[]} */
-    this.diagrams = diagrams
-
-    this.iri = iri
   }
 
   /** @param {Namespace} namespace */

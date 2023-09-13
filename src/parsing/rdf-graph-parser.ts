@@ -1,6 +1,6 @@
 import { floatyOptions, GrapholscapeConfig } from "../config";
-import { Annotation, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
-import { Entity, RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
+import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph) {
   const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
@@ -61,9 +61,11 @@ export function getOntology(rdfGraph: RDFGraph) {
 
   ontology.defaultLanguage = rdfGraph.metadata.defaultLanguage
   if (rdfGraph.metadata.annotations) {
-    ontology.annotations = rdfGraph.metadata.annotations.map(a => {
-      return new Annotation(new Iri(a.property, ontology.namespaces), a.lexicalForm, a.language, a.datatype)
-    })
+    ontology.annotations = getAnnotations(rdfGraph.metadata, ontology.namespaces)
+  }
+
+  if (rdfGraph.metadata.annotationProperties) {
+    ontology.annProperties = rdfGraph.metadata.annotationProperties.map(annProp => new AnnotationProperty(annProp, ontology.namespaces))
   }
 
   return ontology
@@ -76,7 +78,7 @@ export function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]) {
   rdfGraph.entities.forEach(e => {
     iri = new Iri(e.fullIri, namespaces)
     entity = GrapholEntity.newFromSwagger(iri, e)
-    entity.annotations = getEntityAnnotations(e, namespaces)
+    entity.annotations = getAnnotations(e, namespaces)
     entities.set(iri.fullIri, entity)
   })
 
@@ -90,7 +92,7 @@ export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
     let iri = new Iri(ci.fullIri, [], ci.shortIri)
     let parentClassesIris = ci.parentClasses?.map(p => new Iri(p, namespaces)) || []
     classInstance = new ClassInstanceEntity(iri, parentClassesIris)
-    classInstance.annotations = getEntityAnnotations(ci, namespaces)
+    classInstance.annotations = getAnnotations(ci, namespaces)
     if (ci.dataProperties)
       classInstance.dataProperties = ci.dataProperties
     classInstances.set(iri.fullIri, classInstance)
@@ -99,8 +101,8 @@ export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
   return classInstances
 }
 
-function getEntityAnnotations(rdfEntity: Entity, namespaces: Namespace[]) {
-  return rdfEntity.annotations?.map(a => {
+function getAnnotations(annotatedElem: Entity | RDFGraphMetadata, namespaces: Namespace[]) {
+  return annotatedElem.annotations?.map(a => {
     const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
       return property.equals(a.property)
     }) || new Iri(a.property, namespaces)

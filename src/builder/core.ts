@@ -1,5 +1,5 @@
 import { GrapholscapeConfig } from "../config";
-import { Grapholscape } from "../core";
+import { FloatyRendererState, Grapholscape } from "../core";
 import DisplayedNamesManager from "../core/displayedNamesManager";
 import EntityNavigator from "../core/entity-navigator";
 import ThemeManager from "../core/themeManager";
@@ -26,7 +26,12 @@ export default class DesignerCore extends Grapholscape {
       this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE)
     }
     if (config) {
+      config = Object.assign(config || {}, {
+        renderers: [RendererStatesEnum.FLOATY], // force only floaty
+      })
       this.setConfig(config)
+    } else {
+      this.setRenderer(new FloatyRendererState())
     }
 
     this.renderer.filters = new Map()
