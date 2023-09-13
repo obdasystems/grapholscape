@@ -2529,6 +2529,7 @@ function RDFGraphMetadataFromJSONTyped(json, ignoreDiscriminator) {
         'defaultLanguage': !exists(json, 'defaultLanguage') ? undefined : json['defaultLanguage'],
         'namespaces': (json['namespaces'].map(NamespaceFromJSON)),
         'annotations': !exists(json, 'annotations') ? undefined : (json['annotations'].map(AnnotationFromJSON)),
+        'annotationProperties': !exists(json, 'annotationProperties') ? undefined : json['annotationProperties'],
     };
 }
 function RDFGraphMetadataToJSON(value) {
@@ -2546,6 +2547,7 @@ function RDFGraphMetadataToJSON(value) {
         'defaultLanguage': value.defaultLanguage,
         'namespaces': (value.namespaces.map(NamespaceToJSON)),
         'annotations': value.annotations === undefined ? undefined : (value.annotations.map(AnnotationToJSON)),
+        'annotationProperties': value.annotationProperties,
     };
 }
 
@@ -3228,7 +3230,7 @@ let VKGApi$1 = class VKGApi extends BaseAPI {
 /* tslint:disable */
 /* eslint-disable */
 
-var index$2 = /*#__PURE__*/Object.freeze({
+var index$3 = /*#__PURE__*/Object.freeze({
     __proto__: null,
     ActionFromJSON: ActionFromJSON,
     ActionFromJSONTyped: ActionFromJSONTyped,
@@ -3406,10 +3408,30 @@ var RendererStatesEnum;
 })(RendererStatesEnum || (RendererStatesEnum = {}));
 
 /**
- * # Ontology
+ * ### Ontology
  * Class used as the Model of the whole app.
  */
 class Ontology extends AnnotatedElement {
+    constructor(name, version, iri, namespaces = [], annProperties = [], diagrams = []) {
+        super();
+        this.namespaces = [];
+        this.annProperties = [];
+        this.diagrams = [];
+        this.languages = [];
+        this._entities = new Map();
+        // computed only in floaty
+        this._hierarchies = new Map();
+        this._subHierarchiesMap = new Map();
+        this._superHierarchiesMap = new Map();
+        this._inclusions = [];
+        this.name = name;
+        this.version = version;
+        this.namespaces = namespaces;
+        console.log(annProperties);
+        this.annProperties = annProperties;
+        this.diagrams = diagrams;
+        this.iri = iri;
+    }
     addHierarchy(hierarchy) {
         this._hierarchies.set(hierarchy.id, hierarchy);
         let hierarchiesSet;
@@ -3533,37 +3555,6 @@ class Ontology extends AnnotatedElement {
             superclassEntity = subclass;
         }
         this._inclusions.splice(this._inclusions.findIndex(sc => sc.subclass === subclassEntity && sc.superclass === superclassEntity), 1);
-    }
-    /**
-     * @param {string} name
-     * @param {string} version
-     * @param {Namespace[]} namespaces
-     * @param {AnnotationProperty[]} annProperties
-     * @param {Diagram[]} diagrams
-     */
-    constructor(name, version, iri, namespaces = [], annProperties = [], diagrams = []) {
-        super();
-        this.namespaces = [];
-        this.annProperties = [];
-        this.diagrams = [];
-        this.languages = [];
-        this._entities = new Map();
-        // computed only in floaty
-        this._hierarchies = new Map();
-        this._subHierarchiesMap = new Map();
-        this._superHierarchiesMap = new Map();
-        this._inclusions = [];
-        /** @type {string} */
-        this.name = name;
-        /** @type {string} */
-        this.version = version;
-        /** @type {Namespace[]} */
-        this.namespaces = namespaces;
-        /** @type {AnnotationProperty[]} */
-        this.annProperties = annProperties;
-        /** @type {Diagram[]} */
-        this.diagrams = diagrams;
-        this.iri = iri;
     }
     /** @param {Namespace} namespace */
     addNamespace(namespace) {
@@ -4038,7 +4029,7 @@ class GrapholNode extends GrapholElement {
         const instance = new GrapholNode(n.id, n.type);
         Object.entries(n).forEach(([key, value]) => {
             var _a, _b;
-            if (n[key] && key !== 'id' && key !== 'type') {
+            if (n[key] !== undefined && key !== 'id' && key !== 'type') {
                 if (key === 'labelPosition') {
                     instance.labelXpos = (_a = n.labelPosition) === null || _a === void 0 ? void 0 : _a.x;
                     instance.labelYpos = (_b = n.labelPosition) === null || _b === void 0 ? void 0 : _b.y;
@@ -6074,6 +6065,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
                 let newGrapholEdge = new GrapholEdge(newId, TypesEnum.OBJECT_PROPERTY);
                 newGrapholEdge.sourceId = grapholDomainNode.id;
                 newGrapholEdge.targetId = grapholRangeNode.id;
+                newGrapholEdge.diagramId = grapholDomainNode.diagramId;
                 Object.entries(objectProperty.data()).forEach(([key, value]) => {
                     switch (key) {
                         case 'id':
@@ -6142,7 +6134,16 @@ function rdfgraphSerializer (grapholscape) {
             }),
             iri: ontology.iri,
             defaultLanguage: ontology.defaultLanguage,
-            languages: ontology.languages
+            languages: ontology.languages,
+            annotations: ontology.getAnnotations().map(ann => {
+                return {
+                    property: ann.property,
+                    lexicalForm: ann.lexicalForm,
+                    language: ann.language,
+                    datatype: ann.datatype,
+                };
+            }),
+            annotationProperties: ontology.annProperties.map(ap => ap.fullIri)
         }
     };
     result.diagrams = ontology.diagrams.map(d => {
@@ -6773,7 +6774,7 @@ function grapholStyle (theme) {
         {
             selector: `node[displayedName][type = "${TypesEnum.CLASS}"], node[displayedName][type = "${TypesEnum.INDIVIDUAL}"]`,
             style: {
-                'text-max-width': (n) => n.data('width') || n.width() || 40,
+                'text-max-width': (n) => n.data('width') || 80,
                 'text-overflow-wrap': 'anywhere',
             }
         },
@@ -7299,7 +7300,9 @@ function getNodeBorderColor(node, theme, ignoreTheme = false) {
     }
 }
 function getNodeLabelColor(node, theme) {
-    if (node.data().computedFillColor !== undefined) {
+    if (node.data().computedFillColor !== undefined &&
+        (theme.id === DefaultThemesEnum.COLORFUL_LIGHT ||
+            theme.id === DefaultThemesEnum.COLORFUL_DARK)) {
         const nodeBGColor = chroma(node.style('background-color'));
         const labelColorString = theme.getColour(ColoursNames.label);
         let labelColor;
@@ -7344,8 +7347,8 @@ function getFloatyStyle (theme) {
                 'text-margin-y': 0,
                 'text-valign': 'center',
                 'text-halign': 'center',
-                'height': (node) => node.data('width') || 100,
-                'width': (node) => node.data('width') || 100,
+                'height': (node) => node.data('width') || 80,
+                'width': (node) => node.data('width') || 80,
                 'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
                 'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
                 'text-background-shape': 'roundrectangle',
@@ -8477,17 +8480,9 @@ class ThemeManager {
 }
 
 class Grapholscape {
-    constructor(ontology, container, config) {
+    constructor() {
         this.renderer = new Renderer();
-        this.availableRenderers = [
-            RendererStatesEnum.GRAPHOL,
-            RendererStatesEnum.GRAPHOL_LITE,
-            RendererStatesEnum.FLOATY,
-            RendererStatesEnum.INCREMENTAL
-        ];
         this.lifecycle = new Lifecycle();
-        this.entityNavigator = new EntityNavigator(this);
-        this.displayedNamesManager = new DisplayedNamesManager(this);
         this.widgets = new Map();
         // ----------------------------- LIFECYCLE ----------------------------- //
         /**
@@ -8511,18 +8506,6 @@ class Grapholscape {
          * ```
          */
         this.on = this.lifecycle.on;
-        this.ontology = ontology;
-        this.container = container;
-        this.renderer.container = container;
-        this.renderer.lifecycle = this.lifecycle;
-        this.themesManager = new ThemeManager(this);
-        //this.renderer.renderState = new GrapholRendererState()
-        if (!(config === null || config === void 0 ? void 0 : config.selectedTheme)) {
-            this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE);
-        }
-        if (config) {
-            this.setConfig(config);
-        }
     }
     // ----------------------------- RENDERER ----------------------------- //
     /**
@@ -8855,6 +8838,32 @@ class Grapholscape {
     get exportFileName() {
         var _a;
         return `${this.ontology.name}-${(_a = this.renderer.diagram) === null || _a === void 0 ? void 0 : _a.name}-v${this.ontology.version}`;
+    }
+}
+class Core extends Grapholscape {
+    constructor(ontology, container, config) {
+        super();
+        this.availableRenderers = [
+            RendererStatesEnum.GRAPHOL,
+            RendererStatesEnum.GRAPHOL_LITE,
+            RendererStatesEnum.FLOATY,
+            RendererStatesEnum.INCREMENTAL
+        ];
+        this.entityNavigator = new EntityNavigator(this);
+        this.displayedNamesManager = new DisplayedNamesManager(this);
+        this.themesManager = new ThemeManager(this);
+        this.ontology = ontology;
+        this.container = container;
+        this.renderer.container = container;
+        this.renderer.lifecycle = this.lifecycle;
+        this.themesManager = new ThemeManager(this);
+        //this.renderer.renderState = new GrapholRendererState()
+        if (!(config === null || config === void 0 ? void 0 : config.selectedTheme)) {
+            this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE);
+        }
+        if (config) {
+            this.setConfig(config);
+        }
     }
 }
 
@@ -9247,7 +9256,7 @@ var grapholscapeLogo = x `<?xml version="1.0" encoding="utf-8"?>
 </g>
 </svg>`;
 
-var index$1 = /*#__PURE__*/Object.freeze({
+var index$2 = /*#__PURE__*/Object.freeze({
     __proto__: null,
     addChildClassIcon: addChildClassIcon,
     addClassIcon: addClassIcon,
@@ -11382,7 +11391,7 @@ function getEntityViewDataUnfolding(entity, grapholscape, hasUnfoldings) {
     };
 }
 
-var index = /*#__PURE__*/Object.freeze({
+var index$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
     capitalizeFirstChar: capitalizeFirstChar,
     getEntityViewDataUnfolding: getEntityViewDataUnfolding,
@@ -13019,7 +13028,7 @@ function init$4 (ontologyExplorerComponent, grapholscape) {
         ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail);
     });
     ontologyExplorerComponent.onTogglePanel = () => {
-        if (ontologyExplorerComponent.entities.length === 0) {
+        if (ontologyExplorerComponent.entities.length === 0 || grapholscape.ontology.entities.size !== ontologyExplorerComponent.entities.length) {
             updateEntityList();
         }
     };
@@ -14110,7 +14119,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin$7(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.3"}</span>
+            <span>${"4.0.0-snap.5"}</span>
           </div>
         </div>
       </div>
@@ -14554,7 +14563,7 @@ var UI = /*#__PURE__*/Object.freeze({
     getEntityOccurrencesTemplate: getEntityOccurrencesTemplate,
     getIconSlot: getIconSlot,
     hasDropPanel: hasDropPanel,
-    icons: index$1,
+    icons: index$2,
     initInitialRendererSelector: initInitialRendererSelector,
     initUI: init,
     search: search,
@@ -14866,13 +14875,13 @@ class DiagramBuilder {
         }
     }
     swapEdge(elem) {
-        const oldSource = elem.source;
         const oldSourceID = elem.data('source');
-        const oldTarget = elem.target;
         const oldTargetID = elem.data('target');
-        elem.source = oldTarget;
+        elem.move({
+            source: elem.target().id(),
+            target: elem.source().id(),
+        });
         elem.data('source', oldTargetID);
-        elem.target = oldSource;
         elem.data('target', oldSourceID);
     }
     removeHierarchy(hierarchy) {
@@ -14973,42 +14982,41 @@ class DiagramBuilder {
     }
 }
 
-function parseRDFGraph(rdfGraph, container) {
-    var _a, _b;
+function parseRDFGraph(rdfGraph) {
     const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
         ? RendererStatesEnum.FLOATY
         : RendererStatesEnum.INCREMENTAL;
     const ontology = getOntology(rdfGraph);
     ontology.entities = getEntities(rdfGraph, ontology.namespaces);
-    const classInstances = getClassInstances(rdfGraph, ontology.namespaces);
-    const parsedDiagrams = getDiagrams(rdfGraph, ontology, classInstances, rendererState);
-    if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
-        ontology.diagrams = parsedDiagrams;
-    else
-        parsedDiagrams[0];
-    const grapholscape = new Grapholscape(ontology, container, getConfig(rdfGraph));
-    if (grapholscape.incremental)
-        grapholscape.incremental.classInstanceEntities = classInstances;
-    let grapholEntity;
-    parsedDiagrams.forEach(parsedDiagram => {
+    // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
+    // let incrementalDiagram: IncrementalDiagram
+    ontology.diagrams = getDiagrams(rdfGraph, rendererState);
+    //if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+    //  ontology.diagrams = parsedDiagrams
+    //else
+    //  incrementalDiagram = parsedDiagrams[0] as IncrementalDiagram
+    // const grapholscape = new Grapholscape(ontology, container, getConfig(rdfGraph))
+    // if (grapholscape.incremental)
+    //   grapholscape.incremental.classInstanceEntities = classInstances
+    updateEntityOccurrences(ontology);
+    // rdfGraph.config?.filters?.forEach(f => {
+    //   if (Object.values(DefaultFilterKeyEnum).includes(f)) {
+    //     grapholscape.filter(f)
+    //   }
+    // })
+    return ontology;
+}
+function updateEntityOccurrences(ontology) {
+    ontology.diagrams.forEach(parsedDiagram => {
         parsedDiagram.representations.forEach((representation, rendererState) => {
             representation.grapholElements.forEach(elem => {
-                var _a, _b;
+                var _a;
                 if (elem.iri) {
-                    grapholEntity = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
-                        ? ontology.getEntity(elem.iri)
-                        : ((_b = (_a = grapholscape.incremental) === null || _a === void 0 ? void 0 : _a.classInstanceEntities) === null || _b === void 0 ? void 0 : _b.get(elem.iri)) || ontology.getEntity(elem.iri);
-                    grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(elem, rendererState);
+                    (_a = ontology.getEntity(elem.iri)) === null || _a === void 0 ? void 0 : _a.addOccurrence(elem, rendererState);
                 }
             });
         });
     });
-    (_b = (_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.filters) === null || _b === void 0 ? void 0 : _b.forEach(f => {
-        if (Object.values(RDFGraphConfigFiltersEnum).includes(f)) {
-            grapholscape.filter(f);
-        }
-    });
-    return grapholscape;
 }
 function getOntology(rdfGraph) {
     let ontology;
@@ -15018,9 +15026,10 @@ function getOntology(rdfGraph) {
     }
     ontology.defaultLanguage = rdfGraph.metadata.defaultLanguage;
     if (rdfGraph.metadata.annotations) {
-        ontology.annotations = rdfGraph.metadata.annotations.map(a => {
-            return new Annotation(new Iri(a.property, ontology.namespaces), a.lexicalForm, a.language, a.datatype);
-        });
+        ontology.annotations = getAnnotations(rdfGraph.metadata, ontology.namespaces);
+    }
+    if (rdfGraph.metadata.annotationProperties) {
+        ontology.annProperties = rdfGraph.metadata.annotationProperties.map(annProp => new AnnotationProperty(annProp, ontology.namespaces));
     }
     return ontology;
 }
@@ -15031,8 +15040,7 @@ function getEntities(rdfGraph, namespaces) {
     rdfGraph.entities.forEach(e => {
         iri = new Iri(e.fullIri, namespaces);
         entity = GrapholEntity.newFromSwagger(iri, e);
-        entity.annotations = getEntityAnnotations$2(e, namespaces);
-        console.log(getEntityAnnotations$2(e, namespaces));
+        entity.annotations = getAnnotations(e, namespaces);
         entities.set(iri.fullIri, entity);
     });
     return entities;
@@ -15046,23 +15054,23 @@ function getClassInstances(rdfGraph, namespaces) {
         let iri = new Iri(ci.fullIri, [], ci.shortIri);
         let parentClassesIris = ((_a = ci.parentClasses) === null || _a === void 0 ? void 0 : _a.map(p => new Iri(p, namespaces))) || [];
         classInstance = new ClassInstanceEntity(iri, parentClassesIris);
-        classInstance.annotations = getEntityAnnotations$2(ci, namespaces);
+        classInstance.annotations = getAnnotations(ci, namespaces);
         if (ci.dataProperties)
             classInstance.dataProperties = ci.dataProperties;
         classInstances.set(iri.fullIri, classInstance);
     });
     return classInstances;
 }
-function getEntityAnnotations$2(rdfEntity, namespaces) {
+function getAnnotations(annotatedElem, namespaces) {
     var _a;
-    return ((_a = rdfEntity.annotations) === null || _a === void 0 ? void 0 : _a.map(a => {
+    return ((_a = annotatedElem.annotations) === null || _a === void 0 ? void 0 : _a.map(a => {
         const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
             return property.equals(a.property);
         }) || new Iri(a.property, namespaces);
         return new Annotation(annotationProperty, a.lexicalForm, a.language, a.datatype);
     })) || [];
 }
-function getDiagrams(rdfGraph, ontology, classInstances, rendererState = RendererStatesEnum.GRAPHOL) {
+function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL) {
     let diagram;
     let diagramRepr;
     let grapholEntity;
@@ -19825,7 +19833,7 @@ class IncrementalController {
             if (!this.classInstanceEntities.get(iri))
                 this.classInstanceEntities.set(iri, instanceEntity);
         });
-        const diagram = getDiagrams(rdfGraph, this.grapholscape.ontology, this.classInstanceEntities, RendererStatesEnum.INCREMENTAL)[0];
+        const diagram = getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL)[0];
         if (diagram) {
             const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL);
             this.performActionWithBlockedGraph(() => {
@@ -22034,7 +22042,7 @@ var DesignerEvent;
     DesignerEvent["AnnotationEdit"] = "annotationEdit";
     DesignerEvent["AnnotationRemoval"] = "annotationRemoval";
     DesignerEvent["SaveDraft"] = "saveDraft";
-    DesignerEvent["SaveVersion"] = "saveDraft";
+    DesignerEvent["SaveVersion"] = "saveVersion";
 })(DesignerEvent || (DesignerEvent = {}));
 class DesignerLifeCycle extends Lifecycle {
     constructor() {
@@ -22046,6 +22054,8 @@ class DesignerLifeCycle extends Lifecycle {
         this.annotationAddition = [];
         this.annotationEdit = [];
         this.annotationRemoval = [];
+        this.saveDraft = [];
+        this.saveVersion = [];
     }
 }
 
@@ -22681,6 +22691,7 @@ var modalSharedStyles = i$1 `
   .top-bar {
     display: flex;
     align-items: center;
+    flex-direction: row;
     justify-content: space-between;
     gap: 4px;
   }
@@ -23998,7 +24009,7 @@ function getCommandsByType() {
         addSubhierarchy,
         addSubclassEdge,
     ]);
-    commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge, addInputEdge]);
+    commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge, addAttributeEdge]);
     commandsMap.set(TypesEnum.INDIVIDUAL, [addInstanceOfEdge]);
     commandsMap.set(TypesEnum.INCLUSION, [removeElement]);
     commandsMap.set(TypesEnum.INSTANCE_OF, [removeElement]);
@@ -24219,6 +24230,23 @@ const addInputEdge = (grapholscape, elem) => {
                 if (grapholscape.renderer.diagram) {
                     const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
                     diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INPUT);
+                }
+            }, true // input edges must go towards input node, but we draw them in opposite direction
+            );
+        }
+    };
+};
+const addAttributeEdge = (grapholscape, elem) => {
+    return {
+        content: 'Add Input Edge',
+        icon: icons$4.addInputIcon,
+        select: () => {
+            let currentCy = grapholscape.renderer.cy;
+            drawNewEdge(currentCy, TypesEnum.ATTRIBUTE_EDGE, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
+                addedEdge.remove();
+                if (grapholscape.renderer.diagram) {
+                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
+                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.ATTRIBUTE_EDGE);
                 }
             }, true // input edges must go towards input node, but we draw them in opposite direction
             );
@@ -24946,7 +24974,7 @@ class GscapeDesignerToolbar extends BaseMixin$1(s) {
         this.redoEnabled = false;
         this.objectPropEnabled = false;
         this.individualEnabled = false;
-        this.newVersionEnabled = false;
+        this.newVersionEnabled = true;
     }
     handleNewDataProperty() {
         initNewDataPropertyUI(this.grapholscape, undefined);
@@ -25017,7 +25045,7 @@ class GscapeDesignerToolbar extends BaseMixin$1(s) {
             <span slot="icon">${icons$1.tools}</span>
           </gscape-button>
 
-          <gscape-button size="s" type="subtle" title="Save Draft">
+          <gscape-button size="s" type="subtle" title="Save Draft" @click=${this.handleSaveDraft}>
             <span slot="icon">${icons$1.save}</span>
           </gscape-button>
 
@@ -25027,6 +25055,7 @@ class GscapeDesignerToolbar extends BaseMixin$1(s) {
             label="New Version"
             title="Save A New Version"
             ?disabled=${!this.newVersionEnabled}
+            @click=${this.handleSaveVersion}
           >
             <span slot="icon">${icons$1.addPack}</span>
           </gscape-button>
@@ -25134,6 +25163,22 @@ function removeAnchorsOnEdge(edge, position) {
     }
     edge.source().off('position', undefined, updateAnchorsPosition);
     edge.target().off('position', undefined, updateAnchorsPosition);
+}
+/**
+ * Update anchors, remove them and add new anchors
+ * @param edge
+ */
+function refreshAnchorsOnEdge(edge) {
+    const sourceAnchor = edge.scratch('source-anchor');
+    const targetAnchor = edge.scratch('target-anchor');
+    if (sourceAnchor) {
+        removeAnchorsOnEdge(edge, AnchorPosition.SOURCE);
+        addAnchorsOnEdge(edge, AnchorPosition.SOURCE);
+    }
+    if (targetAnchor) {
+        removeAnchorsOnEdge(edge, AnchorPosition.TARGET);
+        addAnchorsOnEdge(edge, AnchorPosition.TARGET);
+    }
 }
 const updateAnchorsPosition = (evt) => {
     const node = evt.target;
@@ -25323,6 +25368,7 @@ function initBuilderUI(grapholscape) {
         else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
             const ontologyBuilder = new OntologyBuilder(grapholscape);
             ontologyBuilder.swapEdge(elem);
+            refreshAnchorsOnEdge(elem);
         }
     });
     grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
@@ -25383,6 +25429,9 @@ function initBuilderUI(grapholscape) {
                     infobox.content = elem.data('targetLabel') === 'C' ? 'Double click to remove completeness' : 'Double click to add completeness';
                 }
             }
+            else if (elem.data('anchorPosition')) {
+                infobox.content = 'Drag anchor to edit edge';
+            }
             else if ((elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
                 infobox.content = 'Double click to swap edge';
             }
@@ -25395,17 +25444,45 @@ function initBuilderUI(grapholscape) {
     });
 }
 
-class GrapholscapeDesigner extends Grapholscape {
+class DesignerCore extends Grapholscape {
     constructor(ontology, container, config) {
-        super(ontology, container, config);
+        super();
+        this.availableRenderers = [RendererStatesEnum.FLOATY];
+        this.entityNavigator = new EntityNavigator(this);
+        this.displayedNamesManager = new DisplayedNamesManager(this);
         this.lifecycle = new DesignerLifeCycle();
         this.on = this.lifecycle.on;
+        this.ontology = ontology;
+        this.container = container;
+        this.renderer.container = container;
         this.renderer.lifecycle = this.lifecycle;
+        this.themesManager = new ThemeManager(this);
+        //this.renderer.renderState = new GrapholRendererState()
+        if (!(config === null || config === void 0 ? void 0 : config.selectedTheme)) {
+            this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE);
+        }
+        if (config) {
+            config = Object.assign(config || {}, {
+                renderers: [RendererStatesEnum.FLOATY], // force only floaty
+            });
+            this.setConfig(config);
+        }
+        else {
+            this.setRenderer(new FloatyRendererState());
+        }
         this.renderer.filters = new Map();
         this.renderer.filters.set(RDFGraphConfigFiltersEnum.DATA_PROPERTY, getDefaultFilters().DATA_PROPERTY);
         this.renderer.filters.set(RDFGraphConfigFiltersEnum.INDIVIDUAL, getDefaultFilters().INDIVIDUAL);
     }
 }
+
+var index = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    get DesignerEvent () { return DesignerEvent; },
+    DesignerLifeCycle: DesignerLifeCycle,
+    GrapholscapeDesigner: DesignerCore,
+    initBuilderUI: initBuilderUI
+});
 
 cytoscape.use(popper);
 cytoscape.use(cola);
@@ -25470,31 +25547,40 @@ function bareGrapholscape(file, container, config) {
         return grapholscape;
     });
 }
-function loadRDFGraph(rdfGraph, container, mastroConnection) {
-    var _a;
+function resume(rdfGraph, container, mastroConnection) {
+    var _a, _b;
     const loadingSpinner = showLoadingSpinner(container, { selectedTheme: (_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.selectedTheme });
-    let grapholscape;
+    const grapholscape = new Core(parseRDFGraph(rdfGraph), container, getConfig(rdfGraph));
+    initFromResume(grapholscape, rdfGraph);
+    if (mastroConnection)
+        (_b = grapholscape.incremental) === null || _b === void 0 ? void 0 : _b.setMastroConnection(mastroConnection);
+    loadingSpinner.remove();
+    return grapholscape;
+}
+function resumeBuilder(rdfGraph, container) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const loadingSpinner = showLoadingSpinner(container, { selectedTheme: (_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.selectedTheme });
+        const grapholscape = new DesignerCore(parseRDFGraph(rdfGraph), container, getConfig(rdfGraph));
+        initFromResume(grapholscape, rdfGraph);
+        initBuilderUI(grapholscape);
+        loadingSpinner.remove();
+        return grapholscape;
+    });
+}
+function initFromResume(grapholscape, rdfGraph) {
+    var _a;
+    init(grapholscape);
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
+        initIncremental(grapholscape);
+    }
+    // Stop layout, use positions from rdfGraph, for floaty/incremental
+    if (grapholscape.renderer.renderState) {
+        grapholscape.renderer.renderState.layoutRunning = false;
+        grapholscape.renderer.renderState.stopLayout();
+    }
     if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
-        grapholscape = parseRDFGraph(rdfGraph, container);
-    }
-    else {
-        grapholscape = new Grapholscape(getOntology(rdfGraph), container, getConfig(rdfGraph));
-        grapholscape.ontology.entities = getEntities(rdfGraph, grapholscape.ontology.namespaces);
-    }
-    if (grapholscape) {
-        init(grapholscape);
-        if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-            initIncremental(grapholscape);
-        }
-        // if (grapholscape.renderState) {
-        //   (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
-        // }
-        // Stop layout, use positions from rdfGraph, for floaty/incremental
-        if (grapholscape.renderer.renderState) {
-            grapholscape.renderer.renderState.layoutRunning = false;
-            grapholscape.renderer.renderState.stopLayout();
-        }
-        if (rdfGraph.selectedDiagramId !== undefined && rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+        if (rdfGraph.selectedDiagramId !== undefined) {
             const diagram = grapholscape.ontology.getDiagram(rdfGraph.selectedDiagramId);
             if (diagram) {
                 /**
@@ -25503,37 +25589,36 @@ function loadRDFGraph(rdfGraph, container, mastroConnection) {
                  * Force setting them here.
                  */
                 setGraphEventHandlers(diagram, grapholscape.lifecycle, grapholscape.ontology);
-                grapholscape.showDiagram(rdfGraph.selectedDiagramId);
-            }
-        }
-        else {
-            if (grapholscape.incremental) {
-                if (mastroConnection)
-                    grapholscape.incremental.setMastroConnection(mastroConnection);
-                grapholscape.incremental.showDiagram();
-                grapholscape.incremental.addRDFGraph(rdfGraph);
+                const floatyRepr = diagram.representations.get(RendererStatesEnum.FLOATY);
+                if (floatyRepr)
+                    floatyRepr.hasEverBeenRendered = true;
+                grapholscape.showDiagram(diagram.id);
+                // (grapholscape.renderer.cy as any)?.updateStyle()
             }
         }
     }
-    loadingSpinner.remove();
-    return grapholscape;
-}
-function builder(rdfGraph, container, mastroConnection) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const grapholscape = loadRDFGraph(rdfGraph, container);
-        initBuilderUI(grapholscape);
-        return grapholscape;
-    });
-}
-function buildFromScratch(name, iri, container, mastroConnection, config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ontology = new Ontology(name, '', iri, Object.values(DefaultNamespaces), Object.values(DefaultAnnotationProperties));
-        ontology.addNamespace(new Namespace([''], iri));
-        ontology.addDiagram(new Diagram(name, 0));
-        config = Object.assign(config || {}, {
-            renderers: [RendererStatesEnum.FLOATY],
+    else if (grapholscape.incremental) {
+        grapholscape.incremental.showDiagram();
+        grapholscape.incremental.addRDFGraph(rdfGraph);
+        (_a = grapholscape.incremental.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.forEach(elem => {
+            var _a, _b;
+            if (elem.iri) {
+                (_b = (_a = grapholscape === null || grapholscape === void 0 ? void 0 : grapholscape.incremental) === null || _a === void 0 ? void 0 : _a.classInstanceEntities.get(elem.iri)) === null || _b === void 0 ? void 0 : _b.addOccurrence(elem, RendererStatesEnum.INCREMENTAL);
+            }
         });
-        const grapholscape = new GrapholscapeDesigner(ontology, container, config);
+    }
+}
+function buildFromScratch(name, iri, container, config) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const ontology = new Ontology(name, iri + '1.0', iri, undefined, Object.values(DefaultAnnotationProperties));
+        ontology.languages = Object.values(Language).sort();
+        ontology.defaultLanguage = Language.EN;
+        ontology.addNamespace(new Namespace([''], iri));
+        Object.values(DefaultNamespaces).forEach(namespace => {
+            ontology.addNamespace(namespace);
+        });
+        ontology.addDiagram(new Diagram(name, 0));
+        const grapholscape = new DesignerCore(ontology, container, config);
         init(grapholscape);
         initBuilderUI(grapholscape);
         grapholscape.showDiagram(0);
@@ -25583,7 +25668,7 @@ function getGrapholscape(file, container, config) {
                     }
                     clearTimeout(timeout);
                     loadingSpinner.remove();
-                    const gscape = new Grapholscape(ontology, container, config);
+                    const gscape = new Core(ontology, container, config);
                     resolve(gscape);
                 }
                 catch (e) {
@@ -25621,4 +25706,4 @@ function showLoadingSpinner(container, config) {
     return spinner;
 }
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, RDFGraphConfigEntityNameTypeEnum as EntityNameType, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, index$2 as SwaggerModel, TypesEnum, autoDarkColourMap, autoLightColourMap, bareGrapholscape, buildFromScratch, builder, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, loadRDFGraph, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, UI as ui, index as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, RDFGraphConfigEntityNameTypeEnum as EntityNameType, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, index$3 as SwaggerModel, TypesEnum, autoDarkColourMap, autoLightColourMap, bareGrapholscape, buildFromScratch, classicColourMap, clearLocalStorage, darkColourMap, index as designer, floatyOptions, fullGrapholscape, getDefaultFilters, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, resume, resumeBuilder, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, UI as ui, index$1 as util };
