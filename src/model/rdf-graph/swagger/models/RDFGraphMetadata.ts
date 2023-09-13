@@ -74,6 +74,12 @@ export interface RDFGraphMetadata {
      * @memberof RDFGraphMetadata
      */
     annotations?: Array<Annotation>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof RDFGraphMetadata
+     */
+    annotationProperties?: Array<string>;
 }
 
 /**
@@ -103,6 +109,7 @@ export function RDFGraphMetadataFromJSONTyped(json: any, ignoreDiscriminator: bo
         'defaultLanguage': !exists(json, 'defaultLanguage') ? undefined : json['defaultLanguage'],
         'namespaces': ((json['namespaces'] as Array<any>).map(NamespaceFromJSON)),
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
+        'annotationProperties': !exists(json, 'annotationProperties') ? undefined : json['annotationProperties'],
     };
 }
 
@@ -122,6 +129,7 @@ export function RDFGraphMetadataToJSON(value?: RDFGraphMetadata | null): any {
         'defaultLanguage': value.defaultLanguage,
         'namespaces': ((value.namespaces as Array<any>).map(NamespaceToJSON)),
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
+        'annotationProperties': value.annotationProperties,
     };
 }
 
