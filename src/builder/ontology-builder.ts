@@ -177,12 +177,6 @@ export default class OntologyBuilder {
             }
           })
 
-          cyOccurrence.neighborhood(`node[ type = "${TypesEnum.DATA_PROPERTY}" ]`).forEach(dpNode => {
-            const entity = this.grapholscape.ontology.getEntity(dpNode.data().iri)
-            if (entity) {
-              this.removeEntity(dpNode, entity)
-            }
-          })
         }
 
 
