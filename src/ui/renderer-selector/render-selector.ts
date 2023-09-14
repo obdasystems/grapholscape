@@ -56,7 +56,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
       }
 
       <gscape-button @click="${this.togglePanel}" type="subtle">
-        <span slot="icon">${this.currentRendererState?.icon}</span>
+        <span slot="icon">${this.currentRendererState?.icon || html`<div style="padding: 1.5px 6.5px;" class="bold-text">?</div>`}</span>
       </gscape-button>
 
       <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">

@@ -56,7 +56,7 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
     UI.initUI(grapholscape)
 
     if (config?.initialRendererSelection === false) {
-      (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any).hide()
+      (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any)?.hide()
     }
 
     if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
