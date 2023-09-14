@@ -46,6 +46,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   public namespaces: Namespace[] = []
   public remainderToRename: string = ''
   public selectedNamespaceIndex?: number = 0
+  public diagramName: string = ''
 
   private advancedMode: boolean = false
   private inputs: {
@@ -578,6 +579,7 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
         <label for="input">Diagram Name:</label>
         <input id="input"
           type="text"
+          value = ${this.diagramName}
           @input=${this.validate}
           name="input"
           required

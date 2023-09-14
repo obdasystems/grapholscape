@@ -6,8 +6,9 @@ import * as UI from '../../ui'
 import Grapholscape from '../core'
 import { DesignerEvent } from '../lifecycle'
 import { addObjectProperty } from './commands'
-import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI } from './init-modals'
+import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI, initRenameDiagramUI } from './init-modals'
 import { initOntologyManagerModal } from './ontology-manager'
+import { renameIcon } from '../../ui/assets'
 
 const {
   BaseMixin,
@@ -118,6 +119,9 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
         <div class="widget-body">
           <gscape-button @click=${() => initNewDiagramUI(this.grapholscape)} size="s" label="Diagram" title="Add Diagram">
             <span slot="icon">${icons.plus}</span>
+          </gscape-button>
+          <gscape-button @click=${() => initRenameDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Rename Diagram">
+            <span slot="icon">${renameIcon}</span>
           </gscape-button>
 
           <div class="hr"></div>

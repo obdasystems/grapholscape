@@ -1,3 +1,4 @@
+import { DesignerEvent } from '../../builder'
 import Grapholscape from '../../core'
 import { LifecycleEvent } from '../../model'
 import GscapeDiagramSelector from './diagram-selector'
@@ -12,10 +13,14 @@ export default function(diagramSelectorComponent: GscapeDiagramSelector, graphol
   if (grapholscape.diagramId || grapholscape.diagramId === 0) {
     diagramSelectorComponent.currentDiagramId = grapholscape.diagramId
   }
+  if(grapholscape.renderer.diagram){
+    diagramSelectorComponent.currentDiagramName = grapholscape.renderer.diagram.name
+  }
   diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram)
 
   grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
     if (diagramSelectorComponent.diagrams.includes(diagram)) 
       diagramSelectorComponent.currentDiagramId = diagram.id
+      diagramSelectorComponent.currentDiagramName = diagram.name
   })
 }

@@ -1,5 +1,5 @@
 import Grapholscape from "../core";
-import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
+import { Diagram, FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
 import OntologyBuilder from "../ontology-builder";
 import GscapeNewElementModal, { ConfirmEventDetail, ModalTypeEnum, NewDataPropertyDetail, NewDiagramDetail, NewEntityDetail, NewIsaDetail, NewObjectPropertyDetail, NewSubHierarchyDetail, RenameEntityDetail } from "./new-element-modal";
 
@@ -179,6 +179,22 @@ export function initRenameEntityUI(grapholscape: Grapholscape, entity: GrapholEn
   modal.remainderToRename = entity.iri.remainder
   if (entity.iri.namespace)
     modal.selectedNamespaceIndex = modal.namespaces.indexOf(entity.iri.namespace)
+}
+
+export function initRenameDiagramUI(grapholscape: Grapholscape, diagram: Diagram | undefined) {
+  const modal = getModal(
+    grapholscape,
+    ModalTypeEnum.DIAGRAM,
+    'Rename Diagram',
+    (confirmDetail: NewDiagramDetail) => {
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      if(diagram)
+        ontologyBuilder.renameDiagram(confirmDetail.diagramName)
+    }
+  )
+  if(diagram)
+    modal.diagramName = diagram.name
+
 }
 
 function getModal(

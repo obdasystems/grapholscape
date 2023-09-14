@@ -4,6 +4,7 @@ import { Annotation, DefaultAnnotationProperties, Diagram, DiagramRepresentation
 import DiagramBuilder from "../core/diagram-builder"
 import Grapholscape from "./core"
 import { DesignerEvent } from "./lifecycle"
+import { GscapeDiagramSelector } from "../ui/diagram-selector"
 
 export default class OntologyBuilder {
 
@@ -121,6 +122,14 @@ export default class OntologyBuilder {
     this.grapholscape.ontology.addDiagram(newDiagram)
     this.grapholscape.showDiagram(id)
     this.grapholscape.lifecycle.trigger(DesignerEvent.DiagramAddition, newDiagram)
+  }
+
+  public renameDiagram(newName){
+    const diagram = this.grapholscape.renderer.diagram
+    if(diagram)
+      diagram.name = newName
+    const diagramSelector = this.grapholscape.container.getElementsByTagName('gscape-diagram-selector').item(0) as GscapeDiagramSelector
+    diagramSelector.currentDiagramName = newName
   }
 
   public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
