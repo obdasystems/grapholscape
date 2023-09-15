@@ -116,18 +116,17 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/RDFGraph'
-  /ontologyDraft/{ontologyName}/download:
-    get:
+  /ontologyDraft/download:
+    post:
       tags:
       - Ontology Designer
-      summary: Download the ontology draft {ontologyName} converted in OWL2
+      summary: Download the ontology draft in the body converted in OWL2
       operationId: downloadOntologyDraft
-      parameters:
-      - name: ontologyName
-        in: path
-        required: true
-        schema:
-          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RDFGraph'
       responses:
         200:
           description: Successful operation
