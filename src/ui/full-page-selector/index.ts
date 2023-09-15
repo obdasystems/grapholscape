@@ -6,10 +6,12 @@ import GscapeFullPageSelector from "./full-page-selector"
 export { GscapeFullPageSelector }
 
 export function initInitialRendererSelector(grapholscape: Grapholscape) {
-  if (grapholscape.renderers.length > 1 && !grapholscape.renderState) {
-    const rendererSelectorComponent = new GscapeFullPageSelector()
-    init(rendererSelectorComponent, grapholscape)
+  const rendererSelectorComponent = new GscapeFullPageSelector()
+  init(rendererSelectorComponent, grapholscape)
 
-    grapholscape.widgets.set(WidgetEnum.INITIAL_RENDERER_SELECTOR, rendererSelectorComponent)
+  grapholscape.widgets.set(WidgetEnum.INITIAL_RENDERER_SELECTOR, rendererSelectorComponent)
+
+  if (grapholscape.renderers.length < 1 || grapholscape.renderState) {
+    rendererSelectorComponent.disable()
   }
 }
