@@ -2,6 +2,7 @@ import Grapholscape from "../core";
 import { Diagram, FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
 import OntologyBuilder from "../ontology-builder";
 import GscapeNewElementModal, { ConfirmEventDetail, ModalTypeEnum, NewDataPropertyDetail, NewDiagramDetail, NewEntityDetail, NewIsaDetail, NewObjectPropertyDetail, NewSubHierarchyDetail, RenameEntityDetail } from "./new-element-modal";
+import { GscapeConfirmDialog } from "../../ui";
 
 export function initNewDiagramUI(grapholscape: Grapholscape) {
   getModal(
@@ -195,6 +196,21 @@ export function initRenameDiagramUI(grapholscape: Grapholscape, diagram: Diagram
   if(diagram)
     modal.diagramName = diagram.name
 
+}
+
+export function initRemoveDiagramUI(grapholscape: Grapholscape, diagram: Diagram | undefined) {
+  const modal = new GscapeConfirmDialog('If you delete this diagram, you will lose all the elements it contains. Do you want to proceed?', 'Warning')
+  modal.onConfirm ( () => {
+    const ontologyBuilder = new OntologyBuilder(grapholscape)
+    if(diagram)
+      ontologyBuilder.removeDiagram(diagram)
+  })
+  modal.onCancel(()=>{modal.hide()})
+  if (grapholscape.uiContainer)
+    grapholscape.uiContainer.appendChild(modal)
+  modal.show()
+
+  return modal
 }
 
 function getModal(

@@ -6,7 +6,7 @@ import * as UI from '../../ui'
 import Grapholscape from '../core'
 import { DesignerEvent } from '../lifecycle'
 import { addObjectProperty } from './commands'
-import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI, initRenameDiagramUI } from './init-modals'
+import { initNewDataPropertyUI, initNewDiagramUI, initNewEntityUI, initNewIndividualUI, initRemoveDiagramUI, initRenameDiagramUI } from './init-modals'
 import { initOntologyManagerModal } from './ontology-manager'
 import { renameIcon } from '../../ui/assets'
 
@@ -26,6 +26,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
   public objectPropEnabled = false
   public individualEnabled = false
   public newVersionEnabled = false
+  public removeDiagramDisabled = this.grapholscape.ontology.diagrams.length === 1
 
   private _lastSelectedElement?: NodeSingular | EdgeSingular
 
@@ -35,6 +36,7 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
     objectPropEnabled: { type: Boolean },
     individualEnabled: { type: Boolean },
     newVersionEnabled: { type: Boolean },
+    removeDiagramDisabled : {type: Boolean}
   }
 
   static styles = [
@@ -122,6 +124,9 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
           </gscape-button>
           <gscape-button @click=${() => initRenameDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Rename Diagram">
             <span slot="icon">${renameIcon}</span>
+          </gscape-button>
+          <gscape-button @click=${() => initRemoveDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Remove Diagram" ?disabled=${this.removeDiagramDisabled}>
+            <span slot="icon">${icons.rubbishBin}</span>
           </gscape-button>
 
           <div class="hr"></div>

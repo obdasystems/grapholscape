@@ -29,6 +29,7 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
 
       .header, .dialog-message {
         margin: 8px;
+        font-size: 14px;
       }
 
       .dialog-message {
@@ -51,7 +52,7 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
         <div class="header">
           ${this.dialogTitle}
         </div>
-        <div class="dialog-message area">
+        <div class="dialog-message">
           ${this.message}
         </div>
 

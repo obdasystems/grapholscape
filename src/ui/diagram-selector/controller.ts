@@ -22,5 +22,6 @@ export default function(diagramSelectorComponent: GscapeDiagramSelector, graphol
     if (diagramSelectorComponent.diagrams.includes(diagram)) 
       diagramSelectorComponent.currentDiagramId = diagram.id
       diagramSelectorComponent.currentDiagramName = diagram.name
+      diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams
   })
 }

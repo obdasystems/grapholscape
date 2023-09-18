@@ -132,6 +132,23 @@ export default class OntologyBuilder {
     diagramSelector.currentDiagramName = newName
   }
 
+  public removeDiagram(diagram: Diagram){
+    if(this.grapholscape.ontology.diagrams.length > 1){
+      this.grapholscape.ontology.entities.forEach(e => {
+        if(diagram.representations.get(this.rendererState)?.containsEntity(e)){
+          e.getOccurrencesByDiagramId(diagram.id).get(this.rendererState)?.forEach(el => { 
+            const occ = diagram.representations.get(this.rendererState)?.cy.$id(el.id).first()
+            if(occ)
+              this.removeEntity(occ, e)})
+        }
+          
+      })
+      this.grapholscape.ontology.diagrams = this.grapholscape.ontology.diagrams.filter(d => d != diagram)
+      const id = this.grapholscape.ontology.diagrams[0].id
+      this.grapholscape.showDiagram(id)
+    }     
+  }
+
   public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)

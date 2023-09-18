@@ -37,6 +37,7 @@ export default function initBuilderUI(grapholscape: GrapholscapeDesigner) {
   })
 
   grapholscape.on(LifecycleEvent.DiagramChange, () => {
+    toolboxWidget.removeDiagramDisabled = grapholscape.ontology.diagrams.length === 1
     let currentCy = grapholscape.renderer.cy as any
 
     if (!currentCy.scratch('designer-listeners-set')) {

@@ -15,7 +15,8 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
 
   static properties: PropertyDeclarations = {
     currentDiagramId: { type: Number },
-    currentDiagramName: {type : String}
+    currentDiagramName: {type : String},
+    diagrams: {type: Array}
   }
 
   static styles?: CSSResultGroup = [
