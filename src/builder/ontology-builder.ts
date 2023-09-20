@@ -180,8 +180,24 @@ export default class OntologyBuilder {
     this.grapholscape.renderer.renderState?.runLayout()
   }
 
-  public removeEntity(cyOccurrence: SingularElementArgument, entity: GrapholEntity) {
-    const diagram = this.grapholscape.renderer.diagram
+  public removeAllOccurrences(entity: GrapholEntity){
+
+    this.grapholscape.ontology.diagrams.forEach(d => {
+      const occurrences = entity.getOccurrencesByDiagramId(d.id).get(this.rendererState)//occurrences.get(this.rendererState)
+      occurrences?.forEach(e => {
+        const id = e.id
+        const occurrence = d.representations.get(this.rendererState)?.cy?.$id(id).first()//this.grapholscape.renderer.cy?.$id(id).first()
+        if(occurrence){
+          this.removeEntity(occurrence, entity, d)
+        }
+      })
+    })
+    
+    
+  }
+
+  public removeEntity(cyOccurrence: SingularElementArgument, entity: GrapholEntity, diag?: Diagram) {
+    const diagram = diag ? diag : this.grapholscape.renderer.diagram
     if (diagram) {
       this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
       const grapholElem = diagram.representations.get(this.rendererState)?.grapholElements.get(cyOccurrence.id())
@@ -204,7 +220,6 @@ export default class OntologyBuilder {
           })
 
         }
-
 
         entity.removeOccurrence(grapholElem, this.rendererState)
         this.diagramBuilder.removeElement(cyOccurrence.id())

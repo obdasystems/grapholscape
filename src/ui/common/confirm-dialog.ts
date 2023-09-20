@@ -6,6 +6,7 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
 
   private _onConfirm?: () => void
   private _onCancel?: () => void
+  private _onDelete?: () => void
 
   constructor(public message?: string, public dialogTitle = 'Confirm') {
     super()
@@ -53,7 +54,9 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
           ${this.dialogTitle}
         </div>
         <div class="dialog-message">
-          ${this.message}
+          ${this.message}<br>
+          <br>
+          ${this.dialogTitle === 'Delete Entity' ? html`<b>Warning:</b> this action will also remove all the object properties that involve this entity` : null}
         </div>
 
         <div class="buttons">
@@ -63,10 +66,23 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
             `
             : null
           }
-          <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
+          ${this.dialogTitle === 'Delete Entity'  
+          ? html`
+              <gscape-button label="Delete Element" @click=${this.handleDelete}></gscape-button>
+            `
+            : null
+          }
+          <gscape-button label="${this.dialogTitle === 'Delete Entity' ? 'Delete All' : 'Ok'}" @click=${this.handleConfirm}></gscape-button>
         </div>
       </div>
     `
+  }
+
+  private handleDelete() {
+    if(this._onDelete)
+      this._onDelete()
+    this.remove()
+
   }
 
   private handleConfirm() {
@@ -89,6 +105,12 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
 
   public onCancel(callback: () => void): GscapeConfirmDialog {
     this._onCancel = callback
+    this.requestUpdate()
+    return this
+  }
+
+  public onDelete(callback: () => void): GscapeConfirmDialog {
+    this._onDelete = callback
     this.requestUpdate()
     return this
   }

@@ -204,8 +204,30 @@ export function initRemoveDiagramUI(grapholscape: Grapholscape, diagram: Diagram
     const ontologyBuilder = new OntologyBuilder(grapholscape)
     if(diagram)
       ontologyBuilder.removeDiagram(diagram)
+    modal.hide()
   })
   modal.onCancel(()=>{modal.hide()})
+  if (grapholscape.uiContainer)
+    grapholscape.uiContainer.appendChild(modal)
+  modal.show()
+
+  return modal
+}
+
+export function initRemoveEntityUI(grapholscape, entity, elem){
+  const modal = new GscapeConfirmDialog('Do you want to delete this single element or all the occurrences of the current entity?', 'Delete Entity')
+  const ontologyBuilder = new OntologyBuilder(grapholscape)
+  modal.onConfirm ( () => {
+    ontologyBuilder.removeAllOccurrences(entity)
+    modal.hide()
+  })
+  modal.onDelete(()=>{
+    ontologyBuilder.removeEntity(elem, entity)
+    modal.hide()
+  })
+  modal.onCancel(()=>{
+    modal.hide()
+  })
   if (grapholscape.uiContainer)
     grapholscape.uiContainer.appendChild(modal)
   modal.show()
