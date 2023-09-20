@@ -155,6 +155,7 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
                     displayedName=${entityItem.displayedName}
                     title=${entityItem.displayedName}
                     iri=${entityItem.value.iri.fullIri}
+                    ?disabled=${entityItem.disabled}
                     tabindex="0"
                     @keypress=${this.handleKeyPressOnEntry.bind(this)}
                   >
