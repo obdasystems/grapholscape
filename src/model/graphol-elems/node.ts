@@ -12,7 +12,7 @@ export default class GrapholNode extends GrapholElement implements Node {
     const instance = new GrapholNode(n.id, n.type)
 
     Object.entries(n).forEach(([key, value]) => {
-      if (n[key] !== undefined && key !== 'id' && key !== 'type') {
+      if (n[key] !== undefined && n[key] !== null && key !== 'id' && key !== 'type') {
 
         if (key === 'labelPosition') {
           instance.labelXpos = n.labelPosition?.x
