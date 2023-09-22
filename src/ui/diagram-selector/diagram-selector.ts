@@ -10,10 +10,13 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
   title = 'Diagram Selector'
   diagrams: Diagram[]
   currentDiagramId: number
+  currentDiagramName: string
   onDiagramSelection: (diagramId: number) => void = () => {}
 
   static properties: PropertyDeclarations = {
-    currentDiagramId: { type: Number }
+    currentDiagramId: { type: Number },
+    currentDiagramName: {type : String},
+    diagrams: {type: Array}
   }
 
   static styles?: CSSResultGroup = [

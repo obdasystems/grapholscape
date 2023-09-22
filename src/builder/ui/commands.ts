@@ -6,7 +6,7 @@ import * as UI from '../../ui';
 import drawNewEdge from "../edge-creation/draw-new-edge";
 import OntologyBuilder from "../ontology-builder";
 import { initAnnotationsModal } from "./annotations";
-import { initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewObjectPropertyUI, initNewSubHierarchyUI, initRenameEntityUI } from "./init-modals";
+import { initNewDataPropertyUI, initNewIndividualUI, initNewIsaUI, initNewObjectPropertyUI, initNewSubHierarchyUI, initRemoveEntityUI, initRenameEntityUI } from "./init-modals";
 
 const {
   icons,
@@ -157,10 +157,9 @@ export const removeEntity = (grapholscape: Grapholscape, elem: NodeSingular): UI
     content: 'Remove',
     icon: icons.rubbishBin,
     select: () => {
-      const ontologyBuilder = new OntologyBuilder(grapholscape)
       const entity = grapholscape.ontology.getEntity(elem.data().iri)
-      if (entity) {
-        ontologyBuilder.removeEntity(elem, entity)
+      if(entity){
+        initRemoveEntityUI(grapholscape, entity, elem)
       }
     }
   }

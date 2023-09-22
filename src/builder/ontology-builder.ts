@@ -4,6 +4,7 @@ import { Annotation, DefaultAnnotationProperties, Diagram, DiagramRepresentation
 import DiagramBuilder from "../core/diagram-builder"
 import Grapholscape from "./core"
 import { DesignerEvent } from "./lifecycle"
+import { GscapeDiagramSelector } from "../ui/diagram-selector"
 
 export default class OntologyBuilder {
 
@@ -123,6 +124,31 @@ export default class OntologyBuilder {
     this.grapholscape.lifecycle.trigger(DesignerEvent.DiagramAddition, newDiagram)
   }
 
+  public renameDiagram(newName){
+    const diagram = this.grapholscape.renderer.diagram
+    if(diagram)
+      diagram.name = newName
+    const diagramSelector = this.grapholscape.container.getElementsByTagName('gscape-diagram-selector').item(0) as GscapeDiagramSelector
+    diagramSelector.currentDiagramName = newName
+  }
+
+  public removeDiagram(diagram: Diagram){
+    if(this.grapholscape.ontology.diagrams.length > 1){
+      this.grapholscape.ontology.entities.forEach(e => {
+        if(diagram.representations.get(this.rendererState)?.containsEntity(e)){
+          e.getOccurrencesByDiagramId(diagram.id).get(this.rendererState)?.forEach(el => { 
+            const occ = diagram.representations.get(this.rendererState)?.cy.$id(el.id).first()
+            if(occ)
+              this.removeEntity(occ, e)})
+        }
+          
+      })
+      this.grapholscape.ontology.diagrams = this.grapholscape.ontology.diagrams.filter(d => d != diagram)
+      const id = this.grapholscape.ontology.diagrams[0].id
+      this.grapholscape.showDiagram(id)
+    }     
+  }
+
   public addSubhierarchy(iris: string[], ownerIri: string, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
@@ -154,8 +180,24 @@ export default class OntologyBuilder {
     this.grapholscape.renderer.renderState?.runLayout()
   }
 
-  public removeEntity(cyOccurrence: SingularElementArgument, entity: GrapholEntity) {
-    const diagram = this.grapholscape.renderer.diagram
+  public removeAllOccurrences(entity: GrapholEntity){
+
+    this.grapholscape.ontology.diagrams.forEach(d => {
+      const occurrences = entity.getOccurrencesByDiagramId(d.id).get(this.rendererState)//occurrences.get(this.rendererState)
+      occurrences?.forEach(e => {
+        const id = e.id
+        const occurrence = d.representations.get(this.rendererState)?.cy?.$id(id).first()//this.grapholscape.renderer.cy?.$id(id).first()
+        if(occurrence){
+          this.removeEntity(occurrence, entity, d)
+        }
+      })
+    })
+    
+    
+  }
+
+  public removeEntity(cyOccurrence: SingularElementArgument, entity: GrapholEntity, diag?: Diagram) {
+    const diagram = diag ? diag : this.grapholscape.renderer.diagram
     if (diagram) {
       this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
       const grapholElem = diagram.representations.get(this.rendererState)?.grapholElements.get(cyOccurrence.id())
@@ -177,14 +219,7 @@ export default class OntologyBuilder {
             }
           })
 
-          cyOccurrence.neighborhood(`node[ type = "${TypesEnum.DATA_PROPERTY}" ]`).forEach(dpNode => {
-            const entity = this.grapholscape.ontology.getEntity(dpNode.data().iri)
-            if (entity) {
-              this.removeEntity(dpNode, entity)
-            }
-          })
         }
-
 
         entity.removeOccurrence(grapholElem, this.rendererState)
         this.diagramBuilder.removeElement(cyOccurrence.id())
@@ -354,11 +389,11 @@ export default class OntologyBuilder {
   }
 
   public convertCamelCase(input: string) {
-    input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1")//.trim()
+    input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1").trim()
     //input = input.charAt(0).toUpperCase() + input.slice(1);
     let inputSplit = input.split(' ')
     inputSplit.forEach((w, i) => {
-      if (w != w.toUpperCase())
+      if (w != w.toUpperCase() && i > 0)
         inputSplit[i] = w.toLowerCase()
       else
         inputSplit[i] = w

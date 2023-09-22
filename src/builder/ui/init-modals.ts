@@ -1,7 +1,8 @@
 import Grapholscape from "../core";
-import { FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
+import { Diagram, FunctionalityEnum, GrapholEntity, Namespace, TypesEnum } from "../../model";
 import OntologyBuilder from "../ontology-builder";
 import GscapeNewElementModal, { ConfirmEventDetail, ModalTypeEnum, NewDataPropertyDetail, NewDiagramDetail, NewEntityDetail, NewIsaDetail, NewObjectPropertyDetail, NewSubHierarchyDetail, RenameEntityDetail } from "./new-element-modal";
+import { GscapeConfirmDialog } from "../../ui";
 
 export function initNewDiagramUI(grapholscape: Grapholscape) {
   getModal(
@@ -179,6 +180,59 @@ export function initRenameEntityUI(grapholscape: Grapholscape, entity: GrapholEn
   modal.remainderToRename = entity.iri.remainder
   if (entity.iri.namespace)
     modal.selectedNamespaceIndex = modal.namespaces.indexOf(entity.iri.namespace)
+}
+
+export function initRenameDiagramUI(grapholscape: Grapholscape, diagram: Diagram | undefined) {
+  const modal = getModal(
+    grapholscape,
+    ModalTypeEnum.DIAGRAM,
+    'Rename Diagram',
+    (confirmDetail: NewDiagramDetail) => {
+      const ontologyBuilder = new OntologyBuilder(grapholscape)
+      if(diagram)
+        ontologyBuilder.renameDiagram(confirmDetail.diagramName)
+    }
+  )
+  if(diagram)
+    modal.diagramName = diagram.name
+
+}
+
+export function initRemoveDiagramUI(grapholscape: Grapholscape, diagram: Diagram | undefined) {
+  const modal = new GscapeConfirmDialog('If you delete this diagram, you will lose all the elements it contains. Do you want to proceed?', 'Warning')
+  modal.onConfirm ( () => {
+    const ontologyBuilder = new OntologyBuilder(grapholscape)
+    if(diagram)
+      ontologyBuilder.removeDiagram(diagram)
+    modal.hide()
+  })
+  modal.onCancel(()=>{modal.hide()})
+  if (grapholscape.uiContainer)
+    grapholscape.uiContainer.appendChild(modal)
+  modal.show()
+
+  return modal
+}
+
+export function initRemoveEntityUI(grapholscape, entity, elem){
+  const modal = new GscapeConfirmDialog('Do you want to delete this single element or all the occurrences of the current entity?', 'Delete Entity')
+  const ontologyBuilder = new OntologyBuilder(grapholscape)
+  modal.onConfirm ( () => {
+    ontologyBuilder.removeAllOccurrences(entity)
+    modal.hide()
+  })
+  modal.onDelete(()=>{
+    ontologyBuilder.removeEntity(elem, entity)
+    modal.hide()
+  })
+  modal.onCancel(()=>{
+    modal.hide()
+  })
+  if (grapholscape.uiContainer)
+    grapholscape.uiContainer.appendChild(modal)
+  modal.show()
+
+  return modal
 }
 
 function getModal(
