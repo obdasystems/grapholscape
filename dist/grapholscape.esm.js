@@ -4029,7 +4029,7 @@ class GrapholNode extends GrapholElement {
         const instance = new GrapholNode(n.id, n.type);
         Object.entries(n).forEach(([key, value]) => {
             var _a, _b;
-            if (n[key] !== undefined && key !== 'id' && key !== 'type') {
+            if (n[key] !== undefined && n[key] !== null && key !== 'id' && key !== 'type') {
                 if (key === 'labelPosition') {
                     instance.labelXpos = (_a = n.labelPosition) === null || _a === void 0 ? void 0 : _a.x;
                     instance.labelYpos = (_b = n.labelPosition) === null || _b === void 0 ? void 0 : _b.y;
@@ -11130,8 +11130,10 @@ class GscapeConfirmDialog extends ModalMixin$5(BaseMixin$7(s)) {
         <div class="header">
           ${this.dialogTitle}
         </div>
-        <div class="dialog-message area">
-          ${this.message}
+        <div class="dialog-message">
+          ${this.message}<br>
+          <br>
+          ${this.dialogTitle === 'Delete Entity' ? x `<b>Warning:</b> this action will also remove all the object properties that involve this entity` : null}
         </div>
 
         <div class="buttons">
@@ -11140,10 +11142,20 @@ class GscapeConfirmDialog extends ModalMixin$5(BaseMixin$7(s)) {
               <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
             `
             : null}
-          <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
+          ${this.dialogTitle === 'Delete Entity'
+            ? x `
+              <gscape-button label="Delete Element" @click=${this.handleDelete}></gscape-button>
+            `
+            : null}
+          <gscape-button label="${this.dialogTitle === 'Delete Entity' ? 'Delete All' : 'Ok'}" @click=${this.handleConfirm}></gscape-button>
         </div>
       </div>
     `;
+    }
+    handleDelete() {
+        if (this._onDelete)
+            this._onDelete();
+        this.remove();
     }
     handleConfirm() {
         if (this._onConfirm)
@@ -11165,6 +11177,11 @@ class GscapeConfirmDialog extends ModalMixin$5(BaseMixin$7(s)) {
         this.requestUpdate();
         return this;
     }
+    onDelete(callback) {
+        this._onDelete = callback;
+        this.requestUpdate();
+        return this;
+    }
 }
 GscapeConfirmDialog.properties = {
     message: { type: String }
@@ -11183,6 +11200,7 @@ GscapeConfirmDialog.styles = [
 
       .header, .dialog-message {
         margin: 8px;
+        font-size: 14px;
       }
 
       .dialog-message {
@@ -11611,6 +11629,7 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin$7(s)) {
                     displayedName=${entityItem.displayedName}
                     title=${entityItem.displayedName}
                     iri=${entityItem.value.iri.fullIri}
+                    ?disabled=${entityItem.disabled}
                     tabindex="0"
                     @keypress=${this.handleKeyPressOnEntry.bind(this)}
                   >
@@ -11963,10 +11982,11 @@ GscapeFullPageSelector.styles = [
 customElements.define('gscape-welcome-renderer-selector', GscapeFullPageSelector);
 
 function initInitialRendererSelector(grapholscape) {
-    if (grapholscape.renderers.length > 1 && !grapholscape.renderState) {
-        const rendererSelectorComponent = new GscapeFullPageSelector();
-        init$8(rendererSelectorComponent, grapholscape);
-        grapholscape.widgets.set(WidgetEnum.INITIAL_RENDERER_SELECTOR, rendererSelectorComponent);
+    const rendererSelectorComponent = new GscapeFullPageSelector();
+    init$8(rendererSelectorComponent, grapholscape);
+    grapholscape.widgets.set(WidgetEnum.INITIAL_RENDERER_SELECTOR, rendererSelectorComponent);
+    if (grapholscape.renderers.length < 1 || grapholscape.renderState) {
+        rendererSelectorComponent.disable();
     }
 }
 
@@ -12026,7 +12046,9 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin$7(s)) {
     }
 }
 GscapeDiagramSelector.properties = {
-    currentDiagramId: { type: Number }
+    currentDiagramId: { type: Number },
+    currentDiagramName: { type: String },
+    diagrams: { type: Array }
 };
 GscapeDiagramSelector.styles = [
     baseStyle$7,
@@ -12051,10 +12073,15 @@ function init$7 (diagramSelectorComponent, grapholscape) {
     if (grapholscape.diagramId || grapholscape.diagramId === 0) {
         diagramSelectorComponent.currentDiagramId = grapholscape.diagramId;
     }
+    if (grapholscape.renderer.diagram) {
+        diagramSelectorComponent.currentDiagramName = grapholscape.renderer.diagram.name;
+    }
     diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram);
     grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
         if (diagramSelectorComponent.diagrams.includes(diagram))
             diagramSelectorComponent.currentDiagramId = diagram.id;
+        diagramSelectorComponent.currentDiagramName = diagram.name;
+        diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
     });
 }
 
@@ -13804,7 +13831,7 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin$7(s)) {
             : null}
 
       <gscape-button @click="${this.togglePanel}" type="subtle">
-        <span slot="icon">${(_a = this.currentRendererState) === null || _a === void 0 ? void 0 : _a.icon}</span>
+        <span slot="icon">${((_a = this.currentRendererState) === null || _a === void 0 ? void 0 : _a.icon) || x `<div style="padding: 1.5px 6.5px;" class="bold-text">?</div>`}</span>
       </gscape-button>
 
       <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
@@ -14119,7 +14146,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin$7(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.5"}</span>
+            <span>${"4.0.0-snap.6"}</span>
           </div>
         </div>
       </div>
@@ -22168,6 +22195,31 @@ class OntologyBuilder {
         this.grapholscape.showDiagram(id);
         this.grapholscape.lifecycle.trigger(DesignerEvent.DiagramAddition, newDiagram);
     }
+    renameDiagram(newName) {
+        const diagram = this.grapholscape.renderer.diagram;
+        if (diagram)
+            diagram.name = newName;
+        const diagramSelector = this.grapholscape.container.getElementsByTagName('gscape-diagram-selector').item(0);
+        diagramSelector.currentDiagramName = newName;
+    }
+    removeDiagram(diagram) {
+        if (this.grapholscape.ontology.diagrams.length > 1) {
+            this.grapholscape.ontology.entities.forEach(e => {
+                var _a, _b;
+                if ((_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.containsEntity(e)) {
+                    (_b = e.getOccurrencesByDiagramId(diagram.id).get(this.rendererState)) === null || _b === void 0 ? void 0 : _b.forEach(el => {
+                        var _a;
+                        const occ = (_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.cy.$id(el.id).first();
+                        if (occ)
+                            this.removeEntity(occ, e);
+                    });
+                }
+            });
+            this.grapholscape.ontology.diagrams = this.grapholscape.ontology.diagrams.filter(d => d != diagram);
+            const id = this.grapholscape.ontology.diagrams[0].id;
+            this.grapholscape.showDiagram(id);
+        }
+    }
     addSubhierarchy(iris, ownerIri, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
         var _a;
         const diagram = this.grapholscape.renderer.diagram;
@@ -22197,9 +22249,22 @@ class OntologyBuilder {
         this.grapholscape.ontology.addHierarchy(hierarchy);
         (_a = this.grapholscape.renderer.renderState) === null || _a === void 0 ? void 0 : _a.runLayout();
     }
-    removeEntity(cyOccurrence, entity) {
+    removeAllOccurrences(entity) {
+        this.grapholscape.ontology.diagrams.forEach(d => {
+            const occurrences = entity.getOccurrencesByDiagramId(d.id).get(this.rendererState); //occurrences.get(this.rendererState)
+            occurrences === null || occurrences === void 0 ? void 0 : occurrences.forEach(e => {
+                var _a, _b;
+                const id = e.id;
+                const occurrence = (_b = (_a = d.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$id(id).first(); //this.grapholscape.renderer.cy?.$id(id).first()
+                if (occurrence) {
+                    this.removeEntity(occurrence, entity, d);
+                }
+            });
+        });
+    }
+    removeEntity(cyOccurrence, entity, diag) {
         var _a;
-        const diagram = this.grapholscape.renderer.diagram;
+        const diagram = diag ? diag : this.grapholscape.renderer.diagram;
         if (diagram) {
             this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
             const grapholElem = (_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.grapholElements.get(cyOccurrence.id());
@@ -22215,12 +22280,6 @@ class OntologyBuilder {
                         const entity = this.grapholscape.ontology.getEntity(opEdge.data().iri);
                         if (entity) {
                             this.removeEntity(opEdge, entity);
-                        }
-                    });
-                    cyOccurrence.neighborhood(`node[ type = "${TypesEnum.DATA_PROPERTY}" ]`).forEach(dpNode => {
-                        const entity = this.grapholscape.ontology.getEntity(dpNode.data().iri);
-                        if (entity) {
-                            this.removeEntity(dpNode, entity);
                         }
                     });
                 }
@@ -22375,11 +22434,11 @@ class OntologyBuilder {
         this.diagramBuilder.swapEdge(elem);
     }
     convertCamelCase(input) {
-        input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1"); //.trim()
+        input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1").trim();
         //input = input.charAt(0).toUpperCase() + input.slice(1);
         let inputSplit = input.split(' ');
         inputSplit.forEach((w, i) => {
-            if (w != w.toUpperCase())
+            if (w != w.toUpperCase() && i > 0)
                 inputSplit[i] = w.toLowerCase();
             else
                 inputSplit[i] = w;
@@ -22817,6 +22876,7 @@ class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
         this.namespaces = [];
         this.remainderToRename = '';
         this.selectedNamespaceIndex = 0;
+        this.diagramName = '';
         this.advancedMode = false;
         this.inputs = [{ datatype: 'xsd:string' }];
         this.isValid = false;
@@ -23251,6 +23311,7 @@ class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
         <label for="input">Diagram Name:</label>
         <input id="input"
           type="text"
+          value = ${this.diagramName}
           @input=${this.validate}
           name="input"
           required
@@ -23960,6 +24021,48 @@ function initRenameEntityUI(grapholscape, entity, elemId) {
     if (entity.iri.namespace)
         modal.selectedNamespaceIndex = modal.namespaces.indexOf(entity.iri.namespace);
 }
+function initRenameDiagramUI(grapholscape, diagram) {
+    const modal = getModal(grapholscape, ModalTypeEnum.DIAGRAM, 'Rename Diagram', (confirmDetail) => {
+        const ontologyBuilder = new OntologyBuilder(grapholscape);
+        if (diagram)
+            ontologyBuilder.renameDiagram(confirmDetail.diagramName);
+    });
+    if (diagram)
+        modal.diagramName = diagram.name;
+}
+function initRemoveDiagramUI(grapholscape, diagram) {
+    const modal = new GscapeConfirmDialog('If you delete this diagram, you will lose all the elements it contains. Do you want to proceed?', 'Warning');
+    modal.onConfirm(() => {
+        const ontologyBuilder = new OntologyBuilder(grapholscape);
+        if (diagram)
+            ontologyBuilder.removeDiagram(diagram);
+        modal.hide();
+    });
+    modal.onCancel(() => { modal.hide(); });
+    if (grapholscape.uiContainer)
+        grapholscape.uiContainer.appendChild(modal);
+    modal.show();
+    return modal;
+}
+function initRemoveEntityUI(grapholscape, entity, elem) {
+    const modal = new GscapeConfirmDialog('Do you want to delete this single element or all the occurrences of the current entity?', 'Delete Entity');
+    const ontologyBuilder = new OntologyBuilder(grapholscape);
+    modal.onConfirm(() => {
+        ontologyBuilder.removeAllOccurrences(entity);
+        modal.hide();
+    });
+    modal.onDelete(() => {
+        ontologyBuilder.removeEntity(elem, entity);
+        modal.hide();
+    });
+    modal.onCancel(() => {
+        modal.hide();
+    });
+    if (grapholscape.uiContainer)
+        grapholscape.uiContainer.appendChild(modal);
+    modal.show();
+    return modal;
+}
 function getModal(grapholscape, type, title, onConfirm) {
     const modal = new GscapeNewElementModal(type, title);
     modal.namespaces = grapholscape.ontology.namespaces;
@@ -24109,10 +24212,9 @@ const removeEntity = (grapholscape, elem) => {
         content: 'Remove',
         icon: icons$4.rubbishBin,
         select: () => {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
             const entity = grapholscape.ontology.getEntity(elem.data().iri);
             if (entity) {
-                ontologyBuilder.removeEntity(elem, entity);
+                initRemoveEntityUI(grapholscape, entity, elem);
             }
         }
     };
@@ -24975,6 +25077,7 @@ class GscapeDesignerToolbar extends BaseMixin$1(s) {
         this.objectPropEnabled = false;
         this.individualEnabled = false;
         this.newVersionEnabled = true;
+        this.removeDiagramDisabled = this.grapholscape.ontology.diagrams.length === 1;
     }
     handleNewDataProperty() {
         initNewDataPropertyUI(this.grapholscape, undefined);
@@ -25012,6 +25115,12 @@ class GscapeDesignerToolbar extends BaseMixin$1(s) {
         <div class="widget-body">
           <gscape-button @click=${() => initNewDiagramUI(this.grapholscape)} size="s" label="Diagram" title="Add Diagram">
             <span slot="icon">${icons$1.plus}</span>
+          </gscape-button>
+          <gscape-button @click=${() => initRenameDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Rename Diagram">
+            <span slot="icon">${renameIcon}</span>
+          </gscape-button>
+          <gscape-button @click=${() => initRemoveDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Remove Diagram" ?disabled=${this.removeDiagramDisabled}>
+            <span slot="icon">${icons$1.rubbishBin}</span>
           </gscape-button>
 
           <div class="hr"></div>
@@ -25070,6 +25179,7 @@ GscapeDesignerToolbar.properties = {
     objectPropEnabled: { type: Boolean },
     individualEnabled: { type: Boolean },
     newVersionEnabled: { type: Boolean },
+    removeDiagramDisabled: { type: Boolean }
 };
 GscapeDesignerToolbar.styles = [
     baseStyle$1,
@@ -25342,6 +25452,7 @@ function initBuilderUI(grapholscape) {
         toolboxWidget.lastSelectedElement = undefined;
     });
     grapholscape.on(LifecycleEvent.DiagramChange, () => {
+        toolboxWidget.removeDiagramDisabled = grapholscape.ontology.diagrams.length === 1;
         let currentCy = grapholscape.renderer.cy;
         if (!currentCy.scratch('designer-listeners-set')) {
             setDesignerStyle(currentCy, grapholscape.theme);
@@ -25507,12 +25618,13 @@ cytoscape.use(klay);
  * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 function fullGrapholscape(file, container, config) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const grapholscape = yield getGrapholscape(file, container, config);
         if (grapholscape) {
             init(grapholscape);
             if ((config === null || config === void 0 ? void 0 : config.initialRendererSelection) === false) {
-                grapholscape.widgets.get(WidgetEnum.INITIAL_RENDERER_SELECTOR).hide();
+                (_a = grapholscape.widgets.get(WidgetEnum.INITIAL_RENDERER_SELECTOR)) === null || _a === void 0 ? void 0 : _a.hide();
             }
             if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
                 initIncremental(grapholscape);

@@ -5576,6 +5576,7 @@ type EntityViewData = {
         types: Set<TypesEnum>;
     } & AnnotatedElement;
     viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>;
+    disabled?: boolean;
 };
 interface IEntityFilters {
     [TypesEnum.CLASS]?: number;
@@ -5678,14 +5679,17 @@ declare class GscapeConfirmDialog extends GscapeConfirmDialog_base {
     dialogTitle: string;
     private _onConfirm?;
     private _onCancel?;
+    private _onDelete?;
     constructor(message?: string | undefined, dialogTitle?: string);
     static properties: PropertyDeclarations;
     static styles: CSSResultGroup;
     render(): lit_html.TemplateResult<1>;
+    private handleDelete;
     private handleConfirm;
     private handleCancel;
     onConfirm(callback: () => void): GscapeConfirmDialog;
     onCancel(callback: () => void): GscapeConfirmDialog;
+    onDelete(callback: () => void): GscapeConfirmDialog;
 }
 declare function showMessage(message: string, title: string, container: any): GscapeConfirmDialog;
 
