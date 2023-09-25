@@ -102,13 +102,15 @@ export default class DiagramBuilder {
     objectPropertyEntity: GrapholEntity,
     sourceEntity: GrapholEntity,
     targetEntity: GrapholEntity,
-    nodesType: TypesEnum,
+    nodesType: TypesEnum[],
     objectPropertyElement?: GrapholEdge
   ) {
 
+    const sourceType = nodesType[0]
+    const targetType = nodesType.length > 1 ? nodesType[1] : nodesType[0]
     // if both object property and range class are already present, do not add them again
-    let sourceNode = this.getEntityCyRepr(sourceEntity, nodesType)
-    let targetNode = this.getEntityCyRepr(targetEntity, nodesType)
+    let sourceNode = this.getEntityCyRepr(sourceEntity, sourceType)
+    let targetNode = this.getEntityCyRepr(targetEntity, targetType)
 
     if (sourceNode.nonempty() && targetNode.nonempty()) {
       /**
@@ -126,7 +128,7 @@ export default class DiagramBuilder {
 
     if (sourceNode.empty()) {
       sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
-      sourceNode = this.getEntityCyRepr(sourceEntity, nodesType)
+      sourceNode = this.getEntityCyRepr(sourceEntity, sourceType)
       if (sourceNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`)
         return
@@ -134,7 +136,7 @@ export default class DiagramBuilder {
     }
     if (targetNode.empty()) {
       targetEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(targetEntity as ClassInstanceEntity) : this.addClass(targetEntity)
-      targetNode = this.getEntityCyRepr(targetEntity, nodesType)
+      targetNode = this.getEntityCyRepr(targetEntity, targetType)
       if (targetNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`)
         return
@@ -142,8 +144,8 @@ export default class DiagramBuilder {
     }
 
     if (!this.diagramRepresentation ||
-      !sourceEntity.is(nodesType) ||
-      !targetEntity.is(nodesType)
+      !sourceEntity.is(sourceType) ||
+      !targetEntity.is(targetType)
     ) {
       return
     }

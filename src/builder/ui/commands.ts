@@ -73,7 +73,7 @@ export const addObjectProperty = (grapholscape: Grapholscape, elem: NodeSingular
         grapholscape.theme,
         (_, sourceNode, targetNode, addedEdge) => { // ehcomplete
           addedEdge.remove()
-          initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri)
+          initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri, [sourceNode.data().type, targetNode.data().type])
       })
     }
   }

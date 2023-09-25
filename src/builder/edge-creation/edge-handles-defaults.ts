@@ -6,7 +6,7 @@ export default (edgeType: TypesEnum, isReversed: boolean = false) => {
     canConnect: function (sourceNode: NodeSingular, targetNode: NodeSingular) {
       const sourceType = sourceNode.data('type')
       const targetType = targetNode.data('type')
-
+      console.log(sourceType, targetType, edgeType)
       // return false if there are duplicates
       // object properties can have duplicates between same nodes
       if (edgeType !== TypesEnum.OBJECT_PROPERTY) {
@@ -19,16 +19,18 @@ export default (edgeType: TypesEnum, isReversed: boolean = false) => {
       }
 
       switch (sourceType) {
-        case TypesEnum.CLASS:
-          return targetType === TypesEnum.CLASS
-        case TypesEnum.CLASS:
+        
         case TypesEnum.UNION:
         case TypesEnum.DISJOINT_UNION:
-        case TypesEnum.INDIVIDUAL:
           return targetType === TypesEnum.CLASS
 
+        case TypesEnum.CLASS:
+        case TypesEnum.INDIVIDUAL:
+        case TypesEnum.CLASS_INSTANCE:
+          return ((targetType === TypesEnum.INDIVIDUAL || targetType === TypesEnum.CLASS_INSTANCE) && edgeType === TypesEnum.OBJECT_PROPERTY) || targetType === TypesEnum.CLASS
+
         case TypesEnum.DATA_PROPERTY:
-          return targetType === TypesEnum.DATA_PROPERTY || targetType === TypesEnum.CLASS
+          return (targetType === TypesEnum.DATA_PROPERTY && edgeType === TypesEnum.INCLUSION) || (targetType === TypesEnum.CLASS && edgeType === TypesEnum.ATTRIBUTE_EDGE)
 
         default:
           return false

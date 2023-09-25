@@ -165,7 +165,7 @@ export default class IncrementalController {
               }
 
               if (sourceEntity && targetEntity)
-                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, source.type, elem as GrapholEdge)
+                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, [source.type], elem as GrapholEdge)
             }
             break
 
@@ -548,7 +548,7 @@ export default class IncrementalController {
         objectPropertyEntity,
         sourceClass,
         targetClass,
-        TypesEnum.CLASS
+        [TypesEnum.CLASS]
       ) as GrapholEdge
 
       this.updateEntityNameType(objectPropertyEntity.iri)
@@ -579,7 +579,7 @@ export default class IncrementalController {
         objectPropertyEntity,
         sourceInstanceEntity,
         targetInstanceEntity,
-        TypesEnum.CLASS_INSTANCE
+        [TypesEnum.CLASS_INSTANCE]
       )
 
       this.updateEntityNameType(objectPropertyEntity.iri)

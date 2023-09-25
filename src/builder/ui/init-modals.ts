@@ -67,7 +67,7 @@ export function initNewDataPropertyUI(grapholscape: Grapholscape, ownerClassIri:
   )
 }
 
-export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassIri: string, targetClassIri: string) {
+export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassIri: string, targetClassIri: string, nodesType: TypesEnum[]) {
   getModal(
     grapholscape,
     TypesEnum.OBJECT_PROPERTY,
@@ -80,7 +80,7 @@ export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassI
         TypesEnum.OBJECT_PROPERTY,
         sourceClassIri,
         targetClassIri,
-        TypesEnum.CLASS,
+        nodesType,
         confirmDetail.functionProperties,
         confirmDetail.deriveLabel,
         confirmDetail.convertCamel,
