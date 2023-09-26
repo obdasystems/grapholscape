@@ -14146,7 +14146,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin$7(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.6"}</span>
+            <span>${"4.0.0-snap.7"}</span>
           </div>
         </div>
       </div>
@@ -14683,9 +14683,11 @@ class DiagramBuilder {
      */
     addObjectProperty(objectPropertyEntity, sourceEntity, targetEntity, nodesType, objectPropertyElement) {
         var _a;
+        const sourceType = nodesType[0];
+        const targetType = nodesType.length > 1 ? nodesType[1] : nodesType[0];
         // if both object property and range class are already present, do not add them again
-        let sourceNode = this.getEntityCyRepr(sourceEntity, nodesType);
-        let targetNode = this.getEntityCyRepr(targetEntity, nodesType);
+        let sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
+        let targetNode = this.getEntityCyRepr(targetEntity, targetType);
         if (sourceNode.nonempty() && targetNode.nonempty()) {
             /**
              * If the set of edges between reference node and the connected class
@@ -14699,7 +14701,7 @@ class DiagramBuilder {
         }
         if (sourceNode.empty()) {
             sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity) : this.addClass(sourceEntity);
-            sourceNode = this.getEntityCyRepr(sourceEntity, nodesType);
+            sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
             if (sourceNode.empty()) {
                 console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`);
                 return;
@@ -14709,15 +14711,15 @@ class DiagramBuilder {
             targetEntity.is(TypesEnum.CLASS_INSTANCE)
                 ? this.addClassInstance(targetEntity, sourceNode.position())
                 : this.addClass(targetEntity, sourceNode.position());
-            targetNode = this.getEntityCyRepr(targetEntity, nodesType);
+            targetNode = this.getEntityCyRepr(targetEntity, targetType);
             if (targetNode.empty()) {
                 console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`);
                 return;
             }
         }
         if (!this.diagramRepresentation ||
-            !sourceEntity.is(nodesType) ||
-            !targetEntity.is(nodesType)) {
+            !sourceEntity.is(sourceType) ||
+            !targetEntity.is(targetType)) {
             return;
         }
         let objectPropertyEdge;
@@ -19843,7 +19845,7 @@ class IncrementalController {
                                 return;
                             }
                             if (sourceEntity && targetEntity)
-                                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, source.type, elem);
+                                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, [source.type], elem);
                         }
                         break;
                     case TypesEnum.CLASS:
@@ -20161,7 +20163,7 @@ class IncrementalController {
                     .setClassColor(sourceClass)
                     .setClassColor(targetClass);
             }
-            objectPropertyEdge = this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, TypesEnum.CLASS);
+            objectPropertyEdge = this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceClass, targetClass, [TypesEnum.CLASS]);
             this.updateEntityNameType(objectPropertyEntity.iri);
             this.updateEntityNameType(sourceClassIri);
             this.updateEntityNameType(targetClassIri);
@@ -20185,7 +20187,7 @@ class IncrementalController {
             new OntologyColorManager(this.ontology, this.diagram.representation)
                 .setInstanceColor(sourceInstanceEntity)
                 .setInstanceColor(targetInstanceEntity);
-            this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceInstanceEntity, targetInstanceEntity, TypesEnum.CLASS_INSTANCE);
+            this.diagramBuilder.addObjectProperty(objectPropertyEntity, sourceInstanceEntity, targetInstanceEntity, [TypesEnum.CLASS_INSTANCE]);
             this.updateEntityNameType(objectPropertyEntity.iri);
             this.updateEntityNameType(sourceInstanceEntity.iri);
             this.updateEntityNameType(targetInstanceEntity.iri);
@@ -22175,13 +22177,13 @@ class OntologyBuilder {
                     entity.addAnnotation(labelAnnotation);
                 }
             }
-            this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS);
+            this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, nodesType);
             entity.functionProperties = entity === null || entity === void 0 ? void 0 : entity.functionProperties.concat(functionProperties);
             this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id);
         }
         else if (edgeType === TypesEnum.INCLUSION) {
-            const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType, this.rendererState);
-            const targetID = targetEntity.getIdInDiagram(diagram.id, nodesType, this.rendererState);
+            const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType[0], this.rendererState);
+            const targetID = targetEntity.getIdInDiagram(diagram.id, nodesType[1], this.rendererState);
             if (!sourceID || !targetID)
                 return;
             this.diagramBuilder.addEdge(sourceID, targetID, edgeType);
@@ -22641,15 +22643,15 @@ var edgeHandlesDefaults = (edgeType, isReversed = false) => {
                     return false;
             }
             switch (sourceType) {
-                case TypesEnum.CLASS:
-                    return targetType === TypesEnum.CLASS;
-                case TypesEnum.CLASS:
                 case TypesEnum.UNION:
                 case TypesEnum.DISJOINT_UNION:
-                case TypesEnum.INDIVIDUAL:
                     return targetType === TypesEnum.CLASS;
+                case TypesEnum.CLASS:
+                case TypesEnum.INDIVIDUAL:
+                case TypesEnum.CLASS_INSTANCE:
+                    return ((targetType === TypesEnum.INDIVIDUAL || targetType === TypesEnum.CLASS_INSTANCE) && edgeType === TypesEnum.OBJECT_PROPERTY) || targetType === TypesEnum.CLASS;
                 case TypesEnum.DATA_PROPERTY:
-                    return targetType === TypesEnum.DATA_PROPERTY || targetType === TypesEnum.CLASS;
+                    return (targetType === TypesEnum.DATA_PROPERTY && edgeType === TypesEnum.INCLUSION) || (targetType === TypesEnum.CLASS && edgeType === TypesEnum.ATTRIBUTE_EDGE);
                 default:
                     return false;
             }
@@ -22783,7 +22785,7 @@ var modalSharedStyles = i$1 `
   .form-item input {
     display: block;
     width: 100%;
-    min-width: 100px;
+    min-width: 10px;
   }
 
   form .dropdown {
@@ -22793,7 +22795,9 @@ var modalSharedStyles = i$1 `
   }
 
   form .dropdown select {
+    display: block;
     width: 100%;
+    min-width: 100px;
   }
 
   form .dropdown > * {
@@ -22804,7 +22808,8 @@ var modalSharedStyles = i$1 `
 
   form .dropdown input {
     position: absolute;
-    width: calc(100% - 18px);
+    display: block;
+    width: 85%;
   }
 
   form .dropdown select:focus, .dropdown input:focus {
@@ -22873,9 +22878,11 @@ class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
         this.modalType = modalType;
         this.dialogTitle = dialogTitle;
         this.onCancel = () => { };
+        this.entities = [];
         this.namespaces = [];
         this.remainderToRename = '';
         this.selectedNamespaceIndex = 0;
+        this.selectedInputIndex = Array.from(Array(1), () => -1);
         this.diagramName = '';
         this.advancedMode = false;
         this.inputs = [{ datatype: 'xsd:string' }];
@@ -23107,8 +23114,25 @@ class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
         }
         this.requestUpdate();
     }
+    handleInputSelection(e, i = 0) {
+        var _a;
+        const selectTarget = e.currentTarget;
+        if (selectTarget) {
+            const input = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector("#input-" + i);
+            const index = parseInt(selectTarget.value);
+            if (this.selectedInputIndex && this.entities) {
+                this.selectedInputIndex[i] = !Number.isNaN(index) ? index : -1;
+                input.value = this.selectedInputIndex[i] >= 0 ? this.entities[this.selectedInputIndex[i]].iri.remainder.toString() : '';
+                this.inputs[i].name = input.value;
+                input.focus();
+            }
+        }
+        this.validate();
+    }
     handleInputChange(e, i = 0) {
         this.inputs[i].name = e.currentTarget.value;
+        if (this.selectedInputIndex)
+            this.selectedInputIndex[i] = -1;
         this.validate();
     }
     handleAddInput() {
@@ -23143,16 +23167,26 @@ class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
     `;
     }
     getMainInput(i = 0) {
+        var _a;
         return x `
       <div class="form-item">
         ${i === 0 ? x `<label for="input-0">Name:</label>` : null}
-        <input
-          id="input-${i}"
-          type="text"
-          @input=${(e) => this.handleInputChange(e, i)}
-          required
-          placeholder=${this.remainderToRename}
-        />
+        <div class="dropdown">
+          <input
+            id="input-${i}"
+            value=${this.selectedInputIndex[i] >= 0 && this.entities ? this.entities[this.selectedInputIndex[i]].iri.remainder : ''}
+            @input=${(e) => this.handleInputChange(e, i)}
+            type="text"
+            required
+            placeholder=${this.remainderToRename}
+          />
+          <select id="input-item-${i}" name="input" value=${this.selectedInputIndex[i] >= 0 && this.entities ? this.entities[this.selectedInputIndex[i]].iri.remainder : ''} @change=${(e) => this.handleInputSelection(e, i)}>
+            ${(_a = this.entities) === null || _a === void 0 ? void 0 : _a.map((n, i) => {
+            return x `<option value=${i} ?selected=${i === this.selectedInputIndex[i]}>${n.iri.remainder.toString()}</option>`;
+        })}
+            <option value="" ?selected=${this.selectedInputIndex[i] === -1}></option>
+          </select>
+        </div>
       </div>
     `;
     }
@@ -23534,8 +23568,10 @@ class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
 GscapeNewElementModal.properties = {
     dialogTitle: { type: String },
     namespaces: { type: Array },
+    entities: { type: Array },
     advancedMode: { type: Boolean, state: true },
     selectedNamespaceIndex: { type: Number, state: true },
+    selectedInputIndex: { type: Array, state: true },
     isValid: { type: Boolean, state: true },
     deriveLabel: { type: Boolean, state: true },
     convertCamel: { type: Boolean, state: true },
@@ -23977,10 +24013,10 @@ function initNewDataPropertyUI(grapholscape, ownerClassIri) {
         ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.DATA_PROPERTY, ownerClassIri, undefined, functionProperties, confirmDetail.datatype, confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
     });
 }
-function initNewObjectPropertyUI(grapholscape, sourceClassIri, targetClassIri) {
+function initNewObjectPropertyUI(grapholscape, sourceClassIri, targetClassIri, nodesType) {
     getModal(grapholscape, TypesEnum.OBJECT_PROPERTY, 'Add New Object Property', (confirmDetail) => {
         const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addEdgeElement(confirmDetail.iri, TypesEnum.OBJECT_PROPERTY, sourceClassIri, targetClassIri, TypesEnum.CLASS, confirmDetail.functionProperties, confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
+        ontologyBuilder.addEdgeElement(confirmDetail.iri, TypesEnum.OBJECT_PROPERTY, sourceClassIri, targetClassIri, nodesType, confirmDetail.functionProperties, confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
     });
 }
 function initNewIndividualUI(grapholscape, ownerClassIri) {
@@ -24066,6 +24102,16 @@ function initRemoveEntityUI(grapholscape, entity, elem) {
 function getModal(grapholscape, type, title, onConfirm) {
     const modal = new GscapeNewElementModal(type, title);
     modal.namespaces = grapholscape.ontology.namespaces;
+    if (type === TypesEnum.CLASS ||
+        type === TypesEnum.DATA_PROPERTY ||
+        type === TypesEnum.INDIVIDUAL ||
+        type === TypesEnum.OBJECT_PROPERTY)
+        modal.entities = grapholscape.ontology.getEntitiesByType(type);
+    else if (type === ModalTypeEnum.HIERARCHY ||
+        type === ModalTypeEnum.ISA)
+        modal.entities = grapholscape.ontology.getEntitiesByType(TypesEnum.CLASS);
+    else
+        modal.entities = [];
     modal.addEventListener('confirm', (evt) => {
         const ns = evt.detail.namespace;
         if (ns) {
@@ -24136,7 +24182,7 @@ const addObjectProperty = (grapholscape, elem) => {
             let currentCy = grapholscape.renderer.cy;
             drawNewEdge(currentCy, TypesEnum.OBJECT_PROPERTY, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
                 addedEdge.remove();
-                initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri);
+                initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri, [sourceNode.data().type, targetNode.data().type]);
             });
         }
     };
@@ -25105,7 +25151,8 @@ class GscapeDesignerToolbar extends BaseMixin$1(s) {
         const oldElem = this._lastSelectedElement;
         this._lastSelectedElement = newElem;
         const isClass = (newElem === null || newElem === void 0 ? void 0 : newElem.data().type) === TypesEnum.CLASS || false;
-        this.objectPropEnabled = isClass;
+        const isIndividual = ((newElem === null || newElem === void 0 ? void 0 : newElem.data().type) === TypesEnum.INDIVIDUAL || (newElem === null || newElem === void 0 ? void 0 : newElem.data().type) === TypesEnum.CLASS_INSTANCE) || false;
+        this.objectPropEnabled = isClass || isIndividual;
         this.individualEnabled = isClass;
         this.requestUpdate('_lastSelectedElement', oldElem);
     }
