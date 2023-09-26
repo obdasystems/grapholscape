@@ -1,20 +1,18 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
-import klay from 'cytoscape-klay'
 import edgehandles from 'cytoscape-edgehandles'
+import klay from 'cytoscape-klay'
 import popper from 'cytoscape-popper'
-import { GrapholscapeConfig, Language, loadConfig, ThemeConfig } from './config'
+import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
 import { Core, Grapholscape } from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
 import { initIncremental } from './incremental'
 import { RequestOptions } from './incremental/api/model'
-import { ColoursNames, DefaultAnnotationProperties, DefaultNamespaces, DefaultThemes, Diagram, GrapholscapeTheme, Namespace, Ontology, RendererStatesEnum } from './model'
+import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
-import parseRDFGraph from './parsing/rdf-graph-parser'
-import * as RDFGraphParser from './parsing/rdf-graph-parser'
+import parseRDFGraph, * as RDFGraphParser from './parsing/rdf-graph-parser'
 import * as UI from './ui'
-import { GrapholscapeDesigner, initBuilderUI, OntologyDesignerConfig } from './builder'
 
 
 cytoscape.use(popper)
@@ -30,10 +28,9 @@ export * from './exporter'
 /** @internal */
 export * from './incremental'
 export * from './model'
+export { default as rdfgraphSerializer } from './rdfgraph-serializer'
 export * as ui from './ui'
 export * as util from './util'
-export * as designer from './builder'
-export {default as rdfgraphSerializer} from './rdfgraph-serializer'
 export { parseRDFGraph }
 export { RDFGraphParser }
 
