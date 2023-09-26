@@ -24,8 +24,8 @@
 
 import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
-import klay from 'cytoscape-klay';
 import edgehandles from 'cytoscape-edgehandles';
+import klay from 'cytoscape-klay';
 import popper from 'cytoscape-popper';
 import cy_svg from 'cytoscape-svg';
 import automove from 'cytoscape-automove';
@@ -7331,7 +7331,7 @@ function isThemeDark(theme) {
         return chroma(bgColor).luminance() < 0.3;
 }
 
-function getFloatyStyle (theme) {
+function floatyStyle (theme) {
     const baseStyle = grapholStyle(theme);
     const floatyStyle = [
         {
@@ -7824,7 +7824,7 @@ class FloatyRendererState extends BaseRenderer {
         }
     }
     getGraphStyle(theme) {
-        return getFloatyStyle(theme);
+        return floatyStyle(theme);
     }
     stopLayout() {
         var _a;
@@ -8058,7 +8058,7 @@ class IncrementalFilterManager extends BaseFilterManager {
 }
 
 function incrementalStyle (theme) {
-    const baseStyle = getFloatyStyle(theme);
+    const baseStyle = floatyStyle(theme);
     const incrementalStyle = [
         {
             selector: '.incremental-expanded-class',
@@ -8867,6 +8867,418 @@ class Core extends Grapholscape {
     }
 }
 
+class DiagramBuilder {
+    constructor(diagram, rendererState) {
+        this.diagram = diagram;
+        this.rendererState = rendererState;
+    }
+    addClass(classEntity, positionOrNode) {
+        var _a, _b;
+        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(classEntity)) {
+            const nodeId = classEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState);
+            return nodeId
+                ? this.diagramRepresentation.grapholElements.get(nodeId)
+                : undefined;
+        }
+        let position, classNode;
+        if (positionOrNode && isGrapholNode(positionOrNode)) {
+            classNode = positionOrNode;
+        }
+        else if (positionOrNode) {
+            position = positionOrNode;
+        }
+        if (!classNode) {
+            classNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS);
+            classNode.iri = classEntity.iri.fullIri;
+            classNode.displayedName = classEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+            classNode.height = classNode.width = 80;
+            if (position)
+                classNode.position = position;
+            else
+                classNode.renderedPosition = this.getCurrentCenterPos();
+            classNode.originalId = classNode.id;
+            classNode.diagramId = this.diagram.id;
+        }
+        classEntity.addOccurrence(classNode, this.rendererState);
+        (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.addElement(classNode, classEntity);
+        return classNode;
+    }
+    addDataProperty(dataPropertyEntity, ownerEntity) {
+        var _a, _b, _c;
+        const dataPropertyNode = new GrapholNode(this.getNewId('node'), TypesEnum.DATA_PROPERTY);
+        dataPropertyNode.diagramId = this.diagram.id;
+        dataPropertyNode.iri = dataPropertyEntity.iri.fullIri;
+        dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+        dataPropertyNode.labelXpos = 0;
+        dataPropertyNode.labelYpos = -15;
+        dataPropertyNode.originalId = dataPropertyNode.id;
+        dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY);
+        let ownerEntityNode;
+        if (ownerEntity) {
+            const ownerEntityId = ownerEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState);
+            if (!ownerEntityId)
+                return;
+            ownerEntityNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(ownerEntityId);
+            if (!ownerEntityNode)
+                return;
+        }
+        if ((ownerEntityNode === null || ownerEntityNode === void 0 ? void 0 : ownerEntityNode.isNode()) && ownerEntityNode.position)
+            dataPropertyNode.position = ownerEntityNode.position;
+        else
+            dataPropertyNode.renderedPosition = this.getCurrentCenterPos();
+        (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.addElement(dataPropertyNode, dataPropertyEntity);
+        if (ownerEntityNode) {
+            const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE);
+            dataPropertyEdge.diagramId = this.diagram.id;
+            dataPropertyEdge.sourceId = ownerEntityNode.id;
+            dataPropertyEdge.targetId = dataPropertyNode.id;
+            (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.addElement(dataPropertyEdge);
+        }
+        return dataPropertyNode;
+    }
+    /**
+     * Add an object property between two entities.
+     * If the source and/or target entities are already present in graph, they won't be added again.
+     * If there already exists an object property between them with the same IRI, the
+     * edge won't be added.
+     * @param objectPropertyEntity the object property entity
+     * @param sourceEntity the source entity
+     * @param targetEntity the target entity
+     * @param nodesType the type of source and target, they must have same type
+     * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
+     * if you don't pass this, a new GrapholEdge will be created from scratch
+     * @returns
+     */
+    addObjectProperty(objectPropertyEntity, sourceEntity, targetEntity, nodesType, objectPropertyElement) {
+        var _a;
+        const sourceType = nodesType[0];
+        const targetType = nodesType.length > 1 ? nodesType[1] : nodesType[0];
+        // if both object property and range class are already present, do not add them again
+        let sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
+        let targetNode = this.getEntityCyRepr(targetEntity, targetType);
+        if (sourceNode.nonempty() && targetNode.nonempty()) {
+            /**
+             * If the set of edges between reference node and the connected class
+             * includes the object property we want to add, then it's already present.
+             */
+            let edgesAlreadyPresent = sourceNode.edgesWith(targetNode)
+                .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri);
+            if (edgesAlreadyPresent.nonempty()) {
+                return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(edgesAlreadyPresent.first().id());
+            }
+        }
+        if (sourceNode.empty()) {
+            sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity) : this.addClass(sourceEntity);
+            sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
+            if (sourceNode.empty()) {
+                console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`);
+                return;
+            }
+        }
+        if (targetNode.empty()) {
+            targetEntity.is(TypesEnum.CLASS_INSTANCE)
+                ? this.addClassInstance(targetEntity, sourceNode.position())
+                : this.addClass(targetEntity, sourceNode.position());
+            targetNode = this.getEntityCyRepr(targetEntity, targetType);
+            if (targetNode.empty()) {
+                console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`);
+                return;
+            }
+        }
+        if (!this.diagramRepresentation ||
+            !sourceEntity.is(sourceType) ||
+            !targetEntity.is(targetType)) {
+            return;
+        }
+        let objectPropertyEdge;
+        if (!objectPropertyElement) {
+            objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.OBJECT_PROPERTY);
+            objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+            objectPropertyEdge.originalId = objectPropertyEdge.id;
+            objectPropertyEdge.iri = objectPropertyEntity.iri.fullIri;
+        }
+        else {
+            objectPropertyEdge = objectPropertyElement;
+        }
+        /**
+         * objectPropertyEdge might not have the right source(target)NodeId,
+         * can happen loading rdfGraph in VKG having edges between instances
+         * that were already present in the diagram.
+         * Just set the right IDs anyway, either a custom edge was provided or not.
+         */
+        objectPropertyEdge.sourceId = sourceNode.id();
+        objectPropertyEdge.targetId = targetNode.id();
+        objectPropertyEdge.diagramId = this.diagram.id;
+        objectPropertyEntity.addOccurrence(objectPropertyEdge, this.rendererState);
+        this.diagramRepresentation.addElement(objectPropertyEdge, objectPropertyEntity);
+        return objectPropertyEdge;
+    }
+    addClassInstance(classInstanceEntity, positionOrElem) {
+        var _a, _b;
+        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(classInstanceEntity)) {
+            const nodeId = classInstanceEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState);
+            if (nodeId)
+                return this.diagramRepresentation.grapholElements.get(nodeId);
+        }
+        let position, instanceNode;
+        if (positionOrElem && isGrapholNode(positionOrElem)) {
+            instanceNode = positionOrElem;
+            position = instanceNode.position;
+        }
+        else {
+            instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE);
+            if (positionOrElem) {
+                position = positionOrElem;
+            }
+        }
+        if (!position) {
+            // check if parent class is present in diagram
+            for (let parentClassIri of classInstanceEntity.parentClassIris) {
+                if ((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.containsEntity(parentClassIri)) {
+                    instanceNode.position = this.diagramRepresentation.cy.$id(parentClassIri.fullIri).position();
+                    break;
+                }
+            }
+            if (!instanceNode.position) {
+                instanceNode.renderedPosition = this.getCurrentCenterPos();
+            }
+        }
+        else {
+            instanceNode.position = position;
+        }
+        return this._addIndividualOrClassInstance(instanceNode, classInstanceEntity);
+    }
+    addIndividual(individualEntity, position) {
+        var _a;
+        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(individualEntity)) {
+            const nodeId = individualEntity.getIdInDiagram(this.diagram.id, TypesEnum.INDIVIDUAL, this.rendererState);
+            if (nodeId)
+                return this.diagramRepresentation.grapholElements.get(nodeId);
+        }
+        const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.INDIVIDUAL);
+        if (position)
+            instanceNode.position = position;
+        else
+            instanceNode.renderedPosition = this.getCurrentCenterPos();
+        return this._addIndividualOrClassInstance(instanceNode, individualEntity);
+    }
+    _addIndividualOrClassInstance(grapholNode, grapholEntity) {
+        var _a;
+        grapholNode.diagramId = this.diagram.id;
+        grapholNode.displayedName = grapholEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+        grapholNode.iri = grapholEntity.iri.fullIri;
+        grapholNode.height = grapholNode.width = 50;
+        grapholNode.shape = Shape.ELLIPSE;
+        grapholNode.labelXpos = 0;
+        grapholNode.labelYpos = 0;
+        grapholEntity.addOccurrence(grapholNode, this.rendererState);
+        (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(grapholNode, grapholEntity);
+        return grapholNode;
+    }
+    addHierarchy(hierarchy, position) {
+        var _a;
+        const unionNode = hierarchy.getUnionGrapholNode(position);
+        if (!unionNode)
+            return;
+        //hierarchy.id = `${unionNode.id}-${this.diagram.id}` 
+        // Add inputs
+        for (const inputClasses of hierarchy.inputs) {
+            this.addClass(inputClasses, position);
+        }
+        // Add superclasses
+        for (const superClass of hierarchy.superclasses) {
+            this.addClass(superClass.classEntity, position);
+        }
+        const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, this.rendererState);
+        const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, this.rendererState);
+        if (!inputEdges || !inclusionEdges)
+            return;
+        (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(unionNode);
+        inputEdges.forEach(inputEdge => { var _a; return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(inputEdge); });
+        inclusionEdges.forEach(inclusionEdge => { var _a; return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(inclusionEdge); });
+    }
+    addEdge(sourceId, targetId, edgeType) {
+        var _a, _b, _c, _d, _e, _f;
+        const sourceNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(sourceId);
+        const targetNode = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.grapholElements.get(targetId);
+        const sourceCyNode = (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.cy.$id(sourceId);
+        const targetCyNode = (_d = this.diagramRepresentation) === null || _d === void 0 ? void 0 : _d.cy.$id(targetId);
+        if (sourceCyNode && targetCyNode) {
+            const edgesAlreadyPresent = sourceCyNode.edgesTo(targetCyNode).filter(e => e.data().type === edgeType);
+            if (edgesAlreadyPresent.nonempty()) {
+                return (_e = this.diagramRepresentation) === null || _e === void 0 ? void 0 : _e.grapholElements.get(edgesAlreadyPresent.first().id());
+            }
+        }
+        else {
+            return;
+        }
+        if (sourceNode && targetNode) {
+            const instanceEdge = new GrapholEdge(this.getNewId('edge'), edgeType);
+            instanceEdge.diagramId = this.diagram.id;
+            instanceEdge.sourceId = sourceId;
+            instanceEdge.targetId = targetId;
+            (_f = this.diagramRepresentation) === null || _f === void 0 ? void 0 : _f.addElement(instanceEdge);
+            return instanceEdge;
+        }
+    }
+    get diagramRepresentation() {
+        return this.diagram.representations.get(this.rendererState);
+    }
+    toggleFunctionality(entity, functional) {
+        var _a;
+        const id = entity.getIdInDiagram(this.diagram.id, TypesEnum.DATA_PROPERTY, this.rendererState);
+        if (!id)
+            return;
+        const node = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(id);
+        if (!node)
+            return;
+        node.data('functional', functional);
+    }
+    toggleUnion(node) {
+        const type = node.data('type');
+        if (type === TypesEnum.UNION) {
+            node.removeClass('union');
+            node.data('type', TypesEnum.DISJOINT_UNION);
+            node.data('displayedName', undefined);
+            node.addClass('disjoint-union');
+            // edge
+            const edge = node.connectedEdges().find(e => e.data('type') === TypesEnum.UNION);
+            edge === null || edge === void 0 ? void 0 : edge.data('type', TypesEnum.DISJOINT_UNION);
+        }
+        else {
+            node.removeClass('disjoint-union');
+            node.data('type', TypesEnum.UNION);
+            node.data('displayedName', 'or');
+            node.data('labelXpos', 0);
+            node.data('labelXcentered', true);
+            node.data('labelYpos', 0);
+            node.data('labelYcentered', true);
+            node.addClass('union');
+            // edge
+            const edge = node.connectedEdges().find(e => e.data('type') === TypesEnum.DISJOINT_UNION);
+            edge === null || edge === void 0 ? void 0 : edge.data('type', TypesEnum.UNION);
+        }
+    }
+    toggleComplete(edge) {
+        if (edge.data('targetLabel') === 'C') {
+            edge.removeClass('equivalence');
+            edge.data('targetLabel', '');
+            edge.addClass('inclusion');
+        }
+        else {
+            edge.removeClass('inclusion');
+            edge.data('targetLabel', 'C');
+            edge.addClass('equivalence');
+        }
+    }
+    swapEdge(elem) {
+        const oldSourceID = elem.data('source');
+        const oldTargetID = elem.data('target');
+        elem.move({
+            source: elem.target().id(),
+            target: elem.source().id(),
+        });
+        elem.data('source', oldTargetID);
+        elem.data('target', oldSourceID);
+    }
+    removeHierarchy(hierarchy) {
+        var _a, _b, _c;
+        if (hierarchy.id) {
+            let unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
+            if (!unionNode || unionNode.empty()) {
+                return;
+            }
+            // remove input edges
+            (_b = unionNode === null || unionNode === void 0 ? void 0 : unionNode.connectedEdges(`[ type = "${TypesEnum.INPUT}" ]`)) === null || _b === void 0 ? void 0 : _b.forEach(inputEdge => {
+                var _a;
+                (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inputEdge.id(), this.rendererState);
+            });
+            // remove inclusion edges
+            (_c = unionNode === null || unionNode === void 0 ? void 0 : unionNode.connectedEdges(`[ type = "${hierarchy.type}" ]`)) === null || _c === void 0 ? void 0 : _c.forEach(inclusionEdge => {
+                var _a;
+                (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inclusionEdge.id(), this.rendererState);
+            });
+            // remove union node
+            this.diagram.removeElement(unionNode.id(), this.rendererState);
+        }
+    }
+    removeHierarchyInputEdge(hierarchy, inputIri) {
+        var _a;
+        if (hierarchy.id) {
+            const unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
+            unionNode === null || unionNode === void 0 ? void 0 : unionNode.edgesWith(`[ iri = "${inputIri}" ]`).forEach(inputEdge => {
+                var _a;
+                if (inputEdge.data().type === TypesEnum.INPUT)
+                    (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inputEdge.id(), this.rendererState);
+            });
+        }
+    }
+    removeHierarchyInclusionEdge(hierarchy, superclassIri) {
+        var _a;
+        if (hierarchy.id) {
+            const unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
+            unionNode === null || unionNode === void 0 ? void 0 : unionNode.edgesTo(`[ iri = "${superclassIri}" ]`).forEach(inclusionEdge => {
+                var _a;
+                if (inclusionEdge.data().type === hierarchy.type)
+                    (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inclusionEdge.id(), this.rendererState);
+            });
+        }
+    }
+    removeElement(id) {
+        var _a, _b, _c;
+        const cyElem = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(id);
+        const grapholElem = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.grapholElements.get(id);
+        if (cyElem === null || cyElem === void 0 ? void 0 : cyElem.nonempty()) {
+            if (grapholElem && grapholElem.is(TypesEnum.DATA_PROPERTY)) {
+                cyElem.connectedEdges().forEach(e => {
+                    var _a;
+                    (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.removeElement(e.id());
+                });
+            }
+            (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.removeElement(id);
+        }
+    }
+    renameElement(elemId, newIri) {
+        var _a, _b;
+        const cyElem = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(elemId);
+        cyElem === null || cyElem === void 0 ? void 0 : cyElem.data('iri', newIri.fullIri);
+        cyElem === null || cyElem === void 0 ? void 0 : cyElem.data('displayedName', newIri.remainder);
+        const grapholElem = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.grapholElements.get(elemId);
+        if (!grapholElem)
+            return;
+        grapholElem.iri = newIri.fullIri;
+        grapholElem.displayedName = newIri.remainder;
+    }
+    /**
+     * Get cytoscape representation of an entity given the type needed
+     * @param entity
+     * @param type
+     * @returns
+     */
+    getEntityCyRepr(entity, type) {
+        var _a;
+        const occurrenceID = entity.getIdInDiagram(this.diagram.id, type, this.rendererState);
+        if (occurrenceID)
+            return ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(occurrenceID)) || cytoscape().collection();
+        else
+            return cytoscape().collection();
+    }
+    getNewId(nodeOrEdge) {
+        var _a;
+        return ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.getNewId(nodeOrEdge)) || (nodeOrEdge === 'node' ? 'n0' : 'e0');
+    }
+    getCurrentCenterPos() {
+        var _a, _b;
+        const height = ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.height()) || 0;
+        const width = ((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.width()) || 0;
+        let pos = {
+            x: (width / 2) + Math.random() * 50,
+            y: (height / 2) + Math.random() * 50,
+        };
+        return pos;
+    }
+}
+
 /**
  * @license
  * Copyright 2019 Google LLC
@@ -9336,7 +9748,7 @@ var index$2 = /*#__PURE__*/Object.freeze({
 
 const animationDuration = i$1 `200ms`;
 const BOTTOM_RIGHT_WIDGET = i$1 `bottom-right-widget`;
-var baseStyle$7 = i$1 `
+var baseStyle = i$1 `
 *, :host {
   line-height: initial;
   scrollbar-width: thin;
@@ -9744,12 +10156,12 @@ var GscapeButtonStyle = i$1 `
 }
 `;
 
-var SizeEnum$1;
+var SizeEnum;
 (function (SizeEnum) {
     SizeEnum["S"] = "s";
     SizeEnum["M"] = "m";
     SizeEnum["L"] = "l";
-})(SizeEnum$1 || (SizeEnum$1 = {}));
+})(SizeEnum || (SizeEnum = {}));
 class GscapeButton extends s {
     // static get styles() {
     //   let super_styles = super.styles
@@ -9791,7 +10203,7 @@ class GscapeButton extends s {
     // }
     constructor() {
         super();
-        this.size = SizeEnum$1.M;
+        this.size = SizeEnum.M;
         this.toggled = false;
         this.asSwitch = false;
         this.active = false;
@@ -9838,7 +10250,7 @@ GscapeButton.properties = {
     fullWidth: { type: String, attribute: 'full-width', reflect: true },
     toggled: { type: Boolean, state: true }
 };
-GscapeButton.styles = [baseStyle$7, GscapeButtonStyle];
+GscapeButton.styles = [baseStyle, GscapeButtonStyle];
 customElements.define('gscape-button', GscapeButton);
 
 function getIconSlot (slotName, icon) {
@@ -9848,7 +10260,7 @@ function getIconSlot (slotName, icon) {
     return span;
 }
 
-const BaseMixin$7 = (superClass) => {
+const BaseMixin = (superClass) => {
     class BaseMixinClass extends superClass {
         constructor() {
             super(...arguments);
@@ -9953,7 +10365,7 @@ function hasDropPanel(element) {
     return element.togglePanel ? true : false;
 }
 
-const ModalMixin$5 = (superClass) => {
+const ModalMixin = (superClass) => {
     class ModalMixinClass extends superClass {
         constructor(..._) {
             super();
@@ -10178,7 +10590,7 @@ ContentSpinner.properties = {
 };
 customElements.define('gscape-content-spinner', ContentSpinner);
 
-class NodeButton extends ContextualWidgetMixin(BaseMixin$7(s)) {
+class NodeButton extends ContextualWidgetMixin(BaseMixin(s)) {
     constructor(content, contentType = 'icon') {
         super();
         this.content = content;
@@ -10217,7 +10629,7 @@ NodeButton.properties = {
     highlighted: { type: Boolean, reflect: true },
 };
 NodeButton.styles = [
-    baseStyle$7,
+    baseStyle,
     textSpinnerStyle,
     contentSpinnerStyle,
     GscapeButtonStyle,
@@ -10235,7 +10647,7 @@ NodeButton.styles = [
 ];
 customElements.define('gscape-node-button', NodeButton);
 
-let GscapeContextMenu$1 = class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin$7(s)) {
+class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.commands = [];
@@ -10320,14 +10732,14 @@ let GscapeContextMenu$1 = class GscapeContextMenu extends ContextualWidgetMixin(
         </div>    
       `;
     }
-};
-GscapeContextMenu$1.properties = {
+}
+GscapeContextMenu.properties = {
     commands: { type: Object, attribute: false },
     customElements: { type: Object, attribute: false },
     showFirst: { type: String },
 };
-GscapeContextMenu$1.styles = [
-    baseStyle$7,
+GscapeContextMenu.styles = [
+    baseStyle,
     i$1 `
       :host {
         display: flex;
@@ -10358,7 +10770,7 @@ GscapeContextMenu$1.styles = [
       }
     `
 ];
-customElements.define('gscape-context-menu', GscapeContextMenu$1);
+customElements.define('gscape-context-menu', GscapeContextMenu);
 
 var actionItemStyle = i$1 `
   .list-item {
@@ -10421,7 +10833,7 @@ GscapeActionListItem.properties = {
     expanded: { state: true },
     disabled: { type: Boolean }
 };
-GscapeActionListItem.styles = [baseStyle$7, actionItemStyle];
+GscapeActionListItem.styles = [baseStyle, actionItemStyle];
 customElements.define('gscape-action-list-item', GscapeActionListItem);
 
 var entityListItemStyle = i$1 `
@@ -10519,7 +10931,7 @@ GscapeIconList.properties = {
     icons: { type: Array }
 };
 GscapeIconList.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
     :host {
       display: inline-block;
@@ -10651,7 +11063,7 @@ GscapeEntityListItem.properties = {
 };
 GscapeEntityListItem.styles = [
     entityListItemStyle,
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         display: block;
@@ -10678,7 +11090,7 @@ GscapeTextSearch.properties = {
     value: { type: String, reflect: true },
     placeholder: { type: String, reflect: true }
 };
-GscapeTextSearch.styles = [baseStyle$7, GscapeButtonStyle];
+GscapeTextSearch.styles = [baseStyle, GscapeButtonStyle];
 customElements.define('gscape-text-search', GscapeTextSearch);
 
 class GscapeEntitySearch extends DropPanelMixin(s) {
@@ -10784,7 +11196,7 @@ GscapeEntitySearch.properties = {
     isSearchTextEmpty: { type: Boolean, state: true },
 };
 GscapeEntitySearch.styles = [
-    baseStyle$7,
+    baseStyle,
     GscapeButtonStyle,
     i$1 `
       :host {
@@ -10828,7 +11240,7 @@ function capitalizeFirstChar (text) {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-class GscapeEntityTypeFilters extends BaseMixin$7(s) {
+class GscapeEntityTypeFilters extends BaseMixin(s) {
     render() {
         return x `
       <div class="chips-filters">
@@ -10943,7 +11355,7 @@ GscapeEntityTypeFilters.properties = {
     onFilterToggle: { type: Function, reflect: true }
 };
 GscapeEntityTypeFilters.styles = [
-    baseStyle$7,
+    baseStyle,
     GscapeButtonStyle,
     i$1 `
       .chips-filters {
@@ -11034,7 +11446,7 @@ class GscapeToggle extends s {
 }
 GscapeToggle.ToggleLabelPosition = ToggleLabelPosition;
 GscapeToggle.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         display: block;
@@ -11118,7 +11530,7 @@ GscapeToggle.styles = [
 ];
 customElements.define('gscape-toggle', GscapeToggle);
 
-class GscapeConfirmDialog extends ModalMixin$5(BaseMixin$7(s)) {
+class GscapeConfirmDialog extends ModalMixin(BaseMixin(s)) {
     constructor(message, dialogTitle = 'Confirm') {
         super();
         this.message = message;
@@ -11187,7 +11599,7 @@ GscapeConfirmDialog.properties = {
     message: { type: String }
 };
 GscapeConfirmDialog.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       .gscape-panel {
         position: absolute;
@@ -11239,13 +11651,13 @@ function a11yClick(event) {
     }
 }
 
-class GscapeSelect extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.PLACEHOLDER_ID = '!PLACEHOLDER!';
         this.selectedOptionsId = new Set();
         this.options = [];
-        this.size = SizeEnum$1.S;
+        this.size = SizeEnum.S;
         this.clearable = false;
         this.multipleSelection = false;
         this._placeholder = {
@@ -11363,7 +11775,7 @@ GscapeSelect.properties = {
     multipleSelection: { type: Boolean, attribute: 'multiple-selection' },
 };
 GscapeSelect.styles = [
-    baseStyle$7,
+    baseStyle,
     GscapeButtonStyle,
     i$1 `
       :host {
@@ -11571,7 +11983,7 @@ var emptySearchBlankState = x `
   </div>
 `;
 
-class GscapeEntitySelector extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeEntitySelector extends DropPanelMixin(BaseMixin(s)) {
     static get properties() {
         return {
             entityList: { type: Object, attribute: false },
@@ -11607,7 +12019,7 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin$7(s)) {
           type="secondary"
           @click=${this.togglePanel}
           title="Toggle complete list"
-          size=${SizeEnum$1.S}>
+          size=${SizeEnum.S}>
           ${getIconSlot('icon', arrowDown)}
         </gscape-button>
       </div>
@@ -11733,7 +12145,7 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin$7(s)) {
     get input() { var _a; return (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('input'); }
 }
 GscapeEntitySelector.styles = [
-    baseStyle$7,
+    baseStyle,
     GscapeButtonStyle,
     contentSpinnerStyle,
     i$1 `
@@ -11884,7 +12296,7 @@ function init$8 (welcomeRendererSelector, grapholscape) {
     welcomeRendererSelector.onOptionSelection = (optionId) => rendererStateSelectionCallback(optionId, grapholscape);
 }
 
-class GscapeFullPageSelector extends BaseMixin$7(s) {
+class GscapeFullPageSelector extends BaseMixin(s) {
     constructor() {
         super(...arguments);
         this._title = 'Select a rendering mode:';
@@ -11917,7 +12329,7 @@ GscapeFullPageSelector.properties = {
     title: { type: String, reflect: true },
 };
 GscapeFullPageSelector.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         z-index: 100;
@@ -11990,7 +12402,7 @@ function initInitialRendererSelector(grapholscape) {
     }
 }
 
-class GscapeDiagramSelector extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.title = 'Diagram Selector';
@@ -12051,7 +12463,7 @@ GscapeDiagramSelector.properties = {
     diagrams: { type: Array }
 };
 GscapeDiagramSelector.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
     :host {
       position: absolute;
@@ -12094,7 +12506,7 @@ function initDiagramSelector(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.DIAGRAM_SELECTOR, diagramSelectorComponent);
 }
 
-class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.title = 'Color Legend';
@@ -12159,7 +12571,7 @@ GscapeEntityColorLegend.properties = {
     elements: { type: Array },
 };
 GscapeEntityColorLegend.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         position: absolute;
@@ -12315,7 +12727,7 @@ const itemWithIriTemplateStyle = i$1 `
     font-weight: 600;
   }
 `;
-function annotationsTemplate$1(annotations) {
+function annotationsTemplate(annotations) {
     if (!annotations || annotations.length === 0)
         return null;
     let propertiesAlreadyInserted = [];
@@ -12369,7 +12781,7 @@ const annotationsStyle = i$1 `
   }
 `;
 
-class GscapeEntityDetails extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.title = 'Entity Details';
@@ -12423,7 +12835,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin$7(s)) {
 
           ${this.incrementalSection}
 
-          ${annotationsTemplate$1(this.grapholEntity.getAnnotations())}
+          ${annotationsTemplate(this.grapholEntity.getAnnotations())}
           
           ${this.showOccurrences && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
 
@@ -12513,7 +12925,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin$7(s)) {
     }
 }
 GscapeEntityDetails.styles = [
-    baseStyle$7,
+    baseStyle,
     itemWithIriTemplateStyle,
     annotationsStyle,
     GscapeButtonStyle,
@@ -12651,7 +13063,7 @@ function initEntityDetails(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.ENTITY_DETAILS, entityDetailsComponent);
 }
 
-class GscapeFilters extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeFilters extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = "Filters";
@@ -12718,7 +13130,7 @@ GscapeFilters.properties = {
     filters: { type: Object, attribute: false }
 };
 GscapeFilters.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         order: 3;
@@ -12902,7 +13314,7 @@ function initFullscreenButton(grapholscape) {
     }
 }
 
-class GscapeExplorer extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = 'Ontology Explorer';
@@ -13003,7 +13415,7 @@ GscapeExplorer.properties = {
     loading: { type: Boolean }
 };
 GscapeExplorer.styles = [
-    baseStyle$7,
+    baseStyle,
     contentSpinnerStyle,
     i$1 `
       :host {
@@ -13083,7 +13495,7 @@ function initOntologyExplorer(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent);
 }
 
-class GscapeOntologyInfo extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = "Ontology Info";
@@ -13100,7 +13512,7 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin$7(s)) {
 
         ${itemWithIriTemplate(this.ontology)}
         
-        ${annotationsTemplate$1(this.ontology.annotations)}
+        ${annotationsTemplate(this.ontology.annotations)}
 
         ${this.iriPrefixesTemplate()}
       </div>
@@ -13131,7 +13543,7 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin$7(s)) {
     }
 }
 GscapeOntologyInfo.styles = [
-    baseStyle$7,
+    baseStyle,
     itemWithIriTemplateStyle,
     annotationsStyle,
     i$1 `
@@ -13183,10 +13595,10 @@ customElements.define('gscape-ontology-info', GscapeOntologyInfo);
  */
 function initOntologyInfo(grapholscape) {
     const ontologyInfoComponent = new GscapeOntologyInfo();
-    ontologyInfoComponent.ontology = ontologyModelToViewData$1(grapholscape.ontology);
+    ontologyInfoComponent.ontology = ontologyModelToViewData(grapholscape.ontology);
     grapholscape.widgets.set(WidgetEnum.ONTOLOGY_INFO, ontologyInfoComponent);
 }
-function ontologyModelToViewData$1(ontologyModelData) {
+function ontologyModelToViewData(ontologyModelData) {
     let ontologyViewData = {
         name: ontologyModelData.name,
         typeOrVersion: new Set([ontologyModelData.version]),
@@ -13688,7 +14100,7 @@ function init$3 (owlVisualizerComponent, grapholscape) {
     }
 }
 
-class GscapeOwlVisualizer extends BaseMixin$7(DropPanelMixin(s)) {
+class GscapeOwlVisualizer extends BaseMixin(DropPanelMixin(s)) {
     constructor() {
         super(...arguments);
         this.title = "OWL 2 Translation";
@@ -13734,7 +14146,7 @@ GscapeOwlVisualizer.properties = {
     owlText: { type: String, attribute: false }
 };
 GscapeOwlVisualizer.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         bottom: 10px;
@@ -13804,7 +14216,7 @@ function initOwlVisualizer(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.OWL_VISUALIZER, owlVisualizerComponent);
 }
 
-class GscapeRenderSelector extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = 'Renderer Selector';
@@ -13868,7 +14280,7 @@ GscapeRenderSelector.properties = {
     onIncrementalRefresh: { type: Object, attribute: false }
 };
 GscapeRenderSelector.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         order: 7;
@@ -13878,7 +14290,7 @@ GscapeRenderSelector.styles = [
 ];
 customElements.define('gscape-render-selector', GscapeRenderSelector);
 
-class GscapeLayoutSettings extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.layoutRun = false;
@@ -13933,7 +14345,7 @@ GscapeLayoutSettings.properties = {
     originalPositions: { type: Boolean, attribute: false },
 };
 GscapeLayoutSettings.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         box-shadow: initial;
@@ -14056,7 +14468,7 @@ var settingsStyle = i$1 `
   }
 `;
 
-class GscapeSettings extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = 'Settings';
@@ -14146,7 +14558,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin$7(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.7"}</span>
+            <span>${"4.0.0-snap.8"}</span>
           </div>
         </div>
       </div>
@@ -14230,7 +14642,7 @@ GscapeSettings.properties = {
     selectedTheme: { type: String, attribute: false, },
 };
 GscapeSettings.styles = [
-    baseStyle$7,
+    baseStyle,
     GscapeButtonStyle,
     settingsStyle,
     i$1 `
@@ -14374,7 +14786,7 @@ class GscapeZoomTools extends s {
     }
 }
 GscapeZoomTools.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         order: 1;
@@ -14522,7 +14934,7 @@ GscapeTabs.properties = {
     activeTabID: { type: String, state: true },
 };
 GscapeTabs.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       .nav-bar {
         display: flex;
@@ -14555,10 +14967,10 @@ customElements.define('gscape-tabs', GscapeTabs);
 
 /** @module UI */
 
-var UI = /*#__PURE__*/Object.freeze({
+var index = /*#__PURE__*/Object.freeze({
     __proto__: null,
     BOTTOM_RIGHT_WIDGET_CLASS: BOTTOM_RIGHT_WIDGET,
-    BaseMixin: BaseMixin$7,
+    BaseMixin: BaseMixin,
     ContentSpinner: ContentSpinner,
     ContextualWidgetMixin: ContextualWidgetMixin,
     DropPanelMixin: DropPanelMixin,
@@ -14567,7 +14979,8 @@ var UI = /*#__PURE__*/Object.freeze({
     GscapeButton: GscapeButton,
     GscapeButtonStyle: GscapeButtonStyle,
     GscapeConfirmDialog: GscapeConfirmDialog,
-    GscapeContextMenu: GscapeContextMenu$1,
+    GscapeContextMenu: GscapeContextMenu,
+    GscapeDiagramSelector: GscapeDiagramSelector,
     GscapeEntityListItem: GscapeEntityListItem,
     GscapeEntitySearch: GscapeEntitySearch,
     GscapeEntitySelector: GscapeEntitySelector,
@@ -14576,12 +14989,12 @@ var UI = /*#__PURE__*/Object.freeze({
     GscapeSelect: GscapeSelect,
     GscapeTextSearch: GscapeTextSearch,
     GscapeToggle: GscapeToggle,
-    ModalMixin: ModalMixin$5,
+    ModalMixin: ModalMixin,
     NodeButton: NodeButton,
-    get SizeEnum () { return SizeEnum$1; },
+    get SizeEnum () { return SizeEnum; },
     get ToggleLabelPosition () { return ToggleLabelPosition; },
     get WidgetEnum () { return WidgetEnum; },
-    baseStyle: baseStyle$7,
+    baseStyle: baseStyle,
     contentSpinnerStyle: contentSpinnerStyle,
     createEntitiesList: createEntitiesList,
     emptySearchBlankState: emptySearchBlankState,
@@ -14598,418 +15011,6 @@ var UI = /*#__PURE__*/Object.freeze({
     textSpinner: textSpinner,
     textSpinnerStyle: textSpinnerStyle
 });
-
-class DiagramBuilder {
-    constructor(diagram, rendererState) {
-        this.diagram = diagram;
-        this.rendererState = rendererState;
-    }
-    addClass(classEntity, positionOrNode) {
-        var _a, _b;
-        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(classEntity)) {
-            const nodeId = classEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState);
-            return nodeId
-                ? this.diagramRepresentation.grapholElements.get(nodeId)
-                : undefined;
-        }
-        let position, classNode;
-        if (positionOrNode && isGrapholNode(positionOrNode)) {
-            classNode = positionOrNode;
-        }
-        else if (positionOrNode) {
-            position = positionOrNode;
-        }
-        if (!classNode) {
-            classNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS);
-            classNode.iri = classEntity.iri.fullIri;
-            classNode.displayedName = classEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
-            classNode.height = classNode.width = 80;
-            if (position)
-                classNode.position = position;
-            else
-                classNode.renderedPosition = this.getCurrentCenterPos();
-            classNode.originalId = classNode.id;
-            classNode.diagramId = this.diagram.id;
-        }
-        classEntity.addOccurrence(classNode, this.rendererState);
-        (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.addElement(classNode, classEntity);
-        return classNode;
-    }
-    addDataProperty(dataPropertyEntity, ownerEntity) {
-        var _a, _b, _c;
-        const dataPropertyNode = new GrapholNode(this.getNewId('node'), TypesEnum.DATA_PROPERTY);
-        dataPropertyNode.diagramId = this.diagram.id;
-        dataPropertyNode.iri = dataPropertyEntity.iri.fullIri;
-        dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
-        dataPropertyNode.labelXpos = 0;
-        dataPropertyNode.labelYpos = -15;
-        dataPropertyNode.originalId = dataPropertyNode.id;
-        dataPropertyEntity.addOccurrence(dataPropertyNode, RendererStatesEnum.FLOATY);
-        let ownerEntityNode;
-        if (ownerEntity) {
-            const ownerEntityId = ownerEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS, this.rendererState);
-            if (!ownerEntityId)
-                return;
-            ownerEntityNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(ownerEntityId);
-            if (!ownerEntityNode)
-                return;
-        }
-        if ((ownerEntityNode === null || ownerEntityNode === void 0 ? void 0 : ownerEntityNode.isNode()) && ownerEntityNode.position)
-            dataPropertyNode.position = ownerEntityNode.position;
-        else
-            dataPropertyNode.renderedPosition = this.getCurrentCenterPos();
-        (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.addElement(dataPropertyNode, dataPropertyEntity);
-        if (ownerEntityNode) {
-            const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE);
-            dataPropertyEdge.diagramId = this.diagram.id;
-            dataPropertyEdge.sourceId = ownerEntityNode.id;
-            dataPropertyEdge.targetId = dataPropertyNode.id;
-            (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.addElement(dataPropertyEdge);
-        }
-        return dataPropertyNode;
-    }
-    /**
-     * Add an object property between two entities.
-     * If the source and/or target entities are already present in graph, they won't be added again.
-     * If there already exists an object property between them with the same IRI, the
-     * edge won't be added.
-     * @param objectPropertyEntity the object property entity
-     * @param sourceEntity the source entity
-     * @param targetEntity the target entity
-     * @param nodesType the type of source and target, they must have same type
-     * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
-     * if you don't pass this, a new GrapholEdge will be created from scratch
-     * @returns
-     */
-    addObjectProperty(objectPropertyEntity, sourceEntity, targetEntity, nodesType, objectPropertyElement) {
-        var _a;
-        const sourceType = nodesType[0];
-        const targetType = nodesType.length > 1 ? nodesType[1] : nodesType[0];
-        // if both object property and range class are already present, do not add them again
-        let sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
-        let targetNode = this.getEntityCyRepr(targetEntity, targetType);
-        if (sourceNode.nonempty() && targetNode.nonempty()) {
-            /**
-             * If the set of edges between reference node and the connected class
-             * includes the object property we want to add, then it's already present.
-             */
-            let edgesAlreadyPresent = sourceNode.edgesWith(targetNode)
-                .filter(e => e.data().iri === objectPropertyEntity.iri.fullIri);
-            if (edgesAlreadyPresent.nonempty()) {
-                return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(edgesAlreadyPresent.first().id());
-            }
-        }
-        if (sourceNode.empty()) {
-            sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity) : this.addClass(sourceEntity);
-            sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
-            if (sourceNode.empty()) {
-                console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`);
-                return;
-            }
-        }
-        if (targetNode.empty()) {
-            targetEntity.is(TypesEnum.CLASS_INSTANCE)
-                ? this.addClassInstance(targetEntity, sourceNode.position())
-                : this.addClass(targetEntity, sourceNode.position());
-            targetNode = this.getEntityCyRepr(targetEntity, targetType);
-            if (targetNode.empty()) {
-                console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`);
-                return;
-            }
-        }
-        if (!this.diagramRepresentation ||
-            !sourceEntity.is(sourceType) ||
-            !targetEntity.is(targetType)) {
-            return;
-        }
-        let objectPropertyEdge;
-        if (!objectPropertyElement) {
-            objectPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.OBJECT_PROPERTY);
-            objectPropertyEdge.displayedName = objectPropertyEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
-            objectPropertyEdge.originalId = objectPropertyEdge.id;
-            objectPropertyEdge.iri = objectPropertyEntity.iri.fullIri;
-        }
-        else {
-            objectPropertyEdge = objectPropertyElement;
-        }
-        /**
-         * objectPropertyEdge might not have the right source(target)NodeId,
-         * can happen loading rdfGraph in VKG having edges between instances
-         * that were already present in the diagram.
-         * Just set the right IDs anyway, either a custom edge was provided or not.
-         */
-        objectPropertyEdge.sourceId = sourceNode.id();
-        objectPropertyEdge.targetId = targetNode.id();
-        objectPropertyEdge.diagramId = this.diagram.id;
-        objectPropertyEntity.addOccurrence(objectPropertyEdge, this.rendererState);
-        this.diagramRepresentation.addElement(objectPropertyEdge, objectPropertyEntity);
-        return objectPropertyEdge;
-    }
-    addClassInstance(classInstanceEntity, positionOrElem) {
-        var _a, _b;
-        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(classInstanceEntity)) {
-            const nodeId = classInstanceEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState);
-            if (nodeId)
-                return this.diagramRepresentation.grapholElements.get(nodeId);
-        }
-        let position, instanceNode;
-        if (positionOrElem && isGrapholNode(positionOrElem)) {
-            instanceNode = positionOrElem;
-            position = instanceNode.position;
-        }
-        else {
-            instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS_INSTANCE);
-            if (positionOrElem) {
-                position = positionOrElem;
-            }
-        }
-        if (!position) {
-            // check if parent class is present in diagram
-            for (let parentClassIri of classInstanceEntity.parentClassIris) {
-                if ((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.containsEntity(parentClassIri)) {
-                    instanceNode.position = this.diagramRepresentation.cy.$id(parentClassIri.fullIri).position();
-                    break;
-                }
-            }
-            if (!instanceNode.position) {
-                instanceNode.renderedPosition = this.getCurrentCenterPos();
-            }
-        }
-        else {
-            instanceNode.position = position;
-        }
-        return this._addIndividualOrClassInstance(instanceNode, classInstanceEntity);
-    }
-    addIndividual(individualEntity, position) {
-        var _a;
-        if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(individualEntity)) {
-            const nodeId = individualEntity.getIdInDiagram(this.diagram.id, TypesEnum.INDIVIDUAL, this.rendererState);
-            if (nodeId)
-                return this.diagramRepresentation.grapholElements.get(nodeId);
-        }
-        const instanceNode = new GrapholNode(this.getNewId('node'), TypesEnum.INDIVIDUAL);
-        if (position)
-            instanceNode.position = position;
-        else
-            instanceNode.renderedPosition = this.getCurrentCenterPos();
-        return this._addIndividualOrClassInstance(instanceNode, individualEntity);
-    }
-    _addIndividualOrClassInstance(grapholNode, grapholEntity) {
-        var _a;
-        grapholNode.diagramId = this.diagram.id;
-        grapholNode.displayedName = grapholEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
-        grapholNode.iri = grapholEntity.iri.fullIri;
-        grapholNode.height = grapholNode.width = 50;
-        grapholNode.shape = Shape.ELLIPSE;
-        grapholNode.labelXpos = 0;
-        grapholNode.labelYpos = 0;
-        grapholEntity.addOccurrence(grapholNode, this.rendererState);
-        (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(grapholNode, grapholEntity);
-        return grapholNode;
-    }
-    addHierarchy(hierarchy, position) {
-        var _a;
-        const unionNode = hierarchy.getUnionGrapholNode(position);
-        if (!unionNode)
-            return;
-        //hierarchy.id = `${unionNode.id}-${this.diagram.id}` 
-        // Add inputs
-        for (const inputClasses of hierarchy.inputs) {
-            this.addClass(inputClasses, position);
-        }
-        // Add superclasses
-        for (const superClass of hierarchy.superclasses) {
-            this.addClass(superClass.classEntity, position);
-        }
-        const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, this.rendererState);
-        const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, this.rendererState);
-        if (!inputEdges || !inclusionEdges)
-            return;
-        (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(unionNode);
-        inputEdges.forEach(inputEdge => { var _a; return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(inputEdge); });
-        inclusionEdges.forEach(inclusionEdge => { var _a; return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(inclusionEdge); });
-    }
-    addEdge(sourceId, targetId, edgeType) {
-        var _a, _b, _c, _d, _e, _f;
-        const sourceNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(sourceId);
-        const targetNode = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.grapholElements.get(targetId);
-        const sourceCyNode = (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.cy.$id(sourceId);
-        const targetCyNode = (_d = this.diagramRepresentation) === null || _d === void 0 ? void 0 : _d.cy.$id(targetId);
-        if (sourceCyNode && targetCyNode) {
-            const edgesAlreadyPresent = sourceCyNode.edgesTo(targetCyNode).filter(e => e.data().type === edgeType);
-            if (edgesAlreadyPresent.nonempty()) {
-                return (_e = this.diagramRepresentation) === null || _e === void 0 ? void 0 : _e.grapholElements.get(edgesAlreadyPresent.first().id());
-            }
-        }
-        else {
-            return;
-        }
-        if (sourceNode && targetNode) {
-            const instanceEdge = new GrapholEdge(this.getNewId('edge'), edgeType);
-            instanceEdge.diagramId = this.diagram.id;
-            instanceEdge.sourceId = sourceId;
-            instanceEdge.targetId = targetId;
-            (_f = this.diagramRepresentation) === null || _f === void 0 ? void 0 : _f.addElement(instanceEdge);
-            return instanceEdge;
-        }
-    }
-    get diagramRepresentation() {
-        return this.diagram.representations.get(this.rendererState);
-    }
-    toggleFunctionality(entity, functional) {
-        var _a;
-        const id = entity.getIdInDiagram(this.diagram.id, TypesEnum.DATA_PROPERTY, this.rendererState);
-        if (!id)
-            return;
-        const node = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(id);
-        if (!node)
-            return;
-        node.data('functional', functional);
-    }
-    toggleUnion(node) {
-        const type = node.data('type');
-        if (type === TypesEnum.UNION) {
-            node.removeClass('union');
-            node.data('type', TypesEnum.DISJOINT_UNION);
-            node.data('displayedName', undefined);
-            node.addClass('disjoint-union');
-            // edge
-            const edge = node.connectedEdges().find(e => e.data('type') === TypesEnum.UNION);
-            edge === null || edge === void 0 ? void 0 : edge.data('type', TypesEnum.DISJOINT_UNION);
-        }
-        else {
-            node.removeClass('disjoint-union');
-            node.data('type', TypesEnum.UNION);
-            node.data('displayedName', 'or');
-            node.data('labelXpos', 0);
-            node.data('labelXcentered', true);
-            node.data('labelYpos', 0);
-            node.data('labelYcentered', true);
-            node.addClass('union');
-            // edge
-            const edge = node.connectedEdges().find(e => e.data('type') === TypesEnum.DISJOINT_UNION);
-            edge === null || edge === void 0 ? void 0 : edge.data('type', TypesEnum.UNION);
-        }
-    }
-    toggleComplete(edge) {
-        if (edge.data('targetLabel') === 'C') {
-            edge.removeClass('equivalence');
-            edge.data('targetLabel', '');
-            edge.addClass('inclusion');
-        }
-        else {
-            edge.removeClass('inclusion');
-            edge.data('targetLabel', 'C');
-            edge.addClass('equivalence');
-        }
-    }
-    swapEdge(elem) {
-        const oldSourceID = elem.data('source');
-        const oldTargetID = elem.data('target');
-        elem.move({
-            source: elem.target().id(),
-            target: elem.source().id(),
-        });
-        elem.data('source', oldTargetID);
-        elem.data('target', oldSourceID);
-    }
-    removeHierarchy(hierarchy) {
-        var _a, _b, _c;
-        if (hierarchy.id) {
-            let unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
-            if (!unionNode || unionNode.empty()) {
-                return;
-            }
-            // remove input edges
-            (_b = unionNode === null || unionNode === void 0 ? void 0 : unionNode.connectedEdges(`[ type = "${TypesEnum.INPUT}" ]`)) === null || _b === void 0 ? void 0 : _b.forEach(inputEdge => {
-                var _a;
-                (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inputEdge.id(), this.rendererState);
-            });
-            // remove inclusion edges
-            (_c = unionNode === null || unionNode === void 0 ? void 0 : unionNode.connectedEdges(`[ type = "${hierarchy.type}" ]`)) === null || _c === void 0 ? void 0 : _c.forEach(inclusionEdge => {
-                var _a;
-                (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inclusionEdge.id(), this.rendererState);
-            });
-            // remove union node
-            this.diagram.removeElement(unionNode.id(), this.rendererState);
-        }
-    }
-    removeHierarchyInputEdge(hierarchy, inputIri) {
-        var _a;
-        if (hierarchy.id) {
-            const unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
-            unionNode === null || unionNode === void 0 ? void 0 : unionNode.edgesWith(`[ iri = "${inputIri}" ]`).forEach(inputEdge => {
-                var _a;
-                if (inputEdge.data().type === TypesEnum.INPUT)
-                    (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inputEdge.id(), this.rendererState);
-            });
-        }
-    }
-    removeHierarchyInclusionEdge(hierarchy, superclassIri) {
-        var _a;
-        if (hierarchy.id) {
-            const unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
-            unionNode === null || unionNode === void 0 ? void 0 : unionNode.edgesTo(`[ iri = "${superclassIri}" ]`).forEach(inclusionEdge => {
-                var _a;
-                if (inclusionEdge.data().type === hierarchy.type)
-                    (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inclusionEdge.id(), this.rendererState);
-            });
-        }
-    }
-    removeElement(id) {
-        var _a, _b, _c;
-        const cyElem = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(id);
-        const grapholElem = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.grapholElements.get(id);
-        if (cyElem === null || cyElem === void 0 ? void 0 : cyElem.nonempty()) {
-            if (grapholElem && grapholElem.is(TypesEnum.DATA_PROPERTY)) {
-                cyElem.connectedEdges().forEach(e => {
-                    var _a;
-                    (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.removeElement(e.id());
-                });
-            }
-            (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.removeElement(id);
-        }
-    }
-    renameElement(elemId, newIri) {
-        var _a, _b;
-        const cyElem = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(elemId);
-        cyElem === null || cyElem === void 0 ? void 0 : cyElem.data('iri', newIri.fullIri);
-        cyElem === null || cyElem === void 0 ? void 0 : cyElem.data('displayedName', newIri.remainder);
-        const grapholElem = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.grapholElements.get(elemId);
-        if (!grapholElem)
-            return;
-        grapholElem.iri = newIri.fullIri;
-        grapholElem.displayedName = newIri.remainder;
-    }
-    /**
-     * Get cytoscape representation of an entity given the type needed
-     * @param entity
-     * @param type
-     * @returns
-     */
-    getEntityCyRepr(entity, type) {
-        var _a;
-        const occurrenceID = entity.getIdInDiagram(this.diagram.id, type, this.rendererState);
-        if (occurrenceID)
-            return ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$id(occurrenceID)) || cytoscape().collection();
-        else
-            return cytoscape().collection();
-    }
-    getNewId(nodeOrEdge) {
-        var _a;
-        return ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.getNewId(nodeOrEdge)) || (nodeOrEdge === 'node' ? 'n0' : 'e0');
-    }
-    getCurrentCenterPos() {
-        var _a, _b;
-        const height = ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.height()) || 0;
-        const width = ((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.width()) || 0;
-        let pos = {
-            x: (width / 2) + Math.random() * 50,
-            y: (height / 2) + Math.random() * 50,
-        };
-        return pos;
-    }
-}
 
 function parseRDFGraph(rdfGraph) {
     const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
@@ -15154,6 +15155,17 @@ function getConfig(rdfGraph) {
         renderers: (_e = rdfGraph.config) === null || _e === void 0 ? void 0 : _e.renderers,
     };
 }
+
+var rdfGraphParser = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    default: parseRDFGraph,
+    getClassInstances: getClassInstances,
+    getConfig: getConfig,
+    getDiagrams: getDiagrams,
+    getEntities: getEntities,
+    getOntology: getOntology,
+    updateEntityOccurrences: updateEntityOccurrences
+});
 
 var QueryStatusEnum;
 (function (QueryStatusEnum) {
@@ -17038,7 +17050,7 @@ var style = i$1 `
   }
 `;
 
-class GscapeClassInstanceDetails extends BaseMixin$7(s) {
+class GscapeClassInstanceDetails extends BaseMixin(s) {
     constructor() {
         super(...arguments);
         this._dataProperties = [];
@@ -17182,7 +17194,7 @@ GscapeClassInstanceDetails.properties = {
     parentClasses: { type: Object, attribute: false },
 };
 GscapeClassInstanceDetails.notAvailableText = 'n/a';
-GscapeClassInstanceDetails.styles = [baseStyle$7, entityListItemStyle, style, textSpinnerStyle, contentSpinnerStyle,
+GscapeClassInstanceDetails.styles = [baseStyle, entityListItemStyle, style, textSpinnerStyle, contentSpinnerStyle,
     i$1 `
       gscape-entity-list-item {
         --custom-wrap: wrap;
@@ -17257,7 +17269,7 @@ function ClassInstanceDetailsFactory(ic) {
     return classInstanceDetails;
 }
 
-class GscapeVKGPreferences extends DropPanelMixin(BaseMixin$7(s)) {
+class GscapeVKGPreferences extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.endpoints = [];
@@ -17343,7 +17355,7 @@ class GscapeVKGPreferences extends DropPanelMixin(BaseMixin$7(s)) {
 
           <div class="area">
             <gscape-button
-              size=${SizeEnum$1.S}
+              size=${SizeEnum.S}
               label='Stop Pending Requests'
               type='secondary'
               @click=${this._onStopRequestsCallback}
@@ -17390,7 +17402,7 @@ GscapeVKGPreferences.properties = {
     pageSize: { type: Number, reflect: true },
     showCounters: { type: Boolean, reflect: true }
 };
-GscapeVKGPreferences.styles = [baseStyle$7, settingsStyle,
+GscapeVKGPreferences.styles = [baseStyle, settingsStyle,
     i$1 `
       :host {
         order: 8;
@@ -17561,7 +17573,7 @@ gscape-entity-list-item:hover > .hover-btn {
 
 `;
 
-class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin$7(s)) {
+class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.instances = new Map();
@@ -17619,7 +17631,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin$7(s)) {
                 <gscape-select
                   style="align-self: center"
                   id="classtype-filter-select"
-                  size=${SizeEnum$1.S}
+                  size=${SizeEnum.S}
                   .options=${this.classTypeFilterList.map(entity => {
                     return {
                         id: entity.entityViewData.value.iri.fullIri,
@@ -17647,7 +17659,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin$7(s)) {
             ? x `
               <gscape-select
                 id="property-filter-select"
-                size=${SizeEnum$1.S}
+                size=${SizeEnum.S}
                 .options=${[
                 {
                     id: 'label',
@@ -17751,7 +17763,7 @@ class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMixin$7(s)) {
             <gscape-button
               style="align-self: center"
               @click=${this.handleAddAll}
-              size=${SizeEnum$1.S}
+              size=${SizeEnum.S}
               type="primary"
               label="Add All" 
               title="Insert all visible results in graph"
@@ -17986,7 +17998,7 @@ GscapeInstanceExplorer.properties = {
     lastSearchedText: { type: String, state: true }
 };
 GscapeInstanceExplorer.styles = [
-    baseStyle$7,
+    baseStyle,
     menuBaseStyle,
     contentSpinnerStyle,
     textSpinnerStyle,
@@ -18214,7 +18226,7 @@ const edgeHandlesOptions = {
     disableBrowserGestures: true // during an edge drawing gesture, disable browser gestures such as two-finger trackpad swipe and pinch-to-zoom
 };
 
-class GscapePathSelector extends ModalMixin$5(BaseMixin$7(s)) {
+class GscapePathSelector extends ModalMixin(BaseMixin(s)) {
     constructor(theme) {
         super();
         this.theme = theme;
@@ -18278,7 +18290,7 @@ class GscapePathSelector extends ModalMixin$5(BaseMixin$7(s)) {
         ${this.canShowMore
             ? x `
         <center>
-          <gscape-button label="Show More" type="subtle" size=${SizeEnum$1.S} @click=${this.handleShowMoreClick}>
+          <gscape-button label="Show More" type="subtle" size=${SizeEnum.S} @click=${this.handleShowMoreClick}>
           </gscape-button>
         </center>
         `
@@ -18615,7 +18627,7 @@ GscapePathSelector.properties = {
     canShowMore: { type: Boolean }
 };
 GscapePathSelector.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       .gscape-panel {
         position: absolute;
@@ -19192,7 +19204,7 @@ function getInstances(callback) {
 }
 
 function CommandsWidgetFactory(ic) {
-    const commandsWidget = new GscapeContextMenu$1();
+    const commandsWidget = new GscapeContextMenu();
     ic.grapholscape.on(LifecycleEvent.ContextClick, event => {
         var _a, _b, _c, _d;
         const commands = [];
@@ -19418,7 +19430,7 @@ function showParentClass(incrementalController, instanceEntity) {
     }
 }
 
-class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin$7(s)) {
+class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(s)) {
     constructor() {
         super();
         /** @internal */
@@ -19498,7 +19510,7 @@ class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin$7(s)) {
                           <span>
                             <gscape-button
                               @click=${(e) => this.handleSearchInstancesRange(e, objectProperty)}
-                              size=${SizeEnum$1.S}
+                              size=${SizeEnum.S}
                               title='Search instances in relationship'
                             >
                               ${getIconSlot('icon', search$1)}
@@ -19615,7 +19627,7 @@ GscapeNavigationMenu.properties = {
     canShowObjectPropertiesRanges: { type: Boolean },
 };
 GscapeNavigationMenu.styles = [
-    baseStyle$7,
+    baseStyle,
     menuBaseStyle,
     i$1 `
       .connected-class-wrapper, .object-property-wrapper {
@@ -20833,7 +20845,7 @@ class IncrementalController {
     get numberOfElements() { var _a; return ((_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.elements().size()) || 0; }
 }
 
-class IncrementalInitialMenu extends BaseMixin$7(s) {
+class IncrementalInitialMenu extends BaseMixin(s) {
     constructor(ic) {
         super();
         this.ic = ic;
@@ -20917,7 +20929,7 @@ class IncrementalInitialMenu extends BaseMixin$7(s) {
           </gscape-entity-list-item>
           <gscape-button
             title="Clear"
-            size=${SizeEnum$1.S}
+            size=${SizeEnum.S}
             @click=${() => { this[`class${id}`] = undefined; }}
           >
             ${getIconSlot('icon', cross)}
@@ -20972,7 +20984,7 @@ IncrementalInitialMenu.properties = {
     sideMenuMode: { type: Boolean }
 };
 IncrementalInitialMenu.styles = [
-    baseStyle$7,
+    baseStyle,
     i$1 `
       :host {
         max-height: 70%;
@@ -22060,3588 +22072,6 @@ class GrapholParser {
     }
 }
 
-var DesignerEvent;
-(function (DesignerEvent) {
-    // Ontology Designer
-    DesignerEvent["EntityAddition"] = "entityAddition";
-    DesignerEvent["EntityRemoval"] = "entityRemoval";
-    DesignerEvent["DiagramAddition"] = "diagramAddition";
-    DesignerEvent["DiagramRemoval"] = "diagramRemoval";
-    DesignerEvent["AnnotationAddition"] = "annotationAddition";
-    DesignerEvent["AnnotationEdit"] = "annotationEdit";
-    DesignerEvent["AnnotationRemoval"] = "annotationRemoval";
-    DesignerEvent["SaveDraft"] = "saveDraft";
-    DesignerEvent["SaveVersion"] = "saveVersion";
-})(DesignerEvent || (DesignerEvent = {}));
-class DesignerLifeCycle extends Lifecycle {
-    constructor() {
-        super(...arguments);
-        this.entityAddition = [];
-        this.entityRemoval = [];
-        this.diagramAddition = [];
-        this.diagramRemoval = [];
-        this.annotationAddition = [];
-        this.annotationEdit = [];
-        this.annotationRemoval = [];
-        this.saveDraft = [];
-        this.saveVersion = [];
-    }
-}
-
-class OntologyBuilder {
-    constructor(grapholscape) {
-        this.rendererState = RendererStatesEnum.FLOATY;
-        this.grapholscape = grapholscape;
-    }
-    addNodeElement(iriString, entityType, ownerIri, relationship, functionProperties = [], datatype = '', deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
-        var _a;
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const iri = new Iri(iriString, this.grapholscape.ontology.namespaces);
-        let entity = this.grapholscape.ontology.getEntity(iriString);
-        if (!entity) {
-            entity = new GrapholEntity(iri);
-            this.grapholscape.ontology.addEntity(entity);
-            if (deriveLabel) {
-                let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder;
-                label = convertSnake ? this.convertSnakeCase(label) : label;
-                const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string');
-                entity.addAnnotation(labelAnnotation);
-            }
-        }
-        let ownerEntity;
-        if (ownerIri)
-            ownerEntity = this.grapholscape.ontology.getEntity(ownerIri);
-        let addedElement;
-        if (entityType === TypesEnum.INDIVIDUAL) {
-            addedElement = this.diagramBuilder.addIndividual(entity);
-            const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.INDIVIDUAL, this.rendererState);
-            if (ownerEntity) {
-                const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState);
-                if (!sourceId || !targetId)
-                    return;
-                this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF);
-            }
-        }
-        else if (entityType === TypesEnum.DATA_PROPERTY) {
-            entity.datatype = datatype;
-            if (functionProperties.includes(FunctionPropertiesEnum.FUNCTIONAL)) {
-                entity.isDataPropertyFunctional = true;
-            }
-            addedElement = this.diagramBuilder.addDataProperty(entity, ownerEntity);
-        }
-        else if (entityType === TypesEnum.CLASS) {
-            addedElement = this.diagramBuilder.addClass(entity);
-            if (ownerEntity) {
-                if (relationship === 'superclass') {
-                    const sourceId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState);
-                    const targetId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState);
-                    if (!sourceId || !targetId)
-                        return;
-                    this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION);
-                }
-                else if (relationship === 'subclass') {
-                    const sourceId = entity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState);
-                    const targetId = ownerEntity.getIdInDiagram(diagram.id, TypesEnum.CLASS, this.rendererState);
-                    if (!sourceId || !targetId)
-                        return;
-                    this.diagramBuilder.addEdge(sourceId, targetId, TypesEnum.INCLUSION);
-                }
-            }
-        }
-        if (ownerEntity) {
-            (_a = this.grapholscape.renderer.renderState) === null || _a === void 0 ? void 0 : _a.runLayout();
-        }
-        else if (addedElement) {
-            this.grapholscape.centerOnElement(addedElement.id);
-        }
-        this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id);
-    }
-    addEdgeElement(iriString = null, edgeType, sourceId, targetId, nodesType, functionProperties = [], deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const sourceEntity = this.grapholscape.ontology.getEntity(sourceId);
-        const targetEntity = this.grapholscape.ontology.getEntity(targetId);
-        if (!sourceEntity || !targetEntity)
-            return;
-        if (iriString && edgeType === TypesEnum.OBJECT_PROPERTY) {
-            let entity = this.grapholscape.ontology.getEntity(iriString);
-            if (!entity) {
-                const iri = new Iri(iriString, this.grapholscape.ontology.namespaces);
-                entity = new GrapholEntity(iri);
-                this.grapholscape.ontology.addEntity(entity);
-                if (deriveLabel) {
-                    let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder;
-                    label = convertSnake ? this.convertSnakeCase(label) : label;
-                    const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string');
-                    entity.addAnnotation(labelAnnotation);
-                }
-            }
-            this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, nodesType);
-            entity.functionProperties = entity === null || entity === void 0 ? void 0 : entity.functionProperties.concat(functionProperties);
-            this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id);
-        }
-        else if (edgeType === TypesEnum.INCLUSION) {
-            const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType[0], this.rendererState);
-            const targetID = targetEntity.getIdInDiagram(diagram.id, nodesType[1], this.rendererState);
-            if (!sourceID || !targetID)
-                return;
-            this.diagramBuilder.addEdge(sourceID, targetID, edgeType);
-        }
-    }
-    addDiagram(name) {
-        const id = this.grapholscape.ontology.diagrams.length;
-        const newDiagram = new Diagram(name, id);
-        newDiagram.representations.set(this.rendererState, new DiagramRepresentation(floatyOptions));
-        this.grapholscape.ontology.addDiagram(newDiagram);
-        this.grapholscape.showDiagram(id);
-        this.grapholscape.lifecycle.trigger(DesignerEvent.DiagramAddition, newDiagram);
-    }
-    renameDiagram(newName) {
-        const diagram = this.grapholscape.renderer.diagram;
-        if (diagram)
-            diagram.name = newName;
-        const diagramSelector = this.grapholscape.container.getElementsByTagName('gscape-diagram-selector').item(0);
-        diagramSelector.currentDiagramName = newName;
-    }
-    removeDiagram(diagram) {
-        if (this.grapholscape.ontology.diagrams.length > 1) {
-            this.grapholscape.ontology.entities.forEach(e => {
-                var _a, _b;
-                if ((_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.containsEntity(e)) {
-                    (_b = e.getOccurrencesByDiagramId(diagram.id).get(this.rendererState)) === null || _b === void 0 ? void 0 : _b.forEach(el => {
-                        var _a;
-                        const occ = (_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.cy.$id(el.id).first();
-                        if (occ)
-                            this.removeEntity(occ, e);
-                    });
-                }
-            });
-            this.grapholscape.ontology.diagrams = this.grapholscape.ontology.diagrams.filter(d => d != diagram);
-            const id = this.grapholscape.ontology.diagrams[0].id;
-            this.grapholscape.showDiagram(id);
-        }
-    }
-    addSubhierarchy(iris, ownerIri, disjoint = false, complete = false, deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
-        var _a;
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const hierarchyID = this.diagramBuilder.getNewId('node') + '-' + diagram.id;
-        const hierarchy = disjoint ? new Hierarchy(hierarchyID, TypesEnum.DISJOINT_UNION, complete) : new Hierarchy(hierarchyID, TypesEnum.UNION, complete);
-        const superClass = this.grapholscape.ontology.getEntity(ownerIri);
-        if (!superClass)
-            return;
-        hierarchy.addSuperclass(superClass);
-        for (let i of iris) {
-            const iri = new Iri(i, this.grapholscape.ontology.namespaces);
-            let entity = this.grapholscape.ontology.getEntity(i);
-            if (!entity) {
-                entity = new GrapholEntity(iri);
-                this.grapholscape.ontology.addEntity(entity);
-                if (deriveLabel) {
-                    let label = convertCamel ? this.convertCamelCase(iri.remainder) : iri.remainder;
-                    label = convertSnake ? this.convertSnakeCase(label) : label;
-                    const labelAnnotation = new Annotation(DefaultAnnotationProperties.label, label, labelLanguage, 'xsd:string');
-                    entity.addAnnotation(labelAnnotation);
-                }
-            }
-            hierarchy.addInput(entity);
-        }
-        this.diagramBuilder.addHierarchy(hierarchy, { x: 0, y: 0 });
-        this.grapholscape.ontology.addHierarchy(hierarchy);
-        (_a = this.grapholscape.renderer.renderState) === null || _a === void 0 ? void 0 : _a.runLayout();
-    }
-    removeAllOccurrences(entity) {
-        this.grapholscape.ontology.diagrams.forEach(d => {
-            const occurrences = entity.getOccurrencesByDiagramId(d.id).get(this.rendererState); //occurrences.get(this.rendererState)
-            occurrences === null || occurrences === void 0 ? void 0 : occurrences.forEach(e => {
-                var _a, _b;
-                const id = e.id;
-                const occurrence = (_b = (_a = d.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.cy) === null || _b === void 0 ? void 0 : _b.$id(id).first(); //this.grapholscape.renderer.cy?.$id(id).first()
-                if (occurrence) {
-                    this.removeEntity(occurrence, entity, d);
-                }
-            });
-        });
-    }
-    removeEntity(cyOccurrence, entity, diag) {
-        var _a;
-        const diagram = diag ? diag : this.grapholscape.renderer.diagram;
-        if (diagram) {
-            this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-            const grapholElem = (_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.grapholElements.get(cyOccurrence.id());
-            if (grapholElem) {
-                if (cyOccurrence.isNode() && entity.is(TypesEnum.CLASS)) {
-                    this.grapholscape.ontology.getSuperHierarchiesOf(entity.fullIri).forEach(hierarchy => {
-                        this.removeHierarchyInput(hierarchy, entity.iri.fullIri);
-                    });
-                    this.grapholscape.ontology.getSubHierarchiesOf(entity.fullIri).forEach(hierarchy => {
-                        this.removeHierarchySuperclass(hierarchy, entity.iri.fullIri);
-                    });
-                    cyOccurrence.connectedEdges(`[ type = "${TypesEnum.OBJECT_PROPERTY}" ]`).forEach(opEdge => {
-                        const entity = this.grapholscape.ontology.getEntity(opEdge.data().iri);
-                        if (entity) {
-                            this.removeEntity(opEdge, entity);
-                        }
-                    });
-                }
-                entity.removeOccurrence(grapholElem, this.rendererState);
-                this.diagramBuilder.removeElement(cyOccurrence.id());
-                const occurrences = entity.occurrences.get(this.rendererState);
-                if (occurrences && occurrences.length === 0) {
-                    this.grapholscape.ontology.entities.delete(entity.iri.fullIri);
-                }
-            }
-        }
-    }
-    removeHierarchy(hierarchy) {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        this.grapholscape.ontology.removeHierarchy(hierarchy);
-        this.diagramBuilder.removeHierarchy(hierarchy);
-    }
-    removeHierarchyInput(hierarchy, inputIri) {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const entity = this.grapholscape.ontology.getEntity(inputIri);
-        if (entity) {
-            hierarchy.removeInput(entity);
-            this.diagramBuilder.removeHierarchyInputEdge(hierarchy, inputIri);
-        }
-    }
-    removeHierarchySuperclass(hierarchy, superclassIri) {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const entity = this.grapholscape.ontology.getEntity(superclassIri);
-        if (entity) {
-            hierarchy.removeSuperclass(entity);
-            this.diagramBuilder.removeHierarchyInclusionEdge(hierarchy, superclassIri);
-        }
-    }
-    renameEntity(oldIri, elemID, newIri) {
-        var _a;
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const grapholElem = (_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.grapholElements.get(elemID);
-        let entity = this.grapholscape.ontology.getEntity(newIri);
-        let iri = entity === null || entity === void 0 ? void 0 : entity.iri;
-        if (!entity || !iri) {
-            iri = new Iri(newIri, this.grapholscape.ontology.namespaces);
-            entity = new GrapholEntity(iri);
-            this.grapholscape.ontology.addEntity(entity);
-        }
-        this.diagramBuilder.renameElement(elemID, iri);
-        if (!grapholElem)
-            return;
-        entity.addOccurrence(grapholElem, this.rendererState);
-        const oldEntity = this.grapholscape.ontology.getEntity(oldIri.fullIri);
-        if (!oldEntity)
-            return;
-        if (grapholElem.is(TypesEnum.CLASS)) {
-            let hierarchiesIDs = [];
-            let cyElem = this.diagramBuilder.getEntityCyRepr(oldEntity, grapholElem.type);
-            cyElem.neighborhood(`node[type $= ${TypesEnum.UNION}]`).forEach(un => {
-                hierarchiesIDs.push(un.data('hierarchyID'));
-            });
-            this.reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri);
-            this.reassignSubhierarchies(hierarchiesIDs, oldIri, newIri);
-        }
-        oldEntity.removeOccurrence(grapholElem, this.rendererState);
-        const occurrences = oldEntity.occurrences.get(this.rendererState);
-        if (occurrences && occurrences.length === 0) {
-            this.grapholscape.ontology.entities.delete(oldIri.fullIri);
-        }
-    }
-    refactorEntity(entity, elemID, newIri) {
-        var _a, _b;
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        const oldIri = entity.iri.fullIri;
-        const iri = new Iri(newIri, this.grapholscape.ontology.namespaces);
-        const grapholElem = (_a = diagram.representations.get(this.rendererState)) === null || _a === void 0 ? void 0 : _a.grapholElements.get(elemID);
-        if (grapholElem && grapholElem.is(TypesEnum.CLASS)) {
-            let hierarchiesIDs = [];
-            let cyElem = this.diagramBuilder.getEntityCyRepr(entity, grapholElem.type);
-            cyElem.neighborhood(`node[type $= ${TypesEnum.UNION}]`).forEach(un => {
-                hierarchiesIDs.push(un.data('hierarchyID'));
-            });
-            this.reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri);
-            this.reassignSubhierarchies(hierarchiesIDs, oldIri, newIri);
-        }
-        entity.iri = iri;
-        this.grapholscape.ontology.addEntity(entity);
-        (_b = entity.occurrences.get(this.rendererState)) === null || _b === void 0 ? void 0 : _b.forEach(o => this.diagramBuilder.renameElement(o.id, iri));
-        this.grapholscape.ontology.entities.delete(oldIri);
-    }
-    reassignSuperhierarchies(hierarchiesIDs, oldIri, newIri) {
-        // let superhierarchies = this.grapholscape.ontology.hierarchiesBySuperclassMap.get(oldIri.fullIri)
-        // if (superhierarchies) {
-        //   let oldSuperhierarchies = superhierarchies.filter(h => {
-        //     if (h.id) {
-        //       return !hierarchiesIDs.includes(h.id)
-        //     }
-        //   })
-        //   let newSuperhierarchies = superhierarchies.filter(h => {
-        //     if (h.id) {
-        //       return hierarchiesIDs.includes(h.id)
-        //     }
-        //   })
-        //   this.grapholscape.ontology.hierarchiesBySuperclassMap.set(oldIri.fullIri, oldSuperhierarchies)
-        //   this.grapholscape.ontology.hierarchiesBySuperclassMap.set(newIri, newSuperhierarchies)
-        // }
-    }
-    reassignSubhierarchies(hierarchiesIDs, oldIri, newIri) {
-        // let subhierarchies = this.grapholscape.ontology.hierarchiesBySubclassMap.get(oldIri.fullIri)
-        // if (subhierarchies) {
-        //   let oldSubhierarchies = subhierarchies.filter(h => {
-        //     if (h.id) {
-        //       return !hierarchiesIDs.includes(h.id)
-        //     }
-        //   })
-        //   let newSubhierarchies = subhierarchies.filter(h => {
-        //     if (h.id) {
-        //       return hierarchiesIDs.includes(h.id)
-        //     }
-        //   })
-        //   this.grapholscape.ontology.hierarchiesBySubclassMap.set(oldIri.fullIri, oldSubhierarchies)
-        //   this.grapholscape.ontology.hierarchiesBySubclassMap.set(newIri, newSubhierarchies)
-        // }
-    }
-    toggleFunctionality(iri) {
-        const entity = this.grapholscape.ontology.getEntity(iri);
-        if (entity === null || entity === void 0 ? void 0 : entity.hasFunctionProperty(FunctionPropertiesEnum.FUNCTIONAL)) {
-            entity.functionProperties = [];
-        }
-        else {
-            entity === null || entity === void 0 ? void 0 : entity.functionProperties.push(FunctionPropertiesEnum.FUNCTIONAL);
-        }
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        if (entity)
-            this.diagramBuilder.toggleFunctionality(entity, entity === null || entity === void 0 ? void 0 : entity.hasFunctionProperty(FunctionPropertiesEnum.FUNCTIONAL));
-    }
-    toggleUnion(elem) {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        this.diagramBuilder.toggleUnion(elem);
-    }
-    toggleComplete(elem) {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        this.diagramBuilder.toggleComplete(elem);
-    }
-    swapEdge(elem) {
-        const diagram = this.grapholscape.renderer.diagram;
-        this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState);
-        this.diagramBuilder.swapEdge(elem);
-    }
-    convertCamelCase(input) {
-        input = input.replace(/((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))/g, " $1").trim();
-        //input = input.charAt(0).toUpperCase() + input.slice(1);
-        let inputSplit = input.split(' ');
-        inputSplit.forEach((w, i) => {
-            if (w != w.toUpperCase() && i > 0)
-                inputSplit[i] = w.toLowerCase();
-            else
-                inputSplit[i] = w;
-        });
-        input = inputSplit.join(' ');
-        return input;
-    }
-    convertSnakeCase(input) {
-        input = input.replace('_', ' ');
-        return input;
-    }
-}
-
-function setDesignerStyle(cy, theme) {
-    const edgeCreationType = cy.scratch('edge-creation-type');
-    const edgeCreationLabel = cy.scratch('edge-creation-label');
-    const edgeCreationReversed = cy.scratch('edge-creation-reversed');
-    let edgeHandlingStyle = [];
-    if (edgeCreationType !== undefined) {
-        edgeHandlingStyle = getEdgeHandlingStyle(theme, edgeCreationType, edgeCreationLabel, edgeCreationReversed);
-    }
-    /**
-     * Update style to change ghost edge styling based on edge-creation-type.
-     * Could be done assigning here the type field to the ghost edge
-     * but this event is fired before the creation of such edge, should use
-     * a long enough timeout but trying it results in a poor UX.
-     * So just update style with new values for .eh-ghost-edge.
-     */
-    cy.style().resetToDefault().fromJson([
-        ...getFloatyStyle(theme),
-        ...getDesignerBaseStyle(),
-        ...edgeHandlingStyle,
-    ]).update();
-}
-function getDesignerBaseStyle(theme) {
-    return [
-        {
-            selector: '.anchor-node',
-            style: {
-                height: 10,
-                width: 10,
-            }
-        },
-        {
-            selector: 'edge.editing',
-            style: {
-                display: 'none',
-            }
-        }
-    ];
-}
-/**
- * Apply stylesheet for edge handling during edge drawing in builder
- * @param cy cytoscape instance
- * @param theme current grapholscape's theme
- * @param creationEdgeType the kind of edge that is going to be shown
- * @param creationEdgeLabel the label to apply to the ghost edge
- */
-function getEdgeHandlingStyle(theme, creationEdgeType, creationEdgeLabel, creationEdgeReversed = false) {
-    const ehGhostEdgeStyles = {
-        [TypesEnum.INCLUSION]: {
-            'target-arrow-shape': 'triangle',
-        },
-        [TypesEnum.OBJECT_PROPERTY]: {
-            'line-color': theme.getColour(ColoursNames.object_property_contrast),
-            'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-            'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-            'target-arrow-shape': 'triangle',
-            'target-arrow-fill': 'filled',
-            'source-arrow-shape': 'square',
-            'source-arrow-fill': 'hollow',
-            'width': 4,
-        },
-        [TypesEnum.INPUT]: {
-            'line-style': 'solid',
-            'target-arrow-shape': 'none',
-        },
-        [TypesEnum.INSTANCE_OF]: {
-            "target-arrow-shape": 'triangle',
-            'target-arrow-fill': 'filled',
-            'line-color': theme.getColour(ColoursNames.individual),
-            'target-arrow-color': theme.getColour(ColoursNames.individual_contrast),
-            'line-opacity': 0.4,
-        },
-        [TypesEnum.UNION]: {
-            'width': 6,
-            'line-style': 'solid',
-            'target-arrow-shape': 'triangle',
-            'target-arrow-fill': 'hollow',
-        },
-        [TypesEnum.COMPLETE_UNION]: {
-            'width': 6,
-            'line-style': 'solid',
-            'target-arrow-shape': 'triangle',
-            'target-arrow-fill': 'hollow',
-            'target-label': "C",
-            'text-background-color': theme.getColour(ColoursNames.bg_graph),
-            'text-background-opacity': 1,
-            'text-background-shape': 'roundrectangle',
-            'text-background-padding': '2',
-            'font-size': 15,
-            'target-text-offset': 20,
-        },
-        [TypesEnum.DISJOINT_UNION]: {
-            'width': 6,
-            'line-style': 'solid',
-            'target-arrow-shape': 'triangle',
-            'target-arrow-fill': 'filled',
-        },
-        [TypesEnum.COMPLETE_DISJOINT_UNION]: {
-            'width': 6,
-            'line-style': 'solid',
-            'target-arrow-shape': 'triangle',
-            'target-arrow-fill': 'filled',
-            'target-label': "C",
-            'text-background-color': theme.getColour(ColoursNames.bg_graph),
-            'text-background-opacity': 1,
-            'text-background-shape': 'roundrectangle',
-            'text-background-padding': '2',
-            'font-size': 15,
-            'target-text-offset': 20,
-        },
-    };
-    // Base style valid for any kind of ghost edge
-    const ehGhostEdgeStyle = {
-        'opacity': 0.8,
-        'text-rotation': 'autorotate',
-        'label': creationEdgeLabel
-    };
-    // apply styling based on ghost edge type
-    const ehGhostStyleByType = ehGhostEdgeStyles[creationEdgeType];
-    if (ehGhostStyleByType) {
-        if (creationEdgeReversed) {
-            // reverse style of arrows
-            const copy = JSON.parse(JSON.stringify(ehGhostStyleByType));
-            ehGhostStyleByType['source-arrow-color'] = ehGhostStyleByType['target-arrow-color'];
-            ehGhostStyleByType['source-arrow-fill'] = ehGhostStyleByType['target-arrow-fill'];
-            ehGhostStyleByType['source-arrow-shape'] = ehGhostStyleByType['target-arrow-shape'];
-            ehGhostStyleByType['source-label'] = ehGhostStyleByType['target-label'];
-            ehGhostStyleByType['source-text-offset'] = ehGhostStyleByType['target-text-offset'];
-            ehGhostStyleByType['target-arrow-color'] = copy['source-arrow-color'];
-            ehGhostStyleByType['target-arrow-fill'] = copy['source-arrow-fill'];
-            ehGhostStyleByType['target-arrow-shape'] = copy['source-arrow-shape'];
-            ehGhostStyleByType['target-label'] = copy['source-label'];
-            ehGhostStyleByType['target-text-offset'] = copy['source-text-offset'];
-        }
-        Object.assign(ehGhostEdgeStyle, ehGhostStyleByType);
-    }
-    const ehStyle = [
-        {
-            selector: '.eh-ghost-edge',
-            style: ehGhostEdgeStyle
-        },
-        {
-            selector: 'edge.eh-preview',
-            style: {
-                label: creationEdgeLabel
-            }
-        },
-        {
-            selector: '.eh-ghost-edge.eh-preview-active',
-            style: {
-                'opacity': 0,
-            }
-        },
-        {
-            selector: '.eh-target, .eh-source',
-            style: {
-                'border-width': 4,
-            }
-        },
-        {
-            selector: '.eh-presumptive-target',
-            style: {
-                'opacity': 1,
-            }
-        },
-        {
-            selector: '.eh-not-target',
-            style: {
-                'opacity': 0.4,
-            }
-        },
-    ];
-    return ehStyle;
-}
-
-var edgeHandlesDefaults = (edgeType, isReversed = false) => {
-    return {
-        canConnect: function (sourceNode, targetNode) {
-            const sourceType = sourceNode.data('type');
-            const targetType = targetNode.data('type');
-            // return false if there are duplicates
-            // object properties can have duplicates between same nodes
-            if (edgeType !== TypesEnum.OBJECT_PROPERTY) {
-                const edges = !isReversed
-                    ? sourceNode.edgesTo(targetNode)
-                    : targetNode.edgesTo(sourceNode);
-                if (edges.filter(e => e.data().type === edgeType).nonempty())
-                    return false;
-            }
-            switch (sourceType) {
-                case TypesEnum.UNION:
-                case TypesEnum.DISJOINT_UNION:
-                    return targetType === TypesEnum.CLASS;
-                case TypesEnum.CLASS:
-                case TypesEnum.INDIVIDUAL:
-                case TypesEnum.CLASS_INSTANCE:
-                    return ((targetType === TypesEnum.INDIVIDUAL || targetType === TypesEnum.CLASS_INSTANCE) && edgeType === TypesEnum.OBJECT_PROPERTY) || targetType === TypesEnum.CLASS;
-                case TypesEnum.DATA_PROPERTY:
-                    return (targetType === TypesEnum.DATA_PROPERTY && edgeType === TypesEnum.INCLUSION) || (targetType === TypesEnum.CLASS && edgeType === TypesEnum.ATTRIBUTE_EDGE);
-                default:
-                    return false;
-            }
-        },
-        edgeParams: function (sourceNode, targetNode) {
-            return {
-                data: {
-                    source: !isReversed ? sourceNode.id() : targetNode.id(),
-                    target: !isReversed ? targetNode.id() : sourceNode.id(),
-                    type: edgeType,
-                    targetLabel: edgeType === TypesEnum.COMPLETE_UNION ||
-                        edgeType === TypesEnum.COMPLETE_DISJOINT_UNION ? 'C' : undefined,
-                }
-            };
-        },
-        hoverDelay: 150,
-        snap: true,
-        snapThreshold: 30,
-        snapFrequency: 15,
-        noEdgeEventsInDraw: true,
-        disableBrowserGestures: true, // during an edge drawing gesture, disable browser gestures such as two-finger trackpad swipe and pinch-to-zoom
-    };
-};
-
-/**
- * Start edge creation of a given type from a sourceElem
- * @param cy cytoscape instance to draw in
- * @param edgeType type of edge to draw
- * @param sourceNode source of the new edge
- * @param theme current Grapholscape's theme, for styling edge properly
- * @param onComplete callback to execute when edge is completely drawn
- * @param isReversed whether to use sourceNode as target or not, default false
- */
-function drawNewEdge (cy, edgeType, sourceNode, theme, onComplete, isReversed = false) {
-    if (onComplete) {
-        cy.one('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            // ignore sourceNode and targetNode provided by edge-handles plugin
-            // cause in case of isReversed = true, the real source/target are
-            // those set on the addedEdge, hence use them in callback
-            onComplete(event, addedEdge.source(), addedEdge.target(), addedEdge);
-            // clear event listener, avoid pollution in case other services create edges
-            cy.off('ehcomplete');
-            cy.removeScratch('edge-creation-type');
-        });
-        cy.on('ehstop', () => {
-            cy.off('ehcomplete');
-            cy.off('ehstop');
-        });
-    }
-    cy.scratch('edge-creation-type', edgeType);
-    setDesignerStyle(cy, theme);
-    let edgehandles = cy.edgehandles(edgeHandlesDefaults(edgeType, isReversed));
-    edgehandles.start(sourceNode);
-}
-
-function ontologyModelToViewData(ontologyModelData) {
-    let ontologyViewData = {
-        name: ontologyModelData.name,
-        typeOrVersion: new Set([ontologyModelData.version]),
-        iri: ontologyModelData.iri || '',
-        namespaces: ontologyModelData.namespaces,
-        annotations: ontologyModelData.annotations,
-    };
-    return ontologyViewData;
-}
-
-/**
- * Stylesheet to apply to modals having this structure:
- * ```
- * - .gscape-panel
- * |- .top-bar
- * | |- .header
- * | |- close button (optionally)
- * --------------------
- * |- .body
- * | |- form (optionally)
- * --------------------
- * |- .bottom-buttons
- * --------------------
- * ```
- */
-var modalSharedStyles = i$1 `
-  .gscape-panel {
-    position: absolute;
-    top: 100px;
-    left: 50%;
-    transform: translate(-50%);
-    max-width: 30%;
-    min-width: 300px;
-    max-height: calc(90% - 100px);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 16px;
-    overflow: hidden;
-  }
-
-  .top-bar {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 4px;
-  }
-
-  .header {
-    margin: 2px 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .modal-body {
-    padding: 0 16px;
-    flex-grow: 2;
-    overflow: auto;
-  }
-
-  form, #advanced-settings {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow: auto;
-  }
-
-  .form-item label {
-    display: block;
-    margin-bottom: 4px
-  }
-
-  .form-item input {
-    display: block;
-    width: 100%;
-    min-width: 10px;
-  }
-
-  form .dropdown {
-    position: relative;
-    border: solid 1px var(--gscape-color-border-subtle);
-    border-radius: var(--gscape-border-radius);
-  }
-
-  form .dropdown select {
-    display: block;
-    width: 100%;
-    min-width: 100px;
-  }
-
-  form .dropdown > * {
-    box-sizing: border-box;
-    height: 100%;
-    border: none;
-  }
-
-  form .dropdown input {
-    position: absolute;
-    display: block;
-    width: 85%;
-  }
-
-  form .dropdown select:focus, .dropdown input:focus {
-    border-color: inherit;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-  }
-
-  form .chip {
-    width: fit-content;
-    border: 1px solid var(--gscape-color-neutral-muted);
-    color: unset;
-    background: var(--gscape-color-neutral);
-  }
-
-  form .chip[selected] {
-    border: 1px solid var(--gscape-color-accent);
-    color: var(--gscape-color-accent);
-    background: var(--gscape-color-accent-subtle);
-  }
-
-  .bottom-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: right;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-`;
-
-const { ModalMixin: ModalMixin$4, BaseMixin: BaseMixin$6, icons: icons$7, baseStyle: baseStyle$6, SizeEnum, } = UI;
-const datatypes = ['owl:real', 'owl:rational', 'xsd:decimal', 'xsd:integer',
-    'xsd:nonNegativeInteger', 'xsd:nonPositiveInteger',
-    'xsd:positiveInteger', 'xsd:negativeInteger', 'xsd:long',
-    'xsd:int', 'xsd:short', 'xsd:byte', 'xsd:unsignedLong',
-    'xsd:unsignedInt', 'xsd:unsignedShort', 'xsd:unsignedByte',
-    'xsd:double', 'xsd:float', 'xsd:string',
-    'xsd:normalizedString', 'xsd:token', 'xsd:language', 'xsd:Name',
-    'xsd:NCName', 'xsd:NMTOKEN', 'xsd:boolean', 'xsd:hexBinary',
-    'xsd:base64Binary',
-    'xsd:dateTime', 'xsd:dateTimeStamp', 'rdf:XMLLiteral',
-    'rdf:PlainLiteral', 'rdfs:Literal', 'xsd:anyURI'];
-var ModalTypeEnum;
-(function (ModalTypeEnum) {
-    ModalTypeEnum["DIAGRAM"] = "diagram";
-    ModalTypeEnum["HIERARCHY"] = "hierarchy";
-    ModalTypeEnum["ISA"] = "isa";
-    ModalTypeEnum["RENAME_ENTITY"] = "rename";
-})(ModalTypeEnum || (ModalTypeEnum = {}));
-const modalIcons = {
-    [ModalTypeEnum.DIAGRAM]: icons$7.diagrams,
-    [ModalTypeEnum.HIERARCHY]: icons$7.subHierarchies,
-    [ModalTypeEnum.ISA]: icons$7.addISAIcon,
-    [ModalTypeEnum.RENAME_ENTITY]: icons$7.renameIcon,
-};
-class GscapeNewElementModal extends ModalMixin$4(BaseMixin$6(s)) {
-    /**
-     *
-     * @param modalType The type of the modal, this value changes the form template.
-     * it can be a TypesEnum for defining new Entities or ModalTypeEnum for other
-     * types of elements to define or actions to perform
-     * @param dialogTitle
-     */
-    constructor(modalType, dialogTitle) {
-        super();
-        this.modalType = modalType;
-        this.dialogTitle = dialogTitle;
-        this.onCancel = () => { };
-        this.entities = [];
-        this.namespaces = [];
-        this.remainderToRename = '';
-        this.selectedNamespaceIndex = 0;
-        this.selectedInputIndex = Array.from(Array(1), () => -1);
-        this.diagramName = '';
-        this.advancedMode = false;
-        this.inputs = [{ datatype: 'xsd:string' }];
-        this.isValid = false;
-        this.deriveLabel = true;
-        this.convertCamel = true;
-        this.convertSnake = false;
-        this.isHierarchyComplete = false;
-        this.isHierarchyDisjoint = false;
-        this.isaDirection = 'subclass';
-        /**
-         * If the form is valid, dispatch the 'confirm' event setting
-         * the `detail` field based on the modalType.
-         * The form can be invalid in case the confirm is requested by
-         * keyboard.
-         * Can't be invalid if this is triggered by buttons cause they
-         * are disabled if form is not valid.
-         */
-        this.handleConfirm = (evt) => __awaiter(this, void 0, void 0, function* () {
-            if (this.isValid) {
-                yield this.updateComplete;
-                let eventsDetail = [];
-                switch (this.modalType) {
-                    case TypesEnum.CLASS:
-                    case TypesEnum.INDIVIDUAL:
-                        if (this.selectedNamespaceValue && this.mainInputValue) {
-                            this.inputs.filter(i => i.name && i.name.length > 0).forEach(input => {
-                                eventsDetail.push({
-                                    iri: this.selectedNamespaceValue + input.name,
-                                    namespace: this.selectedNamespaceValue,
-                                    type: this.modalType,
-                                    deriveLabel: this.deriveLabel,
-                                    convertCamel: this.convertCamel,
-                                    convertSnake: this.convertSnake,
-                                    lang: this.labelLanguage,
-                                });
-                            });
-                        }
-                        break;
-                    case TypesEnum.DATA_PROPERTY:
-                        if (this.selectedNamespaceValue && this.mainInputValue) {
-                            this.inputs.filter(i => i.name && i.name.length > 0).forEach(input => {
-                                var _a;
-                                eventsDetail.push({
-                                    iri: this.selectedNamespaceValue + input.name,
-                                    namespace: this.selectedNamespaceValue,
-                                    type: this.modalType,
-                                    deriveLabel: this.deriveLabel,
-                                    convertCamel: this.convertCamel,
-                                    convertSnake: this.convertSnake,
-                                    lang: this.labelLanguage,
-                                    isFunctional: ((_a = input.functionProperties) === null || _a === void 0 ? void 0 : _a.has(FunctionPropertiesEnum.FUNCTIONAL)) || false,
-                                    datatype: input.datatype,
-                                });
-                            });
-                        }
-                        break;
-                    case TypesEnum.OBJECT_PROPERTY:
-                        if (this.selectedNamespaceValue && this.mainInputValue) {
-                            eventsDetail = [{
-                                    iri: this.selectedNamespaceValue + this.mainInputValue,
-                                    namespace: this.selectedNamespaceValue,
-                                    type: this.modalType,
-                                    deriveLabel: this.deriveLabel,
-                                    convertCamel: this.convertCamel,
-                                    convertSnake: this.convertSnake,
-                                    lang: this.labelLanguage,
-                                    functionProperties: Array.from(this.inputs[0].functionProperties || []),
-                                }];
-                        }
-                        break;
-                    case ModalTypeEnum.DIAGRAM:
-                        if (this.mainInputValue) {
-                            eventsDetail = [{
-                                    diagramName: this.mainInputValue,
-                                }];
-                        }
-                        break;
-                    case ModalTypeEnum.RENAME_ENTITY:
-                        const selectedBtn = evt === null || evt === void 0 ? void 0 : evt.currentTarget;
-                        eventsDetail = [{
-                                newIri: this.selectedNamespaceValue + (this.mainInputValue || this.remainderToRename),
-                                namespace: this.selectedNamespaceValue,
-                                isRefactor: (selectedBtn === null || selectedBtn === void 0 ? void 0 : selectedBtn.id) === 'refactor' || false
-                            }];
-                        break;
-                    case ModalTypeEnum.HIERARCHY:
-                        const newClassesNames = this.inputs.filter(i => i.name && i.name.length > 0).map(i => i.name);
-                        if (this.selectedNamespaceValue && newClassesNames.length >= 2) {
-                            eventsDetail = [{
-                                    inputClassesIri: newClassesNames.map(iri => this.selectedNamespaceValue + iri),
-                                    namespace: this.selectedNamespaceValue,
-                                    isComplete: this.isHierarchyComplete,
-                                    isDisjoint: this.isHierarchyDisjoint,
-                                    deriveLabel: this.deriveLabel,
-                                    convertCamel: this.convertCamel,
-                                    convertSnake: this.convertSnake,
-                                    lang: this.labelLanguage,
-                                }];
-                        }
-                        break;
-                    case ModalTypeEnum.ISA:
-                        if (this.selectedNamespaceValue && this.mainInputValue) {
-                            eventsDetail = [{
-                                    iri: this.selectedNamespaceValue + this.mainInputValue,
-                                    namespace: this.selectedNamespaceValue,
-                                    type: TypesEnum.CLASS,
-                                    deriveLabel: this.deriveLabel,
-                                    convertCamel: this.convertCamel,
-                                    convertSnake: this.convertSnake,
-                                    lang: this.labelLanguage,
-                                    isaDirection: this.isaDirection,
-                                }];
-                        }
-                        break;
-                }
-                eventsDetail.forEach(event => {
-                    this.dispatchEvent(new CustomEvent('confirm', {
-                        bubbles: true,
-                        composed: true,
-                        detail: event
-                    }));
-                });
-            }
-        });
-        this.handleCancel = () => {
-            this.onCancel();
-            this.remove();
-        };
-        // Set the standard keyup event listener on the whole component
-        // equal to <gscape-new-element-modal @keyup=${...}>...</gscape-new-element-modal>
-        this.handleKeyUp = (evt) => {
-            if (evt.key === 'Enter') { // keyCode deprecated
-                this.handleConfirm();
-            }
-            else if (evt.key === 'Escape') {
-                this.handleCancel();
-            }
-        };
-    }
-    validate() {
-        var _a;
-        // const mainInputLength = this.mainInputValue?.length || 0
-        const atLeastOneInput = this.inputs.some(i => i.name && i.name.length > 0);
-        const nameSpaceInputLength = ((_a = this.selectedNamespaceValue) === null || _a === void 0 ? void 0 : _a.length) || 0;
-        switch (this.modalType) {
-            case TypesEnum.CLASS:
-            case TypesEnum.DATA_PROPERTY:
-            case TypesEnum.OBJECT_PROPERTY:
-            case TypesEnum.INDIVIDUAL:
-            case ModalTypeEnum.ISA:
-                this.isValid = atLeastOneInput && nameSpaceInputLength > 0;
-                break;
-            case ModalTypeEnum.RENAME_ENTITY:
-                if (this.advancedMode) {
-                    // in advanced mode, you can also rename/refactor only the namespace
-                    this.isValid = nameSpaceInputLength > 0;
-                }
-                else {
-                    // In basic mode, you must rename remainder to submit
-                    this.isValid = atLeastOneInput && nameSpaceInputLength > 0;
-                }
-                break;
-            case ModalTypeEnum.DIAGRAM:
-                this.isValid = this.mainInputValue ? this.mainInputValue.length > 0 : false;
-                break;
-            case ModalTypeEnum.HIERARCHY:
-                this.isValid =
-                    this.inputs.filter(i => i.name && i.name.length > 0).length >= 2;
-                break;
-        }
-    }
-    toggleAdvanced() {
-        this.advancedMode = !this.advancedMode;
-    }
-    handleNamespaceSelection(e) {
-        var _a;
-        const selectTarget = e.currentTarget;
-        if (selectTarget) {
-            const namespaceInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newnamespace');
-            const index = parseInt(selectTarget.value);
-            this.selectedNamespaceIndex = !Number.isNaN(index) ? index : undefined;
-            namespaceInput.value = this.selectedNamespaceIndex !== undefined
-                ? this.namespaces[this.selectedNamespaceIndex].toString()
-                : '';
-            namespaceInput.focus();
-        }
-        this.validate();
-    }
-    handleNamespaceInput(e) {
-        const inputTarget = e.currentTarget;
-        if (inputTarget) {
-            this.selectedNamespaceIndex = undefined;
-        }
-        this.validate();
-    }
-    handleDataTypeSelection(e, i = 0) {
-        const selectTarget = e.currentTarget;
-        if (selectTarget && this.inputs[i]) {
-            this.inputs[i].datatype = selectTarget.value;
-        }
-    }
-    handleLanguageSelection(e) {
-        var _a;
-        const selectTarget = e.currentTarget;
-        if (selectTarget) {
-            const languageInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newlan');
-            const value = selectTarget.value;
-            languageInput.value = value
-                ? value
-                : '';
-            languageInput.focus();
-        }
-        this.validate();
-    }
-    handleFunctionPropertyClick(e, i, property) {
-        var _a;
-        const input = this.inputs[i];
-        if (input) {
-            if ((_a = input.functionProperties) === null || _a === void 0 ? void 0 : _a.has(property)) {
-                input.functionProperties.delete(property);
-            }
-            else {
-                if (input.functionProperties)
-                    input.functionProperties.add(property);
-                else
-                    input.functionProperties = new Set([property]);
-            }
-        }
-        this.requestUpdate();
-    }
-    handleInputSelection(e, i = 0) {
-        var _a;
-        const selectTarget = e.currentTarget;
-        if (selectTarget) {
-            const input = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector("#input-" + i);
-            const index = parseInt(selectTarget.value);
-            if (this.selectedInputIndex && this.entities) {
-                this.selectedInputIndex[i] = !Number.isNaN(index) ? index : -1;
-                input.value = this.selectedInputIndex[i] >= 0 ? this.entities[this.selectedInputIndex[i]].iri.remainder.toString() : '';
-                this.inputs[i].name = input.value;
-                input.focus();
-            }
-        }
-        this.validate();
-    }
-    handleInputChange(e, i = 0) {
-        this.inputs[i].name = e.currentTarget.value;
-        if (this.selectedInputIndex)
-            this.selectedInputIndex[i] = -1;
-        this.validate();
-    }
-    handleAddInput() {
-        switch (this.modalType) {
-            case TypesEnum.DATA_PROPERTY:
-                this.inputs = this.inputs.concat({ name: '', datatype: 'xsd:string' });
-                break;
-            default:
-                this.inputs = this.inputs.concat({});
-        }
-    }
-    getNamespacesTemplate() {
-        var _a;
-        return x `
-      <div class="form-item">
-        <label id="namespace-label" for="newnamespace">Namespace:</label>
-        <div class="dropdown">
-          <input
-            id="newnamespace"
-            value=${this.selectedNamespaceIndex !== undefined ? this.namespaces[this.selectedNamespaceIndex] : ''}
-            @input=${this.handleNamespaceInput}
-            type="text"
-          />
-          <select id="namespace" name="namespace" value=${this.selectedNamespaceValue} @change=${this.handleNamespaceSelection} required>
-            ${(_a = this.namespaces) === null || _a === void 0 ? void 0 : _a.map((n, i) => {
-            return x `<option value=${i} ?selected=${i === this.selectedNamespaceIndex}>${n.toString()}</option>`;
-        })}
-            <option value="" ?selected=${this.selectedNamespaceIndex === undefined}></option>
-          </select>
-        </div>
-      </div>
-    `;
-    }
-    getMainInput(i = 0) {
-        var _a;
-        return x `
-      <div class="form-item">
-        ${i === 0 ? x `<label for="input-0">Name:</label>` : null}
-        <div class="dropdown">
-          <input
-            id="input-${i}"
-            value=${this.selectedInputIndex[i] >= 0 && this.entities ? this.entities[this.selectedInputIndex[i]].iri.remainder : ''}
-            @input=${(e) => this.handleInputChange(e, i)}
-            type="text"
-            required
-            placeholder=${this.remainderToRename}
-          />
-          <select id="input-item-${i}" name="input" value=${this.selectedInputIndex[i] >= 0 && this.entities ? this.entities[this.selectedInputIndex[i]].iri.remainder : ''} @change=${(e) => this.handleInputSelection(e, i)}>
-            ${(_a = this.entities) === null || _a === void 0 ? void 0 : _a.map((n, i) => {
-            return x `<option value=${i} ?selected=${i === this.selectedInputIndex[i]}>${n.iri.remainder.toString()}</option>`;
-        })}
-            <option value="" ?selected=${this.selectedInputIndex[i] === -1}></option>
-          </select>
-        </div>
-      </div>
-    `;
-    }
-    getLabelSettings() {
-        const toggleLabel = (e) => {
-            e.preventDefault();
-            this.deriveLabel = !this.deriveLabel;
-        };
-        const toggleCamelCase = (e) => {
-            e.preventDefault();
-            this.convertCamel = !this.convertCamel;
-        };
-        const toggleSnakeCase = (e) => {
-            e.preventDefault();
-            this.convertSnake = !this.convertSnake;
-        };
-        return x `
-      <div id = 'label-settings' class="form-item">
-        <label id="label-label" for="label">Label:</label>
-        <gscape-toggle
-          class="actionable"
-          label="Derive label from input"
-          @click=${toggleLabel}
-          ?checked=${this.deriveLabel}>
-        </gscape-toggle>
-        ${this.deriveLabel ? x `
-        <label id="language-label" for="language">Language:</label>
-        <div class="dropdown">
-            <input id="newlan" type="text"/>
-            <select id="language" onchange=${this.handleLanguageSelection} name="language" required>
-                ${Object.values(Language).sort().map((n, i) => {
-            return x `<option value="${n.toString()}"; >${n.toString()}</option>`;
-        })}
-                <option value=""></option>
-            </select>
-        </div><br>
-        <span
-          id='camelCase'
-          class="chip actionable"
-          @click=${toggleCamelCase}
-          ?selected=${this.convertCamel}
-        >
-          ${this.convertCamel ? x `&#10003; ` : null} Convert camelCase
-        </span>
-        <span
-          id='snake_case'
-          class="chip actionable"
-          @click=${toggleSnakeCase}
-          ?selected=${this.convertSnake}
-        >
-          ${this.convertSnake ? x `&#10003; ` : null} Convert snake_case
-        </span>
-        
-        `
-            : null}
-      </div>
-    `;
-    }
-    newDataPropertyForm() {
-        return x `
-
-      ${this.inputs.map((input, i) => {
-            return x `
-          <div class="form-item data-property-row" input-index=${i}>
-            ${this.getMainInput(i)}
-
-            <div>
-              ${i === 0 ? x `<label>Datatype:</label>` : null}
-              <select id="datatype" name="datatype" required @change=${(e) => this.handleDataTypeSelection(e, i)}>
-                ${datatypes.sort().map(datatype => x `
-                  <option value=${datatype} ?selected=${input.datatype === datatype} >${datatype}</option>
-                `)}
-              </select>
-            </div>
-
-            <div class="${i === 0 ? 'movedown-chip' : null}">
-              ${this.getFunctionPropertyChip(FunctionPropertiesEnum.FUNCTIONAL, i)}
-            </div>
-          </div>
-        `;
-        })}
-
-      <gscape-button style="align-self: center;" title="Add Subclass" @click=${this.handleAddInput} size=${SizeEnum.S}>
-        <span slot="icon">${icons$7.plus}</span>
-      </gscape-button>
-
-      ${this.getAdvancedSection()}
-    `;
-    }
-    newOBjectPropertyForm() {
-        return x `
-      ${this.getMainInput()}
-      
-      <div id="function-properties" class="form-item">
-        <label>Properties</label>
-        <div>
-          ${this.advancedMode
-            ? Object.values(FunctionPropertiesEnum).map(f => this.getFunctionPropertyChip(f))
-            : x `
-              ${this.getFunctionPropertyChip(FunctionPropertiesEnum.FUNCTIONAL)}
-              ${this.getFunctionPropertyChip(FunctionPropertiesEnum.INVERSE_FUNCTIONAL)}
-            `}
-        </div>
-      </div>
-
-      ${this.getAdvancedSection()}
-    `;
-    }
-    newISAForm() {
-        const toggleISADirection = () => {
-            this.isaDirection = this.isaDirection === 'subclass' ? 'superclass' : 'subclass';
-        };
-        return x `
-      ${this.getMainInput()}
-
-      <div class="form-item" style="align-self: center">
-        <gscape-button
-          label=${`As ${this.isaDirection.charAt(0).toUpperCase().concat(this.isaDirection.slice(1))}`}
-          size=${SizeEnum.S}
-          type='subtle'
-          @click=${toggleISADirection}
-        >
-          <span slot="icon">
-            ${this.isaDirection === 'superclass'
-            ? superHierarchies
-            : subHierarchies}
-          </span>
-        </gscape-button>
-      </div>
-
-      ${this.getAdvancedSection()}
-    `;
-    }
-    newEntityForm() {
-        return x `
-      ${this.inputs.map((input, i) => x `
-        ${this.getMainInput(i)}
-      `)}
-
-      <gscape-button style="align-self: center;" title="Add Subclass" @click=${this.handleAddInput} size=${SizeEnum.S}>
-        <span slot="icon">${icons$7.plus}</span>
-      </gscape-button>
-
-      ${this.getAdvancedSection()}
-    `;
-    }
-    renameEntityForm() {
-        return x `
-      ${this.getMainInput()}
-      ${this.getAdvancedSection()}
-    `;
-    }
-    newDiagramForm() {
-        return x `
-      <div class="form-item">
-        <label for="input">Diagram Name:</label>
-        <input id="input"
-          type="text"
-          value = ${this.diagramName}
-          @input=${this.validate}
-          name="input"
-          required
-        >
-      </div>
-    `;
-    }
-    newSubHierarchyForm() {
-        const inputs = [];
-        for (let i = 0; i < this.inputs.length; i += 1) {
-            inputs.push(x `
-        <input
-          class="subclass-input"
-          style="margin-bottom: 8px;"
-          type="text"
-          @input=${(e) => this.handleInputChange(e, i)}
-          name="input"
-        />
-      `);
-        }
-        // const onAdd = () => this.numberOfInputs += 1
-        const toggleComplete = (e) => {
-            e.preventDefault();
-            this.isHierarchyComplete = !this.isHierarchyComplete;
-        };
-        const toggleDisjoint = (e) => {
-            e.preventDefault();
-            this.isHierarchyDisjoint = !this.isHierarchyDisjoint;
-        };
-        return x `
-      <div class="form-item">
-        <label>Sub Classes:</label>
-        ${inputs}
-      </div>
-
-      <gscape-button style="align-self: center;" title="Add Subclass" @click=${this.handleAddInput} size=${SizeEnum.S}>
-        <span slot="icon">${icons$7.plus}</span>
-      </gscape-button>
-
-      <div id ="hierarchy-toggles" class="form-item">
-        <gscape-toggle
-          class="actionable"
-          label="Complete"
-          @click=${toggleComplete}
-          ?checked=${this.isHierarchyComplete}>
-        </gscape-toggle>
-        <gscape-toggle
-          class="actionable"
-          label="Disjoint"
-          @click=${toggleDisjoint}
-          ?checked=${this.isHierarchyDisjoint}>
-        </gscape-toggle>
-      </div>
-      ${this.getAdvancedSection()}
-    `;
-    }
-    getAdvancedSection() {
-        if (this.advancedMode) {
-            if (this.modalType === ModalTypeEnum.RENAME_ENTITY) {
-                return x `
-          <div class="hr" style="margin: 16px auto"></div>
-          <div id="advanced-settings" class="area">
-            ${this.getNamespacesTemplate()}
-        `;
-            }
-            else {
-                return x `
-          <div class="hr" style="margin: 16px auto"></div>
-          <div id="advanced-settings" class="area">
-            ${this.getNamespacesTemplate()}
-            ${this.getLabelSettings()}
-          </div>
-        `;
-            }
-        }
-    }
-    getForm() {
-        switch (this.modalType) {
-            case TypesEnum.DATA_PROPERTY:
-                return this.newDataPropertyForm();
-            case TypesEnum.OBJECT_PROPERTY:
-                return this.newOBjectPropertyForm();
-            case TypesEnum.INDIVIDUAL:
-            case TypesEnum.CLASS:
-                return this.newEntityForm();
-            case ModalTypeEnum.RENAME_ENTITY:
-                return this.renameEntityForm();
-            case ModalTypeEnum.ISA:
-                return this.newISAForm();
-            case ModalTypeEnum.DIAGRAM:
-                return this.newDiagramForm();
-            case ModalTypeEnum.HIERARCHY:
-                return this.newSubHierarchyForm();
-            default:
-                return null;
-        }
-    }
-    getFunctionPropertyChip(property, i = 0) {
-        var _a, _b;
-        return x `
-      <span
-        id=${property}
-        class="chip actionable"
-        @click=${(e) => this.handleFunctionPropertyClick(e, i, property)}
-        ?selected=${(_a = this.inputs[i].functionProperties) === null || _a === void 0 ? void 0 : _a.has(property)}
-      >
-        ${((_b = this.inputs[i].functionProperties) === null || _b === void 0 ? void 0 : _b.has(property)) ? x `&#10003; ` : null} ${property}
-      </span>
-    `;
-    }
-    get hierarchyInputValues() {
-        var _a;
-        const values = [];
-        const inputs = (((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('form input.subclass-input')) || []);
-        for (let input of inputs) {
-            if (input.value && input.value.length > 0) {
-                values.push(input.value);
-            }
-        }
-        return values;
-    }
-    get selectedNamespaceValue() {
-        var _a, _b, _c;
-        if (((_a = this.namespaces) === null || _a === void 0 ? void 0 : _a.length) > 0 &&
-            this.selectedNamespaceIndex !== undefined &&
-            this.namespaces[this.selectedNamespaceIndex])
-            return this.namespaces[this.selectedNamespaceIndex].toString();
-        else
-            return (_c = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#newnamespace')) === null || _c === void 0 ? void 0 : _c.value;
-    }
-    get mainInputValue() {
-        var _a, _b;
-        switch (this.modalType) {
-            case ModalTypeEnum.DIAGRAM:
-                return ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#input')).value;
-            default:
-                return (_b = this.inputs.find(i => i.name && i.name.length > 0)) === null || _b === void 0 ? void 0 : _b.name;
-        }
-    }
-    get labelLanguage() {
-        var _a, _b;
-        return (_b = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newlan')) === null || _b === void 0 ? void 0 : _b.value;
-    }
-    get isAdvanceAllowed() {
-        switch (this.modalType) {
-            case TypesEnum.CLASS:
-            case TypesEnum.DATA_PROPERTY:
-            case TypesEnum.OBJECT_PROPERTY:
-            case TypesEnum.INDIVIDUAL:
-            case ModalTypeEnum.HIERARCHY:
-            case ModalTypeEnum.ISA:
-            case ModalTypeEnum.RENAME_ENTITY:
-                return true;
-            default:
-                return false;
-        }
-    }
-    connectedCallback() {
-        super.connectedCallback();
-        window.addEventListener('keyup', this.handleKeyUp);
-    }
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        window.removeEventListener('keyup', this.handleKeyUp);
-    }
-    render() {
-        const headerIcon = icons$7.entityIcons[this.modalType] || modalIcons[this.modalType];
-        return x `
-      <div class="gscape-panel">
-        <div class="header">
-          ${headerIcon ? x `<span class="slotted-icon">${headerIcon}</span>` : null}
-          <span>${this.dialogTitle}</span>
-        </div>
-        <div class="modal-body">
-          <form
-            id="new-element-form"
-            action= "javascript:void(0);"
-            autocomplete="off"
-          >
-            ${this.getForm()}
-          </form>
-        </div>
-        <div class="bottom-buttons" id="buttons">
-          ${this.isAdvanceAllowed
-            ? x `
-              <span
-                class="actionable muted-text"
-                @click=${this.toggleAdvanced}
-                style="margin-right: auto; text-decoration: underline; align-self: end; flex-shrink: 0;"
-              >
-                ${this.advancedMode ? "Base settings" : "Advanced settings"}
-              </span>
-            `
-            : null}
-          <gscape-button label="Cancel" type="subtle" size=${SizeEnum.S} @click=${this.handleCancel}></gscape-button>
-
-          ${this.modalType === ModalTypeEnum.RENAME_ENTITY
-            ? x `
-              <gscape-button
-                id="refactor"
-                label="Refactor"
-                @click=${this.handleConfirm}
-                ?disabled=${!this.isValid}
-              ></gscape-button>
-            `
-            : null}
-
-          <gscape-button
-            id="ok"
-            type="primary"
-            label="${this.modalType === ModalTypeEnum.RENAME_ENTITY ? 'Rename' : 'Ok'}"
-            @click=${this.handleConfirm}
-            ?disabled=${!this.isValid}
-          ></gscape-button>
-        </div>
-      </div>
-    `;
-    }
-}
-GscapeNewElementModal.properties = {
-    dialogTitle: { type: String },
-    namespaces: { type: Array },
-    entities: { type: Array },
-    advancedMode: { type: Boolean, state: true },
-    selectedNamespaceIndex: { type: Number, state: true },
-    selectedInputIndex: { type: Array, state: true },
-    isValid: { type: Boolean, state: true },
-    deriveLabel: { type: Boolean, state: true },
-    convertCamel: { type: Boolean, state: true },
-    convertSnake: { type: Boolean, state: true },
-    isHierarchyComplete: { type: Boolean, state: true },
-    isHierarchyDisjoint: { type: Boolean, state: true },
-    inputs: { type: Array, state: true },
-    isaDirection: { type: String, state: true },
-};
-GscapeNewElementModal.styles = [
-    baseStyle$6,
-    modalSharedStyles,
-    i$1 `
-      :host {
-        position: absolute;
-      }
-
-      #hierarchy-toggles {
-        display: flex;
-        justify-content: center;
-      }
-
-      #hierarchy-toggles > * {
-        width: fit-content;
-      }
-
-      .form-item.data-property-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        overflow: auto;
-      }
-
-      .movedown-chip {
-        position: relative;
-        top: 9px;
-      }
-
-      #advanced-settings.area {
-        padding: 16px;
-      }
-    `
-];
-customElements.define('gscape-new-element', GscapeNewElementModal);
-
-const { ModalMixin: ModalMixin$3, BaseMixin: BaseMixin$5, icons: icons$6, baseStyle: baseStyle$5, } = UI;
-class GscapeAnnotationModal extends ModalMixin$3(BaseMixin$5(s)) {
-    constructor(annotation) {
-        super();
-        this.annotation = annotation;
-        this.isValid = false;
-        this.onConfirm = () => { };
-        this.onCancel = () => { };
-        this.handleConfirm = () => {
-            var _a, _b, _c, _d, _e;
-            let myform = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#new-annotation-form');
-            if (myform) {
-                const propertyInput = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#newproperty');
-                const lexicalFormInput = (_c = this.shadowRoot) === null || _c === void 0 ? void 0 : _c.querySelector('#lexicalform');
-                const datatypeInput = (_d = this.shadowRoot) === null || _d === void 0 ? void 0 : _d.querySelector('#datatype');
-                const languageInput = (_e = this.shadowRoot) === null || _e === void 0 ? void 0 : _e.querySelector('#newlan');
-                const propertyIri = Object.values(DefaultAnnotationProperties).find(ap => ap.equals(propertyInput.value)) || propertyInput.value;
-                this.onConfirm(this.annotation, propertyIri, lexicalFormInput.value, datatypeInput.value, languageInput.value);
-                this.resetForm();
-            }
-            this.remove();
-        };
-        this.handleCancel = () => {
-            this.onCancel();
-            this.resetForm();
-            this.remove();
-        };
-        this.resetForm = () => {
-            var _a, _b, _c;
-            let myform = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#new-annotation-form');
-            this.annotation = undefined;
-            if (myform) {
-                myform.reset();
-            }
-            (_c = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#ok')) === null || _c === void 0 ? void 0 : _c.setAttribute('disabled', 'true');
-        };
-    }
-    handlePropertySelection(e) {
-        var _a;
-        const selectTarget = e.currentTarget;
-        if (selectTarget) {
-            const propertyInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newproperty');
-            const value = selectTarget.value;
-            propertyInput.value = value
-                ? value
-                : '';
-            propertyInput.focus();
-        }
-        this.validate();
-    }
-    handleLanguageSelection(e) {
-        var _a;
-        const selectTarget = e.currentTarget;
-        if (selectTarget) {
-            const languageInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newlan');
-            const value = selectTarget.value;
-            languageInput.value = value
-                ? value
-                : '';
-            languageInput.focus();
-        }
-        this.validate();
-    }
-    validate() {
-        var _a, _b;
-        const propertyInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newproperty');
-        const lexicalFormInput = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#lexicalform');
-        if (propertyInput && lexicalFormInput) {
-            this.isValid = propertyInput.value.length > 0 && lexicalFormInput.value.length > 0;
-        }
-    }
-    render() {
-        var _a, _b, _c, _d;
-        return x `
-            <div>          
-                <div class="gscape-panel">
-                    <div class="header">
-                    Edit Annotation
-                    </div>
-                    <form id= "new-annotation-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                        <label style = "width: 95%; margin: 8px 8px 8px 8px ;" id="property-label" for="property"><b>Property:</b></label><br>
-                        <div class="dropdown">
-                            <input 
-                                id="newproperty" 
-                                value="${(_a = this.annotation) === null || _a === void 0 ? void 0 : _a.property}" 
-                                type="text"
-                                @input=${this.validate}/>
-                            <select 
-                              id="property" 
-                              @change=${this.handlePropertySelection}                              
-                              name="property" 
-                              value="${(_b = this.annotation) === null || _b === void 0 ? void 0 : _b.property}" required>
-                                ${Object.values(DefaultAnnotationProperties).sort().map((property, i) => {
-            return x `
-                                    <option 
-                                      value="${property.fullIri}"; 
-                                      ?selected=${this.annotation && property.equals(this.annotation.property)}
-                                    >
-                                      ${property.prefixed}
-                                    </option>
-                                  `;
-        })}
-                                <option value=""></option>
-                            </select>
-                        </div>
-                        <label style = "width: 95%; margin: 8px 8px 8px 8px ;" id="lexicalform-label" for="lexicalform"><b>Lexical Form:</b></label><br>
-                        <textarea 
-                            class="area"
-                            id = "lexicalform" 
-                            rows="4" 
-                            cols="40" 
-                            @input=${this.validate}
-                            >${(_c = this.annotation) === null || _c === void 0 ? void 0 : _c.lexicalForm}</textarea>
-                        <label style = "width: 95%; margin: 8px 8px 8px 8px ;" id="datatype-label" for="datatype"><b>Datatype:</b></label><br>
-                        <select style = "width: 78%; margin: 8px 8px 8px 8px ;" id="datatype" name="datatype" @change=${this.validate} required>
-                            ${datatypes.sort().map((n, i) => {
-            if (this.annotation && n.toString() === this.annotation.datatype) {
-                return x `<option value="${n.toString()}"; selected>${n.toString()}</option>`;
-            }
-            else {
-                return x `<option value="${n.toString()}"; >${n.toString()}</option>`;
-            }
-        })}
-                            <option value=""></option>
-                        </select>
-                        <label style = "width: 95%; margin: 8px 8px 8px 8px ;" id="language-label" for="language"><b>Language:</b></label>
-                        <div class="dropdown" style = "width: 30%; margin: 8px 8px 8px 8px ;">
-                            <input id="newlan" value="${(_d = this.annotation) === null || _d === void 0 ? void 0 : _d.language}" type="text"/>
-                            <select 
-                                id="language" 
-                                @change=${this.handleLanguageSelection}  
-                                name="language" required>
-                                ${Object.values(Language).sort().map((n, i) => {
-            if (this.annotation && n.toString() === this.annotation.language) {
-                return x `<option value="${n.toString()}"; selected>${n.toString()}</option>`;
-            }
-            else {
-                return x `<option value="${n.toString()}"; >${n.toString()}</option>`;
-            }
-        })}
-                                <option value=""></option>
-                            </select>
-                        </div>
-                    </form>
-                    <div class="buttons" id="buttons">
-                        <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} ?disabled=${!this.isValid}></gscape-button>
-                    </div>
-                </div>
-            </div>
-            `;
-    }
-}
-GscapeAnnotationModal.properties = {
-    annotation: { type: Annotation },
-    isValid: { type: Boolean, state: true },
-};
-GscapeAnnotationModal.styles = [
-    baseStyle$5,
-    modalSharedStyles,
-    i$1 `
-            textarea {
-                width: 78%;
-                margin: 8px;
-                resize: none;
-                color: inherit;
-            }
-        `
-];
-customElements.define('gscape-annotation', GscapeAnnotationModal);
-
-function annotationsTemplate(annotations, handleEditAnnotation, handleDeleteAnnotation) {
-    return x `
-    <div class="annotations-list">
-      ${annotations.map((a, i) => {
-        return x `
-          <div class="annotation-row" id=ann${i}>
-            <div class="annotation-value">
-              <b>${a.kind.charAt(0).toUpperCase() + a.kind.slice(1)}</b>
-              <span class="language muted-text bold-text"> @${a.language} </span>
-              <span> ${a.lexicalForm} </span>
-            </div>
-            <div class="annotation-buttons">
-              <gscape-button
-                type="subtle"
-                size='s'
-                id ="editAnnotation"
-                @click=${() => handleEditAnnotation(a)}
-              >
-                <span slot="icon">${editIcon}</span>
-              </gscape-button>
-
-              <gscape-button
-                type="subtle"
-                size='s'
-                id ="deleteAnnotation"
-                @click=${() => handleDeleteAnnotation(a)}
-              >
-                <span slot="icon">${rubbishBin}</span>
-              </gscape-button>
-            </div>
-          </div>
-        `;
-    })}
-
-      ${annotations.length === 0
-        ? x `
-          <div class="blank-slate">
-            ${blankSlateDiagrams}
-            <div class="header">No annotations defined</div>
-            <div class="description">Add new annotations by clicking the Add button.</div>
-          </div>
-        `
-        : null}
-    </div>
-  `;
-}
-const annotationsTemplateStyle = i$1 `
-  .annotations-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .annotation-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: var(--gscape-border-radius);
-    border: solid 1px var(--gscape-color-border-subtle);
-    padding: 4px 8px;
-    background: var(--gscape-color-bg-inset);
-  }
-
-  .annotation-buttons {
-    flex-shrink: 0;
-  }
-`;
-
-const { ModalMixin: ModalMixin$2, BaseMixin: BaseMixin$4, icons: icons$5, baseStyle: baseStyle$4, } = UI;
-class GscapeAnnotationsModal extends ModalMixin$2(BaseMixin$4(s)) {
-    constructor(dialogTitle, entityType, annotations = []) {
-        super();
-        this.dialogTitle = dialogTitle;
-        this.entityType = entityType;
-        this.annotations = annotations;
-        this.onCancel = () => { };
-        this.onDeleteAnnotation = () => { };
-        this.onEditAnnotation = () => { };
-        this.handleCancel = () => {
-            this.onCancel();
-            this.remove();
-        };
-        this.handleDeleteAnnotation = (annotation) => {
-            this.onDeleteAnnotation(annotation);
-        };
-        this.handleEditAnnotation = (annotation) => {
-            this.onEditAnnotation(annotation);
-        };
-    }
-    get headerIcon() {
-        if (this.entityType === 'ontology') {
-            return icons$5.notes;
-        }
-        else if (this.entityType) {
-            return icons$5.entityIcons[this.entityType];
-        }
-    }
-    render() {
-        return x `
-      <div class="gscape-panel">
-        <div class="top-bar">
-          <div class="header">
-            ${this.headerIcon ? x `<span class="slotted-icon">${this.headerIcon}</span>` : null}
-            <span>${this.dialogTitle} - Annotations</span>
-          </div>
-          <gscape-button type="subtle" size='s' id="more" title="Close" @click=${this.handleCancel}>
-            <span slot="icon">${icons$5.close}</span>
-          </gscape-button>
-        </div>
-
-        <div class="modal-body">
-          ${annotationsTemplate(this.annotations, this.handleEditAnnotation, this.handleDeleteAnnotation)}
-        </div>
-
-        <div class="bottom-buttons">
-          <gscape-button type="primary" id="more" title="Add Annotation" label="Add" @click=${() => this.handleEditAnnotation()}>
-            <span slot="icon">${icons$5.plus}</span>
-          </gscape-button>
-        </div>
-      </div>
-    `;
-    }
-}
-GscapeAnnotationsModal.properties = {
-    dialogTitle: { type: String },
-    entityType: { type: String },
-    annotations: { type: Array }
-};
-GscapeAnnotationsModal.styles = [
-    baseStyle$4,
-    modalSharedStyles,
-    annotationsTemplateStyle,
-    i$1 `
-    :host {
-      position: absolute;
-      }
-    `
-];
-customElements.define('gscape-annotations', GscapeAnnotationsModal);
-
-// #####################################
-// ## INIT ANNOTATION MODALS          ##
-// #####################################
-function initAnnotationsModal(grapholscape, entity, entityType) {
-    var _a;
-    const modal = new GscapeAnnotationsModal();
-    (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(modal);
-    modal.dialogTitle = entity.iri.remainder;
-    modal.entityType = entityType;
-    modal.annotations = entity.getAnnotations();
-    modal.show();
-    modal.onEditAnnotation = (annotation) => {
-        modal.hide();
-        const editAnnotationModal = initEditAnnotationModal(grapholscape, entity, annotation, () => {
-            modal.annotations = entity.getAnnotations();
-            modal.show();
-        });
-        editAnnotationModal.onCancel = () => modal.show();
-    };
-    modal.onDeleteAnnotation = (annotation) => {
-        entity.removeAnnotation(annotation);
-        modal.annotations = entity.getAnnotations();
-    };
-}
-/**
- * Build the modal with the editing form for an AnnotatedElement
- * (i.e. entities or ontology).
- * On confirm add/replace the annotation on the annotatedElement and invoke
- * the onConfirm callbacks, used by other components to react to this
- * modal being removed.
- * @param grapholscape for uiContainer and ontology
- * @param annotatedElement the element owning the annotation to edit/add
- * @param annotation [optional] the annotation to edit, if undefined new annotation will be added
- * @param onConfirm [optional] do something when the editing is completed
- * @returns GscapeAnnotationModal
- */
-function initEditAnnotationModal(grapholscape, annotatedElement, annotation, onConfirm) {
-    var _a;
-    const editAnnotationModal = new GscapeAnnotationModal();
-    editAnnotationModal.ontology = ontologyModelToViewData(grapholscape.ontology);
-    (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(editAnnotationModal);
-    editAnnotationModal.annotation = annotation;
-    editAnnotationModal.onConfirm = (oldAnnotation, property, lexicalForm, datatype, language) => {
-        let propertyIri;
-        if (typeof property === 'string') { // custom property defined by the user
-            propertyIri = new Iri(property, grapholscape.ontology.namespaces);
-        }
-        else { // standard OWL/RDFS property IRI
-            propertyIri = property;
-        }
-        const newAnnotation = new Annotation(propertyIri, lexicalForm, language, datatype);
-        if (oldAnnotation && !oldAnnotation.equals(newAnnotation)) {
-            annotatedElement.removeAnnotation(oldAnnotation);
-        }
-        annotatedElement.addAnnotation(newAnnotation);
-        if (onConfirm) {
-            onConfirm();
-        }
-    };
-    editAnnotationModal.show();
-    return editAnnotationModal;
-}
-
-function initNewDiagramUI(grapholscape) {
-    getModal(grapholscape, ModalTypeEnum.DIAGRAM, 'Add New Diagram', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addDiagram(confirmDetail.diagramName);
-    });
-}
-// #####################################
-// ## SINGLE ENTITIES                 ##
-// #####################################
-function initNewEntityUI(grapholscape, entityType) {
-    getModal(grapholscape, entityType, `Add New ${getEntityTypeInTitle(entityType)}`, (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addNodeElement(confirmDetail.iri, confirmDetail.type, undefined, undefined, [], '', confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
-    });
-}
-function initNewDataPropertyUI(grapholscape, ownerClassIri) {
-    getModal(grapholscape, TypesEnum.DATA_PROPERTY, 'Add New Data Property', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        const functionProperties = confirmDetail.isFunctional ? [FunctionPropertiesEnum.FUNCTIONAL] : [];
-        ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.DATA_PROPERTY, ownerClassIri, undefined, functionProperties, confirmDetail.datatype, confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
-    });
-}
-function initNewObjectPropertyUI(grapholscape, sourceClassIri, targetClassIri, nodesType) {
-    getModal(grapholscape, TypesEnum.OBJECT_PROPERTY, 'Add New Object Property', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addEdgeElement(confirmDetail.iri, TypesEnum.OBJECT_PROPERTY, sourceClassIri, targetClassIri, nodesType, confirmDetail.functionProperties, confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
-    });
-}
-function initNewIndividualUI(grapholscape, ownerClassIri) {
-    getModal(grapholscape, TypesEnum.INDIVIDUAL, 'Add New Individual', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.INDIVIDUAL, ownerClassIri, undefined, [], '', confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
-    });
-}
-// #####################################
-// ## ISA(s)                          ##
-// #####################################
-function initNewIsaUI(grapholscape, sourceIri) {
-    getModal(grapholscape, ModalTypeEnum.ISA, 'Add New Class', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addNodeElement(confirmDetail.iri, TypesEnum.CLASS, sourceIri, confirmDetail.isaDirection, [], '', confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
-    });
-}
-function initNewSubHierarchyUI(grapholscape, sourceIri) {
-    getModal(grapholscape, ModalTypeEnum.HIERARCHY, 'Add New Set of SubClasses', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        ontologyBuilder.addSubhierarchy(confirmDetail.inputClassesIri, sourceIri, confirmDetail.isDisjoint, confirmDetail.isComplete, confirmDetail.deriveLabel, confirmDetail.convertCamel, confirmDetail.convertSnake, confirmDetail.lang);
-    });
-}
-// #####################################
-// ## MISC                            ##
-// #####################################
-function initRenameEntityUI(grapholscape, entity, elemId) {
-    const modal = getModal(grapholscape, ModalTypeEnum.RENAME_ENTITY, 'Rename Entity', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        if (confirmDetail.isRefactor) {
-            ontologyBuilder.refactorEntity(entity, elemId, confirmDetail.newIri);
-        }
-        else {
-            ontologyBuilder.renameEntity(entity.iri, elemId, confirmDetail.newIri);
-        }
-    });
-    modal.remainderToRename = entity.iri.remainder;
-    if (entity.iri.namespace)
-        modal.selectedNamespaceIndex = modal.namespaces.indexOf(entity.iri.namespace);
-}
-function initRenameDiagramUI(grapholscape, diagram) {
-    const modal = getModal(grapholscape, ModalTypeEnum.DIAGRAM, 'Rename Diagram', (confirmDetail) => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        if (diagram)
-            ontologyBuilder.renameDiagram(confirmDetail.diagramName);
-    });
-    if (diagram)
-        modal.diagramName = diagram.name;
-}
-function initRemoveDiagramUI(grapholscape, diagram) {
-    const modal = new GscapeConfirmDialog('If you delete this diagram, you will lose all the elements it contains. Do you want to proceed?', 'Warning');
-    modal.onConfirm(() => {
-        const ontologyBuilder = new OntologyBuilder(grapholscape);
-        if (diagram)
-            ontologyBuilder.removeDiagram(diagram);
-        modal.hide();
-    });
-    modal.onCancel(() => { modal.hide(); });
-    if (grapholscape.uiContainer)
-        grapholscape.uiContainer.appendChild(modal);
-    modal.show();
-    return modal;
-}
-function initRemoveEntityUI(grapholscape, entity, elem) {
-    const modal = new GscapeConfirmDialog('Do you want to delete this single element or all the occurrences of the current entity?', 'Delete Entity');
-    const ontologyBuilder = new OntologyBuilder(grapholscape);
-    modal.onConfirm(() => {
-        ontologyBuilder.removeAllOccurrences(entity);
-        modal.hide();
-    });
-    modal.onDelete(() => {
-        ontologyBuilder.removeEntity(elem, entity);
-        modal.hide();
-    });
-    modal.onCancel(() => {
-        modal.hide();
-    });
-    if (grapholscape.uiContainer)
-        grapholscape.uiContainer.appendChild(modal);
-    modal.show();
-    return modal;
-}
-function getModal(grapholscape, type, title, onConfirm) {
-    const modal = new GscapeNewElementModal(type, title);
-    modal.namespaces = grapholscape.ontology.namespaces;
-    if (type === TypesEnum.CLASS ||
-        type === TypesEnum.DATA_PROPERTY ||
-        type === TypesEnum.INDIVIDUAL ||
-        type === TypesEnum.OBJECT_PROPERTY)
-        modal.entities = grapholscape.ontology.getEntitiesByType(type);
-    else if (type === ModalTypeEnum.HIERARCHY ||
-        type === ModalTypeEnum.ISA)
-        modal.entities = grapholscape.ontology.getEntitiesByType(TypesEnum.CLASS);
-    else
-        modal.entities = [];
-    modal.addEventListener('confirm', (evt) => {
-        const ns = evt.detail.namespace;
-        if (ns) {
-            checkNamespace(grapholscape, ns);
-        }
-        onConfirm(evt.detail);
-        modal.remove();
-    });
-    if (grapholscape.uiContainer)
-        grapholscape.uiContainer.appendChild(modal);
-    modal.show();
-    return modal;
-}
-function getEntityTypeInTitle(entityType) {
-    return (entityType.charAt(0).toUpperCase() + entityType.slice(1)).replace('-', ' ');
-}
-function checkNamespace(grapholscape, namespace) {
-    if (!grapholscape.ontology.getNamespace(namespace)) {
-        const ns = new Namespace([], namespace);
-        grapholscape.ontology.addNamespace(ns);
-    }
-}
-
-const { icons: icons$4, } = UI;
-/**
- * Get a map storing for each element type (TypesEnum) an array of Command[].
- * Entities have common commands, their key in the map is 'Entity'.
- * The commands are actually functions taking grapholscape instance and the
- * selected elem, that are the two info needed by any command for builder.
- * @returns a Map of functions yielding a command by element's type
- */
-function getCommandsByType() {
-    const commandsMap = new Map();
-    commandsMap.set('Entity', [
-        rename,
-        editAnnotations,
-        removeEntity
-    ]);
-    commandsMap.set(TypesEnum.CLASS, [
-        addDataProperty,
-        addObjectProperty,
-        addIndividual,
-        addISA,
-        addSubhierarchy,
-        addSubclassEdge,
-    ]);
-    commandsMap.set(TypesEnum.DATA_PROPERTY, [addInclusionEdge, addAttributeEdge]);
-    commandsMap.set(TypesEnum.INDIVIDUAL, [addInstanceOfEdge]);
-    commandsMap.set(TypesEnum.INCLUSION, [removeElement]);
-    commandsMap.set(TypesEnum.INSTANCE_OF, [removeElement]);
-    commandsMap.set(TypesEnum.ATTRIBUTE_EDGE, [removeAttributeEdge]);
-    return commandsMap;
-}
-const addDataProperty = (grapholscape, elem) => {
-    return {
-        content: 'Add Data Property',
-        icon: icons$4.addDataPropertyIcon,
-        select: () => {
-            initNewDataPropertyUI(grapholscape, elem.data().iri);
-        }
-    };
-};
-const addObjectProperty = (grapholscape, elem) => {
-    return {
-        content: 'Add Object Property',
-        icon: icons$4.addObjectPropertyIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            drawNewEdge(currentCy, TypesEnum.OBJECT_PROPERTY, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                initNewObjectPropertyUI(grapholscape, sourceNode.data().iri, targetNode.data().iri, [sourceNode.data().type, targetNode.data().type]);
-            });
-        }
-    };
-};
-const addISA = (grapholscape, elem) => {
-    return {
-        content: 'Add Class in IS-A',
-        icon: icons$4.addClassIcon,
-        select: () => {
-            initNewIsaUI(grapholscape, elem.data().iri);
-        }
-    };
-};
-const addSubclassEdge = (grapholscape, elem) => {
-    return {
-        content: 'Add Subclass Edge',
-        icon: icons$4.addISAIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                if (grapholscape.renderer.diagram) {
-                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INCLUSION);
-                }
-            });
-        }
-    };
-};
-const addIndividual = (grapholscape, elem) => {
-    return {
-        content: 'Add Individual',
-        icon: icons$4.addIndividualIcon,
-        select: () => {
-            initNewIndividualUI(grapholscape, elem.data().iri);
-        }
-    };
-};
-const addSubhierarchy = (grapholscape, elem) => {
-    return {
-        content: 'Add Subhierarchy',
-        icon: icons$4.addSubhierarchyIcon,
-        select: () => {
-            initNewSubHierarchyUI(grapholscape, elem.data().iri);
-        }
-    };
-};
-const rename = (grapholscape, elem) => {
-    return {
-        content: 'Rename',
-        icon: icons$4.renameIcon,
-        select: () => {
-            const entity = grapholscape.ontology.getEntity(elem.data('iri'));
-            if (entity) {
-                initRenameEntityUI(grapholscape, entity, elem.id());
-            }
-        }
-    };
-};
-const editAnnotations = (grapholscape, elem) => {
-    return {
-        content: 'Edit Annotations',
-        icon: icons$4.editIcon,
-        select: () => {
-            const entity = grapholscape.ontology.getEntity(elem.data('iri'));
-            if (entity)
-                initAnnotationsModal(grapholscape, entity, elem.data('type'));
-        }
-    };
-};
-const removeEntity = (grapholscape, elem) => {
-    return {
-        content: 'Remove',
-        icon: icons$4.rubbishBin,
-        select: () => {
-            const entity = grapholscape.ontology.getEntity(elem.data().iri);
-            if (entity) {
-                initRemoveEntityUI(grapholscape, entity, elem);
-            }
-        }
-    };
-};
-const removeAttributeEdge = (grapholscape, elem) => {
-    return {
-        content: 'Remove',
-        icon: icons$4.rubbishBin,
-        select: () => {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            const dpNode = elem.target();
-            const entity = grapholscape.ontology.getEntity(dpNode.data().iri);
-            if (entity) {
-                ontologyBuilder.removeEntity(dpNode, entity);
-            }
-        }
-    };
-};
-const removeElement = (grapholscape, elem) => {
-    return {
-        content: 'Remove',
-        icon: icons$4.rubbishBin,
-        select: () => {
-            const diagram = grapholscape.renderer.diagram;
-            if (diagram) {
-                const diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY);
-                diagramBuilder.removeElement(elem.id());
-            }
-        }
-    };
-};
-const removeHierarchyByNode = (grapholscape, elem) => {
-    return {
-        content: 'Remove',
-        icon: icons$4.rubbishBin,
-        select: () => {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            if (elem.edges().nonempty()) {
-                const hierarchy = grapholscape.ontology.getHierarchy(elem.id());
-                if (hierarchy) {
-                    ontologyBuilder.removeHierarchy(hierarchy);
-                }
-            }
-            else {
-                const diagram = grapholscape.renderer.diagram;
-                if (diagram) {
-                    const diagramBuilder = new DiagramBuilder(diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.removeElement(elem.id());
-                }
-            }
-        }
-    };
-};
-const addHierarchySuperClassEdge = (grapholscape, elem) => {
-    return {
-        content: 'Add Inclusion Edge',
-        icon: icons$4.addISAIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            let edgeType = elem.data().type;
-            if (elem.data().hierarchyForcedComplete) {
-                if (elem.data().type === TypesEnum.UNION) {
-                    edgeType = TypesEnum.COMPLETE_UNION;
-                }
-                else {
-                    edgeType = TypesEnum.COMPLETE_DISJOINT_UNION;
-                }
-            }
-            drawNewEdge(currentCy, edgeType, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                if (grapholscape.renderer.diagram) {
-                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), edgeType);
-                }
-            });
-        }
-    };
-};
-const removeHierarchySuperClassEdge = (grapholscape, elem) => {
-    return {
-        content: 'Remove',
-        icon: icons$4.rubbishBin,
-        select: () => {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            const hierarchyID = elem.connectedNodes(`[type = "${elem.data('type')}"]`).first().data('hierarchyID');
-            const superclassIri = elem.target().data('iri');
-            const hierarchy = grapholscape.ontology.getHierarchy(hierarchyID);
-            if (hierarchy)
-                ontologyBuilder.removeHierarchySuperclass(hierarchy, superclassIri);
-        }
-    };
-};
-const removeHierarchyInputEdge = (grapholscape, elem) => {
-    return {
-        content: 'Remove',
-        icon: icons$4.rubbishBin,
-        select: () => {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            const hierarchyID = elem.connectedNodes(`[type $= "${TypesEnum.UNION}"]`).first().data('hierarchyID');
-            const inputclassIri = elem.connectedNodes(`[type = "${TypesEnum.CLASS}"]`).first().data('iri');
-            const hierarchy = grapholscape.ontology.getHierarchy(hierarchyID);
-            if (hierarchy)
-                ontologyBuilder.removeHierarchyInput(hierarchy, inputclassIri);
-        }
-    };
-};
-const addInputEdge = (grapholscape, elem) => {
-    return {
-        content: 'Add Input Edge',
-        icon: icons$4.addInputIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            drawNewEdge(currentCy, TypesEnum.INPUT, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                if (grapholscape.renderer.diagram) {
-                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INPUT);
-                }
-            }, true // input edges must go towards input node, but we draw them in opposite direction
-            );
-        }
-    };
-};
-const addAttributeEdge = (grapholscape, elem) => {
-    return {
-        content: 'Add Input Edge',
-        icon: icons$4.addInputIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            drawNewEdge(currentCy, TypesEnum.ATTRIBUTE_EDGE, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                if (grapholscape.renderer.diagram) {
-                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.ATTRIBUTE_EDGE);
-                }
-            }, true // input edges must go towards input node, but we draw them in opposite direction
-            );
-        }
-    };
-};
-const addInclusionEdge = (grapholscape, elem) => {
-    return {
-        content: 'Add Inclusion Edge',
-        icon: icons$4.addISAIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            drawNewEdge(currentCy, TypesEnum.INCLUSION, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                if (grapholscape.renderer.diagram) {
-                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INCLUSION);
-                }
-            });
-        }
-    };
-};
-const addInstanceOfEdge = (grapholscape, elem) => {
-    return {
-        content: 'Add Instance Edge',
-        icon: icons$4.addInstanceIcon,
-        select: () => {
-            let currentCy = grapholscape.renderer.cy;
-            drawNewEdge(currentCy, TypesEnum.INSTANCE_OF, elem, grapholscape.theme, (_, sourceNode, targetNode, addedEdge) => {
-                addedEdge.remove();
-                if (grapholscape.renderer.diagram) {
-                    const diagramBuilder = new DiagramBuilder(grapholscape.renderer.diagram, RendererStatesEnum.FLOATY);
-                    diagramBuilder.addEdge(sourceNode.id(), targetNode.id(), TypesEnum.INSTANCE_OF);
-                }
-            });
-        }
-    };
-};
-
-const { ModalMixin: ModalMixin$1, BaseMixin: BaseMixin$3, icons: icons$3, baseStyle: baseStyle$3, } = UI;
-class GscapeAnnotationPropertyModal extends ModalMixin$1(BaseMixin$3(s)) {
-    constructor(annProperty) {
-        super();
-        this.annProperty = annProperty;
-        this.isValid = false;
-        this.onConfirm = () => { };
-        this.onCancel = () => { };
-        this.handleConfirm = () => {
-            var _a, _b, _c;
-            let myform = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#new-property-form');
-            if (myform) {
-                const namespaceInput = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#newnamespace');
-                const input = (_c = this.shadowRoot) === null || _c === void 0 ? void 0 : _c.querySelector('#input');
-                this.onConfirm(this.annProperty, namespaceInput.value + input.value);
-                this.resetForm();
-            }
-            this.remove();
-        };
-        this.handleCancel = () => {
-            this.onCancel();
-            this.resetForm();
-            this.remove();
-        };
-        this.resetForm = () => {
-            var _a, _b, _c;
-            let myform = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#new-property-form');
-            this.annProperty = undefined;
-            if (myform) {
-                myform.reset();
-            }
-            (_c = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#ok')) === null || _c === void 0 ? void 0 : _c.setAttribute('disabled', 'true');
-        };
-    }
-    handleNamespaceSelection(e) {
-        var _a;
-        const selectTarget = e.currentTarget;
-        if (selectTarget) {
-            const namespaceInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newnamespace');
-            const value = selectTarget.value;
-            namespaceInput.value = value
-                ? value
-                : '';
-            namespaceInput.focus();
-        }
-        this.validate();
-    }
-    validate() {
-        var _a, _b;
-        const namespaceInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#newnamespace');
-        const input = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#input');
-        if (namespaceInput && input) {
-            this.isValid = namespaceInput.value.length > 0 && input.value.length > 0;
-        }
-    }
-    render() {
-        var _a, _b, _c;
-        return x `
-            <div>          
-                <div class="gscape-panel">
-                    <div class="header">
-                    Edit Annotation Property
-                    </div>
-                    <form id= "new-property-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace-label" for="newnamespace"><b>Namespace:</b></label>
-                        <div class="dropdown">
-                            <input
-                                id="newnamespace"
-                                value=${this.annProperty !== undefined ? this.annProperty.namespace : ''}
-                                type="text"
-                                @input=${this.validate}
-                            />
-                            <select id="namespace" name="namespace" value=${(_b = (_a = this.annProperty) === null || _a === void 0 ? void 0 : _a.namespace) === null || _b === void 0 ? void 0 : _b.toString()} @change=${this.handleNamespaceSelection} required>
-                                ${(_c = this.ontology.namespaces) === null || _c === void 0 ? void 0 : _c.map((n, i) => {
-            var _a, _b;
-            return x `<option value=${n.toString()} ?selected=${n.toString() === ((_b = (_a = this.annProperty) === null || _a === void 0 ? void 0 : _a.namespace) === null || _b === void 0 ? void 0 : _b.toString())}>${n.toString()}</option>`;
-        })}
-                                <option value="" ?selected=${this.annProperty === undefined}></option>
-                            </select>
-                        </div>
-                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" for="input"><b>Input:</b></label>
-                        <input
-                            style= "width: 78%; margin: 0px 8px 0px 8px ;"
-                            id="input"
-                            type="text"
-                            value= ${this.annProperty !== undefined ? this.annProperty.remainder : ''}
-                            @input=${this.validate}
-                            required
-                        />
-                    </form>
-                    <div class="buttons" id="buttons">
-                        <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} ?disabled=${!this.isValid}></gscape-button>
-                    </div>
-                </div>
-            </div>
-            `;
-    }
-}
-GscapeAnnotationPropertyModal.properties = {
-    annProperty: { type: AnnotationProperty },
-    isValid: { type: Boolean, state: true },
-};
-GscapeAnnotationPropertyModal.styles = [
-    baseStyle$3,
-    modalSharedStyles,
-    i$1 `
-            :host {
-                position: absolute;
-                }
-            .drawing-btn {
-                position: absolute;
-                top: 50px;
-                left: 10px;
-                border-radius: var(--gscape-border-radius-btn);
-                border: 1px solid var(--gscape-color-border-subtle);
-                background-color: var(--gscape-color-bg-default);
-            }
-    
-            .gscape-panel {
-                position: absolute;
-                top: 100px;
-                left: 50%;
-                transform: translate(-50%);
-                max-width: 400px;
-                min-width: 300px;
-                }
-        
-                .header, .dialog-message {
-                margin: 8px;
-                font-size: 15px;
-                }
-        
-                .dialog-message {
-                padding: 8px;
-                margin-bottom: 16px;
-                }
-        
-                .buttons {
-                display: flex;
-                align-items: center;
-                justify-content: right;
-                gap: 8px;
-                }
-    
-                .dropdown {
-                position: relative;
-                width: 78%; 
-                margin: 0px 8px 0px 8px ;
-                border: solid 1px var(--gscape-color-border-subtle);
-                border-radius: var(--gscape-border-radius);
-                }
-                
-                .dropdown select {
-                width: 100%;
-                }
-                
-                .dropdown > * {
-                box-sizing: border-box;
-                height: 100%;
-                border: none;
-                }
-                
-                .dropdown input {
-                position: absolute;
-                width: calc(100% - 18px);
-                }
-    
-                .dropdown select:focus, .dropdown input:focus {
-                border-color: inherit;
-                -webkit-box-shadow: none;
-                box-shadow: none;
-                }
-            `
-];
-customElements.define('gscape-ann-property', GscapeAnnotationPropertyModal);
-
-function initEditAnnPropertyModal(grapholscape, ontology, annProperty, onConfirm) {
-    var _a;
-    const editPropertyModal = new GscapeAnnotationPropertyModal();
-    editPropertyModal.ontology = ontologyModelToViewData(grapholscape.ontology);
-    (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(editPropertyModal);
-    editPropertyModal.annProperty = annProperty;
-    editPropertyModal.onConfirm = (oldProperty, newProperty) => {
-        if (oldProperty) {
-            if (oldProperty.toString() != newProperty) {
-                ontology.annProperties = ontology.annProperties.filter(p => !p.equals(oldProperty));
-                const property = ontology.getAnnotationProperty(newProperty);
-                if (!property) {
-                    const newProp = new AnnotationProperty(newProperty, ontology.namespaces);
-                    ontology.addAnnotationProperty(newProp);
-                }
-            }
-        }
-        else {
-            const property = ontology.getAnnotationProperty(newProperty);
-            if (!property) {
-                const newProp = new AnnotationProperty(newProperty, ontology.namespaces);
-                ontology.addAnnotationProperty(newProp);
-            }
-        }
-        if (onConfirm) {
-            onConfirm();
-        }
-    };
-    editPropertyModal.show();
-    return editPropertyModal;
-}
-
-const { ModalMixin, BaseMixin: BaseMixin$2, icons: icons$2, baseStyle: baseStyle$2, } = UI;
-class GscapeNamespaceModal extends ModalMixin(BaseMixin$2(s)) {
-    constructor(namespace, prefixx) {
-        super();
-        this.namespace = namespace;
-        this.prefixx = prefixx;
-        this.isValid = false;
-        this.onConfirm = () => { };
-        this.onCancel = () => { };
-        this.handleConfirm = () => {
-            var _a, _b, _c;
-            let myform = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#new-namespace-form');
-            if (myform) {
-                const prefixInput = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#prefix');
-                const namespaceInput = (_c = this.shadowRoot) === null || _c === void 0 ? void 0 : _c.querySelector('#namespace');
-                this.onConfirm(this.namespace, this.prefixx, namespaceInput.value, prefixInput.value);
-                this.resetForm();
-            }
-            this.remove();
-        };
-        this.handleCancel = () => {
-            this.onCancel();
-            this.resetForm();
-            this.remove();
-        };
-        this.resetForm = () => {
-            var _a, _b, _c;
-            let myform = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#new-namespace-form');
-            this.namespace = undefined;
-            if (myform) {
-                myform.reset();
-            }
-            (_c = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('#ok')) === null || _c === void 0 ? void 0 : _c.setAttribute('disabled', 'true');
-        };
-    }
-    validate() {
-        var _a;
-        const namespaceInput = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#namespace');
-        if (namespaceInput) {
-            this.isValid = namespaceInput.value.length > 0;
-        }
-    }
-    render() {
-        var _a;
-        return x `
-            <div>          
-                <div class="gscape-panel">
-                    <div class="header">
-                    Edit Namespace
-                    </div>
-                    <form id= "new-namespace-form" action= "javascript:void(0);" onkeyup="if (event.keyCode === 13 && !this.offsetParent.querySelector('#ok').disabled) this.offsetParent.querySelector('#ok').click();">
-                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="prefix-label" for="prefix"><b>Prefix:</b></label>
-                        <input 
-                            style= "width: 78%; margin: 0px 8px 0px 8px ;" 
-                            id="prefix" 
-                            value="${this.prefixx}" 
-                            type="text"
-                            @input=${this.validate}
-                            />
-                        <label style= "width: 78%; margin: 0px 8px 0px 8px ;" id="namespace-label" for="namespace"><b>Namespace:</b></label>
-                        <input 
-                            style= "width: 78%; margin: 0px 8px 0px 8px ;" 
-                            id="namespace" 
-                            value="${(_a = this.namespace) === null || _a === void 0 ? void 0 : _a.toString()}" 
-                            type="text" 
-                            @input=${this.validate}                            
-                            />
-                    </form>
-                    <div class="buttons" id="buttons">
-                        <gscape-button label="Cancel" type="subtle" @click=${this.handleCancel}></gscape-button>
-                        <gscape-button id="ok" label="Ok" @click=${this.handleConfirm} ?disabled=${!this.isValid}></gscape-button>
-                    </div>
-                </div>
-            </div>
-            `;
-    }
-}
-GscapeNamespaceModal.properties = {
-    namespace: { type: Namespace },
-    prefixx: { type: String },
-    isValid: { type: Boolean, state: true },
-};
-GscapeNamespaceModal.styles = [
-    baseStyle$2,
-    modalSharedStyles,
-    i$1 `
-            :host {
-                position: absolute;
-                }
-            .drawing-btn {
-                position: absolute;
-                top: 50px;
-                left: 10px;
-                border-radius: var(--gscape-border-radius-btn);
-                border: 1px solid var(--gscape-color-border-subtle);
-                background-color: var(--gscape-color-bg-default);
-            }
-    
-            .gscape-panel {
-                position: absolute;
-                top: 100px;
-                left: 50%;
-                transform: translate(-50%);
-                max-width: 400px;
-                min-width: 300px;
-                }
-        
-                .header, .dialog-message {
-                margin: 8px;
-                font-size: 15px;
-                }
-        
-                .dialog-message {
-                padding: 8px;
-                margin-bottom: 16px;
-                }
-        
-                .buttons {
-                display: flex;
-                align-items: center;
-                justify-content: right;
-                gap: 8px;
-                }
-    
-                .dropdown {
-                position: relative;
-                width: 78%; 
-                margin: 8px 8px 8px 8px ;
-                border: solid 1px var(--gscape-color-border-subtle);
-                border-radius: var(--gscape-border-radius);
-                }
-                
-                .dropdown select {
-                width: 100%;
-                }
-                
-                .dropdown > * {
-                box-sizing: border-box;
-                height: 100%;
-                border: none;
-                }
-                
-                .dropdown input {
-                position: absolute;
-                width: calc(100% - 18px);
-                }
-    
-                .dropdown select:focus, .dropdown input:focus {
-                border-color: inherit;
-                -webkit-box-shadow: none;
-                box-shadow: none;
-                }
-            `
-];
-customElements.define('gscape-namespace', GscapeNamespaceModal);
-
-function initEditNamespaceModal(grapholscape, ontology, namespace, prefix, onConfirm) {
-    var _a;
-    const editNamespaceModal = new GscapeNamespaceModal();
-    editNamespaceModal.ontology = ontologyModelToViewData(grapholscape.ontology);
-    (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(editNamespaceModal);
-    editNamespaceModal.namespace = namespace;
-    editNamespaceModal.prefixx = prefix;
-    editNamespaceModal.onConfirm = (oldNamespace, oldPrefix, newnamespace, newprefix) => {
-        if (oldNamespace) {
-            if (oldNamespace.toString() === newnamespace) {
-                oldNamespace.prefixes = oldNamespace.prefixes.filter(p => p != oldPrefix);
-                oldNamespace.addPrefix(newprefix);
-            }
-            else {
-                oldNamespace.prefixes = oldNamespace.prefixes.filter(p => p != oldPrefix);
-                if (oldNamespace.prefixes.length === 0) {
-                    grapholscape.ontology.namespaces = grapholscape.ontology.namespaces.filter(n => n.value != oldNamespace.value);
-                }
-                const namespace = ontology.getNamespace(newnamespace);
-                if (namespace) {
-                    namespace.addPrefix(newprefix);
-                }
-                else {
-                    const newNamespace = new Namespace([newprefix], newnamespace);
-                    ontology.addNamespace(newNamespace);
-                }
-            }
-        }
-        else {
-            const namespace = ontology.getNamespace(newnamespace);
-            if (namespace) {
-                namespace.addPrefix(newprefix);
-            }
-            else {
-                const newNamespace = new Namespace([newprefix], newnamespace);
-                ontology.addNamespace(newNamespace);
-            }
-        }
-        if (onConfirm) {
-            onConfirm();
-        }
-    };
-    editNamespaceModal.show();
-    return editNamespaceModal;
-}
-
-function namespacesTemplate(namespaces, handleEditNamespace, handleDeleteNamespace) {
-    let numRows;
-    return x `
-      <div>
-      ${namespaces.length === 0
-        ? x `
-          <div class="blank-slate">
-            ${blankSlateDiagrams}
-            <div class="header">No namespaces defined</div>
-            <div class="description">Add new namespaces by clicking the Add button.</div>
-          </div>
-        `
-        : null}
-      <table>
-        ${namespaces.map(namespace => {
-        numRows = namespace.prefixes.length;
-        return x `
-              ${namespace.prefixes.map((prefix, i) => {
-            return x `
-                  <tr class="annotation-row">
-                    <th>${prefix}</th>
-                    ${i === 0
-                ? x `<td rowspan="${numRows}">${namespace.toString()}</td>`
-                : null}
-                    <td style="flex-shrink: 0;">
-                        <gscape-button type="subtle" size='s' id ="editAnnotation" @click=${() => handleEditNamespace(namespace, prefix)}><span slot="icon">${editIcon}</span></gscape-button>
-                        <gscape-button type="subtle" size='s' id ="deleteAnnotation" @click=${() => handleDeleteNamespace(namespace, prefix)}><span slot="icon">${rubbishBin}</span></gscape-button>
-                    </td>
-                  </tr>
-                `;
-        })}
-          `;
-    })}
-      </table>
-      </div>
-      `;
-}
-const namespacesTemplateStyle = i$1 `
-  table {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  th, td {
-    padding: 2px;
-  }
-
-  td {
-    padding-left: 8px;
-  }
-
-  th {
-    text-align: left;
-    border-right: solid 1px var(--gscape-color-border-subtle);
-    padding-right: 8px;
-  }
-
-  tr {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: var(--gscape-border-radius);
-    border: solid 1px var(--gscape-color-border-subtle);
-    padding: 8px;
-    background: var(--gscape-color-bg-inset);
-  }
-
-  table > caption {
-    margin-top: 8px;
-    font-weight: 600;
-  }
-`;
-
-function propertiesTemplate(annProperties, handleEditProperty, handleDeleteProperty) {
-    return x `
-    <div class="annotations-list">
-      ${annProperties.map((a, i) => {
-        return x `
-          <div class="annotation-row" id=ann${i}>
-            <div class="annotation-value">
-              <span> ${a.fullIri} </span>
-            </div>
-            <div style="flex-shrink: 0;">
-                <gscape-button type="subtle" size='s' id ="editAnnotation" @click=${() => handleEditProperty(a)}><span slot="icon">${editIcon}</span></gscape-button>
-                <gscape-button type="subtle" size='s' id ="deleteAnnotation" @click=${() => handleDeleteProperty(a)}><span slot="icon">${rubbishBin}</span></gscape-button>
-            </div>
-          </div>
-        `;
-    })}
-
-      ${annProperties.length === 0
-        ? x `
-          <div class="blank-slate">
-            ${blankSlateDiagrams}
-            <div class="header">No annotation properties defined</div>
-            <div class="description">Add new annotation properties by clicking the Add button.</div>
-          </div>
-        `
-        : null}
-    </div>
-  `;
-}
-
-class OntologyManager extends ModalMixin$5(BaseMixin$7(s)) {
-    constructor(annotations = [], namespaces = [], annProperties = []) {
-        super();
-        this.annotations = annotations;
-        this.namespaces = namespaces;
-        this.annProperties = annProperties;
-        this.onEditAnnotation = () => { };
-        this.onDeleteAnnotation = () => { };
-        this.onEditNamespace = () => { };
-        this.onDeleteNamespace = () => { };
-        this.onEditProperty = () => { };
-        this.onDeleteProperty = () => { };
-        this.onCancel = () => { };
-        this.handleCancel = () => {
-            this.onCancel();
-            this.remove();
-        };
-        this.tabs = [
-            {
-                id: 0,
-                label: 'Ontology Annotations',
-                icon: info_outline,
-                getContent: () => annotationsTemplate(this.annotations, this.onEditAnnotation, this.onDeleteAnnotation),
-                onAdd: () => this.onEditAnnotation()
-            },
-            {
-                id: 1,
-                label: 'Annotation Properties',
-                icon: notes,
-                getContent: () => propertiesTemplate(this.annProperties, this.onEditProperty, this.onDeleteProperty),
-                onAdd: () => this.onEditProperty() // Define new annotation property
-            },
-            {
-                id: 2,
-                label: 'Namespaces',
-                icon: protocol,
-                getContent: () => namespacesTemplate(this.namespaces, this.onEditNamespace, this.onDeleteNamespace),
-                onAdd: () => this.onEditNamespace()
-            }
-        ];
-        this.currentTab = this.tabs[0];
-    }
-    handleTabChange(e) {
-        this.currentTab = this.tabs[e.detail];
-    }
-    render() {
-        return x `
-      <div class="gscape-panel">
-        <div class="top-bar">
-          <div class="header">
-            <span class="slotted-icon">${tools}</span>
-            <span>Ontology Manager</span>
-          </div>
-          <gscape-button size=${SizeEnum$1.S} type="subtle" style="margin-left: auto" @click=${this.handleCancel}>
-            <span slot="icon">${close}</span>
-          </gscape-button>
-        </div>
-      
-        <div style="display: flex;
-            flex-direction: column;
-            overflow: hidden;">
-          <gscape-tabs .tabs=${this.tabs} @change=${this.handleTabChange}></gscape-tabs>
-          <div class="modal-body content">${this.currentTab.getContent()}</div>
-        </div>
-      
-        <div class="bottom-buttons">
-          <gscape-button 
-            type="primary"
-            id="more"
-            title="Add ${this.currentTab.label}"
-            label="Add"
-            @click=${this.currentTab.onAdd}
-          >
-            <span slot="icon">${plus}</span>
-          </gscape-button>
-        </div>
-      </div>
-    `;
-    }
-}
-OntologyManager.properties = {
-    annotations: { type: Array },
-    namespaces: { type: Array },
-    annProperties: { type: Array },
-    currentTab: { type: Object },
-};
-OntologyManager.styles = [
-    baseStyle$7,
-    modalSharedStyles,
-    annotationsTemplateStyle,
-    namespacesTemplateStyle,
-    i$1 `
-      .content {
-        background: var(--gscape-color-bg-inset);
-        border: solid 1px var(--gscape-color-border-default);
-        border-bottom-left-radius: var(--gscape-border-radius);
-        border-bottom-right-radius: var(--gscape-border-radius);
-        padding: 16px;
-        min-height: 106px;
-      }
-    `
-];
-customElements.define('ontology-manger', OntologyManager);
-
-function initOntologyManagerModal(grapholscape) {
-    var _a;
-    const ontologyManager = new OntologyManager(grapholscape.ontology.getAnnotations(), grapholscape.ontology.getNamespaces(), grapholscape.ontology.getAnnotationProperties());
-    ontologyManager.onEditAnnotation = (annotation) => {
-        ontologyManager.hide();
-        const editAnnotationModal = initEditAnnotationModal(grapholscape, grapholscape.ontology, annotation, () => {
-            ontologyManager.annotations = grapholscape.ontology.getAnnotations();
-            ontologyManager.show();
-        });
-        editAnnotationModal.onCancel = () => {
-            ontologyManager.show();
-        };
-    };
-    ontologyManager.onDeleteAnnotation = (annotation) => {
-        grapholscape.ontology.removeAnnotation(annotation);
-        ontologyManager.annotations = grapholscape.ontology.getAnnotations();
-    };
-    ontologyManager.onEditProperty = (annProperty) => {
-        ontologyManager.hide();
-        const editPropertyModal = initEditAnnPropertyModal(grapholscape, grapholscape.ontology, annProperty, () => {
-            ontologyManager.annotations = grapholscape.ontology.getAnnotations();
-            ontologyManager.annProperties = grapholscape.ontology.getAnnotationProperties();
-            ontologyManager.show();
-        });
-        editPropertyModal.onCancel = () => {
-            ontologyManager.show();
-        };
-    };
-    ontologyManager.onDeleteProperty = (annProperty) => {
-        grapholscape.ontology.annProperties = grapholscape.ontology.annProperties.filter(p => !p.equals(annProperty));
-        ontologyManager.annotations = grapholscape.ontology.getAnnotations();
-        ontologyManager.annProperties = grapholscape.ontology.getAnnotationProperties();
-    };
-    ontologyManager.onEditNamespace = (namespace, prefix) => {
-        ontologyManager.hide();
-        const editNamespaceModal = initEditNamespaceModal(grapholscape, grapholscape.ontology, namespace, prefix, () => {
-            ontologyManager.namespaces = grapholscape.ontology.getNamespaces();
-            ontologyManager.requestUpdate();
-            ontologyManager.show();
-        });
-        editNamespaceModal.onCancel = () => {
-            ontologyManager.show();
-        };
-    };
-    ontologyManager.onDeleteNamespace = (namespace, prefix) => {
-        const oldNamespace = grapholscape.ontology.getNamespace(namespace.value);
-        if (oldNamespace) {
-            oldNamespace.prefixes = oldNamespace.prefixes.filter(p => p != prefix);
-            if (oldNamespace.prefixes.length === 0) {
-                grapholscape.ontology.namespaces = grapholscape.ontology.namespaces.filter(n => n.value != namespace.value);
-            }
-        }
-        ontologyManager.namespaces = grapholscape.ontology.getNamespaces();
-    };
-    (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(ontologyManager);
-    ontologyManager.show();
-}
-
-const { BaseMixin: BaseMixin$1, baseStyle: baseStyle$1, icons: icons$1, } = UI;
-class GscapeDesignerToolbar extends BaseMixin$1(s) {
-    constructor(grapholscape) {
-        super();
-        this.grapholscape = grapholscape;
-        this.title = "Designer Tools";
-        this.isDefaultClosed = false;
-        this.undoEnabled = false;
-        this.redoEnabled = false;
-        this.objectPropEnabled = false;
-        this.individualEnabled = false;
-        this.newVersionEnabled = true;
-        this.removeDiagramDisabled = this.grapholscape.ontology.diagrams.length === 1;
-    }
-    handleNewDataProperty() {
-        initNewDataPropertyUI(this.grapholscape, undefined);
-    }
-    handleNewObjectProperty() {
-        var _a;
-        if (((_a = this.lastSelectedElement) === null || _a === void 0 ? void 0 : _a.is(TypesEnum.CLASS)) && this.lastSelectedElement.isNode()) {
-            addObjectProperty(this.grapholscape, this.lastSelectedElement).select();
-        }
-    }
-    handleNewIndividual() {
-        initNewIndividualUI(this.grapholscape, undefined);
-    }
-    handleOntologyManager() {
-        initOntologyManagerModal(this.grapholscape);
-    }
-    handleSaveDraft() {
-        this.grapholscape.lifecycle.trigger(DesignerEvent.SaveDraft, rdfgraphSerializer(this.grapholscape));
-    }
-    handleSaveVersion() {
-        this.grapholscape.lifecycle.trigger(DesignerEvent.SaveVersion, rdfgraphSerializer(this.grapholscape));
-    }
-    get lastSelectedElement() { return this._lastSelectedElement; }
-    set lastSelectedElement(newElem) {
-        const oldElem = this._lastSelectedElement;
-        this._lastSelectedElement = newElem;
-        const isClass = (newElem === null || newElem === void 0 ? void 0 : newElem.data().type) === TypesEnum.CLASS || false;
-        const isIndividual = ((newElem === null || newElem === void 0 ? void 0 : newElem.data().type) === TypesEnum.INDIVIDUAL || (newElem === null || newElem === void 0 ? void 0 : newElem.data().type) === TypesEnum.CLASS_INSTANCE) || false;
-        this.objectPropEnabled = isClass || isIndividual;
-        this.individualEnabled = isClass;
-        this.requestUpdate('_lastSelectedElement', oldElem);
-    }
-    render() {
-        return x `
-      <div class="gscape-panel">
-        <div class="widget-body">
-          <gscape-button @click=${() => initNewDiagramUI(this.grapholscape)} size="s" label="Diagram" title="Add Diagram">
-            <span slot="icon">${icons$1.plus}</span>
-          </gscape-button>
-          <gscape-button @click=${() => initRenameDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Rename Diagram">
-            <span slot="icon">${renameIcon}</span>
-          </gscape-button>
-          <gscape-button @click=${() => initRemoveDiagramUI(this.grapholscape, this.grapholscape.renderer.diagram)} size="s" type="subtle" title="Remove Diagram" ?disabled=${this.removeDiagramDisabled}>
-            <span slot="icon">${icons$1.rubbishBin}</span>
-          </gscape-button>
-
-          <div class="hr"></div>
-
-          <gscape-button @click=${() => initNewEntityUI(this.grapholscape, TypesEnum.CLASS)} size="s" type="subtle" title="Add Class">
-            <span slot="icon">${icons$1.classIcon}</span>
-          </gscape-button>
-          <gscape-button @click=${this.handleNewDataProperty} size="s" type="subtle" title="Add Data Property">
-            <span slot="icon">${icons$1.dataPropertyIcon}</span>
-          </gscape-button>
-          <gscape-button @click=${this.handleNewObjectProperty} size="s" type="subtle" title="Add Object Property" ?disabled=${!this.objectPropEnabled}>
-            <span slot="icon">${icons$1.objectPropertyIcon}</span>
-          </gscape-button>
-          <gscape-button @click=${this.handleNewIndividual} size="s" type="subtle" title="Add Individual">
-            <span slot="icon">${icons$1.individualIcon}</span>
-          </gscape-button>
-
-          <div class="hr"></div>
-
-          <gscape-button size="s" type="subtle" title="Undo" ?disabled=${!this.undoEnabled}>
-            <span slot="icon">${icons$1.undo}</span>
-          </gscape-button>
-
-          <gscape-button size="s" type="subtle" title="Redo" ?disabled=${!this.redoEnabled}>
-            <span slot="icon">${icons$1.redo}</span>
-          </gscape-button>
-
-          <div class="hr"></div>
-
-          <gscape-button size="s" title="Ontology Manager" type="subtle" @click=${this.handleOntologyManager}>
-            <span slot="icon">${icons$1.tools}</span>
-          </gscape-button>
-
-          <gscape-button size="s" type="subtle" title="Save Draft" @click=${this.handleSaveDraft}>
-            <span slot="icon">${icons$1.save}</span>
-          </gscape-button>
-
-          <gscape-button
-            size="s"
-            type="primary"
-            label="New Version"
-            title="Save A New Version"
-            ?disabled=${!this.newVersionEnabled}
-            @click=${this.handleSaveVersion}
-          >
-            <span slot="icon">${icons$1.addPack}</span>
-          </gscape-button>
-        </div>
-      </div>
-    `;
-    }
-}
-GscapeDesignerToolbar.properties = {
-    undoEnabled: { type: Boolean },
-    redoEnabled: { type: Boolean },
-    objectPropEnabled: { type: Boolean },
-    individualEnabled: { type: Boolean },
-    newVersionEnabled: { type: Boolean },
-    removeDiagramDisabled: { type: Boolean }
-};
-GscapeDesignerToolbar.styles = [
-    baseStyle$1,
-    i$1 `
-      :host {
-        left: 50%;
-        transform: translate(-50%);
-        position: absolute;
-        bottom: 10px;
-      }
-
-      .gscape-panel {
-        padding: 0px;
-        max-width: unset;
-        width: unset;
-      }
-
-      .widget-body {
-        padding: 8px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        overflow: auto;
-        width: fit-content;
-      }
-
-      .hr {
-        background-color: var(--gscape-color-border-subtle);
-        width: 1px;
-        height: 1.7em;
-        margin: 0 8px
-      }
-    `,
-];
-customElements.define('gscape-designer-toolbox', GscapeDesignerToolbar);
-
-var AnchorPosition;
-(function (AnchorPosition) {
-    AnchorPosition["SOURCE"] = "source";
-    AnchorPosition["TARGET"] = "target";
-})(AnchorPosition || (AnchorPosition = {}));
-/**
- * Display anchors node on edge endpoints
- * @param edge
- * @param position add source or target anchor, if undefined adds both
- */
-function addAnchorsOnEdge(edge, position) {
-    if (!position || position === AnchorPosition.SOURCE) {
-        const sourceAnchor = edge.cy().add({
-            data: {
-                id: `${edge.id()}-anchor-${AnchorPosition.SOURCE}`,
-                edgeRef: edge,
-                type: edge.data().type,
-                anchorPosition: AnchorPosition.SOURCE,
-            },
-            classes: 'anchor-node',
-            position: edge.sourceEndpoint(),
-        });
-        edge.scratch('source-anchor', sourceAnchor);
-    }
-    if (!position || position === AnchorPosition.TARGET) {
-        const targetAnchor = edge.cy().add({
-            data: {
-                id: `${edge.id()}-anchor-${AnchorPosition.TARGET}`,
-                edgeRef: edge,
-                type: edge.data().type,
-                anchorPosition: AnchorPosition.TARGET,
-            },
-            classes: 'anchor-node',
-            position: edge.targetEndpoint(),
-        });
-        edge.scratch('target-anchor', targetAnchor);
-    }
-    edge.source().on('position', updateAnchorsPosition);
-    edge.target().on('position', updateAnchorsPosition);
-}
-/**
- * Remove anchors nodes
- * @param edge
- * @param position remove source or target anchor, if undefined removes both
- */
-function removeAnchorsOnEdge(edge, position) {
-    var _a, _b;
-    if (!position || position === AnchorPosition.SOURCE) {
-        (_a = edge.scratch('source-anchor')) === null || _a === void 0 ? void 0 : _a.remove();
-        edge.removeScratch('source-anchor');
-    }
-    if (!position || position === AnchorPosition.TARGET) {
-        (_b = edge.scratch('target-anchor')) === null || _b === void 0 ? void 0 : _b.remove();
-        edge.removeScratch('target-anchor');
-    }
-    edge.source().off('position', undefined, updateAnchorsPosition);
-    edge.target().off('position', undefined, updateAnchorsPosition);
-}
-/**
- * Update anchors, remove them and add new anchors
- * @param edge
- */
-function refreshAnchorsOnEdge(edge) {
-    const sourceAnchor = edge.scratch('source-anchor');
-    const targetAnchor = edge.scratch('target-anchor');
-    if (sourceAnchor) {
-        removeAnchorsOnEdge(edge, AnchorPosition.SOURCE);
-        addAnchorsOnEdge(edge, AnchorPosition.SOURCE);
-    }
-    if (targetAnchor) {
-        removeAnchorsOnEdge(edge, AnchorPosition.TARGET);
-        addAnchorsOnEdge(edge, AnchorPosition.TARGET);
-    }
-}
-const updateAnchorsPosition = (evt) => {
-    const node = evt.target;
-    node.connectedEdges().forEach(edge => {
-        var _a, _b;
-        (_a = edge.scratch('source-anchor')) === null || _a === void 0 ? void 0 : _a.position(edge.sourceEndpoint());
-        (_b = edge.scratch('target-anchor')) === null || _b === void 0 ? void 0 : _b.position(edge.targetEndpoint());
-    });
-};
-
-function edgeEditing(grapholscape) {
-    let selectedEdge;
-    const cy = grapholscape.renderer.cy;
-    if (!cy)
-        return;
-    const onMouseDownOnAnchor = (evt) => {
-        if (!selectedEdge)
-            return;
-        const anchor = evt.target;
-        let newTempEdgeSource;
-        const isEditingFromSource = anchor.data().anchorPosition === AnchorPosition.SOURCE;
-        if (isEditingFromSource) {
-            newTempEdgeSource = selectedEdge.target();
-            removeAnchorsOnEdge(selectedEdge, AnchorPosition.TARGET);
-        }
-        else {
-            newTempEdgeSource = selectedEdge.source();
-            removeAnchorsOnEdge(selectedEdge, AnchorPosition.SOURCE);
-        }
-        cy.on('ehstop', () => {
-            onEditingCompleted();
-        });
-        cy.scratch('edge-creation-label', selectedEdge.data().displayedName);
-        cy.scratch('edge-creation-reversed', isEditingFromSource);
-        drawNewEdge(cy, selectedEdge.data().type, newTempEdgeSource, grapholscape.theme, (evt, sourceNode, targetNode, addedEdge) => {
-            addedEdge.remove();
-            selectedEdge === null || selectedEdge === void 0 ? void 0 : selectedEdge.move({
-                source: sourceNode.id(),
-                target: targetNode.id(),
-            });
-            onEditingCompleted();
-        }, isEditingFromSource);
-        anchor.once('drag', () => {
-            selectedEdge === null || selectedEdge === void 0 ? void 0 : selectedEdge.addClass('editing');
-        });
-    };
-    const onEditingCompleted = () => {
-        if (selectedEdge) {
-            removeAnchorsOnEdge(selectedEdge);
-            selectedEdge.removeClass('editing');
-        }
-        selectedEdge = undefined;
-        cy.removeScratch('edge-creation-label');
-        cy.removeScratch('edge-creation-reversed');
-        cy.off('mousedown', onMouseDownOnAnchor);
-        // cy?.off('mouseup', onEditingCompleted)
-    };
-    cy.on('tap', (evt) => {
-        onEditingCompleted(); // complete previously started editing
-        if (evt.target.isEdge && evt.target.isEdge()) {
-            const edge = evt.target;
-            if (edge.data().type !== TypesEnum.ATTRIBUTE_EDGE) {
-                switch (edge.data().type) {
-                    case TypesEnum.UNION:
-                    case TypesEnum.DISJOINT_UNION:
-                    case TypesEnum.COMPLETE_UNION:
-                    case TypesEnum.COMPLETE_DISJOINT_UNION:
-                    case TypesEnum.INSTANCE_OF:
-                        addAnchorsOnEdge(edge, AnchorPosition.TARGET); // only target
-                        break;
-                    case TypesEnum.INPUT:
-                        addAnchorsOnEdge(edge, AnchorPosition.SOURCE); // only source
-                        break;
-                    default:
-                        addAnchorsOnEdge(edge);
-                        break;
-                }
-            }
-            selectedEdge = edge;
-            // originalSource = edge.source()
-            // originalTarget = edge.target()
-            cy.on('mousedown', '.anchor-node', onMouseDownOnAnchor);
-        }
-    });
-}
-
-const { BaseMixin, baseStyle, icons, } = UI;
-class GscapeDesignerInfobar extends BaseMixin(s) {
-    constructor(content) {
-        super();
-        this.content = content;
-        this.title = "Designer Tools";
-    }
-    render() {
-        return x `
-        <div class="gscape-panel">
-          <div class="widget-body">
-            <div class="muted-text bold-text"> ${this.content} </div>
-          </div>
-        </div>
-      `;
-    }
-}
-GscapeDesignerInfobar.properties = {
-    content: { type: String }
-};
-GscapeDesignerInfobar.styles = [
-    baseStyle,
-    i$1 `
-        :host {
-          left: 50%;
-          transform: translate(-50%);
-          position: absolute;
-          bottom: 70px;
-        }
-  
-        .gscape-panel {
-          background-color: transparent;
-          padding: 0px;
-          max-width: unset;
-          width: unset;
-          border: none;
-          box-shadow: none;
-        }
-  
-        .widget-body {
-          background-color: transparent;
-          padding: 8px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          overflow: auto;
-          width: fit-content;
-        }
-
-      `,
-];
-customElements.define('gscape-designer-infobox', GscapeDesignerInfobar);
-
-const { GscapeContextMenu } = UI;
-function initBuilderUI(grapholscape) {
-    var _a, _b;
-    const commandsWidget = new GscapeContextMenu();
-    const toolboxWidget = new GscapeDesignerToolbar(grapholscape);
-    const infobox = new GscapeDesignerInfobar();
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-        (_a = grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.appendChild(toolboxWidget);
-        (_b = grapholscape.uiContainer) === null || _b === void 0 ? void 0 : _b.appendChild(infobox);
-    }
-    grapholscape.on(LifecycleEvent.NodeSelection, n => {
-        var _a;
-        const elem = (_a = grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(n.id);
-        toolboxWidget.lastSelectedElement = elem;
-    });
-    grapholscape.on(LifecycleEvent.EdgeSelection, e => {
-        var _a;
-        const elem = (_a = grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(e.id);
-        toolboxWidget.lastSelectedElement = elem;
-    });
-    grapholscape.on(LifecycleEvent.BackgroundClick, () => {
-        toolboxWidget.lastSelectedElement = undefined;
-    });
-    grapholscape.on(LifecycleEvent.DiagramChange, () => {
-        toolboxWidget.removeDiagramDisabled = grapholscape.ontology.diagrams.length === 1;
-        let currentCy = grapholscape.renderer.cy;
-        if (!currentCy.scratch('designer-listeners-set')) {
-            setDesignerStyle(currentCy, grapholscape.theme);
-            edgeEditing(grapholscape);
-            // set true in the scratch so it won't add new listeners
-            // if it has already been added
-            currentCy.scratch('designer-listeners-set', true);
-        }
-    });
-    grapholscape.on(LifecycleEvent.DoubleTap, (evt) => {
-        const elem = evt.target;
-        if (grapholscape.renderState === RendererStatesEnum.FLOATY && elem.data('type') === TypesEnum.DATA_PROPERTY) {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            ontologyBuilder.toggleFunctionality(elem.data('iri'));
-        }
-        else if (grapholscape.renderState === RendererStatesEnum.FLOATY && !(elem.group() === 'edges') && (elem.data('type') === TypesEnum.DISJOINT_UNION || elem.data('type') === TypesEnum.UNION)) {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            ontologyBuilder.toggleUnion(elem);
-        }
-        else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.DISJOINT_UNION || elem.data('type') === TypesEnum.UNION)) {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            ontologyBuilder.toggleComplete(elem);
-        }
-        else if (grapholscape.renderState === RendererStatesEnum.FLOATY && (elem.group() === 'edges') && (elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
-            const ontologyBuilder = new OntologyBuilder(grapholscape);
-            ontologyBuilder.swapEdge(elem);
-            refreshAnchorsOnEdge(elem);
-        }
-    });
-    grapholscape.on(LifecycleEvent.ContextClick, (evt) => {
-        var _a, _b;
-        toolboxWidget.lastSelectedElement = undefined;
-        const elem = evt.target;
-        if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-            const commandsByType = getCommandsByType();
-            // get commands for this elem type
-            let commandsFunctions = commandsByType.get(elem.data('type')) || [];
-            if (elem.data().iri) {
-                const entity = grapholscape.ontology.getEntity(elem.data().iri);
-                if (entity) {
-                    commandsFunctions.push(...(commandsByType.get('Entity') || []));
-                }
-            }
-            else {
-                const grapholElement = (_b = (_a = grapholscape.renderer.diagram) === null || _a === void 0 ? void 0 : _a.representations.get(RendererStatesEnum.FLOATY)) === null || _b === void 0 ? void 0 : _b.grapholElements.get(elem.id());
-                if (grapholElement && grapholElement.isHierarchy()) {
-                    // For hierarchies there can be edges or nodes, manually add specific commands
-                    if (elem.isNode()) {
-                        commandsFunctions.push(addHierarchySuperClassEdge);
-                        commandsFunctions.push(addInputEdge);
-                        commandsFunctions.push(removeHierarchyByNode);
-                    }
-                    else {
-                        commandsFunctions.push(removeHierarchySuperClassEdge);
-                    }
-                }
-                else if (elem.data('type') === TypesEnum.INPUT && (elem.connectedNodes(`[type = "${TypesEnum.UNION}"]`).nonempty() || elem.connectedNodes(`[type = "${TypesEnum.DISJOINT_UNION}"]`).nonempty())) {
-                    commandsFunctions.push(removeHierarchyInputEdge);
-                }
-            }
-            try {
-                const htmlNodeReference = elem.popperRef();
-                if (htmlNodeReference && commandsFunctions.length > 0) {
-                    // each command function is a function taking grapholscape and the selected element
-                    // use map to get array of commands calling the command function
-                    const commands = commandsFunctions.map(cf => cf(grapholscape, elem));
-                    commandsWidget.attachTo(htmlNodeReference, commands);
-                }
-            }
-            catch (e) {
-                console.error(e);
-            }
-        }
-    });
-    grapholscape.on(LifecycleEvent.MouseOver, (evt) => {
-        const elem = evt.target;
-        if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-            if (elem.data('type') === TypesEnum.DATA_PROPERTY) {
-                infobox.content = 'Double click to toggle functionality';
-            }
-            else if (elem.data('type') === TypesEnum.UNION || elem.data('type') === TypesEnum.DISJOINT_UNION) {
-                if (elem.isNode())
-                    infobox.content = elem.data('type') === TypesEnum.UNION ? 'Double click to add disjointness' : 'Double click to remove disjointness';
-                else {
-                    infobox.content = elem.data('targetLabel') === 'C' ? 'Double click to remove completeness' : 'Double click to add completeness';
-                }
-            }
-            else if (elem.data('anchorPosition')) {
-                infobox.content = 'Drag anchor to edit edge';
-            }
-            else if ((elem.data('type') === TypesEnum.OBJECT_PROPERTY || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.CLASS && elem.target().data('type') === TypesEnum.CLASS) || (elem.data('type') === TypesEnum.INCLUSION && elem.source().data('type') === TypesEnum.DATA_PROPERTY && elem.target().data('type') === TypesEnum.DATA_PROPERTY))) {
-                infobox.content = 'Double click to swap edge';
-            }
-        }
-    });
-    grapholscape.on(LifecycleEvent.MouseOut, (evt) => {
-        if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-            infobox.content = '';
-        }
-    });
-}
-
-class DesignerCore extends Grapholscape {
-    constructor(ontology, container, config) {
-        super();
-        this.availableRenderers = [RendererStatesEnum.FLOATY];
-        this.entityNavigator = new EntityNavigator(this);
-        this.displayedNamesManager = new DisplayedNamesManager(this);
-        this.lifecycle = new DesignerLifeCycle();
-        this.on = this.lifecycle.on;
-        this.ontology = ontology;
-        this.container = container;
-        this.renderer.container = container;
-        this.renderer.lifecycle = this.lifecycle;
-        this.themesManager = new ThemeManager(this);
-        //this.renderer.renderState = new GrapholRendererState()
-        if (!(config === null || config === void 0 ? void 0 : config.selectedTheme)) {
-            this.themesManager.setTheme(DefaultThemesEnum.GRAPHOLSCAPE);
-        }
-        if (config) {
-            config = Object.assign(config || {}, {
-                renderers: [RendererStatesEnum.FLOATY], // force only floaty
-            });
-            this.setConfig(config);
-        }
-        else {
-            this.setRenderer(new FloatyRendererState());
-        }
-        this.renderer.filters = new Map();
-        this.renderer.filters.set(RDFGraphConfigFiltersEnum.DATA_PROPERTY, getDefaultFilters().DATA_PROPERTY);
-        this.renderer.filters.set(RDFGraphConfigFiltersEnum.INDIVIDUAL, getDefaultFilters().INDIVIDUAL);
-    }
-}
-
-var index = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    get DesignerEvent () { return DesignerEvent; },
-    DesignerLifeCycle: DesignerLifeCycle,
-    GrapholscapeDesigner: DesignerCore,
-    initBuilderUI: initBuilderUI
-});
-
 cytoscape.use(popper);
 cytoscape.use(cola);
 cytoscape.warnings("production" !== 'production');
@@ -25716,17 +22146,14 @@ function resume(rdfGraph, container, mastroConnection) {
     loadingSpinner.remove();
     return grapholscape;
 }
-function resumeBuilder(rdfGraph, container) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        const loadingSpinner = showLoadingSpinner(container, { selectedTheme: (_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.selectedTheme });
-        const grapholscape = new DesignerCore(parseRDFGraph(rdfGraph), container, getConfig(rdfGraph));
-        initFromResume(grapholscape, rdfGraph);
-        initBuilderUI(grapholscape);
-        loadingSpinner.remove();
-        return grapholscape;
-    });
-}
+// export async function resumeBuilder(rdfGraph: RDFGraph, container: HTMLElement) {
+//   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
+//   const grapholscape = new GrapholscapeDesigner(parseRDFGraph(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
+//   initFromResume(grapholscape, rdfGraph)
+//   initBuilderUI(grapholscape)
+//   loadingSpinner.remove()
+//   return grapholscape
+// }
 function initFromResume(grapholscape, rdfGraph) {
     var _a;
     init(grapholscape);
@@ -25767,23 +22194,21 @@ function initFromResume(grapholscape, rdfGraph) {
         });
     }
 }
-function buildFromScratch(name, iri, container, config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ontology = new Ontology(name, iri + '1.0', iri, undefined, Object.values(DefaultAnnotationProperties));
-        ontology.languages = Object.values(Language).sort();
-        ontology.defaultLanguage = Language.EN;
-        ontology.addNamespace(new Namespace([''], iri));
-        Object.values(DefaultNamespaces).forEach(namespace => {
-            ontology.addNamespace(namespace);
-        });
-        ontology.addDiagram(new Diagram(name, 0));
-        const grapholscape = new DesignerCore(ontology, container, config);
-        init(grapholscape);
-        initBuilderUI(grapholscape);
-        grapholscape.showDiagram(0);
-        return grapholscape;
-    });
-}
+// export async function buildFromScratch(name: string, iri: string, container: HTMLElement, config?: OntologyDesignerConfig) {
+//   const ontology = new Ontology(name, iri+'1.0', iri, undefined, Object.values(DefaultAnnotationProperties))
+//   ontology.languages = Object.values(Language).sort()
+//   ontology.defaultLanguage = Language.EN
+//   ontology.addNamespace(new Namespace([''], iri))
+//   Object.values(DefaultNamespaces).forEach(namespace => {
+//     ontology.addNamespace(namespace)
+//   })
+//   ontology.addDiagram(new Diagram(name, 0))
+//   const grapholscape = new GrapholscapeDesigner(ontology, container, config)
+//   UI.initUI(grapholscape)
+//   initBuilderUI(grapholscape)
+//   grapholscape.showDiagram(0)
+//   return grapholscape
+// }
 function getGrapholscape(file, container, config) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!file || !container) {
@@ -25865,4 +22290,4 @@ function showLoadingSpinner(container, config) {
     return spinner;
 }
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, RDFGraphConfigEntityNameTypeEnum as EntityNameType, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Renderer, RendererStatesEnum, Shape, index$3 as SwaggerModel, TypesEnum, autoDarkColourMap, autoLightColourMap, bareGrapholscape, buildFromScratch, classicColourMap, clearLocalStorage, darkColourMap, index as designer, floatyOptions, fullGrapholscape, getDefaultFilters, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, resume, resumeBuilder, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, UI as ui, index$1 as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, rdfGraphParser as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index$3 as SwaggerModel, ThemeManager, TypesEnum, autoDarkColourMap, autoLightColourMap, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, floatyStyle as getFloatyStyle, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index as ui, index$1 as util };

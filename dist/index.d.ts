@@ -2462,483 +2462,483 @@ declare class VKGApi$1 extends BaseAPI {
     owlOntologyOntologyNameVkgCatalogSnapshotIdPut(requestParameters: OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest, initOverrides?: RequestInit | InitOverrideFunction): Promise<Array<VKGSnapshot>>;
 }
 
-type index_d$4_Action = Action;
-declare const index_d$4_ActionFromJSON: typeof ActionFromJSON;
-declare const index_d$4_ActionFromJSONTyped: typeof ActionFromJSONTyped;
-type index_d$4_ActionInvolvedElements = ActionInvolvedElements;
-declare const index_d$4_ActionInvolvedElementsFromJSON: typeof ActionInvolvedElementsFromJSON;
-declare const index_d$4_ActionInvolvedElementsFromJSONTyped: typeof ActionInvolvedElementsFromJSONTyped;
-declare const index_d$4_ActionInvolvedElementsToJSON: typeof ActionInvolvedElementsToJSON;
-type index_d$4_ActionOperationTypeEnum = ActionOperationTypeEnum;
-declare const index_d$4_ActionOperationTypeEnum: typeof ActionOperationTypeEnum;
-declare const index_d$4_ActionToJSON: typeof ActionToJSON;
-type index_d$4_ActionUser = ActionUser;
-declare const index_d$4_ActionUserFromJSON: typeof ActionUserFromJSON;
-declare const index_d$4_ActionUserFromJSONTyped: typeof ActionUserFromJSONTyped;
-declare const index_d$4_ActionUserToJSON: typeof ActionUserToJSON;
-type index_d$4_AnnotationAction = AnnotationAction;
-declare const index_d$4_AnnotationActionFromJSON: typeof AnnotationActionFromJSON;
-declare const index_d$4_AnnotationActionFromJSONTyped: typeof AnnotationActionFromJSONTyped;
-type index_d$4_AnnotationActionOperationTypeEnum = AnnotationActionOperationTypeEnum;
-declare const index_d$4_AnnotationActionOperationTypeEnum: typeof AnnotationActionOperationTypeEnum;
-declare const index_d$4_AnnotationActionToJSON: typeof AnnotationActionToJSON;
-declare const index_d$4_AnnotationFromJSON: typeof AnnotationFromJSON;
-declare const index_d$4_AnnotationFromJSONTyped: typeof AnnotationFromJSONTyped;
-declare const index_d$4_AnnotationToJSON: typeof AnnotationToJSON;
-type index_d$4_ApiResponse<T> = ApiResponse<T>;
-declare const index_d$4_BASE_PATH: typeof BASE_PATH;
-type index_d$4_BaseAPI = BaseAPI;
-declare const index_d$4_BaseAPI: typeof BaseAPI;
-type index_d$4_BlobApiResponse = BlobApiResponse;
-declare const index_d$4_BlobApiResponse: typeof BlobApiResponse;
-declare const index_d$4_COLLECTION_FORMATS: typeof COLLECTION_FORMATS;
-type index_d$4_ClassInstanceEntityAllOf = ClassInstanceEntityAllOf;
-declare const index_d$4_ClassInstanceEntityAllOfFromJSON: typeof ClassInstanceEntityAllOfFromJSON;
-declare const index_d$4_ClassInstanceEntityAllOfFromJSONTyped: typeof ClassInstanceEntityAllOfFromJSONTyped;
-declare const index_d$4_ClassInstanceEntityAllOfToJSON: typeof ClassInstanceEntityAllOfToJSON;
-declare const index_d$4_ClassInstanceEntityFromJSON: typeof ClassInstanceEntityFromJSON;
-declare const index_d$4_ClassInstanceEntityFromJSONTyped: typeof ClassInstanceEntityFromJSONTyped;
-declare const index_d$4_ClassInstanceEntityToJSON: typeof ClassInstanceEntityToJSON;
-type index_d$4_Configuration = Configuration;
-declare const index_d$4_Configuration: typeof Configuration;
-type index_d$4_ConfigurationParameters = ConfigurationParameters;
-type index_d$4_Consume = Consume;
-type index_d$4_DataPropertyValue = DataPropertyValue;
-declare const index_d$4_DataPropertyValueFromJSON: typeof DataPropertyValueFromJSON;
-declare const index_d$4_DataPropertyValueFromJSONTyped: typeof DataPropertyValueFromJSONTyped;
-declare const index_d$4_DataPropertyValueToJSON: typeof DataPropertyValueToJSON;
-declare const index_d$4_DefaultConfig: typeof DefaultConfig;
-type index_d$4_DeleteOntologyDraftRequest = DeleteOntologyDraftRequest;
-type index_d$4_DiagramAction = DiagramAction;
-declare const index_d$4_DiagramActionFromJSON: typeof DiagramActionFromJSON;
-declare const index_d$4_DiagramActionFromJSONTyped: typeof DiagramActionFromJSONTyped;
-type index_d$4_DiagramActionOperationTypeEnum = DiagramActionOperationTypeEnum;
-declare const index_d$4_DiagramActionOperationTypeEnum: typeof DiagramActionOperationTypeEnum;
-declare const index_d$4_DiagramActionToJSON: typeof DiagramActionToJSON;
-declare const index_d$4_DiagramFromJSON: typeof DiagramFromJSON;
-declare const index_d$4_DiagramFromJSONTyped: typeof DiagramFromJSONTyped;
-declare const index_d$4_DiagramToJSON: typeof DiagramToJSON;
-type index_d$4_DownloadOntologyDraftRequest = DownloadOntologyDraftRequest;
-type index_d$4_Edge = Edge;
-type index_d$4_EdgeAction = EdgeAction;
-declare const index_d$4_EdgeActionFromJSON: typeof EdgeActionFromJSON;
-declare const index_d$4_EdgeActionFromJSONTyped: typeof EdgeActionFromJSONTyped;
-type index_d$4_EdgeActionOperationTypeEnum = EdgeActionOperationTypeEnum;
-declare const index_d$4_EdgeActionOperationTypeEnum: typeof EdgeActionOperationTypeEnum;
-declare const index_d$4_EdgeActionToJSON: typeof EdgeActionToJSON;
-type index_d$4_EdgeAllOf = EdgeAllOf;
-declare const index_d$4_EdgeAllOfFromJSON: typeof EdgeAllOfFromJSON;
-declare const index_d$4_EdgeAllOfFromJSONTyped: typeof EdgeAllOfFromJSONTyped;
-declare const index_d$4_EdgeAllOfToJSON: typeof EdgeAllOfToJSON;
-declare const index_d$4_EdgeFromJSON: typeof EdgeFromJSON;
-declare const index_d$4_EdgeFromJSONTyped: typeof EdgeFromJSONTyped;
-declare const index_d$4_EdgeToJSON: typeof EdgeToJSON;
-declare const index_d$4_ElementFromJSON: typeof ElementFromJSON;
-declare const index_d$4_ElementFromJSONTyped: typeof ElementFromJSONTyped;
-declare const index_d$4_ElementToJSON: typeof ElementToJSON;
-type index_d$4_EntityAction = EntityAction;
-declare const index_d$4_EntityActionFromJSON: typeof EntityActionFromJSON;
-declare const index_d$4_EntityActionFromJSONTyped: typeof EntityActionFromJSONTyped;
-type index_d$4_EntityActionOperationTypeEnum = EntityActionOperationTypeEnum;
-declare const index_d$4_EntityActionOperationTypeEnum: typeof EntityActionOperationTypeEnum;
-declare const index_d$4_EntityActionToJSON: typeof EntityActionToJSON;
-declare const index_d$4_EntityFromJSON: typeof EntityFromJSON;
-declare const index_d$4_EntityFromJSONTyped: typeof EntityFromJSONTyped;
-declare const index_d$4_EntityToJSON: typeof EntityToJSON;
-type index_d$4_ErrorContext = ErrorContext;
-type index_d$4_FetchAPI = FetchAPI;
-type index_d$4_FetchError = FetchError;
-declare const index_d$4_FetchError: typeof FetchError;
-type index_d$4_FetchParams = FetchParams;
-type index_d$4_FunctionPropertiesEnum = FunctionPropertiesEnum;
-declare const index_d$4_FunctionPropertiesEnum: typeof FunctionPropertiesEnum;
-declare const index_d$4_FunctionPropertiesEnumFromJSON: typeof FunctionPropertiesEnumFromJSON;
-declare const index_d$4_FunctionPropertiesEnumFromJSONTyped: typeof FunctionPropertiesEnumFromJSONTyped;
-declare const index_d$4_FunctionPropertiesEnumToJSON: typeof FunctionPropertiesEnumToJSON;
-type index_d$4_GetOntologyDraftRequest = GetOntologyDraftRequest;
-type index_d$4_GetRDFGraphConstructRequest = GetRDFGraphConstructRequest;
-type index_d$4_HTTPBody = HTTPBody;
-type index_d$4_HTTPHeaders = HTTPHeaders;
-type index_d$4_HTTPMethod = HTTPMethod;
-type index_d$4_HTTPQuery = HTTPQuery;
-type index_d$4_HTTPRequestInit = HTTPRequestInit;
-type index_d$4_HierarchyAction = HierarchyAction;
-declare const index_d$4_HierarchyActionFromJSON: typeof HierarchyActionFromJSON;
-declare const index_d$4_HierarchyActionFromJSONTyped: typeof HierarchyActionFromJSONTyped;
-declare const index_d$4_HierarchyActionToJSON: typeof HierarchyActionToJSON;
-declare const index_d$4_HierarchyFromJSON: typeof HierarchyFromJSON;
-declare const index_d$4_HierarchyFromJSONTyped: typeof HierarchyFromJSONTyped;
-type index_d$4_HierarchySuperclassesInner = HierarchySuperclassesInner;
-declare const index_d$4_HierarchySuperclassesInnerFromJSON: typeof HierarchySuperclassesInnerFromJSON;
-declare const index_d$4_HierarchySuperclassesInnerFromJSONTyped: typeof HierarchySuperclassesInnerFromJSONTyped;
-declare const index_d$4_HierarchySuperclassesInnerToJSON: typeof HierarchySuperclassesInnerToJSON;
-declare const index_d$4_HierarchyToJSON: typeof HierarchyToJSON;
-type index_d$4_InitOverrideFunction = InitOverrideFunction;
-type index_d$4_JSONApiResponse<T> = JSONApiResponse<T>;
-declare const index_d$4_JSONApiResponse: typeof JSONApiResponse;
-type index_d$4_Json = Json;
-type index_d$4_Middleware = Middleware;
-type index_d$4_ModelPropertyNaming = ModelPropertyNaming;
-type index_d$4_NamespaceAction = NamespaceAction;
-declare const index_d$4_NamespaceActionFromJSON: typeof NamespaceActionFromJSON;
-declare const index_d$4_NamespaceActionFromJSONTyped: typeof NamespaceActionFromJSONTyped;
-type index_d$4_NamespaceActionOperationTypeEnum = NamespaceActionOperationTypeEnum;
-declare const index_d$4_NamespaceActionOperationTypeEnum: typeof NamespaceActionOperationTypeEnum;
-declare const index_d$4_NamespaceActionToJSON: typeof NamespaceActionToJSON;
-declare const index_d$4_NamespaceFromJSON: typeof NamespaceFromJSON;
-declare const index_d$4_NamespaceFromJSONTyped: typeof NamespaceFromJSONTyped;
-declare const index_d$4_NamespaceToJSON: typeof NamespaceToJSON;
-type index_d$4_Node = Node;
-type index_d$4_NodeAction = NodeAction;
-declare const index_d$4_NodeActionFromJSON: typeof NodeActionFromJSON;
-declare const index_d$4_NodeActionFromJSONTyped: typeof NodeActionFromJSONTyped;
-type index_d$4_NodeActionOperationTypeEnum = NodeActionOperationTypeEnum;
-declare const index_d$4_NodeActionOperationTypeEnum: typeof NodeActionOperationTypeEnum;
-declare const index_d$4_NodeActionToJSON: typeof NodeActionToJSON;
-type index_d$4_NodeAllOf = NodeAllOf;
-declare const index_d$4_NodeAllOfFromJSON: typeof NodeAllOfFromJSON;
-declare const index_d$4_NodeAllOfFromJSONTyped: typeof NodeAllOfFromJSONTyped;
-declare const index_d$4_NodeAllOfToJSON: typeof NodeAllOfToJSON;
-declare const index_d$4_NodeFromJSON: typeof NodeFromJSON;
-declare const index_d$4_NodeFromJSONTyped: typeof NodeFromJSONTyped;
-declare const index_d$4_NodeToJSON: typeof NodeToJSON;
-type index_d$4_OntologyDesignerApi = OntologyDesignerApi;
-declare const index_d$4_OntologyDesignerApi: typeof OntologyDesignerApi;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogDeleteRequest = OwlOntologyOntologyNameVkgCatalogDeleteRequest;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogExportGetRequest = OwlOntologyOntologyNameVkgCatalogExportGetRequest;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogGetRequest = OwlOntologyOntologyNameVkgCatalogGetRequest;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogImportPostRequest = OwlOntologyOntologyNameVkgCatalogImportPostRequest;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogPostRequest = OwlOntologyOntologyNameVkgCatalogPostRequest;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest = OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest;
-type index_d$4_OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest = OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest;
-type index_d$4_Position = Position;
-declare const index_d$4_PositionFromJSON: typeof PositionFromJSON;
-declare const index_d$4_PositionFromJSONTyped: typeof PositionFromJSONTyped;
-declare const index_d$4_PositionToJSON: typeof PositionToJSON;
-type index_d$4_PostOntologyDraftsRequest = PostOntologyDraftsRequest;
-type index_d$4_PostOntologyVersionFromRDFGraphRequest = PostOntologyVersionFromRDFGraphRequest;
-type index_d$4_PropertyAction = PropertyAction;
-declare const index_d$4_PropertyActionFromJSON: typeof PropertyActionFromJSON;
-declare const index_d$4_PropertyActionFromJSONTyped: typeof PropertyActionFromJSONTyped;
-type index_d$4_PropertyActionOperationTypeEnum = PropertyActionOperationTypeEnum;
-declare const index_d$4_PropertyActionOperationTypeEnum: typeof PropertyActionOperationTypeEnum;
-declare const index_d$4_PropertyActionToJSON: typeof PropertyActionToJSON;
-type index_d$4_PutOntologyDraftRequest = PutOntologyDraftRequest;
-type index_d$4_RDFGraph = RDFGraph;
-type index_d$4_RDFGraphConfig = RDFGraphConfig;
-type index_d$4_RDFGraphConfigEntityNameTypeEnum = RDFGraphConfigEntityNameTypeEnum;
-declare const index_d$4_RDFGraphConfigEntityNameTypeEnum: typeof RDFGraphConfigEntityNameTypeEnum;
-type index_d$4_RDFGraphConfigFiltersEnum = RDFGraphConfigFiltersEnum;
-declare const index_d$4_RDFGraphConfigFiltersEnum: typeof RDFGraphConfigFiltersEnum;
-declare const index_d$4_RDFGraphConfigFromJSON: typeof RDFGraphConfigFromJSON;
-declare const index_d$4_RDFGraphConfigFromJSONTyped: typeof RDFGraphConfigFromJSONTyped;
-declare const index_d$4_RDFGraphConfigToJSON: typeof RDFGraphConfigToJSON;
-declare const index_d$4_RDFGraphFromJSON: typeof RDFGraphFromJSON;
-declare const index_d$4_RDFGraphFromJSONTyped: typeof RDFGraphFromJSONTyped;
-type index_d$4_RDFGraphMetadata = RDFGraphMetadata;
-declare const index_d$4_RDFGraphMetadataFromJSON: typeof RDFGraphMetadataFromJSON;
-declare const index_d$4_RDFGraphMetadataFromJSONTyped: typeof RDFGraphMetadataFromJSONTyped;
-declare const index_d$4_RDFGraphMetadataToJSON: typeof RDFGraphMetadataToJSON;
-type index_d$4_RDFGraphModelTypeEnum = RDFGraphModelTypeEnum;
-declare const index_d$4_RDFGraphModelTypeEnum: typeof RDFGraphModelTypeEnum;
-declare const index_d$4_RDFGraphToJSON: typeof RDFGraphToJSON;
-type index_d$4_RequestContext = RequestContext;
-type index_d$4_RequestOpts = RequestOpts;
-type index_d$4_RequiredError = RequiredError;
-declare const index_d$4_RequiredError: typeof RequiredError;
-type index_d$4_ResponseContext = ResponseContext;
-type index_d$4_ResponseError = ResponseError;
-declare const index_d$4_ResponseError: typeof ResponseError;
-type index_d$4_ResponseTransformer<T> = ResponseTransformer<T>;
-type index_d$4_TextApiResponse = TextApiResponse;
-declare const index_d$4_TextApiResponse: typeof TextApiResponse;
-type index_d$4_Theme = Theme;
-declare const index_d$4_ThemeFromJSON: typeof ThemeFromJSON;
-declare const index_d$4_ThemeFromJSONTyped: typeof ThemeFromJSONTyped;
-declare const index_d$4_ThemeToJSON: typeof ThemeToJSON;
-type index_d$4_TypesEnum = TypesEnum;
-declare const index_d$4_TypesEnum: typeof TypesEnum;
-declare const index_d$4_TypesEnumFromJSON: typeof TypesEnumFromJSON;
-declare const index_d$4_TypesEnumFromJSONTyped: typeof TypesEnumFromJSONTyped;
-declare const index_d$4_TypesEnumToJSON: typeof TypesEnumToJSON;
-type index_d$4_VKGSnapshot = VKGSnapshot;
-declare const index_d$4_VKGSnapshotFromJSON: typeof VKGSnapshotFromJSON;
-declare const index_d$4_VKGSnapshotFromJSONTyped: typeof VKGSnapshotFromJSONTyped;
-declare const index_d$4_VKGSnapshotToJSON: typeof VKGSnapshotToJSON;
-type index_d$4_Viewport = Viewport;
-declare const index_d$4_ViewportFromJSON: typeof ViewportFromJSON;
-declare const index_d$4_ViewportFromJSONTyped: typeof ViewportFromJSONTyped;
-declare const index_d$4_ViewportToJSON: typeof ViewportToJSON;
-type index_d$4_VoidApiResponse = VoidApiResponse;
-declare const index_d$4_VoidApiResponse: typeof VoidApiResponse;
-declare const index_d$4_canConsumeForm: typeof canConsumeForm;
-declare const index_d$4_exists: typeof exists;
-declare const index_d$4_instanceOfAction: typeof instanceOfAction;
-declare const index_d$4_instanceOfActionInvolvedElements: typeof instanceOfActionInvolvedElements;
-declare const index_d$4_instanceOfActionUser: typeof instanceOfActionUser;
-declare const index_d$4_instanceOfAnnotation: typeof instanceOfAnnotation;
-declare const index_d$4_instanceOfAnnotationAction: typeof instanceOfAnnotationAction;
-declare const index_d$4_instanceOfClassInstanceEntity: typeof instanceOfClassInstanceEntity;
-declare const index_d$4_instanceOfClassInstanceEntityAllOf: typeof instanceOfClassInstanceEntityAllOf;
-declare const index_d$4_instanceOfDataPropertyValue: typeof instanceOfDataPropertyValue;
-declare const index_d$4_instanceOfDiagram: typeof instanceOfDiagram;
-declare const index_d$4_instanceOfDiagramAction: typeof instanceOfDiagramAction;
-declare const index_d$4_instanceOfEdge: typeof instanceOfEdge;
-declare const index_d$4_instanceOfEdgeAction: typeof instanceOfEdgeAction;
-declare const index_d$4_instanceOfEdgeAllOf: typeof instanceOfEdgeAllOf;
-declare const index_d$4_instanceOfElement: typeof instanceOfElement;
-declare const index_d$4_instanceOfEntity: typeof instanceOfEntity;
-declare const index_d$4_instanceOfEntityAction: typeof instanceOfEntityAction;
-declare const index_d$4_instanceOfHierarchy: typeof instanceOfHierarchy;
-declare const index_d$4_instanceOfHierarchyAction: typeof instanceOfHierarchyAction;
-declare const index_d$4_instanceOfHierarchySuperclassesInner: typeof instanceOfHierarchySuperclassesInner;
-declare const index_d$4_instanceOfNamespace: typeof instanceOfNamespace;
-declare const index_d$4_instanceOfNamespaceAction: typeof instanceOfNamespaceAction;
-declare const index_d$4_instanceOfNode: typeof instanceOfNode;
-declare const index_d$4_instanceOfNodeAction: typeof instanceOfNodeAction;
-declare const index_d$4_instanceOfNodeAllOf: typeof instanceOfNodeAllOf;
-declare const index_d$4_instanceOfPosition: typeof instanceOfPosition;
-declare const index_d$4_instanceOfPropertyAction: typeof instanceOfPropertyAction;
-declare const index_d$4_instanceOfRDFGraph: typeof instanceOfRDFGraph;
-declare const index_d$4_instanceOfRDFGraphConfig: typeof instanceOfRDFGraphConfig;
-declare const index_d$4_instanceOfRDFGraphMetadata: typeof instanceOfRDFGraphMetadata;
-declare const index_d$4_instanceOfTheme: typeof instanceOfTheme;
-declare const index_d$4_instanceOfVKGSnapshot: typeof instanceOfVKGSnapshot;
-declare const index_d$4_instanceOfViewport: typeof instanceOfViewport;
-declare const index_d$4_mapValues: typeof mapValues;
-declare const index_d$4_querystring: typeof querystring;
-declare namespace index_d$4 {
+type index_d$3_Action = Action;
+declare const index_d$3_ActionFromJSON: typeof ActionFromJSON;
+declare const index_d$3_ActionFromJSONTyped: typeof ActionFromJSONTyped;
+type index_d$3_ActionInvolvedElements = ActionInvolvedElements;
+declare const index_d$3_ActionInvolvedElementsFromJSON: typeof ActionInvolvedElementsFromJSON;
+declare const index_d$3_ActionInvolvedElementsFromJSONTyped: typeof ActionInvolvedElementsFromJSONTyped;
+declare const index_d$3_ActionInvolvedElementsToJSON: typeof ActionInvolvedElementsToJSON;
+type index_d$3_ActionOperationTypeEnum = ActionOperationTypeEnum;
+declare const index_d$3_ActionOperationTypeEnum: typeof ActionOperationTypeEnum;
+declare const index_d$3_ActionToJSON: typeof ActionToJSON;
+type index_d$3_ActionUser = ActionUser;
+declare const index_d$3_ActionUserFromJSON: typeof ActionUserFromJSON;
+declare const index_d$3_ActionUserFromJSONTyped: typeof ActionUserFromJSONTyped;
+declare const index_d$3_ActionUserToJSON: typeof ActionUserToJSON;
+type index_d$3_AnnotationAction = AnnotationAction;
+declare const index_d$3_AnnotationActionFromJSON: typeof AnnotationActionFromJSON;
+declare const index_d$3_AnnotationActionFromJSONTyped: typeof AnnotationActionFromJSONTyped;
+type index_d$3_AnnotationActionOperationTypeEnum = AnnotationActionOperationTypeEnum;
+declare const index_d$3_AnnotationActionOperationTypeEnum: typeof AnnotationActionOperationTypeEnum;
+declare const index_d$3_AnnotationActionToJSON: typeof AnnotationActionToJSON;
+declare const index_d$3_AnnotationFromJSON: typeof AnnotationFromJSON;
+declare const index_d$3_AnnotationFromJSONTyped: typeof AnnotationFromJSONTyped;
+declare const index_d$3_AnnotationToJSON: typeof AnnotationToJSON;
+type index_d$3_ApiResponse<T> = ApiResponse<T>;
+declare const index_d$3_BASE_PATH: typeof BASE_PATH;
+type index_d$3_BaseAPI = BaseAPI;
+declare const index_d$3_BaseAPI: typeof BaseAPI;
+type index_d$3_BlobApiResponse = BlobApiResponse;
+declare const index_d$3_BlobApiResponse: typeof BlobApiResponse;
+declare const index_d$3_COLLECTION_FORMATS: typeof COLLECTION_FORMATS;
+type index_d$3_ClassInstanceEntityAllOf = ClassInstanceEntityAllOf;
+declare const index_d$3_ClassInstanceEntityAllOfFromJSON: typeof ClassInstanceEntityAllOfFromJSON;
+declare const index_d$3_ClassInstanceEntityAllOfFromJSONTyped: typeof ClassInstanceEntityAllOfFromJSONTyped;
+declare const index_d$3_ClassInstanceEntityAllOfToJSON: typeof ClassInstanceEntityAllOfToJSON;
+declare const index_d$3_ClassInstanceEntityFromJSON: typeof ClassInstanceEntityFromJSON;
+declare const index_d$3_ClassInstanceEntityFromJSONTyped: typeof ClassInstanceEntityFromJSONTyped;
+declare const index_d$3_ClassInstanceEntityToJSON: typeof ClassInstanceEntityToJSON;
+type index_d$3_Configuration = Configuration;
+declare const index_d$3_Configuration: typeof Configuration;
+type index_d$3_ConfigurationParameters = ConfigurationParameters;
+type index_d$3_Consume = Consume;
+type index_d$3_DataPropertyValue = DataPropertyValue;
+declare const index_d$3_DataPropertyValueFromJSON: typeof DataPropertyValueFromJSON;
+declare const index_d$3_DataPropertyValueFromJSONTyped: typeof DataPropertyValueFromJSONTyped;
+declare const index_d$3_DataPropertyValueToJSON: typeof DataPropertyValueToJSON;
+declare const index_d$3_DefaultConfig: typeof DefaultConfig;
+type index_d$3_DeleteOntologyDraftRequest = DeleteOntologyDraftRequest;
+type index_d$3_DiagramAction = DiagramAction;
+declare const index_d$3_DiagramActionFromJSON: typeof DiagramActionFromJSON;
+declare const index_d$3_DiagramActionFromJSONTyped: typeof DiagramActionFromJSONTyped;
+type index_d$3_DiagramActionOperationTypeEnum = DiagramActionOperationTypeEnum;
+declare const index_d$3_DiagramActionOperationTypeEnum: typeof DiagramActionOperationTypeEnum;
+declare const index_d$3_DiagramActionToJSON: typeof DiagramActionToJSON;
+declare const index_d$3_DiagramFromJSON: typeof DiagramFromJSON;
+declare const index_d$3_DiagramFromJSONTyped: typeof DiagramFromJSONTyped;
+declare const index_d$3_DiagramToJSON: typeof DiagramToJSON;
+type index_d$3_DownloadOntologyDraftRequest = DownloadOntologyDraftRequest;
+type index_d$3_Edge = Edge;
+type index_d$3_EdgeAction = EdgeAction;
+declare const index_d$3_EdgeActionFromJSON: typeof EdgeActionFromJSON;
+declare const index_d$3_EdgeActionFromJSONTyped: typeof EdgeActionFromJSONTyped;
+type index_d$3_EdgeActionOperationTypeEnum = EdgeActionOperationTypeEnum;
+declare const index_d$3_EdgeActionOperationTypeEnum: typeof EdgeActionOperationTypeEnum;
+declare const index_d$3_EdgeActionToJSON: typeof EdgeActionToJSON;
+type index_d$3_EdgeAllOf = EdgeAllOf;
+declare const index_d$3_EdgeAllOfFromJSON: typeof EdgeAllOfFromJSON;
+declare const index_d$3_EdgeAllOfFromJSONTyped: typeof EdgeAllOfFromJSONTyped;
+declare const index_d$3_EdgeAllOfToJSON: typeof EdgeAllOfToJSON;
+declare const index_d$3_EdgeFromJSON: typeof EdgeFromJSON;
+declare const index_d$3_EdgeFromJSONTyped: typeof EdgeFromJSONTyped;
+declare const index_d$3_EdgeToJSON: typeof EdgeToJSON;
+declare const index_d$3_ElementFromJSON: typeof ElementFromJSON;
+declare const index_d$3_ElementFromJSONTyped: typeof ElementFromJSONTyped;
+declare const index_d$3_ElementToJSON: typeof ElementToJSON;
+type index_d$3_EntityAction = EntityAction;
+declare const index_d$3_EntityActionFromJSON: typeof EntityActionFromJSON;
+declare const index_d$3_EntityActionFromJSONTyped: typeof EntityActionFromJSONTyped;
+type index_d$3_EntityActionOperationTypeEnum = EntityActionOperationTypeEnum;
+declare const index_d$3_EntityActionOperationTypeEnum: typeof EntityActionOperationTypeEnum;
+declare const index_d$3_EntityActionToJSON: typeof EntityActionToJSON;
+declare const index_d$3_EntityFromJSON: typeof EntityFromJSON;
+declare const index_d$3_EntityFromJSONTyped: typeof EntityFromJSONTyped;
+declare const index_d$3_EntityToJSON: typeof EntityToJSON;
+type index_d$3_ErrorContext = ErrorContext;
+type index_d$3_FetchAPI = FetchAPI;
+type index_d$3_FetchError = FetchError;
+declare const index_d$3_FetchError: typeof FetchError;
+type index_d$3_FetchParams = FetchParams;
+type index_d$3_FunctionPropertiesEnum = FunctionPropertiesEnum;
+declare const index_d$3_FunctionPropertiesEnum: typeof FunctionPropertiesEnum;
+declare const index_d$3_FunctionPropertiesEnumFromJSON: typeof FunctionPropertiesEnumFromJSON;
+declare const index_d$3_FunctionPropertiesEnumFromJSONTyped: typeof FunctionPropertiesEnumFromJSONTyped;
+declare const index_d$3_FunctionPropertiesEnumToJSON: typeof FunctionPropertiesEnumToJSON;
+type index_d$3_GetOntologyDraftRequest = GetOntologyDraftRequest;
+type index_d$3_GetRDFGraphConstructRequest = GetRDFGraphConstructRequest;
+type index_d$3_HTTPBody = HTTPBody;
+type index_d$3_HTTPHeaders = HTTPHeaders;
+type index_d$3_HTTPMethod = HTTPMethod;
+type index_d$3_HTTPQuery = HTTPQuery;
+type index_d$3_HTTPRequestInit = HTTPRequestInit;
+type index_d$3_HierarchyAction = HierarchyAction;
+declare const index_d$3_HierarchyActionFromJSON: typeof HierarchyActionFromJSON;
+declare const index_d$3_HierarchyActionFromJSONTyped: typeof HierarchyActionFromJSONTyped;
+declare const index_d$3_HierarchyActionToJSON: typeof HierarchyActionToJSON;
+declare const index_d$3_HierarchyFromJSON: typeof HierarchyFromJSON;
+declare const index_d$3_HierarchyFromJSONTyped: typeof HierarchyFromJSONTyped;
+type index_d$3_HierarchySuperclassesInner = HierarchySuperclassesInner;
+declare const index_d$3_HierarchySuperclassesInnerFromJSON: typeof HierarchySuperclassesInnerFromJSON;
+declare const index_d$3_HierarchySuperclassesInnerFromJSONTyped: typeof HierarchySuperclassesInnerFromJSONTyped;
+declare const index_d$3_HierarchySuperclassesInnerToJSON: typeof HierarchySuperclassesInnerToJSON;
+declare const index_d$3_HierarchyToJSON: typeof HierarchyToJSON;
+type index_d$3_InitOverrideFunction = InitOverrideFunction;
+type index_d$3_JSONApiResponse<T> = JSONApiResponse<T>;
+declare const index_d$3_JSONApiResponse: typeof JSONApiResponse;
+type index_d$3_Json = Json;
+type index_d$3_Middleware = Middleware;
+type index_d$3_ModelPropertyNaming = ModelPropertyNaming;
+type index_d$3_NamespaceAction = NamespaceAction;
+declare const index_d$3_NamespaceActionFromJSON: typeof NamespaceActionFromJSON;
+declare const index_d$3_NamespaceActionFromJSONTyped: typeof NamespaceActionFromJSONTyped;
+type index_d$3_NamespaceActionOperationTypeEnum = NamespaceActionOperationTypeEnum;
+declare const index_d$3_NamespaceActionOperationTypeEnum: typeof NamespaceActionOperationTypeEnum;
+declare const index_d$3_NamespaceActionToJSON: typeof NamespaceActionToJSON;
+declare const index_d$3_NamespaceFromJSON: typeof NamespaceFromJSON;
+declare const index_d$3_NamespaceFromJSONTyped: typeof NamespaceFromJSONTyped;
+declare const index_d$3_NamespaceToJSON: typeof NamespaceToJSON;
+type index_d$3_Node = Node;
+type index_d$3_NodeAction = NodeAction;
+declare const index_d$3_NodeActionFromJSON: typeof NodeActionFromJSON;
+declare const index_d$3_NodeActionFromJSONTyped: typeof NodeActionFromJSONTyped;
+type index_d$3_NodeActionOperationTypeEnum = NodeActionOperationTypeEnum;
+declare const index_d$3_NodeActionOperationTypeEnum: typeof NodeActionOperationTypeEnum;
+declare const index_d$3_NodeActionToJSON: typeof NodeActionToJSON;
+type index_d$3_NodeAllOf = NodeAllOf;
+declare const index_d$3_NodeAllOfFromJSON: typeof NodeAllOfFromJSON;
+declare const index_d$3_NodeAllOfFromJSONTyped: typeof NodeAllOfFromJSONTyped;
+declare const index_d$3_NodeAllOfToJSON: typeof NodeAllOfToJSON;
+declare const index_d$3_NodeFromJSON: typeof NodeFromJSON;
+declare const index_d$3_NodeFromJSONTyped: typeof NodeFromJSONTyped;
+declare const index_d$3_NodeToJSON: typeof NodeToJSON;
+type index_d$3_OntologyDesignerApi = OntologyDesignerApi;
+declare const index_d$3_OntologyDesignerApi: typeof OntologyDesignerApi;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogDeleteRequest = OwlOntologyOntologyNameVkgCatalogDeleteRequest;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogExportGetRequest = OwlOntologyOntologyNameVkgCatalogExportGetRequest;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogGetRequest = OwlOntologyOntologyNameVkgCatalogGetRequest;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogImportPostRequest = OwlOntologyOntologyNameVkgCatalogImportPostRequest;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogPostRequest = OwlOntologyOntologyNameVkgCatalogPostRequest;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest = OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest;
+type index_d$3_OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest = OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest;
+type index_d$3_Position = Position;
+declare const index_d$3_PositionFromJSON: typeof PositionFromJSON;
+declare const index_d$3_PositionFromJSONTyped: typeof PositionFromJSONTyped;
+declare const index_d$3_PositionToJSON: typeof PositionToJSON;
+type index_d$3_PostOntologyDraftsRequest = PostOntologyDraftsRequest;
+type index_d$3_PostOntologyVersionFromRDFGraphRequest = PostOntologyVersionFromRDFGraphRequest;
+type index_d$3_PropertyAction = PropertyAction;
+declare const index_d$3_PropertyActionFromJSON: typeof PropertyActionFromJSON;
+declare const index_d$3_PropertyActionFromJSONTyped: typeof PropertyActionFromJSONTyped;
+type index_d$3_PropertyActionOperationTypeEnum = PropertyActionOperationTypeEnum;
+declare const index_d$3_PropertyActionOperationTypeEnum: typeof PropertyActionOperationTypeEnum;
+declare const index_d$3_PropertyActionToJSON: typeof PropertyActionToJSON;
+type index_d$3_PutOntologyDraftRequest = PutOntologyDraftRequest;
+type index_d$3_RDFGraph = RDFGraph;
+type index_d$3_RDFGraphConfig = RDFGraphConfig;
+type index_d$3_RDFGraphConfigEntityNameTypeEnum = RDFGraphConfigEntityNameTypeEnum;
+declare const index_d$3_RDFGraphConfigEntityNameTypeEnum: typeof RDFGraphConfigEntityNameTypeEnum;
+type index_d$3_RDFGraphConfigFiltersEnum = RDFGraphConfigFiltersEnum;
+declare const index_d$3_RDFGraphConfigFiltersEnum: typeof RDFGraphConfigFiltersEnum;
+declare const index_d$3_RDFGraphConfigFromJSON: typeof RDFGraphConfigFromJSON;
+declare const index_d$3_RDFGraphConfigFromJSONTyped: typeof RDFGraphConfigFromJSONTyped;
+declare const index_d$3_RDFGraphConfigToJSON: typeof RDFGraphConfigToJSON;
+declare const index_d$3_RDFGraphFromJSON: typeof RDFGraphFromJSON;
+declare const index_d$3_RDFGraphFromJSONTyped: typeof RDFGraphFromJSONTyped;
+type index_d$3_RDFGraphMetadata = RDFGraphMetadata;
+declare const index_d$3_RDFGraphMetadataFromJSON: typeof RDFGraphMetadataFromJSON;
+declare const index_d$3_RDFGraphMetadataFromJSONTyped: typeof RDFGraphMetadataFromJSONTyped;
+declare const index_d$3_RDFGraphMetadataToJSON: typeof RDFGraphMetadataToJSON;
+type index_d$3_RDFGraphModelTypeEnum = RDFGraphModelTypeEnum;
+declare const index_d$3_RDFGraphModelTypeEnum: typeof RDFGraphModelTypeEnum;
+declare const index_d$3_RDFGraphToJSON: typeof RDFGraphToJSON;
+type index_d$3_RequestContext = RequestContext;
+type index_d$3_RequestOpts = RequestOpts;
+type index_d$3_RequiredError = RequiredError;
+declare const index_d$3_RequiredError: typeof RequiredError;
+type index_d$3_ResponseContext = ResponseContext;
+type index_d$3_ResponseError = ResponseError;
+declare const index_d$3_ResponseError: typeof ResponseError;
+type index_d$3_ResponseTransformer<T> = ResponseTransformer<T>;
+type index_d$3_TextApiResponse = TextApiResponse;
+declare const index_d$3_TextApiResponse: typeof TextApiResponse;
+type index_d$3_Theme = Theme;
+declare const index_d$3_ThemeFromJSON: typeof ThemeFromJSON;
+declare const index_d$3_ThemeFromJSONTyped: typeof ThemeFromJSONTyped;
+declare const index_d$3_ThemeToJSON: typeof ThemeToJSON;
+type index_d$3_TypesEnum = TypesEnum;
+declare const index_d$3_TypesEnum: typeof TypesEnum;
+declare const index_d$3_TypesEnumFromJSON: typeof TypesEnumFromJSON;
+declare const index_d$3_TypesEnumFromJSONTyped: typeof TypesEnumFromJSONTyped;
+declare const index_d$3_TypesEnumToJSON: typeof TypesEnumToJSON;
+type index_d$3_VKGSnapshot = VKGSnapshot;
+declare const index_d$3_VKGSnapshotFromJSON: typeof VKGSnapshotFromJSON;
+declare const index_d$3_VKGSnapshotFromJSONTyped: typeof VKGSnapshotFromJSONTyped;
+declare const index_d$3_VKGSnapshotToJSON: typeof VKGSnapshotToJSON;
+type index_d$3_Viewport = Viewport;
+declare const index_d$3_ViewportFromJSON: typeof ViewportFromJSON;
+declare const index_d$3_ViewportFromJSONTyped: typeof ViewportFromJSONTyped;
+declare const index_d$3_ViewportToJSON: typeof ViewportToJSON;
+type index_d$3_VoidApiResponse = VoidApiResponse;
+declare const index_d$3_VoidApiResponse: typeof VoidApiResponse;
+declare const index_d$3_canConsumeForm: typeof canConsumeForm;
+declare const index_d$3_exists: typeof exists;
+declare const index_d$3_instanceOfAction: typeof instanceOfAction;
+declare const index_d$3_instanceOfActionInvolvedElements: typeof instanceOfActionInvolvedElements;
+declare const index_d$3_instanceOfActionUser: typeof instanceOfActionUser;
+declare const index_d$3_instanceOfAnnotation: typeof instanceOfAnnotation;
+declare const index_d$3_instanceOfAnnotationAction: typeof instanceOfAnnotationAction;
+declare const index_d$3_instanceOfClassInstanceEntity: typeof instanceOfClassInstanceEntity;
+declare const index_d$3_instanceOfClassInstanceEntityAllOf: typeof instanceOfClassInstanceEntityAllOf;
+declare const index_d$3_instanceOfDataPropertyValue: typeof instanceOfDataPropertyValue;
+declare const index_d$3_instanceOfDiagram: typeof instanceOfDiagram;
+declare const index_d$3_instanceOfDiagramAction: typeof instanceOfDiagramAction;
+declare const index_d$3_instanceOfEdge: typeof instanceOfEdge;
+declare const index_d$3_instanceOfEdgeAction: typeof instanceOfEdgeAction;
+declare const index_d$3_instanceOfEdgeAllOf: typeof instanceOfEdgeAllOf;
+declare const index_d$3_instanceOfElement: typeof instanceOfElement;
+declare const index_d$3_instanceOfEntity: typeof instanceOfEntity;
+declare const index_d$3_instanceOfEntityAction: typeof instanceOfEntityAction;
+declare const index_d$3_instanceOfHierarchy: typeof instanceOfHierarchy;
+declare const index_d$3_instanceOfHierarchyAction: typeof instanceOfHierarchyAction;
+declare const index_d$3_instanceOfHierarchySuperclassesInner: typeof instanceOfHierarchySuperclassesInner;
+declare const index_d$3_instanceOfNamespace: typeof instanceOfNamespace;
+declare const index_d$3_instanceOfNamespaceAction: typeof instanceOfNamespaceAction;
+declare const index_d$3_instanceOfNode: typeof instanceOfNode;
+declare const index_d$3_instanceOfNodeAction: typeof instanceOfNodeAction;
+declare const index_d$3_instanceOfNodeAllOf: typeof instanceOfNodeAllOf;
+declare const index_d$3_instanceOfPosition: typeof instanceOfPosition;
+declare const index_d$3_instanceOfPropertyAction: typeof instanceOfPropertyAction;
+declare const index_d$3_instanceOfRDFGraph: typeof instanceOfRDFGraph;
+declare const index_d$3_instanceOfRDFGraphConfig: typeof instanceOfRDFGraphConfig;
+declare const index_d$3_instanceOfRDFGraphMetadata: typeof instanceOfRDFGraphMetadata;
+declare const index_d$3_instanceOfTheme: typeof instanceOfTheme;
+declare const index_d$3_instanceOfVKGSnapshot: typeof instanceOfVKGSnapshot;
+declare const index_d$3_instanceOfViewport: typeof instanceOfViewport;
+declare const index_d$3_mapValues: typeof mapValues;
+declare const index_d$3_querystring: typeof querystring;
+declare namespace index_d$3 {
   export {
-    index_d$4_Action as Action,
-    index_d$4_ActionFromJSON as ActionFromJSON,
-    index_d$4_ActionFromJSONTyped as ActionFromJSONTyped,
-    index_d$4_ActionInvolvedElements as ActionInvolvedElements,
-    index_d$4_ActionInvolvedElementsFromJSON as ActionInvolvedElementsFromJSON,
-    index_d$4_ActionInvolvedElementsFromJSONTyped as ActionInvolvedElementsFromJSONTyped,
-    index_d$4_ActionInvolvedElementsToJSON as ActionInvolvedElementsToJSON,
-    index_d$4_ActionOperationTypeEnum as ActionOperationTypeEnum,
-    index_d$4_ActionToJSON as ActionToJSON,
-    index_d$4_ActionUser as ActionUser,
-    index_d$4_ActionUserFromJSON as ActionUserFromJSON,
-    index_d$4_ActionUserFromJSONTyped as ActionUserFromJSONTyped,
-    index_d$4_ActionUserToJSON as ActionUserToJSON,
+    index_d$3_Action as Action,
+    index_d$3_ActionFromJSON as ActionFromJSON,
+    index_d$3_ActionFromJSONTyped as ActionFromJSONTyped,
+    index_d$3_ActionInvolvedElements as ActionInvolvedElements,
+    index_d$3_ActionInvolvedElementsFromJSON as ActionInvolvedElementsFromJSON,
+    index_d$3_ActionInvolvedElementsFromJSONTyped as ActionInvolvedElementsFromJSONTyped,
+    index_d$3_ActionInvolvedElementsToJSON as ActionInvolvedElementsToJSON,
+    index_d$3_ActionOperationTypeEnum as ActionOperationTypeEnum,
+    index_d$3_ActionToJSON as ActionToJSON,
+    index_d$3_ActionUser as ActionUser,
+    index_d$3_ActionUserFromJSON as ActionUserFromJSON,
+    index_d$3_ActionUserFromJSONTyped as ActionUserFromJSONTyped,
+    index_d$3_ActionUserToJSON as ActionUserToJSON,
     Annotation$1 as Annotation,
-    index_d$4_AnnotationAction as AnnotationAction,
-    index_d$4_AnnotationActionFromJSON as AnnotationActionFromJSON,
-    index_d$4_AnnotationActionFromJSONTyped as AnnotationActionFromJSONTyped,
-    index_d$4_AnnotationActionOperationTypeEnum as AnnotationActionOperationTypeEnum,
-    index_d$4_AnnotationActionToJSON as AnnotationActionToJSON,
-    index_d$4_AnnotationFromJSON as AnnotationFromJSON,
-    index_d$4_AnnotationFromJSONTyped as AnnotationFromJSONTyped,
-    index_d$4_AnnotationToJSON as AnnotationToJSON,
-    index_d$4_ApiResponse as ApiResponse,
-    index_d$4_BASE_PATH as BASE_PATH,
-    index_d$4_BaseAPI as BaseAPI,
-    index_d$4_BlobApiResponse as BlobApiResponse,
-    index_d$4_COLLECTION_FORMATS as COLLECTION_FORMATS,
+    index_d$3_AnnotationAction as AnnotationAction,
+    index_d$3_AnnotationActionFromJSON as AnnotationActionFromJSON,
+    index_d$3_AnnotationActionFromJSONTyped as AnnotationActionFromJSONTyped,
+    index_d$3_AnnotationActionOperationTypeEnum as AnnotationActionOperationTypeEnum,
+    index_d$3_AnnotationActionToJSON as AnnotationActionToJSON,
+    index_d$3_AnnotationFromJSON as AnnotationFromJSON,
+    index_d$3_AnnotationFromJSONTyped as AnnotationFromJSONTyped,
+    index_d$3_AnnotationToJSON as AnnotationToJSON,
+    index_d$3_ApiResponse as ApiResponse,
+    index_d$3_BASE_PATH as BASE_PATH,
+    index_d$3_BaseAPI as BaseAPI,
+    index_d$3_BlobApiResponse as BlobApiResponse,
+    index_d$3_COLLECTION_FORMATS as COLLECTION_FORMATS,
     ClassInstanceEntity$1 as ClassInstanceEntity,
-    index_d$4_ClassInstanceEntityAllOf as ClassInstanceEntityAllOf,
-    index_d$4_ClassInstanceEntityAllOfFromJSON as ClassInstanceEntityAllOfFromJSON,
-    index_d$4_ClassInstanceEntityAllOfFromJSONTyped as ClassInstanceEntityAllOfFromJSONTyped,
-    index_d$4_ClassInstanceEntityAllOfToJSON as ClassInstanceEntityAllOfToJSON,
-    index_d$4_ClassInstanceEntityFromJSON as ClassInstanceEntityFromJSON,
-    index_d$4_ClassInstanceEntityFromJSONTyped as ClassInstanceEntityFromJSONTyped,
-    index_d$4_ClassInstanceEntityToJSON as ClassInstanceEntityToJSON,
-    index_d$4_Configuration as Configuration,
-    index_d$4_ConfigurationParameters as ConfigurationParameters,
-    index_d$4_Consume as Consume,
-    index_d$4_DataPropertyValue as DataPropertyValue,
-    index_d$4_DataPropertyValueFromJSON as DataPropertyValueFromJSON,
-    index_d$4_DataPropertyValueFromJSONTyped as DataPropertyValueFromJSONTyped,
-    index_d$4_DataPropertyValueToJSON as DataPropertyValueToJSON,
-    index_d$4_DefaultConfig as DefaultConfig,
-    index_d$4_DeleteOntologyDraftRequest as DeleteOntologyDraftRequest,
+    index_d$3_ClassInstanceEntityAllOf as ClassInstanceEntityAllOf,
+    index_d$3_ClassInstanceEntityAllOfFromJSON as ClassInstanceEntityAllOfFromJSON,
+    index_d$3_ClassInstanceEntityAllOfFromJSONTyped as ClassInstanceEntityAllOfFromJSONTyped,
+    index_d$3_ClassInstanceEntityAllOfToJSON as ClassInstanceEntityAllOfToJSON,
+    index_d$3_ClassInstanceEntityFromJSON as ClassInstanceEntityFromJSON,
+    index_d$3_ClassInstanceEntityFromJSONTyped as ClassInstanceEntityFromJSONTyped,
+    index_d$3_ClassInstanceEntityToJSON as ClassInstanceEntityToJSON,
+    index_d$3_Configuration as Configuration,
+    index_d$3_ConfigurationParameters as ConfigurationParameters,
+    index_d$3_Consume as Consume,
+    index_d$3_DataPropertyValue as DataPropertyValue,
+    index_d$3_DataPropertyValueFromJSON as DataPropertyValueFromJSON,
+    index_d$3_DataPropertyValueFromJSONTyped as DataPropertyValueFromJSONTyped,
+    index_d$3_DataPropertyValueToJSON as DataPropertyValueToJSON,
+    index_d$3_DefaultConfig as DefaultConfig,
+    index_d$3_DeleteOntologyDraftRequest as DeleteOntologyDraftRequest,
     Diagram$1 as Diagram,
-    index_d$4_DiagramAction as DiagramAction,
-    index_d$4_DiagramActionFromJSON as DiagramActionFromJSON,
-    index_d$4_DiagramActionFromJSONTyped as DiagramActionFromJSONTyped,
-    index_d$4_DiagramActionOperationTypeEnum as DiagramActionOperationTypeEnum,
-    index_d$4_DiagramActionToJSON as DiagramActionToJSON,
-    index_d$4_DiagramFromJSON as DiagramFromJSON,
-    index_d$4_DiagramFromJSONTyped as DiagramFromJSONTyped,
-    index_d$4_DiagramToJSON as DiagramToJSON,
-    index_d$4_DownloadOntologyDraftRequest as DownloadOntologyDraftRequest,
-    index_d$4_Edge as Edge,
-    index_d$4_EdgeAction as EdgeAction,
-    index_d$4_EdgeActionFromJSON as EdgeActionFromJSON,
-    index_d$4_EdgeActionFromJSONTyped as EdgeActionFromJSONTyped,
-    index_d$4_EdgeActionOperationTypeEnum as EdgeActionOperationTypeEnum,
-    index_d$4_EdgeActionToJSON as EdgeActionToJSON,
-    index_d$4_EdgeAllOf as EdgeAllOf,
-    index_d$4_EdgeAllOfFromJSON as EdgeAllOfFromJSON,
-    index_d$4_EdgeAllOfFromJSONTyped as EdgeAllOfFromJSONTyped,
-    index_d$4_EdgeAllOfToJSON as EdgeAllOfToJSON,
-    index_d$4_EdgeFromJSON as EdgeFromJSON,
-    index_d$4_EdgeFromJSONTyped as EdgeFromJSONTyped,
-    index_d$4_EdgeToJSON as EdgeToJSON,
+    index_d$3_DiagramAction as DiagramAction,
+    index_d$3_DiagramActionFromJSON as DiagramActionFromJSON,
+    index_d$3_DiagramActionFromJSONTyped as DiagramActionFromJSONTyped,
+    index_d$3_DiagramActionOperationTypeEnum as DiagramActionOperationTypeEnum,
+    index_d$3_DiagramActionToJSON as DiagramActionToJSON,
+    index_d$3_DiagramFromJSON as DiagramFromJSON,
+    index_d$3_DiagramFromJSONTyped as DiagramFromJSONTyped,
+    index_d$3_DiagramToJSON as DiagramToJSON,
+    index_d$3_DownloadOntologyDraftRequest as DownloadOntologyDraftRequest,
+    index_d$3_Edge as Edge,
+    index_d$3_EdgeAction as EdgeAction,
+    index_d$3_EdgeActionFromJSON as EdgeActionFromJSON,
+    index_d$3_EdgeActionFromJSONTyped as EdgeActionFromJSONTyped,
+    index_d$3_EdgeActionOperationTypeEnum as EdgeActionOperationTypeEnum,
+    index_d$3_EdgeActionToJSON as EdgeActionToJSON,
+    index_d$3_EdgeAllOf as EdgeAllOf,
+    index_d$3_EdgeAllOfFromJSON as EdgeAllOfFromJSON,
+    index_d$3_EdgeAllOfFromJSONTyped as EdgeAllOfFromJSONTyped,
+    index_d$3_EdgeAllOfToJSON as EdgeAllOfToJSON,
+    index_d$3_EdgeFromJSON as EdgeFromJSON,
+    index_d$3_EdgeFromJSONTyped as EdgeFromJSONTyped,
+    index_d$3_EdgeToJSON as EdgeToJSON,
     Element$1 as Element,
-    index_d$4_ElementFromJSON as ElementFromJSON,
-    index_d$4_ElementFromJSONTyped as ElementFromJSONTyped,
-    index_d$4_ElementToJSON as ElementToJSON,
+    index_d$3_ElementFromJSON as ElementFromJSON,
+    index_d$3_ElementFromJSONTyped as ElementFromJSONTyped,
+    index_d$3_ElementToJSON as ElementToJSON,
     Entity$1 as Entity,
-    index_d$4_EntityAction as EntityAction,
-    index_d$4_EntityActionFromJSON as EntityActionFromJSON,
-    index_d$4_EntityActionFromJSONTyped as EntityActionFromJSONTyped,
-    index_d$4_EntityActionOperationTypeEnum as EntityActionOperationTypeEnum,
-    index_d$4_EntityActionToJSON as EntityActionToJSON,
-    index_d$4_EntityFromJSON as EntityFromJSON,
-    index_d$4_EntityFromJSONTyped as EntityFromJSONTyped,
-    index_d$4_EntityToJSON as EntityToJSON,
-    index_d$4_ErrorContext as ErrorContext,
-    index_d$4_FetchAPI as FetchAPI,
-    index_d$4_FetchError as FetchError,
-    index_d$4_FetchParams as FetchParams,
-    index_d$4_FunctionPropertiesEnum as FunctionPropertiesEnum,
-    index_d$4_FunctionPropertiesEnumFromJSON as FunctionPropertiesEnumFromJSON,
-    index_d$4_FunctionPropertiesEnumFromJSONTyped as FunctionPropertiesEnumFromJSONTyped,
-    index_d$4_FunctionPropertiesEnumToJSON as FunctionPropertiesEnumToJSON,
-    index_d$4_GetOntologyDraftRequest as GetOntologyDraftRequest,
-    index_d$4_GetRDFGraphConstructRequest as GetRDFGraphConstructRequest,
-    index_d$4_HTTPBody as HTTPBody,
-    index_d$4_HTTPHeaders as HTTPHeaders,
-    index_d$4_HTTPMethod as HTTPMethod,
-    index_d$4_HTTPQuery as HTTPQuery,
-    index_d$4_HTTPRequestInit as HTTPRequestInit,
+    index_d$3_EntityAction as EntityAction,
+    index_d$3_EntityActionFromJSON as EntityActionFromJSON,
+    index_d$3_EntityActionFromJSONTyped as EntityActionFromJSONTyped,
+    index_d$3_EntityActionOperationTypeEnum as EntityActionOperationTypeEnum,
+    index_d$3_EntityActionToJSON as EntityActionToJSON,
+    index_d$3_EntityFromJSON as EntityFromJSON,
+    index_d$3_EntityFromJSONTyped as EntityFromJSONTyped,
+    index_d$3_EntityToJSON as EntityToJSON,
+    index_d$3_ErrorContext as ErrorContext,
+    index_d$3_FetchAPI as FetchAPI,
+    index_d$3_FetchError as FetchError,
+    index_d$3_FetchParams as FetchParams,
+    index_d$3_FunctionPropertiesEnum as FunctionPropertiesEnum,
+    index_d$3_FunctionPropertiesEnumFromJSON as FunctionPropertiesEnumFromJSON,
+    index_d$3_FunctionPropertiesEnumFromJSONTyped as FunctionPropertiesEnumFromJSONTyped,
+    index_d$3_FunctionPropertiesEnumToJSON as FunctionPropertiesEnumToJSON,
+    index_d$3_GetOntologyDraftRequest as GetOntologyDraftRequest,
+    index_d$3_GetRDFGraphConstructRequest as GetRDFGraphConstructRequest,
+    index_d$3_HTTPBody as HTTPBody,
+    index_d$3_HTTPHeaders as HTTPHeaders,
+    index_d$3_HTTPMethod as HTTPMethod,
+    index_d$3_HTTPQuery as HTTPQuery,
+    index_d$3_HTTPRequestInit as HTTPRequestInit,
     Hierarchy$1 as Hierarchy,
-    index_d$4_HierarchyAction as HierarchyAction,
-    index_d$4_HierarchyActionFromJSON as HierarchyActionFromJSON,
-    index_d$4_HierarchyActionFromJSONTyped as HierarchyActionFromJSONTyped,
-    index_d$4_HierarchyActionToJSON as HierarchyActionToJSON,
-    index_d$4_HierarchyFromJSON as HierarchyFromJSON,
-    index_d$4_HierarchyFromJSONTyped as HierarchyFromJSONTyped,
-    index_d$4_HierarchySuperclassesInner as HierarchySuperclassesInner,
-    index_d$4_HierarchySuperclassesInnerFromJSON as HierarchySuperclassesInnerFromJSON,
-    index_d$4_HierarchySuperclassesInnerFromJSONTyped as HierarchySuperclassesInnerFromJSONTyped,
-    index_d$4_HierarchySuperclassesInnerToJSON as HierarchySuperclassesInnerToJSON,
-    index_d$4_HierarchyToJSON as HierarchyToJSON,
-    index_d$4_InitOverrideFunction as InitOverrideFunction,
-    index_d$4_JSONApiResponse as JSONApiResponse,
-    index_d$4_Json as Json,
-    index_d$4_Middleware as Middleware,
-    index_d$4_ModelPropertyNaming as ModelPropertyNaming,
+    index_d$3_HierarchyAction as HierarchyAction,
+    index_d$3_HierarchyActionFromJSON as HierarchyActionFromJSON,
+    index_d$3_HierarchyActionFromJSONTyped as HierarchyActionFromJSONTyped,
+    index_d$3_HierarchyActionToJSON as HierarchyActionToJSON,
+    index_d$3_HierarchyFromJSON as HierarchyFromJSON,
+    index_d$3_HierarchyFromJSONTyped as HierarchyFromJSONTyped,
+    index_d$3_HierarchySuperclassesInner as HierarchySuperclassesInner,
+    index_d$3_HierarchySuperclassesInnerFromJSON as HierarchySuperclassesInnerFromJSON,
+    index_d$3_HierarchySuperclassesInnerFromJSONTyped as HierarchySuperclassesInnerFromJSONTyped,
+    index_d$3_HierarchySuperclassesInnerToJSON as HierarchySuperclassesInnerToJSON,
+    index_d$3_HierarchyToJSON as HierarchyToJSON,
+    index_d$3_InitOverrideFunction as InitOverrideFunction,
+    index_d$3_JSONApiResponse as JSONApiResponse,
+    index_d$3_Json as Json,
+    index_d$3_Middleware as Middleware,
+    index_d$3_ModelPropertyNaming as ModelPropertyNaming,
     Namespace$1 as Namespace,
-    index_d$4_NamespaceAction as NamespaceAction,
-    index_d$4_NamespaceActionFromJSON as NamespaceActionFromJSON,
-    index_d$4_NamespaceActionFromJSONTyped as NamespaceActionFromJSONTyped,
-    index_d$4_NamespaceActionOperationTypeEnum as NamespaceActionOperationTypeEnum,
-    index_d$4_NamespaceActionToJSON as NamespaceActionToJSON,
-    index_d$4_NamespaceFromJSON as NamespaceFromJSON,
-    index_d$4_NamespaceFromJSONTyped as NamespaceFromJSONTyped,
-    index_d$4_NamespaceToJSON as NamespaceToJSON,
-    index_d$4_Node as Node,
-    index_d$4_NodeAction as NodeAction,
-    index_d$4_NodeActionFromJSON as NodeActionFromJSON,
-    index_d$4_NodeActionFromJSONTyped as NodeActionFromJSONTyped,
-    index_d$4_NodeActionOperationTypeEnum as NodeActionOperationTypeEnum,
-    index_d$4_NodeActionToJSON as NodeActionToJSON,
-    index_d$4_NodeAllOf as NodeAllOf,
-    index_d$4_NodeAllOfFromJSON as NodeAllOfFromJSON,
-    index_d$4_NodeAllOfFromJSONTyped as NodeAllOfFromJSONTyped,
-    index_d$4_NodeAllOfToJSON as NodeAllOfToJSON,
-    index_d$4_NodeFromJSON as NodeFromJSON,
-    index_d$4_NodeFromJSONTyped as NodeFromJSONTyped,
-    index_d$4_NodeToJSON as NodeToJSON,
-    index_d$4_OntologyDesignerApi as OntologyDesignerApi,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogDeleteRequest as OwlOntologyOntologyNameVkgCatalogDeleteRequest,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogExportGetRequest as OwlOntologyOntologyNameVkgCatalogExportGetRequest,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogGetRequest as OwlOntologyOntologyNameVkgCatalogGetRequest,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogImportPostRequest as OwlOntologyOntologyNameVkgCatalogImportPostRequest,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogPostRequest as OwlOntologyOntologyNameVkgCatalogPostRequest,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest as OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest,
-    index_d$4_OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest as OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest,
-    index_d$4_Position as Position,
-    index_d$4_PositionFromJSON as PositionFromJSON,
-    index_d$4_PositionFromJSONTyped as PositionFromJSONTyped,
-    index_d$4_PositionToJSON as PositionToJSON,
-    index_d$4_PostOntologyDraftsRequest as PostOntologyDraftsRequest,
-    index_d$4_PostOntologyVersionFromRDFGraphRequest as PostOntologyVersionFromRDFGraphRequest,
-    index_d$4_PropertyAction as PropertyAction,
-    index_d$4_PropertyActionFromJSON as PropertyActionFromJSON,
-    index_d$4_PropertyActionFromJSONTyped as PropertyActionFromJSONTyped,
-    index_d$4_PropertyActionOperationTypeEnum as PropertyActionOperationTypeEnum,
-    index_d$4_PropertyActionToJSON as PropertyActionToJSON,
-    index_d$4_PutOntologyDraftRequest as PutOntologyDraftRequest,
-    index_d$4_RDFGraph as RDFGraph,
-    index_d$4_RDFGraphConfig as RDFGraphConfig,
-    index_d$4_RDFGraphConfigEntityNameTypeEnum as RDFGraphConfigEntityNameTypeEnum,
-    index_d$4_RDFGraphConfigFiltersEnum as RDFGraphConfigFiltersEnum,
-    index_d$4_RDFGraphConfigFromJSON as RDFGraphConfigFromJSON,
-    index_d$4_RDFGraphConfigFromJSONTyped as RDFGraphConfigFromJSONTyped,
-    index_d$4_RDFGraphConfigToJSON as RDFGraphConfigToJSON,
-    index_d$4_RDFGraphFromJSON as RDFGraphFromJSON,
-    index_d$4_RDFGraphFromJSONTyped as RDFGraphFromJSONTyped,
-    index_d$4_RDFGraphMetadata as RDFGraphMetadata,
-    index_d$4_RDFGraphMetadataFromJSON as RDFGraphMetadataFromJSON,
-    index_d$4_RDFGraphMetadataFromJSONTyped as RDFGraphMetadataFromJSONTyped,
-    index_d$4_RDFGraphMetadataToJSON as RDFGraphMetadataToJSON,
-    index_d$4_RDFGraphModelTypeEnum as RDFGraphModelTypeEnum,
-    index_d$4_RDFGraphToJSON as RDFGraphToJSON,
-    index_d$4_RequestContext as RequestContext,
-    index_d$4_RequestOpts as RequestOpts,
-    index_d$4_RequiredError as RequiredError,
-    index_d$4_ResponseContext as ResponseContext,
-    index_d$4_ResponseError as ResponseError,
-    index_d$4_ResponseTransformer as ResponseTransformer,
-    index_d$4_TextApiResponse as TextApiResponse,
-    index_d$4_Theme as Theme,
-    index_d$4_ThemeFromJSON as ThemeFromJSON,
-    index_d$4_ThemeFromJSONTyped as ThemeFromJSONTyped,
-    index_d$4_ThemeToJSON as ThemeToJSON,
-    index_d$4_TypesEnum as TypesEnum,
-    index_d$4_TypesEnumFromJSON as TypesEnumFromJSON,
-    index_d$4_TypesEnumFromJSONTyped as TypesEnumFromJSONTyped,
-    index_d$4_TypesEnumToJSON as TypesEnumToJSON,
+    index_d$3_NamespaceAction as NamespaceAction,
+    index_d$3_NamespaceActionFromJSON as NamespaceActionFromJSON,
+    index_d$3_NamespaceActionFromJSONTyped as NamespaceActionFromJSONTyped,
+    index_d$3_NamespaceActionOperationTypeEnum as NamespaceActionOperationTypeEnum,
+    index_d$3_NamespaceActionToJSON as NamespaceActionToJSON,
+    index_d$3_NamespaceFromJSON as NamespaceFromJSON,
+    index_d$3_NamespaceFromJSONTyped as NamespaceFromJSONTyped,
+    index_d$3_NamespaceToJSON as NamespaceToJSON,
+    index_d$3_Node as Node,
+    index_d$3_NodeAction as NodeAction,
+    index_d$3_NodeActionFromJSON as NodeActionFromJSON,
+    index_d$3_NodeActionFromJSONTyped as NodeActionFromJSONTyped,
+    index_d$3_NodeActionOperationTypeEnum as NodeActionOperationTypeEnum,
+    index_d$3_NodeActionToJSON as NodeActionToJSON,
+    index_d$3_NodeAllOf as NodeAllOf,
+    index_d$3_NodeAllOfFromJSON as NodeAllOfFromJSON,
+    index_d$3_NodeAllOfFromJSONTyped as NodeAllOfFromJSONTyped,
+    index_d$3_NodeAllOfToJSON as NodeAllOfToJSON,
+    index_d$3_NodeFromJSON as NodeFromJSON,
+    index_d$3_NodeFromJSONTyped as NodeFromJSONTyped,
+    index_d$3_NodeToJSON as NodeToJSON,
+    index_d$3_OntologyDesignerApi as OntologyDesignerApi,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogDeleteRequest as OwlOntologyOntologyNameVkgCatalogDeleteRequest,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogExportGetRequest as OwlOntologyOntologyNameVkgCatalogExportGetRequest,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogGetRequest as OwlOntologyOntologyNameVkgCatalogGetRequest,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogImportPostRequest as OwlOntologyOntologyNameVkgCatalogImportPostRequest,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogPostRequest as OwlOntologyOntologyNameVkgCatalogPostRequest,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest as OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest,
+    index_d$3_OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest as OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest,
+    index_d$3_Position as Position,
+    index_d$3_PositionFromJSON as PositionFromJSON,
+    index_d$3_PositionFromJSONTyped as PositionFromJSONTyped,
+    index_d$3_PositionToJSON as PositionToJSON,
+    index_d$3_PostOntologyDraftsRequest as PostOntologyDraftsRequest,
+    index_d$3_PostOntologyVersionFromRDFGraphRequest as PostOntologyVersionFromRDFGraphRequest,
+    index_d$3_PropertyAction as PropertyAction,
+    index_d$3_PropertyActionFromJSON as PropertyActionFromJSON,
+    index_d$3_PropertyActionFromJSONTyped as PropertyActionFromJSONTyped,
+    index_d$3_PropertyActionOperationTypeEnum as PropertyActionOperationTypeEnum,
+    index_d$3_PropertyActionToJSON as PropertyActionToJSON,
+    index_d$3_PutOntologyDraftRequest as PutOntologyDraftRequest,
+    index_d$3_RDFGraph as RDFGraph,
+    index_d$3_RDFGraphConfig as RDFGraphConfig,
+    index_d$3_RDFGraphConfigEntityNameTypeEnum as RDFGraphConfigEntityNameTypeEnum,
+    index_d$3_RDFGraphConfigFiltersEnum as RDFGraphConfigFiltersEnum,
+    index_d$3_RDFGraphConfigFromJSON as RDFGraphConfigFromJSON,
+    index_d$3_RDFGraphConfigFromJSONTyped as RDFGraphConfigFromJSONTyped,
+    index_d$3_RDFGraphConfigToJSON as RDFGraphConfigToJSON,
+    index_d$3_RDFGraphFromJSON as RDFGraphFromJSON,
+    index_d$3_RDFGraphFromJSONTyped as RDFGraphFromJSONTyped,
+    index_d$3_RDFGraphMetadata as RDFGraphMetadata,
+    index_d$3_RDFGraphMetadataFromJSON as RDFGraphMetadataFromJSON,
+    index_d$3_RDFGraphMetadataFromJSONTyped as RDFGraphMetadataFromJSONTyped,
+    index_d$3_RDFGraphMetadataToJSON as RDFGraphMetadataToJSON,
+    index_d$3_RDFGraphModelTypeEnum as RDFGraphModelTypeEnum,
+    index_d$3_RDFGraphToJSON as RDFGraphToJSON,
+    index_d$3_RequestContext as RequestContext,
+    index_d$3_RequestOpts as RequestOpts,
+    index_d$3_RequiredError as RequiredError,
+    index_d$3_ResponseContext as ResponseContext,
+    index_d$3_ResponseError as ResponseError,
+    index_d$3_ResponseTransformer as ResponseTransformer,
+    index_d$3_TextApiResponse as TextApiResponse,
+    index_d$3_Theme as Theme,
+    index_d$3_ThemeFromJSON as ThemeFromJSON,
+    index_d$3_ThemeFromJSONTyped as ThemeFromJSONTyped,
+    index_d$3_ThemeToJSON as ThemeToJSON,
+    index_d$3_TypesEnum as TypesEnum,
+    index_d$3_TypesEnumFromJSON as TypesEnumFromJSON,
+    index_d$3_TypesEnumFromJSONTyped as TypesEnumFromJSONTyped,
+    index_d$3_TypesEnumToJSON as TypesEnumToJSON,
     VKGApi$1 as VKGApi,
-    index_d$4_VKGSnapshot as VKGSnapshot,
-    index_d$4_VKGSnapshotFromJSON as VKGSnapshotFromJSON,
-    index_d$4_VKGSnapshotFromJSONTyped as VKGSnapshotFromJSONTyped,
-    index_d$4_VKGSnapshotToJSON as VKGSnapshotToJSON,
-    index_d$4_Viewport as Viewport,
-    index_d$4_ViewportFromJSON as ViewportFromJSON,
-    index_d$4_ViewportFromJSONTyped as ViewportFromJSONTyped,
-    index_d$4_ViewportToJSON as ViewportToJSON,
-    index_d$4_VoidApiResponse as VoidApiResponse,
-    index_d$4_canConsumeForm as canConsumeForm,
-    index_d$4_exists as exists,
-    index_d$4_instanceOfAction as instanceOfAction,
-    index_d$4_instanceOfActionInvolvedElements as instanceOfActionInvolvedElements,
-    index_d$4_instanceOfActionUser as instanceOfActionUser,
-    index_d$4_instanceOfAnnotation as instanceOfAnnotation,
-    index_d$4_instanceOfAnnotationAction as instanceOfAnnotationAction,
-    index_d$4_instanceOfClassInstanceEntity as instanceOfClassInstanceEntity,
-    index_d$4_instanceOfClassInstanceEntityAllOf as instanceOfClassInstanceEntityAllOf,
-    index_d$4_instanceOfDataPropertyValue as instanceOfDataPropertyValue,
-    index_d$4_instanceOfDiagram as instanceOfDiagram,
-    index_d$4_instanceOfDiagramAction as instanceOfDiagramAction,
-    index_d$4_instanceOfEdge as instanceOfEdge,
-    index_d$4_instanceOfEdgeAction as instanceOfEdgeAction,
-    index_d$4_instanceOfEdgeAllOf as instanceOfEdgeAllOf,
-    index_d$4_instanceOfElement as instanceOfElement,
-    index_d$4_instanceOfEntity as instanceOfEntity,
-    index_d$4_instanceOfEntityAction as instanceOfEntityAction,
-    index_d$4_instanceOfHierarchy as instanceOfHierarchy,
-    index_d$4_instanceOfHierarchyAction as instanceOfHierarchyAction,
-    index_d$4_instanceOfHierarchySuperclassesInner as instanceOfHierarchySuperclassesInner,
-    index_d$4_instanceOfNamespace as instanceOfNamespace,
-    index_d$4_instanceOfNamespaceAction as instanceOfNamespaceAction,
-    index_d$4_instanceOfNode as instanceOfNode,
-    index_d$4_instanceOfNodeAction as instanceOfNodeAction,
-    index_d$4_instanceOfNodeAllOf as instanceOfNodeAllOf,
-    index_d$4_instanceOfPosition as instanceOfPosition,
-    index_d$4_instanceOfPropertyAction as instanceOfPropertyAction,
-    index_d$4_instanceOfRDFGraph as instanceOfRDFGraph,
-    index_d$4_instanceOfRDFGraphConfig as instanceOfRDFGraphConfig,
-    index_d$4_instanceOfRDFGraphMetadata as instanceOfRDFGraphMetadata,
-    index_d$4_instanceOfTheme as instanceOfTheme,
-    index_d$4_instanceOfVKGSnapshot as instanceOfVKGSnapshot,
-    index_d$4_instanceOfViewport as instanceOfViewport,
-    index_d$4_mapValues as mapValues,
-    index_d$4_querystring as querystring,
+    index_d$3_VKGSnapshot as VKGSnapshot,
+    index_d$3_VKGSnapshotFromJSON as VKGSnapshotFromJSON,
+    index_d$3_VKGSnapshotFromJSONTyped as VKGSnapshotFromJSONTyped,
+    index_d$3_VKGSnapshotToJSON as VKGSnapshotToJSON,
+    index_d$3_Viewport as Viewport,
+    index_d$3_ViewportFromJSON as ViewportFromJSON,
+    index_d$3_ViewportFromJSONTyped as ViewportFromJSONTyped,
+    index_d$3_ViewportToJSON as ViewportToJSON,
+    index_d$3_VoidApiResponse as VoidApiResponse,
+    index_d$3_canConsumeForm as canConsumeForm,
+    index_d$3_exists as exists,
+    index_d$3_instanceOfAction as instanceOfAction,
+    index_d$3_instanceOfActionInvolvedElements as instanceOfActionInvolvedElements,
+    index_d$3_instanceOfActionUser as instanceOfActionUser,
+    index_d$3_instanceOfAnnotation as instanceOfAnnotation,
+    index_d$3_instanceOfAnnotationAction as instanceOfAnnotationAction,
+    index_d$3_instanceOfClassInstanceEntity as instanceOfClassInstanceEntity,
+    index_d$3_instanceOfClassInstanceEntityAllOf as instanceOfClassInstanceEntityAllOf,
+    index_d$3_instanceOfDataPropertyValue as instanceOfDataPropertyValue,
+    index_d$3_instanceOfDiagram as instanceOfDiagram,
+    index_d$3_instanceOfDiagramAction as instanceOfDiagramAction,
+    index_d$3_instanceOfEdge as instanceOfEdge,
+    index_d$3_instanceOfEdgeAction as instanceOfEdgeAction,
+    index_d$3_instanceOfEdgeAllOf as instanceOfEdgeAllOf,
+    index_d$3_instanceOfElement as instanceOfElement,
+    index_d$3_instanceOfEntity as instanceOfEntity,
+    index_d$3_instanceOfEntityAction as instanceOfEntityAction,
+    index_d$3_instanceOfHierarchy as instanceOfHierarchy,
+    index_d$3_instanceOfHierarchyAction as instanceOfHierarchyAction,
+    index_d$3_instanceOfHierarchySuperclassesInner as instanceOfHierarchySuperclassesInner,
+    index_d$3_instanceOfNamespace as instanceOfNamespace,
+    index_d$3_instanceOfNamespaceAction as instanceOfNamespaceAction,
+    index_d$3_instanceOfNode as instanceOfNode,
+    index_d$3_instanceOfNodeAction as instanceOfNodeAction,
+    index_d$3_instanceOfNodeAllOf as instanceOfNodeAllOf,
+    index_d$3_instanceOfPosition as instanceOfPosition,
+    index_d$3_instanceOfPropertyAction as instanceOfPropertyAction,
+    index_d$3_instanceOfRDFGraph as instanceOfRDFGraph,
+    index_d$3_instanceOfRDFGraphConfig as instanceOfRDFGraphConfig,
+    index_d$3_instanceOfRDFGraphMetadata as instanceOfRDFGraphMetadata,
+    index_d$3_instanceOfTheme as instanceOfTheme,
+    index_d$3_instanceOfVKGSnapshot as instanceOfVKGSnapshot,
+    index_d$3_instanceOfViewport as instanceOfViewport,
+    index_d$3_mapValues as mapValues,
+    index_d$3_querystring as querystring,
   };
 }
 
@@ -5008,91 +5008,81 @@ declare class Core extends Grapholscape {
     constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig);
 }
 
-declare enum DesignerEvent {
-    EntityAddition = "entityAddition",
-    EntityRemoval = "entityRemoval",
-    DiagramAddition = "diagramAddition",
-    DiagramRemoval = "diagramRemoval",
-    AnnotationAddition = "annotationAddition",
-    AnnotationEdit = "annotationEdit",
-    AnnotationRemoval = "annotationRemoval",
-    SaveDraft = "saveDraft",
-    SaveVersion = "saveVersion"
-}
-interface IonDesignerEvent extends IonEvent$1 {
-    (event: DesignerEvent.EntityAddition, callback: (entity: GrapholEntity, diagramId: number) => void): void;
-    (event: DesignerEvent.EntityRemoval, callback: (entity: GrapholEntity, diagramId: number) => void): void;
-    (event: DesignerEvent.DiagramAddition, callback: (diagram: Diagram) => void): void;
-    (event: DesignerEvent.DiagramRemoval, callback: (diagram: Diagram) => void): void;
-    (event: DesignerEvent.AnnotationAddition, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void;
-    (event: DesignerEvent.AnnotationEdit, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void;
-    (event: DesignerEvent.AnnotationRemoval, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void;
-    (event: DesignerEvent.AnnotationRemoval, callback: (entity: GrapholEntity | Ontology, annotation: Annotation) => void): void;
-    (event: DesignerEvent.SaveDraft, callback: (rdfGraph: RDFGraph, annotation: Annotation) => void): void;
-    (event: DesignerEvent.SaveVersion, callback: (rdfGraph: RDFGraph, annotation: Annotation) => void): void;
-}
-interface IDesignerTriggers extends IEventTriggers {
-    (event: DesignerEvent.EntityAddition, entity: GrapholEntity, diagramId: number): void;
-    (event: DesignerEvent.EntityRemoval, entity: GrapholEntity, diagramId: number): void;
-    (event: DesignerEvent.DiagramAddition, diagram: Diagram): void;
-    (event: DesignerEvent.DiagramRemoval, diagram: Diagram): void;
-    (event: DesignerEvent.AnnotationAddition, entity: GrapholEntity | Ontology, annotation: Annotation): void;
-    (event: DesignerEvent.AnnotationEdit, entity: GrapholEntity | Ontology, annotation: Annotation): void;
-    (event: DesignerEvent.AnnotationRemoval, entity: GrapholEntity | Ontology, annotation: Annotation): void;
-    (event: DesignerEvent.SaveDraft, rdfGraph: RDFGraph): void;
-    (event: DesignerEvent.SaveVersion, rdfGraph: RDFGraph): void;
-}
-declare class DesignerLifeCycle extends Lifecycle {
-    private entityAddition;
-    private entityRemoval;
-    private diagramAddition;
-    private diagramRemoval;
-    private annotationAddition;
-    private annotationEdit;
-    private annotationRemoval;
-    private saveDraft;
-    private saveVersion;
-    trigger: IDesignerTriggers;
-    on: IonDesignerEvent;
-}
-
-declare class DesignerCore extends Grapholscape {
-    protected availableRenderers: RendererStatesEnum[];
-    protected entityNavigator: EntityNavigator;
-    protected displayedNamesManager: DisplayedNamesManager;
-    protected themesManager: ThemeManager;
-    readonly lifecycle: DesignerLifeCycle;
-    on: IonDesignerEvent;
-    constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig);
+declare class DiagramBuilder {
+    diagram: Diagram;
+    private rendererState;
+    constructor(diagram: Diagram, rendererState: RendererStatesEnum);
+    addClass(classEntity: GrapholEntity, classNode?: GrapholNode): GrapholNode;
+    addClass(classEntity: GrapholEntity, position?: Position): GrapholNode;
+    addClass(classEntity: GrapholEntity): GrapholNode;
+    addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity): GrapholNode | undefined;
+    /**
+     * Add an object property between two entities.
+     * If the source and/or target entities are already present in graph, they won't be added again.
+     * If there already exists an object property between them with the same IRI, the
+     * edge won't be added.
+     * @param objectPropertyEntity the object property entity
+     * @param sourceEntity the source entity
+     * @param targetEntity the target entity
+     * @param nodesType the type of source and target, they must have same type
+     * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
+     * if you don't pass this, a new GrapholEdge will be created from scratch
+     * @returns
+     */
+    addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity, nodesType: TypesEnum[], objectPropertyElement?: GrapholEdge): GrapholElement | undefined;
+    addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode;
+    addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode;
+    addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode;
+    addIndividual(individualEntity: GrapholEntity, position?: Position): GrapholElement | undefined;
+    private _addIndividualOrClassInstance;
+    addHierarchy(hierarchy: Hierarchy, position?: Position): void;
+    addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF | TypesEnum.INPUT | TypesEnum.UNION | TypesEnum.DISJOINT_UNION | TypesEnum.COMPLETE_UNION | TypesEnum.COMPLETE_DISJOINT_UNION | TypesEnum.ATTRIBUTE_EDGE): GrapholElement | undefined;
+    get diagramRepresentation(): DiagramRepresentation | undefined;
+    toggleFunctionality(entity: GrapholEntity, functional: boolean): void;
+    toggleUnion(node: any): void;
+    toggleComplete(edge: any): void;
+    swapEdge(elem: EdgeSingular): void;
+    removeHierarchy(hierarchy: Hierarchy): void;
+    removeHierarchyInputEdge(hierarchy: Hierarchy, inputIri: string): void;
+    removeHierarchyInclusionEdge(hierarchy: Hierarchy, superclassIri: string): void;
+    removeElement(id: string): void;
+    renameElement(elemId: string, newIri: Iri): void;
+    /**
+     * Get cytoscape representation of an entity given the type needed
+     * @param entity
+     * @param type
+     * @returns
+     */
+    getEntityCyRepr(entity: GrapholEntity, type: TypesEnum): cytoscape__default.CollectionReturnValue;
+    getNewId(nodeOrEdge: 'node' | 'edge'): string;
+    private getCurrentCenterPos;
 }
 
-declare function initBuilderUI(grapholscape: DesignerCore): void;
+declare function export_default$4(theme: GrapholscapeTheme): Stylesheet[];
 
-type OntologyDesignerConfig = {
-    themes?: ThemeConfig[];
-    selectedTheme?: string;
-    language?: Language | string;
-    entityNameType?: RDFGraphConfigEntityNameTypeEnum;
-    widgets?: WidgetsConfig;
-};
+declare function parseRDFGraph(rdfGraph: RDFGraph): Ontology;
+declare function updateEntityOccurrences(ontology: Ontology): void;
+declare function getOntology(rdfGraph: RDFGraph): Ontology;
+declare function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, GrapholEntity>;
+declare function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, ClassInstanceEntity>;
+declare function getDiagrams(rdfGraph: RDFGraph, rendererState?: RendererStatesEnum): Diagram[];
+declare function getConfig(rdfGraph: RDFGraph): GrapholscapeConfig;
 
-type index_d$3_DesignerEvent = DesignerEvent;
-declare const index_d$3_DesignerEvent: typeof DesignerEvent;
-type index_d$3_DesignerLifeCycle = DesignerLifeCycle;
-declare const index_d$3_DesignerLifeCycle: typeof DesignerLifeCycle;
-type index_d$3_IDesignerTriggers = IDesignerTriggers;
-type index_d$3_IonDesignerEvent = IonDesignerEvent;
-type index_d$3_OntologyDesignerConfig = OntologyDesignerConfig;
-declare const index_d$3_initBuilderUI: typeof initBuilderUI;
-declare namespace index_d$3 {
+declare const rdfGraphParser_d_getClassInstances: typeof getClassInstances;
+declare const rdfGraphParser_d_getConfig: typeof getConfig;
+declare const rdfGraphParser_d_getDiagrams: typeof getDiagrams;
+declare const rdfGraphParser_d_getEntities: typeof getEntities;
+declare const rdfGraphParser_d_getOntology: typeof getOntology;
+declare const rdfGraphParser_d_updateEntityOccurrences: typeof updateEntityOccurrences;
+declare namespace rdfGraphParser_d {
   export {
-    index_d$3_DesignerEvent as DesignerEvent,
-    index_d$3_DesignerLifeCycle as DesignerLifeCycle,
-    DesignerCore as GrapholscapeDesigner,
-    index_d$3_IDesignerTriggers as IDesignerTriggers,
-    index_d$3_IonDesignerEvent as IonDesignerEvent,
-    index_d$3_OntologyDesignerConfig as OntologyDesignerConfig,
-    index_d$3_initBuilderUI as initBuilderUI,
+    parseRDFGraph as default,
+    rdfGraphParser_d_getClassInstances as getClassInstances,
+    rdfGraphParser_d_getConfig as getConfig,
+    rdfGraphParser_d_getDiagrams as getDiagrams,
+    rdfGraphParser_d_getEntities as getEntities,
+    rdfGraphParser_d_getOntology as getOntology,
+    rdfGraphParser_d_updateEntityOccurrences as updateEntityOccurrences,
   };
 }
 
@@ -5100,6 +5090,25 @@ declare function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifecycle, o
 
 declare function toPNG(fileName: string, cy?: Core$1, backgroundColor?: string): void;
 declare function toSVG(fileName: string, cy?: Core$1, backgroundColor?: string): void;
+
+interface IGscape {
+    ontology: Ontology;
+    diagramId?: number;
+    renderer: {
+        cy?: {
+            pan: () => Position;
+            zoom: () => number;
+        };
+        viewportState?: Viewport;
+    };
+    themeList: GrapholscapeTheme[];
+    theme: GrapholscapeTheme;
+    language: string | Language;
+    entityNameType: RDFGraphConfigEntityNameTypeEnum;
+    renderers: RendererStatesEnum[];
+    widgets: Map<any, any>;
+}
+declare function export_default$3(grapholscape: IGscape): RDFGraph;
 
 declare const diagrams: lit_html.TemplateResult<2>;
 declare const triangle_up: lit_html.TemplateResult<2>;
@@ -5823,6 +5832,20 @@ type TabProps = {
     label: string;
 };
 
+declare const GscapeDiagramSelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeDiagramSelector extends GscapeDiagramSelector_base {
+    title: string;
+    diagrams: Diagram[];
+    currentDiagramId: number;
+    currentDiagramName: string;
+    onDiagramSelection: (diagramId: number) => void;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private diagramSelectionHandler;
+    private get currentDiagram();
+}
+
 /** @module UI */
 
 declare const index_d$1_BaseMixin: typeof BaseMixin;
@@ -5843,6 +5866,8 @@ type index_d$1_GscapeConfirmDialog = GscapeConfirmDialog;
 declare const index_d$1_GscapeConfirmDialog: typeof GscapeConfirmDialog;
 type index_d$1_GscapeContextMenu = GscapeContextMenu;
 declare const index_d$1_GscapeContextMenu: typeof GscapeContextMenu;
+type index_d$1_GscapeDiagramSelector = GscapeDiagramSelector;
+declare const index_d$1_GscapeDiagramSelector: typeof GscapeDiagramSelector;
 type index_d$1_GscapeEntityListItem = GscapeEntityListItem;
 declare const index_d$1_GscapeEntityListItem: typeof GscapeEntityListItem;
 type index_d$1_GscapeEntitySearch = GscapeEntitySearch;
@@ -5912,6 +5937,7 @@ declare namespace index_d$1 {
     _default$4 as GscapeButtonStyle,
     index_d$1_GscapeConfirmDialog as GscapeConfirmDialog,
     index_d$1_GscapeContextMenu as GscapeContextMenu,
+    index_d$1_GscapeDiagramSelector as GscapeDiagramSelector,
     index_d$1_GscapeEntityListItem as GscapeEntityListItem,
     index_d$1_GscapeEntitySearch as GscapeEntitySearch,
     index_d$1_GscapeEntitySelector as GscapeEntitySelector,
@@ -6008,7 +6034,6 @@ declare function fullGrapholscape(file: string | File, container: HTMLElement, c
  */
 declare function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
 declare function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions): Core;
-declare function resumeBuilder(rdfGraph: RDFGraph, container: HTMLElement): Promise<DesignerCore>;
-declare function buildFromScratch(name: string, iri: string, container: HTMLElement, config?: OntologyDesignerConfig): Promise<DesignerCore>;
+declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph): void;
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramRepresentation, RDFGraphConfigEntityNameTypeEnum as EntityNameType, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Position, Renderer, RendererStatesEnum, Shape, index_d$4 as SwaggerModel, ThemeConfig, TypesEnum, Viewport, WidgetsConfig, autoDarkColourMap, autoLightColourMap, bareGrapholscape, buildFromScratch, classicColourMap, clearLocalStorage, darkColourMap, index_d$3 as designer, floatyOptions, fullGrapholscape, getDefaultFilters, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, resume, resumeBuilder, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, autoDarkColourMap, autoLightColourMap, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };

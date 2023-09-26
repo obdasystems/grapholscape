@@ -1,4 +1,3 @@
-import { DesignerEvent } from '../../builder'
 import Grapholscape from '../../core'
 import { LifecycleEvent } from '../../model'
 import GscapeDiagramSelector from './diagram-selector'
