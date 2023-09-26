@@ -109,7 +109,8 @@ export default class GscapeDesignerToolbar extends BaseMixin(LitElement) {
     this._lastSelectedElement = newElem
 
     const isClass = newElem?.data().type === TypesEnum.CLASS || false
-    this.objectPropEnabled = isClass
+    const isIndividual = (newElem?.data().type === TypesEnum.INDIVIDUAL || newElem?.data().type === TypesEnum.CLASS_INSTANCE) || false
+    this.objectPropEnabled = isClass || isIndividual
     this.individualEnabled = isClass
 
     this.requestUpdate('_lastSelectedElement', oldElem)

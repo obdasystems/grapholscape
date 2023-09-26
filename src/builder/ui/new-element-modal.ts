@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations, SVGTemplateResult, TemplateResult } from 'lit'
 import { Language } from '../../config'
-import { FunctionalityEnum, Namespace, TypesEnum } from '../../model'
+import { FunctionalityEnum, Namespace, TypesEnum, GrapholEntity } from '../../model'
 import * as UI from '../../ui'
 import { subHierarchies, superHierarchies } from '../../ui/assets'
 import modalSharedStyles from './modal-shared-styles'
@@ -43,9 +43,11 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
 
   public onCancel: () => void = () => { }
 
+  public entities?: GrapholEntity[] = []
   public namespaces: Namespace[] = []
   public remainderToRename: string = ''
   public selectedNamespaceIndex?: number = 0
+  public selectedInputIndex: Array<number> = Array.from(Array(1), () => -1)
   public diagramName: string = ''
 
   private advancedMode: boolean = false
@@ -65,8 +67,10 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
   static properties: PropertyDeclarations = {
     dialogTitle: { type: String },
     namespaces: { type: Array },
+    entities: {type: Array},
     advancedMode: { type: Boolean, state: true },
     selectedNamespaceIndex: { type: Number, state: true },
+    selectedInputIndex : {type: Array, state: true },
     isValid: { type: Boolean, state: true },
     deriveLabel: {type: Boolean, state: true},
     convertCamel: {type: Boolean, state: true},
@@ -357,8 +361,27 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     this.requestUpdate()
   }
 
+  private handleInputSelection(e: Event, i = 0) {
+    const selectTarget = e.currentTarget as HTMLSelectElement
+    if (selectTarget) {
+      const input = this.shadowRoot?.querySelector("#input-"+i) as HTMLInputElement
+      const index = parseInt(selectTarget.value)
+      if(this.selectedInputIndex && this.entities){
+        this.selectedInputIndex[i] = !Number.isNaN(index) ? index : -1;
+        input.value = this.selectedInputIndex[i] >= 0 ? this.entities[this.selectedInputIndex[i]].iri.remainder.toString() : ''
+        this.inputs[i].name = input.value
+        input.focus()
+      
+    }
+  }
+    this.validate()
+  }
+
   private handleInputChange(e, i = 0) {
+
     this.inputs[i].name = e.currentTarget.value
+    if(this.selectedInputIndex)
+      this.selectedInputIndex[i] = -1
 
     this.validate()
   }
@@ -399,13 +422,22 @@ export default class GscapeNewElementModal extends ModalMixin(BaseMixin(LitEleme
     return html`
       <div class="form-item">
         ${i === 0 ? html`<label for="input-0">Name:</label>` : null}
-        <input
-          id="input-${i}"
-          type="text"
-          @input=${(e) => this.handleInputChange(e, i)}
-          required
-          placeholder=${this.remainderToRename}
-        />
+        <div class="dropdown">
+          <input
+            id="input-${i}"
+            value=${this.selectedInputIndex[i] >= 0 && this.entities ? this.entities[this.selectedInputIndex[i]].iri.remainder : ''}
+            @input=${(e) => this.handleInputChange(e, i)}
+            type="text"
+            required
+            placeholder=${this.remainderToRename}
+          />
+          <select id="input-item-${i}" name="input" value=${this.selectedInputIndex[i] >= 0 && this.entities ? this.entities[this.selectedInputIndex[i]].iri.remainder : ''} @change=${(e) => this.handleInputSelection(e, i)}>
+            ${this.entities?.map((n, i) => {
+              return html`<option value=${i} ?selected=${i === this.selectedInputIndex[i]}>${n.iri.remainder.toString()}</option>`
+            })}
+            <option value="" ?selected=${this.selectedInputIndex[i] === -1}></option>
+          </select>
+        </div>
       </div>
     `
   }

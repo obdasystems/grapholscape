@@ -67,7 +67,7 @@ export default css`
   .form-item input {
     display: block;
     width: 100%;
-    min-width: 100px;
+    min-width: 10px;
   }
 
   form .dropdown {
@@ -77,7 +77,9 @@ export default css`
   }
 
   form .dropdown select {
+    display: block;
     width: 100%;
+    min-width: 100px;
   }
 
   form .dropdown > * {
@@ -88,7 +90,8 @@ export default css`
 
   form .dropdown input {
     position: absolute;
-    width: calc(100% - 18px);
+    display: block;
+    width: 85%;
   }
 
   form .dropdown select:focus, .dropdown input:focus {

@@ -67,7 +67,7 @@ export function initNewDataPropertyUI(grapholscape: Grapholscape, ownerClassIri:
   )
 }
 
-export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassIri: string, targetClassIri: string) {
+export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassIri: string, targetClassIri: string, nodesType: TypesEnum[]) {
   getModal(
     grapholscape,
     TypesEnum.OBJECT_PROPERTY,
@@ -80,7 +80,7 @@ export function initNewObjectPropertyUI(grapholscape: Grapholscape, sourceClassI
         TypesEnum.OBJECT_PROPERTY,
         sourceClassIri,
         targetClassIri,
-        TypesEnum.CLASS,
+        nodesType,
         confirmDetail.functionProperties,
         confirmDetail.deriveLabel,
         confirmDetail.convertCamel,
@@ -243,6 +243,16 @@ function getModal(
 
   const modal = new GscapeNewElementModal(type, title)
   modal.namespaces = grapholscape.ontology.namespaces
+  if(type === TypesEnum.CLASS ||
+      type ===  TypesEnum.DATA_PROPERTY ||
+      type === TypesEnum.INDIVIDUAL||
+      type ===  TypesEnum.OBJECT_PROPERTY ) 
+    modal.entities = grapholscape.ontology.getEntitiesByType(type)
+  else if(type === ModalTypeEnum.HIERARCHY ||
+      type === ModalTypeEnum.ISA)
+    modal.entities = grapholscape.ontology.getEntitiesByType(TypesEnum.CLASS)
+  else
+    modal.entities = []
 
   modal.addEventListener('confirm', (evt: CustomEvent<ConfirmEventDetail>) => {
     const ns: string = (evt.detail as any).namespace

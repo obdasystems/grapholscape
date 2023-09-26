@@ -69,7 +69,7 @@ describe("Test OntologyBuilder Class", () => {
       TypesEnum.OBJECT_PROPERTY,
       class1IRI,
       class2IRI,
-      TypesEnum.CLASS,
+      [TypesEnum.CLASS],
       [FunctionPropertiesEnum.IRREFLEXIVE]
     )
     const addedOP1 = ontology.getEntity(op1IRI)

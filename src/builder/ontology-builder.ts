@@ -82,7 +82,7 @@ export default class OntologyBuilder {
     this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
   }
 
-  public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum, functionProperties: FunctionalityEnum[] = [], deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
+  public addEdgeElement(iriString: string | null = null, edgeType: TypesEnum, sourceId: string, targetId: string, nodesType: TypesEnum[], functionProperties: FunctionalityEnum[] = [], deriveLabel = true, convertCamel = true, convertSnake = false, labelLanguage = 'en') {
 
     const diagram = this.grapholscape.renderer.diagram as Diagram
     this.diagramBuilder = new DiagramBuilder(diagram, this.rendererState)
@@ -103,13 +103,13 @@ export default class OntologyBuilder {
           entity.addAnnotation(labelAnnotation)
         }
       }
-      this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, TypesEnum.CLASS)
+      this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, nodesType)
       entity.functionProperties = entity?.functionProperties.concat(functionProperties)
       this.grapholscape.lifecycle.trigger(DesignerEvent.EntityAddition, entity, this.diagramBuilder.diagram.id)
     }
     else if (edgeType === TypesEnum.INCLUSION) {
-      const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType, this.rendererState)
-      const targetID = targetEntity.getIdInDiagram(diagram.id, nodesType, this.rendererState)
+      const sourceID = sourceEntity.getIdInDiagram(diagram.id, nodesType[0], this.rendererState)
+      const targetID = targetEntity.getIdInDiagram(diagram.id, nodesType[1], this.rendererState)
       if (!sourceID || !targetID) return
       this.diagramBuilder.addEdge(sourceID, targetID, edgeType)
     }
