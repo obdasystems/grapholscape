@@ -2169,6 +2169,12 @@ interface RDFGraph {
      * @memberof RDFGraph
      */
     actions?: Array<Action>;
+    /**
+     *
+     * @type {string}
+     * @memberof RDFGraph
+     */
+    creator?: string;
 }
 /**
 * @export
@@ -2260,7 +2266,7 @@ interface DeleteOntologyDraftRequest {
     ontologyName: string;
 }
 interface DownloadOntologyDraftRequest {
-    ontologyName: string;
+    rDFGraph?: RDFGraph;
 }
 interface GetOntologyDraftRequest {
     ontologyName: string;
@@ -2291,13 +2297,13 @@ declare class OntologyDesignerApi extends BaseAPI {
      */
     deleteOntologyDraft(requestParameters: DeleteOntologyDraftRequest, initOverrides?: RequestInit | InitOverrideFunction): Promise<Array<RDFGraph>>;
     /**
-     * Download the ontology draft {ontologyName} converted in OWL2
+     * Download the ontology draft in the body converted in OWL2
      */
     downloadOntologyDraftRaw(requestParameters: DownloadOntologyDraftRequest, initOverrides?: RequestInit | InitOverrideFunction): Promise<ApiResponse<string>>;
     /**
-     * Download the ontology draft {ontologyName} converted in OWL2
+     * Download the ontology draft in the body converted in OWL2
      */
-    downloadOntologyDraft(requestParameters: DownloadOntologyDraftRequest, initOverrides?: RequestInit | InitOverrideFunction): Promise<string>;
+    downloadOntologyDraft(requestParameters?: DownloadOntologyDraftRequest, initOverrides?: RequestInit | InitOverrideFunction): Promise<string>;
     /**
      * Returns the ontology draft {ontologyName}
      */

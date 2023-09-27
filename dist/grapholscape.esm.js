@@ -2601,6 +2601,7 @@ function RDFGraphFromJSONTyped(json, ignoreDiscriminator) {
         'selectedDiagramId': !exists(json, 'selectedDiagramId') ? undefined : json['selectedDiagramId'],
         'modelType': json['modelType'],
         'actions': !exists(json, 'actions') ? undefined : (json['actions'].map(ActionFromJSON)),
+        'creator': !exists(json, 'creator') ? undefined : json['creator'],
     };
 }
 function RDFGraphToJSON(value) {
@@ -2619,6 +2620,7 @@ function RDFGraphToJSON(value) {
         'selectedDiagramId': value.selectedDiagramId,
         'modelType': value.modelType,
         'actions': value.actions === undefined ? undefined : (value.actions.map(ActionToJSON)),
+        'creator': value.creator,
     };
 }
 
@@ -2719,20 +2721,19 @@ class OntologyDesignerApi extends BaseAPI {
         });
     }
     /**
-     * Download the ontology draft {ontologyName} converted in OWL2
+     * Download the ontology draft in the body converted in OWL2
      */
     downloadOntologyDraftRaw(requestParameters, initOverrides) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-                throw new RequiredError('ontologyName', 'Required parameter requestParameters.ontologyName was null or undefined when calling downloadOntologyDraft.');
-            }
             const queryParameters = {};
             const headerParameters = {};
+            headerParameters['Content-Type'] = 'application/json';
             const response = yield this.request({
-                path: `/ontologyDraft/{ontologyName}/download`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
-                method: 'GET',
+                path: `/ontologyDraft/download`,
+                method: 'POST',
                 headers: headerParameters,
                 query: queryParameters,
+                body: RDFGraphToJSON(requestParameters.rDFGraph),
             }, initOverrides);
             if (this.isJsonMime(response.headers.get('content-type'))) {
                 return new JSONApiResponse(response);
@@ -2743,9 +2744,9 @@ class OntologyDesignerApi extends BaseAPI {
         });
     }
     /**
-     * Download the ontology draft {ontologyName} converted in OWL2
+     * Download the ontology draft in the body converted in OWL2
      */
-    downloadOntologyDraft(requestParameters, initOverrides) {
+    downloadOntologyDraft(requestParameters = {}, initOverrides) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield this.downloadOntologyDraftRaw(requestParameters, initOverrides);
             return yield response.value();
@@ -14558,7 +14559,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.8"}</span>
+            <span>${"4.0.0-snap.9"}</span>
           </div>
         </div>
       </div>
