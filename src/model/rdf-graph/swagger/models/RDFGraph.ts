@@ -104,6 +104,12 @@ export interface RDFGraph {
      * @memberof RDFGraph
      */
     actions?: Array<Action>;
+    /**
+     * 
+     * @type {string}
+     * @memberof RDFGraph
+     */
+    creator?: string;
 }
 
 /**
@@ -148,6 +154,7 @@ export function RDFGraphFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'selectedDiagramId': !exists(json, 'selectedDiagramId') ? undefined : json['selectedDiagramId'],
         'modelType': json['modelType'],
         'actions': !exists(json, 'actions') ? undefined : ((json['actions'] as Array<any>).map(ActionFromJSON)),
+        'creator': !exists(json, 'creator') ? undefined : json['creator'],
     };
 }
 
@@ -168,6 +175,7 @@ export function RDFGraphToJSON(value?: RDFGraph | null): any {
         'selectedDiagramId': value.selectedDiagramId,
         'modelType': value.modelType,
         'actions': value.actions === undefined ? undefined : ((value.actions as Array<any>).map(ActionToJSON)),
+        'creator': value.creator,
     };
 }
 

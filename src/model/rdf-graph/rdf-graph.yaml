@@ -505,6 +505,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Action"
+        creator:
+          type: string
     Theme:
       type: object
       required:

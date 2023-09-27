@@ -27,7 +27,7 @@ export interface DeleteOntologyDraftRequest {
 }
 
 export interface DownloadOntologyDraftRequest {
-    ontologyName: string;
+    rDFGraph?: RDFGraph;
 }
 
 export interface GetOntologyDraftRequest {
@@ -86,22 +86,21 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
     }
 
     /**
-     * Download the ontology draft {ontologyName} converted in OWL2
+     * Download the ontology draft in the body converted in OWL2
      */
     async downloadOntologyDraftRaw(requestParameters: DownloadOntologyDraftRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
-        if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling downloadOntologyDraft.');
-        }
-
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        headerParameters['Content-Type'] = 'application/json';
+
         const response = await this.request({
-            path: `/ontologyDraft/{ontologyName}/download`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
-            method: 'GET',
+            path: `/ontologyDraft/download`,
+            method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: RDFGraphToJSON(requestParameters.rDFGraph),
         }, initOverrides);
 
         if (this.isJsonMime(response.headers.get('content-type'))) {
@@ -112,9 +111,9 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
     }
 
     /**
-     * Download the ontology draft {ontologyName} converted in OWL2
+     * Download the ontology draft in the body converted in OWL2
      */
-    async downloadOntologyDraft(requestParameters: DownloadOntologyDraftRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+    async downloadOntologyDraft(requestParameters: DownloadOntologyDraftRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
         const response = await this.downloadOntologyDraftRaw(requestParameters, initOverrides);
         return await response.value();
     }
