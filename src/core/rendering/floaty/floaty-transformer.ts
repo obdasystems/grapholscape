@@ -36,7 +36,6 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     this.simplifyRolesFloat()
 
     this.newCy.elements().unlock()
-    console.log(this.result)
     return this.result
   }
 

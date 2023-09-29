@@ -31,7 +31,6 @@ export default class DisplayedNamesManager {
     for (let entity of this._grapholscape.ontology.entities.values()) {
       this.setDisplayedNames(entity)
     }
-    console.log(this._grapholscape.ontology.diagrams)
     this._grapholscape.lifecycle.trigger(LifecycleEvent.EntityNameTypeChange, newEntityNameType)
     storeConfigEntry('entityNameType', newEntityNameType)
   }
