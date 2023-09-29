@@ -105,15 +105,6 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnect
   return grapholscape
 }
 
-// export async function resumeBuilder(rdfGraph: RDFGraph, container: HTMLElement) {
-//   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
-//   const grapholscape = new GrapholscapeDesigner(parseRDFGraph(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
-//   initFromResume(grapholscape, rdfGraph)
-//   initBuilderUI(grapholscape)
-//   loadingSpinner.remove()
-//   return grapholscape
-// }
-
 export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
   UI.initUI(grapholscape)
 
@@ -154,22 +145,6 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
     })
   }
 }
-
-// export async function buildFromScratch(name: string, iri: string, container: HTMLElement, config?: OntologyDesignerConfig) {
-//   const ontology = new Ontology(name, iri+'1.0', iri, undefined, Object.values(DefaultAnnotationProperties))
-//   ontology.languages = Object.values(Language).sort()
-//   ontology.defaultLanguage = Language.EN
-//   ontology.addNamespace(new Namespace([''], iri))
-//   Object.values(DefaultNamespaces).forEach(namespace => {
-//     ontology.addNamespace(namespace)
-//   })
-//   ontology.addDiagram(new Diagram(name, 0))
-//   const grapholscape = new GrapholscapeDesigner(ontology, container, config)
-//   UI.initUI(grapholscape)
-//   initBuilderUI(grapholscape)
-//   grapholscape.showDiagram(0)
-//   return grapholscape
-// }
 
 async function getGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   if (!file || !container) {
