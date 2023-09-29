@@ -1,7 +1,8 @@
 import { Language, storeConfigEntry } from "../config";
-import { EntityNameType, GrapholElement, GrapholEntity } from "../model";
+import { Diagram, EntityNameType, GrapholElement, GrapholEntity } from "../model";
 import { LifecycleEvent } from "../model/lifecycle";
 import { RendererStatesEnum } from "../model/renderers/i-render-state";
+import { redo } from "../ui/assets";
 import Grapholscape from "./grapholscape";
 /**
  * @internal
@@ -30,7 +31,7 @@ export default class DisplayedNamesManager {
     for (let entity of this._grapholscape.ontology.entities.values()) {
       this.setDisplayedNames(entity)
     }
-
+    console.log(this._grapholscape.ontology.diagrams)
     this._grapholscape.lifecycle.trigger(LifecycleEvent.EntityNameTypeChange, newEntityNameType)
     storeConfigEntry('entityNameType', newEntityNameType)
   }
@@ -60,45 +61,22 @@ export default class DisplayedNamesManager {
   }
 
   private setDisplayedNames(entity: GrapholEntity) {
+    let diagram: Diagram | undefined, newDisplayedName: string
     entity.occurrences.forEach((entityOccurrencesInRenderState, renderState) => {
       entityOccurrencesInRenderState.forEach(entityOccurrence => {
-        let grapholElement: GrapholElement | undefined
 
-        if (renderState === RendererStatesEnum.INCREMENTAL) {
-          // incremental diagram is not in the ontology, must take it from inremental controller
-          grapholElement = this._grapholscape.incremental?.diagram?.representation
-            ?.grapholElements.get(entityOccurrence.id)
-        } else {
-          grapholElement = this._grapholscape.ontology.getGrapholElement(entityOccurrence.id, entityOccurrence.diagramId, renderState)
-        }
+        newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language)
+        if (newDisplayedName !== entityOccurrence.displayedName) {
+          entityOccurrence.displayedName = newDisplayedName
 
-        if (!grapholElement) return
-
-        let newDisplayedName = entity.getDisplayedName(this.entityNameType, this.language)
-
-        if (newDisplayedName !== grapholElement.displayedName) {
-          grapholElement.displayedName = newDisplayedName
-          const diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId) || this._grapholscape.incremental?.diagram
-
-          if (diagram) {
-            /**
-             * Entity Occurrences are not replicated, in entity.occurrences.get('lite') there will
-             * be only replicated/transformed entities. So the occurrences in graphol will be
-             * present also in other representations unless filtered.
-             * So for each occurrence in graphol, we search it in other representations and update them as well
-             */
-            if (renderState === RendererStatesEnum.GRAPHOL) {
-              diagram.representations.forEach(representation => {
-                if (grapholElement)
-                  representation.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
-              })
-            } else {
-              diagram.representations.get(renderState)?.cy.$id(grapholElement.id).data('displayedName', grapholElement.displayedName)
-            }
+          if (renderState === RendererStatesEnum.INCREMENTAL) {
+            // incremental diagram is not in the ontology, must take it from inremental controller
+            diagram = this._grapholscape.incremental?.diagram
           } else {
-            this._grapholscape.renderer.diagram?.representations.forEach(representation => representation.updateElement(grapholElement!.id, entity))
+            diagram = this._grapholscape.ontology.getDiagram(entityOccurrence.diagramId)
           }
         }
+        diagram?.representations.get(renderState)?.updateElement(entityOccurrence, entity, false)
       })
     })
   }

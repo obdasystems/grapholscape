@@ -1,7 +1,6 @@
 import { html } from "lit"
 import Grapholscape from '../../core'
 import { GrapholElement, GrapholEntity } from "../../model"
-import { RendererStatesEnum } from "../../model/renderers/i-render-state"
 
 export type DiagramViewData = { id: number, name: string }
 export type OccurrenceIdViewData = { originalId: string, realId: string }
@@ -9,11 +8,7 @@ export type OccurrenceIdViewData = { originalId: string, realId: string }
 export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscape): Map<DiagramViewData, OccurrenceIdViewData[]> {
   const result = new Map<DiagramViewData, OccurrenceIdViewData[]>()
 
-  grapholEntity.occurrences.get(RendererStatesEnum.GRAPHOL)?.forEach(occurrence => {
-    addOccurrenceViewData(occurrence)
-  })
-
-  if (grapholscape.renderState && grapholscape.renderState !== RendererStatesEnum.GRAPHOL) {
+  if (grapholscape.renderState) {
     grapholEntity.occurrences.get(grapholscape.renderState)?.forEach((occurrence) => {
       addOccurrenceViewData(occurrence)
     })
@@ -25,7 +20,7 @@ export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscap
     if (!grapholscape.renderState)
       return
 
-    const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId) || grapholscape.renderer.diagram
+    const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId)
     // const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
 
     if (diagram) {

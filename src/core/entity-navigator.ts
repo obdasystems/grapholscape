@@ -1,4 +1,4 @@
-import { RendererStatesEnum, GrapholElement } from "../model"
+import { RendererStatesEnum, GrapholElement, Diagram } from "../model"
 import { isGrapholEdge } from "../model/graphol-elems/edge"
 import { isGrapholNode } from "../model/graphol-elems/node"
 import { LifecycleEvent } from "../model/lifecycle"
@@ -93,32 +93,27 @@ export default class EntityNavigator {
   }
 
   updateEntitiesOccurrences() {
-    if (this._grapholscape.renderState && this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
+    if (!this._grapholscape.renderState || this._grapholscape.renderState === RendererStatesEnum.GRAPHOL)
       return
 
-    this._grapholscape.ontology.diagrams.forEach(diagram => {
-      if (!this._grapholscape.renderState)
-        return
+    this._grapholscape.ontology.diagrams.forEach(diagram => this.updateEntitiesOccurrencesFromDiagram(diagram))
 
-      const diagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
-      if (diagramRepresentation) {
-        const replicatedElements = diagram.representations.get(this._grapholscape.renderState)?.cy?.$("[originalId]")
+    if (this._grapholscape.incremental?.diagram) {
+      this.updateEntitiesOccurrencesFromDiagram(this._grapholscape.incremental.diagram)
+    }
+  }
 
-        if (replicatedElements && !replicatedElements.empty()) {
-          replicatedElements.forEach(replicatedElement => {
-            const grapholEntity = this._grapholscape.ontology.getEntity(replicatedElement.data('iri'))
-
-            if (grapholEntity) {
-              //grapholEntity.getOccurrencesByDiagramId(diagram.id, this._grapholscape.renderState)
-              // replicatedElement.data('iri', grapholEntity.iri.fullIri)
-              const grapholElement = diagramRepresentation.grapholElements.get(replicatedElement.id())
-              if (grapholElement) {
-                grapholEntity.addOccurrence(grapholElement, this._grapholscape.renderState)
-              }
-            }
-          })
+  private updateEntitiesOccurrencesFromDiagram(diagram: Diagram) {
+    diagram.representations.forEach((representation, rendererState) => {
+      representation.cy?.$("[iri][!fake]").forEach(entityElement => {
+        const grapholEntity = this._grapholscape.ontology.getEntity(entityElement.data('iri'))
+        if (grapholEntity) {
+          const grapholElement = representation.grapholElements.get(entityElement.id())
+          if (grapholElement) {
+            grapholEntity.addOccurrence(grapholElement, rendererState)
+          }
         }
-      }
+      })
     })
   }
 }

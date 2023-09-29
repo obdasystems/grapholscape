@@ -304,7 +304,6 @@ export default class FloatyRendererState extends BaseRenderer {
           this.renderer.unselect()
           cyElement.select()
         }
-        console.log('done')
       }
 
       if (this.layoutRunning) {

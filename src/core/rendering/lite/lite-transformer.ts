@@ -285,7 +285,11 @@ export default class LiteTransformer extends BaseGrapholTransformer {
      * @param i 
      */
     const addAttribute = (concept: NodeSingular, attribute: NodeSingular, edgeType: TypesEnum | string, i: number) => {
-      const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`, TypesEnum.DATA_PROPERTY)
+      const originAttribute = this.getGrapholElement(attribute.id()) as GrapholNode
+
+      const newAttribute = originAttribute.clone()
+      newAttribute.id = `duplicate-${attribute.id()}-${i}`
+      // const newAttribute = new GrapholNode(`duplicate-${attribute.id()}-${i}`, TypesEnum.DATA_PROPERTY)
       const newAttributeEdge = new GrapholEdge(`e-${concept.id()}-${attribute.id()}`, edgeType as TypesEnum)
 
       newAttribute.originalId = attribute.id()
@@ -298,6 +302,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
 
       newAttributeEdge.sourceId = concept.id()
       newAttributeEdge.targetId = newAttribute.id
+      newAttributeEdge.diagramId = newAttribute.diagramId
       this.result.addElement(newAttribute)
       this.result.addElement(newAttributeEdge)
       this.newCy.$id(newAttribute.id).addClass('repositioned')
@@ -493,6 +498,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
         const grapholInputEdge = this.getGrapholElement(inputEdge.id()) as GrapholEdge
         if (!grapholInputEdge) return
         const newRestrictionEdge = new GrapholEdge(`${grapholRestrictionEdge.id}-${grapholInputEdge.id}`, grapholRestrictionEdge.type)
+        newRestrictionEdge.diagramId = grapholRestrictionEdge.diagramId
         /**
          * if the connected non input edge is only one (the one we are processing)
          * then the new edge will be the concatenation of the input edge + role edge

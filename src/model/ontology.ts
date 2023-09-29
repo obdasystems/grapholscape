@@ -32,7 +32,6 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     this.name = name
     this.version = version
     this.namespaces = namespaces
-    console.log(annProperties)
     this.annProperties = annProperties
     this.diagrams = diagrams
     this.iri = iri
