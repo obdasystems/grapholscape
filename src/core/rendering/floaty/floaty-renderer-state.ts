@@ -17,6 +17,7 @@ export default class FloatyRendererState extends BaseRenderer {
   readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
   protected _layout: cytoscape.Layouts
+  private centeringOnElem = false
 
   set renderer(newRenderer: Renderer) {
     super.renderer = newRenderer
@@ -64,17 +65,15 @@ export default class FloatyRendererState extends BaseRenderer {
     this.renderer.mount()
 
     if (!floatyRepresentation.hasEverBeenRendered) {
-      
+
       new DiagramColorManager(
         this.renderer.diagram.representations.get(this.id)!
       ).colorDiagram()
 
 
-      this.floatyLayoutOptions.fit = true
+      // this.floatyLayoutOptions.fit = true
+      this.renderer.fit()
       this.runLayout()
-      if (this.isLayoutInfinite) {
-        setTimeout(() => this.renderer.fit(), 1000)
-      }
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers();
 
@@ -105,7 +104,7 @@ export default class FloatyRendererState extends BaseRenderer {
     this._layout?.stop()
     if (this.renderer.diagram) {
       const floaty = this.renderer.diagram.representations.get(this.id)
-      
+
       if (floaty) {
         floaty.lastViewportState = this.renderer.viewportState
       }
@@ -275,7 +274,7 @@ export default class FloatyRendererState extends BaseRenderer {
           return 200 + crowdnessFactor
         }
       },
-      fit: true,
+      fit: false,
       maxSimulationTime: 4000,
       infinite: false,
       handleDisconnected: true, // if true, avoids disconnected components from overlapping
@@ -286,56 +285,64 @@ export default class FloatyRendererState extends BaseRenderer {
   centerOnElementById(elementId: string, zoom?: number, select?: boolean): void {
     const cy = this.renderer.cy
     if (!cy || (!zoom && zoom !== 0)) return
-    
+
     const cyElement = cy.$id(elementId).first()
     zoom = zoom > cy.maxZoom() ? cy.maxZoom() : zoom
     if (cyElement.empty()) {
       console.warn(`Element id (${elementId}) not found. Please check that this is the correct diagram`)
     } else {
-      const previousFitValue = this.defaultLayoutOptions.fit
+      const performAnimation = () => {
+        cy.animate({
+          center: {
+            eles: cyElement
+          },
+          zoom: zoom,
+          queue: false,
+        })
+
+        if (select && cy.$(':selected') !== cyElement) {
+          this.renderer.unselect()
+          cyElement.select()
+        }
+        console.log('done')
+      }
 
       if (this.layoutRunning) {
-
-        // run layout not fitting it, avoid conflict with fitting view on element
-        this.floatyLayoutOptions.fit = false
-        this.runLayout()
-        // keep element centered while layout runs
-        cyElement.isNode() ? cyElement.lock() : cyElement.connectedNodes().lock()
-
+        if (!cyElement.data().pinned) {
+          // keep element centered while layout runs
+          cyElement.isNode() ? cyElement.lock() : cyElement.connectedNodes().lock()
+        }
+        
+        performAnimation()
         if (this.isLayoutInfinite) {
-          // if layout is infinite, do not wait for it to stop
-          // just wait 5 seconds and restore previous conditions
-          setTimeout(() => {
-            cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
-            if (this.floatyLayoutOptions.fit !== previousFitValue && this.layoutRunning) {
-              this.floatyLayoutOptions.fit = previousFitValue
-              this.runLayout()
-            }
-          }, 5000)
-        } else {
-          // if layout is finite, wait for it to stop and restore previous conditions
+          // run layout not fitting it, avoid conflict with fitting view on element
+          this.floatyLayoutOptions.infinite = false
+          this.runLayout()
           this.layout.one('layoutstop', (layoutEvent) => {
             if (layoutEvent.layout === this.layout) {
-              cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
-              this.floatyLayoutOptions.fit = previousFitValue
+              if (!cyElement.data().pinned) {
+                cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
+              }
+              
+              // wait for layout to stop and restore previous conditions
+              this.runLayoutInfinitely()
+            } else {
+              this.centerOnElementById(elementId, zoom, select)
+            }
+          })
+        } else {
+          this.layout.one('layoutstop', (layoutEvent) => {
+            if (layoutEvent.layout === this.layout) {
+              if (!cyElement.data().pinned) {
+                cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
+              }
             } else {
               this.centerOnElementById(elementId, zoom, select)
             }
           })
         }
-      }
-
-      cy.animate({
-        center: {
-          eles: cyElement
-        },
-        zoom: zoom,
-        queue: false,
-      })
-
-      if (select && cy.$(':selected') !== cyElement) {
-        this.renderer.unselect()
-        cyElement.select()
+      } else {
+        performAnimation()
       }
     }
   }
