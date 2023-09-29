@@ -47,7 +47,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
     if (
       ic.endpointController?.isReasonerAvailable() &&
       (grapholElement.is(TypesEnum.CLASS) ||
-      grapholElement.is(TypesEnum.CLASS_INSTANCE))
+        grapholElement.is(TypesEnum.CLASS_INSTANCE))
     ) {
       commands.push({
         content: 'Find paths to',
@@ -61,12 +61,12 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
             const loadingAnimationInterval = setInterval(() => {
               loadingEdge.data('on', !loadingEdge.data('on'))
             }, 500)
-        
+
             const stopAnimation = () => {
               loadingEdge.remove()
               clearInterval(loadingAnimationInterval)
             }
-        
+
             if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
               stopAnimation()
             }
@@ -157,9 +157,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     if (grapholElement.is(TypesEnum.CLASS)) {
 
-      commands.push(IncrementalCommands.getInstances(() => {
-        ic.expandInstancesOnClass(classIri)
-      }))
+      if (ic.endpointController?.isReasonerAvailable()) {
+        commands.push(IncrementalCommands.getInstances(() => {
+          ic.expandInstancesOnClass(classIri)
+        }))
+      }
 
       const superHierarchies = ic.grapholscape.ontology.getSuperHierarchiesOf(classIri)
       const subHierarchies = ic.grapholscape.ontology.getSubHierarchiesOf(classIri)
@@ -246,7 +248,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
 
     }
 
-    if (!grapholElement.is(TypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable()) {
+    if (!grapholElement.is(TypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable() && ic.dataLineageEnabled) {
       commands.push({
         content: 'Data Lineage',
         icon: sankey,

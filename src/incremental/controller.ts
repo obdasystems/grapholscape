@@ -37,6 +37,7 @@ export default class IncrementalController {
   public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
   public countersEnabled: boolean = true
   public classFilterMap: Map<string, Filter> = new Map()
+  public dataLineageEnabled = true
 
   lifecycle: IncrementalLifecycle = new IncrementalLifecycle()
   on = this.lifecycle.on
