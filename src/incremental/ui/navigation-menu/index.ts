@@ -19,9 +19,11 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
 
     if (!e.detail.rangeClassIri) return
 
-    e.detail.direct
-      ? incrementalController.addIntensionalObjectProperty(e.detail.objectPropertyIri, e.detail.referenceClassIri, e.detail.rangeClassIri)
-      : incrementalController.addIntensionalObjectProperty(e.detail.objectPropertyIri, e.detail.rangeClassIri, e.detail.referenceClassIri)
+    incrementalController.performActionWithBlockedGraph(() => {
+      e.detail.direct
+        ? incrementalController.addIntensionalObjectProperty(e.detail.objectPropertyIri, e.detail.referenceClassIri, e.detail.rangeClassIri!)
+        : incrementalController.addIntensionalObjectProperty(e.detail.objectPropertyIri, e.detail.rangeClassIri!, e.detail.referenceClassIri)
+    })
 
     setTimeout(() => {
       const nodeId = incrementalController.getIDByIRI(e.detail.rangeClassIri!, TypesEnum.CLASS)
