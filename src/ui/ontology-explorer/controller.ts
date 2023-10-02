@@ -33,6 +33,7 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
     ontologyExplorerComponent.loading = true
     setTimeout(() => {
       ontologyExplorerComponent.entities = createEntitiesList(grapholscape, entityFilters)
+        .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
       ontologyExplorerComponent.loading = false
     }, 0)
   }

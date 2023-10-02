@@ -1,6 +1,6 @@
 import { html } from "lit"
 import Grapholscape from '../../core'
-import { GrapholElement, GrapholEntity } from "../../model"
+import { GrapholElement, GrapholEntity, RendererStatesEnum } from "../../model"
 
 export type DiagramViewData = { id: number, name: string }
 export type OccurrenceIdViewData = { originalId: string, realId: string }
@@ -20,7 +20,9 @@ export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscap
     if (!grapholscape.renderState)
       return
 
-    const diagram = grapholscape.ontology.getDiagram(occurrence.diagramId)
+    const diagram = grapholscape.renderState === RendererStatesEnum.INCREMENTAL
+      ? grapholscape.incremental?.diagram
+      : grapholscape.ontology.getDiagram(occurrence.diagramId)
     // const cyElement = diagram?.representations.get(grapholscape.renderState)?.cy?.$id(occurrence.elementId)
 
     if (diagram) {

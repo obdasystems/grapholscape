@@ -1,5 +1,5 @@
 import { Grapholscape } from "../core";
-import { ClassInstanceEntity, Filter, GrapholElement, LifecycleEvent, RendererStatesEnum } from "../model";
+import { ClassInstanceEntity, Filter, LifecycleEvent, RendererStatesEnum } from "../model";
 import { createEntitiesList, IBaseMixin } from "../ui";
 import { setColorList } from "../ui/entity-color-legend";
 import GscapeEntityColorLegend from "../ui/entity-color-legend/entity-color-legend";
@@ -99,6 +99,7 @@ export function initIncremental(grapholscape: Grapholscape) {
     const ontologyExplorer = grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
     if (ontologyExplorer) {
       ontologyExplorer.entities = createEntitiesList(grapholscape, ontologyExplorer.searchEntityComponent)
+      .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
     }
   })
 
