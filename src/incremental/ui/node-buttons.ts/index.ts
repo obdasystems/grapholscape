@@ -324,20 +324,20 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
       stopAnimation()
     }
 
-    if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
-      if (sourceIriForPath && targetIriForpath) {
-        ic.endpointController?.highlightsManager?.getShortestPath(
-          sourceIriForPath,
-          targetIriForpath
-        ).then(path => {
-          if (path[0].entities) {
-            ic.addPath(path[0].entities).finally(stopAnimation)
-          } else {
-            stopAnimation()
-          }
-        }).catch(stopAnimation)
-      }
-    } else {
+    // if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
+    //   if (sourceIriForPath && targetIriForpath) {
+    //     ic.endpointController?.highlightsManager?.getShortestPath(
+    //       sourceIriForPath,
+    //       targetIriForpath
+    //     ).then(path => {
+    //       if (path[0].entities) {
+    //         ic.addPath(path[0].entities).finally(stopAnimation)
+    //       } else {
+    //         stopAnimation()
+    //       }
+    //     }).catch(stopAnimation)
+    //   }
+    // } else {
       let entity: ClassInstanceEntity | undefined
       // Take parentClass IRI to find a path to the other node in the intensional level
       if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
@@ -367,7 +367,7 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
           stopAnimation()
         }
       }).catch(stopAnimation)
-    }
+    // }
   }
 
   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {

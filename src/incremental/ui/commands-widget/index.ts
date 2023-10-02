@@ -72,18 +72,18 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
             }
 
             // let pathSelector: GscapePathSelector | undefined
-            if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
-              if (sourceIriForPath && targetIriForpath) {
-                pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
+            // if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
+            //   if (sourceIriForPath && targetIriForpath) {
+            //     pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
 
-                pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
-                  if (evt.detail.entities)
-                    ic.addPath(evt.detail.entities)
+            //     pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
+            //       if (evt.detail.entities)
+            //         ic.addPath(evt.detail.entities)
 
-                  stopAnimation()
-                })
-              }
-            } else {
+            //       stopAnimation()
+            //     })
+            //   }
+            // } else {
               let entity: ClassInstanceEntity | undefined
               // Take parentClass IRI to find a path to the other node in the intensional level
               if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
@@ -110,7 +110,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
                     .finally(stopAnimation)
                 })
               }
-            }
+            // }
 
             if (pathSelector) {
               pathSelector.addEventListener('cancel', stopAnimation)

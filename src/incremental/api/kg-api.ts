@@ -38,7 +38,7 @@ export interface IVirtualKnowledgeGraphApi {
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
   getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>
-  getExtensionalShortestPath: (sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void) => Promise<void>
+  getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, sourceInstanceIri?: string, targetInstanceIri?: string,) => Promise<void>
   pageSize: number
 }
 
@@ -377,17 +377,23 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   }
 
   async getExtensionalShortestPath(
-    sourceInstanceIri: string,
-    targetIri: string,
     path: OntologyPath,
-    onNewResult: (rdfGraph?: RDFGraph) => void
+    onNewResult: (rdfGraph?: RDFGraph) => void,
+    sourceInstanceIri?: string,
+    targetInstanceIri?: string
     ) {
     const params = new URLSearchParams({
-      sourceInstanceIRI: sourceInstanceIri,
-      targetInstanceIRI: targetIri,
       labels: 'true',
       version: this.requestOptions.version
     })
+
+    if (sourceInstanceIri) {
+      params.append('sourceInstanceIri', sourceInstanceIri)
+    }
+
+    if (targetInstanceIri) {
+      params.append('targetInstanceIri', targetInstanceIri)
+    }
 
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/instanceShortestPath?${params.toString()}`)
     const headers = this.requestOptions.headers
