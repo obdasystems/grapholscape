@@ -1,19 +1,22 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit"
 import baseStyle from "../style"
 import { BaseMixin, ModalMixin } from "./mixins"
+import { error, info_outline, warning } from "../assets"
+import { getIconSlot, icons } from ".."
 
 export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement)) {
 
   private _onConfirm?: () => void
   private _onCancel?: () => void
-  private _onDelete?: () => void
 
-  constructor(public message?: string, public dialogTitle = 'Confirm') {
+  constructor(public message?: string, public dialogTitle = 'Confirm', public type: 'neutral' | 'warning' | 'error' = 'neutral') {
     super()
   }
 
   static properties: PropertyDeclarations = {
-    message: { type: String }
+    message: { type: String },
+    dialogTitle: { type: String },
+    type: { type: String, reflect: true }
   }
 
   static styles: CSSResultGroup = [ 
@@ -28,14 +31,35 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
         min-width: 300px;
       }
 
-      .header, .dialog-message {
-        margin: 8px;
-        font-size: 14px;
+      .header {
+        margin: 0 0 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .dialog-message {
+        margin: 8px;
         padding: 8px;
         margin-bottom: 16px;
+      }
+
+      .dialog-message[type = "warning"] {
+        background: var(--gscape-color-attention-muted);
+        border-color: var(--gscape-color-attention);
+      }
+
+      .dialog-message[type = "error"] {
+        background: var(--gscape-color-danger-muted);
+        border-color: var(--gscape-color-danger);
+      }
+
+      .header > span[type = "error"] {
+        color: var(--gscape-color-danger);
+      }
+
+      .header > span[type = "warning"] {
+        color: var(--gscape-color-attention);
       }
 
       .buttons {
@@ -51,12 +75,11 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
     return html`
       <div class="gscape-panel">
         <div class="header">
+          <span type=${this.type} class="slotted-icon">${this.headerIcon}</span>
           ${this.dialogTitle}
         </div>
-        <div class="dialog-message">
-          ${this.message}<br>
-          <br>
-          ${this.dialogTitle === 'Delete Entity' ? html`<b>Warning:</b> this action will also remove all the object properties that involve this entity` : null}
+        <div class="dialog-message area" type=${this.type}>
+          ${this.message}
         </div>
 
         <div class="buttons">
@@ -66,23 +89,23 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
             `
             : null
           }
-          ${this.dialogTitle === 'Delete Entity'  
-          ? html`
-              <gscape-button label="Delete Element" @click=${this.handleDelete}></gscape-button>
-            `
-            : null
-          }
-          <gscape-button label="${this.dialogTitle === 'Delete Entity' ? 'Delete All' : 'Ok'}" @click=${this.handleConfirm}></gscape-button>
+          <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
         </div>
       </div>
     `
   }
 
-  private handleDelete() {
-    if(this._onDelete)
-      this._onDelete()
-    this.remove()
+  private get headerIcon() {
+    switch(this.type) {
+      default:
+        return info_outline
 
+      case 'error':
+        return  error
+      
+      case 'warning':
+        return warning
+    }
   }
 
   private handleConfirm() {
@@ -108,18 +131,12 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
     this.requestUpdate()
     return this
   }
-
-  public onDelete(callback: () => void): GscapeConfirmDialog {
-    this._onDelete = callback
-    this.requestUpdate()
-    return this
-  }
 }
 
 customElements.define('gscape-confirm-dialog', GscapeConfirmDialog)
 
-export function showMessage(message: string, title: string, container: any) {
-  const dialog = new GscapeConfirmDialog(message, title)
+export function showMessage(message: string, title: string, container: any, type?: "neutral" | 'warning' | 'error') {
+  const dialog = new GscapeConfirmDialog(message, title, type)
   container.appendChild(dialog)
 
   dialog.show()
