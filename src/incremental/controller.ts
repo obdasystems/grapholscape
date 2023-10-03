@@ -16,7 +16,7 @@ import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import { addBadge } from "./ui";
-import { GscapeEntityColorLegend, setColorList } from "../ui/entity-color-legend";
+import { GscapeEntityColorLegend, setColorList } from "../ui/entity-colors";
 
 /** @internal */
 export default class IncrementalController {

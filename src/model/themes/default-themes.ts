@@ -147,12 +147,6 @@ export const darkColourMap: ColourMap = {
   [ColoursNames.accent_subtle]: 'rgba(56,139,253,0.15)',
 }
 
-// based on grapholscape theme
-export const autoLightColourMap: ColourMap = JSON.parse(JSON.stringify(gscapeColourMap))
-
-// based on dark theme
-export const autoDarkColourMap: ColourMap = JSON.parse(JSON.stringify(darkColourMap))
-
 export const DefaultThemes: { [key in DefaultThemesEnum]?: GrapholscapeTheme } = {
   grapholscape: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOLSCAPE, gscapeColourMap, 'Grapholscape'),
   graphol: new GrapholscapeTheme(DefaultThemesEnum.GRAPHOL, classicColourMap, 'Graphol'),

@@ -1,5 +1,6 @@
-import { html, css, LitElement } from 'lit'
+import { LitElement, html } from 'lit'
 import mainStyle from '../../style'
+import { BaseMixin } from '../mixins'
 import buttonStyle from './style'
 
 export enum SizeEnum {
@@ -8,7 +9,7 @@ export enum SizeEnum {
   L = 'l'
 }
 
-export default class GscapeButton extends LitElement {
+export default class GscapeButton extends BaseMixin(LitElement) {
   disabled: boolean
   asSwitch: boolean
   active: boolean

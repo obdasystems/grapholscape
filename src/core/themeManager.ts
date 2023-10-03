@@ -1,5 +1,5 @@
 import { storeConfigEntry } from "../config"
-import { autoDarkColourMap, autoLightColourMap, ColoursNames, CSS_PROPERTY_NAMESPACE, DefaultThemes, DefaultThemesEnum, GrapholscapeTheme, gscapeColourMap, LifecycleEvent, RendererStatesEnum } from "../model"
+import { ColoursNames, CSS_PROPERTY_NAMESPACE, DefaultThemes, GrapholscapeTheme, gscapeColourMap, LifecycleEvent } from "../model"
 import Grapholscape from "./grapholscape"
 
 /**
@@ -10,26 +10,8 @@ export default class ThemeManager {
   theme: GrapholscapeTheme
   themes: Set<GrapholscapeTheme> = new Set(Object.values(DefaultThemes))
 
-  private colorfulThemeLight = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_LIGHT, autoLightColourMap, 'Colorful - Light')
-  private colorfulThemeDark = new GrapholscapeTheme(DefaultThemesEnum.COLORFUL_DARK, autoDarkColourMap, 'Colorful - Dark')
-  
   constructor(grapholscape: Grapholscape) {
     this._grapholscape = grapholscape
-
-    if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-      this.addTheme(this.colorfulThemeLight)
-      this.addTheme(this.colorfulThemeDark)
-    }
-
-    grapholscape.on(LifecycleEvent.RendererChange, (renderer) => {
-      if (renderer === RendererStatesEnum.FLOATY) {
-        this.addTheme(this.colorfulThemeLight)
-        this.addTheme(this.colorfulThemeDark)
-      } else {
-        this.removeTheme(this.colorfulThemeLight)
-        this.removeTheme(this.colorfulThemeDark)
-      }
-    })
   }
 
   setTheme(newThemeId: string) {

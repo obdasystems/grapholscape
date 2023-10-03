@@ -1,10 +1,8 @@
-import { GrapholscapeConfig, Language, WidgetsConfig } from "../config"
+import { GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IncrementalController } from "../incremental"
-import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholEntity, GrapholscapeTheme, IonEvent, iRenderState, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, TypesEnum, Viewport } from "../model"
-import { RDFGraph } from "../model/rdf-graph/swagger"
+import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
 import rdfgraphSerializer from "../rdfgraph-serializer"
-import { OntologyColorManager } from "./colors-manager"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
 import { FloatyRendererState, GrapholRendererState, LiteRendererState, Renderer } from "./rendering"

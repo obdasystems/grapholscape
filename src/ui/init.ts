@@ -2,7 +2,7 @@ import Grapholscape from "../core";
 import { CSS_PROPERTY_NAMESPACE, LifecycleEvent } from "../model";
 import { IBaseMixin } from "./common/mixins";
 import initDiagramSelector from "./diagram-selector";
-import { initEntityColorLegend } from "./entity-color-legend";
+import initEntityColors from "./entity-colors";
 import initEntityDetails from "./entity-details";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
@@ -48,7 +48,7 @@ export default function (grapholscape: Grapholscape) {
   // initEntitySelector(grapholscape)
   initRendererSelector(grapholscape)
   initInitialRendererSelector(grapholscape)
-  initEntityColorLegend(grapholscape)
+  initEntityColors(grapholscape)
 
   const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS) as GscapeSettings
 

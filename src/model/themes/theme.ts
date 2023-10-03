@@ -5,6 +5,7 @@ export default class GrapholscapeTheme implements Theme {
   private _id: string
   private _name: string
   colours: ColourMap = { }
+  useComputedColours = false
 
   constructor(id: string, colours?: ColourMap, name?: string) {
     this._id = id

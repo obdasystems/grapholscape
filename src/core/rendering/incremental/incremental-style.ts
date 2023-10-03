@@ -18,16 +18,16 @@ export default function (theme: GrapholscapeTheme) {
       selector: `node[type = "${TypesEnum.CLASS}"]`,
       style: {
         color: (node) => getNodeLabelColor(node, theme),
-        backgroundColor: (node) => getNodeBodyColor(node, theme, true) || theme.getColour(ColoursNames.class),
-        "border-color": (node) => getNodeBorderColor(node, theme, true) || theme.getColour(ColoursNames.class_contrast),
+        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_contrast),
       }
     },
 
     {
       selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
-        backgroundColor: (node) => getNodeBodyColor(node, theme, true) || theme.getColour(ColoursNames.class_instance),
-        "border-color": (node) => getNodeBorderColor(node, theme, true) || theme.getColour(ColoursNames.class_instance_contrast),
+        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
       }
     },
 

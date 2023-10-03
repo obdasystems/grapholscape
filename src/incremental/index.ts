@@ -1,8 +1,8 @@
 import { Grapholscape } from "../core";
 import { ClassInstanceEntity, Filter, LifecycleEvent, RendererStatesEnum } from "../model";
 import { createEntitiesList, IBaseMixin } from "../ui";
-import { setColorList } from "../ui/entity-color-legend";
-import GscapeEntityColorLegend from "../ui/entity-color-legend/entity-color-legend";
+import { setColorList } from "../ui/entity-colors";
+import GscapeEntityColorLegend from "../ui/entity-colors/entity-color-legend";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { GscapeEntitySelector } from "../ui/entity-selector";
 import { GscapeExplorer } from "../ui/ontology-explorer";

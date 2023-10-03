@@ -14,6 +14,7 @@ export enum WidgetEnum {
   ZOOM_TOOLS = 'zoom-tools',
   INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
   ENTITY_COLOR_LEGEND = 'entity-color-legend',
+  COLOR_BUTTON = 'color-button',
   /** @internal */
   CLASS_INSTANCE_DETAILS = 'class-instance-details',
   /** @internal */

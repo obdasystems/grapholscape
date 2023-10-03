@@ -2,15 +2,8 @@ import chroma from "chroma-js"
 import { NodeSingular } from "cytoscape"
 import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme } from "../../model"
 
-export function getNodeBodyColor(node: NodeSingular, theme: GrapholscapeTheme, ignoreTheme = false) {
-  let shouldUseComputedColor: boolean = node.data().computedFillColor !== undefined
-
-  if (!ignoreTheme) {
-    shouldUseComputedColor = shouldUseComputedColor && (
-      theme.id === DefaultThemesEnum.COLORFUL_LIGHT ||
-      theme.id === DefaultThemesEnum.COLORFUL_DARK
-    )
-  }
+export function getNodeBodyColor(node: NodeSingular, theme: GrapholscapeTheme) {
+  const shouldUseComputedColor: boolean = theme.useComputedColours && node.data().computedFillColor !== undefined
 
   if (shouldUseComputedColor) {
     if (isThemeDark(theme)) {
@@ -27,15 +20,8 @@ export function getNodeBodyColor(node: NodeSingular, theme: GrapholscapeTheme, i
   }
 }
 
-export function getNodeBorderColor(node: NodeSingular, theme: GrapholscapeTheme, ignoreTheme = false) {
-  let shouldUseComputedColor: boolean = node.data().computedFillColor !== undefined
-
-  if (!ignoreTheme) {
-    shouldUseComputedColor = shouldUseComputedColor && (
-      theme.id === DefaultThemesEnum.COLORFUL_LIGHT ||
-      theme.id === DefaultThemesEnum.COLORFUL_DARK
-    )
-  }
+export function getNodeBorderColor(node: NodeSingular, theme: GrapholscapeTheme) {
+  const shouldUseComputedColor: boolean = theme.useComputedColours && node.data().computedFillColor !== undefined
 
   if (shouldUseComputedColor) {
     if (isThemeDark(theme)) {

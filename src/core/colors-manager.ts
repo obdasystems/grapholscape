@@ -1,5 +1,5 @@
 import chroma from 'chroma-js';
-import { CollectionArgument, NodeSingular, SingularElementReturnValue } from 'cytoscape';
+import { NodeSingular, SingularElementReturnValue } from 'cytoscape';
 import { ClassInstanceEntity, DiagramRepresentation, GrapholEntity, Ontology, TypesEnum } from "../model";
 
 abstract class ColorManager {
