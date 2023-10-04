@@ -1,6 +1,6 @@
 import { NodeCollection, NodeSingular } from "cytoscape";
 import { floatyOptions } from "../../../config/cytoscape-default-config";
-import { Diagram, DiagramRepresentation, GrapholEdge, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
+import { DefaultNamespaces, Diagram, DiagramRepresentation, GrapholEdge, GrapholElement, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
 import BaseGrapholTransformer from "../base-transformer";
 import LiteTransformer from "../lite/lite-transformer";
 
@@ -34,6 +34,16 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
     this.makeEdgesStraight()
     this.simplifyRolesFloat()
+
+    // Remove fake nodes and restriction nodes left on diagram
+    this.result.cy.nodes().filter(node => {
+      return node.data().fake === true || node.data().type.endsWith('restriction')
+    }).remove()
+
+    const grapholRepresentation = diagram.representations.get(RendererStatesEnum.GRAPHOL)
+    if (grapholRepresentation) {
+      this.attachLostPropertiesToOWLThing(grapholRepresentation)
+    }
 
     this.newCy.elements().unlock()
     return this.result
@@ -102,6 +112,50 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         newAddedCyElement.data().iri = objectProperty.data().iri
       })
     })
+  }
+
+  private attachLostPropertiesToOWLThing(grapholRepresentation: DiagramRepresentation) {
+    const originalObjectProperties = grapholRepresentation.cy.$(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`)
+    const originalDataProperties = grapholRepresentation.cy.$(`[type = "${TypesEnum.DATA_PROPERTY}"]`)
+
+    const owlThingClass = new GrapholNode(`n${this.result.grapholElements.size}`, TypesEnum.CLASS)
+    owlThingClass.iri = DefaultNamespaces.OWL.toString() + 'Thing'
+    owlThingClass.displayedName = 'Thing'
+
+    let originalElem: GrapholElement | undefined, attributeEdge: GrapholEdge
+    
+    originalDataProperties.forEach(dp => {
+      if (this.result.cy.$(`[type = "${TypesEnum.DATA_PROPERTY}"][iri = "${dp.data().iri}"]`).empty()) {
+        originalElem = grapholRepresentation.grapholElements.get(dp.id())
+        if (originalElem) {
+          this.result.addElement(originalElem)
+          this.result.addElement(owlThingClass)
+          attributeEdge = new GrapholEdge(`e${this.result.grapholElements.size}`, TypesEnum.DATA_PROPERTY)
+          attributeEdge.sourceId = owlThingClass.id
+          attributeEdge.targetId = originalElem.id
+          this.result.addElement(attributeEdge)
+        }
+      }
+    })
+
+    let objectPropertyEdge: GrapholEdge
+    originalObjectProperties.forEach(op => {
+      if (this.result.cy.$(`[type = "${TypesEnum.OBJECT_PROPERTY}"][iri = "${op.data().iri}"]`).empty()) {
+        originalElem = grapholRepresentation.grapholElements.get(op.id())
+        if (originalElem) {
+          this.result.addElement(owlThingClass)
+          objectPropertyEdge = new GrapholEdge(`e${this.result.grapholElements.size}`, TypesEnum.OBJECT_PROPERTY)
+          objectPropertyEdge.iri = originalElem!.iri
+          objectPropertyEdge.displayedName = originalElem!.displayedName
+          objectPropertyEdge.diagramId = originalElem!.diagramId
+          objectPropertyEdge.sourceId = owlThingClass.id
+          objectPropertyEdge.targetId = owlThingClass.id
+          this.result.addElement(objectPropertyEdge)
+        }
+      }
+    })
+
+    this.result.addElement
   }
 
 
