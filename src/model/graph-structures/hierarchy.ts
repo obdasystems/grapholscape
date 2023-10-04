@@ -125,7 +125,7 @@ export default class Hierarchy implements IHierarchy {
     return this.type === TypesEnum.DISJOINT_UNION
   }
 
-  private isValid() {
+  isValid() {
     return this._id && this.inputs.length > 0 && this._superclasses.length > 0
   }
 }
