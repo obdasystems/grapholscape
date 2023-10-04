@@ -47,6 +47,7 @@ abstract class ColorManager {
 
 export class OntologyColorManager extends ColorManager {
 
+  private _classForest: Set<GrapholEntity> = new Set()
 
   constructor(private ontology: Ontology, private diagramRepresentation: DiagramRepresentation) {
     super()
@@ -113,16 +114,22 @@ export class OntologyColorManager extends ColorManager {
       topSuperClass.color = chroma(colors[0]).css()
     }
     
+    this._classForest.clear()
     return this
   }
 
   protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity {
-
-    const directSuperclass = Array.from(this.ontology.getSuperclassesOf(classEntity.iri))[0]
+    this._classForest.add(classEntity)
+    const directSuperclass = Array.from(this.ontology.getSuperclassesOf(classEntity.iri))
+      .filter(entity => !this._classForest.has(entity))[0]
 
     const hierarchies = this.ontology.getSuperHierarchiesOf(classEntity.iri)
-    if (hierarchies.length > 0) {
-      return this.getTopSuperClass(hierarchies[0].superclasses[0].classEntity)
+    const hierarchySuperClass= hierarchies[0]
+      .superclasses
+      .filter(entity => !this._classForest.has(entity.classEntity))[0]
+
+    if (hierarchySuperClass) {
+      return this.getTopSuperClass(hierarchySuperClass.classEntity)
 
     } else if (directSuperclass) {
 
@@ -163,6 +170,8 @@ export class OntologyColorManager extends ColorManager {
 
 export class DiagramColorManager extends ColorManager {
 
+  private _classForest: Set<any> = new Set()
+
   constructor(private diagramRepresentation: DiagramRepresentation) {
     super()
   }
@@ -171,6 +180,8 @@ export class DiagramColorManager extends ColorManager {
     this.diagramRepresentation.cy.$(`node[type = "${TypesEnum.CLASS}"]`).forEach(classNode => {
       this.setClassColor(classNode, overwrite)
     })
+
+    this._classForest.clear()
   }
 
   setClassColor(classNode: SingularElementReturnValue, overwrite = false) {
@@ -195,15 +206,28 @@ export class DiagramColorManager extends ColorManager {
 
       // topSuperClass.style().update()
     }
+
+    this._classForest.clear()
   }
 
   protected getTopSuperClass(classNode: NodeSingular) {
-    const directSuperclass = classNode.outgoers(`edge[type = "${TypesEnum.INCLUSION}"], edge[type = "${TypesEnum.EQUIVALENCE}"]`).targets().first()
+    this._classForest.add(classNode)
+    const directSuperclass = classNode
+      .outgoers(`edge[type = "${TypesEnum.INCLUSION}"], edge[type = "${TypesEnum.EQUIVALENCE}"]`)
+      .targets()
+      .filter(n => !this._classForest.has(n))
+      .nodes()
+      .first()
 
     const hierarchies = classNode.outgoers(`edge[type = "${TypesEnum.INPUT}"]`).targets().first()
+    const hierarchySuperClasses = hierarchies.outgoers(`node[type = "${TypesEnum.CLASS}"]`)
+      .filter(n => !this._classForest.has(n))
+      .nodes()
+      .first()
 
-    if (hierarchies.nonempty()) {
-      return this.getTopSuperClass(hierarchies.outgoers(`node[type = "${TypesEnum.CLASS}"]`))
+    if (hierarchySuperClasses.nonempty()) {
+
+      return this.getTopSuperClass(hierarchySuperClasses)
 
     } else if (directSuperclass.nonempty()) {
 
