@@ -4,7 +4,7 @@ import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
 import FloatyTransformer from "../floaty/floaty-transformer"
 import Renderer from "../renderer"
-import computeHierarchies from "./compute-hierarchies"
+import computeHierarchies from "../../compute-hierarchies"
 import IncrementalFilterManager from "./filter-manager"
 import incrementalStyle from "./incremental-style"
 

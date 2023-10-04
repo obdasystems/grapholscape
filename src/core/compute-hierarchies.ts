@@ -1,5 +1,4 @@
-import { DiagramRepresentation, GrapholEntity, Hierarchy, isGrapholNode, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
-
+import { DiagramRepresentation, GrapholEntity, Hierarchy, isGrapholNode, Ontology, RendererStatesEnum, TypesEnum } from "../model"
 
 export default function computeHierarchies(ontology: Ontology) {
   const unionNodeSelector = `node[type = "${TypesEnum.UNION}"], node[type = "${TypesEnum.DISJOINT_UNION}"]`
@@ -10,7 +9,8 @@ export default function computeHierarchies(ontology: Ontology) {
     representation = diagram.representations.get(RendererStatesEnum.FLOATY)
     if (representation) {
       representation.cy.$(unionNodeSelector).forEach(unionNode => {
-        const hierarchy = new Hierarchy(`${unionNode.id()}-${diagram.id}`, unionNode.data().type)
+        const id = unionNode.data().hierarchyID || `${unionNode.id()}-${diagram.id}`
+        const hierarchy = new Hierarchy(id, unionNode.data().type)
         unionNode.data('hierarchyID', hierarchy.id)
         const grapholUnionNode = diagram.representations.get(RendererStatesEnum.FLOATY)?.grapholElements.get(unionNode.id())
         if (grapholUnionNode && isGrapholNode(grapholUnionNode)) {

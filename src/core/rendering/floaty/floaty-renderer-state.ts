@@ -5,7 +5,7 @@ import { BaseRenderer, GrapholscapeTheme, iFilterManager, Ontology, RendererStat
 import FloatyFilterManager from "./filter-manager";
 import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
-import computeHierarchies from "../incremental/compute-hierarchies";
+import computeHierarchies from "../../compute-hierarchies";
 import { DiagramColorManager } from "../../colors-manager";
 
 cytoscape.use(automove)
