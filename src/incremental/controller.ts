@@ -188,7 +188,7 @@ export default class IncrementalController {
         this.classInstanceEntities.set(iri, instanceEntity)
     })
 
-    const diagram = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL)[0]
+    const diagram = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, this.ontology)[0]
 
     if (diagram) {
       const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL)

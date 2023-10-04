@@ -1,5 +1,5 @@
-import { floatyOptions, GrapholscapeConfig } from "../config";
-import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import { floatyOptions, GrapholscapeConfig, Language } from "../config";
+import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph) {
@@ -12,7 +12,7 @@ export default function parseRDFGraph(rdfGraph: RDFGraph) {
   
   // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
   // let incrementalDiagram: IncrementalDiagram
-  ontology.diagrams = getDiagrams(rdfGraph, rendererState)
+  ontology.diagrams = getDiagrams(rdfGraph, rendererState, ontology)
   //if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
   //  ontology.diagrams = parsedDiagrams
   //else
@@ -110,7 +110,7 @@ function getAnnotations(annotatedElem: Entity | RDFGraphMetadata, namespaces: Na
   }) || []
 }
 
-export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL) {
+export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL, ontology: Ontology) {
   let diagram: Diagram
   let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | undefined
@@ -130,7 +130,15 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
     // Nodes
     d.nodes?.forEach(n => {
       grapholElement = GrapholNode.newFromSwagger(n)
-      diagramRepr!.addElement(grapholElement, grapholEntity)
+      grapholElement.diagramId = d.id
+      if (grapholElement.iri) {
+        grapholEntity = ontology.getEntity(grapholElement.iri)
+        grapholElement.displayedName = grapholEntity?.getDisplayedName(
+          rdfGraph.config?.entityNameType || EntityNameType.LABEL,
+          rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
+        )
+      }
+      diagramRepr!.addElement(grapholElement)
     })
 
     // Edges
@@ -139,6 +147,14 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
         e.id = diagramRepr!.getNewId('edge')
       }
       grapholElement = GrapholEdge.newFromSwagger(e)
+      grapholElement.diagramId = d.id
+      if (grapholElement.iri) {
+        grapholEntity = ontology.getEntity(grapholElement.iri)
+        grapholElement.displayedName = grapholEntity?.getDisplayedName(
+          rdfGraph.config?.entityNameType || EntityNameType.LABEL,
+          rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
+        )
+      }
       diagramRepr!.addElement(grapholElement)
     })
 

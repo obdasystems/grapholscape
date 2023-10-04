@@ -255,7 +255,8 @@ export default class DiagramBuilder {
     if (!unionNode)
       return
 
-    //hierarchy.id = `${unionNode.id}-${this.diagram.id}` 
+    unionNode.diagramId = this.diagram.id
+
     // Add inputs
     for (const inputClasses of hierarchy.inputs) {
       this.addClass(inputClasses, position)
