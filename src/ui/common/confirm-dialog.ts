@@ -2,12 +2,11 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit
 import baseStyle from "../style"
 import { BaseMixin, ModalMixin } from "./mixins"
 import { error, info_outline, warning } from "../assets"
-import { getIconSlot, icons } from ".."
 
 export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement)) {
 
-  private _onConfirm?: () => void
-  private _onCancel?: () => void
+  protected _onConfirm?: () => void
+  protected _onCancel?: () => void
 
   constructor(public message?: string, public dialogTitle = 'Confirm', public type: 'neutral' | 'warning' | 'error' = 'neutral') {
     super()
@@ -89,13 +88,13 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
             `
             : null
           }
-          <gscape-button label="Ok" @click=${this.handleConfirm}></gscape-button>
+          <gscape-button type="primary" label="Ok" @click=${this.handleConfirm}></gscape-button>
         </div>
       </div>
     `
   }
 
-  private get headerIcon() {
+  protected get headerIcon() {
     switch(this.type) {
       default:
         return info_outline
@@ -108,13 +107,13 @@ export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement
     }
   }
 
-  private handleConfirm() {
+  protected handleConfirm() {
     if (this._onConfirm)
       this._onConfirm()
     this.remove()
   }
 
-  private handleCancel() {
+  protected handleCancel() {
     if(this._onCancel)
       this._onCancel()
     this.remove()

@@ -25,7 +25,6 @@ export default css`
 }
 
 .gscape-panel {
-  font-size: 12px;
   background-color: var(--gscape-color-bg-default);
   box-shadow: 0 2px 10px 0 var(--gscape-color-shadow);
   border-radius: var(--gscape-border-radius);
