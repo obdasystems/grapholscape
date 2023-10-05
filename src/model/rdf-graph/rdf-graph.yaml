@@ -12,7 +12,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths: 
-  /ontologyDrafts:
+  /ontologyDraftInfos:
     get:
       tags:
       - Ontology Designer
@@ -26,7 +26,7 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/RDFGraph'
+                  $ref: '#/components/schemas/OntologyDraftInfo'
   /ontologyDraft/{ontologyName}:
     get:
       tags:
@@ -127,37 +127,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RDFGraph'
-      responses:
-        200:
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: string
-                description: FileInfo object
-  /owlOntology/{ontologyName}/version/fromRDFGraph:
-    post:
-      tags:
-      - Ontology Designer
-      summary: Add to the ontology a new version translated from the RDFGraph
-      operationId: postOntologyVersionFromRDFGraph
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RDFGraph'
-      parameters:
-      - name: ontologyName
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: version
-        description: Ontology version
-        in: query
-        required: true
-        schema:
-          type: string 
       responses:
         200:
           description: Successful operation
@@ -413,6 +382,25 @@ paths:
                 $ref: '#/components/schemas/RDFGraph'
 components:
   schemas:
+    OntologyDraftInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        iri:
+          type: string
+        version:
+          type: string
+        numClasses:
+          type: integer
+        numObjectProperties:
+          type: integer
+        numDataProperties:
+          type: integer
+        numIndividuals:
+          type: integer
+        lastModification:
+          type: integer
     RDFGraph:
       type: object
       required:
