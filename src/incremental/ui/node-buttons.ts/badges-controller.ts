@@ -39,7 +39,7 @@ export default class BadgeController {
     timeout?: number,
   ) {
     const cyNode = this.findNodeByIri(entityIri, type)
-    if (cyNode && cyNode.nonempty() && !cyNode.scratch(badgeName)) {
+    if (cyNode && cyNode.nonempty()) {
 
       if (override && cyNode.scratch(badgeName)) {
         this._removeBadge(cyNode, badgeName)
