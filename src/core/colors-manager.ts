@@ -125,7 +125,7 @@ export class OntologyColorManager extends ColorManager {
 
     const hierarchies = this.ontology.getSuperHierarchiesOf(classEntity.iri)
     const hierarchySuperClass= hierarchies[0]
-      .superclasses
+      ?.superclasses
       .filter(entity => !this._classForest.has(entity.classEntity))[0]
 
     if (hierarchySuperClass) {
