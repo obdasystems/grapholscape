@@ -8,6 +8,7 @@ import { hideButtons } from "../node-buttons.ts";
 import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
 import GscapePathSelector, { PathSelectionEvent } from "../path-selection/path-selector";
 import * as IncrementalCommands from "./commands";
+import BadgeController from "../node-buttons.ts/badges-controller";
 
 export function CommandsWidgetFactory(ic: IncrementalController) {
   const commandsWidget = new GscapeContextMenu()
@@ -134,9 +135,12 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
           .getEntitiesByType(TypesEnum.CLASS)
           .map(e => e.iri.fullIri)
 
+        const badgeController = new BadgeController(ic)
+        badgeController.addLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE)
         const instanceCheckingClasses = await ic
           .endpointController
           ?.instanceCheck(entity.iri.fullIri, allClassesIris)
+          .finally(() => badgeController.removeLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE))
 
         instanceCheckingClasses?.forEach(classIri => {
           const classEntity = ic.grapholscape.ontology.getEntity(classIri);
@@ -240,9 +244,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
         commands.push({
           icon: counter,
           content: 'Count Instances',
-          select: () => {
-            ic.endpointController?.requestCountForClass(entity.iri.fullIri)
-          }
+          select: () => ic.showFreshClassCount(entity.iri.fullIri)
         })
       }
 

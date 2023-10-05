@@ -150,12 +150,9 @@ export default class EndpointController {
   }
 
   requestCountForClass(classIri: string) {
-    this.lifecycle.trigger(IncrementalEvent.CountStarted, classIri)
-    this.vkgApi?.getInstancesNumber(
-      classIri,
-      (result) => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri, { value: result, materialized: false }),
-      () => this.lifecycle.trigger(IncrementalEvent.NewCountResult, classIri)
-    )
+    if (this.selectedEndpoint) {
+      return this.vkgApi?.getInstancesNumber(this.selectedEndpoint, classIri)
+    }
   }
 
   shouldQueryUseLabels(queryExecutionId: string) {
@@ -168,16 +165,12 @@ export default class EndpointController {
   }
 
   async instanceCheck(instanceIri: string, classesToCheck: string[]) {
-    this.lifecycle.trigger(IncrementalEvent.InstanceCheckingStarted, instanceIri)
-    return new Promise((resolve: (value: string[]) => void) => {
+    return new Promise((resolve: (value: string[]) => void, reject: () => void) => {
       this.vkgApi?.instanceCheck(
         instanceIri,
         classesToCheck,
-        (res) => {
-          resolve(res)
-          this.lifecycle.trigger(IncrementalEvent.InstanceCheckingFinished, instanceIri)
-        },
-        () => this.lifecycle.trigger(IncrementalEvent.InstanceCheckingFinished, instanceIri)
+        (res) => resolve(res),
+        reject
       )
     })
   }

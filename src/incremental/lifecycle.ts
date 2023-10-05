@@ -18,12 +18,6 @@ export enum IncrementalEvent {
   ReasonerSet = 'reasonerSet',
   NewDataPropertyValues = 'newDataPropertyValues',
   DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish',
-  InstanceCheckingStarted = 'instanceCheckingStarted',
-  InstanceCheckingFinished = 'instanceCheckingFinished',
-  CountStarted = 'countStarted',
-  NewCountResult = 'newCountResult',
-  LoadingStarted = 'loadingStarted',
-  LoadingFinished = 'loadingFinished',
 }
 
 export interface IonEvent {
@@ -39,12 +33,6 @@ export interface IonEvent {
   (event: IncrementalEvent.ReasonerSet, callback: () => void): void
   (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void
   (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void,
-  (event: IncrementalEvent.InstanceCheckingStarted, callback: (instanceIri: string) => void): void,
-  (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void,
-  (event: IncrementalEvent.NewCountResult, callback: (classIri: string, result?: { value: number, materialized: boolean, date?: string }) => void): void,
-  (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void,
-  (event: IncrementalEvent.LoadingStarted, callback: (entityIri: string, entityType: TypesEnum) => void): void,
-  (event: IncrementalEvent.LoadingFinished, callback: (entityIri: string, entityType: TypesEnum) => void): void,
 }
 
 export default class IncrementalLifecycle {
@@ -60,13 +48,6 @@ export default class IncrementalLifecycle {
   private reasonerSet: (() => void)[] = []
   private newDataPropertyValues: ((dataPropertyIri: string, newValues: string[]) => void)[] = []
   private dpvaluesloadfinish: ((instanceIri: string, dataPropertyIri: string) => void)[] = []
-  private instanceCheckingStarted: ((instanceIri: string) => void)[] = []
-  private instanceCheckingFinished: ((instanceIri: string) => void)[] = []
-  private newCountResult: ((classIri: string, result?: { value: number, materialized: boolean, date?: string }) => void)[] = []
-  private countStarted: ((classIri: string) => void)[] = []
-  private loadingStarted: ((entityIri: string, entityType: TypesEnum) => void)[] = []
-  private loadingFinished: ((entityIri: string, entityType: TypesEnum) => void)[] = []
-
 
   constructor() { }
 
@@ -82,12 +63,6 @@ export default class IncrementalLifecycle {
   trigger(event: IncrementalEvent.ReasonerSet): void
   trigger(event: IncrementalEvent.NewDataPropertyValues, instanceIri: string, dataPropertyIri: string, newValues: string[]): void
   trigger(event: IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri: string, dataPropertyIri: string): void
-  trigger(event: IncrementalEvent.InstanceCheckingStarted, instanceIri: string): void
-  trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void
-  trigger(event: IncrementalEvent.NewCountResult, classIri: string, result?: { value: number, materialized: boolean, date?: string }): void
-  trigger(event: IncrementalEvent.CountStarted, classIri: string): void
-  trigger(event: IncrementalEvent.LoadingStarted, entityIri: string, entityType: TypesEnum): void
-  trigger(event: IncrementalEvent.LoadingFinished, entityIri: string, entityType: TypesEnum): void
   trigger(event: string, ...params: any): any {
     this[event].forEach((callback: any) => callback(...params))
   }

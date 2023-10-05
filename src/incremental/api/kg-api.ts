@@ -28,7 +28,7 @@ export interface IVirtualKnowledgeGraphApi {
   getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string) => void,
   getNewResults: (executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number) => Promise<void>,
   getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: () => void) => void,
-  getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void,
+  getInstancesNumber: (endpoint: MastroEndpoint, classIri: string) => Promise<number>,
   getHighlights: (iri: string) => Promise<Highlights>,
   getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>
   getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void,
@@ -139,14 +139,16 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     return queryPoller.executionId
   }
 
-  async getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void) {
-    const queryCode = QueriesTemplates.getInstances(iri, false, 'unlimited')
-    this.queryManager.performQueryCount(queryCode, onStop)
-      .then(result => onResult(result))
-      .catch(_ => {
-        if (onStop)
-          onStop()
-      })
+  async getInstancesNumber(endpoint: MastroEndpoint, classIri: string) {
+    const params = new URLSearchParams({ classIRI: classIri })
+    const url = new URL(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/countClassInstances?${params.toString()}`)
+    return parseInt(await (await handleApiCall(
+      fetch(url, {
+        method: 'get',
+        headers: this.requestOptions.headers
+      }),
+      this.requestOptions.onError
+    )).text())
   }
 
   async getHighlights(classIri: string) {

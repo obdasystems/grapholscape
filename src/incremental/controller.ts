@@ -15,8 +15,8 @@ import { OntologyColorManager } from "../core/colors-manager";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
-import { addBadge } from "./ui";
 import { GscapeEntityColorLegend, setColorList } from "../ui/entity-colors";
+import BadgeController from "./ui/node-buttons.ts/badges-controller";
 
 /** @internal */
 export default class IncrementalController {
@@ -288,7 +288,7 @@ export default class IncrementalController {
       this.updateEntityNameType(entity.iri)
 
       if (entity.is(TypesEnum.CLASS))
-        this.countInstancesForClass(iri, false)
+        this.showMaterializedClassCount(iri)
     } else {
       const classNodeId = this.getIDByIRI(iri, TypesEnum.CLASS)
       if (classNodeId)
@@ -514,22 +514,28 @@ export default class IncrementalController {
         parentClassesIris = this.ontology.getEntitiesByType(TypesEnum.CLASS).map(entity => entity.iri.fullIri)
       }
 
-      this.endpointController?.instanceCheck(instance.iri, parentClassesIris).then(result => {
-        result.forEach(classIri => {
-          const classEntity = this.ontology.getEntity(classIri)
-          if (classEntity && classInstanceEntity) {
-            classInstanceEntity.addParentClass(classEntity.iri)
-
-            if (!classInstanceEntity.color && this.diagram.representation) {
-              const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
-              colorManager.setInstanceColor(classInstanceEntity)
-              this.diagram.representation.updateElement(addedNode, classInstanceEntity, false)
-              setColorList(this.grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend, this.grapholscape)
-            }
-          }
-        })
-      })
-
+      if (this.endpointController) {
+        const badgeController = new BadgeController(this)
+        badgeController.addLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)
+        this.endpointController.instanceCheck(instance.iri, parentClassesIris)
+          .then(result => {
+            result.forEach(classIri => {
+              const classEntity = this.ontology.getEntity(classIri)
+              if (classEntity && classInstanceEntity) {
+                classInstanceEntity.addParentClass(classEntity.iri)
+    
+                if (!classInstanceEntity.color && this.diagram.representation) {
+                  const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
+                  colorManager.setInstanceColor(classInstanceEntity)
+                  this.diagram.representation.updateElement(addedNode, classInstanceEntity, false)
+                  setColorList(this.grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend, this.grapholscape)
+                }
+              }
+            })
+          }).finally(() => {
+            badgeController.removeLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)
+          })
+      }
     } else {
       const parentClassEntity = this.ontology.getEntity(parentClassesIris)
       if (parentClassEntity) {
@@ -575,8 +581,8 @@ export default class IncrementalController {
       this.updateEntityNameType(sourceClassIri)
       this.updateEntityNameType(targetClassIri)
 
-      this.countInstancesForClass(sourceClassIri, false)
-      this.countInstancesForClass(targetClassIri, false)
+      this.showMaterializedClassCount(sourceClassIri)
+      this.showMaterializedClassCount(targetClassIri)
 
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
       return objectPropertyEdge
@@ -948,7 +954,9 @@ export default class IncrementalController {
       const objectProperties = await this.getObjectPropertiesByClasses(instanceEntity.parentClassIris.map(iri => iri.fullIri))
       if (objectProperties) {
         let promisesCount = 0
-        this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
+        const badgeController = new BadgeController(this)
+        badgeController.addLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE)
+        // this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
         const results: Map<GrapholEntity, {
           ranges: {
             classEntity: GrapholEntity,
@@ -987,7 +995,7 @@ export default class IncrementalController {
 
         const onDone = () => {
           this.addResultsFromFocus(instanceIri, results)
-          this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE)
+          badgeController.removeLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE)
         }
 
         let interval = setInterval(() => {
@@ -1007,8 +1015,8 @@ export default class IncrementalController {
               `, 'Timeout Reached',
                 this.grapholscape.uiContainer
               )
-                .onConfirm(onDone)
-                .onCancel(() => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE))
+              .onConfirm(onDone)
+              .onCancel(() => badgeController.removeLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE))
             }
           }
         }, 10000)
@@ -1044,8 +1052,9 @@ export default class IncrementalController {
       ranges: [{ classInstances: [] }],
       isDirect: isDirect,
     })
-
-    this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
+    const badgeController = new BadgeController(this)
+    badgeController.addLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE)
+    // this.lifecycle.trigger(IncrementalEvent.LoadingStarted, instanceIri, TypesEnum.CLASS_INSTANCE)
 
     this.endpointController.vkgApi.getInstancesThroughObjectProperty(
       instanceIri,
@@ -1062,7 +1071,7 @@ export default class IncrementalController {
       undefined, // range class filter
       undefined, // data property filter
       undefined, // text search
-      () => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, instanceIri, TypesEnum.CLASS_INSTANCE), // on stop polling
+      () => badgeController.removeLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE), // on stop polling
       100,
       true
     )
@@ -1085,8 +1094,9 @@ export default class IncrementalController {
     if (classNodeId) {
       classNodePosition = this.diagram.representation?.cy.$id(classNodeId).position()
     }
-
-    this.lifecycle.trigger(IncrementalEvent.LoadingStarted, classIri, TypesEnum.CLASS)
+    const badgeController = new BadgeController(this)
+    badgeController.addLoadingBadge(classIri, TypesEnum.CLASS)
+    // this.lifecycle.trigger(IncrementalEvent.LoadingStarted, classIri, TypesEnum.CLASS)
     this.endpointController.vkgApi.getInstances(
       classIri,
       false,
@@ -1101,7 +1111,7 @@ export default class IncrementalController {
           })
         })
       },
-      () => this.lifecycle.trigger(IncrementalEvent.LoadingFinished, classIri, TypesEnum.CLASS),
+      () => badgeController.removeLoadingBadge(classIri, TypesEnum.CLASS),
       undefined, // search text
       pageSize
     )
@@ -1235,46 +1245,55 @@ export default class IncrementalController {
     }
   }
 
-  async countInstancesForClass(classIri: string, askFreshValue = true) {
+  /**
+   * Show materialized class' instance number on class node
+   * @param classIri the class on which you want to count instances
+   * @returns 
+   */
+  async showMaterializedClassCount(classIri: string) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
-    const nodeId = this.getIDByIRI(classIri, TypesEnum.CLASS)
-    if (!nodeId) return
-
-    const node = this.diagram?.representation?.cy.$id(nodeId)
-    if (!node || node.empty()) return
-
     await this.updateMaterializedCounts()
 
-    if (this.counts.get(classIri) === undefined) {
-      if (askFreshValue)
-        this.endpointController?.requestCountForClass(classIri)
-    } else { // Value already present
-      let instanceCountBadge: NodeButton
-      const countEntry = this.counts.get(classIri)
-      if (!countEntry)
-        return
+    this._addCountBadge(classIri)
+  }
 
-      if (!node.scratch('instance-count')) {
-        instanceCountBadge = addBadge(node, countEntry.value, 'instance-count', 'bottom')
-        setTimeout(() => instanceCountBadge.hide(), 1000)
-        node.on('mouseover', () => {
-          if (this.countersEnabled)
-            instanceCountBadge.tippyWidget.show()
-        })
-        node.on('mouseout', () => instanceCountBadge.tippyWidget.hide())
-      } else {
-        instanceCountBadge = node.scratch('instance-count') as NodeButton
-        instanceCountBadge.content = countEntry.value
-      }
+  /**
+   * Compute class' instance number and shows it on class node
+   * @param classIri the class on which you want to count instances
+   */
+  async showFreshClassCount(classIri: string) {
+    if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
+    const countResult = await this.endpointController?.requestCountForClass(classIri)
 
-      if (countEntry.materialized) {
-        instanceCountBadge.highlighted = false
-        instanceCountBadge.title = `Date: ${countEntry.date}`
-      } else {
-        instanceCountBadge.highlighted = true
-        instanceCountBadge.title = 'Fresh Value'
-      }
+    if (countResult !== undefined) {
+      this.counts.set(classIri, {
+        value: countResult,
+        materialized: false,
+        date: undefined
+      })
+
+      this._addCountBadge(classIri)
     }
+  }
+
+  private _addCountBadge(classIri: string) {
+    const countEntry = this.counts.get(classIri)
+    if (!countEntry)
+      return
+
+    const badgeController = new BadgeController(this)
+    
+    badgeController.addBadge(
+      classIri,
+      TypesEnum.CLASS,
+      countEntry.value,
+      countEntry.materialized ? `Date: ${countEntry.date}` : 'Fresh Value',
+      'instance-count',
+      !countEntry.materialized,
+      true, // should override
+      true, // onHover
+      () => this.countersEnabled // onHover show condition
+    )
   }
 
   async updateMaterializedCounts() {
@@ -1292,11 +1311,11 @@ export default class IncrementalController {
                 : new Date(materializedCounts.startTime).toDateString()
             })
 
-            this.lifecycle.trigger(IncrementalEvent.NewCountResult, countEntry.entity.entityIRI, {
-              value: countEntry.count,
-              materialized: true,
-              date: this.counts.get(countEntry.entity.entityIRI)?.date
-            })
+            // this.lifecycle.trigger(IncrementalEvent.NewCountResult, countEntry.entity.entityIRI, {
+            //   value: countEntry.count,
+            //   materialized: true,
+            //   date: this.counts.get(countEntry.entity.entityIRI)?.date
+            // })
           }
         }
       })
