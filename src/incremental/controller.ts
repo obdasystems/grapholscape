@@ -232,29 +232,15 @@ export default class IncrementalController {
     const sourceEntity = this.classInstanceEntities.get(sourceIri) || this.ontology.getEntity(sourceIri)
     const targetEntity = this.classInstanceEntities.get(targetIri) || this.ontology.getEntity(targetIri)
 
-    // if (sourceEntity && targetEntity) {
-    //   /**
-    //    * If source is a class, swap source and target
-    //    */
-    //   if (sourceEntity.is(TypesEnum.CLASS)) {
-    //     [sourceIri, targetIri] = [targetIri, sourceIri]
-    //   }
-    // }
-
-    let _sourceIri: string | undefined = sourceIri
-    let _targetIri: string | undefined = targetIri
-
     if (sourceEntity && targetEntity) {
-      if (sourceEntity.is(TypesEnum.CLASS) && targetEntity.is(TypesEnum.CLASS)) {
-        _sourceIri = undefined
-        _targetIri = undefined
-      } else if (sourceEntity.is(TypesEnum.CLASS) && targetEntity.is(TypesEnum.CLASS_INSTANCE)) {
-        _sourceIri = targetEntity.iri.fullIri
-        _targetIri = undefined
-      } else if (sourceEntity.is(TypesEnum.CLASS_INSTANCE) && targetEntity.is(TypesEnum.CLASS)) {
-        _sourceIri = targetEntity.iri.fullIri
-        _targetIri = undefined
-      }
+      let _sourceIri: string | undefined
+      let _targetIri: string | undefined
+
+      if (sourceEntity.is(TypesEnum.CLASS_INSTANCE))
+        _sourceIri = sourceEntity.iri.fullIri
+
+      if (targetEntity.is(TypesEnum.CLASS_INSTANCE))
+        _targetIri = targetEntity.iri.fullIri
 
 
       const rdfGraph = await this.endpointController?.requestInstancesPath(

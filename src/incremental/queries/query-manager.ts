@@ -212,11 +212,11 @@ export default class QueryManager {
         if (statusResult.status === QueryStatusEnum.FINISHED) {
           pageSize = pageSize || statusResult.numResults
 
-          if (pageSize > 0) {
+          if (statusResult.numResults > 0) {
             const request = this.getQueryResultRequest(executionId, pageSize || statusResult.numResults, 1, QueryType.CONSTRUCT)
             handleApiCall(fetch(request), this.onError)
               .then(async response => resolve(await response.json()))
-          } {
+          } else {
             resolve(undefined)
           }
         }

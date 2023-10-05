@@ -390,11 +390,11 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     })
 
     if (sourceInstanceIri) {
-      params.append('sourceInstanceIri', sourceInstanceIri)
+      params.append('sourceInstanceIRI', sourceInstanceIri)
     }
 
     if (targetInstanceIri) {
-      params.append('targetInstanceIri', targetInstanceIri)
+      params.append('targetInstanceIRI', targetInstanceIri)
     }
 
     const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/instanceShortestPath?${params.toString()}`)

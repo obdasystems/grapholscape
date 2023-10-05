@@ -54,7 +54,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
         content: 'Find paths to',
         icon: pathIcon,
         select: () => {
-          const onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
+          const onComplete = async (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
             let pathSelector: GscapePathSelector | undefined
             let sourceIriForPath = sourceNode.data('iri')
             let targetIriForpath = targetNode.data('iri')
@@ -104,12 +104,15 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
               }
 
               if (sourceIriForPath && targetIriForpath) {
-                pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
-
-                pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
-                  ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
-                    .finally(stopAnimation)
-                })
+                pathSelector = await pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
+                if (pathSelector) {
+                  pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
+                    ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
+                      .finally(stopAnimation)
+                  })
+                } else {
+                  stopAnimation()
+                }
               }
             // }
 

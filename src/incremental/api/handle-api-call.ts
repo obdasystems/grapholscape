@@ -2,7 +2,7 @@ export default function handleApiCall(apiCall: Promise<Response>, onError: (erro
   return new Promise((resolve, reject) => {
     apiCall
       .then(async response => {
-        if (response.status !== 200) {
+        if (response.status !== 200 || response.type === 'error') {
           const result = await (response.json() || response.text())
           onError(result)
           reject(result)

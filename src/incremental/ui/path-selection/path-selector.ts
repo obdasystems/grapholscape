@@ -229,10 +229,15 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
       }
     );
 
-    (this.cy?.style() as any).fromJson(style).update()
+    (this.cy?.style() as any)?.fromJson(style).update()
   }
 
   private getEdgePointDistances(elem: cytoscape.EdgeSingular) {
+    if (elem.source().same(elem.cy().elements().roots()) &&
+      elem.target().same(elem.cy().elements().leaves())) {
+      return [-60]
+    }
+
     let result
     const sourcePos = elem.source().position()
     const targetPos = elem.target().position()
@@ -253,6 +258,11 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
   }
 
   private getEdgePointWeights(edge: cytoscape.EdgeSingular) {
+    if (edge.source().same(edge.cy().elements().roots()) &&
+      edge.target().same(edge.cy().elements().leaves())) {
+      return [0.5]
+    }
+
     let weight1 = 0.25
     let weight2 = 0.75
     // if last edge in path and path is shorter than the longest one, we must move
@@ -318,85 +328,87 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
   }
 
   set paths(newPaths) {
-    this.cyInit()
-    if (!this.cy || newPaths.length <= 0 || !newPaths[0].entities) 
-      return
+    this.updateComplete.then(() => {
+      this.cyInit()
+      if (!this.cy || newPaths.length <= 0 || !newPaths[0].entities) 
+        return
+      
+      const oldValue = this._paths
+      this._paths = newPaths
     
-    const oldValue = this._paths
-    this._paths = newPaths
-  
-    const sourceNodeCy = this.cy.add(this.getEntityCyRepr(newPaths[0].entities[0], -1))
-    const sinkNodeCy = this.cy.add(this.getEntityCyRepr(newPaths[0].entities[newPaths[0].entities.length - 1], -1))
+      const sourceNodeCy = this.cy.add(this.getEntityCyRepr(newPaths[0].entities[0], -1))
+      const sinkNodeCy = this.cy.add(this.getEntityCyRepr(newPaths[0].entities[newPaths[0].entities.length - 1], -1))
 
-    for( let [pathId, path] of newPaths.entries()) {
-      if (path.entities) {
-        let edge: ElementDefinition,
-          previousClassCy: cytoscape.SingularElementArgument,
-          successorClassCy: cytoscape.SingularElementArgument
+      for( let [pathId, path] of newPaths.entries()) {
+        if (path.entities) {
+          let edge: ElementDefinition,
+            previousClassCy: cytoscape.SingularElementArgument,
+            successorClassCy: cytoscape.SingularElementArgument
 
-        for (let [i, entity] of path.entities.entries()) {
-          if (entity.type === EntityTypeEnum.ObjectProperty || entity.type === EntityTypeEnum.InverseObjectProperty) {
-            let previousClass = path.entities[i - 1]
-            let successorClass = path.entities[i + 1]
+          for (let [i, entity] of path.entities.entries()) {
+            if (entity.type === EntityTypeEnum.ObjectProperty || entity.type === EntityTypeEnum.InverseObjectProperty) {
+              let previousClass = path.entities[i - 1]
+              let successorClass = path.entities[i + 1]
 
-            if (previousClass && successorClass) {              
-              /**
-               * If i === 1 then previous class is sourceNode
-               * if i === length - 1 then successor class is sinkNode
-               * 
-               * In all other cases check if there's already the class node
-               * for the current path, each path must have its own classes,
-               * so the can be replicated.
-               */
-              if (i === 1) {
-                previousClassCy = sourceNodeCy
-              } else {
-                previousClassCy = this.cy.$(`[iri = "${previousClass.iri}"][type = "${EntityTypeEnum.Class}"][pathId = ${pathId}]`).first()
+              if (previousClass && successorClass) {              
+                /**
+                 * If i === 1 then previous class is sourceNode
+                 * if i === length - 1 then successor class is sinkNode
+                 * 
+                 * In all other cases check if there's already the class node
+                 * for the current path, each path must have its own classes,
+                 * so the can be replicated.
+                 */
+                if (i === 1) {
+                  previousClassCy = sourceNodeCy
+                } else {
+                  previousClassCy = this.cy.$(`[iri = "${previousClass.iri}"][type = "${EntityTypeEnum.Class}"][pathId = ${pathId}]`).first()
 
-                if (previousClassCy.empty()) {
-                  previousClassCy = this.cy.add(this.getEntityCyRepr(previousClass, pathId))
+                  if (previousClassCy.empty()) {
+                    previousClassCy = this.cy.add(this.getEntityCyRepr(previousClass, pathId))
+                  }
                 }
-              }
-              
-              if (i === path.entities.length - 2) {
-                successorClassCy = sinkNodeCy
-              } else {
-                successorClassCy = this.cy.$(`[iri = "${successorClass.iri}"][type = "${EntityTypeEnum.Class}"][pathId = ${pathId}]`).first()
+                
+                if (i === path.entities.length - 2) {
+                  successorClassCy = sinkNodeCy
+                } else {
+                  successorClassCy = this.cy.$(`[iri = "${successorClass.iri}"][type = "${EntityTypeEnum.Class}"][pathId = ${pathId}]`).first()
 
-                if (successorClassCy.empty()) {
-                  successorClassCy = this.cy.add(this.getEntityCyRepr(successorClass, pathId))
+                  if (successorClassCy.empty()) {
+                    successorClassCy = this.cy.add(this.getEntityCyRepr(successorClass, pathId))
+                  }
                 }
-              }
-              
-              if (previousClassCy.empty() || successorClassCy.empty()) {
+                
+                if (previousClassCy.empty() || successorClassCy.empty()) {
+                  break
+                }
+                
+                edge = this.getEntityCyRepr(entity, pathId)
+                edge.data.source = previousClassCy.id()
+                edge.data.target = successorClassCy.id()
+                this.cy.add(edge)
+              } else {
                 break
               }
-              
-              edge = this.getEntityCyRepr(entity, pathId)
-              edge.data.source = previousClassCy.id()
-              edge.data.target = successorClassCy.id()
-              this.cy.add(edge)
-            } else {
-              break
             }
           }
         }
       }
-    }
 
-    this.cy.layout({
-      name: 'klay',
-      klay: {
-        spacing: 80,
-        fixedAlignment: 'BALANCED',
-      },
-      padding: 30,
-      // some more options here...
-    } as any).run()
+      this.cy.layout({
+        name: 'klay',
+        klay: {
+          spacing: 80,
+          fixedAlignment: 'BALANCED',
+        },
+        padding: 30,
+        // some more options here...
+      } as any).run()
 
-    this.cy.fit()
-    this.selectPath(0)
-    this.requestUpdate('paths', oldValue)
+      this.cy.fit()
+      this.selectPath(0)
+      this.requestUpdate('paths', oldValue)
+    })
   }
 
   private getEntityCyRepr(entity: Entity, pathId: number): ElementDefinition {
