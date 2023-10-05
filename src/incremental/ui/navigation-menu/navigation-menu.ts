@@ -68,10 +68,8 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                     displayedname=${objectProperty.entityViewData.displayedName}
                     iri=${objectProperty.entityViewData.value.iri.fullIri}
                     .types=${objectProperty.entityViewData.value.types}
-                    ?actionable=${!this.canShowObjectPropertiesRanges}
                     ?asaccordion=${this.canShowObjectPropertiesRanges}
                     ?disabled=${disabled}
-                    @click=${this.handleObjPropertySelection}
                     direct=${objectProperty.direct}
                     title=${disabled ? 'Property not mapped to data' : objectProperty.entityViewData.displayedName}
                   >
@@ -105,7 +103,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                       : null
                     }
 
-                    <div slot="trailing-element">
+                    <div slot="trailing-element" style="display: flex; align-items: center; gap: 4px">
                       ${!objectProperty.direct
                         ? html`
                           <span class="chip" style="line-height: 1">Inverse</span>
@@ -122,6 +120,15 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                               title='Search instances in relationship'
                             >
                               ${getIconSlot('icon', icons.search)}
+                            </gscape-button>
+                          </span>
+                          <span>
+                            <gscape-button
+                              @click=${(e) => this.handleObjPropertySelection(e, objectProperty)}
+                              size=${SizeEnum.S}
+                              title='Directly add first 50 instances'
+                            >
+                              ${getIconSlot('icon', icons.arrow_right)}
                             </gscape-button>
                           </span>
                         `
@@ -144,20 +151,21 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     </div>
   `
 
-  private handleObjPropertySelection(e: Event) {
-    if (a11yClick(e)) {  
-      const targetListItem = e.currentTarget as GscapeEntityListItem | null
+  private handleObjPropertySelection(e: Event, objectProperty: ViewObjectPropertyUnfolding) {
+    if (a11yClick(e)) {
 
-      if (targetListItem &&
-        this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
-        !targetListItem.disabled) {
+      if (this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
+        (
+          this.canShowObjectPropertiesRanges ||
+          objectProperty.hasUnfolding === true
+        )) {
         this.dispatchEvent(new CustomEvent('objectpropertyselection', {
           bubbles: true,
           composed: true,
           detail: {
             referenceClassIri: this.referenceEntity?.value.iri.fullIri,
-            objectPropertyIri: targetListItem.iri,
-            direct: targetListItem.getAttribute('direct') === 'true'
+            objectPropertyIri: objectProperty.entityViewData.value.iri.fullIri,
+            direct: objectProperty.direct
           }
         }) as ObjectPropertyNavigationEvent)
       }

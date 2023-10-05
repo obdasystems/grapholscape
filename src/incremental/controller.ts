@@ -1058,7 +1058,7 @@ export default class IncrementalController {
       undefined, // data property filter
       undefined, // text search
       () => badgeController.removeLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE), // on stop polling
-      100,
+      50,
       true
     )
   }
