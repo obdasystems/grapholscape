@@ -5,6 +5,7 @@ import GrapholRendererState from "../../core/rendering/graphol/graphol-renderer-
 import IncrementalRendererState from "../../core/rendering/incremental/incremental-render-state"
 import LiteRendererState from "../../core/rendering/lite/lite-renderer-state"
 import { LifecycleEvent, RendererStatesEnum } from "../../model"
+import { showMessage } from "../common/confirm-dialog"
 import GscapeRenderSelector from "./render-selector"
 import { rendererStates } from "./view-model"
 
@@ -18,7 +19,14 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     rendererStateSelectionCallback(rendererState, grapholscape)
   }
 
-  rendererSelector.onIncrementalReset = () => grapholscape.incremental?.reset()
+  rendererSelector.onIncrementalReset = () => {
+    showMessage(
+      'Are you sure? This action is irreversible and you will lose your current graph.', 
+      'Confirm Reset', 
+      grapholscape.uiContainer,
+      'warning'
+    ).onConfirm(() => grapholscape.incremental?.reset())
+  }
 
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
     rendererSelector.currentRendererStateKey = newRendererState
