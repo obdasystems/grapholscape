@@ -88,9 +88,16 @@ export default class DiagramRepresentation {
     }
 
     const iri = cyElement.data().iri
+    const computedFillColor = cyElement.data().computedFillColor
     cyElement.data(grapholElement.getCytoscapeRepr(grapholEntity)[0].data)
     // iri should be always preserved
     cyElement.data().iri = iri
+
+    if (computedFillColor && !cyElement.data().computedFillColor) {
+      // restore color if it has been lost
+      cyElement.data('computedFillColor', computedFillColor)
+      // (cyElement as any).updateStyle()
+    }
   }
 
   containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean {
