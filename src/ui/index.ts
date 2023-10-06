@@ -25,3 +25,5 @@ export { default as getIconSlot } from './util/get-icon-slot'
 export { WidgetEnum } from "./util/widget-enum"
 export * from './common/tabs'
 export * from './diagram-selector'
+export { default as IncrementalInitialMenu } from './incremental-initial-menu/incremental-initial-menu'
+export * from './path-components'

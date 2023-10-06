@@ -1,16 +1,16 @@
 import { Grapholscape } from "../core";
 import { ClassInstanceEntity, Filter, LifecycleEvent, RendererStatesEnum } from "../model";
-import { createEntitiesList, IBaseMixin } from "../ui";
+import { createEntitiesList, IBaseMixin, IncrementalInitialMenu, showMessage } from "../ui";
 import { setColorList } from "../ui/entity-colors";
 import GscapeEntityColorLegend from "../ui/entity-colors/entity-color-legend";
 import { GscapeEntityDetails } from "../ui/entity-details";
 import { GscapeEntitySelector } from "../ui/entity-selector";
 import { GscapeExplorer } from "../ui/ontology-explorer";
+import { ShortestPathDialog } from "../ui";
 import { WidgetEnum } from "../ui/util/widget-enum";
 import IncrementalController from "./controller";
 import { IncrementalEvent } from "./lifecycle";
 import * as IncrementalUI from './ui';
-import IncrementalInitialMenu from "./ui/initial-menu/initial-menu";
 
 export { IncrementalController };
 
@@ -34,9 +34,11 @@ export function initIncremental(grapholscape: Grapholscape) {
 
   if (!initialMenu) {
     // initEntitySelector(incrementalController.grapholscape)
-    initialMenu = new IncrementalInitialMenu(incrementalController)
+    initialMenu = new IncrementalInitialMenu(grapholscape)
     incrementalController.grapholscape.widgets.set(WidgetEnum.INCREMENTAL_INITIAL_MENU, initialMenu)
   }
+
+  initialMenu.shortestPathEnabled = incrementalController.endpointController?.isReasonerAvailable() === true
 
   // entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
   incrementalController.grapholscape.uiContainer?.appendChild(initialMenu)
@@ -49,18 +51,27 @@ export function initIncremental(grapholscape: Grapholscape) {
     initialMenu.closePanel()
   })
 
-  initialMenu.addEventListener('confirm-shortest-path', async (e: CustomEvent) => {
-    const path = await incrementalController.endpointController?.highlightsManager?.getShortestPath(
-      e.detail.sourceClassIri,
-      e.detail.targetClassIri
-    )
+  initialMenu.addEventListener('shortest-path-click', async (e: CustomEvent) => {
+    
+    const shortestPathDialog = new ShortestPathDialog(grapholscape)
 
-    if (path && path[0].entities) {
-      incrementalController.addPath(path[0].entities)
-      initialMenu.shortestPathMode = false
-      IncrementalUI.moveUpLeft(initialMenu)
-      initialMenu.closePanel()
-    }
+    grapholscape.uiContainer?.appendChild(shortestPathDialog)
+    shortestPathDialog.show()
+
+    shortestPathDialog.onConfirm(async (sourceClassIri: string, targetClassIri: string) => {
+      const path = await incrementalController.endpointController?.highlightsManager?.getShortestPath(
+        sourceClassIri,
+        targetClassIri
+      )
+
+      if (path && path[0].entities) {
+        incrementalController.addPath(path[0].entities)
+        IncrementalUI.moveUpLeft(initialMenu)
+        initialMenu.closePanel()
+      } else {
+        showMessage('Can\'t find shortest path between selected classes', 'Info', grapholscape.uiContainer)
+      }
+    })
   })
 
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {

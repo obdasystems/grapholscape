@@ -5,7 +5,7 @@ import { error, info_outline, warning } from "../assets"
 
 export default class GscapeConfirmDialog extends ModalMixin(BaseMixin(LitElement)) {
 
-  protected _onConfirm?: () => void
+  protected _onConfirm?: (...args: any[]) => void
   protected _onCancel?: () => void
 
   constructor(public message?: string, public dialogTitle = 'Confirm', public type: 'neutral' | 'warning' | 'error' = 'neutral') {

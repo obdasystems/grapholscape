@@ -6,7 +6,7 @@ import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { hideButtons } from "../node-buttons.ts";
 import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
-import GscapePathSelector, { PathSelectionEvent } from "../path-selection/path-selector";
+import GscapePathSelector, { PathSelectionEvent } from "../../../ui/path-selector/path-selector";
 import * as IncrementalCommands from "./commands";
 import BadgeController from "../node-buttons.ts/badges-controller";
 

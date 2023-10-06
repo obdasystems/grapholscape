@@ -2,8 +2,7 @@ import { EdgeSingular, NodeSingular } from "cytoscape";
 import { RendererStatesEnum } from "../../../model";
 import IncrementalController from "../../controller";
 import { edgeHandlesOptions } from "../../edge-handles-options";
-import GscapePathSelector from "./path-selector";
-import { showMessage } from "../../../ui";
+import { showMessage, PathSelector } from "../../../ui";
 
 export async function pathSelectionInit(
   ic: IncrementalController,
@@ -18,7 +17,7 @@ export async function pathSelectionInit(
   )
 
   if (paths && paths.length > 0) {
-    const pathSelector = new GscapePathSelector(ic.grapholscape.theme)
+    const pathSelector = new PathSelector(ic.grapholscape.theme)
     pathSelector.paths = paths
 
     pathSelector.getDisplayedName = (entity) => {
@@ -40,6 +39,8 @@ export async function pathSelectionInit(
 
   } else if ((paths as any).type === 'error') {
     showMessage((paths as any).message, 'Warning', ic.grapholscape.uiContainer, 'warning')
+  } else {
+    showMessage('Can\'t find shortest path between selected classes', 'Info', ic.grapholscape.uiContainer)
   }
 }
 
