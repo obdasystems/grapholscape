@@ -391,14 +391,6 @@ components:
           type: string
         version:
           type: string
-        numClasses:
-          type: integer
-        numObjectProperties:
-          type: integer
-        numDataProperties:
-          type: integer
-        numIndividuals:
-          type: integer
         lastModification:
           type: integer
     RDFGraph:
