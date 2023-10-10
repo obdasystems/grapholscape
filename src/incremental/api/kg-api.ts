@@ -139,9 +139,9 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     return queryPoller.executionId
   }
 
-  async getInstancesNumber(endpoint: MastroEndpoint, classIri: string) {
-    const params = new URLSearchParams({ classIRI: classIri })
-    const url = new URL(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/countClassInstances?${params.toString()}`)
+  async getInstancesNumber(endpoint: MastroEndpoint, entityIri: string) {
+    const params = new URLSearchParams({ classIRI: entityIri })
+    const url = new URL(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/countEntityInstances?${params.toString()}`)
     return parseInt(await (await handleApiCall(
       fetch(url, {
         method: 'get',
@@ -306,7 +306,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   }
 
   async getMaterializedCounts(endpoint: MastroEndpoint) {
-    const url = new URL(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/countClassInstances/info`)
+    const url = new URL(`${this.requestOptions.basePath}/endpoint/${endpoint.name}/countEntityInstances/info`)
     return new Promise((resolve: (r: MaterializedCounts) => void, reject) => {
       fetch(url,
         {
