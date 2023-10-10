@@ -1,12 +1,11 @@
 import { EdgeSingular, NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
 import { classIcon, counter, pathIcon, sankey } from "../../../ui/assets";
-import GscapeContextMenu, { Command } from "../../../ui/common/context-menu";
+import { Command, GscapeContextMenu, PathSelectionEvent, PathSelector } from "../../../ui";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { hideButtons } from "../node-buttons.ts";
 import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
-import GscapePathSelector, { PathSelectionEvent } from "../../../ui/path-selector/path-selector";
 import * as IncrementalCommands from "./commands";
 import BadgeController from "../node-buttons.ts/badges-controller";
 
@@ -55,7 +54,7 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
         icon: pathIcon,
         select: () => {
           const onComplete = async (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
-            let pathSelector: GscapePathSelector | undefined
+            let pathSelector: PathSelector | undefined
             let sourceIriForPath = sourceNode.data('iri')
             let targetIriForpath = targetNode.data('iri')
 

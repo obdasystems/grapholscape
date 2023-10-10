@@ -1,9 +1,11 @@
 import cytoscape, { ElementDefinition } from "cytoscape";
 import { LitElement, css, html } from "lit";
 import incrementalStyle from "../../core/rendering/incremental/incremental-style";
-import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../model";
-import { BaseMixin, ModalMixin, SizeEnum, baseStyle } from "..";
 import { Entity, EntityTypeEnum, OntologyPath } from "../../incremental/api/swagger";
+import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../model";
+import { SizeEnum } from "../common/button";
+import { BaseMixin, ModalMixin } from "../common/mixins";
+import baseStyle from '../style';
 
 export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)) {
 

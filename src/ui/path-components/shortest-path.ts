@@ -1,5 +1,5 @@
 import { css, html } from "lit";
-import { cross } from "../assets";
+import { cross, arrow_right } from "../assets";
 import getIconSlot from "../util/get-icon-slot";
 import { Grapholscape } from "../../core";
 import { EntityViewData } from "../view-model";
@@ -7,22 +7,21 @@ import { createEntitiesList } from "../util/search-entities";
 import { GscapeEntitySelector } from "../entity-selector";
 import { SizeEnum } from "../common/button";
 import GscapeConfirmDialog from "../common/confirm-dialog";
-import { arrow_right } from "../assets";
 
 export default class ShortestPathDialog extends GscapeConfirmDialog {
 
   public classes?: EntityViewData[]
   public class1EditEnabled: boolean = true
-  private class1?: EntityViewData
+  private _class1?: string
   public class2EditEnabled: boolean = true
-  private class2?: EntityViewData
+  private _class2?: string
 
   protected _onConfirm?: (sourceClassIri: string, targetClassIri: string) => void
 
   static properties = {
     classes: { type: Array },
-    class1: { type: Object, attribute: 'class1' },
-    class2: { type: Object, attribute: 'class2' },
+    _class1: { type: String, attribute: 'class1' },
+    _class2: { type: String, attribute: 'class2' },
     class1EditEnabled: { type: Boolean },
     class2EditEnabled: { type: Boolean },
   }
@@ -88,7 +87,7 @@ export default class ShortestPathDialog extends GscapeConfirmDialog {
             : null
           }
           <gscape-button
-            ?disabled=${!this.class1 || !this.class2}
+            ?disabled=${!this._class1 || !this._class2}
             title="Find Shortest Path"
             type="primary"
             label="Confirm"
@@ -120,55 +119,74 @@ export default class ShortestPathDialog extends GscapeConfirmDialog {
     return this
   }
 
-  private getClassSelectorTemplate(id: number, entity?: EntityViewData, allowClear = true) {
-    return !entity
-      ? html`
+  private getClassSelectorTemplate(id: number, iri?: string, allowClear = true) {
+
+    if (iri) {
+      const classEntity = this.classes?.find(c => c.value.iri.equals(iri))
+      if (classEntity)
+        return html`
+          <div class="gscape-panel selected-entity-wrapper">
+            <gscape-entity-list-item
+              .types=${classEntity.value.types}
+              displayedName=${classEntity.displayedName}
+              iri=${classEntity.value.iri}
+            >
+            </gscape-entity-list-item>
+            ${allowClear 
+              ? html`
+                <gscape-button
+                  title="Clear"
+                  size=${SizeEnum.S}
+                  @click=${() => { this[`class${id}`] = undefined }}
+                >
+                  ${getIconSlot('icon', cross)}
+                </gscape-button>
+              `
+              : null
+            }
+          </div>
+        `
+    } else {
+      return html`
         <gscape-entity-selector
           .onClassSelection=${(iri: string) => this.handleClassSelection(iri, id)}
           .entityList=${this.classes}
         ></gscape-entity-selector>
       `
-      : html`
-        <div class="gscape-panel selected-entity-wrapper">
-          <gscape-entity-list-item
-            .types=${entity.value.types}
-            displayedName=${entity.displayedName}
-            iri=${entity.value.iri}
-          >
-          </gscape-entity-list-item>
-          ${allowClear 
-            ? html`
-              <gscape-button
-                title="Clear"
-                size=${SizeEnum.S}
-                @click=${() => { this[`class${id}`] = undefined }}
-              >
-                ${getIconSlot('icon', cross)}
-              </gscape-button>
-            `
-            : null
-          }
-        </div>
-      `
+    }
   }
 
   private async handleClassSelection(iri: string, selectorId?: number) {
-    const selectedClass = this.classes?.find(c => c.value.iri.equals(iri))
     if (selectorId === 1) {
-      this.class1 = selectedClass
+      this.class1 = iri
     } 
     
     if (selectorId === 2) {
-      this.class2 = selectedClass
+      this.class2 = iri
     }
   }
 
   protected handleConfirm() {
     if (this._onConfirm && this.class1 && this.class2)
-      this._onConfirm(this.class1.value.iri.fullIri, this.class2.value.iri.fullIri)
+      this._onConfirm(this.class1, this.class2)
     this.remove()
   }
 
+  set class1(newClassIri: string | undefined) {
+    this._class1 = newClassIri
+  }
+
+  get class1() {
+    return this._class1
+  }
+
+  set class2(newClassIri: string | undefined) {
+    this._class2 = newClassIri
+  }
+
+  get class2() {
+    return this._class2
+  }
 }
 
 customElements.define('shortest-path-dialog', ShortestPathDialog)
