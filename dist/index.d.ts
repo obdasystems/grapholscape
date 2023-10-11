@@ -1,6 +1,6 @@
 /// <reference types="cytoscape" />
 import * as cytoscape$1 from 'cytoscape';
-import cytoscape__default, { ElementDefinition, EventObject, Stylesheet, CytoscapeOptions, NodeSingular, EdgeSingular, Position as Position$1, Core as Core$1 } from 'cytoscape';
+import cytoscape__default, { ElementDefinition, EventObject, Stylesheet, CytoscapeOptions, NodeSingular, EdgeSingular, Position as Position$1, SingularElementReturnValue, Core as Core$1 } from 'cytoscape';
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { SVGTemplateResult, LitElement, TemplateResult, PropertyDeclarations, CSSResultArray, CSSResultGroup } from 'lit';
@@ -3362,6 +3362,7 @@ declare class GrapholscapeTheme implements Theme {
     private _id;
     private _name;
     colours: ColourMap;
+    useComputedColours: boolean;
     constructor(id: string, colours?: ColourMap, name?: string);
     get id(): string;
     get name(): string;
@@ -3576,6 +3577,7 @@ declare class FloatyRendererState extends BaseRenderer {
     readonly id: RendererStatesEnum;
     filterManager: FilterManager;
     protected _layout: cytoscape__default.Layouts;
+    private centeringOnElem;
     set renderer(newRenderer: Renderer);
     get renderer(): Renderer;
     transformOntology(ontology: Ontology): void;
@@ -3841,7 +3843,7 @@ declare class Hierarchy implements Hierarchy$1 {
     getInputGrapholEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
     getInclusionEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
     isDisjoint(): boolean;
-    private isValid;
+    isValid(): boolean | "";
 }
 
 declare const DefaultAnnotationProperties: {
@@ -4008,8 +4010,6 @@ declare enum DefaultThemesEnum {
 declare const gscapeColourMap: ColourMap;
 declare const classicColourMap: ColourMap;
 declare const darkColourMap: ColourMap;
-declare const autoLightColourMap: ColourMap;
-declare const autoDarkColourMap: ColourMap;
 declare const DefaultThemes: {
     [key in DefaultThemesEnum]?: GrapholscapeTheme;
 };
@@ -4052,6 +4052,7 @@ declare enum WidgetEnum {
     ZOOM_TOOLS = "zoom-tools",
     INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
     ENTITY_COLOR_LEGEND = "entity-color-legend",
+    COLOR_BUTTON = "color-button",
     /** @internal */
     CLASS_INSTANCE_DETAILS = "class-instance-details",
     /** @internal */
@@ -4352,7 +4353,7 @@ interface IVirtualKnowledgeGraphApi {
     getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string) => void;
     getNewResults: (executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number) => Promise<void>;
     getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: () => void) => void;
-    getInstancesNumber: (iri: string, onResult: (resultCount: number) => void, onStop?: () => void) => void;
+    getInstancesNumber: (endpoint: MastroEndpoint, classIri: string) => Promise<number>;
     getHighlights: (iri: string) => Promise<Highlights>;
     getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>;
     getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void;
@@ -4365,7 +4366,7 @@ interface IVirtualKnowledgeGraphApi {
         lang?: string;
     }[]) => void) => Promise<void>;
     getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>;
-    getExtensionalShortestPath: (sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void) => Promise<void>;
+    getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, sourceInstanceIri?: string, targetInstanceIri?: string) => Promise<void>;
     pageSize: number;
 }
 declare class VKGApi implements IVirtualKnowledgeGraphApi {
@@ -4377,7 +4378,7 @@ declare class VKGApi implements IVirtualKnowledgeGraphApi {
     getInstances(iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string, pageSize?: number): Promise<string>;
     getNewResults(executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number): Promise<void>;
     getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: (() => void), pageSize?: number): Promise<string>;
-    getInstancesNumber(iri: string, onResult: (resultCount: number) => void, onStop?: () => void): Promise<void>;
+    getInstancesNumber(endpoint: MastroEndpoint, entityIri: string): Promise<number>;
     getHighlights(classIri: string): Promise<any>;
     getEntitiesEmptyUnfoldings(endpoint: MastroEndpoint): Promise<EmptyUnfoldingEntities>;
     getInstanceDataPropertyValues(instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: (() => void), onError?: (() => void)): Promise<void>;
@@ -4393,7 +4394,7 @@ declare class VKGApi implements IVirtualKnowledgeGraphApi {
         language?: string;
     }[]) => void): Promise<void>;
     getIntensionalShortestPath(sourceClassIri: string, targetClassIri: string, kShortest?: boolean): Promise<any>;
-    getExtensionalShortestPath(sourceInstanceIri: string, targetIri: string, path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void): Promise<void>;
+    getExtensionalShortestPath(path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, sourceInstanceIri?: string, targetInstanceIri?: string): Promise<void>;
     shouldQueryUseLabels(executionId: string): Promise<boolean>;
     private getClassInstanceFromQueryResult;
     private parseLabel;
@@ -4413,13 +4414,7 @@ declare enum IncrementalEvent {
     DiagramUpdated = "diagramUpdated",
     ReasonerSet = "reasonerSet",
     NewDataPropertyValues = "newDataPropertyValues",
-    DataPropertyValuesLoadingFinished = "dpvaluesloadfinish",
-    InstanceCheckingStarted = "instanceCheckingStarted",
-    InstanceCheckingFinished = "instanceCheckingFinished",
-    CountStarted = "countStarted",
-    NewCountResult = "newCountResult",
-    LoadingStarted = "loadingStarted",
-    LoadingFinished = "loadingFinished"
+    DataPropertyValuesLoadingFinished = "dpvaluesloadfinish"
 }
 interface IonEvent {
     (event: IncrementalEvent.RequestStopped, callback: () => void): void;
@@ -4434,16 +4429,6 @@ interface IonEvent {
     (event: IncrementalEvent.ReasonerSet, callback: () => void): void;
     (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void;
     (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void;
-    (event: IncrementalEvent.InstanceCheckingStarted, callback: (instanceIri: string) => void): void;
-    (event: IncrementalEvent.InstanceCheckingFinished, callback: (instanceIri: string) => void): void;
-    (event: IncrementalEvent.NewCountResult, callback: (classIri: string, result?: {
-        value: number;
-        materialized: boolean;
-        date?: string;
-    }) => void): void;
-    (event: IncrementalEvent.CountStarted, callback: (classIri: string) => void): void;
-    (event: IncrementalEvent.LoadingStarted, callback: (entityIri: string, entityType: TypesEnum) => void): void;
-    (event: IncrementalEvent.LoadingFinished, callback: (entityIri: string, entityType: TypesEnum) => void): void;
 }
 declare class IncrementalLifecycle {
     private requestStopped;
@@ -4458,12 +4443,6 @@ declare class IncrementalLifecycle {
     private reasonerSet;
     private newDataPropertyValues;
     private dpvaluesloadfinish;
-    private instanceCheckingStarted;
-    private instanceCheckingFinished;
-    private newCountResult;
-    private countStarted;
-    private loadingStarted;
-    private loadingFinished;
     constructor();
     trigger(event: IncrementalEvent.RequestStopped): void;
     trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][], numberResultsAvailable: number): void;
@@ -4477,16 +4456,6 @@ declare class IncrementalLifecycle {
     trigger(event: IncrementalEvent.ReasonerSet): void;
     trigger(event: IncrementalEvent.NewDataPropertyValues, instanceIri: string, dataPropertyIri: string, newValues: string[]): void;
     trigger(event: IncrementalEvent.DataPropertyValuesLoadingFinished, instanceIri: string, dataPropertyIri: string): void;
-    trigger(event: IncrementalEvent.InstanceCheckingStarted, instanceIri: string): void;
-    trigger(event: IncrementalEvent.InstanceCheckingFinished, instanceIri: string): void;
-    trigger(event: IncrementalEvent.NewCountResult, classIri: string, result?: {
-        value: number;
-        materialized: boolean;
-        date?: string;
-    }): void;
-    trigger(event: IncrementalEvent.CountStarted, classIri: string): void;
-    trigger(event: IncrementalEvent.LoadingStarted, entityIri: string, entityType: TypesEnum): void;
-    trigger(event: IncrementalEvent.LoadingFinished, entityIri: string, entityType: TypesEnum): void;
     on: IonEvent;
 }
 
@@ -4533,11 +4502,11 @@ declare class EndpointController {
     requestNewInstances(requestId: string, pageNumber: number): void;
     requestInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect?: boolean, includeLabels?: boolean, rangeClassIri?: string[], propertyIriFilter?: string, searchText?: string): Promise<string> | undefined;
     requestDataPropertyValues(instanceIri: string, dataPropertyIri: string): void;
-    requestCountForClass(classIri: string): void;
+    requestCountForClass(classIri: string): Promise<number> | undefined;
     shouldQueryUseLabels(queryExecutionId: string): Promise<boolean> | undefined;
     getMaterializedCounts(): Promise<MaterializedCounts | undefined>;
     instanceCheck(instanceIri: string, classesToCheck: string[]): Promise<string[]>;
-    requestInstancesPath(sourceInstanceIri: string, targetIri: string, path: OntologyPath): Promise<RDFGraph | undefined>;
+    requestInstancesPath(path: OntologyPath, sourceInstanceIri?: string, targetIri?: string): Promise<RDFGraph | undefined>;
     setLanguage(lang: string): void;
     isReasonerAvailable(): boolean;
     get endpoint(): MastroEndpoint | undefined;
@@ -4587,6 +4556,7 @@ declare class IncrementalController {
     }>;
     countersEnabled: boolean;
     classFilterMap: Map<string, Filter>;
+    dataLineageEnabled: boolean;
     lifecycle: IncrementalLifecycle;
     on: IonEvent;
     /**
@@ -4721,7 +4691,18 @@ declare class IncrementalController {
     pinNode: (node: NodeSingular | string) => void | undefined;
     unpinNode: (node: NodeSingular | string) => void | undefined;
     postDiagramEdit(oldElemsNumber: number, customLayoutOptions?: any): void;
-    countInstancesForClass(classIri: string, askFreshValue?: boolean): Promise<void>;
+    /**
+     * Show materialized class' instance number on class node
+     * @param classIri the class on which you want to count instances
+     * @returns
+     */
+    showMaterializedClassCount(classIri: string): Promise<void>;
+    /**
+     * Compute class' instance number and shows it on class node
+     * @param classIri the class on which you want to count instances
+     */
+    showFreshClassCount(classIri: string): Promise<void>;
+    private _addCountBadge;
     updateMaterializedCounts(): Promise<void>;
     setIncrementalEventHandlers(): void;
     private get ontology();
@@ -4760,6 +4741,7 @@ declare class EntityNavigator {
     private _performCenterSelect;
     getEntityOccurrenceInDiagram(iri: string, diagramId: number): GrapholElement | undefined;
     updateEntitiesOccurrences(): void;
+    private updateEntitiesOccurrencesFromDiagram;
 }
 
 /**
@@ -4769,8 +4751,6 @@ declare class ThemeManager {
     private _grapholscape;
     theme: GrapholscapeTheme;
     themes: Set<GrapholscapeTheme>;
-    private colorfulThemeLight;
-    private colorfulThemeDark;
     constructor(grapholscape: Grapholscape);
     setTheme(newThemeId: string): void;
     addTheme(newTheme: GrapholscapeTheme): void;
@@ -5066,12 +5046,41 @@ declare class DiagramBuilder {
 
 declare function export_default$4(theme: GrapholscapeTheme): Stylesheet[];
 
+declare function computeHierarchies(ontology: Ontology): void;
+
+declare abstract class ColorManager {
+    protected abstract setClassColor(classEntity: any, overwrite: boolean): void;
+    protected abstract getTopSuperClass(classEntity: any): any;
+    protected abstract getAllChildren(classEntity: any, result: any): any;
+    private static readonly brewerSequentialPalettes;
+    protected getColors(numberOfColors: number): string[];
+}
+declare class OntologyColorManager extends ColorManager {
+    private ontology;
+    private diagramRepresentation;
+    private _classForest;
+    constructor(ontology: Ontology, diagramRepresentation: DiagramRepresentation);
+    setInstanceColor(classInstance: ClassInstanceEntity, overwrite?: boolean): this;
+    setClassColor(classEntity: GrapholEntity, overwrite?: boolean): this;
+    protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity;
+    protected getAllChildren(classEntity: GrapholEntity, result?: Set<GrapholEntity>): Set<GrapholEntity>;
+}
+declare class DiagramColorManager extends ColorManager {
+    private diagramRepresentation;
+    private _classForest;
+    constructor(diagramRepresentation: DiagramRepresentation);
+    colorDiagram(overwrite?: boolean): void;
+    setClassColor(classNode: SingularElementReturnValue, overwrite?: boolean): void;
+    protected getTopSuperClass(classNode: NodeSingular): any;
+    protected getAllChildren(classNode: SingularElementReturnValue | NodeSingular, result?: cytoscape$1.CollectionReturnValue): cytoscape$1.CollectionReturnValue;
+}
+
 declare function parseRDFGraph(rdfGraph: RDFGraph): Ontology;
 declare function updateEntityOccurrences(ontology: Ontology): void;
 declare function getOntology(rdfGraph: RDFGraph): Ontology;
 declare function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, GrapholEntity>;
 declare function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, ClassInstanceEntity>;
-declare function getDiagrams(rdfGraph: RDFGraph, rendererState?: RendererStatesEnum): Diagram[];
+declare function getDiagrams(rdfGraph: RDFGraph, rendererState: RendererStatesEnum | undefined, ontology: Ontology): Diagram[];
 declare function getConfig(rdfGraph: RDFGraph): GrapholscapeConfig;
 
 declare const rdfGraphParser_d_getClassInstances: typeof getClassInstances;
@@ -5190,6 +5199,8 @@ declare const addPack: lit_html.TemplateResult<2>;
 declare const protocol: lit_html.TemplateResult<2>;
 declare const notes: lit_html.TemplateResult<2>;
 declare const colorPalette: lit_html.TemplateResult<2>;
+declare const warning: lit_html.TemplateResult<2>;
+declare const error: lit_html.TemplateResult<2>;
 declare const entityIcons: {
     [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.CLASS_INSTANCE]: SVGTemplateResult;
 };
@@ -5239,6 +5250,7 @@ declare const index_d$2_editIcon: typeof editIcon;
 declare const index_d$2_enterFullscreen: typeof enterFullscreen;
 declare const index_d$2_entityIcons: typeof entityIcons;
 declare const index_d$2_equivalentClasses: typeof equivalentClasses;
+declare const index_d$2_error: typeof error;
 declare const index_d$2_exitFullscreen: typeof exitFullscreen;
 declare const index_d$2_explore: typeof explore;
 declare const index_d$2_filter: typeof filter;
@@ -5276,6 +5288,7 @@ declare const index_d$2_triangle_down: typeof triangle_down;
 declare const index_d$2_triangle_up: typeof triangle_up;
 declare const index_d$2_tune: typeof tune;
 declare const index_d$2_undo: typeof undo;
+declare const index_d$2_warning: typeof warning;
 declare namespace index_d$2 {
   export {
     index_d$2_addChildClassIcon as addChildClassIcon,
@@ -5311,6 +5324,7 @@ declare namespace index_d$2 {
     index_d$2_enterFullscreen as enterFullscreen,
     index_d$2_entityIcons as entityIcons,
     index_d$2_equivalentClasses as equivalentClasses,
+    index_d$2_error as error,
     index_d$2_exitFullscreen as exitFullscreen,
     index_d$2_explore as explore,
     index_d$2_filter as filter,
@@ -5352,68 +5366,8 @@ declare namespace index_d$2 {
     index_d$2_triangle_up as triangle_up,
     index_d$2_tune as tune,
     index_d$2_undo as undo,
+    index_d$2_warning as warning,
   };
-}
-
-declare enum SizeEnum {
-    S = "s",
-    M = "m",
-    L = "l"
-}
-declare class GscapeButton extends LitElement {
-    disabled: boolean;
-    asSwitch: boolean;
-    active: boolean;
-    label: string;
-    size: SizeEnum;
-    type: string;
-    fullWidth: string;
-    private toggled;
-    static properties: {
-        active: {
-            type: BooleanConstructor;
-            reflect: boolean;
-        };
-        label: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        title: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        disabled: {
-            type: BooleanConstructor;
-            reflect: boolean;
-        };
-        asSwitch: {
-            type: BooleanConstructor;
-            attribute: string;
-            reflect: boolean;
-        };
-        size: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        type: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        fullWidth: {
-            type: StringConstructor;
-            attribute: string;
-            reflect: boolean;
-        };
-        toggled: {
-            type: BooleanConstructor;
-            state: boolean;
-        };
-    };
-    static styles: lit.CSSResult[];
-    constructor();
-    render(): lit_html.TemplateResult<1>;
-    private clickHandler;
-    private get altIcon();
 }
 
 type Constructor$3<T = {}> = new (...args: any[]) => T;
@@ -5470,6 +5424,68 @@ declare class IContextualWidgetMixin {
     tippyWidget: Instance<Props>;
 }
 declare const ContextualWidgetMixin: <T extends Constructor<LitElement>>(superClass: T) => Constructor<IContextualWidgetMixin> & T;
+
+declare enum SizeEnum {
+    S = "s",
+    M = "m",
+    L = "l"
+}
+declare const GscapeButton_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeButton extends GscapeButton_base {
+    disabled: boolean;
+    asSwitch: boolean;
+    active: boolean;
+    label: string;
+    size: SizeEnum;
+    type: string;
+    fullWidth: string;
+    private toggled;
+    static properties: {
+        active: {
+            type: BooleanConstructor;
+            reflect: boolean;
+        };
+        label: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        title: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        disabled: {
+            type: BooleanConstructor;
+            reflect: boolean;
+        };
+        asSwitch: {
+            type: BooleanConstructor;
+            attribute: string;
+            reflect: boolean;
+        };
+        size: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        type: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        fullWidth: {
+            type: StringConstructor;
+            attribute: string;
+            reflect: boolean;
+        };
+        toggled: {
+            type: BooleanConstructor;
+            state: boolean;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor();
+    render(): lit_html.TemplateResult<1>;
+    private clickHandler;
+    private get altIcon();
+}
 
 declare const NodeButton_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class NodeButton extends NodeButton_base {
@@ -5692,21 +5708,20 @@ declare const GscapeConfirmDialog_base: (new (...args: any[]) => IModalMixin) & 
 declare class GscapeConfirmDialog extends GscapeConfirmDialog_base {
     message?: string | undefined;
     dialogTitle: string;
-    private _onConfirm?;
-    private _onCancel?;
-    private _onDelete?;
-    constructor(message?: string | undefined, dialogTitle?: string);
+    type: 'neutral' | 'warning' | 'error';
+    protected _onConfirm?: (...args: any[]) => void;
+    protected _onCancel?: () => void;
+    constructor(message?: string | undefined, dialogTitle?: string, type?: 'neutral' | 'warning' | 'error');
     static properties: PropertyDeclarations;
     static styles: CSSResultGroup;
     render(): lit_html.TemplateResult<1>;
-    private handleDelete;
-    private handleConfirm;
-    private handleCancel;
+    protected get headerIcon(): lit_html.TemplateResult<2>;
+    protected handleConfirm(): void;
+    protected handleCancel(): void;
     onConfirm(callback: () => void): GscapeConfirmDialog;
     onCancel(callback: () => void): GscapeConfirmDialog;
-    onDelete(callback: () => void): GscapeConfirmDialog;
 }
-declare function showMessage(message: string, title: string, container: any): GscapeConfirmDialog;
+declare function showMessage(message: string, title: string, container: any, type?: "neutral" | 'warning' | 'error'): GscapeConfirmDialog;
 
 type SelectOption = {
     id: string;
@@ -5852,6 +5867,126 @@ declare class GscapeDiagramSelector extends GscapeDiagramSelector_base {
     private get currentDiagram();
 }
 
+declare const IncrementalInitialMenu_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class IncrementalInitialMenu extends IncrementalInitialMenu_base {
+    classes?: EntityViewData[];
+    shortestPathEnabled: boolean;
+    sideMenuMode: boolean;
+    static properties: {
+        classes: {
+            type: ArrayConstructor;
+        };
+        sideMenuMode: {
+            type: BooleanConstructor;
+        };
+        shortestPathEnabled: {
+            type: BooleanConstructor;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor(grapholscape?: Grapholscape);
+    render: () => lit_html.TemplateResult<1>;
+    focusInputSearch(): void;
+    closePanel(): void;
+    openPanel(): void;
+    private handleShortestPathBtnClick;
+    private handleClassSelection;
+}
+
+declare const GscapePathSelector_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapePathSelector extends GscapePathSelector_base {
+    private theme;
+    private _paths;
+    selectedPathID: number;
+    canShowMore: boolean;
+    private cy?;
+    static properties: {
+        getMorePaths: {
+            type: BooleanConstructor;
+        };
+        paths: {
+            type: ArrayConstructor;
+        };
+        selectedPathID: {
+            type: NumberConstructor;
+        };
+        canShowMore: {
+            type: BooleanConstructor;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor(theme: GrapholscapeTheme);
+    render(): lit_html.TemplateResult<1>;
+    getDisplayedName: (entity: Entity) => string | undefined;
+    private setTheme;
+    private getEdgePointDistances;
+    private getEdgePointWeights;
+    private handlePathClick;
+    private handleShowMoreClick;
+    private handleConfirm;
+    private handleCancel;
+    get selectedPath(): OntologyPath;
+    get paths(): OntologyPath[];
+    set paths(newPaths: OntologyPath[]);
+    private getEntityCyRepr;
+    private cyInit;
+    private highlightPath;
+    private deHighlightPath;
+    private selectPath;
+    /**
+     * --- HACKY ---
+     * Allow events not involving buttons to work on cytoscape when it's in a shadow dom.
+     * They don't work due to shadow dom event's retargeting
+     * Cytoscape listen to events on window object. When the event reach window due to bubbling,
+     * cytoscape handler for mouse movement handles it but event target appear to be the
+     * custom component and not the canvas due to retargeting, therefore listeners are not triggered.
+     * workaround found here: https://github.com/cytoscape/cytoscape.js/issues/2081
+     */
+    private fixHover;
+}
+type PathSelectionEvent = CustomEvent<OntologyPath>;
+
+declare class ShortestPathDialog extends GscapeConfirmDialog {
+    classes?: EntityViewData[];
+    class1EditEnabled: boolean;
+    private _class1?;
+    class2EditEnabled: boolean;
+    private _class2?;
+    protected _onConfirm?: (sourceClassIri: string, targetClassIri: string) => void;
+    static properties: {
+        classes: {
+            type: ArrayConstructor;
+        };
+        _class1: {
+            type: StringConstructor;
+            attribute: string;
+        };
+        _class2: {
+            type: StringConstructor;
+            attribute: string;
+        };
+        class1EditEnabled: {
+            type: BooleanConstructor;
+        };
+        class2EditEnabled: {
+            type: BooleanConstructor;
+        };
+    };
+    static styles: lit.CSSResultGroup[];
+    constructor(grapholscape?: Grapholscape);
+    render: () => lit_html.TemplateResult<1>;
+    closePanel(): void;
+    openPanel(): void;
+    onConfirm(callback: (sourceClassIri: string, targetClassIri: string) => void): GscapeConfirmDialog;
+    private getClassSelectorTemplate;
+    private handleClassSelection;
+    protected handleConfirm(): void;
+    set class1(newClassIri: string | undefined);
+    get class1(): string | undefined;
+    set class2(newClassIri: string | undefined);
+    get class2(): string | undefined;
+}
+
 /** @module UI */
 
 declare const index_d$1_BaseMixin: typeof BaseMixin;
@@ -5900,12 +6035,17 @@ type index_d$1_IEntityFilters = IEntityFilters;
 type index_d$1_IEntitySelector = IEntitySelector;
 type index_d$1_IModalMixin = IModalMixin;
 declare const index_d$1_IModalMixin: typeof IModalMixin;
+type index_d$1_IncrementalInitialMenu = IncrementalInitialMenu;
+declare const index_d$1_IncrementalInitialMenu: typeof IncrementalInitialMenu;
 declare const index_d$1_ModalMixin: typeof ModalMixin;
 type index_d$1_NodeButton = NodeButton;
 declare const index_d$1_NodeButton: typeof NodeButton;
 type index_d$1_OccurrenceIdViewData = OccurrenceIdViewData;
+type index_d$1_PathSelectionEvent = PathSelectionEvent;
 type index_d$1_SearchEvent = SearchEvent;
 type index_d$1_SelectOption = SelectOption;
+type index_d$1_ShortestPathDialog = ShortestPathDialog;
+declare const index_d$1_ShortestPathDialog: typeof ShortestPathDialog;
 type index_d$1_SizeEnum = SizeEnum;
 declare const index_d$1_SizeEnum: typeof SizeEnum;
 type index_d$1_TabProps = TabProps;
@@ -5958,11 +6098,15 @@ declare namespace index_d$1 {
     index_d$1_IEntityFilters as IEntityFilters,
     index_d$1_IEntitySelector as IEntitySelector,
     index_d$1_IModalMixin as IModalMixin,
+    index_d$1_IncrementalInitialMenu as IncrementalInitialMenu,
     index_d$1_ModalMixin as ModalMixin,
     index_d$1_NodeButton as NodeButton,
     index_d$1_OccurrenceIdViewData as OccurrenceIdViewData,
+    index_d$1_PathSelectionEvent as PathSelectionEvent,
+    GscapePathSelector as PathSelector,
     index_d$1_SearchEvent as SearchEvent,
     index_d$1_SelectOption as SelectOption,
+    index_d$1_ShortestPathDialog as ShortestPathDialog,
     index_d$1_SizeEnum as SizeEnum,
     index_d$1_TabProps as TabProps,
     index_d$1_ToggleLabelPosition as ToggleLabelPosition,
@@ -6042,4 +6186,4 @@ declare function bareGrapholscape(file: string | File, container: HTMLElement, c
 declare function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions): Core;
 declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph): void;
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, autoDarkColourMap, autoLightColourMap, bareGrapholscape, classicColourMap, clearLocalStorage, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalRendererState, IonEvent$1 as IonEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
