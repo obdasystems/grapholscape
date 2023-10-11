@@ -110,7 +110,7 @@ export abstract class QueryPoller {
   private triggerError(result: APICallResult) {
     this.status = QueryPollerStatus.ERROR
     this.stopPolling()
-    this.onError(this.getErrrorMessage(result))
+    this.onError(result)
   }
 
   protected getErrrorMessage(result: APICallResult): string | string[] {
