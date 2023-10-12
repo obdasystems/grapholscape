@@ -206,8 +206,6 @@ export default class GrapholNode extends GrapholElement implements Node {
       hierarchyForcedComplete: this.hierarchyForcedComplete
     })
 
-    if (!this.type)
-      console.log(this)
     thisCytoscapeRepr[0].classes = this.type.toString()
 
     if (this.fakeNodes) {
@@ -240,6 +238,29 @@ export default class GrapholNode extends GrapholElement implements Node {
 
     return result
   }
+
+  // static wrapDisplayedName(newDisplayedName: string, maxWidth = 40): string {
+  //   const textWidth = document.createElement('canvas').getContext('2d')?.measureText(newDisplayedName).width
+
+  //   if (textWidth && textWidth > maxWidth && maxWidth > 0) {
+  //     const unitaryWidth = newDisplayedName.length / textWidth
+  //     const numberOfChunks = Math.ceil(textWidth / maxWidth)
+  //     const chunkWidth = Math.floor(textWidth / numberOfChunks)
+  //     const charNumberPerChunk  = Math.floor(chunkWidth / unitaryWidth)
+
+  //     let result = newDisplayedName
+  //     let chunk
+  //     for(let i = 0; i < numberOfChunks; i++) {
+  //       chunk = result.substring((i * charNumberPerChunk) + i, ((i + 1) * charNumberPerChunk) + i)
+  //       console.log(chunk)
+  //       result.replace(chunk, chunk.concat('\n'))
+  //     }
+
+  //     return result
+  //   } else {
+  //     return newDisplayedName
+  //   }
+  // }
 }
 
 export function isGrapholNode(elem: GrapholElement): elem is GrapholNode {
