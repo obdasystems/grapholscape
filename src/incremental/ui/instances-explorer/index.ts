@@ -193,16 +193,16 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
               )
           }
         }
-      })
 
-      if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
-        const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
-        const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
-        if (instancesExplorer.isPropertyDirect)
-          incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
-        else
-          incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
-      }
+        if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
+          const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
+          const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
+          if (instancesExplorer.isPropertyDirect)
+            incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
+          else
+            incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
+        }
+      })
     })
   })
 

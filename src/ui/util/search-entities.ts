@@ -1,6 +1,5 @@
 import Grapholscape from "../../core"
 import { Annotation, GrapholEntity, Iri, RendererStatesEnum } from "../../model"
-import { grapholEntityToEntityViewData } from "../../util"
 import { EntityViewData, IEntityFilters } from "../view-model"
 import getEntityViewOccurrences from "./get-entity-view-occurrences"
 
@@ -22,22 +21,14 @@ export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: I
   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
     grapholscape.incremental?.classInstanceEntities.forEach(classInstanceEntity => {
       if (grapholscape.renderer.diagram && !shouldFilterEntity(classInstanceEntity, entityFilters)) {
-        const viewClassInstanceEntity = grapholEntityToEntityViewData(classInstanceEntity, grapholscape)
-        viewClassInstanceEntity.viewOccurrences = new Map()
-        viewClassInstanceEntity.viewOccurrences.set(
-          {
-            id: grapholscape.renderer.diagram?.id,
-            name: grapholscape.renderer.diagram?.name
-          },
-          [
-            {
-              originalId: viewClassInstanceEntity.value.iri.prefixed,
-              realId: viewClassInstanceEntity.value.iri.fullIri
-            }
-          ]
-        )
-
-        result.push(viewClassInstanceEntity)
+        result.push({
+          displayedName: classInstanceEntity.getDisplayedName(
+            grapholscape.entityNameType,
+            grapholscape.language
+          ),
+          value: classInstanceEntity,
+          viewOccurrences: getEntityViewOccurrences(classInstanceEntity, grapholscape)
+        })
       }
     })
   }
