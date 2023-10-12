@@ -13,6 +13,7 @@ import { IncrementalEvent } from "./lifecycle";
 import * as IncrementalUI from './ui';
 
 export { IncrementalController };
+export * from './lifecycle'
 
 /** @internal */
 export function initIncremental(grapholscape: Grapholscape) {
@@ -21,7 +22,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   grapholscape.incremental = incrementalController
   // Create and initialize UI components
   IncrementalUI.ClassInstanceDetailsFactory(incrementalController)
-  IncrementalUI.VKGPreferencesFactory(incrementalController)
+  // IncrementalUI.VKGPreferencesFactory(incrementalController)
   IncrementalUI.InstanceExplorerFactory(incrementalController)
   IncrementalUI.CommandsWidgetFactory(incrementalController)
   IncrementalUI.NodeButtonsFactory(incrementalController)

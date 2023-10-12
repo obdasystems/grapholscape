@@ -150,6 +150,8 @@ export const warning = svg`<svg fill="currentColor" xmlns="http://www.w3.org/200
 
 export const error = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M479.789-288Q495-288 505.5-298.289q10.5-10.29 10.5-25.5Q516-339 505.711-349.5q-10.29-10.5-25.5-10.5Q465-360 454.5-349.711q-10.5 10.29-10.5 25.5Q444-309 454.289-298.5q10.29 10.5 25.5 10.5ZM444-432h72v-240h-72v240Zm36.276 336Q401-96 331-126q-70-30-122.5-82.5T126-330.958q-30-69.959-30-149.5Q96-560 126-629.5t82.5-122Q261-804 330.958-834q69.959-30 149.5-30Q560-864 629.5-834t122 82.5Q804-699 834-629.276q30 69.725 30 149Q864-401 834-331q-30 70-82.5 122.5T629.276-126q-69.725 30-149 30ZM480-168q130 0 221-91t91-221q0-130-91-221t-221-91q-130 0-221 91t-91 221q0 130 91 221t221 91Zm0-312Z"/></svg>`
 
+export const toggleCatalog = svg`<svg style="padding: 2px; box-sizing: border-box;" viewBox="64 64 896 896" width="20px" height="20px" fill="currentColor" aria-hidden="true"><path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM142.4 642.1L298.7 519a8.84 8.84 0 000-13.9L142.4 381.9c-5.8-4.6-14.4-.5-14.4 6.9v246.3a8.9 8.9 0 0014.4 7z"></path></svg>`
+
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |

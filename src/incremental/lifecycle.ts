@@ -1,4 +1,4 @@
-import { GrapholEntity, TypesEnum } from "../model"
+import { GrapholEntity } from "../model"
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity"
 import { ClassInstance } from "./api/kg-api"
 import { MastroEndpoint } from "./api/model"
@@ -20,7 +20,7 @@ export enum IncrementalEvent {
   DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish',
 }
 
-export interface IonEvent {
+export interface IonIncrementalEvent {
   (event: IncrementalEvent.RequestStopped, callback: () => void): void
   (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void): void
   (event: IncrementalEvent.InstancesSearchFinished, callback: () => void): void
@@ -67,7 +67,7 @@ export default class IncrementalLifecycle {
     this[event].forEach((callback: any) => callback(...params))
   }
 
-  on: IonEvent = (event: string, callback: any): void => {
+  on: IonIncrementalEvent = (event: string, callback: any): void => {
     this[event].push(callback)
   }
 }
