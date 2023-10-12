@@ -135,7 +135,7 @@ paths:
               schema:
                 type: string
                 description: FileInfo object
-  /owlOntology/{ontologyName}/vkg/catalog:
+  /owlOntology/{ontologyName}/version/vkg/catalog:
     get:
       tags:
       - VKG
@@ -216,7 +216,7 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/VKGSnapshot'
-  /owlOntology/{ontologyName}/vkg/catalog/export:
+  /owlOntology/{ontologyName}/version/vkg/catalog/export:
     get:
       tags:
       - VKG
@@ -241,7 +241,7 @@ paths:
               schema:
                 type: string
                 description: A FileInfo that contains the VKGs catalog
-  /owlOntology/{ontologyName}/vkg/catalog/import:
+  /owlOntology/{ontologyName}/version/vkg/catalog/import:
     post:
       tags:
       - VKG
@@ -277,7 +277,7 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/VKGSnapshot'
-  /owlOntology/{ontologyName}/vkg/catalog/{snapshotId}:
+  /owlOntology/{ontologyName}/version/vkg/catalog/{snapshotId}:
     delete:
       tags:
       - VKG
