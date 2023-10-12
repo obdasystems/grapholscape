@@ -33,12 +33,7 @@ export function getNodeBorderColor(node: NodeSingular, theme: GrapholscapeTheme)
 }
 
 export function getNodeLabelColor(node: NodeSingular, theme: GrapholscapeTheme) {
-  if (
-    node.data().computedFillColor !== undefined &&
-    (
-      theme.id === DefaultThemesEnum.COLORFUL_LIGHT ||
-      theme.id === DefaultThemesEnum.COLORFUL_DARK
-    )) {
+  if (theme.useComputedColours && node.data().computedFillColor !== undefined) {
     const nodeBGColor = chroma(node.style('background-color'))
     const labelColorString = theme.getColour(ColoursNames.label)
     let labelColor: chroma.Color
