@@ -40,7 +40,7 @@ export default function (theme: GrapholscapeTheme) {
       selector: `node[displayedName][type = "${TypesEnum.CLASS}"], node[displayedName][type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         'text-max-width': (n) => n.data('width') || 80,
-        'text-overflow-wrap': 'anywhere',
+        // 'text-overflow-wrap': 'anywhere', // if enabled, whitespaces between words will be removed!
       }
     },
 
