@@ -22,7 +22,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   grapholscape.incremental = incrementalController
   // Create and initialize UI components
   IncrementalUI.ClassInstanceDetailsFactory(incrementalController)
-  IncrementalUI.VKGPreferencesFactory(incrementalController)
+  // IncrementalUI.VKGPreferencesFactory(incrementalController)
   IncrementalUI.InstanceExplorerFactory(incrementalController)
   IncrementalUI.CommandsWidgetFactory(incrementalController)
   IncrementalUI.NodeButtonsFactory(incrementalController)
