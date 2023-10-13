@@ -440,8 +440,8 @@ export default class QueryManager {
   }
 
   private getQueryStartPath(queryType = QueryType.STANDARD) {
-    let query = 'query'
-    // let query = 'new-cq-query'
+    // let query = 'query'
+    let query = 'new-cq-query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
@@ -449,8 +449,8 @@ export default class QueryManager {
   }
 
   private getQueryStopPath(executionId: string, queryType = QueryType.STANDARD) {
-    let query = 'query'
-    // let query = 'new-cq-query'
+    // let query = 'query'
+    let query = 'new-cq-query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
@@ -458,8 +458,8 @@ export default class QueryManager {
   }
 
   private getQueryResultPath(executionId: string, queryType = QueryType.STANDARD) {
-    let endingPath = `query/${executionId}/results`
-    // let endingPath = `new-cq-query/${executionId}/results`
+    // let endingPath = `query/${executionId}/results`
+    let endingPath = `new-cq-query/${executionId}/results`
     if (queryType === QueryType.CONSTRUCT) {
       endingPath = `cquery/${executionId}/results/rdfGraph`
     }
@@ -467,8 +467,8 @@ export default class QueryManager {
   }
 
   private getQueryStatePath(executionId: string, queryType = QueryType.STANDARD) {
-    let query = 'query'
-    // let query = 'new-cq-query'
+    // let query = 'query'
+    let query = 'new-cq-query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }

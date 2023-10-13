@@ -465,7 +465,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     let label: string[] | null | string = null
     let lang: string[] | null | string | undefined = undefined
 
-    if (labelWithLang !== 'null') {
+    if (labelWithLang !== null && labelWithLang !== undefined && labelWithLang !== 'null') {
       const atIndex = labelWithLang.lastIndexOf('@')
       if (atIndex > 0) {
         lang = labelWithLang.substring(atIndex + 1)
