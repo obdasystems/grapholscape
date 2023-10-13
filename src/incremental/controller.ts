@@ -18,6 +18,8 @@ import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbour
 import { GscapeEntityColorLegend, setColorList } from "../ui/entity-colors";
 import BadgeController from "./ui/node-buttons.ts/badges-controller";
 
+export type Count = { value: number, materialized: boolean, date?: string }
+
 /** @internal */
 export default class IncrementalController {
   private diagramBuilder: DiagramBuilder
@@ -34,7 +36,7 @@ export default class IncrementalController {
 
   private actionsWithBlockedGraph = 0
   private entitySelectionTimeout: NodeJS.Timeout
-  public counts: Map<string, { value: number, materialized: boolean, date?: string }> = new Map()
+  public counts: Map<string, Count> = new Map()
   public countersEnabled: boolean = true
   public classFilterMap: Map<string, Filter> = new Map()
   public dataLineageEnabled = true
@@ -1249,7 +1251,7 @@ export default class IncrementalController {
    */
   async showFreshClassCount(classIri: string) {
     if (!this.countersEnabled || !this.endpointController?.isReasonerAvailable()) return
-    const countResult = await this.endpointController?.requestCountForClass(classIri)
+    const countResult = await this.endpointController?.requestCountForEntity(classIri, TypesEnum.CLASS)
 
     if (countResult !== undefined) {
       this.counts.set(classIri, {

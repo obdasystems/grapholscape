@@ -1,4 +1,4 @@
-export * from './class-instance-details'
+export * from './incremental-entity-details'
 export * from './vkg-preferences'
 export * from './instances-explorer'
 export * from './commands-widget'

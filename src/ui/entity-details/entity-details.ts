@@ -117,6 +117,16 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         gap: 8px;
         margin: 0;
       }
+
+      .chips-wrapper {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .chips-wrapper > .chip {
+        flex-shrink: 0;
+      }
     `
   ]
 

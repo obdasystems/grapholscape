@@ -1,8 +1,11 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit"
-import { BaseMixin, baseStyle, contentSpinnerStyle, entityListItemStyle, EntityViewData, textSpinner, textSpinnerStyle } from "../../../ui"
+import { BaseMixin, baseStyle, contentSpinnerStyle, entityListItemStyle, EntityViewData, getIconSlot, SizeEnum, textSpinner, textSpinnerStyle } from "../../../ui"
 import style from "./style"
+import { Count } from "../../controller"
+import { counter } from "../../../ui/assets"
+import { GrapholEntity } from "../../../model"
 
-export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
+export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
   private _dataProperties: EntityViewData[] = []
   /** @internal */
   private _dataPropertiesValues?: Map<string, { values: Set<string>, loading?: boolean }>
@@ -12,11 +15,21 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
   parentClasses?: EntityViewData[]
   /** @internal */
   onParentClassSelection = (iri: string) => { }
+  
+  instancesCount?: Count = undefined
+  instancesCountLoading: boolean = false
+  allowComputeCount: boolean = false
+  entity?: GrapholEntity
+  onComputeCount = (entity: GrapholEntity) => { }
 
   static properties: PropertyDeclarations = {
     dataProperties: { type: Object, attribute: false },
     canShowDataPropertiesValues: { type: Boolean, attribute: false },
     parentClasses: { type: Object, attribute: false },
+    instancesCount: { type: Object, attribute: false },
+    instancesCountLoading: { type: Boolean, attribute: false },
+    allowComputeCount: { type: Boolean, attribute: false },
+    entity: { type: Object, attribute: false },
   }
 
   static notAvailableText = 'n/a'
@@ -26,12 +39,54 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
       gscape-entity-list-item {
         --custom-wrap: wrap;
       }
+
+      .count-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
     `
   ]
 
   render() {
     return html`
-    <div>
+    <div id="main-wrapper">
+      ${this.allowComputeCount
+        ? html`
+          <div class="count-wrapper">
+            <gscape-button
+              size=${SizeEnum.S}
+              label=${!this.instancesCountLoading && !this.instancesCount ? `Count Instances` : null}
+              title="Count instances"
+              @click=${() => this.entity ? this.onComputeCount(this.entity) : null}
+            >
+              ${getIconSlot('icon', counter)}
+            </gscape-button>
+
+            ${this.instancesCountLoading
+              ? html`<center><div class="chip neutral-chip">Count: ${textSpinner()}</div></center>`
+              : this.instancesCount !== undefined
+                ? html`
+                  <center>
+                    <div
+                      class="chip ${this.instancesCount.materialized ? 'neutral-chip' : null}"
+                      title=${this.instancesCount.date 
+                        ? `Date: ${this.instancesCount.date}`
+                        : !this.instancesCount.materialized ? 'Fresh Value' : null
+                      } 
+                    >
+                      Count: ${this.instancesCount.value}
+                    </div>
+                  </center>`
+                : null
+            }
+          </div>
+        `
+        : null
+      }
+
       ${this.parentClasses && this.parentClasses.length > 0 
         ? html`
           <div class="section">
@@ -71,7 +126,7 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
                     ${this.canShowDataPropertiesValues && values
                       ? html`
                         <div slot="trailing-element">
-                          ${!values.loading && values.values.size === 0 ? html`<span class="chip neutral-chip">${GscapeClassInstanceDetails.notAvailableText}</span>` : null}
+                          ${!values.loading && values.values.size === 0 ? html`<span class="chip neutral-chip">${IncrementalEntityDetails.notAvailableText}</span>` : null}
                           ${Array.from(values.values).map(v => html`<span class="chip data-property-value">${v}</span>`)}
                           ${values.loading
                             ? html`<span class="chip neutral-chip">${textSpinner()}</span>`
@@ -92,35 +147,6 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
     </div>
     `
   }
-  /**
-  private getEntitySuggestionTemplate(entity: EntityViewData, objectPropertyIri?: string, parentClassIri?: string, direct?: boolean) {
-    const values = this.dataPropertiesValues?.get(entity.value.iri.fullIri)
-
-    return html`
-      <div 
-        title=${entity.displayedName}
-        iri=${entity.value.iri.fullIri}
-        entity-type="${entity.value.type}"
-        class="ellipsed entity-list-item ${entity.value.type !== TypesEnum.DATA_PROPERTY ? 'actionable' : null }"
-        @click=${(e: Event)=> this.handleEntityClick(e, objectPropertyIri, parentClassIri, direct)}
-      >
-        <span class="entity-icon slotted-icon">${entityIcons[entity.value.type]}</span>
-        <span class="entity-name">${entity.displayedName}</span>
-        ${this.canShowDataPropertiesValues && values
-          ? html`
-            ${!values.loading && values.values.length === 0 ? html`<span class="chip neutral-chip">${GscapeClassInstanceDetails.notAvailableText}</span>` : null}
-            ${values.values.map(v => html`<span class="chip data-property-value">${v}</span>`)}
-            ${values.loading
-              ? html`<span class="chip neutral-chip">${textSpinner()}</span>`
-              : null
-            }
-          `
-          : null
-        }
-      </div>
-    `
-  }
-  */
 
   private handleEntityClick(e: Event) {
     const target = e.currentTarget as HTMLElement
@@ -166,4 +192,4 @@ export default class GscapeClassInstanceDetails extends BaseMixin(LitElement) {
   }
 }
 
-customElements.define('gscape-class-instance-details', GscapeClassInstanceDetails)
+customElements.define('gscape-class-instance-details', IncrementalEntityDetails)

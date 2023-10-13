@@ -149,9 +149,9 @@ export default class EndpointController {
     )
   }
 
-  requestCountForClass(classIri: string) {
+  requestCountForEntity(entityIri: string, entityType: TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY) {
     if (this.selectedEndpoint) {
-      return this.vkgApi?.getInstancesNumber(this.selectedEndpoint, classIri)
+      return this.vkgApi?.getInstancesNumber(this.selectedEndpoint, entityIri, entityType)
     }
   }
 
