@@ -4,11 +4,12 @@ import edgehandles from 'cytoscape-edgehandles'
 import klay from 'cytoscape-klay'
 import popper from 'cytoscape-popper'
 import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
-import { Core, Grapholscape } from './core'
+import { Core, Grapholscape, OntologyColorManager } from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
 import { initIncremental } from './incremental'
 import { RequestOptions } from './incremental/api/model'
-import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
+import { moveUpLeft } from './incremental/ui'
+import { ColoursNames, DefaultThemes, GrapholscapeTheme, IncrementalDiagram, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
 import parseRDFGraph, * as RDFGraphParser from './parsing/rdf-graph-parser'
@@ -31,8 +32,7 @@ export * from './model'
 export { default as rdfgraphSerializer } from './rdfgraph-serializer'
 export * as ui from './ui'
 export * as util from './util'
-export { parseRDFGraph }
-export { RDFGraphParser }
+export { parseRDFGraph, RDFGraphParser }
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -119,7 +119,7 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
   }
 
   if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
-    if (rdfGraph.selectedDiagramId !== undefined ) {
+    if (rdfGraph.selectedDiagramId !== undefined) {
       const diagram = grapholscape.ontology.getDiagram(rdfGraph.selectedDiagramId)
       if (diagram) {
         /**
@@ -136,13 +136,65 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
       }
     }
   } else if (grapholscape.incremental) {
-    grapholscape.incremental.showDiagram()
-    grapholscape.incremental.addRDFGraph(rdfGraph)
-    grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
-      if (elem.iri) {
-        grapholscape?.incremental?.classInstanceEntities.get(elem.iri)?.addOccurrence(elem, RendererStatesEnum.INCREMENTAL)
+    grapholscape.incremental.classInstanceEntities = RDFGraphParser.getClassInstances(rdfGraph, grapholscape.ontology.namespaces)
+
+    const allEntities = new Map(
+      Array.from(grapholscape.ontology.entities)
+        .concat(Array.from(grapholscape.incremental.classInstanceEntities))
+    )
+
+    const diagramRepr = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities)[0]
+      .representations.get(RendererStatesEnum.INCREMENTAL)
+    if (diagramRepr) {
+      grapholscape.incremental.diagram = new IncrementalDiagram()
+      if (diagramRepr.lastViewportState) {
+        grapholscape.incremental.diagram.lastViewportState = diagramRepr.lastViewportState
       }
-    })
+
+      grapholscape.incremental.diagram.representations.set(
+        RendererStatesEnum.INCREMENTAL,
+        diagramRepr
+      )
+
+      if (diagramRepr.grapholElements.size > 0) {
+        const initialMenu = grapholscape.widgets.get(UI.WidgetEnum.INCREMENTAL_INITIAL_MENU)
+        if (initialMenu)
+          moveUpLeft(initialMenu)
+      }
+
+      new OntologyColorManager(grapholscape.ontology, diagramRepr).colorEntities(allEntities, true)
+    }
+
+
+    // grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
+    //   if (elem.is(TypesEnum.CLASS_INSTANCE) && elem.iri) {
+    //     const entity = grapholscape.incremental?.classInstanceEntities.get(elem.iri)
+    //     if (entity) {
+    //       elem.displayedName = entity.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
+    //       grapholscape.incremental?.diagram.representation?.updateElement(elem, entity)
+    //     }
+    //   }
+    // })
+    // const entityNameTypes = Object.values(EntityNameType)
+    // let i = 0
+    // let e = entityNameTypes[i]
+    // while(e === rdfGraph.config?.entityNameType) {
+    //   if (i >= entityNameTypes.length)
+    //     break
+    //   e = entityNameTypes[i]
+    //   i++
+    // }
+    // grapholscape.setEntityNameType(e)
+    // if (rdfGraph.config?.entityNameType)
+    //   grapholscape.setEntityNameType(rdfGraph.config?.entityNameType)
+    // else
+    //   grapholscape.setEntityNameType(EntityNameType.LABEL)
+    grapholscape.incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
+    // grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
+    //   if (elem.iri) {
+    //     grapholscape?.incremental?.classInstanceEntities.get(elem.iri)?.addOccurrence(elem, RendererStatesEnum.INCREMENTAL)
+    //   }
+    // })
   }
 }
 
@@ -214,7 +266,7 @@ function showLoadingSpinner(container: HTMLElement, config?: GrapholscapeConfig)
     } else if (config?.themes) {
       themeConfig = config.themes.find(theme => theme === config?.selectedTheme || (theme as GrapholscapeTheme).id === config?.selectedTheme)
       if (themeConfig) {
-        theme = typeof(themeConfig) === 'string' ? DefaultThemes[themeConfig] : themeConfig
+        theme = typeof (themeConfig) === 'string' ? DefaultThemes[themeConfig] : themeConfig
       }
     }
   }

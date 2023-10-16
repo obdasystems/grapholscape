@@ -1,6 +1,6 @@
 import chroma from 'chroma-js';
 import { NodeSingular, SingularElementReturnValue } from 'cytoscape';
-import { ClassInstanceEntity, DiagramRepresentation, GrapholEntity, Ontology, TypesEnum } from "../model";
+import { ClassInstanceEntity, DiagramRepresentation, GrapholEntity, Ontology, RendererStatesEnum, TypesEnum } from "../model";
 
 abstract class ColorManager {
 
@@ -113,9 +113,31 @@ export class OntologyColorManager extends ColorManager {
     } else {
       topSuperClass.color = chroma(colors[0]).css()
     }
-    
+
     this._classForest.clear()
     return this
+  }
+
+  colorEntities(entities = this.ontology.entities, overwrite = false) {
+    return new Promise<void>((resolve, _) => {
+      const updatedEntities = new Set<string>()
+      entities.forEach(entity => {
+        if (entity.is(TypesEnum.CLASS_INSTANCE)) {
+          this.setInstanceColor(entity as ClassInstanceEntity, overwrite)
+        } else if (entity.is(TypesEnum.CLASS)) {
+          this.setClassColor(entity, overwrite)
+        }
+
+        if (!updatedEntities.has(entity.iri.fullIri)) {
+          entity.occurrences.get(RendererStatesEnum.INCREMENTAL)?.forEach(elem => {
+            this.diagramRepresentation.updateElement(elem, entity)
+          })
+
+          updatedEntities.add(entity.iri.fullIri)
+        }
+      })
+      resolve()
+    })
   }
 
   protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity {
@@ -124,7 +146,7 @@ export class OntologyColorManager extends ColorManager {
       .filter(entity => !this._classForest.has(entity))[0]
 
     const hierarchies = this.ontology.getSuperHierarchiesOf(classEntity.iri)
-    const hierarchySuperClass= hierarchies[0]
+    const hierarchySuperClass = hierarchies[0]
       ?.superclasses
       .filter(entity => !this._classForest.has(entity.classEntity))[0]
 

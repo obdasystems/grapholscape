@@ -15,7 +15,7 @@ export type EntityViewDataUnfolding = {
 
 export type EntityViewData = {
   displayedName: string,
-  value: { iri: Iri, types: Set<TypesEnum> } & AnnotatedElement, // GrapholEntity is a compatible type
+  value: { iri: Iri, types: TypesEnum[] } & AnnotatedElement, // GrapholEntity is a compatible type
   viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>,
   disabled?: boolean,
 }

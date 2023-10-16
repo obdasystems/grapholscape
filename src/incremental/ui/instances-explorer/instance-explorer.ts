@@ -159,7 +159,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                     return {
                       id: entity.entityViewData.value.iri.fullIri,
                       text: entity.entityViewData.displayedName,
-                      leadingIcon: entityIcons[Array.from(entity.entityViewData.value.types)[0]],
+                      leadingIcon: entityIcons[entity.entityViewData.value.types[0]],
                       disabled: !entity.hasUnfolding
                     }
                   })}
@@ -201,7 +201,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                   return {
                     id: entity.entityViewData.value.iri.fullIri,
                     text: entity.entityViewData.displayedName,
-                    leadingIcon: entityIcons[Array.from(entity.entityViewData.value.types)[0]],
+                    leadingIcon: entityIcons[entity.entityViewData.value.types[0]],
                     disabled: !entity.hasUnfolding
                   }
                 }))}
@@ -247,7 +247,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 <gscape-entity-list-item
                   displayedname=${displayedName}
                   iri=${instance.connectedInstance ? `${instance.iri}-${instance.connectedInstance.iri}` : instance.iri}
-                  .types=${new Set([TypesEnum.CLASS_INSTANCE])}
+                  .types=${[TypesEnum.CLASS_INSTANCE]}
                 >
                   <div slot="trailing-element" class="hover-btn">
                     <gscape-button
@@ -331,9 +331,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         })
   
         if (property) {
-          event.detail.propertyType = Array.from(property.entityViewData.value.types)[0] as TypesEnum.DATA_PROPERTY | TypesEnum.OBJECT_PROPERTY
+          event.detail.propertyType = property.entityViewData.value.types[0] as TypesEnum.DATA_PROPERTY | TypesEnum.OBJECT_PROPERTY
   
-          if (property.entityViewData.value.types.has(TypesEnum.OBJECT_PROPERTY)) {
+          if (property.entityViewData.value.types.includes(TypesEnum.OBJECT_PROPERTY)) {
             event.detail.direct = (property as ViewObjectPropertyUnfolding).direct
           }
         }
@@ -434,9 +434,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
   private getParentClassIris() {
     let parentClassIris: string[] | string
   
-    if (this.referenceEntity?.value.types.has(TypesEnum.CLASS)) { // if class, take class iri as parent
+    if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS)) { // if class, take class iri as parent
       parentClassIris = this.referenceEntity?.value.iri.fullIri
-    } else if (this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
+    } else if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
 
       if (this.classTypeFilterList?.length === 1) { 
         parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class

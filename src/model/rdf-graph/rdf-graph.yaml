@@ -597,6 +597,10 @@ components:
       required:
         - fullIri
       properties:
+        types:
+          type: array
+          items:
+            $ref: "#/components/schemas/TypesEnum"
         fullIri:
           type: string
         annotations:

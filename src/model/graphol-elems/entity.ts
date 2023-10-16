@@ -15,12 +15,20 @@ import { Entity, RDFGraphConfigEntityNameTypeEnum as EntityNameType, FunctionPro
 // }
 
 export default class GrapholEntity extends AnnotatedElement implements Entity {
-  
+
   static newFromSwagger(iri: Iri, e: Entity) {
     const instance = new GrapholEntity(iri)
 
     Object.entries(e).forEach(([key, value]) => {
-      if (e[key] && key !== 'fullIri') {
+      if (key === 'types') {
+        /**
+         * types field is computed from occurrences,
+         * if types are stored in rdfGraph then store
+         * them as manualTypes.
+         * types will be the union of manual types and computed types
+         */
+        instance.manualTypes = new Set(value)
+      } else if (e[key] && key !== 'fullIri') {
         instance[key] = value
       }
     })
@@ -34,6 +42,11 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   private _isDataPropertyFunctional: boolean = false
   private _functionProperties: FunctionPropertiesEnum[] = []
   private _color?: string
+
+  // only used when resuming from VKG, in that case we need entities to store their types
+  // even if they do not appear in graph.
+  // in all other cases types are derived from occurrences in graphs.
+  protected _manualTypes?: Set<TypesEnum>
 
   constructor(iri: Iri) {
     super()
@@ -86,11 +99,21 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
 
   get types() {
     let types = new Set<TypesEnum>()
+    this._manualTypes?.forEach(t => types.add(t))
+
+    // compute from occurrences
     for (let [_, elements] of this.occurrences) {
       elements.forEach(e => types.add(e.type))
     }
 
-    return types
+    return Array.from(types)
+  }
+
+  // only used when resuming from VKG, in that case we need entities to store their types
+  // even if they do not appear in graph.
+  // in all other cases types are derived from occurrences in graphs.
+  set manualTypes(newTypes: Set<TypesEnum>) {
+    this._manualTypes = newTypes
   }
 
   /**
@@ -98,6 +121,10 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
    * @param type 
    */
   is(type: TypesEnum): boolean {
+
+    if (this._manualTypes?.has(type))
+      return true
+
     for (let [_, elements] of this.occurrences) {
       if (elements.some(e => e.is(type))) {
         return true
@@ -213,8 +240,8 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     let entityOccurrences = this.getOccurrencesByType(type, rendererState)
 
     if (!entityOccurrences || entityOccurrences.length === 0)
-      entityOccurrences =  this.getOccurrencesByType(type, RendererStatesEnum.GRAPHOL)
-    
+      entityOccurrences = this.getOccurrencesByType(type, RendererStatesEnum.GRAPHOL)
+
     if (!entityOccurrences)
       return
 
@@ -232,6 +259,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
           datatype: ann.datatype,
         }
       }),
+      types: this.types,
       datatype: this.datatype,
       functionProperties: this.functionProperties,
       isDataPropertyFunctional: this.isDataPropertyFunctional,

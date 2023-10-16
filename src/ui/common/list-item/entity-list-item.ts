@@ -3,12 +3,13 @@ import baseStyle from "../../style";
 import { arrowDown, arrow_right, entityIcons } from "../../assets";
 import entityListItemStyle from "./entity-list-item-style";
 import GscapeIconList from "../imgs-horizontal-list";
+import { TypesEnum } from "../../../model";
 
 GscapeIconList
 
 export default class GscapeEntityListItem extends LitElement {
 
-  private _types: Set<string> = new Set()
+  private _types: TypesEnum[] = []
   private _color?: string
 
   displayedName: string = ''
@@ -19,7 +20,7 @@ export default class GscapeEntityListItem extends LitElement {
   private isAccordionOpen = false
 
   static properties: PropertyDeclarations = {
-    types: { type: Object, reflect: true },
+    types: { type: Array, reflect: true },
     displayedName: { type: String, reflect: true },
     actionable: { type: Boolean },
     asAccordion: { type: Boolean },
@@ -71,10 +72,10 @@ export default class GscapeEntityListItem extends LitElement {
         : null
       }
 
-      ${this._types.size > 0
+      ${this._types.length > 0
         ? html`
           <span class="entity-icon slotted-icon">
-            <gscape-icon-list .icons=${Array.from(this._types).map(t => entityIcons[t])}></gscape-icon-list>
+            <gscape-icon-list .icons=${this._types.map(t => entityIcons[t])}></gscape-icon-list>
           </span>
         `
         : null
@@ -111,8 +112,8 @@ export default class GscapeEntityListItem extends LitElement {
       this.isAccordionOpen = false
   }
 
-  set types(newTypes: Set<string> | undefined) {
-    this._types = newTypes || new Set()
+  set types(newTypes: TypesEnum[] | undefined) {
+    this._types = newTypes || []
   }
 
   get types() {

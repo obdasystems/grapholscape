@@ -53,7 +53,7 @@ export function initIncremental(grapholscape: Grapholscape) {
   })
 
   initialMenu.addEventListener('shortest-path-click', async (e: CustomEvent) => {
-    
+
     const shortestPathDialog = new ShortestPathDialog(grapholscape)
 
     grapholscape.uiContainer?.appendChild(shortestPathDialog)
@@ -111,7 +111,7 @@ export function initIncremental(grapholscape: Grapholscape) {
     const ontologyExplorer = grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
     if (ontologyExplorer) {
       ontologyExplorer.entities = createEntitiesList(grapholscape, ontologyExplorer.searchEntityComponent)
-      .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
+        .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
     }
   })
 
@@ -149,10 +149,10 @@ function onIncrementalStartup(grapholscape: Grapholscape, incrementalController:
         if (_iri) {
           const entityToCheck = grapholscape.ontology.getEntity(_iri) || incrementalController.classInstanceEntities.get(_iri)
           if (entityToCheck && filteredEntity) {
-            return filteredEntity?.iri.equals(entityToCheck.iri) || 
+            return filteredEntity?.iri.equals(entityToCheck.iri) ||
               ((entityToCheck as ClassInstanceEntity).parentClassIris && (entityToCheck as ClassInstanceEntity).hasParentClassIri(filteredEntity.iri))
           }
-          
+
         }
 
         return false

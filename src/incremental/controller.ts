@@ -1,28 +1,27 @@
 import { Collection, EdgeCollection, EdgeSingular, NodeSingular, Position } from "cytoscape";
 import { Grapholscape, IncrementalRendererState } from "../core";
+import { OntologyColorManager } from "../core/colors-manager";
 import DiagramBuilder from "../core/diagram-builder";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
-import { Annotation, DefaultAnnotationProperties, DiagramRepresentation, EntityNameType, Filter, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, isGrapholEdge, isGrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, DefaultAnnotationProperties, DiagramRepresentation, EntityNameType, Filter, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum, Viewport, isGrapholEdge, isGrapholNode } from "../model";
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity";
-import { RDFGraph } from "../model/rdf-graph/swagger";
+import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 import * as RDFGraphParser from '../parsing/rdf-graph-parser';
-import { showMessage, WidgetEnum } from "../ui";
-import NodeButton from "../ui/common/button/node-button";
+import rdfgraphSerializer from "../rdfgraph-serializer";
+import { WidgetEnum, showMessage } from "../ui";
+import { GscapeEntityColorLegend, setColorList } from "../ui/entity-colors";
 import { ClassInstance } from "./api/kg-api";
 import { QueryStatusEnum, RequestOptions } from "./api/model";
 import { Entity, EntityTypeEnum, OntologyPath } from "./api/swagger";
-import { OntologyColorManager } from "../core/colors-manager";
 import EndpointController from "./endpoint-controller";
 import IncrementalLifecycle, { IncrementalEvent } from "./lifecycle";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
-import { GscapeEntityColorLegend, setColorList } from "../ui/entity-colors";
 import BadgeController from "./ui/node-buttons.ts/badges-controller";
 
 export type Count = { value: number, materialized: boolean, date?: string }
 
 /** @internal */
 export default class IncrementalController {
-  private diagramBuilder: DiagramBuilder
   neighbourhoodFinder: NeighbourhoodFinder
 
   public classInstanceEntities: Map<string, ClassInstanceEntity> = new Map()
@@ -48,14 +47,14 @@ export default class IncrementalController {
    * Callback called when user click on data lineage command
    */
   onShowDataLineage: (entityIri: string) => void = () => { }
-  addEdge: (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => GrapholEdge | undefined;
+  addEdge = (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => {
+    return this.diagramBuilder.addEdge(sourceId, targetId, edgeType)
+  }
 
   constructor(
     public grapholscape: Grapholscape
   ) {
     this.setIncrementalEventHandlers()
-    this.diagramBuilder = new DiagramBuilder(this.diagram, RendererStatesEnum.INCREMENTAL)
-    this.addEdge = this.diagramBuilder.addEdge.bind(this.diagramBuilder)
     this.neighbourhoodFinder = new NeighbourhoodFinder(this.ontology)
 
     // update instances displayed names
@@ -95,8 +94,9 @@ export default class IncrementalController {
    * 
    * Create new EndpointApi object with current mastro request options
    */
-  setMastroConnection(mastroRequestOptions: RequestOptions) {
-    this.reset()
+  setMastroConnection(mastroRequestOptions: RequestOptions, reset = true) {
+    if (reset)
+      this.reset()
     if (!mastroRequestOptions.onError) {
       mastroRequestOptions.onError = (error) => console.error(error)
     }
@@ -117,6 +117,10 @@ export default class IncrementalController {
   addRDFGraph(rdfGraph: RDFGraph) {
     if (!this.diagram.representation) {
       return
+    }
+
+    if (rdfGraph.modelType !== RDFGraphModelTypeEnum.VKG && rdfGraph.modelType !== RDFGraphModelTypeEnum.RDF) {
+      console.error(`Modeltype [ ${rdfGraph.modelType} ] not supported in incremental view`)
     }
 
     const colorManager = new OntologyColorManager(
@@ -180,6 +184,8 @@ export default class IncrementalController {
         }
 
         this.updateEntityNameType(entity.iri.fullIri)
+      } else {
+        this.diagram.addElement(elem)
       }
     }
 
@@ -190,7 +196,12 @@ export default class IncrementalController {
         this.classInstanceEntities.set(iri, instanceEntity)
     })
 
-    const diagram = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, this.ontology)[0]
+    const allEntities = new Map(
+      Array.from(this.grapholscape.ontology.entities)
+        .concat(Array.from(this.classInstanceEntities))
+    )
+
+    const diagram = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities)[0]
 
     if (diagram) {
       const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL)
@@ -250,7 +261,7 @@ export default class IncrementalController {
         _sourceIri,
         _targetIri
       )
-  
+
       if (rdfGraph) {
         this.addRDFGraph(rdfGraph)
       } else {
@@ -485,7 +496,7 @@ export default class IncrementalController {
               new Annotation(DefaultAnnotationProperties.label, label.value, label.language)
             )
           })
-  
+
           this.updateEntityNameType(classInstanceEntity!.iri)
         })
       }
@@ -511,7 +522,7 @@ export default class IncrementalController {
               const classEntity = this.ontology.getEntity(classIri)
               if (classEntity && classInstanceEntity) {
                 classInstanceEntity.addParentClass(classEntity.iri)
-    
+
                 if (!classInstanceEntity.color && this.diagram.representation) {
                   const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation)
                   colorManager.setInstanceColor(classInstanceEntity)
@@ -592,7 +603,7 @@ export default class IncrementalController {
       new OntologyColorManager(this.ontology, this.diagram.representation)
         .setInstanceColor(sourceInstanceEntity)
         .setInstanceColor(targetInstanceEntity)
-  
+
       this.diagramBuilder.addObjectProperty(
         objectPropertyEntity,
         sourceInstanceEntity,
@@ -1003,8 +1014,8 @@ export default class IncrementalController {
               `, 'Timeout Reached',
                 this.grapholscape.uiContainer
               )
-              .onConfirm(onDone)
-              .onCancel(() => badgeController.removeLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE))
+                .onConfirm(onDone)
+                .onCancel(() => badgeController.removeLoadingBadge(instanceIri, TypesEnum.CLASS_INSTANCE))
             }
           }
         }, 10000)
@@ -1270,7 +1281,7 @@ export default class IncrementalController {
       return
 
     const badgeController = new BadgeController(this)
-    
+
     badgeController.addBadge(
       classIri,
       TypesEnum.CLASS,
@@ -1356,8 +1367,23 @@ export default class IncrementalController {
     this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set', true)
   }
 
+  /**
+   * Export current incremental(VKG) exploration as an RDFGraph.
+   * It only exports the incremental diagram.
+   * RDFGraph is a JSON serialization of grapholscape's model.
+   * Useful to resume a previous state of the VKG.
+   * For complete ontology (all diagrams) please use Grapholscape.exportToRDFGraph()
+   * @returns RDFGraph representation of this grapholscape(VKG) instance's model.
+   */
+  exportToRDFGraph() {
+    return rdfgraphSerializer(this.grapholscape, RDFGraphModelTypeEnum.VKG)
+  }
+
+  private get diagramBuilder() {
+    return new DiagramBuilder(this.diagram, RendererStatesEnum.INCREMENTAL)
+  }
+
   private get ontology() { return this.grapholscape.ontology }
-  // public get incrementalDiagram() { return this.incrementalRenderer?.incrementalDiagram }
 
   private get incrementalRenderer() {
     if (this.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {

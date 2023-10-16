@@ -4,7 +4,7 @@ import { annotationIcons, entityIcons } from '../assets/icons'
 
 export type ViewItemWithIri = {
   name: string,
-  typeOrVersion: Set<string>,
+  typeOrVersion: string[],
   iri: string
 }
 

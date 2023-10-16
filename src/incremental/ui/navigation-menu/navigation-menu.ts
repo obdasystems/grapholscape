@@ -154,7 +154,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   private handleObjPropertySelection(e: Event, objectProperty: ViewObjectPropertyUnfolding) {
     if (a11yClick(e)) {
 
-      if (this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
+      if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE) &&
         (
           this.canShowObjectPropertiesRanges ||
           objectProperty.hasUnfolding === true
@@ -199,7 +199,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
       // const targetListItem = (e.currentTarget as any)?.parentElement.parentElement.parentElement as GscapeEntityListItem | null
 
       if (objectProperty &&
-        this.referenceEntity?.value.types.has(TypesEnum.CLASS_INSTANCE) &&
+        this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE) &&
         objectProperty.hasUnfolding) {
         this.dispatchEvent(new CustomEvent('searchinstancesranges', {
           bubbles: true,

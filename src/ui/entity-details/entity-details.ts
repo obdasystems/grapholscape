@@ -246,7 +246,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   private get entityForTemplate() {
     const result: ViewItemWithIri = {
       name: this.grapholEntity.iri.remainder,
-      typeOrVersion: this.currentOccurrenceType ? new Set([this.currentOccurrenceType]) : this.grapholEntity.types,
+      typeOrVersion: this.currentOccurrenceType ? [this.currentOccurrenceType] : this.grapholEntity.types,
       iri: this.grapholEntity.iri.fullIri,
     }
     return result

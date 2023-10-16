@@ -414,10 +414,14 @@ export default abstract class Grapholscape {
     Exporter.toSVG(fileName, this.renderer.cy, this.theme.getColour(ColoursNames.bg_graph))
   }
 
+  /**
+   * Export current ontology as an RDFGraph.
+   * RDFGraph is a JSON serialization of grapholscape's model.
+   * Useful to resume a previous state.
+   * @returns RDFGraph representation of this grapholscape instance's model.
+   */
   exportToRdfGraph() {
-    const rdfGraph = rdfgraphSerializer(this)
-    console.log(rdfGraph)
-    return rdfGraph
+    return rdfgraphSerializer(this)
   }
 
   /**

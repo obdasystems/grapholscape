@@ -9,10 +9,11 @@ export default function parseRDFGraph(rdfGraph: RDFGraph) {
 
   const ontology = getOntology(rdfGraph)
   ontology.entities = getEntities(rdfGraph, ontology.namespaces)
-  
+
   // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
   // let incrementalDiagram: IncrementalDiagram
-  ontology.diagrams = getDiagrams(rdfGraph, rendererState, ontology)
+  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+    ontology.diagrams = getDiagrams(rdfGraph, rendererState, ontology.entities)
   //if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
   //  ontology.diagrams = parsedDiagrams
   //else
@@ -110,14 +111,14 @@ function getAnnotations(annotatedElem: Entity | RDFGraphMetadata, namespaces: Na
   }) || []
 }
 
-export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL, ontology: Ontology) {
+export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL, entities: Map<string, GrapholEntity>) {
   let diagram: Diagram
   let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | undefined
   let grapholElement: GrapholNode | GrapholEdge
 
   const diagrams: Diagram[] = []
-  
+
   rdfGraph.diagrams.forEach(d => {
     diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram()
     diagramRepr = diagram.representations.get(rendererState)
@@ -132,11 +133,12 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       grapholElement = GrapholNode.newFromSwagger(n)
       grapholElement.diagramId = d.id
       if (grapholElement.iri) {
-        grapholEntity = ontology.getEntity(grapholElement.iri)
+        grapholEntity = entities.get(grapholElement.iri)
         grapholElement.displayedName = grapholEntity?.getDisplayedName(
           rdfGraph.config?.entityNameType || EntityNameType.LABEL,
           rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
         )
+        grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
       diagramRepr!.addElement(grapholElement)
     })
@@ -149,11 +151,12 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       grapholElement = GrapholEdge.newFromSwagger(e)
       grapholElement.diagramId = d.id
       if (grapholElement.iri) {
-        grapholEntity = ontology.getEntity(grapholElement.iri)
+        grapholEntity = entities.get(grapholElement.iri)
         grapholElement.displayedName = grapholEntity?.getDisplayedName(
           rdfGraph.config?.entityNameType || EntityNameType.LABEL,
           rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
         )
+        grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
       diagramRepr!.addElement(grapholElement)
     })
@@ -182,8 +185,8 @@ export function getConfig(rdfGraph: RDFGraph): GrapholscapeConfig {
     themes: themes,
     selectedTheme: rdfGraph.config?.selectedTheme,
     selectedRenderer: rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
-    ? RendererStatesEnum.FLOATY
-    : RendererStatesEnum.INCREMENTAL,
+      ? RendererStatesEnum.FLOATY
+      : RendererStatesEnum.INCREMENTAL,
     language: rdfGraph.config?.language,
     entityNameType: rdfGraph.config?.entityNameType,
     renderers: rdfGraph.config?.renderers as RendererStatesEnum[],

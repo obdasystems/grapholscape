@@ -1,9 +1,10 @@
 import { Language } from "./config";
 import FloatyTransformer from "./core/rendering/floaty/floaty-transformer";
-import { EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
+import { Diagram, DiagramRepresentation, EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
 import { WidgetEnum } from "./ui/util/widget-enum";
 import { GscapeFilters } from "./ui/filters";
 import { RDFGraph, RDFGraphModelTypeEnum, Edge, RDFGraphConfigFiltersEnum, Node } from "./model/rdf-graph/swagger";
+import { IncrementalController } from "./incremental";
 
 export interface IGscape {
   ontology: Ontology
@@ -20,16 +21,18 @@ export interface IGscape {
   language: string | Language,
   entityNameType: EntityNameType,
   renderers: RendererStatesEnum[],
+  renderState?: RendererStatesEnum,
+  incremental?: IncrementalController,
   widgets: Map<any, any>
 }
 
-export default function(grapholscape: IGscape) {
+export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
   const ontology = grapholscape.ontology
 
   const result: RDFGraph = {
     diagrams: [],
     entities: Array.from(ontology.entities.values()).map(e => e.json()),
-    modelType: RDFGraphModelTypeEnum.ONTOLOGY,
+    modelType: modelType,
     metadata: {
       name: ontology.name,
       version: ontology.version,
@@ -54,20 +57,32 @@ export default function(grapholscape: IGscape) {
     }
   }
 
+  let diagrams: Diagram[] = []
+  if (modelType === RDFGraphModelTypeEnum.VKG) {
+    if (grapholscape.incremental) {
+      result.classInstanceEntities = Array.from(grapholscape.incremental.classInstanceEntities.values()).map(e => e.json())
+      if (grapholscape.incremental.diagram)
+        diagrams = [grapholscape.incremental.diagram]
+    }
+  } else {
+    diagrams = ontology.diagrams
+  }
 
-  result.diagrams = ontology.diagrams.map(d => {
-    let floaty = d.representations.get(RendererStatesEnum.FLOATY)
-    if (!floaty) {
+  let repr: DiagramRepresentation | undefined
+  const rendererState = modelType === RDFGraphModelTypeEnum.ONTOLOGY ? RendererStatesEnum.FLOATY : RendererStatesEnum.INCREMENTAL
+  result.diagrams = diagrams.map(d => {
+    repr = d.representations.get(rendererState)
+    if (!repr) {
       const floatyTransformer = new FloatyTransformer()
-      floaty = floatyTransformer.transform(d)
+      repr = floatyTransformer.transform(d)
     }
     let resElem: Node | undefined
     return {
       id: d.id,
       name: d.name,
       lastViewportState: d.id === grapholscape.diagramId ? grapholscape.renderer.viewportState : d.lastViewportState,
-      nodes: floaty.cy.nodes().map(n => {
-        resElem = floaty!.grapholElements.get(n.id())?.json()
+      nodes: repr.cy.nodes().map(n => {
+        resElem = repr!.grapholElements.get(n.id())?.json()
 
         if (resElem) {
           resElem.position = n.position()
@@ -75,11 +90,11 @@ export default function(grapholscape: IGscape) {
 
         return resElem
       }).filter(n => n !== undefined) as Node[],
-      edges: floaty.cy.edges().map(e => floaty!.grapholElements.get(e.id())?.json()).filter(e => e !== undefined) as Edge[]
+      edges: repr.cy.edges().map(e => repr!.grapholElements.get(e.id())?.json()).filter(e => e !== undefined) as Edge[]
     }
   })
 
-  
+
   if (grapholscape.diagramId !== undefined) {
     result.selectedDiagramId = grapholscape.diagramId
   }
@@ -120,7 +135,7 @@ export default function(grapholscape: IGscape) {
         break
     }
   })
-  
+
   result.config.widgets = widgetCurrentStates
 
   return result

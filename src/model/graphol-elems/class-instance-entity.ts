@@ -1,12 +1,13 @@
 import Iri from "../iri";
 import GrapholEntity from "./entity";
-import { DataPropertyValue, ClassInstanceEntity as IClassInstanceEntity } from "../rdf-graph/swagger";
+import { DataPropertyValue, ClassInstanceEntity as IClassInstanceEntity, TypesEnum } from "../rdf-graph/swagger";
 
 /** @internal */
 export default class ClassInstanceEntity extends GrapholEntity implements IClassInstanceEntity {
 
   private _parentClassIris: Iri[] = []
   private _dataProperties: DataPropertyValue[] = []
+  protected _manualTypes?: Set<TypesEnum> | undefined = new Set([TypesEnum.CLASS_INSTANCE])
 
   constructor(iri: Iri, parentClassIris: Iri[] = []) {
     super(iri)
@@ -43,5 +44,13 @@ export default class ClassInstanceEntity extends GrapholEntity implements IClass
 
   set dataProperties(newProperties: DataPropertyValue[]) {
     this._dataProperties = newProperties
+  }
+
+  public json(): IClassInstanceEntity {
+    const result = super.json() as IClassInstanceEntity
+
+    result.parentClasses = this.parentClassIris.map(iri => iri.fullIri)
+
+    return result
   }
 }

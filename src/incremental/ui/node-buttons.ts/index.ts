@@ -33,7 +33,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
 
   instancesButton.onclick = (e) => handleInstancesButtonClick(e, ic)
   objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, ic)
-  pathDrawingButton.onmousedown = (e) => onPathDrawingButtonClick(e, ic)
+  pathDrawingButton.onclick = (e) => onPathDrawingButtonClick(e, ic)
 
   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL && ic.diagram.representation) {
     setHandlersOnIncrementalCytoscape(ic.diagram.representation.cy, nodeButtonsMap)
@@ -247,35 +247,35 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
     //     }).catch(stopAnimation)
     //   }
     // } else {
-      let entity: ClassInstanceEntity | undefined
-      // Take parentClass IRI to find a path to the other node in the intensional level
-      if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
-        entity = ic.classInstanceEntities.get(sourceNode.data('iri'))
+    let entity: ClassInstanceEntity | undefined
+    // Take parentClass IRI to find a path to the other node in the intensional level
+    if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
+      entity = ic.classInstanceEntities.get(sourceNode.data('iri'))
 
-        if (entity) {
-          sourceIriForPath = entity.parentClassIris[0].fullIri
-        }
+      if (entity) {
+        sourceIriForPath = entity.parentClassIris[0].fullIri
       }
+    }
 
-      if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
-        entity = ic.classInstanceEntities.get(targetNode.data('iri'))
+    if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
+      entity = ic.classInstanceEntities.get(targetNode.data('iri'))
 
-        if (entity) {
-          targetIriForpath = entity.parentClassIris[0].fullIri
-        }
+      if (entity) {
+        targetIriForpath = entity.parentClassIris[0].fullIri
       }
+    }
 
-      ic.endpointController?.highlightsManager?.getShortestPath(
-        sourceIriForPath,
-        targetIriForpath
-      ).then(path => {
-        if (path[0].entities) {
-          ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, path[0])
-            .finally(stopAnimation)
-        } else {
-          stopAnimation()
-        }
-      }).catch(stopAnimation)
+    ic.endpointController?.highlightsManager?.getShortestPath(
+      sourceIriForPath,
+      targetIriForpath
+    ).then(path => {
+      if (path[0].entities) {
+        ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, path[0])
+          .finally(stopAnimation)
+      } else {
+        stopAnimation()
+      }
+    }).catch(stopAnimation)
     // }
   }
 
