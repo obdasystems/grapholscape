@@ -1291,7 +1291,8 @@ export default class IncrementalController {
       !countEntry.materialized,
       true, // should override
       true, // onHover
-      () => this.countersEnabled // onHover show condition
+      () => this.countersEnabled, // onHover show condition
+      5000,
     )
   }
 
