@@ -1323,7 +1323,7 @@ export default class IncrementalController {
   }
 
   setIncrementalEventHandlers() {
-    if (this.diagram.representation?.hasEverBeenRendered || this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
+    if (this.diagram.representation?.cy.scratch('_gscape-incremental-graph-handlers-set')) return
 
     // const classOrInstanceSelector = `node[type = "${TypesEnum.CLASS}"], node[type = "${TypesEnum.CLASS_INSTANCE}"]`
     this.diagram.representation?.cy.on('tap', evt => {

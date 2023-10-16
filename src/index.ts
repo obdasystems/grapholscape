@@ -155,6 +155,10 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
         RendererStatesEnum.INCREMENTAL,
         diagramRepr
       )
+      diagramRepr.hasEverBeenRendered = false
+
+      // Diagram (representation) has been changed, set event handlers again
+      grapholscape.incremental.setIncrementalEventHandlers()
 
       if (diagramRepr.grapholElements.size > 0) {
         const initialMenu = grapholscape.widgets.get(UI.WidgetEnum.INCREMENTAL_INITIAL_MENU)
@@ -163,6 +167,8 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
       }
 
       new OntologyColorManager(grapholscape.ontology, diagramRepr).colorEntities(allEntities, true)
+
+      grapholscape.incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
     }
 
 
@@ -189,7 +195,7 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
     //   grapholscape.setEntityNameType(rdfGraph.config?.entityNameType)
     // else
     //   grapholscape.setEntityNameType(EntityNameType.LABEL)
-    grapholscape.incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
+    // grapholscape.incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
     // grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
     //   if (elem.iri) {
     //     grapholscape?.incremental?.classInstanceEntities.get(elem.iri)?.addOccurrence(elem, RendererStatesEnum.INCREMENTAL)
