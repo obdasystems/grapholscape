@@ -43,9 +43,10 @@ export default class IncrementalRendererState extends FloatyRendererState {
     if (!incrementalRepresentation.hasEverBeenRendered) {
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers()
-      if (this.popperContainer) {
-        this.renderer.cy?.container()?.appendChild(this.popperContainer)
-      }
+    }
+
+    if (this.popperContainer) {
+      this.renderer.cy?.container()?.appendChild(this.popperContainer)
     }
 
     incrementalRepresentation.hasEverBeenRendered = true
@@ -67,7 +68,10 @@ export default class IncrementalRendererState extends FloatyRendererState {
   }
 
   runCustomLayout(cyLayoutOptions: any) {
-    Object.assign(this.floatyLayoutOptions, cyLayoutOptions)
+    if (!this.layoutRunning) {
+      Object.assign(this.floatyLayoutOptions, cyLayoutOptions)
+    }
+
     this.runLayout()
     this.floatyLayoutOptions = this.defaultLayoutOptions
   }
@@ -168,6 +172,10 @@ export default class IncrementalRendererState extends FloatyRendererState {
         }
       }
     })
+  }
+
+  protected get popperContainer() {
+    return this.popperContainers.get(IncrementalDiagram.ID)
   }
 
   set renderer(newRenderer: Renderer) {

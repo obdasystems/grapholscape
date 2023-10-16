@@ -199,7 +199,7 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!node.unlockButton || !this.renderer.cy) return
 
     let unlockButton = node.unlockButton
-    let dimension = node.data('width') / 9 * this.renderer.cy.zoom()
+    let dimension = node.width() / 9 * this.renderer.cy.zoom()
     this.setPopperStyle(dimension, unlockButton.state.elements.popper)
     unlockButton.update()
   }
