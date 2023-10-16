@@ -32,41 +32,41 @@ export interface GetRDFGraphConstructRequest {
     pageNumber: number;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogDeleteRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest {
     ontologyName: string;
     version: string;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogExportGetRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest {
     ontologyName: string;
     version: string;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogGetRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogGetRequest {
     ontologyName: string;
     version: string;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogImportPostRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest {
     ontologyName: string;
     version: string;
     additive?: boolean;
     body?: string;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogPostRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogPostRequest {
     ontologyName: string;
     version: string;
     vKGSnapshot?: VKGSnapshot;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest {
     ontologyName: string;
     version: string;
     snapshotId: number;
 }
 
-export interface OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest {
+export interface OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest {
     ontologyName: string;
     version: string;
     snapshotId: number;
@@ -131,13 +131,13 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Delete all the saved RDFGraph for VKGs exploration
      */
-    async owlOntologyOntologyNameVkgCatalogDeleteRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
+    async owlOntologyOntologyNameVersionVkgCatalogDeleteRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogDelete.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogDelete.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogDelete.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogDelete.');
         }
 
         const queryParameters: any = {};
@@ -149,7 +149,7 @@ export class VKGApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -161,21 +161,21 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Delete all the saved RDFGraph for VKGs exploration
      */
-    async owlOntologyOntologyNameVkgCatalogDelete(requestParameters: OwlOntologyOntologyNameVkgCatalogDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogDeleteRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogDelete(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogDeleteRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Returns the catalog as a FileInfo
      */
-    async owlOntologyOntologyNameVkgCatalogExportGetRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogExportGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+    async owlOntologyOntologyNameVersionVkgCatalogExportGetRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogExportGet.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogExportGet.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogExportGet.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogExportGet.');
         }
 
         const queryParameters: any = {};
@@ -187,7 +187,7 @@ export class VKGApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog/export`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog/export`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -203,21 +203,21 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Returns the catalog as a FileInfo
      */
-    async owlOntologyOntologyNameVkgCatalogExportGet(requestParameters: OwlOntologyOntologyNameVkgCatalogExportGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogExportGetRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogExportGet(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogExportGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Returns the saved RDFGraph for VKGs exploration
      */
-    async owlOntologyOntologyNameVkgCatalogGetRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
+    async owlOntologyOntologyNameVersionVkgCatalogGetRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogGet.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogGet.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogGet.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogGet.');
         }
 
         const queryParameters: any = {};
@@ -229,7 +229,7 @@ export class VKGApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -241,21 +241,21 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Returns the saved RDFGraph for VKGs exploration
      */
-    async owlOntologyOntologyNameVkgCatalogGet(requestParameters: OwlOntologyOntologyNameVkgCatalogGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogGetRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogGet(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Import a FileInfo in the ontology VKG\'s catalog
      */
-    async owlOntologyOntologyNameVkgCatalogImportPostRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogImportPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
+    async owlOntologyOntologyNameVersionVkgCatalogImportPostRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogImportPost.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogImportPost.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogImportPost.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogImportPost.');
         }
 
         const queryParameters: any = {};
@@ -273,7 +273,7 @@ export class VKGApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog/import`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog/import`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -286,21 +286,21 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Import a FileInfo in the ontology VKG\'s catalog
      */
-    async owlOntologyOntologyNameVkgCatalogImportPost(requestParameters: OwlOntologyOntologyNameVkgCatalogImportPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogImportPostRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogImportPost(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogImportPostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Save a new VKG exploration
      */
-    async owlOntologyOntologyNameVkgCatalogPostRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
+    async owlOntologyOntologyNameVersionVkgCatalogPostRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogPost.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogPost.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogPost.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogPost.');
         }
 
         const queryParameters: any = {};
@@ -314,7 +314,7 @@ export class VKGApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -327,25 +327,25 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Save a new VKG exploration
      */
-    async owlOntologyOntologyNameVkgCatalogPost(requestParameters: OwlOntologyOntologyNameVkgCatalogPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogPostRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogPost(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogPostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Delete the VKG exploration
      */
-    async owlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
+    async owlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogSnapshotIdDelete.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogSnapshotIdDelete.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogSnapshotIdDelete.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogSnapshotIdDelete.');
         }
 
         if (requestParameters.snapshotId === null || requestParameters.snapshotId === undefined) {
-            throw new runtime.RequiredError('snapshotId','Required parameter requestParameters.snapshotId was null or undefined when calling owlOntologyOntologyNameVkgCatalogSnapshotIdDelete.');
+            throw new runtime.RequiredError('snapshotId','Required parameter requestParameters.snapshotId was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogSnapshotIdDelete.');
         }
 
         const queryParameters: any = {};
@@ -357,7 +357,7 @@ export class VKGApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog/{snapshotId}`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))).replace(`{${"snapshotId"}}`, encodeURIComponent(String(requestParameters.snapshotId))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog/{snapshotId}`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))).replace(`{${"snapshotId"}}`, encodeURIComponent(String(requestParameters.snapshotId))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -369,25 +369,25 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Delete the VKG exploration
      */
-    async owlOntologyOntologyNameVkgCatalogSnapshotIdDelete(requestParameters: OwlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogSnapshotIdDeleteRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogSnapshotIdDelete(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Modify a VKG exploration
      */
-    async owlOntologyOntologyNameVkgCatalogSnapshotIdPutRaw(requestParameters: OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
+    async owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRaw(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
         if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVkgCatalogSnapshotIdPut.');
+            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPut.');
         }
 
         if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVkgCatalogSnapshotIdPut.');
+            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPut.');
         }
 
         if (requestParameters.snapshotId === null || requestParameters.snapshotId === undefined) {
-            throw new runtime.RequiredError('snapshotId','Required parameter requestParameters.snapshotId was null or undefined when calling owlOntologyOntologyNameVkgCatalogSnapshotIdPut.');
+            throw new runtime.RequiredError('snapshotId','Required parameter requestParameters.snapshotId was null or undefined when calling owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPut.');
         }
 
         const queryParameters: any = {};
@@ -401,7 +401,7 @@ export class VKGApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/owlOntology/{ontologyName}/vkg/catalog/{snapshotId}`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))).replace(`{${"snapshotId"}}`, encodeURIComponent(String(requestParameters.snapshotId))),
+            path: `/owlOntology/{ontologyName}/version/vkg/catalog/{snapshotId}`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))).replace(`{${"snapshotId"}}`, encodeURIComponent(String(requestParameters.snapshotId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -414,8 +414,8 @@ export class VKGApi extends runtime.BaseAPI {
     /**
      * Modify a VKG exploration
      */
-    async owlOntologyOntologyNameVkgCatalogSnapshotIdPut(requestParameters: OwlOntologyOntologyNameVkgCatalogSnapshotIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
-        const response = await this.owlOntologyOntologyNameVkgCatalogSnapshotIdPutRaw(requestParameters, initOverrides);
+    async owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPut(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
+        const response = await this.owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

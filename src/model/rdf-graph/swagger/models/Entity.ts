@@ -25,6 +25,12 @@ import {
     FunctionPropertiesEnumFromJSONTyped,
     FunctionPropertiesEnumToJSON,
 } from './FunctionPropertiesEnum';
+import type { TypesEnum } from './TypesEnum';
+import {
+    TypesEnumFromJSON,
+    TypesEnumFromJSONTyped,
+    TypesEnumToJSON,
+} from './TypesEnum';
 
 /**
  * 
@@ -32,6 +38,12 @@ import {
  * @interface Entity
  */
 export interface Entity {
+    /**
+     * 
+     * @type {Array<TypesEnum>}
+     * @memberof Entity
+     */
+    types?: Array<TypesEnum>;
     /**
      * 
      * @type {string}
@@ -84,6 +96,7 @@ export function EntityFromJSONTyped(json: any, ignoreDiscriminator: boolean): En
     }
     return {
         
+        'types': !exists(json, 'types') ? undefined : ((json['types'] as Array<any>).map(TypesEnumFromJSON)),
         'fullIri': json['fullIri'],
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
@@ -101,6 +114,7 @@ export function EntityToJSON(value?: Entity | null): any {
     }
     return {
         
+        'types': value.types === undefined ? undefined : ((value.types as Array<any>).map(TypesEnumToJSON)),
         'fullIri': value.fullIri,
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
         'datatype': value.datatype,

@@ -15,9 +15,12 @@
 
 import * as runtime from '../runtime';
 import type {
+  OntologyDraftInfo,
   RDFGraph,
 } from '../models';
 import {
+    OntologyDraftInfoFromJSON,
+    OntologyDraftInfoToJSON,
     RDFGraphFromJSON,
     RDFGraphToJSON,
 } from '../models';
@@ -36,12 +39,6 @@ export interface GetOntologyDraftRequest {
 
 export interface PostOntologyDraftsRequest {
     ontologyName: string;
-    rDFGraph?: RDFGraph;
-}
-
-export interface PostOntologyVersionFromRDFGraphRequest {
-    ontologyName: string;
-    version: string;
     rDFGraph?: RDFGraph;
 }
 
@@ -151,25 +148,25 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
     /**
      * Returns the list of all ontology drafts made by the user
      */
-    async getOntologyDraftsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RDFGraph>>> {
+    async getOntologyDraftsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<OntologyDraftInfo>>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/ontologyDrafts`,
+            path: `/ontologyDraftInfos`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RDFGraphFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(OntologyDraftInfoFromJSON));
     }
 
     /**
      * Returns the list of all ontology drafts made by the user
      */
-    async getOntologyDrafts(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RDFGraph>> {
+    async getOntologyDrafts(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<OntologyDraftInfo>> {
         const response = await this.getOntologyDraftsRaw(initOverrides);
         return await response.value();
     }
@@ -204,51 +201,6 @@ export class OntologyDesignerApi extends runtime.BaseAPI {
      */
     async postOntologyDrafts(requestParameters: PostOntologyDraftsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RDFGraph>> {
         const response = await this.postOntologyDraftsRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Add to the ontology a new version translated from the RDFGraph
-     */
-    async postOntologyVersionFromRDFGraphRaw(requestParameters: PostOntologyVersionFromRDFGraphRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
-        if (requestParameters.ontologyName === null || requestParameters.ontologyName === undefined) {
-            throw new runtime.RequiredError('ontologyName','Required parameter requestParameters.ontologyName was null or undefined when calling postOntologyVersionFromRDFGraph.');
-        }
-
-        if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling postOntologyVersionFromRDFGraph.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.version !== undefined) {
-            queryParameters['version'] = requestParameters.version;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        const response = await this.request({
-            path: `/owlOntology/{ontologyName}/version/fromRDFGraph`.replace(`{${"ontologyName"}}`, encodeURIComponent(String(requestParameters.ontologyName))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: RDFGraphToJSON(requestParameters.rDFGraph),
-        }, initOverrides);
-
-        if (this.isJsonMime(response.headers.get('content-type'))) {
-            return new runtime.JSONApiResponse<string>(response);
-        } else {
-            return new runtime.TextApiResponse(response) as any;
-        }
-    }
-
-    /**
-     * Add to the ontology a new version translated from the RDFGraph
-     */
-    async postOntologyVersionFromRDFGraph(requestParameters: PostOntologyVersionFromRDFGraphRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
-        const response = await this.postOntologyVersionFromRDFGraphRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
