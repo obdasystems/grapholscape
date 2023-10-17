@@ -200,7 +200,7 @@ export default class QueryManager {
 
     return new Promise<RDFGraph | undefined>(async (resolve) => {
       const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.CONSTRUCT)
-      const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId))
+      const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId, QueryType.CONSTRUCT))
       this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
 
       queryStatusPoller.onNewResults = (statusResult) => {
@@ -440,8 +440,7 @@ export default class QueryManager {
   }
 
   private getQueryStartPath(queryType = QueryType.STANDARD) {
-    // let query = 'query'
-    let query = 'new-cq-query'
+    let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
@@ -449,8 +448,7 @@ export default class QueryManager {
   }
 
   private getQueryStopPath(executionId: string, queryType = QueryType.STANDARD) {
-    // let query = 'query'
-    let query = 'new-cq-query'
+    let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
@@ -458,8 +456,7 @@ export default class QueryManager {
   }
 
   private getQueryResultPath(executionId: string, queryType = QueryType.STANDARD) {
-    // let endingPath = `query/${executionId}/results`
-    let endingPath = `new-cq-query/${executionId}/results`
+    let endingPath = localStorage.getItem('new_cq') === 'true' ? `new-cq-query/${executionId}/results` : `query/${executionId}/results`
     if (queryType === QueryType.CONSTRUCT) {
       endingPath = `cquery/${executionId}/results/rdfGraph`
     }
@@ -467,8 +464,7 @@ export default class QueryManager {
   }
 
   private getQueryStatePath(executionId: string, queryType = QueryType.STANDARD) {
-    // let query = 'query'
-    let query = 'new-cq-query'
+    let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
