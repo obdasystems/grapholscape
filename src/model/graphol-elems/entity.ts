@@ -20,15 +20,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     const instance = new GrapholEntity(iri)
 
     Object.entries(e).forEach(([key, value]) => {
-      if (key === 'types') {
-        /**
-         * types field is computed from occurrences,
-         * if types are stored in rdfGraph then store
-         * them as manualTypes.
-         * types will be the union of manual types and computed types
-         */
-        instance.manualTypes = new Set(value)
-      } else if (e[key] && key !== 'fullIri') {
+      if (e[key] && key !== 'fullIri') {
         instance[key] = value
       }
     })
@@ -259,7 +251,6 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
           datatype: ann.datatype,
         }
       }),
-      types: this.types,
       datatype: this.datatype,
       functionProperties: this.functionProperties,
       isDataPropertyFunctional: this.isDataPropertyFunctional,

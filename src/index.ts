@@ -4,12 +4,12 @@ import edgehandles from 'cytoscape-edgehandles'
 import klay from 'cytoscape-klay'
 import popper from 'cytoscape-popper'
 import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
-import { Core, Grapholscape, OntologyColorManager } from './core'
+import { Core, Grapholscape, IncrementalRendererState, OntologyColorManager } from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
 import { initIncremental } from './incremental'
 import { RequestOptions } from './incremental/api/model'
-import { moveUpLeft } from './incremental/ui'
-import { ColoursNames, DefaultThemes, GrapholscapeTheme, IncrementalDiagram, Ontology, RendererStatesEnum } from './model'
+import { moveUpLeft, NodeButtonsFactory } from './incremental/ui'
+import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
 import parseRDFGraph, * as RDFGraphParser from './parsing/rdf-graph-parser'
@@ -93,6 +93,39 @@ export async function bareGrapholscape(file: string | File, container: HTMLEleme
   return grapholscape
 }
 
+export async function incrementalGrapholscape(ontology: string | File | RDFGraph, container: HTMLElement, rdfGraphToResume?: RDFGraph, config?: GrapholscapeConfig) {
+  let _config: GrapholscapeConfig = {}
+  let grapholscape: Grapholscape | undefined
+
+  if (rdfGraphToResume?.config) {
+    _config = RDFGraphParser.getConfig(rdfGraphToResume)
+  } else {
+    if (config) {
+      Object.assign(_config, config)
+    }
+  }
+  _config.renderers = [ RendererStatesEnum.INCREMENTAL ]
+  _config.initialRendererSelection = false
+
+  if ((ontology as RDFGraph).metadata) {
+    grapholscape = new Core(parseRDFGraph((ontology as RDFGraph)), container, _config)
+  } else {
+    grapholscape = await getGrapholscape((ontology as string | File), container, _config)
+  }
+  
+  if (!grapholscape)
+    return
+
+  UI.initUI(grapholscape)
+  initIncremental(grapholscape)
+  if (!rdfGraphToResume) {
+    return grapholscape
+  }
+  initFromResume(grapholscape, rdfGraphToResume, false)
+
+  return grapholscape
+}
+
 export function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
   const grapholscape = new Core(parseRDFGraph(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
@@ -105,11 +138,13 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnect
   return grapholscape
 }
 
-export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
-  UI.initUI(grapholscape)
+export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true) {
+  if (forceInit) {
+    UI.initUI(grapholscape)
 
-  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-    initIncremental(grapholscape)
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
+      initIncremental(grapholscape)
+    }
   }
 
   // Stop layout, use positions from rdfGraph, for floaty/incremental
@@ -146,7 +181,7 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
     const diagramRepr = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities)[0]
       .representations.get(RendererStatesEnum.INCREMENTAL)
     if (diagramRepr) {
-      grapholscape.incremental.diagram = new IncrementalDiagram()
+      // grapholscape.incremental.diagram = new IncrementalDiagram()
       if (diagramRepr.lastViewportState) {
         grapholscape.incremental.diagram.lastViewportState = diagramRepr.lastViewportState
       }
@@ -159,6 +194,8 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
 
       // Diagram (representation) has been changed, set event handlers again
       grapholscape.incremental.setIncrementalEventHandlers()
+      // Diagram representation has been changed, set nodes button event handlers
+      NodeButtonsFactory(grapholscape.incremental)
 
       if (diagramRepr.grapholElements.size > 0) {
         const initialMenu = grapholscape.widgets.get(UI.WidgetEnum.INCREMENTAL_INITIAL_MENU)
@@ -166,41 +203,10 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph) {
           moveUpLeft(initialMenu)
       }
 
-      new OntologyColorManager(grapholscape.ontology, diagramRepr).colorEntities(allEntities, true)
+      new OntologyColorManager(grapholscape.ontology, diagramRepr).colorEntities(allEntities)
 
       grapholscape.incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
     }
-
-
-    // grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
-    //   if (elem.is(TypesEnum.CLASS_INSTANCE) && elem.iri) {
-    //     const entity = grapholscape.incremental?.classInstanceEntities.get(elem.iri)
-    //     if (entity) {
-    //       elem.displayedName = entity.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
-    //       grapholscape.incremental?.diagram.representation?.updateElement(elem, entity)
-    //     }
-    //   }
-    // })
-    // const entityNameTypes = Object.values(EntityNameType)
-    // let i = 0
-    // let e = entityNameTypes[i]
-    // while(e === rdfGraph.config?.entityNameType) {
-    //   if (i >= entityNameTypes.length)
-    //     break
-    //   e = entityNameTypes[i]
-    //   i++
-    // }
-    // grapholscape.setEntityNameType(e)
-    // if (rdfGraph.config?.entityNameType)
-    //   grapholscape.setEntityNameType(rdfGraph.config?.entityNameType)
-    // else
-    //   grapholscape.setEntityNameType(EntityNameType.LABEL)
-    // grapholscape.incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
-    // grapholscape.incremental.diagram.representation?.grapholElements.forEach(elem => {
-    //   if (elem.iri) {
-    //     grapholscape?.incremental?.classInstanceEntities.get(elem.iri)?.addOccurrence(elem, RendererStatesEnum.INCREMENTAL)
-    //   }
-    // })
   }
 }
 
