@@ -31,12 +31,6 @@ import {
     FunctionPropertiesEnumFromJSONTyped,
     FunctionPropertiesEnumToJSON,
 } from './FunctionPropertiesEnum';
-import type { TypesEnum } from './TypesEnum';
-import {
-    TypesEnumFromJSON,
-    TypesEnumFromJSONTyped,
-    TypesEnumToJSON,
-} from './TypesEnum';
 
 /**
  * 
@@ -44,12 +38,6 @@ import {
  * @interface ClassInstanceEntity
  */
 export interface ClassInstanceEntity {
-    /**
-     * 
-     * @type {Array<TypesEnum>}
-     * @memberof ClassInstanceEntity
-     */
-    types?: Array<TypesEnum>;
     /**
      * 
      * @type {string}
@@ -120,7 +108,6 @@ export function ClassInstanceEntityFromJSONTyped(json: any, ignoreDiscriminator:
     }
     return {
         
-        'types': !exists(json, 'types') ? undefined : ((json['types'] as Array<any>).map(TypesEnumFromJSON)),
         'fullIri': json['fullIri'],
         'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
@@ -141,7 +128,6 @@ export function ClassInstanceEntityToJSON(value?: ClassInstanceEntity | null): a
     }
     return {
         
-        'types': value.types === undefined ? undefined : ((value.types as Array<any>).map(TypesEnumToJSON)),
         'fullIri': value.fullIri,
         'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
         'datatype': value.datatype,
