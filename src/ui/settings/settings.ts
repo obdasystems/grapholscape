@@ -166,12 +166,12 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
           </div>
         </div>
 
-        <div class="area">
+        <!-- <div class="area">
           <div class="setting">
             <gscape-button label="Export JSON" size="s" @click=${this.onJSONExport}>
             </gscape-button>
           </div>
-        </div>
+        </div> -->
 
         <div class="area">
           <div class="bold-text">About</div>
