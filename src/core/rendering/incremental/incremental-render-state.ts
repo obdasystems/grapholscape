@@ -42,7 +42,8 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
     if (!incrementalRepresentation.hasEverBeenRendered) {
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
-      this.setDragAndPinEventHandlers()
+      this.setDragAndPinEventHandlers();
+      (this.renderer.cy as any).automove(this.automoveOptions)
     }
 
     if (this.popperContainer) {

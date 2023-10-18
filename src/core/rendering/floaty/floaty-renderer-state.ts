@@ -311,7 +311,7 @@ export default class FloatyRendererState extends BaseRenderer {
           // keep element centered while layout runs
           cyElement.isNode() ? cyElement.lock() : cyElement.connectedNodes().lock()
         }
-        
+
         performAnimation()
         if (this.isLayoutInfinite) {
           // run layout not fitting it, avoid conflict with fitting view on element
@@ -322,7 +322,7 @@ export default class FloatyRendererState extends BaseRenderer {
               if (!cyElement.data().pinned) {
                 cyElement.isNode() ? cyElement.unlock() : cyElement.connectedNodes().unlock()
               }
-              
+
               // wait for layout to stop and restore previous conditions
               this.runLayoutInfinitely()
             } else {
@@ -355,7 +355,8 @@ export default class FloatyRendererState extends BaseRenderer {
   }
 
   protected automoveOptions = {
-    nodesMatching: (node: NodeSingular) => this.renderer.cy?.$(':grabbed').neighborhood(`[type = "${TypesEnum.DATA_PROPERTY}"]`).has(node),
+    nodesMatching: (node: NodeSingular) => !this.layoutRunning &&
+      this.renderer.cy?.$(':grabbed').neighborhood(`[type = "${TypesEnum.DATA_PROPERTY}"],[[degree = 1]]`).has(node),
     reposition: 'drag',
     dragWith: `[type ="${TypesEnum.CLASS}"][iri]`
   }
