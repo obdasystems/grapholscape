@@ -11,8 +11,8 @@ export { GscapeEntityColorLegend };
 function initEntityColorLegend(grapholscape: Grapholscape) {
   const entityColorLegend = new GscapeEntityColorLegend()
 
-  entityColorLegend['_previous_callback'] = (elem) => grapholscape.centerOnElement(elem.id, undefined, 1.5)
-  entityColorLegend.onElementSelection = (elem) => grapholscape.centerOnElement(elem.id, undefined, 1.5)
+  entityColorLegend['_previous_callback'] = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5)
+  entityColorLegend.onElementSelection = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5)
  
   grapholscape.widgets.set(WidgetEnum.ENTITY_COLOR_LEGEND, entityColorLegend)
 
