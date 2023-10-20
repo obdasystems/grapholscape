@@ -130,6 +130,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
 
     // Nodes
     d.nodes?.forEach(n => {
+      grapholEntity = undefined
       grapholElement = GrapholNode.newFromSwagger(n)
       grapholElement.diagramId = d.id
       if (grapholElement.iri) {
@@ -140,7 +141,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
         )
         grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
-      diagramRepr!.addElement(grapholElement)
+      diagramRepr!.addElement(grapholElement, grapholEntity)
     })
 
     // Edges
@@ -148,6 +149,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       if (!e.id) {
         e.id = diagramRepr!.getNewId('edge')
       }
+      grapholEntity = undefined
       grapholElement = GrapholEdge.newFromSwagger(e)
       grapholElement.diagramId = d.id
       if (grapholElement.iri) {
@@ -158,7 +160,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
         )
         grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
-      diagramRepr!.addElement(grapholElement)
+      diagramRepr!.addElement(grapholElement, grapholEntity)
     })
 
     if (d.lastViewportState !== undefined) {
