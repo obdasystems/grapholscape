@@ -62,34 +62,12 @@ export default class EntityNavigator {
   }
 
   getEntityOccurrenceInDiagram(iri: string, diagramId: number) {
-    const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)
+    if (!this._grapholscape.renderState)
+      return
 
-    if (!occurrencesMap) return
+    const occurrences = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)?.get(this._grapholscape.renderState)
 
-    const grapholOccurrences = occurrencesMap.get(RendererStatesEnum.GRAPHOL)
-    // if no graphol occurrence, then cannot appear in any representation
-    if (!grapholOccurrences || grapholOccurrences.length <= 0) return
-
-    const diagram = this._grapholscape.ontology.getDiagram(diagramId)
-
-    if (!diagram || !this._grapholscape.renderState) return
-
-    const currentDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState)
-
-    // Search any original graphol occurrence in the current representation
-    for (let grapholOccurrence of grapholOccurrences) {
-      if (currentDiagramRepresentation?.grapholElements.get(grapholOccurrence.id) === grapholOccurrence) {
-        return grapholOccurrence
-      }
-    }
-
-    // The original graphol occurrence may not be present in a new representation
-    // Find first replicated occurrence
-    const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState)
-
-    if (replicatedOccurrences && replicatedOccurrences.length > 0) {
-      return replicatedOccurrences[0]
-    }
+    return occurrences ? occurrences[0] : undefined
   }
 
   updateEntitiesOccurrences() {
