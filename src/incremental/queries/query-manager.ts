@@ -372,7 +372,7 @@ export default class QueryManager {
       default:
         url = this.getQueryStartPath(queryType)
         params = new URLSearchParams({
-          useReplaceForUrlEncoding: 'false',
+          useReplaceForUrlEncoding: 'true',
           querySemantics: querySemantics,
           advanced: 'true',
           reasoning: 'true',

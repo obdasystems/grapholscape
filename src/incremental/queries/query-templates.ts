@@ -133,7 +133,7 @@ export function getInstanceDataPropertyValues(instanceIRI: string, dataPropertyI
   return `
   SELECT DISTINCT ?y
   WHERE {
-    <${encodeURI(instanceIRI)}> <${dataPropertyIRI}> ?y
+    <${instanceIRI}> <${dataPropertyIRI}> ?y
   }
   LIMIT 10
   `
@@ -158,8 +158,8 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y a <${rangeTypeClassIri}>.
@@ -171,8 +171,8 @@ export function getInstancesThroughObjectProperty(instanceIRI: string, objectPro
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
@@ -210,8 +210,8 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y a <${rangeTypeClassIri}>.
@@ -222,8 +222,8 @@ export function getInstancesThroughObjectPropertyByLabel(instanceIRI: string, ob
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y rdfs:label ?ly
@@ -262,8 +262,8 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y a <${rangeTypeClassIri}>.
@@ -273,8 +273,8 @@ export function getInstancesThroughObjectPropertyByIRI(instanceIRI: string, obje
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
       ${getSearchFilters('?y', searchText)}
     `]
@@ -323,8 +323,8 @@ export function getInstancesThroughOPByDP(
   if (rangeTypeClassesIri) {
     whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y a <${rangeTypeClassIri}>;
@@ -336,8 +336,8 @@ export function getInstancesThroughOPByDP(
     // No rangeClassType
     whereClausesInUnion = [`
       ${!isDirect
-        ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-        : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`
+        ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+        : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`
       }
 
       ?y ${includeLabels ? 'rdfs:label ?ly;' : ''}
@@ -376,7 +376,7 @@ export function getInstanceLabels(instanceIri: string) {
   return `
     SELECT DISTINCT ?l
     WHERE {
-      <${encodeURI(instanceIri)}> rdfs:label ?l
+      <${instanceIri}> rdfs:label ?l
     }
   `
 }

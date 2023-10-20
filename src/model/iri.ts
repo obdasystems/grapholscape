@@ -3,9 +3,11 @@ import Namespace from "./namespace"
 export default class Iri {
   private _namespace?: Namespace
   private _remainder: string
+  fullIri: string
 
   constructor(iri: string, namespaces: Namespace[], remainder?: string) {
     let isPrefixed = false
+    this.fullIri = iri
     this.namespace = namespaces.find(n => {
       if (iri.includes(n.toString()))
         return true
@@ -20,13 +22,6 @@ export default class Iri {
 
     if (remainder) {
       this.remainder = remainder
-      const ns = iri.split(remainder)[0]
-      if (iri === ns.concat(remainder)) {
-        this.namespace = new Namespace([], ns)
-      } else {
-        this.remainder = iri
-      }
-      
     } else {
       if (!this.namespace) {
         console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`)
@@ -64,9 +59,9 @@ export default class Iri {
     return this.namespace?.prefixes[0]
   }
 
-  public get fullIri() {
-    return this.namespace?.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
-  }
+  // public get fullIri() {
+  //   return this.namespace?.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
+  // }
 
   public get prefixed() {
     return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`

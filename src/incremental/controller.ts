@@ -481,7 +481,7 @@ export default class IncrementalController {
 
     // if not already present, then build classInstanceEntity and add it to diagram
     if (!classInstanceEntity) {
-      const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri)
+      const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri && decodeURIComponent(instance.shortIri))
 
       classInstanceEntity = new ClassInstanceEntity(classInstanceIri)
 
