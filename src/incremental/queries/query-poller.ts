@@ -110,7 +110,11 @@ export abstract class QueryPoller {
   private triggerError(result: APICallResult) {
     this.status = QueryPollerStatus.ERROR
     this.stopPolling()
-    this.onError(result)
+    if (isStatusResult(result)) {
+      this.onError(result.errorMessages)
+    } else {
+      this.onError(result)
+    }
   }
 
   protected getErrrorMessage(result: APICallResult): string | string[] {
@@ -233,4 +237,8 @@ export class QueryConstructResultsPoller extends QueryPoller {
   get result(): RDFGraph {
     return this._result
   }
+}
+
+function isStatusResult(result: APICallResult): result is QueryStatus {
+  return (result as QueryStatus).status !== undefined
 }
