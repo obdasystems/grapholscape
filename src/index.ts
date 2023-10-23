@@ -164,7 +164,7 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, f
          */
         setGraphEventHandlers(diagram, grapholscape.lifecycle, grapholscape.ontology)
         const floatyRepr = diagram.representations.get(RendererStatesEnum.FLOATY)
-        if (floatyRepr)
+        if (floatyRepr && floatyRepr.lastViewportState !== null)
           floatyRepr.hasEverBeenRendered = true
         grapholscape.showDiagram(diagram.id);
         // (grapholscape.renderer.cy as any)?.updateStyle()

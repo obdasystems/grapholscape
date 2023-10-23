@@ -163,7 +163,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       diagramRepr!.addElement(grapholElement, grapholEntity)
     })
 
-    if (d.lastViewportState !== undefined) {
+    if (d.lastViewportState !== undefined && d.lastViewportState !== null) {
       const diagramRepr = diagram.representations.get(rendererState)
       if (diagramRepr) {
         diagramRepr.hasEverBeenRendered = true

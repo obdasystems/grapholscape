@@ -64,16 +64,15 @@ export default class FloatyRendererState extends BaseRenderer {
     this.renderer.cy = floatyRepresentation.cy
     this.renderer.mount()
 
+    new DiagramColorManager(
+      this.renderer.diagram.representations.get(this.id)!
+    ).colorDiagram()
+
     if (!floatyRepresentation.hasEverBeenRendered) {
-
-      new DiagramColorManager(
-        this.renderer.diagram.representations.get(this.id)!
-      ).colorDiagram()
-
-
       // this.floatyLayoutOptions.fit = true
       this.renderer.fit()
       this.runLayout()
+      setTimeout(() => this.renderer.fit(), 200)
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers();
 
