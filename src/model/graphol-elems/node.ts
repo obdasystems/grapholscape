@@ -24,6 +24,14 @@ export default class GrapholNode extends GrapholElement implements Node {
       }
     })
 
+    if (instance.labelXpos === undefined || instance.labelXpos === null) {
+      instance.labelXpos = 0
+    }
+
+    if (instance.labelYpos === undefined || instance.labelYpos === null) {
+      instance.labelYpos = -18
+    }
+
     return instance
   }
 
