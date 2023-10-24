@@ -221,7 +221,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
 
     // pollPage(1)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.CQ)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.AUTO)
     queryPoller.onNewResults = (results) => {
       onNewResults(results.results.map(res => res[0].value))
     }
@@ -271,7 +271,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       queryCode = QueriesTemplates.getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels, customLimit)
     }
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.CQ, keepAlive)
+    const queryPoller = await this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.AUTO, keepAlive)
     queryPoller.onNewResults = (result) => {
       onNewResults(
         result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)),
@@ -348,7 +348,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getInstanceLabels(instanceIri: string, onResult: (result: { value: string, language?: string }[]) => void) {
     const queryCode = QueriesTemplates.getInstanceLabels(instanceIri)
 
-    const queryPoller = await this.queryManager.performQuery(queryCode, 100, QuerySemantics.CQ, true)
+    const queryPoller = await this.queryManager.performQuery(queryCode, 100, QuerySemantics.AUTO, true)
     queryPoller.onNewResults = (result) => {
       onResult(result.results.map(r => this.parseLabel(r[0].value)).filter(l => l.value !== 'null'))
     }

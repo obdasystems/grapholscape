@@ -41,7 +41,7 @@ export default class QueryManager {
    * object you can set the onNewResults callback to react every time new results
    * are obtained.
    */
-  async performQuery(queryCode: string, pageSize: number, querySemantics: QuerySemantics = QuerySemantics.CQ, keepAlive = false): Promise<QueryResultsPoller> {
+  async performQuery(queryCode: string, pageSize: number, querySemantics: QuerySemantics = QuerySemantics.AUTO, keepAlive = false): Promise<QueryResultsPoller> {
     const executionId = await this.startQuery(queryCode, querySemantics)
 
     // return this.getQueryResults(executionId, pageSize, pageNumber)
@@ -140,7 +140,7 @@ export default class QueryManager {
    * @returns a promise which will be resolved with the result
    */
   async performQueryCount(queryCode: string, onStopCallback?: () => void): Promise<number> {
-    const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.COUNT)
+    const executionId = await this.startQuery(queryCode, QuerySemantics.AUTO, QueryType.COUNT)
     const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId))
 
     this._runningCountQueryPollerByExecutionId.set(executionId, countStatePoller)
@@ -199,7 +199,7 @@ export default class QueryManager {
     // queryResultsPoller.onError = this.requestOptions.onError
 
     return new Promise<RDFGraph | undefined>(async (resolve) => {
-      const executionId = await this.startQuery(queryCode, QuerySemantics.CQ, QueryType.CONSTRUCT)
+      const executionId = await this.startQuery(queryCode, QuerySemantics.AUTO, QueryType.CONSTRUCT)
       const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId, QueryType.CONSTRUCT))
       this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
 
@@ -439,7 +439,7 @@ export default class QueryManager {
   }
 
   private getQueryStartPath(queryType = QueryType.STANDARD) {
-    let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query'
+    let query = 'query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
@@ -447,7 +447,7 @@ export default class QueryManager {
   }
 
   private getQueryStopPath(executionId: string, queryType = QueryType.STANDARD) {
-    let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query'
+    let query = 'query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }
@@ -455,7 +455,7 @@ export default class QueryManager {
   }
 
   private getQueryResultPath(executionId: string, queryType = QueryType.STANDARD) {
-    let endingPath = localStorage.getItem('new_cq') === 'true' ? `new-cq-query/${executionId}/results` : `query/${executionId}/results`
+    let endingPath = `query/${executionId}/results`
     if (queryType === QueryType.CONSTRUCT) {
       endingPath = `cquery/${executionId}/results/rdfGraph`
     }
@@ -463,7 +463,7 @@ export default class QueryManager {
   }
 
   private getQueryStatePath(executionId: string, queryType = QueryType.STANDARD) {
-    let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query'
+    let query = 'query'
     if (queryType === QueryType.CONSTRUCT) {
       query = 'cquery'
     }

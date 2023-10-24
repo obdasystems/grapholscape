@@ -26,6 +26,7 @@ export enum QueryStatusEnum {
 }
 
 export enum QuerySemantics {
+  AUTO = 'auto',
   CQ = 'cq',
   FULL_SPARQL = 'eql'
 }
