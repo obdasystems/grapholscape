@@ -374,7 +374,6 @@ export default class QueryManager {
         params = new URLSearchParams({
           useReplaceForUrlEncoding: 'true',
           querySemantics: querySemantics,
-          advanced: 'true',
           reasoning: 'true',
           expandSparqlTables: 'true'
         })
