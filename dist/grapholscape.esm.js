@@ -296,6 +296,7 @@ const DefaultNamespaces = {
 class Iri {
     constructor(iri, namespaces, remainder) {
         let isPrefixed = false;
+        this.fullIri = iri;
         this.namespace = namespaces.find(n => {
             if (iri.includes(n.toString()))
                 return true;
@@ -308,13 +309,6 @@ class Iri {
         });
         if (remainder) {
             this.remainder = remainder;
-            const ns = iri.split(remainder)[0];
-            if (iri === ns.concat(remainder)) {
-                this.namespace = new Namespace([], ns);
-            }
-            else {
-                this.remainder = iri;
-            }
         }
         else {
             if (!this.namespace) {
@@ -349,10 +343,9 @@ class Iri {
         var _a;
         return (_a = this.namespace) === null || _a === void 0 ? void 0 : _a.prefixes[0];
     }
-    get fullIri() {
-        var _a;
-        return ((_a = this.namespace) === null || _a === void 0 ? void 0 : _a.toString()) ? `${this.namespace.toString()}${this.remainder}` : this.remainder;
-    }
+    // public get fullIri() {
+    //   return this.namespace?.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
+    // }
     get prefixed() {
         return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`;
     }
@@ -4071,6 +4064,12 @@ class GrapholNode extends GrapholElement {
                 }
             }
         });
+        if (instance.labelXpos === undefined || instance.labelXpos === null) {
+            instance.labelXpos = 0;
+        }
+        if (instance.labelYpos === undefined || instance.labelYpos === null) {
+            instance.labelYpos = -18;
+        }
         return instance;
     }
     get position() { return { x: this.x, y: this.y }; }
@@ -6435,29 +6434,11 @@ class EntityNavigator {
         }
     }
     getEntityOccurrenceInDiagram(iri, diagramId) {
-        const occurrencesMap = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId);
-        if (!occurrencesMap)
+        var _a;
+        if (!this._grapholscape.renderState)
             return;
-        const grapholOccurrences = occurrencesMap.get(RendererStatesEnum.GRAPHOL);
-        // if no graphol occurrence, then cannot appear in any representation
-        if (!grapholOccurrences || grapholOccurrences.length <= 0)
-            return;
-        const diagram = this._grapholscape.ontology.getDiagram(diagramId);
-        if (!diagram || !this._grapholscape.renderState)
-            return;
-        const currentDiagramRepresentation = diagram.representations.get(this._grapholscape.renderState);
-        // Search any original graphol occurrence in the current representation
-        for (let grapholOccurrence of grapholOccurrences) {
-            if ((currentDiagramRepresentation === null || currentDiagramRepresentation === void 0 ? void 0 : currentDiagramRepresentation.grapholElements.get(grapholOccurrence.id)) === grapholOccurrence) {
-                return grapholOccurrence;
-            }
-        }
-        // The original graphol occurrence may not be present in a new representation
-        // Find first replicated occurrence
-        const replicatedOccurrences = occurrencesMap.get(this._grapholscape.renderState);
-        if (replicatedOccurrences && replicatedOccurrences.length > 0) {
-            return replicatedOccurrences[0];
-        }
+        const occurrences = (_a = this._grapholscape.ontology.getEntityOccurrences(iri, diagramId)) === null || _a === void 0 ? void 0 : _a.get(this._grapholscape.renderState);
+        return occurrences ? occurrences[0] : undefined;
     }
     updateEntitiesOccurrences() {
         var _a;
@@ -7866,7 +7847,11 @@ class FloatyRendererState extends BaseRenderer {
             }
         };
         this.automoveOptions = {
-            nodesMatching: (node) => { var _a; return (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$(':grabbed').neighborhood(`[type = "${TypesEnum.DATA_PROPERTY}"]`).has(node); },
+            nodesMatching: (node) => {
+                var _a;
+                return !this.layoutRunning &&
+                    ((_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.$(':grabbed').neighborhood(`[type = "${TypesEnum.DATA_PROPERTY}"],[[degree = 1]]`).has(node));
+            },
             reposition: 'drag',
             dragWith: `[type ="${TypesEnum.CLASS}"][iri]`
         };
@@ -7912,11 +7897,12 @@ class FloatyRendererState extends BaseRenderer {
         }
         this.renderer.cy = floatyRepresentation.cy;
         this.renderer.mount();
+        new DiagramColorManager(this.renderer.diagram.representations.get(this.id)).colorDiagram();
         if (!floatyRepresentation.hasEverBeenRendered) {
-            new DiagramColorManager(this.renderer.diagram.representations.get(this.id)).colorDiagram();
             // this.floatyLayoutOptions.fit = true
             this.renderer.fit();
             this.runLayout();
+            setTimeout(() => this.renderer.fit(), 200);
             this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
             this.setDragAndPinEventHandlers();
             this.renderer.cy.automove(this.automoveOptions);
@@ -8351,6 +8337,7 @@ class IncrementalRendererState extends FloatyRendererState {
         if (!incrementalRepresentation.hasEverBeenRendered) {
             this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
             this.setDragAndPinEventHandlers();
+            this.renderer.cy.automove(this.automoveOptions);
         }
         if (this.popperContainer) {
             (_d = (_c = this.renderer.cy) === null || _c === void 0 ? void 0 : _c.container()) === null || _d === void 0 ? void 0 : _d.appendChild(this.popperContainer);
@@ -12722,8 +12709,8 @@ customElements.define('gscape-entity-color-legend', GscapeEntityColorLegend);
 
 function initEntityColorLegend(grapholscape) {
     const entityColorLegend = new GscapeEntityColorLegend();
-    entityColorLegend['_previous_callback'] = (elem) => grapholscape.centerOnElement(elem.id, undefined, 1.5);
-    entityColorLegend.onElementSelection = (elem) => grapholscape.centerOnElement(elem.id, undefined, 1.5);
+    entityColorLegend['_previous_callback'] = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5);
+    entityColorLegend.onElementSelection = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5);
     grapholscape.widgets.set(WidgetEnum.ENTITY_COLOR_LEGEND, entityColorLegend);
     return entityColorLegend;
 }
@@ -14706,12 +14693,12 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
           </div>
         </div>
 
-        <div class="area">
+        <!-- <div class="area">
           <div class="setting">
             <gscape-button label="Export JSON" size="s" @click=${this.onJSONExport}>
             </gscape-button>
           </div>
-        </div>
+        </div> -->
 
         <div class="area">
           <div class="bold-text">About</div>
@@ -14721,7 +14708,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.12"}</span>
+            <span>${"4.0.0-snap.13"}</span>
           </div>
         </div>
       </div>
@@ -15897,6 +15884,7 @@ var index$1 = /*#__PURE__*/Object.freeze({
     GscapeConfirmDialog: GscapeConfirmDialog,
     GscapeContextMenu: GscapeContextMenu,
     GscapeDiagramSelector: GscapeDiagramSelector,
+    GscapeEntityColorLegend: GscapeEntityColorLegend,
     GscapeEntityListItem: GscapeEntityListItem,
     GscapeEntitySearch: GscapeEntitySearch,
     GscapeEntitySelector: GscapeEntitySelector,
@@ -15926,6 +15914,7 @@ var index$1 = /*#__PURE__*/Object.freeze({
     initInitialRendererSelector: initInitialRendererSelector,
     initUI: init,
     search: search,
+    setColorList: setColorList,
     showMessage: showMessage,
     textSpinner: textSpinner,
     textSpinnerStyle: textSpinnerStyle
@@ -16037,6 +16026,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
         // Nodes
         (_a = d.nodes) === null || _a === void 0 ? void 0 : _a.forEach(n => {
             var _a, _b;
+            grapholEntity = undefined;
             grapholElement = GrapholNode.newFromSwagger(n);
             grapholElement.diagramId = d.id;
             if (grapholElement.iri) {
@@ -16044,7 +16034,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
                 grapholElement.displayedName = grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.getDisplayedName(((_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.entityNameType) || RDFGraphConfigEntityNameTypeEnum.LABEL, ((_b = rdfGraph.config) === null || _b === void 0 ? void 0 : _b.language) || rdfGraph.metadata.defaultLanguage || Language.EN);
                 grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
             }
-            diagramRepr.addElement(grapholElement);
+            diagramRepr.addElement(grapholElement, grapholEntity);
         });
         // Edges
         (_b = d.edges) === null || _b === void 0 ? void 0 : _b.forEach(e => {
@@ -16052,6 +16042,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
             if (!e.id) {
                 e.id = diagramRepr.getNewId('edge');
             }
+            grapholEntity = undefined;
             grapholElement = GrapholEdge.newFromSwagger(e);
             grapholElement.diagramId = d.id;
             if (grapholElement.iri) {
@@ -16059,9 +16050,9 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
                 grapholElement.displayedName = grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.getDisplayedName(((_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.entityNameType) || RDFGraphConfigEntityNameTypeEnum.LABEL, ((_b = rdfGraph.config) === null || _b === void 0 ? void 0 : _b.language) || rdfGraph.metadata.defaultLanguage || Language.EN);
                 grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
             }
-            diagramRepr.addElement(grapholElement);
+            diagramRepr.addElement(grapholElement, grapholEntity);
         });
-        if (d.lastViewportState !== undefined) {
+        if (d.lastViewportState !== undefined && d.lastViewportState !== null) {
             const diagramRepr = diagram.representations.get(rendererState);
             if (diagramRepr) {
                 diagramRepr.hasEverBeenRendered = true;
@@ -16236,7 +16227,12 @@ class QueryPoller {
     triggerError(result) {
         this.status = QueryPollerStatus.ERROR;
         this.stopPolling();
-        this.onError(result);
+        if (isStatusResult(result)) {
+            this.onError(result.errorMessages);
+        }
+        else {
+            this.onError(result);
+        }
     }
     getErrrorMessage(result) {
         return result.toString();
@@ -16311,6 +16307,9 @@ class QueryCountStatePoller extends QueryPoller {
 }
 QueryCountStatePoller.QUERY_STATUS_FINISHED = 3;
 QueryCountStatePoller.QUERY_STATUS_ERROR = 4;
+function isStatusResult(result) {
+    return result.status !== undefined;
+}
 
 class InstanceCheckingPoller extends QueryPoller {
     constructor(request) {
@@ -16659,9 +16658,8 @@ class QueryManager {
                 default:
                     url = this.getQueryStartPath(queryType);
                     params = new URLSearchParams({
-                        useReplaceForUrlEncoding: 'false',
+                        useReplaceForUrlEncoding: 'true',
                         querySemantics: querySemantics,
-                        advanced: 'true',
                         reasoning: 'true',
                         expandSparqlTables: 'true'
                     });
@@ -16886,7 +16884,7 @@ function getInstanceDataPropertyValues(instanceIRI, dataPropertyIRI) {
     return `
   SELECT DISTINCT ?y
   WHERE {
-    <${encodeURI(instanceIRI)}> <${dataPropertyIRI}> ?y
+    <${instanceIRI}> <${dataPropertyIRI}> ?y
   }
   LIMIT 10
   `;
@@ -16908,8 +16906,8 @@ function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, range
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+            : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ?y a <${rangeTypeClassIri}>.
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
@@ -16919,8 +16917,8 @@ function getInstancesThroughObjectProperty(instanceIRI, objectPropertyIRI, range
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+                : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ${includeLabels ? '?y rdfs:label ?ly' : ''}
     `];
@@ -16953,8 +16951,8 @@ function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+            : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ?y a <${rangeTypeClassIri}>.
       ?y rdfs:label ?ly
@@ -16965,8 +16963,8 @@ function getInstancesThroughObjectPropertyByLabel(instanceIRI, objectPropertyIRI
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+                : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ?y rdfs:label ?ly
       ${getSearchFilters('?ly', searchText)}
@@ -17000,8 +16998,8 @@ function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, 
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+            : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ?y a <${rangeTypeClassIri}>.
       ${getSearchFilters('?y', searchText)}
@@ -17011,8 +17009,8 @@ function getInstancesThroughObjectPropertyByIRI(instanceIRI, objectPropertyIRI, 
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+                : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
       ${getSearchFilters('?y', searchText)}
     `];
     }
@@ -17047,8 +17045,8 @@ function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClas
     if (rangeTypeClassesIri) {
         whereClausesInUnion = rangeTypeClassesIri.map(rangeTypeClassIri => `
       ${!isDirect
-            ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-            : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+            ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+            : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ?y a <${rangeTypeClassIri}>;
         ${includeLabels ? 'rdfs:label ?ly;' : ''}
@@ -17060,8 +17058,8 @@ function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClas
         // No rangeClassType
         whereClausesInUnion = [`
       ${!isDirect
-                ? `?y <${objectPropertyIRI}> <${encodeURI(instanceIRI)}>.`
-                : `<${encodeURI(instanceIRI)}> <${objectPropertyIRI}> ?y.`}
+                ? `?y <${objectPropertyIRI}> <${instanceIRI}>.`
+                : `<${instanceIRI}> <${objectPropertyIRI}> ?y.`}
 
       ?y ${includeLabels ? 'rdfs:label ?ly;' : ''}
          <${dataPropertyFilterIRI}> ?dp.
@@ -17095,7 +17093,7 @@ function getInstanceLabels(instanceIri) {
     return `
     SELECT DISTINCT ?l
     WHERE {
-      <${encodeURI(instanceIri)}> rdfs:label ?l
+      <${instanceIri}> rdfs:label ?l
     }
   `;
 }
@@ -17381,8 +17379,8 @@ class VKGApi {
             const columnType = getHeadType(headTerms[i]);
             if (columnType === HeadTypes.OBJECT) {
                 instance = {
-                    iri: decodeURI(resultColumn.value),
-                    shortIri: decodeURI(resultColumn.shortIRI),
+                    iri: resultColumn.value,
+                    shortIri: resultColumn.shortIRI,
                 };
                 let nextColumnType = getHeadType(headTerms[i + 1]);
                 let nextColumn = results[i + 1];
@@ -18409,7 +18407,7 @@ class IncrementalController {
         let classInstanceEntity = this.classInstanceEntities.get(instance.iri);
         // if not already present, then build classInstanceEntity and add it to diagram
         if (!classInstanceEntity) {
-            const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri);
+            const classInstanceIri = new Iri(instance.iri, this.ontology.namespaces, instance.shortIri && decodeURIComponent(instance.shortIri));
             classInstanceEntity = new ClassInstanceEntity(classInstanceIri);
             if (instance.label) {
                 classInstanceEntity.addAnnotation(new Annotation(DefaultAnnotationProperties.label, instance.label.value, instance.label.language));
@@ -19696,69 +19694,6 @@ GscapeVKGPreferences.styles = [baseStyle, settingsStyle,
     `
 ];
 customElements.define('gscape-vkg-preferences', GscapeVKGPreferences);
-
-function VKGPreferencesFactory(incrementalController) {
-    var _a, _b;
-    const vkgPreferences = new GscapeVKGPreferences();
-    vkgPreferences.showCounters = incrementalController.countersEnabled;
-    incrementalController.grapholscape.widgets.set(WidgetEnum.VKG_PREFERENCES, vkgPreferences);
-    (_b = (_a = incrementalController.grapholscape.uiContainer) === null || _a === void 0 ? void 0 : _a.querySelector('.gscape-ui-buttons-tray')) === null || _b === void 0 ? void 0 : _b.appendChild(vkgPreferences);
-    if (incrementalController.grapholscape.renderState !== RendererStatesEnum.INCREMENTAL || !incrementalController.endpointController)
-        vkgPreferences.disable();
-    if (incrementalController.endpointController) {
-        // Starting data
-        setEndpointList();
-    }
-    incrementalController.on(IncrementalEvent.EndpointChange, newEndpoint => {
-        vkgPreferences.selectedEndpointName = newEndpoint.name;
-    });
-    incrementalController.on(IncrementalEvent.LimitChange, limit => {
-        vkgPreferences.pageSize = limit;
-    });
-    incrementalController.on(IncrementalEvent.ReasonerSet, () => {
-        if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-            vkgPreferences.enable();
-        }
-        setEndpointList();
-        if (incrementalController.endpointController)
-            vkgPreferences.pageSize = incrementalController.endpointController.pageSize;
-    });
-    vkgPreferences.onTogglePanel = () => setEndpointList();
-    vkgPreferences.onEndpointChange(newEndpointName => {
-        if (incrementalController.grapholscape.uiContainer) {
-            showMessage(`Are you sure? \nIf you change the current endpoint, your exploration will be reset.`, 'Confirm', incrementalController.grapholscape.uiContainer).onConfirm(() => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b;
-                incrementalController.reset();
-                (_a = incrementalController.endpointController) === null || _a === void 0 ? void 0 : _a.setEndpoint(newEndpointName);
-                (_b = incrementalController.endpointController) === null || _b === void 0 ? void 0 : _b.setLanguage(incrementalController.grapholscape.language);
-            }));
-        }
-    });
-    vkgPreferences.onPageSizeChange(limit => {
-        var _a;
-        (_a = incrementalController.endpointController) === null || _a === void 0 ? void 0 : _a.setPageSize(limit);
-    });
-    vkgPreferences.onShowCountersChange(state => {
-        incrementalController.countersEnabled = state;
-    });
-    vkgPreferences.onStopRequests(() => { var _a; return (_a = incrementalController.endpointController) === null || _a === void 0 ? void 0 : _a.stopRequests(); });
-    function setEndpointList() {
-        var _a;
-        (_a = incrementalController.endpointController) === null || _a === void 0 ? void 0 : _a.getRunningEndpoints().then(endpoints => {
-            var _a, _b;
-            vkgPreferences.endpoints = endpoints.map(e => {
-                return {
-                    name: e.name
-                };
-            }).sort((a, b) => a.name.localeCompare(b.name));
-            if (endpoints.length >= 1 && !vkgPreferences.selectedEndpointName) {
-                (_a = incrementalController.endpointController) === null || _a === void 0 ? void 0 : _a.setEndpoint(endpoints[0]);
-                (_b = incrementalController.endpointController) === null || _b === void 0 ? void 0 : _b.setLanguage(incrementalController.grapholscape.language);
-            }
-        });
-    }
-    return vkgPreferences;
-}
 
 function onHideMenu (menu, incrementalController) {
     var _a, _b;
@@ -21402,7 +21337,7 @@ function initIncremental(grapholscape) {
     grapholscape.incremental = incrementalController;
     // Create and initialize UI components
     ClassInstanceDetailsFactory(incrementalController);
-    VKGPreferencesFactory(incrementalController);
+    // IncrementalUI.VKGPreferencesFactory(incrementalController)
     InstanceExplorerFactory(incrementalController);
     CommandsWidgetFactory(incrementalController);
     NodeButtonsFactory(incrementalController);
@@ -22567,7 +22502,7 @@ function initFromResume(grapholscape, rdfGraph, forceInit = true) {
                  */
                 setGraphEventHandlers(diagram, grapholscape.lifecycle, grapholscape.ontology);
                 const floatyRepr = diagram.representations.get(RendererStatesEnum.FLOATY);
-                if (floatyRepr)
+                if (floatyRepr && floatyRepr.lastViewportState !== null)
                     floatyRepr.hasEverBeenRendered = true;
                 grapholscape.showDiagram(diagram.id);
                 // (grapholscape.renderer.cy as any)?.updateStyle()

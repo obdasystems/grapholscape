@@ -3030,13 +3030,13 @@ declare const DefaultNamespaces: {
 declare class Iri {
     private _namespace?;
     private _remainder;
+    fullIri: string;
     constructor(iri: string, namespaces: Namespace[], remainder?: string);
     set remainder(value: string);
     get remainder(): string;
     private set namespace(value);
     get namespace(): Namespace | undefined;
     get prefix(): string | undefined;
-    get fullIri(): string;
     get prefixed(): string;
     equals(iriToCheck: string | Iri): boolean;
     hasPrefix(prefixToCheck: string): boolean;
@@ -6059,6 +6059,28 @@ declare class ShortestPathDialog extends GscapeConfirmDialog {
     get class2(): string | undefined;
 }
 
+type ClassWithColor = {
+    id: string;
+    displayedName: string;
+    iri: string;
+    color?: string;
+    filtered: boolean;
+};
+declare const GscapeEntityColorLegend_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeEntityColorLegend extends GscapeEntityColorLegend_base {
+    title: string;
+    elements: ClassWithColor[];
+    protected isDefaultClosed: boolean;
+    onElementSelection: (classWithColor: ClassWithColor) => void;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup | undefined;
+    private handleElemClick;
+    blur(): void;
+    render(): lit_html.TemplateResult<1>;
+}
+
+declare function setColorList(entityColorLegend: GscapeEntityColorLegend, grapholscape: Grapholscape): void;
+
 /** @module UI */
 
 declare const index_d$1_BaseMixin: typeof BaseMixin;
@@ -6081,6 +6103,8 @@ type index_d$1_GscapeContextMenu = GscapeContextMenu;
 declare const index_d$1_GscapeContextMenu: typeof GscapeContextMenu;
 type index_d$1_GscapeDiagramSelector = GscapeDiagramSelector;
 declare const index_d$1_GscapeDiagramSelector: typeof GscapeDiagramSelector;
+type index_d$1_GscapeEntityColorLegend = GscapeEntityColorLegend;
+declare const index_d$1_GscapeEntityColorLegend: typeof GscapeEntityColorLegend;
 type index_d$1_GscapeEntityListItem = GscapeEntityListItem;
 declare const index_d$1_GscapeEntityListItem: typeof GscapeEntityListItem;
 type index_d$1_GscapeEntitySearch = GscapeEntitySearch;
@@ -6134,6 +6158,7 @@ declare const index_d$1_getEntityOccurrencesTemplate: typeof getEntityOccurrence
 declare const index_d$1_hasDropPanel: typeof hasDropPanel;
 declare const index_d$1_initInitialRendererSelector: typeof initInitialRendererSelector;
 declare const index_d$1_search: typeof search;
+declare const index_d$1_setColorList: typeof setColorList;
 declare const index_d$1_showMessage: typeof showMessage;
 declare const index_d$1_textSpinner: typeof textSpinner;
 declare const index_d$1_textSpinnerStyle: typeof textSpinnerStyle;
@@ -6156,6 +6181,7 @@ declare namespace index_d$1 {
     index_d$1_GscapeConfirmDialog as GscapeConfirmDialog,
     index_d$1_GscapeContextMenu as GscapeContextMenu,
     index_d$1_GscapeDiagramSelector as GscapeDiagramSelector,
+    index_d$1_GscapeEntityColorLegend as GscapeEntityColorLegend,
     index_d$1_GscapeEntityListItem as GscapeEntityListItem,
     index_d$1_GscapeEntitySearch as GscapeEntitySearch,
     index_d$1_GscapeEntitySelector as GscapeEntitySelector,
@@ -6198,6 +6224,7 @@ declare namespace index_d$1 {
     index_d$1_initInitialRendererSelector as initInitialRendererSelector,
     export_default$2 as initUI,
     index_d$1_search as search,
+    index_d$1_setColorList as setColorList,
     index_d$1_showMessage as showMessage,
     index_d$1_textSpinner as textSpinner,
     index_d$1_textSpinnerStyle as textSpinnerStyle,
