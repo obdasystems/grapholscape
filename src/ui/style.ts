@@ -65,7 +65,6 @@ export default css`
   text-overflow: ellipsis;
   padding-right: 0;
   padding-left: 0;
-  z-index: 9999;
 }
 
 .gscape-panel-in-tray.hanging {
@@ -127,7 +126,7 @@ export default css`
   top: 100%;
   animation-name: drop-down;
   animation-duration: ${animationDuration};
-  z-index: 999;
+  z-index: 0;
 }
 
 @keyframes drop-down {
