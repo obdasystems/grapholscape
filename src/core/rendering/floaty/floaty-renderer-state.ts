@@ -72,7 +72,6 @@ export default class FloatyRendererState extends BaseRenderer {
       // this.floatyLayoutOptions.fit = true
       this.renderer.fit()
       this.runLayout()
-      setTimeout(() => this.renderer.fit(), 200)
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers();
 
