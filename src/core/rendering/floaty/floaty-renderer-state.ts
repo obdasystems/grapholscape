@@ -76,12 +76,10 @@ export default class FloatyRendererState extends BaseRenderer {
       this.setDragAndPinEventHandlers();
 
       (this.renderer.cy as any).automove(this.automoveOptions)
-    } else {
-      if (!this.isLayoutInfinite) {
-        if (floatyRepresentation.lastViewportState) {
-          this.renderer.cy?.viewport(floatyRepresentation.lastViewportState)
-        }
-      }
+    }
+
+    if (floatyRepresentation.lastViewportState) {
+      this.renderer.cy?.viewport(floatyRepresentation.lastViewportState)
     }
 
     if (this.popperContainer)
