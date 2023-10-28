@@ -7902,17 +7902,12 @@ class FloatyRendererState extends BaseRenderer {
             // this.floatyLayoutOptions.fit = true
             this.renderer.fit();
             this.runLayout();
-            setTimeout(() => this.renderer.fit(), 200);
             this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
             this.setDragAndPinEventHandlers();
             this.renderer.cy.automove(this.automoveOptions);
         }
-        else {
-            if (!this.isLayoutInfinite) {
-                if (floatyRepresentation.lastViewportState) {
-                    (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(floatyRepresentation.lastViewportState);
-                }
-            }
+        if (floatyRepresentation.lastViewportState) {
+            (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(floatyRepresentation.lastViewportState);
         }
         if (this.popperContainer)
             (_b = this.renderer.cy.container()) === null || _b === void 0 ? void 0 : _b.appendChild(this.popperContainer);
@@ -9933,7 +9928,6 @@ var baseStyle = i$1 `
   text-overflow: ellipsis;
   padding-right: 0;
   padding-left: 0;
-  z-index: 9999;
 }
 
 .gscape-panel-in-tray.hanging {
@@ -9995,7 +9989,7 @@ var baseStyle = i$1 `
   top: 100%;
   animation-name: drop-down;
   animation-duration: ${animationDuration};
-  z-index: 999;
+  z-index: 0;
 }
 
 @keyframes drop-down {
@@ -14708,7 +14702,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.13"}</span>
+            <span>${"4.0.0-snap.14"}</span>
           </div>
         </div>
       </div>
@@ -16055,7 +16049,6 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
         if (d.lastViewportState !== undefined && d.lastViewportState !== null) {
             const diagramRepr = diagram.representations.get(rendererState);
             if (diagramRepr) {
-                diagramRepr.hasEverBeenRendered = true;
                 diagramRepr.lastViewportState = d.lastViewportState;
             }
         }
@@ -16103,6 +16096,7 @@ var QueryStatusEnum;
 })(QueryStatusEnum || (QueryStatusEnum = {}));
 var QuerySemantics;
 (function (QuerySemantics) {
+    QuerySemantics["AUTO"] = "auto";
     QuerySemantics["CQ"] = "cq";
     QuerySemantics["FULL_SPARQL"] = "eql";
 })(QuerySemantics || (QuerySemantics = {}));
@@ -16360,7 +16354,7 @@ class QueryManager {
      * object you can set the onNewResults callback to react every time new results
      * are obtained.
      */
-    performQuery(queryCode, pageSize, querySemantics = QuerySemantics.CQ, keepAlive = false) {
+    performQuery(queryCode, pageSize, querySemantics = QuerySemantics.AUTO, keepAlive = false) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const executionId = yield this.startQuery(queryCode, querySemantics);
@@ -16448,7 +16442,7 @@ class QueryManager {
      */
     performQueryCount(queryCode, onStopCallback) {
         return __awaiter(this, void 0, void 0, function* () {
-            const executionId = yield this.startQuery(queryCode, QuerySemantics.CQ, QueryType.COUNT);
+            const executionId = yield this.startQuery(queryCode, QuerySemantics.AUTO, QueryType.COUNT);
             const countStatePoller = new QueryCountStatePoller(this.getQueryCountStatusRequest(executionId));
             this._runningCountQueryPollerByExecutionId.set(executionId, countStatePoller);
             return new Promise((resolve, reject) => {
@@ -16500,7 +16494,7 @@ class QueryManager {
             // queryResultsPoller.onError = this.requestOptions.onError
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                const executionId = yield this.startQuery(queryCode, QuerySemantics.CQ, QueryType.CONSTRUCT);
+                const executionId = yield this.startQuery(queryCode, QuerySemantics.AUTO, QueryType.CONSTRUCT);
                 const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId, QueryType.CONSTRUCT));
                 (_a = this._runningQueryPollerByExecutionId.get(executionId)) === null || _a === void 0 ? void 0 : _a.statusPollers.add(queryStatusPoller);
                 queryStatusPoller.onNewResults = (statusResult) => {
@@ -16714,28 +16708,28 @@ class QueryManager {
         });
     }
     getQueryStartPath(queryType = QueryType.STANDARD) {
-        let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query';
+        let query = 'query';
         if (queryType === QueryType.CONSTRUCT) {
             query = 'cquery';
         }
         return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${query}/start`);
     }
     getQueryStopPath(executionId, queryType = QueryType.STANDARD) {
-        let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query';
+        let query = 'query';
         if (queryType === QueryType.CONSTRUCT) {
             query = 'cquery';
         }
         return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${query}/${executionId}/stop`);
     }
     getQueryResultPath(executionId, queryType = QueryType.STANDARD) {
-        let endingPath = localStorage.getItem('new_cq') === 'true' ? `new-cq-query/${executionId}/results` : `query/${executionId}/results`;
+        let endingPath = `query/${executionId}/results`;
         if (queryType === QueryType.CONSTRUCT) {
             endingPath = `cquery/${executionId}/results/rdfGraph`;
         }
         return new URL(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/${endingPath}`);
     }
     getQueryStatePath(executionId, queryType = QueryType.STANDARD) {
-        let query = localStorage.getItem('new_cq') === 'true' ? 'new-cq-query' : 'query';
+        let query = 'query';
         if (queryType === QueryType.CONSTRUCT) {
             query = 'cquery';
         }
@@ -17227,7 +17221,7 @@ class VKGApi {
             //   }
             // }
             // pollPage(1)
-            const queryPoller = yield this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.CQ);
+            const queryPoller = yield this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.AUTO);
             queryPoller.onNewResults = (results) => {
                 onNewResults(results.results.map(res => res[0].value));
             };
@@ -17254,7 +17248,7 @@ class VKGApi {
             else {
                 queryCode = getInstancesThroughObjectProperty(instanceIri, objectPropertyIri, rangeClassesIri, isDirect, includeLabels, customLimit);
             }
-            const queryPoller = yield this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.CQ, keepAlive);
+            const queryPoller = yield this.queryManager.performQuery(queryCode, this.pageSize, QuerySemantics.AUTO, keepAlive);
             queryPoller.onNewResults = (result) => {
                 onNewResults(result.results.map(res => this.getClassInstanceFromQueryResult(res, result.headTerms, result.headTypes)), queryPoller.numberResultsAvailable);
             };
@@ -17320,7 +17314,7 @@ class VKGApi {
     getInstanceLabels(instanceIri, onResult) {
         return __awaiter(this, void 0, void 0, function* () {
             const queryCode = getInstanceLabels(instanceIri);
-            const queryPoller = yield this.queryManager.performQuery(queryCode, 100, QuerySemantics.CQ, true);
+            const queryPoller = yield this.queryManager.performQuery(queryCode, 100, QuerySemantics.AUTO, true);
             queryPoller.onNewResults = (result) => {
                 onResult(result.results.map(r => this.parseLabel(r[0].value)).filter(l => l.value !== 'null'));
             };
@@ -22502,10 +22496,9 @@ function initFromResume(grapholscape, rdfGraph, forceInit = true) {
                  */
                 setGraphEventHandlers(diagram, grapholscape.lifecycle, grapholscape.ontology);
                 const floatyRepr = diagram.representations.get(RendererStatesEnum.FLOATY);
-                if (floatyRepr && floatyRepr.lastViewportState !== null)
-                    floatyRepr.hasEverBeenRendered = true;
-                grapholscape.showDiagram(diagram.id);
-                // (grapholscape.renderer.cy as any)?.updateStyle()
+                if (floatyRepr)
+                    floatyRepr.hasEverBeenRendered = false;
+                grapholscape.showDiagram(diagram.id, floatyRepr === null || floatyRepr === void 0 ? void 0 : floatyRepr.lastViewportState);
             }
         }
     }
