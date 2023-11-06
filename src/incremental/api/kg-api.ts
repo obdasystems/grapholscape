@@ -408,10 +408,20 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
       this.requestOptions.onError
     )).text())
 
-    if (queryCode && typeof queryCode === 'string') {
-      queryCode = queryCode + "LIMIT 50"
-      this.queryManager.performQueryContrusct(queryCode, 50)
-        .then(rdfGraph => onNewResult(rdfGraph))
+    try {
+      const error = JSON.parse(queryCode)
+      if (error.type === 'error') {
+        this.requestOptions.onError(error.message)
+      }
+      onNewResult(undefined) // stop animation on graph
+    } catch(e) { // if JSON.parse fails, then it's a string containing the query, proceed
+      if (queryCode && typeof queryCode === 'string') {
+        queryCode = queryCode + "LIMIT 50"
+        this.queryManager.performQueryContrusct(queryCode, 50)
+          .then(rdfGraph => onNewResult(rdfGraph))
+      } else {
+        onNewResult(undefined) // stop animation on graph
+      }
     }
   }
 
