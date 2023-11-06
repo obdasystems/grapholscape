@@ -1,6 +1,6 @@
 import { EdgeSingular, NodeSingular } from "cytoscape";
 import { ClassInstanceEntity, GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
-import { WidgetEnum } from "../../../ui";
+import { PathSelectionEvent, PathSelector, WidgetEnum } from "../../../ui";
 import { classInstanceIcon, objectPropertyIcon, pathIcon } from "../../../ui/assets";
 import NodeButton from "../../../ui/common/button/node-button";
 import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
@@ -10,7 +10,7 @@ import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
 import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
-import { handlePathEdgeDraw } from "../path-selection";
+import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
 import showMenu from "../show-menu";
 import { hideButtons, showButtons } from "./show-hide-buttons";
 
@@ -25,7 +25,7 @@ export function NodeButtonsFactory(ic: IncrementalController) {
   objectPropertyButton.title = 'Navigate through object properties'
 
   const pathDrawingButton = new NodeButton(pathIcon)
-  pathDrawingButton.title = 'Find path to another entity'
+  pathDrawingButton.title = 'Find shortest paths to another entity'
 
   const nodeButtonsMap = new Map<TypesEnum, NodeButton[]>()
   nodeButtonsMap.set(TypesEnum.CLASS, [objectPropertyButton])
@@ -216,7 +216,8 @@ async function handleInstancesButtonClick(e: MouseEvent, incrementalController: 
 }
 
 function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
-  const onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
+  const onComplete = async (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
+    let pathSelector: PathSelector | undefined
     let sourceIriForPath = sourceNode.data('iri')
     let targetIriForpath = targetNode.data('iri')
 
@@ -233,20 +234,6 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
       stopAnimation()
     }
 
-    // if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
-    //   if (sourceIriForPath && targetIriForpath) {
-    //     ic.endpointController?.highlightsManager?.getShortestPath(
-    //       sourceIriForPath,
-    //       targetIriForpath
-    //     ).then(path => {
-    //       if (path[0].entities) {
-    //         ic.addPath(path[0].entities).finally(stopAnimation)
-    //       } else {
-    //         stopAnimation()
-    //       }
-    //     }).catch(stopAnimation)
-    //   }
-    // } else {
     let entity: ClassInstanceEntity | undefined
     // Take parentClass IRI to find a path to the other node in the intensional level
     if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
@@ -265,18 +252,22 @@ function onPathDrawingButtonClick(e: MouseEvent, ic: IncrementalController) {
       }
     }
 
-    ic.endpointController?.highlightsManager?.getShortestPath(
-      sourceIriForPath,
-      targetIriForpath
-    ).then(path => {
-      if (path[0].entities) {
-        ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, path[0])
-          .finally(stopAnimation)
+    if (sourceIriForPath && targetIriForpath) {
+      pathSelector = await pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
+      if (pathSelector) {
+        pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
+          ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
+            .finally(stopAnimation)
+        })
       } else {
         stopAnimation()
       }
-    }).catch(stopAnimation)
-    // }
+    }
+
+    if (pathSelector) {
+      pathSelector.addEventListener('cancel', stopAnimation)
+      pathSelector.show()
+    }
   }
 
   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {

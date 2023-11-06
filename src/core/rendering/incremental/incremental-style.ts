@@ -102,7 +102,7 @@ export default function (theme: GrapholscapeTheme) {
       selector: '.eh-ghost-edge, edge.eh-preview',
       style: {
         'width': 4,
-        'label': 'Find path to...',
+        'label': 'Find shortest paths to...',
         'line-color': theme.getColour(ColoursNames.accent),
         'target-arrow-color': theme.getColour(ColoursNames.accent),
         'target-arrow-shape': 'triangle',

@@ -9,8 +9,6 @@ export async function pathSelectionInit(
   sourceIri: string,
   targetIri: string) {
 
-  
-
   const paths = await ic.endpointController?.highlightsManager?.getShortestKPaths(
     sourceIri,
     targetIri
@@ -40,7 +38,7 @@ export async function pathSelectionInit(
   } else if ((paths as any).type === 'error') {
     showMessage((paths as any).message, 'Warning', ic.grapholscape.uiContainer, 'warning')
   } else {
-    showMessage('Can\'t find shortest path between selected classes', 'Info', ic.grapholscape.uiContainer)
+    showMessage('Can\'t find any path between selected classes', 'Info', ic.grapholscape.uiContainer)
   }
 }
 
