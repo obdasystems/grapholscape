@@ -399,7 +399,7 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const headers = this.requestOptions.headers
 
     // headers['content-type'] = 'text/plain'
-    const queryCode = (await (await handleApiCall(
+    let queryCode = (await (await handleApiCall(
       fetch(url, {
         method: 'post',
         headers: headers,
@@ -409,7 +409,8 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     )).text())
 
     if (queryCode && typeof queryCode === 'string') {
-      this.queryManager.performQueryContrusct(queryCode)
+      queryCode = queryCode + "LIMIT 50"
+      this.queryManager.performQueryContrusct(queryCode, 50)
         .then(rdfGraph => onNewResult(rdfGraph))
     }
   }
