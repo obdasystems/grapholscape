@@ -363,45 +363,18 @@ export default class QueryManager {
    * @param customURL URL to use, if not specified this.queryStartPath will be used
    * @returns the request object to send
    */
-  private async getNewQueryRequest(queryCode: string, querySemantics: QuerySemantics, queryType: QueryType, customURL?: URL): Promise<Request> {
-    // const url: URL = customURL || this.getQueryStartPath()
-    let url: URL | undefined
-    let params: URLSearchParams | undefined
-    switch (queryType) {
-      case QueryType.STANDARD:
-      default:
-        url = this.getQueryStartPath(queryType)
-        params = new URLSearchParams({
-          useReplaceForUrlEncoding: 'true',
-          querySemantics: querySemantics,
-          reasoning: 'true',
-          expandSparqlTables: 'true'
-        })
+  private async getNewQueryRequest(queryCode: string, querySemantics: QuerySemantics, queryType: QueryType): Promise<Request> {
+    const useReplaceForUrlEncoding = queryType !== QueryType.COUNT ? 'true' : 'false'
+    const params = new URLSearchParams({
+      useReplaceForUrlEncoding: useReplaceForUrlEncoding,
+      querySemantics: querySemantics,
+      reasoning: 'true',
+      expandSparqlTables: 'true'
+    })
 
-        break
+    const url = queryType === QueryType.COUNT ? this.queryCountPath : this.getQueryStartPath(queryType)
 
-      case QueryType.COUNT:
-        url = this.queryCountPath
-        params = new URLSearchParams({
-          useReplaceForUrlEncoding: 'false',
-          querySemantics: querySemantics,
-          advanced: 'true',
-          reasoning: 'true',
-          expandSparqlTables: 'true'
-        })
-
-        break
-
-      case QueryType.CONSTRUCT:
-        url = this.getQueryStartPath(queryType)
-    }
-
-
-    if (params) {
-      url = new URL(url.toString().concat(`?${params.toString()}`))
-    }
-
-    return new Request(url, {
+    return new Request(new URL(url.toString().concat(`?${params.toString()}`)), {
       method: 'post',
       headers: this.requestOptions.headers,
       body: JSON.stringify({
