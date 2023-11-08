@@ -144,12 +144,12 @@ export default class IncrementalController {
       elem.diagramId = this.diagram.id
 
       if (entity && elem.iri) {
-
+        let addedElem: GrapholElement | undefined
         switch (elem.type) {
           case TypesEnum.CLASS_INSTANCE:
             if (!entity.color)
               colorManager.setInstanceColor(entity as ClassInstanceEntity)
-            this.diagramBuilder.addClassInstance(entity as ClassInstanceEntity, elem)
+            addedElem = this.diagramBuilder.addClassInstance(entity as ClassInstanceEntity, elem)
             break
 
           case TypesEnum.OBJECT_PROPERTY:
@@ -171,8 +171,10 @@ export default class IncrementalController {
                 return
               }
 
-              if (sourceEntity && targetEntity)
-                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, [source.type], elem as GrapholEdge)
+              if (sourceEntity && targetEntity) {
+                addedElem = this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, [source.type], elem as GrapholEdge)
+              }
+                
             }
             break
 
@@ -183,7 +185,10 @@ export default class IncrementalController {
             break
         }
 
-        this.updateEntityNameType(entity.iri.fullIri)
+        if (addedElem) {
+          addedElem.displayedName = entity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)
+          this.diagram.representation?.updateElement(addedElem, entity)
+        }
       } else {
         this.diagram.addElement(elem)
       }
@@ -207,6 +212,7 @@ export default class IncrementalController {
       const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL)
 
       this.performActionWithBlockedGraph(() => {
+        this.grapholscape.renderer.cy?.startBatch()
         let elem: GrapholElement | undefined
         diagramRepr?.cy.nodes().forEach(node => {
           elem = diagramRepr.grapholElements.get(node.id())
@@ -222,16 +228,16 @@ export default class IncrementalController {
       },
         { // layout options
           centerGraph: true,
-          boundingBox: {
-            x1: 0,
-            y1: 0,
-            h: (diagramRepr?.grapholElements.size || 10) * 5,
-            w: (diagramRepr?.grapholElements.size || 10) * 5,
-          },
+          // boundingBox: {
+          //   x1: 0,
+          //   y1: 0,
+          //   h: (diagramRepr?.grapholElements.size || 10) * 5,
+          //   w: (diagramRepr?.grapholElements.size || 10) * 5,
+          // },
           randomize: true,
           fit: true,
         }
-      )
+      ).finally(() => this.grapholscape.renderer.cy?.endBatch())
     }
   }
 
