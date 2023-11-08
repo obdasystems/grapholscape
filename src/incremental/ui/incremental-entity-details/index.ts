@@ -76,7 +76,7 @@ export function ClassInstanceDetailsFactory(ic: IncrementalController) {
   ic.on(IncrementalEvent.ClassInstanceSelection, async classInstanceEntity => {
     if (!entityDetailsWidget?.grapholEntity || !entityDetailsWidget?.grapholEntity.iri.equals(classInstanceEntity.iri)) {
       ic.endpointController?.stopRequests('instances')
-
+      incrementalEntityDetails.allowComputeCount = false
       const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
       let dataProperties: GrapholEntity[] = []
       if (classInstanceEntity.dataProperties.length > 0) {
