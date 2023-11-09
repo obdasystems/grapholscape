@@ -123,6 +123,10 @@ export default class IncrementalController {
       console.error(`Modeltype [ ${rdfGraph.modelType} ] not supported in incremental view`)
     }
 
+    if (!this.checkDiagramSize(rdfGraph.diagrams[0].edges?.length || 0)) {
+      return
+    }
+
     const colorManager = new OntologyColorManager(
       this.ontology,
       this.diagram.representation)
@@ -1111,6 +1115,10 @@ export default class IncrementalController {
       classIri,
       false,
       (results) => {
+        if (!this.checkDiagramSize(results.length)) {
+          return
+        }
+
         this.performActionWithBlockedGraph(() => {
           let addedClassInstanceEntity: ClassInstanceEntity, classInstanceId: string | undefined
           results.forEach(result => {
@@ -1139,6 +1147,9 @@ export default class IncrementalController {
     }[],
     isDirect: boolean
   }>) {
+    if (!this.checkDiagramSize(results.size)) {
+      return
+    }
     this.performActionWithBlockedGraph(() => {
       let position: Position | undefined
       const sourceId = this.getIDByIRI(sourceInstanceIri, TypesEnum.CLASS_INSTANCE)
@@ -1394,6 +1405,25 @@ export default class IncrementalController {
     const entity = this.classInstanceEntities.get(iri) || this.grapholscape.ontology.getEntity(iri)
     if (entity) {
       return entity.getOccurrenceByType(type, RendererStatesEnum.INCREMENTAL)?.id
+    }
+  }
+
+  public checkDiagramSize(numberOfElements: number, showError = true) {
+    if (!this.diagram.representation)
+      return false
+    
+    if ((this.diagram.representation.grapholElements.size + numberOfElements > 2000)) {
+      if (showError) {
+        showMessage(
+          'You have too many nodes on screen, please remove some nodes to keep good performances.', 
+          'Maximum Diagram Size Reached',
+          this.grapholscape.uiContainer,
+          'error'
+        )
+      }
+      return false
+    } else {
+      return true
     }
   }
 

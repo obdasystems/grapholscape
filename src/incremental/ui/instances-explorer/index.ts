@@ -144,6 +144,9 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
   })
 
   instancesExplorer.addEventListener('addall', async (e: AddAllEvent) => {
+    if (!incrementalController.checkDiagramSize(e.detail.instances.length))
+      return
+
     incrementalController.performActionWithBlockedGraph(async () => {
       let addedInstanceEntity: ClassInstanceEntity | undefined
       let refNodeId: string | undefined
