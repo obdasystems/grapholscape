@@ -62,7 +62,8 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `.unknown-parent-class`,
       style: {
-        backgroundColor: theme.getColour(ColoursNames.neutral)
+        backgroundColor: theme.getColour(ColoursNames.neutral),
+        opacity: 0.6,
       }
     },
 
