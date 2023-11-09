@@ -5,7 +5,7 @@ import { ResultRecord } from '../queries/query-poller'
 import * as QueriesTemplates from '../queries/query-templates'
 import handleApiCall from './handle-api-call'
 import { EmptyUnfoldingEntities, HeadTypes, MastroEndpoint, MaterializedCounts, QuerySemantics, QueryStatusEnum, RequestOptions } from './model'
-import { OntologyPath } from './swagger'
+import { EntityTypeEnum, OntologyPath } from './swagger'
 import { Highlights } from './swagger/models/Highlights'
 
 export type ClassInstance = {
@@ -38,7 +38,7 @@ export interface IVirtualKnowledgeGraphApi {
   stopAllQueries: () => void,
   getInstanceLabels: (instanceIri: string, onResult: (result: { value: string, lang?: string }[]) => void) => Promise<void>
   getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>
-  getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, sourceInstanceIri?: string, targetInstanceIri?: string,) => Promise<void>
+  getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, maxNodeNumber: number, sourceInstanceIri?: string, targetInstanceIri?: string,) => Promise<void>
   pageSize: number
 }
 
@@ -379,9 +379,10 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
   async getExtensionalShortestPath(
     path: OntologyPath,
     onNewResult: (rdfGraph?: RDFGraph) => void,
+    maxEdgeNumber: number,
     sourceInstanceIri?: string,
-    targetInstanceIri?: string
-    ) {
+    targetInstanceIri?: string,
+  ) {
     const params = new URLSearchParams({
       labels: 'true',
       version: this.requestOptions.version
@@ -399,29 +400,39 @@ export default class VKGApi implements IVirtualKnowledgeGraphApi {
     const headers = this.requestOptions.headers
 
     // headers['content-type'] = 'text/plain'
-    let queryCode = (await (await handleApiCall(
+    let response = (await (await handleApiCall(
       fetch(url, {
         method: 'post',
         headers: headers,
         body: JSON.stringify(path),
       }),
       this.requestOptions.onError
-    )).text())
+    )).json())
 
-    try {
-      const error = JSON.parse(queryCode)
-      if (error.type === 'error') {
-        this.requestOptions.onError(error.message)
-      }
-      onNewResult(undefined) // stop animation on graph
-    } catch(e) { // if JSON.parse fails, then it's a string containing the query, proceed
-      if (queryCode && typeof queryCode === 'string') {
-        queryCode = queryCode + "LIMIT 50"
-        this.queryManager.performQueryContrusct(queryCode, 50)
-          .then(rdfGraph => onNewResult(rdfGraph))
+    if (!response) {
+      onNewResult(undefined)
+    }
+
+    if (response.type === 'error') {
+      this.requestOptions.onError(response.message)
+      onNewResult(undefined)
+    } else if (response.type === 'ok') {
+      if (path.entities) {
+        // limit = max n. nodes / (n. object properties + 1)
+        const limit = Math.floor(maxEdgeNumber / ((path.entities.filter(e => (
+
+          (e.type === EntityTypeEnum.ObjectProperty || e.type === EntityTypeEnum.InverseObjectProperty) && 
+          e.iri !== "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+
+        )).length)))
+        response.message += ` LIMIT ${limit}`
       } else {
-        onNewResult(undefined) // stop animation on graph
+        response.message += ` LIMIT 50`
       }
+      
+      
+      this.queryManager.performQueryContrusct(response.message) // query code in message
+        .then(rdfGraph => onNewResult(rdfGraph))
     }
   }
 

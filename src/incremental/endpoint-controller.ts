@@ -175,11 +175,12 @@ export default class EndpointController {
     })
   }
 
-  requestInstancesPath(path: OntologyPath, sourceInstanceIri?: string,  targetIri?: string) {
+  requestInstancesPath(path: OntologyPath, sourceInstanceIri?: string,  targetIri?: string, maxEdgeNumber = 400) {
     return new Promise((resolve: (result?: RDFGraph) => void) => {
       this.vkgApi?.getExtensionalShortestPath(
         path,
         (rdfGraph) => resolve(rdfGraph),
+        maxEdgeNumber,
         sourceInstanceIri,
         targetIri,
       )
