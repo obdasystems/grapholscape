@@ -482,7 +482,7 @@ export default class IncrementalController {
     })
   }
 
-  addInstance(instance: ClassInstance, parentClassesIris?: string[] | string, position?: Position) {
+  addInstance(instance: ClassInstance, parentClassesIris?: string[] | string, position?: Position, addLoadingBadges = true) {
     let classInstanceEntity = this.classInstanceEntities.get(instance.iri)
 
     // if not already present, then build classInstanceEntity and add it to diagram
@@ -514,14 +514,18 @@ export default class IncrementalController {
 
     // update parent class Iri
     if (typeof (parentClassesIris) !== 'string') {
-
+      this.grapholscape.renderer.cy?.$id(addedNode.id).addClass('unknown-parent-class')
       if (!parentClassesIris || parentClassesIris.length === 0) {
         parentClassesIris = this.ontology.getEntitiesByType(TypesEnum.CLASS).map(entity => entity.iri.fullIri)
       }
 
       if (this.endpointController) {
-        const badgeController = new BadgeController(this)
-        badgeController.addLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)
+        let badgeController: BadgeController | undefined
+        if (addLoadingBadges) {
+          badgeController = new BadgeController(this)
+          badgeController.addLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)
+        }
+
         this.endpointController.instanceCheck(instance.iri, parentClassesIris)
           .then(result => {
             result.forEach(classIri => {
@@ -538,7 +542,8 @@ export default class IncrementalController {
               }
             })
           }).finally(() => {
-            badgeController.removeLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)
+            this.grapholscape.renderer.cy?.$id(addedNode.id).removeClass('unknown-parent-class')
+            badgeController?.removeLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)
           })
       }
     } else {
@@ -1135,9 +1140,6 @@ export default class IncrementalController {
     isDirect: boolean
   }>) {
     this.performActionWithBlockedGraph(() => {
-      let addedClassNode: GrapholElement | undefined
-      let addedClassInstanceEntity: ClassInstanceEntity | undefined
-      let classInstanceId: string | undefined
       let position: Position | undefined
       const sourceId = this.getIDByIRI(sourceInstanceIri, TypesEnum.CLASS_INSTANCE)
       if (sourceId) {
@@ -1146,25 +1148,15 @@ export default class IncrementalController {
 
       results.forEach((result, objectPropertyEntity) => {
         result.ranges.forEach(range => {
-          range.classInstances.forEach((classInstance, i) => {
-            addedClassInstanceEntity = this.addInstance(classInstance, range.classEntity?.iri.fullIri, position)
-            classInstanceId = addedClassInstanceEntity.getOccurrenceByType(
-              TypesEnum.CLASS_INSTANCE,
-              RendererStatesEnum.INCREMENTAL)?.id
-
-            if (range.classEntity && i === 0 && classInstanceId) {
-              addedClassNode = this.addClass(range.classEntity.iri.fullIri)
-              if (addedClassNode)
-                this.addEdge(classInstanceId, addedClassNode.id, TypesEnum.INSTANCE_OF)
-            }
-
+          range.classInstances.forEach((classInstance) => {
+            this.addInstance(classInstance, range.classEntity?.iri.fullIri, position, false)
             result.isDirect
               ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, classInstance.iri)
               : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, classInstance.iri, sourceInstanceIri)
           })
         })
       })
-    })
+    }, { maxSimulationTime: 1000 * (results.size / 10) })
   }
 
   async addPath(path: Entity[]) {
