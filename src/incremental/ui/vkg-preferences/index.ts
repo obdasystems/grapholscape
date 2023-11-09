@@ -62,7 +62,10 @@ export function VKGPreferencesFactory(incrementalController: IncrementalControll
     incrementalController.countersEnabled = state
   })
 
-  vkgPreferences.onStopRequests(() => incrementalController.endpointController?.stopRequests())
+  vkgPreferences.onStopRequests(() => {
+    incrementalController.diagram.representation?.cy.$('.loading-edge').remove()
+    incrementalController.endpointController?.stopRequests()
+  })
 
   function setEndpointList() {
     incrementalController.endpointController?.getRunningEndpoints().then(endpoints => {

@@ -2,11 +2,11 @@ import { RDFGraph } from "../../model/rdf-graph/swagger"
 import handleApiCall from "../api/handle-api-call"
 import { MastroEndpoint, QuerySemantics, QueryStatusEnum, QueryType, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
-import { QueryConstructResultsPoller, QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
+import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
-  private _runningQueryPollerByExecutionId: Map<string, { resultPollers: Set<QueryResultsPoller | QueryConstructResultsPoller>, statusPollers: Set<QueryStatusPoller> }> = new Map()
+  private _runningQueryPollerByExecutionId: Map<string, { resultPollers: Set<QueryResultsPoller>, statusPollers: Set<QueryStatusPoller> }> = new Map()
   private _runningCountQueryPollerByExecutionId: Map<string, QueryCountStatePoller> = new Map()
   private _runningInstanceCheckingPollerByThreadId: Map<string, InstanceCheckingPoller> = new Map()
 
@@ -201,8 +201,10 @@ export default class QueryManager {
     return new Promise<RDFGraph | undefined>(async (resolve) => {
       const executionId = await this.startQuery(queryCode, QuerySemantics.AUTO, QueryType.CONSTRUCT)
       const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId, QueryType.CONSTRUCT))
-      this._runningQueryPollerByExecutionId.get(executionId)?.statusPollers.add(queryStatusPoller)
-
+      this._runningQueryPollerByExecutionId.set(executionId, {
+        resultPollers: new Set(),
+        statusPollers: new Set([queryStatusPoller])
+      })
       queryStatusPoller.onNewResults = (statusResult) => {
         if (statusResult.status !== QueryStatusEnum.RUNNING) {
           this._runningQueryPollerByExecutionId.delete(executionId)
@@ -232,7 +234,6 @@ export default class QueryManager {
 
       queryStatusPoller.start()
     })
-    
   }
 
   async getQueryStatus(executionID: string): Promise<{ status: QueryStatusEnum, hasError: boolean }> {
