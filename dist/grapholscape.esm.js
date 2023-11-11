@@ -8226,7 +8226,8 @@ function incrementalStyle (theme) {
         {
             selector: `.unknown-parent-class`,
             style: {
-                backgroundColor: theme.getColour(ColoursNames.neutral)
+                backgroundColor: theme.getColour(ColoursNames.neutral),
+                opacity: 0.6,
             }
         },
         {
@@ -8262,7 +8263,7 @@ function incrementalStyle (theme) {
             selector: '.eh-ghost-edge, edge.eh-preview',
             style: {
                 'width': 4,
-                'label': 'Find path to...',
+                'label': 'Find shortest paths to...',
                 'line-color': theme.getColour(ColoursNames.accent),
                 'target-arrow-color': theme.getColour(ColoursNames.accent),
                 'target-arrow-shape': 'triangle',
@@ -14702,7 +14703,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.14"}</span>
+            <span>${"4.0.0-snap.15"}</span>
           </div>
         </div>
       </div>
@@ -16026,7 +16027,8 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
             if (grapholElement.iri) {
                 grapholEntity = entities.get(grapholElement.iri);
                 grapholElement.displayedName = grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.getDisplayedName(((_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.entityNameType) || RDFGraphConfigEntityNameTypeEnum.LABEL, ((_b = rdfGraph.config) === null || _b === void 0 ? void 0 : _b.language) || rdfGraph.metadata.defaultLanguage || Language.EN);
-                grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
+                if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+                    grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
             }
             diagramRepr.addElement(grapholElement, grapholEntity);
         });
@@ -16042,7 +16044,8 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
             if (grapholElement.iri) {
                 grapholEntity = entities.get(grapholElement.iri);
                 grapholElement.displayedName = grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.getDisplayedName(((_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.entityNameType) || RDFGraphConfigEntityNameTypeEnum.LABEL, ((_b = rdfGraph.config) === null || _b === void 0 ? void 0 : _b.language) || rdfGraph.metadata.defaultLanguage || Language.EN);
-                grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
+                if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+                    grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
             }
             diagramRepr.addElement(grapholElement, grapholEntity);
         });
@@ -16493,10 +16496,12 @@ class QueryManager {
             // }
             // queryResultsPoller.onError = this.requestOptions.onError
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                var _a;
                 const executionId = yield this.startQuery(queryCode, QuerySemantics.AUTO, QueryType.CONSTRUCT);
                 const queryStatusPoller = new QueryStatusPoller(this.getQueryStatusRequest(executionId, QueryType.CONSTRUCT));
-                (_a = this._runningQueryPollerByExecutionId.get(executionId)) === null || _a === void 0 ? void 0 : _a.statusPollers.add(queryStatusPoller);
+                this._runningQueryPollerByExecutionId.set(executionId, {
+                    resultPollers: new Set(),
+                    statusPollers: new Set([queryStatusPoller])
+                });
                 queryStatusPoller.onNewResults = (statusResult) => {
                     if (statusResult.status !== QueryStatusEnum.RUNNING) {
                         this._runningQueryPollerByExecutionId.delete(executionId);
@@ -16642,39 +16647,17 @@ class QueryManager {
      * @param customURL URL to use, if not specified this.queryStartPath will be used
      * @returns the request object to send
      */
-    getNewQueryRequest(queryCode, querySemantics, queryType, customURL) {
+    getNewQueryRequest(queryCode, querySemantics, queryType) {
         return __awaiter(this, void 0, void 0, function* () {
-            // const url: URL = customURL || this.getQueryStartPath()
-            let url;
-            let params;
-            switch (queryType) {
-                case QueryType.STANDARD:
-                default:
-                    url = this.getQueryStartPath(queryType);
-                    params = new URLSearchParams({
-                        useReplaceForUrlEncoding: 'true',
-                        querySemantics: querySemantics,
-                        reasoning: 'true',
-                        expandSparqlTables: 'true'
-                    });
-                    break;
-                case QueryType.COUNT:
-                    url = this.queryCountPath;
-                    params = new URLSearchParams({
-                        useReplaceForUrlEncoding: 'false',
-                        querySemantics: querySemantics,
-                        advanced: 'true',
-                        reasoning: 'true',
-                        expandSparqlTables: 'true'
-                    });
-                    break;
-                case QueryType.CONSTRUCT:
-                    url = this.getQueryStartPath(queryType);
-            }
-            if (params) {
-                url = new URL(url.toString().concat(`?${params.toString()}`));
-            }
-            return new Request(url, {
+            const useReplaceForUrlEncoding = queryType !== QueryType.COUNT ? 'true' : 'false';
+            const params = new URLSearchParams({
+                useReplaceForUrlEncoding: useReplaceForUrlEncoding,
+                querySemantics: querySemantics,
+                reasoning: 'true',
+                expandSparqlTables: 'true'
+            });
+            const url = queryType === QueryType.COUNT ? this.queryCountPath : this.getQueryStartPath(queryType);
+            return new Request(new URL(url.toString().concat(`?${params.toString()}`)), {
                 method: 'post',
                 headers: this.requestOptions.headers,
                 body: JSON.stringify({
@@ -17337,7 +17320,7 @@ class VKGApi {
             }), this.requestOptions.onError)).json());
         });
     }
-    getExtensionalShortestPath(path, onNewResult, sourceInstanceIri, targetInstanceIri) {
+    getExtensionalShortestPath(path, onNewResult, maxEdgeNumber, sourceInstanceIri, targetInstanceIri) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = new URLSearchParams({
                 labels: 'true',
@@ -17352,13 +17335,29 @@ class VKGApi {
             const url = new URL(`${this.requestOptions.basePath}/owlOntology/${this.requestOptions.name}/instanceShortestPath?${params.toString()}`);
             const headers = this.requestOptions.headers;
             // headers['content-type'] = 'text/plain'
-            const queryCode = (yield (yield handleApiCall(fetch(url, {
+            let response = (yield (yield handleApiCall(fetch(url, {
                 method: 'post',
                 headers: headers,
                 body: JSON.stringify(path),
-            }), this.requestOptions.onError)).text());
-            if (queryCode && typeof queryCode === 'string') {
-                this.queryManager.performQueryContrusct(queryCode)
+            }), this.requestOptions.onError)).json());
+            if (!response) {
+                onNewResult(undefined);
+            }
+            if (response.type === 'error') {
+                this.requestOptions.onError(response.message);
+                onNewResult(undefined);
+            }
+            else if (response.type === 'ok') {
+                if (path.entities) {
+                    // limit = max n. nodes / (n. object properties + 1)
+                    const limit = Math.floor(maxEdgeNumber / ((path.entities.filter(e => ((e.type === EntityTypeEnum.ObjectProperty || e.type === EntityTypeEnum.InverseObjectProperty) &&
+                        e.iri !== "http://www.w3.org/2000/01/rdf-schema#subClassOf")).length)));
+                    response.message += ` LIMIT ${limit}`;
+                }
+                else {
+                    response.message += ` LIMIT 50`;
+                }
+                this.queryManager.performQueryContrusct(response.message) // query code in message
                     .then(rdfGraph => onNewResult(rdfGraph));
             }
         });
@@ -17711,10 +17710,10 @@ class EndpointController {
             });
         });
     }
-    requestInstancesPath(path, sourceInstanceIri, targetIri) {
+    requestInstancesPath(path, sourceInstanceIri, targetIri, maxEdgeNumber = 400) {
         return new Promise((resolve) => {
             var _a;
-            (_a = this.vkgApi) === null || _a === void 0 ? void 0 : _a.getExtensionalShortestPath(path, (rdfGraph) => resolve(rdfGraph), sourceInstanceIri, targetIri);
+            (_a = this.vkgApi) === null || _a === void 0 ? void 0 : _a.getExtensionalShortestPath(path, (rdfGraph) => resolve(rdfGraph), maxEdgeNumber, sourceInstanceIri, targetIri);
         });
     }
     setLanguage(lang) {
@@ -18100,14 +18099,19 @@ class IncrementalController {
      * @returns
      */
     addRDFGraph(rdfGraph) {
+        var _a;
         if (!this.diagram.representation) {
             return;
         }
         if (rdfGraph.modelType !== RDFGraphModelTypeEnum.VKG && rdfGraph.modelType !== RDFGraphModelTypeEnum.RDF) {
             console.error(`Modeltype [ ${rdfGraph.modelType} ] not supported in incremental view`);
         }
+        if (!this.checkDiagramSize(((_a = rdfGraph.diagrams[0].edges) === null || _a === void 0 ? void 0 : _a.length) || 0)) {
+            return;
+        }
         const colorManager = new OntologyColorManager(this.ontology, this.diagram.representation);
         const addElemToIncremental = (elem, rdfGraphRepr) => {
+            var _a;
             let entity;
             if (isGrapholEdge(elem)) {
                 elem.id = this.diagramBuilder.getNewId('edge');
@@ -18120,11 +18124,12 @@ class IncrementalController {
             }
             elem.diagramId = this.diagram.id;
             if (entity && elem.iri) {
+                let addedElem;
                 switch (elem.type) {
                     case TypesEnum.CLASS_INSTANCE:
                         if (!entity.color)
                             colorManager.setInstanceColor(entity);
-                        this.diagramBuilder.addClassInstance(entity, elem);
+                        addedElem = this.diagramBuilder.addClassInstance(entity, elem);
                         break;
                     case TypesEnum.OBJECT_PROPERTY:
                         // Here we can be sure to find source and target cause nodes are added before edges, and
@@ -18144,8 +18149,9 @@ class IncrementalController {
                             else {
                                 return;
                             }
-                            if (sourceEntity && targetEntity)
-                                this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, [source.type], elem);
+                            if (sourceEntity && targetEntity) {
+                                addedElem = this.diagramBuilder.addObjectProperty(entity, sourceEntity, targetEntity, [source.type], elem);
+                            }
                         }
                         break;
                     case TypesEnum.CLASS:
@@ -18154,7 +18160,10 @@ class IncrementalController {
                         this.diagramBuilder.addClass(entity, elem);
                         break;
                 }
-                this.updateEntityNameType(entity.iri.fullIri);
+                if (addedElem) {
+                    addedElem.displayedName = entity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language);
+                    (_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.updateElement(addedElem, entity);
+                }
             }
             else {
                 this.diagram.addElement(elem);
@@ -18171,6 +18180,8 @@ class IncrementalController {
         if (diagram) {
             const diagramRepr = diagram.representations.get(RendererStatesEnum.INCREMENTAL);
             this.performActionWithBlockedGraph(() => {
+                var _a;
+                (_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.startBatch();
                 let elem;
                 diagramRepr === null || diagramRepr === void 0 ? void 0 : diagramRepr.cy.nodes().forEach(node => {
                     elem = diagramRepr.grapholElements.get(node.id());
@@ -18184,15 +18195,15 @@ class IncrementalController {
                 });
             }, {
                 centerGraph: true,
-                boundingBox: {
-                    x1: 0,
-                    y1: 0,
-                    h: ((diagramRepr === null || diagramRepr === void 0 ? void 0 : diagramRepr.grapholElements.size) || 10) * 5,
-                    w: ((diagramRepr === null || diagramRepr === void 0 ? void 0 : diagramRepr.grapholElements.size) || 10) * 5,
-                },
+                // boundingBox: {
+                //   x1: 0,
+                //   y1: 0,
+                //   h: (diagramRepr?.grapholElements.size || 10) * 5,
+                //   w: (diagramRepr?.grapholElements.size || 10) * 5,
+                // },
                 randomize: true,
                 fit: true,
-            });
+            }).finally(() => { var _a; return (_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.endBatch(); });
         }
     }
     /**
@@ -18396,8 +18407,8 @@ class IncrementalController {
             });
         });
     }
-    addInstance(instance, parentClassesIris, position) {
-        var _a, _b;
+    addInstance(instance, parentClassesIris, position, addLoadingBadges = true) {
+        var _a, _b, _c;
         let classInstanceEntity = this.classInstanceEntities.get(instance.iri);
         // if not already present, then build classInstanceEntity and add it to diagram
         if (!classInstanceEntity) {
@@ -18419,12 +18430,16 @@ class IncrementalController {
         const addedNode = this.diagramBuilder.addClassInstance(classInstanceEntity, position);
         // update parent class Iri
         if (typeof (parentClassesIris) !== 'string') {
+            (_c = this.grapholscape.renderer.cy) === null || _c === void 0 ? void 0 : _c.$id(addedNode.id).addClass('unknown-parent-class');
             if (!parentClassesIris || parentClassesIris.length === 0) {
                 parentClassesIris = this.ontology.getEntitiesByType(TypesEnum.CLASS).map(entity => entity.iri.fullIri);
             }
             if (this.endpointController) {
-                const badgeController = new BadgeController(this);
-                badgeController.addLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE);
+                let badgeController;
+                if (addLoadingBadges) {
+                    badgeController = new BadgeController(this);
+                    badgeController.addLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE);
+                }
                 this.endpointController.instanceCheck(instance.iri, parentClassesIris)
                     .then(result => {
                     result.forEach(classIri => {
@@ -18440,7 +18455,9 @@ class IncrementalController {
                         }
                     });
                 }).finally(() => {
-                    badgeController.removeLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE);
+                    var _a;
+                    (_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(addedNode.id).removeClass('unknown-parent-class');
+                    badgeController === null || badgeController === void 0 ? void 0 : badgeController.removeLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE);
                 });
             }
         }
@@ -18904,6 +18921,9 @@ class IncrementalController {
         badgeController.addLoadingBadge(classIri, TypesEnum.CLASS);
         // this.lifecycle.trigger(IncrementalEvent.LoadingStarted, classIri, TypesEnum.CLASS)
         this.endpointController.vkgApi.getInstances(classIri, false, (results) => {
+            if (!this.checkDiagramSize(results.length)) {
+                return;
+            }
             this.performActionWithBlockedGraph(() => {
                 let addedClassInstanceEntity, classInstanceId;
                 results.forEach(result => {
@@ -18921,11 +18941,11 @@ class IncrementalController {
         this.expandObjectPropertiesOnInstance(classInstance.iri);
     }
     addResultsFromFocus(sourceInstanceIri, results) {
+        if (!this.checkDiagramSize(results.size)) {
+            return;
+        }
         this.performActionWithBlockedGraph(() => {
             var _a;
-            let addedClassNode;
-            let addedClassInstanceEntity;
-            let classInstanceId;
             let position;
             const sourceId = this.getIDByIRI(sourceInstanceIri, TypesEnum.CLASS_INSTANCE);
             if (sourceId) {
@@ -18933,22 +18953,16 @@ class IncrementalController {
             }
             results.forEach((result, objectPropertyEntity) => {
                 result.ranges.forEach(range => {
-                    range.classInstances.forEach((classInstance, i) => {
-                        var _a, _b;
-                        addedClassInstanceEntity = this.addInstance(classInstance, (_a = range.classEntity) === null || _a === void 0 ? void 0 : _a.iri.fullIri, position);
-                        classInstanceId = (_b = addedClassInstanceEntity.getOccurrenceByType(TypesEnum.CLASS_INSTANCE, RendererStatesEnum.INCREMENTAL)) === null || _b === void 0 ? void 0 : _b.id;
-                        if (range.classEntity && i === 0 && classInstanceId) {
-                            addedClassNode = this.addClass(range.classEntity.iri.fullIri);
-                            if (addedClassNode)
-                                this.addEdge(classInstanceId, addedClassNode.id, TypesEnum.INSTANCE_OF);
-                        }
+                    range.classInstances.forEach((classInstance) => {
+                        var _a;
+                        this.addInstance(classInstance, (_a = range.classEntity) === null || _a === void 0 ? void 0 : _a.iri.fullIri, position, false);
                         result.isDirect
                             ? this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, sourceInstanceIri, classInstance.iri)
                             : this.addExtensionalObjectProperty(objectPropertyEntity.iri.fullIri, classInstance.iri, sourceInstanceIri);
                     });
                 });
             });
-        });
+        }, { maxSimulationTime: 1000 * (results.size / 10) });
     }
     addPath(path) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -19157,6 +19171,19 @@ class IncrementalController {
         const entity = this.classInstanceEntities.get(iri) || this.grapholscape.ontology.getEntity(iri);
         if (entity) {
             return (_a = entity.getOccurrenceByType(type, RendererStatesEnum.INCREMENTAL)) === null || _a === void 0 ? void 0 : _a.id;
+        }
+    }
+    checkDiagramSize(numberOfElements, showError = true) {
+        if (!this.diagram.representation)
+            return false;
+        if ((this.diagram.representation.grapholElements.size + numberOfElements > 2000)) {
+            if (showError) {
+                showMessage('You have too many nodes on screen, please remove some nodes to keep good performances.', 'Maximum Diagram Size Reached', this.grapholscape.uiContainer, 'error');
+            }
+            return false;
+        }
+        else {
+            return true;
         }
     }
     get numberOfElements() { var _a; return ((_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.elements().size()) || 0; }
@@ -19478,6 +19505,7 @@ function ClassInstanceDetailsFactory(ic) {
         var _a;
         if (!(entityDetailsWidget === null || entityDetailsWidget === void 0 ? void 0 : entityDetailsWidget.grapholEntity) || !(entityDetailsWidget === null || entityDetailsWidget === void 0 ? void 0 : entityDetailsWidget.grapholEntity.iri.equals(classInstanceEntity.iri))) {
             (_a = ic.endpointController) === null || _a === void 0 ? void 0 : _a.stopRequests('instances');
+            incrementalEntityDetails.allowComputeCount = false;
             const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri);
             let dataProperties = [];
             if (classInstanceEntity.dataProperties.length > 0) {
@@ -20336,6 +20364,8 @@ function InstanceExplorerFactory(incrementalController) {
         }
     }));
     instancesExplorer.addEventListener('addall', (e) => __awaiter(this, void 0, void 0, function* () {
+        if (!incrementalController.checkDiagramSize(e.detail.instances.length))
+            return;
         incrementalController.performActionWithBlockedGraph(() => __awaiter(this, void 0, void 0, function* () {
             var _m, _o, _p;
             let addedInstanceEntity;
@@ -20437,7 +20467,7 @@ function pathSelectionInit(ic, sourceIri, targetIri) {
             showMessage(paths.message, 'Warning', ic.grapholscape.uiContainer, 'warning');
         }
         else {
-            showMessage('Can\'t find shortest path between selected classes', 'Info', ic.grapholscape.uiContainer);
+            showMessage('Can\'t find any path between selected classes', 'Info', ic.grapholscape.uiContainer);
         }
     });
 }
@@ -20494,7 +20524,7 @@ function NodeButtonsFactory(ic) {
     const objectPropertyButton = new NodeButton(objectPropertyIcon);
     objectPropertyButton.title = 'Navigate through object properties';
     const pathDrawingButton = new NodeButton(pathIcon);
-    pathDrawingButton.title = 'Find path to another entity';
+    pathDrawingButton.title = 'Find shortest paths to another entity';
     const nodeButtonsMap = new Map();
     nodeButtonsMap.set(TypesEnum.CLASS, [objectPropertyButton]);
     nodeButtonsMap.set(TypesEnum.CLASS_INSTANCE, [objectPropertyButton, pathDrawingButton]);
@@ -20645,8 +20675,8 @@ function handleInstancesButtonClick(e, incrementalController) {
     });
 }
 function onPathDrawingButtonClick(e, ic) {
-    const onComplete = (sourceNode, targetNode, loadingEdge) => {
-        var _a, _b;
+    const onComplete = (sourceNode, targetNode, loadingEdge) => __awaiter(this, void 0, void 0, function* () {
+        let pathSelector;
         let sourceIriForPath = sourceNode.data('iri');
         let targetIriForpath = targetNode.data('iri');
         const loadingAnimationInterval = setInterval(() => {
@@ -20659,20 +20689,6 @@ function onPathDrawingButtonClick(e, ic) {
         if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
             stopAnimation();
         }
-        // if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
-        //   if (sourceIriForPath && targetIriForpath) {
-        //     ic.endpointController?.highlightsManager?.getShortestPath(
-        //       sourceIriForPath,
-        //       targetIriForpath
-        //     ).then(path => {
-        //       if (path[0].entities) {
-        //         ic.addPath(path[0].entities).finally(stopAnimation)
-        //       } else {
-        //         stopAnimation()
-        //       }
-        //     }).catch(stopAnimation)
-        //   }
-        // } else {
         let entity;
         // Take parentClass IRI to find a path to the other node in the intensional level
         if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
@@ -20687,17 +20703,23 @@ function onPathDrawingButtonClick(e, ic) {
                 targetIriForpath = entity.parentClassIris[0].fullIri;
             }
         }
-        (_b = (_a = ic.endpointController) === null || _a === void 0 ? void 0 : _a.highlightsManager) === null || _b === void 0 ? void 0 : _b.getShortestPath(sourceIriForPath, targetIriForpath).then(path => {
-            if (path[0].entities) {
-                ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, path[0])
-                    .finally(stopAnimation);
+        if (sourceIriForPath && targetIriForpath) {
+            pathSelector = yield pathSelectionInit(ic, sourceIriForPath, targetIriForpath);
+            if (pathSelector) {
+                pathSelector.addEventListener('path-selection', (evt) => __awaiter(this, void 0, void 0, function* () {
+                    ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
+                        .finally(stopAnimation);
+                }));
             }
             else {
                 stopAnimation();
             }
-        }).catch(stopAnimation);
-        // }
-    };
+        }
+        if (pathSelector) {
+            pathSelector.addEventListener('cancel', stopAnimation);
+            pathSelector.show();
+        }
+    });
     if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
         const targetNode = e.currentTarget.node;
         if (targetNode) {
@@ -20780,7 +20802,7 @@ function getInstances(callback) {
 function CommandsWidgetFactory(ic) {
     const commandsWidget = new GscapeContextMenu();
     ic.grapholscape.on(LifecycleEvent.ContextClick, event => {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         const commands = [];
         if (event.target === ic.grapholscape.renderer.cy ||
             !event.target.data().iri ||
@@ -20802,78 +20824,10 @@ function CommandsWidgetFactory(ic) {
                 },
             });
         }
-        if (((_b = ic.endpointController) === null || _b === void 0 ? void 0 : _b.isReasonerAvailable()) &&
-            (grapholElement.is(TypesEnum.CLASS) ||
-                grapholElement.is(TypesEnum.CLASS_INSTANCE))) {
-            commands.push({
-                content: 'Find paths to',
-                icon: pathIcon,
-                select: () => {
-                    const onComplete = (sourceNode, targetNode, loadingEdge) => __awaiter(this, void 0, void 0, function* () {
-                        let pathSelector;
-                        let sourceIriForPath = sourceNode.data('iri');
-                        let targetIriForpath = targetNode.data('iri');
-                        const loadingAnimationInterval = setInterval(() => {
-                            loadingEdge.data('on', !loadingEdge.data('on'));
-                        }, 500);
-                        const stopAnimation = () => {
-                            loadingEdge.remove();
-                            clearInterval(loadingAnimationInterval);
-                        };
-                        if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
-                            stopAnimation();
-                        }
-                        // let pathSelector: GscapePathSelector | undefined
-                        // if (sourceNode.data().type === TypesEnum.CLASS && sourceNode.data().type === targetNode.data().type) {
-                        //   if (sourceIriForPath && targetIriForpath) {
-                        //     pathSelector = pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
-                        //     pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
-                        //       if (evt.detail.entities)
-                        //         ic.addPath(evt.detail.entities)
-                        //       stopAnimation()
-                        //     })
-                        //   }
-                        // } else {
-                        let entity;
-                        // Take parentClass IRI to find a path to the other node in the intensional level
-                        if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
-                            entity = ic.classInstanceEntities.get(sourceNode.data('iri'));
-                            if (entity) {
-                                sourceIriForPath = entity.parentClassIris[0].fullIri;
-                            }
-                        }
-                        if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
-                            entity = ic.classInstanceEntities.get(targetNode.data('iri'));
-                            if (entity) {
-                                targetIriForpath = entity.parentClassIris[0].fullIri;
-                            }
-                        }
-                        if (sourceIriForPath && targetIriForpath) {
-                            pathSelector = yield pathSelectionInit(ic, sourceIriForPath, targetIriForpath);
-                            if (pathSelector) {
-                                pathSelector.addEventListener('path-selection', (evt) => __awaiter(this, void 0, void 0, function* () {
-                                    ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
-                                        .finally(stopAnimation);
-                                }));
-                            }
-                            else {
-                                stopAnimation();
-                            }
-                        }
-                        // }
-                        if (pathSelector) {
-                            pathSelector.addEventListener('cancel', stopAnimation);
-                            pathSelector.show();
-                        }
-                    });
-                    handlePathEdgeDraw(event.target, ic, onComplete);
-                }
-            });
-        }
         if (grapholElement.is(TypesEnum.CLASS_INSTANCE)) {
             commands.push(focusInstance(() => ic.expandObjectPropertiesOnInstance(entity.iri.fullIri)));
             commands.push(performInstanceChecking(() => __awaiter(this, void 0, void 0, function* () {
-                var _f;
+                var _e;
                 const allClassesIris = ic
                     .grapholscape
                     .ontology
@@ -20881,8 +20835,8 @@ function CommandsWidgetFactory(ic) {
                     .map(e => e.iri.fullIri);
                 const badgeController = new BadgeController(ic);
                 badgeController.addLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE);
-                const instanceCheckingClasses = yield ((_f = ic
-                    .endpointController) === null || _f === void 0 ? void 0 : _f.instanceCheck(entity.iri.fullIri, allClassesIris).finally(() => badgeController.removeLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE)));
+                const instanceCheckingClasses = yield ((_e = ic
+                    .endpointController) === null || _e === void 0 ? void 0 : _e.instanceCheck(entity.iri.fullIri, allClassesIris).finally(() => badgeController.removeLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE)));
                 instanceCheckingClasses === null || instanceCheckingClasses === void 0 ? void 0 : instanceCheckingClasses.forEach(classIri => {
                     const classEntity = ic.grapholscape.ontology.getEntity(classIri);
                     if (classEntity) {
@@ -20897,7 +20851,7 @@ function CommandsWidgetFactory(ic) {
         }
         const classIri = entity.iri.fullIri;
         if (grapholElement.is(TypesEnum.CLASS)) {
-            if ((_c = ic.endpointController) === null || _c === void 0 ? void 0 : _c.isReasonerAvailable()) {
+            if ((_b = ic.endpointController) === null || _b === void 0 ? void 0 : _b.isReasonerAvailable()) {
                 commands.push(getInstances(() => {
                     ic.expandInstancesOnClass(classIri);
                 }));
@@ -20943,7 +20897,7 @@ function CommandsWidgetFactory(ic) {
                         : ic.showEquivalentClassesOf(classIri, equivalentClasses);
                 }));
             }
-            if (((_d = ic.endpointController) === null || _d === void 0 ? void 0 : _d.isReasonerAvailable()) && ic.countersEnabled) {
+            if (((_c = ic.endpointController) === null || _c === void 0 ? void 0 : _c.isReasonerAvailable()) && ic.countersEnabled) {
                 commands.push({
                     icon: counter,
                     content: 'Count Instances',
@@ -20951,7 +20905,7 @@ function CommandsWidgetFactory(ic) {
                 });
             }
         }
-        if (!grapholElement.is(TypesEnum.CLASS_INSTANCE) && ((_e = ic.endpointController) === null || _e === void 0 ? void 0 : _e.isReasonerAvailable()) && ic.dataLineageEnabled) {
+        if (!grapholElement.is(TypesEnum.CLASS_INSTANCE) && ((_d = ic.endpointController) === null || _d === void 0 ? void 0 : _d.isReasonerAvailable()) && ic.dataLineageEnabled) {
             commands.push({
                 content: 'Data Lineage',
                 icon: sankey,

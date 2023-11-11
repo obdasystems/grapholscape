@@ -4416,7 +4416,7 @@ interface IVirtualKnowledgeGraphApi {
         lang?: string;
     }[]) => void) => Promise<void>;
     getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>;
-    getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, sourceInstanceIri?: string, targetInstanceIri?: string) => Promise<void>;
+    getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, maxNodeNumber: number, sourceInstanceIri?: string, targetInstanceIri?: string) => Promise<void>;
     pageSize: number;
 }
 declare class VKGApi implements IVirtualKnowledgeGraphApi {
@@ -4444,7 +4444,7 @@ declare class VKGApi implements IVirtualKnowledgeGraphApi {
         language?: string;
     }[]) => void): Promise<void>;
     getIntensionalShortestPath(sourceClassIri: string, targetClassIri: string, kShortest?: boolean): Promise<any>;
-    getExtensionalShortestPath(path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, sourceInstanceIri?: string, targetInstanceIri?: string): Promise<void>;
+    getExtensionalShortestPath(path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, maxEdgeNumber: number, sourceInstanceIri?: string, targetInstanceIri?: string): Promise<void>;
     shouldQueryUseLabels(executionId: string): Promise<boolean>;
     private getClassInstanceFromQueryResult;
     private parseLabel;
@@ -4556,7 +4556,7 @@ declare class EndpointController {
     shouldQueryUseLabels(queryExecutionId: string): Promise<boolean> | undefined;
     getMaterializedCounts(): Promise<MaterializedCounts | undefined>;
     instanceCheck(instanceIri: string, classesToCheck: string[]): Promise<string[]>;
-    requestInstancesPath(path: OntologyPath, sourceInstanceIri?: string, targetIri?: string): Promise<RDFGraph | undefined>;
+    requestInstancesPath(path: OntologyPath, sourceInstanceIri?: string, targetIri?: string, maxEdgeNumber?: number): Promise<RDFGraph | undefined>;
     setLanguage(lang: string): void;
     isReasonerAvailable(): boolean;
     get endpoint(): MastroEndpoint | undefined;
@@ -4653,7 +4653,7 @@ declare class IncrementalController {
      */
     removeEntity(entityIri: GrapholEntity, entitiesIrisToKeep?: string[]): void;
     removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void;
-    addInstance(instance: ClassInstance, parentClassesIris?: string[] | string, position?: Position$1): ClassInstanceEntity;
+    addInstance(instance: ClassInstance, parentClassesIris?: string[] | string, position?: Position$1, addLoadingBadges?: boolean): ClassInstanceEntity;
     /**
      * Add object property edge between two classes.
      * @param objectPropertyIri the object property iri to add
@@ -4768,6 +4768,7 @@ declare class IncrementalController {
     private get ontology();
     private get incrementalRenderer();
     getIDByIRI(iri: string, type: TypesEnum): string | undefined;
+    checkDiagramSize(numberOfElements: number, showError?: boolean): boolean;
     get numberOfElements(): number;
 }
 
