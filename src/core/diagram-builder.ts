@@ -416,7 +416,7 @@ export default class DiagramBuilder {
     if (hierarchy.id) {
       const unionNode = this.diagramRepresentation?.cy.$(`node[hierarchyID = "${hierarchy.id}"]`)
       unionNode?.edgesTo(`[ iri = "${superclassIri}" ]`).forEach(inclusionEdge => {
-        if (inclusionEdge.data().type === hierarchy.type)
+        if (inclusionEdge.data().type.replace('complete-', '') === hierarchy.type)
           this.diagram?.removeElement(inclusionEdge.id(), this.rendererState)
       })
     }
