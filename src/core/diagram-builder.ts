@@ -65,10 +65,16 @@ export default class DiagramBuilder {
       ownerEntityNode = this.diagramRepresentation?.grapholElements.get(ownerEntityId)
 
       if (!ownerEntityNode) return
+
+      // Check if owner entity node has already the same data property, avoid duplicates on class
+      const dpNodeAlreadyPresent = this.diagramRepresentation?.cy.$id(ownerEntityNode.id).neighborhood(`[ iri = "${dataPropertyNode.iri}" ]`)
+      if (dpNodeAlreadyPresent?.nonempty()) {
+        return this.diagramRepresentation?.grapholElements.get(dpNodeAlreadyPresent.first().id())
+      }
     }
 
-    if (ownerEntityNode?.isNode() && ownerEntityNode.position)
-      dataPropertyNode.position = ownerEntityNode.position
+    if (ownerEntityNode?.isNode() && this.diagramRepresentation)
+      dataPropertyNode.position = this.diagramRepresentation.cy.$id(ownerEntityNode.id).position()
     else
       dataPropertyNode.renderedPosition = this.getCurrentCenterPos()
 
