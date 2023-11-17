@@ -13,6 +13,7 @@ export default function (ontologyExplorerComponent: GscapeExplorer, grapholscape
 
   ontologyExplorerComponent.addEventListener('onentityfilterchange', (e: EntityFilterEvent) => {
     ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail)
+      .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
   })
 
   ontologyExplorerComponent.onTogglePanel = () => {
