@@ -139,7 +139,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
           rdfGraph.config?.entityNameType || EntityNameType.LABEL,
           rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
         )
-        if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+        if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY || rdfGraph.modelType === RDFGraphModelTypeEnum.VKG)
           grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
       diagramRepr!.addElement(grapholElement, grapholEntity)
@@ -159,7 +159,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
           rdfGraph.config?.entityNameType || EntityNameType.LABEL,
           rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
         )
-        if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+        if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY || rdfGraph.modelType === RDFGraphModelTypeEnum.VKG)
           grapholEntity?.addOccurrence(grapholElement, rendererState)
       }
       diagramRepr!.addElement(grapholElement, grapholEntity)
