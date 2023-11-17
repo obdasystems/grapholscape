@@ -31,7 +31,6 @@ describe('test serializing an ontology', () => {
     language: 'it',
     entityNameType: EntityNameType.LABEL,
     renderers: Object.values(RendererStatesEnum),
-    widgets: new Map(),
   }
 
   const rdfGraph = rdfgraphSerializer(gscapeMock)

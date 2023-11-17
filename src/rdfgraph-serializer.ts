@@ -1,10 +1,8 @@
 import { Language } from "./config";
 import FloatyTransformer from "./core/rendering/floaty/floaty-transformer";
-import { Diagram, DiagramRepresentation, EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
-import { WidgetEnum } from "./ui/util/widget-enum";
-import { GscapeFilters } from "./ui/filters";
-import { RDFGraph, RDFGraphModelTypeEnum, Edge, RDFGraphConfigFiltersEnum, Node } from "./model/rdf-graph/swagger";
 import { IncrementalController } from "./incremental";
+import { Diagram, DiagramRepresentation, EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
+import { Edge, Node, RDFGraph, RDFGraphModelTypeEnum } from "./model/rdf-graph/swagger";
 
 export interface IGscape {
   ontology: Ontology
@@ -23,7 +21,6 @@ export interface IGscape {
   renderers: RendererStatesEnum[],
   renderState?: RendererStatesEnum,
   incremental?: IncrementalController,
-  widgets: Map<any, any>
 }
 
 export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
@@ -111,32 +108,7 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
     language: grapholscape.language,
     entityNameType: grapholscape.entityNameType,
     renderers: grapholscape.renderers,
-    widgets: {},
   }
-
-  const widgetCurrentStates = {}
-  grapholscape.widgets.forEach((widget, key) => {
-    switch (key) {
-
-      case WidgetEnum.FILTERS:
-        result.config!.filters = Array.from((widget as GscapeFilters).filters.values()).map(f => {
-          if (f.active) {
-            return f.key
-          }
-        }).filter(f => f !== undefined) as RDFGraphConfigFiltersEnum[]
-
-      case WidgetEnum.ENTITY_DETAILS:
-      case WidgetEnum.FILTERS:
-      case WidgetEnum.ONTOLOGY_INFO:
-      case WidgetEnum.DIAGRAM_SELECTOR:
-      case WidgetEnum.ONTOLOGY_EXPLORER:
-      case WidgetEnum.OWL_VISUALIZER:
-        widgetCurrentStates[key] = widget.enabled !== false
-        break
-    }
-  })
-
-  result.config.widgets = widgetCurrentStates
 
   return result
 }

@@ -101,7 +101,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
     _config = RDFGraphParser.getConfig(rdfGraphToResume)
   } else {
     if (config) {
-      Object.assign(_config, config)
+      _config = Object.assign(config, loadConfig())
     }
   }
   _config.renderers = [ RendererStatesEnum.INCREMENTAL ]
@@ -126,9 +126,17 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
   return grapholscape
 }
 
-export function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions) {
+export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig, mastroConnection?: RequestOptions) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
-  const grapholscape = new Core(parseRDFGraph(rdfGraph), container, RDFGraphParser.getConfig(rdfGraph))
+
+  const savedConfig = loadConfig()
+  if (config) {
+    // copy savedConfig over config
+    config = Object.assign(config, savedConfig)
+  } else {
+    config = RDFGraphParser.getConfig(rdfGraph)
+  }
+  const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config)
   initFromResume(grapholscape, rdfGraph)
 
   if (mastroConnection)
