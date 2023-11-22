@@ -3,6 +3,7 @@ import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity"
 import { ClassInstance } from "./api/kg-api"
 import { MastroEndpoint } from "./api/model"
 
+/** @internal */
 export enum IncrementalEvent {
   RequestStopped = 'requestStopped',
   NewInstances = 'newInstances',
@@ -20,6 +21,7 @@ export enum IncrementalEvent {
   DataPropertyValuesLoadingFinished = 'dpvaluesloadfinish',
 }
 
+/** @internal */
 export interface IonIncrementalEvent {
   (event: IncrementalEvent.RequestStopped, callback: () => void): void
   (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void): void
@@ -35,6 +37,7 @@ export interface IonIncrementalEvent {
   (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void,
 }
 
+/** @internal */
 export default class IncrementalLifecycle {
   private requestStopped: (() => void)[] = []
   private newInstances: ((classInstances: ClassInstance[][], numberResultsAvailable?: number) => void)[] = []

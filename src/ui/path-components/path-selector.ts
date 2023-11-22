@@ -7,6 +7,7 @@ import { SizeEnum } from "../common/button";
 import { BaseMixin, ModalMixin } from "../common/mixins";
 import baseStyle from '../style';
 
+/** @internal */
 export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)) {
 
   private _paths: OntologyPath[] = []
@@ -539,5 +540,5 @@ export default class GscapePathSelector extends ModalMixin(BaseMixin(LitElement)
 }
 
 customElements.define('gscape-path-selector', GscapePathSelector)
-
+/** @internal */
 export type PathSelectionEvent = CustomEvent<OntologyPath>

@@ -86,6 +86,7 @@ export function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]) {
   return entities
 }
 
+/** @internal */
 export function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]) {
   const classInstances: Map<string, ClassInstanceEntity> = new Map()
   let classInstance: ClassInstanceEntity | undefined

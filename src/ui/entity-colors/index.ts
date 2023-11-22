@@ -6,7 +6,7 @@ import getIconSlot from "../util/get-icon-slot";
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeEntityColorLegend, { ClassWithColor } from "./entity-color-legend";
 
-export { GscapeEntityColorLegend };
+export { GscapeEntityColorLegend, ClassWithColor };
 
 function initEntityColorLegend(grapholscape: Grapholscape) {
   const entityColorLegend = new GscapeEntityColorLegend()

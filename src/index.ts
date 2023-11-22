@@ -29,9 +29,11 @@ export * from './exporter'
 /** @internal */
 export * from './incremental'
 export * from './model'
+/** @internal */
 export { default as rdfgraphSerializer } from './rdfgraph-serializer'
 export * as ui from './ui'
 export * as util from './util'
+/** @internal */
 export { parseRDFGraph, RDFGraphParser }
 
 /**
@@ -48,8 +50,8 @@ export { parseRDFGraph, RDFGraphParser }
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
- * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
+ * @see [Getting started](../pages/getting-started.html)
+ * @see [Configuration](../pages/configuration.html)
  */
 export async function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
@@ -81,8 +83,8 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
- * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
+ * @see [Getting started](../pages/getting-started.html)
+ * @see [Configuration](../pages/configuration.html)
  */
 export async function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
@@ -126,6 +128,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
   return grapholscape
 }
 
+/** @internal */
 export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig, mastroConnection?: RequestOptions) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
 
@@ -146,6 +149,7 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
   return grapholscape
 }
 
+/** @internal */
 export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true) {
   if (forceInit) {
     UI.initUI(grapholscape)

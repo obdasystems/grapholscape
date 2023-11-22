@@ -8,6 +8,7 @@ import { GscapeEntitySelector } from "../entity-selector";
 import { SizeEnum } from "../common/button";
 import GscapeConfirmDialog from "../common/confirm-dialog";
 
+/** @internal */
 export default class ShortestPathDialog extends GscapeConfirmDialog {
 
   public classes?: EntityViewData[]

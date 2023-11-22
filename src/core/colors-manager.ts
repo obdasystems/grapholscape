@@ -53,6 +53,7 @@ export class OntologyColorManager extends ColorManager {
     super()
   }
 
+  /** @internal */
   setInstanceColor(classInstance: ClassInstanceEntity, overwrite = false) {
     if (classInstance.parentClassIris.length <= 0 || (classInstance.color && !overwrite))
       return this

@@ -27,7 +27,7 @@ export default abstract class Grapholscape {
   /**
    * Show a certain diagram by its ID
    * @param diagramId the diagram's id to display
-   * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
+   * @param viewportState set a custom {@link !model.Viewport}, if not set, last one available will be used
    */
   showDiagram(diagramId: number, viewportState?: Viewport) {
     const diagram = this.ontology.getDiagram(diagramId)

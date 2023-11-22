@@ -183,9 +183,13 @@ export default class DiagramBuilder {
     return objectPropertyEdge
   }
 
+  /** @internal */
   addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode
+  /** @internal */
   addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode
+  /** @internal */
   addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode
+  /** @internal */
   addClassInstance(classInstanceEntity: ClassInstanceEntity, positionOrElem?: any) {
     if (this.diagramRepresentation?.containsEntity(classInstanceEntity)) {
       const nodeId = classInstanceEntity.getIdInDiagram(this.diagram.id, TypesEnum.CLASS_INSTANCE, this.rendererState)

@@ -32,6 +32,7 @@
       "ThemeManager",
       "EntityNavigator",
     ],
+    "exclude": "./src/model/rdf-graph/swagger/apis/*",
     "excludeInternal": true,
     "excludeExternals": true,
     "pluginPages": {

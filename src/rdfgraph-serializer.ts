@@ -23,6 +23,7 @@ export interface IGscape {
   incremental?: IncrementalController,
 }
 
+/** @internal */
 export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
   const ontology = grapholscape.ontology
 
