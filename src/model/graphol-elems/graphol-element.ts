@@ -78,7 +78,7 @@ export default class GrapholElement implements Element {
     }
 
     // Set functionality for data/object properties
-    if (grapholEntity?.is(TypesEnum.DATA_PROPERTY) || grapholEntity?.is(TypesEnum.OBJECT_PROPERTY)) {
+    if (grapholEntity && (this.is(TypesEnum.DATA_PROPERTY) || this.is(TypesEnum.OBJECT_PROPERTY)) && (grapholEntity.is(TypesEnum.DATA_PROPERTY) || grapholEntity.is(TypesEnum.OBJECT_PROPERTY))) {
       result.data[FunctionPropertiesEnum.FUNCTIONAL] = grapholEntity.hasFunctionProperty(FunctionPropertiesEnum.FUNCTIONAL)
       result.data[FunctionPropertiesEnum.INVERSE_FUNCTIONAL] = grapholEntity.hasFunctionProperty(FunctionPropertiesEnum.INVERSE_FUNCTIONAL)
     }

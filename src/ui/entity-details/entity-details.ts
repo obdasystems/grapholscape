@@ -140,7 +140,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         }
 
         <div class="content-wrapper">
-          ${this.grapholEntity.datatype
+          ${this.currentOccurrenceType === TypesEnum.DATA_PROPERTY && this.grapholEntity.datatype
             ? html`
               <div style="text-align: center" class="chips-wrapper section">
                 <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
@@ -149,7 +149,9 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             : null
           }
 
-          ${this.grapholEntity.functionProperties.length > 0 || this.grapholEntity.isDataPropertyFunctional
+          ${(this.currentOccurrenceType === TypesEnum.DATA_PROPERTY ||
+            this.currentOccurrenceType === TypesEnum.OBJECT_PROPERTY) &&
+            (this.grapholEntity.functionProperties.length > 0 || this.grapholEntity.isDataPropertyFunctional)
             ? html`
                 <div class="chips-wrapper section">
                 ${this.grapholEntity.isDataPropertyFunctional
