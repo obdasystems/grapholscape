@@ -166,7 +166,12 @@ export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
   }
 
   addDataPropertyValue(dataPropertyIri: string, value: string) {
-    this._dataPropertiesValues?.get(dataPropertyIri)?.values.add(value)
+    const numericValue = Number(value)
+    this._dataPropertiesValues?.get(dataPropertyIri)?.values.add(
+      isNaN(numericValue)
+        ? value
+        : new Intl.NumberFormat(navigator.language).format(numericValue)
+    )
     this.requestUpdate()
   }
 
