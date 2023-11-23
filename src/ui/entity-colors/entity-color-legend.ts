@@ -1,9 +1,8 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
-import baseStyle from "../style";
-import { GrapholElement, TypesEnum } from "../../model";
+import { colorPalette, minus, plus, searchOff } from "../assets";
 import { BaseMixin, DropPanelMixin } from "../common/mixins";
+import baseStyle from "../style";
 import a11yClick from "../util/a11y-click";
-import { colorPalette, minus, plus } from "../assets";
 
 
 export type ClassWithColor = {
@@ -108,7 +107,13 @@ export default class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(Li
               })}  
             </div>
           `
-          : html``
+          : html`
+            <div class="blank-slate">
+              ${searchOff}
+              <div class="header">No Classes</div>
+              <div class="description">Current diagram has no classes or instances displayed in it.</div>
+            </div>
+          `
         }
       </div>
     `

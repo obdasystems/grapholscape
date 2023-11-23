@@ -231,6 +231,6 @@ function onEmptyDiagram(grapholscape: Grapholscape) {
 
   const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
   if (entityColorLegend) {
-    entityColorLegend.hide()
+    entityColorLegend.elements = []
   }
 }
