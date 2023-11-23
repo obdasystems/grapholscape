@@ -1,13 +1,11 @@
-import { EdgeSingular, NodeSingular } from "cytoscape";
-import { ClassInstanceEntity, GrapholNode, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../../model";
-import { classIcon, counter, pathIcon, sankey } from "../../../ui/assets";
-import { Command, GscapeContextMenu, PathSelectionEvent, PathSelector } from "../../../ui";
+import { ClassInstanceEntity, GrapholNode, LifecycleEvent, Position, RendererStatesEnum, TypesEnum } from "../../../model";
+import { Command, GscapeContextMenu } from "../../../ui";
+import { classIcon, counter, sankey } from "../../../ui/assets";
 import IncrementalController from "../../controller";
 import { IncrementalEvent } from "../../lifecycle";
 import { hideButtons } from "../node-buttons.ts";
-import { handlePathEdgeDraw, pathSelectionInit } from "../path-selection";
-import * as IncrementalCommands from "./commands";
 import BadgeController from "../node-buttons.ts/badges-controller";
+import * as IncrementalCommands from "./commands";
 
 export function CommandsWidgetFactory(ic: IncrementalController) {
   const commandsWidget = new GscapeContextMenu()
@@ -69,11 +67,11 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
           }
         })
 
-        showParentClass(ic, entity as ClassInstanceEntity)
+        showParentClass(ic, entity as ClassInstanceEntity, event.target.position())
       }))
 
       if (!(entity as ClassInstanceEntity).isRDFTypeUnknown) {
-        commands.push(IncrementalCommands.showParentClass(() => showParentClass(ic, entity as ClassInstanceEntity)))
+        commands.push(IncrementalCommands.showParentClass(() => showParentClass(ic, entity as ClassInstanceEntity, event.target.position())))
       }
     }
 
@@ -207,14 +205,14 @@ export function CommandsWidgetFactory(ic: IncrementalController) {
   })
 }
 
-function showParentClass(incrementalController: IncrementalController, instanceEntity: ClassInstanceEntity) {
+function showParentClass(incrementalController: IncrementalController, instanceEntity: ClassInstanceEntity, position: Position) {
   const parentClassIris = instanceEntity.parentClassIris
   let parentClassNode: GrapholNode | undefined
   let classInstanceId = incrementalController.getIDByIRI(instanceEntity.iri.fullIri, TypesEnum.CLASS_INSTANCE)
   if (classInstanceId) {
     incrementalController.performActionWithBlockedGraph(() => {
       parentClassIris?.forEach(parentClassIri => {
-        parentClassNode = incrementalController.addClass(parentClassIri.fullIri, false)
+        parentClassNode = incrementalController.addClass(parentClassIri.fullIri, false, position)
         if (parentClassNode) {
           incrementalController.addEdge(
             classInstanceId!,
