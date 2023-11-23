@@ -3852,7 +3852,7 @@ class GrapholElement {
             }
         };
         // Set functionality for data/object properties
-        if ((grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.is(TypesEnum.DATA_PROPERTY)) || (grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.is(TypesEnum.OBJECT_PROPERTY))) {
+        if (grapholEntity && (this.is(TypesEnum.DATA_PROPERTY) || this.is(TypesEnum.OBJECT_PROPERTY)) && (grapholEntity.is(TypesEnum.DATA_PROPERTY) || grapholEntity.is(TypesEnum.OBJECT_PROPERTY))) {
             result.data[FunctionPropertiesEnum.FUNCTIONAL] = grapholEntity.hasFunctionProperty(FunctionPropertiesEnum.FUNCTIONAL);
             result.data[FunctionPropertiesEnum.INVERSE_FUNCTIONAL] = grapholEntity.hasFunctionProperty(FunctionPropertiesEnum.INVERSE_FUNCTIONAL);
         }
@@ -6218,6 +6218,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
     }
 }
 
+/** @internal */
 function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
     const ontology = grapholscape.ontology;
     const result = {
@@ -6297,28 +6298,7 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
         language: grapholscape.language,
         entityNameType: grapholscape.entityNameType,
         renderers: grapholscape.renderers,
-        widgets: {},
     };
-    const widgetCurrentStates = {};
-    grapholscape.widgets.forEach((widget, key) => {
-        switch (key) {
-            case WidgetEnum.FILTERS:
-                result.config.filters = Array.from(widget.filters.values()).map(f => {
-                    if (f.active) {
-                        return f.key;
-                    }
-                }).filter(f => f !== undefined);
-            case WidgetEnum.ENTITY_DETAILS:
-            case WidgetEnum.FILTERS:
-            case WidgetEnum.ONTOLOGY_INFO:
-            case WidgetEnum.DIAGRAM_SELECTOR:
-            case WidgetEnum.ONTOLOGY_EXPLORER:
-            case WidgetEnum.OWL_VISUALIZER:
-                widgetCurrentStates[key] = widget.enabled !== false;
-                break;
-        }
-    });
-    result.config.widgets = widgetCurrentStates;
     return result;
 }
 
@@ -7638,6 +7618,7 @@ class OntologyColorManager extends ColorManager {
         this.diagramRepresentation = diagramRepresentation;
         this._classForest = new Set();
     }
+    /** @internal */
     setInstanceColor(classInstance, overwrite = false) {
         if (classInstance.parentClassIris.length <= 0 || (classInstance.color && !overwrite))
             return this;
@@ -8620,7 +8601,7 @@ class Grapholscape {
     /**
      * Show a certain diagram by its ID
      * @param diagramId the diagram's id to display
-     * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
+     * @param viewportState set a custom {@link !model.Viewport}, if not set, last one available will be used
      */
     showDiagram(diagramId, viewportState) {
         var _a, _b;
@@ -9017,7 +8998,7 @@ class DiagramBuilder {
         return classNode;
     }
     addDataProperty(dataPropertyEntity, ownerEntity) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         const dataPropertyNode = new GrapholNode(this.getNewId('node'), TypesEnum.DATA_PROPERTY);
         dataPropertyNode.diagramId = this.diagram.id;
         dataPropertyNode.iri = dataPropertyEntity.iri.fullIri;
@@ -9034,18 +9015,23 @@ class DiagramBuilder {
             ownerEntityNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(ownerEntityId);
             if (!ownerEntityNode)
                 return;
+            // Check if owner entity node has already the same data property, avoid duplicates on class
+            const dpNodeAlreadyPresent = (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy.$id(ownerEntityNode.id).neighborhood(`[ iri = "${dataPropertyNode.iri}" ]`);
+            if (dpNodeAlreadyPresent === null || dpNodeAlreadyPresent === void 0 ? void 0 : dpNodeAlreadyPresent.nonempty()) {
+                return (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.grapholElements.get(dpNodeAlreadyPresent.first().id());
+            }
         }
-        if ((ownerEntityNode === null || ownerEntityNode === void 0 ? void 0 : ownerEntityNode.isNode()) && ownerEntityNode.position)
-            dataPropertyNode.position = ownerEntityNode.position;
+        if ((ownerEntityNode === null || ownerEntityNode === void 0 ? void 0 : ownerEntityNode.isNode()) && this.diagramRepresentation)
+            dataPropertyNode.position = this.diagramRepresentation.cy.$id(ownerEntityNode.id).position();
         else
             dataPropertyNode.renderedPosition = this.getCurrentCenterPos();
-        (_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.addElement(dataPropertyNode, dataPropertyEntity);
+        (_d = this.diagramRepresentation) === null || _d === void 0 ? void 0 : _d.addElement(dataPropertyNode, dataPropertyEntity);
         if (ownerEntityNode) {
             const dataPropertyEdge = new GrapholEdge(this.getNewId('edge'), TypesEnum.ATTRIBUTE_EDGE);
             dataPropertyEdge.diagramId = this.diagram.id;
             dataPropertyEdge.sourceId = ownerEntityNode.id;
             dataPropertyEdge.targetId = dataPropertyNode.id;
-            (_c = this.diagramRepresentation) === null || _c === void 0 ? void 0 : _c.addElement(dataPropertyEdge);
+            (_e = this.diagramRepresentation) === null || _e === void 0 ? void 0 : _e.addElement(dataPropertyEdge);
         }
         return dataPropertyNode;
     }
@@ -9126,6 +9112,7 @@ class DiagramBuilder {
         this.diagramRepresentation.addElement(objectPropertyEdge, objectPropertyEntity);
         return objectPropertyEdge;
     }
+    /** @internal */
     addClassInstance(classInstanceEntity, positionOrElem) {
         var _a, _b;
         if ((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.containsEntity(classInstanceEntity)) {
@@ -9332,7 +9319,7 @@ class DiagramBuilder {
             const unionNode = (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy.$(`node[hierarchyID = "${hierarchy.id}"]`);
             unionNode === null || unionNode === void 0 ? void 0 : unionNode.edgesTo(`[ iri = "${superclassIri}" ]`).forEach(inclusionEdge => {
                 var _a;
-                if (inclusionEdge.data().type === hierarchy.type)
+                if (inclusionEdge.data().type.replace('complete-', '') === hierarchy.type)
                     (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inclusionEdge.id(), this.rendererState);
             });
         }
@@ -12661,7 +12648,13 @@ class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(s)) {
             })}  
             </div>
           `
-            : x ``}
+            : x `
+            <div class="blank-slate">
+              ${searchOff}
+              <div class="header">No Classes</div>
+              <div class="description">Current diagram has no classes or instances displayed in it.</div>
+            </div>
+          `}
       </div>
     `;
     }
@@ -12943,7 +12936,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
             : itemWithIriTemplate(this.entityForTemplate)}
 
         <div class="content-wrapper">
-          ${this.grapholEntity.datatype
+          ${this.currentOccurrenceType === TypesEnum.DATA_PROPERTY && this.grapholEntity.datatype
             ? x `
               <div style="text-align: center" class="chips-wrapper section">
                 <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
@@ -12951,7 +12944,9 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
             `
             : null}
 
-          ${this.grapholEntity.functionProperties.length > 0 || this.grapholEntity.isDataPropertyFunctional
+          ${(this.currentOccurrenceType === TypesEnum.DATA_PROPERTY ||
+            this.currentOccurrenceType === TypesEnum.OBJECT_PROPERTY) &&
+            (this.grapholEntity.functionProperties.length > 0 || this.grapholEntity.isDataPropertyFunctional)
             ? x `
                 <div class="chips-wrapper section">
                 ${this.grapholEntity.isDataPropertyFunctional
@@ -13608,7 +13603,8 @@ function init$4 (ontologyExplorerComponent, grapholscape) {
         grapholscape.selectElement(elementId);
     };
     ontologyExplorerComponent.addEventListener('onentityfilterchange', (e) => {
-        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail);
+        ontologyExplorerComponent.entities = createEntitiesList(grapholscape, e.detail)
+            .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0);
     });
     ontologyExplorerComponent.onTogglePanel = () => {
         if (ontologyExplorerComponent.entities.length === 0 || grapholscape.ontology.entities.size !== ontologyExplorerComponent.entities.length) {
@@ -14703,7 +14699,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0-snap.15"}</span>
+            <span>${"4.0.0"}</span>
           </div>
         </div>
       </div>
@@ -15231,6 +15227,7 @@ const EntityTypeEnum = {
     Annotation: 'annotation'
 };
 
+/** @internal */
 class GscapePathSelector extends ModalMixin(BaseMixin(s)) {
     constructor(theme) {
         super();
@@ -15702,6 +15699,7 @@ GscapePathSelector.styles = [
 customElements.define('gscape-path-selector', GscapePathSelector);
 
 var _a, _b;
+/** @internal */
 class ShortestPathDialog extends (_b = GscapeConfirmDialog) {
     constructor(grapholscape) {
         super();
@@ -15979,6 +15977,7 @@ function getEntities(rdfGraph, namespaces) {
     });
     return entities;
 }
+/** @internal */
 function getClassInstances(rdfGraph, namespaces) {
     var _a;
     const classInstances = new Map();
@@ -16027,7 +16026,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
             if (grapholElement.iri) {
                 grapholEntity = entities.get(grapholElement.iri);
                 grapholElement.displayedName = grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.getDisplayedName(((_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.entityNameType) || RDFGraphConfigEntityNameTypeEnum.LABEL, ((_b = rdfGraph.config) === null || _b === void 0 ? void 0 : _b.language) || rdfGraph.metadata.defaultLanguage || Language.EN);
-                if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+                if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY || rdfGraph.modelType === RDFGraphModelTypeEnum.VKG)
                     grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
             }
             diagramRepr.addElement(grapholElement, grapholEntity);
@@ -16044,7 +16043,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
             if (grapholElement.iri) {
                 grapholEntity = entities.get(grapholElement.iri);
                 grapholElement.displayedName = grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.getDisplayedName(((_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.entityNameType) || RDFGraphConfigEntityNameTypeEnum.LABEL, ((_b = rdfGraph.config) === null || _b === void 0 ? void 0 : _b.language) || rdfGraph.metadata.defaultLanguage || Language.EN);
-                if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+                if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY || rdfGraph.modelType === RDFGraphModelTypeEnum.VKG)
                     grapholEntity === null || grapholEntity === void 0 ? void 0 : grapholEntity.addOccurrence(grapholElement, rendererState);
             }
             diagramRepr.addElement(grapholElement, grapholEntity);
@@ -16189,6 +16188,7 @@ class QueryPoller {
                 // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
                 //   return
                 // }
+                this.lastRequestFulfilled = true;
                 if (this.isResultError(result)) {
                     this.triggerError(result);
                 }
@@ -16382,7 +16382,8 @@ class QueryManager {
             queryStatusPoller.onNewResults = (result) => {
                 queryResultsPoller.numberResultsAvailable = result.numResults;
                 if (result.status === QueryStatusEnum.FINISHED || result.status === QueryStatusEnum.ERROR) {
-                    queryResultsPoller.stop();
+                    if (result.status === QueryStatusEnum.ERROR)
+                        queryResultsPoller.stop();
                     this._runningQueryPollerByExecutionId.delete(executionId);
                     queryStatusPoller.stop();
                 }
@@ -17565,6 +17566,7 @@ class HighlightsManager {
     }
 }
 
+/** @internal */
 var IncrementalEvent;
 (function (IncrementalEvent) {
     IncrementalEvent["RequestStopped"] = "requestStopped";
@@ -17582,6 +17584,7 @@ var IncrementalEvent;
     IncrementalEvent["NewDataPropertyValues"] = "newDataPropertyValues";
     IncrementalEvent["DataPropertyValuesLoadingFinished"] = "dpvaluesloadfinish";
 })(IncrementalEvent || (IncrementalEvent = {}));
+/** @internal */
 class IncrementalLifecycle {
     constructor() {
         this.requestStopped = [];
@@ -19396,7 +19399,10 @@ class IncrementalEntityDetails extends BaseMixin(s) {
     }
     addDataPropertyValue(dataPropertyIri, value) {
         var _a, _b;
-        (_b = (_a = this._dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(dataPropertyIri)) === null || _b === void 0 ? void 0 : _b.values.add(value);
+        const numericValue = Number(value);
+        (_b = (_a = this._dataPropertiesValues) === null || _a === void 0 ? void 0 : _a.get(dataPropertyIri)) === null || _b === void 0 ? void 0 : _b.values.add(isNaN(numericValue)
+            ? value
+            : new Intl.NumberFormat(navigator.language).format(numericValue));
         this.requestUpdate();
     }
     /** @internal */
@@ -20843,10 +20849,10 @@ function CommandsWidgetFactory(ic) {
                         entity.addParentClass(classEntity.iri);
                     }
                 });
-                showParentClass(ic, entity);
+                showParentClass(ic, entity, event.target.position());
             })));
             if (!entity.isRDFTypeUnknown) {
-                commands.push(showParentClass$1(() => showParentClass(ic, entity)));
+                commands.push(showParentClass$1(() => showParentClass(ic, entity, event.target.position())));
             }
         }
         const classIri = entity.iri.fullIri;
@@ -20942,14 +20948,14 @@ function CommandsWidgetFactory(ic) {
         }
     });
 }
-function showParentClass(incrementalController, instanceEntity) {
+function showParentClass(incrementalController, instanceEntity, position) {
     const parentClassIris = instanceEntity.parentClassIris;
     let parentClassNode;
     let classInstanceId = incrementalController.getIDByIRI(instanceEntity.iri.fullIri, TypesEnum.CLASS_INSTANCE);
     if (classInstanceId) {
         incrementalController.performActionWithBlockedGraph(() => {
             parentClassIris === null || parentClassIris === void 0 ? void 0 : parentClassIris.forEach(parentClassIri => {
-                parentClassNode = incrementalController.addClass(parentClassIri.fullIri, false);
+                parentClassNode = incrementalController.addClass(parentClassIri.fullIri, false, position);
                 if (parentClassNode) {
                     incrementalController.addEdge(classInstanceId, parentClassNode.id, TypesEnum.INSTANCE_OF);
                 }
@@ -21451,7 +21457,7 @@ function onEmptyDiagram(grapholscape) {
     }
     const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND);
     if (entityColorLegend) {
-        entityColorLegend.hide();
+        entityColorLegend.elements = [];
     }
 }
 
@@ -22341,8 +22347,8 @@ cytoscape.use(klay);
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
- * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
+ * @see [Getting started](../pages/getting-started.html)
+ * @see [Configuration](../pages/configuration.html)
  */
 function fullGrapholscape(file, container, config) {
     var _a;
@@ -22374,8 +22380,8 @@ function fullGrapholscape(file, container, config) {
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
- * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
+ * @see [Getting started](../pages/getting-started.html)
+ * @see [Configuration](../pages/configuration.html)
  */
 function bareGrapholscape(file, container, config) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -22395,7 +22401,7 @@ function incrementalGrapholscape(ontology, container, rdfGraphToResume, config) 
         }
         else {
             if (config) {
-                Object.assign(_config, config);
+                _config = Object.assign(config, loadConfig());
             }
         }
         _config.renderers = [RendererStatesEnum.INCREMENTAL];
@@ -22417,16 +22423,26 @@ function incrementalGrapholscape(ontology, container, rdfGraphToResume, config) 
         return grapholscape;
     });
 }
-function resume(rdfGraph, container, mastroConnection) {
+/** @internal */
+function resume(rdfGraph, container, config, mastroConnection) {
     var _a, _b;
     const loadingSpinner = showLoadingSpinner(container, { selectedTheme: (_a = rdfGraph.config) === null || _a === void 0 ? void 0 : _a.selectedTheme });
-    const grapholscape = new Core(parseRDFGraph(rdfGraph), container, getConfig(rdfGraph));
+    const savedConfig = loadConfig();
+    if (config) {
+        // copy savedConfig over config
+        config = Object.assign(config, savedConfig);
+    }
+    else {
+        config = getConfig(rdfGraph);
+    }
+    const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config);
     initFromResume(grapholscape, rdfGraph);
     if (mastroConnection)
         (_b = grapholscape.incremental) === null || _b === void 0 ? void 0 : _b.setMastroConnection(mastroConnection);
     loadingSpinner.remove();
     return grapholscape;
 }
+/** @internal */
 function initFromResume(grapholscape, rdfGraph, forceInit = true) {
     if (forceInit) {
         init(grapholscape);
