@@ -4450,7 +4450,6 @@ declare class VKGApi implements IVirtualKnowledgeGraphApi {
     private parseLabel;
 }
 
-/** @internal */
 declare enum IncrementalEvent {
     RequestStopped = "requestStopped",
     NewInstances = "newInstances",
@@ -4467,7 +4466,6 @@ declare enum IncrementalEvent {
     NewDataPropertyValues = "newDataPropertyValues",
     DataPropertyValuesLoadingFinished = "dpvaluesloadfinish"
 }
-/** @internal */
 interface IonIncrementalEvent {
     (event: IncrementalEvent.RequestStopped, callback: () => void): void;
     (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void): void;
@@ -4482,7 +4480,6 @@ interface IonIncrementalEvent {
     (event: IncrementalEvent.NewDataPropertyValues, callback: (instanceIri: string, dataPropertyIri: string, newValues: string[]) => void): void;
     (event: IncrementalEvent.DataPropertyValuesLoadingFinished, callback: (instanceIri: string, dataPropertyIri: string) => void): void;
 }
-/** @internal */
 declare class IncrementalLifecycle {
     private requestStopped;
     private newInstances;
@@ -4837,7 +4834,7 @@ declare abstract class Grapholscape {
     /**
      * Show a certain diagram by its ID
      * @param diagramId the diagram's id to display
-     * @param viewportState set a custom {@link !model.Viewport}, if not set, last one available will be used
+     * @param viewportState set a custom {@link !model.ViewportState}, if not set, last one available will be used
      */
     showDiagram(diagramId: number, viewportState?: Viewport): void;
     /**
@@ -5071,7 +5068,7 @@ declare class DiagramBuilder {
     addClass(classEntity: GrapholEntity, classNode?: GrapholNode): GrapholNode;
     addClass(classEntity: GrapholEntity, position?: Position): GrapholNode;
     addClass(classEntity: GrapholEntity): GrapholNode;
-    addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity): GrapholElement | undefined;
+    addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity): GrapholNode | undefined;
     /**
      * Add an object property between two entities.
      * If the source and/or target entities are already present in graph, they won't be added again.
@@ -5086,11 +5083,8 @@ declare class DiagramBuilder {
      * @returns
      */
     addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity, nodesType: TypesEnum[], objectPropertyElement?: GrapholEdge): GrapholElement | undefined;
-    /** @internal */
     addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode;
-    /** @internal */
     addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode;
-    /** @internal */
     addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode;
     addIndividual(individualEntity: GrapholEntity, position?: Position): GrapholElement | undefined;
     private _addIndividualOrClassInstance;
@@ -5133,7 +5127,6 @@ declare class OntologyColorManager extends ColorManager {
     private diagramRepresentation;
     private _classForest;
     constructor(ontology: Ontology, diagramRepresentation: DiagramRepresentation);
-    /** @internal */
     setInstanceColor(classInstance: ClassInstanceEntity, overwrite?: boolean): this;
     setClassColor(classEntity: GrapholEntity, overwrite?: boolean): this;
     colorEntities(entities?: Map<string, GrapholEntity>, overwrite?: boolean): Promise<void>;
@@ -5154,7 +5147,6 @@ declare function parseRDFGraph(rdfGraph: RDFGraph): Ontology;
 declare function updateEntityOccurrences(ontology: Ontology): void;
 declare function getOntology(rdfGraph: RDFGraph): Ontology;
 declare function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, GrapholEntity>;
-/** @internal */
 declare function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, ClassInstanceEntity>;
 declare function getDiagrams(rdfGraph: RDFGraph, rendererState: RendererStatesEnum | undefined, entities: Map<string, GrapholEntity>): Diagram[];
 declare function getConfig(rdfGraph: RDFGraph): GrapholscapeConfig;
@@ -5199,8 +5191,8 @@ interface IGscape {
     renderers: RendererStatesEnum[];
     renderState?: RendererStatesEnum;
     incremental?: IncrementalController;
+    widgets: Map<any, any>;
 }
-/** @internal */
 declare function export_default$3(grapholscape: IGscape, modelType?: RDFGraphModelTypeEnum): RDFGraph;
 
 declare const diagrams: lit_html.TemplateResult<2>;
@@ -5975,7 +5967,6 @@ declare class IncrementalInitialMenu extends IncrementalInitialMenu_base {
 }
 
 declare const GscapePathSelector_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-/** @internal */
 declare class GscapePathSelector extends GscapePathSelector_base {
     private theme;
     private _paths;
@@ -6026,10 +6017,8 @@ declare class GscapePathSelector extends GscapePathSelector_base {
      */
     private fixHover;
 }
-/** @internal */
 type PathSelectionEvent = CustomEvent<OntologyPath>;
 
-/** @internal */
 declare class ShortestPathDialog extends GscapeConfirmDialog {
     classes?: EntityViewData[];
     class1EditEnabled: boolean;
@@ -6096,7 +6085,6 @@ declare function setColorList(entityColorLegend: GscapeEntityColorLegend, grapho
 /** @module UI */
 
 declare const index_d$1_BaseMixin: typeof BaseMixin;
-type index_d$1_ClassWithColor = ClassWithColor;
 type index_d$1_Command = Command;
 type index_d$1_ContentSpinner = ContentSpinner;
 declare const index_d$1_ContentSpinner: typeof ContentSpinner;
@@ -6179,7 +6167,6 @@ declare namespace index_d$1 {
   export {
     BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS,
     index_d$1_BaseMixin as BaseMixin,
-    index_d$1_ClassWithColor as ClassWithColor,
     index_d$1_Command as Command,
     index_d$1_ContentSpinner as ContentSpinner,
     index_d$1_ContextualWidgetMixin as ContextualWidgetMixin,
@@ -6274,8 +6261,8 @@ declare namespace index_d {
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](../pages/getting-started.html)
- * @see [Configuration](../pages/configuration.html)
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 declare function fullGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
 /**
@@ -6292,14 +6279,12 @@ declare function fullGrapholscape(file: string | File, container: HTMLElement, c
  * @param container a DOM element in which the ontology will be rendered in
  * @param config a config object, please read more about [settings](https://github.com/obdasystems/grapholscape/wiki/Settings)
  * @returns a promise that will be fulfilled with a {@link !core.Grapholscape} object
- * @see [Getting started](../pages/getting-started.html)
- * @see [Configuration](../pages/configuration.html)
+ * @see [Getting started](https://obdasystems.github.io/grapholscape/pages/getting-started.html)
+ * @see [Configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html)
  */
 declare function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
 declare function incrementalGrapholscape(ontology: string | File | RDFGraph, container: HTMLElement, rdfGraphToResume?: RDFGraph, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
-/** @internal */
-declare function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig, mastroConnection?: RequestOptions): Core;
-/** @internal */
+declare function resume(rdfGraph: RDFGraph, container: HTMLElement, mastroConnection?: RequestOptions): Core;
 declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit?: boolean): void;
 
 export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, incrementalGrapholscape, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
