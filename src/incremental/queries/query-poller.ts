@@ -68,7 +68,7 @@ export abstract class QueryPoller {
           // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
           //   return
           // }
-
+          this.lastRequestFulfilled = true
           if (this.isResultError(result)) {
             this.triggerError(result)
           } else {
