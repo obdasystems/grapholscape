@@ -189,7 +189,7 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
 
   entityDetails.showOccurrences = false
   classInstanceDetails?.enable()
-  diagramSelector?.disable()
+  diagramSelector?.hide()
 
   initialMenu?.show()
 
@@ -201,7 +201,7 @@ function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLEle
   if (isReasonerAvailable)
     vkgPreferences?.enable()
 
-  filtersWidget?.disable()
+  filtersWidget?.hide()
 }
 
 function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>) {
@@ -215,9 +215,9 @@ function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLE
   entityDetails.showOccurrences = true
   classInstanceDetails?.disable()
   vkgPreferences?.disable()
-  diagramSelector?.enable()
+  diagramSelector?.show()
   initialMenu?.hide()
-  filtersWidget?.enable()
+  filtersWidget?.show()
 }
 
 function onEmptyDiagram(grapholscape: Grapholscape) {
