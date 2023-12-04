@@ -5094,7 +5094,7 @@ declare class DiagramBuilder {
     addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode;
     addIndividual(individualEntity: GrapholEntity, position?: Position): GrapholElement | undefined;
     private _addIndividualOrClassInstance;
-    addHierarchy(hierarchy: Hierarchy, position?: Position): void;
+    addHierarchy(hierarchy: Hierarchy, position?: Position): GrapholElement | undefined;
     addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF | TypesEnum.INPUT | TypesEnum.UNION | TypesEnum.DISJOINT_UNION | TypesEnum.COMPLETE_UNION | TypesEnum.COMPLETE_DISJOINT_UNION | TypesEnum.ATTRIBUTE_EDGE): GrapholElement | undefined;
     get diagramRepresentation(): DiagramRepresentation | undefined;
     toggleFunctionality(entity: GrapholEntity, functional: boolean): void;

@@ -7188,13 +7188,25 @@ function liteStyle (theme) {
             }
         },
         {
-            selector: `edge[type = "${TypesEnum.UNION}"]`,
+            selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
+            style: {
+                'target-label': 'C',
+                'font-size': 15,
+                'target-text-offset': 20,
+                'text-background-color': theme.getColour(ColoursNames.bg_graph),
+                'text-background-opacity': 1,
+                'text-background-shape': 'roundrectangle',
+                'text-background-padding': 2,
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.UNION}"], edge[type = "${TypesEnum.COMPLETE_UNION}"]`,
             style: {
                 'target-arrow-fill': 'hollow',
             }
         },
         {
-            selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"]`,
+            selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
             style: {
                 'target-arrow-fill': 'filled',
             }
@@ -7468,18 +7480,18 @@ function floatyStyle (theme) {
                 'width': 6,
                 'line-style': 'solid',
                 'target-arrow-shape': 'triangle',
+                'text-background-color': theme.getColour(ColoursNames.bg_graph),
+                'text-background-opacity': 1,
+                'text-background-shape': 'roundrectangle',
+                'text-background-padding': 2,
             }
         },
         {
-            selector: `edge[type = "${TypesEnum.UNION}"], edge[type = "${TypesEnum.COMPLETE_UNION}"]`,
+            selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
             style: {
-                'target-arrow-fill': 'hollow'
-            }
-        },
-        {
-            selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
-            style: {
-                'target-arrow-fill': 'filled',
+                'target-label': 'C',
+                'font-size': 15,
+                'target-text-offset': 20,
             }
         },
         {
@@ -9176,26 +9188,55 @@ class DiagramBuilder {
         return grapholNode;
     }
     addHierarchy(hierarchy, position) {
-        var _a;
-        const unionNode = hierarchy.getUnionGrapholNode(position);
-        if (!unionNode)
+        var _a, _b;
+        if (!((_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.cy)) {
+            return;
+        }
+        let unionNode;
+        /**
+         * Check if there is already a hierarchy node of the same type having
+         * the same (and only!!) input classes
+         */
+        const duplicateHierarchy = this.diagramRepresentation.cy.nodes(`[hierarchyID][ type = "${hierarchy.type}" ]`).filter(h => {
+            const inputClasses = h.connectedEdges(`[ type = "${TypesEnum.INPUT}" ]`).sources();
+            if (inputClasses.length !== hierarchy.inputs.length)
+                return false;
+            // Every new hierarchy inputs must be included in the inputs connected
+            // to the hierarchy in test
+            return hierarchy.inputs.every(inputClass => inputClasses.some(node => inputClass.iri.equals(node.data().iri)));
+        }).first();
+        if (duplicateHierarchy.nonempty()) {
+            unionNode = this.diagramRepresentation.grapholElements.get(duplicateHierarchy.id());
+        }
+        else {
+            unionNode = hierarchy.getUnionGrapholNode(position);
+            unionNode && this.diagramRepresentation.addElement(unionNode);
+        }
+        if (!unionNode || !((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy))
             return;
         unionNode.diagramId = this.diagram.id;
+        let addedClassNode;
         // Add inputs
         for (const inputClasses of hierarchy.inputs) {
-            this.addClass(inputClasses, position);
+            addedClassNode = this.addClass(inputClasses, position);
+            this.addEdge(addedClassNode.id, unionNode.id, TypesEnum.INPUT);
         }
         // Add superclasses
+        let inclusionType;
         for (const superClass of hierarchy.superclasses) {
-            this.addClass(superClass.classEntity, position);
+            addedClassNode = this.addClass(superClass.classEntity, position);
+            inclusionType = hierarchy.type;
+            if (superClass.complete || hierarchy.forcedComplete) {
+                if (hierarchy.isDisjoint()) {
+                    inclusionType = TypesEnum.COMPLETE_DISJOINT_UNION;
+                }
+                else {
+                    inclusionType = TypesEnum.COMPLETE_UNION;
+                }
+            }
+            this.addEdge(unionNode.id, addedClassNode.id, inclusionType);
         }
-        const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, this.rendererState);
-        const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, this.rendererState);
-        if (!inputEdges || !inclusionEdges)
-            return;
-        (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(unionNode);
-        inputEdges.forEach(inputEdge => { var _a; return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(inputEdge); });
-        inclusionEdges.forEach(inclusionEdge => { var _a; return (_a = this.diagramRepresentation) === null || _a === void 0 ? void 0 : _a.addElement(inclusionEdge); });
+        return unionNode;
     }
     addEdge(sourceId, targetId, edgeType) {
         var _a, _b, _c, _d, _e, _f;
@@ -14699,7 +14740,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.0"}</span>
+            <span>${"4.0.1-snap.0"}</span>
           </div>
         </div>
       </div>
@@ -21423,7 +21464,7 @@ function manageWidgetsOnActivation(widgets, isCanvasEmpty = false, isReasonerAva
     entityColorLegend.enable();
     entityDetails.showOccurrences = false;
     classInstanceDetails === null || classInstanceDetails === void 0 ? void 0 : classInstanceDetails.enable();
-    diagramSelector === null || diagramSelector === void 0 ? void 0 : diagramSelector.disable();
+    diagramSelector === null || diagramSelector === void 0 ? void 0 : diagramSelector.hide();
     initialMenu === null || initialMenu === void 0 ? void 0 : initialMenu.show();
     if (isCanvasEmpty && initialMenu) {
         restorePosition(initialMenu);
@@ -21431,7 +21472,7 @@ function manageWidgetsOnActivation(widgets, isCanvasEmpty = false, isReasonerAva
     }
     if (isReasonerAvailable)
         vkgPreferences === null || vkgPreferences === void 0 ? void 0 : vkgPreferences.enable();
-    filtersWidget === null || filtersWidget === void 0 ? void 0 : filtersWidget.disable();
+    filtersWidget === null || filtersWidget === void 0 ? void 0 : filtersWidget.hide();
 }
 function manageWidgetsOnDeactivation(widgets) {
     const filtersWidget = widgets.get(WidgetEnum.FILTERS);
@@ -21443,9 +21484,9 @@ function manageWidgetsOnDeactivation(widgets) {
     entityDetails.showOccurrences = true;
     classInstanceDetails === null || classInstanceDetails === void 0 ? void 0 : classInstanceDetails.disable();
     vkgPreferences === null || vkgPreferences === void 0 ? void 0 : vkgPreferences.disable();
-    diagramSelector === null || diagramSelector === void 0 ? void 0 : diagramSelector.enable();
+    diagramSelector === null || diagramSelector === void 0 ? void 0 : diagramSelector.show();
     initialMenu === null || initialMenu === void 0 ? void 0 : initialMenu.hide();
-    filtersWidget === null || filtersWidget === void 0 ? void 0 : filtersWidget.enable();
+    filtersWidget === null || filtersWidget === void 0 ? void 0 : filtersWidget.show();
 }
 function onEmptyDiagram(grapholscape) {
     var _a;
