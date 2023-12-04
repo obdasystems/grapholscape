@@ -141,8 +141,8 @@ export default class DiagramBuilder {
       }
     }
     if (targetNode.empty()) {
-      targetEntity.is(TypesEnum.CLASS_INSTANCE) 
-        ? this.addClassInstance(targetEntity as ClassInstanceEntity, sourceNode.position()) 
+      targetEntity.is(TypesEnum.CLASS_INSTANCE)
+        ? this.addClassInstance(targetEntity as ClassInstanceEntity, sourceNode.position())
         : this.addClass(targetEntity, sourceNode.position())
       targetNode = this.getEntityCyRepr(targetEntity, targetType)
       if (targetNode.empty()) {
@@ -260,33 +260,63 @@ export default class DiagramBuilder {
   }
 
   public addHierarchy(hierarchy: Hierarchy, position?: Position) {
-    const unionNode = hierarchy.getUnionGrapholNode(position)
+    if (!this.diagramRepresentation?.cy) {
+      return
+    }
+    let unionNode: GrapholElement | undefined
+    /**
+     * Check if there is already a hierarchy node of the same type having
+     * the same (and only!!) input classes
+     */
+    const duplicateHierarchy = this.diagramRepresentation.cy.nodes(`[hierarchyID][ type = "${hierarchy.type}" ]`).filter(h => {
+      const inputClasses = h.connectedEdges(`[ type = "${TypesEnum.INPUT}" ]`).sources()
+      if (inputClasses.length !== hierarchy.inputs.length)
+        return false
 
-    if (!unionNode)
+      // Every new hierarchy inputs must be included in the inputs connected
+      // to the hierarchy in test
+      return hierarchy.inputs.every(inputClass => inputClasses.some(
+        node => inputClass.iri.equals(node.data().iri)
+      ))
+    }).first()
+
+    if (duplicateHierarchy.nonempty()) {
+      unionNode = this.diagramRepresentation.grapholElements.get(duplicateHierarchy.id())
+    } else {
+      unionNode = hierarchy.getUnionGrapholNode(position)
+      unionNode && this.diagramRepresentation.addElement(unionNode)
+    }
+
+    if (!unionNode || !this.diagramRepresentation?.cy)
       return
 
     unionNode.diagramId = this.diagram.id
 
+    let addedClassNode: GrapholNode
     // Add inputs
     for (const inputClasses of hierarchy.inputs) {
-      this.addClass(inputClasses, position)
+      addedClassNode = this.addClass(inputClasses, position)
+      this.addEdge(addedClassNode.id, unionNode.id, TypesEnum.INPUT)
     }
 
     // Add superclasses
+    let inclusionType: TypesEnum
     for (const superClass of hierarchy.superclasses) {
-      this.addClass(superClass.classEntity, position)
+      addedClassNode = this.addClass(superClass.classEntity, position)
+
+      inclusionType = hierarchy.type
+      if (superClass.complete || hierarchy.forcedComplete) {
+        if (hierarchy.isDisjoint()) {
+          inclusionType = TypesEnum.COMPLETE_DISJOINT_UNION
+        } else {
+          inclusionType = TypesEnum.COMPLETE_UNION
+        }
+      }
+
+      this.addEdge(unionNode.id, addedClassNode.id, inclusionType)
     }
 
-    const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, this.rendererState)
-    const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, this.rendererState)
-
-    if (!inputEdges || !inclusionEdges)
-      return
-
-    this.diagramRepresentation?.addElement(unionNode)
-
-    inputEdges.forEach(inputEdge => this.diagramRepresentation?.addElement(inputEdge))
-    inclusionEdges.forEach(inclusionEdge => this.diagramRepresentation?.addElement(inclusionEdge))
+    return unionNode
   }
 
   addEdge(sourceId: string,
