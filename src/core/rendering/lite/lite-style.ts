@@ -33,14 +33,27 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `edge[type = "${TypesEnum.UNION}"]`,
+      selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
+      style: {
+        'target-label': 'C',
+        'font-size': 15,
+        'target-text-offset': 20,
+        'text-background-color': theme.getColour(ColoursNames.bg_graph),
+        'text-background-opacity': 1,
+        'text-background-shape': 'roundrectangle',
+        'text-background-padding': 2,
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.UNION}"], edge[type = "${TypesEnum.COMPLETE_UNION}"]`,
       style: {
         'target-arrow-fill': 'hollow',
       }
     },
 
     {
-      selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"]`,
+      selector: `edge[type = "${TypesEnum.DISJOINT_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
       style: {
         'target-arrow-fill': 'filled',
       }
