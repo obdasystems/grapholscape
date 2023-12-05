@@ -139,7 +139,7 @@ export class QueryResultsPoller extends QueryPoller {
   }
 
   protected stopCondition(): boolean {
-    return this._result.results.length >= this.limit
+    return this._result.results.length >= this.limit || this._result.results.length >= this.numberResultsAvailable
   }
 
   get result(): QueryRecords {
