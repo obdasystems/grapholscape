@@ -14740,7 +14740,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.1-snap.0"}</span>
+            <span>${"4.0.1"}</span>
           </div>
         </div>
       </div>
@@ -15962,8 +15962,10 @@ function parseRDFGraph(rdfGraph) {
     ontology.entities = getEntities(rdfGraph, ontology.namespaces);
     // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
     // let incrementalDiagram: IncrementalDiagram
-    if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+    if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
         ontology.diagrams = getDiagrams(rdfGraph, rendererState, ontology.entities);
+        computeHierarchies(ontology);
+    }
     //if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
     //  ontology.diagrams = parsedDiagrams
     //else
@@ -16291,7 +16293,7 @@ class QueryResultsPoller extends QueryPoller {
         return !result || result.results === undefined;
     }
     stopCondition() {
-        return this._result.results.length >= this.limit;
+        return this._result.results.length >= this.limit || this._result.results.length >= this.numberResultsAvailable;
     }
     get result() {
         return this._result;
