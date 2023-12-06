@@ -1,4 +1,5 @@
 import { floatyOptions, GrapholscapeConfig, Language } from "../config";
+import { computeHierarchies } from "../core";
 import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
 
@@ -12,8 +13,10 @@ export default function parseRDFGraph(rdfGraph: RDFGraph) {
 
   // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
   // let incrementalDiagram: IncrementalDiagram
-  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
+  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
     ontology.diagrams = getDiagrams(rdfGraph, rendererState, ontology.entities)
+    computeHierarchies(ontology)
+  }
   //if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY)
   //  ontology.diagrams = parsedDiagrams
   //else
