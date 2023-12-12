@@ -283,7 +283,7 @@ export default class DiagramBuilder {
     if (duplicateHierarchy.nonempty()) {
       unionNode = this.diagramRepresentation.grapholElements.get(duplicateHierarchy.id())
     } else {
-      unionNode = hierarchy.getUnionGrapholNode(position)
+      unionNode = hierarchy.getUnionGrapholNode(this.getNewId('node'), position)
       unionNode && this.diagramRepresentation.addElement(unionNode)
     }
 

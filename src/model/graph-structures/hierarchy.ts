@@ -47,13 +47,13 @@ export default class Hierarchy implements IHierarchy {
   set id(newId: string) { this._id = newId }
   get id() { return this._id }
 
-  getUnionGrapholNode(position?: Position): GrapholNode | undefined {
+  getUnionGrapholNode(nodeId: string, position?: Position): GrapholNode | undefined {
     if (!this.isValid()) {
       console.warn('[Grapholscape] Hierarchy not valid, cannot create the union graphol node - check id, inputs and superclasses')
       return
     }
 
-    const unionNode = new GrapholNode(this._id!, TypesEnum.CLASS)
+    const unionNode = new GrapholNode(nodeId, TypesEnum.CLASS)
     unionNode.type = this.type
     unionNode.identity = TypesEnum.CLASS
     unionNode.shape = Shape.ELLIPSE

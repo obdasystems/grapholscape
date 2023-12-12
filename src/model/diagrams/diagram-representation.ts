@@ -192,7 +192,7 @@ export default class DiagramRepresentation {
       return newId + count
     }
 
-    return newId + 0
+    return newId
   }
 
   get grapholElements() {
