@@ -44,6 +44,8 @@ export function ClassInstanceDetailsFactory(ic: IncrementalController) {
 
   ic.grapholscape.on(LifecycleEvent.EntitySelection, async grapholEntity => {
     incrementalEntityDetails.instancesCount = undefined
+    incrementalEntityDetails.dataProperties = []
+
     if (!grapholEntity.is(TypesEnum.CLASS) && !grapholEntity.is(TypesEnum.OBJECT_PROPERTY)) {
       incrementalEntityDetails.hide()
       incrementalEntityDetails.allowComputeCount = false
