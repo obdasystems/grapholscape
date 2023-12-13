@@ -84,7 +84,7 @@ export function annotationsTemplate(annotations: Annotation[]) {
             ${annotations.filter(a => a.property === property).map(annotation => {
               return html`
                 <div class="annotation-row">
-                  <span class="language muted-text bold-text">@${annotation.language}</span>
+                  ${annotation.language ? html`<span class="language muted-text bold-text">@${annotation.language}</span>` : null}
                   <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
                 </div>
               `

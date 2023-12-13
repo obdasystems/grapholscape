@@ -4,7 +4,7 @@ export { default as DiagramRepresentation } from './diagrams/diagram-representat
 export { default as IncrementalDiagram } from './diagrams/incremental-diagram'
 export { default as Namespace } from './namespace'
 export { default as Iri } from "./iri"
-export { default as Annotation } from './graphol-elems/annotation'
+export { default as Annotation } from './annotation'
 export { default as AnnotatedElement } from './annotated-element'
 export * from './annotated-element'
 export { default as AnnotationProperty } from './annotation-property'

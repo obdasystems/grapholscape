@@ -1,5 +1,5 @@
 import { DefaultAnnotationProperties } from "./annotation-property"
-import Annotation from "./graphol-elems/annotation"
+import Annotation from "./annotation"
 import Iri from "./iri"
 
 

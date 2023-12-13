@@ -1,6 +1,4 @@
-import { FunctionalityEnum, Ontology, DefaultAnnotationProperties } from '../model'
-import Annotation from '../model/graphol-elems/annotation'
-import Iri from '../model/iri'
+import { FunctionalityEnum, Ontology, DefaultAnnotationProperties, Annotation, Iri } from '../model'
 import Namespace from '../model/namespace'
 
 export let warnings = new Set()

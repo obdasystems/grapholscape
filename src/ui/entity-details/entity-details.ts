@@ -13,7 +13,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   currentOccurrenceType?: TypesEnum
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   showOccurrences: boolean = true
-  language: string
+  language?: string
   onNodeNavigation: (elmentId: string, diagramId: number) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 

@@ -1,19 +1,18 @@
-import Iri from "../iri"
-import { Annotation as IAnnotation } from "../rdf-graph/swagger"
-
-export const UNDEFINED_LANGUAGE = '_'
+import AnnotationProperty from "./annotation-property"
+import Iri from "./iri"
+import { Annotation as IAnnotation } from "./rdf-graph/swagger"
 
 export default class Annotation implements IAnnotation {
-  private _property: Iri
+  private _property: AnnotationProperty
   lexicalForm: string
-  language: string
-  datatype: string
+  language?: string
+  datatype?: string
 
   constructor(property: Iri, lexicalForm: string, language?: string, datatype?: string) {
     this._property = property
     this.lexicalForm = lexicalForm
-    this.language = language || UNDEFINED_LANGUAGE
-    this.datatype = datatype || ''
+    this.language = language
+    this.datatype = datatype
   }
 
   equals(annotation: Annotation) {
