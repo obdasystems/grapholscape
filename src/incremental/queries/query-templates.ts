@@ -360,8 +360,11 @@ export function getInstancesThroughOPByDP(
 function getSearchFilters(variable: string, searchText: string) {
   const searchTexts = searchText.split(' ')
   const results: string[] = []
+  const useContains = localStorage.getItem('instances-search-function') === 'contains'
   searchTexts.forEach(text => {
-    results.push(`regex(${variable}, '${escapeRegex(text.trim())}', 'i')`)
+    useContains
+      ? results.push(`contains(${variable}, '${escapeRegex(text.trim())}')`)
+      : results.push(`regex(${variable}, '${escapeRegex(text.trim())}', 'i')`)
   })
 
   return `FILTER(${results.join('\n &&')})`
