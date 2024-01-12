@@ -75,6 +75,8 @@ jobs:
               with:
                   name: newdocumentation
             - run: tar -xf newdocumentation.tar -C ./docs
+            - name: delete artifact
+            - run: rm newdocumentation.tar
 
             - name: commit
               run: |
