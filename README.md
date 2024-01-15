@@ -49,7 +49,7 @@ For building ontologies in Graphol please check our visual editor: [Eddy](https:
 You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [build it locally](#build-it-locally), then select an example or drop your custom `.graphol` file in the box on the right side.
 
 ## Quick Start
-For a more detailed explanation please check the [documentation](https://obdasystems.github.io/grapholscape/) and the [getting started guide](https://obdasystems.github.io/grapholscape/pages/getting-started.html).
+For a more detailed explanation please check the [documentation](https://obdasystems.github.io/grapholscape/) and the [getting started guide](https://obdasystems.github.io/grapholscape/stable/pages/getting-started.html).
 
 ### Install it via **npm**: 
 ```cmd
@@ -67,11 +67,11 @@ grapholscape.showDiagram(0)
 > **Note** : `file` can be an object of the [Web API interface File](https://developer.mozilla.org/en-US/docs/Web/API/File) or a `String` representing the `.graphol` file to be displayed.
 
 Once the initialization phase is done, the promise will return a `Grapholscape` object that can be used to perform actions on the tool.
-In the example we saw the method `showDiagram(0)`. **For the complete api please check [Grapholscape Class API](https://obdasystems.github.io/grapholscape/classes/core.Grapholscape.html).**
+In the example we saw the method `showDiagram(0)`. **For the complete api please check [Grapholscape Class API](https://obdasystems.github.io/grapholscape/stable/classes/core.Grapholscape.html).**
 
-Information about **entities**, **namesapaces** and **diagrams** are stored in [Grapholscape.ontology](https://obdasystems.github.io/grapholscape/classes/core.Grapholscape.html). Read More in [Ontology](https://obdasystems.github.io/grapholscape/classes/model.Ontology.html).
+Information about **entities**, **namesapaces** and **diagrams** are stored in [Grapholscape.ontology](https://obdasystems.github.io/grapholscape/stable/classes/core.Grapholscape.html). Read More in [Ontology](https://obdasystems.github.io/grapholscape/stable/classes/model.Ontology.html).
 
-It is possible to pass also a config object to define custom default settings. Read more: [configuration](https://obdasystems.github.io/grapholscape/pages/configuration.html).
+It is possible to pass also a config object to define custom default settings. Read more: [configuration](https://obdasystems.github.io/grapholscape/stable/pages/configuration.html).
 
 ## Build it locally
 Install `Node` and `npm`.
@@ -107,13 +107,13 @@ Run `npm run <target>` in the console. The main targets are:
 1. Use `npm version [ver]`
     *Please review built files and try out demo*
 2. Push the release: `git push && git push --tags`
-3. Deploy documentation and demo on gh-pages: `npm run deploy`
-4. Publish to npm: `npm publish`
-5. Create a release on Github from the latest tag
+3. Publish to npm: `npm publish`
+4. Create a release on Github from the latest tag
+5. Run `PUBLISH_DOC` github action to deploy the updated documentation
 
 ## Release a snapshot test version
 1. Use `npm run snapshot`
-2. Publish using *snapshot* tag `npm publish --tag snapshot`
+2. Publish using *snapshot* tag: `npm publish --tag snapshot`
 > To install latest snapshot version use `npm i grapholscape@snapshot`
 
 ## Credits
