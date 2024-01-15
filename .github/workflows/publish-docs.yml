@@ -40,10 +40,8 @@ jobs:
                   name: documentation
             - name: extract documentation.tar/docs
               run: tar -xf documentation.tar -C ./
-            - name: remove previous symlink
-              run: |
-                    rm ./docs/stable
-                    rm ./docs/dev
+            - name: clear unnecessary files
+              run: find ./docs -type f -delete
             
             - name: Build
               uses: actions/setup-node@v3
