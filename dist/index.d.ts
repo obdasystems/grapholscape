@@ -3045,8 +3045,8 @@ declare class Iri {
 declare class Annotation implements Annotation$1 {
     private _property;
     lexicalForm: string;
-    language: string;
-    datatype: string;
+    language?: string;
+    datatype?: string;
     constructor(property: Iri, lexicalForm: string, language?: string, datatype?: string);
     equals(annotation: Annotation): boolean;
     get property(): string;
@@ -3887,7 +3887,7 @@ declare class Hierarchy implements Hierarchy$1 {
     }[];
     set id(newId: string);
     get id(): string;
-    getUnionGrapholNode(position?: Position): GrapholNode | undefined;
+    getUnionGrapholNode(nodeId: string, position?: Position): GrapholNode | undefined;
     getInputGrapholEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
     getInclusionEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
     isDisjoint(): boolean;
@@ -4644,6 +4644,8 @@ declare class IncrementalController {
     addInstancesPath(sourceIri: string, targetIri: string, path: OntologyPath): Promise<void>;
     addClass(iri: string, centerOnIt?: boolean, position?: Position$1): GrapholNode | undefined;
     areHierarchiesVisible(hierarchies: Hierarchy[]): boolean;
+    private isHierarchyNodeInDiagram;
+    private isHierarchyVisible;
     areAllConnectedClassesVisibleForClass(classIri: string, connectedClassesIris: string[], positionType: 'sub' | 'super' | 'equivalent'): boolean;
     reset(): void;
     clearState(): void;

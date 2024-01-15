@@ -4373,7 +4373,7 @@ class DiagramRepresentation {
             }
             return newId + count;
         }
-        return newId + 0;
+        return newId;
     }
     get grapholElements() {
         return this._grapholElements;
@@ -4464,13 +4464,12 @@ class IncrementalDiagram extends Diagram {
 }
 IncrementalDiagram.ID = -1;
 
-const UNDEFINED_LANGUAGE = '_';
 class Annotation {
     constructor(property, lexicalForm, language, datatype) {
         this._property = property;
         this.lexicalForm = lexicalForm;
-        this.language = language || UNDEFINED_LANGUAGE;
-        this.datatype = datatype || '';
+        this.language = language;
+        this.datatype = datatype;
     }
     equals(annotation) {
         return this.datatype === annotation.datatype &&
@@ -5467,12 +5466,12 @@ class Hierarchy {
     get superclasses() { return this._superclasses; }
     set id(newId) { this._id = newId; }
     get id() { return this._id; }
-    getUnionGrapholNode(position) {
+    getUnionGrapholNode(nodeId, position) {
         if (!this.isValid()) {
             console.warn('[Grapholscape] Hierarchy not valid, cannot create the union graphol node - check id, inputs and superclasses');
             return;
         }
-        const unionNode = new GrapholNode(this._id, TypesEnum.CLASS);
+        const unionNode = new GrapholNode(nodeId, TypesEnum.CLASS);
         unionNode.type = this.type;
         unionNode.identity = TypesEnum.CLASS;
         unionNode.shape = Shape.ELLIPSE;
@@ -9209,7 +9208,7 @@ class DiagramBuilder {
             unionNode = this.diagramRepresentation.grapholElements.get(duplicateHierarchy.id());
         }
         else {
-            unionNode = hierarchy.getUnionGrapholNode(position);
+            unionNode = hierarchy.getUnionGrapholNode(this.getNewId('node'), position);
             unionNode && this.diagramRepresentation.addElement(unionNode);
         }
         if (!unionNode || !((_b = this.diagramRepresentation) === null || _b === void 0 ? void 0 : _b.cy))
@@ -12916,7 +12915,7 @@ function annotationsTemplate(annotations) {
             ${annotations.filter(a => a.property === property).map(annotation => {
             return x `
                 <div class="annotation-row">
-                  <span class="language muted-text bold-text">@${annotation.language}</span>
+                  ${annotation.language ? x `<span class="language muted-text bold-text">@${annotation.language}</span>` : null}
                   <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
                 </div>
               `;
@@ -14740,7 +14739,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.1"}</span>
+            <span>${"4.0.2"}</span>
           </div>
         </div>
       </div>
@@ -17100,8 +17099,11 @@ function getInstancesThroughOPByDP(instanceIRI, objectPropertyIRI, rangeTypeClas
 function getSearchFilters(variable, searchText) {
     const searchTexts = searchText.split(' ');
     const results = [];
+    const useContains = localStorage.getItem('instances-search-function') === 'contains';
     searchTexts.forEach(text => {
-        results.push(`regex(${variable}, '${escapeRegExp(text.trim())}', 'i')`);
+        useContains
+            ? results.push(`contains(${variable}, '${escapeRegExp(text.trim())}')`)
+            : results.push(`regex(${variable}, '${escapeRegExp(text.trim())}', 'i')`);
     });
     return `FILTER(${results.join('\n &&')})`;
 }
@@ -18304,15 +18306,28 @@ class IncrementalController {
         return classNode;
     }
     areHierarchiesVisible(hierarchies) {
-        var _a;
         let result = true;
         for (let hierarchy of hierarchies) {
-            if (hierarchy.id && ((_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(hierarchy.id).empty())) {
+            if (!this.isHierarchyVisible(hierarchy)) {
                 result = false;
                 break;
             }
         }
         return result;
+    }
+    isHierarchyNodeInDiagram(hierarchy) {
+        var _a;
+        return (_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$(`[hierarchyID = "${hierarchy.id}"]`).nonempty();
+    }
+    isHierarchyVisible(hierarchy) {
+        var _a;
+        const unionNode = (_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$(`[hierarchyID = "${hierarchy.id}"]`);
+        if (unionNode === null || unionNode === void 0 ? void 0 : unionNode.nonempty()) {
+            const inputs = unionNode.connectedEdges(`[type = "${TypesEnum.INPUT}"]`);
+            const inclusions = unionNode.connectedEdges('[ type $= "union" ]');
+            return inputs.size() === hierarchy.inputs.length && inclusions.size() === hierarchy.superclasses.length;
+        }
+        return false;
     }
     areAllConnectedClassesVisibleForClass(classIri, connectedClassesIris, positionType) {
         var _a;
@@ -18670,39 +18685,10 @@ class IncrementalController {
             });
         }
     }
-    // private addHierarchy(hierarchy: Hierarchy, position?: Position) {
-    //   // const unionNode = hierarchy.getUnionGrapholNode(position)
-    //   // const inputEdges = hierarchy.getInputGrapholEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)
-    //   // const inclusionEdges = hierarchy.getInclusionEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)
-    //   if (!hierarchy.id)
-    //     return
-    //   // Add inputs
-    //   for (const inputClassIri of hierarchy.inputs) {
-    //     this.addClass(inputClassIri.iri.fullIri, false)
-    //   }
-    //   for (const superClass of hierarchy.superclasses) {
-    //     this.addClass(superClass.classEntity.iri.fullIri, false)
-    //   }
-    //   this.diagramBuilder.addHierarchy(hierarchy)
-    //   // hierarchy.getInputGrapholEdges()?.forEach(inputEdge => this.diagram.addElement(inputEdge))
-    //   // hierarchy.getInclusionEdges()?.forEach(inclusionEdge => this.diagram.addElement(inclusionEdge))
-    // }
     removeHierarchy(hierarchy, entitiesTokeep = []) {
-        var _a, _b, _c;
-        if (!this.incrementalRenderer || !hierarchy.id || (hierarchy.id && ((_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(hierarchy.id).empty())))
+        if (!this.incrementalRenderer || !hierarchy.id || !this.isHierarchyNodeInDiagram(hierarchy))
             return;
-        // remove union node
-        this.diagram.removeElement(hierarchy.id);
-        // remove input edges
-        (_b = hierarchy.getInputGrapholEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)) === null || _b === void 0 ? void 0 : _b.forEach(inputEdge => {
-            var _a;
-            (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inputEdge.id);
-        });
-        // remove inclusion edges
-        (_c = hierarchy.getInclusionEdges(this.diagram.id, RendererStatesEnum.INCREMENTAL)) === null || _c === void 0 ? void 0 : _c.forEach(inclusionEdge => {
-            var _a;
-            (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.removeElement(inclusionEdge.id);
-        });
+        this.diagramBuilder.removeHierarchy(hierarchy);
         let classId;
         // remove input classes or superclasses left with no edges
         hierarchy.inputs.forEach(inputClass => {
@@ -19526,6 +19512,7 @@ function ClassInstanceDetailsFactory(ic) {
     };
     ic.grapholscape.on(LifecycleEvent.EntitySelection, (grapholEntity) => __awaiter(this, void 0, void 0, function* () {
         incrementalEntityDetails.instancesCount = undefined;
+        incrementalEntityDetails.dataProperties = [];
         if (!grapholEntity.is(TypesEnum.CLASS) && !grapholEntity.is(TypesEnum.OBJECT_PROPERTY)) {
             incrementalEntityDetails.hide();
             incrementalEntityDetails.allowComputeCount = false;
@@ -21873,9 +21860,9 @@ function getIriAnnotations(iri, xmlDocument, namespaces) {
         if (annotations) {
             for (let annotation of annotations.children) {
                 property = getTagText(annotation, 'property');
-                language = getTagText(annotation, 'language');
-                lexicalForm = getTagText(annotation, 'lexicalForm');
-                if (lexicalForm && language && property)
+                language = getTagText(annotation, 'language') || undefined;
+                lexicalForm = getTagText(annotation, 'lexicalForm') || undefined;
+                if (lexicalForm && property)
                     result.push(new Annotation(new Iri(property, namespaces), lexicalForm, language));
             }
         }
