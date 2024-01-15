@@ -38,9 +38,12 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                   name: documentation
-            - run: ls ./docs
-            - run: tar -xf documentation.tar -C ./
-            - run: ls
+            - name: extract documentation.tar/docs
+              run: tar -xf documentation.tar -C ./
+            - name: remove previous symlink
+              run: |
+                    rm ./docs/stable
+                    rm ./docs/dev
             
             - name: Build
               uses: actions/setup-node@v3
