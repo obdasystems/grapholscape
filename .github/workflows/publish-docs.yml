@@ -40,7 +40,7 @@ jobs:
                   name: documentation
             - run: ls ./docs
             - run: tar -xf documentation.tar -C ./
-            - run: ls ./docs
+            - run: ls
             
             - name: Build
               uses: actions/setup-node@v3
