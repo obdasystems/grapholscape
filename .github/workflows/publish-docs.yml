@@ -38,8 +38,11 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                   name: documentation
-            - run: tar -xf documentation.tar -C ./docs
-
+            - name: extract documentation.tar/docs
+              run: tar -xf documentation.tar -C ./
+            - name: clear unnecessary files
+              run: find ./docs -type f -delete
+            
             - name: Build
               uses: actions/setup-node@v3
               with:
@@ -52,7 +55,7 @@ jobs:
               run: npm run doc #set up 'docs' build script in your package.json
 
             - name: tar the new docs
-              run: tar -cvf newdocumentation.tar -C ./docs .
+              run: tar -cvf newdocumentation.tar ./docs
 
             - name: create a new document artifact
               uses: actions/upload-artifact@v3
@@ -74,7 +77,10 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                   name: newdocumentation
-            - run: tar -xf newdocumentation.tar -C ./docs
+            - run: tar -xf newdocumentation.tar -C ./
+            
+            - name: delete artifact
+              run: rm newdocumentation.tar
 
             - name: commit
               run: |
