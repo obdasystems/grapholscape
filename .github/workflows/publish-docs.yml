@@ -38,8 +38,10 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                   name: documentation
+            - run: ls ./docs
             - run: tar -xf documentation.tar -C ./
-
+            - run: ls ./docs
+            
             - name: Build
               uses: actions/setup-node@v3
               with:
