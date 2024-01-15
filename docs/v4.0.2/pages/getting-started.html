@@ -1,0 +1,111 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Getting Started | Grapholscape - v4.0.2</title><meta name="description" content="Documentation for Grapholscape - v4.0.2"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/><link rel="icon" href="../icon.png" />
+</head><body><select id="plugin-versions-select" class="title" name="versions"></select><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">Grapholscape - v4.0.2</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">Grapholscape - v4.0.2</a></li>
+<li><a href="getting-started.html">Getting Started</a></li></ul>
+<h1> Getting Started</h1></div>
+<div class="tsd-panel tsd-typography"><p>Embedding Grapholscape in your own website, webapp or any other JS/TS powered project is fairly easy, you only need to <a href="#installation">install it</a>, to import it and to <a href="#initialisation">initialise it</a> it passing the <strong>ontology</strong> to render and the <strong>container</strong> where to render it.</p>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h2>Installation</h2>
+</a>
+<p>To make Grapholscpae available in your project there are two ways to install it depending on the type of your environment: Plain HTML environment or a build and dependency management system like <strong>npm</strong>.</p>
+
+<a href="#npm" id="npm" style="color: inherit; text-decoration: none;">
+  <h3>NPM</h3>
+</a>
+<pre><code class="language-shell"><span class="hl-0">npm </span><span class="hl-3">install</span><span class="hl-0"> </span><span class="hl-3">grapholscape</span>
+</code></pre>
+
+<a href="#html-environment" id="html-environment" style="color: inherit; text-decoration: none;">
+  <h3>HTML Environment</h3>
+</a>
+<p>If you are using a HTML Environment (without a build system) you can:</p>
+<ul>
+<li><p>Download one of Grapholscape&#39;s dists from <a href="https://github.com/obdasystems/grapholscape/tree/master/dist">dist</a> folder, place it somewhere in your project and link it in a <code>&lt;script&gt;</code> tag. For example assuming to have <code>grapholscape.min.js</code> in the same folder of your <code>.html</code>:</p>
+<pre><code class="language-html"><span class="hl-9">&lt;</span><span class="hl-10">script</span><span class="hl-11"> </span><span class="hl-12">src</span><span class="hl-11">=</span><span class="hl-13">&quot;./grapholscape.min.js&quot;</span><span class="hl-11"> </span><span class="hl-12">type</span><span class="hl-11">=</span><span class="hl-13">&quot;text/javascript&quot;</span><span class="hl-11"> </span><span class="hl-9">&gt;&lt;/</span><span class="hl-10">script</span><span class="hl-9">&gt;</span>
+</code></pre>
+<p>In this case you only have a global reference to the whole library that is <code>Grapholscape</code>.</p>
+</li>
+<li><p>Download the <code>.esm.min</code> version and place it somewhere in your project to import Grapholscape as an ES6 module. For example assuming to have <code>grapholscape.esm.min.js</code> in the same folder of your <code>.html</code>:</p>
+<pre><code class="language-html"><span class="hl-9">&lt;</span><span class="hl-10">script</span><span class="hl-11"> </span><span class="hl-12">type</span><span class="hl-11">=</span><span class="hl-13">&quot;module&quot;</span><span class="hl-9">&gt;</span><br/><span class="hl-11">  </span><span class="hl-1">import</span><span class="hl-11"> </span><span class="hl-4">*</span><span class="hl-11"> </span><span class="hl-1">as</span><span class="hl-11"> </span><span class="hl-2">Grapholscape</span><span class="hl-11"> </span><span class="hl-1">from</span><span class="hl-11"> </span><span class="hl-3">&quot;./grapholscape.esm.min.js&quot;</span><span class="hl-11">;</span><br/><span class="hl-9">&lt;/</span><span class="hl-10">script</span><span class="hl-9">&gt;</span>
+</code></pre>
+</li>
+</ul>
+
+<a href="#initialisation" id="initialisation" style="color: inherit; text-decoration: none;">
+  <h2>Initialisation</h2>
+</a>
+<p>Once Grapholscape is installed correctly either as npm package or as a local ES6 module, you have several ways to import the factory functions to get a Grapholscape instance:</p>
+<ul>
+<li><p>If you want the standard version with the whole set of widgets shipped within grapholscape:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">fullGrapholscape</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">grapholscape</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-6">fullGrapholscape</span><span class="hl-0">(</span><span class="hl-2">ontologyFile</span><span class="hl-0">, </span><span class="hl-2">container</span><span class="hl-0">)</span>
+</code></pre>
+</li>
+<li><p>If you want a bare instance, with no widgets, just the ontology diagram(s):</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">bareGrapholscape</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">grapholscape</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-6">bareGrapholscape</span><span class="hl-0">(</span><span class="hl-2">ontologyFile</span><span class="hl-0">, </span><span class="hl-2">container</span><span class="hl-0">)</span>
+</code></pre>
+</li>
+<li><p>If you want to import the whole library (this is not likely to be the case)</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> </span><span class="hl-4">*</span><span class="hl-0"> </span><span class="hl-1">as</span><span class="hl-0"> </span><span class="hl-2">Grapholscape</span><span class="hl-0"> </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">grapholscape</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-2">Grapholscape</span><span class="hl-0">.</span><span class="hl-6">fullGrapholscape</span><span class="hl-0">(</span><span class="hl-2">ontologyFile</span><span class="hl-0">, </span><span class="hl-2">container</span><span class="hl-0">) </span><span class="hl-8">// or .bareGrapholscape</span>
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p><strong>Note</strong> : <code>ontologyFile</code> can be an object of the <a href="https://developer.mozilla.org/en-US/docs/Web/API/File">Web API interface File</a> or a <code>string</code> representing the <code>.graphol</code> file to be displayed.</p>
+</blockquote>
+<p>Both factory functions return a Promise that will be resolved, once the parsing of the ontology is finished, with a <a href="../classes/core.Grapholscape.html">Grapholscape</a> instance that can be used to perform actions on the tool. </p>
+<p>Typically the first action you want is to display a diagram, you can do it with:</p>
+<pre><code class="language-ts"><span class="hl-2">grapholscape</span><span class="hl-0">.</span><span class="hl-6">showDiagram</span><span class="hl-0">(</span><span class="hl-7">0</span><span class="hl-0">) </span><span class="hl-8">// show diagram with id = 0</span><br/><br/><span class="hl-8">// if you want to show a diagram with a certain name you can do</span><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">diagram</span><span class="hl-0"> = </span><span class="hl-2">grapholscape</span><span class="hl-0">.</span><span class="hl-2">ontology</span><span class="hl-0">.</span><span class="hl-6">getDiagramByName</span><span class="hl-0">(</span><span class="hl-3">&#39;diagramName&#39;</span><span class="hl-0">)</span><br/><span class="hl-2">grapholscape</span><span class="hl-0">.</span><span class="hl-6">showDiagram</span><span class="hl-0">(</span><span class="hl-2">diagram</span><span class="hl-0">.</span><span class="hl-2">id</span><span class="hl-0">)</span>
+</code></pre>
+<p>Information about <strong>entities</strong>, <strong>namesapaces</strong> and <strong>diagrams</strong> are stored in <a href="..//classes/core.Grapholscape.html">Grapholscape.ontology</a>. Read More in <a href="../classes/model.Ontology.html">Ontology</a>.</p>
+<p>It is possible to pass also a config object to define custom default settings. Read more: <a href="../pages/configuration.html">configuration</a>.
+<strong>For the complete api please check <a href="../classes/core.Grapholscape.html">Grapholscape Class API</a>.</strong></p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">Grapholscape -<wbr/> v4.0.2</a>
+<ul>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-1"><a href="getting-started.html">Getting <wbr/>Started</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="configuration.html">Configuration</a></li>
+<li class="tsd-kind-module"><a href="../modules/UI.html">UI</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/UI.icons.html">icons</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/config.html">config</a></li>
+<li class="tsd-kind-module"><a href="../modules/core.html">core</a></li>
+<li class="tsd-kind-module"><a href="../modules/index.html">index</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/index.util.html">util</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/model.html">model</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/model.SwaggerModel.html">Swagger<wbr/>Model</a></li></ul></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky"></nav></div></div>
+<div class="overlay"></div><script src="../assets/main.js"></script><script src="../assets/versionsMenu.js" type="module"></script></body></html>
