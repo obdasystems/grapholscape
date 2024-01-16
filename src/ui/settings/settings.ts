@@ -6,7 +6,6 @@ import { save, settings_icon } from '../assets/icons'
 import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
-import { WidgetEnum } from '../util/widget-enum'
 import settingsStyle from './settings-style'
 
 type OptionEntry = {
@@ -24,13 +23,10 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
   themes: GrapholscapeTheme[]
   selectedTheme: string
 
-  widgetStates: { [key in WidgetEnum]?: boolean } = { }
 
   onEntityNameTypeChange: (newEntityNameType: EntityNameType) => void = () => { }
   onLanguageChange: (newLanguage: string) => void = () => { }
   onThemeChange: (newThemeKey: string) => void = () => { }
-  onWidgetEnabled: (widgetKey: WidgetEnum) => void = () => { }
-  onWidgetDisabled: (widgetKey: WidgetEnum) => void = () => { }
   onPngExport: () => void = () => { }
   onSvgExport: () => void = () => { }
   onJSONExport: () => void = () => { }
@@ -136,15 +132,6 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
         </div>
 
         <div class="area">
-            <div class="bold-text" style="padding-bottom: 2px">Widgets</div>
-            ${Object.entries(this.widgetStates).map(([widgetName, widgetState]) => {
-              if (widgetState !== undefined && widgetState !== null) {
-                return this.getToggleSettingEntryTemplate(widgetState, widgetName)
-              }
-            })}
-        </div>
-
-        <div class="area">
           <div class="bold-text">Export Ontology Image</div>
           <div class="setting">
             ${this.getSettingTitleTemplate('Image', 'Save a PNG image of the current diagram on your disk')}
@@ -215,23 +202,6 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
     `
   }
 
-  private getToggleSettingEntryTemplate(currentState: boolean, title: string) {
-    let labelPieces = title.split('-')
-    const label = labelPieces.map(text => capitalizeFirstChar(text)).join(' ')
-    return html`
-      <div class="toggle-setting-obj">
-        <gscape-toggle
-          @click=${this.widgetToggleChangeHandler}
-          label=${label}
-          label-position="left"
-          class="actionable"
-          key = ${title}
-          ?checked = ${currentState}
-        ></gscape-toggle>
-      </div>
-    `
-  }
-
   private listChangeHandler(e) {
     const selectId = e.target.id
     const newValue = e.target.value
@@ -255,14 +225,6 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
         }
         break;
     }
-  }
-
-  private widgetToggleChangeHandler(e) {
-    e.preventDefault()
-    let toggle = e.target
-    toggle.checked ?
-      this.onWidgetDisabled(toggle.key) :
-      this.onWidgetEnabled(toggle.key)
   }
 }
 

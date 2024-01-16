@@ -77,13 +77,6 @@ export default function (grapholscape: Grapholscape) {
 
     const _widget = widget as unknown as IBaseMixin
 
-    _widget.onStateChange = () => {
-      if (settingsComponent) {
-        settingsComponent.widgetStates[key] = _widget.enabled
-        settingsComponent.requestUpdate()
-      }
-    }
-
     if (grapholscape.widgetsInitialStates && grapholscape.widgetsInitialStates[key] === false) {
       _widget.disable()
     }
