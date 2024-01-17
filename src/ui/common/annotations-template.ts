@@ -47,6 +47,7 @@ export const itemWithIriTemplateStyle = css`
     text-align:center;
     background-color: var(--gscape-color-bg-inset);
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .item-with-iri-info .type-or-version {

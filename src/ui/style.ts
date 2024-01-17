@@ -77,7 +77,6 @@ export default css`
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
   scrollbar-width: inherit;
-  max-height: 320px;
   padding: 0px 8px;
   position: relative;
 }
@@ -282,6 +281,10 @@ input {
   padding: 4px 4px 4px 6px;
   border: solid 1px var(--gscape-color-border-subtle);
   margin-bottom: 18px;
+}
+
+.area > .area-content {
+  padding: 8px;
 }
 
 .tip {
