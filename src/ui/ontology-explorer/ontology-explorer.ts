@@ -14,7 +14,7 @@ import { contentSpinnerStyle, getContentSpinner } from '../common/spinners'
 LitVirtualizer
 
 export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
-  title = 'Ontology Explorer'
+  title = 'Entity Explorer'
   private _entities: EntityViewData[] = []
   private shownEntities: EntityViewData[] = []
   loading = false
