@@ -31,8 +31,8 @@ export default css`
   border: solid 1px var(--gscape-color-border-subtle);
   width: fit-content;
   min-width: 130px;
-  max-width: 350px;
-  max-height: 350px;
+  max-width: 50vw;
+  max-height: 50vh;
   overflow: auto;
   padding: 8px;
   position: relative;
@@ -55,6 +55,8 @@ export default css`
 
 .gscape-panel-in-tray {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   right: 100%;
   bottom: 0;
   margin-right: 4px;
@@ -181,6 +183,11 @@ export default css`
   height:1px;
   width:90%;
   margin: 0 auto;
+  background-color: var(--gscape-color-border-subtle)
+}
+
+.vr {
+  width: 1px;
   background-color: var(--gscape-color-border-subtle)
 }
 

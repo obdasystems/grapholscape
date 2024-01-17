@@ -96,7 +96,7 @@ export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
         <div class="header">${this.title}</div>
 
-        <div class="settings-wrapper">
+        <div class="content-wrapper">
 
         <div class="area">
             <div class="bold-text">Preferences</div>

@@ -28,7 +28,6 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
 
       .gscape-panel {
         padding:0;
-        font-size: 12px;
         min-height: 200px;
       }
 
@@ -36,27 +35,17 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
         padding: 8px 16px;
       }
 
-      table {
-        border-spacing: 0;
+      .row {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        padding: 4px 0;
       }
 
-      th, td {
-        padding: 2px;
-      }
-
-      td {
-        padding-left: 8px;
-      }
-
-      th {
-        text-align: left;
-        border-right: solid 1px var(--gscape-color-border-subtle);
-        padding-right: 8px;
-      }
-      
-      table > caption {
-        margin-top: 8px;
-        font-weight: 600;
+      .prefix-column {
+        flex-shrink: 0;
+        width: 50px;
+        text-align: right;
       }
     `,
   ]
@@ -73,13 +62,12 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
       </gscape-button>  
 
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-        <div class="header" style="display: none">Ontology Info</div>
-
         ${itemWithIriTemplate(this.ontology)}
         
-        ${annotationsTemplate(this.ontology.annotations)}
-
-        ${this.iriPrefixesTemplate()}
+        <div class="content-wrapper">
+          ${annotationsTemplate(this.ontology.annotations)}
+          ${this.iriPrefixesTemplate()}
+        </div>
       </div>
     `
   }
@@ -87,25 +75,23 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
   private iriPrefixesTemplate() {
     let numRows: number
     return html`
-      <table>
-        <caption>Namespace prefixes</caption>
+      <div>
+        <div class="header" style="text-align: center">Namespace prefixes</div>
         ${this.ontology.namespaces.map(namespace => {
           numRows = namespace.prefixes.length
           return html`
+            <div class="row">
               ${namespace.prefixes.map((prefix, i) => {
                 return html`
-                  <tr>
-                    <th>${prefix}</th>
-                    ${i === 0
-                      ? html`<td rowspan="${numRows}">${namespace.toString()}</td>`
-                      : null
-                    }
-                  </tr>
+                  <div class="prefix-column bold-text">${prefix}</div>
+                  <span class="vr"></span>
+                  <div class="namespace-value-column">${namespace.toString()}</div>
                 `
               })}
+            </div>
           `
         })}
-      </table>
+      </div>
     `
   }
 }

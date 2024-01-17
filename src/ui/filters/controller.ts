@@ -2,10 +2,6 @@ import Grapholscape from '../../core'
 import { LifecycleEvent } from "../../model"
 import GscapeFilters from "./gscape-filters"
 
-/**
- * @param {import('./index').default} filterComponent
- * @param {import('../../grapholscape').default} grapholscape 
- */
 export default function (filterComponent: GscapeFilters, grapholscape: Grapholscape) {
   filterComponent.filters = grapholscape.renderer.filters
 
