@@ -35,6 +35,12 @@ export default class GrapholEdge extends GrapholElement implements Edge {
   private _sourceEndpoint?: Position
   private _targetEndpoint?: Position
 
+  // Info for object/data property edges
+  domainTyped?: boolean
+  rangeTyped?: boolean
+  domainMandatory?: boolean
+  rangeMandatory?: boolean
+
   constructor(id: string, type: TypesEnum) {
     super(id, type)
   }
@@ -162,6 +168,10 @@ export default class GrapholEdge extends GrapholElement implements Edge {
     result.sourceId = this.sourceId
     result.targetId = this.targetId
     result.breakpoints = this.breakpoints
+    result.domainMandatory = this.domainMandatory
+    result.rangeMandatory = this.rangeMandatory
+    result.domainTyped = this.domainTyped
+    result.rangeTyped = this.rangeTyped
 
     return result
   }

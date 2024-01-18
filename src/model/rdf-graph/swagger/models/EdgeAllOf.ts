@@ -44,6 +44,30 @@ export interface EdgeAllOf {
      * @memberof EdgeAllOf
      */
     breakpoints?: Array<Position>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    domainTyped?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    rangeTyped?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    domainMandatory?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    rangeMandatory?: boolean;
 }
 
 /**
@@ -70,6 +94,10 @@ export function EdgeAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'sourceId': json['sourceId'],
         'targetId': json['targetId'],
         'breakpoints': !exists(json, 'breakpoints') ? undefined : ((json['breakpoints'] as Array<any>).map(PositionFromJSON)),
+        'domainTyped': !exists(json, 'domainTyped') ? undefined : json['domainTyped'],
+        'rangeTyped': !exists(json, 'rangeTyped') ? undefined : json['rangeTyped'],
+        'domainMandatory': !exists(json, 'domainMandatory') ? undefined : json['domainMandatory'],
+        'rangeMandatory': !exists(json, 'rangeMandatory') ? undefined : json['rangeMandatory'],
     };
 }
 
@@ -85,6 +113,10 @@ export function EdgeAllOfToJSON(value?: EdgeAllOf | null): any {
         'sourceId': value.sourceId,
         'targetId': value.targetId,
         'breakpoints': value.breakpoints === undefined ? undefined : ((value.breakpoints as Array<any>).map(PositionToJSON)),
+        'domainTyped': value.domainTyped,
+        'rangeTyped': value.rangeTyped,
+        'domainMandatory': value.domainMandatory,
+        'rangeMandatory': value.rangeMandatory,
     };
 }
 
