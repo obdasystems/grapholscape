@@ -889,6 +889,10 @@ function EdgeFromJSONTyped(json, ignoreDiscriminator) {
         'sourceId': json['sourceId'],
         'targetId': json['targetId'],
         'breakpoints': !exists(json, 'breakpoints') ? undefined : (json['breakpoints'].map(PositionFromJSON)),
+        'domainTyped': !exists(json, 'domainTyped') ? undefined : json['domainTyped'],
+        'rangeTyped': !exists(json, 'rangeTyped') ? undefined : json['rangeTyped'],
+        'domainMandatory': !exists(json, 'domainMandatory') ? undefined : json['domainMandatory'],
+        'rangeMandatory': !exists(json, 'rangeMandatory') ? undefined : json['rangeMandatory'],
     };
 }
 function EdgeToJSON(value) {
@@ -908,6 +912,10 @@ function EdgeToJSON(value) {
         'sourceId': value.sourceId,
         'targetId': value.targetId,
         'breakpoints': value.breakpoints === undefined ? undefined : (value.breakpoints.map(PositionToJSON)),
+        'domainTyped': value.domainTyped,
+        'rangeTyped': value.rangeTyped,
+        'domainMandatory': value.domainMandatory,
+        'rangeMandatory': value.rangeMandatory,
     };
 }
 
@@ -1875,6 +1883,10 @@ function EdgeAllOfFromJSONTyped(json, ignoreDiscriminator) {
         'sourceId': json['sourceId'],
         'targetId': json['targetId'],
         'breakpoints': !exists(json, 'breakpoints') ? undefined : (json['breakpoints'].map(PositionFromJSON)),
+        'domainTyped': !exists(json, 'domainTyped') ? undefined : json['domainTyped'],
+        'rangeTyped': !exists(json, 'rangeTyped') ? undefined : json['rangeTyped'],
+        'domainMandatory': !exists(json, 'domainMandatory') ? undefined : json['domainMandatory'],
+        'rangeMandatory': !exists(json, 'rangeMandatory') ? undefined : json['rangeMandatory'],
     };
 }
 function EdgeAllOfToJSON(value) {
@@ -1888,6 +1900,10 @@ function EdgeAllOfToJSON(value) {
         'sourceId': value.sourceId,
         'targetId': value.targetId,
         'breakpoints': value.breakpoints === undefined ? undefined : (value.breakpoints.map(PositionToJSON)),
+        'domainTyped': value.domainTyped,
+        'rangeTyped': value.rangeTyped,
+        'domainMandatory': value.domainMandatory,
+        'rangeMandatory': value.rangeMandatory,
     };
 }
 
@@ -3997,6 +4013,10 @@ class GrapholEdge extends GrapholElement {
             targetEndpoint: this.targetEndpoint ? [this.targetEndpoint.x, this.targetEndpoint.y] : undefined,
             segmentDistances: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.distance) : undefined,
             segmentWeights: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.weight) : undefined,
+            domainMandatory: this.domainMandatory,
+            domainTyped: this.domainTyped,
+            rangeMandatory: this.rangeMandatory,
+            rangeTyped: this.rangeTyped,
         });
         result[0].classes = this.type.toString();
         return result;
@@ -4011,6 +4031,10 @@ class GrapholEdge extends GrapholElement {
         result.sourceId = this.sourceId;
         result.targetId = this.targetId;
         result.breakpoints = this.breakpoints;
+        result.domainMandatory = this.domainMandatory;
+        result.rangeMandatory = this.rangeMandatory;
+        result.domainTyped = this.domainTyped;
+        result.rangeTyped = this.rangeTyped;
         return result;
     }
 }
@@ -6963,7 +6987,7 @@ function grapholStyle (theme) {
             }
         },
         {
-            selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
+            selector: 'edge,[sourceLabel],[targetLabel],[text_background]',
             style: {
                 'text-background-color': theme.getColour(ColoursNames.bg_graph),
                 'text-background-opacity': 1,
@@ -7489,8 +7513,6 @@ function floatyStyle (theme) {
             selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
             style: {
                 'target-label': 'C',
-                'font-size': 15,
-                'target-text-offset': 20,
             }
         },
         {
@@ -7498,6 +7520,74 @@ function floatyStyle (theme) {
             style: {
                 'control-point-step-size': 80,
                 'control-point-weight': 0.5,
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"],
+        edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"],
+        edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"],
+        edge[type = "${TypesEnum.OBJECT_PROPERTY}"]`,
+            style: {
+                'font-size': 15,
+                'target-text-offset': 20,
+                'source-text-offset': 20,
+            }
+        },
+        // DOMAIN DP
+        {
+            selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainMandatory][!domainTyped]:selected`,
+            style: {
+                'source-label': 'M'
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainTyped][!domainMandatory]:selected`,
+            style: {
+                'source-label': 'T'
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainTyped][?domainMandatory]:selected`,
+            style: {
+                'source-label': 'TM'
+            }
+        },
+        // DOMAIN OP
+        {
+            selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?domainMandatory][!domainTyped]:selected`,
+            style: {
+                'source-label': 'M'
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?domainTyped][!domainMandatory]:selected`,
+            style: {
+                'source-label': 'T'
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?domainTyped][?domainMandatory]:selected`,
+            style: {
+                'source-label': 'TM'
+            }
+        },
+        // RANGE OP
+        {
+            selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?rangeMandatory][!rangeTyped]:selected`,
+            style: {
+                'target-label': 'M'
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?rangeTyped][!rangeMandatory]:selected`,
+            style: {
+                'target-label': 'T'
+            }
+        },
+        {
+            selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?rangeTyped][?rangeMandatory]:selected`,
+            style: {
+                'target-label': 'TM'
             }
         },
         {
@@ -9922,8 +10012,8 @@ var baseStyle = i$1 `
   border: solid 1px var(--gscape-color-border-subtle);
   width: fit-content;
   min-width: 130px;
-  max-width: 350px;
-  max-height: 350px;
+  max-width: 50vw;
+  max-height: 50vh;
   overflow: auto;
   padding: 8px;
   position: relative;
@@ -9946,6 +10036,8 @@ var baseStyle = i$1 `
 
 .gscape-panel-in-tray {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   right: 100%;
   bottom: 0;
   margin-right: 4px;
@@ -9966,7 +10058,6 @@ var baseStyle = i$1 `
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
   scrollbar-width: inherit;
-  max-height: 320px;
   padding: 0px 8px;
   position: relative;
 }
@@ -10075,6 +10166,11 @@ var baseStyle = i$1 `
   background-color: var(--gscape-color-border-subtle)
 }
 
+.vr {
+  width: 1px;
+  background-color: var(--gscape-color-border-subtle)
+}
+
 .header {
   font-weight: 600;
   margin: 8px 16px;
@@ -10166,6 +10262,10 @@ input {
   padding: 4px 4px 4px 6px;
   border: solid 1px var(--gscape-color-border-subtle);
   margin-bottom: 18px;
+}
+
+.area > .area-content {
+  padding: 8px;
 }
 
 .tip {
@@ -11928,7 +12028,7 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
 }
 GscapeSelect.properties = {
     options: { type: Object },
-    selectedOptionId: { type: String, attribute: 'selected-option', reflect: true },
+    selectedOptionsId: { type: String, attribute: 'selected-options', reflect: true },
     defaultOptionId: { type: String, attribute: 'default-option' },
     placeHolder: { type: Object, attribute: 'placeholder' },
     onSelection: { type: Object, attribute: 'onselection' },
@@ -12880,6 +12980,7 @@ const itemWithIriTemplateStyle = i$1 `
     text-align:center;
     background-color: var(--gscape-color-bg-inset);
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .item-with-iri-info .type-or-version {
@@ -13339,10 +13440,6 @@ GscapeFilters.styles = [
 ];
 customElements.define('gscape-filters', GscapeFilters);
 
-/**
- * @param {import('./index').default} filterComponent
- * @param {import('../../grapholscape').default} grapholscape
- */
 function init$5 (filterComponent, grapholscape) {
     filterComponent.filters = grapholscape.renderer.filters;
     filterComponent.onFilterOff = (filter) => grapholscape.unfilter(filter);
@@ -13496,7 +13593,7 @@ function initFullscreenButton(grapholscape) {
 class GscapeExplorer extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
-        this.title = 'Ontology Explorer';
+        this.title = 'Entity Explorer';
         this._entities = [];
         this.shownEntities = [];
         this.loading = false;
@@ -13676,10 +13773,45 @@ function initOntologyExplorer(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent);
 }
 
+function grapholEntityToEntityViewData(grapholEntity, grapholscape) {
+    return {
+        displayedName: grapholEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language),
+        value: grapholEntity
+    };
+}
+function getEntityViewDataUnfolding(entity, grapholscape, hasUnfoldings) {
+    let hasAnyUnfolding = true;
+    if (hasUnfoldings) {
+        entity.types.forEach(type => {
+            hasAnyUnfolding = hasAnyUnfolding && hasUnfoldings(entity.iri.fullIri, type);
+        });
+    }
+    else {
+        hasAnyUnfolding = false;
+    }
+    return {
+        entityViewData: grapholEntityToEntityViewData(entity, grapholscape),
+        hasUnfolding: hasAnyUnfolding
+    };
+}
+
+var index$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    capitalizeFirstChar: capitalizeFirstChar,
+    getEntityViewDataUnfolding: getEntityViewDataUnfolding,
+    grapholEntityToEntityViewData: grapholEntityToEntityViewData
+});
+
 class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = "Ontology Info";
+        this.entityCounters = {
+            [TypesEnum.CLASS]: 0,
+            [TypesEnum.DATA_PROPERTY]: 0,
+            [TypesEnum.OBJECT_PROPERTY]: 0,
+            [TypesEnum.INDIVIDUAL]: 0,
+        };
         this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
     }
     render() {
@@ -13689,40 +13821,125 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
       </gscape-button>  
 
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-        <div class="header" style="display: none">Ontology Info</div>
-
-        ${itemWithIriTemplate(this.ontology)}
+        ${this.ontology && itemWithIriTemplate({
+            name: this.ontology.name,
+            iri: this.ontology.iri || '',
+            typeOrVersion: [this.ontology.version],
+        })}
         
-        ${annotationsTemplate(this.ontology.annotations)}
+        <div class="content-wrapper">
+          ${this.ontology && this.ontology.getAnnotations().length > 0
+            ? x `
+                <div class="area">
+                  ${annotationsTemplate(this.ontology.getAnnotations())}
+                </div>
+              `
+            : null}
 
-        ${this.iriPrefixesTemplate()}
+          <div class="area">
+            <div class="bold-text">Entity Counters</div>
+            <div class="area-content">
+              ${this.ontology && this.ontology.diagrams.length > 1
+            ? x `
+                  <gscape-select
+                    size=${SizeEnum.S}
+                    .options=${this.ontology.diagrams.map(diagram => {
+                return {
+                    id: diagram.id.toString(),
+                    text: diagram.name,
+                };
+            })}
+                    .placeholder=${{ text: 'Filter by Diagram' }}
+                    ?clearable=${true}
+                    .selected-options=${this.diagramIdFilter ? new Set([this.diagramIdFilter]) : undefined}
+                    @change=${this.handleDiagramFilterChange}
+                    style="margin-bottom: 4px;"
+                  >
+                  </gscape-select>
+                `
+            : null}
+
+              ${Object.entries(this.entityCounters).map(([entityType, number]) => {
+            return x `
+                  <div class="entity-counter actionable" title=${number}>
+                    <span>${capitalizeFirstChar(entityType.replace('-', ' '))} - <span class="muted-text" style="font-size: 90%">${number}</span></span>
+                    <div 
+                      class="counter-bar"
+                      type=${entityType}
+                      style="width: ${Math.round((number / this.totalEntityNumber) * 100)}%"
+                    >
+                    </div>
+                  </div>
+                `;
+        })}
+            </div>
+          </div>
+
+          ${this.iriPrefixesTemplate()}
+        </div>
       </div>
     `;
     }
     iriPrefixesTemplate() {
-        let numRows;
+        var _a;
         return x `
-      <table>
-        <caption>Namespace prefixes</caption>
-        ${this.ontology.namespaces.map(namespace => {
-            numRows = namespace.prefixes.length;
-            return x `
-              ${namespace.prefixes.map((prefix, i) => {
+      <div class="area">
+        <div class="bold-text">Namespace prefixes</div>
+        <div class="area-content">
+          ${(_a = this.ontology) === null || _a === void 0 ? void 0 : _a.namespaces.map(namespace => {
+            return x `${namespace.prefixes.map((prefix, i) => {
                 return x `
-                  <tr>
-                    <th>${prefix}</th>
-                    ${i === 0
-                    ? x `<td rowspan="${numRows}">${namespace.toString()}</td>`
-                    : null}
-                  </tr>
-                `;
-            })}
-          `;
+                <div class="row">
+                  <div class="prefix-column bold-text">${prefix}</div>
+                  <span class="vr"></span>
+                  <div class="namespace-value-column">${namespace.toString()}</div>
+              </div>
+              `;
+            })}`;
         })}
-      </table>
+        </div>
+      </div>
     `;
     }
+    handleDiagramFilterChange(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const selectInput = e.target;
+            let selectedDiagramId;
+            try {
+                selectedDiagramId = parseInt(Array.from(selectInput.selectedOptionsId)[0]);
+            }
+            catch (e) {
+                selectInput.clear();
+            }
+            yield this.updateComplete;
+            if (selectedDiagramId !== undefined && !isNaN(selectedDiagramId)) {
+                this.diagramIdFilter = selectedDiagramId;
+                this.dispatchEvent(new CustomEvent('counters-filter', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { diagramId: selectedDiagramId },
+                }));
+            }
+            else {
+                this.diagramIdFilter = undefined;
+                this.dispatchEvent(new CustomEvent('counters-update', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { diagramId: undefined },
+                }));
+            }
+        });
+    }
+    get totalEntityNumber() {
+        return Object.values(this.entityCounters).reduce((result, currentNum) => result + currentNum);
+    }
 }
+GscapeOntologyInfo.properties = {
+    title: { type: String },
+    ontology: { type: Object },
+    entityCounters: { type: Object },
+    diagramIdFilter: { type: Number },
+};
 GscapeOntologyInfo.styles = [
     baseStyle,
     itemWithIriTemplateStyle,
@@ -13737,7 +13954,6 @@ GscapeOntologyInfo.styles = [
 
       .gscape-panel {
         padding:0;
-        font-size: 12px;
         min-height: 200px;
       }
 
@@ -13745,49 +13961,100 @@ GscapeOntologyInfo.styles = [
         padding: 8px 16px;
       }
 
-      table {
-        border-spacing: 0;
+      .gscape-panel-in-tray > .content-wrapper {
+        padding: 8px;
       }
 
-      th, td {
-        padding: 2px;
+      .row {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        padding: 4px 0;
       }
 
-      td {
-        padding-left: 8px;
+      .prefix-column {
+        flex-shrink: 0;
+        width: 50px;
+        text-align: right;
       }
 
-      th {
-        text-align: left;
-        border-right: solid 1px var(--gscape-color-border-subtle);
-        padding-right: 8px;
+      .area:last-of-type {
+        margin-bottom: 0;
       }
-      
-      table > caption {
-        margin-top: 8px;
-        font-weight: 600;
+
+      .entity-counter {
+        display: flex;
+        align-items: center;
+        padding: 4px;
+      }
+
+      .entity-counter > span {
+        width: 145px;
+        flex-shrink: 0;
+      }
+
+      .counter-bar {
+        height: 6px;
+        border-radius: 6px;
+      }
+
+      .counter-bar[type = "class"] {
+        background: var(--gscape-color-class);
+        border: solid 1px var(--gscape-color-class-contrast);
+      }
+
+      .counter-bar[type = "data-property"] {
+        background: var(--gscape-color-data-property);
+        border: solid 1px var(--gscape-color-data-property-contrast);
+      }
+
+      .counter-bar[type = "object-property"] {
+        background: var(--gscape-color-object-property);
+        border: solid 1px var(--gscape-color-object-property-contrast);
+      }
+
+      .counter-bar[type = "individual"] {
+        background: var(--gscape-color-individual);
+        border: solid 1px var(--gscape-color-individual-contrast);
+      }
+
+      .counter-bar[type = "class-instance"] {
+        background: var(--gscape-color-class-instance);
+        border: solid 1px var(--gscape-color-class-instance-contrast);
       }
     `,
 ];
 customElements.define('gscape-ontology-info', GscapeOntologyInfo);
 
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
 function initOntologyInfo(grapholscape) {
     const ontologyInfoComponent = new GscapeOntologyInfo();
-    ontologyInfoComponent.ontology = ontologyModelToViewData(grapholscape.ontology);
+    ontologyInfoComponent.onTogglePanel = () => {
+        ontologyInfoComponent.ontology = grapholscape.ontology;
+        ontologyInfoComponent.entityCounters = countEntities(grapholscape, ontologyInfoComponent.diagramIdFilter);
+    };
+    ontologyInfoComponent.addEventListener('counters-filter', (event) => {
+        ontologyInfoComponent.entityCounters = countEntities(grapholscape, event.detail.diagramId);
+    });
+    ontologyInfoComponent.addEventListener('counters-update', () => {
+        ontologyInfoComponent.entityCounters = countEntities(grapholscape, ontologyInfoComponent.diagramIdFilter);
+    });
     grapholscape.widgets.set(WidgetEnum.ONTOLOGY_INFO, ontologyInfoComponent);
 }
-function ontologyModelToViewData(ontologyModelData) {
-    let ontologyViewData = {
-        name: ontologyModelData.name,
-        typeOrVersion: [ontologyModelData.version],
-        iri: ontologyModelData.iri || '',
-        namespaces: ontologyModelData.namespaces,
-        annotations: ontologyModelData.annotations,
+function countEntities(grapholscape, filterByDiagram) {
+    const count = (entities) => {
+        if (filterByDiagram !== undefined) {
+            return entities.filter(entity => entity.hasOccurrenceInDiagram(filterByDiagram, grapholscape.renderState || RendererStatesEnum.GRAPHOL)).length;
+        }
+        else {
+            return entities.length;
+        }
     };
-    return ontologyViewData;
+    return {
+        [TypesEnum.CLASS]: count(grapholscape.ontology.getEntitiesByType(TypesEnum.CLASS)),
+        [TypesEnum.DATA_PROPERTY]: count(grapholscape.ontology.getEntitiesByType(TypesEnum.DATA_PROPERTY)),
+        [TypesEnum.OBJECT_PROPERTY]: count(grapholscape.ontology.getEntitiesByType(TypesEnum.OBJECT_PROPERTY)),
+        [TypesEnum.INDIVIDUAL]: count(grapholscape.ontology.getEntitiesByType(TypesEnum.INDIVIDUAL)),
+    };
 }
 
 function entityIriTemplate(iri, entityType) {
@@ -14620,14 +14887,6 @@ function initRendererSelector(grapholscape) {
 }
 
 var settingsStyle = i$1 `
-  .settings-wrapper {
-    overflow-y: auto;
-    scrollbar-width: inherit;
-    max-height: 320px;
-    overflow-x: hidden;
-    padding: 0 8px;
-  }
-
   .area:last-of-type {
     margin-bottom: 0;
   }
@@ -14653,12 +14912,9 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super();
         this.title = 'Settings';
-        this.widgetStates = {};
         this.onEntityNameTypeChange = () => { };
         this.onLanguageChange = () => { };
         this.onThemeChange = () => { };
-        this.onWidgetEnabled = () => { };
-        this.onWidgetDisabled = () => { };
         this.onPngExport = () => { };
         this.onSvgExport = () => { };
         this.onJSONExport = () => { };
@@ -14673,7 +14929,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
         <div class="header">${this.title}</div>
 
-        <div class="settings-wrapper">
+        <div class="content-wrapper">
 
         <div class="area">
             <div class="bold-text">Preferences</div>
@@ -14691,15 +14947,6 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
             ${this.getListSettingEntryTemplate(this.themes.map(theme => {
             return { value: theme.id, label: theme.name };
         }), this.selectedTheme, 'Theme', 'Select a theme')}
-        </div>
-
-        <div class="area">
-            <div class="bold-text" style="padding-bottom: 2px">Widgets</div>
-            ${Object.entries(this.widgetStates).map(([widgetName, widgetState]) => {
-            if (widgetState !== undefined && widgetState !== null) {
-                return this.getToggleSettingEntryTemplate(widgetState, widgetName);
-            }
-        })}
         </div>
 
         <div class="area">
@@ -14739,7 +14986,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.2"}</span>
+            <span>${"4.0.3-snap.0"}</span>
           </div>
         </div>
       </div>
@@ -14770,22 +15017,6 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
       </div>
     `;
     }
-    getToggleSettingEntryTemplate(currentState, title) {
-        let labelPieces = title.split('-');
-        const label = labelPieces.map(text => capitalizeFirstChar(text)).join(' ');
-        return x `
-      <div class="toggle-setting-obj">
-        <gscape-toggle
-          @click=${this.widgetToggleChangeHandler}
-          label=${label}
-          label-position="left"
-          class="actionable"
-          key = ${title}
-          ?checked = ${currentState}
-        ></gscape-toggle>
-      </div>
-    `;
-    }
     listChangeHandler(e) {
         const selectId = e.target.id;
         const newValue = e.target.value;
@@ -14806,13 +15037,6 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
                 }
                 break;
         }
-    }
-    widgetToggleChangeHandler(e) {
-        e.preventDefault();
-        let toggle = e.target;
-        toggle.checked ?
-            this.onWidgetDisabled(toggle.key) :
-            this.onWidgetEnabled(toggle.key);
     }
 }
 GscapeSettings.properties = {
@@ -14870,18 +15094,8 @@ function init$1 (settingsComponent, grapholscape) {
     settingsComponent.languages = grapholscape.ontology.languages;
     settingsComponent.selectedLanguage = grapholscape.language;
     settingsComponent.selectedEntityNameType = grapholscape.entityNameType;
-    // if (grapholscape.renderState === RendererStatesEnum.FLOATY) {
-    //   grapholscape.addTheme(colorfulThemeLight)
-    //   grapholscape.addTheme(colorfulThemeDark)
-    // } else {
-    //   grapholscape.removeTheme(colorfulThemeLight)
-    //   grapholscape.removeTheme(colorfulThemeDark)
-    // }
     settingsComponent.themes = grapholscape.themeList;
     settingsComponent.selectedTheme = grapholscape.theme.id;
-    for (let [widgetName, widget] of grapholscape.widgets) {
-        settingsComponent.widgetStates[widgetName] = widget.enabled;
-    }
     settingsComponent.requestUpdate();
     settingsComponent.onEntityNameTypeChange = (entityNameType) => {
         grapholscape.setEntityNameType(entityNameType);
@@ -14893,37 +15107,12 @@ function init$1 (settingsComponent, grapholscape) {
     settingsComponent.onPngExport = () => grapholscape.exportToPng();
     settingsComponent.onSvgExport = () => grapholscape.exportToSvg();
     settingsComponent.onJSONExport = () => grapholscape.exportToRdfGraph();
-    // let gui_container = grapholscape.container.querySelector('#gscape-ui')
-    settingsComponent.onWidgetEnabled = (widgetKey) => {
-        const widget = grapholscape.widgets.get(widgetKey);
-        widget.enable();
-        storeConfigEntry(widgetKey, true);
-        settingsComponent.widgetStates[widgetKey] = true;
-        settingsComponent.requestUpdate();
-    };
-    settingsComponent.onWidgetDisabled = (widgetKey) => {
-        const widget = grapholscape.widgets.get(widgetKey);
-        widget.disable();
-        storeConfigEntry(widgetKey, false);
-        settingsComponent.widgetStates[widgetKey] = false;
-        settingsComponent.requestUpdate();
-    };
     grapholscape.on(LifecycleEvent.LanguageChange, language => settingsComponent.selectedLanguage = language);
     grapholscape.on(LifecycleEvent.EntityNameTypeChange, entityNameType => settingsComponent.selectedEntityNameType = entityNameType);
     grapholscape.on(LifecycleEvent.ThemeChange, newTheme => settingsComponent.selectedTheme = newTheme.id);
     grapholscape.on(LifecycleEvent.RendererChange, newRenderer => {
         settingsComponent.themes = grapholscape.themeList;
     });
-    // function updateOnChange(settingID, newValue) {
-    //   let select = settingsComponent.shadowRoot.querySelector(`#${settingID}`)
-    //   let option = Array.from(select.options)?.find( o => o.value === newValue)
-    //   if (option) {
-    //     option.selected = true
-    //     let languageSelect = settingsComponent.shadowRoot.querySelector('#language')
-    //     if (select.id == 'entity_name') 
-    //       languageSelect.disabled = (select.value !== 'label')
-    //   }
-    // }
 }
 
 /**
@@ -15017,7 +15206,7 @@ function init (grapholscape) {
     initRendererSelector(grapholscape);
     initInitialRendererSelector(grapholscape);
     initColors(grapholscape);
-    const settingsComponent = grapholscape.widgets.get(WidgetEnum.SETTINGS);
+    grapholscape.widgets.get(WidgetEnum.SETTINGS);
     grapholscape.widgets.forEach((widget, key) => {
         switch (key) {
             default:
@@ -15038,12 +15227,6 @@ function init (grapholscape) {
                 break;
         }
         const _widget = widget;
-        _widget.onStateChange = () => {
-            if (settingsComponent) {
-                settingsComponent.widgetStates[key] = _widget.enabled;
-                settingsComponent.requestUpdate();
-            }
-        };
         if (grapholscape.widgetsInitialStates && grapholscape.widgetsInitialStates[key] === false) {
             _widget.disable();
         }
@@ -15903,7 +16086,7 @@ customElements.define('shortest-path-dialog', ShortestPathDialog);
 
 /** @module UI */
 
-var index$1 = /*#__PURE__*/Object.freeze({
+var index = /*#__PURE__*/Object.freeze({
     __proto__: null,
     BOTTOM_RIGHT_WIDGET_CLASS: BOTTOM_RIGHT_WIDGET,
     BaseMixin: BaseMixin,
@@ -19220,35 +19403,6 @@ class IncrementalController {
     }
     get numberOfElements() { var _a; return ((_a = this.grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.elements().size()) || 0; }
 }
-
-function grapholEntityToEntityViewData(grapholEntity, grapholscape) {
-    return {
-        displayedName: grapholEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language),
-        value: grapholEntity
-    };
-}
-function getEntityViewDataUnfolding(entity, grapholscape, hasUnfoldings) {
-    let hasAnyUnfolding = true;
-    if (hasUnfoldings) {
-        entity.types.forEach(type => {
-            hasAnyUnfolding = hasAnyUnfolding && hasUnfoldings(entity.iri.fullIri, type);
-        });
-    }
-    else {
-        hasAnyUnfolding = false;
-    }
-    return {
-        entityViewData: grapholEntityToEntityViewData(entity, grapholscape),
-        hasUnfolding: hasAnyUnfolding
-    };
-}
-
-var index = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    capitalizeFirstChar: capitalizeFirstChar,
-    getEntityViewDataUnfolding: getEntityViewDataUnfolding,
-    grapholEntityToEntityViewData: grapholEntityToEntityViewData
-});
 
 var style = i$1 `
   .gscape-panel {
@@ -22610,4 +22764,4 @@ function showLoadingSpinner(container, config) {
     return spinner;
 }
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, rdfGraphParser as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index$3 as SwaggerModel, ThemeManager, TypesEnum, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, floatyStyle as getFloatyStyle, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, incrementalGrapholscape, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index$1 as ui, index as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, rdfGraphParser as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index$3 as SwaggerModel, ThemeManager, TypesEnum, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, floatyStyle as getFloatyStyle, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, incrementalGrapholscape, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index as ui, index$1 as util };

@@ -355,6 +355,30 @@ interface Edge {
      * @memberof Edge
      */
     breakpoints?: Array<Position>;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Edge
+     */
+    domainTyped?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Edge
+     */
+    rangeTyped?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Edge
+     */
+    domainMandatory?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Edge
+     */
+    rangeMandatory?: boolean;
 }
 /**
  * Check if a given object implements the Edge interface.
@@ -1387,6 +1411,30 @@ interface EdgeAllOf {
      * @memberof EdgeAllOf
      */
     breakpoints?: Array<Position>;
+    /**
+     *
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    domainTyped?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    rangeTyped?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    domainMandatory?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof EdgeAllOf
+     */
+    rangeMandatory?: boolean;
 }
 /**
  * Check if a given object implements the EdgeAllOf interface.
@@ -3247,6 +3295,10 @@ declare class GrapholEdge extends GrapholElement implements Edge {
     private _sourceLabel?;
     private _sourceEndpoint?;
     private _targetEndpoint?;
+    domainTyped?: boolean;
+    rangeTyped?: boolean;
+    domainMandatory?: boolean;
+    rangeMandatory?: boolean;
     constructor(id: string, type: TypesEnum);
     addBreakPoint(breakpoint: Breakpoint): void;
     computeBreakpointsDistancesWeights(sourcePosition: Position, targetPosition: Position): void;
