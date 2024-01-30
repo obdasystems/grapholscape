@@ -149,6 +149,10 @@ export default class GrapholEdge extends GrapholElement implements Edge {
       targetEndpoint: this.targetEndpoint ? [this.targetEndpoint.x, this.targetEndpoint.y] : undefined,
       segmentDistances: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.distance) : undefined,
       segmentWeights: this.breakpoints.length > 0 ? this.breakpoints.map(b => b.weight) : undefined,
+      domainMandatory: this.domainMandatory,
+      domainTyped: this.domainTyped,
+      rangeMandatory: this.rangeMandatory,
+      rangeTyped: this.rangeTyped,
     })
 
     result[0].classes = this.type.toString()

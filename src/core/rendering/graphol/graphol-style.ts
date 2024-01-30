@@ -196,7 +196,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: 'edge[displayedName],[sourceLabel],[targetLabel],[text_background]',
+      selector: 'edge,[sourceLabel],[targetLabel],[text_background]',
       style: {
         'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,

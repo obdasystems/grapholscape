@@ -111,8 +111,6 @@ export default function (theme: GrapholscapeTheme) {
       selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"], edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"]`,
       style: {
         'target-label': 'C',
-        'font-size': 15,
-        'target-text-offset': 20,
       }
     },
 
@@ -123,6 +121,88 @@ export default function (theme: GrapholscapeTheme) {
         'control-point-weight': 0.5,
       }
     },
+
+    { // Style for source/target label - distance from node
+      selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"],
+        edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"],
+        edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"],
+        edge[type = "${TypesEnum.OBJECT_PROPERTY}"]`,
+      style: {
+        'font-size': 15,
+        'target-text-offset': 20,
+        'source-text-offset': 20,
+      }
+    },
+
+    // DOMAIN DP
+
+    {
+      selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainMandatory][!domainTyped]:selected`,
+      style: {
+        'source-label': 'M'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainTyped][!domainMandatory]:selected`,
+      style: {
+        'source-label': 'T'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainTyped][?domainMandatory]:selected`,
+      style: {
+        'source-label': 'TM'
+      }
+    },
+
+    // DOMAIN OP
+
+    {
+      selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?domainMandatory][!domainTyped]:selected`,
+      style: {
+        'source-label': 'M'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?domainTyped][!domainMandatory]:selected`,
+      style: {
+        'source-label': 'T'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?domainTyped][?domainMandatory]:selected`,
+      style: {
+        'source-label': 'TM'
+      }
+    },
+
+    // RANGE OP
+
+    {
+      selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?rangeMandatory][!rangeTyped]:selected`,
+      style: {
+        'target-label': 'M'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?rangeTyped][!rangeMandatory]:selected`,
+      style: {
+        'target-label': 'T'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.OBJECT_PROPERTY}"][?rangeTyped][?rangeMandatory]:selected`,
+      style: {
+        'target-label': 'TM'
+      }
+    },
+
 
     {
       selector: '[?pinned]',
