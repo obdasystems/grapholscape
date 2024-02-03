@@ -6,7 +6,7 @@ import { UiOption } from "../renderer-selector/view-model";
 
 export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
   options: (UiOption | undefined)[]
-  private _title: string = 'Select a rendering mode:'
+  title: string = ''
 
   onOptionSelection: (optionId: string) => void
 
@@ -52,6 +52,7 @@ export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
         align-items: center;
         padding: 24px;
         width: 15%;
+        gap: 8px;
       }
 
       .card > .icon {
@@ -81,12 +82,12 @@ export default class GscapeFullPageSelector extends BaseMixin(LitElement) {
 
   render() {
     return html`
-      <div class="title bold-text">${this._title}</div>
+      <div class="title bold-text">${this.title}</div>
       <div class="options">
         ${this.options.map(option => {
           if (option)
             return html`
-              <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection}>
+              <div class="card" renderer-state=${option.id} @click=${this.handleRendererSelection} title=${option.name}>
                 <div class="icon">${option.icon}</div>
                 <div class="title bold-text">${option.name}</div>
                 <div class="description muted-text">${option.description}</div>
