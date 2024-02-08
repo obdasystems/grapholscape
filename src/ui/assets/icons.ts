@@ -152,6 +152,9 @@ export const error = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/
 
 export const toggleCatalog = svg`<svg style="padding: 2px; box-sizing: border-box;" viewBox="64 64 896 896" width="20px" height="20px" fill="currentColor" aria-hidden="true"><path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM142.4 642.1L298.7 519a8.84 8.84 0 000-13.9L142.4 381.9c-5.8-4.6-14.4-.5-14.4 6.9v246.3a8.9 8.9 0 0014.4 7z"></path></svg>`
 
+export const domain = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M208-129q-32.587 0-55.794-23.206Q129-175.413 129-208v-544q0-32.588 23.206-55.794Q175.413-831 208-831h544q32.588 0 55.794 23.206Q831-784.588 831-752v544q0 32.587-23.206 55.794Q784.588-129 752-129H208Zm0-79h544v-544H208v544Zm0 0v-544 544Z"/></svg>`
+
+export const range = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M208-129q-32.938 0-55.969-23.031T129-208v-544q0-32.938 23.031-55.969T208-831h544q32.938 0 55.969 23.031T831-752v544q0 32.938-23.031 55.969T752-129H208Z"/></svg>`
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |

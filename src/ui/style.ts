@@ -270,9 +270,10 @@ input {
 }
 
 .chip-neutral {
-  border: 1px solid var(--gscape-color-neutral-muted);
-  color: var(--gscape-color-fg-muted);
-  background: var(--gscape-color-neutral);
+  color: inherit;
+  background-color: var(--gscape-color-neutral-muted);
+  border-color: var(--gscape-color-border-subtle);
+  padding-top: 1px;
 }
 
 .area {

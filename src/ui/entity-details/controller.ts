@@ -39,9 +39,7 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
 
   function setGrapholEntity(entity: GrapholEntity, instance?: GrapholElement) {
     entityDetailsComponent.grapholEntity = entity
-    if (instance) {
-      entityDetailsComponent.currentOccurrenceType = instance.type
-    }
+    entityDetailsComponent.currentOccurrence = instance
     entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape)
     entityDetailsComponent.language = grapholscape.language
     entityDetailsComponent.show()

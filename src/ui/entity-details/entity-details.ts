@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { GrapholElement, GrapholEntity, TypesEnum } from '../../model'
-import { commentIcon, infoFilled, minus, plus } from '../assets/icons'
+import { commentIcon, domain, infoFilled, minus, plus, range } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
@@ -10,7 +10,7 @@ import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } f
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
   grapholEntity: GrapholEntity
-  currentOccurrenceType?: TypesEnum
+  currentOccurrence?: GrapholElement
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   showOccurrences: boolean = true
   language?: string
@@ -63,13 +63,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
       .gscape-panel > * {
         padding: 8px;
-      }
-
-      .datatype-chip {
-        color: inherit;
-        background-color: var(--gscape-color-neutral-muted);
-        border-color: var(--gscape-color-border-subtle);
-        padding-top: 1px;
       }
 
       [diagram-id] > gscape-button {
@@ -143,7 +136,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
           ${this.currentOccurrenceType === TypesEnum.DATA_PROPERTY && this.grapholEntity.datatype
             ? html`
               <div style="text-align: center" class="chips-wrapper section">
-                <span class="chip datatype-chip">${this.grapholEntity.datatype}</span>
+                <span class="chip-neutral">${this.grapholEntity.datatype}</span>
               </div>
             `
             : null
@@ -166,6 +159,28 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                 })}
                 </div>
               `
+            : null
+          }
+
+          ${this.currentOccurrence?.isEdge()
+            ? html`
+              <div class="section">
+                <div class="section-header">
+                  <span class="slotted-icon">${domain}</span>
+                  <span class="bold-text">Domain</span>
+                  </span>
+                  ${this.currentOccurrence.domainTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
+                  ${this.currentOccurrence.domainMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                </div>
+                <div class="section-header">
+                  <span class="slotted-icon">${range}</span>
+                  <span class="bold-text">Range</span>
+                  </span>
+                  ${this.currentOccurrence.rangeTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
+                  ${this.currentOccurrence.rangeMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                </div>
+              </div>
+            `
             : null
           }
 
@@ -256,6 +271,10 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
   private get commentsLanguages() {
     return Array.from(new Set(this.grapholEntity.getComments().map(comment => comment.language)))
+  }
+
+  private get currentOccurrenceType() {
+    return this.currentOccurrence?.type
   }
 
   updated() {
