@@ -62,7 +62,7 @@ export default function (theme: GrapholscapeTheme) {
     { // DOMAIN-RANGE RESTRICTIONS ARE EDGES IN GRAPHOL-LITE
       selector: `[type = "${TypesEnum.DOMAIN_RESTRICTION}"], [type = "${TypesEnum.RANGE_RESTRICTION}"]`,
       style: {
-        'line-color' : theme.getColour(ColoursNames.object_property_contrast),
+        'line-color': theme.getColour(ColoursNames.object_property_contrast),
         'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
         'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
         'target-arrow-shape': 'triangle',
@@ -91,6 +91,22 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
+      selector: `[type = "${TypesEnum.DOMAIN_RESTRICTION}"]:selected, [type = "${TypesEnum.RANGE_RESTRICTION}"]:selected`,
+      style: {
+        'source-label': (e) => {
+          let label: string = ''
+          if (e.data().domainTyped || e.data().rangeTyped)
+            label = 'T'
+
+          if (e.data().domainMandatory || e.data().rangeMandatory)
+            label = label + 'M'
+
+          return label
+        }
+      }
+    },
+
+    {
       selector: `edge[type = "${TypesEnum.DATA_PROPERTY}"]`,
       style: {
         'line-color': theme.getColour(ColoursNames.data_property_contrast),
@@ -105,6 +121,29 @@ export default function (theme: GrapholscapeTheme) {
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
         'text-rotation': 'autorotate',
+      }
+    },
+
+    // DOMAIN DP
+
+    {
+      selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainMandatory][!domainTyped]:selected`,
+      style: {
+        'source-label': 'M'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainTyped][!domainMandatory]:selected`,
+      style: {
+        'source-label': 'T'
+      }
+    },
+
+    {
+      selector: `edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"][?domainTyped][?domainMandatory]:selected`,
+      style: {
+        'source-label': 'TM'
       }
     },
 

@@ -1,4 +1,4 @@
-import { NodeCollection, NodeSingular } from "cytoscape";
+import { EdgeCollection, NodeSingular } from "cytoscape";
 import { floatyOptions } from "../../../config/cytoscape-default-config";
 import { DefaultNamespaces, Diagram, DiagramRepresentation, GrapholEdge, GrapholElement, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
 import BaseGrapholTransformer from "../base-transformer";
@@ -76,19 +76,25 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     this.deleteElements(objectProperties)
   }
 
-  private connectDomainsRanges(domains: NodeCollection, ranges: NodeCollection, objectProperty: NodeSingular) {
+  private connectDomainsRanges(domains: EdgeCollection, ranges: EdgeCollection, objectProperty: NodeSingular) {
     let grapholDomainNode: GrapholNode, grapholRangeNode: GrapholNode, newId: string
 
     domains.forEach((domain) => {
-      grapholDomainNode = this.getGrapholElement(domain.id()) as GrapholNode
+      grapholDomainNode = this.getGrapholElement(domain.source().id()) as GrapholNode
       ranges.forEach((range, i) => {
-        grapholRangeNode = this.getGrapholElement(range.id()) as GrapholNode
+        grapholRangeNode = this.getGrapholElement(range.source().id()) as GrapholNode
 
         newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`
         let newGrapholEdge = new GrapholEdge(newId, TypesEnum.OBJECT_PROPERTY)
         newGrapholEdge.sourceId = grapholDomainNode.id
         newGrapholEdge.targetId = grapholRangeNode.id
         newGrapholEdge.diagramId = grapholDomainNode.diagramId
+
+        newGrapholEdge.domainMandatory = domain.data().domainMandatory
+        newGrapholEdge.domainTyped = domain.data().domainTyped
+
+        newGrapholEdge.rangeMandatory = range.data().rangeMandatory
+        newGrapholEdge.rangeTyped = range.data().rangeTyped
 
         Object.entries(objectProperty.data()).forEach(([key, value]) => {
           switch (key) {
@@ -123,7 +129,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     owlThingClass.displayedName = 'Thing'
 
     let originalElem: GrapholElement | undefined, attributeEdge: GrapholEdge
-    
+
     originalDataProperties.forEach(dp => {
       if (this.result.cy.$(`[type = "${TypesEnum.DATA_PROPERTY}"][iri = "${dp.data().iri}"]`).empty()) {
         originalElem = grapholRepresentation.grapholElements.get(dp.id())
@@ -162,40 +168,40 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
   private getDomainsOfObjectProperty(objectProperty: NodeSingular) {
     if (!objectProperty || objectProperty.empty()) return null
 
-    let domains = objectProperty.incomers(`edge`).filter(edge =>
+    let domainRestrictions = objectProperty.incomers(`edge`).filter(edge =>
       this.getGrapholElement(edge.id()).is(TypesEnum.DOMAIN_RESTRICTION)
-    ).sources()
+    )
 
     const fathers = this.getFathers(objectProperty)
 
-    let fathersDomains = this.newCy.collection()
+    let fathersDomainRestrictions = this.newCy.collection()
 
     fathers.forEach(father => {
       const newDomains = this.getDomainsOfObjectProperty(father)
       if (newDomains)
-        fathersDomains = fathersDomains.union(newDomains)
+        fathersDomainRestrictions = fathersDomainRestrictions.union(newDomains)
     })
 
-    return domains.union(fathersDomains)
+    return domainRestrictions.union(fathersDomainRestrictions)
   }
 
   private getRangesOfObjectProperty(objectProperty: NodeSingular) {
     if (!objectProperty || objectProperty.empty()) return
-    let ranges = objectProperty.incomers(`edge`).filter(edge =>
+    let rangeRestrictions = objectProperty.incomers(`edge`).filter(edge =>
       this.getGrapholElement(edge.id()).is(TypesEnum.RANGE_RESTRICTION)
-    ).sources()
+    )
 
     const fathers = this.getFathers(objectProperty)
 
-    let fatherRanges = this.newCy.collection()
+    let fatherRangeRestrictions = this.newCy.collection()
 
     fathers.forEach(father => {
       const newRanges = this.getRangesOfObjectProperty(father)
       if (newRanges)
-        fatherRanges = fatherRanges.union(newRanges)
+        fatherRangeRestrictions = fatherRangeRestrictions.union(newRanges)
     })
 
-    return ranges.union(fatherRanges)
+    return rangeRestrictions.union(fatherRangeRestrictions)
   }
 
   private getFathers(node: NodeSingular) {

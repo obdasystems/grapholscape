@@ -122,18 +122,6 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
-    { // Style for source/target label - distance from node
-      selector: `edge[type = "${TypesEnum.COMPLETE_UNION}"],
-        edge[type = "${TypesEnum.COMPLETE_DISJOINT_UNION}"],
-        edge[type = "${TypesEnum.ATTRIBUTE_EDGE}"],
-        edge[type = "${TypesEnum.OBJECT_PROPERTY}"]`,
-      style: {
-        'font-size': 15,
-        'target-text-offset': 20,
-        'source-text-offset': 20,
-      }
-    },
-
     // DOMAIN DP
 
     {

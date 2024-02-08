@@ -139,6 +139,32 @@ export default class LiteTransformer extends BaseGrapholTransformer {
         return
       }
 
+      /**
+       * Assign typed and/or mandatory. must be done before reversing the edge!
+       */
+      const mandatory = (
+        edgeOnRestriction.is(TypesEnum.EQUIVALENCE) ||
+        (
+          edgeOnRestriction.is(TypesEnum.INCLUSION) && edgeOnRestriction.targetId === restrictionNode.id
+        )
+      )
+      const typed = (
+        edgeOnRestriction.is(TypesEnum.EQUIVALENCE) ||
+        (
+          edgeOnRestriction.is(TypesEnum.INCLUSION) && edgeOnRestriction.targetId !== restrictionNode.id
+        )
+      )
+
+      if (restrictionNode.is(TypesEnum.RANGE_RESTRICTION)) {
+        edgeOnRestriction.rangeMandatory = mandatory
+        edgeOnRestriction.rangeTyped = typed
+      }
+
+      if (restrictionNode.is(TypesEnum.DOMAIN_RESTRICTION)) {
+        edgeOnRestriction.domainMandatory = mandatory
+        edgeOnRestriction.domainTyped = typed
+      }
+
       if (edgeOnRestriction.targetId !== restrictionNode.id) {
         this.reverseEdge(edgeOnRestriction)
         edgeOnRestrictionSourceNode = this.getGrapholElement(edgeOnRestriction.sourceId) as GrapholNode
@@ -371,7 +397,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
           } else if (grapholUnion.type === TypesEnum.DISJOINT_UNION) {
             grapholEdge.type = TypesEnum.COMPLETE_DISJOINT_UNION
           }
-          
+
 
           // the edge must have as source the union node
           if (grapholEdge.sourceId != grapholUnion.id) {
