@@ -562,6 +562,10 @@ export default class IncrementalController {
                 }
               }
             })
+            // Force entity details to load new parent classes if class instance is still being shown
+            if (classInstanceEntity && (this.grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as any)?.grapholEntity === classInstanceEntity) {
+              this.lifecycle.trigger(IncrementalEvent.ClassInstanceSelection, classInstanceEntity)
+            }
           }).finally(() => {
             this.grapholscape.renderer.cy?.$id(addedNode.id).removeClass('unknown-parent-class')
             badgeController?.removeLoadingBadge(instance.iri, TypesEnum.CLASS_INSTANCE)

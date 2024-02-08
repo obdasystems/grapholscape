@@ -36,7 +36,7 @@ export function ClassInstanceDetailsFactory(ic: IncrementalController) {
           ic.counts.set(entity.iri.fullIri, countInMap)
           incrementalEntityDetails.instancesCount = countInMap
         }
-        
+
       }).finally(() => {
         incrementalEntityDetails.instancesCountLoading = false
       })
@@ -76,10 +76,11 @@ export function ClassInstanceDetailsFactory(ic: IncrementalController) {
   })
 
   ic.on(IncrementalEvent.ClassInstanceSelection, async classInstanceEntity => {
-    if (!entityDetailsWidget?.grapholEntity || !entityDetailsWidget?.grapholEntity.iri.equals(classInstanceEntity.iri)) {
+    const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
+    if (!entityDetailsWidget?.grapholEntity || !entityDetailsWidget.grapholEntity.iri.equals(classInstanceEntity.iri)) {
       ic.endpointController?.stopRequests('instances')
       incrementalEntityDetails.allowComputeCount = false
-      const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
+
       let dataProperties: GrapholEntity[] = []
       if (classInstanceEntity.dataProperties.length > 0) {
         let dpEntity: GrapholEntity | undefined
@@ -100,13 +101,13 @@ export function ClassInstanceDetailsFactory(ic: IncrementalController) {
           ic.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dp.iri.fullIri)
         })
       }
-
-      incrementalEntityDetails.parentClasses = parentClassesIris.map(parentClassIri => {
-        const parentClassEntity = ic.grapholscape.ontology.getEntity(parentClassIri)
-        if (parentClassEntity)
-          return grapholEntityToEntityViewData(parentClassEntity, ic.grapholscape)
-      }).filter(entity => entity !== undefined) as EntityViewData[]
     }
+
+    incrementalEntityDetails.parentClasses = parentClassesIris.map(parentClassIri => {
+      const parentClassEntity = ic.grapholscape.ontology.getEntity(parentClassIri)
+      if (parentClassEntity)
+        return grapholEntityToEntityViewData(parentClassEntity, ic.grapholscape)
+    }).filter(entity => entity !== undefined) as EntityViewData[]
 
     incrementalEntityDetails.canShowDataPropertiesValues = true
     const classInstanceNode = classInstanceEntity.getOccurrenceByType(TypesEnum.CLASS_INSTANCE, RendererStatesEnum.INCREMENTAL)
