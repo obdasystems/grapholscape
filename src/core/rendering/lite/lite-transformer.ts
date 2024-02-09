@@ -49,6 +49,14 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     this.filterByCriterion(this.isQualifiedRestriction)
     this.filterByCriterion(this.isCardinalityRestriction)
     this.filterByCriterion(this.inputEdgesBetweenRestrictions)
+    this.newCy.nodes().filter(`[ type $= "union" ]`).forEach(elem => {
+      // delete incoming inclusions on union nodes
+      elem.incomers('edge').forEach(edge => {
+        if (edge.data().type === TypesEnum.INCLUSION) {
+          this.deleteElement(edge)
+        }
+      })
+    })
     this.deleteFilteredElements()
     this.simplifyDomainAndRange()
     this.simplifyComplexHierarchies()
@@ -373,18 +381,6 @@ export default class LiteTransformer extends BaseGrapholTransformer {
         (!grapholUnion.is(TypesEnum.UNION) && !grapholUnion.is(TypesEnum.DISJOINT_UNION)))
         return
 
-      //grapholUnion.height = grapholUnion.width = 0.1
-      //makeDummyPoint(union)
-
-      //union.incomers('edge[type = "input"]').data('type', 'easy_input')
-      // delete incoming inclusions
-      union.incomers('edge').forEach(edge => {
-        const grapholEdge = this.getGrapholElement(edge.id())
-        if (grapholEdge.is(TypesEnum.INCLUSION)) {
-          this.deleteElement(edge)
-        }
-      })
-
       // process equivalence edges
       union.connectedEdges('edge').forEach(edge => {
         const grapholEdge = this.getGrapholElement(edge.id()) as GrapholEdge
@@ -549,6 +545,11 @@ export default class LiteTransformer extends BaseGrapholTransformer {
         const sourceNode = this.getGrapholElement(newRestrictionEdge.sourceId) as GrapholNode
         const targetNode = this.getGrapholElement(newRestrictionEdge.targetId) as GrapholNode
         newRestrictionEdge.computeBreakpointsDistancesWeights(sourceNode.position, targetNode.position)
+
+        newRestrictionEdge.domainMandatory = grapholRestrictionEdge.domainMandatory
+        newRestrictionEdge.domainTyped = grapholRestrictionEdge.domainTyped
+        newRestrictionEdge.rangeMandatory = grapholRestrictionEdge.rangeMandatory
+        newRestrictionEdge.rangeTyped = grapholRestrictionEdge.rangeTyped
         this.result.addElement(newRestrictionEdge)
       })
 
