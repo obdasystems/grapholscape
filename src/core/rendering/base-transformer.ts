@@ -8,7 +8,7 @@ export interface GrapholTransformer {
 export default abstract class BaseGrapholTransformer implements GrapholTransformer{
   abstract transform(diagram: Diagram): DiagramRepresentation
   protected result: DiagramRepresentation
-
+  protected diagramId?: number
   protected get newCy() { return this.result.cy }
   
   // filter nodes if the criterion function returns true

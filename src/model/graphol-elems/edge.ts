@@ -43,6 +43,15 @@ export default class GrapholEdge extends GrapholElement implements Edge {
 
   constructor(id: string, type: TypesEnum) {
     super(id, type)
+
+    if (type === TypesEnum.ATTRIBUTE_EDGE) {
+      this.domainTyped = true
+    }
+
+    if (type === TypesEnum.OBJECT_PROPERTY) {
+      this.domainTyped = true
+      this.rangeTyped = true
+    }
   }
 
   addBreakPoint(breakpoint: Breakpoint) {

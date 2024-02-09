@@ -17,7 +17,7 @@ export default class LiteTransformer extends BaseGrapholTransformer {
     if (!grapholRepresentation) {
       return this.result
     }
-
+    this.diagramId = diagram.id
     this.result.grapholElements = new Map(grapholRepresentation.grapholElements)
 
     this.newCy.add(grapholRepresentation.cy.elements().clone())
