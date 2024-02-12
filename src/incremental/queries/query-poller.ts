@@ -6,7 +6,7 @@ export type APICallResult = QueryRecords | number | QueryStatus | InstanceChecki
 
 export type QueryRecords = {
   headTerms: string[],
-  headTypes: {[x: string]: HeadTypes},
+  headTypes: { [x: string]: HeadTypes },
   results: ResultRecord[]
 }
 
@@ -62,7 +62,7 @@ export abstract class QueryPoller {
 
   protected poll() {
     this.status = QueryPollerStatus.RUNNING
-    handleApiCall(fetch(this.request), () => {})
+    handleApiCall(fetch(this.request), () => { })
       .then((response: Response) => {
         response.json().then((result: APICallResult) => {
           // if (this.hasAnyResults() && this.status === QueryPollerStatus.STOPPED) {
@@ -139,7 +139,10 @@ export class QueryResultsPoller extends QueryPoller {
   }
 
   protected stopCondition(): boolean {
-    return this._result.results.length >= this.limit || this._result.results.length >= this.numberResultsAvailable
+    return this._result.results.length > 0 && (
+      this._result.results.length >= this.limit ||
+      this._result.results.length >= this.numberResultsAvailable
+    )
   }
 
   get result(): QueryRecords {
