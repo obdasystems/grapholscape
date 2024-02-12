@@ -2,7 +2,7 @@ import { RDFGraph } from "../../model/rdf-graph/swagger"
 import handleApiCall from "../api/handle-api-call"
 import { MastroEndpoint, QuerySemantics, QueryStatusEnum, QueryType, RequestOptions } from "../api/model"
 import InstanceCheckingPoller from "./instance-checking-poller"
-import { QueryCountStatePoller, QueryResultsPoller, QueryStatusPoller } from "./query-poller"
+import { QueryCountStatePoller, QueryResultsPoller, QueryStatus, QueryStatusPoller } from "./query-poller"
 
 export default class QueryManager {
   private _prefixes?: Promise<string> = new Promise(() => { })
@@ -320,25 +320,33 @@ export default class QueryManager {
   }
 
   async shouldQueryUseLabels(executionId: string) {
-    const queryPollers = this._runningQueryPollerByExecutionId.get(executionId)
-    return new Promise((resolve: (value: boolean) => void) => {
-      if (queryPollers) {
-        for (let statusPoller of queryPollers.statusPollers) {
-          if (statusPoller.result?.status == QueryStatusEnum.FINISHED || statusPoller.result?.status == QueryStatusEnum.RUNNING) {
-            resolve(statusPoller.result.numHighLevelQueries > 0)
-          } else {
-            const oldCallback = statusPoller.onNewResults
+    const isResultUsable = (result: QueryStatus) => {
+      return (result.status === QueryStatusEnum.FINISHED || (
+        result.status === QueryStatusEnum.RUNNING &&
+        result.executionTime > 0
+      ))
+    }
 
-            // check at every new result without overriding previous callback
-            statusPoller.onNewResults = (result) => {
-              oldCallback(result)
-              if (result.status == QueryStatusEnum.FINISHED || result.status == QueryStatusEnum.RUNNING) {
-                resolve(result.numHighLevelQueries > 0)
-              }
+    const queryPollers = this._runningQueryPollerByExecutionId.get(executionId)
+    return new Promise((resolve: (value: boolean) => void, reject) => {
+      if (queryPollers) {
+        const statusPoller = Array.from(queryPollers.statusPollers)[0]
+
+        if (statusPoller.result && isResultUsable(statusPoller.result)) {
+          resolve(statusPoller.result.numHighLevelQueries > 0)
+        } else {
+          const oldCallback = statusPoller.onNewResults
+
+          // check at every new result without overriding previous callback
+          statusPoller.onNewResults = (result) => {
+            oldCallback(result)
+            if (isResultUsable(result)) {
+              resolve(result.numHighLevelQueries > 0)
             }
           }
-          break
         }
+      } else {
+        reject()
       }
     })
   }
