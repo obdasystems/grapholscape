@@ -91,6 +91,12 @@ export function initIncremental(grapholscape: Grapholscape) {
     }
   })
 
+  grapholscape.on(LifecycleEvent.BackgroundClick, () => {
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+      incrementalController.endpointController?.stopRequests('instances')
+    }
+  }) 
+
   incrementalController.on(IncrementalEvent.DiagramUpdated, () => {
     const initialMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as unknown as GscapeEntitySelector | undefined
     if (grapholscape.renderer.cy?.elements().empty()) {

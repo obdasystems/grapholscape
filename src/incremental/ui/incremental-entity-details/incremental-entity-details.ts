@@ -8,7 +8,7 @@ import { GrapholEntity } from "../../../model"
 export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
   private _dataProperties: EntityViewData[] = []
   /** @internal */
-  private _dataPropertiesValues?: Map<string, { values: Set<string>, loading?: boolean }>
+  dataPropertiesValues?: Map<string, { values: Set<string>, loading?: boolean }>
   /** @internal */
   canShowDataPropertiesValues = false
   /** @internal */
@@ -116,7 +116,7 @@ export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
             <div class="section-body" style="padding-left: 0px; padding-right: 0px">
               ${this.dataProperties.map(dataProperty => {
 
-                const values = this._dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
+                const values = this.dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
                 return html`
                   <gscape-entity-list-item
                     displayedname=${dataProperty.displayedName}
@@ -167,7 +167,7 @@ export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
 
   addDataPropertyValue(dataPropertyIri: string, value: string) {
     const numericValue = Number(value)
-    this._dataPropertiesValues?.get(dataPropertyIri)?.values.add(
+    this.dataPropertiesValues?.get(dataPropertyIri)?.values.add(
       isNaN(numericValue)
         ? value
         : new Intl.NumberFormat(navigator.language).format(numericValue)
@@ -177,7 +177,7 @@ export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
 
   /** @internal */
   setDataPropertyLoading(dataPropertyIri: string, isLoading: boolean) {
-    const dataPropertyValues = this._dataPropertiesValues?.get(dataPropertyIri)
+    const dataPropertyValues = this.dataPropertiesValues?.get(dataPropertyIri)
 
     if (dataPropertyValues) {
       dataPropertyValues.loading = isLoading
@@ -192,7 +192,7 @@ export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
   set dataProperties(newDataProperties) {
     const oldValue = this._dataProperties
     this._dataProperties = newDataProperties.sort((a,b) => a.displayedName.localeCompare(b.displayedName))
-    this._dataPropertiesValues = new Map(this._dataProperties.map(dp => [dp.value.iri.fullIri, { values: new Set(), loading: true }]))
+    this.dataPropertiesValues = new Map(this._dataProperties.map(dp => [dp.value.iri.fullIri, { values: new Set(), loading: true }]))
     this.requestUpdate('dataProperties', oldValue)
   }
 }
