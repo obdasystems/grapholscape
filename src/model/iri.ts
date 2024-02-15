@@ -87,5 +87,8 @@ export default class Iri {
     return this.namespace?.hasPrefix(prefixToCheck) || false
   }
 
+  public toString() {
+    return this.fullIri
+  }
 
 }

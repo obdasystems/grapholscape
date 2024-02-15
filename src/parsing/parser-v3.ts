@@ -142,15 +142,20 @@ function getIriAnnotations(iri: string, xmlDocument: XMLDocument, namespaces: Na
     let language: string | null | undefined
     let property: string | null | undefined
     let lexicalForm: string | null | undefined
+    let iri: string | null | undefined
 
     if (annotations) {
       for (let annotation of annotations.children) {
         property = getTagText(annotation, 'property')
         language = getTagText(annotation, 'language') || undefined
         lexicalForm = getTagText(annotation, 'lexicalForm') || undefined
+        iri = getTagText(annotation, 'iri') || undefined
 
-        if (lexicalForm  && property)
-          result.push(new Annotation(new Iri(property, namespaces), lexicalForm, language))
+        if (property && (lexicalForm || iri))
+          if (lexicalForm)
+            result.push(new Annotation(new Iri(property, namespaces), lexicalForm, language))
+          else if (iri)
+            result.push(new Annotation(new Iri(property, namespaces), new Iri(iri, namespaces), language))
       }
     }
   }
