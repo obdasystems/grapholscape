@@ -1,0 +1,3 @@
+import { svg } from "lit";
+
+export default svg`<svg fill="var(--gscape-color-annotation-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M220-220h328v-192h192v-328H220v520Zm0 67q-27.637 0-47.319-19.681Q153-192.363 153-220v-520q0-27.638 19.681-47.319Q192.363-807 220-807h520q27.638 0 47.319 19.681T807-740v348.5L568.5-153H220Zm67-261v-67h200.5v67H287Zm0-134v-67h386v67H287Zm-67 328v-520 520Z"/></svg>`

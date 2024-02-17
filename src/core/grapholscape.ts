@@ -73,7 +73,8 @@ export default abstract class Grapholscape {
     const shouldUpdateEntities = (this.diagramId !== 0 && !this.diagramId) || !this.ontology.getDiagram(this.diagramId)
       ?.representations.get(newRenderState.id) ? true : false
 
-    if (!this.ontology.diagrams[0]?.representations.get(newRenderState.id)) {
+    const shouldTransformOntology = !this.ontology.diagrams[0]?.representations.get(newRenderState.id)
+    if (shouldTransformOntology) {
       newRenderState.transformOntology(this.ontology)
     }
 
@@ -85,6 +86,9 @@ export default abstract class Grapholscape {
     if (shouldUpdateEntities)
       this.entityNavigator.updateEntitiesOccurrences()
 
+    if (shouldTransformOntology) {
+      newRenderState.postOntologyTransform(this)
+    }
     this.lifecycle.trigger(LifecycleEvent.RendererChange, newRenderState.id)
   }
 

@@ -84,7 +84,17 @@ export default class GrapholParser {
               }
             }
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument, this.ontology.namespaces)
+            grapholEntity.getAnnotations().forEach(annotation => {
+              if (annotation.hasIriRange() && annotation.rangeIri) {
+                if (!this.ontology.getEntity(annotation.rangeIri)) {
+                  this.ontology.addEntity(new GrapholEntity(annotation.rangeIri))
+                }
 
+                if (!this.ontology.getEntity(annotation.propertyIri)) {
+                  this.ontology.addEntity(new GrapholEntity(annotation.propertyIri))
+                }
+              }
+            })
             // APPLY DISPLAYED NAME FROM LABELS
             node.displayedName = grapholEntity.getDisplayedName(EntityNameType.LABEL, undefined)
 

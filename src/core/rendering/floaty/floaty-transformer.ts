@@ -1,8 +1,9 @@
 import { Collection, NodeSingular } from "cytoscape";
 import { floatyOptions } from "../../../config/cytoscape-default-config";
-import { DefaultNamespaces, Diagram, DiagramRepresentation, GrapholEdge, GrapholElement, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
+import { DefaultNamespaces, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Ontology, RendererStatesEnum, TypesEnum } from "../../../model";
 import BaseGrapholTransformer from "../base-transformer";
 import LiteTransformer from "../lite/lite-transformer";
+import Grapholscape from "../../grapholscape";
 
 export default class FloatyTransformer extends BaseGrapholTransformer {
 
@@ -48,6 +49,80 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
     this.newCy.elements().unlock()
     return this.result
+  }
+
+  static addAnnotationPropertyEdges(grapholscape: Grapholscape) {
+    const ontology = grapholscape.ontology
+    const addNewIndividualOccurrence = (entity: GrapholEntity, diagramId = 0) => {
+      diagram = ontology.getDiagram(diagramId)?.representations.get(RendererStatesEnum.FLOATY)
+      if (!diagram) return
+
+      let node: GrapholNode | undefined
+      node = new GrapholNode(diagram?.getNewId('node'), TypesEnum.INDIVIDUAL)
+      node.diagramId = 0
+      node.displayedName = entity.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
+      diagram.addElement(node, entity)
+      entity.addOccurrence(node, RendererStatesEnum.FLOATY)
+      return entity
+        .occurrences.get(RendererStatesEnum.FLOATY)
+        ?.filter(occ => occ.isNode()) as GrapholNode[] | undefined
+    }
+
+
+    let diagram: DiagramRepresentation | undefined
+
+    let sourceEntityOccurrences: GrapholNode[] | undefined
+    let annotationPropertyEntity: GrapholEntity | undefined
+    let annotationPropertyEdge: GrapholEdge | undefined
+    let targetEntity: GrapholEntity | undefined
+    let targetEntityOccurrences: GrapholNode[] | undefined
+    const diagramsUsed: Set<number> = new Set()
+
+    for (let [entityIri, sourceEntity] of ontology.entities) {
+      sourceEntity.getAnnotations().filter(ann => ann.hasIriRange()).forEach(annotation => {
+        if (!annotation.rangeIri) return
+        diagramsUsed.clear()
+        annotationPropertyEntity = ontology.getEntity(annotation.propertyIri)
+        targetEntity = ontology.getEntity(annotation.rangeIri)
+        if (!targetEntity || !annotationPropertyEntity) return
+
+        sourceEntityOccurrences = sourceEntity
+          .occurrences.get(RendererStatesEnum.FLOATY)
+          ?.filter(occ => occ.isNode()) as GrapholNode[] | undefined
+        // if entity has no  occurrences => create new individual source node
+        if (!sourceEntityOccurrences || sourceEntityOccurrences.length === 0) {
+          sourceEntityOccurrences = addNewIndividualOccurrence(sourceEntity)
+        }
+
+        // for each source node, retrieve or create new target node in same diagram and add edge
+        sourceEntityOccurrences?.forEach(sourceNode => {
+          diagram = ontology.getDiagram(sourceNode.diagramId)?.representations.get(RendererStatesEnum.FLOATY)
+          if (diagram && !diagramsUsed.has(sourceNode.diagramId)) {
+            targetEntityOccurrences = targetEntity!
+              .getOccurrencesByDiagramId(sourceNode.diagramId, RendererStatesEnum.FLOATY)
+              ?.get(RendererStatesEnum.FLOATY)
+              ?.filter(occ => occ.isNode()) as GrapholNode[] | undefined
+
+            // if entity has no  occurrences => create new individual target node
+            if (!targetEntityOccurrences || targetEntityOccurrences.length === 0) {
+              targetEntityOccurrences = addNewIndividualOccurrence(targetEntity!, sourceNode.diagramId)
+            }
+
+            if (targetEntityOccurrences && targetEntityOccurrences[0]) {
+              annotationPropertyEdge = new GrapholEdge(diagram.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY)
+              annotationPropertyEdge.diagramId = sourceNode.diagramId
+              annotationPropertyEdge.sourceId = sourceNode.id
+              annotationPropertyEdge.targetId = targetEntityOccurrences[0].id
+              annotationPropertyEdge.displayedName = annotationPropertyEntity?.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
+              
+              diagram.addElement(annotationPropertyEdge, annotationPropertyEntity)
+              annotationPropertyEntity?.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY)
+              diagramsUsed.add(sourceNode.diagramId)
+            }
+          }
+        })
+      })
+    }
   }
 
   private makeEdgesStraight() {

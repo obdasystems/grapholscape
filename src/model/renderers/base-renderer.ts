@@ -5,6 +5,7 @@ import GrapholscapeTheme from "../themes/theme"
 import Filter from "./filter"
 import FilterManager from "./i-filter-manager"
 import RenderState, { RendererStatesEnum } from "./i-render-state"
+import { Grapholscape } from "../../core"
 
 export default abstract class BaseRenderer implements RenderState {
   protected _renderer: Renderer
@@ -16,7 +17,8 @@ export default abstract class BaseRenderer implements RenderState {
   abstract runLayout(): void
   abstract stopLayout(): void
   abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
-  abstract transformOntology(ontology: Ontology): void;
+  abstract transformOntology(ontology: Ontology): void
+  abstract postOntologyTransform(ontology: Grapholscape): void
 
   layoutRunning: boolean = false
 

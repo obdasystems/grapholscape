@@ -40,6 +40,13 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
     {
+      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
+      style: {
+        'height': (node)=>  node.data('width') || 60,
+        'width' : (node)=>  node.data('width') || 60
+      }
+    },
+    {
       selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
       style: {
         // color: (node) => getNodeLabelColor(node, theme),
@@ -73,16 +80,31 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `[type = "${TypesEnum.OBJECT_PROPERTY}"]`,
+      selector: `[type = "${TypesEnum.OBJECT_PROPERTY}"], [type = "${TypesEnum.ANNOTATION_PROPERTY}"]`,
       style: {
-        'line-color': theme.getColour(ColoursNames.object_property_contrast),
-        'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
-        'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
         'source-arrow-shape': 'square',
         'source-arrow-fill': 'hollow',
         'width': 4,
+      }
+    },
+
+    {
+      selector: `[type = "${TypesEnum.OBJECT_PROPERTY}"]`,
+      style: {
+        'line-color': theme.getColour(ColoursNames.object_property_contrast),
+        'source-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.object_property_contrast),
+      }
+    },
+
+    {
+      selector: `[type = "${TypesEnum.ANNOTATION_PROPERTY}"]`,
+      style: {
+        'line-color': theme.getColour(ColoursNames.annotation_property_contrast),
+        'source-arrow-color': theme.getColour(ColoursNames.annotation_property_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.annotation_property_contrast),
       }
     },
 
