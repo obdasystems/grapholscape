@@ -91,11 +91,17 @@ const hasKeyFilter = () => new Filter(
   (element) => element.is(TypesEnum.HAS_KEY)
 )
 
+export const annotationPropertyFilter = () => new Filter(
+  RDFGraphConfigFiltersEnum.ANNOTATION_PROPERTY,
+  (element) => element.is(TypesEnum.ANNOTATION_PROPERTY)
+)
+
 export const getDefaultFilters = () => {
   return {
     DATA_PROPERTY: dataPropertyFilter(),
     VALUE_DOMAIN: valueDomainFilter(),
     INDIVIDUAL: individualsFilter(),
+    ANNOTATION_PROPERTY: annotationPropertyFilter(),
     UNIVERSAL_QUANTIFIER: universalQuantifierFilter(),
     COMPLEMENT: complementFilter(),
     HAS_KEY: hasKeyFilter(),

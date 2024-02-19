@@ -88,6 +88,7 @@ export enum RDFGraphConfigFiltersEnum {
     DATA_PROPERTY = 'data-property',
     VALUE_DOMAIN = 'value-domain',
     INDIVIDUAL = 'individual',
+    ANNOTATION_PROPERTY = 'annotation-property',
     UNIVERSAL_QUANTIFIER = 'universal_quantifier',
     COMPLEMENT = 'complement',
     HAS_KEY = 'has-key'
