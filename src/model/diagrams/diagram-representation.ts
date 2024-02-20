@@ -89,7 +89,9 @@ export default class DiagramRepresentation {
 
     const iri = cyElement.data().iri
     const computedFillColor = cyElement.data().computedFillColor
-    cyElement.data(grapholElement.getCytoscapeRepr(grapholEntity)[0].data)
+    const grapholElemCyReprData = grapholElement.getCytoscapeRepr(grapholEntity).find(repr => !repr.data.fake)?.data
+    if (grapholElemCyReprData)
+      cyElement.data(grapholElemCyReprData)
     // iri should be always preserved
     cyElement.data().iri = iri
 
@@ -155,19 +157,19 @@ export default class DiagramRepresentation {
 
     function getNumberEdgesInOut(neighbour: cytoscape.NodeSingular) {
       let count = neighbour.outgoers('edge').size() + neighbour.incomers(`edge[type != "${TypesEnum.INPUT}"]`).size()
-  
+
       neighbour.outgoers('node').forEach(node => {
         if (node.hasClass(classesToAdd[0])) {
           count--
         }
       })
-  
+
       neighbour.incomers(`edge[type != "${TypesEnum.INPUT}"]`).forEach(e => {
         if (e.source().hasClass(classesToAdd[0])) {
           count--
         }
       })
-  
+
       return count
     }
   }
