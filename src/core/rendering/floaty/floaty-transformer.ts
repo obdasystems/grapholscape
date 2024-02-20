@@ -30,6 +30,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     //   node.data('original-position', JSON.stringify(node.position()))
     // })
 
+    this.addPropertyAssertionsEdge()
+
     this.filterByCriterion(node => {
       return this.getGrapholElement(node.id()) === undefined
     })
@@ -304,6 +306,42 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     })
 
     return rangeRestrictions.union(fatherRangeRestrictions)
+  }
+
+  private addPropertyAssertionsEdge() {
+    let sourceId: string | undefined
+    let targetId: string | undefined
+    let objectPropertyNode: GrapholElement | undefined
+
+    const propertyAsserstions = this.result.cy.$(`[!fake][type = "${TypesEnum.PROPERTY_ASSERTION}"]`)
+    propertyAsserstions.forEach(propertyAssertionNode => {
+      const inputs = propertyAssertionNode.connectedEdges(`[type = "${TypesEnum.INPUT}"]`)
+
+      sourceId = inputs.filter(edge => edge.data('targetLabel') === '1').source().id()
+      targetId = inputs.filter(edge => edge.data('targetLabel') === '2').source().id()
+
+      if (sourceId && targetId) {
+        propertyAssertionNode.connectedEdges(`[type = "${TypesEnum.MEMBERSHIP}"]`).forEach(membershipEdge => {
+          objectPropertyNode = this.getGrapholElement(membershipEdge.target().id())
+
+          if (objectPropertyNode) {
+            const newObjectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
+            newObjectPropertyEdge.iri = objectPropertyNode.iri
+            newObjectPropertyEdge.displayedName = objectPropertyNode.displayedName
+            if (this.diagramId)
+              newObjectPropertyEdge.diagramId = this.diagramId
+            // newObjectPropertyEdge.originalId = objectPropertyNode.id
+            newObjectPropertyEdge.sourceId = sourceId!
+            newObjectPropertyEdge.targetId = targetId!
+
+            const newAddedCyElement = this.result.addElement(newObjectPropertyEdge)
+            newAddedCyElement.data('iri', objectPropertyNode.iri)
+          }
+        })
+      }
+    })
+
+    this.deleteElements(propertyAsserstions)
   }
 
   private getFathers(node: NodeSingular) {
