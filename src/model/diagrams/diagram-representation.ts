@@ -183,16 +183,11 @@ export default class DiagramRepresentation {
 
   getNewId(nodeOrEdge: 'node' | 'edge') {
     let newId = nodeOrEdge === 'node' ? 'n' : 'e'
-    let count = this.cy.elements().length
-    if (count) {
+    let count = this.cy.elements().length + 1
+    while (!this.cy.$id(newId + count).empty()) {
       count = count + 1
-      while (!this.cy.$id(newId + count).empty()) {
-        count = count + 1
-      }
-      return newId + count
     }
-
-    return newId
+    return newId + count
   }
 
   get grapholElements() {
