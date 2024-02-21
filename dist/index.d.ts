@@ -1,6 +1,6 @@
 /// <reference types="cytoscape" />
 import * as cytoscape$1 from 'cytoscape';
-import cytoscape__default, { ElementDefinition, EventObject, Stylesheet, CytoscapeOptions, NodeSingular, EdgeSingular, Position as Position$1, SingularElementReturnValue, Core as Core$1 } from 'cytoscape';
+import cytoscape__default, { ElementDefinition, EventObject, EdgeSingular, Stylesheet, SingularElementReturnValue, NodeSingular, Position as Position$1, CytoscapeOptions, Core as Core$1 } from 'cytoscape';
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { SVGTemplateResult, LitElement, TemplateResult, PropertyDeclarations, CSSResultArray, CSSResultGroup } from 'lit';
@@ -241,7 +241,7 @@ declare function PositionToJSON(value?: Position | null): any;
 /**
  * Contiene tutti i tipi di nodi/archi orginirari dal Graphol per evitare di duplicare gli enumeratori. Nella rappresentazione Floaty/vkg vengono usati questi valori.
  * NODI class data-property class-instance (vkg) individual (floaty) union disjoint-union
- * ARCHI object-property instance-of input inclusion equivalence attribute-edge union disjoint-union complete-union complete-disjoint-union
+ * ARCHI object-property annotation-property instance-of input inclusion equivalence attribute-edge union disjoint-union complete-union complete-disjoint-union
  * @export
  * @enum {string}
  */
@@ -249,6 +249,7 @@ declare enum TypesEnum {
     CLASS = "class",
     OBJECT_PROPERTY = "object-property",
     DATA_PROPERTY = "data-property",
+    ANNOTATION_PROPERTY = "annotation-property",
     INDIVIDUAL = "individual",
     CLASS_INSTANCE = "class-instance",
     DOMAIN_RESTRICTION = "domain-restriction",
@@ -2114,6 +2115,7 @@ declare enum RDFGraphConfigFiltersEnum {
     DATA_PROPERTY = "data-property",
     VALUE_DOMAIN = "value-domain",
     INDIVIDUAL = "individual",
+    ANNOTATION_PROPERTY = "annotation-property",
     UNIVERSAL_QUANTIFIER = "universal_quantifier",
     COMPLEMENT = "complement",
     HAS_KEY = "has-key"
@@ -3088,17 +3090,31 @@ declare class Iri {
     get prefixed(): string;
     equals(iriToCheck: string | Iri): boolean;
     hasPrefix(prefixToCheck: string): boolean;
+    toString(): string;
+}
+
+declare const DefaultAnnotationProperties: {
+    [x: string]: Iri;
+};
+declare class AnnotationProperty extends Iri {
 }
 
 declare class Annotation implements Annotation$1 {
     private _property;
-    lexicalForm: string;
+    private _range;
     language?: string;
     datatype?: string;
-    constructor(property: Iri, lexicalForm: string, language?: string, datatype?: string);
+    constructor(property: Iri, range: string | Iri, language?: string, datatype?: string);
     equals(annotation: Annotation): boolean;
+    hasIriRange(): boolean;
     get property(): string;
+    get propertyIri(): AnnotationProperty;
     get kind(): string;
+    get lexicalForm(): string;
+    /**
+     * If the range is a Iri, return such a Iri, undefined otherwise
+     */
+    get rangeIri(): Iri | undefined;
 }
 
 declare class AnnotatedElement {
@@ -3359,10 +3375,12 @@ declare class Filter {
     unlock(): void;
     shouldFilter(grapholElement: GrapholElement): boolean;
 }
+declare const annotationPropertyFilter: () => Filter;
 declare const getDefaultFilters: () => {
     readonly DATA_PROPERTY: Filter;
     readonly VALUE_DOMAIN: Filter;
     readonly INDIVIDUAL: Filter;
+    readonly ANNOTATION_PROPERTY: Filter;
     readonly UNIVERSAL_QUANTIFIER: Filter;
     readonly COMPLEMENT: Filter;
     readonly HAS_KEY: Filter;
@@ -3430,6 +3448,10 @@ declare enum ColoursNames {
     data_property = "data-property",
     /** Color used for data properties' nodes borders */
     data_property_contrast = "data-property-contrast",
+    /** Color used for annotation properties' edges */
+    annotation_property = "annotation-property",
+    /** Color used for annotation properties' edges contrast */
+    annotation_property_contrast = "annotation-property-contrast",
     /** Color used for individual's nodes bodies */
     individual = "individual",
     /** Color used for individual's nodes borders */
@@ -3642,428 +3664,150 @@ declare class Renderer {
     get edges(): string[] | undefined;
 }
 
-declare class GrapholRendererState extends BaseRenderer {
-    layout: cytoscape.Layouts;
-    id: RendererStatesEnum;
-    cyConfig: cytoscape.CytoscapeOptions;
-    filterManager: FilterManager;
-    render(): void;
-    stopRendering(): void;
-    runLayout(): void;
-    stopLayout(): void;
-    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
-    transformOntology(ontology: Ontology): void;
-}
-
-declare class LiteRendererState extends BaseRenderer {
-    readonly id: RendererStatesEnum;
-    filterManager: FilterManager;
-    cyConfig: CytoscapeOptions;
-    private _layout;
-    runLayout(): void;
-    render(): void;
-    stopRendering(): void;
-    stopLayout(): void;
-    getGraphStyle(theme: GrapholscapeTheme): cytoscape$1.Stylesheet[];
-    transformOntology(ontology: Ontology): void;
-    get layout(): cytoscape$1.Layouts;
-    set layout(newLayout: cytoscape$1.Layouts);
-}
-
-declare class FloatyRendererState extends BaseRenderer {
-    readonly id: RendererStatesEnum;
-    filterManager: FilterManager;
-    protected _layout: cytoscape__default.Layouts;
-    private centeringOnElem;
-    set renderer(newRenderer: Renderer);
-    get renderer(): Renderer;
-    transformOntology(ontology: Ontology): void;
-    runLayout(): void;
-    render(): void;
-    stopRendering(): void;
-    getGraphStyle(theme: GrapholscapeTheme): cytoscape__default.Stylesheet[];
-    stopLayout(): void;
-    runLayoutInfinitely(): void;
-    pinNode(nodeOrId: NodeSingular | string): void;
-    unpinAll(): void;
-    private setPopperStyle;
-    private updatePopper;
-    unpinNode(nodeOrId: string | NodeSingular): void;
-    private removeUnlockButton;
-    protected setDragAndPinEventHandlers(): void;
-    private grabHandler;
-    private freeHandler;
-    protected get defaultLayoutOptions(): {
-        name: string;
-        avoidOverlap: boolean;
-        edgeLength: (edge: any) => any;
-        fit: boolean;
-        maxSimulationTime: number;
-        infinite: boolean;
-        handleDisconnected: boolean;
-        centerGraph: boolean;
-    };
-    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
-    get floatyLayoutOptions(): any;
-    set floatyLayoutOptions(newOptions: any);
-    protected automoveOptions: {
-        nodesMatching: (node: NodeSingular) => boolean | undefined;
-        reposition: string;
-        dragWith: string;
-    };
-    get isLayoutInfinite(): boolean;
-    get dragAndPin(): boolean;
-    set dragAndPin(isActive: boolean);
-    protected get popperContainer(): HTMLDivElement | undefined;
-    protected get popperContainers(): Map<number, HTMLDivElement>;
-    get layout(): cytoscape__default.Layouts;
+/**
+ * @internal
+ */
+declare class DisplayedNamesManager {
+    private _grapholscape;
+    private _entityNameType;
+    private _language;
+    constructor(grapholscape: Grapholscape);
+    get entityNameType(): RDFGraphConfigEntityNameTypeEnum;
+    get language(): Language;
+    setEntityNameType(newEntityNameType: RDFGraphConfigEntityNameTypeEnum): void;
+    setLanguage(language: string | Language): void;
+    private setDisplayedNames;
 }
 
 /**
- * The incremental renderer state is a kind of floaty renderer state in which
- * ontology's diagrams are used only to compute what to show.
- * There is only a single empty diagram and any render() call just render the same diagram
- * no matter what was the input diagram.
- *
- * This renderer state is logic agnostic, meaning that it does not control what to show and when.
- * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
+ * @internal
  */
-declare class IncrementalRendererState extends FloatyRendererState {
-    readonly id = RendererStatesEnum.INCREMENTAL;
-    filterManager: FilterManager;
-    private previousDiagram;
-    render(): void;
-    runLayout(): void;
-    runCustomLayout(cyLayoutOptions: any): void;
-    /** lock all nodes */
-    freezeGraph(): void;
-    /** unlock all nodes that are not pinned (pinned can be unlocked only with unpin) */
-    unFreezeGraph(): void;
-    stopRendering(): void;
-    transformOntology(ontology: Ontology): void;
-    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
-    reset(): void;
-    filter(elementId: string, filter: Filter): void;
-    unfilter(elementId: string, filter: Filter): void;
-    protected get popperContainer(): HTMLDivElement | undefined;
-    set renderer(newRenderer: Renderer);
-    get renderer(): Renderer;
-    protected get defaultLayoutOptions(): {
-        name: string;
-        avoidOverlap: boolean;
-        edgeLength: (edge: EdgeSingular) => number;
-        fit: boolean;
-        maxSimulationTime: number;
-        infinite: boolean;
-        handleDisconnected: boolean;
-        centerGraph: boolean;
-    };
+declare class EntityNavigator {
+    private _grapholscape;
+    constructor(grapholscape: Grapholscape);
+    centerOnEntity(iri: string, diagramId?: number, zoom?: number): void;
+    selectEntity(iri: string, diagramId?: number, zoom?: number): void;
+    private _centerSelectEntity;
+    private _performCenterSelect;
+    getEntityOccurrenceInDiagram(iri: string, diagramId: number): GrapholElement | undefined;
+    updateEntitiesOccurrences(): void;
+    private updateEntitiesOccurrencesFromDiagram;
 }
 
-interface FilterManager {
-    filters: Map<string, Filter>;
-    filterActivation: (filter: Filter) => boolean;
-    filterDeactivation: (filter: Filter) => boolean;
-}
-declare abstract class BaseFilterManager implements FilterManager {
-    protected _filters: Map<string, Filter>;
-    protected lockedFilters: RDFGraphConfigFiltersEnum[];
-    filterActivation(filter: Filter): boolean;
-    filterDeactivation(filter: Filter): boolean;
-    get filters(): Map<string, Filter>;
-    set filters(filters: Map<string, Filter>);
-}
-
-declare enum RendererStatesEnum {
-    GRAPHOL = "graphol",
-    GRAPHOL_LITE = "lite",
-    FLOATY = "floaty",
-    INCREMENTAL = "incremental"
-}
-interface RenderState {
-    id: RendererStatesEnum;
-    renderer: Renderer;
-    filterManager: FilterManager;
-    layout: cytoscape.Layouts;
-    layoutRunning: boolean;
-    render(): void;
-    stopRendering(): void;
-    filter(elementId: string, filter: Filter): void;
-    unfilter(elementId: string, filter: Filter): void;
-    runLayout(): void;
-    stopLayout(): void;
-    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
-    transformOntology(ontology: Ontology): void;
-    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
+/**
+ * @internal
+ */
+declare class ThemeManager {
+    private _grapholscape;
+    theme: GrapholscapeTheme;
+    themes: Set<GrapholscapeTheme>;
+    constructor(grapholscape: Grapholscape);
+    setTheme(newThemeId: string): void;
+    addTheme(newTheme: GrapholscapeTheme): void;
+    removeTheme(theme: GrapholscapeTheme): void;
+    removeThemes(): void;
+    private setMissingColours;
 }
 
-declare class GrapholEntity extends AnnotatedElement implements Entity$1 {
-    static newFromSwagger(iri: Iri, e: Entity$1): GrapholEntity;
-    private _iri;
-    private _occurrences;
-    private _datatype;
-    private _isDataPropertyFunctional;
-    private _functionProperties;
-    private _color?;
-    protected _manualTypes?: Set<TypesEnum>;
-    constructor(iri: Iri);
-    addOccurrence(newGrapholElement: GrapholElement, representationKind?: RendererStatesEnum): void;
-    removeOccurrence(grapholElement: GrapholElement, representationKind: RendererStatesEnum): void;
+declare class DiagramBuilder {
+    diagram: Diagram;
+    private rendererState;
+    constructor(diagram: Diagram, rendererState: RendererStatesEnum);
+    addClass(classEntity: GrapholEntity, classNode?: GrapholNode): GrapholNode;
+    addClass(classEntity: GrapholEntity, position?: Position): GrapholNode;
+    addClass(classEntity: GrapholEntity): GrapholNode;
+    addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity): GrapholElement | undefined;
     /**
-     * Get all occurrences of the entity in a given diagram
-     * @param diagramId the diagram in which the entity must occurr
-     * @param representationKind the diagram representation identifier ({@link RendererStatesEnum})
-     * if not set, all representations will be considered
-     * @returns A map with the occurrences in the original Graphol representation and other
-     * replicated occurrences in other diagram representations
+     * Add an object property between two entities.
+     * If the source and/or target entities are already present in graph, they won't be added again.
+     * If there already exists an object property between them with the same IRI, the
+     * edge won't be added.
+     * @param objectPropertyEntity the object property entity
+     * @param sourceEntity the source entity
+     * @param targetEntity the target entity
+     * @param nodesType the type of source and target
+     * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
+     * if you don't pass this, a new GrapholEdge will be created from scratch
+     * @returns
      */
-    getOccurrencesByDiagramId(diagramId: number, representationKind?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]>;
-    get types(): TypesEnum[];
-    set manualTypes(newTypes: Set<TypesEnum>);
+    addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity, nodesType: TypesEnum[], objectPropertyElement?: GrapholEdge): GrapholElement | undefined;
     /**
-     * Check if entity is of a certain type
+     * Add an annotation property between two entities.
+     * If the source and/or target entities are already present in graph, they won't be added again.
+     * If there already exists an annotation property between them with the same IRI, the
+     * edge won't be added.
+     * @param annotationPropertyEdge the object property entity
+     * @param sourceEntity the source entity
+     * @param targetEntity the target entity
+     * @param nodesType the type of source and target
+     * @param annotationPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
+     * if you don't pass this, a new GrapholEdge will be created from scratch
+     * @returns
+     */
+    addAnnotationProperty(annotationPropertyEdge: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity, nodesType: TypesEnum[], annotationPropertyElement?: GrapholEdge): GrapholElement | undefined;
+    private addPropertyEdge;
+    /** @internal */
+    addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode;
+    /** @internal */
+    addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode;
+    /** @internal */
+    addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode;
+    addIndividual(individualEntity: GrapholEntity, position?: Position): GrapholElement | undefined;
+    private _addIndividualOrClassInstance;
+    addHierarchy(hierarchy: Hierarchy, position?: Position): GrapholElement | undefined;
+    addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF | TypesEnum.INPUT | TypesEnum.UNION | TypesEnum.DISJOINT_UNION | TypesEnum.COMPLETE_UNION | TypesEnum.COMPLETE_DISJOINT_UNION | TypesEnum.ATTRIBUTE_EDGE): GrapholElement | undefined;
+    get diagramRepresentation(): DiagramRepresentation | undefined;
+    toggleFunctionality(entity: GrapholEntity, functional: boolean): void;
+    toggleUnion(node: any): void;
+    toggleComplete(edge: any): void;
+    swapEdge(elem: EdgeSingular): void;
+    removeHierarchy(hierarchy: Hierarchy): void;
+    removeHierarchyInputEdge(hierarchy: Hierarchy, inputIri: string): void;
+    removeHierarchyInclusionEdge(hierarchy: Hierarchy, superclassIri: string): void;
+    removeElement(id: string): void;
+    renameElement(elemId: string, newIri: Iri): void;
+    /**
+     * Get cytoscape representation of an entity given the type needed
+     * @param entity
      * @param type
+     * @returns
      */
-    is(type: TypesEnum): boolean;
-    get occurrences(): Map<RendererStatesEnum, GrapholElement[]>;
-    set iri(val: Iri);
-    get iri(): Iri;
-    get fullIri(): string;
-    get functionProperties(): FunctionPropertiesEnum[];
-    set functionProperties(properties: FunctionPropertiesEnum[]);
-    get isDataPropertyFunctional(): boolean;
-    set isDataPropertyFunctional(value: boolean);
-    get datatype(): string;
-    set datatype(datatype: string);
-    get color(): string | undefined;
-    set color(color: string | undefined);
-    getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement | undefined;
-    getOccurrencesByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement[] | undefined;
-    hasFunctionProperty(property: FunctionPropertiesEnum): boolean;
-    hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum): boolean;
-    getDisplayedName(nameType: RDFGraphConfigEntityNameTypeEnum, currentLanguage?: string): string;
-    getEntityOriginalNodeId(): string | undefined;
-    getIdInDiagram(diagramId: number, type: TypesEnum, rendererState: RendererStatesEnum): string | undefined;
-    json(): Entity$1;
-}
-
-declare class DiagramRepresentation {
-    private _cy;
-    private _grapholElements;
-    private _hasEverBeenRendered;
-    lastViewportState?: Viewport;
-    constructor(cyConfig?: cytoscape__default.CytoscapeOptions);
-    get cy(): cytoscape__default.Core;
-    set cy(newCy: cytoscape__default.Core);
-    get hasEverBeenRendered(): boolean;
-    set hasEverBeenRendered(value: boolean);
-    /**
-     * Add a new element (node or edge) to the diagram
-     * @param newElement the GrapholElement to add to the diagram
-     */
-    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): cytoscape__default.CollectionReturnValue;
-    removeElement(elementId: string): void;
-    clear(): void;
-    updateElement(element: GrapholElement, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
-    updateElement(elementId: string, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
-    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean;
-    filter(elementId: string, filterTag: string): void;
-    unfilter(elementId: string, filterTag: string): void;
+    getEntityCyRepr(entity: GrapholEntity, type: TypesEnum): cytoscape__default.CollectionReturnValue;
     getNewId(nodeOrEdge: 'node' | 'edge'): string;
-    get grapholElements(): Map<string, GrapholElement>;
-    set grapholElements(newElementMap: Map<string, GrapholElement>);
-    /**
-     * Getter
-     */
-    get nodes(): string[];
-    /**
-     * Getter
-     */
-    get edges(): string[];
-    get nodesCounter(): number;
-    get edgesCounter(): number;
+    private getCurrentCenterPos;
 }
 
-/**
- * @property {string} name - diagram's name
- * @property {string | number} id - diagram's identifier
- */
-declare class Diagram implements Diagram$1 {
-    name: string;
-    id: number;
-    representations: Map<RendererStatesEnum, DiagramRepresentation>;
-    lastViewportState: Viewport;
-    /**
-     * @param {string} name
-     * @param {number} id
-     */
-    constructor(name: string, id: number);
-    /**
-     * Add a new element (node or edge) to the diagram's representation
-     * @param newElement the GrapholElement to add to the diagram
-     */
-    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
-    /**
-     * Delete every element from a diagram
-     * @param rendererState optional, if you pass a particular rendererState, only its representation will be cleared.
-     * If you don't pass any rendererState, all representations will be cleared
-     */
-    clear(rendererState?: RendererStatesEnum): void;
-    removeElement(elementId: string, rendererState: RendererStatesEnum): void;
-    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity, rendererState: RendererStatesEnum): boolean | undefined;
-}
+declare function export_default$4(theme: GrapholscapeTheme): Stylesheet[];
 
-declare class Hierarchy implements Hierarchy$1 {
-    type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION;
-    forcedComplete: boolean;
-    private _id;
-    private _inputs;
-    private _superclasses;
-    /**
-     *
-     * @param id
-     * @param type
-     * @param forcedComplete if the hierarchy is forced to be complete, any superclass edge
-     * will have type COMPLETE_UNION / COMPLETE_DISJOINT_UNION, regardless if they are created
-     * as complete or not.
-     */
-    constructor(id: string, type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION, forcedComplete?: boolean);
-    addInput(classEntity: GrapholEntity): void;
-    removeInput(classEntity: GrapholEntity): void;
-    addSuperclass(classEntity: GrapholEntity, complete?: boolean): void;
-    removeSuperclass(classEntity: GrapholEntity): void;
-    get inputs(): GrapholEntity[];
-    get superclasses(): {
-        classEntity: GrapholEntity;
-        complete: boolean;
-    }[];
-    set id(newId: string);
-    get id(): string;
-    getUnionGrapholNode(nodeId: string, position?: Position): GrapholNode | undefined;
-    getInputGrapholEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
-    getInclusionEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
-    isDisjoint(): boolean;
-    isValid(): boolean | "";
-}
+declare function computeHierarchies(ontology: Ontology): void;
 
-declare const DefaultAnnotationProperties: {
-    [x: string]: Iri;
-};
-declare class AnnotationProperty extends Iri {
+declare abstract class ColorManager {
+    protected abstract setClassColor(classEntity: any, overwrite: boolean): void;
+    protected abstract getTopSuperClass(classEntity: any): any;
+    protected abstract getAllChildren(classEntity: any, result: any): any;
+    private static readonly brewerSequentialPalettes;
+    protected getColors(numberOfColors: number): string[];
 }
-
-/**
- * ### Ontology
- * Class used as the Model of the whole app.
- */
-declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
-    name: string;
-    version: string;
-    namespaces: Namespace[];
-    annProperties: AnnotationProperty[];
-    diagrams: Diagram[];
-    languages: string[];
-    defaultLanguage?: string;
-    iri?: string;
-    constructor(name: string, version: string, iri?: string, namespaces?: Namespace[], annProperties?: AnnotationProperty[], diagrams?: Diagram[]);
-    private _entities;
-    private _hierarchies;
-    private _subHierarchiesMap;
-    private _superHierarchiesMap;
-    private _inclusions;
-    addHierarchy(hierarchy: Hierarchy): void;
-    removeHierarchy(hiearchyId: string): void;
-    removeHierarchy(hiearchyId: Hierarchy): void;
-    getHierarchy(hierarchyId: string): Hierarchy | undefined;
-    getHierarchiesOf(classIri: string | Iri): Hierarchy[];
-    /**
-     * @param superClassIri the superclass iri
-     * @returns The arrary of hiearchies for which a class appear as superclass
-     */
-    getSubHierarchiesOf(superClassIri: string | Iri): Hierarchy[];
-    /**
-     *
-     * @param subClassIri
-     * @returns The arrary of hiearchies for which a class appear as subclass
-     */
-    getSuperHierarchiesOf(subClassIri: string | Iri): Hierarchy[];
-    getSubclassesOf(superClassIri: string | Iri): Set<GrapholEntity>;
-    getSuperclassesOf(superClassIri: string | Iri): Set<GrapholEntity>;
-    addSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void;
-    addSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void;
-    removeSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void;
-    removeSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void;
-    /** @param {Namespace} namespace */
-    addNamespace(namespace: Namespace): void;
-    /**
-     * Get the Namspace object given its IRI string
-     * @param {string} iriValue the IRI assigned to the namespace
-     * @returns {Namespace}
-     */
-    getNamespace(iriValue: string): Namespace | undefined;
-    /**
-     * Get the Namespace given one of its prefixes
-     * @param {string} prefix
-     * @returns {Namespace}
-     */
-    getNamespaceFromPrefix(prefix: string): Namespace | undefined;
-    getNamespaces(): Namespace[];
-    /** @param {AnnotationProperty} annProperty */
-    addAnnotationProperty(annProperty: AnnotationProperty): void;
-    /**
-     * Get the Namspace object given its IRI string
-     * @param {string} iriValue the IRI assigned to the namespace
-     * @returns {AnnotationProperty}
-     */
-    getAnnotationProperty(iriValue: string): AnnotationProperty | undefined;
-    getAnnotationProperties(): AnnotationProperty[];
-    /** @param {Diagram} diagram */
-    addDiagram(diagram: Diagram): void;
-    /**
-     * Get the diagram with the given id
-     */
-    getDiagram(diagramId: number): Diagram | undefined;
-    getDiagramByName(name: string): Diagram | undefined;
-    addEntity(entity: GrapholEntity): void;
-    getEntity(iri: string | Iri): GrapholEntity | undefined;
-    getEntitiesByType(entityType: TypesEnum): GrapholEntity[];
-    getEntityFromOccurrence(entityOccurrence: GrapholElement): GrapholEntity | undefined;
-    getGrapholElement(elementId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholElement | undefined;
-    getGrapholNode(nodeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
-    getGrapholEdge(edgeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
-    /**
-     * Retrieve an entity by its IRI.
-     * @param {string} iri - The IRI in full or prefixed form.
-     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-     * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-     */
-    /**
-     * Retrieve all occurrences of an entity by its IRI.
-     * @param {string} iri - The IRI in full or prefixed form.
-     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-     * @returns An array of EntityOccurrence objects
-     */
-    getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]> | undefined;
-    /**
-     * Get the entities in the ontology
-     * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
-     */
-    /**
-     * Check if entity has the specified iri in full or prefixed form
-     * @param {Entity} entity
-     * @param {string} iri
-     * @returns {boolean}
-     */
-    /**
-     * Retrieve the full IRI given a prefixed IRI
-     * @param {string} prefixedIri a prefixed IRI
-     * @returns {string} full IRI
-     */
-    prefixedToFullIri(prefixedIri: string): string | undefined;
-    computeDatatypesOnDataProperties(): void;
-    get isEntitiesEmpty(): boolean;
-    get entities(): Map<string, GrapholEntity>;
-    set entities(newEntities: Map<string, GrapholEntity>);
+declare class OntologyColorManager extends ColorManager {
+    private ontology;
+    private diagramRepresentation;
+    private _classForest;
+    constructor(ontology: Ontology, diagramRepresentation: DiagramRepresentation);
+    /** @internal */
+    setInstanceColor(classInstance: ClassInstanceEntity, overwrite?: boolean): this;
+    setClassColor(classEntity: GrapholEntity, overwrite?: boolean): this;
+    colorEntities(entities?: Map<string, GrapholEntity>, overwrite?: boolean): Promise<void>;
+    protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity;
+    protected getAllChildren(classEntity: GrapholEntity, result?: Set<GrapholEntity>): Set<GrapholEntity>;
+}
+declare class DiagramColorManager extends ColorManager {
+    private diagramRepresentation;
+    private _classForest;
+    constructor(diagramRepresentation: DiagramRepresentation);
+    colorDiagram(overwrite?: boolean): void;
+    setClassColor(classNode: SingularElementReturnValue, overwrite?: boolean): void;
+    protected getTopSuperClass(classNode: NodeSingular): any;
+    protected getAllChildren(classNode: SingularElementReturnValue | NodeSingular, result?: cytoscape$1.CollectionReturnValue): cytoscape$1.CollectionReturnValue;
 }
 
 /** @internal */
@@ -4090,137 +3834,6 @@ declare class ClassInstanceEntity extends GrapholEntity implements ClassInstance
     set dataProperties(newProperties: DataPropertyValue[]);
     json(): ClassInstanceEntity$1;
 }
-
-declare class IncrementalDiagram extends Diagram {
-    static ID: number;
-    /** @internal */
-    classInstances?: Map<string, ClassInstanceEntity>;
-    constructor();
-    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
-    removeElement(elementId: string): void;
-    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean | undefined;
-    get representation(): DiagramRepresentation | undefined;
-}
-
-declare enum DefaultThemesEnum {
-    GRAPHOLSCAPE = "grapholscape",
-    GRAPHOL = "graphol",
-    DARK = "dark",
-    COLORFUL_LIGHT = "colorful-light",
-    COLORFUL_DARK = "colorful-dark"
-}
-declare const gscapeColourMap: ColourMap;
-declare const classicColourMap: ColourMap;
-declare const darkColourMap: ColourMap;
-declare const DefaultThemes: {
-    [key in DefaultThemesEnum]?: GrapholscapeTheme;
-};
-
-declare const CSS_PROPERTY_NAMESPACE = "--gscape-color";
-
-declare abstract class BaseRenderer implements RenderState {
-    protected _renderer: Renderer;
-    abstract id: RendererStatesEnum;
-    abstract filterManager: FilterManager;
-    abstract layout: cytoscape.Layouts;
-    abstract render(): void;
-    abstract stopRendering(): void;
-    abstract runLayout(): void;
-    abstract stopLayout(): void;
-    abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
-    abstract transformOntology(ontology: Ontology): void;
-    layoutRunning: boolean;
-    constructor(renderer?: Renderer);
-    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
-    set renderer(newRenderer: Renderer);
-    get renderer(): Renderer;
-    filter(elementId: string, filter: Filter): void;
-    unfilter(elementId: string, filter: Filter): void;
-}
-
-declare enum WidgetEnum {
-    DIAGRAM_SELECTOR = "diagram-selector",
-    ENTITY_DETAILS = "details",
-    ENTITY_SELECTOR = "entity-selector",
-    FILTERS = "filters",
-    FIT_BUTTON = "fit-button",
-    FULLSCREEN_BUTTON = "fullscreen-button",
-    ONTOLOGY_EXPLORER = "ontology-explorer",
-    ONTOLOGY_INFO = "ontology-info",
-    OWL_VISUALIZER = "owl-visualizer",
-    RENDERER_SELECTOR = "renderer-selector",
-    LAYOUT_SETTINGS = "layout-settings",
-    SETTINGS = "settings",
-    ZOOM_TOOLS = "zoom-tools",
-    INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
-    ENTITY_COLOR_LEGEND = "entity-color-legend",
-    COLOR_BUTTON = "color-button",
-    /** @internal */
-    CLASS_INSTANCE_DETAILS = "class-instance-details",
-    /** @internal */
-    INSTANCES_EXPLORER = "instances-explorer",
-    /** @internal */
-    NAVIGATION_MENU = "naviagtion-menu",
-    /** @internal */
-    VKG_PREFERENCES = "vkg-preferences",
-    INCREMENTAL_INITIAL_MENU = "incremental-initial-menu",
-    DESIGNER_TOOLBOX = "designer-toolbox"
-}
-
-declare enum Language {
-    DE = "de",
-    EN = "en",
-    ES = "es",
-    FR = "fr",
-    IT = "it"
-}
-type WidgetsConfig = {
-    [key in WidgetEnum]?: boolean;
-};
-type ThemeConfig = GrapholscapeTheme | DefaultThemesEnum;
-type GrapholscapeConfig = {
-    themes?: ThemeConfig[];
-    selectedTheme?: string;
-    language?: Language | string;
-    entityNameType?: RDFGraphConfigEntityNameTypeEnum;
-    renderers?: RendererStatesEnum[];
-    selectedRenderer?: RendererStatesEnum;
-    widgets?: WidgetsConfig;
-    initialRendererSelection?: boolean;
-};
-
-/**
- * Load config from local storage
- */
-declare function loadConfig(): GrapholscapeConfig;
-/**
- * Store a single setting in local storage
- * @param {string} k the key of the setting to store
- * @param {any} value the value of the setting to store
- */
-declare function storeConfigEntry(k: string, value: any): void;
-declare function clearLocalStorage(): void;
-
-declare const _default$b: CytoscapeOptions;
-
-declare const liteOptions: {
-    layout: {
-        name: string;
-    };
-    autoungrabify: boolean;
-    maxZoom: number;
-    minZoom: number;
-    wheelSensitivity: number;
-};
-declare const floatyOptions: {
-    layout: {
-        name: string;
-    };
-    autoungrabify: boolean;
-    maxZoom: number;
-    minZoom: number;
-    wheelSensitivity: number;
-};
 
 type MastroEndpoint = {
     description?: string;
@@ -4832,51 +4445,6 @@ declare class IncrementalController {
 /** @internal */
 declare function initIncremental(grapholscape: Grapholscape): void;
 
-/**
- * @internal
- */
-declare class DisplayedNamesManager {
-    private _grapholscape;
-    private _entityNameType;
-    private _language;
-    constructor(grapholscape: Grapholscape);
-    get entityNameType(): RDFGraphConfigEntityNameTypeEnum;
-    get language(): Language;
-    setEntityNameType(newEntityNameType: RDFGraphConfigEntityNameTypeEnum): void;
-    setLanguage(language: string | Language): void;
-    private setDisplayedNames;
-}
-
-/**
- * @internal
- */
-declare class EntityNavigator {
-    private _grapholscape;
-    constructor(grapholscape: Grapholscape);
-    centerOnEntity(iri: string, diagramId?: number, zoom?: number): void;
-    selectEntity(iri: string, diagramId?: number, zoom?: number): void;
-    private _centerSelectEntity;
-    private _performCenterSelect;
-    getEntityOccurrenceInDiagram(iri: string, diagramId: number): GrapholElement | undefined;
-    updateEntitiesOccurrences(): void;
-    private updateEntitiesOccurrencesFromDiagram;
-}
-
-/**
- * @internal
- */
-declare class ThemeManager {
-    private _grapholscape;
-    theme: GrapholscapeTheme;
-    themes: Set<GrapholscapeTheme>;
-    constructor(grapholscape: Grapholscape);
-    setTheme(newThemeId: string): void;
-    addTheme(newTheme: GrapholscapeTheme): void;
-    removeTheme(theme: GrapholscapeTheme): void;
-    removeThemes(): void;
-    private setMissingColours;
-}
-
 declare abstract class Grapholscape {
     renderer: Renderer;
     protected abstract availableRenderers: RendererStatesEnum[];
@@ -5118,91 +4686,559 @@ declare class Core extends Grapholscape {
     constructor(ontology: Ontology, container: HTMLElement, config?: GrapholscapeConfig);
 }
 
-declare class DiagramBuilder {
-    diagram: Diagram;
-    private rendererState;
-    constructor(diagram: Diagram, rendererState: RendererStatesEnum);
-    addClass(classEntity: GrapholEntity, classNode?: GrapholNode): GrapholNode;
-    addClass(classEntity: GrapholEntity, position?: Position): GrapholNode;
-    addClass(classEntity: GrapholEntity): GrapholNode;
-    addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity): GrapholElement | undefined;
+declare class GrapholRendererState extends BaseRenderer {
+    layout: cytoscape.Layouts;
+    id: RendererStatesEnum;
+    cyConfig: cytoscape.CytoscapeOptions;
+    filterManager: FilterManager;
+    render(): void;
+    stopRendering(): void;
+    runLayout(): void;
+    stopLayout(): void;
+    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
+    transformOntology(ontology: Ontology): void;
+    postOntologyTransform(grapholscape: Grapholscape): void;
+}
+
+declare class LiteRendererState extends BaseRenderer {
+    readonly id: RendererStatesEnum;
+    filterManager: FilterManager;
+    cyConfig: CytoscapeOptions;
+    private _layout;
+    runLayout(): void;
+    render(): void;
+    stopRendering(): void;
+    stopLayout(): void;
+    getGraphStyle(theme: GrapholscapeTheme): cytoscape$1.Stylesheet[];
+    transformOntology(ontology: Ontology): void;
+    postOntologyTransform(grapholscape: Grapholscape): void;
+    get layout(): cytoscape$1.Layouts;
+    set layout(newLayout: cytoscape$1.Layouts);
+}
+
+declare class FloatyRendererState extends BaseRenderer {
+    readonly id: RendererStatesEnum;
+    filterManager: FilterManager;
+    protected _layout: cytoscape__default.Layouts;
+    private centeringOnElem;
+    set renderer(newRenderer: Renderer);
+    get renderer(): Renderer;
+    transformOntology(ontology: Ontology): void;
+    postOntologyTransform(grapholscape: Grapholscape): void;
+    runLayout(): void;
+    render(): void;
+    stopRendering(): void;
+    getGraphStyle(theme: GrapholscapeTheme): cytoscape__default.Stylesheet[];
+    stopLayout(): void;
+    runLayoutInfinitely(): void;
+    pinNode(nodeOrId: NodeSingular | string): void;
+    unpinAll(): void;
+    private setPopperStyle;
+    private updatePopper;
+    unpinNode(nodeOrId: string | NodeSingular): void;
+    private removeUnlockButton;
+    protected setDragAndPinEventHandlers(): void;
+    private grabHandler;
+    private freeHandler;
+    protected get defaultLayoutOptions(): {
+        name: string;
+        avoidOverlap: boolean;
+        edgeLength: (edge: any) => any;
+        fit: boolean;
+        maxSimulationTime: number;
+        infinite: boolean;
+        handleDisconnected: boolean;
+        centerGraph: boolean;
+    };
+    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
+    get floatyLayoutOptions(): any;
+    set floatyLayoutOptions(newOptions: any);
+    protected automoveOptions: {
+        nodesMatching: (node: NodeSingular) => boolean | undefined;
+        reposition: string;
+        dragWith: string;
+    };
+    get isLayoutInfinite(): boolean;
+    get dragAndPin(): boolean;
+    set dragAndPin(isActive: boolean);
+    protected get popperContainer(): HTMLDivElement | undefined;
+    protected get popperContainers(): Map<number, HTMLDivElement>;
+    get layout(): cytoscape__default.Layouts;
+}
+
+/**
+ * The incremental renderer state is a kind of floaty renderer state in which
+ * ontology's diagrams are used only to compute what to show.
+ * There is only a single empty diagram and any render() call just render the same diagram
+ * no matter what was the input diagram.
+ *
+ * This renderer state is logic agnostic, meaning that it does not control what to show and when.
+ * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
+ */
+declare class IncrementalRendererState extends FloatyRendererState {
+    readonly id = RendererStatesEnum.INCREMENTAL;
+    filterManager: FilterManager;
+    private previousDiagram;
+    render(): void;
+    runLayout(): void;
+    runCustomLayout(cyLayoutOptions: any): void;
+    /** lock all nodes */
+    freezeGraph(): void;
+    /** unlock all nodes that are not pinned (pinned can be unlocked only with unpin) */
+    unFreezeGraph(): void;
+    stopRendering(): void;
+    transformOntology(ontology: Ontology): void;
+    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
+    reset(): void;
+    filter(elementId: string, filter: Filter): void;
+    unfilter(elementId: string, filter: Filter): void;
+    protected get popperContainer(): HTMLDivElement | undefined;
+    set renderer(newRenderer: Renderer);
+    get renderer(): Renderer;
+    protected get defaultLayoutOptions(): {
+        name: string;
+        avoidOverlap: boolean;
+        edgeLength: (edge: EdgeSingular) => number;
+        fit: boolean;
+        maxSimulationTime: number;
+        infinite: boolean;
+        handleDisconnected: boolean;
+        centerGraph: boolean;
+    };
+}
+
+interface FilterManager {
+    filters: Map<string, Filter>;
+    filterActivation: (filter: Filter) => boolean;
+    filterDeactivation: (filter: Filter) => boolean;
+}
+declare abstract class BaseFilterManager implements FilterManager {
+    protected _filters: Map<string, Filter>;
+    protected lockedFilters: RDFGraphConfigFiltersEnum[];
+    filterActivation(filter: Filter): boolean;
+    filterDeactivation(filter: Filter): boolean;
+    get filters(): Map<string, Filter>;
+    set filters(filters: Map<string, Filter>);
+}
+
+declare enum RendererStatesEnum {
+    GRAPHOL = "graphol",
+    GRAPHOL_LITE = "lite",
+    FLOATY = "floaty",
+    INCREMENTAL = "incremental"
+}
+interface RenderState {
+    id: RendererStatesEnum;
+    renderer: Renderer;
+    filterManager: FilterManager;
+    layout: cytoscape.Layouts;
+    layoutRunning: boolean;
+    render(): void;
+    stopRendering(): void;
+    filter(elementId: string, filter: Filter): void;
+    unfilter(elementId: string, filter: Filter): void;
+    runLayout(): void;
+    stopLayout(): void;
+    getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
+    transformOntology(ontology: Ontology): void;
+    postOntologyTransform(ontology: Grapholscape): void;
+    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
+}
+
+declare class GrapholEntity extends AnnotatedElement implements Entity$1 {
+    static newFromSwagger(iri: Iri, e: Entity$1): GrapholEntity;
+    private _iri;
+    private _occurrences;
+    private _datatype;
+    private _isDataPropertyFunctional;
+    private _functionProperties;
+    private _color?;
+    protected _manualTypes?: Set<TypesEnum>;
+    constructor(iri: Iri);
+    addOccurrence(newGrapholElement: GrapholElement, representationKind?: RendererStatesEnum): void;
+    removeOccurrence(grapholElement: GrapholElement, representationKind: RendererStatesEnum): void;
     /**
-     * Add an object property between two entities.
-     * If the source and/or target entities are already present in graph, they won't be added again.
-     * If there already exists an object property between them with the same IRI, the
-     * edge won't be added.
-     * @param objectPropertyEntity the object property entity
-     * @param sourceEntity the source entity
-     * @param targetEntity the target entity
-     * @param nodesType the type of source and target, they must have same type
-     * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
-     * if you don't pass this, a new GrapholEdge will be created from scratch
-     * @returns
+     * Get all occurrences of the entity in a given diagram
+     * @param diagramId the diagram in which the entity must occurr
+     * @param representationKind the diagram representation identifier ({@link RendererStatesEnum})
+     * if not set, all representations will be considered
+     * @returns A map with the occurrences in the original Graphol representation and other
+     * replicated occurrences in other diagram representations
      */
-    addObjectProperty(objectPropertyEntity: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity, nodesType: TypesEnum[], objectPropertyElement?: GrapholEdge): GrapholElement | undefined;
-    /** @internal */
-    addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode;
-    /** @internal */
-    addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode;
-    /** @internal */
-    addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode;
-    addIndividual(individualEntity: GrapholEntity, position?: Position): GrapholElement | undefined;
-    private _addIndividualOrClassInstance;
-    addHierarchy(hierarchy: Hierarchy, position?: Position): GrapholElement | undefined;
-    addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF | TypesEnum.INPUT | TypesEnum.UNION | TypesEnum.DISJOINT_UNION | TypesEnum.COMPLETE_UNION | TypesEnum.COMPLETE_DISJOINT_UNION | TypesEnum.ATTRIBUTE_EDGE): GrapholElement | undefined;
-    get diagramRepresentation(): DiagramRepresentation | undefined;
-    toggleFunctionality(entity: GrapholEntity, functional: boolean): void;
-    toggleUnion(node: any): void;
-    toggleComplete(edge: any): void;
-    swapEdge(elem: EdgeSingular): void;
-    removeHierarchy(hierarchy: Hierarchy): void;
-    removeHierarchyInputEdge(hierarchy: Hierarchy, inputIri: string): void;
-    removeHierarchyInclusionEdge(hierarchy: Hierarchy, superclassIri: string): void;
-    removeElement(id: string): void;
-    renameElement(elemId: string, newIri: Iri): void;
+    getOccurrencesByDiagramId(diagramId: number, representationKind?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]>;
+    get types(): TypesEnum[];
+    set manualTypes(newTypes: Set<TypesEnum>);
     /**
-     * Get cytoscape representation of an entity given the type needed
-     * @param entity
+     * Check if entity is of a certain type
      * @param type
-     * @returns
      */
-    getEntityCyRepr(entity: GrapholEntity, type: TypesEnum): cytoscape__default.CollectionReturnValue;
+    is(type: TypesEnum): boolean;
+    get occurrences(): Map<RendererStatesEnum, GrapholElement[]>;
+    set iri(val: Iri);
+    get iri(): Iri;
+    get fullIri(): string;
+    get functionProperties(): FunctionPropertiesEnum[];
+    set functionProperties(properties: FunctionPropertiesEnum[]);
+    get isDataPropertyFunctional(): boolean;
+    set isDataPropertyFunctional(value: boolean);
+    get datatype(): string;
+    set datatype(datatype: string);
+    get color(): string | undefined;
+    set color(color: string | undefined);
+    getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement | undefined;
+    getOccurrencesByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement[] | undefined;
+    hasFunctionProperty(property: FunctionPropertiesEnum): boolean;
+    hasOccurrenceInDiagram(diagramId: number, representationKind: RendererStatesEnum): boolean;
+    getDisplayedName(nameType: RDFGraphConfigEntityNameTypeEnum, currentLanguage?: string): string;
+    getEntityOriginalNodeId(): string | undefined;
+    getIdInDiagram(diagramId: number, type: TypesEnum, rendererState: RendererStatesEnum): string | undefined;
+    json(): Entity$1;
+}
+
+declare class DiagramRepresentation {
+    private _cy;
+    private _grapholElements;
+    private _hasEverBeenRendered;
+    lastViewportState?: Viewport;
+    constructor(cyConfig?: cytoscape__default.CytoscapeOptions);
+    get cy(): cytoscape__default.Core;
+    set cy(newCy: cytoscape__default.Core);
+    get hasEverBeenRendered(): boolean;
+    set hasEverBeenRendered(value: boolean);
+    /**
+     * Add a new element (node or edge) to the diagram
+     * @param newElement the GrapholElement to add to the diagram
+     */
+    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): cytoscape__default.CollectionReturnValue;
+    removeElement(elementId: string): void;
+    clear(): void;
+    updateElement(element: GrapholElement, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
+    updateElement(elementId: string, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
+    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean;
+    filter(elementId: string, filterTag: string): void;
+    unfilter(elementId: string, filterTag: string): void;
     getNewId(nodeOrEdge: 'node' | 'edge'): string;
-    private getCurrentCenterPos;
+    get grapholElements(): Map<string, GrapholElement>;
+    set grapholElements(newElementMap: Map<string, GrapholElement>);
+    /**
+     * Getter
+     */
+    get nodes(): string[];
+    /**
+     * Getter
+     */
+    get edges(): string[];
+    get nodesCounter(): number;
+    get edgesCounter(): number;
 }
 
-declare function export_default$4(theme: GrapholscapeTheme): Stylesheet[];
-
-declare function computeHierarchies(ontology: Ontology): void;
-
-declare abstract class ColorManager {
-    protected abstract setClassColor(classEntity: any, overwrite: boolean): void;
-    protected abstract getTopSuperClass(classEntity: any): any;
-    protected abstract getAllChildren(classEntity: any, result: any): any;
-    private static readonly brewerSequentialPalettes;
-    protected getColors(numberOfColors: number): string[];
+/**
+ * @property {string} name - diagram's name
+ * @property {string | number} id - diagram's identifier
+ */
+declare class Diagram implements Diagram$1 {
+    name: string;
+    id: number;
+    representations: Map<RendererStatesEnum, DiagramRepresentation>;
+    lastViewportState: Viewport;
+    /**
+     * @param {string} name
+     * @param {number} id
+     */
+    constructor(name: string, id: number);
+    /**
+     * Add a new element (node or edge) to the diagram's representation
+     * @param newElement the GrapholElement to add to the diagram
+     */
+    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
+    /**
+     * Delete every element from a diagram
+     * @param rendererState optional, if you pass a particular rendererState, only its representation will be cleared.
+     * If you don't pass any rendererState, all representations will be cleared
+     */
+    clear(rendererState?: RendererStatesEnum): void;
+    removeElement(elementId: string, rendererState: RendererStatesEnum): void;
+    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity, rendererState: RendererStatesEnum): boolean | undefined;
 }
-declare class OntologyColorManager extends ColorManager {
-    private ontology;
-    private diagramRepresentation;
-    private _classForest;
-    constructor(ontology: Ontology, diagramRepresentation: DiagramRepresentation);
+
+declare class Hierarchy implements Hierarchy$1 {
+    type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION;
+    forcedComplete: boolean;
+    private _id;
+    private _inputs;
+    private _superclasses;
+    /**
+     *
+     * @param id
+     * @param type
+     * @param forcedComplete if the hierarchy is forced to be complete, any superclass edge
+     * will have type COMPLETE_UNION / COMPLETE_DISJOINT_UNION, regardless if they are created
+     * as complete or not.
+     */
+    constructor(id: string, type: TypesEnum.UNION | TypesEnum.DISJOINT_UNION, forcedComplete?: boolean);
+    addInput(classEntity: GrapholEntity): void;
+    removeInput(classEntity: GrapholEntity): void;
+    addSuperclass(classEntity: GrapholEntity, complete?: boolean): void;
+    removeSuperclass(classEntity: GrapholEntity): void;
+    get inputs(): GrapholEntity[];
+    get superclasses(): {
+        classEntity: GrapholEntity;
+        complete: boolean;
+    }[];
+    set id(newId: string);
+    get id(): string;
+    getUnionGrapholNode(nodeId: string, position?: Position): GrapholNode | undefined;
+    getInputGrapholEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
+    getInclusionEdges(diagramId: number, rendererState: RendererStatesEnum): GrapholEdge[] | undefined;
+    isDisjoint(): boolean;
+    isValid(): boolean | "";
+}
+
+/**
+ * ### Ontology
+ * Class used as the Model of the whole app.
+ */
+declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
+    name: string;
+    version: string;
+    namespaces: Namespace[];
+    annProperties: AnnotationProperty[];
+    diagrams: Diagram[];
+    languages: string[];
+    defaultLanguage?: string;
+    iri?: string;
+    constructor(name: string, version: string, iri?: string, namespaces?: Namespace[], annProperties?: AnnotationProperty[], diagrams?: Diagram[]);
+    private _entities;
+    private _hierarchies;
+    private _subHierarchiesMap;
+    private _superHierarchiesMap;
+    private _inclusions;
+    addHierarchy(hierarchy: Hierarchy): void;
+    removeHierarchy(hiearchyId: string): void;
+    removeHierarchy(hiearchyId: Hierarchy): void;
+    getHierarchy(hierarchyId: string): Hierarchy | undefined;
+    getHierarchiesOf(classIri: string | Iri): Hierarchy[];
+    /**
+     * @param superClassIri the superclass iri
+     * @returns The arrary of hiearchies for which a class appear as superclass
+     */
+    getSubHierarchiesOf(superClassIri: string | Iri): Hierarchy[];
+    /**
+     *
+     * @param subClassIri
+     * @returns The arrary of hiearchies for which a class appear as subclass
+     */
+    getSuperHierarchiesOf(subClassIri: string | Iri): Hierarchy[];
+    getSubclassesOf(superClassIri: string | Iri): Set<GrapholEntity>;
+    getSuperclassesOf(superClassIri: string | Iri): Set<GrapholEntity>;
+    addSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void;
+    addSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void;
+    removeSubclassOf(subclassIri: string | Iri, superclassIri: string | Iri): void;
+    removeSubclassOf(subclass: GrapholEntity, superclass: GrapholEntity): void;
+    /** @param {Namespace} namespace */
+    addNamespace(namespace: Namespace): void;
+    /**
+     * Get the Namspace object given its IRI string
+     * @param {string} iriValue the IRI assigned to the namespace
+     * @returns {Namespace}
+     */
+    getNamespace(iriValue: string): Namespace | undefined;
+    /**
+     * Get the Namespace given one of its prefixes
+     * @param {string} prefix
+     * @returns {Namespace}
+     */
+    getNamespaceFromPrefix(prefix: string): Namespace | undefined;
+    getNamespaces(): Namespace[];
+    /** @param {AnnotationProperty} annProperty */
+    addAnnotationProperty(annProperty: AnnotationProperty): void;
+    /**
+     * Get the Namspace object given its IRI string
+     * @param {string} iriValue the IRI assigned to the namespace
+     * @returns {AnnotationProperty}
+     */
+    getAnnotationProperty(iriValue: string): AnnotationProperty | undefined;
+    getAnnotationProperties(): AnnotationProperty[];
+    /** @param {Diagram} diagram */
+    addDiagram(diagram: Diagram): void;
+    /**
+     * Get the diagram with the given id
+     */
+    getDiagram(diagramId: number): Diagram | undefined;
+    getDiagramByName(name: string): Diagram | undefined;
+    addEntity(entity: GrapholEntity): void;
+    getEntity(iri: string | Iri): GrapholEntity | undefined;
+    getEntitiesByType(entityType: TypesEnum): GrapholEntity[];
+    getEntityFromOccurrence(entityOccurrence: GrapholElement): GrapholEntity | undefined;
+    getGrapholElement(elementId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholElement | undefined;
+    getGrapholNode(nodeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
+    getGrapholEdge(edgeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
+    /**
+     * Retrieve an entity by its IRI.
+     * @param {string} iri - The IRI in full or prefixed form.
+     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+     * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
+     */
+    /**
+     * Retrieve all occurrences of an entity by its IRI.
+     * @param {string} iri - The IRI in full or prefixed form.
+     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+     * @returns An array of EntityOccurrence objects
+     */
+    getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]> | undefined;
+    /**
+     * Get the entities in the ontology
+     * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
+     */
+    /**
+     * Check if entity has the specified iri in full or prefixed form
+     * @param {Entity} entity
+     * @param {string} iri
+     * @returns {boolean}
+     */
+    /**
+     * Retrieve the full IRI given a prefixed IRI
+     * @param {string} prefixedIri a prefixed IRI
+     * @returns {string} full IRI
+     */
+    prefixedToFullIri(prefixedIri: string): string | undefined;
+    computeDatatypesOnDataProperties(): void;
+    get isEntitiesEmpty(): boolean;
+    get entities(): Map<string, GrapholEntity>;
+    set entities(newEntities: Map<string, GrapholEntity>);
+}
+
+declare class IncrementalDiagram extends Diagram {
+    static ID: number;
     /** @internal */
-    setInstanceColor(classInstance: ClassInstanceEntity, overwrite?: boolean): this;
-    setClassColor(classEntity: GrapholEntity, overwrite?: boolean): this;
-    colorEntities(entities?: Map<string, GrapholEntity>, overwrite?: boolean): Promise<void>;
-    protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity;
-    protected getAllChildren(classEntity: GrapholEntity, result?: Set<GrapholEntity>): Set<GrapholEntity>;
+    classInstances?: Map<string, ClassInstanceEntity>;
+    constructor();
+    addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
+    removeElement(elementId: string): void;
+    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean | undefined;
+    get representation(): DiagramRepresentation | undefined;
 }
-declare class DiagramColorManager extends ColorManager {
-    private diagramRepresentation;
-    private _classForest;
-    constructor(diagramRepresentation: DiagramRepresentation);
-    colorDiagram(overwrite?: boolean): void;
-    setClassColor(classNode: SingularElementReturnValue, overwrite?: boolean): void;
-    protected getTopSuperClass(classNode: NodeSingular): any;
-    protected getAllChildren(classNode: SingularElementReturnValue | NodeSingular, result?: cytoscape$1.CollectionReturnValue): cytoscape$1.CollectionReturnValue;
+
+declare enum DefaultThemesEnum {
+    GRAPHOLSCAPE = "grapholscape",
+    GRAPHOL = "graphol",
+    DARK = "dark",
+    COLORFUL_LIGHT = "colorful-light",
+    COLORFUL_DARK = "colorful-dark"
 }
+declare const gscapeColourMap: ColourMap;
+declare const classicColourMap: ColourMap;
+declare const darkColourMap: ColourMap;
+declare const DefaultThemes: {
+    [key in DefaultThemesEnum]?: GrapholscapeTheme;
+};
+
+declare const CSS_PROPERTY_NAMESPACE = "--gscape-color";
+
+declare abstract class BaseRenderer implements RenderState {
+    protected _renderer: Renderer;
+    abstract id: RendererStatesEnum;
+    abstract filterManager: FilterManager;
+    abstract layout: cytoscape.Layouts;
+    abstract render(): void;
+    abstract stopRendering(): void;
+    abstract runLayout(): void;
+    abstract stopLayout(): void;
+    abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[];
+    abstract transformOntology(ontology: Ontology): void;
+    abstract postOntologyTransform(ontology: Grapholscape): void;
+    layoutRunning: boolean;
+    constructor(renderer?: Renderer);
+    centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
+    set renderer(newRenderer: Renderer);
+    get renderer(): Renderer;
+    filter(elementId: string, filter: Filter): void;
+    unfilter(elementId: string, filter: Filter): void;
+}
+
+declare enum WidgetEnum {
+    DIAGRAM_SELECTOR = "diagram-selector",
+    ENTITY_DETAILS = "details",
+    ENTITY_SELECTOR = "entity-selector",
+    FILTERS = "filters",
+    FIT_BUTTON = "fit-button",
+    FULLSCREEN_BUTTON = "fullscreen-button",
+    ONTOLOGY_EXPLORER = "ontology-explorer",
+    ONTOLOGY_INFO = "ontology-info",
+    OWL_VISUALIZER = "owl-visualizer",
+    RENDERER_SELECTOR = "renderer-selector",
+    LAYOUT_SETTINGS = "layout-settings",
+    SETTINGS = "settings",
+    ZOOM_TOOLS = "zoom-tools",
+    INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
+    ENTITY_COLOR_LEGEND = "entity-color-legend",
+    COLOR_BUTTON = "color-button",
+    /** @internal */
+    CLASS_INSTANCE_DETAILS = "class-instance-details",
+    /** @internal */
+    INSTANCES_EXPLORER = "instances-explorer",
+    /** @internal */
+    NAVIGATION_MENU = "naviagtion-menu",
+    /** @internal */
+    VKG_PREFERENCES = "vkg-preferences",
+    INCREMENTAL_INITIAL_MENU = "incremental-initial-menu",
+    DESIGNER_TOOLBOX = "designer-toolbox"
+}
+
+declare enum Language {
+    DE = "de",
+    EN = "en",
+    ES = "es",
+    FR = "fr",
+    IT = "it"
+}
+type WidgetsConfig = {
+    [key in WidgetEnum]?: boolean;
+};
+type ThemeConfig = GrapholscapeTheme | DefaultThemesEnum;
+type GrapholscapeConfig = {
+    themes?: ThemeConfig[];
+    selectedTheme?: string;
+    language?: Language | string;
+    entityNameType?: RDFGraphConfigEntityNameTypeEnum;
+    renderers?: RendererStatesEnum[];
+    selectedRenderer?: RendererStatesEnum;
+    widgets?: WidgetsConfig;
+    initialRendererSelection?: boolean;
+};
+
+/**
+ * Load config from local storage
+ */
+declare function loadConfig(): GrapholscapeConfig;
+/**
+ * Store a single setting in local storage
+ * @param {string} k the key of the setting to store
+ * @param {any} value the value of the setting to store
+ */
+declare function storeConfigEntry(k: string, value: any): void;
+declare function clearLocalStorage(): void;
+
+declare const _default$b: CytoscapeOptions;
+
+declare const liteOptions: {
+    layout: {
+        name: string;
+    };
+    autoungrabify: boolean;
+    maxZoom: number;
+    minZoom: number;
+    wheelSensitivity: number;
+};
+declare const floatyOptions: {
+    layout: {
+        name: string;
+    };
+    autoungrabify: boolean;
+    maxZoom: number;
+    minZoom: number;
+    wheelSensitivity: number;
+};
 
 declare function parseRDFGraph(rdfGraph: RDFGraph): Ontology;
 declare function updateEntityOccurrences(ontology: Ontology): void;
@@ -5334,8 +5370,10 @@ declare const colorPalette: lit_html.TemplateResult<2>;
 declare const warning: lit_html.TemplateResult<2>;
 declare const error: lit_html.TemplateResult<2>;
 declare const toggleCatalog: lit_html.TemplateResult<2>;
+declare const domain: lit_html.TemplateResult<2>;
+declare const range: lit_html.TemplateResult<2>;
 declare const entityIcons: {
-    [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.CLASS_INSTANCE]: SVGTemplateResult;
+    [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.CLASS_INSTANCE | TypesEnum.ANNOTATION_PROPERTY]: SVGTemplateResult;
 };
 declare const annotationIcons: {
     [x: string]: SVGTemplateResult | undefined;
@@ -5379,6 +5417,7 @@ declare const index_d$2_commentIcon: typeof commentIcon;
 declare const index_d$2_counter: typeof counter;
 declare const index_d$2_cross: typeof cross;
 declare const index_d$2_diagrams: typeof diagrams;
+declare const index_d$2_domain: typeof domain;
 declare const index_d$2_editIcon: typeof editIcon;
 declare const index_d$2_enterFullscreen: typeof enterFullscreen;
 declare const index_d$2_entityIcons: typeof entityIcons;
@@ -5404,6 +5443,7 @@ declare const index_d$2_owl_icon: typeof owl_icon;
 declare const index_d$2_pathIcon: typeof pathIcon;
 declare const index_d$2_plus: typeof plus;
 declare const index_d$2_protocol: typeof protocol;
+declare const index_d$2_range: typeof range;
 declare const index_d$2_redo: typeof redo;
 declare const index_d$2_refresh: typeof refresh;
 declare const index_d$2_renameIcon: typeof renameIcon;
@@ -5454,6 +5494,7 @@ declare namespace index_d$2 {
     index_d$2_cross as cross,
     _default$8 as dataPropertyIcon,
     index_d$2_diagrams as diagrams,
+    index_d$2_domain as domain,
     index_d$2_editIcon as editIcon,
     index_d$2_enterFullscreen as enterFullscreen,
     index_d$2_entityIcons as entityIcons,
@@ -5482,6 +5523,7 @@ declare namespace index_d$2 {
     index_d$2_pathIcon as pathIcon,
     index_d$2_plus as plus,
     index_d$2_protocol as protocol,
+    index_d$2_range as range,
     index_d$2_redo as redo,
     index_d$2_refresh as refresh,
     index_d$2_renameIcon as renameIcon,
@@ -5945,7 +5987,7 @@ type UiOption = {
 declare const GscapeFullPageSelector_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeFullPageSelector extends GscapeFullPageSelector_base {
     options: (UiOption | undefined)[];
-    private _title;
+    title: string;
     onOptionSelection: (optionId: string) => void;
     static properties: PropertyDeclarations;
     static styles: CSSResultGroup;
@@ -6356,4 +6398,4 @@ declare function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Gra
 /** @internal */
 declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit?: boolean): void;
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, incrementalGrapholscape, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, incrementalGrapholscape, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
