@@ -107,9 +107,9 @@ export default function initColors(grapholscape: Grapholscape) {
   grapholscape.on(LifecycleEvent.ThemeChange, () => setupColors(grapholscape))
 
   const setupColors = (grapholscape: Grapholscape) => {
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL || grapholscape.renderState === RendererStatesEnum.FLOATY) {
       colorButtonComponent.active = true
-    } else if (grapholscape.renderState !== RendererStatesEnum.FLOATY) {
+    } else {
       colorButtonComponent.hide()
       entityColorLegend.hide()
       return
