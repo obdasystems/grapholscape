@@ -332,6 +332,10 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
             // newObjectPropertyEdge.originalId = objectPropertyNode.id
             newObjectPropertyEdge.sourceId = sourceId!
             newObjectPropertyEdge.targetId = targetId!
+            newObjectPropertyEdge.domainMandatory = true
+            newObjectPropertyEdge.rangeMandatory = true
+            newObjectPropertyEdge.domainTyped = false
+            newObjectPropertyEdge.rangeTyped = false
 
             const newAddedCyElement = this.result.addElement(newObjectPropertyEdge)
             newAddedCyElement.data('iri', objectPropertyNode.iri)

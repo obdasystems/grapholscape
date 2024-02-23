@@ -166,18 +166,28 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             ? html`
               <div class="section">
                 <div class="section-header">
-                  <span class="slotted-icon">${domain}</span>
-                  <span class="bold-text">Domain</span>
-                  </span>
-                  ${this.currentOccurrence.domainTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
-                  ${this.currentOccurrence.domainMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                  ${this.currentOccurrence.domainTyped !== undefined && this.currentOccurrence.domainMandatory !== undefined
+                    ? html`
+                      <span class="slotted-icon">${domain}</span>
+                      <span class="bold-text">Domain</span>
+                      ${this.currentOccurrence.domainTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
+                      ${this.currentOccurrence.domainMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                    `
+                    : undefined
+                  }
+                  
                 </div>
                 <div class="section-header">
-                  <span class="slotted-icon">${range}</span>
-                  <span class="bold-text">Range</span>
-                  </span>
-                  ${this.currentOccurrence.rangeTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
-                  ${this.currentOccurrence.rangeMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                  ${this.currentOccurrence.rangeTyped !== undefined && this.currentOccurrence.rangeMandatory !== undefined
+                    ? html`
+                      <span class="slotted-icon">${range}</span>
+                      <span class="bold-text">Range</span>
+                      ${this.currentOccurrence.rangeTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
+                      ${this.currentOccurrence.rangeMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                    `
+                    : undefined
+                  }
+                  
                 </div>
               </div>
             `
