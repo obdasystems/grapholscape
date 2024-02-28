@@ -1,16 +1,19 @@
 import cytoscape, { Position } from "cytoscape";
-import IncrementalController from "../controller";
 import { GscapeInstanceExplorer } from "./instances-explorer";
 import GscapeNavigationMenu from "./navigation-menu/navigation-menu";
+import { IIncremental } from "../i-incremental";
+import { IncrementalRendererState } from "../../core";
+import { RendererStatesEnum } from "../../model";
 
 const panGraph = false
 
-export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, incrementalController: IncrementalController) {
+export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, ic: IIncremental) {
   if (menu.referenceEntity && menu.referenceEntityType) {
-    const cy = incrementalController.grapholscape.renderer.cy
+    const cy = ic.grapholscape.renderer.cy
 
     if (cy) {
-      const nodeId = incrementalController.getIDByIRI(menu.referenceEntity.value.iri.fullIri, menu.referenceEntityType)
+      const entity = ic.grapholscape.ontology.getEntity(menu.referenceEntity.value.iri.fullIri)
+      const nodeId = entity?.getOccurrenceByType(menu.referenceEntityType, RendererStatesEnum.INCREMENTAL)?.id
       if (!nodeId) return
 
       const node = cy.$id(nodeId)
@@ -28,8 +31,8 @@ export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, in
         }
 
         if (!node.data().pinned) {
-          node.scratch('should-unpin', true)
-          incrementalController.pinNode(node)
+          node.scratch('should-unpin', true);
+          (ic.grapholscape.renderer.renderState as IncrementalRendererState).pinNode(node)
         }
       }
     }

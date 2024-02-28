@@ -4,6 +4,7 @@ import { Diagram, GrapholEntity, Iri, Ontology, RendererStatesEnum, TypesEnum } 
 export type ObjectPropertyConnectedClasses = {
   list: GrapholEntity[],
   direct: boolean,
+  available: boolean,
 }
 
 export default class NeighbourhoodFinder {
@@ -67,7 +68,7 @@ export default class NeighbourhoodFinder {
                     if (!resEntry.list.includes(connectedClassEntity)) // add only new classes
                       resEntry.list.push(connectedClassEntity)
                   } else {
-                    res.set(objectPropertyEntity, { list: [connectedClassEntity], direct: direct })
+                    res.set(objectPropertyEntity, { list: [connectedClassEntity], direct: direct, available: true })
                   }
                 }
               }

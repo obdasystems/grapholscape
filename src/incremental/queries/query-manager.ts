@@ -248,8 +248,8 @@ export default class QueryManager {
     })
   }
 
-  async instanceCheck(instanceIri: string, classesTocheck: string[]) {
-    const params = new URLSearchParams({ instance: instanceIri })
+  async instanceCheck(instanceIri: string, classesTocheck: string[], stopOnFirstMatch: boolean) {
+    const params = new URLSearchParams({ instance: instanceIri, stopOnFirstMatch: stopOnFirstMatch ? 'true' : 'false' })
     const response = await fetch(`${this.requestOptions.basePath}/endpoint/${this.endpoint.name}/instanceChecking/start?${params.toString()}`, {
       method: 'post',
       headers: this.requestOptions.headers,

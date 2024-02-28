@@ -1,12 +1,12 @@
 import { RendererStatesEnum } from "../../../model"
 import { showMessage, WidgetEnum } from "../../../ui"
-import IncrementalController from "../../controller"
+import IncrementalCore from "../../old-controller"
 import { IncrementalEvent } from "../../lifecycle"
 import GscapeVKGPreferences from "./vkg-preferences"
 
 export { default as GscapeVKGPreferences } from './vkg-preferences'
 
-export function VKGPreferencesFactory(incrementalController: IncrementalController) {
+export function VKGPreferencesFactory(incrementalController: IncrementalCore) {
   const vkgPreferences = new GscapeVKGPreferences()
   vkgPreferences.showCounters = incrementalController.countersEnabled
   incrementalController.grapholscape.widgets.set(WidgetEnum.VKG_PREFERENCES, vkgPreferences)

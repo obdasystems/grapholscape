@@ -14,7 +14,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
     [TypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
     [TypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
     [TypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
-    [TypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
     onFilterToggle: { type: Function, reflect: true }
   }
 
@@ -101,11 +100,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
           ? this.getChipTemplate(TypesEnum.INDIVIDUAL)
           : null
         }
-
-        ${this[TypesEnum.CLASS_INSTANCE] !== undefined
-          ? this.getChipTemplate(TypesEnum.CLASS_INSTANCE)
-          : null
-        }
       </div>
     `
   }
@@ -140,7 +134,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
           [TypesEnum.DATA_PROPERTY]: this[TypesEnum.DATA_PROPERTY],
           [TypesEnum.OBJECT_PROPERTY]: this[TypesEnum.OBJECT_PROPERTY],
           [TypesEnum.INDIVIDUAL]: this[TypesEnum.INDIVIDUAL],
-          [TypesEnum.CLASS_INSTANCE]: this[TypesEnum.CLASS_INSTANCE],
           areAllFiltersDisabled: this.areAllFiltersDisabled
         } as IEntityFilters
       }))
@@ -164,10 +157,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
 
     if (this[TypesEnum.INDIVIDUAL] !== undefined) {
       result = result && !this[TypesEnum.INDIVIDUAL]
-    }
-
-    if (this[TypesEnum.CLASS_INSTANCE] !== undefined) {
-      result = result && !this[TypesEnum.CLASS_INSTANCE]
     }
 
     return result
@@ -197,11 +186,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
   }
   get [TypesEnum.INDIVIDUAL]() { return this._individual }
 
-  set [TypesEnum.CLASS_INSTANCE](v: number | undefined) {
-    this._classInstance = v
-    this.requestUpdate()
-  }
-  get [TypesEnum.CLASS_INSTANCE]() { return this._classInstance }
 }
 
 export type EntityFilterEvent = CustomEvent<IEntityFilters>

@@ -4,7 +4,7 @@ import { BaseMixin, baseStyle, contentSpinnerStyle, EntityViewData, getContentSp
 import { entityIcons, insertInGraph, search, searchOff } from "../../../ui/assets"
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin"
 import getIconSlot from "../../../ui/util/get-icon-slot"
-import { EntityViewDataUnfolding, ViewObjectPropertyUnfolding } from "../../../ui/view-model"
+import { ViewObjectProperty } from "../../../ui/view-model"
 import { ClassInstance } from "../../api/kg-api"
 import menuBaseStyle from "../menu-base-style"
 
@@ -15,8 +15,8 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
   areInstancesLoading: boolean
   instances: Map<string, ClassInstanceViewData> = new Map()
-  propertiesFilterList: EntityViewDataUnfolding[] = []
-  classTypeFilterList?: EntityViewDataUnfolding[]
+  propertiesFilterList: EntityViewData[] = []
+  classTypeFilterList?: EntityViewData[]
   referenceEntity?: EntityViewData
   referenceEntityType?: TypesEnum
   referencePropertyEntity?: EntityViewData
@@ -157,10 +157,10 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                   size=${SizeEnum.S}
                   .options=${this.classTypeFilterList.map(entity => {
                     return {
-                      id: entity.entityViewData.value.iri.fullIri,
-                      text: entity.entityViewData.displayedName,
-                      leadingIcon: entityIcons[entity.entityViewData.value.types[0]],
-                      disabled: !entity.hasUnfolding
+                      id: entity.value.iri.fullIri,
+                      text: entity.displayedName,
+                      leadingIcon: entityIcons[entity.value.types[0]],
+                      disabled: entity.disabled
                     }
                   })}
                   .placeholder=${ {text: 'Filter by type'} }
@@ -171,9 +171,9 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
               `
               : html`
                 <gscape-entity-list-item
-                  displayedname=${this.classTypeFilterList[0].entityViewData.displayedName}
-                  iri=${this.classTypeFilterList[0].entityViewData.value.iri.fullIri}
-                  .types=${this.classTypeFilterList[0].entityViewData.value.types}
+                  displayedname=${this.classTypeFilterList[0].displayedName}
+                  iri=${this.classTypeFilterList[0].value.iri.fullIri}
+                  .types=${this.classTypeFilterList[0].value.types}
                 ></gscape-entity-list-item>
               `
             : null
@@ -199,10 +199,10 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                   },
                 ].concat(this.propertiesFilterList.map(entity => {
                   return {
-                    id: entity.entityViewData.value.iri.fullIri,
-                    text: entity.entityViewData.displayedName,
-                    leadingIcon: entityIcons[entity.entityViewData.value.types[0]],
-                    disabled: !entity.hasUnfolding
+                    id: entity.value.iri.fullIri,
+                    text: entity.displayedName,
+                    leadingIcon: entityIcons[entity.value.types[0]],
+                    disabled: entity.disabled || false
                   }
                 }))}
                 default-option=${this.shouldAskForLabels !== false ? 'label' : 'id'}
@@ -247,7 +247,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
                 <gscape-entity-list-item
                   displayedname=${displayedName}
                   iri=${instance.connectedInstance ? `${instance.iri}-${instance.connectedInstance.iri}` : instance.iri}
-                  .types=${[TypesEnum.CLASS_INSTANCE]}
+                  .types=${[TypesEnum.INDIVIDUAL]}
                 >
                   <div slot="trailing-element" class="hover-btn">
                     <gscape-button
@@ -327,14 +327,14 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
         event.detail.filterByProperty = selectedOption
         const property = this.propertiesFilterList.find(p => {
           return this.propertyFilterSelect?.selectedOptionsId &&
-            p.entityViewData.value.iri.equals(selectedOption)
+            p.value.iri.equals(selectedOption)
         })
   
         if (property) {
-          event.detail.propertyType = property.entityViewData.value.types[0] as TypesEnum.DATA_PROPERTY | TypesEnum.OBJECT_PROPERTY
+          event.detail.propertyType = property.value.types[0] as TypesEnum.DATA_PROPERTY | TypesEnum.OBJECT_PROPERTY
   
-          if (property.entityViewData.value.types.includes(TypesEnum.OBJECT_PROPERTY)) {
-            event.detail.direct = (property as ViewObjectPropertyUnfolding).direct
+          if (property.value.types.includes(TypesEnum.OBJECT_PROPERTY)) {
+            event.detail.direct = (property as ViewObjectProperty).direct
           }
         }
       }
@@ -349,7 +349,7 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 
     // if only one class type, then use it, there is not select element
     if (this.classTypeFilterList?.length === 1) {
-      event.detail.filterByType = [this.classTypeFilterList[0].entityViewData.value.iri.fullIri]
+      event.detail.filterByType = [this.classTypeFilterList[0].value.iri.fullIri]
     } else if (this.classTypeFilterSelect && this.classTypeFilterSelect.selectedOptionsId.size > 0) { // otherwise check selected option
       event.detail.filterByType = Array.from(this.classTypeFilterSelect.selectedOptionsId)
     }
@@ -435,15 +435,15 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
     let parentClassIris: string[] | string
   
     if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS)) { // if class, take class iri as parent
-      parentClassIris = this.referenceEntity?.value.iri.fullIri
-    } else if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE)) { // otherwise check selected filter type
+      parentClassIris = [this.referenceEntity?.value.iri.fullIri]
+    } else if (this.referenceEntity?.value.types.includes(TypesEnum.INDIVIDUAL)) { // otherwise check selected filter type
 
       if (this.classTypeFilterList?.length === 1) { 
-        parentClassIris = this.classTypeFilterList[0].entityViewData.value.iri.fullIri // if only one type, take it as parent class
+        parentClassIris = [this.classTypeFilterList[0].value.iri.fullIri] // if only one type, take it as parent class
       } else if (this.classTypeFilterSelect?.selectedOptionsId) {
         parentClassIris = Array.from(this.classTypeFilterSelect.selectedOptionsId) // otherwise take the selected one
       } else if (this.classTypeFilterList) {
-        parentClassIris = this.classTypeFilterList.map(e => e.entityViewData.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
+        parentClassIris = this.classTypeFilterList.map(e => e.value.iri.fullIri) // if no option is selected, take them all, instance checking will decide
       } else
         return
     } else {
@@ -542,13 +542,13 @@ export default class GscapeInstanceExplorer extends ContextualWidgetMixin(BaseMi
 }
 
 export type AddAllEvent = CustomEvent<{
-  parentClassIris: string[] | string,
+  parentClassIris: string[],
   instances: ClassInstanceViewData[],
   filterByProperty: string | undefined
 }>
 
 export type InstanceSelectionEvent = CustomEvent<{
-  parentClassIris: string[] | string,
+  parentClassIris: string[],
   instance: ClassInstanceViewData,
   filterByProperty: string | undefined
 }>

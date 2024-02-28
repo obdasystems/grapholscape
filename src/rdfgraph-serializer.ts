@@ -1,6 +1,6 @@
 import { Language } from "./config";
 import FloatyTransformer from "./core/rendering/floaty/floaty-transformer";
-import { IncrementalController } from "./incremental";
+import { IIncremental } from "./incremental/i-incremental";
 import { Diagram, DiagramRepresentation, EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
 import { Edge, Node, RDFGraph, RDFGraphModelTypeEnum } from "./model/rdf-graph/swagger";
 
@@ -20,7 +20,7 @@ export interface IGscape {
   entityNameType: EntityNameType,
   renderers: RendererStatesEnum[],
   renderState?: RendererStatesEnum,
-  incremental?: IncrementalController,
+  incremental?: IIncremental,
 }
 
 /** @internal */
@@ -58,7 +58,7 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
   let diagrams: Diagram[] = []
   if (modelType === RDFGraphModelTypeEnum.VKG) {
     if (grapholscape.incremental) {
-      result.classInstanceEntities = Array.from(grapholscape.incremental.classInstanceEntities.values()).map(e => e.json())
+      // result.classInstanceEntities = Array.from(grapholscape.incremental.classInstanceEntities.values()).map(e => e.json())
       if (grapholscape.incremental.diagram)
         diagrams = [grapholscape.incremental.diagram]
     }

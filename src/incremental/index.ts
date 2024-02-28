@@ -8,235 +8,234 @@ import { GscapeEntitySelector } from "../ui/entity-selector";
 import { GscapeExplorer } from "../ui/ontology-explorer";
 import { ShortestPathDialog } from "../ui";
 import { WidgetEnum } from "../ui/util/widget-enum";
-import IncrementalController from "./controller";
+import IncrementalCore from "./controller";
 import { IncrementalEvent } from "./lifecycle";
 import * as IncrementalUI from './ui';
 
-export { IncrementalController };
+export { IncrementalCore as IncrementalController };
 export * from './lifecycle'
 
 /** @internal */
-export function initIncremental(grapholscape: Grapholscape) {
+// export function initIncremental(grapholscape: Grapholscape) {
 
-  let incrementalController: IncrementalController = new IncrementalController(grapholscape)
-  grapholscape.incremental = incrementalController
-  // Create and initialize UI components
-  IncrementalUI.ClassInstanceDetailsFactory(incrementalController)
-  // IncrementalUI.VKGPreferencesFactory(incrementalController)
-  IncrementalUI.InstanceExplorerFactory(incrementalController)
-  IncrementalUI.CommandsWidgetFactory(incrementalController)
-  IncrementalUI.NodeButtonsFactory(incrementalController)
-  IncrementalUI.NavigationMenuFactory(incrementalController)
+//   let incrementalController: IncrementalCore = new IncrementalCore(grapholscape)
+//   grapholscape.incremental = incrementalController
+//   // Create and initialize UI components
+//   IncrementalUI.IncrementalEntityDetailsFactory(incrementalController)
+//   // IncrementalUI.VKGPreferencesFactory(incrementalController)
+//   // IncrementalUI.InstanceExplorerFactory(incrementalController)
+//   IncrementalUI.CommandsWidgetFactory(incrementalController)
+//   IncrementalUI.NodeButtonsFactory(incrementalController)
+//   IncrementalUI.NavigationMenuFactory(incrementalController)
 
-  let initialMenu = incrementalController
-    .grapholscape
-    .widgets
-    .get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu
+//   let initialMenu = incrementalController
+//     .grapholscape
+//     .widgets
+//     .get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu
 
-  if (!initialMenu) {
-    // initEntitySelector(incrementalController.grapholscape)
-    initialMenu = new IncrementalInitialMenu(grapholscape)
-    incrementalController.grapholscape.widgets.set(WidgetEnum.INCREMENTAL_INITIAL_MENU, initialMenu)
-  }
+//   if (!initialMenu) {
+//     // initEntitySelector(incrementalController.grapholscape)
+//     initialMenu = new IncrementalInitialMenu(grapholscape)
+//     incrementalController.grapholscape.widgets.set(WidgetEnum.INCREMENTAL_INITIAL_MENU, initialMenu)
+//   }
 
-  initialMenu.shortestPathEnabled = incrementalController.endpointController?.isReasonerAvailable() === true
+//   // initialMenu.shortestPathEnabled = incrementalController.endpointController?.isReasonerAvailable() === true
 
-  // entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
-  incrementalController.grapholscape.uiContainer?.appendChild(initialMenu)
-  // entitySelector.hide()
+//   // entitySelector = grapholscape.widgets.get(WidgetEnum.ENTITY_SELECTOR) as GscapeEntitySelector
+//   incrementalController.grapholscape.uiContainer?.appendChild(initialMenu)
+//   // entitySelector.hide()
 
-  initialMenu.addEventListener('class-selection', (e: CustomEvent) => {
-    incrementalController.addClass(e.detail, true)
-    grapholscape.selectElement(e.detail)
-    IncrementalUI.moveUpLeft(initialMenu)
-    initialMenu.closePanel()
-  })
+//   initialMenu.addEventListener('class-selection', (e: CustomEvent) => {
+//     incrementalController.addClass(e.detail, true)
+//     IncrementalUI.moveUpLeft(initialMenu)
+//     initialMenu.closePanel()
+//   })
 
-  initialMenu.addEventListener('shortest-path-click', async (e: CustomEvent) => {
+//   // initialMenu.addEventListener('shortest-path-click', async (e: CustomEvent) => {
 
-    const shortestPathDialog = new ShortestPathDialog(grapholscape)
+//   //   const shortestPathDialog = new ShortestPathDialog(grapholscape)
 
-    grapholscape.uiContainer?.appendChild(shortestPathDialog)
-    shortestPathDialog.show()
+//   //   grapholscape.uiContainer?.appendChild(shortestPathDialog)
+//   //   shortestPathDialog.show()
 
-    shortestPathDialog.onConfirm(async (sourceClassIri: string, targetClassIri: string) => {
-      const path = await incrementalController.endpointController?.highlightsManager?.getShortestPath(
-        sourceClassIri,
-        targetClassIri
-      )
+//   //   shortestPathDialog.onConfirm(async (sourceClassIri: string, targetClassIri: string) => {
+//   //     const path = await incrementalController.endpointController?.highlightsManager?.getShortestPath(
+//   //       sourceClassIri,
+//   //       targetClassIri
+//   //     )
 
-      if (path && path[0].entities) {
-        incrementalController.addPath(path[0].entities)
-        IncrementalUI.moveUpLeft(initialMenu)
-        initialMenu.closePanel()
-      } else {
-        showMessage('Can\'t find shortest path between selected classes', 'Info', grapholscape.uiContainer)
-      }
-    })
-  })
+//   //     if (path && path[0].entities) {
+//   //       incrementalController.addPath(path[0].entities)
+//   //       IncrementalUI.moveUpLeft(initialMenu)
+//   //       initialMenu.closePanel()
+//   //     } else {
+//   //       showMessage('Can\'t find shortest path between selected classes', 'Info', grapholscape.uiContainer)
+//   //     }
+//   //   })
+//   // })
 
-  if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    onIncrementalStartup(grapholscape, incrementalController)
-  } else {
-    manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
-  }
+//   // if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+//   //   onIncrementalStartup(grapholscape, incrementalController)
+//   // } else {
+//   //   manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
+//   // }
 
-  // CORE's lifecycle reactions 
-  grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
+//   // CORE's lifecycle reactions 
+//   // grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
 
-    if (rendererState === RendererStatesEnum.INCREMENTAL) {
-      onIncrementalStartup(grapholscape, incrementalController)
-    } else {
-      manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
-    }
-  })
+//   //   if (rendererState === RendererStatesEnum.INCREMENTAL) {
+//   //     onIncrementalStartup(grapholscape, incrementalController)
+//   //   } else {
+//   //     manageWidgetsOnDeactivation(grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>)
+//   //   }
+//   // })
 
-  grapholscape.on(LifecycleEvent.BackgroundClick, () => {
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      incrementalController.endpointController?.stopRequests('instances')
-    }
-  }) 
+//   // grapholscape.on(LifecycleEvent.BackgroundClick, () => {
+//   //   if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+//   //     incrementalController.endpointController?.stopRequests('instances')
+//   //   }
+//   // }) 
 
-  incrementalController.on(IncrementalEvent.DiagramUpdated, () => {
-    const initialMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as unknown as GscapeEntitySelector | undefined
-    if (grapholscape.renderer.cy?.elements().empty()) {
-      onEmptyDiagram(grapholscape)
-    } else {
-      if (initialMenu) {
-        IncrementalUI.moveUpLeft(initialMenu)
-      }
+//   // incrementalController.on(IncrementalEvent.DiagramUpdated, () => {
+//   //   const initialMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as unknown as GscapeEntitySelector | undefined
+//   //   if (grapholscape.renderer.cy?.elements().empty()) {
+//   //     onEmptyDiagram(grapholscape)
+//   //   } else {
+//   //     if (initialMenu) {
+//   //       IncrementalUI.moveUpLeft(initialMenu)
+//   //     }
 
-      const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
-      if (entityColorLegend) {
-        setColorList(entityColorLegend, grapholscape)
-        entityColorLegend.enable()
-      }
-    }
+//   //     const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
+//   //     if (entityColorLegend) {
+//   //       setColorList(entityColorLegend, grapholscape)
+//   //       entityColorLegend.enable()
+//   //     }
+//   //   }
 
 
-    const ontologyExplorer = grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
-    if (ontologyExplorer) {
-      ontologyExplorer.entities = createEntitiesList(grapholscape, ontologyExplorer.searchEntityComponent)
-        .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
-    }
-  })
+//   //   const ontologyExplorer = grapholscape.widgets.get(WidgetEnum.ONTOLOGY_EXPLORER) as GscapeExplorer | undefined
+//   //   if (ontologyExplorer) {
+//   //     ontologyExplorer.entities = createEntitiesList(grapholscape, ontologyExplorer.searchEntityComponent)
+//   //       .filter(e => e.viewOccurrences && e.viewOccurrences.size > 0)
+//   //   }
+//   // })
 
-  incrementalController.on(IncrementalEvent.Reset, () => {
-    if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-      manageWidgetsOnActivation(
-        grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-        true,
-        incrementalController.endpointController !== undefined
-      )
-      onEmptyDiagram(grapholscape)
-    }
-  })
-}
+//   // incrementalController.on(IncrementalEvent.Reset, () => {
+//   //   if (incrementalController.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+//   //     manageWidgetsOnActivation(
+//   //       grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
+//   //       true,
+//   //       incrementalController.endpointController !== undefined
+//   //     )
+//   //     onEmptyDiagram(grapholscape)
+//   //   }
+//   // })
+// }
 
-function onIncrementalStartup(grapholscape: Grapholscape, incrementalController: IncrementalController) {
-  grapholscape.renderer.unselect()
+// function onIncrementalStartup(grapholscape: Grapholscape, incrementalController: IncrementalCore) {
+//   grapholscape.renderer.unselect()
 
-  // if (!incrementalController) {
-  //   incrementalController = new IncrementalController(grapholscape)
-  // }
+//   // if (!incrementalController) {
+//   //   incrementalController = new IncrementalController(grapholscape)
+//   // }
 
-  manageWidgetsOnActivation(
-    grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
-    !grapholscape.renderer.cy || grapholscape.renderer.cy.elements().empty(),
-    incrementalController.endpointController !== undefined
-  )
+//   manageWidgetsOnActivation(
+//     grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
+//     !grapholscape.renderer.cy || grapholscape.renderer.cy.elements().empty(),
+//     incrementalController.endpointController !== undefined
+//   )
 
-  const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend
-  entityColorLegend.onElementSelection = (elem) => {
-    const filteredEntity = grapholscape.ontology.getEntity(elem.iri) || incrementalController.classInstanceEntities.get(elem.iri)
-    const filter = incrementalController.classFilterMap.get(elem.iri) ||
-      new Filter(elem.id, (grapholElement) => {
-        const _iri = grapholElement.iri
-        if (_iri) {
-          const entityToCheck = grapholscape.ontology.getEntity(_iri) || incrementalController.classInstanceEntities.get(_iri)
-          if (entityToCheck && filteredEntity) {
-            return filteredEntity?.iri.equals(entityToCheck.iri) ||
-              ((entityToCheck as ClassInstanceEntity).parentClassIris && (entityToCheck as ClassInstanceEntity).hasParentClassIri(filteredEntity.iri))
-          }
+//   const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend
+//   entityColorLegend.onElementSelection = (elem) => {
+//     const filteredEntity = grapholscape.ontology.getEntity(elem.iri) || incrementalController.classInstanceEntities.get(elem.iri)
+//     const filter = incrementalController.classFilterMap.get(elem.iri) ||
+//       new Filter(elem.id, (grapholElement) => {
+//         const _iri = grapholElement.iri
+//         if (_iri) {
+//           const entityToCheck = grapholscape.ontology.getEntity(_iri) || incrementalController.classInstanceEntities.get(_iri)
+//           if (entityToCheck && filteredEntity) {
+//             return filteredEntity?.iri.equals(entityToCheck.iri) ||
+//               ((entityToCheck as ClassInstanceEntity).parentClassIris && (entityToCheck as ClassInstanceEntity).hasParentClassIri(filteredEntity.iri))
+//           }
 
-        }
+//         }
 
-        return false
-      })
+//         return false
+//       })
 
-    incrementalController.classFilterMap.set(elem.iri, filter)
+//     incrementalController.classFilterMap.set(elem.iri, filter)
 
-    if (filter.active) {
-      grapholscape.unfilter(filter)
-    } else {
-      grapholscape.filter(filter)
-    }
+//     if (filter.active) {
+//       grapholscape.unfilter(filter)
+//     } else {
+//       grapholscape.filter(filter)
+//     }
 
-    elem.filtered = filter.active
-    entityColorLegend.requestUpdate()
-  }
+//     elem.filtered = filter.active
+//     entityColorLegend.requestUpdate()
+//   }
 
-  // if (grapholscape.renderer.diagram)
-  //   setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
+//   // if (grapholscape.renderer.diagram)
+//   //   setGraphEventHandlers(grapholscape.renderer.diagram, grapholscape.lifecycle, grapholscape.ontology)
 
-  // incrementalController.setIncrementalEventHandlers()
-}
+//   // incrementalController.setIncrementalEventHandlers()
+// }
 
-function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false, isReasonerAvailable?: boolean) {
-  const filtersWidget = widgets.get(WidgetEnum.FILTERS)
-  const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
-  const initialMenu = widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU)
-  const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
-  const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
-  const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
-  const entityColorLegend = widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend
+// function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty = false, isReasonerAvailable?: boolean) {
+//   const filtersWidget = widgets.get(WidgetEnum.FILTERS)
+//   const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
+//   const initialMenu = widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU)
+//   const classInstanceDetails = widgets.get(WidgetEnum.INCREMENTAL_ENTITY_DETAILS)
+//   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
+//   const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+//   const entityColorLegend = widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend
 
-  entityColorLegend.enable()
+//   entityColorLegend.enable()
 
-  entityDetails.showOccurrences = false
-  classInstanceDetails?.enable()
-  diagramSelector?.hide()
+//   entityDetails.showOccurrences = false
+//   classInstanceDetails?.enable()
+//   diagramSelector?.hide()
 
-  initialMenu?.show()
+//   initialMenu?.show()
 
-  if (isCanvasEmpty && initialMenu) {
-    IncrementalUI.restorePosition(initialMenu);
-    (initialMenu as IncrementalInitialMenu).focusInputSearch()
-  }
+//   if (isCanvasEmpty && initialMenu) {
+//     IncrementalUI.restorePosition(initialMenu);
+//     (initialMenu as IncrementalInitialMenu).focusInputSearch()
+//   }
 
-  if (isReasonerAvailable)
-    vkgPreferences?.enable()
+//   if (isReasonerAvailable)
+//     vkgPreferences?.enable()
 
-  filtersWidget?.hide()
-}
+//   filtersWidget?.hide()
+// }
 
-function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>) {
-  const filtersWidget = widgets.get(WidgetEnum.FILTERS)
-  const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
-  const initialMenu = widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU)
-  const classInstanceDetails = widgets.get(WidgetEnum.CLASS_INSTANCE_DETAILS)
-  const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
-  const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
+// function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>) {
+//   const filtersWidget = widgets.get(WidgetEnum.FILTERS)
+//   const diagramSelector = widgets.get(WidgetEnum.DIAGRAM_SELECTOR)
+//   const initialMenu = widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU)
+//   const classInstanceDetails = widgets.get(WidgetEnum.INCREMENTAL_ENTITY_DETAILS)
+//   const vkgPreferences = widgets.get(WidgetEnum.VKG_PREFERENCES)
+//   const entityDetails = widgets.get(WidgetEnum.ENTITY_DETAILS) as GscapeEntityDetails
 
-  entityDetails.showOccurrences = true
-  classInstanceDetails?.disable()
-  vkgPreferences?.disable()
-  diagramSelector?.show()
-  initialMenu?.hide()
-  filtersWidget?.show()
-}
+//   entityDetails.showOccurrences = true
+//   classInstanceDetails?.disable()
+//   vkgPreferences?.disable()
+//   diagramSelector?.show()
+//   initialMenu?.hide()
+//   filtersWidget?.show()
+// }
 
-function onEmptyDiagram(grapholscape: Grapholscape) {
-  const initialMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu | undefined
-  (grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide();
+// function onEmptyDiagram(grapholscape: Grapholscape) {
+//   const initialMenu = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_INITIAL_MENU) as IncrementalInitialMenu | undefined
+//   (grapholscape.widgets.get(WidgetEnum.ENTITY_DETAILS) as unknown as IBaseMixin)?.hide();
 
-  if (initialMenu) {
-    IncrementalUI.restorePosition(initialMenu)
-    initialMenu.focusInputSearch()
-  }
+//   if (initialMenu) {
+//     IncrementalUI.restorePosition(initialMenu)
+//     initialMenu.focusInputSearch()
+//   }
 
-  const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
-  if (entityColorLegend) {
-    entityColorLegend.elements = []
-  }
-}
+//   const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND) as GscapeEntityColorLegend | undefined
+//   if (entityColorLegend) {
+//     entityColorLegend.elements = []
+//   }
+// }

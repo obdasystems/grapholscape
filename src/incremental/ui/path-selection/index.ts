@@ -1,11 +1,11 @@
 import { EdgeSingular, NodeSingular } from "cytoscape";
 import { RendererStatesEnum } from "../../../model";
-import IncrementalController from "../../controller";
+import IncrementalCore from "../../old-controller";
 import { edgeHandlesOptions } from "../../edge-handles-options";
 import { showMessage, PathSelector } from "../../../ui";
 
 export async function pathSelectionInit(
-  ic: IncrementalController,
+  ic: IncrementalCore,
   sourceIri: string,
   targetIri: string) {
 
@@ -42,7 +42,7 @@ export async function pathSelectionInit(
   }
 }
 
-export function handlePathEdgeDraw(targetNode: NodeSingular, ic: IncrementalController, onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => { }) {
+export function handlePathEdgeDraw(targetNode: NodeSingular, ic: IncrementalCore, onComplete = (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => { }) {
   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
     const cy = ic.grapholscape.renderer.cy as any
     if (cy && !cy.scratch('eh')) {

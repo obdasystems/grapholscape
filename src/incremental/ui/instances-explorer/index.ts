@@ -1,14 +1,13 @@
 import { Position } from "cytoscape"
-import { ClassInstanceEntity, TypesEnum } from "../../../model"
 import { WidgetEnum } from "../../../ui"
-import IncrementalController from "../../controller"
+import { IIncremental } from "../../i-incremental"
 import { IncrementalEvent } from "../../lifecycle"
 import onHideMenu from "../on-hide-menu"
-import GscapeInstanceExplorer, { AddAllEvent, ClassInstanceViewData, InstanceFilterEvent, InstanceSelectionEvent } from "./instance-explorer"
+import GscapeInstanceExplorer, { ClassInstanceViewData, InstanceSelectionEvent } from "./instance-explorer"
 
 export { default as GscapeInstanceExplorer } from './instance-explorer'
 
-export function InstanceExplorerFactory(incrementalController: IncrementalController) {
+export function InstanceExplorerFactory(incrementalController: IIncremental) {
   const instancesExplorer = new GscapeInstanceExplorer()
   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
@@ -35,7 +34,6 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
 
   instancesExplorer.addEventListener('instanceselection', async (e: InstanceSelectionEvent) => {
     incrementalController.performActionWithBlockedGraph(async () => {
-      let addedInstanceEntity: ClassInstanceEntity | undefined
       let refNodeId: string | undefined
       let refPosition: Position | undefined
       if (instancesExplorer.referenceEntity && instancesExplorer.referenceEntityType) {
@@ -48,166 +46,169 @@ export function InstanceExplorerFactory(incrementalController: IncrementalContro
         }
       }
 
-
-      addedInstanceEntity = incrementalController.addInstance(e.detail.instance, e.detail.parentClassIris, refPosition)
-      const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, TypesEnum.CLASS_INSTANCE)
-      if (!sourceId)
-        return
-
-      addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
-        const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, TypesEnum.CLASS)
-        if (targetId) {
-          incrementalController.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
-        }
-      })
-
-      if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {
-        incrementalController.addInstance(e.detail.instance.connectedInstance, undefined, refPosition)
-        const isDirect = (await (incrementalController.endpointController?.highlightsManager?.objectProperties()))
-          ?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
-
-        if (isDirect !== undefined) {
-          isDirect
-            ? incrementalController.addExtensionalObjectProperty(
-              e.detail.filterByProperty,
-              e.detail.instance.iri,
-              e.detail.instance.connectedInstance.iri
-            )
-            : incrementalController.addExtensionalObjectProperty(
-              e.detail.filterByProperty,
-              e.detail.instance.connectedInstance.iri,
-              e.detail.instance.iri
-            )
-        }
+      const individualEntity = incrementalController.grapholscape.ontology.getEntity(e.detail.instance.iri)
+      if (individualEntity) {
+        incrementalController.addIndividual(individualEntity, e.detail.parentClassIris, refPosition)
       }
+      
+      // const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, TypesEnum.INDIVIDUAL)
+      // if (!sourceId)
+      //   return
 
-      if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
-        const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
-        const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
-        if (instancesExplorer.isPropertyDirect)
-          incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
-        else
-          incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
-      }
+      // addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
+      //   const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, TypesEnum.CLASS)
+      //   if (targetId) {
+      //     incrementalController.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
+      //   }
+      // })
+
+      // if (e.detail.instance.connectedInstance && e.detail.filterByProperty) {
+      //   incrementalController.addInstance(e.detail.instance.connectedInstance, undefined, refPosition)
+      //   const isDirect = (await (incrementalController.endpointController?.highlightsManager?.objectProperties()))
+      //     ?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
+
+      //   if (isDirect !== undefined) {
+      //     isDirect
+      //       ? incrementalController.addExtensionalObjectProperty(
+      //         e.detail.filterByProperty,
+      //         e.detail.instance.iri,
+      //         e.detail.instance.connectedInstance.iri
+      //       )
+      //       : incrementalController.addExtensionalObjectProperty(
+      //         e.detail.filterByProperty,
+      //         e.detail.instance.connectedInstance.iri,
+      //         e.detail.instance.iri
+      //       )
+      //   }
+      // }
+
+      // if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
+      //   const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
+      //   const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
+      //   if (instancesExplorer.isPropertyDirect)
+      //     incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
+      //   else
+      //     incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
+      // }
     })
   })
 
-  instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {
-    incrementalController.endpointController?.stopRequests('instances')
-    instancesExplorer.instances = new Map()
-    instancesExplorer.numberOfInstancesReceived = 0
-    instancesExplorer.numberResultsAvailable = 0
-    instancesExplorer.numberOfPagesShown = 1
-    instancesExplorer.areInstancesLoading = true
+  // instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {
+  //   incrementalController.endpointController?.stopRequests('instances')
+  //   instancesExplorer.instances = new Map()
+  //   instancesExplorer.numberOfInstancesReceived = 0
+  //   instancesExplorer.numberResultsAvailable = 0
+  //   instancesExplorer.numberOfPagesShown = 1
+  //   instancesExplorer.areInstancesLoading = true
 
-    if (instancesExplorer.referenceEntity) {
-      if (instancesExplorer.referenceEntity.value.types.includes(TypesEnum.CLASS)) {
-        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
-          instancesExplorer.referenceEntity?.value.iri.fullIri,
-          e.detail.shouldAskForLabels,
-          e.detail.filterText,
-          e.detail.filterByProperty,
-          e.detail.propertyType,
-          e.detail.direct,
-        )
-      }
+  //   if (instancesExplorer.referenceEntity) {
+  //     if (instancesExplorer.referenceEntity.value.types.includes(TypesEnum.CLASS)) {
+  //       instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(
+  //         instancesExplorer.referenceEntity?.value.iri.fullIri,
+  //         e.detail.shouldAskForLabels,
+  //         e.detail.filterText,
+  //         e.detail.filterByProperty,
+  //         e.detail.propertyType,
+  //         e.detail.direct,
+  //       )
+  //     }
 
-      else if (instancesExplorer.referenceEntity.value.types.includes(TypesEnum.CLASS_INSTANCE) && instancesExplorer.referencePropertyEntity) {
-        // if (e.detail.filterByType) {
-        //   instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
-        //     .map(dp => getEntityViewDataIncremental(dp, incrementalController))
-        // }
+  //     else if (instancesExplorer.referenceEntity.value.types.includes(TypesEnum.CLASS_INSTANCE) && instancesExplorer.referencePropertyEntity) {
+  //       // if (e.detail.filterByType) {
+  //       //   instancesExplorer.propertiesFilterList = (await incrementalController.getDataPropertiesByClasses([e.detail.filterByType]))
+  //       //     .map(dp => getEntityViewDataIncremental(dp, incrementalController))
+  //       // }
 
-        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
-          instancesExplorer.referenceEntity.value.iri.fullIri,
-          instancesExplorer.referencePropertyEntity.value.iri.fullIri,
-          instancesExplorer.isPropertyDirect,
-          e.detail.shouldAskForLabels,
-          e.detail.filterByType,
-          e.detail.filterByProperty,
-          e.detail.filterText,
-        )
-      }
-    }
-  })
+  //       instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
+  //         instancesExplorer.referenceEntity.value.iri.fullIri,
+  //         instancesExplorer.referencePropertyEntity.value.iri.fullIri,
+  //         instancesExplorer.isPropertyDirect,
+  //         e.detail.shouldAskForLabels,
+  //         e.detail.filterByType,
+  //         e.detail.filterByProperty,
+  //         e.detail.filterText,
+  //       )
+  //     }
+  //   }
+  // })
 
-  instancesExplorer.addEventListener('showmoreinstances', async (e: CustomEvent) => {
-    incrementalController.endpointController?.stopRequests('instances')
-    instancesExplorer.areInstancesLoading = true
+  // instancesExplorer.addEventListener('showmoreinstances', async (e: CustomEvent) => {
+  //   incrementalController.endpointController?.stopRequests('instances')
+  //   instancesExplorer.areInstancesLoading = true
 
-    if (instancesExplorer.requestId) {
-      incrementalController.endpointController?.requestNewInstances(
-        instancesExplorer.requestId,
-        instancesExplorer.numberOfPagesShown + 1
-      )
-    }
-  })
+  //   if (instancesExplorer.requestId) {
+  //     incrementalController.endpointController?.requestNewInstances(
+  //       instancesExplorer.requestId,
+  //       instancesExplorer.numberOfPagesShown + 1
+  //     )
+  //   }
+  // })
 
-  instancesExplorer.addEventListener('addall', async (e: AddAllEvent) => {
-    if (!incrementalController.checkDiagramSize(e.detail.instances.length))
-      return
+  // instancesExplorer.addEventListener('addall', async (e: AddAllEvent) => {
+  //   if (!incrementalController.checkDiagramSize(e.detail.instances.length))
+  //     return
 
-    incrementalController.performActionWithBlockedGraph(async () => {
-      let addedInstanceEntity: ClassInstanceEntity | undefined
-      let refNodeId: string | undefined
-      let refPosition: Position | undefined
+  //   incrementalController.performActionWithBlockedGraph(async () => {
+  //     let addedInstanceEntity: ClassInstanceEntity | undefined
+  //     let refNodeId: string | undefined
+  //     let refPosition: Position | undefined
 
-      if (instancesExplorer.referenceEntity && instancesExplorer.referenceEntityType) {
-        refNodeId = incrementalController.getIDByIRI(
-          instancesExplorer.referenceEntity.value.iri.fullIri,
-          instancesExplorer.referenceEntityType,
-        )
-        if (refNodeId) {
-          refPosition = incrementalController.diagram.representation?.cy.$id(refNodeId).position()
-        }
-      }
+  //     if (instancesExplorer.referenceEntity && instancesExplorer.referenceEntityType) {
+  //       refNodeId = incrementalController.getIDByIRI(
+  //         instancesExplorer.referenceEntity.value.iri.fullIri,
+  //         instancesExplorer.referenceEntityType,
+  //       )
+  //       if (refNodeId) {
+  //         refPosition = incrementalController.diagram.representation?.cy.$id(refNodeId).position()
+  //       }
+  //     }
 
-      const objectProperties = await (incrementalController.endpointController?.highlightsManager?.objectProperties())
+  //     const objectProperties = await (incrementalController.endpointController?.highlightsManager?.objectProperties())
 
-      e.detail.instances.forEach(async instance => {
-        addedInstanceEntity = incrementalController.addInstance(instance, e.detail.parentClassIris, refPosition)
+  //     e.detail.instances.forEach(async instance => {
+  //       addedInstanceEntity = incrementalController.addInstance(instance, e.detail.parentClassIris, refPosition)
 
-        const sourceId = incrementalController.getIDByIRI(instance.iri, TypesEnum.CLASS_INSTANCE)
-        if (!sourceId)
-          return
+  //       const sourceId = incrementalController.getIDByIRI(instance.iri, TypesEnum.CLASS_INSTANCE)
+  //       if (!sourceId)
+  //         return
 
-        addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
-          const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, TypesEnum.CLASS)
-          if (targetId) {
-            incrementalController.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
-          }
-        })
+  //       addedInstanceEntity.parentClassIris.forEach(parentClassIri => {
+  //         const targetId = incrementalController.getIDByIRI(parentClassIri.fullIri, TypesEnum.CLASS)
+  //         if (targetId) {
+  //           incrementalController.addEdge(sourceId, targetId, TypesEnum.INSTANCE_OF)
+  //         }
+  //       })
 
-        if (instance.connectedInstance && e.detail.filterByProperty) {
-          incrementalController.addInstance(instance.connectedInstance, undefined, refPosition)
-          const isDirect = objectProperties?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
+  //       if (instance.connectedInstance && e.detail.filterByProperty) {
+  //         incrementalController.addInstance(instance.connectedInstance, undefined, refPosition)
+  //         const isDirect = objectProperties?.find(ops => ops.objectPropertyIRI === e.detail.filterByProperty)?.direct
 
-          if (isDirect !== undefined) {
-            isDirect
-              ? incrementalController.addExtensionalObjectProperty(
-                e.detail.filterByProperty,
-                instance.iri,
-                instance.connectedInstance.iri
-              )
-              : incrementalController.addExtensionalObjectProperty(
-                e.detail.filterByProperty,
-                instance.connectedInstance.iri,
-                instance.iri
-              )
-          }
-        }
+  //         if (isDirect !== undefined) {
+  //           isDirect
+  //             ? incrementalController.addExtensionalObjectProperty(
+  //               e.detail.filterByProperty,
+  //               instance.iri,
+  //               instance.connectedInstance.iri
+  //             )
+  //             : incrementalController.addExtensionalObjectProperty(
+  //               e.detail.filterByProperty,
+  //               instance.connectedInstance.iri,
+  //               instance.iri
+  //             )
+  //         }
+  //       }
 
-        if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
-          const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
-          const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
-          if (instancesExplorer.isPropertyDirect)
-            incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
-          else
-            incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
-        }
-      })
-    })
-  })
+  //       if (instancesExplorer.referenceEntity && instancesExplorer.referencePropertyEntity && addedInstanceEntity) { // add object property between instances
+  //         const sourceInstanceIri = instancesExplorer.referenceEntity.value.iri.fullIri
+  //         const objPropertyIri = instancesExplorer.referencePropertyEntity.value.iri.fullIri
+  //         if (instancesExplorer.isPropertyDirect)
+  //           incrementalController.addExtensionalObjectProperty(objPropertyIri, sourceInstanceIri, addedInstanceEntity.iri.fullIri)
+  //         else
+  //           incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
+  //       }
+  //     })
+  //   })
+  // })
 
   instancesExplorer.tippyWidget.setProps({
     onHide: () => {

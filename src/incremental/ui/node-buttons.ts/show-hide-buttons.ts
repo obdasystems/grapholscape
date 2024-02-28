@@ -1,26 +1,19 @@
 import { NodeSingular } from "cytoscape"
-import { TypesEnum } from "../../../model"
 import { NodeButton } from "../../../ui"
 
-export function showButtons(targetNode: NodeSingular, nodeButtons: Map<string, NodeButton[]>) {
-  const targetType = targetNode.data().type
+export function showButtons(targetNode: NodeSingular, nodeButtons: NodeButton[]) {
+  nodeButtons.forEach((btn, i) => {
+    // set position relative to default placemente (right)
+    btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.length)
+    btn.node = targetNode
 
-  if (!targetNode.hasClass('unknown-parent-class') && (targetType === TypesEnum.CLASS || targetType === TypesEnum.CLASS_INSTANCE)) {
-    const buttons: NodeButton[] = []
-    nodeButtons.get(targetType)?.forEach((btn, i) => {
-      // set position relative to default placemente (right)
-      btn.cxtWidgetProps.offset = (info) => getButtonOffset(info, i, nodeButtons.get(targetType)!.length)
-      btn.node = targetNode
+    // save the function to attach the button in the scratch for later usage
+    targetNode.scratch(`place-node-button-${i}`, () => btn.attachTo((targetNode as any).popperRef()))
+    targetNode.on('position', targetNode.scratch(`place-node-button-${i}`)) // on position change, call the function in the scratch
+    btn.attachTo((targetNode as any).popperRef())
+  })
 
-      // save the function to attach the button in the scratch for later usage
-      targetNode.scratch(`place-node-button-${i}`, () => btn.attachTo((targetNode as any).popperRef()))
-      targetNode.on('position', targetNode.scratch(`place-node-button-${i}`)) // on position change, call the function in the scratch
-      btn.attachTo((targetNode as any).popperRef())
-      buttons.push(btn)
-    })
-
-    targetNode.scratch(`node-button-list`, buttons)
-  }
+  targetNode.scratch(`node-button-list`, nodeButtons)
 }
 
 export function hideButtons(targetNode: NodeSingular) {

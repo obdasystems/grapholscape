@@ -164,11 +164,12 @@ export default class EndpointController {
       return await this.vkgApi?.getMaterializedCounts(this.selectedEndpoint)
   }
 
-  async instanceCheck(instanceIri: string, classesToCheck: string[]) {
+  async instanceCheck(instanceIri: string, classesToCheck: string[], stopOnFirstMatch: boolean) {
     return new Promise((resolve: (value: string[]) => void, reject: () => void) => {
       this.vkgApi?.instanceCheck(
         instanceIri,
         classesToCheck,
+        stopOnFirstMatch,
         (res) => resolve(res),
         reject
       )

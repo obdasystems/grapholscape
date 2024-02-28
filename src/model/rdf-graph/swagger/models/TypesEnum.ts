@@ -24,7 +24,6 @@ export enum TypesEnum {
     OBJECT_PROPERTY = 'object-property',
     DATA_PROPERTY = 'data-property',
     INDIVIDUAL = 'individual',
-    CLASS_INSTANCE = 'class-instance',
     DOMAIN_RESTRICTION = 'domain-restriction',
     RANGE_RESTRICTION = 'range-restriction',
     UNION = 'union',

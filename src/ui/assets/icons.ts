@@ -1,7 +1,6 @@
 import { svg, SVGTemplateResult } from "lit"
 import { TypesEnum } from "../../model"
 import classIcon from './class-icon'
-import classInstanceIcon from "./class-instance-icon"
 import dataPropertyIcon from "./data-property-icon"
 import individualIcon from "./individual-icon"
 import objectPropertyIcon from "./object-property-icon"
@@ -158,15 +157,13 @@ export const range = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |
-  TypesEnum.INDIVIDUAL |
-  TypesEnum.CLASS_INSTANCE
+  TypesEnum.INDIVIDUAL
   ]: SVGTemplateResult
 } = {
   [TypesEnum.CLASS]: classIcon,
   [TypesEnum.OBJECT_PROPERTY]: objectPropertyIcon,
   [TypesEnum.DATA_PROPERTY]: dataPropertyIcon,
   [TypesEnum.INDIVIDUAL]: individualIcon,
-  [TypesEnum.CLASS_INSTANCE]: classInstanceIcon,
 }
 
 export const annotationIcons: { [x: string]: SVGTemplateResult | undefined } = {

@@ -1,19 +1,19 @@
 import { NodeSingular } from "cytoscape";
 import { TemplateResult, SVGTemplateResult } from "lit";
 import { Placement } from "tippy.js";
-import { Iri, TypesEnum } from "../../../model";
+import { Iri, RendererStatesEnum, TypesEnum } from "../../../model";
 import { NodeButton, textSpinner } from "../../../ui";
-import IncrementalController from "../../controller";
 import { getButtonOffset } from "./show-hide-buttons";
+import { IIncremental } from "../../i-incremental";
 
 export default class BadgeController {
 
-  constructor(private ic: IncrementalController) { }
+  constructor(private ic: IIncremental) { }
 
   addLoadingBadge(entityIri: string | Iri, type: TypesEnum) {
     const cyNode = this.findNodeByIri(entityIri, type)
     if (cyNode && cyNode.nonempty()) {
-      if (type === TypesEnum.CLASS_INSTANCE)
+      if (type === TypesEnum.INDIVIDUAL)
         cyNode.addClass('unknown-parent-class')
       this._addBadge(cyNode, textSpinner(), 'loading-badge')
     }
@@ -80,7 +80,8 @@ export default class BadgeController {
     if (typeof iri !== 'string')
       iri = iri.fullIri
 
-    const id = this.ic.getIDByIRI(iri, type)
+    const entity = this.ic.grapholscape.ontology.getEntity(iri)
+    const id = entity?.getOccurrenceByType(type, RendererStatesEnum.INCREMENTAL)?.id
     if (id)
       return this.ic.diagram.representation?.cy.$id(id)
   }
