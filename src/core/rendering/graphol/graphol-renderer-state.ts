@@ -3,6 +3,7 @@ import { grapholOptions } from "../../../config"
 import { Ontology, BaseRenderer, iFilterManager, RendererStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
 import grapholStyle from "./graphol-style"
+import Grapholscape from "../../grapholscape"
 
 export default class GrapholRendererState extends BaseRenderer {
   layout: cytoscape.Layouts
@@ -48,4 +49,5 @@ export default class GrapholRendererState extends BaseRenderer {
   }
 
   transformOntology(ontology: Ontology): void { }
+  postOntologyTransform(grapholscape: Grapholscape): void { }
 }

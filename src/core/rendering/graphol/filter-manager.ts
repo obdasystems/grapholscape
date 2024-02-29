@@ -3,6 +3,9 @@ import { BaseFilterManager, DefaultFilterKeyEnum, Filter } from "../../../model"
 export default class GrapholFilterManager extends BaseFilterManager {
   _filters: Map<string, Filter>
 
+  protected lockedFilters = [
+    DefaultFilterKeyEnum.ANNOTATION_PROPERTY,
+  ]
 
   filterActivation(filter: Filter) {
     if (!super.filterActivation(filter))
@@ -32,18 +35,5 @@ export default class GrapholFilterManager extends BaseFilterManager {
     }
 
     return true
-  }
-
-  get filters() { return this._filters }
-  set filters(filters) {
-    this._filters = filters
-
-    filters.forEach(filter => {
-      filter.unlock()
-    })
-
-    if (filters.get(DefaultFilterKeyEnum.DATA_PROPERTY)?.active) {
-      filters.get(DefaultFilterKeyEnum.VALUE_DOMAIN)?.lock()
-    }
   }
 }

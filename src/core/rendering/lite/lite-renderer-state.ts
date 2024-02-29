@@ -4,6 +4,7 @@ import { Ontology, iFilterManager, BaseRenderer, RendererStatesEnum, Grapholscap
 import LiteFilterManager from "./filter-manager";
 import liteStyle from "./lite-style";
 import LiteTransformer from "./lite-transformer";
+import Grapholscape from "../../grapholscape";
 
 export default class LiteRendererState extends BaseRenderer {
   readonly id: RendererStatesEnum = RendererStatesEnum.GRAPHOL_LITE
@@ -67,6 +68,8 @@ export default class LiteRendererState extends BaseRenderer {
       diagram.representations.set(this.id, liteTransformer.transform(diagram))
     })
   }
+
+  postOntologyTransform(grapholscape: Grapholscape): void { }
 
   get layout() { return this._layout }
   set layout(newLayout) { this._layout = newLayout }

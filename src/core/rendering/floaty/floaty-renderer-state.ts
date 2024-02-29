@@ -7,6 +7,7 @@ import floatyStyle from "./floaty-style";
 import FloatyTransformer from "./floaty-transformer";
 import computeHierarchies from "../../compute-hierarchies";
 import { DiagramColorManager } from "../../colors-manager";
+import Grapholscape from "../../grapholscape";
 
 cytoscape.use(automove)
 
@@ -36,6 +37,10 @@ export default class FloatyRendererState extends BaseRenderer {
       diagram.representations.set(this.id, floatyTransformer.transform(diagram))
     })
     computeHierarchies(ontology)
+  }
+
+  postOntologyTransform(grapholscape: Grapholscape) {
+    FloatyTransformer.addAnnotationPropertyEdges(grapholscape)
   }
 
   runLayout(): void {

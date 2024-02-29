@@ -1,8 +1,9 @@
 import { Collection, NodeSingular } from "cytoscape";
 import { floatyOptions } from "../../../config/cytoscape-default-config";
-import { DefaultNamespaces, Diagram, DiagramRepresentation, GrapholEdge, GrapholElement, GrapholNode, RendererStatesEnum, TypesEnum } from "../../../model";
+import { DefaultNamespaces, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Ontology, RendererStatesEnum, TypesEnum } from "../../../model";
 import BaseGrapholTransformer from "../base-transformer";
 import LiteTransformer from "../lite/lite-transformer";
+import Grapholscape from "../../grapholscape";
 
 export default class FloatyTransformer extends BaseGrapholTransformer {
 
@@ -29,6 +30,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     //   node.data('original-position', JSON.stringify(node.position()))
     // })
 
+    this.addPropertyAssertionsEdge()
+
     this.filterByCriterion(node => {
       return this.getGrapholElement(node.id()) === undefined
     })
@@ -48,6 +51,80 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
     this.newCy.elements().unlock()
     return this.result
+  }
+
+  static addAnnotationPropertyEdges(grapholscape: Grapholscape) {
+    const ontology = grapholscape.ontology
+    const addNewIndividualOccurrence = (entity: GrapholEntity, diagramId = 0) => {
+      diagram = ontology.getDiagram(diagramId)?.representations.get(RendererStatesEnum.FLOATY)
+      if (!diagram) return
+
+      let node: GrapholNode | undefined
+      node = new GrapholNode(diagram?.getNewId('node'), TypesEnum.INDIVIDUAL)
+      node.diagramId = 0
+      node.displayedName = entity.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
+      diagram.addElement(node, entity)
+      entity.addOccurrence(node, RendererStatesEnum.FLOATY)
+      return entity
+        .occurrences.get(RendererStatesEnum.FLOATY)
+        ?.filter(occ => occ.isNode()) as GrapholNode[] | undefined
+    }
+
+
+    let diagram: DiagramRepresentation | undefined
+
+    let sourceEntityOccurrences: GrapholNode[] | undefined
+    let annotationPropertyEntity: GrapholEntity | undefined
+    let annotationPropertyEdge: GrapholEdge | undefined
+    let targetEntity: GrapholEntity | undefined
+    let targetEntityOccurrences: GrapholNode[] | undefined
+    const diagramsUsed: Set<number> = new Set()
+
+    for (let [entityIri, sourceEntity] of ontology.entities) {
+      sourceEntity.getAnnotations().filter(ann => ann.hasIriRange()).forEach(annotation => {
+        if (!annotation.rangeIri) return
+        diagramsUsed.clear()
+        annotationPropertyEntity = ontology.getEntity(annotation.propertyIri)
+        targetEntity = ontology.getEntity(annotation.rangeIri)
+        if (!targetEntity || !annotationPropertyEntity) return
+
+        sourceEntityOccurrences = sourceEntity
+          .occurrences.get(RendererStatesEnum.FLOATY)
+          ?.filter(occ => occ.isNode()) as GrapholNode[] | undefined
+        // if entity has no  occurrences => create new individual source node
+        if (!sourceEntityOccurrences || sourceEntityOccurrences.length === 0) {
+          sourceEntityOccurrences = addNewIndividualOccurrence(sourceEntity)
+        }
+
+        // for each source node, retrieve or create new target node in same diagram and add edge
+        sourceEntityOccurrences?.forEach(sourceNode => {
+          diagram = ontology.getDiagram(sourceNode.diagramId)?.representations.get(RendererStatesEnum.FLOATY)
+          if (diagram && !diagramsUsed.has(sourceNode.diagramId)) {
+            targetEntityOccurrences = targetEntity!
+              .getOccurrencesByDiagramId(sourceNode.diagramId, RendererStatesEnum.FLOATY)
+              ?.get(RendererStatesEnum.FLOATY)
+              ?.filter(occ => occ.isNode()) as GrapholNode[] | undefined
+
+            // if entity has no  occurrences => create new individual target node
+            if (!targetEntityOccurrences || targetEntityOccurrences.length === 0) {
+              targetEntityOccurrences = addNewIndividualOccurrence(targetEntity!, sourceNode.diagramId)
+            }
+
+            if (targetEntityOccurrences && targetEntityOccurrences[0]) {
+              annotationPropertyEdge = new GrapholEdge(diagram.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY)
+              annotationPropertyEdge.diagramId = sourceNode.diagramId
+              annotationPropertyEdge.sourceId = sourceNode.id
+              annotationPropertyEdge.targetId = targetEntityOccurrences[0].id
+              annotationPropertyEdge.displayedName = annotationPropertyEntity?.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
+
+              diagram.addElement(annotationPropertyEdge, annotationPropertyEntity)
+              annotationPropertyEntity?.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY)
+              diagramsUsed.add(sourceNode.diagramId)
+            }
+          }
+        })
+      })
+    }
   }
 
   private makeEdgesStraight() {
@@ -105,11 +182,10 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           ? this.getGrapholElement(range.id()) as GrapholNode
           : this.getGrapholElement(range.source().id()) as GrapholNode
 
-        newId = `e-${objectProperty.id()}-${grapholDomainNode.id}-${grapholRangeNode.id}-${i}`
-        let newGrapholEdge = new GrapholEdge(newId, TypesEnum.OBJECT_PROPERTY)
+        let newGrapholEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
         newGrapholEdge.sourceId = grapholDomainNode.id
         newGrapholEdge.targetId = grapholRangeNode.id
-        if (this.diagramId)
+        if (this.diagramId !== undefined)
           newGrapholEdge.diagramId = this.diagramId
 
         // if it's an object property on owl thing then leave domain/range info as default (only typed)
@@ -138,11 +214,11 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           }
         })
 
-        newGrapholEdge.originalId = objectProperty.id().toString()
+        // newGrapholEdge.originalId = objectProperty.id().toString()
 
         this.result.addElement(newGrapholEdge)
         const newAddedCyElement = this.newCy.$id(newGrapholEdge.id)
-        newAddedCyElement.data().iri = objectProperty.data().iri
+        newAddedCyElement.data('iri', objectProperty.data().iri)
       })
     })
   }
@@ -161,7 +237,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           if (!owlThingClass) {
             owlThingClass = this.addOWlThing()
           }
-          attributeEdge = new GrapholEdge(`e${this.result.grapholElements.size}`, TypesEnum.DATA_PROPERTY)
+          attributeEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.DATA_PROPERTY)
           attributeEdge.sourceId = owlThingClass.id
           attributeEdge.targetId = originalElem.id
           this.result.addElement(attributeEdge)
@@ -177,7 +253,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           if (!owlThingClass) {
             owlThingClass = this.addOWlThing()
           }
-          objectPropertyEdge = new GrapholEdge(`e${this.result.grapholElements.size}`, TypesEnum.OBJECT_PROPERTY)
+          objectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
           objectPropertyEdge.iri = originalElem!.iri
           objectPropertyEdge.displayedName = originalElem!.displayedName
           if (this.diagramId)
@@ -229,6 +305,42 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     })
 
     return rangeRestrictions.union(fatherRangeRestrictions)
+  }
+
+  private addPropertyAssertionsEdge() {
+    let sourceId: string | undefined
+    let targetId: string | undefined
+    let objectPropertyNode: GrapholElement | undefined
+
+    const propertyAsserstions = this.result.cy.$(`[!fake][type = "${TypesEnum.PROPERTY_ASSERTION}"]`)
+    propertyAsserstions.forEach(propertyAssertionNode => {
+      const inputs = propertyAssertionNode.connectedEdges(`[type = "${TypesEnum.INPUT}"]`)
+
+      sourceId = inputs.filter(edge => edge.data('targetLabel') === '1').source().id()
+      targetId = inputs.filter(edge => edge.data('targetLabel') === '2').source().id()
+
+      if (sourceId && targetId) {
+        propertyAssertionNode.connectedEdges(`[type = "${TypesEnum.MEMBERSHIP}"]`).forEach(membershipEdge => {
+          objectPropertyNode = this.getGrapholElement(membershipEdge.target().id())
+
+          if (objectPropertyNode) {
+            const newObjectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
+            newObjectPropertyEdge.iri = objectPropertyNode.iri
+            newObjectPropertyEdge.displayedName = objectPropertyNode.displayedName
+            if (this.diagramId)
+              newObjectPropertyEdge.diagramId = this.diagramId
+            // newObjectPropertyEdge.originalId = objectPropertyNode.id
+            newObjectPropertyEdge.sourceId = sourceId!
+            newObjectPropertyEdge.targetId = targetId!
+
+            const newAddedCyElement = this.result.addElement(newObjectPropertyEdge)
+            newAddedCyElement.data('iri', objectPropertyNode.iri)
+          }
+        })
+      }
+    })
+
+    this.deleteElements(propertyAsserstions)
   }
 
   private getFathers(node: NodeSingular) {

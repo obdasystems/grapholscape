@@ -100,6 +100,7 @@ export default class DiagramBuilder {
    * @param sourceEntity the source entity
    * @param targetEntity the target entity
    * @param nodesType the type of source and target
+   * @param nodesType the type of source and target
    * @param objectPropertyElement [optional] to use your own GrapholEdge for the object property occurrence.
    * if you don't pass this, a new GrapholEdge will be created from scratch
    * @returns 
@@ -154,8 +155,11 @@ export default class DiagramBuilder {
       /**
        * If the set of edges between source and target entity nodes
        * includes the property edge we want to add, then it's already present.
+       * If the set of edges between source and target entity nodes
+       * includes the property edge we want to add, then it's already present.
        */
       let edgesAlreadyPresent = sourceNode.edgesWith(targetNode)
+        .filter(e => e.data().iri === propertyEntity.iri.fullIri)
         .filter(e => e.data().iri === propertyEntity.iri.fullIri)
       if (edgesAlreadyPresent.nonempty()) {
         return this.diagramRepresentation

@@ -4,6 +4,7 @@ import Ontology from "../ontology"
 import GrapholscapeTheme from "../themes/theme"
 import Filter from './filter'
 import FilterManager from "./i-filter-manager"
+import { Grapholscape } from "../../core"
 
 export enum RendererStatesEnum {
   GRAPHOL = 'graphol',
@@ -26,5 +27,6 @@ export default interface RenderState {
   stopLayout(): void
   getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
   transformOntology(ontology: Ontology): void
+  postOntologyTransform(ontology: Grapholscape): void
   centerOnElementById(elementId: string, zoom?: number, select?: boolean): void
 }

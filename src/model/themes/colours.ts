@@ -81,6 +81,11 @@ export enum ColoursNames {
   /** Color used for data properties' nodes borders */
   data_property_contrast = 'data-property-contrast',
 
+  /** Color used for annotation properties' edges */
+  annotation_property = 'annotation-property',
+  /** Color used for annotation properties' edges contrast */
+  annotation_property_contrast = 'annotation-property-contrast',
+
   /** Color used for individual's nodes bodies */
   individual = 'individual',
   /** Color used for individual's nodes borders */

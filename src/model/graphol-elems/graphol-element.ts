@@ -57,6 +57,7 @@ export default class GrapholElement implements Element {
       case TypesEnum.CLASS:
       case TypesEnum.DATA_PROPERTY:
       case TypesEnum.OBJECT_PROPERTY:
+      case TypesEnum.ANNOTATION_PROPERTY:
       case TypesEnum.INDIVIDUAL:
       case TypesEnum.CLASS_INSTANCE:
         return true
