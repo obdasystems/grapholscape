@@ -7,16 +7,18 @@ import { CommandsWidgetFactory } from './commands-widget'
 import { IncrementalEntityDetailsFactory } from './incremental-entity-details'
 import { moveUpLeft } from './move-widget'
 import { NavigationMenuFactory } from './navigation-menu'
-import { NodeButtonsFactory } from './node-buttons.ts'
+import { NodeButtonsFactory } from './node-buttons'
 import { manageWidgetsOnActivation, manageWidgetsOnDeactivation, onEmptyDiagram, onIncrementalStartup } from './ui-handlers'
 
 export * from './commands-widget'
 export * from './incremental-entity-details'
-export * from './instances-explorer'
+// export * from './instances-explorer'
 export * from './move-widget'
 export * from './navigation-menu'
-export * from './node-buttons.ts'
-export * from './vkg-preferences'
+export * from './node-buttons'
+export * from './ui-handlers'
+export { default as showMenu } from './show-menu'
+// export * from './vkg-preferences'
 
 export function initIncrementalUI(ic: IncrementalController) {
   IncrementalEntityDetailsFactory(ic)

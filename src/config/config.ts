@@ -31,5 +31,5 @@ export type GrapholscapeConfig =
     selectedRenderer?: RendererStatesEnum,
     widgets?: WidgetsConfig,
     initialRendererSelection?: boolean,
-    customIncrementalController?: IIncremental
+    useCustomIncrementalController?: boolean,
   }

@@ -1,13 +1,12 @@
 import cytoscape, { Position } from "cytoscape";
-import { GscapeInstanceExplorer } from "./instances-explorer";
-import GscapeNavigationMenu from "./navigation-menu/navigation-menu";
-import { IIncremental } from "../i-incremental";
 import { IncrementalRendererState } from "../../core";
-import { RendererStatesEnum } from "../../model";
+import { RendererStatesEnum, TypesEnum } from "../../model";
+import { EntityViewData, IBaseMixin, IContextualWidgetMixin } from "../../ui";
+import { IIncremental } from "../i-incremental";
 
 const panGraph = false
 
-export default function (menu: GscapeNavigationMenu | GscapeInstanceExplorer, ic: IIncremental) {
+export default function showMenu(menu: IContextualWidgetMixin & IBaseMixin & { referenceEntity?: EntityViewData, referenceEntityType?: TypesEnum }, ic: IIncremental) {
   if (menu.referenceEntity && menu.referenceEntityType) {
     const cy = ic.grapholscape.renderer.cy
 

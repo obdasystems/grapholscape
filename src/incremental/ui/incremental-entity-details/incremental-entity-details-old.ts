@@ -1,7 +1,6 @@
 import { css, html, LitElement, PropertyDeclarations } from "lit"
 import { BaseMixin, baseStyle, contentSpinnerStyle, entityListItemStyle, EntityViewData, getIconSlot, SizeEnum, textSpinner, textSpinnerStyle } from "../../../ui"
 import style from "./style"
-import { Count } from "../../old-controller"
 import { counter } from "../../../ui/assets"
 import { GrapholEntity } from "../../../model"
 
@@ -16,7 +15,7 @@ export default class IncrementalEntityDetails extends BaseMixin(LitElement) {
   /** @internal */
   onParentClassSelection = (iri: string) => { }
   
-  instancesCount?: Count = undefined
+  instancesCount: any
   instancesCountLoading: boolean = false
   allowComputeCount: boolean = false
   entity?: GrapholEntity

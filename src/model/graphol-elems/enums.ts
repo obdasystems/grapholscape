@@ -140,9 +140,4 @@ export const GrapholNodesEnum: { [x in TypesEnum ]?: GrapholNodeInfo } = {
     SHAPE_POINTS: POLYGON_POINTS,
     IDENTITY: TypesEnum.FACET
   },
-  [TypesEnum.CLASS_INSTANCE]: {
-    TYPE: TypesEnum.CLASS_INSTANCE,
-    SHAPE: Shape.ELLIPSE,
-    IDENTITY: TypesEnum.CLASS_INSTANCE,
-  }
 }

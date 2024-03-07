@@ -8,7 +8,7 @@ import * as IncrementalCommands from './ui/commands-widget/commands';
 import { initIncrementalUI } from './ui'
 import { IncrementalEvent } from "./lifecycle";
 import { individualIcon, objectPropertyIcon, pathIcon } from "../ui/assets";
-import individualButtonHandler from "./individual-button-handler";
+// import individualButtonHandler from "./individual-button-handler";
 import objectPropertyButtonHandler from "./object-property-button-handler";
 
 export default class IncrementalController extends IncrementalBase {
@@ -93,7 +93,11 @@ export default class IncrementalController extends IncrementalBase {
             if (areAllSuperHierarchiesVisible) {
               superHierarchies?.forEach(hierarchy => this.removeHierarchy(hierarchy, [grapholElement.iri!]))
             } else {
-              superHierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy, cyElement.position()))
+              this.performActionWithBlockedGraph(() => {
+                superHierarchies?.forEach(hierarchy => {
+                  this.diagramBuilder.addHierarchy(hierarchy, cyElement.position())
+                })
+              })
             }
           }
         ))
@@ -108,7 +112,11 @@ export default class IncrementalController extends IncrementalBase {
             () => {
               areAllSubHierarchiesVisible
                 ? subHierarchies?.forEach(hierarchy => this.removeHierarchy(hierarchy, [grapholElement.iri!]))
-                : subHierarchies?.forEach(hierarchy => this.diagramBuilder.addHierarchy(hierarchy, cyElement.position()))
+                : this.performActionWithBlockedGraph(() => {
+                  subHierarchies?.forEach(hierarchy => {
+                    this.diagramBuilder.addHierarchy(hierarchy, cyElement.position())
+                  })
+                })
             }
           ),
         )
@@ -154,7 +162,6 @@ export default class IncrementalController extends IncrementalBase {
         )
       }
 
-
       const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(grapholElement.id)
       if (equivalentClasses.length > 0) {
         const areAllEquivalentClassesVisible = equivalentClasses.every(ec => this.diagram.containsEntity(ec))
@@ -178,6 +185,24 @@ export default class IncrementalController extends IncrementalBase {
       }
     }
 
+    commands.push(IncrementalCommands.remove(() => {
+      if (grapholElement.iri) {
+        const entity = this.grapholscape.ontology.getEntity(grapholElement.iri)
+        if (entity) {
+          if (grapholElement.is(TypesEnum.OBJECT_PROPERTY)) {
+            const grapholOccurrence = this.diagram.representation?.grapholElements.get(grapholElement.id)
+            if (grapholOccurrence) {
+              entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+            }
+            this.diagram.removeElement(grapholElement.id)
+            this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
+          } else {
+            this.removeEntity(entity)
+          }
+        }
+      }
+    }))
+
     return commands
   }
 
@@ -185,12 +210,11 @@ export default class IncrementalController extends IncrementalBase {
     this.setIncrementalEventHandlers()
     initIncrementalUI(this)
     this.initNodeButtons()
-    console.log('init')
   }
 
   private initNodeButtons() {
-    this.individualsButton.title = 'Search Individuals'
-    this.individualsButton.onclick = e => individualButtonHandler(e, this)
+    // this.individualsButton.title = 'Search Individuals'
+    // this.individualsButton.onclick = e => individualButtonHandler(e, this)
 
     this.objectPropertyButton.title = 'Navigate through object properties'
     this.objectPropertyButton.onclick = e => objectPropertyButtonHandler(e, this)
@@ -202,46 +226,6 @@ export default class IncrementalController extends IncrementalBase {
     }
 
     return []
-  }
-
-  /**
-   * Add object property edge between two classes.
-   * @param objectPropertyIri the object property iri to add
-   * @param sourceClassIri
-   * @param targetClassIri
-   */
-  addIntensionalObjectProperty(objectPropertyIri: string, sourceClassIri: string, targetClassIri: string) {
-    const objectPropertyEntity = this.grapholscape.ontology.getEntity(objectPropertyIri)
-    const sourceClass = this.grapholscape.ontology.getEntity(sourceClassIri)
-    const targetClass = this.grapholscape.ontology.getEntity(targetClassIri)
-    let objectPropertyEdge: GrapholEdge | undefined
-    if (objectPropertyEntity && sourceClass && targetClass) {
-      if ((!sourceClass.color || !targetClass.color) && this.diagram.representation) {
-        new OntologyColorManager(this.grapholscape.ontology, this.diagram.representation)
-          .setClassColor(sourceClass)
-          .setClassColor(targetClass)
-      }
-      objectPropertyEdge = this.diagramBuilder.addObjectProperty(
-        objectPropertyEntity,
-        sourceClass,
-        targetClass,
-        [TypesEnum.CLASS]
-      ) as GrapholEdge
-
-      // this.updateEntityNameType(objectPropertyEntity.iri)
-      // this.updateEntityNameType(sourceClassIri)
-      // this.updateEntityNameType(targetClassIri)
-
-      setTimeout(() => {
-        const nodeId = this.getIDByIRI(targetClassIri, TypesEnum.CLASS)
-        if (nodeId) {
-          this.grapholscape.centerOnElement(nodeId)
-        }
-      }, 250)
-
-      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
-      return objectPropertyEdge
-    }
   }
 
   setIncrementalEventHandlers() {

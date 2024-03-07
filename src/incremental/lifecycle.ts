@@ -1,7 +1,5 @@
 import { GrapholEntity } from "../model"
 import ClassInstanceEntity from "../model/graphol-elems/class-instance-entity"
-import { ClassInstance } from "./api/kg-api"
-import { MastroEndpoint } from "./api/model"
 
 /** @internal */
 export enum IncrementalEvent {
@@ -24,10 +22,10 @@ export enum IncrementalEvent {
 /** @internal */
 export interface IonIncrementalEvent {
   (event: IncrementalEvent.RequestStopped, callback: () => void): void
-  (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void): void
+  // (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void): void
   (event: IncrementalEvent.InstancesSearchFinished, callback: () => void): void
   (event: IncrementalEvent.LimitChange, callback: (limit: number) => void): void
-  (event: IncrementalEvent.EndpointChange, callback: (endpoint: MastroEndpoint) => void): void
+  // (event: IncrementalEvent.EndpointChange, callback: (endpoint: MastroEndpoint) => void): void
   (event: IncrementalEvent.Reset, callback: () => void): void
   (event: IncrementalEvent.ClassInstanceSelection, callback: (classInstanceEntity: ClassInstanceEntity) => void): void
   (event: IncrementalEvent.ClassSelection, callback: (classEntity: GrapholEntity) => void): void
@@ -40,10 +38,10 @@ export interface IonIncrementalEvent {
 /** @internal */
 export default class IncrementalLifecycle {
   private requestStopped: (() => void)[] = []
-  private newInstances: ((classInstances: ClassInstance[][], numberResultsAvailable?: number) => void)[] = []
+  // private newInstances: ((classInstances: ClassInstance[][], numberResultsAvailable?: number) => void)[] = []
   private instancesSearchFinished: (() => void)[] = []
   private limitChange: ((limit: number) => void)[] = []
-  private endpointChange: ((endpoint: MastroEndpoint) => void)[] = []
+  // private endpointChange: ((endpoint: MastroEndpoint) => void)[] = []
   private reset: (() => void)[] = []
   private classInstanceSselection: ((classInstanceEntity: ClassInstanceEntity) => void)[] = []
   private classSelection: ((classEntity: GrapholEntity) => void)[] = []
@@ -55,10 +53,10 @@ export default class IncrementalLifecycle {
   constructor() { }
 
   trigger(event: IncrementalEvent.RequestStopped): void
-  trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][], numberResultsAvailable: number): void
+  // trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][], numberResultsAvailable: number): void
   trigger(event: IncrementalEvent.InstancesSearchFinished): void
   trigger(event: IncrementalEvent.LimitChange, limit: number): void
-  trigger(event: IncrementalEvent.EndpointChange, endpoint: MastroEndpoint): void
+  // trigger(event: IncrementalEvent.EndpointChange, endpoint: MastroEndpoint): void
   trigger(event: IncrementalEvent.Reset): void
   trigger(event: IncrementalEvent.ClassInstanceSelection, classInstanceEntity: ClassInstanceEntity): void
   trigger(event: IncrementalEvent.ClassSelection, classEntity: GrapholEntity): void

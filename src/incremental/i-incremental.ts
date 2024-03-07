@@ -1,6 +1,6 @@
 import { EdgeSingular, SingularElementReturnValue } from "cytoscape";
 import { DiagramBuilder, Grapholscape, IncrementalRendererState, OntologyColorManager } from "../core";
-import { Annotation, Filter, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Position, RendererStatesEnum, TypesEnum, Viewport } from "../model";
+import { Annotation, Filter, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Position, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import { Command, NodeButton } from "../ui";
 import { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import IncrementalLifecycle, { IncrementalEvent, IonIncrementalEvent } from "./lifecycle";
@@ -60,7 +60,7 @@ export interface IIncremental {
 
 export default abstract class IncrementalBase implements IIncremental {
   protected actionsWithBlockedGraph = 0
-  protected diagramBuilder: DiagramBuilder
+  diagramBuilder: DiagramBuilder
 
   classFilterMap: Map<string, Filter> = new Map()
   diagram: IncrementalDiagram = new IncrementalDiagram()
@@ -157,6 +157,46 @@ export default abstract class IncrementalBase implements IIncremental {
     // this.updateEntityNameType(individual.iri)
     this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
     return addedNode
+  }
+
+  /**
+   * Add object property edge between two classes.
+   * @param objectPropertyIri the object property iri to add
+   * @param sourceClassIri
+   * @param targetClassIri
+   */
+  addIntensionalObjectProperty(objectPropertyIri: string, sourceClassIri: string, targetClassIri: string) {
+    const objectPropertyEntity = this.grapholscape.ontology.getEntity(objectPropertyIri)
+    const sourceClass = this.grapholscape.ontology.getEntity(sourceClassIri)
+    const targetClass = this.grapholscape.ontology.getEntity(targetClassIri)
+    let objectPropertyEdge: GrapholEdge | undefined
+    if (objectPropertyEntity && sourceClass && targetClass) {
+      if ((!sourceClass.color || !targetClass.color) && this.diagram.representation) {
+        new OntologyColorManager(this.grapholscape.ontology, this.diagram.representation)
+          .setClassColor(sourceClass)
+          .setClassColor(targetClass)
+      }
+      objectPropertyEdge = this.diagramBuilder.addObjectProperty(
+        objectPropertyEntity,
+        sourceClass,
+        targetClass,
+        [TypesEnum.CLASS]
+      ) as GrapholEdge
+
+      // this.updateEntityNameType(objectPropertyEntity.iri)
+      // this.updateEntityNameType(sourceClassIri)
+      // this.updateEntityNameType(targetClassIri)
+
+      setTimeout(() => {
+        const nodeId = this.getIDByIRI(targetClassIri, TypesEnum.CLASS)
+        if (nodeId) {
+          this.grapholscape.centerOnElement(nodeId)
+        }
+      }, 250)
+
+      this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
+      return objectPropertyEdge
+    }
   }
 
   showClassesInIsa(
@@ -261,8 +301,10 @@ export default abstract class IncrementalBase implements IIncremental {
     }
   }
 
-  protected removeHierarchy(hierarchy: Hierarchy, entitiesTokeep: string[] = []) {
-
+  removeHierarchy(hierarchy: Hierarchy, entitiesTokeep: string[] = []) {
+    if (!hierarchy.id || !this.isHierarchyNodeInDiagram(hierarchy)) {
+      return
+    }
     this.diagramBuilder.removeHierarchy(hierarchy)
 
     let classId: string | undefined
@@ -332,11 +374,11 @@ export default abstract class IncrementalBase implements IIncremental {
           })
 
           this.grapholscape.ontology.getSuperHierarchiesOf(entity!.iri.fullIri).forEach(hierarchy => {
-            this.removeHierarchy(hierarchy)
+            this.removeHierarchy(hierarchy, [entity.iri.fullIri])
           })
 
           this.grapholscape.ontology.getSubHierarchiesOf(entity!.iri.fullIri).forEach(hierarchy => {
-            this.removeHierarchy(hierarchy)
+            this.removeHierarchy(hierarchy, [entity.iri.fullIri])
           })
         }
 
@@ -369,6 +411,10 @@ export default abstract class IncrementalBase implements IIncremental {
     } else {
       this.incrementalRenderer?.unFreezeGraph()
     }
+  }
+
+  protected isHierarchyNodeInDiagram(hierarchy: Hierarchy) {
+    return this.grapholscape.renderer.cy?.$(`[hierarchyID = "${hierarchy.id}"]`).nonempty()
   }
 
   getIDByIRI(iri: string, type: TypesEnum) {

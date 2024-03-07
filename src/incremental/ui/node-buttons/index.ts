@@ -7,12 +7,12 @@ import { grapholEntityToEntityViewData } from "../../../util";
 import { IIncremental } from "../../i-incremental";
 import { IncrementalEvent } from "../../lifecycle";
 import { ObjectPropertyConnectedClasses } from "../../neighbourhood-finder";
-import { GscapeInstanceExplorer } from "../instances-explorer";
+// import { GscapeInstanceExplorer } from "../instances-explorer";
 import GscapeNavigationMenu from "../navigation-menu/navigation-menu";
 import showMenu from "../show-menu";
-import { hideButtons, showButtons } from "./show-hide-buttons";
+import { getButtonOffset, hideButtons, showButtons } from "./show-hide-buttons";
 
-export { hideButtons, showButtons };
+export { hideButtons, showButtons, getButtonOffset };
 
 export function NodeButtonsFactory(ic: IIncremental) {
 
@@ -78,6 +78,9 @@ function setHandlersOnIncrementalCytoscape(ic: IIncremental) {
   cy.on('tap', 'node', e => {
     const grapholElem = ic.grapholscape.renderer.grapholElements?.get(e.target.id())
     if (grapholElem) {
+      if (lastSelectedNode) {
+        hideButtons(lastSelectedNode)
+      }
       showButtons(e.target, ic.getNodeButtons(grapholElem, e.target))
       lastSelectedNode = e.target
     }
@@ -160,77 +163,77 @@ async function handleObjectPropertyButtonClick(e: MouseEvent, incrementalControl
   }
 }
 
-async function handleInstancesButtonClick(e: MouseEvent, incrementalController: IIncremental) {
-  const targetButton = e.currentTarget as NodeButton
-  const instanceExplorer = incrementalController.grapholscape.widgets.get(WidgetEnum.INSTANCES_EXPLORER) as GscapeInstanceExplorer
+// async function handleInstancesButtonClick(e: MouseEvent, incrementalController: IIncremental) {
+//   const targetButton = e.currentTarget as NodeButton
+//   const instanceExplorer = incrementalController.grapholscape.widgets.get(WidgetEnum.INSTANCES_EXPLORER) as GscapeInstanceExplorer
 
-  if (!instanceExplorer)
-    return
+//   if (!instanceExplorer)
+//     return
 
-  if (targetButton.node && targetButton.node.data().iri) {
-    const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
-    const entityType = targetButton.node.data().type
-    if (referenceEntity && entityType === TypesEnum.CLASS) {
-      if (!instanceExplorer.referenceEntity ||
-        !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
-        instanceExplorer.numberOfInstancesReceived === 0) {
-        instanceExplorer.clear()
+//   if (targetButton.node && targetButton.node.data().iri) {
+//     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
+//     const entityType = targetButton.node.data().type
+//     if (referenceEntity && entityType === TypesEnum.CLASS) {
+//       if (!instanceExplorer.referenceEntity ||
+//         !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
+//         instanceExplorer.numberOfInstancesReceived === 0) {
+//         instanceExplorer.clear()
 
-        instanceExplorer.areInstancesLoading = true
-        instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
-        instanceExplorer.referenceEntityType = targetButton.node.data().type
+//         instanceExplorer.areInstancesLoading = true
+//         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
+//         instanceExplorer.referenceEntityType = targetButton.node.data().type
 
-        // const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
-        //   incrementalController.endpointController?.highlightsManager
-        // )
+//         // const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
+//         //   incrementalController.endpointController?.highlightsManager
+//         // )
 
-        const dataProperties = await incrementalController.getDataPropertiesHighlights([referenceEntity.iri.fullIri], false)
-        const objectPropertiesMap = await incrementalController.getObjectPropertiesHighlights([referenceEntity.iri.fullIri], false)
-        const objectProperties = Array.from(objectPropertiesMap).map(v => {
-          const newV = grapholEntityToEntityViewData(v[0], incrementalController.grapholscape) as ViewObjectProperty
-          // const viewIncrementalObjProp = newV as ViewObjectProperty
-          newV.connectedClasses = v[1].list.map(classEntity => {
-            return grapholEntityToEntityViewData(classEntity, incrementalController.grapholscape)
-          })
-          newV.direct = v[1].direct
+//         const dataProperties = await incrementalController.getDataPropertiesHighlights([referenceEntity.iri.fullIri], false)
+//         const objectPropertiesMap = await incrementalController.getObjectPropertiesHighlights([referenceEntity.iri.fullIri], false)
+//         const objectProperties = Array.from(objectPropertiesMap).map(v => {
+//           const newV = grapholEntityToEntityViewData(v[0], incrementalController.grapholscape) as ViewObjectProperty
+//           // const viewIncrementalObjProp = newV as ViewObjectProperty
+//           newV.connectedClasses = v[1].list.map(classEntity => {
+//             return grapholEntityToEntityViewData(classEntity, incrementalController.grapholscape)
+//           })
+//           newV.direct = v[1].direct
 
-          return newV
-        })
+//           return newV
+//         })
 
-        instanceExplorer.propertiesFilterList = dataProperties
-          .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
-          .concat(objectProperties)
-          .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
+//         instanceExplorer.propertiesFilterList = dataProperties
+//           .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+//           .concat(objectProperties)
+//           .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
 
-        // instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
+//         // instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
 
-        // if (instanceExplorer.requestId) {
-        //   incrementalController
-        //     .endpointController
-        //     ?.shouldQueryUseLabels(instanceExplorer.requestId)
-        //     ?.then(async shouldAskForLabels => {
-        //       if (!shouldAskForLabels) {
-        //         instanceExplorer.shouldAskForLabels = shouldAskForLabels
-        //         instanceExplorer.areInstancesLoading = true
-        //         instanceExplorer.requestId = await incrementalController.endpointController
-        //           ?.requestInstancesForClass(
-        //             referenceEntity.iri.fullIri,
-        //             shouldAskForLabels
-        //           )
-        //       }
+//         // if (instanceExplorer.requestId) {
+//         //   incrementalController
+//         //     .endpointController
+//         //     ?.shouldQueryUseLabels(instanceExplorer.requestId)
+//         //     ?.then(async shouldAskForLabels => {
+//         //       if (!shouldAskForLabels) {
+//         //         instanceExplorer.shouldAskForLabels = shouldAskForLabels
+//         //         instanceExplorer.areInstancesLoading = true
+//         //         instanceExplorer.requestId = await incrementalController.endpointController
+//         //           ?.requestInstancesForClass(
+//         //             referenceEntity.iri.fullIri,
+//         //             shouldAskForLabels
+//         //           )
+//         //       }
 
-        //     })
-        // }
-      }
-    }
+//         //     })
+//         // }
+//       }
+//     }
 
-    // TODO: check why sometimes here targetButton.node is undefined, happens only few times
-    // it should be defined due to previous initial if
-    if (targetButton.node) {
-      showMenu(instanceExplorer, incrementalController)
-    }
-  }
-}
+//     // TODO: check why sometimes here targetButton.node is undefined, happens only few times
+//     // it should be defined due to previous initial if
+//     if (targetButton.node) {
+//       showMenu(instanceExplorer, incrementalController)
+//     }
+//   }
+// }
 
 // function onPathDrawingButtonClick(e: MouseEvent, ic: IIncremental) {
 //   const onComplete = async (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {

@@ -1,10 +1,10 @@
 import { IncrementalRendererState } from "../../core";
-import { RendererStatesEnum } from "../../model";
+import { Iri, RendererStatesEnum, TypesEnum } from "../../model";
 import { IIncremental } from "../i-incremental";
-import { GscapeInstanceExplorer } from "./instances-explorer";
-import GscapeNavigationMenu from "./navigation-menu/navigation-menu";
+// import { GscapeInstanceExplorer } from "./instances-explorer";
+// import GscapeNavigationMenu from "./navigation-menu/navigation-menu";
 
-export default function(menu: GscapeNavigationMenu | GscapeInstanceExplorer, ic: IIncremental) {
+export default function(menu: any, ic: IIncremental) {
     // incrementalController.endpointController?.stopRequests('instances')
     
     if (menu.referenceEntity && menu.referenceEntityType) {

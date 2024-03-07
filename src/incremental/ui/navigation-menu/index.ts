@@ -1,10 +1,7 @@
-import { TypesEnum } from "../../../model";
 import { WidgetEnum } from "../../../ui";
-import { grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
-import { GscapeInstanceExplorer } from "../instances-explorer";
+// import { GscapeInstanceExplorer } from "../instances-explorer";
 import onHideMenu from "../on-hide-menu";
-import showMenu from "../show-menu";
 import GscapeNavigationMenu, { ObjectPropertyNavigationEvent } from "./navigation-menu";
 
 export function NavigationMenuFactory(incrementalController: IncrementalController) {

@@ -127,10 +127,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
-        ${this.currentOccurrenceType !== TypesEnum.CLASS_INSTANCE
-            ? itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)
-            : itemWithIriTemplate(this.entityForTemplate)
-        }
+        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
 
         <div class="content-wrapper">
           ${this.currentOccurrenceType === TypesEnum.DATA_PROPERTY && this.grapholEntity.datatype

@@ -398,10 +398,6 @@ export default abstract class Grapholscape {
     if (newConfig.widgets) {
       this.widgetsInitialStates = newConfig.widgets
     }
-
-    if (newConfig.customIncrementalController) {
-      this.incremental = newConfig.customIncrementalController
-    }
   }
 
   // ---------------------------- EXPORTING ---------------------------- //

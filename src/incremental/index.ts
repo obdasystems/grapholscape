@@ -8,11 +8,16 @@ import { GscapeEntitySelector } from "../ui/entity-selector";
 import { GscapeExplorer } from "../ui/ontology-explorer";
 import { ShortestPathDialog } from "../ui";
 import { WidgetEnum } from "../ui/util/widget-enum";
-import IncrementalCore from "./controller";
+import IncrementalController from "./controller";
 import { IncrementalEvent } from "./lifecycle";
 import * as IncrementalUI from './ui';
+import IncrementalBase from "./i-incremental";
+import NeighbourhoodFinder from "./neighbourhood-finder";
 
-export { IncrementalCore as IncrementalController };
+export { IncrementalController };
+export { IncrementalBase }
+export { NeighbourhoodFinder }
+export * as IncrementalUI from './ui'
 export * from './lifecycle'
 
 /** @internal */

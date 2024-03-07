@@ -1,55 +1,55 @@
-import { Position } from "cytoscape"
-import { WidgetEnum } from "../../../ui"
-import { IIncremental } from "../../i-incremental"
-import { IncrementalEvent } from "../../lifecycle"
-import onHideMenu from "../on-hide-menu"
-import GscapeInstanceExplorer, { ClassInstanceViewData, InstanceSelectionEvent } from "./instance-explorer"
+// import { Position } from "cytoscape"
+// import { WidgetEnum } from "../../../ui"
+// import { IIncremental } from "../../i-incremental"
+// import { IncrementalEvent } from "../../lifecycle"
+// import onHideMenu from "../on-hide-menu"
+// import GscapeInstanceExplorer, { ClassInstanceViewData, InstanceSelectionEvent } from "./instance-explorer"
 
-export { default as GscapeInstanceExplorer } from './instance-explorer'
+// export { default as GscapeInstanceExplorer } from './instance-explorer'
 
-export function InstanceExplorerFactory(incrementalController: IIncremental) {
-  const instancesExplorer = new GscapeInstanceExplorer()
-  incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
+// export function InstanceExplorerFactory(incrementalController: IIncremental) {
+//   const instancesExplorer = new GscapeInstanceExplorer()
+//   incrementalController.grapholscape.widgets.set(WidgetEnum.INSTANCES_EXPLORER, instancesExplorer)
 
-  incrementalController.on(IncrementalEvent.NewInstances, (newInstances, numberResultsAvailable) => {
-    instancesExplorer.addInstances((newInstances as ClassInstanceViewData[][]).map(i => {
-      if (i[1]) {
-        i[0].searchMatch = i[1].label?.value
-      }
+  // incrementalController.on(IncrementalEvent.NewInstances, (newInstances, numberResultsAvailable) => {
+  //   instancesExplorer.addInstances((newInstances as ClassInstanceViewData[][]).map(i => {
+  //     if (i[1]) {
+  //       i[0].searchMatch = i[1].label?.value
+  //     }
 
-      i[0].connectedInstance = i[1]
+  //     i[0].connectedInstance = i[1]
 
-      return i[0]
-    }))
+  //     return i[0]
+  //   }))
 
-    if (!instancesExplorer.numberResultsAvailable && numberResultsAvailable)
-      instancesExplorer.numberResultsAvailable = numberResultsAvailable
-  })
+  //   if (!instancesExplorer.numberResultsAvailable && numberResultsAvailable)
+  //     instancesExplorer.numberResultsAvailable = numberResultsAvailable
+  // })
 
-  incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)
+  // incrementalController.on(IncrementalEvent.InstancesSearchFinished, () => instancesExplorer.areInstancesLoading = false)
 
-  incrementalController.on(IncrementalEvent.Reset, () => {
-    instancesExplorer.clear()
-  })
+  // incrementalController.on(IncrementalEvent.Reset, () => {
+  //   instancesExplorer.clear()
+  // })
 
-  instancesExplorer.addEventListener('instanceselection', async (e: InstanceSelectionEvent) => {
-    incrementalController.performActionWithBlockedGraph(async () => {
-      let refNodeId: string | undefined
-      let refPosition: Position | undefined
-      if (instancesExplorer.referenceEntity && instancesExplorer.referenceEntityType) {
-        refNodeId = incrementalController.getIDByIRI(
-          instancesExplorer.referenceEntity.value.iri.fullIri,
-          instancesExplorer.referenceEntityType,
-        )
-        if (refNodeId) {
-          refPosition = incrementalController.diagram.representation?.cy.$id(refNodeId).position()
-        }
-      }
+  // instancesExplorer.addEventListener('instanceselection', async (e: InstanceSelectionEvent) => {
+  //   incrementalController.performActionWithBlockedGraph(async () => {
+  //     let refNodeId: string | undefined
+  //     let refPosition: Position | undefined
+  //     if (instancesExplorer.referenceEntity && instancesExplorer.referenceEntityType) {
+  //       refNodeId = incrementalController.getIDByIRI(
+  //         instancesExplorer.referenceEntity.value.iri.fullIri,
+  //         instancesExplorer.referenceEntityType,
+  //       )
+  //       if (refNodeId) {
+  //         refPosition = incrementalController.diagram.representation?.cy.$id(refNodeId).position()
+  //       }
+  //     }
 
-      const individualEntity = incrementalController.grapholscape.ontology.getEntity(e.detail.instance.iri)
-      if (individualEntity) {
-        incrementalController.addIndividual(individualEntity, e.detail.parentClassIris, refPosition)
-      }
+  //     const individualEntity = incrementalController.grapholscape.ontology.getEntity(e.detail.instance.iri)
+  //     if (individualEntity) {
+  //       incrementalController.addIndividual(individualEntity, e.detail.parentClassIris, refPosition)
+  //     }
       
       // const sourceId = incrementalController.getIDByIRI(e.detail.instance.iri, TypesEnum.INDIVIDUAL)
       // if (!sourceId)
@@ -90,8 +90,8 @@ export function InstanceExplorerFactory(incrementalController: IIncremental) {
       //   else
       //     incrementalController.addExtensionalObjectProperty(objPropertyIri, addedInstanceEntity.iri.fullIri, sourceInstanceIri)
       // }
-    })
-  })
+  //   })
+  // })
 
   // instancesExplorer.addEventListener('instances-filter', async (e: InstanceFilterEvent) => {
   //   incrementalController.endpointController?.stopRequests('instances')
@@ -210,12 +210,12 @@ export function InstanceExplorerFactory(incrementalController: IIncremental) {
   //   })
   // })
 
-  instancesExplorer.tippyWidget.setProps({
-    onHide: () => {
-      instancesExplorer.hide()
-      onHideMenu(instancesExplorer, incrementalController)
-    }
-  })
+//   instancesExplorer.tippyWidget.setProps({
+//     onHide: () => {
+//       instancesExplorer.hide()
+//       onHideMenu(instancesExplorer, incrementalController)
+//     }
+//   })
 
-  return instancesExplorer
-}
+//   return instancesExplorer
+// }

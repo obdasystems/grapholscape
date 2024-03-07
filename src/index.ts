@@ -7,8 +7,6 @@ import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
 import { Core, Grapholscape, OntologyColorManager } from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
 import { IncrementalController } from './incremental'
-import { RequestOptions } from './incremental/api/model'
-import { IIncremental } from './incremental/i-incremental'
 import { moveUpLeft } from './incremental/ui'
 import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
@@ -36,6 +34,10 @@ export * as ui from './ui'
 export * as util from './util'
 /** @internal */
 export { parseRDFGraph, RDFGraphParser }
+export { default as incrementalGraphStyle } from './core/rendering/incremental/incremental-style'
+export { default as floatyGraphStyle } from './core/rendering/floaty/floaty-style'
+export { default as liteGraphStyle } from './core/rendering/lite/lite-style'
+export { default as grapholGraphStyle } from './core/rendering/graphol/graphol-style'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -63,7 +65,9 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
       (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any)?.hide()
     }
 
-    setupIncremental(grapholscape, config?.customIncrementalController)
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !config?.useCustomIncrementalController) {
+      grapholscape.incremental = new IncrementalController(grapholscape)
+    }
   }
   return grapholscape
 }
@@ -118,7 +122,9 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
     return
 
   UI.initUI(grapholscape)
-  setupIncremental(grapholscape, config?.customIncrementalController)
+  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !_config.useCustomIncrementalController) {
+    grapholscape.incremental = new IncrementalController(grapholscape)
+  }
   if (!rdfGraphToResume) {
     return grapholscape
   }
@@ -128,7 +134,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
 }
 
 /** @internal */
-export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig, mastroConnection?: RequestOptions) {
+export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
 
   const savedConfig = loadConfig()
@@ -139,7 +145,7 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
     config = RDFGraphParser.getConfig(rdfGraph)
   }
   const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config)
-  initFromResume(grapholscape, rdfGraph)
+  initFromResume(grapholscape, rdfGraph, true, config.useCustomIncrementalController)
 
   // if (mastroConnection)
   //   grapholscape.incremental?.setMastroConnection(mastroConnection)
@@ -149,10 +155,12 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
 }
 
 /** @internal */
-export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true, customIncrementalController?: IIncremental) {
+export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true, useCustomIncrementalController?: boolean) {
   if (forceInit) {
     UI.initUI(grapholscape)
-    setupIncremental(grapholscape, customIncrementalController)
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !useCustomIncrementalController) {
+      grapholscape.incremental = new IncrementalController(grapholscape)
+    }
   }
 
   // Stop layout, use positions from rdfGraph, for floaty/incremental
@@ -297,10 +305,4 @@ function showLoadingSpinner(container: HTMLElement, config?: GrapholscapeConfig)
   spinner.setColor(theme?.getColour(ColoursNames.accent) || '#000')
   container.appendChild(spinner)
   return spinner
-}
-
-function setupIncremental(grapholscape: Grapholscape, customController?: IIncremental) {
-  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-    grapholscape.incremental = customController || new IncrementalController(grapholscape)
-  }
 }

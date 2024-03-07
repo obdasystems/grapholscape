@@ -11,7 +11,7 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
     cy.on('select', e => {
       const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
       if (grapholElement) {
-        if (grapholElement.isEntity() && !grapholElement.is(TypesEnum.CLASS_INSTANCE)) {
+        if (grapholElement.isEntity()) {
           const grapholEntity = ontology.getEntity(e.target.data().iri)
           if (grapholEntity) {
             lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)
