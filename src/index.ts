@@ -109,7 +109,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
       _config = Object.assign(config, loadConfig())
     }
   }
-  _config.renderers = [ RendererStatesEnum.INCREMENTAL ]
+  _config.renderers = [RendererStatesEnum.INCREMENTAL]
   _config.initialRendererSelection = false
 
   if ((ontology as RDFGraph).metadata) {
@@ -117,7 +117,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
   } else {
     grapholscape = await getGrapholscape((ontology as string | File), container, _config)
   }
-  
+
   if (!grapholscape)
     return
 
@@ -190,11 +190,15 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, f
 
     const allEntities = new Map(
       Array.from(grapholscape.ontology.entities)
-        // .concat(Array.from(grapholscape.incremental.classInstanceEntities))
+      .concat(Array.from(RDFGraphParser.getClassInstances(rdfGraph, grapholscape.ontology.namespaces)))
     )
 
-    const diagramRepr = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities)[0]
-      .representations.get(RendererStatesEnum.INCREMENTAL)
+    const diagramRepr = RDFGraphParser.getDiagrams(
+      rdfGraph,
+      RendererStatesEnum.INCREMENTAL,
+      allEntities,
+      grapholscape.ontology.namespaces
+    )[0].representations.get(RendererStatesEnum.INCREMENTAL)
     if (diagramRepr) {
       // grapholscape.incremental.diagram = new IncrementalDiagram()
       if (diagramRepr.lastViewportState) {

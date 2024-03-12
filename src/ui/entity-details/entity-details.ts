@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { GrapholElement, GrapholEntity, TypesEnum } from '../../model'
-import { commentIcon, domain, infoFilled, minus, plus, range } from '../assets/icons'
+import { blankSlateDiagrams, commentIcon, domain, infoFilled, minus, plus, range } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
@@ -124,10 +124,11 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   ]
 
   render() {
+    console.log(this.currentOccurrence?.is(TypesEnum.IRI))
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
-        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick)}
+        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick, this.currentOccurrence?.is(TypesEnum.IRI))}
 
         <div class="content-wrapper">
           ${this.currentOccurrenceType === TypesEnum.DATA_PROPERTY && this.grapholEntity.datatype
@@ -159,7 +160,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             : null
           }
 
-          ${this.currentOccurrence?.isEdge()
+          ${this.currentOccurrence?.isEdge() && !this.currentOccurrence.is(TypesEnum.ANNOTATION_PROPERTY)
             ? html`
               <div class="section">
                 <div class="section-header">
@@ -212,6 +213,17 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                   </div>
                 </div>
               `
+            : null
+          }
+
+          ${this.currentOccurrence && !this.currentOccurrence.isEntity()
+            ? html`
+              <div class="blank-slate">
+                ${blankSlateDiagrams}
+                <div class="header">No details available</div>
+                <div class="description">It seems like this entity has no definition in the current ontology.</div>
+              </div>
+            `
             : null
           }
         </div>
