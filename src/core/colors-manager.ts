@@ -123,7 +123,7 @@ export class OntologyColorManager extends ColorManager {
     return new Promise<void>((resolve, _) => {
       const updatedEntities = new Set<string>()
       entities.forEach(entity => {
-        if (entity.is(TypesEnum.CLASS_INSTANCE)) {
+        if (entity.is(TypesEnum.INDIVIDUAL)) {
           this.setInstanceColor(entity as ClassInstanceEntity, overwrite)
         } else if (entity.is(TypesEnum.CLASS)) {
           this.setClassColor(entity, overwrite)

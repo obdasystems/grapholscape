@@ -102,16 +102,18 @@ export default class DiagramRepresentation {
     }
   }
 
-  containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean {
-    let iri: Iri
+  containsEntity(iriOrGrapholEntity: Iri | GrapholEntity | string): boolean {
+    let iri: string
     if ((iriOrGrapholEntity as GrapholEntity).iri !== undefined) {
-      iri = (iriOrGrapholEntity as GrapholEntity).iri
+      iri = (iriOrGrapholEntity as GrapholEntity).iri.fullIri
+    } else if ((iriOrGrapholEntity as Iri).fullIri !== undefined) {
+      iri = (iriOrGrapholEntity as Iri).fullIri
     } else {
-      iri = iriOrGrapholEntity as Iri
+      iri = iriOrGrapholEntity as string
     }
 
     for (let [_, grapholElement] of this.grapholElements) {
-      if (grapholElement.iri && iri.equals(grapholElement.iri)) {
+      if (grapholElement.iri && iri === grapholElement.iri) {
         return true
       }
     }

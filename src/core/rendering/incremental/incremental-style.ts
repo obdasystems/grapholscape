@@ -24,7 +24,7 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
         "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
@@ -40,7 +40,7 @@ export default function (theme: GrapholscapeTheme) {
     // },
 
     {
-      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         'text-valign': 'top',
         'text-wrap': 'ellipsis',

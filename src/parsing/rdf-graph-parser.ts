@@ -115,7 +115,7 @@ function getAnnotations(annotatedElem: Entity | RDFGraphMetadata, namespaces: Na
   }) || []
 }
 
-export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL, entities: Map<string, GrapholEntity>) {
+export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEnum.GRAPHOL, entities: Map<string, GrapholEntity>, namespaces?: Namespace[]) {
   let diagram: Diagram
   let diagramRepr: DiagramRepresentation | undefined
   let grapholEntity: GrapholEntity | undefined
@@ -139,10 +139,16 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       grapholElement.diagramId = d.id
       if (grapholElement.iri) {
         grapholEntity = entities.get(grapholElement.iri)
+
+        if (!grapholEntity && namespaces) {
+          grapholEntity = new GrapholEntity(new Iri(grapholElement.iri, namespaces))
+        }
+
         grapholElement.displayedName = grapholEntity?.getDisplayedName(
           rdfGraph.config?.entityNameType || EntityNameType.LABEL,
           rdfGraph.config?.language || rdfGraph.metadata.defaultLanguage || Language.EN
-        )
+        ) || grapholElement.iri
+
         if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY || rdfGraph.modelType === RDFGraphModelTypeEnum.VKG)
           grapholEntity?.addOccurrence(grapholElement, rendererState)
       }

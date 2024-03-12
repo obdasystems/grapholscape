@@ -1,6 +1,6 @@
 import { GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
-import { IncrementalController } from "../incremental"
+import { IIncremental } from "../incremental/i-incremental"
 import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
 import rdfgraphSerializer from "../rdfgraph-serializer"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -20,6 +20,7 @@ export default abstract class Grapholscape {
   protected abstract entityNavigator: EntityNavigator
   protected abstract displayedNamesManager: DisplayedNamesManager
   protected abstract themesManager: ThemeManager
+  protected _incremental: IIncremental
   widgets: Map<string, HTMLElement> = new Map()
   widgetsInitialStates: WidgetsConfig
 
@@ -436,8 +437,14 @@ export default abstract class Grapholscape {
     return `${this.ontology.name}-${this.renderer.diagram?.name}-v${this.ontology.version}`
   }
 
-  /** @internal */
-  public incremental?: IncrementalController
+  get incremental() {
+    return this._incremental
+  }
+
+  set incremental(incrementalController: IIncremental) {
+    this._incremental = incrementalController
+    this._incremental.init()
+  }
 }
 
 export class Core extends Grapholscape {

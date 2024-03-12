@@ -16,7 +16,7 @@ export enum WidgetEnum {
   ENTITY_COLOR_LEGEND = 'entity-color-legend',
   COLOR_BUTTON = 'color-button',
   /** @internal */
-  CLASS_INSTANCE_DETAILS = 'class-instance-details',
+  INCREMENTAL_ENTITY_DETAILS = 'class-instance-details',
   /** @internal */
   INSTANCES_EXPLORER = 'instances-explorer',
   /** @internal */

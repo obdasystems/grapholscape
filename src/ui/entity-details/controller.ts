@@ -1,5 +1,5 @@
 import Grapholscape from '../../core'
-import { GrapholElement, GrapholEntity, LifecycleEvent, RendererStatesEnum } from '../../model'
+import { GrapholElement, GrapholEntity, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model'
 import getEntityViewOccurrences from '../util/get-entity-view-occurrences'
 import GscapeEntityDetails from './entity-details'
 
@@ -16,7 +16,10 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   grapholscape.on(LifecycleEvent.EntitySelection, setGrapholEntity)
 
   grapholscape.on(LifecycleEvent.NodeSelection, node => {
-    if (!node.isEntity())
+    if (node.is(TypesEnum.IRI) && node.iri) {
+      const tempEntity = new GrapholEntity(new Iri(node.iri, grapholscape.ontology.namespaces))
+      setGrapholEntity(tempEntity, node)
+    } else if (!node.isEntity())
       entityDetailsComponent.hide()
   })
 

@@ -47,7 +47,7 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
     {
-      selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]`,
+      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         // color: (node) => getNodeLabelColor(node, theme),
         backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),

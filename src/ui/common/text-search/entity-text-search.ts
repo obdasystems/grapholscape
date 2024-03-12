@@ -13,7 +13,6 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   [TypesEnum.DATA_PROPERTY]?: number
   [TypesEnum.OBJECT_PROPERTY]?: number
   [TypesEnum.INDIVIDUAL]?: number
-  [TypesEnum.CLASS_INSTANCE]?: number
 
   private isSearchTextEmpty: boolean = true
   private searchTimeout: NodeJS.Timeout
@@ -23,7 +22,6 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
     [TypesEnum.DATA_PROPERTY]: { type: Number, reflect: true },
     [TypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
     [TypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
-    [TypesEnum.CLASS_INSTANCE]: { type: Number, reflect: true },
     isSearchTextEmpty: { type: Boolean, state: true },
   }
 
@@ -98,7 +96,6 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
           object-property=${this[TypesEnum.OBJECT_PROPERTY] ?? nothing}
           data-property=${this[TypesEnum.DATA_PROPERTY] ?? nothing}
           individual=${this[TypesEnum.INDIVIDUAL] ?? nothing}
-          class-instance=${this[TypesEnum.CLASS_INSTANCE] ?? nothing}
         ></gscape-entity-type-filter>
       </div>
       

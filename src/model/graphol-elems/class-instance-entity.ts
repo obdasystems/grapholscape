@@ -7,7 +7,7 @@ export default class ClassInstanceEntity extends GrapholEntity implements IClass
 
   private _parentClassIris: Iri[] = []
   private _dataProperties: DataPropertyValue[] = []
-  protected _manualTypes?: Set<TypesEnum> | undefined = new Set([TypesEnum.CLASS_INSTANCE])
+  protected _manualTypes?: Set<TypesEnum> | undefined = new Set([TypesEnum.INDIVIDUAL])
 
   constructor(iri: Iri, parentClassIris: Iri[] = []) {
     super(iri)

@@ -1,10 +1,7 @@
-import { TypesEnum } from "../../../model";
 import { WidgetEnum } from "../../../ui";
-import { getEntityViewDataUnfolding, grapholEntityToEntityViewData } from "../../../util";
 import IncrementalController from "../../controller";
-import { GscapeInstanceExplorer } from "../instances-explorer";
+// import { GscapeInstanceExplorer } from "../instances-explorer";
 import onHideMenu from "../on-hide-menu";
-import showMenu from "../show-menu";
 import GscapeNavigationMenu, { ObjectPropertyNavigationEvent } from "./navigation-menu";
 
 export function NavigationMenuFactory(incrementalController: IncrementalController) {
@@ -25,100 +22,93 @@ export function NavigationMenuFactory(incrementalController: IncrementalControll
         : incrementalController.addIntensionalObjectProperty(e.detail.objectPropertyIri, e.detail.rangeClassIri!, e.detail.referenceClassIri)
     })
 
-    setTimeout(() => {
-      const nodeId = incrementalController.getIDByIRI(e.detail.rangeClassIri!, TypesEnum.CLASS)
-      if (nodeId) {
-        incrementalController.grapholscape.centerOnElement(nodeId)
-      }
-    }, 250)
-
     navigationMenu.popperRef = undefined
     navigationMenu.hide()
   })
 
-  navigationMenu.addEventListener('searchinstancesranges', async (e: ObjectPropertyNavigationEvent) => {
-    const instancesExplorer = incrementalController.grapholscape.widgets.get(WidgetEnum.INSTANCES_EXPLORER) as GscapeInstanceExplorer
+  // navigationMenu.addEventListener('searchinstancesranges', async (e: ObjectPropertyNavigationEvent) => {
+  //   const instancesExplorer = incrementalController.grapholscape.widgets.get(WidgetEnum.INSTANCES_EXPLORER) as GscapeInstanceExplorer
 
-    if (instancesExplorer) {
-      const referenceEntity = incrementalController.classInstanceEntities.get(e.detail.referenceClassIri) // must be an instance to be here
-      const objectPropertyEntity = incrementalController.grapholscape.ontology.getEntity(e.detail.objectPropertyIri)
+  //   if (instancesExplorer) {
+  //     const referenceEntity = incrementalController.classInstanceEntities.get(e.detail.referenceClassIri) // must be an instance to be here
+  //     const objectPropertyEntity = incrementalController.grapholscape.ontology.getEntity(e.detail.objectPropertyIri)
 
-      if (
-        referenceEntity &&
-        objectPropertyEntity &&
-        !(instancesExplorer.referenceEntity?.value.iri.equals(referenceEntity.iri) &&
-          instancesExplorer.referencePropertyEntity?.value.iri.equals(objectPropertyEntity.iri))
-      ) {
-        navigationMenu.hide()
-        instancesExplorer.clear()
-        instancesExplorer.areInstancesLoading = true
-        instancesExplorer.referenceEntity = navigationMenu.referenceEntity
-        instancesExplorer.referenceEntityType = navigationMenu.referenceEntityType
-        instancesExplorer.referencePropertyEntity = grapholEntityToEntityViewData(objectPropertyEntity, incrementalController.grapholscape)
-        instancesExplorer.isPropertyDirect = e.detail.direct
+  //     if (
+  //       referenceEntity &&
+  //       objectPropertyEntity &&
+  //       !(instancesExplorer.referenceEntity?.value.iri.equals(referenceEntity.iri) &&
+  //         instancesExplorer.referencePropertyEntity?.value.iri.equals(objectPropertyEntity.iri))
+  //     ) {
+  //       navigationMenu.hide()
+  //       instancesExplorer.clear()
+  //       instancesExplorer.areInstancesLoading = true
+  //       instancesExplorer.referenceEntity = navigationMenu.referenceEntity
+  //       instancesExplorer.referenceEntityType = navigationMenu.referenceEntityType
+  //       instancesExplorer.referencePropertyEntity = grapholEntityToEntityViewData(objectPropertyEntity, incrementalController.grapholscape)
+  //       instancesExplorer.isPropertyDirect = e.detail.direct
 
-        // const dataProperties = await incrementalController.getDataPropertiesByClassInstance(referenceEntity.iri.fullIri)
-        // instancesExplorer.searchFilterList = dataProperties
-        //   .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
-        //   .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
+  //       // const dataProperties = await incrementalController.getDataPropertiesByClassInstance(referenceEntity.iri.fullIri)
+  //       // instancesExplorer.searchFilterList = dataProperties
+  //       //   .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
+  //       //   .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
 
-        instancesExplorer.classTypeFilterList = navigationMenu.objectProperties
-          .find(op => op.entityViewData.value.iri.equals(e.detail.objectPropertyIri))
-          ?.connectedClasses
+  //       instancesExplorer.classTypeFilterList = navigationMenu.objectProperties
+  //         .find(op => op.entityViewData.value.iri.equals(e.detail.objectPropertyIri))
+  //         ?.connectedClasses
 
-        // if only one related class for this object property, then retrieve data properties for this related class
-        // as it will be selected by default
-        if (instancesExplorer.classTypeFilterList?.length === 1) {
-          const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
-            incrementalController.endpointController.highlightsManager
-          )
-          instancesExplorer.propertiesFilterList = (await incrementalController
-            .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].entityViewData.value.iri.fullIri]))
-            .map(dp => getEntityViewDataUnfolding(dp, incrementalController.grapholscape, hasUnfoldings))
-        }
+  //       // if only one related class for this object property, then retrieve data properties for this related class
+  //       // as it will be selected by default
+  //       if (instancesExplorer.classTypeFilterList?.length === 1) {
+  //         const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
+  //           incrementalController.endpointController.highlightsManager
+  //         )
+  //         instancesExplorer.propertiesFilterList = (await incrementalController
+  //           .getDataPropertiesByClasses([instancesExplorer.classTypeFilterList[0].entityViewData.value.iri.fullIri]))
+  //           .map(dp => getEntityViewDataUnfolding(dp, incrementalController.grapholscape, hasUnfoldings))
+  //       }
 
-        instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
-          referenceEntity.iri.fullIri,
-          e.detail.objectPropertyIri,
-          e.detail.direct,
-          true,
-          e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
-        )
+  //       instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
+  //         referenceEntity.iri.fullIri,
+  //         e.detail.objectPropertyIri,
+  //         e.detail.direct,
+  //         true,
+  //         e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
+  //       )
 
-        if (instancesExplorer.requestId) {
-          incrementalController
-            .endpointController
-            ?.shouldQueryUseLabels(instancesExplorer.requestId)
-            ?.then(async shouldAskForLabels => {
-              if (!shouldAskForLabels) {
-                instancesExplorer.shouldAskForLabels = shouldAskForLabels
-                instancesExplorer.areInstancesLoading = true
-                instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
-                  referenceEntity.iri.fullIri,
-                  e.detail.objectPropertyIri,
-                  e.detail.direct,
-                  shouldAskForLabels,
-                  e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
-                )
-              }
+  //       if (instancesExplorer.requestId) {
+  //         incrementalController
+  //           .endpointController
+  //           ?.shouldQueryUseLabels(instancesExplorer.requestId)
+  //           ?.then(async shouldAskForLabels => {
+  //             if (!shouldAskForLabels) {
+  //               instancesExplorer.shouldAskForLabels = shouldAskForLabels
+  //               instancesExplorer.areInstancesLoading = true
+  //               instancesExplorer.requestId = await incrementalController.endpointController?.requestInstancesThroughObjectProperty(
+  //                 referenceEntity.iri.fullIri,
+  //                 e.detail.objectPropertyIri,
+  //                 e.detail.direct,
+  //                 shouldAskForLabels,
+  //                 e.detail.rangeClassIri ? [e.detail.rangeClassIri] : undefined
+  //               )
+  //             }
 
-            })
-        }
-      }
+  //           })
+  //       }
+  //     }
 
-      if (navigationMenu.popperRef) {
-        showMenu(instancesExplorer, incrementalController)
-      }
-    }
-  })
+  //     if (navigationMenu.popperRef) {
+  //       showMenu(instancesExplorer, incrementalController)
+  //     }
+  //   }
+  // })
 
-  navigationMenu.addEventListener('objectpropertyselection', async (e: ObjectPropertyNavigationEvent) => {
-    const referenceEntity = incrementalController.classInstanceEntities.get(e.detail.referenceClassIri)
+  // navigationMenu.addEventListener('objectpropertyselection', async (e: ObjectPropertyNavigationEvent) => {
+  //   const referenceEntity = incrementalController.classInstanceEntities.get(e.detail.referenceClassIri)
 
-    if (referenceEntity) {
-      incrementalController.expandObjectPropertyOnInstance(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct)
-    }
-  })
+  //   if (referenceEntity) {
+  //     incrementalController.expandObjectPropertyOnInstance(referenceEntity.iri.fullIri, e.detail.objectPropertyIri, e.detail.direct)
+  //   }
+  // })
 
   navigationMenu.tippyWidget.setProps({
     onHide: () => onHideMenu(navigationMenu, incrementalController),

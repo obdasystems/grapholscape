@@ -8,7 +8,7 @@ export type ViewItemWithIri = {
   iri: string
 }
 
-export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (iri: string) => void) {
+export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (iri: string) => void, useExternalLink = false) {
   function wikiClickHandler() {
     if (onWikiLinkClick) 
       onWikiLinkClick(item.iri)
@@ -16,13 +16,25 @@ export function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (ir
 
   return html`
     <div class="item-with-iri-info ellipsed">
-      <div 
-        class="name ${onWikiLinkClick ? 'link' : null}" 
-        title="${item.name}"
-        @click=${onWikiLinkClick ? wikiClickHandler : null }
-      >
-        ${item.name}
-      </div>
+      ${useExternalLink
+        ? html`<a 
+            href="${item.iri}"
+            title="${item.name}"
+            target="_blank"
+          >
+            ${item.name}
+          </a>`
+        : html`
+          <div 
+            class="name ${onWikiLinkClick ? 'link' : null}" 
+            title="${item.name}"
+            @click=${onWikiLinkClick ? wikiClickHandler : null }
+          >
+            ${item.name}
+          </div>
+        `
+      }
+      
       <div class="rtl"><div class="muted-text" style="text-align: center" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div></div>
       <div class="muted-text type-or-version">
         ${Array.from(item.typeOrVersion).map(text => {

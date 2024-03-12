@@ -4,14 +4,14 @@ import { BaseMixin, baseStyle, EntityViewData, GscapeEntityListItem, icons, Size
 import { ContextualWidgetMixin } from "../../../ui/common/mixins/contextual-widget-mixin";
 import a11yClick from "../../../ui/util/a11y-click";
 import getIconSlot from "../../../ui/util/get-icon-slot";
-import { ViewObjectPropertyUnfolding } from "../../../ui/view-model";
+import { ViewObjectProperty } from "../../../ui/view-model";
 import menuBaseStyle from "../menu-base-style";
 
 export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   popperRef?: HTMLElement
 
   /** @internal */
-  private _objectProperties: ViewObjectPropertyUnfolding[] = []
+  private _objectProperties: ViewObjectProperty[] = []
   /** @internal */
   objectPropertiesRanges?: Map<string, Map<string, { values: EntityViewData[], loading?: boolean }>>
   /** @internal */
@@ -62,16 +62,16 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
               ${this.objectProperties.map(objectProperty => {
 
                 // const values = this.dataPropertiesValues?.get(dataProperty.value.iri.fullIri)
-                const disabled = !this.canShowObjectPropertiesRanges && objectProperty.hasUnfolding === false
+                const disabled = !this.canShowObjectPropertiesRanges || objectProperty.disabled === true
                 return html`
                   <gscape-entity-list-item
-                    displayedname=${objectProperty.entityViewData.displayedName}
-                    iri=${objectProperty.entityViewData.value.iri.fullIri}
-                    .types=${objectProperty.entityViewData.value.types}
+                    displayedname=${objectProperty.displayedName}
+                    iri=${objectProperty.value.iri.fullIri}
+                    .types=${objectProperty.value.types}
                     ?asaccordion=${this.canShowObjectPropertiesRanges}
                     ?disabled=${disabled}
                     direct=${objectProperty.direct}
-                    title=${disabled ? 'Property not mapped to data' : objectProperty.entityViewData.displayedName}
+                    title=${disabled ? 'Property not mapped to data' : objectProperty.displayedName}
                   >
                     ${this.canShowObjectPropertiesRanges
                       ? html`
@@ -79,11 +79,11 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
                           ${objectProperty.connectedClasses.map(connectedClass => {
                             return html`
                                 <gscape-entity-list-item
-                                  displayedname=${connectedClass.entityViewData.displayedName}
-                                  iri=${connectedClass.entityViewData.value.iri.fullIri}
-                                  objpropertyiri=${objectProperty.entityViewData.value.iri.fullIri}
+                                  displayedname=${connectedClass.displayedName}
+                                  iri=${connectedClass.value.iri.fullIri}
+                                  objpropertyiri=${objectProperty.value.iri.fullIri}
                                   direct=${objectProperty.direct}
-                                  .types=${connectedClass.entityViewData.value.types}
+                                  .types=${connectedClass.value.types}
                                   ?actionable=${false}
                                 >
                                   <div slot="trailing-element" class="hover-btn">
@@ -151,24 +151,24 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     </div>
   `
 
-  private handleObjPropertySelection(e: Event, objectProperty: ViewObjectPropertyUnfolding) {
+  private handleObjPropertySelection(e: Event, objectProperty: ViewObjectProperty) {
     if (a11yClick(e)) {
 
-      if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE) &&
-        (
-          this.canShowObjectPropertiesRanges ||
-          objectProperty.hasUnfolding === true
-        )) {
-        this.dispatchEvent(new CustomEvent('objectpropertyselection', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            referenceClassIri: this.referenceEntity?.value.iri.fullIri,
-            objectPropertyIri: objectProperty.entityViewData.value.iri.fullIri,
-            direct: objectProperty.direct
-          }
-        }) as ObjectPropertyNavigationEvent)
-      }
+      // if (this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE) &&
+      //   (
+      //     this.canShowObjectPropertiesRanges &&
+      //     !objectProperty.disabled
+      //   )) {
+      //   this.dispatchEvent(new CustomEvent('objectpropertyselection', {
+      //     bubbles: true,
+      //     composed: true,
+      //     detail: {
+      //       referenceClassIri: this.referenceEntity?.value.iri.fullIri,
+      //       objectPropertyIri: objectProperty.value.iri.fullIri,
+      //       direct: objectProperty.direct
+      //     }
+      //   }) as ObjectPropertyNavigationEvent)
+      // }
     }
   }
 
@@ -190,7 +190,7 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
     }
   }
 
-  private handleSearchInstancesRange(e: MouseEvent, objectProperty: ViewObjectPropertyUnfolding) {
+  private handleSearchInstancesRange(e: MouseEvent, objectProperty: ViewObjectProperty) {
     e.stopPropagation()
     if (a11yClick(e)) {
       if (this.popperRef) 
@@ -198,19 +198,19 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
   
       // const targetListItem = (e.currentTarget as any)?.parentElement.parentElement.parentElement as GscapeEntityListItem | null
 
-      if (objectProperty &&
-        this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE) &&
-        objectProperty.hasUnfolding) {
-        this.dispatchEvent(new CustomEvent('searchinstancesranges', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            referenceClassIri: this.referenceEntity?.value.iri.fullIri,
-            objectPropertyIri: objectProperty.entityViewData.value.iri.fullIri,
-            direct: objectProperty.direct
-          }
-        }) as ObjectPropertyNavigationEvent)
-      }
+      // if (objectProperty &&
+      //   this.referenceEntity?.value.types.includes(TypesEnum.CLASS_INSTANCE) &&
+      //   !objectProperty.disabled) {
+      //   this.dispatchEvent(new CustomEvent('searchinstancesranges', {
+      //     bubbles: true,
+      //     composed: true,
+      //     detail: {
+      //       referenceClassIri: this.referenceEntity?.value.iri.fullIri,
+      //       objectPropertyIri: objectProperty.value.iri.fullIri,
+      //       direct: objectProperty.direct
+      //     }
+      //   }) as ObjectPropertyNavigationEvent)
+      // }
     }
   }
 
@@ -238,9 +238,9 @@ export default class GscapeNavigationMenu extends ContextualWidgetMixin(BaseMixi
 
   set objectProperties(newObjectProperties) {
     this._objectProperties = newObjectProperties.map(op => {
-      op.connectedClasses.sort((a,b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
+      op.connectedClasses.sort((a,b) => a.displayedName.localeCompare(b.displayedName))
       return op
-    }).sort((a,b) => a.entityViewData.displayedName.localeCompare(b.entityViewData.displayedName))
+    }).sort((a,b) => a.displayedName.localeCompare(b.displayedName))
     this.requestUpdate()
   }
 

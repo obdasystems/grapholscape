@@ -4,11 +4,10 @@ import edgehandles from 'cytoscape-edgehandles'
 import klay from 'cytoscape-klay'
 import popper from 'cytoscape-popper'
 import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
-import { Core, Grapholscape, IncrementalRendererState, OntologyColorManager } from './core'
+import { Core, Grapholscape, OntologyColorManager } from './core'
 import setGraphEventHandlers from './core/set-graph-event-handlers'
-import { initIncremental } from './incremental'
-import { RequestOptions } from './incremental/api/model'
-import { moveUpLeft, NodeButtonsFactory } from './incremental/ui'
+import { IncrementalController } from './incremental'
+import { moveUpLeft } from './incremental/ui'
 import { ColoursNames, DefaultThemes, GrapholscapeTheme, Ontology, RendererStatesEnum } from './model'
 import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
@@ -35,6 +34,10 @@ export * as ui from './ui'
 export * as util from './util'
 /** @internal */
 export { parseRDFGraph, RDFGraphParser }
+export { default as incrementalGraphStyle } from './core/rendering/incremental/incremental-style'
+export { default as floatyGraphStyle } from './core/rendering/floaty/floaty-style'
+export { default as liteGraphStyle } from './core/rendering/lite/lite-style'
+export { default as grapholGraphStyle } from './core/rendering/graphol/graphol-style'
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -62,8 +65,8 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
       (grapholscape.widgets.get(UI.WidgetEnum.INITIAL_RENDERER_SELECTOR) as any)?.hide()
     }
 
-    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-      initIncremental(grapholscape)
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !config?.useCustomIncrementalController) {
+      grapholscape.incremental = new IncrementalController(grapholscape)
     }
   }
   return grapholscape
@@ -89,9 +92,9 @@ export async function fullGrapholscape(file: string | File, container: HTMLEleme
 export async function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig) {
   const grapholscape = await getGrapholscape(file, container, config)
 
-  if (grapholscape?.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-    initIncremental(grapholscape)
-  }
+  // if (grapholscape?.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
+  //   initIncremental(grapholscape)
+  // }
   return grapholscape
 }
 
@@ -106,7 +109,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
       _config = Object.assign(config, loadConfig())
     }
   }
-  _config.renderers = [ RendererStatesEnum.INCREMENTAL ]
+  _config.renderers = [RendererStatesEnum.INCREMENTAL]
   _config.initialRendererSelection = false
 
   if ((ontology as RDFGraph).metadata) {
@@ -114,12 +117,14 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
   } else {
     grapholscape = await getGrapholscape((ontology as string | File), container, _config)
   }
-  
+
   if (!grapholscape)
     return
 
   UI.initUI(grapholscape)
-  initIncremental(grapholscape)
+  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !_config.useCustomIncrementalController) {
+    grapholscape.incremental = new IncrementalController(grapholscape)
+  }
   if (!rdfGraphToResume) {
     return grapholscape
   }
@@ -129,7 +134,7 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
 }
 
 /** @internal */
-export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig, mastroConnection?: RequestOptions) {
+export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig) {
   const loadingSpinner = showLoadingSpinner(container, { selectedTheme: rdfGraph.config?.selectedTheme })
 
   const savedConfig = loadConfig()
@@ -140,22 +145,21 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
     config = RDFGraphParser.getConfig(rdfGraph)
   }
   const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config)
-  initFromResume(grapholscape, rdfGraph)
+  initFromResume(grapholscape, rdfGraph, true, config.useCustomIncrementalController)
 
-  if (mastroConnection)
-    grapholscape.incremental?.setMastroConnection(mastroConnection)
+  // if (mastroConnection)
+  //   grapholscape.incremental?.setMastroConnection(mastroConnection)
 
   loadingSpinner.remove()
   return grapholscape
 }
 
 /** @internal */
-export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true) {
+export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true, useCustomIncrementalController?: boolean) {
   if (forceInit) {
     UI.initUI(grapholscape)
-
-    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL)) {
-      initIncremental(grapholscape)
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !useCustomIncrementalController) {
+      grapholscape.incremental = new IncrementalController(grapholscape)
     }
   }
 
@@ -182,15 +186,19 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, f
       }
     }
   } else if (grapholscape.incremental) {
-    grapholscape.incremental.classInstanceEntities = RDFGraphParser.getClassInstances(rdfGraph, grapholscape.ontology.namespaces)
+    // grapholscape.incremental.classInstanceEntities = RDFGraphParser.getClassInstances(rdfGraph, grapholscape.ontology.namespaces)
 
     const allEntities = new Map(
       Array.from(grapholscape.ontology.entities)
-        .concat(Array.from(grapholscape.incremental.classInstanceEntities))
+      .concat(Array.from(RDFGraphParser.getClassInstances(rdfGraph, grapholscape.ontology.namespaces)))
     )
 
-    const diagramRepr = RDFGraphParser.getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities)[0]
-      .representations.get(RendererStatesEnum.INCREMENTAL)
+    const diagramRepr = RDFGraphParser.getDiagrams(
+      rdfGraph,
+      RendererStatesEnum.INCREMENTAL,
+      allEntities,
+      grapholscape.ontology.namespaces
+    )[0].representations.get(RendererStatesEnum.INCREMENTAL)
     if (diagramRepr) {
       // grapholscape.incremental.diagram = new IncrementalDiagram()
       if (diagramRepr.lastViewportState) {
@@ -206,7 +214,7 @@ export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, f
       // Diagram (representation) has been changed, set event handlers again
       grapholscape.incremental.setIncrementalEventHandlers()
       // Diagram representation has been changed, set nodes button event handlers
-      NodeButtonsFactory(grapholscape.incremental)
+      // NodeButtonsFactory(grapholscape.incremental)
 
       if (diagramRepr.grapholElements.size > 0) {
         const initialMenu = grapholscape.widgets.get(UI.WidgetEnum.INCREMENTAL_INITIAL_MENU)

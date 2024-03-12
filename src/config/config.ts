@@ -1,3 +1,4 @@
+import { IIncremental } from "../incremental/i-incremental"
 import { GrapholscapeTheme, DefaultThemesEnum, RendererStatesEnum, EntityNameType } from "../model"
 import { WidgetEnum } from "../ui/util/widget-enum"
 
@@ -30,4 +31,5 @@ export type GrapholscapeConfig =
     selectedRenderer?: RendererStatesEnum,
     widgets?: WidgetsConfig,
     initialRendererSelection?: boolean,
+    useCustomIncrementalController?: boolean,
   }

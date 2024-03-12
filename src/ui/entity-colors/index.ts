@@ -51,25 +51,21 @@ export function setColorList(entityColorLegend: GscapeEntityColorLegend, graphol
     })
 
     if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL && grapholscape.incremental) {
-      diagramRepr.cy.$(`[type = "${TypesEnum.CLASS_INSTANCE}"]`).forEach(instanceNode => {
-        const instanceEntity = grapholscape.incremental?.classInstanceEntities.get(instanceNode.data().iri)
-
-        if (instanceEntity) {
-          instanceEntity.parentClassIris.forEach((parentClassIri, i) => {
-            if (!elements.has(parentClassIri.fullIri)) {
-              const parentClassEntity = grapholscape.ontology.getEntity(parentClassIri)
-              if (parentClassEntity) {
-                elements.set(parentClassIri.fullIri, {
-                  id: `${instanceNode.id()}-${i}`,
-                  displayedName: parentClassEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language),
-                  iri: parentClassEntity.fullIri,
-                  color: parentClassEntity.color,
-                  filtered: false,
-                })
-              }
+      diagramRepr.cy.$(`[type = "${TypesEnum.INDIVIDUAL}"]`).forEach(instanceNode => {
+        instanceNode.connectedEdges(`[type = "${TypesEnum.INSTANCE_OF}"]`).targets().forEach((parentClassNode, i) => {
+          if (!elements.has(parentClassNode.data().iri)) {
+            const parentClassEntity = grapholscape.ontology.getEntity(parentClassNode.data().iri)
+            if (parentClassEntity) {
+              elements.set(parentClassNode.data().iri, {
+                id: `${instanceNode.id()}-${i}`,
+                displayedName: parentClassEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language),
+                iri: parentClassEntity.fullIri,
+                color: parentClassEntity.color,
+                filtered: false,
+              })
             }
-          })
-        }
+          }
+        })
       })
     }
       
