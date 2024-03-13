@@ -1,10 +1,10 @@
 /// <reference types="cytoscape" />
 import * as cytoscape$1 from 'cytoscape';
-import cytoscape__default, { ElementDefinition, EventObject, EdgeSingular, Stylesheet, SingularElementReturnValue, NodeSingular, Position as Position$1, CytoscapeOptions, Core as Core$1 } from 'cytoscape';
-import * as lit_html from 'lit-html';
+import cytoscape__default, { ElementDefinition, EventObject, EdgeSingular, Stylesheet, SingularElementReturnValue, NodeSingular, CytoscapeOptions, Core as Core$1 } from 'cytoscape';
 import * as lit from 'lit';
 import { SVGTemplateResult, LitElement, TemplateResult, PropertyDeclarations, CSSResultArray, CSSResultGroup } from 'lit';
 import { Props, Instance } from 'tippy.js';
+import * as lit_html from 'lit-html';
 
 /**
  * Grapholscape API model
@@ -240,7 +240,7 @@ declare function PositionToJSON(value?: Position | null): any;
  */
 /**
  * Contiene tutti i tipi di nodi/archi orginirari dal Graphol per evitare di duplicare gli enumeratori. Nella rappresentazione Floaty/vkg vengono usati questi valori.
- * NODI class data-property class-instance (vkg) individual (floaty) union disjoint-union
+ * NODI class data-property class-instance (vkg) individual (floaty) union disjoint-union iri (floaty iri range di annotazioni che non sono entità)
  * ARCHI object-property annotation-property instance-of input inclusion equivalence attribute-edge union disjoint-union complete-union complete-disjoint-union
  * @export
  * @enum {string}
@@ -278,7 +278,8 @@ declare enum TypesEnum {
     SAME = "same",
     DIFFERENT = "different",
     MEMBERSHIP = "membership",
-    ATTRIBUTE_EDGE = "attribute-edge"
+    ATTRIBUTE_EDGE = "attribute-edge",
+    IRI = "iri"
 }
 declare function TypesEnumFromJSON(json: any): TypesEnum;
 declare function TypesEnumFromJSONTyped(json: any, ignoreDiscriminator: boolean): TypesEnum;
@@ -485,7 +486,7 @@ declare function FunctionPropertiesEnumToJSON(value?: FunctionPropertiesEnum | n
  * @export
  * @interface Entity
  */
-interface Entity$1 {
+interface Entity {
     /**
      *
      * @type {string}
@@ -521,9 +522,9 @@ interface Entity$1 {
  * Check if a given object implements the Entity interface.
  */
 declare function instanceOfEntity(value: object): boolean;
-declare function EntityFromJSON(json: any): Entity$1;
-declare function EntityFromJSONTyped(json: any, ignoreDiscriminator: boolean): Entity$1;
-declare function EntityToJSON(value?: Entity$1 | null): any;
+declare function EntityFromJSON(json: any): Entity;
+declare function EntityFromJSONTyped(json: any, ignoreDiscriminator: boolean): Entity;
+declare function EntityToJSON(value?: Entity | null): any;
 
 /**
  * Grapholscape API model
@@ -548,7 +549,7 @@ interface HierarchySuperclassesInner {
      * @type {Entity}
      * @memberof HierarchySuperclassesInner
      */
-    classEntity: Entity$1;
+    classEntity: Entity;
     /**
      *
      * @type {boolean}
@@ -599,7 +600,7 @@ interface Hierarchy$1 {
      * @type {Array<Entity>}
      * @memberof Hierarchy
      */
-    inputs: Array<Entity$1>;
+    inputs: Array<Entity>;
     /**
      *
      * @type {Array<HierarchySuperclassesInner>}
@@ -899,7 +900,7 @@ interface AnnotationAction {
      * @type {Entity}
      * @memberof AnnotationAction
      */
-    entity?: Entity$1;
+    entity?: Entity;
     /**
      *
      * @type {boolean}
@@ -1531,13 +1532,13 @@ interface EntityAction {
      * @type {Entity}
      * @memberof EntityAction
      */
-    subject?: Entity$1;
+    subject?: Entity;
     /**
      *
      * @type {Entity}
      * @memberof EntityAction
      */
-    previousState?: Entity$1;
+    previousState?: Entity;
     /**
      *
      * @type {string}
@@ -1937,13 +1938,13 @@ interface PropertyAction {
      * @type {Entity}
      * @memberof PropertyAction
      */
-    subject?: Entity$1;
+    subject?: Entity;
     /**
      *
      * @type {Entity}
      * @memberof PropertyAction
      */
-    previousState?: Entity$1;
+    previousState?: Entity;
     /**
      *
      * @type {string}
@@ -2232,7 +2233,7 @@ interface RDFGraph {
      * @type {Array<Entity>}
      * @memberof RDFGraph
      */
-    entities: Array<Entity$1>;
+    entities: Array<Entity>;
     /**
      *
      * @type {Array<ClassInstanceEntity>}
@@ -2488,7 +2489,7 @@ interface OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest {
 /**
  *
  */
-declare class VKGApi$1 extends BaseAPI {
+declare class VKGApi extends BaseAPI {
     /**
      * Returns RDFGraph for CONSTRUCT visualization
      */
@@ -2555,491 +2556,494 @@ declare class VKGApi$1 extends BaseAPI {
     owlOntologyOntologyNameVersionVkgCatalogSnapshotIdPut(requestParameters: OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest, initOverrides?: RequestInit | InitOverrideFunction): Promise<Array<VKGSnapshot>>;
 }
 
-type index_d$3_Action = Action;
-declare const index_d$3_ActionFromJSON: typeof ActionFromJSON;
-declare const index_d$3_ActionFromJSONTyped: typeof ActionFromJSONTyped;
-type index_d$3_ActionInvolvedElements = ActionInvolvedElements;
-declare const index_d$3_ActionInvolvedElementsFromJSON: typeof ActionInvolvedElementsFromJSON;
-declare const index_d$3_ActionInvolvedElementsFromJSONTyped: typeof ActionInvolvedElementsFromJSONTyped;
-declare const index_d$3_ActionInvolvedElementsToJSON: typeof ActionInvolvedElementsToJSON;
-type index_d$3_ActionOperationTypeEnum = ActionOperationTypeEnum;
-declare const index_d$3_ActionOperationTypeEnum: typeof ActionOperationTypeEnum;
-declare const index_d$3_ActionToJSON: typeof ActionToJSON;
-type index_d$3_ActionUser = ActionUser;
-declare const index_d$3_ActionUserFromJSON: typeof ActionUserFromJSON;
-declare const index_d$3_ActionUserFromJSONTyped: typeof ActionUserFromJSONTyped;
-declare const index_d$3_ActionUserToJSON: typeof ActionUserToJSON;
-type index_d$3_AnnotationAction = AnnotationAction;
-declare const index_d$3_AnnotationActionFromJSON: typeof AnnotationActionFromJSON;
-declare const index_d$3_AnnotationActionFromJSONTyped: typeof AnnotationActionFromJSONTyped;
-type index_d$3_AnnotationActionOperationTypeEnum = AnnotationActionOperationTypeEnum;
-declare const index_d$3_AnnotationActionOperationTypeEnum: typeof AnnotationActionOperationTypeEnum;
-declare const index_d$3_AnnotationActionToJSON: typeof AnnotationActionToJSON;
-declare const index_d$3_AnnotationFromJSON: typeof AnnotationFromJSON;
-declare const index_d$3_AnnotationFromJSONTyped: typeof AnnotationFromJSONTyped;
-declare const index_d$3_AnnotationToJSON: typeof AnnotationToJSON;
-type index_d$3_ApiResponse<T> = ApiResponse<T>;
-declare const index_d$3_BASE_PATH: typeof BASE_PATH;
-type index_d$3_BaseAPI = BaseAPI;
-declare const index_d$3_BaseAPI: typeof BaseAPI;
-type index_d$3_BlobApiResponse = BlobApiResponse;
-declare const index_d$3_BlobApiResponse: typeof BlobApiResponse;
-declare const index_d$3_COLLECTION_FORMATS: typeof COLLECTION_FORMATS;
-type index_d$3_ClassInstanceEntityAllOf = ClassInstanceEntityAllOf;
-declare const index_d$3_ClassInstanceEntityAllOfFromJSON: typeof ClassInstanceEntityAllOfFromJSON;
-declare const index_d$3_ClassInstanceEntityAllOfFromJSONTyped: typeof ClassInstanceEntityAllOfFromJSONTyped;
-declare const index_d$3_ClassInstanceEntityAllOfToJSON: typeof ClassInstanceEntityAllOfToJSON;
-declare const index_d$3_ClassInstanceEntityFromJSON: typeof ClassInstanceEntityFromJSON;
-declare const index_d$3_ClassInstanceEntityFromJSONTyped: typeof ClassInstanceEntityFromJSONTyped;
-declare const index_d$3_ClassInstanceEntityToJSON: typeof ClassInstanceEntityToJSON;
-type index_d$3_Configuration = Configuration;
-declare const index_d$3_Configuration: typeof Configuration;
-type index_d$3_ConfigurationParameters = ConfigurationParameters;
-type index_d$3_Consume = Consume;
-type index_d$3_DataPropertyValue = DataPropertyValue;
-declare const index_d$3_DataPropertyValueFromJSON: typeof DataPropertyValueFromJSON;
-declare const index_d$3_DataPropertyValueFromJSONTyped: typeof DataPropertyValueFromJSONTyped;
-declare const index_d$3_DataPropertyValueToJSON: typeof DataPropertyValueToJSON;
-declare const index_d$3_DefaultConfig: typeof DefaultConfig;
-type index_d$3_DeleteOntologyDraftRequest = DeleteOntologyDraftRequest;
-type index_d$3_DiagramAction = DiagramAction;
-declare const index_d$3_DiagramActionFromJSON: typeof DiagramActionFromJSON;
-declare const index_d$3_DiagramActionFromJSONTyped: typeof DiagramActionFromJSONTyped;
-type index_d$3_DiagramActionOperationTypeEnum = DiagramActionOperationTypeEnum;
-declare const index_d$3_DiagramActionOperationTypeEnum: typeof DiagramActionOperationTypeEnum;
-declare const index_d$3_DiagramActionToJSON: typeof DiagramActionToJSON;
-declare const index_d$3_DiagramFromJSON: typeof DiagramFromJSON;
-declare const index_d$3_DiagramFromJSONTyped: typeof DiagramFromJSONTyped;
-declare const index_d$3_DiagramToJSON: typeof DiagramToJSON;
-type index_d$3_DownloadOntologyDraftRequest = DownloadOntologyDraftRequest;
-type index_d$3_Edge = Edge;
-type index_d$3_EdgeAction = EdgeAction;
-declare const index_d$3_EdgeActionFromJSON: typeof EdgeActionFromJSON;
-declare const index_d$3_EdgeActionFromJSONTyped: typeof EdgeActionFromJSONTyped;
-type index_d$3_EdgeActionOperationTypeEnum = EdgeActionOperationTypeEnum;
-declare const index_d$3_EdgeActionOperationTypeEnum: typeof EdgeActionOperationTypeEnum;
-declare const index_d$3_EdgeActionToJSON: typeof EdgeActionToJSON;
-type index_d$3_EdgeAllOf = EdgeAllOf;
-declare const index_d$3_EdgeAllOfFromJSON: typeof EdgeAllOfFromJSON;
-declare const index_d$3_EdgeAllOfFromJSONTyped: typeof EdgeAllOfFromJSONTyped;
-declare const index_d$3_EdgeAllOfToJSON: typeof EdgeAllOfToJSON;
-declare const index_d$3_EdgeFromJSON: typeof EdgeFromJSON;
-declare const index_d$3_EdgeFromJSONTyped: typeof EdgeFromJSONTyped;
-declare const index_d$3_EdgeToJSON: typeof EdgeToJSON;
-declare const index_d$3_ElementFromJSON: typeof ElementFromJSON;
-declare const index_d$3_ElementFromJSONTyped: typeof ElementFromJSONTyped;
-declare const index_d$3_ElementToJSON: typeof ElementToJSON;
-type index_d$3_EntityAction = EntityAction;
-declare const index_d$3_EntityActionFromJSON: typeof EntityActionFromJSON;
-declare const index_d$3_EntityActionFromJSONTyped: typeof EntityActionFromJSONTyped;
-type index_d$3_EntityActionOperationTypeEnum = EntityActionOperationTypeEnum;
-declare const index_d$3_EntityActionOperationTypeEnum: typeof EntityActionOperationTypeEnum;
-declare const index_d$3_EntityActionToJSON: typeof EntityActionToJSON;
-declare const index_d$3_EntityFromJSON: typeof EntityFromJSON;
-declare const index_d$3_EntityFromJSONTyped: typeof EntityFromJSONTyped;
-declare const index_d$3_EntityToJSON: typeof EntityToJSON;
-type index_d$3_ErrorContext = ErrorContext;
-type index_d$3_FetchAPI = FetchAPI;
-type index_d$3_FetchError = FetchError;
-declare const index_d$3_FetchError: typeof FetchError;
-type index_d$3_FetchParams = FetchParams;
-type index_d$3_FunctionPropertiesEnum = FunctionPropertiesEnum;
-declare const index_d$3_FunctionPropertiesEnum: typeof FunctionPropertiesEnum;
-declare const index_d$3_FunctionPropertiesEnumFromJSON: typeof FunctionPropertiesEnumFromJSON;
-declare const index_d$3_FunctionPropertiesEnumFromJSONTyped: typeof FunctionPropertiesEnumFromJSONTyped;
-declare const index_d$3_FunctionPropertiesEnumToJSON: typeof FunctionPropertiesEnumToJSON;
-type index_d$3_GetOntologyDraftRequest = GetOntologyDraftRequest;
-type index_d$3_GetRDFGraphConstructRequest = GetRDFGraphConstructRequest;
-type index_d$3_HTTPBody = HTTPBody;
-type index_d$3_HTTPHeaders = HTTPHeaders;
-type index_d$3_HTTPMethod = HTTPMethod;
-type index_d$3_HTTPQuery = HTTPQuery;
-type index_d$3_HTTPRequestInit = HTTPRequestInit;
-type index_d$3_HierarchyAction = HierarchyAction;
-declare const index_d$3_HierarchyActionFromJSON: typeof HierarchyActionFromJSON;
-declare const index_d$3_HierarchyActionFromJSONTyped: typeof HierarchyActionFromJSONTyped;
-declare const index_d$3_HierarchyActionToJSON: typeof HierarchyActionToJSON;
-declare const index_d$3_HierarchyFromJSON: typeof HierarchyFromJSON;
-declare const index_d$3_HierarchyFromJSONTyped: typeof HierarchyFromJSONTyped;
-type index_d$3_HierarchySuperclassesInner = HierarchySuperclassesInner;
-declare const index_d$3_HierarchySuperclassesInnerFromJSON: typeof HierarchySuperclassesInnerFromJSON;
-declare const index_d$3_HierarchySuperclassesInnerFromJSONTyped: typeof HierarchySuperclassesInnerFromJSONTyped;
-declare const index_d$3_HierarchySuperclassesInnerToJSON: typeof HierarchySuperclassesInnerToJSON;
-declare const index_d$3_HierarchyToJSON: typeof HierarchyToJSON;
-type index_d$3_InitOverrideFunction = InitOverrideFunction;
-type index_d$3_JSONApiResponse<T> = JSONApiResponse<T>;
-declare const index_d$3_JSONApiResponse: typeof JSONApiResponse;
-type index_d$3_Json = Json;
-type index_d$3_Middleware = Middleware;
-type index_d$3_ModelPropertyNaming = ModelPropertyNaming;
-type index_d$3_NamespaceAction = NamespaceAction;
-declare const index_d$3_NamespaceActionFromJSON: typeof NamespaceActionFromJSON;
-declare const index_d$3_NamespaceActionFromJSONTyped: typeof NamespaceActionFromJSONTyped;
-type index_d$3_NamespaceActionOperationTypeEnum = NamespaceActionOperationTypeEnum;
-declare const index_d$3_NamespaceActionOperationTypeEnum: typeof NamespaceActionOperationTypeEnum;
-declare const index_d$3_NamespaceActionToJSON: typeof NamespaceActionToJSON;
-declare const index_d$3_NamespaceFromJSON: typeof NamespaceFromJSON;
-declare const index_d$3_NamespaceFromJSONTyped: typeof NamespaceFromJSONTyped;
-declare const index_d$3_NamespaceToJSON: typeof NamespaceToJSON;
-type index_d$3_Node = Node;
-type index_d$3_NodeAction = NodeAction;
-declare const index_d$3_NodeActionFromJSON: typeof NodeActionFromJSON;
-declare const index_d$3_NodeActionFromJSONTyped: typeof NodeActionFromJSONTyped;
-type index_d$3_NodeActionOperationTypeEnum = NodeActionOperationTypeEnum;
-declare const index_d$3_NodeActionOperationTypeEnum: typeof NodeActionOperationTypeEnum;
-declare const index_d$3_NodeActionToJSON: typeof NodeActionToJSON;
-type index_d$3_NodeAllOf = NodeAllOf;
-declare const index_d$3_NodeAllOfFromJSON: typeof NodeAllOfFromJSON;
-declare const index_d$3_NodeAllOfFromJSONTyped: typeof NodeAllOfFromJSONTyped;
-declare const index_d$3_NodeAllOfToJSON: typeof NodeAllOfToJSON;
-declare const index_d$3_NodeFromJSON: typeof NodeFromJSON;
-declare const index_d$3_NodeFromJSONTyped: typeof NodeFromJSONTyped;
-declare const index_d$3_NodeToJSON: typeof NodeToJSON;
-type index_d$3_OntologyDesignerApi = OntologyDesignerApi;
-declare const index_d$3_OntologyDesignerApi: typeof OntologyDesignerApi;
-type index_d$3_OntologyDraftInfo = OntologyDraftInfo;
-declare const index_d$3_OntologyDraftInfoFromJSON: typeof OntologyDraftInfoFromJSON;
-declare const index_d$3_OntologyDraftInfoFromJSONTyped: typeof OntologyDraftInfoFromJSONTyped;
-declare const index_d$3_OntologyDraftInfoToJSON: typeof OntologyDraftInfoToJSON;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest = OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest = OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogGetRequest = OwlOntologyOntologyNameVersionVkgCatalogGetRequest;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest = OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogPostRequest = OwlOntologyOntologyNameVersionVkgCatalogPostRequest;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest = OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest;
-type index_d$3_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest = OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest;
-type index_d$3_Position = Position;
-declare const index_d$3_PositionFromJSON: typeof PositionFromJSON;
-declare const index_d$3_PositionFromJSONTyped: typeof PositionFromJSONTyped;
-declare const index_d$3_PositionToJSON: typeof PositionToJSON;
-type index_d$3_PostOntologyDraftsRequest = PostOntologyDraftsRequest;
-type index_d$3_PropertyAction = PropertyAction;
-declare const index_d$3_PropertyActionFromJSON: typeof PropertyActionFromJSON;
-declare const index_d$3_PropertyActionFromJSONTyped: typeof PropertyActionFromJSONTyped;
-type index_d$3_PropertyActionOperationTypeEnum = PropertyActionOperationTypeEnum;
-declare const index_d$3_PropertyActionOperationTypeEnum: typeof PropertyActionOperationTypeEnum;
-declare const index_d$3_PropertyActionToJSON: typeof PropertyActionToJSON;
-type index_d$3_PutOntologyDraftRequest = PutOntologyDraftRequest;
-type index_d$3_RDFGraph = RDFGraph;
-type index_d$3_RDFGraphConfig = RDFGraphConfig;
-type index_d$3_RDFGraphConfigEntityNameTypeEnum = RDFGraphConfigEntityNameTypeEnum;
-declare const index_d$3_RDFGraphConfigEntityNameTypeEnum: typeof RDFGraphConfigEntityNameTypeEnum;
-type index_d$3_RDFGraphConfigFiltersEnum = RDFGraphConfigFiltersEnum;
-declare const index_d$3_RDFGraphConfigFiltersEnum: typeof RDFGraphConfigFiltersEnum;
-declare const index_d$3_RDFGraphConfigFromJSON: typeof RDFGraphConfigFromJSON;
-declare const index_d$3_RDFGraphConfigFromJSONTyped: typeof RDFGraphConfigFromJSONTyped;
-declare const index_d$3_RDFGraphConfigToJSON: typeof RDFGraphConfigToJSON;
-declare const index_d$3_RDFGraphFromJSON: typeof RDFGraphFromJSON;
-declare const index_d$3_RDFGraphFromJSONTyped: typeof RDFGraphFromJSONTyped;
-type index_d$3_RDFGraphMetadata = RDFGraphMetadata;
-declare const index_d$3_RDFGraphMetadataFromJSON: typeof RDFGraphMetadataFromJSON;
-declare const index_d$3_RDFGraphMetadataFromJSONTyped: typeof RDFGraphMetadataFromJSONTyped;
-declare const index_d$3_RDFGraphMetadataToJSON: typeof RDFGraphMetadataToJSON;
-type index_d$3_RDFGraphModelTypeEnum = RDFGraphModelTypeEnum;
-declare const index_d$3_RDFGraphModelTypeEnum: typeof RDFGraphModelTypeEnum;
-declare const index_d$3_RDFGraphToJSON: typeof RDFGraphToJSON;
-type index_d$3_RequestContext = RequestContext;
-type index_d$3_RequestOpts = RequestOpts;
-type index_d$3_RequiredError = RequiredError;
-declare const index_d$3_RequiredError: typeof RequiredError;
-type index_d$3_ResponseContext = ResponseContext;
-type index_d$3_ResponseError = ResponseError;
-declare const index_d$3_ResponseError: typeof ResponseError;
-type index_d$3_ResponseTransformer<T> = ResponseTransformer<T>;
-type index_d$3_TextApiResponse = TextApiResponse;
-declare const index_d$3_TextApiResponse: typeof TextApiResponse;
-type index_d$3_Theme = Theme;
-declare const index_d$3_ThemeFromJSON: typeof ThemeFromJSON;
-declare const index_d$3_ThemeFromJSONTyped: typeof ThemeFromJSONTyped;
-declare const index_d$3_ThemeToJSON: typeof ThemeToJSON;
-type index_d$3_TypesEnum = TypesEnum;
-declare const index_d$3_TypesEnum: typeof TypesEnum;
-declare const index_d$3_TypesEnumFromJSON: typeof TypesEnumFromJSON;
-declare const index_d$3_TypesEnumFromJSONTyped: typeof TypesEnumFromJSONTyped;
-declare const index_d$3_TypesEnumToJSON: typeof TypesEnumToJSON;
-type index_d$3_VKGSnapshot = VKGSnapshot;
-declare const index_d$3_VKGSnapshotFromJSON: typeof VKGSnapshotFromJSON;
-declare const index_d$3_VKGSnapshotFromJSONTyped: typeof VKGSnapshotFromJSONTyped;
-declare const index_d$3_VKGSnapshotToJSON: typeof VKGSnapshotToJSON;
-type index_d$3_Viewport = Viewport;
-declare const index_d$3_ViewportFromJSON: typeof ViewportFromJSON;
-declare const index_d$3_ViewportFromJSONTyped: typeof ViewportFromJSONTyped;
-declare const index_d$3_ViewportToJSON: typeof ViewportToJSON;
-type index_d$3_VoidApiResponse = VoidApiResponse;
-declare const index_d$3_VoidApiResponse: typeof VoidApiResponse;
-declare const index_d$3_canConsumeForm: typeof canConsumeForm;
-declare const index_d$3_exists: typeof exists;
-declare const index_d$3_instanceOfAction: typeof instanceOfAction;
-declare const index_d$3_instanceOfActionInvolvedElements: typeof instanceOfActionInvolvedElements;
-declare const index_d$3_instanceOfActionUser: typeof instanceOfActionUser;
-declare const index_d$3_instanceOfAnnotation: typeof instanceOfAnnotation;
-declare const index_d$3_instanceOfAnnotationAction: typeof instanceOfAnnotationAction;
-declare const index_d$3_instanceOfClassInstanceEntity: typeof instanceOfClassInstanceEntity;
-declare const index_d$3_instanceOfClassInstanceEntityAllOf: typeof instanceOfClassInstanceEntityAllOf;
-declare const index_d$3_instanceOfDataPropertyValue: typeof instanceOfDataPropertyValue;
-declare const index_d$3_instanceOfDiagram: typeof instanceOfDiagram;
-declare const index_d$3_instanceOfDiagramAction: typeof instanceOfDiagramAction;
-declare const index_d$3_instanceOfEdge: typeof instanceOfEdge;
-declare const index_d$3_instanceOfEdgeAction: typeof instanceOfEdgeAction;
-declare const index_d$3_instanceOfEdgeAllOf: typeof instanceOfEdgeAllOf;
-declare const index_d$3_instanceOfElement: typeof instanceOfElement;
-declare const index_d$3_instanceOfEntity: typeof instanceOfEntity;
-declare const index_d$3_instanceOfEntityAction: typeof instanceOfEntityAction;
-declare const index_d$3_instanceOfHierarchy: typeof instanceOfHierarchy;
-declare const index_d$3_instanceOfHierarchyAction: typeof instanceOfHierarchyAction;
-declare const index_d$3_instanceOfHierarchySuperclassesInner: typeof instanceOfHierarchySuperclassesInner;
-declare const index_d$3_instanceOfNamespace: typeof instanceOfNamespace;
-declare const index_d$3_instanceOfNamespaceAction: typeof instanceOfNamespaceAction;
-declare const index_d$3_instanceOfNode: typeof instanceOfNode;
-declare const index_d$3_instanceOfNodeAction: typeof instanceOfNodeAction;
-declare const index_d$3_instanceOfNodeAllOf: typeof instanceOfNodeAllOf;
-declare const index_d$3_instanceOfOntologyDraftInfo: typeof instanceOfOntologyDraftInfo;
-declare const index_d$3_instanceOfPosition: typeof instanceOfPosition;
-declare const index_d$3_instanceOfPropertyAction: typeof instanceOfPropertyAction;
-declare const index_d$3_instanceOfRDFGraph: typeof instanceOfRDFGraph;
-declare const index_d$3_instanceOfRDFGraphConfig: typeof instanceOfRDFGraphConfig;
-declare const index_d$3_instanceOfRDFGraphMetadata: typeof instanceOfRDFGraphMetadata;
-declare const index_d$3_instanceOfTheme: typeof instanceOfTheme;
-declare const index_d$3_instanceOfVKGSnapshot: typeof instanceOfVKGSnapshot;
-declare const index_d$3_instanceOfViewport: typeof instanceOfViewport;
-declare const index_d$3_mapValues: typeof mapValues;
-declare const index_d$3_querystring: typeof querystring;
-declare namespace index_d$3 {
+type index_d$4_Action = Action;
+declare const index_d$4_ActionFromJSON: typeof ActionFromJSON;
+declare const index_d$4_ActionFromJSONTyped: typeof ActionFromJSONTyped;
+type index_d$4_ActionInvolvedElements = ActionInvolvedElements;
+declare const index_d$4_ActionInvolvedElementsFromJSON: typeof ActionInvolvedElementsFromJSON;
+declare const index_d$4_ActionInvolvedElementsFromJSONTyped: typeof ActionInvolvedElementsFromJSONTyped;
+declare const index_d$4_ActionInvolvedElementsToJSON: typeof ActionInvolvedElementsToJSON;
+type index_d$4_ActionOperationTypeEnum = ActionOperationTypeEnum;
+declare const index_d$4_ActionOperationTypeEnum: typeof ActionOperationTypeEnum;
+declare const index_d$4_ActionToJSON: typeof ActionToJSON;
+type index_d$4_ActionUser = ActionUser;
+declare const index_d$4_ActionUserFromJSON: typeof ActionUserFromJSON;
+declare const index_d$4_ActionUserFromJSONTyped: typeof ActionUserFromJSONTyped;
+declare const index_d$4_ActionUserToJSON: typeof ActionUserToJSON;
+type index_d$4_AnnotationAction = AnnotationAction;
+declare const index_d$4_AnnotationActionFromJSON: typeof AnnotationActionFromJSON;
+declare const index_d$4_AnnotationActionFromJSONTyped: typeof AnnotationActionFromJSONTyped;
+type index_d$4_AnnotationActionOperationTypeEnum = AnnotationActionOperationTypeEnum;
+declare const index_d$4_AnnotationActionOperationTypeEnum: typeof AnnotationActionOperationTypeEnum;
+declare const index_d$4_AnnotationActionToJSON: typeof AnnotationActionToJSON;
+declare const index_d$4_AnnotationFromJSON: typeof AnnotationFromJSON;
+declare const index_d$4_AnnotationFromJSONTyped: typeof AnnotationFromJSONTyped;
+declare const index_d$4_AnnotationToJSON: typeof AnnotationToJSON;
+type index_d$4_ApiResponse<T> = ApiResponse<T>;
+declare const index_d$4_BASE_PATH: typeof BASE_PATH;
+type index_d$4_BaseAPI = BaseAPI;
+declare const index_d$4_BaseAPI: typeof BaseAPI;
+type index_d$4_BlobApiResponse = BlobApiResponse;
+declare const index_d$4_BlobApiResponse: typeof BlobApiResponse;
+declare const index_d$4_COLLECTION_FORMATS: typeof COLLECTION_FORMATS;
+type index_d$4_ClassInstanceEntityAllOf = ClassInstanceEntityAllOf;
+declare const index_d$4_ClassInstanceEntityAllOfFromJSON: typeof ClassInstanceEntityAllOfFromJSON;
+declare const index_d$4_ClassInstanceEntityAllOfFromJSONTyped: typeof ClassInstanceEntityAllOfFromJSONTyped;
+declare const index_d$4_ClassInstanceEntityAllOfToJSON: typeof ClassInstanceEntityAllOfToJSON;
+declare const index_d$4_ClassInstanceEntityFromJSON: typeof ClassInstanceEntityFromJSON;
+declare const index_d$4_ClassInstanceEntityFromJSONTyped: typeof ClassInstanceEntityFromJSONTyped;
+declare const index_d$4_ClassInstanceEntityToJSON: typeof ClassInstanceEntityToJSON;
+type index_d$4_Configuration = Configuration;
+declare const index_d$4_Configuration: typeof Configuration;
+type index_d$4_ConfigurationParameters = ConfigurationParameters;
+type index_d$4_Consume = Consume;
+type index_d$4_DataPropertyValue = DataPropertyValue;
+declare const index_d$4_DataPropertyValueFromJSON: typeof DataPropertyValueFromJSON;
+declare const index_d$4_DataPropertyValueFromJSONTyped: typeof DataPropertyValueFromJSONTyped;
+declare const index_d$4_DataPropertyValueToJSON: typeof DataPropertyValueToJSON;
+declare const index_d$4_DefaultConfig: typeof DefaultConfig;
+type index_d$4_DeleteOntologyDraftRequest = DeleteOntologyDraftRequest;
+type index_d$4_DiagramAction = DiagramAction;
+declare const index_d$4_DiagramActionFromJSON: typeof DiagramActionFromJSON;
+declare const index_d$4_DiagramActionFromJSONTyped: typeof DiagramActionFromJSONTyped;
+type index_d$4_DiagramActionOperationTypeEnum = DiagramActionOperationTypeEnum;
+declare const index_d$4_DiagramActionOperationTypeEnum: typeof DiagramActionOperationTypeEnum;
+declare const index_d$4_DiagramActionToJSON: typeof DiagramActionToJSON;
+declare const index_d$4_DiagramFromJSON: typeof DiagramFromJSON;
+declare const index_d$4_DiagramFromJSONTyped: typeof DiagramFromJSONTyped;
+declare const index_d$4_DiagramToJSON: typeof DiagramToJSON;
+type index_d$4_DownloadOntologyDraftRequest = DownloadOntologyDraftRequest;
+type index_d$4_Edge = Edge;
+type index_d$4_EdgeAction = EdgeAction;
+declare const index_d$4_EdgeActionFromJSON: typeof EdgeActionFromJSON;
+declare const index_d$4_EdgeActionFromJSONTyped: typeof EdgeActionFromJSONTyped;
+type index_d$4_EdgeActionOperationTypeEnum = EdgeActionOperationTypeEnum;
+declare const index_d$4_EdgeActionOperationTypeEnum: typeof EdgeActionOperationTypeEnum;
+declare const index_d$4_EdgeActionToJSON: typeof EdgeActionToJSON;
+type index_d$4_EdgeAllOf = EdgeAllOf;
+declare const index_d$4_EdgeAllOfFromJSON: typeof EdgeAllOfFromJSON;
+declare const index_d$4_EdgeAllOfFromJSONTyped: typeof EdgeAllOfFromJSONTyped;
+declare const index_d$4_EdgeAllOfToJSON: typeof EdgeAllOfToJSON;
+declare const index_d$4_EdgeFromJSON: typeof EdgeFromJSON;
+declare const index_d$4_EdgeFromJSONTyped: typeof EdgeFromJSONTyped;
+declare const index_d$4_EdgeToJSON: typeof EdgeToJSON;
+declare const index_d$4_ElementFromJSON: typeof ElementFromJSON;
+declare const index_d$4_ElementFromJSONTyped: typeof ElementFromJSONTyped;
+declare const index_d$4_ElementToJSON: typeof ElementToJSON;
+type index_d$4_Entity = Entity;
+type index_d$4_EntityAction = EntityAction;
+declare const index_d$4_EntityActionFromJSON: typeof EntityActionFromJSON;
+declare const index_d$4_EntityActionFromJSONTyped: typeof EntityActionFromJSONTyped;
+type index_d$4_EntityActionOperationTypeEnum = EntityActionOperationTypeEnum;
+declare const index_d$4_EntityActionOperationTypeEnum: typeof EntityActionOperationTypeEnum;
+declare const index_d$4_EntityActionToJSON: typeof EntityActionToJSON;
+declare const index_d$4_EntityFromJSON: typeof EntityFromJSON;
+declare const index_d$4_EntityFromJSONTyped: typeof EntityFromJSONTyped;
+declare const index_d$4_EntityToJSON: typeof EntityToJSON;
+type index_d$4_ErrorContext = ErrorContext;
+type index_d$4_FetchAPI = FetchAPI;
+type index_d$4_FetchError = FetchError;
+declare const index_d$4_FetchError: typeof FetchError;
+type index_d$4_FetchParams = FetchParams;
+type index_d$4_FunctionPropertiesEnum = FunctionPropertiesEnum;
+declare const index_d$4_FunctionPropertiesEnum: typeof FunctionPropertiesEnum;
+declare const index_d$4_FunctionPropertiesEnumFromJSON: typeof FunctionPropertiesEnumFromJSON;
+declare const index_d$4_FunctionPropertiesEnumFromJSONTyped: typeof FunctionPropertiesEnumFromJSONTyped;
+declare const index_d$4_FunctionPropertiesEnumToJSON: typeof FunctionPropertiesEnumToJSON;
+type index_d$4_GetOntologyDraftRequest = GetOntologyDraftRequest;
+type index_d$4_GetRDFGraphConstructRequest = GetRDFGraphConstructRequest;
+type index_d$4_HTTPBody = HTTPBody;
+type index_d$4_HTTPHeaders = HTTPHeaders;
+type index_d$4_HTTPMethod = HTTPMethod;
+type index_d$4_HTTPQuery = HTTPQuery;
+type index_d$4_HTTPRequestInit = HTTPRequestInit;
+type index_d$4_HierarchyAction = HierarchyAction;
+declare const index_d$4_HierarchyActionFromJSON: typeof HierarchyActionFromJSON;
+declare const index_d$4_HierarchyActionFromJSONTyped: typeof HierarchyActionFromJSONTyped;
+declare const index_d$4_HierarchyActionToJSON: typeof HierarchyActionToJSON;
+declare const index_d$4_HierarchyFromJSON: typeof HierarchyFromJSON;
+declare const index_d$4_HierarchyFromJSONTyped: typeof HierarchyFromJSONTyped;
+type index_d$4_HierarchySuperclassesInner = HierarchySuperclassesInner;
+declare const index_d$4_HierarchySuperclassesInnerFromJSON: typeof HierarchySuperclassesInnerFromJSON;
+declare const index_d$4_HierarchySuperclassesInnerFromJSONTyped: typeof HierarchySuperclassesInnerFromJSONTyped;
+declare const index_d$4_HierarchySuperclassesInnerToJSON: typeof HierarchySuperclassesInnerToJSON;
+declare const index_d$4_HierarchyToJSON: typeof HierarchyToJSON;
+type index_d$4_InitOverrideFunction = InitOverrideFunction;
+type index_d$4_JSONApiResponse<T> = JSONApiResponse<T>;
+declare const index_d$4_JSONApiResponse: typeof JSONApiResponse;
+type index_d$4_Json = Json;
+type index_d$4_Middleware = Middleware;
+type index_d$4_ModelPropertyNaming = ModelPropertyNaming;
+type index_d$4_NamespaceAction = NamespaceAction;
+declare const index_d$4_NamespaceActionFromJSON: typeof NamespaceActionFromJSON;
+declare const index_d$4_NamespaceActionFromJSONTyped: typeof NamespaceActionFromJSONTyped;
+type index_d$4_NamespaceActionOperationTypeEnum = NamespaceActionOperationTypeEnum;
+declare const index_d$4_NamespaceActionOperationTypeEnum: typeof NamespaceActionOperationTypeEnum;
+declare const index_d$4_NamespaceActionToJSON: typeof NamespaceActionToJSON;
+declare const index_d$4_NamespaceFromJSON: typeof NamespaceFromJSON;
+declare const index_d$4_NamespaceFromJSONTyped: typeof NamespaceFromJSONTyped;
+declare const index_d$4_NamespaceToJSON: typeof NamespaceToJSON;
+type index_d$4_Node = Node;
+type index_d$4_NodeAction = NodeAction;
+declare const index_d$4_NodeActionFromJSON: typeof NodeActionFromJSON;
+declare const index_d$4_NodeActionFromJSONTyped: typeof NodeActionFromJSONTyped;
+type index_d$4_NodeActionOperationTypeEnum = NodeActionOperationTypeEnum;
+declare const index_d$4_NodeActionOperationTypeEnum: typeof NodeActionOperationTypeEnum;
+declare const index_d$4_NodeActionToJSON: typeof NodeActionToJSON;
+type index_d$4_NodeAllOf = NodeAllOf;
+declare const index_d$4_NodeAllOfFromJSON: typeof NodeAllOfFromJSON;
+declare const index_d$4_NodeAllOfFromJSONTyped: typeof NodeAllOfFromJSONTyped;
+declare const index_d$4_NodeAllOfToJSON: typeof NodeAllOfToJSON;
+declare const index_d$4_NodeFromJSON: typeof NodeFromJSON;
+declare const index_d$4_NodeFromJSONTyped: typeof NodeFromJSONTyped;
+declare const index_d$4_NodeToJSON: typeof NodeToJSON;
+type index_d$4_OntologyDesignerApi = OntologyDesignerApi;
+declare const index_d$4_OntologyDesignerApi: typeof OntologyDesignerApi;
+type index_d$4_OntologyDraftInfo = OntologyDraftInfo;
+declare const index_d$4_OntologyDraftInfoFromJSON: typeof OntologyDraftInfoFromJSON;
+declare const index_d$4_OntologyDraftInfoFromJSONTyped: typeof OntologyDraftInfoFromJSONTyped;
+declare const index_d$4_OntologyDraftInfoToJSON: typeof OntologyDraftInfoToJSON;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest = OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest = OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogGetRequest = OwlOntologyOntologyNameVersionVkgCatalogGetRequest;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest = OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogPostRequest = OwlOntologyOntologyNameVersionVkgCatalogPostRequest;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest = OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest;
+type index_d$4_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest = OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest;
+type index_d$4_Position = Position;
+declare const index_d$4_PositionFromJSON: typeof PositionFromJSON;
+declare const index_d$4_PositionFromJSONTyped: typeof PositionFromJSONTyped;
+declare const index_d$4_PositionToJSON: typeof PositionToJSON;
+type index_d$4_PostOntologyDraftsRequest = PostOntologyDraftsRequest;
+type index_d$4_PropertyAction = PropertyAction;
+declare const index_d$4_PropertyActionFromJSON: typeof PropertyActionFromJSON;
+declare const index_d$4_PropertyActionFromJSONTyped: typeof PropertyActionFromJSONTyped;
+type index_d$4_PropertyActionOperationTypeEnum = PropertyActionOperationTypeEnum;
+declare const index_d$4_PropertyActionOperationTypeEnum: typeof PropertyActionOperationTypeEnum;
+declare const index_d$4_PropertyActionToJSON: typeof PropertyActionToJSON;
+type index_d$4_PutOntologyDraftRequest = PutOntologyDraftRequest;
+type index_d$4_RDFGraph = RDFGraph;
+type index_d$4_RDFGraphConfig = RDFGraphConfig;
+type index_d$4_RDFGraphConfigEntityNameTypeEnum = RDFGraphConfigEntityNameTypeEnum;
+declare const index_d$4_RDFGraphConfigEntityNameTypeEnum: typeof RDFGraphConfigEntityNameTypeEnum;
+type index_d$4_RDFGraphConfigFiltersEnum = RDFGraphConfigFiltersEnum;
+declare const index_d$4_RDFGraphConfigFiltersEnum: typeof RDFGraphConfigFiltersEnum;
+declare const index_d$4_RDFGraphConfigFromJSON: typeof RDFGraphConfigFromJSON;
+declare const index_d$4_RDFGraphConfigFromJSONTyped: typeof RDFGraphConfigFromJSONTyped;
+declare const index_d$4_RDFGraphConfigToJSON: typeof RDFGraphConfigToJSON;
+declare const index_d$4_RDFGraphFromJSON: typeof RDFGraphFromJSON;
+declare const index_d$4_RDFGraphFromJSONTyped: typeof RDFGraphFromJSONTyped;
+type index_d$4_RDFGraphMetadata = RDFGraphMetadata;
+declare const index_d$4_RDFGraphMetadataFromJSON: typeof RDFGraphMetadataFromJSON;
+declare const index_d$4_RDFGraphMetadataFromJSONTyped: typeof RDFGraphMetadataFromJSONTyped;
+declare const index_d$4_RDFGraphMetadataToJSON: typeof RDFGraphMetadataToJSON;
+type index_d$4_RDFGraphModelTypeEnum = RDFGraphModelTypeEnum;
+declare const index_d$4_RDFGraphModelTypeEnum: typeof RDFGraphModelTypeEnum;
+declare const index_d$4_RDFGraphToJSON: typeof RDFGraphToJSON;
+type index_d$4_RequestContext = RequestContext;
+type index_d$4_RequestOpts = RequestOpts;
+type index_d$4_RequiredError = RequiredError;
+declare const index_d$4_RequiredError: typeof RequiredError;
+type index_d$4_ResponseContext = ResponseContext;
+type index_d$4_ResponseError = ResponseError;
+declare const index_d$4_ResponseError: typeof ResponseError;
+type index_d$4_ResponseTransformer<T> = ResponseTransformer<T>;
+type index_d$4_TextApiResponse = TextApiResponse;
+declare const index_d$4_TextApiResponse: typeof TextApiResponse;
+type index_d$4_Theme = Theme;
+declare const index_d$4_ThemeFromJSON: typeof ThemeFromJSON;
+declare const index_d$4_ThemeFromJSONTyped: typeof ThemeFromJSONTyped;
+declare const index_d$4_ThemeToJSON: typeof ThemeToJSON;
+type index_d$4_TypesEnum = TypesEnum;
+declare const index_d$4_TypesEnum: typeof TypesEnum;
+declare const index_d$4_TypesEnumFromJSON: typeof TypesEnumFromJSON;
+declare const index_d$4_TypesEnumFromJSONTyped: typeof TypesEnumFromJSONTyped;
+declare const index_d$4_TypesEnumToJSON: typeof TypesEnumToJSON;
+type index_d$4_VKGApi = VKGApi;
+declare const index_d$4_VKGApi: typeof VKGApi;
+type index_d$4_VKGSnapshot = VKGSnapshot;
+declare const index_d$4_VKGSnapshotFromJSON: typeof VKGSnapshotFromJSON;
+declare const index_d$4_VKGSnapshotFromJSONTyped: typeof VKGSnapshotFromJSONTyped;
+declare const index_d$4_VKGSnapshotToJSON: typeof VKGSnapshotToJSON;
+type index_d$4_Viewport = Viewport;
+declare const index_d$4_ViewportFromJSON: typeof ViewportFromJSON;
+declare const index_d$4_ViewportFromJSONTyped: typeof ViewportFromJSONTyped;
+declare const index_d$4_ViewportToJSON: typeof ViewportToJSON;
+type index_d$4_VoidApiResponse = VoidApiResponse;
+declare const index_d$4_VoidApiResponse: typeof VoidApiResponse;
+declare const index_d$4_canConsumeForm: typeof canConsumeForm;
+declare const index_d$4_exists: typeof exists;
+declare const index_d$4_instanceOfAction: typeof instanceOfAction;
+declare const index_d$4_instanceOfActionInvolvedElements: typeof instanceOfActionInvolvedElements;
+declare const index_d$4_instanceOfActionUser: typeof instanceOfActionUser;
+declare const index_d$4_instanceOfAnnotation: typeof instanceOfAnnotation;
+declare const index_d$4_instanceOfAnnotationAction: typeof instanceOfAnnotationAction;
+declare const index_d$4_instanceOfClassInstanceEntity: typeof instanceOfClassInstanceEntity;
+declare const index_d$4_instanceOfClassInstanceEntityAllOf: typeof instanceOfClassInstanceEntityAllOf;
+declare const index_d$4_instanceOfDataPropertyValue: typeof instanceOfDataPropertyValue;
+declare const index_d$4_instanceOfDiagram: typeof instanceOfDiagram;
+declare const index_d$4_instanceOfDiagramAction: typeof instanceOfDiagramAction;
+declare const index_d$4_instanceOfEdge: typeof instanceOfEdge;
+declare const index_d$4_instanceOfEdgeAction: typeof instanceOfEdgeAction;
+declare const index_d$4_instanceOfEdgeAllOf: typeof instanceOfEdgeAllOf;
+declare const index_d$4_instanceOfElement: typeof instanceOfElement;
+declare const index_d$4_instanceOfEntity: typeof instanceOfEntity;
+declare const index_d$4_instanceOfEntityAction: typeof instanceOfEntityAction;
+declare const index_d$4_instanceOfHierarchy: typeof instanceOfHierarchy;
+declare const index_d$4_instanceOfHierarchyAction: typeof instanceOfHierarchyAction;
+declare const index_d$4_instanceOfHierarchySuperclassesInner: typeof instanceOfHierarchySuperclassesInner;
+declare const index_d$4_instanceOfNamespace: typeof instanceOfNamespace;
+declare const index_d$4_instanceOfNamespaceAction: typeof instanceOfNamespaceAction;
+declare const index_d$4_instanceOfNode: typeof instanceOfNode;
+declare const index_d$4_instanceOfNodeAction: typeof instanceOfNodeAction;
+declare const index_d$4_instanceOfNodeAllOf: typeof instanceOfNodeAllOf;
+declare const index_d$4_instanceOfOntologyDraftInfo: typeof instanceOfOntologyDraftInfo;
+declare const index_d$4_instanceOfPosition: typeof instanceOfPosition;
+declare const index_d$4_instanceOfPropertyAction: typeof instanceOfPropertyAction;
+declare const index_d$4_instanceOfRDFGraph: typeof instanceOfRDFGraph;
+declare const index_d$4_instanceOfRDFGraphConfig: typeof instanceOfRDFGraphConfig;
+declare const index_d$4_instanceOfRDFGraphMetadata: typeof instanceOfRDFGraphMetadata;
+declare const index_d$4_instanceOfTheme: typeof instanceOfTheme;
+declare const index_d$4_instanceOfVKGSnapshot: typeof instanceOfVKGSnapshot;
+declare const index_d$4_instanceOfViewport: typeof instanceOfViewport;
+declare const index_d$4_mapValues: typeof mapValues;
+declare const index_d$4_querystring: typeof querystring;
+declare namespace index_d$4 {
   export {
-    index_d$3_Action as Action,
-    index_d$3_ActionFromJSON as ActionFromJSON,
-    index_d$3_ActionFromJSONTyped as ActionFromJSONTyped,
-    index_d$3_ActionInvolvedElements as ActionInvolvedElements,
-    index_d$3_ActionInvolvedElementsFromJSON as ActionInvolvedElementsFromJSON,
-    index_d$3_ActionInvolvedElementsFromJSONTyped as ActionInvolvedElementsFromJSONTyped,
-    index_d$3_ActionInvolvedElementsToJSON as ActionInvolvedElementsToJSON,
-    index_d$3_ActionOperationTypeEnum as ActionOperationTypeEnum,
-    index_d$3_ActionToJSON as ActionToJSON,
-    index_d$3_ActionUser as ActionUser,
-    index_d$3_ActionUserFromJSON as ActionUserFromJSON,
-    index_d$3_ActionUserFromJSONTyped as ActionUserFromJSONTyped,
-    index_d$3_ActionUserToJSON as ActionUserToJSON,
+    index_d$4_Action as Action,
+    index_d$4_ActionFromJSON as ActionFromJSON,
+    index_d$4_ActionFromJSONTyped as ActionFromJSONTyped,
+    index_d$4_ActionInvolvedElements as ActionInvolvedElements,
+    index_d$4_ActionInvolvedElementsFromJSON as ActionInvolvedElementsFromJSON,
+    index_d$4_ActionInvolvedElementsFromJSONTyped as ActionInvolvedElementsFromJSONTyped,
+    index_d$4_ActionInvolvedElementsToJSON as ActionInvolvedElementsToJSON,
+    index_d$4_ActionOperationTypeEnum as ActionOperationTypeEnum,
+    index_d$4_ActionToJSON as ActionToJSON,
+    index_d$4_ActionUser as ActionUser,
+    index_d$4_ActionUserFromJSON as ActionUserFromJSON,
+    index_d$4_ActionUserFromJSONTyped as ActionUserFromJSONTyped,
+    index_d$4_ActionUserToJSON as ActionUserToJSON,
     Annotation$1 as Annotation,
-    index_d$3_AnnotationAction as AnnotationAction,
-    index_d$3_AnnotationActionFromJSON as AnnotationActionFromJSON,
-    index_d$3_AnnotationActionFromJSONTyped as AnnotationActionFromJSONTyped,
-    index_d$3_AnnotationActionOperationTypeEnum as AnnotationActionOperationTypeEnum,
-    index_d$3_AnnotationActionToJSON as AnnotationActionToJSON,
-    index_d$3_AnnotationFromJSON as AnnotationFromJSON,
-    index_d$3_AnnotationFromJSONTyped as AnnotationFromJSONTyped,
-    index_d$3_AnnotationToJSON as AnnotationToJSON,
-    index_d$3_ApiResponse as ApiResponse,
-    index_d$3_BASE_PATH as BASE_PATH,
-    index_d$3_BaseAPI as BaseAPI,
-    index_d$3_BlobApiResponse as BlobApiResponse,
-    index_d$3_COLLECTION_FORMATS as COLLECTION_FORMATS,
+    index_d$4_AnnotationAction as AnnotationAction,
+    index_d$4_AnnotationActionFromJSON as AnnotationActionFromJSON,
+    index_d$4_AnnotationActionFromJSONTyped as AnnotationActionFromJSONTyped,
+    index_d$4_AnnotationActionOperationTypeEnum as AnnotationActionOperationTypeEnum,
+    index_d$4_AnnotationActionToJSON as AnnotationActionToJSON,
+    index_d$4_AnnotationFromJSON as AnnotationFromJSON,
+    index_d$4_AnnotationFromJSONTyped as AnnotationFromJSONTyped,
+    index_d$4_AnnotationToJSON as AnnotationToJSON,
+    index_d$4_ApiResponse as ApiResponse,
+    index_d$4_BASE_PATH as BASE_PATH,
+    index_d$4_BaseAPI as BaseAPI,
+    index_d$4_BlobApiResponse as BlobApiResponse,
+    index_d$4_COLLECTION_FORMATS as COLLECTION_FORMATS,
     ClassInstanceEntity$1 as ClassInstanceEntity,
-    index_d$3_ClassInstanceEntityAllOf as ClassInstanceEntityAllOf,
-    index_d$3_ClassInstanceEntityAllOfFromJSON as ClassInstanceEntityAllOfFromJSON,
-    index_d$3_ClassInstanceEntityAllOfFromJSONTyped as ClassInstanceEntityAllOfFromJSONTyped,
-    index_d$3_ClassInstanceEntityAllOfToJSON as ClassInstanceEntityAllOfToJSON,
-    index_d$3_ClassInstanceEntityFromJSON as ClassInstanceEntityFromJSON,
-    index_d$3_ClassInstanceEntityFromJSONTyped as ClassInstanceEntityFromJSONTyped,
-    index_d$3_ClassInstanceEntityToJSON as ClassInstanceEntityToJSON,
-    index_d$3_Configuration as Configuration,
-    index_d$3_ConfigurationParameters as ConfigurationParameters,
-    index_d$3_Consume as Consume,
-    index_d$3_DataPropertyValue as DataPropertyValue,
-    index_d$3_DataPropertyValueFromJSON as DataPropertyValueFromJSON,
-    index_d$3_DataPropertyValueFromJSONTyped as DataPropertyValueFromJSONTyped,
-    index_d$3_DataPropertyValueToJSON as DataPropertyValueToJSON,
-    index_d$3_DefaultConfig as DefaultConfig,
-    index_d$3_DeleteOntologyDraftRequest as DeleteOntologyDraftRequest,
+    index_d$4_ClassInstanceEntityAllOf as ClassInstanceEntityAllOf,
+    index_d$4_ClassInstanceEntityAllOfFromJSON as ClassInstanceEntityAllOfFromJSON,
+    index_d$4_ClassInstanceEntityAllOfFromJSONTyped as ClassInstanceEntityAllOfFromJSONTyped,
+    index_d$4_ClassInstanceEntityAllOfToJSON as ClassInstanceEntityAllOfToJSON,
+    index_d$4_ClassInstanceEntityFromJSON as ClassInstanceEntityFromJSON,
+    index_d$4_ClassInstanceEntityFromJSONTyped as ClassInstanceEntityFromJSONTyped,
+    index_d$4_ClassInstanceEntityToJSON as ClassInstanceEntityToJSON,
+    index_d$4_Configuration as Configuration,
+    index_d$4_ConfigurationParameters as ConfigurationParameters,
+    index_d$4_Consume as Consume,
+    index_d$4_DataPropertyValue as DataPropertyValue,
+    index_d$4_DataPropertyValueFromJSON as DataPropertyValueFromJSON,
+    index_d$4_DataPropertyValueFromJSONTyped as DataPropertyValueFromJSONTyped,
+    index_d$4_DataPropertyValueToJSON as DataPropertyValueToJSON,
+    index_d$4_DefaultConfig as DefaultConfig,
+    index_d$4_DeleteOntologyDraftRequest as DeleteOntologyDraftRequest,
     Diagram$1 as Diagram,
-    index_d$3_DiagramAction as DiagramAction,
-    index_d$3_DiagramActionFromJSON as DiagramActionFromJSON,
-    index_d$3_DiagramActionFromJSONTyped as DiagramActionFromJSONTyped,
-    index_d$3_DiagramActionOperationTypeEnum as DiagramActionOperationTypeEnum,
-    index_d$3_DiagramActionToJSON as DiagramActionToJSON,
-    index_d$3_DiagramFromJSON as DiagramFromJSON,
-    index_d$3_DiagramFromJSONTyped as DiagramFromJSONTyped,
-    index_d$3_DiagramToJSON as DiagramToJSON,
-    index_d$3_DownloadOntologyDraftRequest as DownloadOntologyDraftRequest,
-    index_d$3_Edge as Edge,
-    index_d$3_EdgeAction as EdgeAction,
-    index_d$3_EdgeActionFromJSON as EdgeActionFromJSON,
-    index_d$3_EdgeActionFromJSONTyped as EdgeActionFromJSONTyped,
-    index_d$3_EdgeActionOperationTypeEnum as EdgeActionOperationTypeEnum,
-    index_d$3_EdgeActionToJSON as EdgeActionToJSON,
-    index_d$3_EdgeAllOf as EdgeAllOf,
-    index_d$3_EdgeAllOfFromJSON as EdgeAllOfFromJSON,
-    index_d$3_EdgeAllOfFromJSONTyped as EdgeAllOfFromJSONTyped,
-    index_d$3_EdgeAllOfToJSON as EdgeAllOfToJSON,
-    index_d$3_EdgeFromJSON as EdgeFromJSON,
-    index_d$3_EdgeFromJSONTyped as EdgeFromJSONTyped,
-    index_d$3_EdgeToJSON as EdgeToJSON,
+    index_d$4_DiagramAction as DiagramAction,
+    index_d$4_DiagramActionFromJSON as DiagramActionFromJSON,
+    index_d$4_DiagramActionFromJSONTyped as DiagramActionFromJSONTyped,
+    index_d$4_DiagramActionOperationTypeEnum as DiagramActionOperationTypeEnum,
+    index_d$4_DiagramActionToJSON as DiagramActionToJSON,
+    index_d$4_DiagramFromJSON as DiagramFromJSON,
+    index_d$4_DiagramFromJSONTyped as DiagramFromJSONTyped,
+    index_d$4_DiagramToJSON as DiagramToJSON,
+    index_d$4_DownloadOntologyDraftRequest as DownloadOntologyDraftRequest,
+    index_d$4_Edge as Edge,
+    index_d$4_EdgeAction as EdgeAction,
+    index_d$4_EdgeActionFromJSON as EdgeActionFromJSON,
+    index_d$4_EdgeActionFromJSONTyped as EdgeActionFromJSONTyped,
+    index_d$4_EdgeActionOperationTypeEnum as EdgeActionOperationTypeEnum,
+    index_d$4_EdgeActionToJSON as EdgeActionToJSON,
+    index_d$4_EdgeAllOf as EdgeAllOf,
+    index_d$4_EdgeAllOfFromJSON as EdgeAllOfFromJSON,
+    index_d$4_EdgeAllOfFromJSONTyped as EdgeAllOfFromJSONTyped,
+    index_d$4_EdgeAllOfToJSON as EdgeAllOfToJSON,
+    index_d$4_EdgeFromJSON as EdgeFromJSON,
+    index_d$4_EdgeFromJSONTyped as EdgeFromJSONTyped,
+    index_d$4_EdgeToJSON as EdgeToJSON,
     Element$1 as Element,
-    index_d$3_ElementFromJSON as ElementFromJSON,
-    index_d$3_ElementFromJSONTyped as ElementFromJSONTyped,
-    index_d$3_ElementToJSON as ElementToJSON,
-    Entity$1 as Entity,
-    index_d$3_EntityAction as EntityAction,
-    index_d$3_EntityActionFromJSON as EntityActionFromJSON,
-    index_d$3_EntityActionFromJSONTyped as EntityActionFromJSONTyped,
-    index_d$3_EntityActionOperationTypeEnum as EntityActionOperationTypeEnum,
-    index_d$3_EntityActionToJSON as EntityActionToJSON,
-    index_d$3_EntityFromJSON as EntityFromJSON,
-    index_d$3_EntityFromJSONTyped as EntityFromJSONTyped,
-    index_d$3_EntityToJSON as EntityToJSON,
-    index_d$3_ErrorContext as ErrorContext,
-    index_d$3_FetchAPI as FetchAPI,
-    index_d$3_FetchError as FetchError,
-    index_d$3_FetchParams as FetchParams,
-    index_d$3_FunctionPropertiesEnum as FunctionPropertiesEnum,
-    index_d$3_FunctionPropertiesEnumFromJSON as FunctionPropertiesEnumFromJSON,
-    index_d$3_FunctionPropertiesEnumFromJSONTyped as FunctionPropertiesEnumFromJSONTyped,
-    index_d$3_FunctionPropertiesEnumToJSON as FunctionPropertiesEnumToJSON,
-    index_d$3_GetOntologyDraftRequest as GetOntologyDraftRequest,
-    index_d$3_GetRDFGraphConstructRequest as GetRDFGraphConstructRequest,
-    index_d$3_HTTPBody as HTTPBody,
-    index_d$3_HTTPHeaders as HTTPHeaders,
-    index_d$3_HTTPMethod as HTTPMethod,
-    index_d$3_HTTPQuery as HTTPQuery,
-    index_d$3_HTTPRequestInit as HTTPRequestInit,
+    index_d$4_ElementFromJSON as ElementFromJSON,
+    index_d$4_ElementFromJSONTyped as ElementFromJSONTyped,
+    index_d$4_ElementToJSON as ElementToJSON,
+    index_d$4_Entity as Entity,
+    index_d$4_EntityAction as EntityAction,
+    index_d$4_EntityActionFromJSON as EntityActionFromJSON,
+    index_d$4_EntityActionFromJSONTyped as EntityActionFromJSONTyped,
+    index_d$4_EntityActionOperationTypeEnum as EntityActionOperationTypeEnum,
+    index_d$4_EntityActionToJSON as EntityActionToJSON,
+    index_d$4_EntityFromJSON as EntityFromJSON,
+    index_d$4_EntityFromJSONTyped as EntityFromJSONTyped,
+    index_d$4_EntityToJSON as EntityToJSON,
+    index_d$4_ErrorContext as ErrorContext,
+    index_d$4_FetchAPI as FetchAPI,
+    index_d$4_FetchError as FetchError,
+    index_d$4_FetchParams as FetchParams,
+    index_d$4_FunctionPropertiesEnum as FunctionPropertiesEnum,
+    index_d$4_FunctionPropertiesEnumFromJSON as FunctionPropertiesEnumFromJSON,
+    index_d$4_FunctionPropertiesEnumFromJSONTyped as FunctionPropertiesEnumFromJSONTyped,
+    index_d$4_FunctionPropertiesEnumToJSON as FunctionPropertiesEnumToJSON,
+    index_d$4_GetOntologyDraftRequest as GetOntologyDraftRequest,
+    index_d$4_GetRDFGraphConstructRequest as GetRDFGraphConstructRequest,
+    index_d$4_HTTPBody as HTTPBody,
+    index_d$4_HTTPHeaders as HTTPHeaders,
+    index_d$4_HTTPMethod as HTTPMethod,
+    index_d$4_HTTPQuery as HTTPQuery,
+    index_d$4_HTTPRequestInit as HTTPRequestInit,
     Hierarchy$1 as Hierarchy,
-    index_d$3_HierarchyAction as HierarchyAction,
-    index_d$3_HierarchyActionFromJSON as HierarchyActionFromJSON,
-    index_d$3_HierarchyActionFromJSONTyped as HierarchyActionFromJSONTyped,
-    index_d$3_HierarchyActionToJSON as HierarchyActionToJSON,
-    index_d$3_HierarchyFromJSON as HierarchyFromJSON,
-    index_d$3_HierarchyFromJSONTyped as HierarchyFromJSONTyped,
-    index_d$3_HierarchySuperclassesInner as HierarchySuperclassesInner,
-    index_d$3_HierarchySuperclassesInnerFromJSON as HierarchySuperclassesInnerFromJSON,
-    index_d$3_HierarchySuperclassesInnerFromJSONTyped as HierarchySuperclassesInnerFromJSONTyped,
-    index_d$3_HierarchySuperclassesInnerToJSON as HierarchySuperclassesInnerToJSON,
-    index_d$3_HierarchyToJSON as HierarchyToJSON,
-    index_d$3_InitOverrideFunction as InitOverrideFunction,
-    index_d$3_JSONApiResponse as JSONApiResponse,
-    index_d$3_Json as Json,
-    index_d$3_Middleware as Middleware,
-    index_d$3_ModelPropertyNaming as ModelPropertyNaming,
+    index_d$4_HierarchyAction as HierarchyAction,
+    index_d$4_HierarchyActionFromJSON as HierarchyActionFromJSON,
+    index_d$4_HierarchyActionFromJSONTyped as HierarchyActionFromJSONTyped,
+    index_d$4_HierarchyActionToJSON as HierarchyActionToJSON,
+    index_d$4_HierarchyFromJSON as HierarchyFromJSON,
+    index_d$4_HierarchyFromJSONTyped as HierarchyFromJSONTyped,
+    index_d$4_HierarchySuperclassesInner as HierarchySuperclassesInner,
+    index_d$4_HierarchySuperclassesInnerFromJSON as HierarchySuperclassesInnerFromJSON,
+    index_d$4_HierarchySuperclassesInnerFromJSONTyped as HierarchySuperclassesInnerFromJSONTyped,
+    index_d$4_HierarchySuperclassesInnerToJSON as HierarchySuperclassesInnerToJSON,
+    index_d$4_HierarchyToJSON as HierarchyToJSON,
+    index_d$4_InitOverrideFunction as InitOverrideFunction,
+    index_d$4_JSONApiResponse as JSONApiResponse,
+    index_d$4_Json as Json,
+    index_d$4_Middleware as Middleware,
+    index_d$4_ModelPropertyNaming as ModelPropertyNaming,
     Namespace$1 as Namespace,
-    index_d$3_NamespaceAction as NamespaceAction,
-    index_d$3_NamespaceActionFromJSON as NamespaceActionFromJSON,
-    index_d$3_NamespaceActionFromJSONTyped as NamespaceActionFromJSONTyped,
-    index_d$3_NamespaceActionOperationTypeEnum as NamespaceActionOperationTypeEnum,
-    index_d$3_NamespaceActionToJSON as NamespaceActionToJSON,
-    index_d$3_NamespaceFromJSON as NamespaceFromJSON,
-    index_d$3_NamespaceFromJSONTyped as NamespaceFromJSONTyped,
-    index_d$3_NamespaceToJSON as NamespaceToJSON,
-    index_d$3_Node as Node,
-    index_d$3_NodeAction as NodeAction,
-    index_d$3_NodeActionFromJSON as NodeActionFromJSON,
-    index_d$3_NodeActionFromJSONTyped as NodeActionFromJSONTyped,
-    index_d$3_NodeActionOperationTypeEnum as NodeActionOperationTypeEnum,
-    index_d$3_NodeActionToJSON as NodeActionToJSON,
-    index_d$3_NodeAllOf as NodeAllOf,
-    index_d$3_NodeAllOfFromJSON as NodeAllOfFromJSON,
-    index_d$3_NodeAllOfFromJSONTyped as NodeAllOfFromJSONTyped,
-    index_d$3_NodeAllOfToJSON as NodeAllOfToJSON,
-    index_d$3_NodeFromJSON as NodeFromJSON,
-    index_d$3_NodeFromJSONTyped as NodeFromJSONTyped,
-    index_d$3_NodeToJSON as NodeToJSON,
-    index_d$3_OntologyDesignerApi as OntologyDesignerApi,
-    index_d$3_OntologyDraftInfo as OntologyDraftInfo,
-    index_d$3_OntologyDraftInfoFromJSON as OntologyDraftInfoFromJSON,
-    index_d$3_OntologyDraftInfoFromJSONTyped as OntologyDraftInfoFromJSONTyped,
-    index_d$3_OntologyDraftInfoToJSON as OntologyDraftInfoToJSON,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest as OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest as OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogGetRequest as OwlOntologyOntologyNameVersionVkgCatalogGetRequest,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest as OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogPostRequest as OwlOntologyOntologyNameVersionVkgCatalogPostRequest,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest as OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest,
-    index_d$3_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest as OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest,
-    index_d$3_Position as Position,
-    index_d$3_PositionFromJSON as PositionFromJSON,
-    index_d$3_PositionFromJSONTyped as PositionFromJSONTyped,
-    index_d$3_PositionToJSON as PositionToJSON,
-    index_d$3_PostOntologyDraftsRequest as PostOntologyDraftsRequest,
-    index_d$3_PropertyAction as PropertyAction,
-    index_d$3_PropertyActionFromJSON as PropertyActionFromJSON,
-    index_d$3_PropertyActionFromJSONTyped as PropertyActionFromJSONTyped,
-    index_d$3_PropertyActionOperationTypeEnum as PropertyActionOperationTypeEnum,
-    index_d$3_PropertyActionToJSON as PropertyActionToJSON,
-    index_d$3_PutOntologyDraftRequest as PutOntologyDraftRequest,
-    index_d$3_RDFGraph as RDFGraph,
-    index_d$3_RDFGraphConfig as RDFGraphConfig,
-    index_d$3_RDFGraphConfigEntityNameTypeEnum as RDFGraphConfigEntityNameTypeEnum,
-    index_d$3_RDFGraphConfigFiltersEnum as RDFGraphConfigFiltersEnum,
-    index_d$3_RDFGraphConfigFromJSON as RDFGraphConfigFromJSON,
-    index_d$3_RDFGraphConfigFromJSONTyped as RDFGraphConfigFromJSONTyped,
-    index_d$3_RDFGraphConfigToJSON as RDFGraphConfigToJSON,
-    index_d$3_RDFGraphFromJSON as RDFGraphFromJSON,
-    index_d$3_RDFGraphFromJSONTyped as RDFGraphFromJSONTyped,
-    index_d$3_RDFGraphMetadata as RDFGraphMetadata,
-    index_d$3_RDFGraphMetadataFromJSON as RDFGraphMetadataFromJSON,
-    index_d$3_RDFGraphMetadataFromJSONTyped as RDFGraphMetadataFromJSONTyped,
-    index_d$3_RDFGraphMetadataToJSON as RDFGraphMetadataToJSON,
-    index_d$3_RDFGraphModelTypeEnum as RDFGraphModelTypeEnum,
-    index_d$3_RDFGraphToJSON as RDFGraphToJSON,
-    index_d$3_RequestContext as RequestContext,
-    index_d$3_RequestOpts as RequestOpts,
-    index_d$3_RequiredError as RequiredError,
-    index_d$3_ResponseContext as ResponseContext,
-    index_d$3_ResponseError as ResponseError,
-    index_d$3_ResponseTransformer as ResponseTransformer,
-    index_d$3_TextApiResponse as TextApiResponse,
-    index_d$3_Theme as Theme,
-    index_d$3_ThemeFromJSON as ThemeFromJSON,
-    index_d$3_ThemeFromJSONTyped as ThemeFromJSONTyped,
-    index_d$3_ThemeToJSON as ThemeToJSON,
-    index_d$3_TypesEnum as TypesEnum,
-    index_d$3_TypesEnumFromJSON as TypesEnumFromJSON,
-    index_d$3_TypesEnumFromJSONTyped as TypesEnumFromJSONTyped,
-    index_d$3_TypesEnumToJSON as TypesEnumToJSON,
-    VKGApi$1 as VKGApi,
-    index_d$3_VKGSnapshot as VKGSnapshot,
-    index_d$3_VKGSnapshotFromJSON as VKGSnapshotFromJSON,
-    index_d$3_VKGSnapshotFromJSONTyped as VKGSnapshotFromJSONTyped,
-    index_d$3_VKGSnapshotToJSON as VKGSnapshotToJSON,
-    index_d$3_Viewport as Viewport,
-    index_d$3_ViewportFromJSON as ViewportFromJSON,
-    index_d$3_ViewportFromJSONTyped as ViewportFromJSONTyped,
-    index_d$3_ViewportToJSON as ViewportToJSON,
-    index_d$3_VoidApiResponse as VoidApiResponse,
-    index_d$3_canConsumeForm as canConsumeForm,
-    index_d$3_exists as exists,
-    index_d$3_instanceOfAction as instanceOfAction,
-    index_d$3_instanceOfActionInvolvedElements as instanceOfActionInvolvedElements,
-    index_d$3_instanceOfActionUser as instanceOfActionUser,
-    index_d$3_instanceOfAnnotation as instanceOfAnnotation,
-    index_d$3_instanceOfAnnotationAction as instanceOfAnnotationAction,
-    index_d$3_instanceOfClassInstanceEntity as instanceOfClassInstanceEntity,
-    index_d$3_instanceOfClassInstanceEntityAllOf as instanceOfClassInstanceEntityAllOf,
-    index_d$3_instanceOfDataPropertyValue as instanceOfDataPropertyValue,
-    index_d$3_instanceOfDiagram as instanceOfDiagram,
-    index_d$3_instanceOfDiagramAction as instanceOfDiagramAction,
-    index_d$3_instanceOfEdge as instanceOfEdge,
-    index_d$3_instanceOfEdgeAction as instanceOfEdgeAction,
-    index_d$3_instanceOfEdgeAllOf as instanceOfEdgeAllOf,
-    index_d$3_instanceOfElement as instanceOfElement,
-    index_d$3_instanceOfEntity as instanceOfEntity,
-    index_d$3_instanceOfEntityAction as instanceOfEntityAction,
-    index_d$3_instanceOfHierarchy as instanceOfHierarchy,
-    index_d$3_instanceOfHierarchyAction as instanceOfHierarchyAction,
-    index_d$3_instanceOfHierarchySuperclassesInner as instanceOfHierarchySuperclassesInner,
-    index_d$3_instanceOfNamespace as instanceOfNamespace,
-    index_d$3_instanceOfNamespaceAction as instanceOfNamespaceAction,
-    index_d$3_instanceOfNode as instanceOfNode,
-    index_d$3_instanceOfNodeAction as instanceOfNodeAction,
-    index_d$3_instanceOfNodeAllOf as instanceOfNodeAllOf,
-    index_d$3_instanceOfOntologyDraftInfo as instanceOfOntologyDraftInfo,
-    index_d$3_instanceOfPosition as instanceOfPosition,
-    index_d$3_instanceOfPropertyAction as instanceOfPropertyAction,
-    index_d$3_instanceOfRDFGraph as instanceOfRDFGraph,
-    index_d$3_instanceOfRDFGraphConfig as instanceOfRDFGraphConfig,
-    index_d$3_instanceOfRDFGraphMetadata as instanceOfRDFGraphMetadata,
-    index_d$3_instanceOfTheme as instanceOfTheme,
-    index_d$3_instanceOfVKGSnapshot as instanceOfVKGSnapshot,
-    index_d$3_instanceOfViewport as instanceOfViewport,
-    index_d$3_mapValues as mapValues,
-    index_d$3_querystring as querystring,
+    index_d$4_NamespaceAction as NamespaceAction,
+    index_d$4_NamespaceActionFromJSON as NamespaceActionFromJSON,
+    index_d$4_NamespaceActionFromJSONTyped as NamespaceActionFromJSONTyped,
+    index_d$4_NamespaceActionOperationTypeEnum as NamespaceActionOperationTypeEnum,
+    index_d$4_NamespaceActionToJSON as NamespaceActionToJSON,
+    index_d$4_NamespaceFromJSON as NamespaceFromJSON,
+    index_d$4_NamespaceFromJSONTyped as NamespaceFromJSONTyped,
+    index_d$4_NamespaceToJSON as NamespaceToJSON,
+    index_d$4_Node as Node,
+    index_d$4_NodeAction as NodeAction,
+    index_d$4_NodeActionFromJSON as NodeActionFromJSON,
+    index_d$4_NodeActionFromJSONTyped as NodeActionFromJSONTyped,
+    index_d$4_NodeActionOperationTypeEnum as NodeActionOperationTypeEnum,
+    index_d$4_NodeActionToJSON as NodeActionToJSON,
+    index_d$4_NodeAllOf as NodeAllOf,
+    index_d$4_NodeAllOfFromJSON as NodeAllOfFromJSON,
+    index_d$4_NodeAllOfFromJSONTyped as NodeAllOfFromJSONTyped,
+    index_d$4_NodeAllOfToJSON as NodeAllOfToJSON,
+    index_d$4_NodeFromJSON as NodeFromJSON,
+    index_d$4_NodeFromJSONTyped as NodeFromJSONTyped,
+    index_d$4_NodeToJSON as NodeToJSON,
+    index_d$4_OntologyDesignerApi as OntologyDesignerApi,
+    index_d$4_OntologyDraftInfo as OntologyDraftInfo,
+    index_d$4_OntologyDraftInfoFromJSON as OntologyDraftInfoFromJSON,
+    index_d$4_OntologyDraftInfoFromJSONTyped as OntologyDraftInfoFromJSONTyped,
+    index_d$4_OntologyDraftInfoToJSON as OntologyDraftInfoToJSON,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest as OwlOntologyOntologyNameVersionVkgCatalogDeleteRequest,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest as OwlOntologyOntologyNameVersionVkgCatalogExportGetRequest,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogGetRequest as OwlOntologyOntologyNameVersionVkgCatalogGetRequest,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest as OwlOntologyOntologyNameVersionVkgCatalogImportPostRequest,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogPostRequest as OwlOntologyOntologyNameVersionVkgCatalogPostRequest,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest as OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdDeleteRequest,
+    index_d$4_OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest as OwlOntologyOntologyNameVersionVkgCatalogSnapshotIdPutRequest,
+    index_d$4_Position as Position,
+    index_d$4_PositionFromJSON as PositionFromJSON,
+    index_d$4_PositionFromJSONTyped as PositionFromJSONTyped,
+    index_d$4_PositionToJSON as PositionToJSON,
+    index_d$4_PostOntologyDraftsRequest as PostOntologyDraftsRequest,
+    index_d$4_PropertyAction as PropertyAction,
+    index_d$4_PropertyActionFromJSON as PropertyActionFromJSON,
+    index_d$4_PropertyActionFromJSONTyped as PropertyActionFromJSONTyped,
+    index_d$4_PropertyActionOperationTypeEnum as PropertyActionOperationTypeEnum,
+    index_d$4_PropertyActionToJSON as PropertyActionToJSON,
+    index_d$4_PutOntologyDraftRequest as PutOntologyDraftRequest,
+    index_d$4_RDFGraph as RDFGraph,
+    index_d$4_RDFGraphConfig as RDFGraphConfig,
+    index_d$4_RDFGraphConfigEntityNameTypeEnum as RDFGraphConfigEntityNameTypeEnum,
+    index_d$4_RDFGraphConfigFiltersEnum as RDFGraphConfigFiltersEnum,
+    index_d$4_RDFGraphConfigFromJSON as RDFGraphConfigFromJSON,
+    index_d$4_RDFGraphConfigFromJSONTyped as RDFGraphConfigFromJSONTyped,
+    index_d$4_RDFGraphConfigToJSON as RDFGraphConfigToJSON,
+    index_d$4_RDFGraphFromJSON as RDFGraphFromJSON,
+    index_d$4_RDFGraphFromJSONTyped as RDFGraphFromJSONTyped,
+    index_d$4_RDFGraphMetadata as RDFGraphMetadata,
+    index_d$4_RDFGraphMetadataFromJSON as RDFGraphMetadataFromJSON,
+    index_d$4_RDFGraphMetadataFromJSONTyped as RDFGraphMetadataFromJSONTyped,
+    index_d$4_RDFGraphMetadataToJSON as RDFGraphMetadataToJSON,
+    index_d$4_RDFGraphModelTypeEnum as RDFGraphModelTypeEnum,
+    index_d$4_RDFGraphToJSON as RDFGraphToJSON,
+    index_d$4_RequestContext as RequestContext,
+    index_d$4_RequestOpts as RequestOpts,
+    index_d$4_RequiredError as RequiredError,
+    index_d$4_ResponseContext as ResponseContext,
+    index_d$4_ResponseError as ResponseError,
+    index_d$4_ResponseTransformer as ResponseTransformer,
+    index_d$4_TextApiResponse as TextApiResponse,
+    index_d$4_Theme as Theme,
+    index_d$4_ThemeFromJSON as ThemeFromJSON,
+    index_d$4_ThemeFromJSONTyped as ThemeFromJSONTyped,
+    index_d$4_ThemeToJSON as ThemeToJSON,
+    index_d$4_TypesEnum as TypesEnum,
+    index_d$4_TypesEnumFromJSON as TypesEnumFromJSON,
+    index_d$4_TypesEnumFromJSONTyped as TypesEnumFromJSONTyped,
+    index_d$4_TypesEnumToJSON as TypesEnumToJSON,
+    index_d$4_VKGApi as VKGApi,
+    index_d$4_VKGSnapshot as VKGSnapshot,
+    index_d$4_VKGSnapshotFromJSON as VKGSnapshotFromJSON,
+    index_d$4_VKGSnapshotFromJSONTyped as VKGSnapshotFromJSONTyped,
+    index_d$4_VKGSnapshotToJSON as VKGSnapshotToJSON,
+    index_d$4_Viewport as Viewport,
+    index_d$4_ViewportFromJSON as ViewportFromJSON,
+    index_d$4_ViewportFromJSONTyped as ViewportFromJSONTyped,
+    index_d$4_ViewportToJSON as ViewportToJSON,
+    index_d$4_VoidApiResponse as VoidApiResponse,
+    index_d$4_canConsumeForm as canConsumeForm,
+    index_d$4_exists as exists,
+    index_d$4_instanceOfAction as instanceOfAction,
+    index_d$4_instanceOfActionInvolvedElements as instanceOfActionInvolvedElements,
+    index_d$4_instanceOfActionUser as instanceOfActionUser,
+    index_d$4_instanceOfAnnotation as instanceOfAnnotation,
+    index_d$4_instanceOfAnnotationAction as instanceOfAnnotationAction,
+    index_d$4_instanceOfClassInstanceEntity as instanceOfClassInstanceEntity,
+    index_d$4_instanceOfClassInstanceEntityAllOf as instanceOfClassInstanceEntityAllOf,
+    index_d$4_instanceOfDataPropertyValue as instanceOfDataPropertyValue,
+    index_d$4_instanceOfDiagram as instanceOfDiagram,
+    index_d$4_instanceOfDiagramAction as instanceOfDiagramAction,
+    index_d$4_instanceOfEdge as instanceOfEdge,
+    index_d$4_instanceOfEdgeAction as instanceOfEdgeAction,
+    index_d$4_instanceOfEdgeAllOf as instanceOfEdgeAllOf,
+    index_d$4_instanceOfElement as instanceOfElement,
+    index_d$4_instanceOfEntity as instanceOfEntity,
+    index_d$4_instanceOfEntityAction as instanceOfEntityAction,
+    index_d$4_instanceOfHierarchy as instanceOfHierarchy,
+    index_d$4_instanceOfHierarchyAction as instanceOfHierarchyAction,
+    index_d$4_instanceOfHierarchySuperclassesInner as instanceOfHierarchySuperclassesInner,
+    index_d$4_instanceOfNamespace as instanceOfNamespace,
+    index_d$4_instanceOfNamespaceAction as instanceOfNamespaceAction,
+    index_d$4_instanceOfNode as instanceOfNode,
+    index_d$4_instanceOfNodeAction as instanceOfNodeAction,
+    index_d$4_instanceOfNodeAllOf as instanceOfNodeAllOf,
+    index_d$4_instanceOfOntologyDraftInfo as instanceOfOntologyDraftInfo,
+    index_d$4_instanceOfPosition as instanceOfPosition,
+    index_d$4_instanceOfPropertyAction as instanceOfPropertyAction,
+    index_d$4_instanceOfRDFGraph as instanceOfRDFGraph,
+    index_d$4_instanceOfRDFGraphConfig as instanceOfRDFGraphConfig,
+    index_d$4_instanceOfRDFGraphMetadata as instanceOfRDFGraphMetadata,
+    index_d$4_instanceOfTheme as instanceOfTheme,
+    index_d$4_instanceOfVKGSnapshot as instanceOfVKGSnapshot,
+    index_d$4_instanceOfViewport as instanceOfViewport,
+    index_d$4_mapValues as mapValues,
+    index_d$4_querystring as querystring,
   };
 }
 
@@ -3746,14 +3750,7 @@ declare class DiagramBuilder {
      */
     addAnnotationProperty(annotationPropertyEdge: GrapholEntity, sourceEntity: GrapholEntity, targetEntity: GrapholEntity, nodesType: TypesEnum[], annotationPropertyElement?: GrapholEdge): GrapholElement | undefined;
     private addPropertyEdge;
-    /** @internal */
-    addClassInstance(classInstanceEntity: ClassInstanceEntity, instanceNode?: GrapholElement): GrapholNode;
-    /** @internal */
-    addClassInstance(classInstanceEntity: ClassInstanceEntity, position?: Position): GrapholNode;
-    /** @internal */
-    addClassInstance(classInstanceEntity: ClassInstanceEntity): GrapholNode;
     addIndividual(individualEntity: GrapholEntity, position?: Position): GrapholElement | undefined;
-    private _addIndividualOrClassInstance;
     addHierarchy(hierarchy: Hierarchy, position?: Position): GrapholElement | undefined;
     addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF | TypesEnum.INPUT | TypesEnum.UNION | TypesEnum.DISJOINT_UNION | TypesEnum.COMPLETE_UNION | TypesEnum.COMPLETE_DISJOINT_UNION | TypesEnum.ATTRIBUTE_EDGE): GrapholElement | undefined;
     get diagramRepresentation(): DiagramRepresentation | undefined;
@@ -3777,7 +3774,7 @@ declare class DiagramBuilder {
     private getCurrentCenterPos;
 }
 
-declare function export_default$4(theme: GrapholscapeTheme): Stylesheet[];
+declare function export_default$7(theme: GrapholscapeTheme): Stylesheet[];
 
 declare function computeHierarchies(ontology: Ontology): void;
 
@@ -3810,6 +3807,1043 @@ declare class DiagramColorManager extends ColorManager {
     protected getAllChildren(classNode: SingularElementReturnValue | NodeSingular, result?: cytoscape$1.CollectionReturnValue): cytoscape$1.CollectionReturnValue;
 }
 
+declare const diagrams: lit_html.TemplateResult<2>;
+declare const triangle_up: lit_html.TemplateResult<2>;
+declare const triangle_down: lit_html.TemplateResult<2>;
+declare const arrow_right: lit_html.TemplateResult<2>;
+declare const arrowDown: lit_html.TemplateResult<2>;
+declare const explore: lit_html.TemplateResult<2>;
+declare const info_outline: lit_html.TemplateResult<2>;
+declare const enterFullscreen: lit_html.TemplateResult<2>;
+declare const exitFullscreen: lit_html.TemplateResult<2>;
+declare const centerDiagram: lit_html.TemplateResult<2>;
+declare const filter: lit_html.TemplateResult<2>;
+declare const bubbles: lit_html.TemplateResult<2>;
+declare const lite: lit_html.TemplateResult<2>;
+declare const settings_icon: lit_html.TemplateResult<2>;
+declare const infoFilled: lit_html.TemplateResult<2>;
+declare const plus: lit_html.TemplateResult<2>;
+declare const minus: lit_html.TemplateResult<2>;
+declare const save: lit_html.TemplateResult<2>;
+declare const close: lit_html.TemplateResult<2>;
+declare const blankSlateDiagrams: lit_html.TemplateResult<2>;
+declare const check: lit_html.TemplateResult<2>;
+declare const searchOff: lit_html.TemplateResult<2>;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
+ */
+declare const move_bubbles: lit_html.TemplateResult<2>;
+/**
+ * Author: Simran
+ * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
+ */
+declare const owl_icon: lit_html.TemplateResult<2>;
+declare const graphol_icon: lit_html.TemplateResult<2>;
+declare const tune: lit_html.TemplateResult<2>;
+declare const settings_play: lit_html.TemplateResult<2>;
+declare const filterOff: lit_html.TemplateResult<2>;
+declare const incremental: lit_html.TemplateResult<2>;
+declare const refresh: lit_html.TemplateResult<2>;
+declare const instancesIcon: lit_html.TemplateResult<2>;
+declare const superHierarchies: lit_html.TemplateResult<2>;
+declare const subHierarchies: lit_html.TemplateResult<2>;
+declare const rubbishBin: lit_html.TemplateResult<2>;
+declare const mastroEndpointIcon: lit_html.TemplateResult<2>;
+declare const stopCircle: lit_html.TemplateResult<2>;
+declare const equivalentClasses: lit_html.TemplateResult<2>;
+declare const search$1: lit_html.TemplateResult<2>;
+declare const insertInGraph: lit_html.TemplateResult<2>;
+declare const cross: lit_html.TemplateResult<2>;
+declare const counter: lit_html.TemplateResult<2>;
+declare const labelIcon: lit_html.TemplateResult<2>;
+declare const commentIcon: lit_html.TemplateResult<2>;
+declare const authorIcon: lit_html.TemplateResult<2>;
+declare const addDiagramIcon: lit_html.TemplateResult<2>;
+declare const addClassIcon: lit_html.TemplateResult<2>;
+declare const addDataPropertyIcon: lit_html.TemplateResult<2>;
+declare const addIndividualIcon: lit_html.TemplateResult<2>;
+declare const addObjectPropertyIcon: lit_html.TemplateResult<2>;
+declare const addISAIcon: lit_html.TemplateResult<2>;
+declare const addInstanceIcon: lit_html.TemplateResult<2>;
+declare const addParentClassIcon: lit_html.TemplateResult<2>;
+declare const addChildClassIcon: lit_html.TemplateResult<2>;
+declare const addSubhierarchyIcon: lit_html.TemplateResult<2>;
+declare const addInputIcon: lit_html.TemplateResult<2>;
+declare const renameIcon: lit_html.TemplateResult<2>;
+declare const editIcon: lit_html.TemplateResult<2>;
+declare const sankey: lit_html.TemplateResult<2>;
+declare const pathIcon: lit_html.TemplateResult<2>;
+declare const tools: lit_html.TemplateResult<2>;
+declare const undo: lit_html.TemplateResult<2>;
+declare const redo: lit_html.TemplateResult<2>;
+declare const addPack: lit_html.TemplateResult<2>;
+declare const protocol: lit_html.TemplateResult<2>;
+declare const notes: lit_html.TemplateResult<2>;
+declare const colorPalette: lit_html.TemplateResult<2>;
+declare const warning: lit_html.TemplateResult<2>;
+declare const error: lit_html.TemplateResult<2>;
+declare const toggleCatalog: lit_html.TemplateResult<2>;
+declare const domain: lit_html.TemplateResult<2>;
+declare const range: lit_html.TemplateResult<2>;
+declare const entityIcons: {
+    [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.ANNOTATION_PROPERTY]: SVGTemplateResult;
+};
+declare const annotationIcons: {
+    [x: string]: SVGTemplateResult | undefined;
+};
+
+declare const _default$a: lit_html.TemplateResult<2>;
+
+declare const _default$9: lit_html.TemplateResult<2>;
+
+declare const _default$8: lit_html.TemplateResult<2>;
+
+declare const _default$7: lit_html.TemplateResult<2>;
+
+declare const _default$6: lit_html.TemplateResult<1>;
+
+declare const index_d$3_addChildClassIcon: typeof addChildClassIcon;
+declare const index_d$3_addClassIcon: typeof addClassIcon;
+declare const index_d$3_addDataPropertyIcon: typeof addDataPropertyIcon;
+declare const index_d$3_addDiagramIcon: typeof addDiagramIcon;
+declare const index_d$3_addISAIcon: typeof addISAIcon;
+declare const index_d$3_addIndividualIcon: typeof addIndividualIcon;
+declare const index_d$3_addInputIcon: typeof addInputIcon;
+declare const index_d$3_addInstanceIcon: typeof addInstanceIcon;
+declare const index_d$3_addObjectPropertyIcon: typeof addObjectPropertyIcon;
+declare const index_d$3_addPack: typeof addPack;
+declare const index_d$3_addParentClassIcon: typeof addParentClassIcon;
+declare const index_d$3_addSubhierarchyIcon: typeof addSubhierarchyIcon;
+declare const index_d$3_annotationIcons: typeof annotationIcons;
+declare const index_d$3_arrowDown: typeof arrowDown;
+declare const index_d$3_arrow_right: typeof arrow_right;
+declare const index_d$3_authorIcon: typeof authorIcon;
+declare const index_d$3_blankSlateDiagrams: typeof blankSlateDiagrams;
+declare const index_d$3_bubbles: typeof bubbles;
+declare const index_d$3_centerDiagram: typeof centerDiagram;
+declare const index_d$3_check: typeof check;
+declare const index_d$3_close: typeof close;
+declare const index_d$3_colorPalette: typeof colorPalette;
+declare const index_d$3_commentIcon: typeof commentIcon;
+declare const index_d$3_counter: typeof counter;
+declare const index_d$3_cross: typeof cross;
+declare const index_d$3_diagrams: typeof diagrams;
+declare const index_d$3_domain: typeof domain;
+declare const index_d$3_editIcon: typeof editIcon;
+declare const index_d$3_enterFullscreen: typeof enterFullscreen;
+declare const index_d$3_entityIcons: typeof entityIcons;
+declare const index_d$3_equivalentClasses: typeof equivalentClasses;
+declare const index_d$3_error: typeof error;
+declare const index_d$3_exitFullscreen: typeof exitFullscreen;
+declare const index_d$3_explore: typeof explore;
+declare const index_d$3_filter: typeof filter;
+declare const index_d$3_filterOff: typeof filterOff;
+declare const index_d$3_graphol_icon: typeof graphol_icon;
+declare const index_d$3_incremental: typeof incremental;
+declare const index_d$3_infoFilled: typeof infoFilled;
+declare const index_d$3_info_outline: typeof info_outline;
+declare const index_d$3_insertInGraph: typeof insertInGraph;
+declare const index_d$3_instancesIcon: typeof instancesIcon;
+declare const index_d$3_labelIcon: typeof labelIcon;
+declare const index_d$3_lite: typeof lite;
+declare const index_d$3_mastroEndpointIcon: typeof mastroEndpointIcon;
+declare const index_d$3_minus: typeof minus;
+declare const index_d$3_move_bubbles: typeof move_bubbles;
+declare const index_d$3_notes: typeof notes;
+declare const index_d$3_owl_icon: typeof owl_icon;
+declare const index_d$3_pathIcon: typeof pathIcon;
+declare const index_d$3_plus: typeof plus;
+declare const index_d$3_protocol: typeof protocol;
+declare const index_d$3_range: typeof range;
+declare const index_d$3_redo: typeof redo;
+declare const index_d$3_refresh: typeof refresh;
+declare const index_d$3_renameIcon: typeof renameIcon;
+declare const index_d$3_rubbishBin: typeof rubbishBin;
+declare const index_d$3_sankey: typeof sankey;
+declare const index_d$3_save: typeof save;
+declare const index_d$3_searchOff: typeof searchOff;
+declare const index_d$3_settings_icon: typeof settings_icon;
+declare const index_d$3_settings_play: typeof settings_play;
+declare const index_d$3_stopCircle: typeof stopCircle;
+declare const index_d$3_subHierarchies: typeof subHierarchies;
+declare const index_d$3_superHierarchies: typeof superHierarchies;
+declare const index_d$3_toggleCatalog: typeof toggleCatalog;
+declare const index_d$3_tools: typeof tools;
+declare const index_d$3_triangle_down: typeof triangle_down;
+declare const index_d$3_triangle_up: typeof triangle_up;
+declare const index_d$3_tune: typeof tune;
+declare const index_d$3_undo: typeof undo;
+declare const index_d$3_warning: typeof warning;
+declare namespace index_d$3 {
+  export {
+    index_d$3_addChildClassIcon as addChildClassIcon,
+    index_d$3_addClassIcon as addClassIcon,
+    index_d$3_addDataPropertyIcon as addDataPropertyIcon,
+    index_d$3_addDiagramIcon as addDiagramIcon,
+    index_d$3_addISAIcon as addISAIcon,
+    index_d$3_addIndividualIcon as addIndividualIcon,
+    index_d$3_addInputIcon as addInputIcon,
+    index_d$3_addInstanceIcon as addInstanceIcon,
+    index_d$3_addObjectPropertyIcon as addObjectPropertyIcon,
+    index_d$3_addPack as addPack,
+    index_d$3_addParentClassIcon as addParentClassIcon,
+    index_d$3_addSubhierarchyIcon as addSubhierarchyIcon,
+    index_d$3_annotationIcons as annotationIcons,
+    index_d$3_arrowDown as arrowDown,
+    index_d$3_arrow_right as arrow_right,
+    index_d$3_authorIcon as authorIcon,
+    index_d$3_blankSlateDiagrams as blankSlateDiagrams,
+    index_d$3_bubbles as bubbles,
+    index_d$3_centerDiagram as centerDiagram,
+    index_d$3_check as check,
+    _default$a as classIcon,
+    index_d$3_close as close,
+    index_d$3_colorPalette as colorPalette,
+    index_d$3_commentIcon as commentIcon,
+    index_d$3_counter as counter,
+    index_d$3_cross as cross,
+    _default$8 as dataPropertyIcon,
+    index_d$3_diagrams as diagrams,
+    index_d$3_domain as domain,
+    index_d$3_editIcon as editIcon,
+    index_d$3_enterFullscreen as enterFullscreen,
+    index_d$3_entityIcons as entityIcons,
+    index_d$3_equivalentClasses as equivalentClasses,
+    index_d$3_error as error,
+    index_d$3_exitFullscreen as exitFullscreen,
+    index_d$3_explore as explore,
+    index_d$3_filter as filter,
+    index_d$3_filterOff as filterOff,
+    index_d$3_graphol_icon as graphol_icon,
+    _default$6 as grapholscapeLogo,
+    index_d$3_incremental as incremental,
+    _default$7 as individualIcon,
+    index_d$3_infoFilled as infoFilled,
+    index_d$3_info_outline as info_outline,
+    index_d$3_insertInGraph as insertInGraph,
+    index_d$3_instancesIcon as instancesIcon,
+    index_d$3_labelIcon as labelIcon,
+    index_d$3_lite as lite,
+    index_d$3_mastroEndpointIcon as mastroEndpointIcon,
+    index_d$3_minus as minus,
+    index_d$3_move_bubbles as move_bubbles,
+    index_d$3_notes as notes,
+    _default$9 as objectPropertyIcon,
+    index_d$3_owl_icon as owl_icon,
+    index_d$3_pathIcon as pathIcon,
+    index_d$3_plus as plus,
+    index_d$3_protocol as protocol,
+    index_d$3_range as range,
+    index_d$3_redo as redo,
+    index_d$3_refresh as refresh,
+    index_d$3_renameIcon as renameIcon,
+    index_d$3_rubbishBin as rubbishBin,
+    index_d$3_sankey as sankey,
+    index_d$3_save as save,
+    search$1 as search,
+    index_d$3_searchOff as searchOff,
+    index_d$3_settings_icon as settings_icon,
+    index_d$3_settings_play as settings_play,
+    index_d$3_stopCircle as stopCircle,
+    index_d$3_subHierarchies as subHierarchies,
+    index_d$3_superHierarchies as superHierarchies,
+    index_d$3_toggleCatalog as toggleCatalog,
+    index_d$3_tools as tools,
+    index_d$3_triangle_down as triangle_down,
+    index_d$3_triangle_up as triangle_up,
+    index_d$3_tune as tune,
+    index_d$3_undo as undo,
+    index_d$3_warning as warning,
+  };
+}
+
+type Constructor$3<T = {}> = new (...args: any[]) => T;
+declare class IBaseMixin {
+    hide(): void;
+    show(): void;
+    showInPosition(position?: {
+        x: number;
+        y: number;
+    }): void;
+    enable(): void;
+    disable(): void;
+    onStateChange(): void;
+    isVisible: boolean;
+    enabled: boolean;
+}
+declare const BaseMixin: <T extends Constructor$3<LitElement>>(superClass: T) => Constructor$3<IBaseMixin> & T;
+
+type Constructor$2<T = {}> = new (...args: any[]) => T;
+declare class IDropPanelMixin {
+    protected isDefaultClosed: boolean;
+    togglePanel(): void;
+    openPanel(): void;
+    closePanel(): void;
+    protected get panel(): HTMLElement | undefined | null;
+    onTogglePanel(): void;
+    isPanelClosed(): boolean;
+}
+declare const DropPanelMixin: <T extends Constructor$2<LitElement>>(superClass: T) => Constructor$2<IDropPanelMixin> & T;
+declare function hasDropPanel(element: any): element is IDropPanelMixin;
+
+type Constructor$1<T = {}> = new (...args: any[]) => T;
+declare class IModalMixin {
+    hide(): void;
+    show(): void;
+    protected modalBackground: HTMLDivElement;
+}
+declare const ModalMixin: <T extends Constructor$1<LitElement & IBaseMixin>>(superClass: T) => Constructor$1<IModalMixin> & T;
+
+type Constructor<T = {}> = new (...args: any[]) => T;
+declare class IContextualWidgetMixin {
+    hide(): void;
+    /**
+     * Attach cxt widget and show it
+     * @param element the target html elment
+     */
+    attachTo(element: HTMLElement): void;
+    /**
+     * Attach cxt widget and do not show it, if it was visible it stays visible
+     * @param element the target html element
+     */
+    attachToSilently(element: HTMLElement): void;
+    cxtWidgetProps: Partial<Props>;
+    tippyWidget: Instance<Props>;
+}
+declare const ContextualWidgetMixin: <T extends Constructor<LitElement>>(superClass: T) => Constructor<IContextualWidgetMixin> & T;
+
+declare enum SizeEnum {
+    S = "s",
+    M = "m",
+    L = "l"
+}
+declare const GscapeButton_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeButton extends GscapeButton_base {
+    disabled: boolean;
+    asSwitch: boolean;
+    active: boolean;
+    label: string;
+    size: SizeEnum;
+    type: string;
+    fullWidth: string;
+    private toggled;
+    static properties: {
+        active: {
+            type: BooleanConstructor;
+            reflect: boolean;
+        };
+        label: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        title: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        disabled: {
+            type: BooleanConstructor;
+            reflect: boolean;
+        };
+        asSwitch: {
+            type: BooleanConstructor;
+            attribute: string;
+            reflect: boolean;
+        };
+        size: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        type: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        fullWidth: {
+            type: StringConstructor;
+            attribute: string;
+            reflect: boolean;
+        };
+        toggled: {
+            type: BooleanConstructor;
+            state: boolean;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor();
+    render(): lit_html.TemplateResult<1>;
+    private clickHandler;
+    private get altIcon();
+}
+
+declare const NodeButton_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class NodeButton extends NodeButton_base {
+    content: TemplateResult | SVGTemplateResult | string | number;
+    contentType: 'icon' | 'template';
+    node?: NodeSingular;
+    highlighted?: boolean;
+    cxtWidgetProps: Partial<Props>;
+    static properties: PropertyDeclarations;
+    static styles: lit.CSSResult[];
+    constructor(content: TemplateResult | SVGTemplateResult | string | number, contentType?: 'icon' | 'template');
+    render(): TemplateResult<1>;
+}
+
+declare const _default$5: lit.CSSResult;
+
+/**
+ * A command for the context menu
+ */
+interface Command {
+    /** the string to show */
+    content: string;
+    /** optional icon */
+    icon?: SVGTemplateResult;
+    /** callback to execute on selection */
+    select: () => void;
+}
+declare const GscapeContextMenu_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeContextMenu extends GscapeContextMenu_base {
+    commands: Command[];
+    customElements: (LitElement | HTMLElement | TemplateResult)[];
+    showFirst: 'commands' | 'elements';
+    onCommandRun: () => void;
+    static properties: PropertyDeclarations;
+    static styles: CSSResultArray;
+    render(): TemplateResult<1>;
+    attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]): void;
+    attachToPosition(position: {
+        x: number;
+        y: number;
+    }, container: Element, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]): void;
+    private handleCommandClick;
+    private get commandsTemplate();
+    private get customElementsTemplate();
+}
+
+declare class GscapeActionListItem extends LitElement {
+    label: string;
+    selected: boolean;
+    private expanded;
+    subtle: boolean;
+    disabled: boolean;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup;
+    constructor();
+    render(): lit_html.TemplateResult<1>;
+    private clickHandler;
+    private get hiddenContent();
+}
+
+declare const _default$4: lit.CSSResult;
+
+declare class GscapeEntityListItem extends LitElement {
+    private _types;
+    private _color?;
+    displayedName: string;
+    iri: string;
+    actionable: boolean;
+    asAccordion: boolean;
+    disabled: boolean;
+    private isAccordionOpen;
+    static properties: PropertyDeclarations;
+    static styles: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private iconNameSlotTemplate;
+    private handleDetailsClick;
+    openAccordion(): void;
+    closeAccordion(): void;
+    set types(newTypes: TypesEnum[] | undefined);
+    get types(): TypesEnum[] | undefined;
+    set color(newColor: string | undefined);
+    get color(): string | undefined;
+}
+
+declare const textSpinner: () => lit_html.TemplateResult<1>;
+declare const textSpinnerStyle: lit.CSSResult;
+
+declare function getContentSpinner(): lit_html.TemplateResult<1>;
+declare const contentSpinnerStyle: lit.CSSResult;
+declare class ContentSpinner extends LitElement {
+    color: string;
+    static styles: lit.CSSResult[];
+    static properties: PropertyDeclarations;
+    render: typeof getContentSpinner;
+    setColor(newColor: string): void;
+}
+
+declare class GscapeTextSearch extends LitElement {
+    private _onSearchCallback;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    onSearch(callback: (e: KeyboardEvent) => void): void;
+}
+
+type ViewObjectProperty = EntityViewData & {
+    connectedClasses: EntityViewData[];
+    direct: boolean;
+};
+type EntityViewData = {
+    displayedName: string;
+    value: {
+        iri: Iri;
+        types: TypesEnum[];
+    } & AnnotatedElement;
+    viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>;
+    disabled?: boolean;
+    loading?: boolean;
+};
+interface IEntityFilters {
+    [TypesEnum.CLASS]?: number;
+    [TypesEnum.DATA_PROPERTY]?: number;
+    [TypesEnum.OBJECT_PROPERTY]?: number;
+    [TypesEnum.INDIVIDUAL]?: number;
+    areAllFiltersDisabled: boolean;
+}
+
+declare const GscapeEntitySearch_base: (new (...args: any[]) => IDropPanelMixin) & typeof LitElement;
+declare class GscapeEntitySearch extends GscapeEntitySearch_base implements IEntityFilters {
+    areAllFiltersDisabled: boolean;
+    [TypesEnum.CLASS]?: number;
+    [TypesEnum.DATA_PROPERTY]?: number;
+    [TypesEnum.OBJECT_PROPERTY]?: number;
+    [TypesEnum.INDIVIDUAL]?: number;
+    private isSearchTextEmpty;
+    private searchTimeout;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private handleKeyPress;
+    private handleSearch;
+    clearSearch(): void;
+    private get atLeastTwoFilters();
+    private get input();
+}
+type SearchEvent = CustomEvent<{
+    searchText: string;
+}>;
+
+declare const GscapeEntityTypeFilters_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeEntityTypeFilters extends GscapeEntityTypeFilters_base implements IEntityFilters {
+    static properties: PropertyDeclarations;
+    static styles: lit.CSSResult[];
+    _class?: number;
+    _dataproperty?: number;
+    _objectproperty?: number;
+    _individual?: number;
+    _classInstance?: number;
+    render(): lit_html.TemplateResult<1>;
+    private getChipTemplate;
+    private _handleFilterStateChange;
+    get areAllFiltersDisabled(): boolean;
+    set [TypesEnum.CLASS](v: number | undefined);
+    get [TypesEnum.CLASS](): number | undefined;
+    set [TypesEnum.DATA_PROPERTY](v: number | undefined);
+    get [TypesEnum.DATA_PROPERTY](): number | undefined;
+    set [TypesEnum.OBJECT_PROPERTY](v: number | undefined);
+    get [TypesEnum.OBJECT_PROPERTY](): number | undefined;
+    set [TypesEnum.INDIVIDUAL](v: number | undefined);
+    get [TypesEnum.INDIVIDUAL](): number | undefined;
+}
+type EntityFilterEvent = CustomEvent<IEntityFilters>;
+
+declare enum ToggleLabelPosition {
+    LEFT = "left",
+    RIGHT = "right"
+}
+declare class GscapeToggle extends LitElement {
+    key: string;
+    checked: boolean;
+    disabled: boolean;
+    label: string;
+    labelPosition: ToggleLabelPosition;
+    static ToggleLabelPosition: typeof ToggleLabelPosition;
+    static get properties(): {
+        disabled: {
+            type: BooleanConstructor;
+            reflect: boolean;
+        };
+        label: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        labelPosition: {
+            type: StringConstructor;
+            reflect: boolean;
+            attribute: string;
+        };
+        key: {
+            type: StringConstructor;
+            reflect: boolean;
+        };
+        checked: {
+            type: BooleanConstructor;
+            reflect: boolean;
+        };
+    };
+    static styles: lit.CSSResult[];
+    render(): lit_html.TemplateResult<1>;
+}
+
+declare const GscapeConfirmDialog_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeConfirmDialog extends GscapeConfirmDialog_base {
+    message?: string | undefined;
+    dialogTitle: string;
+    type: 'neutral' | 'warning' | 'error';
+    protected _onConfirm?: (...args: any[]) => void;
+    protected _onCancel?: () => void;
+    constructor(message?: string | undefined, dialogTitle?: string, type?: 'neutral' | 'warning' | 'error');
+    static properties: PropertyDeclarations;
+    static styles: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    protected get headerIcon(): lit_html.TemplateResult<2>;
+    protected handleConfirm(): void;
+    protected handleCancel(): void;
+    onConfirm(callback: () => void): GscapeConfirmDialog;
+    onCancel(callback: () => void): GscapeConfirmDialog;
+}
+declare function showMessage(message: string, title: string, container: any, type?: "neutral" | 'warning' | 'error'): GscapeConfirmDialog;
+
+type SelectOption = {
+    id: string;
+    text: string;
+    trailingIcon?: SVGTemplateResult;
+    leadingIcon?: SVGTemplateResult;
+    disabled?: boolean;
+};
+declare const GscapeSelect_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeSelect extends GscapeSelect_base {
+    private readonly PLACEHOLDER_ID;
+    defaultIcon: SVGTemplateResult;
+    selectedOptionsId: Set<string>;
+    defaultOptionId?: string;
+    options: SelectOption[];
+    size: SizeEnum;
+    clearable: boolean;
+    multipleSelection: boolean;
+    private _placeholder;
+    onSelection: (optionId: string) => void;
+    static properties: PropertyDeclarations;
+    static styles: lit.CSSResult[];
+    render(): lit_html.TemplateResult<1>;
+    private handleSelection;
+    private getButton;
+    clear(): void;
+    private isSelectionEmpty;
+    private isIdSelected;
+    get selectedOptions(): SelectOption[];
+    get defaultOption(): SelectOption;
+    get placeholder(): SelectOption;
+    set placeholder(placeHolder: SelectOption);
+}
+
+interface IEntitySelector {
+    onClassSelection(callback: (iri: string) => void): void;
+}
+declare const GscapeEntitySelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeEntitySelector extends GscapeEntitySelector_base {
+    title: string;
+    private fullEntityList;
+    private _entityList;
+    private onClassSelectionCallback;
+    private isSearchTextEmpty;
+    private loading;
+    static get properties(): {
+        entityList: {
+            type: ObjectConstructor;
+            attribute: boolean;
+        };
+        isSearchTextEmpty: {
+            type: BooleanConstructor;
+            state: boolean;
+        };
+        loading: {
+            type: BooleanConstructor;
+            state: boolean;
+        };
+        onClassSelection: {
+            type: ObjectConstructor;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor();
+    render(): lit_html.TemplateResult<1>;
+    blur(): void;
+    focusInputSearch(): Promise<void>;
+    private handleEntitySelection;
+    private handleKeyPressOnEntry;
+    private handleSearch;
+    clearSearch(): void;
+    get onClassSelection(): (iri: string) => void;
+    set onClassSelection(callback: (iri: string) => void);
+    set entityList(newEntityList: EntityViewData[]);
+    get entityList(): EntityViewData[];
+    private get input();
+}
+
+type UiOption = {
+    name: string;
+    id: string;
+    icon: SVGTemplateResult;
+    description?: string;
+};
+
+declare const GscapeFullPageSelector_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeFullPageSelector extends GscapeFullPageSelector_base {
+    options: (UiOption | undefined)[];
+    title: string;
+    onOptionSelection: (optionId: string) => void;
+    static properties: PropertyDeclarations;
+    static styles: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private handleRendererSelection;
+}
+
+declare function initInitialRendererSelector(grapholscape: Grapholscape): void;
+
+/**
+ * Initialize the UI
+ */
+declare function export_default$6(grapholscape: Grapholscape): void;
+
+declare const _default$3: lit.CSSResult;
+
+declare const BOTTOM_RIGHT_WIDGET: lit.CSSResult;
+declare const _default$2: lit.CSSResult;
+
+declare const _default$1: lit_html.TemplateResult<1>;
+
+type DiagramViewData = {
+    id: number;
+    name: string;
+};
+type OccurrenceIdViewData = {
+    originalId: string;
+    realId: string;
+};
+declare function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>, onNodeNavigation: (elementId: string, diagramId: number) => void): lit_html.TemplateResult<1>;
+
+declare function createEntitiesList(grapholscape: Grapholscape, entityFilters?: IEntityFilters): EntityViewData[];
+declare function search(searchValue: string, entities: EntityViewData[]): Promise<EntityViewData[]>;
+
+declare function export_default$5(slotName: string, icon: SVGTemplateResult): HTMLSpanElement;
+
+declare enum WidgetEnum {
+    DIAGRAM_SELECTOR = "diagram-selector",
+    ENTITY_DETAILS = "details",
+    ENTITY_SELECTOR = "entity-selector",
+    FILTERS = "filters",
+    FIT_BUTTON = "fit-button",
+    FULLSCREEN_BUTTON = "fullscreen-button",
+    ONTOLOGY_EXPLORER = "ontology-explorer",
+    ONTOLOGY_INFO = "ontology-info",
+    OWL_VISUALIZER = "owl-visualizer",
+    RENDERER_SELECTOR = "renderer-selector",
+    LAYOUT_SETTINGS = "layout-settings",
+    SETTINGS = "settings",
+    ZOOM_TOOLS = "zoom-tools",
+    INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
+    ENTITY_COLOR_LEGEND = "entity-color-legend",
+    COLOR_BUTTON = "color-button",
+    /** @internal */
+    INCREMENTAL_ENTITY_DETAILS = "class-instance-details",
+    /** @internal */
+    INSTANCES_EXPLORER = "instances-explorer",
+    /** @internal */
+    NAVIGATION_MENU = "naviagtion-menu",
+    /** @internal */
+    VKG_PREFERENCES = "vkg-preferences",
+    INCREMENTAL_INITIAL_MENU = "incremental-initial-menu",
+    DESIGNER_TOOLBOX = "designer-toolbox"
+}
+
+type TabProps = {
+    id: number;
+    icon?: SVGTemplateResult;
+    label: string;
+};
+
+declare const GscapeDiagramSelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeDiagramSelector extends GscapeDiagramSelector_base {
+    title: string;
+    diagrams: Diagram[];
+    currentDiagramId: number;
+    currentDiagramName: string;
+    onDiagramSelection: (diagramId: number) => void;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup;
+    render(): lit_html.TemplateResult<1>;
+    private diagramSelectionHandler;
+    private get currentDiagram();
+}
+
+declare const IncrementalInitialMenu_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class IncrementalInitialMenu extends IncrementalInitialMenu_base {
+    classes?: EntityViewData[];
+    shortestPathEnabled: boolean;
+    sideMenuMode: boolean;
+    static properties: {
+        classes: {
+            type: ArrayConstructor;
+        };
+        sideMenuMode: {
+            type: BooleanConstructor;
+        };
+        shortestPathEnabled: {
+            type: BooleanConstructor;
+        };
+    };
+    static styles: lit.CSSResult[];
+    constructor(grapholscape?: Grapholscape);
+    render: () => lit_html.TemplateResult<1>;
+    focusInputSearch(): void;
+    closePanel(): void;
+    openPanel(): void;
+    private handleShortestPathBtnClick;
+    private handleClassSelection;
+}
+
+/** @internal */
+declare class ShortestPathDialog extends GscapeConfirmDialog {
+    classes?: EntityViewData[];
+    class1EditEnabled: boolean;
+    private _class1?;
+    class2EditEnabled: boolean;
+    private _class2?;
+    protected _onConfirm?: (sourceClassIri: string, targetClassIri: string) => void;
+    static properties: {
+        classes: {
+            type: ArrayConstructor;
+        };
+        _class1: {
+            type: StringConstructor;
+            attribute: string;
+        };
+        _class2: {
+            type: StringConstructor;
+            attribute: string;
+        };
+        class1EditEnabled: {
+            type: BooleanConstructor;
+        };
+        class2EditEnabled: {
+            type: BooleanConstructor;
+        };
+    };
+    static styles: lit.CSSResultGroup[];
+    constructor(grapholscape?: Grapholscape);
+    render: () => lit_html.TemplateResult<1>;
+    closePanel(): void;
+    openPanel(): void;
+    onConfirm(callback: (sourceClassIri: string, targetClassIri: string) => void): GscapeConfirmDialog;
+    private getClassSelectorTemplate;
+    private handleClassSelection;
+    protected handleConfirm(): void;
+    set class1(newClassIri: string | undefined);
+    get class1(): string | undefined;
+    set class2(newClassIri: string | undefined);
+    get class2(): string | undefined;
+}
+
+type ClassWithColor = {
+    id: string;
+    displayedName: string;
+    iri: string;
+    color?: string;
+    filtered: boolean;
+};
+declare const GscapeEntityColorLegend_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeEntityColorLegend extends GscapeEntityColorLegend_base {
+    title: string;
+    elements: ClassWithColor[];
+    protected isDefaultClosed: boolean;
+    onElementSelection: (classWithColor: ClassWithColor) => void;
+    static properties: PropertyDeclarations;
+    static styles?: CSSResultGroup | undefined;
+    private handleElemClick;
+    blur(): void;
+    render(): lit_html.TemplateResult<1>;
+}
+
+declare function setColorList(entityColorLegend: GscapeEntityColorLegend, grapholscape: Grapholscape): void;
+
+declare function a11yClick(event: any): boolean | undefined;
+
+/** @module UI */
+
+declare const index_d$2_BaseMixin: typeof BaseMixin;
+type index_d$2_ClassWithColor = ClassWithColor;
+type index_d$2_Command = Command;
+type index_d$2_ContentSpinner = ContentSpinner;
+declare const index_d$2_ContentSpinner: typeof ContentSpinner;
+declare const index_d$2_ContextualWidgetMixin: typeof ContextualWidgetMixin;
+type index_d$2_DiagramViewData = DiagramViewData;
+declare const index_d$2_DropPanelMixin: typeof DropPanelMixin;
+type index_d$2_EntityFilterEvent = EntityFilterEvent;
+type index_d$2_EntityViewData = EntityViewData;
+type index_d$2_GscapeActionListItem = GscapeActionListItem;
+declare const index_d$2_GscapeActionListItem: typeof GscapeActionListItem;
+type index_d$2_GscapeButton = GscapeButton;
+declare const index_d$2_GscapeButton: typeof GscapeButton;
+type index_d$2_GscapeConfirmDialog = GscapeConfirmDialog;
+declare const index_d$2_GscapeConfirmDialog: typeof GscapeConfirmDialog;
+type index_d$2_GscapeContextMenu = GscapeContextMenu;
+declare const index_d$2_GscapeContextMenu: typeof GscapeContextMenu;
+type index_d$2_GscapeDiagramSelector = GscapeDiagramSelector;
+declare const index_d$2_GscapeDiagramSelector: typeof GscapeDiagramSelector;
+type index_d$2_GscapeEntityColorLegend = GscapeEntityColorLegend;
+declare const index_d$2_GscapeEntityColorLegend: typeof GscapeEntityColorLegend;
+type index_d$2_GscapeEntityListItem = GscapeEntityListItem;
+declare const index_d$2_GscapeEntityListItem: typeof GscapeEntityListItem;
+type index_d$2_GscapeEntitySearch = GscapeEntitySearch;
+declare const index_d$2_GscapeEntitySearch: typeof GscapeEntitySearch;
+type index_d$2_GscapeEntitySelector = GscapeEntitySelector;
+declare const index_d$2_GscapeEntitySelector: typeof GscapeEntitySelector;
+type index_d$2_GscapeEntityTypeFilters = GscapeEntityTypeFilters;
+declare const index_d$2_GscapeEntityTypeFilters: typeof GscapeEntityTypeFilters;
+type index_d$2_GscapeFullPageSelector = GscapeFullPageSelector;
+declare const index_d$2_GscapeFullPageSelector: typeof GscapeFullPageSelector;
+type index_d$2_GscapeSelect = GscapeSelect;
+declare const index_d$2_GscapeSelect: typeof GscapeSelect;
+type index_d$2_GscapeTextSearch = GscapeTextSearch;
+declare const index_d$2_GscapeTextSearch: typeof GscapeTextSearch;
+type index_d$2_GscapeToggle = GscapeToggle;
+declare const index_d$2_GscapeToggle: typeof GscapeToggle;
+type index_d$2_IBaseMixin = IBaseMixin;
+declare const index_d$2_IBaseMixin: typeof IBaseMixin;
+type index_d$2_IContextualWidgetMixin = IContextualWidgetMixin;
+declare const index_d$2_IContextualWidgetMixin: typeof IContextualWidgetMixin;
+type index_d$2_IDropPanelMixin = IDropPanelMixin;
+declare const index_d$2_IDropPanelMixin: typeof IDropPanelMixin;
+type index_d$2_IEntityFilters = IEntityFilters;
+type index_d$2_IEntitySelector = IEntitySelector;
+type index_d$2_IModalMixin = IModalMixin;
+declare const index_d$2_IModalMixin: typeof IModalMixin;
+type index_d$2_IncrementalInitialMenu = IncrementalInitialMenu;
+declare const index_d$2_IncrementalInitialMenu: typeof IncrementalInitialMenu;
+declare const index_d$2_ModalMixin: typeof ModalMixin;
+type index_d$2_NodeButton = NodeButton;
+declare const index_d$2_NodeButton: typeof NodeButton;
+type index_d$2_OccurrenceIdViewData = OccurrenceIdViewData;
+type index_d$2_SearchEvent = SearchEvent;
+type index_d$2_SelectOption = SelectOption;
+type index_d$2_ShortestPathDialog = ShortestPathDialog;
+declare const index_d$2_ShortestPathDialog: typeof ShortestPathDialog;
+type index_d$2_SizeEnum = SizeEnum;
+declare const index_d$2_SizeEnum: typeof SizeEnum;
+type index_d$2_TabProps = TabProps;
+type index_d$2_ToggleLabelPosition = ToggleLabelPosition;
+declare const index_d$2_ToggleLabelPosition: typeof ToggleLabelPosition;
+type index_d$2_UiOption = UiOption;
+type index_d$2_ViewObjectProperty = ViewObjectProperty;
+type index_d$2_WidgetEnum = WidgetEnum;
+declare const index_d$2_WidgetEnum: typeof WidgetEnum;
+declare const index_d$2_a11yClick: typeof a11yClick;
+declare const index_d$2_contentSpinnerStyle: typeof contentSpinnerStyle;
+declare const index_d$2_createEntitiesList: typeof createEntitiesList;
+declare const index_d$2_getContentSpinner: typeof getContentSpinner;
+declare const index_d$2_getEntityOccurrencesTemplate: typeof getEntityOccurrencesTemplate;
+declare const index_d$2_hasDropPanel: typeof hasDropPanel;
+declare const index_d$2_initInitialRendererSelector: typeof initInitialRendererSelector;
+declare const index_d$2_search: typeof search;
+declare const index_d$2_setColorList: typeof setColorList;
+declare const index_d$2_showMessage: typeof showMessage;
+declare const index_d$2_textSpinner: typeof textSpinner;
+declare const index_d$2_textSpinnerStyle: typeof textSpinnerStyle;
+declare namespace index_d$2 {
+  export {
+    BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS,
+    index_d$2_BaseMixin as BaseMixin,
+    index_d$2_ClassWithColor as ClassWithColor,
+    index_d$2_Command as Command,
+    index_d$2_ContentSpinner as ContentSpinner,
+    index_d$2_ContextualWidgetMixin as ContextualWidgetMixin,
+    index_d$2_DiagramViewData as DiagramViewData,
+    index_d$2_DropPanelMixin as DropPanelMixin,
+    index_d$2_EntityFilterEvent as EntityFilterEvent,
+    index_d$2_EntityViewData as EntityViewData,
+    index_d$2_GscapeActionListItem as GscapeActionListItem,
+    _default$4 as GscapeActionListStyle,
+    index_d$2_GscapeButton as GscapeButton,
+    _default$5 as GscapeButtonStyle,
+    index_d$2_GscapeConfirmDialog as GscapeConfirmDialog,
+    index_d$2_GscapeContextMenu as GscapeContextMenu,
+    index_d$2_GscapeDiagramSelector as GscapeDiagramSelector,
+    index_d$2_GscapeEntityColorLegend as GscapeEntityColorLegend,
+    index_d$2_GscapeEntityListItem as GscapeEntityListItem,
+    index_d$2_GscapeEntitySearch as GscapeEntitySearch,
+    index_d$2_GscapeEntitySelector as GscapeEntitySelector,
+    index_d$2_GscapeEntityTypeFilters as GscapeEntityTypeFilters,
+    index_d$2_GscapeFullPageSelector as GscapeFullPageSelector,
+    index_d$2_GscapeSelect as GscapeSelect,
+    index_d$2_GscapeTextSearch as GscapeTextSearch,
+    index_d$2_GscapeToggle as GscapeToggle,
+    index_d$2_IBaseMixin as IBaseMixin,
+    index_d$2_IContextualWidgetMixin as IContextualWidgetMixin,
+    index_d$2_IDropPanelMixin as IDropPanelMixin,
+    index_d$2_IEntityFilters as IEntityFilters,
+    index_d$2_IEntitySelector as IEntitySelector,
+    index_d$2_IModalMixin as IModalMixin,
+    index_d$2_IncrementalInitialMenu as IncrementalInitialMenu,
+    index_d$2_ModalMixin as ModalMixin,
+    index_d$2_NodeButton as NodeButton,
+    index_d$2_OccurrenceIdViewData as OccurrenceIdViewData,
+    index_d$2_SearchEvent as SearchEvent,
+    index_d$2_SelectOption as SelectOption,
+    index_d$2_ShortestPathDialog as ShortestPathDialog,
+    index_d$2_SizeEnum as SizeEnum,
+    index_d$2_TabProps as TabProps,
+    index_d$2_ToggleLabelPosition as ToggleLabelPosition,
+    index_d$2_UiOption as UiOption,
+    index_d$2_ViewObjectProperty as ViewObjectProperty,
+    index_d$2_WidgetEnum as WidgetEnum,
+    index_d$2_a11yClick as a11yClick,
+    _default$2 as baseStyle,
+    index_d$2_contentSpinnerStyle as contentSpinnerStyle,
+    index_d$2_createEntitiesList as createEntitiesList,
+    _default$1 as emptySearchBlankState,
+    _default$3 as entityListItemStyle,
+    index_d$2_getContentSpinner as getContentSpinner,
+    index_d$2_getEntityOccurrencesTemplate as getEntityOccurrencesTemplate,
+    export_default$5 as getIconSlot,
+    index_d$2_hasDropPanel as hasDropPanel,
+    index_d$3 as icons,
+    index_d$2_initInitialRendererSelector as initInitialRendererSelector,
+    export_default$6 as initUI,
+    index_d$2_search as search,
+    index_d$2_setColorList as setColorList,
+    index_d$2_showMessage as showMessage,
+    index_d$2_textSpinner as textSpinner,
+    index_d$2_textSpinnerStyle as textSpinnerStyle,
+  };
+}
+
+type ObjectPropertyConnectedClasses = {
+    list: GrapholEntity[];
+    direct: boolean;
+    available: boolean;
+};
+declare class NeighbourhoodFinder {
+    private ontology;
+    constructor(ontology: Ontology);
+    getDataProperties(classIriString: string): GrapholEntity[];
+    getObjectProperties(classIriString: string): Map<GrapholEntity, ObjectPropertyConnectedClasses>;
+    /**
+     * Given a class and an object property, get all classes connected to the given class through such an
+     * object property.
+     * @param sourceClassIriString the class' iri involved in the object property
+     * either as domain or range
+     * @param objectPropertyIriString the object property's iri for which to retrieve the connected classes' iris
+     * @returns an array of entities
+     */
+    getClassesConnectedToObjectProperty(sourceClassIriString: string, objectPropertyIriString: string): GrapholEntity[];
+    private getConnectedClassesIrisByType;
+    getSubclassesIris(classIri: string): string[];
+    getEquivalentClassesIris(classIri: string): string[];
+    getSuperclassesIris(classIri: string): string[];
+    private getIriObject;
+}
+
 /** @internal */
 declare class ClassInstanceEntity extends GrapholEntity implements ClassInstanceEntity$1 {
     private _parentClassIris;
@@ -3835,286 +4869,6 @@ declare class ClassInstanceEntity extends GrapholEntity implements ClassInstance
     json(): ClassInstanceEntity$1;
 }
 
-type MastroEndpoint = {
-    description?: string;
-    name: string;
-    mastroID?: MastroID;
-    needRestart?: boolean;
-    user?: string;
-};
-type MastroID = {
-    avpID: string;
-    datasourceID: string;
-    mappingID: string;
-    ontologyID: {
-        ontologyName: string;
-        ontologyVersion: string;
-    };
-};
-declare enum QueryStatusEnum {
-    FINISHED = "FINISHED",
-    UNAVAILABLE = "UNAVAILABLE",
-    ERROR = "ERROR",
-    RUNNING = "RUNNING",
-    READY = "READY",
-    STOPPED = "STOPPED"
-}
-type RequestOptions = {
-    basePath: string;
-    version: string;
-    name: string;
-    headers: any;
-    onError: (errorObject: any) => void;
-};
-type MWSEntity = {
-    entityIRI: string;
-    entityID: string;
-    entityPrefixIRI: string;
-    entityRemainder: string;
-    entityType: string;
-};
-type EmptyUnfoldingEntities = {
-    emptyUnfoldingClasses: MWSEntity[];
-    emptyUnfoldingDataProperties: MWSEntity[];
-    emptyUnfoldingObjectProperties: MWSEntity[];
-};
-type MaterializedCounts = {
-    countsMap: Map<string, CountEntry>;
-    endTime: number;
-    percentage: number;
-    startTime: number;
-    state: QueryStatusEnum;
-};
-type CountEntry = {
-    count: number;
-    error?: string;
-    state: QueryStatusEnum;
-    entity: MWSEntity;
-};
-
-/**
- * Swagger Sparqling WS
- * This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph.  Sparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).
- *
- * The version of the OpenAPI document: 1.0.3
- * Contact: info@obdasystems.com
- *
- * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
- * https://openapi-generator.tech
- * Do not edit the class manually.
- */
-/**
- *
- * @export
- * @interface Entity
- */
-interface Entity {
-    /**
-     *
-     * @type {string}
-     * @memberof Entity
-     */
-    type?: EntityTypeEnum;
-    /**
-     *
-     * @type {string}
-     * @memberof Entity
-     */
-    iri?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof Entity
-     */
-    prefixedIri?: string;
-    /**
-     *
-     * @type {{ [key: string]: string; }}
-     * @memberof Entity
-     */
-    labels?: {
-        [key: string]: string;
-    };
-}
-/**
- * @export
- */
-declare const EntityTypeEnum: {
-    readonly Class: "class";
-    readonly ObjectProperty: "objectProperty";
-    readonly InverseObjectProperty: "inverseObjectProperty";
-    readonly DataProperty: "dataProperty";
-    readonly Annotation: "annotation";
-};
-type EntityTypeEnum = typeof EntityTypeEnum[keyof typeof EntityTypeEnum];
-
-/**
- * Swagger Sparqling WS
- * This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph.  Sparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).
- *
- * The version of the OpenAPI document: 1.0.3
- * Contact: info@obdasystems.com
- *
- * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
- * https://openapi-generator.tech
- * Do not edit the class manually.
- */
-
-/**
- *
- * @export
- * @interface OntologyPath
- */
-interface OntologyPath {
-    /**
-     * Starts with lastSelectedIRI and ends with clickedIRI. In between the nodes and edges traversed in the path (ISA edge are marked as ISA)
-     * @type {Array<Entity>}
-     * @memberof OntologyPath
-     */
-    entities?: Array<Entity>;
-}
-
-/**
- * Swagger Sparqling WS
- * This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph.  Sparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).
- *
- * The version of the OpenAPI document: 1.0.3
- * Contact: info@obdasystems.com
- *
- * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
- * https://openapi-generator.tech
- * Do not edit the class manually.
- */
-/**
- *
- * @export
- * @interface Branch
- */
-interface Branch {
-    /**
-     *
-     * @type {string}
-     * @memberof Branch
-     */
-    objectPropertyIRI?: string;
-    /**
-     * It is true when domain and range are the same class.
-     * @type {boolean}
-     * @memberof Branch
-     */
-    cyclic?: boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof Branch
-     */
-    direct?: boolean;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof Branch
-     */
-    relatedClasses?: Array<string>;
-}
-
-/**
- * Swagger Sparqling WS
- * This server will expose an API to Sparqling front end to create new SPARQL queries with a combinations of point and click on the [GRAPHOLscape](https://github.com/obdasystems/grapholscape) graph.  Sparqling will be released as a standalone appication but also the server will embedded in [MWS](https://github.com/obdasystems/mws) and Sparqling will be integrated in [Monolith](https://www.monolith.obdasystems.com/).
- *
- * The version of the OpenAPI document: 1.0.3
- * Contact: info@obdasystems.com
- *
- * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
- * https://openapi-generator.tech
- * Do not edit the class manually.
- */
-
-/**
- *
- * @export
- * @interface Highlights
- */
-interface Highlights {
-    /**
-     * Subclasses or brother classes
-     * @type {Array<string>}
-     * @memberof Highlights
-     */
-    classes?: Array<string>;
-    /**
-     *
-     * @type {Array<Branch>}
-     * @memberof Highlights
-     */
-    objectProperties?: Array<Branch>;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof Highlights
-     */
-    dataProperties?: Array<string>;
-}
-
-type ClassInstance = {
-    iri: string;
-    shortIri?: string;
-    label?: {
-        language?: string;
-        value: string;
-    };
-    searchMatch?: string;
-};
-interface IVirtualKnowledgeGraphApi {
-    getInstances: (iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string) => void;
-    getNewResults: (executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number) => Promise<void>;
-    getInstancesByPropertyValue: (classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: () => void) => void;
-    getInstancesNumber: (endpoint: MastroEndpoint, classIri: string, entityType: TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY) => Promise<number>;
-    getHighlights: (iri: string) => Promise<Highlights>;
-    getEntitiesEmptyUnfoldings: (endpoint: MastroEndpoint) => Promise<EmptyUnfoldingEntities>;
-    getInstanceDataPropertyValues: (instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: () => void) => void;
-    getInstancesThroughObjectProperty: (instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyFilterIri?: string, textSearch?: string, onStop?: () => void, customLimit?: number, keepAlive?: boolean) => void;
-    setEndpoint: (endpoint: MastroEndpoint) => void;
-    instanceCheck: (instanceIri: string, classesToCheck: string[], onResult: (classIris: string[]) => void, onStop: () => void) => Promise<void>;
-    stopAllQueries: () => void;
-    getInstanceLabels: (instanceIri: string, onResult: (result: {
-        value: string;
-        lang?: string;
-    }[]) => void) => Promise<void>;
-    getIntensionalShortestPath: (sourceClassIri: string, targetClassIri: string, kShortest?: boolean) => Promise<OntologyPath[]>;
-    getExtensionalShortestPath: (path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, maxNodeNumber: number, sourceInstanceIri?: string, targetInstanceIri?: string) => Promise<void>;
-    pageSize: number;
-}
-declare class VKGApi implements IVirtualKnowledgeGraphApi {
-    private requestOptions;
-    pageSize: number;
-    private queryManager;
-    language: string;
-    constructor(requestOptions: RequestOptions, endpoint: MastroEndpoint, pageSize: number);
-    getInstances(iri: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, searchText?: string, pageSize?: number): Promise<string>;
-    getNewResults(executionId: string, pageNumber: number, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, onStop?: () => void, pageSize?: number): Promise<void>;
-    getInstancesByPropertyValue(classIri: string, propertyIri: string, propertyType: string, propertyValue: string, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, isDirect?: boolean, onStop?: (() => void), pageSize?: number): Promise<string>;
-    getInstancesNumber(endpoint: MastroEndpoint, entityIri: string, entityType: TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY): Promise<number>;
-    getHighlights(classIri: string): Promise<any>;
-    getEntitiesEmptyUnfoldings(endpoint: MastroEndpoint): Promise<EmptyUnfoldingEntities>;
-    getInstanceDataPropertyValues(instanceIri: string, dataPropertyIri: string, onNewResults: (values: string[]) => void, onStop?: (() => void), onError?: (() => void)): Promise<void>;
-    getInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect: boolean, includeLabels: boolean, onNewResults: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void, rangeClassesIri?: string[], dataPropertyIriFilter?: string, textSearch?: string, onStop?: (() => void), customLimit?: number, keepAlive?: boolean): Promise<string>;
-    instanceCheck(instanceIri: string, classesToCheck: string[], onResult: (resultClass: string[]) => void, onStop?: () => void): Promise<void>;
-    getMaterializedCounts(endpoint: MastroEndpoint): Promise<MaterializedCounts>;
-    stopAllQueries(): void;
-    stopCountsQueries(): void;
-    stopInstancesQueries(): void;
-    setEndpoint(endpoint: MastroEndpoint): void;
-    getInstanceLabels(instanceIri: string, onResult: (result: {
-        value: string;
-        language?: string;
-    }[]) => void): Promise<void>;
-    getIntensionalShortestPath(sourceClassIri: string, targetClassIri: string, kShortest?: boolean): Promise<any>;
-    getExtensionalShortestPath(path: OntologyPath, onNewResult: (rdfGraph?: RDFGraph) => void, maxEdgeNumber: number, sourceInstanceIri?: string, targetInstanceIri?: string): Promise<void>;
-    shouldQueryUseLabels(executionId: string): Promise<boolean>;
-    private getClassInstanceFromQueryResult;
-    private parseLabel;
-}
-
 /** @internal */
 declare enum IncrementalEvent {
     RequestStopped = "requestStopped",
@@ -4135,10 +4889,8 @@ declare enum IncrementalEvent {
 /** @internal */
 interface IonIncrementalEvent {
     (event: IncrementalEvent.RequestStopped, callback: () => void): void;
-    (event: IncrementalEvent.NewInstances, callback: (classInstances: ClassInstance[][], numberResultsAvailable: number) => void): void;
     (event: IncrementalEvent.InstancesSearchFinished, callback: () => void): void;
     (event: IncrementalEvent.LimitChange, callback: (limit: number) => void): void;
-    (event: IncrementalEvent.EndpointChange, callback: (endpoint: MastroEndpoint) => void): void;
     (event: IncrementalEvent.Reset, callback: () => void): void;
     (event: IncrementalEvent.ClassInstanceSelection, callback: (classInstanceEntity: ClassInstanceEntity) => void): void;
     (event: IncrementalEvent.ClassSelection, callback: (classEntity: GrapholEntity) => void): void;
@@ -4150,10 +4902,8 @@ interface IonIncrementalEvent {
 /** @internal */
 declare class IncrementalLifecycle {
     private requestStopped;
-    private newInstances;
     private instancesSearchFinished;
     private limitChange;
-    private endpointChange;
     private reset;
     private classInstanceSselection;
     private classSelection;
@@ -4163,10 +4913,8 @@ declare class IncrementalLifecycle {
     private dpvaluesloadfinish;
     constructor();
     trigger(event: IncrementalEvent.RequestStopped): void;
-    trigger(event: IncrementalEvent.NewInstances, classInstances: ClassInstance[][], numberResultsAvailable: number): void;
     trigger(event: IncrementalEvent.InstancesSearchFinished): void;
     trigger(event: IncrementalEvent.LimitChange, limit: number): void;
-    trigger(event: IncrementalEvent.EndpointChange, endpoint: MastroEndpoint): void;
     trigger(event: IncrementalEvent.Reset): void;
     trigger(event: IncrementalEvent.ClassInstanceSelection, classInstanceEntity: ClassInstanceEntity): void;
     trigger(event: IncrementalEvent.ClassSelection, classEntity: GrapholEntity): void;
@@ -4177,153 +4925,59 @@ declare class IncrementalLifecycle {
     on: IonIncrementalEvent;
 }
 
-declare class HighlightsManager {
-    vkgApi: IVirtualKnowledgeGraphApi;
-    private emptyUnfoldingEntities;
-    private _dataProperties;
-    private _objectProperties;
-    private highlightsCallsPromises;
-    private computationPromise;
-    lastClassIris: string[];
-    private currentClassIris;
-    private emptyUnfoldingsDataProperties;
-    private emptyUnfoldingsObjectProperties;
-    private emptyUnfoldingsClasses;
-    constructor(vkgApi: IVirtualKnowledgeGraphApi, emptyUnfoldingEntities: EmptyUnfoldingEntities);
-    computeHighlights(classesIri: string[]): Promise<void>;
-    computeHighlights(classIri: string): Promise<void>;
-    clear(): Promise<void>;
-    dataProperties(): Promise<string[]>;
-    objectProperties(): Promise<Branch[]>;
-    getShortestPath(sourceClassIri: string, targetClassIri: string): Promise<OntologyPath[]>;
-    getShortestKPaths(sourceClassIri: string, targetClassIri: string): Promise<OntologyPath[]>;
-    hasUnfoldings(entityIri: string, entityType: TypesEnum): boolean;
-}
-
-declare class EndpointController {
-    private requestOptions;
-    private lifecycle;
-    private endpointApi;
-    private endpoints;
-    private selectedEndpoint?;
-    vkgApi?: VKGApi;
-    highlightsManager?: HighlightsManager;
-    pageSize: number;
-    constructor(requestOptions: RequestOptions, lifecycle: IncrementalLifecycle);
-    getRunningEndpoints(): Promise<MastroEndpoint[]>;
-    setEndpoint(endpoint: MastroEndpoint): Promise<void>;
-    setEndpoint(endpointName: string): Promise<void>;
-    setPageSize(newPageSize: number): void;
-    clear(): void;
-    stopRequests(requestType?: 'instances' | 'counts' | 'all'): void;
-    requestInstancesForClass(classIri: string, includeLabels?: boolean, searchText?: string, propertyIriFilter?: string, propertyType?: TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY, isDirect?: boolean): Promise<string> | undefined;
-    requestNewInstances(requestId: string, pageNumber: number): void;
-    requestInstancesThroughObjectProperty(instanceIri: string, objectPropertyIri: string, isDirect?: boolean, includeLabels?: boolean, rangeClassIri?: string[], propertyIriFilter?: string, searchText?: string): Promise<string> | undefined;
-    requestDataPropertyValues(instanceIri: string, dataPropertyIri: string): void;
-    requestCountForEntity(entityIri: string, entityType: TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY): Promise<number> | undefined;
-    shouldQueryUseLabels(queryExecutionId: string): Promise<boolean> | undefined;
-    getMaterializedCounts(): Promise<MaterializedCounts | undefined>;
-    instanceCheck(instanceIri: string, classesToCheck: string[]): Promise<string[]>;
-    requestInstancesPath(path: OntologyPath, sourceInstanceIri?: string, targetIri?: string, maxEdgeNumber?: number): Promise<RDFGraph | undefined>;
-    setLanguage(lang: string): void;
-    isReasonerAvailable(): boolean;
-    get endpoint(): MastroEndpoint | undefined;
-}
-
-type ObjectPropertyConnectedClasses = {
-    list: GrapholEntity[];
-    direct: boolean;
+type IncrementalHighlights = {
+    classes: GrapholEntity[];
+    dataProperties: GrapholEntity[];
+    objectProperties: Map<GrapholEntity, ObjectPropertyConnectedClasses>;
 };
-declare class NeighbourhoodFinder {
-    private ontology;
-    constructor(ontology: Ontology);
-    getDataProperties(classIriString: string): GrapholEntity[];
-    getObjectProperties(classIriString: string): Map<GrapholEntity, ObjectPropertyConnectedClasses>;
-    /**
-     * Given a class and an object property, get all classes connected to the given class through such an
-     * object property.
-     * @param sourceClassIriString the class' iri involved in the object property
-     * either as domain or range
-     * @param objectPropertyIriString the object property's iri for which to retrieve the connected classes' iris
-     * @returns an array of entities
-     */
-    getClassesConnectedToObjectProperty(sourceClassIriString: string, objectPropertyIriString: string): GrapholEntity[];
-    private getConnectedClassesIrisByType;
-    getSubclassesIris(classIri: string): string[];
-    getEquivalentClassesIris(classIri: string): string[];
-    getSuperclassesIris(classIri: string): string[];
-    private getIriObject;
-}
-
-type Count = {
-    value: number;
-    materialized: boolean;
-    date?: string;
-};
-/** @internal */
-declare class IncrementalController {
-    grapholscape: Grapholscape;
-    neighbourhoodFinder: NeighbourhoodFinder;
-    classInstanceEntities: Map<string, ClassInstanceEntity>;
-    lastClassIri?: string;
-    lastInstanceIri?: string;
+interface IIncremental {
     diagram: IncrementalDiagram;
-    endpointController?: EndpointController;
-    private actionsWithBlockedGraph;
-    private entitySelectionTimeout;
-    counts: Map<string, Count>;
-    countersEnabled: boolean;
-    classFilterMap: Map<string, Filter>;
-    dataLineageEnabled: boolean;
+    grapholscape: Grapholscape;
     lifecycle: IncrementalLifecycle;
+    init(...args: any[]): void;
+    reset(...args: any[]): void;
     on: IonIncrementalEvent;
-    /**
-     * Callback called when user click on data lineage command
-     */
-    onShowDataLineage: (entityIri: string) => void;
-    addEdge: (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => GrapholElement | undefined;
-    constructor(grapholscape: Grapholscape);
+    setIncrementalEventHandlers(...args: any[]): void;
     showDiagram(viewportState?: Viewport): void;
     performActionWithBlockedGraph(action: () => void | Promise<void>, customLayoutOptions?: any): Promise<void>;
-    /**
-     * @internal
-     *
-     * Create new EndpointApi object with current mastro request options
-     */
-    setMastroConnection(mastroRequestOptions: RequestOptions, reset?: boolean): void;
-    /**
-     * Inject in the current diagram the results from a construct query in RDFGraph form.
-     * Here we assume entities are already in the loaded ontology.
-     * If grapholscape is started right away with construct results, then the function
-     * performing the init must take care of loading all the entities beforehand.
-     * The only entities that will be loaded here are instance entities (individuals).
-     * @param rdfGraph the graph to add to current vkg instance
-     * @returns
-     */
-    addRDFGraph(rdfGraph: RDFGraph): void;
-    /**
-     * Given source instance and target instance IRIs and a path to traverse,
-     * add to the diagram the set of instances/object properties resulting
-     * from the CONSTRUCT query over the path.
-     */
-    addInstancesPath(sourceIri: string, targetIri: string, path: OntologyPath): Promise<void>;
-    addClass(iri: string, centerOnIt?: boolean, position?: Position$1): GrapholNode | undefined;
-    areHierarchiesVisible(hierarchies: Hierarchy[]): boolean;
-    private isHierarchyNodeInDiagram;
-    private isHierarchyVisible;
-    areAllConnectedClassesVisibleForClass(classIri: string, connectedClassesIris: string[], positionType: 'sub' | 'super' | 'equivalent'): boolean;
-    reset(): void;
-    clearState(): void;
-    private updateEntityNameType;
-    /**
-     * Remove a class, an instance or a data property node from the diagram.
-     * Entities left with no other connections are recurisvely removed too.
-     * Called when the user click on the remove button on a entity node
-     * @param entityIri
-     */
-    removeEntity(entityIri: GrapholEntity, entitiesIrisToKeep?: string[]): void;
-    removeEntity(entityIri: string, entitiesIrisToKeep?: string[]): void;
-    addInstance(instance: ClassInstance, parentClassesIris?: string[] | string, position?: Position$1, addLoadingBadges?: boolean): ClassInstanceEntity;
+    getHighlights(iris: string[], isInstance: boolean): Promise<IncrementalHighlights>;
+    getDataPropertiesHighlights(iris: string[], isInstance: boolean): Promise<GrapholEntity[]>;
+    getObjectPropertiesHighlights(iris: string[], isInstance: boolean): Promise<Map<GrapholEntity, ObjectPropertyConnectedClasses>>;
+    getAnnotations(iri: string): Promise<Annotation[]>;
+    getSuperClasses(classIri: string): Promise<GrapholEntity[]>;
+    getSubClasses(classIri: string): Promise<GrapholEntity[]>;
+    addIndividual(individual: GrapholEntity, parentClassesIris?: string[], position?: Position): void;
+    addClass(iri: string, centerOnIt?: boolean, position?: Position): void;
+    addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF): GrapholElement | undefined;
+    getContextMenuCommands(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): Command[];
+    getNodeButtons(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): NodeButton[];
+    getIDByIRI(iri: string, type: TypesEnum): string | undefined;
+}
+declare abstract class IncrementalBase implements IIncremental {
+    protected actionsWithBlockedGraph: number;
+    diagramBuilder: DiagramBuilder;
+    classFilterMap: Map<string, Filter>;
+    diagram: IncrementalDiagram;
+    grapholscape: Grapholscape;
+    lifecycle: IncrementalLifecycle;
+    on: IonIncrementalEvent;
+    constructor(grapholscape: Grapholscape);
+    abstract getHighlights(iris: string[], isInstance: boolean): Promise<IncrementalHighlights>;
+    abstract getDataPropertiesHighlights(iris: string[], isInstance: boolean): Promise<GrapholEntity[]>;
+    abstract getObjectPropertiesHighlights(iris: string[], isInstance: boolean): Promise<Map<GrapholEntity, ObjectPropertyConnectedClasses>>;
+    abstract getAnnotations(iri: string): Promise<Annotation[]>;
+    abstract getSuperClasses(classIri: string): Promise<GrapholEntity[]>;
+    abstract getSubClasses(classIri: string): Promise<GrapholEntity[]>;
+    abstract getContextMenuCommands(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): Command[];
+    abstract getNodeButtons(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): NodeButton[];
+    abstract init(...args: any[]): void;
+    abstract reset(...args: any[]): void;
+    abstract setIncrementalEventHandlers(...args: any[]): void;
+    performActionWithBlockedGraph(action: () => void | Promise<void>, customLayoutOptions?: any): Promise<void>;
+    addEdge: (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => GrapholElement | undefined;
+    showDiagram(viewportState?: Viewport): void;
+    addClass(iri: string, centerOnIt?: boolean, position?: Position): GrapholNode | undefined;
+    addIndividual(individual: GrapholEntity, parentClassesIris?: string[], position?: Position): GrapholElement | undefined;
     /**
      * Add object property edge between two classes.
      * @param objectPropertyIri the object property iri to add
@@ -4331,22 +4985,7 @@ declare class IncrementalController {
      * @param targetClassIri
      */
     addIntensionalObjectProperty(objectPropertyIri: string, sourceClassIri: string, targetClassIri: string): GrapholEdge | undefined;
-    /**
-     * Add object property edge between two instances
-     * @param objectPropertyIri
-     * @param sourceInstanceIri
-     * @param targetInstanceIri
-     */
-    addExtensionalObjectProperty(objectPropertyIri: string, sourceInstanceIri: string, targetInstanceIri: string): void;
-    /**
-     * Shows the domain/range types of an extensional object property
-     * hence only if object property connects two instances, shows their rdf:types
-     * and add the intensional object property between them.
-     * @param objectPropertyIri
-     * @param sourceClassInstanceIri
-     * @param targetClassInstanceIri
-     */
-    showObjectPropertyTypes(objectPropertyIri: string, sourceClassInstanceIri: string, targetClassInstanceIri: string): void;
+    showClassesInIsa(sourceIri: string, targetsIris: string[], isaType: TypesEnum.INCLUSION | TypesEnum.EQUIVALENCE, subOrSuper?: 'sub' | 'super'): void;
     /**
      * Show hierarchies for which the specified class is a subclass.
      * @param classIri
@@ -4357,93 +4996,21 @@ declare class IncrementalController {
      * @param classIri
      */
     showSubHierarchiesOf(classIri: string): void;
+    protected showOrHideHierarchies(classIri: string, hierarchyType: 'super' | 'sub' | 'any', showORHide: 'show' | 'hide'): void;
+    removeHierarchy(hierarchy: Hierarchy, entitiesTokeep?: string[]): void;
     /**
-     * Hide hierarchies for which the specified class is a subClass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
+     * Remove a class, an instance or a data property node from the diagram.
+     * Entities left with no other connections are recurisvely removed too.
+     * Called when the user click on the remove button on a entity node
+     * @param entity
      */
-    hideSuperHierarchiesOf(classIri: string): void;
-    /**
-     * Show hierarchies for which the specified class is a superclass (i.e. an input class).
-     * Hierarchies are pre-computed, after the floaty-transformation is performed.
-     * @param classIri
-     */
-    hideSubHierarchiesOf(classIri: string): void;
-    private showOrHideHierarchies;
-    private removeHierarchy;
-    showSubClassesOf(classIri: string, subclassesIris?: string[]): void;
-    showSuperClassesOf(classIri: string, superclassesIris?: string[]): void;
-    showEquivalentClassesOf(classIri: string, equivalentClassesIris?: string[]): void;
-    private showClassesInIsa;
-    /**
-     * Given the iri of a class, retrieve connected object properties.
-     * These object properties are inferred if the reasoner is available.
-     * Otherwise only object properties directly asserted in the ontology
-     * will be retrieved.
-     * @param classIri
-     * @returns
-     */
-    getObjectPropertiesByClasses(classIris: string[]): Promise<Map<GrapholEntity, ObjectPropertyConnectedClasses>>;
-    getDataPropertiesByClasses(classIris: string[]): Promise<GrapholEntity[]>;
-    getDataPropertiesByClassInstance(instanceIri: string): Promise<GrapholEntity[]>;
-    expandObjectPropertiesOnInstance(instanceIri: string): Promise<void>;
-    /**
-     * Retrieve all class instances participating to an object property
-     * with another instance and add it to diagram with the extensional
-     * object property.
-     * (called by navigation menu to auto expand an object property)
-     * @param instanceIri
-     * @param objectPropertyIri
-     * @param isDirect
-     */
-    expandObjectPropertyOnInstance(instanceIri: string, objectPropertyIri: string, isDirect: boolean): void;
-    /**
-     * Retrieve first page of results for instances of a given class.
-     * Then add instances and instance-of edges (if possible) to parent class
-     * @param classIri
-     * @param pageSize
-     * @returns
-     */
-    expandInstancesOnClass(classIri: string, pageSize?: number): void;
-    focusInstance(classInstance: ClassInstance): void;
-    private addResultsFromFocus;
-    addPath(path: Entity[]): Promise<void>;
-    pinNode: (node: NodeSingular | string) => void | undefined;
-    unpinNode: (node: NodeSingular | string) => void | undefined;
+    removeEntity(entity: GrapholEntity, entitiesIrisToKeep?: string[]): void;
     postDiagramEdit(oldElemsNumber: number, customLayoutOptions?: any): void;
-    /**
-     * Show materialized class' instance number on class node
-     * @param classIri the class on which you want to count instances
-     * @returns
-     */
-    showMaterializedClassCount(classIri: string): Promise<void>;
-    /**
-     * Compute class' instance number and shows it on class node
-     * @param classIri the class on which you want to count instances
-     */
-    showFreshClassCount(classIri: string): Promise<void>;
-    private _addCountBadge;
-    updateMaterializedCounts(): Promise<void>;
-    setIncrementalEventHandlers(): void;
-    /**
-     * Export current incremental(VKG) exploration as an RDFGraph.
-     * It only exports the incremental diagram.
-     * RDFGraph is a JSON serialization of grapholscape's model.
-     * Useful to resume a previous state of the VKG.
-     * For complete ontology (all diagrams) please use Grapholscape.exportToRDFGraph()
-     * @returns RDFGraph representation of this grapholscape(VKG) instance's model.
-     */
-    exportToRDFGraph(): RDFGraph;
-    private get diagramBuilder();
-    private get ontology();
-    private get incrementalRenderer();
+    protected isHierarchyNodeInDiagram(hierarchy: Hierarchy): boolean | undefined;
     getIDByIRI(iri: string, type: TypesEnum): string | undefined;
-    checkDiagramSize(numberOfElements: number, showError?: boolean): boolean;
+    private get incrementalRenderer();
     get numberOfElements(): number;
 }
-
-/** @internal */
-declare function initIncremental(grapholscape: Grapholscape): void;
 
 declare abstract class Grapholscape {
     renderer: Renderer;
@@ -4454,6 +5021,7 @@ declare abstract class Grapholscape {
     protected abstract entityNavigator: EntityNavigator;
     protected abstract displayedNamesManager: DisplayedNamesManager;
     protected abstract themesManager: ThemeManager;
+    protected _incremental: IIncremental;
     widgets: Map<string, HTMLElement>;
     widgetsInitialStates: WidgetsConfig;
     /**
@@ -4664,13 +5232,14 @@ declare abstract class Grapholscape {
      * @returns RDFGraph representation of this grapholscape instance's model.
      */
     exportToRdfGraph(): RDFGraph;
+    resume(rdfGraph: RDFGraph): void;
     /**
      * Filename for exports.
      * String in the form: "[ontology name]-[diagram name]-v[ontology version]"
      */
     get exportFileName(): string;
-    /** @internal */
-    incremental?: IncrementalController;
+    get incremental(): IIncremental;
+    set incremental(incrementalController: IIncremental);
 }
 declare class Core extends Grapholscape {
     protected availableRenderers: RendererStatesEnum[];
@@ -4845,8 +5414,8 @@ interface RenderState {
     centerOnElementById(elementId: string, zoom?: number, select?: boolean): void;
 }
 
-declare class GrapholEntity extends AnnotatedElement implements Entity$1 {
-    static newFromSwagger(iri: Iri, e: Entity$1): GrapholEntity;
+declare class GrapholEntity extends AnnotatedElement implements Entity {
+    static newFromSwagger(iri: Iri, e: Entity): GrapholEntity;
     private _iri;
     private _occurrences;
     private _datatype;
@@ -4892,7 +5461,7 @@ declare class GrapholEntity extends AnnotatedElement implements Entity$1 {
     getDisplayedName(nameType: RDFGraphConfigEntityNameTypeEnum, currentLanguage?: string): string;
     getEntityOriginalNodeId(): string | undefined;
     getIdInDiagram(diagramId: number, type: TypesEnum, rendererState: RendererStatesEnum): string | undefined;
-    json(): Entity$1;
+    json(): Entity;
 }
 
 declare class DiagramRepresentation {
@@ -4914,7 +5483,7 @@ declare class DiagramRepresentation {
     clear(): void;
     updateElement(element: GrapholElement, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
     updateElement(elementId: string, grapholEntity?: GrapholEntity, updatePosition?: boolean): void;
-    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean;
+    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity | string): boolean;
     filter(elementId: string, filterTag: string): void;
     unfilter(elementId: string, filterTag: string): void;
     getNewId(nodeOrEdge: 'node' | 'edge'): string;
@@ -5115,7 +5684,8 @@ declare class IncrementalDiagram extends Diagram {
     constructor();
     addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
     removeElement(elementId: string): void;
-    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity): boolean | undefined;
+    containsEntity(iriOrGrapholEntity: Iri | GrapholEntity | string): boolean | undefined;
+    isHierarchyVisible(hierarchy: Hierarchy): boolean;
     get representation(): DiagramRepresentation | undefined;
 }
 
@@ -5156,35 +5726,6 @@ declare abstract class BaseRenderer implements RenderState {
     unfilter(elementId: string, filter: Filter): void;
 }
 
-declare enum WidgetEnum {
-    DIAGRAM_SELECTOR = "diagram-selector",
-    ENTITY_DETAILS = "details",
-    ENTITY_SELECTOR = "entity-selector",
-    FILTERS = "filters",
-    FIT_BUTTON = "fit-button",
-    FULLSCREEN_BUTTON = "fullscreen-button",
-    ONTOLOGY_EXPLORER = "ontology-explorer",
-    ONTOLOGY_INFO = "ontology-info",
-    OWL_VISUALIZER = "owl-visualizer",
-    RENDERER_SELECTOR = "renderer-selector",
-    LAYOUT_SETTINGS = "layout-settings",
-    SETTINGS = "settings",
-    ZOOM_TOOLS = "zoom-tools",
-    INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
-    ENTITY_COLOR_LEGEND = "entity-color-legend",
-    COLOR_BUTTON = "color-button",
-    /** @internal */
-    CLASS_INSTANCE_DETAILS = "class-instance-details",
-    /** @internal */
-    INSTANCES_EXPLORER = "instances-explorer",
-    /** @internal */
-    NAVIGATION_MENU = "naviagtion-menu",
-    /** @internal */
-    VKG_PREFERENCES = "vkg-preferences",
-    INCREMENTAL_INITIAL_MENU = "incremental-initial-menu",
-    DESIGNER_TOOLBOX = "designer-toolbox"
-}
-
 declare enum Language {
     DE = "de",
     EN = "en",
@@ -5205,6 +5746,7 @@ type GrapholscapeConfig = {
     selectedRenderer?: RendererStatesEnum;
     widgets?: WidgetsConfig;
     initialRendererSelection?: boolean;
+    useCustomIncrementalController?: boolean;
 };
 
 /**
@@ -5219,7 +5761,7 @@ declare function loadConfig(): GrapholscapeConfig;
 declare function storeConfigEntry(k: string, value: any): void;
 declare function clearLocalStorage(): void;
 
-declare const _default$b: CytoscapeOptions;
+declare const _default: CytoscapeOptions;
 
 declare const liteOptions: {
     layout: {
@@ -5246,7 +5788,7 @@ declare function getOntology(rdfGraph: RDFGraph): Ontology;
 declare function getEntities(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, GrapholEntity>;
 /** @internal */
 declare function getClassInstances(rdfGraph: RDFGraph, namespaces: Namespace[]): Map<string, ClassInstanceEntity>;
-declare function getDiagrams(rdfGraph: RDFGraph, rendererState: RendererStatesEnum | undefined, entities: Map<string, GrapholEntity>): Diagram[];
+declare function getDiagrams(rdfGraph: RDFGraph, rendererState: RendererStatesEnum | undefined, entities: Map<string, GrapholEntity>, namespaces?: Namespace[]): Diagram[];
 declare function getConfig(rdfGraph: RDFGraph): GrapholscapeConfig;
 
 declare const rdfGraphParser_d_getClassInstances: typeof getClassInstances;
@@ -5272,6 +5814,169 @@ declare function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifecycle, o
 declare function toPNG(fileName: string, cy?: Core$1, backgroundColor?: string): void;
 declare function toSVG(fileName: string, cy?: Core$1, backgroundColor?: string): void;
 
+declare class IncrementalController extends IncrementalBase {
+    private neighbourhoodFinder;
+    private individualsButton;
+    private objectPropertyButton;
+    constructor(grapholscape: Grapholscape);
+    getHighlights(iris: string[], isInstance: boolean): Promise<IncrementalHighlights>;
+    getDataPropertiesHighlights(iris: string[], _isInstance: boolean): Promise<GrapholEntity[]>;
+    getObjectPropertiesHighlights(iris: string[], isInstance: boolean): Promise<Map<GrapholEntity, ObjectPropertyConnectedClasses>>;
+    getAnnotations(iri: string): Promise<Annotation[]>;
+    getSuperClasses(classIri: string): Promise<GrapholEntity[]>;
+    getSubClasses(classIri: string): Promise<GrapholEntity[]>;
+    getContextMenuCommands(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): Command[];
+    init(): void;
+    private initNodeButtons;
+    getNodeButtons(grapholElement: GrapholElement): NodeButton[];
+    setIncrementalEventHandlers(): void;
+    reset(): void;
+}
+
+declare function showHideSuperHierarchies(hide: boolean, callback: () => void): Command;
+declare function showHideSuperClasses(hide: boolean, callback: () => void): Command;
+declare function showHideSubHierarchies(hide: boolean, callback: () => void): Command;
+declare function showHideSubClasses(hide: boolean, callback: () => void): Command;
+declare function showHideEquivalentClasses(hide: boolean, callback: () => void): Command;
+declare function remove(callback: () => void): Command;
+declare function showParentClass(callback: () => void): Command;
+declare function performInstanceChecking(callback: () => void): Command;
+declare function focusInstance(callback: () => void): Command;
+declare function getInstances(callback: () => void): Command;
+
+declare function CommandsWidgetFactory(ic: IncrementalBase): void;
+
+declare const IncrementalEntityDetails_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class IncrementalEntityDetails extends IncrementalEntityDetails_base {
+    private _dataProperties;
+    entity?: GrapholEntity;
+    onComputeCount: (entity: GrapholEntity) => void;
+    static properties: PropertyDeclarations;
+    static notAvailableText: string;
+    static styles: lit.CSSResult[];
+    render(): lit_html.TemplateResult<1>;
+    show(): void;
+    reset(): void;
+    addDataPropertyValue(dataPropertyIri: string, value: string): void;
+    get dataProperties(): EntityViewData[];
+    set dataProperties(newDataProperties: EntityViewData[]);
+}
+
+declare function IncrementalEntityDetailsFactory(ic: IncrementalBase): IncrementalEntityDetails;
+
+declare function moveUpLeft(widget: HTMLElement): void;
+declare function restorePosition(widget: HTMLElement): void;
+
+declare const GscapeNavigationMenu_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare class GscapeNavigationMenu extends GscapeNavigationMenu_base {
+    popperRef?: HTMLElement;
+    /** @internal */
+    private _objectProperties;
+    /** @internal */
+    objectPropertiesRanges?: Map<string, Map<string, {
+        values: EntityViewData[];
+        loading?: boolean;
+    }>>;
+    /** @internal */
+    canShowObjectPropertiesRanges: boolean;
+    /** @internal */
+    referenceEntity?: EntityViewData;
+    /** @internal */
+    referenceEntityType?: TypesEnum;
+    static properties: PropertyDeclarations;
+    static styles: lit.CSSResult[];
+    constructor();
+    render: () => lit_html.TemplateResult<1>;
+    private handleObjPropertySelection;
+    private handleInsertInGraphClick;
+    private handleSearchInstancesRange;
+    hide(): void;
+    attachTo(element: HTMLElement): void;
+    get objectProperties(): ViewObjectProperty[];
+    set objectProperties(newObjectProperties: ViewObjectProperty[]);
+    updated(): void;
+}
+
+declare function NavigationMenuFactory(incrementalController: IncrementalController): GscapeNavigationMenu;
+
+declare function showButtons(targetNode: NodeSingular, nodeButtons: NodeButton[]): void;
+declare function hideButtons(targetNode: NodeSingular): void;
+declare function getButtonOffset(info: {
+    popper: {
+        height: number;
+        width: number;
+    };
+}, buttonIndex?: number, numberOfButtons?: number): [number, number];
+
+declare function NodeButtonsFactory(ic: IIncremental): void;
+
+declare function onIncrementalStartup(ic: IncrementalBase): void;
+declare function manageWidgetsOnActivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>, isCanvasEmpty?: boolean): void;
+declare function manageWidgetsOnDeactivation(widgets: Map<WidgetEnum, IBaseMixin & HTMLElement>): void;
+declare function onEmptyDiagram(grapholscape: Grapholscape): void;
+
+declare function showMenu(menu: IContextualWidgetMixin & IBaseMixin & {
+    referenceEntity?: EntityViewData;
+    referenceEntityType?: TypesEnum;
+}, ic: IIncremental): void;
+
+declare function initIncrementalUI(ic: IncrementalController): void;
+
+declare const index_d$1_CommandsWidgetFactory: typeof CommandsWidgetFactory;
+declare const index_d$1_IncrementalEntityDetailsFactory: typeof IncrementalEntityDetailsFactory;
+declare const index_d$1_NavigationMenuFactory: typeof NavigationMenuFactory;
+declare const index_d$1_NodeButtonsFactory: typeof NodeButtonsFactory;
+declare const index_d$1_focusInstance: typeof focusInstance;
+declare const index_d$1_getButtonOffset: typeof getButtonOffset;
+declare const index_d$1_getInstances: typeof getInstances;
+declare const index_d$1_hideButtons: typeof hideButtons;
+declare const index_d$1_initIncrementalUI: typeof initIncrementalUI;
+declare const index_d$1_manageWidgetsOnActivation: typeof manageWidgetsOnActivation;
+declare const index_d$1_manageWidgetsOnDeactivation: typeof manageWidgetsOnDeactivation;
+declare const index_d$1_moveUpLeft: typeof moveUpLeft;
+declare const index_d$1_onEmptyDiagram: typeof onEmptyDiagram;
+declare const index_d$1_onIncrementalStartup: typeof onIncrementalStartup;
+declare const index_d$1_performInstanceChecking: typeof performInstanceChecking;
+declare const index_d$1_remove: typeof remove;
+declare const index_d$1_restorePosition: typeof restorePosition;
+declare const index_d$1_showButtons: typeof showButtons;
+declare const index_d$1_showHideEquivalentClasses: typeof showHideEquivalentClasses;
+declare const index_d$1_showHideSubClasses: typeof showHideSubClasses;
+declare const index_d$1_showHideSubHierarchies: typeof showHideSubHierarchies;
+declare const index_d$1_showHideSuperClasses: typeof showHideSuperClasses;
+declare const index_d$1_showHideSuperHierarchies: typeof showHideSuperHierarchies;
+declare const index_d$1_showMenu: typeof showMenu;
+declare const index_d$1_showParentClass: typeof showParentClass;
+declare namespace index_d$1 {
+  export {
+    index_d$1_CommandsWidgetFactory as CommandsWidgetFactory,
+    index_d$1_IncrementalEntityDetailsFactory as IncrementalEntityDetailsFactory,
+    index_d$1_NavigationMenuFactory as NavigationMenuFactory,
+    index_d$1_NodeButtonsFactory as NodeButtonsFactory,
+    index_d$1_focusInstance as focusInstance,
+    index_d$1_getButtonOffset as getButtonOffset,
+    index_d$1_getInstances as getInstances,
+    index_d$1_hideButtons as hideButtons,
+    index_d$1_initIncrementalUI as initIncrementalUI,
+    index_d$1_manageWidgetsOnActivation as manageWidgetsOnActivation,
+    index_d$1_manageWidgetsOnDeactivation as manageWidgetsOnDeactivation,
+    index_d$1_moveUpLeft as moveUpLeft,
+    index_d$1_onEmptyDiagram as onEmptyDiagram,
+    index_d$1_onIncrementalStartup as onIncrementalStartup,
+    index_d$1_performInstanceChecking as performInstanceChecking,
+    index_d$1_remove as remove,
+    index_d$1_restorePosition as restorePosition,
+    index_d$1_showButtons as showButtons,
+    index_d$1_showHideEquivalentClasses as showHideEquivalentClasses,
+    index_d$1_showHideSubClasses as showHideSubClasses,
+    index_d$1_showHideSubHierarchies as showHideSubHierarchies,
+    index_d$1_showHideSuperClasses as showHideSuperClasses,
+    index_d$1_showHideSuperHierarchies as showHideSuperHierarchies,
+    index_d$1_showMenu as showMenu,
+    index_d$1_showParentClass as showParentClass,
+  };
+}
+
 interface IGscape {
     ontology: Ontology;
     diagramId?: number;
@@ -5288,1073 +5993,28 @@ interface IGscape {
     entityNameType: RDFGraphConfigEntityNameTypeEnum;
     renderers: RendererStatesEnum[];
     renderState?: RendererStatesEnum;
-    incremental?: IncrementalController;
+    incremental?: IIncremental;
 }
 /** @internal */
-declare function export_default$3(grapholscape: IGscape, modelType?: RDFGraphModelTypeEnum): RDFGraph;
+declare function export_default$4(grapholscape: IGscape, modelType?: RDFGraphModelTypeEnum): RDFGraph;
 
-declare const diagrams: lit_html.TemplateResult<2>;
-declare const triangle_up: lit_html.TemplateResult<2>;
-declare const triangle_down: lit_html.TemplateResult<2>;
-declare const arrow_right: lit_html.TemplateResult<2>;
-declare const arrowDown: lit_html.TemplateResult<2>;
-declare const explore: lit_html.TemplateResult<2>;
-declare const info_outline: lit_html.TemplateResult<2>;
-declare const enterFullscreen: lit_html.TemplateResult<2>;
-declare const exitFullscreen: lit_html.TemplateResult<2>;
-declare const centerDiagram: lit_html.TemplateResult<2>;
-declare const filter: lit_html.TemplateResult<2>;
-declare const bubbles: lit_html.TemplateResult<2>;
-declare const lite: lit_html.TemplateResult<2>;
-declare const settings_icon: lit_html.TemplateResult<2>;
-declare const infoFilled: lit_html.TemplateResult<2>;
-declare const plus: lit_html.TemplateResult<2>;
-declare const minus: lit_html.TemplateResult<2>;
-declare const save: lit_html.TemplateResult<2>;
-declare const close: lit_html.TemplateResult<2>;
-declare const blankSlateDiagrams: lit_html.TemplateResult<2>;
-declare const check: lit_html.TemplateResult<2>;
-declare const searchOff: lit_html.TemplateResult<2>;
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/checkbox-multiple-blank-circle.svg
- */
-declare const move_bubbles: lit_html.TemplateResult<2>;
-/**
- * Author: Simran
- * Source: https://github.com/Templarian/MaterialDesign/blob/master/svg/owl.svg
- */
-declare const owl_icon: lit_html.TemplateResult<2>;
-declare const graphol_icon: lit_html.TemplateResult<2>;
-declare const tune: lit_html.TemplateResult<2>;
-declare const settings_play: lit_html.TemplateResult<2>;
-declare const filterOff: lit_html.TemplateResult<2>;
-declare const incremental: lit_html.TemplateResult<2>;
-declare const refresh: lit_html.TemplateResult<2>;
-declare const instancesIcon: lit_html.TemplateResult<2>;
-declare const superHierarchies: lit_html.TemplateResult<2>;
-declare const subHierarchies: lit_html.TemplateResult<2>;
-declare const rubbishBin: lit_html.TemplateResult<2>;
-declare const mastroEndpointIcon: lit_html.TemplateResult<2>;
-declare const stopCircle: lit_html.TemplateResult<2>;
-declare const equivalentClasses: lit_html.TemplateResult<2>;
-declare const search$1: lit_html.TemplateResult<2>;
-declare const insertInGraph: lit_html.TemplateResult<2>;
-declare const cross: lit_html.TemplateResult<2>;
-declare const counter: lit_html.TemplateResult<2>;
-declare const labelIcon: lit_html.TemplateResult<2>;
-declare const commentIcon: lit_html.TemplateResult<2>;
-declare const authorIcon: lit_html.TemplateResult<2>;
-declare const addDiagramIcon: lit_html.TemplateResult<2>;
-declare const addClassIcon: lit_html.TemplateResult<2>;
-declare const addDataPropertyIcon: lit_html.TemplateResult<2>;
-declare const addIndividualIcon: lit_html.TemplateResult<2>;
-declare const addObjectPropertyIcon: lit_html.TemplateResult<2>;
-declare const addISAIcon: lit_html.TemplateResult<2>;
-declare const addInstanceIcon: lit_html.TemplateResult<2>;
-declare const addParentClassIcon: lit_html.TemplateResult<2>;
-declare const addChildClassIcon: lit_html.TemplateResult<2>;
-declare const addSubhierarchyIcon: lit_html.TemplateResult<2>;
-declare const addInputIcon: lit_html.TemplateResult<2>;
-declare const renameIcon: lit_html.TemplateResult<2>;
-declare const editIcon: lit_html.TemplateResult<2>;
-declare const sankey: lit_html.TemplateResult<2>;
-declare const pathIcon: lit_html.TemplateResult<2>;
-declare const tools: lit_html.TemplateResult<2>;
-declare const undo: lit_html.TemplateResult<2>;
-declare const redo: lit_html.TemplateResult<2>;
-declare const addPack: lit_html.TemplateResult<2>;
-declare const protocol: lit_html.TemplateResult<2>;
-declare const notes: lit_html.TemplateResult<2>;
-declare const colorPalette: lit_html.TemplateResult<2>;
-declare const warning: lit_html.TemplateResult<2>;
-declare const error: lit_html.TemplateResult<2>;
-declare const toggleCatalog: lit_html.TemplateResult<2>;
-declare const domain: lit_html.TemplateResult<2>;
-declare const range: lit_html.TemplateResult<2>;
-declare const entityIcons: {
-    [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.CLASS_INSTANCE | TypesEnum.ANNOTATION_PROPERTY]: SVGTemplateResult;
-};
-declare const annotationIcons: {
-    [x: string]: SVGTemplateResult | undefined;
-};
-
-declare const _default$a: lit_html.TemplateResult<2>;
-
-declare const _default$9: lit_html.TemplateResult<2>;
-
-declare const _default$8: lit_html.TemplateResult<2>;
-
-declare const _default$7: lit_html.TemplateResult<2>;
-
-declare const _default$6: lit_html.TemplateResult<2>;
-
-declare const _default$5: lit_html.TemplateResult<1>;
-
-declare const index_d$2_addChildClassIcon: typeof addChildClassIcon;
-declare const index_d$2_addClassIcon: typeof addClassIcon;
-declare const index_d$2_addDataPropertyIcon: typeof addDataPropertyIcon;
-declare const index_d$2_addDiagramIcon: typeof addDiagramIcon;
-declare const index_d$2_addISAIcon: typeof addISAIcon;
-declare const index_d$2_addIndividualIcon: typeof addIndividualIcon;
-declare const index_d$2_addInputIcon: typeof addInputIcon;
-declare const index_d$2_addInstanceIcon: typeof addInstanceIcon;
-declare const index_d$2_addObjectPropertyIcon: typeof addObjectPropertyIcon;
-declare const index_d$2_addPack: typeof addPack;
-declare const index_d$2_addParentClassIcon: typeof addParentClassIcon;
-declare const index_d$2_addSubhierarchyIcon: typeof addSubhierarchyIcon;
-declare const index_d$2_annotationIcons: typeof annotationIcons;
-declare const index_d$2_arrowDown: typeof arrowDown;
-declare const index_d$2_arrow_right: typeof arrow_right;
-declare const index_d$2_authorIcon: typeof authorIcon;
-declare const index_d$2_blankSlateDiagrams: typeof blankSlateDiagrams;
-declare const index_d$2_bubbles: typeof bubbles;
-declare const index_d$2_centerDiagram: typeof centerDiagram;
-declare const index_d$2_check: typeof check;
-declare const index_d$2_close: typeof close;
-declare const index_d$2_colorPalette: typeof colorPalette;
-declare const index_d$2_commentIcon: typeof commentIcon;
-declare const index_d$2_counter: typeof counter;
-declare const index_d$2_cross: typeof cross;
-declare const index_d$2_diagrams: typeof diagrams;
-declare const index_d$2_domain: typeof domain;
-declare const index_d$2_editIcon: typeof editIcon;
-declare const index_d$2_enterFullscreen: typeof enterFullscreen;
-declare const index_d$2_entityIcons: typeof entityIcons;
-declare const index_d$2_equivalentClasses: typeof equivalentClasses;
-declare const index_d$2_error: typeof error;
-declare const index_d$2_exitFullscreen: typeof exitFullscreen;
-declare const index_d$2_explore: typeof explore;
-declare const index_d$2_filter: typeof filter;
-declare const index_d$2_filterOff: typeof filterOff;
-declare const index_d$2_graphol_icon: typeof graphol_icon;
-declare const index_d$2_incremental: typeof incremental;
-declare const index_d$2_infoFilled: typeof infoFilled;
-declare const index_d$2_info_outline: typeof info_outline;
-declare const index_d$2_insertInGraph: typeof insertInGraph;
-declare const index_d$2_instancesIcon: typeof instancesIcon;
-declare const index_d$2_labelIcon: typeof labelIcon;
-declare const index_d$2_lite: typeof lite;
-declare const index_d$2_mastroEndpointIcon: typeof mastroEndpointIcon;
-declare const index_d$2_minus: typeof minus;
-declare const index_d$2_move_bubbles: typeof move_bubbles;
-declare const index_d$2_notes: typeof notes;
-declare const index_d$2_owl_icon: typeof owl_icon;
-declare const index_d$2_pathIcon: typeof pathIcon;
-declare const index_d$2_plus: typeof plus;
-declare const index_d$2_protocol: typeof protocol;
-declare const index_d$2_range: typeof range;
-declare const index_d$2_redo: typeof redo;
-declare const index_d$2_refresh: typeof refresh;
-declare const index_d$2_renameIcon: typeof renameIcon;
-declare const index_d$2_rubbishBin: typeof rubbishBin;
-declare const index_d$2_sankey: typeof sankey;
-declare const index_d$2_save: typeof save;
-declare const index_d$2_searchOff: typeof searchOff;
-declare const index_d$2_settings_icon: typeof settings_icon;
-declare const index_d$2_settings_play: typeof settings_play;
-declare const index_d$2_stopCircle: typeof stopCircle;
-declare const index_d$2_subHierarchies: typeof subHierarchies;
-declare const index_d$2_superHierarchies: typeof superHierarchies;
-declare const index_d$2_toggleCatalog: typeof toggleCatalog;
-declare const index_d$2_tools: typeof tools;
-declare const index_d$2_triangle_down: typeof triangle_down;
-declare const index_d$2_triangle_up: typeof triangle_up;
-declare const index_d$2_tune: typeof tune;
-declare const index_d$2_undo: typeof undo;
-declare const index_d$2_warning: typeof warning;
-declare namespace index_d$2 {
-  export {
-    index_d$2_addChildClassIcon as addChildClassIcon,
-    index_d$2_addClassIcon as addClassIcon,
-    index_d$2_addDataPropertyIcon as addDataPropertyIcon,
-    index_d$2_addDiagramIcon as addDiagramIcon,
-    index_d$2_addISAIcon as addISAIcon,
-    index_d$2_addIndividualIcon as addIndividualIcon,
-    index_d$2_addInputIcon as addInputIcon,
-    index_d$2_addInstanceIcon as addInstanceIcon,
-    index_d$2_addObjectPropertyIcon as addObjectPropertyIcon,
-    index_d$2_addPack as addPack,
-    index_d$2_addParentClassIcon as addParentClassIcon,
-    index_d$2_addSubhierarchyIcon as addSubhierarchyIcon,
-    index_d$2_annotationIcons as annotationIcons,
-    index_d$2_arrowDown as arrowDown,
-    index_d$2_arrow_right as arrow_right,
-    index_d$2_authorIcon as authorIcon,
-    index_d$2_blankSlateDiagrams as blankSlateDiagrams,
-    index_d$2_bubbles as bubbles,
-    index_d$2_centerDiagram as centerDiagram,
-    index_d$2_check as check,
-    _default$a as classIcon,
-    _default$6 as classInstanceIcon,
-    index_d$2_close as close,
-    index_d$2_colorPalette as colorPalette,
-    index_d$2_commentIcon as commentIcon,
-    index_d$2_counter as counter,
-    index_d$2_cross as cross,
-    _default$8 as dataPropertyIcon,
-    index_d$2_diagrams as diagrams,
-    index_d$2_domain as domain,
-    index_d$2_editIcon as editIcon,
-    index_d$2_enterFullscreen as enterFullscreen,
-    index_d$2_entityIcons as entityIcons,
-    index_d$2_equivalentClasses as equivalentClasses,
-    index_d$2_error as error,
-    index_d$2_exitFullscreen as exitFullscreen,
-    index_d$2_explore as explore,
-    index_d$2_filter as filter,
-    index_d$2_filterOff as filterOff,
-    index_d$2_graphol_icon as graphol_icon,
-    _default$5 as grapholscapeLogo,
-    index_d$2_incremental as incremental,
-    _default$7 as individualIcon,
-    index_d$2_infoFilled as infoFilled,
-    index_d$2_info_outline as info_outline,
-    index_d$2_insertInGraph as insertInGraph,
-    index_d$2_instancesIcon as instancesIcon,
-    index_d$2_labelIcon as labelIcon,
-    index_d$2_lite as lite,
-    index_d$2_mastroEndpointIcon as mastroEndpointIcon,
-    index_d$2_minus as minus,
-    index_d$2_move_bubbles as move_bubbles,
-    index_d$2_notes as notes,
-    _default$9 as objectPropertyIcon,
-    index_d$2_owl_icon as owl_icon,
-    index_d$2_pathIcon as pathIcon,
-    index_d$2_plus as plus,
-    index_d$2_protocol as protocol,
-    index_d$2_range as range,
-    index_d$2_redo as redo,
-    index_d$2_refresh as refresh,
-    index_d$2_renameIcon as renameIcon,
-    index_d$2_rubbishBin as rubbishBin,
-    index_d$2_sankey as sankey,
-    index_d$2_save as save,
-    search$1 as search,
-    index_d$2_searchOff as searchOff,
-    index_d$2_settings_icon as settings_icon,
-    index_d$2_settings_play as settings_play,
-    index_d$2_stopCircle as stopCircle,
-    index_d$2_subHierarchies as subHierarchies,
-    index_d$2_superHierarchies as superHierarchies,
-    index_d$2_toggleCatalog as toggleCatalog,
-    index_d$2_tools as tools,
-    index_d$2_triangle_down as triangle_down,
-    index_d$2_triangle_up as triangle_up,
-    index_d$2_tune as tune,
-    index_d$2_undo as undo,
-    index_d$2_warning as warning,
-  };
-}
-
-type Constructor$3<T = {}> = new (...args: any[]) => T;
-declare class IBaseMixin {
-    hide(): void;
-    show(): void;
-    showInPosition(position?: {
-        x: number;
-        y: number;
-    }): void;
-    enable(): void;
-    disable(): void;
-    onStateChange(): void;
-    isVisible: boolean;
-    enabled: boolean;
-}
-declare const BaseMixin: <T extends Constructor$3<LitElement>>(superClass: T) => Constructor$3<IBaseMixin> & T;
-
-type Constructor$2<T = {}> = new (...args: any[]) => T;
-declare class IDropPanelMixin {
-    protected isDefaultClosed: boolean;
-    togglePanel(): void;
-    openPanel(): void;
-    closePanel(): void;
-    protected get panel(): HTMLElement | undefined | null;
-    onTogglePanel(): void;
-    isPanelClosed(): boolean;
-}
-declare const DropPanelMixin: <T extends Constructor$2<LitElement>>(superClass: T) => Constructor$2<IDropPanelMixin> & T;
-declare function hasDropPanel(element: any): element is IDropPanelMixin;
-
-type Constructor$1<T = {}> = new (...args: any[]) => T;
-declare class IModalMixin {
-    hide(): void;
-    show(): void;
-    protected modalBackground: HTMLDivElement;
-}
-declare const ModalMixin: <T extends Constructor$1<LitElement & IBaseMixin>>(superClass: T) => Constructor$1<IModalMixin> & T;
-
-type Constructor<T = {}> = new (...args: any[]) => T;
-declare class IContextualWidgetMixin {
-    hide(): void;
-    /**
-     * Attach cxt widget and show it
-     * @param element the target html elment
-     */
-    attachTo(element: HTMLElement): void;
-    /**
-     * Attach cxt widget and do not show it, if it was visible it stays visible
-     * @param element the target html element
-     */
-    attachToSilently(element: HTMLElement): void;
-    cxtWidgetProps: Partial<Props>;
-    tippyWidget: Instance<Props>;
-}
-declare const ContextualWidgetMixin: <T extends Constructor<LitElement>>(superClass: T) => Constructor<IContextualWidgetMixin> & T;
-
-declare enum SizeEnum {
-    S = "s",
-    M = "m",
-    L = "l"
-}
-declare const GscapeButton_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeButton extends GscapeButton_base {
-    disabled: boolean;
-    asSwitch: boolean;
-    active: boolean;
-    label: string;
-    size: SizeEnum;
-    type: string;
-    fullWidth: string;
-    private toggled;
-    static properties: {
-        active: {
-            type: BooleanConstructor;
-            reflect: boolean;
-        };
-        label: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        title: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        disabled: {
-            type: BooleanConstructor;
-            reflect: boolean;
-        };
-        asSwitch: {
-            type: BooleanConstructor;
-            attribute: string;
-            reflect: boolean;
-        };
-        size: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        type: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        fullWidth: {
-            type: StringConstructor;
-            attribute: string;
-            reflect: boolean;
-        };
-        toggled: {
-            type: BooleanConstructor;
-            state: boolean;
-        };
-    };
-    static styles: lit.CSSResult[];
-    constructor();
-    render(): lit_html.TemplateResult<1>;
-    private clickHandler;
-    private get altIcon();
-}
-
-declare const NodeButton_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class NodeButton extends NodeButton_base {
-    content: TemplateResult | SVGTemplateResult | string | number;
-    contentType: 'icon' | 'template';
-    node?: NodeSingular;
-    highlighted?: boolean;
-    cxtWidgetProps: Partial<Props>;
-    static properties: PropertyDeclarations;
-    static styles: lit.CSSResult[];
-    constructor(content: TemplateResult | SVGTemplateResult | string | number, contentType?: 'icon' | 'template');
-    render(): TemplateResult<1>;
-}
-
-declare const _default$4: lit.CSSResult;
-
-/**
- * A command for the context menu
- */
-interface Command {
-    /** the string to show */
-    content: string;
-    /** optional icon */
-    icon?: SVGTemplateResult;
-    /** callback to execute on selection */
-    select: () => void;
-}
-declare const GscapeContextMenu_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeContextMenu extends GscapeContextMenu_base {
-    commands: Command[];
-    customElements: (LitElement | HTMLElement | TemplateResult)[];
-    showFirst: 'commands' | 'elements';
-    onCommandRun: () => void;
-    static properties: PropertyDeclarations;
-    static styles: CSSResultArray;
-    render(): TemplateResult<1>;
-    attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]): void;
-    attachToPosition(position: {
-        x: number;
-        y: number;
-    }, container: Element, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]): void;
-    private handleCommandClick;
-    private get commandsTemplate();
-    private get customElementsTemplate();
-}
-
-declare class GscapeActionListItem extends LitElement {
-    label: string;
-    selected: boolean;
-    private expanded;
-    subtle: boolean;
-    disabled: boolean;
-    static properties: PropertyDeclarations;
-    static styles?: CSSResultGroup;
-    constructor();
-    render(): lit_html.TemplateResult<1>;
-    private clickHandler;
-    private get hiddenContent();
-}
-
-declare const _default$3: lit.CSSResult;
-
-declare class GscapeEntityListItem extends LitElement {
-    private _types;
-    private _color?;
-    displayedName: string;
-    iri: string;
-    actionable: boolean;
-    asAccordion: boolean;
-    disabled: boolean;
-    private isAccordionOpen;
-    static properties: PropertyDeclarations;
-    static styles: CSSResultGroup;
-    render(): lit_html.TemplateResult<1>;
-    private iconNameSlotTemplate;
-    private handleDetailsClick;
-    openAccordion(): void;
-    closeAccordion(): void;
-    set types(newTypes: TypesEnum[] | undefined);
-    get types(): TypesEnum[] | undefined;
-    set color(newColor: string | undefined);
-    get color(): string | undefined;
-}
-
-declare const textSpinner: () => lit_html.TemplateResult<1>;
-declare const textSpinnerStyle: lit.CSSResult;
-
-declare function getContentSpinner(): lit_html.TemplateResult<1>;
-declare const contentSpinnerStyle: lit.CSSResult;
-declare class ContentSpinner extends LitElement {
-    color: string;
-    static styles: lit.CSSResult[];
-    static properties: PropertyDeclarations;
-    render: typeof getContentSpinner;
-    setColor(newColor: string): void;
-}
-
-declare class GscapeTextSearch extends LitElement {
-    private _onSearchCallback;
-    static properties: PropertyDeclarations;
-    static styles?: CSSResultGroup;
-    render(): lit_html.TemplateResult<1>;
-    onSearch(callback: (e: KeyboardEvent) => void): void;
-}
-
-type ViewObjectPropertyUnfolding = EntityViewDataUnfolding & {
-    connectedClasses: EntityViewDataUnfolding[];
-    direct: boolean;
-};
-type EntityViewDataUnfolding = {
-    entityViewData: EntityViewData;
-    loading?: boolean;
-    hasUnfolding?: boolean;
-};
-type EntityViewData = {
-    displayedName: string;
-    value: {
-        iri: Iri;
-        types: TypesEnum[];
-    } & AnnotatedElement;
-    viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>;
-    disabled?: boolean;
-};
-interface IEntityFilters {
-    [TypesEnum.CLASS]?: number;
-    [TypesEnum.DATA_PROPERTY]?: number;
-    [TypesEnum.OBJECT_PROPERTY]?: number;
-    [TypesEnum.INDIVIDUAL]?: number;
-    areAllFiltersDisabled: boolean;
-}
-
-declare const GscapeEntitySearch_base: (new (...args: any[]) => IDropPanelMixin) & typeof LitElement;
-declare class GscapeEntitySearch extends GscapeEntitySearch_base implements IEntityFilters {
-    areAllFiltersDisabled: boolean;
-    [TypesEnum.CLASS]?: number;
-    [TypesEnum.DATA_PROPERTY]?: number;
-    [TypesEnum.OBJECT_PROPERTY]?: number;
-    [TypesEnum.INDIVIDUAL]?: number;
-    [TypesEnum.CLASS_INSTANCE]?: number;
-    private isSearchTextEmpty;
-    private searchTimeout;
-    static properties: PropertyDeclarations;
-    static styles?: CSSResultGroup;
-    render(): lit_html.TemplateResult<1>;
-    private handleKeyPress;
-    private handleSearch;
-    clearSearch(): void;
-    private get atLeastTwoFilters();
-    private get input();
-}
-type SearchEvent = CustomEvent<{
-    searchText: string;
-}>;
-
-declare const GscapeEntityTypeFilters_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeEntityTypeFilters extends GscapeEntityTypeFilters_base implements IEntityFilters {
-    static properties: PropertyDeclarations;
-    static styles: lit.CSSResult[];
-    _class?: number;
-    _dataproperty?: number;
-    _objectproperty?: number;
-    _individual?: number;
-    _classInstance?: number;
-    render(): lit_html.TemplateResult<1>;
-    private getChipTemplate;
-    private _handleFilterStateChange;
-    get areAllFiltersDisabled(): boolean;
-    set [TypesEnum.CLASS](v: number | undefined);
-    get [TypesEnum.CLASS](): number | undefined;
-    set [TypesEnum.DATA_PROPERTY](v: number | undefined);
-    get [TypesEnum.DATA_PROPERTY](): number | undefined;
-    set [TypesEnum.OBJECT_PROPERTY](v: number | undefined);
-    get [TypesEnum.OBJECT_PROPERTY](): number | undefined;
-    set [TypesEnum.INDIVIDUAL](v: number | undefined);
-    get [TypesEnum.INDIVIDUAL](): number | undefined;
-    set [TypesEnum.CLASS_INSTANCE](v: number | undefined);
-    get [TypesEnum.CLASS_INSTANCE](): number | undefined;
-}
-type EntityFilterEvent = CustomEvent<IEntityFilters>;
-
-declare enum ToggleLabelPosition {
-    LEFT = "left",
-    RIGHT = "right"
-}
-declare class GscapeToggle extends LitElement {
-    key: string;
-    checked: boolean;
-    disabled: boolean;
-    label: string;
-    labelPosition: ToggleLabelPosition;
-    static ToggleLabelPosition: typeof ToggleLabelPosition;
-    static get properties(): {
-        disabled: {
-            type: BooleanConstructor;
-            reflect: boolean;
-        };
-        label: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        labelPosition: {
-            type: StringConstructor;
-            reflect: boolean;
-            attribute: string;
-        };
-        key: {
-            type: StringConstructor;
-            reflect: boolean;
-        };
-        checked: {
-            type: BooleanConstructor;
-            reflect: boolean;
-        };
-    };
-    static styles: lit.CSSResult[];
-    render(): lit_html.TemplateResult<1>;
-}
-
-declare const GscapeConfirmDialog_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeConfirmDialog extends GscapeConfirmDialog_base {
-    message?: string | undefined;
-    dialogTitle: string;
-    type: 'neutral' | 'warning' | 'error';
-    protected _onConfirm?: (...args: any[]) => void;
-    protected _onCancel?: () => void;
-    constructor(message?: string | undefined, dialogTitle?: string, type?: 'neutral' | 'warning' | 'error');
-    static properties: PropertyDeclarations;
-    static styles: CSSResultGroup;
-    render(): lit_html.TemplateResult<1>;
-    protected get headerIcon(): lit_html.TemplateResult<2>;
-    protected handleConfirm(): void;
-    protected handleCancel(): void;
-    onConfirm(callback: () => void): GscapeConfirmDialog;
-    onCancel(callback: () => void): GscapeConfirmDialog;
-}
-declare function showMessage(message: string, title: string, container: any, type?: "neutral" | 'warning' | 'error'): GscapeConfirmDialog;
-
-type SelectOption = {
-    id: string;
-    text: string;
-    trailingIcon?: SVGTemplateResult;
-    leadingIcon?: SVGTemplateResult;
-    disabled?: boolean;
-};
-declare const GscapeSelect_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeSelect extends GscapeSelect_base {
-    private readonly PLACEHOLDER_ID;
-    defaultIcon: SVGTemplateResult;
-    selectedOptionsId: Set<string>;
-    defaultOptionId?: string;
-    options: SelectOption[];
-    size: SizeEnum;
-    clearable: boolean;
-    multipleSelection: boolean;
-    private _placeholder;
-    onSelection: (optionId: string) => void;
-    static properties: PropertyDeclarations;
-    static styles: lit.CSSResult[];
-    render(): lit_html.TemplateResult<1>;
-    private handleSelection;
-    private getButton;
-    clear(): void;
-    private isSelectionEmpty;
-    private isIdSelected;
-    get selectedOptions(): SelectOption[];
-    get defaultOption(): SelectOption;
-    get placeholder(): SelectOption;
-    set placeholder(placeHolder: SelectOption);
-}
-
-interface IEntitySelector {
-    onClassSelection(callback: (iri: string) => void): void;
-}
-declare const GscapeEntitySelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeEntitySelector extends GscapeEntitySelector_base {
-    title: string;
-    private fullEntityList;
-    private _entityList;
-    private onClassSelectionCallback;
-    private isSearchTextEmpty;
-    private loading;
-    static get properties(): {
-        entityList: {
-            type: ObjectConstructor;
-            attribute: boolean;
-        };
-        isSearchTextEmpty: {
-            type: BooleanConstructor;
-            state: boolean;
-        };
-        loading: {
-            type: BooleanConstructor;
-            state: boolean;
-        };
-        onClassSelection: {
-            type: ObjectConstructor;
-        };
-    };
-    static styles: lit.CSSResult[];
-    constructor();
-    render(): lit_html.TemplateResult<1>;
-    blur(): void;
-    focusInputSearch(): Promise<void>;
-    private handleEntitySelection;
-    private handleKeyPressOnEntry;
-    private handleSearch;
-    clearSearch(): void;
-    get onClassSelection(): (iri: string) => void;
-    set onClassSelection(callback: (iri: string) => void);
-    set entityList(newEntityList: EntityViewData[]);
-    get entityList(): EntityViewData[];
-    private get input();
-}
-
-type UiOption = {
-    name: string;
-    id: string;
-    icon: SVGTemplateResult;
-    description?: string;
-};
-
-declare const GscapeFullPageSelector_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeFullPageSelector extends GscapeFullPageSelector_base {
-    options: (UiOption | undefined)[];
-    title: string;
-    onOptionSelection: (optionId: string) => void;
-    static properties: PropertyDeclarations;
-    static styles: CSSResultGroup;
-    render(): lit_html.TemplateResult<1>;
-    private handleRendererSelection;
-}
-
-declare function initInitialRendererSelector(grapholscape: Grapholscape): void;
-
-/**
- * Initialize the UI
- */
-declare function export_default$2(grapholscape: Grapholscape): void;
-
-declare const _default$2: lit.CSSResult;
-
-declare const BOTTOM_RIGHT_WIDGET: lit.CSSResult;
-declare const _default$1: lit.CSSResult;
-
-declare const _default: lit_html.TemplateResult<1>;
-
-type DiagramViewData = {
-    id: number;
-    name: string;
-};
-type OccurrenceIdViewData = {
-    originalId: string;
-    realId: string;
-};
-declare function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>, onNodeNavigation: (elementId: string, diagramId: number) => void): lit_html.TemplateResult<1>;
-
-declare function createEntitiesList(grapholscape: Grapholscape, entityFilters?: IEntityFilters): EntityViewData[];
-declare function search(searchValue: string, entities: EntityViewData[]): Promise<EntityViewData[]>;
-
-declare function export_default$1(slotName: string, icon: SVGTemplateResult): HTMLSpanElement;
-
-type TabProps = {
-    id: number;
-    icon?: SVGTemplateResult;
-    label: string;
-};
-
-declare const GscapeDiagramSelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeDiagramSelector extends GscapeDiagramSelector_base {
-    title: string;
-    diagrams: Diagram[];
-    currentDiagramId: number;
-    currentDiagramName: string;
-    onDiagramSelection: (diagramId: number) => void;
-    static properties: PropertyDeclarations;
-    static styles?: CSSResultGroup;
-    render(): lit_html.TemplateResult<1>;
-    private diagramSelectionHandler;
-    private get currentDiagram();
-}
-
-declare const IncrementalInitialMenu_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class IncrementalInitialMenu extends IncrementalInitialMenu_base {
-    classes?: EntityViewData[];
-    shortestPathEnabled: boolean;
-    sideMenuMode: boolean;
-    static properties: {
-        classes: {
-            type: ArrayConstructor;
-        };
-        sideMenuMode: {
-            type: BooleanConstructor;
-        };
-        shortestPathEnabled: {
-            type: BooleanConstructor;
-        };
-    };
-    static styles: lit.CSSResult[];
-    constructor(grapholscape?: Grapholscape);
-    render: () => lit_html.TemplateResult<1>;
-    focusInputSearch(): void;
-    closePanel(): void;
-    openPanel(): void;
-    private handleShortestPathBtnClick;
-    private handleClassSelection;
-}
-
-declare const GscapePathSelector_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-/** @internal */
-declare class GscapePathSelector extends GscapePathSelector_base {
-    private theme;
-    private _paths;
-    selectedPathID: number;
-    canShowMore: boolean;
-    private cy?;
-    static properties: {
-        getMorePaths: {
-            type: BooleanConstructor;
-        };
-        paths: {
-            type: ArrayConstructor;
-        };
-        selectedPathID: {
-            type: NumberConstructor;
-        };
-        canShowMore: {
-            type: BooleanConstructor;
-        };
-    };
-    static styles: lit.CSSResult[];
-    constructor(theme: GrapholscapeTheme);
-    render(): lit_html.TemplateResult<1>;
-    getDisplayedName: (entity: Entity) => string | undefined;
-    private setTheme;
-    private getEdgePointDistances;
-    private getEdgePointWeights;
-    private handlePathClick;
-    private handleShowMoreClick;
-    private handleConfirm;
-    private handleCancel;
-    get selectedPath(): OntologyPath;
-    get paths(): OntologyPath[];
-    set paths(newPaths: OntologyPath[]);
-    private getEntityCyRepr;
-    private cyInit;
-    private highlightPath;
-    private deHighlightPath;
-    private selectPath;
-    /**
-     * --- HACKY ---
-     * Allow events not involving buttons to work on cytoscape when it's in a shadow dom.
-     * They don't work due to shadow dom event's retargeting
-     * Cytoscape listen to events on window object. When the event reach window due to bubbling,
-     * cytoscape handler for mouse movement handles it but event target appear to be the
-     * custom component and not the canvas due to retargeting, therefore listeners are not triggered.
-     * workaround found here: https://github.com/cytoscape/cytoscape.js/issues/2081
-     */
-    private fixHover;
-}
-/** @internal */
-type PathSelectionEvent = CustomEvent<OntologyPath>;
-
-/** @internal */
-declare class ShortestPathDialog extends GscapeConfirmDialog {
-    classes?: EntityViewData[];
-    class1EditEnabled: boolean;
-    private _class1?;
-    class2EditEnabled: boolean;
-    private _class2?;
-    protected _onConfirm?: (sourceClassIri: string, targetClassIri: string) => void;
-    static properties: {
-        classes: {
-            type: ArrayConstructor;
-        };
-        _class1: {
-            type: StringConstructor;
-            attribute: string;
-        };
-        _class2: {
-            type: StringConstructor;
-            attribute: string;
-        };
-        class1EditEnabled: {
-            type: BooleanConstructor;
-        };
-        class2EditEnabled: {
-            type: BooleanConstructor;
-        };
-    };
-    static styles: lit.CSSResultGroup[];
-    constructor(grapholscape?: Grapholscape);
-    render: () => lit_html.TemplateResult<1>;
-    closePanel(): void;
-    openPanel(): void;
-    onConfirm(callback: (sourceClassIri: string, targetClassIri: string) => void): GscapeConfirmDialog;
-    private getClassSelectorTemplate;
-    private handleClassSelection;
-    protected handleConfirm(): void;
-    set class1(newClassIri: string | undefined);
-    get class1(): string | undefined;
-    set class2(newClassIri: string | undefined);
-    get class2(): string | undefined;
-}
-
-type ClassWithColor = {
-    id: string;
-    displayedName: string;
-    iri: string;
-    color?: string;
-    filtered: boolean;
-};
-declare const GscapeEntityColorLegend_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
-declare class GscapeEntityColorLegend extends GscapeEntityColorLegend_base {
-    title: string;
-    elements: ClassWithColor[];
-    protected isDefaultClosed: boolean;
-    onElementSelection: (classWithColor: ClassWithColor) => void;
-    static properties: PropertyDeclarations;
-    static styles?: CSSResultGroup | undefined;
-    private handleElemClick;
-    blur(): void;
-    render(): lit_html.TemplateResult<1>;
-}
-
-declare function setColorList(entityColorLegend: GscapeEntityColorLegend, grapholscape: Grapholscape): void;
-
-/** @module UI */
-
-declare const index_d$1_BaseMixin: typeof BaseMixin;
-type index_d$1_ClassWithColor = ClassWithColor;
-type index_d$1_Command = Command;
-type index_d$1_ContentSpinner = ContentSpinner;
-declare const index_d$1_ContentSpinner: typeof ContentSpinner;
-declare const index_d$1_ContextualWidgetMixin: typeof ContextualWidgetMixin;
-type index_d$1_DiagramViewData = DiagramViewData;
-declare const index_d$1_DropPanelMixin: typeof DropPanelMixin;
-type index_d$1_EntityFilterEvent = EntityFilterEvent;
-type index_d$1_EntityViewData = EntityViewData;
-type index_d$1_EntityViewDataUnfolding = EntityViewDataUnfolding;
-type index_d$1_GscapeActionListItem = GscapeActionListItem;
-declare const index_d$1_GscapeActionListItem: typeof GscapeActionListItem;
-type index_d$1_GscapeButton = GscapeButton;
-declare const index_d$1_GscapeButton: typeof GscapeButton;
-type index_d$1_GscapeConfirmDialog = GscapeConfirmDialog;
-declare const index_d$1_GscapeConfirmDialog: typeof GscapeConfirmDialog;
-type index_d$1_GscapeContextMenu = GscapeContextMenu;
-declare const index_d$1_GscapeContextMenu: typeof GscapeContextMenu;
-type index_d$1_GscapeDiagramSelector = GscapeDiagramSelector;
-declare const index_d$1_GscapeDiagramSelector: typeof GscapeDiagramSelector;
-type index_d$1_GscapeEntityColorLegend = GscapeEntityColorLegend;
-declare const index_d$1_GscapeEntityColorLegend: typeof GscapeEntityColorLegend;
-type index_d$1_GscapeEntityListItem = GscapeEntityListItem;
-declare const index_d$1_GscapeEntityListItem: typeof GscapeEntityListItem;
-type index_d$1_GscapeEntitySearch = GscapeEntitySearch;
-declare const index_d$1_GscapeEntitySearch: typeof GscapeEntitySearch;
-type index_d$1_GscapeEntitySelector = GscapeEntitySelector;
-declare const index_d$1_GscapeEntitySelector: typeof GscapeEntitySelector;
-type index_d$1_GscapeEntityTypeFilters = GscapeEntityTypeFilters;
-declare const index_d$1_GscapeEntityTypeFilters: typeof GscapeEntityTypeFilters;
-type index_d$1_GscapeFullPageSelector = GscapeFullPageSelector;
-declare const index_d$1_GscapeFullPageSelector: typeof GscapeFullPageSelector;
-type index_d$1_GscapeSelect = GscapeSelect;
-declare const index_d$1_GscapeSelect: typeof GscapeSelect;
-type index_d$1_GscapeTextSearch = GscapeTextSearch;
-declare const index_d$1_GscapeTextSearch: typeof GscapeTextSearch;
-type index_d$1_GscapeToggle = GscapeToggle;
-declare const index_d$1_GscapeToggle: typeof GscapeToggle;
-type index_d$1_IBaseMixin = IBaseMixin;
-declare const index_d$1_IBaseMixin: typeof IBaseMixin;
-type index_d$1_IContextualWidgetMixin = IContextualWidgetMixin;
-declare const index_d$1_IContextualWidgetMixin: typeof IContextualWidgetMixin;
-type index_d$1_IDropPanelMixin = IDropPanelMixin;
-declare const index_d$1_IDropPanelMixin: typeof IDropPanelMixin;
-type index_d$1_IEntityFilters = IEntityFilters;
-type index_d$1_IEntitySelector = IEntitySelector;
-type index_d$1_IModalMixin = IModalMixin;
-declare const index_d$1_IModalMixin: typeof IModalMixin;
-type index_d$1_IncrementalInitialMenu = IncrementalInitialMenu;
-declare const index_d$1_IncrementalInitialMenu: typeof IncrementalInitialMenu;
-declare const index_d$1_ModalMixin: typeof ModalMixin;
-type index_d$1_NodeButton = NodeButton;
-declare const index_d$1_NodeButton: typeof NodeButton;
-type index_d$1_OccurrenceIdViewData = OccurrenceIdViewData;
-type index_d$1_PathSelectionEvent = PathSelectionEvent;
-type index_d$1_SearchEvent = SearchEvent;
-type index_d$1_SelectOption = SelectOption;
-type index_d$1_ShortestPathDialog = ShortestPathDialog;
-declare const index_d$1_ShortestPathDialog: typeof ShortestPathDialog;
-type index_d$1_SizeEnum = SizeEnum;
-declare const index_d$1_SizeEnum: typeof SizeEnum;
-type index_d$1_TabProps = TabProps;
-type index_d$1_ToggleLabelPosition = ToggleLabelPosition;
-declare const index_d$1_ToggleLabelPosition: typeof ToggleLabelPosition;
-type index_d$1_UiOption = UiOption;
-type index_d$1_ViewObjectPropertyUnfolding = ViewObjectPropertyUnfolding;
-type index_d$1_WidgetEnum = WidgetEnum;
-declare const index_d$1_WidgetEnum: typeof WidgetEnum;
-declare const index_d$1_contentSpinnerStyle: typeof contentSpinnerStyle;
-declare const index_d$1_createEntitiesList: typeof createEntitiesList;
-declare const index_d$1_getContentSpinner: typeof getContentSpinner;
-declare const index_d$1_getEntityOccurrencesTemplate: typeof getEntityOccurrencesTemplate;
-declare const index_d$1_hasDropPanel: typeof hasDropPanel;
-declare const index_d$1_initInitialRendererSelector: typeof initInitialRendererSelector;
-declare const index_d$1_search: typeof search;
-declare const index_d$1_setColorList: typeof setColorList;
-declare const index_d$1_showMessage: typeof showMessage;
-declare const index_d$1_textSpinner: typeof textSpinner;
-declare const index_d$1_textSpinnerStyle: typeof textSpinnerStyle;
-declare namespace index_d$1 {
-  export {
-    BOTTOM_RIGHT_WIDGET as BOTTOM_RIGHT_WIDGET_CLASS,
-    index_d$1_BaseMixin as BaseMixin,
-    index_d$1_ClassWithColor as ClassWithColor,
-    index_d$1_Command as Command,
-    index_d$1_ContentSpinner as ContentSpinner,
-    index_d$1_ContextualWidgetMixin as ContextualWidgetMixin,
-    index_d$1_DiagramViewData as DiagramViewData,
-    index_d$1_DropPanelMixin as DropPanelMixin,
-    index_d$1_EntityFilterEvent as EntityFilterEvent,
-    index_d$1_EntityViewData as EntityViewData,
-    index_d$1_EntityViewDataUnfolding as EntityViewDataUnfolding,
-    index_d$1_GscapeActionListItem as GscapeActionListItem,
-    _default$3 as GscapeActionListStyle,
-    index_d$1_GscapeButton as GscapeButton,
-    _default$4 as GscapeButtonStyle,
-    index_d$1_GscapeConfirmDialog as GscapeConfirmDialog,
-    index_d$1_GscapeContextMenu as GscapeContextMenu,
-    index_d$1_GscapeDiagramSelector as GscapeDiagramSelector,
-    index_d$1_GscapeEntityColorLegend as GscapeEntityColorLegend,
-    index_d$1_GscapeEntityListItem as GscapeEntityListItem,
-    index_d$1_GscapeEntitySearch as GscapeEntitySearch,
-    index_d$1_GscapeEntitySelector as GscapeEntitySelector,
-    index_d$1_GscapeEntityTypeFilters as GscapeEntityTypeFilters,
-    index_d$1_GscapeFullPageSelector as GscapeFullPageSelector,
-    index_d$1_GscapeSelect as GscapeSelect,
-    index_d$1_GscapeTextSearch as GscapeTextSearch,
-    index_d$1_GscapeToggle as GscapeToggle,
-    index_d$1_IBaseMixin as IBaseMixin,
-    index_d$1_IContextualWidgetMixin as IContextualWidgetMixin,
-    index_d$1_IDropPanelMixin as IDropPanelMixin,
-    index_d$1_IEntityFilters as IEntityFilters,
-    index_d$1_IEntitySelector as IEntitySelector,
-    index_d$1_IModalMixin as IModalMixin,
-    index_d$1_IncrementalInitialMenu as IncrementalInitialMenu,
-    index_d$1_ModalMixin as ModalMixin,
-    index_d$1_NodeButton as NodeButton,
-    index_d$1_OccurrenceIdViewData as OccurrenceIdViewData,
-    index_d$1_PathSelectionEvent as PathSelectionEvent,
-    GscapePathSelector as PathSelector,
-    index_d$1_SearchEvent as SearchEvent,
-    index_d$1_SelectOption as SelectOption,
-    index_d$1_ShortestPathDialog as ShortestPathDialog,
-    index_d$1_SizeEnum as SizeEnum,
-    index_d$1_TabProps as TabProps,
-    index_d$1_ToggleLabelPosition as ToggleLabelPosition,
-    index_d$1_UiOption as UiOption,
-    index_d$1_ViewObjectPropertyUnfolding as ViewObjectPropertyUnfolding,
-    index_d$1_WidgetEnum as WidgetEnum,
-    _default$1 as baseStyle,
-    index_d$1_contentSpinnerStyle as contentSpinnerStyle,
-    index_d$1_createEntitiesList as createEntitiesList,
-    _default as emptySearchBlankState,
-    _default$2 as entityListItemStyle,
-    index_d$1_getContentSpinner as getContentSpinner,
-    index_d$1_getEntityOccurrencesTemplate as getEntityOccurrencesTemplate,
-    export_default$1 as getIconSlot,
-    index_d$1_hasDropPanel as hasDropPanel,
-    index_d$2 as icons,
-    index_d$1_initInitialRendererSelector as initInitialRendererSelector,
-    export_default$2 as initUI,
-    index_d$1_search as search,
-    index_d$1_setColorList as setColorList,
-    index_d$1_showMessage as showMessage,
-    index_d$1_textSpinner as textSpinner,
-    index_d$1_textSpinnerStyle as textSpinnerStyle,
-  };
-}
-
-declare function export_default(text: string): string;
+declare function export_default$3(text: string): string;
 
 declare function grapholEntityToEntityViewData(grapholEntity: GrapholEntity, grapholscape: Grapholscape): EntityViewData;
-declare function getEntityViewDataUnfolding(entity: GrapholEntity, grapholscape: Grapholscape, hasUnfoldings?: (iri: string, type: TypesEnum) => boolean): EntityViewDataUnfolding;
 
-declare const index_d_getEntityViewDataUnfolding: typeof getEntityViewDataUnfolding;
 declare const index_d_grapholEntityToEntityViewData: typeof grapholEntityToEntityViewData;
 declare namespace index_d {
   export {
-    export_default as capitalizeFirstChar,
-    index_d_getEntityViewDataUnfolding as getEntityViewDataUnfolding,
+    export_default$3 as capitalizeFirstChar,
     index_d_grapholEntityToEntityViewData as grapholEntityToEntityViewData,
   };
 }
+
+declare function export_default$2(theme: GrapholscapeTheme): Stylesheet[];
+
+declare function export_default$1(theme: GrapholscapeTheme): Stylesheet[];
+
+declare function export_default(theme: GrapholscapeTheme): Stylesheet[];
 
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
@@ -6394,8 +6054,11 @@ declare function fullGrapholscape(file: string | File, container: HTMLElement, c
 declare function bareGrapholscape(file: string | File, container: HTMLElement, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
 declare function incrementalGrapholscape(ontology: string | File | RDFGraph, container: HTMLElement, rdfGraphToResume?: RDFGraph, config?: GrapholscapeConfig): Promise<Grapholscape | undefined>;
 /** @internal */
-declare function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig, mastroConnection?: RequestOptions): Core;
-/** @internal */
-declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit?: boolean): void;
+declare function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: GrapholscapeConfig): Core;
+/**
+ * @internal
+ * @deprecated please use grapholscape.resume(rdfGraph)
+ */
+declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit?: boolean, useCustomIncrementalController?: boolean): void;
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$3 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$4 as getFloatyStyle, _default$b as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, incrementalGrapholscape, initFromResume, initIncremental, isGrapholEdge, isGrapholNode, liteOptions, loadConfig, parseRDFGraph, export_default$3 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$1 as ui, index_d as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalBase, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, index_d$1 as IncrementalUI, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, NeighbourhoodFinder, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$4 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, export_default$7 as floatyGraphStyle, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$7 as getFloatyStyle, export_default as grapholGraphStyle, _default as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, export_default$2 as incrementalGraphStyle, incrementalGrapholscape, initFromResume, isGrapholEdge, isGrapholNode, export_default$1 as liteGraphStyle, liteOptions, loadConfig, parseRDFGraph, export_default$4 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$2 as ui, index_d as util };
