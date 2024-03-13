@@ -1,7 +1,7 @@
 import { floatyOptions, GrapholscapeConfig, Language } from "../config";
-import { computeHierarchies } from "../core";
+import computeHierarchies from "../core/compute-hierarchies";
 import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
-import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger";
+import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum, TypesEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph) {
   const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY
@@ -136,6 +136,9 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
     d.nodes?.forEach(n => {
       grapholEntity = undefined
       grapholElement = GrapholNode.newFromSwagger(n)
+      if (grapholElement.is(TypesEnum.CLASS_INSTANCE)) {
+        grapholElement.type = TypesEnum.INDIVIDUAL
+      }
       grapholElement.diagramId = d.id
       if (grapholElement.iri) {
         grapholEntity = entities.get(grapholElement.iri)

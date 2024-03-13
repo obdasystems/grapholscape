@@ -1,7 +1,9 @@
+import { OntologyColorManager } from './colors-manager'
 import { GrapholscapeConfig, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IIncremental } from "../incremental/i-incremental"
 import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
+import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger"
 import rdfgraphSerializer from "../rdfgraph-serializer"
 import DisplayedNamesManager from "./displayedNamesManager"
 import EntityNavigator from "./entity-navigator"
@@ -9,6 +11,8 @@ import { FloatyRendererState, GrapholRendererState, LiteRendererState, Renderer 
 import IncrementalRendererState from "./rendering/incremental/incremental-render-state"
 import setGraphEventHandlers from "./set-graph-event-handlers"
 import ThemeManager from "./themeManager"
+import { IncrementalEvent } from '../incremental/lifecycle'
+import * as RDFGraphParser from '../parsing/rdf-graph-parser'
 
 
 export default abstract class Grapholscape {
@@ -427,6 +431,68 @@ export default abstract class Grapholscape {
    */
   exportToRdfGraph() {
     return rdfgraphSerializer(this)
+  }
+
+  resume(rdfGraph: RDFGraph) {
+    if (!this.renderState || (this.renderState !== RendererStatesEnum.FLOATY && this.renderState !== RendererStatesEnum.INCREMENTAL)) {
+      return
+    }
+
+    // Stop layout, use positions from rdfGraph, for floaty/incremental
+    this.renderer.stopRendering()
+    if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+      if (rdfGraph.selectedDiagramId !== undefined) {
+        const diagram = this.ontology.getDiagram(rdfGraph.selectedDiagramId)
+        if (diagram) {
+          /**
+           * showDiagram won't set event handlers on this diagram cause it results already
+           * been rendered once, but in previous session, not yet in the current one.
+           * Force setting them here.
+           */
+          setGraphEventHandlers(diagram, this.lifecycle, this.ontology)
+          const floatyRepr = diagram.representations.get(RendererStatesEnum.FLOATY)
+          if (floatyRepr)
+            floatyRepr.hasEverBeenRendered = false
+          this.showDiagram(diagram.id, floatyRepr?.lastViewportState)
+        }
+      }
+    } else {
+      const allEntities = new Map(
+        Array.from(this.ontology.entities)
+        .concat(Array.from(RDFGraphParser.getClassInstances(rdfGraph, this.ontology.namespaces)))
+      )
+
+      this.ontology.entities = allEntities
+  
+      const diagramRepr = RDFGraphParser.getDiagrams(
+        rdfGraph,
+        RendererStatesEnum.INCREMENTAL,
+        allEntities,
+        this.ontology.namespaces
+      )[0].representations.get(RendererStatesEnum.INCREMENTAL)
+      if (diagramRepr) {
+        // this.incremental.diagram = new IncrementalDiagram()
+        if (diagramRepr.lastViewportState) {
+          this._incremental.diagram.lastViewportState = diagramRepr.lastViewportState
+        }
+  
+        this._incremental.diagram.representations.set(
+          RendererStatesEnum.INCREMENTAL,
+          diagramRepr
+        )
+        diagramRepr.hasEverBeenRendered = false
+  
+        // Diagram (representation) has been changed, set event handlers again
+        this._incremental.setIncrementalEventHandlers()
+        // Diagram representation has been changed, set nodes button event handlers
+        // NodeButtonsFactory(this.incremental)
+  
+        new OntologyColorManager(this.ontology, diagramRepr).colorEntities(allEntities)
+  
+        this._incremental.showDiagram(rdfGraph.diagrams[0].lastViewportState)
+        this._incremental.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
+      }
+    }
   }
 
   /**

@@ -6,17 +6,6 @@ import { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import IncrementalLifecycle, { IncrementalEvent, IonIncrementalEvent } from "./lifecycle";
 import setGraphEventHandlers from "../core/set-graph-event-handlers";
 
-
-type ClassInstance = {
-  iri: string,
-  shortIri?: string,
-  label?: {
-    language?: string,
-    value: string,
-  },
-  searchMatch?: string,
-}
-
 export type IncrementalHighlights = {
   classes: GrapholEntity[],
   dataProperties: GrapholEntity[]
@@ -26,6 +15,7 @@ export type IncrementalHighlights = {
 export interface IIncremental {
   diagram: IncrementalDiagram
   grapholscape: Grapholscape
+  lifecycle: IncrementalLifecycle
 
   init(...args: any[]): void
   reset(...args: any[]): void

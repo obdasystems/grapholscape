@@ -122,13 +122,12 @@ export async function incrementalGrapholscape(ontology: string | File | RDFGraph
     return
 
   UI.initUI(grapholscape)
-  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && !_config.useCustomIncrementalController) {
+  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && (config && !config.useCustomIncrementalController)) {
     grapholscape.incremental = new IncrementalController(grapholscape)
   }
-  if (!rdfGraphToResume) {
-    return grapholscape
+  if (rdfGraphToResume && rdfGraphToResume.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+    grapholscape.resume(rdfGraphToResume)
   }
-  initFromResume(grapholscape, rdfGraphToResume, false)
 
   return grapholscape
 }
@@ -145,7 +144,10 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
     config = RDFGraphParser.getConfig(rdfGraph)
   }
   const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config)
-  initFromResume(grapholscape, rdfGraph, true, config.useCustomIncrementalController)
+  // initFromResume(grapholscape, rdfGraph, true, config.useCustomIncrementalController)
+  if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+    grapholscape.resume(rdfGraph)
+  }
 
   // if (mastroConnection)
   //   grapholscape.incremental?.setMastroConnection(mastroConnection)
@@ -154,7 +156,10 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
   return grapholscape
 }
 
-/** @internal */
+/** 
+ * @internal
+ * @deprecated please use grapholscape.resume(rdfGraph)
+ */
 export function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit = true, useCustomIncrementalController?: boolean) {
   if (forceInit) {
     UI.initUI(grapholscape)
