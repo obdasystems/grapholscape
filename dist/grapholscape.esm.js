@@ -15560,7 +15560,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.4-snap.1"}</span>
+            <span>${"4.0.4-snap.2"}</span>
           </div>
         </div>
       </div>
@@ -19241,6 +19241,10 @@ function resume(rdfGraph, container, config) {
     }
     const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config);
     // initFromResume(grapholscape, rdfGraph, true, config.useCustomIncrementalController)
+    init(grapholscape);
+    if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && (config && config.useCustomIncrementalController)) {
+        grapholscape.incremental = new IncrementalController(grapholscape);
+    }
     if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
         grapholscape.resume(rdfGraph);
     }
