@@ -145,6 +145,10 @@ export function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Grap
   }
   const grapholscape = new Core(parseRDFGraph(rdfGraph), container, config)
   // initFromResume(grapholscape, rdfGraph, true, config.useCustomIncrementalController)
+  UI.initUI(grapholscape)
+  if (grapholscape.renderers.includes(RendererStatesEnum.INCREMENTAL) && (config && config.useCustomIncrementalController)) {
+    grapholscape.incremental = new IncrementalController(grapholscape)
+  }
   if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
     grapholscape.resume(rdfGraph)
   }
