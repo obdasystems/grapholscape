@@ -26,13 +26,19 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: 'node[displayedName]',
+      selector: '[displayedName]',
       style: {
         'label': 'data(displayedName)',
+        'min-zoomed-font-size': '5px',
+      }
+    },
+
+    {
+      selector: 'node[displayedName]',
+      style: {
         'text-margin-x': (n) => n.data('labelXpos') || 0,
         'text-margin-y': (n) => n.data('labelYpos') || 0,
         'text-wrap': 'wrap',
-        'min-zoomed-font-size': '5px',
       }
     },
 
@@ -163,13 +169,6 @@ export default function (theme: GrapholscapeTheme) {
         'font-size': 10,
         'text-rotation': 'autorotate',
         'text-margin-y': -10,
-      }
-    },
-
-    {
-      selector: 'edge[displayedName]',
-      style: {
-        'label': 'data(displayedName)',
       }
     },
 
