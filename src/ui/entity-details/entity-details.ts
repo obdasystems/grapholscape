@@ -124,7 +124,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   ]
 
   render() {
-    console.log(this.currentOccurrence?.is(TypesEnum.IRI))
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
