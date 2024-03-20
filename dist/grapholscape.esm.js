@@ -7280,13 +7280,18 @@ function grapholStyle (theme) {
             }
         },
         {
-            selector: 'node[displayedName]',
+            selector: '[displayedName]',
             style: {
                 'label': 'data(displayedName)',
+                'min-zoomed-font-size': '5px',
+            }
+        },
+        {
+            selector: 'node[displayedName]',
+            style: {
                 'text-margin-x': (n) => n.data('labelXpos') || 0,
                 'text-margin-y': (n) => n.data('labelYpos') || 0,
                 'text-wrap': 'wrap',
-                'min-zoomed-font-size': '5px',
             }
         },
         {
@@ -7403,12 +7408,6 @@ function grapholStyle (theme) {
                 'font-size': 10,
                 'text-rotation': 'autorotate',
                 'text-margin-y': -10,
-            }
-        },
-        {
-            selector: 'edge[displayedName]',
-            style: {
-                'label': 'data(displayedName)',
             }
         },
         {
@@ -13606,13 +13605,12 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
         };
     }
     render() {
-        var _a, _b, _c;
-        console.log((_a = this.currentOccurrence) === null || _a === void 0 ? void 0 : _a.is(TypesEnum.IRI));
+        var _a, _b;
         if (!this.grapholEntity)
             return;
         return x `
       <div class="gscape-panel ellipsed" id="drop-panel">
-        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick, (_b = this.currentOccurrence) === null || _b === void 0 ? void 0 : _b.is(TypesEnum.IRI))}
+        ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick, (_a = this.currentOccurrence) === null || _a === void 0 ? void 0 : _a.is(TypesEnum.IRI))}
 
         <div class="content-wrapper">
           ${this.currentOccurrenceType === TypesEnum.DATA_PROPERTY && this.grapholEntity.datatype
@@ -13641,7 +13639,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
               `
             : null}
 
-          ${((_c = this.currentOccurrence) === null || _c === void 0 ? void 0 : _c.isEdge()) && !this.currentOccurrence.is(TypesEnum.ANNOTATION_PROPERTY)
+          ${((_b = this.currentOccurrence) === null || _b === void 0 ? void 0 : _b.isEdge()) && !this.currentOccurrence.is(TypesEnum.ANNOTATION_PROPERTY)
             ? x `
               <div class="section">
                 <div class="section-header">
@@ -15560,7 +15558,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.4-snap.2"}</span>
+            <span>${"4.0.4"}</span>
           </div>
         </div>
       </div>
