@@ -213,6 +213,19 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    {
+      selector: `node[icon]`,
+      style: {
+        'background-image': 'data(icon)',
+        // 'background-fit': 'contain',
+        'background-width': '50%',
+        'background-height': '50%',
+        'background-clip': 'none',
+        'text-valign': 'top',
+        'color': theme.getColour(ColoursNames.label),
+      }
+    },
+
 
     {
       selector: '[?pinned]',

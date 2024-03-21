@@ -15,31 +15,6 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: `node[type = "${TypesEnum.CLASS}"]`,
-      style: {
-        color: (node) => getNodeLabelColor(node, theme),
-        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class),
-        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_contrast),
-      }
-    },
-
-    {
-      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
-      style: {
-        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
-        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
-      }
-    },
-
-    // {
-    //   selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
-    //   style: {
-    //     'text-background-color': theme.getColour(ColoursNames.bg_graph),
-    //     'text-background-opacity': 1,
-    //   }
-    // },
-
-    {
       selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         'text-valign': 'top',

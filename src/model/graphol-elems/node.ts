@@ -61,6 +61,9 @@ export default class GrapholNode extends GrapholElement implements Node {
   // shape points for nodes with non-standard shapes
   private _shapePoints?: string
 
+  icon: string
+  
+
   get position() { return { x: this.x, y: this.y } }
   set position(pos: Position) {
     this._x = pos.x
@@ -211,7 +214,8 @@ export default class GrapholNode extends GrapholElement implements Node {
       labelYcentered: this.isLabelYcentered,
       identity: this.identity,
       hierarchyID: this.hierarchyID,
-      hierarchyForcedComplete: this.hierarchyForcedComplete
+      hierarchyForcedComplete: this.hierarchyForcedComplete,
+      icon: this.icon,
     })
 
     thisCytoscapeRepr[0].classes = this.type.toString()
