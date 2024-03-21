@@ -4193,7 +4193,8 @@ class GrapholNode extends GrapholElement {
             labelYcentered: this.isLabelYcentered,
             identity: this.identity,
             hierarchyID: this.hierarchyID,
-            hierarchyForcedComplete: this.hierarchyForcedComplete
+            hierarchyForcedComplete: this.hierarchyForcedComplete,
+            icon: this.icon,
         });
         thisCytoscapeRepr[0].classes = this.type.toString();
         if (this.fakeNodes) {
@@ -8087,6 +8088,18 @@ function floatyStyle (theme) {
             }
         },
         {
+            selector: `node[icon]`,
+            style: {
+                'background-image': 'data(icon)',
+                // 'background-fit': 'contain',
+                'background-width': '50%',
+                'background-height': '50%',
+                'background-clip': 'none',
+                'text-valign': 'top',
+                'color': theme.getColour(ColoursNames.label),
+            }
+        },
+        {
             selector: '[?pinned]',
             style: {
                 'border-width': 4,
@@ -8536,28 +8549,6 @@ function incrementalStyle (theme) {
                 'background-blacken': 0.1,
             }
         },
-        {
-            selector: `node[type = "${TypesEnum.CLASS}"]`,
-            style: {
-                color: (node) => getNodeLabelColor(node, theme),
-                backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class),
-                "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_contrast),
-            }
-        },
-        {
-            selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
-            style: {
-                backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
-                "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
-            }
-        },
-        // {
-        //   selector: `node[type = "${TypesEnum.CLASS_INSTANCE}"]:selected`,
-        //   style: {
-        //     'text-background-color': theme.getColour(ColoursNames.bg_graph),
-        //     'text-background-opacity': 1,
-        //   }
-        // },
         {
             selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
             style: {
@@ -15558,7 +15549,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.4"}</span>
+            <span>${"4.0.5-snap.0"}</span>
           </div>
         </div>
       </div>

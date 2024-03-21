@@ -3220,6 +3220,7 @@ declare class GrapholNode extends GrapholElement implements Node {
     protected _fakeNodes: GrapholNode[];
     private _inputs?;
     private _shapePoints?;
+    icon: string;
     get position(): Position;
     set position(pos: Position);
     get renderedPosition(): Position | undefined;
