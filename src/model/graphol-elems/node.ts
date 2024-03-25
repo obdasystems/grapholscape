@@ -61,7 +61,7 @@ export default class GrapholNode extends GrapholElement implements Node {
   // shape points for nodes with non-standard shapes
   private _shapePoints?: string
 
-  icon: string
+  icon: string | undefined
   
 
   get position() { return { x: this.x, y: this.y } }
