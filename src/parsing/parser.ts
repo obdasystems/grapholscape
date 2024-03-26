@@ -153,7 +153,7 @@ export default class GrapholParser {
     }
 
     if (i == 0) {
-      throw new Error("The selected .graphol file has no defined diagram")
+      //throw new Error("The selected .graphol file has no defined diagram")
     }
 
     this.getIdentityForNeutralNodes()

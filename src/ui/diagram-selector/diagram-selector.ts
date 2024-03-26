@@ -38,7 +38,7 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
       </gscape-button>
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${this.diagrams.length === 1 && this.currentDiagramId === 0
+        ${(this.diagrams.length === 1 && this.currentDiagramId === 0) || this.diagrams.length === 0
           ? html`
             <div class="blank-slate">
               ${blankSlateDiagrams}
