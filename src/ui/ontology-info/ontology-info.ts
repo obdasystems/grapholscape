@@ -5,8 +5,9 @@ import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { Annotation, Namespace, Ontology, TypesEnum } from '../../model'
 import { capitalizeFirstChar } from '../../util'
-import { SizeEnum } from '../common/button'
+import { GscapeButtonStyle, SizeEnum } from '../common/button'
 import GscapeSelect from '../common/gscape-select'
+import commentsTemplate from '../common/comments-template'
 
 export type OntologyViewModel = ViewItemWithIri & {
   namespaces: Namespace[],
@@ -30,9 +31,11 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
     [TypesEnum.INDIVIDUAL]: 0,
   }
   diagramIdFilter?: number
+  language?: string
 
   static properties: PropertyDeclarations = {
     title: { type: String },
+    language: { type: String },
     ontology: { type: Object },
     entityCounters: { type: Object },
     diagramIdFilter: { type: Number },
@@ -42,6 +45,7 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
     baseStyle,
     itemWithIriTemplateStyle,
     annotationsStyle,
+    GscapeButtonStyle,
     css`
       :host {
         order: 4;
@@ -144,8 +148,12 @@ export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElem
         <div class="content-wrapper">
           ${this.ontology && this.ontology.getAnnotations().length > 0 
             ? html`
-                <div class="area">
+                <div class="area" style="display: flex; flex-direction: column; gap: 16px">
                   ${annotationsTemplate(this.ontology.getAnnotations())}
+                  ${this.ontology && this.ontology.getComments().length > 0
+                    ? commentsTemplate(this.ontology, this.language, (e) => { this.language = (e.target as HTMLSelectElement | null)?.value})
+                    : null
+                  }
                 </div>
               `
             : null

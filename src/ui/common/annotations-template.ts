@@ -129,4 +129,9 @@ export const annotationsStyle = css`
   .annotation-row {
     padding: 4px 8px;
   }
+
+  .comment {
+    margin: 8px 0;
+    display: block;
+  }
 `

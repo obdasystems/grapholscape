@@ -6,6 +6,7 @@ import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
+import commentsTemplate from '../common/comments-template'
 
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
@@ -74,11 +75,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         display: block;
       }
 
-      .comment {
-        margin: 8px 0;
-        display: block;
-      }
-
       .top-bar {
         display: flex;
         flex-direction: row-reverse;
@@ -102,13 +98,6 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
       .content-wrapper > * {
         flex-shrink: 0;
-      }
-
-      .section-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0;
       }
 
       .chips-wrapper {
@@ -198,30 +187,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
           ${this.showOccurrences && this.occurrences.size > 0 ? this.occurrencesTemplate() : null }
 
           ${this.grapholEntity.getComments().length > 0
-            ? html`
-                <div class="section">
-                  <div id="description-header" class="section-header">
-                    <span class="slotted-icon">${commentIcon}</span>
-                    <span class="bold-text">
-                      Description
-                    </span>
-                    <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
-                      ${this.commentsLanguages.map(language => {
-                        return html`
-                          <option value="${language}" ?selected=${this.language === language}>
-                            @${language}
-                          </option>
-                        `
-                      })}
-                    </select>
-                  </div>
-                  <div class="section-body">
-                    ${this.grapholEntity.getComments(this.language).map(comment =>
-                      html`<span class="comment">${comment.lexicalForm}</span>`
-                    )}
-                  </div>
-                </div>
-              `
+            ? commentsTemplate(this.grapholEntity, this.language, this.languageSelectionHandler)
             : null
           }
 

@@ -1,5 +1,5 @@
 import { Grapholscape } from "../../core"
-import { GrapholEntity, RendererStatesEnum, TypesEnum } from "../../model"
+import { GrapholEntity, LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../model"
 import { WidgetEnum } from "../util/widget-enum"
 import GscapeOntologyInfo from "./ontology-info"
 
@@ -7,7 +7,13 @@ export { GscapeOntologyInfo }
 
 export default function initOntologyInfo(grapholscape: Grapholscape) {
   const ontologyInfoComponent = new GscapeOntologyInfo()
-  
+
+  ontologyInfoComponent.language = grapholscape.language
+
+  grapholscape.on(LifecycleEvent.LanguageChange, language => {
+    ontologyInfoComponent.language = language
+  })
+
   ontologyInfoComponent.onTogglePanel = () => {
     ontologyInfoComponent.ontology = grapholscape.ontology
     ontologyInfoComponent.entityCounters = countEntities(grapholscape, ontologyInfoComponent.diagramIdFilter)
