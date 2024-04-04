@@ -54,6 +54,10 @@ export default class IncrementalInitialMenu extends BaseMixin(LitElement) {
       grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
         this.classes = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false } )
       })
+
+      grapholscape.on(LifecycleEvent.LanguageChange, () => {
+        this.classes = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false } )
+      })
     }
   }
 

@@ -56,7 +56,7 @@ export function search(searchValue: string, entities: EntityViewData[]) {
       let isCurrentAMatch = false
       for (const word of searchWords) {
         if (word.length <= 2) continue
-        isCurrentAMatch = matchInIRI(entity.value.iri, word) || matchInAnnotations(entity.value.getAnnotations(), word)
+        isCurrentAMatch = isMatch(entity.displayedName, searchValue) || matchInAnnotations(entity.value.getAnnotations(), word)
         isAmatch = isAmatch && isCurrentAMatch
       }
       return isAmatch
