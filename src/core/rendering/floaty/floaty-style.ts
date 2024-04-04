@@ -21,8 +21,8 @@ export default function (theme: GrapholscapeTheme) {
         'text-margin-y': 0,
         'text-valign': 'center',
         'text-halign': 'center',
-        'height': (node)=>  node.data('width') || 80,
-        'width' : (node)=> node.data('width') || 80,
+        'height': (node) => node.data('width') || 80,
+        'width': (node) => node.data('width') || 80,
         // 'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
         // 'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
         'text-background-shape': 'roundrectangle',
@@ -35,15 +35,15 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: `node[type = "${TypesEnum.DATA_PROPERTY}"]`,
       style: {
-        'height': (node)=>  node.data('width') || 20,
-        'width' : (node)=>  node.data('width') || 20
+        'height': (node) => node.data('width') || 20,
+        'width': (node) => node.data('width') || 20
       }
     },
     {
       selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
-        'height': (node)=>  node.data('width') || 60,
-        'width' : (node)=>  node.data('width') || 60
+        'height': (node) => node.data('width') || 60,
+        'width': (node) => node.data('width') || 60
       }
     },
     {
@@ -217,15 +217,28 @@ export default function (theme: GrapholscapeTheme) {
       selector: `node[icon]`,
       style: {
         'background-image': 'data(icon)',
-        // 'background-fit': 'contain',
-        'background-width': '50%',
-        'background-height': '50%',
-        'background-clip': 'none',
         'text-valign': 'top',
         'color': theme.getColour(ColoursNames.label),
+        'background-width': '100%',
+        'background-height': '100%',
       }
     },
 
+    // {
+    //   selector: `node[icon][type = "${TypesEnum.CLASS}"]`,
+    //   style: {
+    //     'background-width': '50%',
+    //     'background-height': '50%',
+    //   }
+    // },
+
+    // {
+    //   selector: `node[icon][type = "${TypesEnum.INDIVIDUAL}"]`,
+    //   style: {
+    //     'background-width': '100%',
+    //     'background-height': '100%',
+    //   }
+    // },
 
     {
       selector: '[?pinned]',
