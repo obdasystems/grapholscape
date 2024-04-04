@@ -8091,14 +8091,26 @@ function floatyStyle (theme) {
             selector: `node[icon]`,
             style: {
                 'background-image': 'data(icon)',
-                // 'background-fit': 'contain',
-                'background-width': '50%',
-                'background-height': '50%',
-                'background-clip': 'none',
                 'text-valign': 'top',
                 'color': theme.getColour(ColoursNames.label),
+                'background-width': '100%',
+                'background-height': '100%',
             }
         },
+        // {
+        //   selector: `node[icon][type = "${TypesEnum.CLASS}"]`,
+        //   style: {
+        //     'background-width': '50%',
+        //     'background-height': '50%',
+        //   }
+        // },
+        // {
+        //   selector: `node[icon][type = "${TypesEnum.INDIVIDUAL}"]`,
+        //   style: {
+        //     'background-width': '100%',
+        //     'background-height': '100%',
+        //   }
+        // },
         {
             selector: '[?pinned]',
             style: {
@@ -10783,7 +10795,10 @@ input {
 }
 
 .section-header {
-  margin-bottom: 4px;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chip, .chip-neutral {
@@ -12698,16 +12713,13 @@ function search(searchValue, entities) {
             for (const word of searchWords) {
                 if (word.length <= 2)
                     continue;
-                isCurrentAMatch = matchInIRI(entity.value.iri, word) || matchInAnnotations(entity.value.getAnnotations(), word);
+                isCurrentAMatch = isMatch(entity.displayedName, searchValue) || matchInAnnotations(entity.value.getAnnotations(), word);
                 isAmatch = isAmatch && isCurrentAMatch;
             }
             return isAmatch;
         });
         resolve(result);
     });
-    function matchInIRI(iri, searchValue) {
-        return isMatch(iri.fullIri, searchValue) || isMatch(iri.prefixed, searchValue);
-    }
     function matchInAnnotations(annotations, searchValue) {
         // search in labels defined in annotations (only for Graphol v3)
         for (const annotation of annotations) {
@@ -13164,7 +13176,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
       </gscape-button>
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${this.diagrams.length === 1 && this.currentDiagramId === 0
+        ${(this.diagrams.length === 1 && this.currentDiagramId === 0) || this.diagrams.length === 0
             ? x `
             <div class="blank-slate">
               ${blankSlateDiagrams}
@@ -13575,7 +13587,39 @@ const annotationsStyle = i$1 `
   .annotation-row {
     padding: 4px 8px;
   }
+
+  .comment {
+    margin: 8px 0;
+    display: block;
+  }
 `;
+
+function commentsTemplate (annotatedElem, selectedLanguage, languageSelectionHandler) {
+    const commentsLanguages = Array.from(new Set(annotatedElem.getComments().map(comment => comment.language)));
+    selectedLanguage = commentsLanguages.includes(selectedLanguage) ? selectedLanguage : commentsLanguages[0];
+    return x `
+    <div class="section">
+      <div id="description-header" class="section-header">
+        <span class="slotted-icon">${commentIcon}</span>
+        <span class="bold-text">
+          Description
+        </span>
+        <select id="language-select" class="btn btn-s" @change=${languageSelectionHandler}>
+          ${commentsLanguages.map(language => {
+        return x `
+              <option value="${language}" ?selected=${selectedLanguage === language}>
+                @${language}
+              </option>
+            `;
+    })}
+        </select>
+      </div>
+      <div class="section-body">
+        ${annotatedElem.getComments(selectedLanguage).map(comment => x `<span class="comment">${comment.lexicalForm}</span>`)}
+      </div>
+    </div>
+  `;
+}
 
 class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
@@ -13666,28 +13710,7 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
           ${this.showOccurrences && this.occurrences.size > 0 ? this.occurrencesTemplate() : null}
 
           ${this.grapholEntity.getComments().length > 0
-            ? x `
-                <div class="section">
-                  <div id="description-header" class="section-header">
-                    <span class="slotted-icon">${commentIcon}</span>
-                    <span class="bold-text">
-                      Description
-                    </span>
-                    <select id="language-select" class="btn btn-s" @change=${this.languageSelectionHandler}>
-                      ${this.commentsLanguages.map(language => {
-                return x `
-                          <option value="${language}" ?selected=${this.language === language}>
-                            @${language}
-                          </option>
-                        `;
-            })}
-                    </select>
-                  </div>
-                  <div class="section-body">
-                    ${this.grapholEntity.getComments(this.language).map(comment => x `<span class="comment">${comment.lexicalForm}</span>`)}
-                  </div>
-                </div>
-              `
+            ? commentsTemplate(this.grapholEntity, this.language, this.languageSelectionHandler)
             : null}
 
           ${this.currentOccurrence && !this.currentOccurrence.isEntity()
@@ -13806,11 +13829,6 @@ GscapeEntityDetails.styles = [
         display: block;
       }
 
-      .comment {
-        margin: 8px 0;
-        display: block;
-      }
-
       .top-bar {
         display: flex;
         flex-direction: row-reverse;
@@ -13834,13 +13852,6 @@ GscapeEntityDetails.styles = [
 
       .content-wrapper > * {
         flex-shrink: 0;
-      }
-
-      .section-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0;
       }
 
       .chips-wrapper {
@@ -14393,8 +14404,11 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
         <div class="content-wrapper">
           ${this.ontology && this.ontology.getAnnotations().length > 0
             ? x `
-                <div class="area">
+                <div class="area" style="display: flex; flex-direction: column; gap: 16px">
                   ${annotationsTemplate(this.ontology.getAnnotations())}
+                  ${this.ontology && this.ontology.getComments().length > 0
+                ? commentsTemplate(this.ontology, this.language, (e) => { var _a; this.language = (_a = e.target) === null || _a === void 0 ? void 0 : _a.value; })
+                : null}
                 </div>
               `
             : null}
@@ -14499,6 +14513,7 @@ class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(s)) {
 }
 GscapeOntologyInfo.properties = {
     title: { type: String },
+    language: { type: String },
     ontology: { type: Object },
     entityCounters: { type: Object },
     diagramIdFilter: { type: Number },
@@ -14507,6 +14522,7 @@ GscapeOntologyInfo.styles = [
     baseStyle,
     itemWithIriTemplateStyle,
     annotationsStyle,
+    GscapeButtonStyle,
     i$1 `
       :host {
         order: 4;
@@ -14591,6 +14607,10 @@ customElements.define('gscape-ontology-info', GscapeOntologyInfo);
 
 function initOntologyInfo(grapholscape) {
     const ontologyInfoComponent = new GscapeOntologyInfo();
+    ontologyInfoComponent.language = grapholscape.language;
+    grapholscape.on(LifecycleEvent.LanguageChange, language => {
+        ontologyInfoComponent.language = language;
+    });
     ontologyInfoComponent.onTogglePanel = () => {
         ontologyInfoComponent.ontology = grapholscape.ontology;
         ontologyInfoComponent.entityCounters = countEntities(grapholscape, ontologyInfoComponent.diagramIdFilter);
@@ -15549,7 +15569,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.5-snap.0"}</span>
+            <span>${"4.0.5-snap.2"}</span>
           </div>
         </div>
       </div>
@@ -15918,6 +15938,9 @@ class IncrementalInitialMenu extends BaseMixin(s) {
         if (grapholscape) {
             this.classes = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false });
             grapholscape.on(LifecycleEvent.EntityNameTypeChange, () => {
+                this.classes = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false });
+            });
+            grapholscape.on(LifecycleEvent.LanguageChange, () => {
                 this.classes = createEntitiesList(grapholscape, { class: 1, areAllFiltersDisabled: false });
             });
         }
@@ -18494,7 +18517,7 @@ function getOntologyInfo(xmlDocument) {
     ontology.defaultLanguage = ((_c = getTag(xmlDocument, 'ontology')) === null || _c === void 0 ? void 0 : _c.getAttribute('lang')) || ontology.languages[0];
     if (iri) {
         ontology.iri = iri;
-        ontology.annotations = getIriAnnotations(iri, xmlDocument, ontology.namespaces);
+        ontology.annotations = getIriAnnotations(iri, xmlDocument, getNamespaces(xmlDocument));
     }
     return ontology;
 }
@@ -18884,9 +18907,6 @@ class GrapholParser {
                     }
                 }
             }
-        }
-        if (i == 0) {
-            throw new Error("The selected .graphol file has no defined diagram");
         }
         this.getIdentityForNeutralNodes();
         this.ontology.computeDatatypesOnDataProperties();
