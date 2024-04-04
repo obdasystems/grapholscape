@@ -47,7 +47,7 @@ function shouldFilterEntity(entity: GrapholEntity, entityFilters?: IEntityFilter
   return !entityFilters.areAllFiltersDisabled && typeFilterEnabled
 }
 
-export function search(searchValue: string, entities: EntityViewData[]) {
+export function search(searchValue: string, entities: EntityViewData[], includeLabels = false, includeComments = false, includeIri = false) {
   const searchWords = searchValue.split(' ')
 
   return new Promise<EntityViewData[]>((resolve) => {
@@ -56,7 +56,11 @@ export function search(searchValue: string, entities: EntityViewData[]) {
       let isCurrentAMatch = false
       for (const word of searchWords) {
         if (word.length <= 2) continue
-        isCurrentAMatch = isMatch(entity.displayedName, searchValue) || matchInAnnotations(entity.value.getLabels(), word)
+        isCurrentAMatch = 
+          isMatch(entity.displayedName, word) ||
+          (includeLabels && matchInAnnotations(entity.value.getLabels(), word)) ||
+          (includeComments && matchInAnnotations(entity.value.getComments(), word)) ||
+          (includeIri && matchInIRI(entity.value.iri, word))
         isAmatch = isAmatch && isCurrentAMatch
       }
       return isAmatch

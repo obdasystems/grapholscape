@@ -112,6 +112,8 @@ export default abstract class IncrementalBase implements IIncremental {
       }
 
       classNode = this.diagramBuilder.addClass(entity, position) as GrapholNode
+      classNode.displayedName = entity?.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)
+      this.diagram.representation.updateElement(classNode, undefined, false)
     } else {
       const classNodeId = this.getIDByIRI(iri, TypesEnum.CLASS)
       if (classNodeId)
