@@ -221,6 +221,7 @@ export default function (theme: GrapholscapeTheme) {
         'color': theme.getColour(ColoursNames.label),
         'background-width': '100%',
         'background-height': '100%',
+        'background-image-crossorigin': "null",
       }
     },
 
