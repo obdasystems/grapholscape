@@ -1,5 +1,5 @@
 import Grapholscape from "../../core"
-import { Annotation, GrapholEntity, Iri, RendererStatesEnum } from "../../model"
+import { Annotation, GrapholEntity, Iri } from "../../model"
 import { EntityViewData, IEntityFilters } from "../view-model"
 import getEntityViewOccurrences from "./get-entity-view-occurrences"
 
@@ -17,21 +17,6 @@ export function createEntitiesList(grapholscape: Grapholscape, entityFilters?: I
       })
     }
   })
-
-  if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-    // grapholscape.incremental?.classInstanceEntities.forEach(classInstanceEntity => {
-    //   if (grapholscape.renderer.diagram && !shouldFilterEntity(classInstanceEntity, entityFilters)) {
-    //     result.push({
-    //       displayedName: classInstanceEntity.getDisplayedName(
-    //         grapholscape.entityNameType,
-    //         grapholscape.language
-    //       ),
-    //       value: classInstanceEntity,
-    //       viewOccurrences: getEntityViewOccurrences(classInstanceEntity, grapholscape)
-    //     })
-    //   }
-    // })
-  }
 
   return result.sort((a, b) => a.displayedName.localeCompare(b.displayedName))
 }

@@ -1,4 +1,4 @@
-import { GrapholEntity, ClassInstanceEntity, TypesEnum } from "../model"
+import { GrapholEntity, TypesEnum } from "../model"
 import { NodeButton, WidgetEnum, ViewObjectProperty } from "../ui"
 import { grapholEntityToEntityViewData } from "../util"
 import { IIncremental } from "./i-incremental"
@@ -14,7 +14,7 @@ export default async function objectPropertyButtonHandler(e: MouseEvent, increme
 
   if (targetButton.node && targetButton.node.data().iri) {
 
-    let referenceEnity: GrapholEntity | ClassInstanceEntity | null | undefined
+    let referenceEnity: GrapholEntity | null | undefined
     let objectProperties: Map<GrapholEntity, ObjectPropertyConnectedClasses> = new Map()
 
     if (targetButton.node.data().type === TypesEnum.CLASS) {
@@ -29,23 +29,6 @@ export default async function objectPropertyButtonHandler(e: MouseEvent, increme
 
       objectProperties = await incrementalController.getObjectPropertiesHighlights([targetButton.node.data().iri], targetButton.node.data('type') === TypesEnum.INDIVIDUAL)
     }
-
-    // else if (targetButton.node.data().type === TypesEnum.CLASS_INSTANCE) {
-    //   referenceEnity = incrementalController.classInstanceEntities.get(targetButton.node.data().iri)
-    //   if (!referenceEnity)
-    //     return
-
-    //   navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
-    //   navigationMenu.referenceEntityType = targetButton.node.data().type
-    //   navigationMenu.canShowObjectPropertiesRanges = false
-
-    //   const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
-    //   objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
-    // }
-
-    // const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
-    //   incrementalController.endpointController?.highlightsManager
-    // )
 
     navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
       const newV = grapholEntityToEntityViewData(v[0], incrementalController.grapholscape) as ViewObjectProperty

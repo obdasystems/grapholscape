@@ -43,15 +43,9 @@ export default function (theme: GrapholscapeTheme) {
       selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         'height': (node) => node.data('width') || 60,
-        'width': (node) => node.data('width') || 60
-      }
-    },
-    {
-      selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
-      style: {
-        // color: (node) => getNodeLabelColor(node, theme),
-        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
-        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
+        'width': (node) => node.data('width') || 60,
+        backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.individual),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.individual_contrast),
       }
     },
     {
@@ -59,8 +53,8 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         "target-arrow-shape": 'triangle',
         'target-arrow-fill': 'filled',
-        'line-color': theme.getColour(ColoursNames.class_instance_contrast),
-        'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'line-color': theme.getColour(ColoursNames.individual_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.individual_contrast),
         'line-opacity': 0.4,
       }
     },

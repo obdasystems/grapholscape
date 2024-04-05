@@ -1,5 +1,5 @@
 import cytoscape, { EdgeSingular } from "cytoscape";
-import { ClassInstanceEntity, Diagram, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, Position, RendererStatesEnum, Shape, TypesEnum } from "../model";
+import { Diagram, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, Position, RendererStatesEnum, Shape, TypesEnum } from "../model";
 
 export default class DiagramBuilder {
 
@@ -111,7 +111,7 @@ export default class DiagramBuilder {
     nodesType: TypesEnum[],
     objectPropertyElement?: GrapholEdge
   ) {
-    return this.addPropertyEdge(objectPropertyEntity, sourceEntity,targetEntity, nodesType, TypesEnum.OBJECT_PROPERTY, objectPropertyElement)
+    return this.addPropertyEdge(objectPropertyEntity, sourceEntity, targetEntity, nodesType, TypesEnum.OBJECT_PROPERTY, objectPropertyElement)
   }
 
   /**
@@ -134,7 +134,7 @@ export default class DiagramBuilder {
     nodesType: TypesEnum[],
     annotationPropertyElement?: GrapholEdge
   ) {
-    return this.addPropertyEdge(annotationPropertyEdge, sourceEntity,targetEntity, nodesType, TypesEnum.ANNOTATION_PROPERTY, annotationPropertyElement)
+    return this.addPropertyEdge(annotationPropertyEdge, sourceEntity, targetEntity, nodesType, TypesEnum.ANNOTATION_PROPERTY, annotationPropertyElement)
   }
 
   private addPropertyEdge(
@@ -167,20 +167,20 @@ export default class DiagramBuilder {
     }
 
     if (sourceNode.empty()) {
-      switch(sourceType) {
+      switch (sourceType) {
         case TypesEnum.CLASS:
           this.addClass(sourceEntity)
           break
-        
+
         case TypesEnum.INDIVIDUAL:
           this.addIndividual(sourceEntity)
           break
-        
+
         case TypesEnum.DATA_PROPERTY:
           this.addDataProperty(sourceEntity)
           break
       }
-      // sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
+
       sourceNode = this.getEntityCyRepr(sourceEntity, sourceType)
       if (sourceNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`)
@@ -188,22 +188,20 @@ export default class DiagramBuilder {
       }
     }
     if (targetNode.empty()) {
-      switch(targetType) {
+      switch (targetType) {
         case TypesEnum.CLASS:
           this.addClass(targetEntity)
           break
-        
+
         case TypesEnum.INDIVIDUAL:
           this.addIndividual(targetEntity)
           break
-        
+
         case TypesEnum.DATA_PROPERTY:
           this.addDataProperty(targetEntity)
           break
       }
-      // targetEntity.is(TypesEnum.CLASS_INSTANCE)
-      //   ? this.addClassInstance(targetEntity as ClassInstanceEntity, sourceNode.position())
-      //   : this.addClass(targetEntity, sourceNode.position())
+
       targetNode = this.getEntityCyRepr(targetEntity, targetType)
       if (targetNode.empty()) {
         console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`)

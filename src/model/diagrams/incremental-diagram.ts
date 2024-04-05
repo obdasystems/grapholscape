@@ -1,6 +1,5 @@
 import { floatyOptions } from "../../config";
 import Hierarchy from "../graph-structures/hierarchy";
-import ClassInstanceEntity from "../graphol-elems/class-instance-entity";
 import GrapholEntity from "../graphol-elems/entity";
 import GrapholElement from "../graphol-elems/graphol-element";
 import Iri from "../iri";
@@ -11,8 +10,6 @@ import DiagramRepresentation from "./diagram-representation";
 
 export default class IncrementalDiagram extends Diagram {
   public static ID = -1
-  /** @internal */
-  public classInstances?: Map<string, ClassInstanceEntity>
 
   constructor() {
     super('Incremental', IncrementalDiagram.ID)

@@ -28,8 +28,8 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         "target-arrow-shape": 'triangle',
         'target-arrow-fill': 'filled',
-        'line-color': theme.getColour(ColoursNames.class_instance_contrast),
-        'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
+        'line-color': theme.getColour(ColoursNames.individual_contrast),
+        'target-arrow-color': theme.getColour(ColoursNames.individual_contrast),
         'line-opacity': 0.4,
       }
     },

@@ -1,5 +1,5 @@
 import { Grapholscape } from "../../core"
-import { Filter, ClassInstanceEntity } from "../../model"
+import { Filter } from "../../model"
 import { WidgetEnum, IBaseMixin, GscapeEntityColorLegend, IncrementalInitialMenu } from "../../ui"
 import { GscapeEntityDetails } from "../../ui/entity-details"
 import IncrementalBase from "../i-incremental"
@@ -8,10 +8,6 @@ import { restorePosition } from "./move-widget"
 export function onIncrementalStartup(ic: IncrementalBase) {
   const grapholscape = ic.grapholscape
   grapholscape.renderer.unselect()
-
-  // if (!incrementalController) {
-  //   incrementalController = new IncrementalController(grapholscape)
-  // }
 
   manageWidgetsOnActivation(
     grapholscape.widgets as Map<WidgetEnum, IBaseMixin & HTMLElement>,
@@ -27,8 +23,7 @@ export function onIncrementalStartup(ic: IncrementalBase) {
         if (_iri) {
           const entityToCheck = grapholscape.ontology.getEntity(_iri)
           if (entityToCheck && filteredEntity) {
-            return filteredEntity?.iri.equals(entityToCheck.iri) ||
-              ((entityToCheck as ClassInstanceEntity).parentClassIris && (entityToCheck as ClassInstanceEntity).hasParentClassIri(filteredEntity.iri))
+            return filteredEntity?.iri.equals(entityToCheck.iri)
           }
 
         }

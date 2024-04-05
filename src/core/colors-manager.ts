@@ -1,6 +1,6 @@
 import chroma from 'chroma-js';
 import { NodeSingular, SingularElementReturnValue } from 'cytoscape';
-import { ClassInstanceEntity, DiagramRepresentation, GrapholEntity, Ontology, RendererStatesEnum, TypesEnum } from "../model";
+import { DiagramRepresentation, GrapholEntity, Iri, Ontology, RendererStatesEnum, TypesEnum } from "../model";
 
 abstract class ColorManager {
 
@@ -54,14 +54,14 @@ export class OntologyColorManager extends ColorManager {
   }
 
   /** @internal */
-  setInstanceColor(classInstance: ClassInstanceEntity, overwrite = false) {
-    if (classInstance.parentClassIris.length <= 0 || (classInstance.color && !overwrite))
+  setInstanceColor(classInstance: GrapholEntity, parentClassIris: Iri[], overwrite = false) {
+    if (parentClassIris.length <= 0 || (classInstance.color && !overwrite))
       return this
 
     let parentClassInDiagram: GrapholEntity | undefined
 
     // get first parent class' color in current diagram 
-    for (let parentClassIri of classInstance.parentClassIris) {
+    for (let parentClassIri of parentClassIris) {
       if (this.diagramRepresentation.containsEntity(parentClassIri)) {
         parentClassInDiagram = this.ontology.getEntity(parentClassIri.fullIri)
         if (parentClassInDiagram?.color) {
@@ -72,7 +72,7 @@ export class OntologyColorManager extends ColorManager {
     }
 
     // if not returned then get first parent class color defined, anywhere
-    for (let parentClassIri of classInstance.parentClassIris) {
+    for (let parentClassIri of parentClassIris) {
       const parentClassEntity = this.ontology.getEntity(parentClassIri.fullIri)
       if (parentClassEntity?.color) {
         classInstance.color = parentClassEntity.color
@@ -83,7 +83,7 @@ export class OntologyColorManager extends ColorManager {
     // No parent classes with defined colors? => compute it
 
     // if a parent class is in current diagram then use it, otherwise just get first in list
-    const parentClassEntity = parentClassInDiagram || this.ontology.getEntity(classInstance.parentClassIris[0].fullIri)
+    const parentClassEntity = parentClassInDiagram || this.ontology.getEntity(parentClassIris[0].fullIri)
 
     if (parentClassEntity) {
       this.setClassColor(parentClassEntity)
@@ -124,7 +124,7 @@ export class OntologyColorManager extends ColorManager {
       const updatedEntities = new Set<string>()
       entities.forEach(entity => {
         if (entity.is(TypesEnum.INDIVIDUAL)) {
-          this.setInstanceColor(entity as ClassInstanceEntity, overwrite)
+          this.setInstanceColor(entity, (entity as any).parentClassIris || [], overwrite)
         } else if (entity.is(TypesEnum.CLASS)) {
           this.setClassColor(entity, overwrite)
         }

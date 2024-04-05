@@ -68,10 +68,6 @@ export const gscapeColourMap: ColourMap = {
   [ColoursNames.danger]: '#cf222e',
   [ColoursNames.danger_muted]: 'rgba(255, 129, 130, 0.4)',
   [ColoursNames.danger_subtle]: '#FFEBE9',
-
-  // Instance Colours
-  [ColoursNames.class_instance]: '#d3b3ef',
-  [ColoursNames.class_instance_contrast]: '#9875b7'
 }
 
 export const classicColourMap: ColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap)), {
@@ -97,10 +93,6 @@ export const classicColourMap: ColourMap = Object.assign(JSON.parse(JSON.stringi
 
   [ColoursNames.individual]: '#fcfcfc',
   [ColoursNames.individual_contrast]: '#000',
-
-  // Instance Colours
-  [ColoursNames.class_instance]: '#fcfcfc',
-  [ColoursNames.class_instance_contrast]: '#000'
 })
 
 export const darkColourMap: ColourMap = {
@@ -125,10 +117,6 @@ export const darkColourMap: ColourMap = {
 
   [ColoursNames.individual_contrast]: '#9875b7',
   [ColoursNames.individual]: '#422D53',
-
-  // Instance Colours
-  [ColoursNames.class_instance]: '#422D53',
-  [ColoursNames.class_instance_contrast]: '#9875b7',
 
   [ColoursNames.annotation_property]: '#BDA57B',
   [ColoursNames.annotation_property_contrast]: '#B07000',
