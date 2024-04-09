@@ -62,6 +62,7 @@ export default class GrapholNode extends GrapholElement implements Node {
   private _shapePoints?: string
 
   icon: string | undefined
+  geoPosition: Position | undefined
   
 
   get position() { return { x: this.x, y: this.y } }
@@ -216,6 +217,8 @@ export default class GrapholNode extends GrapholElement implements Node {
       hierarchyID: this.hierarchyID,
       hierarchyForcedComplete: this.hierarchyForcedComplete,
       icon: this.icon,
+      lat: this.geoPosition ? this.geoPosition.x : undefined,
+      lng: this.geoPosition ? this.geoPosition.y : undefined,
     })
 
     thisCytoscapeRepr[0].classes = this.type.toString()

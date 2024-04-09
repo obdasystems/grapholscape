@@ -38,6 +38,12 @@ export interface NodeAllOf {
      * @memberof NodeAllOf
      */
     labelPosition?: Position;
+    /**
+     * 
+     * @type {Position}
+     * @memberof NodeAllOf
+     */
+    geoPosition?: Position;
 }
 
 /**
@@ -61,6 +67,7 @@ export function NodeAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         
         'position': !exists(json, 'position') ? undefined : PositionFromJSON(json['position']),
         'labelPosition': !exists(json, 'labelPosition') ? undefined : PositionFromJSON(json['labelPosition']),
+        'geoPosition': !exists(json, 'geoPosition') ? undefined : PositionFromJSON(json['geoPosition']),
     };
 }
 
@@ -75,6 +82,7 @@ export function NodeAllOfToJSON(value?: NodeAllOf | null): any {
         
         'position': PositionToJSON(value.position),
         'labelPosition': PositionToJSON(value.labelPosition),
+        'geoPosition': PositionToJSON(value.geoPosition),
     };
 }
 

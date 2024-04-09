@@ -80,6 +80,12 @@ export interface Node {
      * @memberof Node
      */
     labelPosition?: Position;
+    /**
+     * 
+     * @type {Position}
+     * @memberof Node
+     */
+    geoPosition?: Position;
 }
 
 /**
@@ -111,6 +117,7 @@ export function NodeFromJSONTyped(json: any, ignoreDiscriminator: boolean): Node
         'type': TypesEnumFromJSON(json['type']),
         'position': !exists(json, 'position') ? undefined : PositionFromJSON(json['position']),
         'labelPosition': !exists(json, 'labelPosition') ? undefined : PositionFromJSON(json['labelPosition']),
+        'geoPosition': !exists(json, 'geoPosition') ? undefined : PositionFromJSON(json['geoPosition']),
     };
 }
 
@@ -131,6 +138,7 @@ export function NodeToJSON(value?: Node | null): any {
         'type': TypesEnumToJSON(value.type),
         'position': PositionToJSON(value.position),
         'labelPosition': PositionToJSON(value.labelPosition),
+        'geoPosition': PositionToJSON(value.geoPosition),
     };
 }
 
