@@ -682,6 +682,12 @@ interface Node {
      * @memberof Node
      */
     labelPosition?: Position;
+    /**
+     *
+     * @type {Position}
+     * @memberof Node
+     */
+    geoPosition?: Position;
 }
 /**
  * Check if a given object implements the Node interface.
@@ -1856,6 +1862,12 @@ interface NodeAllOf {
      * @memberof NodeAllOf
      */
     labelPosition?: Position;
+    /**
+     *
+     * @type {Position}
+     * @memberof NodeAllOf
+     */
+    geoPosition?: Position;
 }
 /**
  * Check if a given object implements the NodeAllOf interface.
@@ -3221,6 +3233,7 @@ declare class GrapholNode extends GrapholElement implements Node {
     private _inputs?;
     private _shapePoints?;
     icon: string | undefined;
+    geoPosition: Position | undefined;
     get position(): Position;
     set position(pos: Position);
     get renderedPosition(): Position | undefined;
@@ -3474,9 +3487,7 @@ declare enum ColoursNames {
     /** Opposite color of label */
     label_contrast = "label-contrast",
     /** Edges lines color */
-    edge = "edge",
-    class_instance = "class-instance",
-    class_instance_contrast = "class-instance-contrast"
+    edge = "edge"
 }
 type ColourMap = {
     [key in ColoursNames]?: string;
@@ -3792,7 +3803,7 @@ declare class OntologyColorManager extends ColorManager {
     private _classForest;
     constructor(ontology: Ontology, diagramRepresentation: DiagramRepresentation);
     /** @internal */
-    setInstanceColor(classInstance: ClassInstanceEntity, overwrite?: boolean): this;
+    setInstanceColor(classInstance: GrapholEntity, parentClassIris: Iri[], overwrite?: boolean): this;
     setClassColor(classEntity: GrapholEntity, overwrite?: boolean): this;
     colorEntities(entities?: Map<string, GrapholEntity>, overwrite?: boolean): Promise<void>;
     protected getTopSuperClass(classEntity: GrapholEntity): GrapholEntity;
@@ -4525,7 +4536,7 @@ type OccurrenceIdViewData = {
 declare function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>, onNodeNavigation: (elementId: string, diagramId: number) => void): lit_html.TemplateResult<1>;
 
 declare function createEntitiesList(grapholscape: Grapholscape, entityFilters?: IEntityFilters): EntityViewData[];
-declare function search(searchValue: string, entities: EntityViewData[]): Promise<EntityViewData[]>;
+declare function search(searchValue: string, entities: EntityViewData[], includeLabels?: boolean, includeComments?: boolean, includeIri?: boolean): Promise<EntityViewData[]>;
 
 declare function export_default$5(slotName: string, icon: SVGTemplateResult): HTMLSpanElement;
 
@@ -4846,31 +4857,6 @@ declare class NeighbourhoodFinder {
 }
 
 /** @internal */
-declare class ClassInstanceEntity extends GrapholEntity implements ClassInstanceEntity$1 {
-    private _parentClassIris;
-    private _dataProperties;
-    protected _manualTypes?: Set<TypesEnum> | undefined;
-    constructor(iri: Iri, parentClassIris?: Iri[]);
-    /**
-     * Set the instance to be instance of a particular Class.
-     * If it is already instance of such a class, no changes will be made.
-     * @param parentClassIri the IRI of the Class
-     */
-    addParentClass(parentClassIri: Iri): void;
-    /**
-     * Check if the instance is instance of a class with such an IRI
-     * @param parentClassIri
-     * @returns
-     */
-    hasParentClassIri(parentClassIri: string | Iri): boolean;
-    get isRDFTypeUnknown(): boolean;
-    get parentClassIris(): Iri[];
-    get dataProperties(): DataPropertyValue[];
-    set dataProperties(newProperties: DataPropertyValue[]);
-    json(): ClassInstanceEntity$1;
-}
-
-/** @internal */
 declare enum IncrementalEvent {
     RequestStopped = "requestStopped",
     NewInstances = "newInstances",
@@ -4893,7 +4879,6 @@ interface IonIncrementalEvent {
     (event: IncrementalEvent.InstancesSearchFinished, callback: () => void): void;
     (event: IncrementalEvent.LimitChange, callback: (limit: number) => void): void;
     (event: IncrementalEvent.Reset, callback: () => void): void;
-    (event: IncrementalEvent.ClassInstanceSelection, callback: (classInstanceEntity: ClassInstanceEntity) => void): void;
     (event: IncrementalEvent.ClassSelection, callback: (classEntity: GrapholEntity) => void): void;
     (event: IncrementalEvent.DiagramUpdated, callback: () => void): void;
     (event: IncrementalEvent.ReasonerSet, callback: () => void): void;
@@ -4906,7 +4891,6 @@ declare class IncrementalLifecycle {
     private instancesSearchFinished;
     private limitChange;
     private reset;
-    private classInstanceSselection;
     private classSelection;
     private diagramUpdated;
     private reasonerSet;
@@ -4917,7 +4901,6 @@ declare class IncrementalLifecycle {
     trigger(event: IncrementalEvent.InstancesSearchFinished): void;
     trigger(event: IncrementalEvent.LimitChange, limit: number): void;
     trigger(event: IncrementalEvent.Reset): void;
-    trigger(event: IncrementalEvent.ClassInstanceSelection, classInstanceEntity: ClassInstanceEntity): void;
     trigger(event: IncrementalEvent.ClassSelection, classEntity: GrapholEntity): void;
     trigger(event: IncrementalEvent.DiagramUpdated): void;
     trigger(event: IncrementalEvent.ReasonerSet): void;
@@ -5680,8 +5663,6 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
 
 declare class IncrementalDiagram extends Diagram {
     static ID: number;
-    /** @internal */
-    classInstances?: Map<string, ClassInstanceEntity>;
     constructor();
     addElement(newElement: GrapholElement, grapholEntity?: GrapholEntity): void;
     removeElement(elementId: string): void;
@@ -5705,6 +5686,38 @@ declare const DefaultThemes: {
 };
 
 declare const CSS_PROPERTY_NAMESPACE = "--gscape-color";
+
+/** @internal */
+declare class ClassInstanceEntity extends GrapholEntity implements ClassInstanceEntity$1 {
+    private _parentClassIris;
+    private _dataProperties;
+    protected _manualTypes?: Set<TypesEnum> | undefined;
+    constructor(iri: Iri, parentClassIris?: Iri[]);
+    /**
+     * Set the instance to be instance of a particular Class.
+     * If it is already instance of such a class, no changes will be made.
+     * @param parentClassIri the IRI of the Class
+     */
+    addParentClass(parentClassIri: Iri): void;
+    /**
+     * Check if the instance is instance of a class with such an IRI
+     * @param parentClassIri
+     * @returns
+     */
+    hasParentClassIri(parentClassIri: string | Iri): boolean;
+    get isRDFTypeUnknown(): boolean;
+    get parentClassIris(): Iri[];
+    getDataPropertiesValues(): Map<string, Promise<DataPropertyValue[]>>;
+    getDataPropertyValues(dataPropertyIri: string): Promise<DataPropertyValue[]> | undefined;
+    addDataProperty(iri: string, values: Promise<DataPropertyValue[]>): void;
+    set dataProperties(newProperties: DataPropertyValue[]);
+    /**
+     * Do not use this to get data properties values,
+     * use getDataPropertiesValues or getDataPropertyValues and await for promises.
+     */
+    get dataProperties(): DataPropertyValue[];
+    json(): ClassInstanceEntity$1;
+}
 
 declare abstract class BaseRenderer implements RenderState {
     protected _renderer: Renderer;

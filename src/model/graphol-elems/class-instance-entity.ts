@@ -6,7 +6,7 @@ import { DataPropertyValue, ClassInstanceEntity as IClassInstanceEntity, TypesEn
 export default class ClassInstanceEntity extends GrapholEntity implements IClassInstanceEntity {
 
   private _parentClassIris: Iri[] = []
-  private _dataProperties: DataPropertyValue[] = []
+  private _dataProperties: Map<string, Promise<DataPropertyValue[]>> = new Map()
   protected _manualTypes?: Set<TypesEnum> | undefined = new Set([TypesEnum.INDIVIDUAL])
 
   constructor(iri: Iri, parentClassIris: Iri[] = []) {
@@ -38,13 +38,36 @@ export default class ClassInstanceEntity extends GrapholEntity implements IClass
   get isRDFTypeUnknown() { return this._parentClassIris.length === 0 }
   get parentClassIris() { return Array.from(this._parentClassIris) }
 
-  get dataProperties() {
+  getDataPropertiesValues() {
     return this._dataProperties
   }
 
-  set dataProperties(newProperties: DataPropertyValue[]) {
-    this._dataProperties = newProperties
+  getDataPropertyValues(dataPropertyIri: string) {
+    return this._dataProperties.get(dataPropertyIri)
   }
+
+  addDataProperty(iri: string, values: Promise<DataPropertyValue[]>) {
+    this._dataProperties.set(iri, values)
+  }
+
+  set dataProperties(newProperties: DataPropertyValue[]) {
+    newProperties.forEach(dpValue => {
+      const existentDpValues = this._dataProperties.get(dpValue.iri)
+      const newValues = new Promise<DataPropertyValue[]>(resolve => {
+        if (existentDpValues)
+          existentDpValues.then(values => resolve([...values, dpValue]))
+        else
+          resolve([dpValue])
+      })
+      this._dataProperties.set(dpValue.iri, newValues)
+    })
+  }
+
+  /**
+   * Do not use this to get data properties values, 
+   * use getDataPropertiesValues or getDataPropertyValues and await for promises.
+   */
+  get dataProperties() { return [] }
 
   public json(): IClassInstanceEntity {
     const result = super.json() as IClassInstanceEntity

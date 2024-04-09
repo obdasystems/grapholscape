@@ -1163,6 +1163,7 @@ function NodeFromJSONTyped(json, ignoreDiscriminator) {
         'type': TypesEnumFromJSON(json['type']),
         'position': !exists(json, 'position') ? undefined : PositionFromJSON(json['position']),
         'labelPosition': !exists(json, 'labelPosition') ? undefined : PositionFromJSON(json['labelPosition']),
+        'geoPosition': !exists(json, 'geoPosition') ? undefined : PositionFromJSON(json['geoPosition']),
     };
 }
 function NodeToJSON(value) {
@@ -1181,6 +1182,7 @@ function NodeToJSON(value) {
         'type': TypesEnumToJSON(value.type),
         'position': PositionToJSON(value.position),
         'labelPosition': PositionToJSON(value.labelPosition),
+        'geoPosition': PositionToJSON(value.geoPosition),
     };
 }
 
@@ -2258,6 +2260,7 @@ function NodeAllOfFromJSONTyped(json, ignoreDiscriminator) {
     return {
         'position': !exists(json, 'position') ? undefined : PositionFromJSON(json['position']),
         'labelPosition': !exists(json, 'labelPosition') ? undefined : PositionFromJSON(json['labelPosition']),
+        'geoPosition': !exists(json, 'geoPosition') ? undefined : PositionFromJSON(json['geoPosition']),
     };
 }
 function NodeAllOfToJSON(value) {
@@ -2270,6 +2273,7 @@ function NodeAllOfToJSON(value) {
     return {
         'position': PositionToJSON(value.position),
         'labelPosition': PositionToJSON(value.labelPosition),
+        'geoPosition': PositionToJSON(value.geoPosition),
     };
 }
 
@@ -4195,6 +4199,8 @@ class GrapholNode extends GrapholElement {
             hierarchyID: this.hierarchyID,
             hierarchyForcedComplete: this.hierarchyForcedComplete,
             icon: this.icon,
+            lat: this.geoPosition ? this.geoPosition.x : undefined,
+            lng: this.geoPosition ? this.geoPosition.y : undefined,
         });
         thisCytoscapeRepr[0].classes = this.type.toString();
         if (this.fakeNodes) {
@@ -4760,9 +4766,6 @@ var ColoursNames;
     ColoursNames["label_contrast"] = "label-contrast";
     /** Edges lines color */
     ColoursNames["edge"] = "edge";
-    // Instances Colors
-    ColoursNames["class_instance"] = "class-instance";
-    ColoursNames["class_instance_contrast"] = "class-instance-contrast";
 })(ColoursNames || (ColoursNames = {}));
 
 var DefaultThemesEnum;
@@ -4818,9 +4821,6 @@ const gscapeColourMap = {
     [ColoursNames.danger]: '#cf222e',
     [ColoursNames.danger_muted]: 'rgba(255, 129, 130, 0.4)',
     [ColoursNames.danger_subtle]: '#FFEBE9',
-    // Instance Colours
-    [ColoursNames.class_instance]: '#d3b3ef',
-    [ColoursNames.class_instance_contrast]: '#9875b7'
 };
 const classicColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap)), {
     [ColoursNames.bg_graph]: '#fafafa',
@@ -4840,9 +4840,6 @@ const classicColourMap = Object.assign(JSON.parse(JSON.stringify(gscapeColourMap
     [ColoursNames.class_contrast]: '#000',
     [ColoursNames.individual]: '#fcfcfc',
     [ColoursNames.individual_contrast]: '#000',
-    // Instance Colours
-    [ColoursNames.class_instance]: '#fcfcfc',
-    [ColoursNames.class_instance_contrast]: '#000'
 });
 const darkColourMap = {
     // graph colors
@@ -4861,9 +4858,6 @@ const darkColourMap = {
     [ColoursNames.class]: '#423500',
     [ColoursNames.individual_contrast]: '#9875b7',
     [ColoursNames.individual]: '#422D53',
-    // Instance Colours
-    [ColoursNames.class_instance]: '#422D53',
-    [ColoursNames.class_instance_contrast]: '#9875b7',
     [ColoursNames.annotation_property]: '#BDA57B',
     [ColoursNames.annotation_property_contrast]: '#B07000',
     // UI colours
@@ -5171,7 +5165,7 @@ class ClassInstanceEntity extends GrapholEntity {
     constructor(iri, parentClassIris = []) {
         super(iri);
         this._parentClassIris = [];
-        this._dataProperties = [];
+        this._dataProperties = new Map();
         this._manualTypes = new Set([TypesEnum.INDIVIDUAL]);
         this._parentClassIris = parentClassIris;
     }
@@ -5196,12 +5190,32 @@ class ClassInstanceEntity extends GrapholEntity {
     }
     get isRDFTypeUnknown() { return this._parentClassIris.length === 0; }
     get parentClassIris() { return Array.from(this._parentClassIris); }
-    get dataProperties() {
+    getDataPropertiesValues() {
         return this._dataProperties;
     }
-    set dataProperties(newProperties) {
-        this._dataProperties = newProperties;
+    getDataPropertyValues(dataPropertyIri) {
+        return this._dataProperties.get(dataPropertyIri);
     }
+    addDataProperty(iri, values) {
+        this._dataProperties.set(iri, values);
+    }
+    set dataProperties(newProperties) {
+        newProperties.forEach(dpValue => {
+            const existentDpValues = this._dataProperties.get(dpValue.iri);
+            const newValues = new Promise(resolve => {
+                if (existentDpValues)
+                    existentDpValues.then(values => resolve([...values, dpValue]));
+                else
+                    resolve([dpValue]);
+            });
+            this._dataProperties.set(dpValue.iri, newValues);
+        });
+    }
+    /**
+     * Do not use this to get data properties values,
+     * use getDataPropertiesValues or getDataPropertyValues and await for promises.
+     */
+    get dataProperties() { return []; }
     json() {
         const result = super.json();
         result.parentClasses = this.parentClassIris.map(iri => iri.fullIri);
@@ -5613,12 +5627,12 @@ class OntologyColorManager extends ColorManager {
         this._classForest = new Set();
     }
     /** @internal */
-    setInstanceColor(classInstance, overwrite = false) {
-        if (classInstance.parentClassIris.length <= 0 || (classInstance.color && !overwrite))
+    setInstanceColor(classInstance, parentClassIris, overwrite = false) {
+        if (parentClassIris.length <= 0 || (classInstance.color && !overwrite))
             return this;
         let parentClassInDiagram;
         // get first parent class' color in current diagram 
-        for (let parentClassIri of classInstance.parentClassIris) {
+        for (let parentClassIri of parentClassIris) {
             if (this.diagramRepresentation.containsEntity(parentClassIri)) {
                 parentClassInDiagram = this.ontology.getEntity(parentClassIri.fullIri);
                 if (parentClassInDiagram === null || parentClassInDiagram === void 0 ? void 0 : parentClassInDiagram.color) {
@@ -5628,7 +5642,7 @@ class OntologyColorManager extends ColorManager {
             }
         }
         // if not returned then get first parent class color defined, anywhere
-        for (let parentClassIri of classInstance.parentClassIris) {
+        for (let parentClassIri of parentClassIris) {
             const parentClassEntity = this.ontology.getEntity(parentClassIri.fullIri);
             if (parentClassEntity === null || parentClassEntity === void 0 ? void 0 : parentClassEntity.color) {
                 classInstance.color = parentClassEntity.color;
@@ -5637,7 +5651,7 @@ class OntologyColorManager extends ColorManager {
         }
         // No parent classes with defined colors? => compute it
         // if a parent class is in current diagram then use it, otherwise just get first in list
-        const parentClassEntity = parentClassInDiagram || this.ontology.getEntity(classInstance.parentClassIris[0].fullIri);
+        const parentClassEntity = parentClassInDiagram || this.ontology.getEntity(parentClassIris[0].fullIri);
         if (parentClassEntity) {
             this.setClassColor(parentClassEntity);
             classInstance.color = parentClassEntity.color;
@@ -5671,7 +5685,7 @@ class OntologyColorManager extends ColorManager {
             entities.forEach(entity => {
                 var _a;
                 if (entity.is(TypesEnum.INDIVIDUAL)) {
-                    this.setInstanceColor(entity, overwrite);
+                    this.setInstanceColor(entity, entity.parentClassIris || [], overwrite);
                 }
                 else if (entity.is(TypesEnum.CLASS)) {
                     this.setClassColor(entity, overwrite);
@@ -7938,15 +7952,9 @@ function floatyStyle (theme) {
             selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
             style: {
                 'height': (node) => node.data('width') || 60,
-                'width': (node) => node.data('width') || 60
-            }
-        },
-        {
-            selector: `node[type = "${TypesEnum.INDIVIDUAL}"]`,
-            style: {
-                // color: (node) => getNodeLabelColor(node, theme),
-                backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class_instance),
-                "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_instance_contrast),
+                'width': (node) => node.data('width') || 60,
+                backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.individual),
+                "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.individual_contrast),
             }
         },
         {
@@ -7954,8 +7962,8 @@ function floatyStyle (theme) {
             style: {
                 "target-arrow-shape": 'triangle',
                 'target-arrow-fill': 'filled',
-                'line-color': theme.getColour(ColoursNames.class_instance_contrast),
-                'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
+                'line-color': theme.getColour(ColoursNames.individual_contrast),
+                'target-arrow-color': theme.getColour(ColoursNames.individual_contrast),
                 'line-opacity': 0.4,
             }
         },
@@ -8095,6 +8103,7 @@ function floatyStyle (theme) {
                 'color': theme.getColour(ColoursNames.label),
                 'background-width': '100%',
                 'background-height': '100%',
+                'background-image-crossorigin': "null",
             }
         },
         // {
@@ -8574,8 +8583,8 @@ function incrementalStyle (theme) {
             style: {
                 "target-arrow-shape": 'triangle',
                 'target-arrow-fill': 'filled',
-                'line-color': theme.getColour(ColoursNames.class_instance_contrast),
-                'target-arrow-color': theme.getColour(ColoursNames.class_instance_contrast),
+                'line-color': theme.getColour(ColoursNames.individual_contrast),
+                'target-arrow-color': theme.getColour(ColoursNames.individual_contrast),
                 'line-opacity': 0.4,
             }
         },
@@ -8971,7 +8980,6 @@ class IncrementalLifecycle {
         this.limitChange = [];
         // private endpointChange: ((endpoint: MastroEndpoint) => void)[] = []
         this.reset = [];
-        this.classInstanceSselection = [];
         this.classSelection = [];
         this.diagramUpdated = [];
         this.reasonerSet = [];
@@ -9754,7 +9762,6 @@ class DiagramBuilder {
                     this.addDataProperty(sourceEntity);
                     break;
             }
-            // sourceEntity.is(TypesEnum.CLASS_INSTANCE) ? this.addClassInstance(sourceEntity as ClassInstanceEntity) : this.addClass(sourceEntity)
             sourceNode = this.getEntityCyRepr(sourceEntity, sourceType);
             if (sourceNode.empty()) {
                 console.warn(`Unable to find the node that has been automatically added with IRI: ${sourceEntity.iri.fullIri}`);
@@ -9773,9 +9780,6 @@ class DiagramBuilder {
                     this.addDataProperty(targetEntity);
                     break;
             }
-            // targetEntity.is(TypesEnum.CLASS_INSTANCE)
-            //   ? this.addClassInstance(targetEntity as ClassInstanceEntity, sourceNode.position())
-            //   : this.addClass(targetEntity, sourceNode.position())
             targetNode = this.getEntityCyRepr(targetEntity, targetType);
             if (targetNode.empty()) {
                 console.warn(`Unable to find the node that has been automatically added with IRI: ${targetEntity.iri.fullIri}`);
@@ -12692,7 +12696,6 @@ function createEntitiesList(grapholscape, entityFilters) {
             });
         }
     });
-    if (grapholscape.renderState === RendererStatesEnum.INCREMENTAL) ;
     return result.sort((a, b) => a.displayedName.localeCompare(b.displayedName));
 }
 function shouldFilterEntity(entity, entityFilters) {
@@ -12704,7 +12707,7 @@ function shouldFilterEntity(entity, entityFilters) {
     });
     return !entityFilters.areAllFiltersDisabled && typeFilterEnabled;
 }
-function search(searchValue, entities) {
+function search(searchValue, entities, includeLabels = false, includeComments = false, includeIri = false) {
     const searchWords = searchValue.split(' ');
     return new Promise((resolve) => {
         const result = entities.filter(entity => {
@@ -12713,13 +12716,20 @@ function search(searchValue, entities) {
             for (const word of searchWords) {
                 if (word.length <= 2)
                     continue;
-                isCurrentAMatch = isMatch(entity.displayedName, searchValue) || matchInAnnotations(entity.value.getAnnotations(), word);
+                isCurrentAMatch =
+                    isMatch(entity.displayedName, word) ||
+                        (includeLabels && matchInAnnotations(entity.value.getLabels(), word)) ||
+                        (includeComments && matchInAnnotations(entity.value.getComments(), word)) ||
+                        (includeIri && matchInIRI(entity.value.iri, word));
                 isAmatch = isAmatch && isCurrentAMatch;
             }
             return isAmatch;
         });
         resolve(result);
     });
+    function matchInIRI(iri, searchValue) {
+        return isMatch(iri.fullIri, searchValue) || isMatch(iri.prefixed, searchValue);
+    }
     function matchInAnnotations(annotations, searchValue) {
         // search in labels defined in annotations (only for Graphol v3)
         for (const annotation of annotations) {
@@ -15569,7 +15579,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.5-snap.2"}</span>
+            <span>${"4.0.5-snap.7"}</span>
           </div>
         </div>
       </div>
@@ -16268,6 +16278,8 @@ class IncrementalBase {
                 colorManager.setClassColor(entity);
             }
             classNode = this.diagramBuilder.addClass(entity, position);
+            classNode.displayedName = entity === null || entity === void 0 ? void 0 : entity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language);
+            this.diagram.representation.updateElement(classNode, undefined, false);
         }
         else {
             const classNodeId = this.getIDByIRI(iri, TypesEnum.CLASS);
@@ -16766,7 +16778,6 @@ function getInstances(callback) {
 function CommandsWidgetFactory(ic) {
     const commandsWidget = new GscapeContextMenu();
     ic.grapholscape.on(LifecycleEvent.ContextClick, event => {
-        // const commands: Command[] = []
         var _a;
         if (event.target === ic.grapholscape.renderer.cy ||
             !event.target.data().iri ||
@@ -16776,147 +16787,6 @@ function CommandsWidgetFactory(ic) {
         const grapholElement = (_a = ic.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(event.target.id());
         if (!entity || !grapholElement)
             return;
-        // if (grapholElement.is(TypesEnum.OBJECT_PROPERTY) &&
-        //   event.target.source().data().type === TypesEnum.CLASS_INSTANCE &&
-        //   event.target.target().data().type === TypesEnum.CLASS_INSTANCE) {
-        //   commands.push({
-        //     content: 'Show Instance Types',
-        //     icon: classIcon,
-        //     select: () => {
-        //       ic.showObjectPropertyTypes(
-        //         entity.iri.fullIri,
-        //         event.target.source().id(),
-        //         event.target.target().id(),
-        //       )
-        //     },
-        //   })
-        // }
-        // if (grapholElement.is(TypesEnum.CLASS_INSTANCE)) {
-        //   commands.push(IncrementalCommands.focusInstance(() => ic.expandObjectPropertiesOnInstance(entity.iri.fullIri)))
-        //   commands.push(IncrementalCommands.performInstanceChecking(async () => {
-        //     const allClassesIris = ic
-        //       .grapholscape
-        //       .ontology
-        //       .getEntitiesByType(TypesEnum.CLASS)
-        //       .map(e => e.iri.fullIri)
-        //     const badgeController = new BadgeController(ic)
-        //     badgeController.addLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE)
-        //     const instanceCheckingClasses = await ic
-        //       .endpointController
-        //       ?.instanceCheck(entity.iri.fullIri, allClassesIris, false)
-        //       .finally(() => badgeController.removeLoadingBadge(entity.iri.fullIri, TypesEnum.CLASS_INSTANCE))
-        //     instanceCheckingClasses?.forEach(classIri => {
-        //       const classEntity = ic.grapholscape.ontology.getEntity(classIri);
-        //       if (classEntity) {
-        //         (entity as ClassInstanceEntity).addParentClass(classEntity.iri)
-        //       }
-        //     })
-        //     showParentClass(ic, entity as ClassInstanceEntity, event.target.position())
-        //   }))
-        //   if (!(entity as ClassInstanceEntity).isRDFTypeUnknown) {
-        //     commands.push(IncrementalCommands.showParentClass(() => showParentClass(ic, entity as ClassInstanceEntity, event.target.position())))
-        //   }
-        // }
-        // const classIri = entity.iri.fullIri
-        // if (grapholElement.is(TypesEnum.CLASS)) {
-        //   if (ic.endpointController?.isReasonerAvailable()) {
-        //     commands.push(IncrementalCommands.getInstances(() => {
-        //       ic.expandInstancesOnClass(classIri)
-        //     }))
-        //   }
-        //   const superHierarchies = ic.grapholscape.ontology.getSuperHierarchiesOf(classIri)
-        //   const subHierarchies = ic.grapholscape.ontology.getSubHierarchiesOf(classIri)
-        //   if (superHierarchies && superHierarchies.length > 0) {
-        //     const areAllSuperHierarchiesVisible = ic.areHierarchiesVisible(superHierarchies)
-        //     commands.push(IncrementalCommands.showHideSuperHierarchies(
-        //       areAllSuperHierarchiesVisible,
-        //       () => {
-        //         areAllSuperHierarchiesVisible ? ic.hideSuperHierarchiesOf(classIri) : ic.showSuperHierarchiesOf(classIri)
-        //       }
-        //     ))
-        //   }
-        //   if (subHierarchies && subHierarchies.length > 0) {
-        //     const areAllSubHierarchiesVisible = ic.areHierarchiesVisible(subHierarchies)
-        //     commands.push(
-        //       IncrementalCommands.showHideSubHierarchies(
-        //         areAllSubHierarchiesVisible,
-        //         () => {
-        //           areAllSubHierarchiesVisible ? ic.hideSubHierarchiesOf(classIri) : ic.showSubHierarchiesOf(classIri)
-        //         }
-        //       ),
-        //     )
-        //   }
-        //   const subClasses = ic.neighbourhoodFinder.getSubclassesIris(classIri)
-        //   const superClasses = ic.neighbourhoodFinder.getSuperclassesIris(classIri)
-        //   const equivalentClasses = ic.neighbourhoodFinder.getEquivalentClassesIris(classIri)
-        //   if (subClasses.length > 0) {
-        //     const areAllSubclassesVisible = ic.areAllConnectedClassesVisibleForClass(classIri, subClasses, 'sub')
-        //     commands.push(
-        //       IncrementalCommands.showHideSubClasses(
-        //         areAllSubclassesVisible,
-        //         () => {
-        //           areAllSubclassesVisible
-        //             ? subClasses.forEach(sc => ic.removeEntity(sc, [classIri]))
-        //             : ic.showSubClassesOf(classIri, subClasses)
-        //         }
-        //       )
-        //     )
-        //   }
-        //   if (superClasses.length > 0) {
-        //     const areAllSuperclassesVisible = ic.areAllConnectedClassesVisibleForClass(classIri, superClasses, 'super')
-        //     commands.push(
-        //       IncrementalCommands.showHideSuperClasses(
-        //         areAllSuperclassesVisible,
-        //         () => {
-        //           areAllSuperclassesVisible
-        //             ? superClasses.forEach(sc => ic.removeEntity(sc, [classIri]))
-        //             : ic.showSuperClassesOf(classIri, superClasses)
-        //         }
-        //       )
-        //     )
-        //   }
-        //   if (equivalentClasses.length > 0) {
-        //     const areAllEquivalentClassesVisible = ic.areAllConnectedClassesVisibleForClass(classIri, equivalentClasses, 'equivalent')
-        //     commands.push(
-        //       IncrementalCommands.showHideEquivalentClasses(
-        //         areAllEquivalentClassesVisible,
-        //         () => {
-        //           areAllEquivalentClassesVisible
-        //             ? equivalentClasses.forEach(sc => ic.removeEntity(sc, [classIri]))
-        //             : ic.showEquivalentClassesOf(classIri, equivalentClasses)
-        //         }
-        //       )
-        //     )
-        //   }
-        //   if (ic.endpointController?.isReasonerAvailable() && ic.countersEnabled) {
-        //     commands.push({
-        //       icon: counter,
-        //       content: 'Count Instances',
-        //       select: () => ic.showFreshClassCount(entity.iri.fullIri)
-        //     })
-        //   }
-        // }
-        // if (!grapholElement.is(TypesEnum.CLASS_INSTANCE) && ic.endpointController?.isReasonerAvailable() && ic.dataLineageEnabled) {
-        //   commands.push({
-        //     content: 'Data Lineage',
-        //     icon: sankey,
-        //     select: () => ic.onShowDataLineage(entity.iri.fullIri),
-        //   })
-        // }
-        // commands.push(
-        //   IncrementalCommands.remove(() => {
-        //     if (grapholElement.is(TypesEnum.OBJECT_PROPERTY)) {
-        //       const grapholOccurrence = ic.diagram.representation?.grapholElements.get(event.target.id())
-        //       if (grapholOccurrence) {
-        //         entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
-        //       }
-        //       ic.diagram.removeElement(event.target.id())
-        //       ic.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
-        //     } else {
-        //       ic.removeEntity(entity.iri.fullIri)
-        //     }
-        //   })
-        // )
         const commands = ic.getContextMenuCommands(grapholElement, event.target);
         try {
             if (event.target.isEdge() && ic.grapholscape.uiContainer) {
@@ -16934,30 +16804,6 @@ function CommandsWidgetFactory(ic) {
         }
     });
 }
-// function showParentClass(incrementalController: IncrementalCore, instanceEntity: ClassInstanceEntity, position: Position) {
-//   const parentClassIris = instanceEntity.parentClassIris
-//   let parentClassNode: GrapholNode | undefined
-//   let classInstanceId = incrementalController.getIDByIRI(instanceEntity.iri.fullIri, TypesEnum.CLASS_INSTANCE)
-//   if (classInstanceId) {
-//     incrementalController.performActionWithBlockedGraph(() => {
-//       parentClassIris?.forEach(parentClassIri => {
-//         parentClassNode = incrementalController.addClass(parentClassIri.fullIri, false, position)
-//         if (parentClassNode) {
-//           incrementalController.addEdge(
-//             classInstanceId!,
-//             parentClassNode.id,
-//             TypesEnum.INSTANCE_OF
-//           )
-//         }
-//       })
-//     })
-//     if (parentClassIris?.length === 1 && parentClassNode) {
-//       setTimeout(() => {
-//         incrementalController.grapholscape.centerOnElement(parentClassNode!.id)
-//       }, 250)
-//     }
-//   }
-// }
 
 var style = i$1 `
   .gscape-panel {
@@ -17107,23 +16953,13 @@ function IncrementalEntityDetailsFactory(ic) {
     }
     ic.grapholscape.widgets.set(WidgetEnum.INCREMENTAL_ENTITY_DETAILS, incrementalEntityDetails);
     ic.grapholscape.on(LifecycleEvent.EntitySelection, (grapholEntity) => __awaiter(this, void 0, void 0, function* () {
-        // incrementalEntityDetails.instancesCount = undefined
         incrementalEntityDetails.dataProperties = [];
         if (!grapholEntity.is(TypesEnum.CLASS) && !grapholEntity.is(TypesEnum.OBJECT_PROPERTY)) {
             incrementalEntityDetails.hide();
-            // incrementalEntityDetails.allowComputeCount = false
             incrementalEntityDetails.entity = undefined;
             return;
         }
         incrementalEntityDetails.entity = grapholEntity;
-        // incrementalEntityDetails.allowComputeCount = grapholEntity.is(TypesEnum.OBJECT_PROPERTY)
-        // if (grapholEntity.is(TypesEnum.OBJECT_PROPERTY)) {
-        //   ic.updateMaterializedCounts().then(() => {
-        //     if (ic.counts.get(grapholEntity.iri.fullIri) !== undefined) {
-        //       incrementalEntityDetails.instancesCount = ic.counts.get(grapholEntity.iri.fullIri)
-        //     }
-        //   })
-        // }
         if (grapholEntity.is(TypesEnum.CLASS) && ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
             let dataProperties;
             dataProperties = yield ic.getDataPropertiesHighlights([grapholEntity.iri.fullIri], false);
@@ -17131,69 +16967,6 @@ function IncrementalEntityDetailsFactory(ic) {
         }
         incrementalEntityDetails.show();
     }));
-    // ic.on(IncrementalEvent.ClassInstanceSelection, async classInstanceEntity => {
-    //   showDataPropertiesValues(classInstanceEntity)
-    //   const classInstanceNode = classInstanceEntity.getOccurrenceByType(TypesEnum.CLASS_INSTANCE, RendererStatesEnum.INCREMENTAL)
-    //   entityDetailsWidget?.setGrapholEntity(classInstanceEntity, classInstanceNode)
-    //   incrementalEntityDetails.show()
-    // })
-    // async function showDataPropertiesValues(classInstanceEntity: ClassInstanceEntity) {
-    //   const parentClassesIris = classInstanceEntity.parentClassIris.map(i => i.fullIri)
-    //   ic.endpointController?.stopRequests('instances')
-    //   incrementalEntityDetails.allowComputeCount = false
-    //   // if same instance, load only n/a values, just to be sure it was not due to stopped queries
-    //   if (entityDetailsWidget?.grapholEntity && entityDetailsWidget.grapholEntity.iri.equals(classInstanceEntity.iri)) {
-    //     if (!entityDetailsWidget.isPanelClosed()) {
-    //       incrementalEntityDetails.dataPropertiesValues?.forEach((dpValues, dpIri) => {
-    //         if (!dpValues.loading && dpValues.values.size === 0) {
-    //           incrementalEntityDetails.setDataPropertyLoading(dpIri, true)
-    //           ic.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dpIri)
-    //         }
-    //       })
-    //     }
-    //   } else { // load new data properties
-    //     let dataProperties: GrapholEntity[] = []
-    //     if (classInstanceEntity.dataProperties.length > 0) {
-    //       let dpEntity: GrapholEntity | undefined
-    //       incrementalEntityDetails.dataProperties = classInstanceEntity.dataProperties.map(dpValue => {
-    //         dpEntity = undefined
-    //         dpEntity = ic.grapholscape.ontology.getEntity(dpValue.iri)
-    //         if (dpEntity) {
-    //           return grapholEntityToEntityViewData(dpEntity, ic.grapholscape)
-    //         }
-    //       }).filter(dp => dp !== undefined) as EntityViewData[]
-    //       classInstanceEntity.dataProperties.forEach(dp => {
-    //         incrementalEntityDetails.addDataPropertyValue(dp.iri, dp.value)
-    //       })
-    //     } else {
-    //       dataProperties = await ic.getDataPropertiesByClasses(parentClassesIris)
-    //       incrementalEntityDetails.dataProperties = dataProperties.map(dp => grapholEntityToEntityViewData(dp, ic.grapholscape))
-    //       if (!entityDetailsWidget?.isPanelClosed()) {
-    //         dataProperties.forEach(dp => {
-    //           ic.endpointController?.requestDataPropertyValues(classInstanceEntity.iri.fullIri, dp.iri.fullIri)
-    //         })
-    //       } else {
-    //         incrementalEntityDetails.dataPropertiesValues?.forEach((v, dpIri) => {
-    //           incrementalEntityDetails.setDataPropertyLoading(dpIri, false)
-    //         })
-    //       }
-    //     }
-    //   }
-    //   incrementalEntityDetails.parentClasses = parentClassesIris.map(parentClassIri => {
-    //     const parentClassEntity = ic.grapholscape.ontology.getEntity(parentClassIri)
-    //     if (parentClassEntity)
-    //       return grapholEntityToEntityViewData(parentClassEntity, ic.grapholscape)
-    //   }).filter(entity => entity !== undefined) as EntityViewData[]
-    //   incrementalEntityDetails.canShowDataPropertiesValues = true
-    // }
-    // ic.on(IncrementalEvent.NewDataPropertyValues, (instanceIri, dataPropertyIri, newValues) => {
-    //   if (entityDetailsWidget?.grapholEntity.iri.equals(instanceIri))
-    //     newValues.forEach(v => incrementalEntityDetails.addDataPropertyValue(dataPropertyIri, v))
-    // })
-    // ic.on(IncrementalEvent.DataPropertyValuesLoadingFinished, (instanceIri, dataPropertyIri) => {
-    //   if (entityDetailsWidget?.grapholEntity.iri.equals(instanceIri))
-    //     incrementalEntityDetails.setDataPropertyLoading(dataPropertyIri, false)
-    // })
     return incrementalEntityDetails;
 }
 
@@ -17640,18 +17413,6 @@ function getButtonOffset(info, buttonIndex = 0, numberOfButtons = 1) {
 }
 
 function NodeButtonsFactory(ic) {
-    // const instancesButton = new NodeButton(classInstanceIcon)
-    // instancesButton.title = 'Search instances'
-    // const objectPropertyButton = new NodeButton(objectPropertyIcon)
-    // objectPropertyButton.title = 'Navigate through object properties'
-    // const pathDrawingButton = new NodeButton(pathIcon)
-    // pathDrawingButton.title = 'Find shortest paths to another entity'
-    // const nodeButtonsMap = new Map<TypesEnum, NodeButton[]>()
-    // nodeButtonsMap.set(TypesEnum.CLASS, [objectPropertyButton])
-    // nodeButtonsMap.set(TypesEnum.CLASS_INSTANCE, [objectPropertyButton, pathDrawingButton])
-    // instancesButton.onclick = (e) => handleInstancesButtonClick(e, ic)
-    // objectPropertyButton.onclick = (e) => handleObjectPropertyButtonClick(e, ic)
-    // pathDrawingButton.onclick = (e) => onPathDrawingButtonClick(e, ic)
     if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
         setHandlersOnIncrementalCytoscape(ic);
     }
@@ -17670,14 +17431,6 @@ function NodeButtonsFactory(ic) {
                 .forEach(tippy => tippy.remove());
         }
     });
-    // ic.on(IncrementalEvent.EndpointChange, () => {
-    //   if (!nodeButtonsMap.get(TypesEnum.CLASS)?.includes(instancesButton)) {
-    //     nodeButtonsMap.get(TypesEnum.CLASS)?.push(instancesButton)
-    //   }
-    //   if (!nodeButtonsMap.get(TypesEnum.CLASS)?.includes(pathDrawingButton)) {
-    //     nodeButtonsMap.get(TypesEnum.CLASS)?.push(pathDrawingButton)
-    //   }
-    // })
 }
 function setHandlersOnIncrementalCytoscape(ic) {
     var _a;
@@ -17713,125 +17466,10 @@ function setHandlersOnIncrementalCytoscape(ic) {
     });
     cy.scratch('_gscape-graph-incremental-handlers-set', true);
 }
-// async function handleInstancesButtonClick(e: MouseEvent, incrementalController: IIncremental) {
-//   const targetButton = e.currentTarget as NodeButton
-//   const instanceExplorer = incrementalController.grapholscape.widgets.get(WidgetEnum.INSTANCES_EXPLORER) as GscapeInstanceExplorer
-//   if (!instanceExplorer)
-//     return
-//   if (targetButton.node && targetButton.node.data().iri) {
-//     const referenceEntity = incrementalController.grapholscape.ontology.getEntity(targetButton.node.data().iri)
-//     const entityType = targetButton.node.data().type
-//     if (referenceEntity && entityType === TypesEnum.CLASS) {
-//       if (!instanceExplorer.referenceEntity ||
-//         !instanceExplorer.referenceEntity.value.iri.equals(referenceEntity.iri) ||
-//         instanceExplorer.numberOfInstancesReceived === 0) {
-//         instanceExplorer.clear()
-//         instanceExplorer.areInstancesLoading = true
-//         instanceExplorer.referenceEntity = grapholEntityToEntityViewData(referenceEntity, incrementalController.grapholscape)
-//         instanceExplorer.referenceEntityType = targetButton.node.data().type
-//         // const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
-//         //   incrementalController.endpointController?.highlightsManager
-//         // )
-//         const dataProperties = await incrementalController.getDataPropertiesHighlights([referenceEntity.iri.fullIri], false)
-//         const objectPropertiesMap = await incrementalController.getObjectPropertiesHighlights([referenceEntity.iri.fullIri], false)
-//         const objectProperties = Array.from(objectPropertiesMap).map(v => {
-//           const newV = grapholEntityToEntityViewData(v[0], incrementalController.grapholscape) as ViewObjectProperty
-//           // const viewIncrementalObjProp = newV as ViewObjectProperty
-//           newV.connectedClasses = v[1].list.map(classEntity => {
-//             return grapholEntityToEntityViewData(classEntity, incrementalController.grapholscape)
-//           })
-//           newV.direct = v[1].direct
-//           return newV
-//         })
-//         instanceExplorer.propertiesFilterList = dataProperties
-//           .map(dp => grapholEntityToEntityViewData(dp, incrementalController.grapholscape))
-//           .concat(objectProperties)
-//           .sort((a, b) => a.displayedName.localeCompare(b.displayedName))
-//         // instanceExplorer.requestId = await incrementalController.endpointController?.requestInstancesForClass(referenceEntity.iri.fullIri)
-//         // if (instanceExplorer.requestId) {
-//         //   incrementalController
-//         //     .endpointController
-//         //     ?.shouldQueryUseLabels(instanceExplorer.requestId)
-//         //     ?.then(async shouldAskForLabels => {
-//         //       if (!shouldAskForLabels) {
-//         //         instanceExplorer.shouldAskForLabels = shouldAskForLabels
-//         //         instanceExplorer.areInstancesLoading = true
-//         //         instanceExplorer.requestId = await incrementalController.endpointController
-//         //           ?.requestInstancesForClass(
-//         //             referenceEntity.iri.fullIri,
-//         //             shouldAskForLabels
-//         //           )
-//         //       }
-//         //     })
-//         // }
-//       }
-//     }
-//     // TODO: check why sometimes here targetButton.node is undefined, happens only few times
-//     // it should be defined due to previous initial if
-//     if (targetButton.node) {
-//       showMenu(instanceExplorer, incrementalController)
-//     }
-//   }
-// }
-// function onPathDrawingButtonClick(e: MouseEvent, ic: IIncremental) {
-//   const onComplete = async (sourceNode: NodeSingular, targetNode: NodeSingular, loadingEdge: EdgeSingular) => {
-//     let pathSelector: PathSelector | undefined
-//     let sourceIriForPath = sourceNode.data('iri')
-//     let targetIriForpath = targetNode.data('iri')
-//     const loadingAnimationInterval = setInterval(() => {
-//       loadingEdge.data('on', !loadingEdge.data('on'))
-//     }, 500)
-//     const stopAnimation = () => {
-//       loadingEdge.remove()
-//       clearInterval(loadingAnimationInterval)
-//     }
-//     if (sourceNode.edgesTo(targetNode).filter('.loading-edge').size() > 1) {
-//       stopAnimation()
-//     }
-//     let entity: ClassInstanceEntity | undefined
-//     // Take parentClass IRI to find a path to the other node in the intensional level
-//     if (sourceNode.data().type === TypesEnum.CLASS_INSTANCE) {
-//       entity = ic.classInstanceEntities.get(sourceNode.data('iri'))
-//       if (entity) {
-//         sourceIriForPath = entity.parentClassIris[0].fullIri
-//       }
-//     }
-//     if (targetNode.data().type === TypesEnum.CLASS_INSTANCE) {
-//       entity = ic.classInstanceEntities.get(targetNode.data('iri'))
-//       if (entity) {
-//         targetIriForpath = entity.parentClassIris[0].fullIri
-//       }
-//     }
-//     if (sourceIriForPath && targetIriForpath) {
-//       pathSelector = await pathSelectionInit(ic, sourceIriForPath, targetIriForpath)
-//       if (pathSelector) {
-//         pathSelector.addEventListener('path-selection', async (evt: PathSelectionEvent) => {
-//           ic.addInstancesPath(sourceNode.data().iri, targetNode.data().iri, evt.detail)
-//             .finally(stopAnimation)
-//         })
-//       } else {
-//         stopAnimation()
-//       }
-//     }
-//     if (pathSelector) {
-//       pathSelector.addEventListener('cancel', stopAnimation)
-//       pathSelector.show()
-//     }
-//   }
-//   if (ic.grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-//     const targetNode = (e.currentTarget as NodeButton).node
-//     if (targetNode) {
-//       handlePathEdgeDraw(targetNode, ic, onComplete)
-//     }
-//   }
-// }
 
 function onIncrementalStartup(ic) {
     const grapholscape = ic.grapholscape;
     grapholscape.renderer.unselect();
-    // if (!incrementalController) {
-    //   incrementalController = new IncrementalController(grapholscape)
-    // }
     manageWidgetsOnActivation(grapholscape.widgets, !grapholscape.renderer.cy || grapholscape.renderer.cy.elements().empty());
     const entityColorLegend = grapholscape.widgets.get(WidgetEnum.ENTITY_COLOR_LEGEND);
     entityColorLegend.onElementSelection = (elem) => {
@@ -17842,8 +17480,7 @@ function onIncrementalStartup(ic) {
                 if (_iri) {
                     const entityToCheck = grapholscape.ontology.getEntity(_iri);
                     if (entityToCheck && filteredEntity) {
-                        return (filteredEntity === null || filteredEntity === void 0 ? void 0 : filteredEntity.iri.equals(entityToCheck.iri)) ||
-                            (entityToCheck.parentClassIris && entityToCheck.hasParentClassIri(filteredEntity.iri));
+                        return filteredEntity === null || filteredEntity === void 0 ? void 0 : filteredEntity.iri.equals(entityToCheck.iri);
                     }
                 }
                 return false;
@@ -18023,19 +17660,6 @@ function objectPropertyButtonHandler(e, incrementalController) {
                 navigationMenu.canShowObjectPropertiesRanges = true;
                 objectProperties = yield incrementalController.getObjectPropertiesHighlights([targetButton.node.data().iri], targetButton.node.data('type') === TypesEnum.INDIVIDUAL);
             }
-            // else if (targetButton.node.data().type === TypesEnum.CLASS_INSTANCE) {
-            //   referenceEnity = incrementalController.classInstanceEntities.get(targetButton.node.data().iri)
-            //   if (!referenceEnity)
-            //     return
-            //   navigationMenu.referenceEntity = grapholEntityToEntityViewData(referenceEnity, incrementalController.grapholscape)
-            //   navigationMenu.referenceEntityType = targetButton.node.data().type
-            //   navigationMenu.canShowObjectPropertiesRanges = false
-            //   const parentClassesIris = (referenceEnity as ClassInstanceEntity).parentClassIris!.map(i => i.fullIri)
-            //   objectProperties = await incrementalController.getObjectPropertiesByClasses(parentClassesIris)
-            // }
-            // const hasUnfoldings = incrementalController.endpointController?.highlightsManager?.hasUnfoldings.bind(
-            //   incrementalController.endpointController?.highlightsManager
-            // )
             navigationMenu.objectProperties = Array.from(objectProperties).map(v => {
                 const newV = grapholEntityToEntityViewData(v[0], incrementalController.grapholscape);
                 // const viewIncrementalObjProp = newV as ViewObjectProperty
