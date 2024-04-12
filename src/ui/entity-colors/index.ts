@@ -1,6 +1,6 @@
 import { Grapholscape } from "../../core";
 import { LifecycleEvent, RendererStatesEnum, TypesEnum } from "../../model";
-import { colorPalette } from "../assets";
+import { colors } from "../assets";
 import { GscapeButton } from "../common/button";
 import getIconSlot from "../util/get-icon-slot";
 import { WidgetEnum } from "../util/widget-enum";
@@ -22,7 +22,7 @@ function initEntityColorLegend(grapholscape: Grapholscape) {
 function initEntityColorButton(grapholscape: Grapholscape) {
   const colorButtonComponent = new GscapeButton()
   colorButtonComponent.asSwitch = true
-  colorButtonComponent.appendChild(getIconSlot('icon', colorPalette))
+  colorButtonComponent.appendChild(getIconSlot('icon', colors))
   colorButtonComponent.style.order = '8'
   colorButtonComponent.style.marginTop = '10px'
   colorButtonComponent.title = 'Show Colors'

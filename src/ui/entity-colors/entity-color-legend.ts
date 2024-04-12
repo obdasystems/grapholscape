@@ -1,5 +1,5 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from "lit";
-import { colorPalette, minus, plus, searchOff } from "../assets";
+import { colors, minus, plus, searchOff } from "../assets";
 import { BaseMixin, DropPanelMixin } from "../common/mixins";
 import baseStyle from "../style";
 import a11yClick from "../util/a11y-click";
@@ -79,7 +79,7 @@ export default class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(Li
         > 
           ${this.isPanelClosed()
             ? html`
-                <span slot="icon">${colorPalette}</span>
+                <span slot="icon">${colors}</span>
                 <span slot="trailing-icon">${plus}</span>
               `
             : html`<span slot="icon">${minus}</span>`

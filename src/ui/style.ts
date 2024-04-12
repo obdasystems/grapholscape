@@ -6,7 +6,6 @@ export const BOTTOM_RIGHT_WIDGET = css`bottom-right-widget`
 export default css`
 *, :host {
   line-height: initial;
-  scrollbar-width: thin;
   pointer-events: auto;
 }
 
@@ -76,7 +75,6 @@ export default css`
 
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
-  scrollbar-width: inherit;
   padding: 0px 8px;
   position: relative;
 }
