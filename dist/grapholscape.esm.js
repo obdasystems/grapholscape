@@ -15579,7 +15579,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.5-snap.7"}</span>
+            <span>${"4.0.5"}</span>
           </div>
         </div>
       </div>
