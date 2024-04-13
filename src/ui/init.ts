@@ -6,6 +6,7 @@ import initEntityColors from "./entity-colors";
 import initEntityDetails from "./entity-details";
 import initFilters from "./filters";
 import initFitButton from "./fit-button";
+import initLayoutSettings from "./floaty-layout-settings";
 import { initInitialRendererSelector } from "./full-page-selector";
 import initFullscreenButton from "./fullscreen";
 import initOntologyExplorer from "./ontology-explorer";
@@ -47,6 +48,7 @@ export default function (grapholscape: Grapholscape) {
   initSettings(grapholscape)
   // initEntitySelector(grapholscape)
   initRendererSelector(grapholscape)
+  initLayoutSettings(grapholscape)
   initInitialRendererSelector(grapholscape)
   initEntityColors(grapholscape)
 
@@ -65,9 +67,6 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.ENTITY_SELECTOR:
       case WidgetEnum.ENTITY_COLOR_LEGEND:
         guiContainer.appendChild(widget)
-        break
-
-      case WidgetEnum.LAYOUT_SETTINGS:
         break
       
       case WidgetEnum.INITIAL_RENDERER_SELECTOR:

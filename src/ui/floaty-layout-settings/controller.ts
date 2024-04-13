@@ -1,6 +1,5 @@
-import Grapholscape from '../../../core';
-import FloatyRendererState from "../../../core/rendering/floaty/floaty-renderer-state";
-import { LifecycleEvent, RendererStatesEnum } from "../../../model";
+import { FloatyRendererState, Grapholscape } from "../../core";
+import { LifecycleEvent, RendererStatesEnum } from "../../model";
 import GscapeLayoutSettings from "./layout-settings";
 
 /**
@@ -45,6 +44,11 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
 
   grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
     updateToggles(rendererState)
+    if (rendererState !== RendererStatesEnum.FLOATY && rendererState !== RendererStatesEnum.INCREMENTAL) {
+      layoutSettingsComponent.disable()
+    } else {
+      layoutSettingsComponent.enable()
+    }
   })
 
   function updateToggles(renderState: RendererStatesEnum) {

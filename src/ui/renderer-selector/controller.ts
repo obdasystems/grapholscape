@@ -22,7 +22,7 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   rendererSelector.onIncrementalReset = () => {
     showMessage(
       'Are you sure? This action is irreversible and you will lose your current graph.', 
-      'Confirm Reset', 
+      'Confirm Reset',
       grapholscape.uiContainer,
       'warning'
     ).onConfirm(() => grapholscape.incremental?.reset())
@@ -31,9 +31,13 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
   grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
     rendererSelector.currentRendererStateKey = newRendererState
 
-    if (newRendererState === RendererStatesEnum.FLOATY)
-      rendererSelector.layoutSettingsComponent.openPanel()
+    // if (newRendererState === RendererStatesEnum.FLOATY)
+      // rendererSelector.layoutSettingsComponent.openPanel()
   })
+
+  if (grapholscape.renderers.length <= 1) {
+    rendererSelector.disable()
+  }
 }
 
 export function rendererStateSelectionCallback(
