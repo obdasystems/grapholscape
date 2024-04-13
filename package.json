@@ -91,7 +91,7 @@
   "dependencies": {
     "@lit-labs/virtualizer": "^2.0.3",
     "chroma-js": "^2.4.2",
-    "cytoscape": "^3.22.1",
+    "cytoscape": "^3.28.1",
     "cytoscape-automove": "^1.10.3",
     "cytoscape-cola": "^2.5.1",
     "cytoscape-edgehandles": "^4.0.1",
