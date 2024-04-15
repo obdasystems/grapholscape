@@ -204,7 +204,7 @@ export default css`
 
 .ellipsed, .ellipsed * {
   overflow-x: hidden;
-  text-overflow: ellipsis ellipsis;
+  text-overflow: ellipsis;
 }
 
 .rtl {
