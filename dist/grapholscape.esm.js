@@ -14211,8 +14211,15 @@ customElements.define('gscape-layout-settings', GscapeLayoutSettings);
  * @param {import('../../../grapholscape').default} grapholscape
  */
 function init$4 (layoutSettingsComponent, grapholscape) {
-    if (grapholscape.renderState)
+    if (grapholscape.renderState) {
         updateToggles(grapholscape.renderState);
+        if (grapholscape.renderState !== RendererStatesEnum.FLOATY && grapholscape.renderState !== RendererStatesEnum.INCREMENTAL) {
+            layoutSettingsComponent.disable();
+        }
+        else {
+            layoutSettingsComponent.enable();
+        }
+    }
     layoutSettingsComponent.onLayoutRunToggle = () => {
         if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
             grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
@@ -15581,7 +15588,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.6"}</span>
+            <span>${"4.0.7"}</span>
           </div>
         </div>
       </div>
