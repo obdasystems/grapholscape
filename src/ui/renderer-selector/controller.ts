@@ -34,10 +34,6 @@ export default function (rendererSelector: GscapeRenderSelector, grapholscape: G
     // if (newRendererState === RendererStatesEnum.FLOATY)
       // rendererSelector.layoutSettingsComponent.openPanel()
   })
-
-  if (grapholscape.renderers.length <= 1) {
-    rendererSelector.disable()
-  }
 }
 
 export function rendererStateSelectionCallback(
