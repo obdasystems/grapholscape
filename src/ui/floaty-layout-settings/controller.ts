@@ -9,8 +9,14 @@ import GscapeLayoutSettings from "./layout-settings";
  */
 export default function (layoutSettingsComponent: GscapeLayoutSettings, grapholscape: Grapholscape) {
 
-  if (grapholscape.renderState)
+  if (grapholscape.renderState) {
     updateToggles(grapholscape.renderState)
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY && grapholscape.renderState !== RendererStatesEnum.INCREMENTAL) {
+      layoutSettingsComponent.disable()
+    } else {
+      layoutSettingsComponent.enable()
+    }
+  }
 
   layoutSettingsComponent.onLayoutRunToggle = () => {
     if (grapholscape.renderState !== RendererStatesEnum.FLOATY && 
