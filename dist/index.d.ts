@@ -3892,12 +3892,16 @@ declare const redo: lit_html.TemplateResult<2>;
 declare const addPack: lit_html.TemplateResult<2>;
 declare const protocol: lit_html.TemplateResult<2>;
 declare const notes: lit_html.TemplateResult<2>;
+declare const colors: lit_html.TemplateResult<2>;
 declare const colorPalette: lit_html.TemplateResult<2>;
 declare const warning: lit_html.TemplateResult<2>;
 declare const error: lit_html.TemplateResult<2>;
 declare const toggleCatalog: lit_html.TemplateResult<2>;
 declare const domain: lit_html.TemplateResult<2>;
 declare const range: lit_html.TemplateResult<2>;
+declare const playCircle: lit_html.TemplateResult<2>;
+declare const keep: lit_html.TemplateResult<2>;
+declare const keepOff: lit_html.TemplateResult<2>;
 declare const entityIcons: {
     [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.ANNOTATION_PROPERTY]: SVGTemplateResult;
 };
@@ -3937,6 +3941,7 @@ declare const index_d$3_centerDiagram: typeof centerDiagram;
 declare const index_d$3_check: typeof check;
 declare const index_d$3_close: typeof close;
 declare const index_d$3_colorPalette: typeof colorPalette;
+declare const index_d$3_colors: typeof colors;
 declare const index_d$3_commentIcon: typeof commentIcon;
 declare const index_d$3_counter: typeof counter;
 declare const index_d$3_cross: typeof cross;
@@ -3957,6 +3962,8 @@ declare const index_d$3_infoFilled: typeof infoFilled;
 declare const index_d$3_info_outline: typeof info_outline;
 declare const index_d$3_insertInGraph: typeof insertInGraph;
 declare const index_d$3_instancesIcon: typeof instancesIcon;
+declare const index_d$3_keep: typeof keep;
+declare const index_d$3_keepOff: typeof keepOff;
 declare const index_d$3_labelIcon: typeof labelIcon;
 declare const index_d$3_lite: typeof lite;
 declare const index_d$3_mastroEndpointIcon: typeof mastroEndpointIcon;
@@ -3965,6 +3972,7 @@ declare const index_d$3_move_bubbles: typeof move_bubbles;
 declare const index_d$3_notes: typeof notes;
 declare const index_d$3_owl_icon: typeof owl_icon;
 declare const index_d$3_pathIcon: typeof pathIcon;
+declare const index_d$3_playCircle: typeof playCircle;
 declare const index_d$3_plus: typeof plus;
 declare const index_d$3_protocol: typeof protocol;
 declare const index_d$3_range: typeof range;
@@ -4012,6 +4020,7 @@ declare namespace index_d$3 {
     _default$a as classIcon,
     index_d$3_close as close,
     index_d$3_colorPalette as colorPalette,
+    index_d$3_colors as colors,
     index_d$3_commentIcon as commentIcon,
     index_d$3_counter as counter,
     index_d$3_cross as cross,
@@ -4035,6 +4044,8 @@ declare namespace index_d$3 {
     index_d$3_info_outline as info_outline,
     index_d$3_insertInGraph as insertInGraph,
     index_d$3_instancesIcon as instancesIcon,
+    index_d$3_keep as keep,
+    index_d$3_keepOff as keepOff,
     index_d$3_labelIcon as labelIcon,
     index_d$3_lite as lite,
     index_d$3_mastroEndpointIcon as mastroEndpointIcon,
@@ -4044,6 +4055,7 @@ declare namespace index_d$3 {
     _default$9 as objectPropertyIcon,
     index_d$3_owl_icon as owl_icon,
     index_d$3_pathIcon as pathIcon,
+    index_d$3_playCircle as playCircle,
     index_d$3_plus as plus,
     index_d$3_protocol as protocol,
     index_d$3_range as range,

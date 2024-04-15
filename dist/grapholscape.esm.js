@@ -10336,12 +10336,16 @@ const redo = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" heig
 const addPack = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M621.5-622H740 621.5ZM221-622h331-17.5 9H221Zm5.5-67H734l-48-50H273.915L226.5-689Zm179 239 74.5-37 74.5 37v-172h-149v172Zm168 296H224q-29.2 0-49.6-20.269Q154-194.538 154-223v-461q0-12.85 5.25-25.425 5.25-12.575 14.013-21.353L226.5-786q10.5-10.5 22.191-15.25 11.691-4.75 25.482-4.75h411.654q14.144 0 26.158 4.75Q724-796.5 733.5-786l53 55q10 9 14.75 21.575T806-684v165.5q-9.162-1.333-18.617-1.417Q777.928-520 768-520q-7 0-14.5.5T739-518v-104H621.5v153.5q-22 18.5-40 42.5T552-375l-72-37-141.5 71v-281H221v401h322.5q5 18 12.75 34.75T573.5-154ZM733-144v-108H625v-67h108v-108h67v108h108v67H800v108h-67Z"/></svg>`;
 const protocol = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20" style="padding: 2px; box-sizing: border-box;"><path d="M18 20H14L18 4H22M16 4H12L8 20H12M2 16.5A2.5 2.5 0 0 0 4.5 19A2.5 2.5 0 0 0 7 16.5A2.5 2.5 0 0 0 4.5 14A2.5 2.5 0 0 0 2 16.5M2 9.5A2.5 2.5 0 0 0 4.5 12A2.5 2.5 0 0 0 7 9.5A2.5 2.5 0 0 0 4.5 7A2.5 2.5 0 0 0 2 9.5Z" /></svg>`;
 const notes = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M288-168v-432q0-30.076 21-51.038Q330-672 360-672h432q29.7 0 50.85 21.15Q864-629.7 864-600v312L672-96H360q-29.7 0-50.85-21.15Q288-138.3 288-168ZM98-703q-5-29 12.5-54t46.5-30l425-76q29-5 53.5 12.5T665-804l11 60h-73l-9-48-425 76 47 263v228q-16-7-27.5-21.082Q177-260.163 174-278L98-703Zm262 103v432h264v-168h168v-264H360Zm216 216Z"/></svg>`;
+const colors = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="m344-169.5-222-221q-8.5-8.5-13-18.25T105-430q0-11.5 4.25-22.25T122-471l214.5-214L214-807.5l48-46.5 381.5 383q8.5 8.5 12.75 18.75T660.5-431q0 11.5-4.25 21.75T643.5-390.5l-220 221q-8 8.5-18.25 12.75t-21.75 4.25q-11.5-.5-21.25-4.5T344-169.5Zm39-469L175.5-431v-2 2h415v-2 2L383-638.5ZM770-154q-35.5 0-59.75-24.25T686-238q0-23.5 10.25-45.25T721-324l49-62 49 62q14.5 18.5 24.75 40.5T854-238q0 36-24.5 60T770-154Z"/></svg>`;
 const colorPalette = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M480-106q-77.5 0-145.549-29.158-68.048-29.158-119.092-80.201-51.043-51.044-80.201-119.092Q106-402.5 106-480.009 106-558.5 135.5-626 165-693.5 217-744.75T339-825q70-29 148.804-29 75.908 0 142.552 26.5Q697-801 746.741-755.371q49.741 45.63 78.5 106.75Q854-587.5 854-518q0 93-64.75 158t-158.164 65H565q-9.5 0-16.75 5.75T541-274q0 15.947 15 27.724Q571-234.5 571-191q0 29.5-24 57.25T480-106Zm0-374Zm-213 33q23.7 0 40.35-16.65Q324-480.3 324-504q0-23.7-16.65-40.35Q290.7-561 267-561q-23.7 0-40.35 16.65Q210-527.7 210-504q0 23.7 16.65 40.35Q243.3-447 267-447Zm119-142q23.7 0 40.35-16.65Q443-622.3 443-646q0-23.7-16.65-40.35Q409.7-703 386-703q-23.7 0-40.35 16.65Q329-669.7 329-646q0 23.7 16.65 40.35Q362.3-589 386-589Zm189 0q23.7 0 40.35-16.65Q632-622.3 632-646q0-23.7-16.65-40.35Q598.7-703 575-703q-23.7 0-40.35 16.65Q518-669.7 518-646q0 23.7 16.65 40.35Q551.3-589 575-589Zm118 142q23.7 0 40.35-16.65Q750-480.3 750-504q0-23.7-16.65-40.35Q716.7-561 693-561q-23.7 0-40.35 16.65Q636-527.7 636-504q0 23.7 16.65 40.35Q669.3-447 693-447ZM480.158-173q10.842 0 17.342-8.5Q504-190 504-197q0-16-14.5-28.5T475-275q0-37.5 25.75-62.25T564-362h67q66 0 111-45.25T787-518q0-112.5-87.25-190.75T487.914-787Q356.5-787 264.75-697.453T173-480q0 127.5 89.75 217.25T480.158-173Z"/></svg>`;
 const warning = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="m48-144 432-720 432 720H48Zm127-72h610L480-724 175-216Zm304.789-48Q495-264 505.5-274.289q10.5-10.29 10.5-25.5Q516-315 505.711-325.5q-10.29-10.5-25.5-10.5Q465-336 454.5-325.711q-10.5 10.29-10.5 25.5Q444-285 454.289-274.5q10.29 10.5 25.5 10.5ZM444-384h72v-192h-72v192Zm36-86Z"/></svg>`;
 const error = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M479.789-288Q495-288 505.5-298.289q10.5-10.29 10.5-25.5Q516-339 505.711-349.5q-10.29-10.5-25.5-10.5Q465-360 454.5-349.711q-10.5 10.29-10.5 25.5Q444-309 454.289-298.5q10.29 10.5 25.5 10.5ZM444-432h72v-240h-72v240Zm36.276 336Q401-96 331-126q-70-30-122.5-82.5T126-330.958q-30-69.959-30-149.5Q96-560 126-629.5t82.5-122Q261-804 330.958-834q69.959-30 149.5-30Q560-864 629.5-834t122 82.5Q804-699 834-629.276q30 69.725 30 149Q864-401 834-331q-30 70-82.5 122.5T629.276-126q-69.725 30-149 30ZM480-168q130 0 221-91t91-221q0-130-91-221t-221-91q-130 0-221 91t-91 221q0 130 91 221t221 91Zm0-312Z"/></svg>`;
 const toggleCatalog = b `<svg style="padding: 2px; box-sizing: border-box;" viewBox="64 64 896 896" width="20px" height="20px" fill="currentColor" aria-hidden="true"><path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM142.4 642.1L298.7 519a8.84 8.84 0 000-13.9L142.4 381.9c-5.8-4.6-14.4-.5-14.4 6.9v246.3a8.9 8.9 0 0014.4 7z"></path></svg>`;
 const domain = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M208-129q-32.587 0-55.794-23.206Q129-175.413 129-208v-544q0-32.588 23.206-55.794Q175.413-831 208-831h544q32.588 0 55.794 23.206Q831-784.588 831-752v544q0 32.587-23.206 55.794Q784.588-129 752-129H208Zm0-79h544v-544H208v544Zm0 0v-544 544Z"/></svg>`;
 const range = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M208-129q-32.938 0-55.969-23.031T129-208v-544q0-32.938 23.031-55.969T208-831h544q32.938 0 55.969 23.031T831-752v544q0 32.938-23.031 55.969T752-129H208Z"/></svg>`;
+const playCircle = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="m387-318 255-162-255-162v324Zm93.276 212q-77.183 0-145.341-29.263-68.159-29.263-119.297-80.5Q164.5-267 135.25-335.046 106-403.091 106-480.458q0-77.449 29.263-145.107 29.263-67.659 80.5-118.797Q267-795.5 335.046-824.75 403.091-854 480.458-854q77.449 0 145.107 29.263 67.659 29.263 118.797 80.5Q795.5-693 824.75-625.188 854-557.377 854-480.276q0 77.183-29.263 145.341-29.263 68.159-80.5 119.297Q693-164.5 625.188-135.25 557.377-106 480.276-106ZM480-173q127.5 0 217.25-89.75T787-480q0-127.5-89.75-217.25T480-787q-127.5 0-217.25 89.75T173-480q0 127.5 89.75 217.25T480-173Zm0-307Z"/></svg>`;
+const keep = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="m618-479 94 93v67H513.5v221L480-64l-33.5-34v-221H248v-67l94-93v-262h-48v-67h372v67h-48v262Zm-275 93h274l-66-65v-290H409v290l-66 65Zm137 0Z"/></svg>`;
+const keepOff = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M666-808v67h-48v305l-67-67v-238H409v96l-81.5-81.5-13.5-28h-20V-808h372ZM480-64l-33.5-34v-221H248v-67l94-93v-45.462L101.5-763.5 149-811l658 659-46.5 47.5L547-319h-33.5v221L480-64ZM343-386h136.5L408-457.5l1 6.5-66 65Zm136-183Zm-71 111.5Z"/></svg>`;
 const entityIcons = {
     [TypesEnum.CLASS]: classIcon,
     [TypesEnum.OBJECT_PROPERTY]: objectPropertyIcon,
@@ -10487,6 +10491,7 @@ var index$3 = /*#__PURE__*/Object.freeze({
     classIcon: classIcon,
     close: close,
     colorPalette: colorPalette,
+    colors: colors,
     commentIcon: commentIcon,
     counter: counter,
     cross: cross,
@@ -10510,6 +10515,8 @@ var index$3 = /*#__PURE__*/Object.freeze({
     info_outline: info_outline,
     insertInGraph: insertInGraph,
     instancesIcon: instancesIcon,
+    keep: keep,
+    keepOff: keepOff,
     labelIcon: labelIcon,
     lite: lite,
     mastroEndpointIcon: mastroEndpointIcon,
@@ -10519,6 +10526,7 @@ var index$3 = /*#__PURE__*/Object.freeze({
     objectPropertyIcon: objectPropertyIcon,
     owl_icon: owl_icon,
     pathIcon: pathIcon,
+    playCircle: playCircle,
     plus: plus,
     protocol: protocol,
     range: range,
@@ -10549,7 +10557,6 @@ const BOTTOM_RIGHT_WIDGET = i$1 `bottom-right-widget`;
 var baseStyle = i$1 `
 *, :host {
   line-height: initial;
-  scrollbar-width: thin;
   pointer-events: auto;
 }
 
@@ -10619,7 +10626,6 @@ var baseStyle = i$1 `
 
 .gscape-panel-in-tray > .content-wrapper {
   overflow: hidden auto;
-  scrollbar-width: inherit;
   padding: 0px 8px;
   position: relative;
 }
@@ -10749,7 +10755,7 @@ var baseStyle = i$1 `
 
 .ellipsed, .ellipsed * {
   overflow-x: hidden;
-  text-overflow: ellipsis ellipsis;
+  text-overflow: ellipsis;
 }
 
 .rtl {
@@ -13027,8 +13033,8 @@ function init$9 (rendererSelector, grapholscape) {
     };
     grapholscape.on(LifecycleEvent.RendererChange, (newRendererState) => {
         rendererSelector.currentRendererStateKey = newRendererState;
-        if (newRendererState === RendererStatesEnum.FLOATY)
-            rendererSelector.layoutSettingsComponent.openPanel();
+        // if (newRendererState === RendererStatesEnum.FLOATY)
+        // rendererSelector.layoutSettingsComponent.openPanel()
     });
 }
 function rendererStateSelectionCallback(rendererState, grapholscape) {
@@ -13304,7 +13310,7 @@ class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(s)) {
         > 
           ${this.isPanelClosed()
             ? x `
-                <span slot="icon">${colorPalette}</span>
+                <span slot="icon">${colors}</span>
                 <span slot="trailing-icon">${plus}</span>
               `
             : x `<span slot="icon">${minus}</span>`}
@@ -13388,7 +13394,7 @@ function initEntityColorLegend(grapholscape) {
 function initEntityColorButton(grapholscape) {
     const colorButtonComponent = new GscapeButton();
     colorButtonComponent.asSwitch = true;
-    colorButtonComponent.appendChild(getIconSlot('icon', colorPalette));
+    colorButtonComponent.appendChild(getIconSlot('icon', colors));
     colorButtonComponent.style.order = '8';
     colorButtonComponent.style.marginTop = '10px';
     colorButtonComponent.title = 'Show Colors';
@@ -14127,6 +14133,147 @@ function initFitButton(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.FIT_BUTTON, fitButtonComponent);
 }
 
+class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(s)) {
+    constructor() {
+        super();
+        this.layoutRun = false;
+        this.dragAndPin = false;
+        this.originalPositions = false;
+        this.onLayoutRunToggle = () => { };
+        this.onDragAndPinToggle = () => { };
+        this.onUseOriginalPositions = () => { };
+        this.classList.add(BOTTOM_RIGHT_WIDGET.toString());
+    }
+    render() {
+        return x `
+      <gscape-button 
+        style="display: block"
+        type="subtle" 
+        as-switch 
+        @click="${this.layoutRunToggleHandler}"
+        ?active=${this.layoutRun}
+        title="${this.layoutRun ? 'Stop' : 'Run'} Layout"
+      >
+        <span slot="icon">${playCircle}</span>
+      </gscape-button>
+
+      <div class="hr"></div>
+
+      <gscape-button
+        style="display: block"
+        type="subtle"
+        as-switch
+        @click="${this.dragAndPinToggleHandler}"
+        ?active=${this.dragAndPin}
+        title="${this.dragAndPin ? 'Disable' : 'Enable'} Node Pinning"
+      >
+        <span slot="icon">${keep}</span>
+      </gscape-button>
+    `;
+    }
+    layoutRunToggleHandler(e) {
+        e.preventDefault();
+        this.onLayoutRunToggle();
+    }
+    dragAndPinToggleHandler(e) {
+        e.preventDefault();
+        this.onDragAndPinToggle();
+    }
+}
+GscapeLayoutSettings.properties = {
+    layoutRun: { type: Boolean, attribute: false },
+    dragAndPin: { type: Boolean, attribute: false },
+    originalPositions: { type: Boolean, attribute: false },
+};
+GscapeLayoutSettings.styles = [
+    baseStyle,
+    i$1 `
+      :host {
+        order: 9;
+        margin-top:10px;
+      }
+
+      gscape-toggle {
+        padding: 8px;
+      }
+
+      .toggles-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+    `,
+];
+customElements.define('gscape-layout-settings', GscapeLayoutSettings);
+
+/**
+ *
+ * @param {import('./layout-settings').default} layoutSettingsComponent
+ * @param {import('../../../grapholscape').default} grapholscape
+ */
+function init$4 (layoutSettingsComponent, grapholscape) {
+    if (grapholscape.renderState)
+        updateToggles(grapholscape.renderState);
+    layoutSettingsComponent.onLayoutRunToggle = () => {
+        if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
+            grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
+            return;
+        const renderer = grapholscape.renderer.renderState;
+        // if (!grapholscape.renderer.layoutStopped) {
+        //   layoutSettingsComponent.useOriginalPositionsToggle.state = false
+        //   grapholscape.renderer.useOriginalPositions = false
+        // }
+        if (renderer.isLayoutInfinite) {
+            renderer.stopLayout();
+        }
+        else {
+            renderer.runLayoutInfinitely();
+        }
+        updateToggles(renderer.id);
+    };
+    layoutSettingsComponent.onDragAndPinToggle = () => {
+        if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
+            grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
+            return;
+        const renderer = grapholscape.renderer.renderState;
+        renderer.dragAndPin = !renderer.dragAndPin;
+        updateToggles(renderer.id);
+    };
+    grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
+        updateToggles(rendererState);
+        if (rendererState !== RendererStatesEnum.FLOATY && rendererState !== RendererStatesEnum.INCREMENTAL) {
+            layoutSettingsComponent.disable();
+        }
+        else {
+            layoutSettingsComponent.enable();
+        }
+    });
+    function updateToggles(renderState) {
+        if (renderState === RendererStatesEnum.FLOATY ||
+            grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
+            const renderer = grapholscape.renderer.renderState;
+            layoutSettingsComponent.layoutRun = renderer.isLayoutInfinite;
+            layoutSettingsComponent.dragAndPin = renderer.dragAndPin;
+        }
+    }
+    // layoutSettingsComponent.onUseOriginalPositions = () => {
+    //   if (!grapholscape.renderer.useOriginalPositions) {
+    //     layoutSettingsComponent.layoutRunToggle.state = false
+    //     grapholscape.renderer.layoutStopped = true
+    //   }
+    //   grapholscape.renderer.useOriginalPositions = !grapholscape.renderer.useOriginalPositions
+    // }
+}
+
+/**
+ * @param {import('../../grapholscape').default} grapholscape
+ */
+function initLayoutSettings(grapholscape) {
+    const layoutSettingsComponent = new GscapeLayoutSettings();
+    init$4(layoutSettingsComponent, grapholscape);
+    grapholscape.widgets.set(WidgetEnum.LAYOUT_SETTINGS, layoutSettingsComponent);
+    return layoutSettingsComponent;
+}
+
 /**
  * @param {import('../../grapholscape').default} grapholscape
  */
@@ -14320,7 +14467,7 @@ GscapeExplorer.styles = [
 ];
 customElements.define('gscape-explorer', GscapeExplorer);
 
-function init$4 (ontologyExplorerComponent, grapholscape) {
+function init$3 (ontologyExplorerComponent, grapholscape) {
     ontologyExplorerComponent.onNodeNavigation = (elementId, diagramId) => {
         grapholscape.centerOnElement(elementId, diagramId, 1.2);
         grapholscape.selectElement(elementId);
@@ -14355,7 +14502,7 @@ function init$4 (ontologyExplorerComponent, grapholscape) {
  */
 function initOntologyExplorer(grapholscape) {
     const ontologyExplorerComponent = new GscapeExplorer();
-    init$4(ontologyExplorerComponent, grapholscape);
+    init$3(ontologyExplorerComponent, grapholscape);
     grapholscape.widgets.set(WidgetEnum.ONTOLOGY_EXPLORER, ontologyExplorerComponent);
 }
 
@@ -15112,7 +15259,7 @@ class GrapholToOwlTranslator {
     }
 }
 
-function init$3 (owlVisualizerComponent, grapholscape) {
+function init$2 (owlVisualizerComponent, grapholscape) {
     grapholscape.on(LifecycleEvent.NodeSelection, node => {
         var _a;
         showOwlTranslation((_a = grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.$id(node.id));
@@ -15253,7 +15400,7 @@ customElements.define('gscape-owl-visualizer', GscapeOwlVisualizer);
 
 function initOwlVisualizer(grapholscape) {
     const owlVisualizerComponent = new GscapeOwlVisualizer();
-    init$3(owlVisualizerComponent, grapholscape);
+    init$2(owlVisualizerComponent, grapholscape);
     grapholscape.widgets.set(WidgetEnum.OWL_VISUALIZER, owlVisualizerComponent);
 }
 
@@ -15267,18 +15414,11 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
     render() {
         var _a;
         return x `
-      ${this.currentRendererStateKey === RendererStatesEnum.FLOATY ||
-            this.currentRendererStateKey === RendererStatesEnum.INCREMENTAL
+      ${this.currentRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
             ? x `
-          ${this.currentRendererStateKey === RendererStatesEnum.INCREMENTAL && this.onIncrementalReset
-                ? x `
-              <gscape-button @click=${this.onIncrementalReset} type="subtle" title="Restart Incremental Exploration">
-                <span slot="icon">${refresh}</span>
-              </gscape-button>
-              <div class="hr"></div>
-            `
-                : null}
-          ${this.layoutSettingsComponent}
+          <gscape-button @click=${this.onIncrementalReset} type="subtle" title="Restart Incremental Exploration">
+            <span slot="icon">${refresh}</span>
+          </gscape-button>
           <div class="hr"></div>
         `
             : null}
@@ -15290,18 +15430,18 @@ class GscapeRenderSelector extends DropPanelMixin(BaseMixin(s)) {
       <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
-      ${this.rendererStates.map(rendererState => {
+          ${this.rendererStates.map(rendererState => {
             if (rendererState) {
                 return x `
-                <gscape-action-list-item
-                  @click=${this.rendererSelectionHandler}
-                  label="${rendererState.name}"
-                  renderer-state="${rendererState.id}"
-                  ?selected = "${this.currentRendererState === rendererState}"
-                >
-                  <span slot="icon">${rendererState.icon}</span>
-                </gscape-action-list-item>
-              `;
+                  <gscape-action-list-item
+                    @click=${this.rendererSelectionHandler}
+                    label="${rendererState.name}"
+                    renderer-state="${rendererState.id}"
+                    ?selected = "${this.currentRendererState === rendererState}"
+                  >
+                    <span slot="icon">${rendererState.icon}</span>
+                  </gscape-action-list-item>
+                `;
             }
         })}
         </div>
@@ -15331,152 +15471,14 @@ GscapeRenderSelector.styles = [
 ];
 customElements.define('gscape-render-selector', GscapeRenderSelector);
 
-class GscapeLayoutSettings extends DropPanelMixin(BaseMixin(s)) {
-    constructor() {
-        super();
-        this.layoutRun = false;
-        this.dragAndPin = false;
-        this.originalPositions = false;
-        this.onLayoutRunToggle = () => { };
-        this.onDragAndPinToggle = () => { };
-        this.onUseOriginalPositions = () => { };
-    }
-    render() {
-        return x `
-      <gscape-button type="subtle" @click="${this.togglePanel}">
-        <span slot="icon">${settings_play}</span>
-      </gscape-button>
-
-      <div id="drop-panel" class="hide gscape-panel gscape-panel-in-tray hanging">
-        <div class="header">Layout Settings</div>
-        <div class="toggles-wrapper">
-
-          <gscape-toggle
-            class="actionable"
-            @click = ${this.layoutRunToggleHandler}
-            key = "layout-run"
-            label = "Layout run"
-            ?checked = ${this.layoutRun}
-          ></gscape-toggle>
-
-          <gscape-toggle
-            class="actionable"
-            @click = ${this.dragAndPinToggleHandler}
-            key = "drag-and-pin"
-            label = "Drag and pin"
-            ?checked = ${this.dragAndPin}
-          ></gscape-toggle>
-
-        </div>
-      </div>
-    `;
-    }
-    layoutRunToggleHandler(e) {
-        e.preventDefault();
-        this.onLayoutRunToggle();
-    }
-    dragAndPinToggleHandler(e) {
-        e.preventDefault();
-        this.onDragAndPinToggle();
-    }
-}
-GscapeLayoutSettings.properties = {
-    layoutRun: { type: Boolean, attribute: false },
-    dragAndPin: { type: Boolean, attribute: false },
-    originalPositions: { type: Boolean, attribute: false },
-};
-GscapeLayoutSettings.styles = [
-    baseStyle,
-    i$1 `
-      :host {
-        box-shadow: initial;
-        position: initial;
-      }
-
-      gscape-toggle {
-        padding: 8px;
-      }
-
-      .toggles-wrapper {
-        display: flex;
-        flex-direction: column;
-      }
-    `,
-];
-customElements.define('gscape-layout-settings', GscapeLayoutSettings);
-
-/**
- *
- * @param {import('./layout-settings').default} layoutSettingsComponent
- * @param {import('../../../grapholscape').default} grapholscape
- */
-function init$2 (layoutSettingsComponent, grapholscape) {
-    if (grapholscape.renderState)
-        updateToggles(grapholscape.renderState);
-    layoutSettingsComponent.onLayoutRunToggle = () => {
-        if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
-            grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
-            return;
-        const renderer = grapholscape.renderer.renderState;
-        // if (!grapholscape.renderer.layoutStopped) {
-        //   layoutSettingsComponent.useOriginalPositionsToggle.state = false
-        //   grapholscape.renderer.useOriginalPositions = false
-        // }
-        if (renderer.isLayoutInfinite) {
-            renderer.stopLayout();
-        }
-        else {
-            renderer.runLayoutInfinitely();
-        }
-        updateToggles(renderer.id);
-    };
-    layoutSettingsComponent.onDragAndPinToggle = () => {
-        if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
-            grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
-            return;
-        const renderer = grapholscape.renderer.renderState;
-        renderer.dragAndPin = !renderer.dragAndPin;
-        updateToggles(renderer.id);
-    };
-    grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
-        updateToggles(rendererState);
-    });
-    function updateToggles(renderState) {
-        if (renderState === RendererStatesEnum.FLOATY ||
-            grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
-            const renderer = grapholscape.renderer.renderState;
-            layoutSettingsComponent.layoutRun = renderer.isLayoutInfinite;
-            layoutSettingsComponent.dragAndPin = renderer.dragAndPin;
-        }
-    }
-    // layoutSettingsComponent.onUseOriginalPositions = () => {
-    //   if (!grapholscape.renderer.useOriginalPositions) {
-    //     layoutSettingsComponent.layoutRunToggle.state = false
-    //     grapholscape.renderer.layoutStopped = true
-    //   }
-    //   grapholscape.renderer.useOriginalPositions = !grapholscape.renderer.useOriginalPositions
-    // }
-}
-
-/**
- * @param {import('../../grapholscape').default} grapholscape
- */
-function initLayoutSettings(grapholscape) {
-    const layoutSettingsComponent = new GscapeLayoutSettings();
-    init$2(layoutSettingsComponent, grapholscape);
-    return layoutSettingsComponent;
-}
-
 /**
  * @param {import('../../grapholscape').default} grapholscape
  */
 function initRendererSelector(grapholscape) {
     const rendererSelectorComponent = new GscapeRenderSelector();
     init$9(rendererSelectorComponent, grapholscape);
-    rendererSelectorComponent.layoutSettingsComponent = initLayoutSettings(grapholscape);
     rendererSelectorComponent.requestUpdate();
     grapholscape.widgets.set(WidgetEnum.RENDERER_SELECTOR, rendererSelectorComponent);
-    grapholscape.widgets.set(WidgetEnum.LAYOUT_SETTINGS, rendererSelectorComponent.layoutSettingsComponent);
 }
 
 var settingsStyle = i$1 `
@@ -15579,7 +15581,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.5"}</span>
+            <span>${"4.0.6"}</span>
           </div>
         </div>
       </div>
@@ -15797,6 +15799,7 @@ function init (grapholscape) {
     initSettings(grapholscape);
     // initEntitySelector(grapholscape)
     initRendererSelector(grapholscape);
+    initLayoutSettings(grapholscape);
     initInitialRendererSelector(grapholscape);
     initColors(grapholscape);
     grapholscape.widgets.get(WidgetEnum.SETTINGS);
@@ -15812,8 +15815,6 @@ function init (grapholscape) {
             case WidgetEnum.ENTITY_SELECTOR:
             case WidgetEnum.ENTITY_COLOR_LEGEND:
                 guiContainer.appendChild(widget);
-                break;
-            case WidgetEnum.LAYOUT_SETTINGS:
                 break;
             case WidgetEnum.INITIAL_RENDERER_SELECTOR:
                 grapholscape.container.appendChild(widget);
