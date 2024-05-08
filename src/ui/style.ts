@@ -125,7 +125,7 @@ export default css`
   top: 100%;
   animation-name: drop-down;
   animation-duration: ${animationDuration};
-  z-index: 0;
+  z-index: 999;
 }
 
 @keyframes drop-down {

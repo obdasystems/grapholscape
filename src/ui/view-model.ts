@@ -1,5 +1,5 @@
 import { DiagramViewData, OccurrenceIdViewData } from "."
-import { AnnotatedElement, Iri, TypesEnum } from "../model"
+import { GrapholEntity, TypesEnum } from "../model"
 
 export type ViewObjectProperty = EntityViewData & {
   // objectProperty: EntityViewData,
@@ -14,7 +14,7 @@ export type ViewObjectProperty = EntityViewData & {
 
 export type EntityViewData = {
   displayedName: string,
-  value: { iri: Iri, types: TypesEnum[] } & AnnotatedElement, // GrapholEntity is a compatible type
+  value: GrapholEntity,
   viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>,
   disabled?: boolean,
   loading?: boolean,

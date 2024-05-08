@@ -18,7 +18,6 @@ export type SelectOption = {
 export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) {
   private readonly PLACEHOLDER_ID = '!PLACEHOLDER!'
   defaultIcon: SVGTemplateResult
-  selectedOptionsId: Set<string> = new Set()
   defaultOptionId?: string
   options: SelectOption[] = []
   size: SizeEnum = SizeEnum.S
@@ -29,13 +28,14 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     id: this.PLACEHOLDER_ID,
     text: 'Select'
   }
+  private _selectedOptionsId: Set<string> = new Set()
   onSelection: (optionId: string) => void = () => { }
   
   static properties: PropertyDeclarations = {
     options: { type: Object },
-    selectedOptionsId: { type: String, attribute: 'selected-options', reflect: true },
+    selectedOptionsId: { type: Array, reflect: true },
     defaultOptionId: { type: String, attribute: 'default-option' },
-    placeHolder: { type: Object, attribute: 'placeholder' },
+    placeholder: { type: String },
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },
     clearable: { type: Boolean },
@@ -111,7 +111,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
         if (targetItem.selected) {
           // UNSELECT
           if (this.clearable) {
-            this.selectedOptionsId.delete(targetItem.id)
+            this._selectedOptionsId.delete(targetItem.id)
             this.requestUpdate()
             this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
           }
@@ -119,9 +119,9 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
           // SELECT
           if (!this.multipleSelection) {
             this.closePanel()
-            this.selectedOptionsId.clear()
+            this._selectedOptionsId.clear()
           }
-          this.selectedOptionsId.add(targetItem.id)
+          this._selectedOptionsId.add(targetItem.id)
           this.requestUpdate()
           this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
         }
@@ -143,33 +143,42 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   }
 
   clear() {
-    this.selectedOptionsId.clear()
+    this._selectedOptionsId.clear()
     this.closePanel()
     this.requestUpdate()
     this.updateComplete.then(() => this.dispatchEvent(new Event('change')))
   }
 
   private isSelectionEmpty() {
-    return this.selectedOptionsId.size === 0
+    return this._selectedOptionsId.size === 0
   }
 
   private isIdSelected(id: string) {
-    return this.selectedOptionsId.has(id)
+    return this._selectedOptionsId.has(id)
   }
 
   get selectedOptions() {
     return this.options.filter(o => this.isIdSelected(o.id))
   }
 
-  get defaultOption() {
-    return this.options.find(o => o.id === this.defaultOptionId) || this.placeholder
+  get selectedOptionsId() {
+    return Array.from(this._selectedOptionsId)
   }
 
-  get placeholder() { return this._placeholder }
+  set selectedOptionsId(newSelectedOptionsId) {
+    this._selectedOptionsId = new Set(newSelectedOptionsId)
+  }
+
+  get defaultOption() {
+    return this.options.find(o => o.id === this.defaultOptionId) || this._placeholder
+  }
+
+  get placeholder() { return this._placeholder.text }
 
   set placeholder(placeHolder) {
-    this._placeholder = placeHolder
-    this._placeholder.id = this.PLACEHOLDER_ID
+    this._placeholder.text = placeHolder
+    this.requestUpdate()
+    // this._placeholder.id = this.PLACEHOLDER_ID
   }
 }
 
