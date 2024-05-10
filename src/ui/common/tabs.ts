@@ -36,6 +36,7 @@ export default class GscapeTabs extends LitElement {
       }
 
       .tab-wrapper {
+        flex-grow: 1;
         padding-bottom: 4px;
       }
 
