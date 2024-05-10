@@ -43,7 +43,7 @@ export default class GscapeEntityListItem extends LitElement {
   render() {
     return this.asAccordion
       ? html`
-        <details title=${this.displayedName} class="ellipsed entity-list-item" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
+        <details title=${this.displayedName} class="ellipsed entity-list-item" style="overflow: inherit" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
           <summary class="actionable" @click=${this.handleDetailsClick}>
             ${this.iconNameSlotTemplate()}
           </summary>
