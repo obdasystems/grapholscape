@@ -83,7 +83,7 @@ var WidgetEnum;
     WidgetEnum["INITIAL_RENDERER_SELECTOR"] = "initial-renderer-selector";
     WidgetEnum["ENTITY_COLOR_LEGEND"] = "entity-color-legend";
     WidgetEnum["COLOR_BUTTON"] = "color-button";
-    /** @internal */
+    WidgetEnum["INCREMENTAL_FILTERS"] = "incremental-filters";
     WidgetEnum["INCREMENTAL_ENTITY_DETAILS"] = "class-instance-details";
     /** @internal */
     WidgetEnum["INSTANCES_EXPLORER"] = "instances-explorer";
@@ -10676,7 +10676,7 @@ var baseStyle = i$1 `
   top: 100%;
   animation-name: drop-down;
   animation-duration: ${animationDuration};
-  z-index: 0;
+  z-index: 999;
 }
 
 @keyframes drop-down {
@@ -11794,7 +11794,7 @@ class GscapeEntityListItem extends s {
     render() {
         return this.asAccordion
             ? x `
-        <details title=${this.displayedName} class="ellipsed entity-list-item" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
+        <details title=${this.displayedName} class="ellipsed entity-list-item" style="overflow: inherit" ?open=${this.isAccordionOpen || false} ?disabled=${this.disabled}>
           <summary class="actionable" @click=${this.handleDetailsClick}>
             ${this.iconNameSlotTemplate()}
           </summary>
@@ -12473,7 +12473,6 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
         this.PLACEHOLDER_ID = '!PLACEHOLDER!';
-        this.selectedOptionsId = new Set();
         this.options = [];
         this.size = SizeEnum.S;
         this.clearable = false;
@@ -12482,6 +12481,7 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
             id: this.PLACEHOLDER_ID,
             text: 'Select'
         };
+        this._selectedOptionsId = new Set();
         this.onSelection = () => { };
     }
     render() {
@@ -12527,7 +12527,7 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
                 if (targetItem.selected) {
                     // UNSELECT
                     if (this.clearable) {
-                        this.selectedOptionsId.delete(targetItem.id);
+                        this._selectedOptionsId.delete(targetItem.id);
                         this.requestUpdate();
                         this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
                     }
@@ -12536,9 +12536,9 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
                     // SELECT
                     if (!this.multipleSelection) {
                         this.closePanel();
-                        this.selectedOptionsId.clear();
+                        this._selectedOptionsId.clear();
                     }
-                    this.selectedOptionsId.add(targetItem.id);
+                    this._selectedOptionsId.add(targetItem.id);
                     this.requestUpdate();
                     this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
                 }
@@ -12559,34 +12559,41 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
     `;
     }
     clear() {
-        this.selectedOptionsId.clear();
+        this._selectedOptionsId.clear();
         this.closePanel();
         this.requestUpdate();
         this.updateComplete.then(() => this.dispatchEvent(new Event('change')));
     }
     isSelectionEmpty() {
-        return this.selectedOptionsId.size === 0;
+        return this._selectedOptionsId.size === 0;
     }
     isIdSelected(id) {
-        return this.selectedOptionsId.has(id);
+        return this._selectedOptionsId.has(id);
     }
     get selectedOptions() {
         return this.options.filter(o => this.isIdSelected(o.id));
     }
-    get defaultOption() {
-        return this.options.find(o => o.id === this.defaultOptionId) || this.placeholder;
+    get selectedOptionsId() {
+        return Array.from(this._selectedOptionsId);
     }
-    get placeholder() { return this._placeholder; }
+    set selectedOptionsId(newSelectedOptionsId) {
+        this._selectedOptionsId = new Set(newSelectedOptionsId);
+    }
+    get defaultOption() {
+        return this.options.find(o => o.id === this.defaultOptionId) || this._placeholder;
+    }
+    get placeholder() { return this._placeholder.text; }
     set placeholder(placeHolder) {
-        this._placeholder = placeHolder;
-        this._placeholder.id = this.PLACEHOLDER_ID;
+        this._placeholder.text = placeHolder;
+        this.requestUpdate();
+        // this._placeholder.id = this.PLACEHOLDER_ID
     }
 }
 GscapeSelect.properties = {
     options: { type: Object },
-    selectedOptionsId: { type: String, attribute: 'selected-options', reflect: true },
+    selectedOptionsId: { type: Array, reflect: true },
     defaultOptionId: { type: String, attribute: 'default-option' },
-    placeHolder: { type: Object, attribute: 'placeholder' },
+    placeholder: { type: String },
     onSelection: { type: Object, attribute: 'onselection' },
     size: { type: String },
     clearable: { type: Boolean },
@@ -13281,7 +13288,7 @@ function initDiagramSelector(grapholscape) {
     grapholscape.widgets.set(WidgetEnum.DIAGRAM_SELECTOR, diagramSelectorComponent);
 }
 
-class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(s)) {
+class GscapeEntityColorLegend extends BaseMixin(s) {
     constructor() {
         super(...arguments);
         this.title = 'Color Legend';
@@ -13295,6 +13302,74 @@ class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(s)) {
             if (elem)
                 this.onElementSelection(elem);
         }
+    }
+    render() {
+        return x `
+      ${this.elements.length > 0
+            ? x `
+          <div class="list">
+            ${this.elements.map(element => {
+                return x `
+                <gscape-entity-list-item
+                  id=${element.id}
+                  @click=${this.handleElemClick}
+                  iri=${element.iri}
+                  displayedName=${element.displayedName}
+                  color=${element.color}
+                  ?filtered=${element.filtered}
+                  actionable
+                ></gscape-entity-list-item>
+              `;
+            })}  
+          </div>
+        `
+            : x `
+          <div class="blank-slate">
+            ${searchOff}
+            <div class="header">No Classes</div>
+            <div class="description">Current diagram has no classes or instances displayed in it.</div>
+          </div>
+        `}
+    `;
+    }
+}
+GscapeEntityColorLegend.properties = {
+    elements: { type: Array },
+};
+GscapeEntityColorLegend.styles = [
+    baseStyle,
+    i$1 `
+      :host {
+        display: block;
+      }
+
+      .gscape-panel {
+        max-height: unset;
+        max-width: unset;
+      }
+
+      ul {
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        list-style: none;
+      }
+
+      gscape-entity-list-item[filtered] {
+        opacity: 0.4;
+      }
+    `
+];
+customElements.define('gscape-entity-color-legend', GscapeEntityColorLegend);
+
+class GscapeIncrementalFilters extends DropPanelMixin(BaseMixin(s)) {
+    constructor(entityColorLegend) {
+        super();
+        this.entityColorLegend = entityColorLegend;
+        this.title = 'Color Legend';
+        this.isDefaultClosed = false;
     }
     // override blur to avoid collapsing when clicking on cytoscape's canvas
     blur() { }
@@ -13319,39 +13394,12 @@ class GscapeEntityColorLegend extends DropPanelMixin(BaseMixin(s)) {
 
 
       <div id="drop-panel" class="gscape-panel">
-        ${this.elements.length > 0
-            ? x `
-            <div class="list">
-              ${this.elements.map(element => {
-                return x `
-                  <gscape-entity-list-item
-                    id=${element.id}
-                    @click=${this.handleElemClick}
-                    iri=${element.iri}
-                    displayedName=${element.displayedName}
-                    color=${element.color}
-                    ?filtered=${element.filtered}
-                    actionable
-                  ></gscape-entity-list-item>
-                `;
-            })}  
-            </div>
-          `
-            : x `
-            <div class="blank-slate">
-              ${searchOff}
-              <div class="header">No Classes</div>
-              <div class="description">Current diagram has no classes or instances displayed in it.</div>
-            </div>
-          `}
+        ${this.entityColorLegend}
       </div>
     `;
     }
 }
-GscapeEntityColorLegend.properties = {
-    elements: { type: Array },
-};
-GscapeEntityColorLegend.styles = [
+GscapeIncrementalFilters.styles = [
     baseStyle,
     i$1 `
       :host {
@@ -13362,33 +13410,17 @@ GscapeEntityColorLegend.styles = [
         max-width: 20%;
         display: flex;
       }
-
-      .gscape-panel {
-        max-height: unset;
-        max-width: unset;
-      }
-
-      ul {
-        margin: 0;
-        padding: 0;
-      }
-
-      li {
-        list-style: none;
-      }
-
-      gscape-entity-list-item[filtered] {
-        opacity: 0.4;
-      }
     `
 ];
-customElements.define('gscape-entity-color-legend', GscapeEntityColorLegend);
+customElements.define('gscape-incremental-filters', GscapeIncrementalFilters);
 
 function initEntityColorLegend(grapholscape) {
     const entityColorLegend = new GscapeEntityColorLegend();
+    const incrementalFilters = new GscapeIncrementalFilters(entityColorLegend);
     entityColorLegend['_previous_callback'] = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5);
     entityColorLegend.onElementSelection = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5);
     grapholscape.widgets.set(WidgetEnum.ENTITY_COLOR_LEGEND, entityColorLegend);
+    grapholscape.widgets.set(WidgetEnum.INCREMENTAL_FILTERS, incrementalFilters);
     return entityColorLegend;
 }
 function initEntityColorButton(grapholscape) {
@@ -15588,7 +15620,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.7"}</span>
+            <span>${"4.0.8"}</span>
           </div>
         </div>
       </div>
@@ -15820,7 +15852,7 @@ function init (grapholscape) {
             case WidgetEnum.ENTITY_DETAILS:
             case WidgetEnum.OWL_VISUALIZER:
             case WidgetEnum.ENTITY_SELECTOR:
-            case WidgetEnum.ENTITY_COLOR_LEGEND:
+            case WidgetEnum.INCREMENTAL_FILTERS:
                 guiContainer.appendChild(widget);
                 break;
             case WidgetEnum.INITIAL_RENDERER_SELECTOR:
@@ -15916,6 +15948,7 @@ GscapeTabs.styles = [
       }
 
       .tab-wrapper {
+        flex-grow: 1;
         padding-bottom: 4px;
       }
 

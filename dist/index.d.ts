@@ -4309,10 +4309,7 @@ type ViewObjectProperty = EntityViewData & {
 };
 type EntityViewData = {
     displayedName: string;
-    value: {
-        iri: Iri;
-        types: TypesEnum[];
-    } & AnnotatedElement;
+    value: GrapholEntity;
     viewOccurrences?: Map<DiagramViewData, OccurrenceIdViewData[]>;
     disabled?: boolean;
     loading?: boolean;
@@ -4439,13 +4436,13 @@ declare const GscapeSelect_base: (new (...args: any[]) => IDropPanelMixin) & (ne
 declare class GscapeSelect extends GscapeSelect_base {
     private readonly PLACEHOLDER_ID;
     defaultIcon: SVGTemplateResult;
-    selectedOptionsId: Set<string>;
     defaultOptionId?: string;
     options: SelectOption[];
     size: SizeEnum;
     clearable: boolean;
     multipleSelection: boolean;
     private _placeholder;
+    private _selectedOptionsId;
     onSelection: (optionId: string) => void;
     static properties: PropertyDeclarations;
     static styles: lit.CSSResult[];
@@ -4456,9 +4453,11 @@ declare class GscapeSelect extends GscapeSelect_base {
     private isSelectionEmpty;
     private isIdSelected;
     get selectedOptions(): SelectOption[];
+    get selectedOptionsId(): string[];
+    set selectedOptionsId(newSelectedOptionsId: string[]);
     get defaultOption(): SelectOption;
-    get placeholder(): SelectOption;
-    set placeholder(placeHolder: SelectOption);
+    get placeholder(): string;
+    set placeholder(placeHolder: string);
 }
 
 interface IEntitySelector {
@@ -4569,7 +4568,7 @@ declare enum WidgetEnum {
     INITIAL_RENDERER_SELECTOR = "initial-renderer-selector",
     ENTITY_COLOR_LEGEND = "entity-color-legend",
     COLOR_BUTTON = "color-button",
-    /** @internal */
+    INCREMENTAL_FILTERS = "incremental-filters",
     INCREMENTAL_ENTITY_DETAILS = "class-instance-details",
     /** @internal */
     INSTANCES_EXPLORER = "instances-explorer",
@@ -4676,7 +4675,7 @@ type ClassWithColor = {
     color?: string;
     filtered: boolean;
 };
-declare const GscapeEntityColorLegend_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
+declare const GscapeEntityColorLegend_base: (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeEntityColorLegend extends GscapeEntityColorLegend_base {
     title: string;
     elements: ClassWithColor[];
@@ -4685,7 +4684,6 @@ declare class GscapeEntityColorLegend extends GscapeEntityColorLegend_base {
     static properties: PropertyDeclarations;
     static styles?: CSSResultGroup | undefined;
     private handleElemClick;
-    blur(): void;
     render(): lit_html.TemplateResult<1>;
 }
 
