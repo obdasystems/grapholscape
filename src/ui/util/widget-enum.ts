@@ -15,7 +15,7 @@ export enum WidgetEnum {
   INITIAL_RENDERER_SELECTOR = 'initial-renderer-selector',
   ENTITY_COLOR_LEGEND = 'entity-color-legend',
   COLOR_BUTTON = 'color-button',
-  /** @internal */
+  INCREMENTAL_FILTERS = 'incremental-filters',
   INCREMENTAL_ENTITY_DETAILS = 'class-instance-details',
   /** @internal */
   INSTANCES_EXPLORER = 'instances-explorer',

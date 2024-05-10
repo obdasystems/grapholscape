@@ -65,7 +65,7 @@ export default function (grapholscape: Grapholscape) {
       case WidgetEnum.ENTITY_DETAILS:
       case WidgetEnum.OWL_VISUALIZER:
       case WidgetEnum.ENTITY_SELECTOR:
-      case WidgetEnum.ENTITY_COLOR_LEGEND:
+      case WidgetEnum.INCREMENTAL_FILTERS:
         guiContainer.appendChild(widget)
         break
       

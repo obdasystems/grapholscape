@@ -5,16 +5,18 @@ import { GscapeButton } from "../common/button";
 import getIconSlot from "../util/get-icon-slot";
 import { WidgetEnum } from "../util/widget-enum";
 import GscapeEntityColorLegend, { ClassWithColor } from "./entity-color-legend";
+import GscapeIncrementalFilters from "./incremental-filters";
 
 export { GscapeEntityColorLegend, ClassWithColor };
 
 function initEntityColorLegend(grapholscape: Grapholscape) {
   const entityColorLegend = new GscapeEntityColorLegend()
-
+  const incrementalFilters = new GscapeIncrementalFilters(entityColorLegend)
   entityColorLegend['_previous_callback'] = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5)
   entityColorLegend.onElementSelection = (elem) => grapholscape.selectEntity(elem.iri, grapholscape.diagramId, 1.5)
  
   grapholscape.widgets.set(WidgetEnum.ENTITY_COLOR_LEGEND, entityColorLegend)
+  grapholscape.widgets.set(WidgetEnum.INCREMENTAL_FILTERS, incrementalFilters)
 
   return entityColorLegend
 }
