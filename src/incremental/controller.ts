@@ -1,13 +1,13 @@
-import { EdgeSingular, SingularElementReturnValue } from "cytoscape";
-import { Grapholscape, OntologyColorManager } from "../core";
-import { Annotation, GrapholEdge, GrapholElement, GrapholEntity, Hierarchy, RendererStatesEnum, TypesEnum } from "../model";
+import { SingularElementReturnValue } from "cytoscape";
+import { Grapholscape } from "../core";
+import { Annotation, GrapholElement, GrapholEntity, RendererStatesEnum, TypesEnum } from "../model";
 import { Command, NodeButton } from "../ui";
 import IncrementalBase, { IncrementalHighlights } from "./i-incremental";
 import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbourhood-finder";
 import * as IncrementalCommands from './ui/commands-widget/commands';
 import { initIncrementalUI } from './ui'
 import { IncrementalEvent } from "./lifecycle";
-import { individualIcon, objectPropertyIcon, pathIcon } from "../ui/assets";
+import { individualIcon, objectPropertyIcon } from "../ui/assets";
 // import individualButtonHandler from "./individual-button-handler";
 import objectPropertyButtonHandler from "./object-property-button-handler";
 
@@ -185,22 +185,29 @@ export default class IncrementalController extends IncrementalBase {
       }
     }
 
-    commands.push(IncrementalCommands.remove(() => {
-      if (grapholElement.iri) {
-        const entity = this.grapholscape.ontology.getEntity(grapholElement.iri)
-        if (entity) {
-          if (grapholElement.is(TypesEnum.OBJECT_PROPERTY)) {
-            const grapholOccurrence = this.diagram.representation?.grapholElements.get(grapholElement.id)
-            if (grapholOccurrence) {
-              entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+    const selectedElems = this.diagram.representation?.cy.$(':selected[?iri]')
+    let elemsToBeRemoved = cyElement
+    if (selectedElems && selectedElems.size() > 1) {
+      elemsToBeRemoved = selectedElems
+    }
+    commands.push(IncrementalCommands.remove(elemsToBeRemoved, () => {
+      elemsToBeRemoved.forEach(cyElem => {
+        if (cyElem.data().iri) {
+          const entity = this.grapholscape.ontology.getEntity(cyElem.data().iri)
+          if (entity) {
+            if (cyElem.data().type === TypesEnum.OBJECT_PROPERTY) {
+              const grapholOccurrence = this.diagram.representation?.grapholElements.get(cyElem.id())
+              if (grapholOccurrence) {
+                entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL)
+              }
+              this.diagram.removeElement(cyElem.id())
+              this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
+            } else {
+              this.removeEntity(entity)
             }
-            this.diagram.removeElement(grapholElement.id)
-            this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)
-          } else {
-            this.removeEntity(entity)
           }
         }
-      }
+      })
     }))
 
     return commands

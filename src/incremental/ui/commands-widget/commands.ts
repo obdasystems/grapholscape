@@ -1,3 +1,4 @@
+import { CollectionReturnValue, SingularElementReturnValue } from "cytoscape";
 import { classIcon, equivalentClasses, individualIcon, objectPropertyIcon, rubbishBin, subHierarchies, superHierarchies } from "../../../ui/assets";
 import { Command } from "../../../ui/common/context-menu";
 
@@ -41,9 +42,9 @@ export function showHideEquivalentClasses(hide: boolean, callback: () => void): 
   }
 }
 
-export function remove(callback: () => void): Command {
+export function remove(elems: CollectionReturnValue | SingularElementReturnValue, callback: () => void): Command {
   return {
-    content: 'Remove',
+    content: `Remove${elems.size() > 1 ? ` ${elems.size()} elements` : ''}`,
     icon: rubbishBin,
     select: callback,
   }
