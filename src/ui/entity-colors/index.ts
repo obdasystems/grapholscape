@@ -82,12 +82,13 @@ export function setColorList(entityColorLegend: GscapeEntityColorLegend, graphol
 export default function initColors(grapholscape: Grapholscape) {
   const colorButtonComponent = initEntityColorButton(grapholscape)
   const entityColorLegend = initEntityColorLegend(grapholscape)
+  const incrementalFilters = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_FILTERS) as GscapeIncrementalFilters
   colorButtonComponent.onclick = () => {
     grapholscape.theme.useComputedColours = colorButtonComponent.active;
     (grapholscape.renderer.cy as any)?.updateStyle()
     colorButtonComponent.active
-      ? entityColorLegend.show()
-      : entityColorLegend.hide()
+      ? incrementalFilters.show()
+      : incrementalFilters.hide()
     setColorList(entityColorLegend, grapholscape)
   }
 
@@ -109,7 +110,7 @@ export default function initColors(grapholscape: Grapholscape) {
       colorButtonComponent.active = true
     } else {
       colorButtonComponent.hide()
-      entityColorLegend.hide()
+      incrementalFilters.hide()
       return
     }
 
@@ -117,8 +118,8 @@ export default function initColors(grapholscape: Grapholscape) {
     grapholscape.theme.useComputedColours = colorButtonComponent.active;
     (grapholscape.renderer.cy as any)?.updateStyle()
     colorButtonComponent.active
-      ? entityColorLegend.show()
-      : entityColorLegend.hide()
+      ? incrementalFilters.show()
+      : incrementalFilters.hide()
     setColorList(entityColorLegend, grapholscape)
   }
 
