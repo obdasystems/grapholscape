@@ -29,13 +29,18 @@ abstract class ColorManager {
     "YlOrRd"
   ];
 
-  protected getColors(numberOfColors: number) {
+  protected getColors(numberOfColors: number, usedScales: string[] = []) {
 
     if (numberOfColors <= 1) {
-      return [chroma.scale('Accent').mode('lab').colors(20)[Math.floor(Math.random() * 10)]]
+      return [chroma.random().hex()]
     }
 
-    const scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length)
+    let scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length)
+    while(usedScales.includes(ColorManager.brewerSequentialPalettes[scaleIndex]) && usedScales.length === ColorManager.brewerSequentialPalettes.length) {
+      scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length)
+    }
+    usedScales.push(ColorManager.brewerSequentialPalettes[scaleIndex])
+    console.log(ColorManager.brewerSequentialPalettes[scaleIndex])
 
     return chroma.scale(ColorManager.brewerSequentialPalettes[scaleIndex])
       .mode('lab')
@@ -101,7 +106,7 @@ export class OntologyColorManager extends ColorManager {
     const topSuperClass = this.getTopSuperClass(classEntity)
 
     const childrenClasses = this.getAllChildren(topSuperClass)
-    const colors = this.getColors(childrenClasses.size + 1)
+    const colors = this.getColors(childrenClasses.size + 1, this.ontology.usedColorScales)
 
     let i = 0
     for (let childClass of childrenClasses.values()) {

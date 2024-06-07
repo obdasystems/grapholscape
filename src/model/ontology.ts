@@ -25,6 +25,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   languages: string[] = []
   defaultLanguage?: string
   iri?: string
+  usedColorScales: string[] = []
 
   constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], annProperties: AnnotationProperty[] = [], diagrams: Diagram[] = []) {
     super()
