@@ -13,7 +13,7 @@ export default class Iri {
         return true
 
       for (let prefix of n.prefixes) {
-        if (iri === `${prefix}:${iri.split(':')[1]}`) {
+        if (iri === `${prefix}:${iri.split(':')[1]}` && !iri.startsWith('http://')) {
           isPrefixed = true
           return true
         }
