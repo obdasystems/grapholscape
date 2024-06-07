@@ -40,7 +40,6 @@ abstract class ColorManager {
       scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length)
     }
     usedScales.push(ColorManager.brewerSequentialPalettes[scaleIndex])
-    console.log(ColorManager.brewerSequentialPalettes[scaleIndex])
 
     return chroma.scale(ColorManager.brewerSequentialPalettes[scaleIndex])
       .mode('lab')
