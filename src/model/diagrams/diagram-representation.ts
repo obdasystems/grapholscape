@@ -16,7 +16,8 @@ export default class DiagramRepresentation {
   public lastViewportState?: Viewport
 
   constructor(cyConfig = cytoscapeDefaultConfig) {
-    this.cy = cytoscape(cyConfig)
+    this.cy = cytoscape(cyConfig);
+    (this.cy as any).autopanOnDrag().enable()
   }
 
   get cy() {

@@ -1,7 +1,5 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
-import edgehandles from 'cytoscape-edgehandles'
-import klay from 'cytoscape-klay'
 import popper from 'cytoscape-popper'
 import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
 import { Core, Grapholscape, OntologyColorManager } from './core'
@@ -13,13 +11,13 @@ import { RDFGraph, RDFGraphModelTypeEnum } from './model/rdf-graph/swagger'
 import GrapholParser from './parsing/parser'
 import parseRDFGraph, * as RDFGraphParser from './parsing/rdf-graph-parser'
 import * as UI from './ui'
+import autopan from "cytoscape-autopan-on-drag"
 
 
 cytoscape.use(popper)
 cytoscape.use(cola)
+autopan(cytoscape)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
-cytoscape.use(edgehandles)
-cytoscape.use(klay)
 
 export * from './config'
 export * from './core'
