@@ -24,14 +24,13 @@
 
 import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
-import edgehandles from 'cytoscape-edgehandles';
-import klay from 'cytoscape-klay';
 import popper from 'cytoscape-popper';
 import chroma from 'chroma-js';
 import cy_svg from 'cytoscape-svg';
 import automove from 'cytoscape-automove';
 import tippy from 'tippy.js';
 import '@lit-labs/virtualizer';
+import autopan from 'cytoscape-autopan-on-drag';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -261,7 +260,7 @@ class Iri {
             if (iri.includes(n.toString()))
                 return true;
             for (let prefix of n.prefixes) {
-                if (iri === `${prefix}:${iri.split(':')[1]}`) {
+                if (iri === `${prefix}:${iri.split(':')[1]}` && !iri.startsWith('http://')) {
                     isPrefixed = true;
                     return true;
                 }
@@ -3411,6 +3410,7 @@ class Ontology extends AnnotatedElement {
         this.annProperties = [];
         this.diagrams = [];
         this.languages = [];
+        this.usedColorScales = [];
         this._entities = new Map();
         // computed only in floaty
         this._hierarchies = new Map();
@@ -4237,6 +4237,8 @@ class DiagramRepresentation {
         this._grapholElements = new Map();
         this._hasEverBeenRendered = false;
         this.cy = cytoscape(cyConfig);
+        if (this.cy.autopanOnDrag)
+            this.cy.autopanOnDrag().enable();
     }
     get cy() {
         return this._cy;
@@ -5587,11 +5589,15 @@ class Hierarchy {
 }
 
 class ColorManager {
-    getColors(numberOfColors) {
+    getColors(numberOfColors, usedScales = []) {
         if (numberOfColors <= 1) {
-            return [chroma.scale('Accent').mode('lab').colors(20)[Math.floor(Math.random() * 10)]];
+            return [chroma.random().hex()];
         }
-        const scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length);
+        let scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length);
+        while (usedScales.includes(ColorManager.brewerSequentialPalettes[scaleIndex]) && usedScales.length === ColorManager.brewerSequentialPalettes.length) {
+            scaleIndex = Math.floor(Math.random() * ColorManager.brewerSequentialPalettes.length);
+        }
+        usedScales.push(ColorManager.brewerSequentialPalettes[scaleIndex]);
         return chroma.scale(ColorManager.brewerSequentialPalettes[scaleIndex])
             .mode('lab')
             .padding(numberOfColors > 10 ? 1 / numberOfColors : 0.2)
@@ -5664,7 +5670,7 @@ class OntologyColorManager extends ColorManager {
         }
         const topSuperClass = this.getTopSuperClass(classEntity);
         const childrenClasses = this.getAllChildren(topSuperClass);
-        const colors = this.getColors(childrenClasses.size + 1);
+        const colors = this.getColors(childrenClasses.size + 1, this.ontology.usedColorScales);
         let i = 0;
         for (let childClass of childrenClasses.values()) {
             childClass.color = colors[i];
@@ -12769,6 +12775,7 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin(s)) {
             isSearchTextEmpty: { type: Boolean, state: true },
             loading: { type: Boolean, state: true },
             onClassSelection: { type: Object },
+            classActions: { type: Array },
         };
     }
     constructor() {
@@ -12813,7 +12820,9 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin(s)) {
                 class="background-propagation"
                 style="min-height: 100%;"
                 .items=${this.entityList}
-                .renderItem=${(entityItem) => x `
+                .renderItem=${(entityItem) => {
+                    var _a;
+                    return x `
                   <gscape-entity-list-item
                     style="width:100%"
                     .types=${entityItem.value.types}
@@ -12825,17 +12834,33 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin(s)) {
                     @keypress=${this.handleKeyPressOnEntry.bind(this)}
                   >
                     <div slot="trailing-element" class="hover-btn">
-                      <gscape-button
-                        size="s"
-                        type="subtle"
-                        title="Insert in graph"
-                        @click=${this.handleEntitySelection.bind(this)}
-                      >
-                        ${getIconSlot('icon', insertInGraph)}
-                      </gscape-button>
+                      ${(_a = this.classActions) === null || _a === void 0 ? void 0 : _a.map(action => x `
+                        <gscape-button
+                          size="s"
+                          type="subtle"
+                          title=${action.content}
+                          @click=${() => action.select(entityItem.value.iri.fullIri)}
+                        >
+                          ${action.icon ? getIconSlot('icon', action.icon) : null}
+                        </gscape-button>
+                      `)}
+
+                      ${!this.classActions || this.classActions.length === 0
+                        ? x `
+                          <gscape-button
+                            size="s"
+                            type="subtle"
+                            title="Insert in graph"
+                            @click=${this.handleEntitySelection.bind(this)}
+                          >
+                            ${getIconSlot('icon', insertInGraph)}
+                          </gscape-button>
+                        `
+                        : null}
                     </div>
                   </gscape-entity-list-item>
-                `}
+                `;
+                }}
               >
               </lit-virtualizer>
 
@@ -13477,13 +13502,14 @@ function setColorList(entityColorLegend, grapholscape) {
 function initColors(grapholscape) {
     const colorButtonComponent = initEntityColorButton(grapholscape);
     const entityColorLegend = initEntityColorLegend(grapholscape);
+    const incrementalFilters = grapholscape.widgets.get(WidgetEnum.INCREMENTAL_FILTERS);
     colorButtonComponent.onclick = () => {
         var _a;
         grapholscape.theme.useComputedColours = colorButtonComponent.active;
         (_a = grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.updateStyle();
         colorButtonComponent.active
-            ? entityColorLegend.show()
-            : entityColorLegend.hide();
+            ? incrementalFilters.show()
+            : incrementalFilters.hide();
         setColorList(entityColorLegend, grapholscape);
     };
     grapholscape.on(LifecycleEvent.RendererChange, (renderer) => {
@@ -13505,15 +13531,15 @@ function initColors(grapholscape) {
         }
         else {
             colorButtonComponent.hide();
-            entityColorLegend.hide();
+            incrementalFilters.hide();
             return;
         }
         colorButtonComponent.show();
         grapholscape.theme.useComputedColours = colorButtonComponent.active;
         (_a = grapholscape.renderer.cy) === null || _a === void 0 ? void 0 : _a.updateStyle();
         colorButtonComponent.active
-            ? entityColorLegend.show()
-            : entityColorLegend.hide();
+            ? incrementalFilters.show()
+            : incrementalFilters.hide();
         setColorList(entityColorLegend, grapholscape);
     };
     setupColors(grapholscape);
@@ -15620,7 +15646,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.8"}</span>
+            <span>${"4.0.9-snap.2"}</span>
           </div>
         </div>
       </div>
@@ -16780,9 +16806,9 @@ function showHideEquivalentClasses(hide, callback) {
         select: callback
     };
 }
-function remove(callback) {
+function remove(elems, callback) {
     return {
-        content: 'Remove',
+        content: `Remove${elems.size() > 1 ? ` ${elems.size()} elements` : ''}`,
         icon: rubbishBin,
         select: callback,
     };
@@ -17777,6 +17803,7 @@ class IncrementalController extends IncrementalBase {
         });
     }
     getContextMenuCommands(grapholElement, cyElement) {
+        var _a;
         const commands = [];
         if (grapholElement.is(TypesEnum.CLASS) && grapholElement.iri) {
             const superHierarchies = this.grapholscape.ontology.getSuperHierarchiesOf(grapholElement.iri);
@@ -17854,24 +17881,31 @@ class IncrementalController extends IncrementalBase {
                 }));
             }
         }
-        commands.push(remove(() => {
-            var _a;
-            if (grapholElement.iri) {
-                const entity = this.grapholscape.ontology.getEntity(grapholElement.iri);
-                if (entity) {
-                    if (grapholElement.is(TypesEnum.OBJECT_PROPERTY)) {
-                        const grapholOccurrence = (_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(grapholElement.id);
-                        if (grapholOccurrence) {
-                            entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL);
+        const selectedElems = (_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.cy.$(':selected[?iri]');
+        let elemsToBeRemoved = cyElement;
+        if (selectedElems && selectedElems.size() > 1) {
+            elemsToBeRemoved = selectedElems;
+        }
+        commands.push(remove(elemsToBeRemoved, () => {
+            elemsToBeRemoved.forEach(cyElem => {
+                var _a;
+                if (cyElem.data().iri) {
+                    const entity = this.grapholscape.ontology.getEntity(cyElem.data().iri);
+                    if (entity) {
+                        if (cyElem.data().type === TypesEnum.OBJECT_PROPERTY) {
+                            const grapholOccurrence = (_a = this.diagram.representation) === null || _a === void 0 ? void 0 : _a.grapholElements.get(cyElem.id());
+                            if (grapholOccurrence) {
+                                entity.removeOccurrence(grapholOccurrence, RendererStatesEnum.INCREMENTAL);
+                            }
+                            this.diagram.removeElement(cyElem.id());
+                            this.lifecycle.trigger(IncrementalEvent.DiagramUpdated);
                         }
-                        this.diagram.removeElement(grapholElement.id);
-                        this.lifecycle.trigger(IncrementalEvent.DiagramUpdated);
-                    }
-                    else {
-                        this.removeEntity(entity);
+                        else {
+                            this.removeEntity(entity);
+                        }
                     }
                 }
-            }
+            });
         }));
         return commands;
     }
@@ -18807,9 +18841,8 @@ class GrapholParser {
 
 cytoscape.use(popper);
 cytoscape.use(cola);
+autopan(cytoscape);
 cytoscape.warnings("production" !== 'production');
-cytoscape.use(edgehandles);
-cytoscape.use(klay);
 /**
  * Create a full instance of Grapholscape with diagrams and widgets
  *

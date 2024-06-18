@@ -1,6 +1,6 @@
 /// <reference types="cytoscape" />
 import * as cytoscape$1 from 'cytoscape';
-import cytoscape__default, { ElementDefinition, EventObject, EdgeSingular, Stylesheet, SingularElementReturnValue, NodeSingular, CytoscapeOptions, Core as Core$1 } from 'cytoscape';
+import cytoscape__default, { ElementDefinition, EventObject, EdgeSingular, Stylesheet, SingularElementReturnValue, NodeSingular, CytoscapeOptions, Core as Core$1, CollectionReturnValue } from 'cytoscape';
 import * as lit from 'lit';
 import { SVGTemplateResult, LitElement, TemplateResult, PropertyDeclarations, CSSResultArray, CSSResultGroup } from 'lit';
 import { Props, Instance } from 'tippy.js';
@@ -3795,7 +3795,7 @@ declare abstract class ColorManager {
     protected abstract getTopSuperClass(classEntity: any): any;
     protected abstract getAllChildren(classEntity: any, result: any): any;
     private static readonly brewerSequentialPalettes;
-    protected getColors(numberOfColors: number): string[];
+    protected getColors(numberOfColors: number, usedScales?: string[]): string[];
 }
 declare class OntologyColorManager extends ColorManager {
     private ontology;
@@ -4223,7 +4223,7 @@ interface Command {
     /** optional icon */
     icon?: SVGTemplateResult;
     /** callback to execute on selection */
-    select: () => void;
+    select: (...args: any[]) => void;
 }
 declare const GscapeContextMenu_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeContextMenu extends GscapeContextMenu_base {
@@ -4471,6 +4471,7 @@ declare class GscapeEntitySelector extends GscapeEntitySelector_base {
     private onClassSelectionCallback;
     private isSearchTextEmpty;
     private loading;
+    classActions?: Command[];
     static get properties(): {
         entityList: {
             type: ObjectConstructor;
@@ -4486,6 +4487,9 @@ declare class GscapeEntitySelector extends GscapeEntitySelector_base {
         };
         onClassSelection: {
             type: ObjectConstructor;
+        };
+        classActions: {
+            type: ArrayConstructor;
         };
     };
     static styles: lit.CSSResult[];
@@ -5570,6 +5574,7 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     languages: string[];
     defaultLanguage?: string;
     iri?: string;
+    usedColorScales: string[];
     constructor(name: string, version: string, iri?: string, namespaces?: Namespace[], annProperties?: AnnotationProperty[], diagrams?: Diagram[]);
     private _entities;
     private _hierarchies;
@@ -5862,7 +5867,7 @@ declare function showHideSuperClasses(hide: boolean, callback: () => void): Comm
 declare function showHideSubHierarchies(hide: boolean, callback: () => void): Command;
 declare function showHideSubClasses(hide: boolean, callback: () => void): Command;
 declare function showHideEquivalentClasses(hide: boolean, callback: () => void): Command;
-declare function remove(callback: () => void): Command;
+declare function remove(elems: CollectionReturnValue | SingularElementReturnValue, callback: () => void): Command;
 declare function showParentClass(callback: () => void): Command;
 declare function performInstanceChecking(callback: () => void): Command;
 declare function focusInstance(callback: () => void): Command;
