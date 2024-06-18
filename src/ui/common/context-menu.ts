@@ -12,7 +12,7 @@ export interface Command {
   /** optional icon */
   icon?: SVGTemplateResult,
   /** callback to execute on selection */
-  select: () => void,
+  select: (...args: any[]) => void,
 }
 
 export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
