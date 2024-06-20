@@ -168,7 +168,10 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
                           size="s"
                           type="subtle"
                           title=${action.content}
-                          @click=${() => action.select(entityItem.value.iri.fullIri)}
+                          @click=${() => {
+                            if (action.select)
+                              action.select(entityItem.value.iri.fullIri)
+                          }}
                         >
                           ${action.icon ? getIconSlot('icon', action.icon) : null}
                         </gscape-button>

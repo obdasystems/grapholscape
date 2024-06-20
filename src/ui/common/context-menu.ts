@@ -2,6 +2,7 @@ import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplat
 import baseStyle from "../style"
 import { BaseMixin } from "./mixins"
 import { ContextualWidgetMixin } from "./mixins/contextual-widget-mixin"
+import { arrow_right } from "../assets"
 
 /**
  * A command for the context menu
@@ -12,13 +13,15 @@ export interface Command {
   /** optional icon */
   icon?: SVGTemplateResult,
   /** callback to execute on selection */
-  select: (...args: any[]) => void,
+  select?: (...args: any[]) => void,
+  subCommands?: Command[],
 }
 
 export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   commands: Command[] = []
   customElements: (LitElement | HTMLElement | TemplateResult)[] = []
   showFirst: 'commands' | 'elements' = 'elements'
+  private subMenus: Map<string, GscapeContextMenu> = new Map()
 
   onCommandRun = () => { }
 
@@ -48,6 +51,7 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
 
       .command-text {
         line-height: 20px;
+        flex-grow: 2;
       }
 
       .gscape-panel, .custom-elements {
@@ -57,6 +61,10 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         gap: 8px;
         justify-content: center;
         align-items: stretch;
+      }
+
+      .command-entry.submenu-visible {
+        background-color: var(--gscape-color-accent-muted);
       }
     `
   ]
@@ -129,19 +137,62 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
   }
 
   private get commandsTemplate() {
-    if (this.commands.length > 0)
+    if (this.commands.length > 0) {
       return html`
         <div class="commands">
           ${this.commands.map((command, id) => {
-        return html`
-              <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
+            return html`
+              <div 
+                class="command-entry actionable ${this.subMenus.get(id.toString())?.isConnected ? 'submenu-visible' : null}"
+                command-id="${id}"
+                @click=${this.handleCommandClick}
+                @mouseover=${() => this.showSubMenu(command, id.toString())}
+              >
                 ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null}
                 <span class="command-text">${command.content}</span>
-              <div>
+
+                <span style="min-width: 20px">
+                  ${command.subCommands && command.subCommands.length > 0
+                    ? html`<span class="command-icon slotted-icon">${arrow_right}</span>`
+                    : null
+                  }
+                </span>
+              </div>
             `
-      })}
+          })}
         </div>
       `
+    }
+  }
+
+  private showSubMenu(command: Command, commandID: string) {
+    if (command.subCommands && command.subCommands.length > 0) {
+      const subMenu = this.subMenus.get(commandID) || new GscapeContextMenu()
+      if (!subMenu.isConnected) {
+        this.subMenus.set(commandID, subMenu)
+        subMenu.cxtWidgetProps.placement = 'right'
+        subMenu.cxtWidgetProps.onHide = () => {
+          subMenu.remove()
+          this.subMenus.delete(commandID)
+        }
+        subMenu.attachTo(this, command.subCommands)
+      }
+    }
+    this.commands.forEach((c, id) => {
+      if (id.toString() !== commandID)
+        this.hideSubMenu(id.toString())
+    })
+
+    this.requestUpdate()
+  }
+
+  public hideSubMenu(commandID: string) {
+    const command = this.commands[commandID]
+    const subMenu = this.subMenus.get(commandID)
+    if (subMenu) {
+      subMenu.hide()
+      subMenu.subMenus.forEach((menu, id) => subMenu.hideSubMenu(id))
+    }
   }
 
   private get customElementsTemplate() {
