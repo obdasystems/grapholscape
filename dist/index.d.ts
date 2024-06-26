@@ -4223,13 +4223,18 @@ interface Command {
     /** optional icon */
     icon?: SVGTemplateResult;
     /** callback to execute on selection */
-    select: (...args: any[]) => void;
+    select?: (...args: any[]) => void;
+    subCommands?: Promise<Command[]>;
+    description?: string;
+    disabled?: boolean;
 }
 declare const GscapeContextMenu_base: (new (...args: any[]) => IContextualWidgetMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeContextMenu extends GscapeContextMenu_base {
     commands: Command[];
     customElements: (LitElement | HTMLElement | TemplateResult)[];
     showFirst: 'commands' | 'elements';
+    loading: boolean;
+    private subMenus;
     onCommandRun: () => void;
     static properties: PropertyDeclarations;
     static styles: CSSResultArray;
@@ -4241,6 +4246,8 @@ declare class GscapeContextMenu extends GscapeContextMenu_base {
     }, container: Element, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]): void;
     private handleCommandClick;
     private get commandsTemplate();
+    private showSubMenu;
+    hideSubMenu(commandID: string): void;
     private get customElementsTemplate();
 }
 

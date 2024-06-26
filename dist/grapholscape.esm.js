@@ -11475,24 +11475,29 @@ class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(s)) {
         this.commands = [];
         this.customElements = [];
         this.showFirst = 'elements';
+        this.loading = false;
+        this.subMenus = new Map();
         this.onCommandRun = () => { };
     }
     render() {
         return x `
     <div class="gscape-panel">
       ${this.title ? x `<div>${this.title}</div>` : null}
-      ${this.showFirst === 'elements' ? this.customElementsTemplate : null}
-      
-      ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
-            ? x `<div class="hr"></div>` : null}
+      ${this.loading
+            ? x `<div class="loading-wrapper">${getContentSpinner()}</div>`
+            : x `
+          ${this.showFirst === 'elements' ? this.customElementsTemplate : null}
 
-      ${this.commandsTemplate}
+          ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
+                ? x `<div class="hr"></div>` : null}
 
-      ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
-            ? x `<div class="hr"></div>` : null}
+          ${this.commandsTemplate}
 
+          ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
+                ? x `<div class="hr"></div>` : null}
 
-      ${this.showFirst === 'commands' ? this.customElementsTemplate : null}
+          ${this.showFirst === 'commands' ? this.customElementsTemplate : null}
+        `}
     </div>
     `;
     }
@@ -11525,26 +11530,79 @@ class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(s)) {
     }
     handleCommandClick(e) {
         const command = this.commands[e.currentTarget.getAttribute('command-id')];
-        if (command.select) {
+        if (command.select && !command.disabled) {
             command.select();
             this.onCommandRun();
             this.hide();
         }
     }
     get commandsTemplate() {
-        if (this.commands.length > 0)
+        if (this.commands.length > 0) {
             return x `
         <div class="commands">
           ${this.commands.map((command, id) => {
+                var _a;
                 return x `
-              <div class="command-entry actionable" command-id="${id}" @click=${this.handleCommandClick}>
+              <div
+                class="command-entry ${!command.disabled ? 'actionable' : null} ${((_a = this.subMenus.get(id.toString())) === null || _a === void 0 ? void 0 : _a.isConnected) ? 'submenu-visible' : null}"
+                command-id="${id}"
+                @click=${this.handleCommandClick}
+                @mouseover=${() => this.showSubMenu(command, id.toString())}
+                title=${command.description}
+                ?disabled=${command.disabled}
+              >
                 ${command.icon ? x `<span class="command-icon slotted-icon">${command.icon}</span>` : null}
                 <span class="command-text">${command.content}</span>
-              <div>
+
+                <span style="min-width: 20px">
+                  ${command.subCommands
+                    ? x `<span class="command-icon slotted-icon">${arrow_right}</span>`
+                    : null}
+                </span>
+              </div>
             `;
             })}
         </div>
       `;
+        }
+    }
+    showSubMenu(command, commandID) {
+        var _a;
+        if (command.subCommands && !command.disabled) {
+            const subMenu = this.subMenus.get(commandID) || new GscapeContextMenu();
+            if (!subMenu.isConnected) {
+                this.subMenus.set(commandID, subMenu);
+                subMenu.cxtWidgetProps.placement = 'right';
+                subMenu.cxtWidgetProps.offset = [0, 12];
+                subMenu.cxtWidgetProps.onHide = () => {
+                    subMenu.remove();
+                    this.subMenus.delete(commandID);
+                };
+                subMenu.loading = true;
+                const target = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector(`[command-id = "${commandID}"]`);
+                if (target !== null && target !== undefined) {
+                    subMenu.attachTo(target);
+                    command.subCommands.then(subCommands => {
+                        if (this.isConnected) {
+                            subMenu.attachTo(target, subCommands);
+                            subMenu.loading = false;
+                        }
+                    });
+                }
+            }
+        }
+        this.commands.forEach((c, id) => {
+            if (id.toString() !== commandID)
+                this.hideSubMenu(id.toString());
+        });
+        this.requestUpdate();
+    }
+    hideSubMenu(commandID) {
+        const subMenu = this.subMenus.get(commandID);
+        if (subMenu) {
+            subMenu.hide();
+            subMenu.subMenus.forEach((menu, id) => subMenu.hideSubMenu(id));
+        }
     }
     get customElementsTemplate() {
         if (this.customElements.length > 0)
@@ -11556,12 +11614,14 @@ class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(s)) {
     }
 }
 GscapeContextMenu.properties = {
-    commands: { type: Object, attribute: false },
-    customElements: { type: Object, attribute: false },
+    commands: { type: Object },
+    customElements: { type: Object },
     showFirst: { type: String },
+    loading: { type: Boolean },
 };
 GscapeContextMenu.styles = [
     baseStyle,
+    contentSpinnerStyle,
     i$1 `
       :host {
         display: flex;
@@ -11578,8 +11638,15 @@ GscapeContextMenu.styles = [
         align-items: center;
       }
 
+      .command-entry[disabled] {
+        opacity: 50%;
+        cursor: initial;
+        pointer-events: none;
+      }
+
       .command-text {
         line-height: 20px;
+        flex-grow: 2;
       }
 
       .gscape-panel, .custom-elements {
@@ -11589,6 +11656,17 @@ GscapeContextMenu.styles = [
         gap: 8px;
         justify-content: center;
         align-items: stretch;
+      }
+
+      .command-entry.submenu-visible {
+        background-color: var(--gscape-color-accent-muted);
+      }
+
+      .loading-wrapper {
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
     `
 ];
@@ -12839,7 +12917,10 @@ class GscapeEntitySelector extends DropPanelMixin(BaseMixin(s)) {
                           size="s"
                           type="subtle"
                           title=${action.content}
-                          @click=${() => action.select(entityItem.value.iri.fullIri)}
+                          @click=${() => {
+                        if (action.select)
+                            action.select(entityItem.value.iri.fullIri);
+                    }}
                         >
                           ${action.icon ? getIconSlot('icon', action.icon) : null}
                         </gscape-button>
@@ -15646,7 +15727,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.9-snap.2"}</span>
+            <span>${"4.0.9"}</span>
           </div>
         </div>
       </div>
