@@ -8,6 +8,8 @@ export * from './common/mixins'
 export * from './common/spinners'
 export * from './common/text-search'
 export * from "./common/toggle/gscape-toggle"
+export * from "./common/annotations-template"
+export { default as commentsTemplate } from "./common/comments-template"
 export { default as GscapeConfirmDialog, showMessage } from './common/confirm-dialog'
 export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
 export { default as GscapeSelect, SelectOption } from "./common/gscape-select"

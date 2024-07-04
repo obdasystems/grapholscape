@@ -87,12 +87,17 @@ export function annotationsTemplate(annotations: Annotation[]) {
         if (DefaultAnnotationProperties.comment.equals(annotation.property) || propertiesAlreadyInserted.includes(property)) return null
         
         propertiesAlreadyInserted.push(property)
-        
+        let displayName: string
+        if (Object.values(DefaultAnnotationProperties).find(x => x.equals(annotation.propertyIri.fullIri))) {
+          displayName = annotation.kind.charAt(0).toUpperCase() + annotation.kind.slice(1)
+        } else {
+          displayName = annotation.propertyIri.prefixed
+        }
         return html`
           <div class="annotation">
             <div class="bold-text annotation-property">
               <span class="slotted-icon">${annotationIcons[annotation.kind] ?? nothing}</span>
-              <span>${annotation.kind.charAt(0).toUpperCase() + annotation.kind.slice(1)}</span>
+              <span>${displayName}</span>
             </div>
             ${annotations.filter(a => a.property === property).map(annotation => {
               return html`
