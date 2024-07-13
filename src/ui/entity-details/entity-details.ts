@@ -43,23 +43,29 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         position: absolute;
         top:10px;
         right:62px;
-        max-height: 50%;
-        min-height: 200px;
-        min-width: 300px;
-        max-width: 20%;
+        height: fit-content;
+        max-height: calc(100vh - 40px);
+        width: 30%;
         display: flex;
         flex-direction: column;
-        pointer-events: none;
+        overflow: auto;
+        resize: both;
+        direction: rtl;
+      }
+
+      #drop-panel {
+        direction: ltr;
       }
 
       .gscape-panel {
-        padding:0;
-        max-height: inherit;
+        padding: 0;
         display: flex;
         flex-direction: column;
-        width: inherit;
+        height: 100%;
+        width: 100%;
+        max-height: unset;
         max-width: unset;
-        min-width: unset;
+        box-sizing: border-box;
       }
 
       .gscape-panel > * {
