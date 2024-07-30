@@ -67,7 +67,6 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
       }
 
       .gscape-panel, .custom-elements {
-        overflow: unset;
         display: flex;
         flex-direction: column;
         gap: 8px;
