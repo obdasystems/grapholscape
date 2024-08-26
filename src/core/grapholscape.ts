@@ -544,12 +544,5 @@ export class Core extends Grapholscape {
     if (config) {
       this.setConfig(config)
     }
-
-    this.ontology.addAnnotation(new Annotation(
-      Array.from(this.ontology.entities)[0][1].iri,
-      new Iri('http://obda.test.com/annotationRange', this.ontology.namespaces)
-    ))
-
-    console.log(this.ontology)
   }
 }
