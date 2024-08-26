@@ -82,39 +82,6 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           grapholscape.language,
           targetEntity
         )
-        return
-        // let sourceEntityNode = diagram.cy.$(`[iri = "${sourceEntityIri}"]`).first()
-
-        // if (sourceEntityNode.empty()) {
-        //   node = new GrapholNode(diagram.getNewId('node'), TypesEnum.INDIVIDUAL)
-        //   node.diagramId = ontology.annotationsDiagram.id
-        //   node.displayedName = sourceEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
-        //   sourceEntityNode = diagram.addElement(node, sourceEntity)
-        //   sourceEntity.addOccurrence(node, RendererStatesEnum.FLOATY)
-        // }
-
-        // // take range iri node
-        // targetNode = diagram.cy.$(`[iri = "${annotation.rangeIri!.fullIri}"]`).nodes().first()
-        // if (targetNode.empty()) {
-        //   node = new GrapholNode(diagram.getNewId('node'), TypesEnum.IRI)
-        //   const tempEntity = new GrapholEntity(annotation.rangeIri!)
-        //   node = new GrapholNode(diagram.getNewId('node'), TypesEnum.IRI)
-        //   node.iri = annotation.rangeIri!.fullIri
-        //   node.diagramId = node.diagramId = ontology.annotationsDiagram.id
-        //   node.displayedName = tempEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
-        //   targetNode = diagram.addElement(node)
-        //   targetEntity?.addOccurrence(node, RendererStatesEnum.FLOATY)
-        // }
-
-        // annotationPropertyEdge = new GrapholEdge(diagram.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY)
-        // annotationPropertyEdge.diagramId = ontology.annotationsDiagram.id
-        // annotationPropertyEdge.sourceId = sourceEntityNode.id()
-        // annotationPropertyEdge.targetId = targetNode.id()
-        // annotationPropertyEdge.displayedName = annotationPropertyEntity
-        //   ?.getDisplayedName(grapholscape.entityNameType, grapholscape.language)
-
-        // diagram.addElement(annotationPropertyEdge, annotationPropertyEntity)
-        // annotationPropertyEntity?.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY)
       })
     }
   }
