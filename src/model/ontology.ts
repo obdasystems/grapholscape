@@ -8,9 +8,12 @@ import GrapholElement from './graphol-elems/graphol-element'
 import GrapholNode from './graphol-elems/node'
 import Iri from './iri'
 import Namespace from './namespace'
-import { RDFGraphMetadata, TypesEnum } from './rdf-graph/swagger'
+import { RDFGraphConfigEntityNameTypeEnum, RDFGraphMetadata, TypesEnum } from './rdf-graph/swagger'
 import { RendererStatesEnum } from './renderers/i-render-state'
 import AnnotationProperty from './annotation-property'
+import Annotation from './annotation'
+import { floatyOptions, Language } from '../config'
+import AnnotationsDiagram from './diagrams/annotations-diagram'
 
 /**
  * ### Ontology
@@ -22,6 +25,8 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   namespaces: Namespace[] = []
   annProperties: AnnotationProperty[] = []
   diagrams: Diagram[] = []
+  annotationsDiagram: AnnotationsDiagram
+  ontologyEntity: GrapholEntity
   languages: string[] = []
   defaultLanguage?: string
   iri?: string
@@ -36,6 +41,11 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     this.annProperties = annProperties
     this.diagrams = diagrams
     this.iri = iri
+    this.annotationsDiagram = new AnnotationsDiagram(this.diagrams.length)
+    this.diagrams.push(this.annotationsDiagram)
+    if (this.iri) {
+      this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces))
+    }
   }
 
   private _entities: Map<string, GrapholEntity> = new Map()
@@ -328,28 +338,6 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     }
   }
 
-  // /**
-  //  * Get an element in the ontology by id, searching in every diagram
-  //  * @param {string} elem_id - The `id` of the elem to retrieve
-  //  * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-  //  */
-  // getElem(elem_id: string): cytoscape.CollectionReturnValue {
-  //   for (let diagram of this.diagrams) {
-  //     let node = diagram.cy.$id(elem_id)
-  //     if (node.length > 0) return node
-  //   }
-  // }
-
-  /**
-   * Retrieve an entity by its IRI.
-   * @param {string} iri - The IRI in full or prefixed form.
-   * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-   * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-   */
-  // getEntity(iri: string): cytoscape.CollectionReturnValue {
-  //   if (this.getEntityOccurrences(iri)) return this.getEntityOccurrences(iri)[0]
-  // }
-
   /**
    * Retrieve all occurrences of an entity by its IRI.
    * @param {string} iri - The IRI in full or prefixed form.
@@ -362,55 +350,6 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
       ? this.getEntity(iri)?.getOccurrencesByDiagramId(diagramId, renderState)
       : this.getEntity(iri)?.occurrences
   }
-
-  // /**
-  //  * Get an element in the ontology by its id and its diagram id
-  //  * @param {string} elemID - The id of the element to retrieve
-  //  * @param {number} diagramID - the id of the diagram containing the element
-  //  * @returns {cytoscape.CollectionReturnValue} The element in cytoscape object representation
-  //  */
-  // getElemByDiagramAndId(elemID: string, diagramID: number): cytoscape.CollectionReturnValue {
-  //   let diagram = this.getDiagram(diagramID)
-
-  //   if (diagram) {
-  //     return diagram.cy.$id(elemID)
-  //   }
-  // }
-
-  /**
-   * Get the entities in the ontology
-   * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
-   */
-  // getEntities(): { [s: string]: cytoscape.CollectionReturnValue[] } {
-  //   let entities = {}
-  //   this.diagrams.forEach(diagram => {
-  //     diagram.cy.$('.predicate').forEach(entity => {
-  //       let iri = entity.data('iri').fullIri
-
-  //       if (!Object.keys(entities).includes(iri)) {
-  //         entities[iri] = []
-  //       }
-
-  //       entities[iri].push(entity)
-  //     })
-  //   })
-
-  //   //this._entities = entities
-  //   return entities
-  // }
-
-  /**
-   * Check if entity has the specified iri in full or prefixed form
-   * @param {Entity} entity 
-   * @param {string} iri
-   * @returns {boolean}
-   */
-  // checkEntityIri(entity: Entity, iri: string): boolean {
-  //   /** @type {Iri} */
-  //   let entityIri: Iri = entity.data('iri') || entity.data.iri
-  //   return entityIri.fullIri === iri ||
-  //     entityIri.prefixed === iri
-  // }
 
   /**
    * Retrieve the full IRI given a prefixed IRI
@@ -464,6 +403,34 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
         })
       }
     })
+  }
+
+  /** @override */
+  public addAnnotation(newAnnotation: Annotation): void {
+    super.addAnnotation(newAnnotation)
+
+    if (!this.iri) {
+      console.warn('ontology has no defined IRI. Unable to add annotation to ontology entity node.')
+      return
+    }
+
+    if (!this.ontologyEntity) {
+      this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces))
+    }
+    
+    const annotationPropertyEntity = this.getEntity(newAnnotation.propertyIri)
+
+    if (annotationPropertyEntity && newAnnotation.rangeIri) {
+
+      this.annotationsDiagram.addIRIValueAnnotation(
+        this.ontologyEntity,
+        annotationPropertyEntity,
+        newAnnotation.rangeIri,
+        RDFGraphConfigEntityNameTypeEnum.LABEL,
+        Language.EN,
+        this.getEntity(newAnnotation.rangeIri)
+      )
+    }
   }
 
   get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0) }

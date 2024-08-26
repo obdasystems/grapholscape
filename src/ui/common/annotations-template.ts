@@ -103,7 +103,7 @@ export function annotationsTemplate(annotations: Annotation[]) {
               return html`
                 <div class="annotation-row">
                   ${annotation.language ? html`<span class="language muted-text bold-text">@${annotation.language}</span>` : null}
-                  <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
+                  <span title="${annotation.value}">${annotation.value}</span>
                 </div>
               `
             })}

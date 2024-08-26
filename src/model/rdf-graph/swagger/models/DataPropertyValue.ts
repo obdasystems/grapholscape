@@ -43,6 +43,12 @@ export interface DataPropertyValue {
      * @memberof DataPropertyValue
      */
     datatype?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof DataPropertyValue
+     */
+    renderingProperties?: Array<string>;
 }
 
 /**
@@ -70,6 +76,7 @@ export function DataPropertyValueFromJSONTyped(json: any, ignoreDiscriminator: b
         'iri': json['iri'],
         'language': !exists(json, 'language') ? undefined : json['language'],
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
+        'renderingProperties': !exists(json, 'renderingProperties') ? undefined : json['renderingProperties'],
     };
 }
 
@@ -86,6 +93,7 @@ export function DataPropertyValueToJSON(value?: DataPropertyValue | null): any {
         'iri': value.iri,
         'language': value.language,
         'datatype': value.datatype,
+        'renderingProperties': value.renderingProperties,
     };
 }
 

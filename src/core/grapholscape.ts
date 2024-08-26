@@ -1,8 +1,8 @@
 import { OntologyColorManager } from './colors-manager'
-import { GrapholscapeConfig, WidgetsConfig } from "../config"
+import { GrapholscapeConfig, Language, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IIncremental } from "../incremental/i-incremental"
-import { ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
+import { Annotation, ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, Iri, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
 import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger"
 import rdfgraphSerializer from "../rdfgraph-serializer"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -544,5 +544,12 @@ export class Core extends Grapholscape {
     if (config) {
       this.setConfig(config)
     }
+
+    this.ontology.addAnnotation(new Annotation(
+      Array.from(this.ontology.entities)[0][1].iri,
+      new Iri('http://obda.test.com/annotationRange', this.ontology.namespaces)
+    ))
+
+    console.log(this.ontology)
   }
 }

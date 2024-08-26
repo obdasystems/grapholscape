@@ -46,7 +46,7 @@ export default class GrapholParser {
     let i, k, nodes, edges, cnt, array_json_elems
     let diagrams = this.xmlDocument.getElementsByTagName('diagram')
     for (i = 0; i < diagrams.length; i++) {
-      const diagram = new Diagram(diagrams[i].getAttribute('name') || '', i)
+      const diagram = new Diagram(diagrams[i].getAttribute('name') || '', this.ontology.diagrams.length)
       this.ontology.addDiagram(diagram)
 
       array_json_elems = []
@@ -85,7 +85,7 @@ export default class GrapholParser {
             }
             grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument, this.ontology.namespaces)
             grapholEntity.getAnnotations().forEach(annotation => {
-              if (annotation.hasIriRange() && annotation.rangeIri) {
+              if (annotation.hasIriValue && annotation.rangeIri) {
                 // if (!this.ontology.getEntity(annotation.rangeIri)) {
                 //   this.ontology.addEntity(new GrapholEntity(annotation.rangeIri))
                 // }

@@ -46,9 +46,10 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
       annotations: ontology.getAnnotations().map(ann => {
         return {
           property: ann.property,
-          lexicalForm: ann.lexicalForm,
+          value: ann.value,
           language: ann.language,
           datatype: ann.datatype,
+          hasIriValue: ann.hasIriValue,
         }
       }),
       annotationProperties: ontology.annProperties.map(ap => ap.fullIri)

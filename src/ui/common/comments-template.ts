@@ -33,7 +33,7 @@ export default function (annotatedElem: AnnotatedElement, selectedLanguage: stri
       </div>
       <div class="section-body">
         ${annotatedElem.getComments(selectedLanguage).map(comment =>
-          html`<span class="comment">${comment.lexicalForm}</span>`
+          html`<span class="comment">${comment.value}</span>`
         )}
       </div>
     </div>

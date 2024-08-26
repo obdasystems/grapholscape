@@ -43,12 +43,12 @@ describe("Test parsing ontology metadata", () => {
 
   test('it should parse comments correctly', () => {
     const commentsEn = ontology.getComments('en')
-    const lexicalForms = commentsEn.map(d => d.lexicalForm)
+    const lexicalForms = commentsEn.map(d => d.value)
     expect(lexicalForms).toEqual(output.other_infos.annotations.comment.en)
   })
 
   test('it should parse multiple annotation of the same language', () => {
-    const englishAnnotations = ontology.getAnnotations('en').map(ann => ann.lexicalForm)
+    const englishAnnotations = ontology.getAnnotations('en').map(ann => ann.value)
     const expectedResult = output.other_infos.annotations.author.en.concat(output.other_infos.annotations.comment.en)
 
     for (const englishAnnotation of expectedResult) {
@@ -195,8 +195,8 @@ describe('Test retrieving annotations', () => {
       'en': ['label inglese', 'label inglese 2'],
       'it': ['label1', 'label2']
     }
-    expect(conceptEntity.getLabels('en').map(ann => ann.lexicalForm)).toEqual(output.en)
-    expect(conceptEntity.getLabels('it').map(ann => ann.lexicalForm)).toEqual(output.it)
+    expect(conceptEntity.getLabels('en').map(ann => ann.value)).toEqual(output.en)
+    expect(conceptEntity.getLabels('it').map(ann => ann.value)).toEqual(output.it)
   })
 
   test('it should parse multiple descriptions for multiple languages', () => {
@@ -205,8 +205,8 @@ describe('Test retrieving annotations', () => {
       'it': ['Lorem ipsum']
     }
 
-    expect(conceptEntity.getComments('en').map(ann => ann.lexicalForm)).toEqual(output.en)
-    expect(conceptEntity.getComments('it').map(ann => ann.lexicalForm)).toEqual(output.it)
+    expect(conceptEntity.getComments('en').map(ann => ann.value)).toEqual(output.en)
+    expect(conceptEntity.getComments('it').map(ann => ann.value)).toEqual(output.it)
   })
 
   test('it should not parse properties on Concepts', () => {

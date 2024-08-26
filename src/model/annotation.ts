@@ -17,12 +17,12 @@ export default class Annotation implements IAnnotation {
 
   equals(annotation: Annotation) {
     return this.datatype === annotation.datatype &&
-      this.lexicalForm === annotation.lexicalForm &&
+      this.value === annotation.value &&
       this.language === annotation.language &&
       this._property.equals(annotation.property)
   }
 
-  hasIriRange() {
+  get hasIriValue() {
     return this.rangeIri !== undefined
   }
 
@@ -38,13 +38,13 @@ export default class Annotation implements IAnnotation {
     return this._property.remainder
   }
 
-  get lexicalForm() {
+  get value() {
     return this._range.toString()
   }
 
   /**
    * If the range is a Iri, return such a Iri, undefined otherwise
-   */
+  */
   get rangeIri() {
     return (this._range as Iri).fullIri ? this._range as Iri : undefined
   }

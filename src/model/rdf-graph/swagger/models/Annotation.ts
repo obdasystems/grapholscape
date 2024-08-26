@@ -24,7 +24,13 @@ export interface Annotation {
      * @type {string}
      * @memberof Annotation
      */
-    lexicalForm: string;
+    value: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Annotation
+     */
+    hasIriValue?: boolean;
     /**
      * 
      * @type {string}
@@ -50,7 +56,7 @@ export interface Annotation {
  */
 export function instanceOfAnnotation(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "lexicalForm" in value;
+    isInstance = isInstance && "value" in value;
     isInstance = isInstance && "property" in value;
 
     return isInstance;
@@ -66,7 +72,8 @@ export function AnnotationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        'lexicalForm': json['lexicalForm'],
+        'value': json['value'],
+        'hasIriValue': !exists(json, 'hasIriValue') ? undefined : json['hasIriValue'],
         'property': json['property'],
         'language': !exists(json, 'language') ? undefined : json['language'],
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
@@ -82,7 +89,8 @@ export function AnnotationToJSON(value?: Annotation | null): any {
     }
     return {
         
-        'lexicalForm': value.lexicalForm,
+        'value': value.value,
+        'hasIriValue': value.hasIriValue,
         'property': value.property,
         'language': value.language,
         'datatype': value.datatype,

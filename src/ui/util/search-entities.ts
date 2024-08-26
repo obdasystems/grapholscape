@@ -61,7 +61,7 @@ export function search(searchValue: string, entities: EntityViewData[], includeL
   function matchInAnnotations(annotations: Annotation[], searchValue: string) {
     // search in labels defined in annotations (only for Graphol v3)
     for (const annotation of annotations) {
-      if (isMatch(annotation.lexicalForm, searchValue))
+      if (isMatch(annotation.value, searchValue))
         return true
     }
 

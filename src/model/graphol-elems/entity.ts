@@ -201,9 +201,10 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     switch (nameType) {
       case EntityNameType.LABEL:
         newDisplayedName =
-          this.getLabels(currentLanguage)[0]?.lexicalForm ||
-          this.getLabels()[0]?.lexicalForm ||
-          this.iri.remainder
+          this.getLabels(currentLanguage)[0]?.value ||
+          this.getLabels()[0]?.value ||
+          (this.iri.remainder.length > 0 ? this.iri.remainder : undefined) ||
+          this.iri.toString()
         break
 
       case EntityNameType.PREFIXED_IRI:
@@ -246,9 +247,10 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
       annotations: this.getAnnotations().map(ann => {
         return {
           property: ann.property,
-          lexicalForm: ann.lexicalForm,
+          value: ann.value,
           language: ann.language,
           datatype: ann.datatype,
+          hasIriValue: ann.hasIriValue,
         }
       }),
       datatype: this.datatype,

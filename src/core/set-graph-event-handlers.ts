@@ -12,7 +12,9 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
       const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
       if (grapholElement) {
         if (grapholElement.isEntity()) {
-          const grapholEntity = ontology.getEntity(e.target.data().iri)
+          const grapholEntity = ontology.getEntity(e.target.data().iri) || (
+            ontology.ontologyEntity.iri.equals(e.target.data().iri) && ontology.ontologyEntity
+          )
           if (grapholEntity) {
             lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)
           }
