@@ -12,7 +12,7 @@ import { RDFGraphConfigEntityNameTypeEnum, RDFGraphMetadata, TypesEnum } from '.
 import { RendererStatesEnum } from './renderers/i-render-state'
 import AnnotationProperty from './annotation-property'
 import Annotation from './annotation'
-import { floatyOptions, Language } from '../config'
+import { Language } from '../config'
 import AnnotationsDiagram from './diagrams/annotations-diagram'
 
 /**
@@ -25,7 +25,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   namespaces: Namespace[] = []
   annProperties: AnnotationProperty[] = []
   diagrams: Diagram[] = []
-  annotationsDiagram: AnnotationsDiagram
+  annotationsDiagram = new AnnotationsDiagram(-1)
   ontologyEntity: GrapholEntity
   languages: string[] = []
   defaultLanguage?: string
@@ -41,8 +41,6 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     this.annProperties = annProperties
     this.diagrams = diagrams
     this.iri = iri
-    this.annotationsDiagram = new AnnotationsDiagram(this.diagrams.length)
-    this.diagrams.push(this.annotationsDiagram)
     if (this.iri) {
       this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces))
     }
@@ -265,6 +263,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
 
   /** @param {Diagram} diagram */
   addDiagram(diagram: Diagram) {
+    diagram.id = this.diagrams.length
     this.diagrams.push(diagram)
   }
 
@@ -272,6 +271,9 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
    * Get the diagram with the given id
    */
   getDiagram(diagramId: number): Diagram | undefined {
+    if (diagramId === -1)
+      return this.annotationsDiagram
+
     if (diagramId < 0 || diagramId > this.diagrams.length) return
     return this.diagrams.find(diagram => diagram.id === diagramId)
   }

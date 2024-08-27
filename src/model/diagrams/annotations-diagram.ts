@@ -60,4 +60,8 @@ export default class AnnotationsDiagram extends Diagram {
     this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity)
     annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY)
   }
+
+  isEmpty() {
+    return this.representation.cy.elements().empty()
+  }
 }

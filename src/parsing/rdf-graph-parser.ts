@@ -111,7 +111,7 @@ function getAnnotations(annotatedElem: Entity | RDFGraphMetadata, namespaces: Na
     const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
       return property.equals(a.property)
     }) || new Iri(a.property, namespaces)
-    return new Annotation(annotationProperty, a.value, a.language, a.datatype)
+    return new Annotation(annotationProperty, (a as any).lexicalForm || a.value, a.language, a.datatype)
   }) || []
 }
 

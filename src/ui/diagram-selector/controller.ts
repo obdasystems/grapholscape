@@ -10,7 +10,9 @@ import GscapeDiagramSelector from './diagram-selector'
 export default function (diagramSelectorComponent: GscapeDiagramSelector, grapholscape: Grapholscape) {
   // const diagramsViewData = grapholscape.ontology.diagrams
   const updateDiagrams = (renderer: RendererStatesEnum) => {
-    if (renderer === RendererStatesEnum.FLOATY) {
+    if (renderer === RendererStatesEnum.FLOATY && 
+      !grapholscape.ontology.annotationsDiagram.isEmpty()
+    ) {
       if (!diagramSelectorComponent.diagrams.includes(grapholscape.ontology.annotationsDiagram))
         diagramSelectorComponent.diagrams.push(grapholscape.ontology.annotationsDiagram)
     } else {
