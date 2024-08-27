@@ -282,7 +282,7 @@ describe('It should parse edges correctly', () => {
 
   const grapholParser = new GrapholParser(books3)
   grapholParser.parseGraphol()
-  const grapholEdge = grapholParser.getGrapholEdgeFromXML(parseSingleNode(edgeMock, 'edge'), 1)
+  const grapholEdge = grapholParser.getGrapholEdgeFromXML(parseSingleNode(edgeMock, 'edge'), 0)
 
   test('It should create GrapholEdge', () => {
     expect(grapholEdge).toBeDefined()
