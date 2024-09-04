@@ -128,7 +128,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
     if (d.id === -1) {
       if (rendererState !== RendererStatesEnum.INCREMENTAL && rendererState !== RendererStatesEnum.FLOATY)
         return
-      diagram = new AnnotationsDiagram(d.id)
+      diagram = new AnnotationsDiagram()
     } else {
       diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram()
     }

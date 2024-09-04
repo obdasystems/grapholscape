@@ -262,8 +262,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
 
   /** @param {Diagram} diagram */
   addDiagram(diagram: Diagram) {
-    diagram.id = this.diagrams.length
-    this.diagrams.push(diagram)
+    this.diagrams[diagram.id] = diagram
   }
 
   /**
@@ -412,7 +411,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     }
 
     if (!this.annotationsDiagram) {
-      this.diagrams[-1] = new AnnotationsDiagram(-1)
+      this.diagrams[-1] = new AnnotationsDiagram()
     }
 
     if (!this.ontologyEntity) {

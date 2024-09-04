@@ -2,6 +2,7 @@ export { default as Ontology } from "./ontology"
 export { default as Diagram } from "./diagrams/diagram"
 export { default as DiagramRepresentation } from './diagrams/diagram-representation'
 export { default as IncrementalDiagram } from './diagrams/incremental-diagram'
+export { default as AnnotationsDiagram } from './diagrams/annotations-diagram'
 export { default as Namespace } from './namespace'
 export { default as Iri } from "./iri"
 export { default as Annotation } from './annotation'

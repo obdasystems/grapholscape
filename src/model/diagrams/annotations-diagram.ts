@@ -11,8 +11,8 @@ import DiagramRepresentation from "./diagram-representation";
 export default class AnnotationsDiagram extends Diagram {
   private representation: DiagramRepresentation
 
-  constructor(id: number) {
-    super('Annotations Diagram', id)
+  constructor() {
+    super('Annotations Diagram', -1)
     this.representation = new DiagramRepresentation(floatyOptions)
     this.representations.set(RendererStatesEnum.FLOATY, this.representation)
   }
