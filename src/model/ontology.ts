@@ -24,8 +24,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   version: string
   namespaces: Namespace[] = []
   annProperties: AnnotationProperty[] = []
-  diagrams: Diagram[] = []
-  annotationsDiagram = new AnnotationsDiagram(-1)
+  diagrams: (Diagram | AnnotationsDiagram)[] = []
   ontologyEntity: GrapholEntity
   languages: string[] = []
   defaultLanguage?: string
@@ -271,11 +270,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
    * Get the diagram with the given id
    */
   getDiagram(diagramId: number): Diagram | undefined {
-    if (diagramId === -1)
-      return this.annotationsDiagram
-
-    if (diagramId < 0 || diagramId > this.diagrams.length) return
-    return this.diagrams.find(diagram => diagram.id === diagramId)
+    return this.diagrams[diagramId]
   }
 
   getDiagramByName(name: string): Diagram | undefined {
@@ -416,6 +411,10 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
       return
     }
 
+    if (!this.annotationsDiagram) {
+      this.diagrams[-1] = new AnnotationsDiagram(-1)
+    }
+
     if (!this.ontologyEntity) {
       this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces))
     }
@@ -423,8 +422,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     const annotationPropertyEntity = this.getEntity(newAnnotation.propertyIri)
 
     if (annotationPropertyEntity && newAnnotation.rangeIri) {
-
-      this.annotationsDiagram.addIRIValueAnnotation(
+      this.annotationsDiagram!.addIRIValueAnnotation(
         this.ontologyEntity,
         annotationPropertyEntity,
         newAnnotation.rangeIri,
@@ -440,6 +438,10 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   get entities() { return this._entities }
   set entities(newEntities: Map<string, GrapholEntity>) {
     this._entities = newEntities
+  }
+
+  get annotationsDiagram(): AnnotationsDiagram | undefined {
+    return this.diagrams[-1] as AnnotationsDiagram | undefined
   }
 }
 

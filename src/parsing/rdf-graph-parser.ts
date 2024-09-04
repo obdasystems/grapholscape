@@ -1,6 +1,7 @@
 import { floatyOptions, GrapholscapeConfig, Language } from "../config";
 import computeHierarchies from "../core/compute-hierarchies";
 import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
+import AnnotationsDiagram from "../model/diagrams/annotations-diagram";
 import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum, TypesEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph) {
@@ -124,7 +125,13 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
   const diagrams: Diagram[] = []
 
   rdfGraph.diagrams.forEach(d => {
-    diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram()
+    if (d.id === -1) {
+      if (rendererState !== RendererStatesEnum.INCREMENTAL && rendererState !== RendererStatesEnum.FLOATY)
+        return
+      diagram = new AnnotationsDiagram(d.id)
+    } else {
+      diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram()
+    }
     diagramRepr = diagram.representations.get(rendererState)
 
     if (!diagramRepr) {
@@ -185,7 +192,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       }
     }
 
-    diagrams.push(diagram)
+    diagrams[diagram.id] = diagram
   })
 
   return diagrams

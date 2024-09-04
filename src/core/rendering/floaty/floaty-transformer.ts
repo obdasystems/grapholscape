@@ -74,7 +74,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         targetEntity = ontology.getEntity(annotation.rangeIri)
         if (!annotationPropertyEntity) return
 
-        diagram.addIRIValueAnnotation(
+        diagram?.addIRIValueAnnotation(
           sourceEntity,
           annotationPropertyEntity,
           annotation.rangeIri,

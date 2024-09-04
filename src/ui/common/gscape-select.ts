@@ -158,7 +158,12 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
   }
 
   get selectedOptions() {
-    return this.options.filter(o => this.isIdSelected(o.id))
+    const result = this.options.filter(o => this.isIdSelected(o.id))
+    if (result.length === 0 && this.defaultOption) {
+      result.push(this.defaultOption)
+    }
+
+    return result
   }
 
   get selectedOptionsId() {
