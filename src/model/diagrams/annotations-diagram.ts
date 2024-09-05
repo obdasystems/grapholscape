@@ -12,7 +12,7 @@ export default class AnnotationsDiagram extends Diagram {
   private representation: DiagramRepresentation
 
   constructor() {
-    super('Annotations Diagram', -1)
+    super('Annotations', -1)
     this.representation = new DiagramRepresentation(floatyOptions)
     this.representations.set(RendererStatesEnum.FLOATY, this.representation)
   }
