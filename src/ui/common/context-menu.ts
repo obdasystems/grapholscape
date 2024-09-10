@@ -70,7 +70,6 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         display: flex;
         flex-direction: column;
         gap: 8px;
-        justify-content: center;
         align-items: stretch;
       }
 
