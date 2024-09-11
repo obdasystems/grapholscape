@@ -2,7 +2,7 @@ import { OntologyColorManager } from './colors-manager'
 import { GrapholscapeConfig, Language, WidgetsConfig } from "../config"
 import * as Exporter from '../exporter'
 import { IIncremental } from "../incremental/i-incremental"
-import { Annotation, ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, Iri, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
+import { Annotation, ColoursNames, DefaultFilterKeyEnum, DefaultThemes, DefaultThemesEnum, EntityNameType, Filter, GrapholscapeTheme, IncrementalDiagram, Iri, Lifecycle, LifecycleEvent, Ontology, RendererStatesEnum, Viewport, iRenderState } from "../model"
 import { RDFGraph, RDFGraphModelTypeEnum } from "../model/rdf-graph/swagger"
 import rdfgraphSerializer from "../rdfgraph-serializer"
 import DisplayedNamesManager from "./displayedNamesManager"
@@ -469,7 +469,7 @@ export default abstract class Grapholscape {
         RendererStatesEnum.INCREMENTAL,
         allEntities,
         this.ontology.namespaces
-      )[0].representations.get(RendererStatesEnum.INCREMENTAL)
+      )[IncrementalDiagram.ID].representations.get(RendererStatesEnum.INCREMENTAL)
       if (diagramRepr) {
         // this.incremental.diagram = new IncrementalDiagram()
         if (diagramRepr.lastViewportState) {

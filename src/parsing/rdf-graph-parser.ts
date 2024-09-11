@@ -125,7 +125,7 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
   const diagrams: Diagram[] = []
 
   rdfGraph.diagrams.forEach(d => {
-    if (d.id === -1) {
+    if (d.id === -1 && rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
       if (rendererState !== RendererStatesEnum.INCREMENTAL && rendererState !== RendererStatesEnum.FLOATY)
         return
       diagram = new AnnotationsDiagram()
