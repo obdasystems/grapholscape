@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: get the gh-pages repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4.2.0
               with:
                   ref: gh-pages
 
@@ -21,7 +21,7 @@ jobs:
                   tar -cvf documentation.tar ./docs
 
             - name: create a document artifact
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4.4.0
               with:
                   name: documentation
                   path: documentation.tar
@@ -31,7 +31,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout src
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4.2.0
 
             - run: mkdir -p ./docs
             - name: Download the existing documents artifact
@@ -68,7 +68,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: checkout the gh-pages repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4.2.0
               with:
                   ref: gh-pages
 
