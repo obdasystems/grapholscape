@@ -385,6 +385,14 @@ class AnnotatedElement {
     }
 }
 
+var RendererStatesEnum;
+(function (RendererStatesEnum) {
+    RendererStatesEnum["GRAPHOL"] = "graphol";
+    RendererStatesEnum["GRAPHOL_LITE"] = "lite";
+    RendererStatesEnum["FLOATY"] = "floaty";
+    RendererStatesEnum["INCREMENTAL"] = "incremental";
+})(RendererStatesEnum || (RendererStatesEnum = {}));
+
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -901,7 +909,7 @@ function EdgeToJSON(value) {
  */
 function instanceOfAnnotation(value) {
     let isInstance = true;
-    isInstance = isInstance && "lexicalForm" in value;
+    isInstance = isInstance && "value" in value;
     isInstance = isInstance && "property" in value;
     return isInstance;
 }
@@ -913,7 +921,8 @@ function AnnotationFromJSONTyped(json, ignoreDiscriminator) {
         return json;
     }
     return {
-        'lexicalForm': json['lexicalForm'],
+        'value': json['value'],
+        'hasIriValue': !exists(json, 'hasIriValue') ? undefined : json['hasIriValue'],
         'property': json['property'],
         'language': !exists(json, 'language') ? undefined : json['language'],
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
@@ -927,7 +936,8 @@ function AnnotationToJSON(value) {
         return null;
     }
     return {
-        'lexicalForm': value.lexicalForm,
+        'value': value.value,
+        'hasIriValue': value.hasIriValue,
         'property': value.property,
         'language': value.language,
         'datatype': value.datatype,
@@ -1457,6 +1467,7 @@ function DataPropertyValueFromJSONTyped(json, ignoreDiscriminator) {
         'iri': json['iri'],
         'language': !exists(json, 'language') ? undefined : json['language'],
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
+        'renderingProperties': !exists(json, 'renderingProperties') ? undefined : json['renderingProperties'],
     };
 }
 function DataPropertyValueToJSON(value) {
@@ -1471,6 +1482,7 @@ function DataPropertyValueToJSON(value) {
         'iri': value.iri,
         'language': value.language,
         'datatype': value.datatype,
+        'renderingProperties': value.renderingProperties,
     };
 }
 
@@ -3391,391 +3403,213 @@ var index$4 = /*#__PURE__*/Object.freeze({
     querystring: querystring
 });
 
-var RendererStatesEnum;
-(function (RendererStatesEnum) {
-    RendererStatesEnum["GRAPHOL"] = "graphol";
-    RendererStatesEnum["GRAPHOL_LITE"] = "lite";
-    RendererStatesEnum["FLOATY"] = "floaty";
-    RendererStatesEnum["INCREMENTAL"] = "incremental";
-})(RendererStatesEnum || (RendererStatesEnum = {}));
-
-/**
- * ### Ontology
- * Class used as the Model of the whole app.
- */
-class Ontology extends AnnotatedElement {
-    constructor(name, version, iri, namespaces = [], annProperties = [], diagrams = []) {
+// export enum FunctionalityEnum {
+//   functional = 'functional',
+//   inverseFunctional = 'inverseFunctional',
+//   transitive = 'transitive',
+//   symmetric = 'symmetric',
+//   asymmetric = 'asymmetric',
+//   reflexive = 'reflexive',
+//   irreflexive = 'irreflexive'
+// }
+class GrapholEntity extends AnnotatedElement {
+    static newFromSwagger(iri, e) {
+        const instance = new GrapholEntity(iri);
+        Object.entries(e).forEach(([key, value]) => {
+            if (e[key] && key !== 'fullIri') {
+                instance[key] = value;
+            }
+        });
+        return instance;
+    }
+    constructor(iri) {
         super();
-        this.namespaces = [];
-        this.annProperties = [];
-        this.diagrams = [];
-        this.languages = [];
-        this.usedColorScales = [];
-        this._entities = new Map();
-        // computed only in floaty
-        this._hierarchies = new Map();
-        this._subHierarchiesMap = new Map();
-        this._superHierarchiesMap = new Map();
-        this._inclusions = [];
-        this.name = name;
-        this.version = version;
-        this.namespaces = namespaces;
-        this.annProperties = annProperties;
-        this.diagrams = diagrams;
+        this._occurrences = new Map([[RendererStatesEnum.GRAPHOL, []]]);
+        this._isDataPropertyFunctional = false;
+        this._functionProperties = [];
         this.iri = iri;
     }
-    addHierarchy(hierarchy) {
-        this._hierarchies.set(hierarchy.id, hierarchy);
-        let hierarchiesSet;
-        hierarchy.inputs.forEach(inputClass => {
-            hierarchiesSet = this._superHierarchiesMap.get(inputClass.fullIri);
-            if (!hierarchiesSet) {
-                this._superHierarchiesMap.set(inputClass.fullIri, new Set([hierarchy]));
-            }
-            else {
-                hierarchiesSet.add(hierarchy);
-            }
-        });
-        hierarchy.superclasses.map(sc => sc.classEntity).forEach(superClass => {
-            hierarchiesSet = this._subHierarchiesMap.get(superClass.fullIri);
-            if (!hierarchiesSet) {
-                this._subHierarchiesMap.set(superClass.fullIri, new Set([hierarchy]));
-            }
-            else {
-                hierarchiesSet.add(hierarchy);
-            }
-        });
-    }
-    removeHierarchy(hierarchyOrId) {
-        let hierarchy;
-        if (typeof hierarchyOrId === 'string') {
-            hierarchy = this.getHierarchy(hierarchyOrId);
+    addOccurrence(newGrapholElement, representationKind = RendererStatesEnum.GRAPHOL) {
+        if (!this.occurrences.get(representationKind)) {
+            this.occurrences.set(representationKind, []);
         }
-        if (hierarchy) {
-            this._hierarchies.delete(hierarchy.id);
-            this._subHierarchiesMap.forEach(sh => {
-                sh.delete(hierarchy);
-            });
-            this._superHierarchiesMap.forEach(sh => {
-                sh.delete(hierarchy);
-            });
+        const occurrences = this.occurrences.get(representationKind);
+        if (!(occurrences === null || occurrences === void 0 ? void 0 : occurrences.some(occ => occ.equals(newGrapholElement)))) {
+            occurrences === null || occurrences === void 0 ? void 0 : occurrences.push(newGrapholElement);
         }
     }
-    getHierarchy(hierarchyId) {
-        return this._hierarchies.get(hierarchyId);
-    }
-    getHierarchiesOf(classIri) {
-        return Array.from(new Set(Array.from(this.getSubHierarchiesOf(classIri)).concat(Array.from(this.getSuperHierarchiesOf(classIri)))));
-    }
-    /**
-     * @param superClassIri the superclass iri
-     * @returns The arrary of hiearchies for which a class appear as superclass
-     */
-    getSubHierarchiesOf(superClassIri) {
-        if (typeof superClassIri !== 'string')
-            superClassIri = superClassIri.fullIri;
-        return Array.from(this._subHierarchiesMap.get(superClassIri) || []);
+    removeOccurrence(grapholElement, representationKind) {
+        const occurrences = this.occurrences.get(representationKind);
+        const occurrenceToRemoveIndex = occurrences === null || occurrences === void 0 ? void 0 : occurrences.findIndex(o => o === grapholElement);
+        if (occurrenceToRemoveIndex !== undefined && occurrenceToRemoveIndex >= 0) {
+            occurrences === null || occurrences === void 0 ? void 0 : occurrences.splice(occurrenceToRemoveIndex, 1);
+        }
     }
     /**
-     *
-     * @param subClassIri
-     * @returns The arrary of hiearchies for which a class appear as subclass
+     * Get all occurrences of the entity in a given diagram
+     * @param diagramId the diagram in which the entity must occurr
+     * @param representationKind the diagram representation identifier ({@link RendererStatesEnum})
+     * if not set, all representations will be considered
+     * @returns A map with the occurrences in the original Graphol representation and other
+     * replicated occurrences in other diagram representations
      */
-    getSuperHierarchiesOf(subClassIri) {
-        if (typeof subClassIri !== 'string')
-            subClassIri = subClassIri.fullIri;
-        return Array.from(this._superHierarchiesMap.get(subClassIri) || []);
-    }
-    getSubclassesOf(superClassIri) {
-        const res = new Set();
-        this.getSubHierarchiesOf(superClassIri).forEach(hierarchy => {
-            hierarchy.inputs.forEach(classInput => res.add(classInput));
-        });
-        this._inclusions.forEach(s => {
-            if (s.superclass.iri.equals(superClassIri)) {
-                res.add(s.subclass);
+    getOccurrencesByDiagramId(diagramId, representationKind) {
+        const result = new Map();
+        if (representationKind) {
+            const occurrences = this.occurrences.get(representationKind);
+            if (occurrences) {
+                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
             }
-        });
-        return res;
-    }
-    getSuperclassesOf(superClassIri) {
-        const res = new Set();
-        this.getSuperHierarchiesOf(superClassIri).forEach(hierarchy => {
-            hierarchy.superclasses.forEach(sc => res.add(sc.classEntity));
-        });
-        this._inclusions.forEach(s => {
-            if (s.subclass.iri.equals(superClassIri)) {
-                res.add(s.superclass);
-            }
-        });
-        return res;
-    }
-    addSubclassOf(subclass, superclass) {
-        let subclassEntity;
-        let superclassEntity;
-        if (!subclass.types) {
-            subclassEntity = this.getEntity(subclass);
         }
         else {
-            subclassEntity = subclass;
-        }
-        if (!superclass.types) {
-            superclassEntity = this.getEntity(superclass);
-        }
-        else {
-            superclassEntity = subclass;
-        }
-        if (superclassEntity && subclassEntity) {
-            if (!this._inclusions.find(sc => sc.subclass.iri.equals(subclassEntity.iri) && sc.superclass.iri.equals(superclassEntity.iri))) {
-                this._inclusions.push({ subclass: subclassEntity, superclass: superclassEntity });
+            for (let [representationKind, occurrences] of this.occurrences) {
+                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
             }
         }
+        return result;
     }
-    removeSubclassOf(subclass, superclass) {
-        let subclassEntity;
-        let superclassEntity;
-        if (!subclass.types) {
-            subclassEntity = this.getEntity(subclass);
+    get types() {
+        var _a;
+        let types = new Set();
+        (_a = this._manualTypes) === null || _a === void 0 ? void 0 : _a.forEach(t => types.add(t));
+        // compute from occurrences
+        for (let [_, elements] of this.occurrences) {
+            elements.forEach(e => types.add(e.type));
         }
-        else {
-            subclassEntity = subclass;
-        }
-        if (!superclass.types) {
-            superclassEntity = this.getEntity(superclass);
-        }
-        else {
-            superclassEntity = subclass;
-        }
-        this._inclusions.splice(this._inclusions.findIndex(sc => sc.subclass === subclassEntity && sc.superclass === superclassEntity), 1);
+        return Array.from(types);
     }
-    /** @param {Namespace} namespace */
-    addNamespace(namespace) {
-        this.namespaces.push(namespace);
+    // only used when resuming from VKG, in that case we need entities to store their types
+    // even if they do not appear in graph.
+    // in all other cases types are derived from occurrences in graphs.
+    set manualTypes(newTypes) {
+        this._manualTypes = newTypes;
     }
     /**
-     * Get the Namspace object given its IRI string
-     * @param {string} iriValue the IRI assigned to the namespace
-     * @returns {Namespace}
+     * Check if entity is of a certain type
+     * @param type
      */
-    getNamespace(iriValue) {
-        return this.namespaces.find(ns => ns.toString() === iriValue);
-    }
-    /**
-     * Get the Namespace given one of its prefixes
-     * @param {string} prefix
-     * @returns {Namespace}
-     */
-    getNamespaceFromPrefix(prefix) {
-        return this.namespaces.find(ns => ns.hasPrefix(prefix));
-    }
-    getNamespaces() {
-        return this.namespaces;
-    }
-    /** @param {AnnotationProperty} annProperty */
-    addAnnotationProperty(annProperty) {
-        this.annProperties.push(annProperty);
-    }
-    /**
-     * Get the Namspace object given its IRI string
-     * @param {string} iriValue the IRI assigned to the namespace
-     * @returns {AnnotationProperty}
-     */
-    getAnnotationProperty(iriValue) {
-        return this.annProperties.find(prop => prop.fullIri === iriValue);
-    }
-    getAnnotationProperties() {
-        return this.annProperties;
-    }
-    /** @param {Diagram} diagram */
-    addDiagram(diagram) {
-        this.diagrams.push(diagram);
-    }
-    /**
-     * Get the diagram with the given id
-     */
-    getDiagram(diagramId) {
-        if (diagramId < 0 || diagramId > this.diagrams.length)
-            return;
-        return this.diagrams.find(diagram => diagram.id === diagramId);
-    }
-    getDiagramByName(name) {
-        return this.diagrams.find(d => d.name.toLowerCase() === (name === null || name === void 0 ? void 0 : name.toLowerCase()));
-    }
-    addEntity(entity) {
-        this.entities.set(entity.iri.fullIri, entity);
-    }
-    getEntity(iri) {
-        for (let entity of this.entities.values()) {
-            if (entity.iri.equals(iri)) {
-                return entity;
+    is(type) {
+        var _a;
+        if ((_a = this._manualTypes) === null || _a === void 0 ? void 0 : _a.has(type))
+            return true;
+        for (let [_, elements] of this.occurrences) {
+            if (elements.some(e => e.is(type))) {
+                return true;
             }
         }
+        return false;
     }
-    getEntitiesByType(entityType) {
-        return Array.from(this.entities).filter(([_, entity]) => entity.is(entityType)).map(([_, entity]) => entity);
+    get occurrences() {
+        return this._occurrences;
     }
-    getEntityFromOccurrence(entityOccurrence) {
-        const diagram = this.getDiagram(entityOccurrence.diagramId);
-        if (!diagram)
-            return;
-        if (entityOccurrence.iri) {
-            const entity = this.getEntity(entityOccurrence.iri);
-            if (entity)
-                return entity;
-        }
-        console.warn(`Can't find occurrence ${entityOccurrence.toString()} in any diagram's representation`);
-        return undefined;
+    set iri(val) {
+        this._iri = val;
     }
-    getGrapholElement(elementId, diagramId, renderState = RendererStatesEnum.GRAPHOL) {
-        var _a, _b, _c;
-        if (diagramId || diagramId === 0)
-            return (_b = (_a = this.getDiagram(diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(renderState)) === null || _b === void 0 ? void 0 : _b.grapholElements.get(elementId);
-        for (let diagram of this.diagrams) {
-            const elem = (_c = diagram.representations.get(renderState)) === null || _c === void 0 ? void 0 : _c.grapholElements.get(elementId);
-            if (elem)
-                return elem;
-        }
+    get iri() {
+        return this._iri;
     }
-    getGrapholNode(nodeId, diagramId, renderState = RendererStatesEnum.GRAPHOL) {
-        try {
-            const node = this.getGrapholElement(nodeId, diagramId, renderState);
-            return node;
-        }
-        catch (e) {
-            console.error(e);
-        }
+    get fullIri() {
+        return this.iri.fullIri;
     }
-    getGrapholEdge(edgeId, diagramId, renderState = RendererStatesEnum.GRAPHOL) {
-        try {
-            const edge = this.getGrapholElement(edgeId, diagramId, renderState);
-            return edge;
-        }
-        catch (e) {
-            console.error(e);
-        }
+    get functionProperties() {
+        return this._functionProperties;
     }
-    // /**
-    //  * Get an element in the ontology by id, searching in every diagram
-    //  * @param {string} elem_id - The `id` of the elem to retrieve
-    //  * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-    //  */
-    // getElem(elem_id: string): cytoscape.CollectionReturnValue {
-    //   for (let diagram of this.diagrams) {
-    //     let node = diagram.cy.$id(elem_id)
-    //     if (node.length > 0) return node
-    //   }
-    // }
-    /**
-     * Retrieve an entity by its IRI.
-     * @param {string} iri - The IRI in full or prefixed form.
-     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-     * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-     */
-    // getEntity(iri: string): cytoscape.CollectionReturnValue {
-    //   if (this.getEntityOccurrences(iri)) return this.getEntityOccurrences(iri)[0]
-    // }
-    /**
-     * Retrieve all occurrences of an entity by its IRI.
-     * @param {string} iri - The IRI in full or prefixed form.
-     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-     * @returns An array of EntityOccurrence objects
-     */
-    getEntityOccurrences(iri, diagramId, renderState) {
+    set functionProperties(properties) {
+        this._functionProperties = properties;
+    }
+    get isDataPropertyFunctional() {
+        return this._isDataPropertyFunctional;
+    }
+    set isDataPropertyFunctional(value) {
+        this._isDataPropertyFunctional = value;
+    }
+    get datatype() { return this._datatype; }
+    set datatype(datatype) { this._datatype = datatype; }
+    get color() { return this._color; }
+    set color(color) { this._color = color; }
+    getOccurrenceByType(type, rendererState) {
+        var _a;
+        return (_a = this.occurrences.get(rendererState)) === null || _a === void 0 ? void 0 : _a.find(o => o.type === type);
+    }
+    getOccurrencesByType(type, rendererState) {
+        var _a;
+        return (_a = this.occurrences.get(rendererState)) === null || _a === void 0 ? void 0 : _a.filter(o => o.type === type);
+    }
+    hasFunctionProperty(property) {
+        var _a;
+        const resVal = ((_a = this._functionProperties) === null || _a === void 0 ? void 0 : _a.includes(property)) || false;
+        if (property === FunctionPropertiesEnum.FUNCTIONAL) {
+            return this.isDataPropertyFunctional || resVal;
+        }
+        return resVal;
+    }
+    hasOccurrenceInDiagram(diagramId, representationKind) {
+        var _a;
+        if (representationKind) {
+            const result = (_a = this.occurrences.get(representationKind)) === null || _a === void 0 ? void 0 : _a.some(occ => occ.diagramId === diagramId);
+            return result === true;
+        }
+        for (let occurrenceInRepresentation of this.occurrences.values()) {
+            if (occurrenceInRepresentation.some(occ => occ.diagramId === diagramId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    getDisplayedName(nameType, currentLanguage) {
         var _a, _b;
-        // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
-        return diagramId || diagramId === 0
-            ? (_a = this.getEntity(iri)) === null || _a === void 0 ? void 0 : _a.getOccurrencesByDiagramId(diagramId, renderState)
-            : (_b = this.getEntity(iri)) === null || _b === void 0 ? void 0 : _b.occurrences;
+        let newDisplayedName;
+        switch (nameType) {
+            case RDFGraphConfigEntityNameTypeEnum.LABEL:
+                newDisplayedName =
+                    ((_a = this.getLabels(currentLanguage)[0]) === null || _a === void 0 ? void 0 : _a.value) ||
+                        ((_b = this.getLabels()[0]) === null || _b === void 0 ? void 0 : _b.value) ||
+                        (this.iri.remainder.length > 0 ? this.iri.remainder : undefined) ||
+                        this.iri.toString();
+                break;
+            case RDFGraphConfigEntityNameTypeEnum.PREFIXED_IRI:
+                newDisplayedName = this.iri.prefixed;
+                break;
+            case RDFGraphConfigEntityNameTypeEnum.FULL_IRI:
+                newDisplayedName = this.iri.fullIri;
+                break;
+        }
+        if (this.is(TypesEnum.CLASS) || this.is(TypesEnum.INDIVIDUAL))
+            return newDisplayedName.replace(/\r?\n|\r/g, '');
+        else
+            return newDisplayedName;
     }
-    // /**
-    //  * Get an element in the ontology by its id and its diagram id
-    //  * @param {string} elemID - The id of the element to retrieve
-    //  * @param {number} diagramID - the id of the diagram containing the element
-    //  * @returns {cytoscape.CollectionReturnValue} The element in cytoscape object representation
-    //  */
-    // getElemByDiagramAndId(elemID: string, diagramID: number): cytoscape.CollectionReturnValue {
-    //   let diagram = this.getDiagram(diagramID)
-    //   if (diagram) {
-    //     return diagram.cy.$id(elemID)
-    //   }
-    // }
-    /**
-     * Get the entities in the ontology
-     * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
-     */
-    // getEntities(): { [s: string]: cytoscape.CollectionReturnValue[] } {
-    //   let entities = {}
-    //   this.diagrams.forEach(diagram => {
-    //     diagram.cy.$('.predicate').forEach(entity => {
-    //       let iri = entity.data('iri').fullIri
-    //       if (!Object.keys(entities).includes(iri)) {
-    //         entities[iri] = []
-    //       }
-    //       entities[iri].push(entity)
-    //     })
-    //   })
-    //   //this._entities = entities
-    //   return entities
-    // }
-    /**
-     * Check if entity has the specified iri in full or prefixed form
-     * @param {Entity} entity
-     * @param {string} iri
-     * @returns {boolean}
-     */
-    // checkEntityIri(entity: Entity, iri: string): boolean {
-    //   /** @type {Iri} */
-    //   let entityIri: Iri = entity.data('iri') || entity.data.iri
-    //   return entityIri.fullIri === iri ||
-    //     entityIri.prefixed === iri
-    // }
-    /**
-     * Retrieve the full IRI given a prefixed IRI
-     * @param {string} prefixedIri a prefixed IRI
-     * @returns {string} full IRI
-     */
-    prefixedToFullIri(prefixedIri) {
-        if (!prefixedIri || typeof (prefixedIri) !== 'string')
-            return;
-        for (let namespace of this.namespaces) {
-            let prefix = namespace.prefixes.find(p => prefixedIri.includes(p + ':'));
-            if (prefix)
-                return prefixedIri.replace(prefix + ':', namespace.toString());
-            else if (prefixedIri.startsWith(':') && namespace.prefixes.some(p => p === '')) {
-                return prefixedIri.replace(':', namespace.toString());
-            }
+    getEntityOriginalNodeId() {
+        const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL);
+        if (grapholRepresentationOccurrences) {
+            return grapholRepresentationOccurrences[0].id; // used in UI to show the original nodeID in graphol
         }
     }
-    computeDatatypesOnDataProperties() {
-        let cyElement, representation, datatypeNode, datatype, occurrences;
-        this.entities.forEach((dataPropertyEntity, _) => {
-            if (dataPropertyEntity.is(TypesEnum.DATA_PROPERTY)) {
-                occurrences = dataPropertyEntity.occurrences.get(RendererStatesEnum.GRAPHOL);
-                if (!occurrences)
-                    return;
-                // retrieve datatype for dataproperties
-                occurrences.forEach(occurrence => {
-                    var _a;
-                    representation = (_a = this.getDiagram(occurrence.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(RendererStatesEnum.GRAPHOL);
-                    cyElement = representation === null || representation === void 0 ? void 0 : representation.cy.$id(occurrence.id);
-                    if (cyElement && cyElement.nonempty()) {
-                        datatypeNode = cyElement
-                            .neighborhood(`node[type = "${TypesEnum.RANGE_RESTRICTION}"]`)
-                            .neighborhood(`node[type = "${TypesEnum.VALUE_DOMAIN}"]`);
-                        if (datatypeNode.nonempty()) {
-                            datatype = datatypeNode.first().data('displayedName');
-                            dataPropertyEntity.datatype = datatype;
-                            representation === null || representation === void 0 ? void 0 : representation.updateElement(occurrence.id, dataPropertyEntity);
-                        }
-                    }
-                });
-            }
-        });
+    getIdInDiagram(diagramId, type, rendererState) {
+        var _a;
+        let entityOccurrences = this.getOccurrencesByType(type, rendererState);
+        if (!entityOccurrences || entityOccurrences.length === 0)
+            entityOccurrences = this.getOccurrencesByType(type, RendererStatesEnum.GRAPHOL);
+        if (!entityOccurrences)
+            return;
+        return (_a = entityOccurrences.find(o => o.diagramId === diagramId)) === null || _a === void 0 ? void 0 : _a.id;
     }
-    get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0); }
-    get entities() { return this._entities; }
-    set entities(newEntities) {
-        this._entities = newEntities;
+    json() {
+        return {
+            fullIri: this.fullIri,
+            annotations: this.getAnnotations().map(ann => {
+                return {
+                    property: ann.property,
+                    value: ann.value,
+                    language: ann.language,
+                    datatype: ann.datatype,
+                    hasIriValue: ann.hasIriValue,
+                };
+            }),
+            datatype: this.datatype,
+            functionProperties: this.functionProperties,
+            isDataPropertyFunctional: this.isDataPropertyFunctional,
+        };
     }
 }
 
@@ -4449,6 +4283,383 @@ class Diagram {
     }
 }
 
+class AnnotationsDiagram extends Diagram {
+    constructor() {
+        super('Annotations', -1);
+        this.representation = new DiagramRepresentation(floatyOptions);
+        this.representations.set(RendererStatesEnum.FLOATY, this.representation);
+    }
+    addIRIValueAnnotation(sourceEntity, annotationPropertyEntity, targetIri, entityNameType, language, targetEntity) {
+        let node;
+        let sourceEntityNode = this.representation.cy.$(`[iri = "${sourceEntity.iri.fullIri}"]`).first();
+        if (sourceEntityNode.empty()) {
+            node = new GrapholNode(this.representation.getNewId('node'), TypesEnum.INDIVIDUAL);
+            node.diagramId = this.id;
+            node.displayedName = sourceEntity.getDisplayedName(entityNameType, language);
+            sourceEntityNode = this.representation.addElement(node, sourceEntity);
+            sourceEntity.addOccurrence(node, RendererStatesEnum.FLOATY);
+        }
+        // take range iri node
+        let targetNode = this.representation.cy.$(`[iri = "${targetIri.toString()}"]`).nodes().first();
+        if (targetNode.empty()) {
+            node = new GrapholNode(this.representation.getNewId('node'), TypesEnum.IRI);
+            const tempEntity = new GrapholEntity(targetIri);
+            node = new GrapholNode(this.representation.getNewId('node'), TypesEnum.IRI);
+            node.iri = targetIri.toString();
+            node.diagramId = this.id;
+            node.displayedName = tempEntity.getDisplayedName(entityNameType, language);
+            targetNode = this.representation.addElement(node);
+            targetEntity === null || targetEntity === void 0 ? void 0 : targetEntity.addOccurrence(node, RendererStatesEnum.FLOATY);
+        }
+        const annotationPropertyEdge = new GrapholEdge(this.representation.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY);
+        annotationPropertyEdge.diagramId = this.id;
+        annotationPropertyEdge.sourceId = sourceEntityNode.id();
+        annotationPropertyEdge.targetId = targetNode.id();
+        annotationPropertyEdge.displayedName = annotationPropertyEntity === null || annotationPropertyEntity === void 0 ? void 0 : annotationPropertyEntity.getDisplayedName(entityNameType, language);
+        this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity);
+        annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY);
+    }
+    isEmpty() {
+        return this.representation.cy.elements().empty();
+    }
+}
+
+/**
+ * ### Ontology
+ * Class used as the Model of the whole app.
+ */
+class Ontology extends AnnotatedElement {
+    constructor(name, version, iri, namespaces = [], annProperties = [], diagrams = []) {
+        super();
+        this.namespaces = [];
+        this.annProperties = [];
+        this.diagrams = [];
+        this.languages = [];
+        this.usedColorScales = [];
+        this._entities = new Map();
+        // computed only in floaty
+        this._hierarchies = new Map();
+        this._subHierarchiesMap = new Map();
+        this._superHierarchiesMap = new Map();
+        this._inclusions = [];
+        this.name = name;
+        this.version = version;
+        this.namespaces = namespaces;
+        this.annProperties = annProperties;
+        this.diagrams = diagrams;
+        this.iri = iri;
+        if (this.iri) {
+            this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces));
+        }
+    }
+    addHierarchy(hierarchy) {
+        this._hierarchies.set(hierarchy.id, hierarchy);
+        let hierarchiesSet;
+        hierarchy.inputs.forEach(inputClass => {
+            hierarchiesSet = this._superHierarchiesMap.get(inputClass.fullIri);
+            if (!hierarchiesSet) {
+                this._superHierarchiesMap.set(inputClass.fullIri, new Set([hierarchy]));
+            }
+            else {
+                hierarchiesSet.add(hierarchy);
+            }
+        });
+        hierarchy.superclasses.map(sc => sc.classEntity).forEach(superClass => {
+            hierarchiesSet = this._subHierarchiesMap.get(superClass.fullIri);
+            if (!hierarchiesSet) {
+                this._subHierarchiesMap.set(superClass.fullIri, new Set([hierarchy]));
+            }
+            else {
+                hierarchiesSet.add(hierarchy);
+            }
+        });
+    }
+    removeHierarchy(hierarchyOrId) {
+        let hierarchy;
+        if (typeof hierarchyOrId === 'string') {
+            hierarchy = this.getHierarchy(hierarchyOrId);
+        }
+        if (hierarchy) {
+            this._hierarchies.delete(hierarchy.id);
+            this._subHierarchiesMap.forEach(sh => {
+                sh.delete(hierarchy);
+            });
+            this._superHierarchiesMap.forEach(sh => {
+                sh.delete(hierarchy);
+            });
+        }
+    }
+    getHierarchy(hierarchyId) {
+        return this._hierarchies.get(hierarchyId);
+    }
+    getHierarchiesOf(classIri) {
+        return Array.from(new Set(Array.from(this.getSubHierarchiesOf(classIri)).concat(Array.from(this.getSuperHierarchiesOf(classIri)))));
+    }
+    /**
+     * @param superClassIri the superclass iri
+     * @returns The arrary of hiearchies for which a class appear as superclass
+     */
+    getSubHierarchiesOf(superClassIri) {
+        if (typeof superClassIri !== 'string')
+            superClassIri = superClassIri.fullIri;
+        return Array.from(this._subHierarchiesMap.get(superClassIri) || []);
+    }
+    /**
+     *
+     * @param subClassIri
+     * @returns The arrary of hiearchies for which a class appear as subclass
+     */
+    getSuperHierarchiesOf(subClassIri) {
+        if (typeof subClassIri !== 'string')
+            subClassIri = subClassIri.fullIri;
+        return Array.from(this._superHierarchiesMap.get(subClassIri) || []);
+    }
+    getSubclassesOf(superClassIri) {
+        const res = new Set();
+        this.getSubHierarchiesOf(superClassIri).forEach(hierarchy => {
+            hierarchy.inputs.forEach(classInput => res.add(classInput));
+        });
+        this._inclusions.forEach(s => {
+            if (s.superclass.iri.equals(superClassIri)) {
+                res.add(s.subclass);
+            }
+        });
+        return res;
+    }
+    getSuperclassesOf(superClassIri) {
+        const res = new Set();
+        this.getSuperHierarchiesOf(superClassIri).forEach(hierarchy => {
+            hierarchy.superclasses.forEach(sc => res.add(sc.classEntity));
+        });
+        this._inclusions.forEach(s => {
+            if (s.subclass.iri.equals(superClassIri)) {
+                res.add(s.superclass);
+            }
+        });
+        return res;
+    }
+    addSubclassOf(subclass, superclass) {
+        let subclassEntity;
+        let superclassEntity;
+        if (!subclass.types) {
+            subclassEntity = this.getEntity(subclass);
+        }
+        else {
+            subclassEntity = subclass;
+        }
+        if (!superclass.types) {
+            superclassEntity = this.getEntity(superclass);
+        }
+        else {
+            superclassEntity = subclass;
+        }
+        if (superclassEntity && subclassEntity) {
+            if (!this._inclusions.find(sc => sc.subclass.iri.equals(subclassEntity.iri) && sc.superclass.iri.equals(superclassEntity.iri))) {
+                this._inclusions.push({ subclass: subclassEntity, superclass: superclassEntity });
+            }
+        }
+    }
+    removeSubclassOf(subclass, superclass) {
+        let subclassEntity;
+        let superclassEntity;
+        if (!subclass.types) {
+            subclassEntity = this.getEntity(subclass);
+        }
+        else {
+            subclassEntity = subclass;
+        }
+        if (!superclass.types) {
+            superclassEntity = this.getEntity(superclass);
+        }
+        else {
+            superclassEntity = subclass;
+        }
+        this._inclusions.splice(this._inclusions.findIndex(sc => sc.subclass === subclassEntity && sc.superclass === superclassEntity), 1);
+    }
+    /** @param {Namespace} namespace */
+    addNamespace(namespace) {
+        this.namespaces.push(namespace);
+    }
+    /**
+     * Get the Namspace object given its IRI string
+     * @param {string} iriValue the IRI assigned to the namespace
+     * @returns {Namespace}
+     */
+    getNamespace(iriValue) {
+        return this.namespaces.find(ns => ns.toString() === iriValue);
+    }
+    /**
+     * Get the Namespace given one of its prefixes
+     * @param {string} prefix
+     * @returns {Namespace}
+     */
+    getNamespaceFromPrefix(prefix) {
+        return this.namespaces.find(ns => ns.hasPrefix(prefix));
+    }
+    getNamespaces() {
+        return this.namespaces;
+    }
+    /** @param {AnnotationProperty} annProperty */
+    addAnnotationProperty(annProperty) {
+        this.annProperties.push(annProperty);
+    }
+    /**
+     * Get the Namspace object given its IRI string
+     * @param {string} iriValue the IRI assigned to the namespace
+     * @returns {AnnotationProperty}
+     */
+    getAnnotationProperty(iriValue) {
+        return this.annProperties.find(prop => prop.fullIri === iriValue);
+    }
+    getAnnotationProperties() {
+        return this.annProperties;
+    }
+    /** @param {Diagram} diagram */
+    addDiagram(diagram) {
+        this.diagrams[diagram.id] = diagram;
+    }
+    /**
+     * Get the diagram with the given id
+     */
+    getDiagram(diagramId) {
+        return this.diagrams[diagramId];
+    }
+    getDiagramByName(name) {
+        return this.diagrams.find(d => d.name.toLowerCase() === (name === null || name === void 0 ? void 0 : name.toLowerCase()));
+    }
+    addEntity(entity) {
+        this.entities.set(entity.iri.fullIri, entity);
+    }
+    getEntity(iri) {
+        return this.entities.get(iri.toString());
+    }
+    getEntitiesByType(entityType) {
+        return Array.from(this.entities).filter(([_, entity]) => entity.is(entityType)).map(([_, entity]) => entity);
+    }
+    getEntityFromOccurrence(entityOccurrence) {
+        const diagram = this.getDiagram(entityOccurrence.diagramId);
+        if (!diagram)
+            return;
+        if (entityOccurrence.iri) {
+            const entity = this.getEntity(entityOccurrence.iri);
+            if (entity)
+                return entity;
+        }
+        console.warn(`Can't find occurrence ${entityOccurrence.toString()} in any diagram's representation`);
+        return undefined;
+    }
+    getGrapholElement(elementId, diagramId, renderState = RendererStatesEnum.GRAPHOL) {
+        var _a, _b, _c;
+        if (diagramId || diagramId === 0)
+            return (_b = (_a = this.getDiagram(diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(renderState)) === null || _b === void 0 ? void 0 : _b.grapholElements.get(elementId);
+        for (let diagram of this.diagrams) {
+            const elem = (_c = diagram.representations.get(renderState)) === null || _c === void 0 ? void 0 : _c.grapholElements.get(elementId);
+            if (elem)
+                return elem;
+        }
+    }
+    getGrapholNode(nodeId, diagramId, renderState = RendererStatesEnum.GRAPHOL) {
+        try {
+            const node = this.getGrapholElement(nodeId, diagramId, renderState);
+            return node;
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+    getGrapholEdge(edgeId, diagramId, renderState = RendererStatesEnum.GRAPHOL) {
+        try {
+            const edge = this.getGrapholElement(edgeId, diagramId, renderState);
+            return edge;
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+    /**
+     * Retrieve all occurrences of an entity by its IRI.
+     * @param {string} iri - The IRI in full or prefixed form.
+     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
+     * @returns An array of EntityOccurrence objects
+     */
+    getEntityOccurrences(iri, diagramId, renderState) {
+        var _a, _b;
+        // return this.entities[iri] || this.entities[this.prefixedToFullIri(iri)]
+        return diagramId || diagramId === 0
+            ? (_a = this.getEntity(iri)) === null || _a === void 0 ? void 0 : _a.getOccurrencesByDiagramId(diagramId, renderState)
+            : (_b = this.getEntity(iri)) === null || _b === void 0 ? void 0 : _b.occurrences;
+    }
+    /**
+     * Retrieve the full IRI given a prefixed IRI
+     * @param {string} prefixedIri a prefixed IRI
+     * @returns {string} full IRI
+     */
+    prefixedToFullIri(prefixedIri) {
+        if (!prefixedIri || typeof (prefixedIri) !== 'string')
+            return;
+        for (let namespace of this.namespaces) {
+            let prefix = namespace.prefixes.find(p => prefixedIri.includes(p + ':'));
+            if (prefix)
+                return prefixedIri.replace(prefix + ':', namespace.toString());
+            else if (prefixedIri.startsWith(':') && namespace.prefixes.some(p => p === '')) {
+                return prefixedIri.replace(':', namespace.toString());
+            }
+        }
+    }
+    computeDatatypesOnDataProperties() {
+        let cyElement, representation, datatypeNode, datatype, occurrences;
+        this.entities.forEach((dataPropertyEntity, _) => {
+            if (dataPropertyEntity.is(TypesEnum.DATA_PROPERTY)) {
+                occurrences = dataPropertyEntity.occurrences.get(RendererStatesEnum.GRAPHOL);
+                if (!occurrences)
+                    return;
+                // retrieve datatype for dataproperties
+                occurrences.forEach(occurrence => {
+                    var _a;
+                    representation = (_a = this.getDiagram(occurrence.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(RendererStatesEnum.GRAPHOL);
+                    cyElement = representation === null || representation === void 0 ? void 0 : representation.cy.$id(occurrence.id);
+                    if (cyElement && cyElement.nonempty()) {
+                        datatypeNode = cyElement
+                            .neighborhood(`node[type = "${TypesEnum.RANGE_RESTRICTION}"]`)
+                            .neighborhood(`node[type = "${TypesEnum.VALUE_DOMAIN}"]`);
+                        if (datatypeNode.nonempty()) {
+                            datatype = datatypeNode.first().data('displayedName');
+                            dataPropertyEntity.datatype = datatype;
+                            representation === null || representation === void 0 ? void 0 : representation.updateElement(occurrence.id, dataPropertyEntity);
+                        }
+                    }
+                });
+            }
+        });
+    }
+    /** @override */
+    addAnnotation(newAnnotation) {
+        super.addAnnotation(newAnnotation);
+        if (!this.iri) {
+            console.warn('ontology has no defined IRI. Unable to add annotation to ontology entity node.');
+            return;
+        }
+        if (!this.annotationsDiagram) {
+            this.diagrams[-1] = new AnnotationsDiagram();
+        }
+        if (!this.ontologyEntity) {
+            this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces));
+        }
+        const annotationPropertyEntity = this.getEntity(newAnnotation.propertyIri);
+        if (annotationPropertyEntity && newAnnotation.rangeIri) {
+            this.annotationsDiagram.addIRIValueAnnotation(this.ontologyEntity, annotationPropertyEntity, newAnnotation.rangeIri, RDFGraphConfigEntityNameTypeEnum.LABEL, Language.EN, this.getEntity(newAnnotation.rangeIri));
+        }
+    }
+    get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0); }
+    get entities() { return this._entities; }
+    set entities(newEntities) {
+        this._entities = newEntities;
+    }
+    get annotationsDiagram() {
+        return this.diagrams[-1];
+    }
+}
+
 class IncrementalDiagram extends Diagram {
     constructor() {
         super('Incremental', IncrementalDiagram.ID);
@@ -4491,11 +4702,11 @@ class Annotation {
     }
     equals(annotation) {
         return this.datatype === annotation.datatype &&
-            this.lexicalForm === annotation.lexicalForm &&
+            this.value === annotation.value &&
             this.language === annotation.language &&
             this._property.equals(annotation.property);
     }
-    hasIriRange() {
+    get hasIriValue() {
         return this.rangeIri !== undefined;
     }
     get property() {
@@ -4507,12 +4718,12 @@ class Annotation {
     get kind() {
         return this._property.remainder;
     }
-    get lexicalForm() {
+    get value() {
         return this._range.toString();
     }
     /**
      * If the range is a Iri, return such a Iri, undefined otherwise
-     */
+    */
     get rangeIri() {
         return this._range.fullIri ? this._range : undefined;
     }
@@ -4953,214 +5164,6 @@ const getDefaultFilters = () => {
         HAS_KEY: hasKeyFilter(),
     };
 };
-
-// export enum FunctionalityEnum {
-//   functional = 'functional',
-//   inverseFunctional = 'inverseFunctional',
-//   transitive = 'transitive',
-//   symmetric = 'symmetric',
-//   asymmetric = 'asymmetric',
-//   reflexive = 'reflexive',
-//   irreflexive = 'irreflexive'
-// }
-class GrapholEntity extends AnnotatedElement {
-    static newFromSwagger(iri, e) {
-        const instance = new GrapholEntity(iri);
-        Object.entries(e).forEach(([key, value]) => {
-            if (e[key] && key !== 'fullIri') {
-                instance[key] = value;
-            }
-        });
-        return instance;
-    }
-    constructor(iri) {
-        super();
-        this._occurrences = new Map([[RendererStatesEnum.GRAPHOL, []]]);
-        this._isDataPropertyFunctional = false;
-        this._functionProperties = [];
-        this.iri = iri;
-    }
-    addOccurrence(newGrapholElement, representationKind = RendererStatesEnum.GRAPHOL) {
-        if (!this.occurrences.get(representationKind)) {
-            this.occurrences.set(representationKind, []);
-        }
-        const occurrences = this.occurrences.get(representationKind);
-        if (!(occurrences === null || occurrences === void 0 ? void 0 : occurrences.some(occ => occ.equals(newGrapholElement)))) {
-            occurrences === null || occurrences === void 0 ? void 0 : occurrences.push(newGrapholElement);
-        }
-    }
-    removeOccurrence(grapholElement, representationKind) {
-        const occurrences = this.occurrences.get(representationKind);
-        const occurrenceToRemoveIndex = occurrences === null || occurrences === void 0 ? void 0 : occurrences.findIndex(o => o === grapholElement);
-        if (occurrenceToRemoveIndex !== undefined && occurrenceToRemoveIndex >= 0) {
-            occurrences === null || occurrences === void 0 ? void 0 : occurrences.splice(occurrenceToRemoveIndex, 1);
-        }
-    }
-    /**
-     * Get all occurrences of the entity in a given diagram
-     * @param diagramId the diagram in which the entity must occurr
-     * @param representationKind the diagram representation identifier ({@link RendererStatesEnum})
-     * if not set, all representations will be considered
-     * @returns A map with the occurrences in the original Graphol representation and other
-     * replicated occurrences in other diagram representations
-     */
-    getOccurrencesByDiagramId(diagramId, representationKind) {
-        const result = new Map();
-        if (representationKind) {
-            const occurrences = this.occurrences.get(representationKind);
-            if (occurrences) {
-                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
-            }
-        }
-        else {
-            for (let [representationKind, occurrences] of this.occurrences) {
-                result.set(representationKind, occurrences.filter(occ => occ.diagramId === diagramId));
-            }
-        }
-        return result;
-    }
-    get types() {
-        var _a;
-        let types = new Set();
-        (_a = this._manualTypes) === null || _a === void 0 ? void 0 : _a.forEach(t => types.add(t));
-        // compute from occurrences
-        for (let [_, elements] of this.occurrences) {
-            elements.forEach(e => types.add(e.type));
-        }
-        return Array.from(types);
-    }
-    // only used when resuming from VKG, in that case we need entities to store their types
-    // even if they do not appear in graph.
-    // in all other cases types are derived from occurrences in graphs.
-    set manualTypes(newTypes) {
-        this._manualTypes = newTypes;
-    }
-    /**
-     * Check if entity is of a certain type
-     * @param type
-     */
-    is(type) {
-        var _a;
-        if ((_a = this._manualTypes) === null || _a === void 0 ? void 0 : _a.has(type))
-            return true;
-        for (let [_, elements] of this.occurrences) {
-            if (elements.some(e => e.is(type))) {
-                return true;
-            }
-        }
-        return false;
-    }
-    get occurrences() {
-        return this._occurrences;
-    }
-    set iri(val) {
-        this._iri = val;
-    }
-    get iri() {
-        return this._iri;
-    }
-    get fullIri() {
-        return this.iri.fullIri;
-    }
-    get functionProperties() {
-        return this._functionProperties;
-    }
-    set functionProperties(properties) {
-        this._functionProperties = properties;
-    }
-    get isDataPropertyFunctional() {
-        return this._isDataPropertyFunctional;
-    }
-    set isDataPropertyFunctional(value) {
-        this._isDataPropertyFunctional = value;
-    }
-    get datatype() { return this._datatype; }
-    set datatype(datatype) { this._datatype = datatype; }
-    get color() { return this._color; }
-    set color(color) { this._color = color; }
-    getOccurrenceByType(type, rendererState) {
-        var _a;
-        return (_a = this.occurrences.get(rendererState)) === null || _a === void 0 ? void 0 : _a.find(o => o.type === type);
-    }
-    getOccurrencesByType(type, rendererState) {
-        var _a;
-        return (_a = this.occurrences.get(rendererState)) === null || _a === void 0 ? void 0 : _a.filter(o => o.type === type);
-    }
-    hasFunctionProperty(property) {
-        var _a;
-        const resVal = ((_a = this._functionProperties) === null || _a === void 0 ? void 0 : _a.includes(property)) || false;
-        if (property === FunctionPropertiesEnum.FUNCTIONAL) {
-            return this.isDataPropertyFunctional || resVal;
-        }
-        return resVal;
-    }
-    hasOccurrenceInDiagram(diagramId, representationKind) {
-        var _a;
-        if (representationKind) {
-            const result = (_a = this.occurrences.get(representationKind)) === null || _a === void 0 ? void 0 : _a.some(occ => occ.diagramId === diagramId);
-            return result === true;
-        }
-        for (let occurrenceInRepresentation of this.occurrences.values()) {
-            if (occurrenceInRepresentation.some(occ => occ.diagramId === diagramId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    getDisplayedName(nameType, currentLanguage) {
-        var _a, _b;
-        let newDisplayedName;
-        switch (nameType) {
-            case RDFGraphConfigEntityNameTypeEnum.LABEL:
-                newDisplayedName =
-                    ((_a = this.getLabels(currentLanguage)[0]) === null || _a === void 0 ? void 0 : _a.lexicalForm) ||
-                        ((_b = this.getLabels()[0]) === null || _b === void 0 ? void 0 : _b.lexicalForm) ||
-                        this.iri.remainder;
-                break;
-            case RDFGraphConfigEntityNameTypeEnum.PREFIXED_IRI:
-                newDisplayedName = this.iri.prefixed;
-                break;
-            case RDFGraphConfigEntityNameTypeEnum.FULL_IRI:
-                newDisplayedName = this.iri.fullIri;
-                break;
-        }
-        if (this.is(TypesEnum.CLASS) || this.is(TypesEnum.INDIVIDUAL))
-            return newDisplayedName.replace(/\r?\n|\r/g, '');
-        else
-            return newDisplayedName;
-    }
-    getEntityOriginalNodeId() {
-        const grapholRepresentationOccurrences = this.occurrences.get(RendererStatesEnum.GRAPHOL);
-        if (grapholRepresentationOccurrences) {
-            return grapholRepresentationOccurrences[0].id; // used in UI to show the original nodeID in graphol
-        }
-    }
-    getIdInDiagram(diagramId, type, rendererState) {
-        var _a;
-        let entityOccurrences = this.getOccurrencesByType(type, rendererState);
-        if (!entityOccurrences || entityOccurrences.length === 0)
-            entityOccurrences = this.getOccurrencesByType(type, RendererStatesEnum.GRAPHOL);
-        if (!entityOccurrences)
-            return;
-        return (_a = entityOccurrences.find(o => o.diagramId === diagramId)) === null || _a === void 0 ? void 0 : _a.id;
-    }
-    json() {
-        return {
-            fullIri: this.fullIri,
-            annotations: this.getAnnotations().map(ann => {
-                return {
-                    property: ann.property,
-                    lexicalForm: ann.lexicalForm,
-                    language: ann.language,
-                    datatype: ann.datatype,
-                };
-            }),
-            datatype: this.datatype,
-            functionProperties: this.functionProperties,
-            isDataPropertyFunctional: this.isDataPropertyFunctional,
-        };
-    }
-}
 
 /** @internal */
 class ClassInstanceEntity extends GrapholEntity {
@@ -6441,75 +6444,21 @@ class FloatyTransformer extends BaseGrapholTransformer {
     }
     static addAnnotationPropertyEdges(grapholscape) {
         const ontology = grapholscape.ontology;
-        let diagram;
-        let sourceEntityOccurrences;
+        let diagram = ontology.annotationsDiagram;
+        if (!diagram)
+            return;
         let annotationPropertyEntity;
-        let annotationPropertyEdge;
         let targetEntity;
-        let targetNode;
-        let targetIriCyNode;
-        const diagramsUsed = new Set();
-        for (let [entityIri, sourceEntity] of ontology.entities) {
-            sourceEntity.getAnnotations().filter(ann => ann.hasIriRange()).forEach(annotation => {
-                var _a, _b, _c;
+        for (let [sourceEntityIri, sourceEntity] of ontology.entities) {
+            sourceEntity.getAnnotations().filter(ann => ann.hasIriValue).forEach(annotation => {
                 if (!annotation.rangeIri)
                     return;
-                diagramsUsed.clear();
+                // diagramsUsed.clear()
                 annotationPropertyEntity = ontology.getEntity(annotation.propertyIri);
                 targetEntity = ontology.getEntity(annotation.rangeIri);
                 if (!annotationPropertyEntity)
                     return;
-                sourceEntityOccurrences = (_a = sourceEntity
-                    .occurrences.get(RendererStatesEnum.FLOATY)) === null || _a === void 0 ? void 0 : _a.filter(occ => occ.isNode());
-                // if entity has no  occurrences => create new individual source node
-                if (!sourceEntityOccurrences || sourceEntityOccurrences.length === 0) {
-                    diagram = (_b = ontology.getDiagram(0)) === null || _b === void 0 ? void 0 : _b.representations.get(RendererStatesEnum.FLOATY);
-                    if (!diagram)
-                        return;
-                    let node;
-                    node = new GrapholNode(diagram.getNewId('node'), TypesEnum.INDIVIDUAL);
-                    node.diagramId = 0;
-                    node.displayedName = sourceEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language);
-                    diagram.addElement(node, sourceEntity);
-                    sourceEntity.addOccurrence(node, RendererStatesEnum.FLOATY);
-                    sourceEntityOccurrences = (_c = sourceEntity.occurrences.get(RendererStatesEnum.FLOATY)) === null || _c === void 0 ? void 0 : _c.filter(occ => occ.isNode());
-                }
-                // for each source node, retrieve or create new target node in same diagram and add edge
-                sourceEntityOccurrences === null || sourceEntityOccurrences === void 0 ? void 0 : sourceEntityOccurrences.forEach(sourceNode => {
-                    var _a, _b, _c;
-                    diagram = (_a = ontology.getDiagram(sourceNode.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(RendererStatesEnum.FLOATY);
-                    if (diagram && !diagramsUsed.has(sourceNode.diagramId)) {
-                        // if range iri was entity, take entity first occurrence
-                        if (targetEntity) {
-                            targetNode = (_c = (_b = targetEntity
-                                .getOccurrencesByDiagramId(sourceNode.diagramId, RendererStatesEnum.FLOATY)) === null || _b === void 0 ? void 0 : _b.get(RendererStatesEnum.FLOATY)) === null || _c === void 0 ? void 0 : _c.filter(occ => occ.isNode())[0];
-                        }
-                        else { // if range is not an entity, search iri in diagram
-                            targetIriCyNode = diagram.cy.$(`[iri = "${annotation.rangeIri.fullIri}"]`).nodes().first();
-                            if (targetIriCyNode.nonempty()) {
-                                targetNode = diagram.grapholElements.get(targetIriCyNode.id());
-                            }
-                        }
-                        // If target node doesn't exist either as entity occurrence or IRI node, create a new IRI Node
-                        if (!targetNode) {
-                            // targetIriCyNode = addNewIndividualOccurrence(targetEntity!, sourceNode.diagramId)
-                            const tempEntity = new GrapholEntity(annotation.rangeIri);
-                            targetNode = new GrapholNode(diagram.getNewId('node'), TypesEnum.IRI);
-                            targetNode.iri = annotation.rangeIri.fullIri;
-                            targetNode.diagramId = sourceNode.diagramId;
-                            targetNode.displayedName = tempEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language);
-                            diagram.addElement(targetNode);
-                        }
-                        annotationPropertyEdge = new GrapholEdge(diagram.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY);
-                        annotationPropertyEdge.diagramId = sourceNode.diagramId;
-                        annotationPropertyEdge.sourceId = sourceNode.id;
-                        annotationPropertyEdge.targetId = targetNode.id;
-                        annotationPropertyEdge.displayedName = annotationPropertyEntity === null || annotationPropertyEntity === void 0 ? void 0 : annotationPropertyEntity.getDisplayedName(grapholscape.entityNameType, grapholscape.language);
-                        diagram.addElement(annotationPropertyEdge, annotationPropertyEntity);
-                        annotationPropertyEntity === null || annotationPropertyEntity === void 0 ? void 0 : annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY);
-                        diagramsUsed.add(sourceNode.diagramId);
-                    }
-                });
+                diagram === null || diagram === void 0 ? void 0 : diagram.addIRIValueAnnotation(sourceEntity, annotationPropertyEntity, annotation.rangeIri, grapholscape.entityNameType, grapholscape.language, targetEntity);
             });
         }
     }
@@ -6733,9 +6682,10 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
             annotations: ontology.getAnnotations().map(ann => {
                 return {
                     property: ann.property,
-                    lexicalForm: ann.lexicalForm,
+                    value: ann.value,
                     language: ann.language,
                     datatype: ann.datatype,
+                    hasIriValue: ann.hasIriValue,
                 };
             }),
             annotationProperties: ontology.annProperties.map(ap => ap.fullIri)
@@ -8881,7 +8831,7 @@ function setGraphEventHandlers(diagram, lifecycle, ontology) {
             const grapholElement = diagramRepresentation.grapholElements.get(e.target.id());
             if (grapholElement) {
                 if (grapholElement.isEntity()) {
-                    const grapholEntity = ontology.getEntity(e.target.data().iri);
+                    const grapholEntity = ontology.getEntity(e.target.data().iri) || (ontology.ontologyEntity.iri.equals(e.target.data().iri) && ontology.ontologyEntity);
                     if (grapholEntity) {
                         lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement);
                     }
@@ -9089,7 +9039,7 @@ function getAnnotations(annotatedElem, namespaces) {
         const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
             return property.equals(a.property);
         }) || new Iri(a.property, namespaces);
-        return new Annotation(annotationProperty, a.lexicalForm, a.language, a.datatype);
+        return new Annotation(annotationProperty, a.lexicalForm || a.value, a.language, a.datatype);
     })) || [];
 }
 function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entities, namespaces) {
@@ -9100,7 +9050,14 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
     const diagrams = [];
     rdfGraph.diagrams.forEach(d => {
         var _a, _b;
-        diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram();
+        if (d.id === -1 && rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
+            if (rendererState !== RendererStatesEnum.INCREMENTAL && rendererState !== RendererStatesEnum.FLOATY)
+                return;
+            diagram = new AnnotationsDiagram();
+        }
+        else {
+            diagram = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY ? new Diagram(d.name, d.id) : new IncrementalDiagram();
+        }
         diagramRepr = diagram.representations.get(rendererState);
         if (!diagramRepr) {
             diagramRepr = new DiagramRepresentation(floatyOptions);
@@ -9149,7 +9106,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
                 diagramRepr.lastViewportState = d.lastViewportState;
             }
         }
-        diagrams.push(diagram);
+        diagrams[diagram.id] = diagram;
     });
     return diagrams;
 }
@@ -9569,7 +9526,7 @@ class Grapholscape {
             const allEntities = new Map(Array.from(this.ontology.entities)
                 .concat(Array.from(getClassInstances(rdfGraph, this.ontology.namespaces))));
             this.ontology.entities = allEntities;
-            const diagramRepr = getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities, this.ontology.namespaces)[0].representations.get(RendererStatesEnum.INCREMENTAL);
+            const diagramRepr = getDiagrams(rdfGraph, RendererStatesEnum.INCREMENTAL, allEntities, this.ontology.namespaces)[IncrementalDiagram.ID].representations.get(RendererStatesEnum.INCREMENTAL);
             if (diagramRepr) {
                 // this.incremental.diagram = new IncrementalDiagram()
                 if (diagramRepr.lastViewportState) {
@@ -11650,11 +11607,9 @@ GscapeContextMenu.styles = [
       }
 
       .gscape-panel, .custom-elements {
-        overflow: unset;
         display: flex;
         flex-direction: column;
         gap: 8px;
-        justify-content: center;
         align-items: stretch;
       }
 
@@ -12414,6 +12369,167 @@ GscapeToggle.styles = [
 ];
 customElements.define('gscape-toggle', GscapeToggle);
 
+function itemWithIriTemplate(item, onWikiLinkClick, useExternalLink = false) {
+    function wikiClickHandler() {
+        if (onWikiLinkClick)
+            onWikiLinkClick(item.iri);
+    }
+    return x `
+    <div class="item-with-iri-info ellipsed">
+      ${useExternalLink
+        ? x `<a 
+            href="${item.iri}"
+            title="${item.name}"
+            target="_blank"
+          >
+            ${item.name}
+          </a>`
+        : x `
+          <div 
+            class="name ${onWikiLinkClick ? 'link' : null}" 
+            title="${item.name}"
+            @click=${onWikiLinkClick ? wikiClickHandler : null}
+          >
+            ${item.name}
+          </div>
+        `}
+      
+      <div class="rtl"><div class="muted-text" style="text-align: center" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div></div>
+      <div class="muted-text type-or-version">
+        ${Array.from(item.typeOrVersion).map(text => {
+        if (Object.values(TypesEnum).includes(text)) {
+            return x `
+              <div class="type-or-version">
+                ${entityIcons[text]}
+                ${text || '-'}
+              </div>
+            `;
+        }
+        else {
+            return text || '-';
+        }
+    })}
+      </div>
+    </div>
+  `;
+}
+const itemWithIriTemplateStyle = i$1 `
+  .item-with-iri-info {
+    text-align:center;
+    background-color: var(--gscape-color-bg-inset);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .item-with-iri-info .type-or-version {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .item-with-iri-info .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+`;
+function annotationsTemplate(annotations) {
+    if (!annotations || annotations.length === 0)
+        return null;
+    let propertiesAlreadyInserted = [];
+    return x `
+    <div class="annotations">
+      ${annotations.map(annotation => {
+        var _a;
+        const property = annotation.property;
+        if (DefaultAnnotationProperties.comment.equals(annotation.property) || propertiesAlreadyInserted.includes(property))
+            return null;
+        propertiesAlreadyInserted.push(property);
+        let displayName;
+        if (Object.values(DefaultAnnotationProperties).find(x => x.equals(annotation.propertyIri.fullIri))) {
+            displayName = annotation.kind.charAt(0).toUpperCase() + annotation.kind.slice(1);
+        }
+        else {
+            displayName = annotation.propertyIri.prefixed;
+        }
+        return x `
+          <div class="annotation">
+            <div class="bold-text annotation-property">
+              <span class="slotted-icon">${(_a = annotationIcons[annotation.kind]) !== null && _a !== void 0 ? _a : A}</span>
+              <span>${displayName}</span>
+            </div>
+            ${annotations.filter(a => a.property === property).map(annotation => {
+            return x `
+                <div class="annotation-row">
+                  ${annotation.language ? x `<span class="language muted-text bold-text">@${annotation.language}</span>` : null}
+                  <span title="${annotation.value}">${annotation.value}</span>
+                </div>
+              `;
+        })}
+          </div>
+        `;
+    })}
+    </div>
+  `;
+}
+const annotationsStyle = i$1 `
+  .annotations {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .annotation-property {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .annotations .language {
+    margin-right: 6px
+  }
+
+  .annotation-row {
+    padding: 4px 8px;
+  }
+
+  .comment {
+    margin: 8px 0;
+    display: block;
+  }
+`;
+
+function commentsTemplate (annotatedElem, selectedLanguage, languageSelectionHandler) {
+    const commentsLanguages = Array.from(new Set(annotatedElem.getComments().map(comment => comment.language)));
+    selectedLanguage = commentsLanguages.includes(selectedLanguage) ? selectedLanguage : commentsLanguages[0];
+    return x `
+    <div class="section">
+      <div id="description-header" class="section-header">
+        <span class="slotted-icon">${commentIcon}</span>
+        <span class="bold-text">
+          Description
+        </span>
+        ${languageSelectionHandler !== undefined
+        ? x `
+            <select id="language-select" class="btn btn-s" @change=${languageSelectionHandler}>
+              ${commentsLanguages.map(language => {
+            return x `
+                  <option value="${language}" ?selected=${selectedLanguage === language}>
+                    @${language}
+                  </option>
+                `;
+        })}
+            </select>
+          `
+        : null}
+      </div>
+      <div class="section-body">
+        ${annotatedElem.getComments(selectedLanguage).map(comment => x `<span class="comment">${comment.value}</span>`)}
+      </div>
+    </div>
+  `;
+}
+
 class GscapeConfirmDialog extends ModalMixin(BaseMixin(s)) {
     constructor(message, dialogTitle = 'Confirm', type = 'neutral') {
         super();
@@ -12655,10 +12771,14 @@ class GscapeSelect extends DropPanelMixin(BaseMixin(s)) {
         return this._selectedOptionsId.has(id);
     }
     get selectedOptions() {
-        return this.options.filter(o => this.isIdSelected(o.id));
+        const result = this.options.filter(o => this.isIdSelected(o.id));
+        if (result.length === 0 && this.defaultOption) {
+            result.push(this.defaultOption);
+        }
+        return result;
     }
     get selectedOptionsId() {
-        return Array.from(this._selectedOptionsId);
+        return this.selectedOptions.map(o => o.id);
     }
     set selectedOptionsId(newSelectedOptionsId) {
         this._selectedOptionsId = new Set(newSelectedOptionsId);
@@ -12830,7 +12950,7 @@ function search(searchValue, entities, includeLabels = false, includeComments = 
     function matchInAnnotations(annotations, searchValue) {
         // search in labels defined in annotations (only for Graphol v3)
         for (const annotation of annotations) {
-            if (isMatch(annotation.lexicalForm, searchValue))
+            if (isMatch(annotation.value, searchValue))
                 return true;
         }
         return false; // only if no language has a match
@@ -13305,7 +13425,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
       </gscape-button>
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${(this.diagrams.length === 1 && this.currentDiagramId === 0) || this.diagrams.length === 0
+        ${(this.diagrams.length === 1 && this.currentDiagramId === 0 && !this.diagrams[-1]) || this.diagrams.length === 0
             ? x `
             <div class="blank-slate">
               ${blankSlateDiagrams}
@@ -13313,7 +13433,8 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
               <div class="description">The ontology contains only one diagram, the one displayed.</div>
             </div>
           `
-            : this.diagrams
+            : x `
+            ${this.diagrams
                 .sort(function (a, b) {
                 var x = a.name.toLowerCase();
                 var y = b.name.toLowerCase();
@@ -13326,13 +13447,24 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
                 return 0;
             })
                 .map(diagram => x `
-              <gscape-action-list-item
-                @click="${this.diagramSelectionHandler}"
-                label="${diagram.name}"
-                diagram-id="${diagram.id}"
-                ?selected = "${this.currentDiagramId === diagram.id}"
-              ></gscape-action-list-item>
-            `)}
+                <gscape-action-list-item
+                  @click="${this.diagramSelectionHandler}"
+                  label="${diagram.name}"
+                  diagram-id="${diagram.id}"
+                  ?selected = "${this.currentDiagramId === diagram.id}"
+                ></gscape-action-list-item>
+              `)}
+            ${this.diagrams[-1] !== undefined
+                ? x `
+                <gscape-action-list-item
+                  @click="${this.diagramSelectionHandler}"
+                  label="${this.diagrams[-1].name}"
+                  diagram-id="${this.diagrams[-1].id}"
+                  ?selected = "${this.currentDiagramId === this.diagrams[-1].id}"
+                ></gscape-action-list-item>
+              `
+                : null}
+          `}
         
       </div>
     `;
@@ -13342,7 +13474,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
         this.onDiagramSelection(selectedDiagramId);
     }
     get currentDiagram() {
-        return this.diagrams.find(diagram => diagram.id === this.currentDiagramId);
+        return this.diagrams[this.currentDiagramId];
     }
 }
 GscapeDiagramSelector.properties = {
@@ -13369,7 +13501,20 @@ customElements.define('gscape-diagram-selector', GscapeDiagramSelector);
  */
 function init$7 (diagramSelectorComponent, grapholscape) {
     // const diagramsViewData = grapholscape.ontology.diagrams
+    const updateDiagrams = (renderer) => {
+        var _a;
+        diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
+        if (renderer === RendererStatesEnum.FLOATY &&
+            ((_a = grapholscape.ontology.annotationsDiagram) === null || _a === void 0 ? void 0 : _a.isEmpty())) {
+            const index = diagramSelectorComponent.diagrams.indexOf(grapholscape.ontology.annotationsDiagram);
+            if (index >= 0) {
+                diagramSelectorComponent.diagrams.splice(index, 1);
+            }
+        }
+    };
     diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
+    if (grapholscape.renderState)
+        updateDiagrams(grapholscape.renderState);
     if (grapholscape.diagramId || grapholscape.diagramId === 0) {
         diagramSelectorComponent.currentDiagramId = grapholscape.diagramId;
     }
@@ -13378,11 +13523,12 @@ function init$7 (diagramSelectorComponent, grapholscape) {
     }
     diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram);
     grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
-        if (diagramSelectorComponent.diagrams.includes(diagram))
+        if (diagramSelectorComponent.diagrams[diagram.id]) {
             diagramSelectorComponent.currentDiagramId = diagram.id;
-        diagramSelectorComponent.currentDiagramName = diagram.name;
-        diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
+            diagramSelectorComponent.currentDiagramName = diagram.name;
+        }
     });
+    grapholscape.on(LifecycleEvent.RendererChange, updateDiagrams);
 }
 
 /**
@@ -13626,156 +13772,6 @@ function initColors(grapholscape) {
     setupColors(grapholscape);
 }
 
-function itemWithIriTemplate(item, onWikiLinkClick, useExternalLink = false) {
-    function wikiClickHandler() {
-        if (onWikiLinkClick)
-            onWikiLinkClick(item.iri);
-    }
-    return x `
-    <div class="item-with-iri-info ellipsed">
-      ${useExternalLink
-        ? x `<a 
-            href="${item.iri}"
-            title="${item.name}"
-            target="_blank"
-          >
-            ${item.name}
-          </a>`
-        : x `
-          <div 
-            class="name ${onWikiLinkClick ? 'link' : null}" 
-            title="${item.name}"
-            @click=${onWikiLinkClick ? wikiClickHandler : null}
-          >
-            ${item.name}
-          </div>
-        `}
-      
-      <div class="rtl"><div class="muted-text" style="text-align: center" title="iri: ${item.iri}"><bdo dir="ltr">${item.iri}</bdo></div></div>
-      <div class="muted-text type-or-version">
-        ${Array.from(item.typeOrVersion).map(text => {
-        if (Object.values(TypesEnum).includes(text)) {
-            return x `
-              <div class="type-or-version">
-                ${entityIcons[text]}
-                ${text || '-'}
-              </div>
-            `;
-        }
-        else {
-            return text || '-';
-        }
-    })}
-      </div>
-    </div>
-  `;
-}
-const itemWithIriTemplateStyle = i$1 `
-  .item-with-iri-info {
-    text-align:center;
-    background-color: var(--gscape-color-bg-inset);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .item-with-iri-info .type-or-version {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .item-with-iri-info .name {
-    font-size: 14px;
-    font-weight: 600;
-  }
-`;
-function annotationsTemplate(annotations) {
-    if (!annotations || annotations.length === 0)
-        return null;
-    let propertiesAlreadyInserted = [];
-    return x `
-    <div class="annotations">
-      ${annotations.map(annotation => {
-        var _a;
-        const property = annotation.property;
-        if (DefaultAnnotationProperties.comment.equals(annotation.property) || propertiesAlreadyInserted.includes(property))
-            return null;
-        propertiesAlreadyInserted.push(property);
-        return x `
-          <div class="annotation">
-            <div class="bold-text annotation-property">
-              <span class="slotted-icon">${(_a = annotationIcons[annotation.kind]) !== null && _a !== void 0 ? _a : A}</span>
-              <span>${annotation.kind.charAt(0).toUpperCase() + annotation.kind.slice(1)}</span>
-            </div>
-            ${annotations.filter(a => a.property === property).map(annotation => {
-            return x `
-                <div class="annotation-row">
-                  ${annotation.language ? x `<span class="language muted-text bold-text">@${annotation.language}</span>` : null}
-                  <span title="${annotation.lexicalForm}">${annotation.lexicalForm}</span>
-                </div>
-              `;
-        })}
-          </div>
-        `;
-    })}
-    </div>
-  `;
-}
-const annotationsStyle = i$1 `
-  .annotations {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .annotation-property {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .annotations .language {
-    margin-right: 6px
-  }
-
-  .annotation-row {
-    padding: 4px 8px;
-  }
-
-  .comment {
-    margin: 8px 0;
-    display: block;
-  }
-`;
-
-function commentsTemplate (annotatedElem, selectedLanguage, languageSelectionHandler) {
-    const commentsLanguages = Array.from(new Set(annotatedElem.getComments().map(comment => comment.language)));
-    selectedLanguage = commentsLanguages.includes(selectedLanguage) ? selectedLanguage : commentsLanguages[0];
-    return x `
-    <div class="section">
-      <div id="description-header" class="section-header">
-        <span class="slotted-icon">${commentIcon}</span>
-        <span class="bold-text">
-          Description
-        </span>
-        <select id="language-select" class="btn btn-s" @change=${languageSelectionHandler}>
-          ${commentsLanguages.map(language => {
-        return x `
-              <option value="${language}" ?selected=${selectedLanguage === language}>
-                @${language}
-              </option>
-            `;
-    })}
-        </select>
-      </div>
-      <div class="section-body">
-        ${annotatedElem.getComments(selectedLanguage).map(comment => x `<span class="comment">${comment.lexicalForm}</span>`)}
-      </div>
-    </div>
-  `;
-}
-
 class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
     constructor() {
         super(...arguments);
@@ -13952,23 +13948,29 @@ GscapeEntityDetails.styles = [
         position: absolute;
         top:10px;
         right:62px;
-        max-height: 50%;
-        min-height: 200px;
-        min-width: 300px;
-        max-width: 20%;
+        height: fit-content;
+        max-height: calc(100vh - 40px);
+        width: 30%;
         display: flex;
         flex-direction: column;
-        pointer-events: none;
+        overflow: auto;
+        resize: both;
+        direction: rtl;
+      }
+
+      #drop-panel {
+        direction: ltr;
       }
 
       .gscape-panel {
-        padding:0;
-        max-height: inherit;
+        padding: 0;
         display: flex;
         flex-direction: column;
-        width: inherit;
+        height: 100%;
+        width: 100%;
+        max-height: unset;
         max-width: unset;
-        min-width: unset;
+        box-sizing: border-box;
       }
 
       .gscape-panel > * {
@@ -15727,7 +15729,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.9"}</span>
+            <span>${"4.0.10"}</span>
           </div>
         </div>
       </div>
@@ -16366,7 +16368,10 @@ var index$1 = /*#__PURE__*/Object.freeze({
     get ToggleLabelPosition () { return ToggleLabelPosition; },
     get WidgetEnum () { return WidgetEnum; },
     a11yClick: a11yClick,
+    annotationsStyle: annotationsStyle,
+    annotationsTemplate: annotationsTemplate,
     baseStyle: baseStyle,
+    commentsTemplate: commentsTemplate,
     contentSpinnerStyle: contentSpinnerStyle,
     createEntitiesList: createEntitiesList,
     emptySearchBlankState: emptySearchBlankState,
@@ -16378,6 +16383,8 @@ var index$1 = /*#__PURE__*/Object.freeze({
     icons: index$3,
     initInitialRendererSelector: initInitialRendererSelector,
     initUI: init,
+    itemWithIriTemplate: itemWithIriTemplate,
+    itemWithIriTemplateStyle: itemWithIriTemplateStyle,
     search: search,
     setColorList: setColorList,
     showMessage: showMessage,
@@ -18597,7 +18604,7 @@ class GrapholParser {
         let i, k, nodes, edges;
         let diagrams = this.xmlDocument.getElementsByTagName('diagram');
         for (i = 0; i < diagrams.length; i++) {
-            const diagram = new Diagram(diagrams[i].getAttribute('name') || '', i);
+            const diagram = new Diagram(diagrams[i].getAttribute('name') || '', this.ontology.diagrams.length);
             this.ontology.addDiagram(diagram);
             nodes = diagrams[i].getElementsByTagName('node');
             edges = diagrams[i].getElementsByTagName('edge');
@@ -18630,7 +18637,7 @@ class GrapholParser {
                         }
                         grapholEntity.annotations = this.graphol.getEntityAnnotations(nodeXmlElement, this.xmlDocument, this.ontology.namespaces);
                         grapholEntity.getAnnotations().forEach(annotation => {
-                            if (annotation.hasIriRange() && annotation.rangeIri) {
+                            if (annotation.hasIriValue && annotation.rangeIri) {
                                 // if (!this.ontology.getEntity(annotation.rangeIri)) {
                                 //   this.ontology.addEntity(new GrapholEntity(annotation.rangeIri))
                                 // }
@@ -19181,4 +19188,4 @@ function showLoadingSpinner(container, config) {
     return spinner;
 }
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalBase, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, index as IncrementalUI, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, NeighbourhoodFinder, Ontology, OntologyColorManager, POLYGON_POINTS, rdfGraphParser as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index$4 as SwaggerModel, ThemeManager, TypesEnum, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyStyle as floatyGraphStyle, floatyOptions, fullGrapholscape, getDefaultFilters, floatyStyle as getFloatyStyle, grapholStyle as grapholGraphStyle, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, incrementalStyle as incrementalGraphStyle, incrementalGrapholscape, initFromResume, isGrapholEdge, isGrapholNode, liteStyle as liteGraphStyle, liteOptions, loadConfig, parseRDFGraph, rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index$1 as ui, index$2 as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, AnnotationsDiagram, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeTheme, Hierarchy, IncrementalBase, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, index as IncrementalUI, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, NeighbourhoodFinder, Ontology, OntologyColorManager, POLYGON_POINTS, rdfGraphParser as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index$4 as SwaggerModel, ThemeManager, TypesEnum, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, floatyStyle as floatyGraphStyle, floatyOptions, fullGrapholscape, getDefaultFilters, floatyStyle as getFloatyStyle, grapholStyle as grapholGraphStyle, cytoscapeDefaultConfig as grapholOptions, gscapeColourMap, incrementalStyle as incrementalGraphStyle, incrementalGrapholscape, initFromResume, isGrapholEdge, isGrapholNode, liteStyle as liteGraphStyle, liteOptions, loadConfig, parseRDFGraph, rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index$1 as ui, index$2 as util };

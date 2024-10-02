@@ -412,7 +412,13 @@ interface Annotation$1 {
      * @type {string}
      * @memberof Annotation
      */
-    lexicalForm: string;
+    value: string;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Annotation
+     */
+    hasIriValue?: boolean;
     /**
      *
      * @type {string}
@@ -1002,6 +1008,12 @@ interface DataPropertyValue {
      * @memberof DataPropertyValue
      */
     datatype?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof DataPropertyValue
+     */
+    renderingProperties?: Array<string>;
 }
 /**
  * Check if a given object implements the DataPropertyValue interface.
@@ -3122,14 +3134,14 @@ declare class Annotation implements Annotation$1 {
     datatype?: string;
     constructor(property: Iri, range: string | Iri, language?: string, datatype?: string);
     equals(annotation: Annotation): boolean;
-    hasIriRange(): boolean;
+    get hasIriValue(): boolean;
     get property(): string;
     get propertyIri(): AnnotationProperty;
     get kind(): string;
-    get lexicalForm(): string;
+    get value(): string;
     /**
      * If the range is a Iri, return such a Iri, undefined otherwise
-     */
+    */
     get rangeIri(): Iri | undefined;
 }
 
@@ -3786,7 +3798,7 @@ declare class DiagramBuilder {
     private getCurrentCenterPos;
 }
 
-declare function export_default$7(theme: GrapholscapeTheme): Stylesheet[];
+declare function export_default$8(theme: GrapholscapeTheme): Stylesheet[];
 
 declare function computeHierarchies(ontology: Ontology): void;
 
@@ -4413,6 +4425,18 @@ declare class GscapeToggle extends LitElement {
     render(): lit_html.TemplateResult<1>;
 }
 
+type ViewItemWithIri = {
+    name: string;
+    typeOrVersion: string[];
+    iri: string;
+};
+declare function itemWithIriTemplate(item: ViewItemWithIri, onWikiLinkClick?: (iri: string) => void, useExternalLink?: boolean): lit_html.TemplateResult<1>;
+declare const itemWithIriTemplateStyle: lit.CSSResult;
+declare function annotationsTemplate(annotations: Annotation[]): lit_html.TemplateResult<1> | null;
+declare const annotationsStyle: lit.CSSResult;
+
+declare function export_default$7(annotatedElem: AnnotatedElement, selectedLanguage: string | undefined, languageSelectionHandler?: (e: Event) => void): lit_html.TemplateResult<1>;
+
 declare const GscapeConfirmDialog_base: (new (...args: any[]) => IModalMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeConfirmDialog extends GscapeConfirmDialog_base {
     message?: string | undefined;
@@ -4768,16 +4792,21 @@ type index_d$2_TabProps = TabProps;
 type index_d$2_ToggleLabelPosition = ToggleLabelPosition;
 declare const index_d$2_ToggleLabelPosition: typeof ToggleLabelPosition;
 type index_d$2_UiOption = UiOption;
+type index_d$2_ViewItemWithIri = ViewItemWithIri;
 type index_d$2_ViewObjectProperty = ViewObjectProperty;
 type index_d$2_WidgetEnum = WidgetEnum;
 declare const index_d$2_WidgetEnum: typeof WidgetEnum;
 declare const index_d$2_a11yClick: typeof a11yClick;
+declare const index_d$2_annotationsStyle: typeof annotationsStyle;
+declare const index_d$2_annotationsTemplate: typeof annotationsTemplate;
 declare const index_d$2_contentSpinnerStyle: typeof contentSpinnerStyle;
 declare const index_d$2_createEntitiesList: typeof createEntitiesList;
 declare const index_d$2_getContentSpinner: typeof getContentSpinner;
 declare const index_d$2_getEntityOccurrencesTemplate: typeof getEntityOccurrencesTemplate;
 declare const index_d$2_hasDropPanel: typeof hasDropPanel;
 declare const index_d$2_initInitialRendererSelector: typeof initInitialRendererSelector;
+declare const index_d$2_itemWithIriTemplate: typeof itemWithIriTemplate;
+declare const index_d$2_itemWithIriTemplateStyle: typeof itemWithIriTemplateStyle;
 declare const index_d$2_search: typeof search;
 declare const index_d$2_setColorList: typeof setColorList;
 declare const index_d$2_showMessage: typeof showMessage;
@@ -4828,10 +4857,14 @@ declare namespace index_d$2 {
     index_d$2_TabProps as TabProps,
     index_d$2_ToggleLabelPosition as ToggleLabelPosition,
     index_d$2_UiOption as UiOption,
+    index_d$2_ViewItemWithIri as ViewItemWithIri,
     index_d$2_ViewObjectProperty as ViewObjectProperty,
     index_d$2_WidgetEnum as WidgetEnum,
     index_d$2_a11yClick as a11yClick,
+    index_d$2_annotationsStyle as annotationsStyle,
+    index_d$2_annotationsTemplate as annotationsTemplate,
     _default$2 as baseStyle,
+    export_default$7 as commentsTemplate,
     index_d$2_contentSpinnerStyle as contentSpinnerStyle,
     index_d$2_createEntitiesList as createEntitiesList,
     _default$1 as emptySearchBlankState,
@@ -4843,6 +4876,8 @@ declare namespace index_d$2 {
     index_d$3 as icons,
     index_d$2_initInitialRendererSelector as initInitialRendererSelector,
     export_default$6 as initUI,
+    index_d$2_itemWithIriTemplate as itemWithIriTemplate,
+    index_d$2_itemWithIriTemplateStyle as itemWithIriTemplateStyle,
     index_d$2_search as search,
     index_d$2_setColorList as setColorList,
     index_d$2_showMessage as showMessage,
@@ -5568,6 +5603,13 @@ declare class Hierarchy implements Hierarchy$1 {
     isValid(): boolean | "";
 }
 
+declare class AnnotationsDiagram extends Diagram {
+    private representation;
+    constructor();
+    addIRIValueAnnotation(sourceEntity: GrapholEntity, annotationPropertyEntity: GrapholEntity, targetIri: Iri, entityNameType: RDFGraphConfigEntityNameTypeEnum, language: Language, targetEntity?: GrapholEntity): void;
+    isEmpty(): boolean;
+}
+
 /**
  * ### Ontology
  * Class used as the Model of the whole app.
@@ -5577,7 +5619,8 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     version: string;
     namespaces: Namespace[];
     annProperties: AnnotationProperty[];
-    diagrams: Diagram[];
+    diagrams: (Diagram | AnnotationsDiagram)[];
+    ontologyEntity: GrapholEntity;
     languages: string[];
     defaultLanguage?: string;
     iri?: string;
@@ -5649,12 +5692,6 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     getGrapholNode(nodeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
     getGrapholEdge(edgeId: string, diagramId?: number, renderState?: RendererStatesEnum): GrapholNode | undefined;
     /**
-     * Retrieve an entity by its IRI.
-     * @param {string} iri - The IRI in full or prefixed form.
-     * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
-     * @returns {cytoscape.CollectionReturnValue} The cytoscape object representation.
-     */
-    /**
      * Retrieve all occurrences of an entity by its IRI.
      * @param {string} iri - The IRI in full or prefixed form.
      * i.e. : `grapholscape:world` or `https://examples/grapholscape/world`
@@ -5662,25 +5699,18 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
      */
     getEntityOccurrences(iri: string, diagramId?: number, renderState?: RendererStatesEnum): Map<RendererStatesEnum, GrapholElement[]> | undefined;
     /**
-     * Get the entities in the ontology
-     * @returns {Object.<string, cytoscape.CollectionReturnValue[]>} a map of IRIs, with an array of entity occurrences (object[iri].occurrences)
-     */
-    /**
-     * Check if entity has the specified iri in full or prefixed form
-     * @param {Entity} entity
-     * @param {string} iri
-     * @returns {boolean}
-     */
-    /**
      * Retrieve the full IRI given a prefixed IRI
      * @param {string} prefixedIri a prefixed IRI
      * @returns {string} full IRI
      */
     prefixedToFullIri(prefixedIri: string): string | undefined;
     computeDatatypesOnDataProperties(): void;
+    /** @override */
+    addAnnotation(newAnnotation: Annotation): void;
     get isEntitiesEmpty(): boolean;
     get entities(): Map<string, GrapholEntity>;
     set entities(newEntities: Map<string, GrapholEntity>);
+    get annotationsDiagram(): AnnotationsDiagram | undefined;
 }
 
 declare class IncrementalDiagram extends Diagram {
@@ -6097,4 +6127,4 @@ declare function resume(rdfGraph: RDFGraph, container: HTMLElement, config?: Gra
  */
 declare function initFromResume(grapholscape: Grapholscape, rdfGraph: RDFGraph, forceInit?: boolean, useCustomIncrementalController?: boolean): void;
 
-export { AnnotatedElement, Annotation, AnnotationProperty, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalBase, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, index_d$1 as IncrementalUI, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, NeighbourhoodFinder, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$4 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, export_default$7 as floatyGraphStyle, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$7 as getFloatyStyle, export_default as grapholGraphStyle, _default as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, export_default$2 as incrementalGraphStyle, incrementalGrapholscape, initFromResume, isGrapholEdge, isGrapholNode, export_default$1 as liteGraphStyle, liteOptions, loadConfig, parseRDFGraph, export_default$4 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$2 as ui, index_d as util };
+export { AnnotatedElement, Annotation, AnnotationProperty, AnnotationsDiagram, BaseFilterManager, BaseRenderer, Breakpoint, CSS_PROPERTY_NAMESPACE, ClassInstanceEntity, ColourMap, ColoursNames, Core, DefaultAnnotationProperties, RDFGraphConfigFiltersEnum as DefaultFilterKeyEnum, DefaultNamespaces, DefaultThemes, DefaultThemesEnum, Diagram, DiagramBuilder, DiagramColorManager, DiagramRepresentation, DisplayedNamesManager, RDFGraphConfigEntityNameTypeEnum as EntityNameType, EntityNavigator, Filter, FloatyRendererState, FunctionPropertiesEnum as FunctionalityEnum, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, GrapholNodeInfo, GrapholNodesEnum, GrapholRendererState, Grapholscape, GrapholscapeConfig, GrapholscapeTheme, Hierarchy, IEventTriggers, IncrementalBase, IncrementalController, IncrementalDiagram, IncrementalEvent, IncrementalRendererState, index_d$1 as IncrementalUI, IonEvent, IonIncrementalEvent, Iri, Language, Lifecycle, LifecycleEvent, LiteRendererState, Namespace, NeighbourhoodFinder, Ontology, OntologyColorManager, POLYGON_POINTS, Position, rdfGraphParser_d as RDFGraphParser, Renderer, RendererStatesEnum, Shape, index_d$4 as SwaggerModel, ThemeConfig, ThemeManager, TypesEnum, Viewport, WidgetsConfig, annotationPropertyFilter, bareGrapholscape, classicColourMap, clearLocalStorage, computeHierarchies, darkColourMap, export_default$8 as floatyGraphStyle, floatyOptions, fullGrapholscape, getDefaultFilters, export_default$8 as getFloatyStyle, export_default as grapholGraphStyle, _default as grapholOptions, gscapeColourMap, FilterManager as iFilterManager, RenderState as iRenderState, export_default$2 as incrementalGraphStyle, incrementalGrapholscape, initFromResume, isGrapholEdge, isGrapholNode, export_default$1 as liteGraphStyle, liteOptions, loadConfig, parseRDFGraph, export_default$4 as rdfgraphSerializer, resume, setGraphEventHandlers, storeConfigEntry, toPNG, toSVG, index_d$2 as ui, index_d as util };
